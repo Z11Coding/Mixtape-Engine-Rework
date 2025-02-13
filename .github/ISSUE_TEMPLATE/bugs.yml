@@ -1,0 +1,78 @@
+name: Bug report
+description: Report bugs with the engine here
+labels: [bug, status: pending triage]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe your bug here. If you are modding, try testing your bug in a clean version of the engine instead. Also, if you're using an older version of JSE, please try the latest version/action build. Also, be sure to check the pinned 'JS Engine: Known Issues' issue, to check if your issue hasn't already been found!"
+    validations:
+      required: true
+
+  - type: textarea
+    id: terminal
+    attributes:
+      label: "Command Prompt/Terminal/Crash logs (if existing)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "Have you identified any steps to reproduce the bug? If so, please describe them below in as much detail as possible. Use images if possible."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: modding
+    attributes:
+      label: "Are you modding a build from source or with Lua?"
+      options:
+        - Lua
+        - Source
+    validations:
+      required: true
+
+  - type: dropdown
+    id: btarget
+    attributes:
+      label: "What is your build target?"
+      options:
+        - "Windows"
+        - "Linux"
+        - "Mac"
+        - "HTML5"
+        - "Android"
+        - "iOS"
+        - "Flash/Air-based target"
+        - "Neko, HashLink, or other build system"
+    validations:
+      required: true
+
+  - type: input
+    id: buildsummary
+    attributes:
+      label: "Did you edit anything in this build? If so, mention or summarize your changes."
+      placeholder: "Yes, I edited ClientPrefs.hx and tried to add a new setting"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: oclt
+    attributes:
+      label: "If you use 1.12.0 or earlier, did you have Optimized Chart Loading turned on?"
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: false
+      
+  - type: dropdown
+    id: duplicatecheck
+    attributes:
+      label: "Did you check for any similar issues to what you're reporting? Check, then come back here. If there is a similar issue, then do not report the issue, otherwise it will be marked as a duplicate."
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true

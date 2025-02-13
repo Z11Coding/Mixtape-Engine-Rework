@@ -1,0 +1,64 @@
+name: Mobile Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  get-latest-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      latest_tag: ${{ steps.get_tag.outputs.LATEST_TAG }}
+    steps:
+      - name: Get latest release tag
+        id: get_tag
+        run: |
+          latest_tag=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r .tag_name)
+          echo "Latest tag is $latest_tag"
+          echo "::set-output name=LATEST_TAG::$latest_tag"
+
+  build:
+    name: Build
+    uses: ./.github/workflows/mobile.yml
+    with:
+      buildFlags: officialBuild
+
+  release-android:
+    name: Release androidBuild
+    needs: [get-latest-tag, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Android artifact
+        uses: actions/download-artifact@main
+        with:
+          name: androidBuild
+      - name: Upload androidBuild to release
+        uses: svenstaro/upload-release-action@2.5.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.get-latest-tag.outputs.latest_tag }}
+          file: JSEngine-release.apk
+          asset_name: FNF-JS-Engine-android.apk
+          overwrite: false
+
+  release-ios:
+    name: Release iOSBuild
+    needs: [get-latest-tag, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download iOS artifact
+        uses: actions/download-artifact@main
+        with:
+          name: iOSBuild
+      - name: Zip For Release
+        run: zip -r JSEngine-iOS.zip JSEngine.ipa
+      - name: Upload iOSBuild to release
+        uses: svenstaro/upload-release-action@2.5.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.get-latest-tag.outputs.latest_tag }}
+          file: JSEngine-iOS.zip
+          asset_name: FNF-JS-Engine-iOS.zip
+          overwrite: false

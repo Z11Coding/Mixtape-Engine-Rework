@@ -1,0 +1,14 @@
+G - Ruh Rouh!, 0.2
+F - OOF, 0.4
+E - Like, You're Bad, 0.5
+D - Like, how are you still alive?, 0.6
+C - ZOINKS!, 0.69
+Nice, WOW, that's a funny number man!, 0.7
+B - That's like, really cool..., 0.75
+B+ - Hey man, you're starting to improve!, 0.8
+A - This is a challenge!, 0.85
+AA - Hey Scoob, this kid is good!, 0.9
+S - Like, Thats Good, 0.95
+SS - Like, Thats Great, 0.97
+SSS - Like, Thats Sick!, 1
+SSSS - Like, WOW, 1
