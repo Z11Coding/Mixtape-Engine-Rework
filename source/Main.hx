@@ -38,6 +38,11 @@ class Main extends Sprite {
 	public static var fpsVar:FPSCounter;
 	public static var closing:Bool = false;
 
+	public static var cmdArgs:Array<String> = Sys.args();
+	public static var noTerminalColor:Bool = false;
+	public static var playTest:Bool = false;
+	public static var forceGPUOnlyBitmapsOff:Bool = #if windows false #else true #end;
+
 	public static inline function closeGame():Void
 	{
 		// if (Main.commandPrompt != null)
@@ -127,6 +132,7 @@ class Main extends Sprite {
 
 	@:dox(hide)
 	public static var audioDisconnected:Bool = false;
+	public static var changeID:Int = 0;
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
 

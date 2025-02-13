@@ -3,6 +3,7 @@ package states;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.FlxG;
 import flixel.FlxState;
+import backend.AudioSwitchFix;
 
 /**
  * Handles initialization of variables when first opening the game.
@@ -61,6 +62,7 @@ class InitState extends FlxState {
         // -- -- -- //
         
         MemoryUtil.init();
+		AudioSwitchFix.init();
 		utils.window.WindowUtils.init();
         utils.window.CppAPI._setWindowLayered();
 		utils.window.CppAPI.darkMode();

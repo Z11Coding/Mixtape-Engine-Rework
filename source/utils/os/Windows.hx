@@ -122,7 +122,7 @@ class Windows {
 
 
 	@:functionCode('
-	if (!curAudioFix) curAudioFix = new AudioFixClient();
+		if (!curAudioFix) curAudioFix = new AudioFixClient();
 	')
 	public static function registerAudio() {
 		//Main.audioDisconnected = false;
