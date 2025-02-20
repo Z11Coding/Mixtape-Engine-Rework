@@ -1,8 +1,8 @@
 package psychlua;
-import llua.State;
+
 import Type.ValueType;
 import haxe.Constraints;
-import states.PlayState;
+
 import substates.GameOverSubstate;
 
 //

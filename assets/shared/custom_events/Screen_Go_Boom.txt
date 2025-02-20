@@ -1,0 +1,4 @@
+The screen explodes
+Value 1 - Duration
+
+Default is 1 second (40 fps)

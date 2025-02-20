@@ -1,8 +1,9 @@
+
 #if !macro
 
 //Discord API
 #if DISCORD_ALLOWED
-import backend.DiscordClient;
+import backend.Discord;
 #end
 
 #if desktop
@@ -18,7 +19,6 @@ import llua.Lua;
 #if ACHIEVEMENTS_ALLOWED
 import backend.Achievements;
 #end
-import haxe.ds.Vector as HaxeVector; //apparently denpa uses vectors, which is required for camera panning i guess
 
 #if sys
 import sys.*;
@@ -27,47 +27,64 @@ import sys.io.*;
 import js.html.*;
 #end
 
-#if LUA_ALLOWED
-import llua.*;
-import llua.Lua;
-#end
+import backend.Mods;
+import backend.Paths;
+import backend.Controls;
+import backend.CoolUtil;
+import backend.Conductor;
+import backend.BaseStage;
+import backend.Difficulty;
+import backend.AudioThing;
+import backend.ClientPrefs;
+import backend.MusicBeatState;
+import backend.MusicBeatSubstate;
+import backend.CustomFadeTransition;
+import backend.TransitionState;
+import backend.ArtemisIntegration;
+import backend.Language;
+
+import backend.util.ColorUtil; //Thanks, Jack Bass. Very Cool
+import backend.ui.*; //Psych-UI
+import backend.*; //Everything Else
+
+
+import objects.Note;
+import objects.Alphabet;
+import objects.BGSprite;
+import objects.StrumNote;
+import objects.HealthIcon;
+import objects.NoteObject;
+
+import states.PlayState;
+import states.LoadingState;
 
 #if flxanimate
 import flxanimate.*;
 import flxanimate.PsychFlxAnimate as FlxAnimate;
 #end
 
-// Madatory things
+
+import shaders.ColorSwap;
+
+import backend.math.Vector3;
+
+import backend.util.MemoryUtil;
 import backend.Cursor;
-import backend.Controls;
-import backend.Paths;
-import backend.BaseStage.Countdown; //so that it doesn't bring up a "Type not found: Countdown"
-import states.MusicBeatState;
-import substates.MusicBeatSubstate;
-import objects.notes.Note;
-import utils.MemoryUtil;
-import music.Conductor;
-import backend.ClientPrefs;
-import backend.Mods;
-import objects.BGSprite;
-import backend.Language;
-import utils.CoolUtil;
-import states.menus.MenuTracker;
-import objects.Alphabet;
-import states.LoadingState;
-import backend.TransitionState;
-import utils.window.Window;
-import utils.window.CppAPI;
-import music.Song;
+
+//Window Stuff
+import backend.window.Window;
+import backend.window.WindowUtil;
+import backend.window.WindowUtils;
 
 //Flixel
 import flixel.sound.FlxSound;
 import flixel.FlxG;
+import flixel.FlxBasic;
+import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
-import flixel.math.FlxRect;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.text.FlxText;
@@ -75,14 +92,33 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.util.FlxDestroyUtil;
 import flixel.addons.transition.FlxTransitionableState;
-import flixel.FlxBasic;
 
+import objects.playfields.*;
 
+import shop.*;
+
+// import backend.modules.MathSolver;
+import backend.modules.MathSolver2;
+import backend.modules.ArrayToMapConverter;
+import backend.modules.SoundLayer;
+// import backend.modules.SoundGroup;
+import backend.modules.Variable;
+using HoldableVariable;
+using DataStorage;
+using backend.FNFC;
+using backend.modules.EventFunc;
+using backend.modules.Number;
+
+using yutautil.CollectionUtils;
+using backend.ChanceSelector;
+using options.Toggle;
 using StringTools;
-using utils.yutautil.CollectionUtils;
-using utils.yutautil.Table;
-using utils.yutautil.ChanceSelector;
+using IterSingle;
+
+#if test
+// import backend.TestState;
+#end
+// using BoolConcepts; WIP
 
 #end

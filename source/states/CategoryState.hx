@@ -2,7 +2,6 @@ package states;
 import flixel.input.keyboard.FlxKey;
 import flixel.addons.transition.FlxTransitionableState;
 import backend.WeekData;
-import objects.Alphabet;
 
 typedef Category = {
 	var name:String;
@@ -249,7 +248,7 @@ class CategoryState extends MusicBeatState
 			if (controls.BACK)
 			{
 				FlxG.sound.play(Paths.sound('cancelMenu'));
-				MusicBeatState.switchState(Type.createInstance(MenuTracker.mainMenuState, []));
+				MusicBeatState.switchState(new MainMenuState());
 			}
 
 			if (FlxG.keys.firstJustPressed() != FlxKey.NONE)

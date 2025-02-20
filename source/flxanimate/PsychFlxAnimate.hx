@@ -6,8 +6,6 @@ import flxanimate.frames.FlxAnimateFrames;
 import flxanimate.data.AnimationData;
 import flxanimate.FlxAnimate as OriginalFlxAnimate;
 
-using StringTools;
-
 class PsychFlxAnimate extends OriginalFlxAnimate
 {
 	public function loadAtlasEx(img:FlxGraphicAsset, pathOrStr:String = null, myJson:Dynamic = null)

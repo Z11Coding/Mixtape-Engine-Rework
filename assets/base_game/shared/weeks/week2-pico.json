@@ -1,0 +1,36 @@
+{
+	"storyName": "Spooky Month",
+	"difficulties": "Easy,Normal,Hard",
+	"hideFreeplay": false,
+	"weekBackground": "halloween",
+	"weekBefore": "week1",
+	"startUnlocked": true,
+	"category": "pico",
+	"hideStoryMode": true,
+	"weekCharacters": [
+		"spooky",
+		"bf",
+		"gf"
+	],
+	"songs": [
+		[
+			"Spookeez (Pico mix)",
+			"spooky",
+			[
+				34,
+				51,
+				68
+			]
+		],
+		[
+			"South (Pico mix)",
+			"spooky",
+			[
+				34,
+				51,
+				68
+			]
+		]
+	],
+	"weekName": "Week 2"
+}

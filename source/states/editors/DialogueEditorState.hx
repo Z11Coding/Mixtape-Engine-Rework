@@ -8,17 +8,15 @@ import haxe.Json;
 
 import objects.TypedAlphabet;
 
-import cutscenes.DialogueBoxPsych;
-import cutscenes.DialogueCharacter;
-import substates.Prompt2;
-import backend.ui.*;
+import backend.cutscenes.DialogueBoxPsych;
+import backend.cutscenes.DialogueCharacter;
+import states.editors.content.Prompt;
 
 class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
 	var character:DialogueCharacter;
 	var box:FlxSprite;
 	var daText:TypedAlphabet;
-	var music:EditingMusic;
 
 	var selectedText:FlxText;
 	var animText:FlxText;
@@ -28,7 +26,6 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 	var unsavedProgress:Bool = false;
 
 	override function create() {
-		music = new EditingMusic();
 		persistentUpdate = persistentDraw = true;
 		FlxG.camera.bgColor = FlxColor.fromHSL(0, 0, 0.5);
 
@@ -330,9 +327,8 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 					MusicBeatState.switchState(new states.editors.MasterEditorMenu());
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 					transitioning = true;
-					if (music != null && music.music != null) music.destroy();
 				}
-				else openSubState(new substates.Prompt2.ExitConfirmationPrompt(function() transitioning = true));
+				else openSubState(new ExitConfirmationPrompt(function() transitioning = true));
 				return;
 			}
 			var negaMult:Array<Int> = [1, -1];
@@ -372,7 +368,6 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		}
 		else ClientPrefs.toggleVolumeKeys(false);
 		super.update(elapsed);
-		music.update(elapsed);
 	}
 
 	function changeText(add:Int = 0) {
@@ -537,18 +532,5 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 		_file = null;
 		FlxG.log.error("Problem saving file");
-	}
-
-	override public function onFocusLost():Void
-	{
-		if (music != null && music.music != null) music.pauseMusic();
-
-		super.onFocusLost();
-	}
-	override public function onFocus():Void
-	{
-		if (music != null && music.music != null) music.unpauseMusic();
-
-		super.onFocus();
 	}
 }

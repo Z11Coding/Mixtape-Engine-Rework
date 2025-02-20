@@ -1,0 +1,54 @@
+{
+	"storyName": "Due Debts",
+	"difficulties": "Easy, Normal, Hard",
+	"hideFreeplay": false,
+	"weekBackground": "phillystreets",
+	"weekBefore": "",
+	"startUnlocked": true,
+	"hideStoryMode": false,
+	"songs": [
+		[
+			"Darnell",
+			"darnell",
+			[
+				65,
+				60,
+				174
+			]
+		],
+		[
+			"Lit Up",
+			"darnell",
+			[
+				65,
+				60,
+				174
+			]
+		],
+		[
+			"2Hot",
+			"darnell",
+			[
+				65,
+				60,
+				174
+			]
+		],
+		[
+			"Blazin",
+			"darnell",
+			[
+				65,
+				60,
+				174
+			]
+		]
+	],
+	"category": "pico",
+	"weekCharacters": [
+		"darnell",
+		"pico-player",
+		"nene"
+	],
+	"weekName": "Weekend 1"
+}

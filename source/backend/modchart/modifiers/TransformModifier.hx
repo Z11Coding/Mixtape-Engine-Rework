@@ -7,7 +7,6 @@ import flixel.math.FlxMath;
 import flixel.FlxG;
 import backend.math.Vector3;
 import backend.math.*;
-import objects.playfields.NoteField;
 
 class TransformModifier extends NoteModifier { // this'll be transformX in ModManager
     inline function lerp(a:Float,b:Float,c:Float){
@@ -20,7 +19,7 @@ class TransformModifier extends NoteModifier { // this'll be transformX in ModMa
     override function getOrder()
         return Modifier.ModifierOrder.LAST;
 
-    override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
+    override function getPos( visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
     {
         pos.x += getValue(player) + getSubmodValue("transformX-a",player);
 		pos.y += getSubmodValue("transformY", player) + getSubmodValue("transformY-a",player);
@@ -36,7 +35,7 @@ class TransformModifier extends NoteModifier { // this'll be transformX in ModMa
     override function getSubmods(){
 		var subMods:Array<String> = ["transformY", "transformZ", "transformX-a", "transformY-a", "transformZ-a"];
 
-        for(i in 0...Note.ammo[states.PlayState.mania]){
+        for(i in 0...Note.ammo[PlayState.mania]){
 			subMods.push('transform${i}X');
 			subMods.push('transform${i}Y');
 			subMods.push('transform${i}Z');

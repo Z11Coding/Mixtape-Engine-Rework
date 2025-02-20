@@ -1,9 +1,8 @@
 package states.editors.content;
 
-import objects.notes.Note;
+import objects.Note;
 import shaders.RGBPalette;
 import flixel.util.FlxDestroyUtil;
-import states.editors.charting.ChartingStatePsych;
 
 class MetaNote extends Note
 {
@@ -16,7 +15,7 @@ class MetaNote extends Note
 
 	public function new(time:Float, data:Int, songData:Array<Dynamic>)
 	{
-		super(time, data);
+		super(time, data, null, false, true);
 		this.songData = songData;
 		this.strumTime = time;
 		this.chartNoteData = data;
@@ -37,7 +36,7 @@ class MetaNote extends Note
 		if(Note.globalRgbShaders != null && Note.globalRgbShaders.contains(rgbShader.parent)) //Is using a default shader
 			rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(noteData));
 
-		animation.play(Note.keysShit.get(PlayState.mania).get('letters')[noteData]);
+		animation.play(Note.keysShit.get(mania).get('letters')[noteData]);
 		updateHitbox();
 		if(width > height)
 			setGraphicSize(ChartingStatePsych.GRID_SIZE);

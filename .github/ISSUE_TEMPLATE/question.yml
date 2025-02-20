@@ -1,6 +1,6 @@
 name: Question
 description: Ask about something here.
-labels: [question, status: pending triage]
+labels: [question]
 body:
   - type: textarea
     attributes:

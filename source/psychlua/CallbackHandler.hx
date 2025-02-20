@@ -1,6 +1,6 @@
 #if LUA_ALLOWED
 package psychlua;
-import llua.State;
+
 class CallbackHandler
 {
 	public static inline function call(l:State, fname:String):Int
@@ -21,15 +21,10 @@ class CallbackHandler
 				{
 					//trace('looping thru scripts');
 					for (script in PlayState.instance.luaArray)
-						if(script != FunkinLua.lastCalledScript && script != null && script.getScript().lua == l)
+						if(script != FunkinLua.lastCalledScript && script != null && script.lua == l)
 						{
 							//trace('found script');
-							try {
-								cbf = script.getScript().callbacks.get(fname);
-							} catch (e:haxe.Exception) {
-								// Handle the exception if needed
-								cbf = null;
-							}
+							cbf = script.callbacks.get(fname);
 							break;
 						}
 				}

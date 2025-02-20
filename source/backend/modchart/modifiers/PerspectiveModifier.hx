@@ -36,7 +36,7 @@ class PerspectiveModifier extends NoteModifier
 	{
 		var subMods:Array<String> = ["fieldRoll", "fieldYaw", "fieldPitch", "fieldX", "fieldY", "fieldZ"];
 
-        for(col in 0...Note.ammo[states.PlayState.mania]){
+        for(col in 0...Note.ammo[PlayState.mania]){
             subMods.push('${col}Roll');
 			subMods.push('${col}Yaw');
 			subMods.push('${col}Pitch');

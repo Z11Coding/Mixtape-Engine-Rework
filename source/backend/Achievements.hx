@@ -1,18 +1,5 @@
 package backend;
 
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.FlxCamera;
-import flixel.tweens.FlxTween;
-import flixel.group.FlxSpriteGroup;
-import flixel.util.FlxColor;
-import flixel.text.FlxText;
-
-#if MODS_ALLOWED
-import sys.io.File;
-import sys.FileSystem;
-#end
-
 #if ACHIEVEMENTS_ALLOWED
 import objects.AchievementPopup;
 import haxe.Exception;
@@ -21,8 +8,6 @@ import haxe.Json;
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
 #end
-
-using StringTools;
 
 typedef Achievement =
 {
@@ -37,30 +22,58 @@ typedef Achievement =
 	@:optional var ID:Int; 
 }
 
+enum abstract AchievementOp(String)
+{
+	var GET = 'get';
+	var SET = 'set';
+	var ADD = 'add';
+}
+
 class Achievements {
 	public static function init()
 	{
 		createAchievement('friday_night_play',		{name: "Freaky on a Friday Night", description: "Play on a Friday... Night.", hidden: true});
-		createAchievement('week1_nomiss',			{name: "She Calls Me Daddy Too", description: "Beat Week 1 on Hard with no Misses."});
-		createAchievement('week2_nomiss',			{name: "No More Tricks", description: "Beat Week 2 on Hard with no Misses."});
-		createAchievement('week3_nomiss',			{name: "Call Me The Hitman", description: "Beat Week 3 on Hard with no Misses."});
-		createAchievement('week4_nomiss',			{name: "Lady Killer", description: "Beat Week 4 on Hard with no Misses."});
-		createAchievement('week5_nomiss',			{name: "Missless Christmas", description: "Beat Week 5 on Hard with no Misses."});
-		createAchievement('week6_nomiss',			{name: "Highscore!!", description: "Beat Week 6 on Hard with no Misses."});
-		createAchievement('week7_nomiss',			{name: "God Effing Damn It!", description: "Beat Week 7 on Hard with no Misses."});
-		createAchievement('weekend1_nomiss',		{name: "Just a Friendly Sparring", description: "Beat Weekend 1 on Hard with no Misses."});
 		createAchievement('ur_bad',					{name: "What a Funkin' Disaster!", description: "Complete a Song with a rating lower than 20%."});
 		createAchievement('ur_good',				{name: "Perfectionist", description: "Complete a Song with a rating of 100%."});
-		createAchievement('roadkill_enthusiast',	{name: "Roadkill Enthusiast", description: "Watch the Henchmen die 50 times.", maxScore: 50, maxDecimals: 0});
-		createAchievement('oversinging', 			{name: "Oversinging Much...?", description: "Hold down a note for 10 seconds."});
-		createAchievement('hype',					{name: "Hyperactive", description: "Finish a Song without going Idle."});
-		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
-		createAchievement('toastier',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
-		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
+		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
+		createAchievement('beat_battle',			{name: "Rhythm Master", description: "Beat \"Beat Battle\" on any difficulty higher than Normal."});
+		createAchievement('beat_battle_master',		{name: "King Of Memory", description: "Beat \"Beat Battle\" on at least Reasonable difficulty or higher with no higher then 10 misses."});
+		createAchievement('beat_battle_god',		{name: "God Teir Memory", description: "Beat \"Beat Battle\" on at least Semi-Impossible difficulty or higher with no higher then 25 misses."});
+		createAchievement('beat_battle_fanatic',	{name: "Number One Fan", description: "Beat \"Beat Battle\" on at least Reasonable difficulty or higher and \"Beat Battle 2\" with modcharts on", maxScore: 2, maxDecimals: 0});
+		createAchievement('feelinfrisky',	        {name: "FANTA IN MY SYSTEM", description: "Beat \"Funky Fanta\" without missing"});
+		createAchievement('leantastic',	            {name: "Maybe We Should Cool It On The Lean...", description: "Beat \"ULS\" without missing"});
+		createAchievement('punchout',	            {name: "Where's The COD Reference?", description: "Beat \"Pack-A-Punch\" without missing"});
+		createAchievement('rawr',	                {name: "Don't mess with michael", description: "Beat \"Rawr\" without missing"});
+		createAchievement('underlust',	            {name: "DETERMINATION...I Think...", description: "Beat \"Resistalovania (Mega Mix)\" on the hardest difficulty"});
+		createAchievement('resistified',	        {name: "True Resistance", description: "Beat Every version of \"Resistance\" without missing", maxScore: 7, maxDecimals: 0});
+		createAchievement('skysthelimit',	        {name: "Sky's The Limit", description: "Beat \"Fangirl Frenzy\" without missing", hidden: true});
+		createAchievement('secretsunveiled',	    {name: "THERE'S MORE???", description: "Find one of the 4 secrets", hidden: true});
+		createAchievement('pokemon',	    		{name: "Gotta find em' all!", description: "Find all 3 menu secrets", hidden: true});
+		createAchievement('waldosworstnightmare',	{name: "Detective", description: "Find all 4 secret songs", hidden: true});
+		createAchievement('error404',	            {name: "SONG NOT FOUND", description: "Find and beat \"Slowdown\"", hidden: true});
+		createAchievement('secretsuntold',	        {name: "Secret's Untold", description: "Unlock the Secrets Category", hidden: true});
+		createAchievement('potato',	                {name: "Slow-Mo", description: "Set the game to 1 FPS", hidden: true});
+		createAchievement('potatogameplay',	        {name: "YOU CAN PLAY LIKE THIS?!?!", description: "Beat a song while the FPS is set to 1", hidden: true});
+		createAchievement('mattdestroyer',	        {name: "Max Efficiency", description: "Beat a song at 2X Speed or higher", hidden: true});
+		createAchievement('matteleminator',	        {name: "Max Efficiency 2X", description: "Beat a song at 5X Speed or higher", hidden: true});
+		createAchievement('mattgod',	            {name: "Max Efficiency 3X", description: "Beat a song at 10x Speed or higher", hidden: true});
+		createAchievement('matt',	                {name: "Max Efficiency 4X", description: "Beat a song at 15X Speed or higher", hidden: true});
+		createAchievement('mattbeyond',	            {name: "Bro what are you even doing anymore", description: "Beat a song at 20X Speed or higher", hidden: true});
+		createAchievement('perfectionist',	        {name: "S for the best", description: "Beat every song with an S Rank or higher"});
+		createAchievement('nohitspecialist',	    {name: "No-Hit Specialist", description: "Beat \"Resistalovania (Mega Mix)\" without getting damaged"});
+		createAchievement('multitasker',	        {name: "Two-For-One Special", description: "Beat \"Resistalovania (Mega Mix)\" without getting damaged AND without missing"});
+		createAchievement('possessed',	        	{name: "The Moon Slayer", description: "Beat \"Possessed by The Blood Moon\" on FNF or NITG difficulty without missing", hidden: true});
+		createAchievement('themoon',	        	{name: "The Exorcist", description: "Beat \"Possessed by The Blood Moon\" on Possessed difficulty without missing", hidden: true});
+		createAchievement('what',	        	    {name: "What.", description: "You did read the bottom of the file, right?"});
+		createAchievement('lessismore',	        	{name: "Master of Less", description: "Beat any song in a mania of 1-3"});
+		createAchievement('toomanynotes',	        {name: "Master of Mania", description: "Beat any song in a mania higher than 4"});
+		createAchievement('h?',	                    {name: "h?", description: "h?"});
+		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		
 		//dont delete this thing below
 		_originalLength = _sortID + 1;
 	}
+
 	public static var achievements:Map<String, Achievement> = new Map<String, Achievement>();
 	public static var variables:Map<String, Float> = [];
 	public static var achievementsUnlocked:Array<String> = [];
@@ -98,18 +111,17 @@ class Achievements {
 		FlxG.save.data.achievementsUnlocked = achievementsUnlocked;
 		FlxG.save.data.achievementsVariables = variables;
 	}
-
+	
 	public static function getScore(name:String):Float
-		return _scoreFunc(name, 0);
+		return _scoreFunc(name, GET);
 
 	public static function setScore(name:String, value:Float, saveIfNotUnlocked:Bool = true):Float
-		return _scoreFunc(name, 1, value, saveIfNotUnlocked);
+		return _scoreFunc(name, SET, value, saveIfNotUnlocked);
 
 	public static function addScore(name:String, value:Float = 1, saveIfNotUnlocked:Bool = true):Float
-		return _scoreFunc(name, 2, value, saveIfNotUnlocked);
+		return _scoreFunc(name, ADD, value, saveIfNotUnlocked);
 
-	//mode 0 = get, 1 = set, 2 = add
-	static function _scoreFunc(name:String, mode:Int = 0, addOrSet:Float = 1, saveIfNotUnlocked:Bool = true):Float
+	static function _scoreFunc(name:String, mode:AchievementOp, addOrSet:Float = 1, saveIfNotUnlocked:Bool = true):Float
 	{
 		if(!variables.exists(name))
 			variables.set(name, 0);
@@ -124,8 +136,9 @@ class Achievements {
 			var val = addOrSet;
 			switch(mode)
 			{
-				case 0: return variables.get(name); //get
-				case 2: val += variables.get(name); //add
+				case GET: return variables.get(name); //get
+				case ADD: val += variables.get(name); //add
+				default:
 			}
 
 			if(val >= achievement.maxScore)
@@ -141,7 +154,7 @@ class Achievements {
 		}
 		return -1;
 	}
-	
+
 	static var _lastUnlock:Int = -999;
 	public static function unlock(name:String, autoStartPopup:Bool = true):String {
 		if(!achievements.exists(name))
@@ -170,6 +183,42 @@ class Achievements {
 		if(autoStartPopup) startPopup(name);
 		return name;
 	}
+
+	public static function lock(name:String, autoStartPopup:Bool = false):String {
+		if(!achievements.exists(name))
+		{
+			FlxG.log.error('Achievement "$name" does not exists!');
+			throw new Exception('Achievement "$name" does not exists!');
+			return null;
+		}
+
+		if(!Achievements.isUnlocked(name)) return null;
+
+		trace('Completed achievement "$name"');
+		achievementsUnlocked.remove(name);
+
+		// earrape prevention
+		/*var time:Int = openfl.Lib.getTimer();
+		if(Math.abs(time - _lastUnlock) >= 100) //If last unlocked happened in less than 100 ms (0.1s) ago, then don't play sound
+		{
+			FlxG.sound.play(Paths.sound('confirmMenu'), 0.5);
+			_lastUnlock = time;
+		}*/
+
+		Achievements.save();
+		FlxG.save.flush();
+
+		if(autoStartPopup) startPopup(name);
+		return name;
+	}
+
+	public static function relock()
+	{
+		achievementsUnlocked = [];
+		Achievements.save();
+		FlxG.save.flush();
+	}
+
 	inline public static function isUnlocked(name:String)
 		return achievementsUnlocked.contains(name);
 
@@ -214,15 +263,15 @@ class Achievements {
 
 		_sortID = _originalLength-1;
 
-		var modLoaded:String = Paths.currentModDirectory;
-		Paths.currentModDirectory = null;
+		var modLoaded:String = Mods.currentModDirectory;
+		Mods.currentModDirectory = null;
 		loadAchievementJson(Paths.mods('data/achievements.json'));
-		for (i => mod in Paths.getModDirectories())
+		for (i => mod in Mods.parseList().enabled)
 		{
-			Paths.currentModDirectory = mod;
+			Mods.currentModDirectory = mod;
 			loadAchievementJson(Paths.mods('$mod/data/achievements.json'));
 		}
-		Paths.currentModDirectory = modLoaded;
+		Mods.currentModDirectory = modLoaded;
 	}
 
 	inline static function loadAchievementJson(path:String, addMods:Bool = true)
@@ -231,7 +280,7 @@ class Achievements {
 		if(FileSystem.exists(path)) {
 			try {
 				var rawJson:String = File.getContent(path).trim();
-				if(rawJson != null && rawJson.length > 0) retVal = Json.parse(rawJson); //Json.parse('{"achievements": $rawJson}').achievements;
+				if(rawJson != null && rawJson.length > 0) retVal = tjson.TJSON.parse(rawJson); //Json.parse('{"achievements": $rawJson}').achievements;
 				
 				if(addMods && retVal != null)
 				{
@@ -240,7 +289,7 @@ class Achievements {
 						var achieve:Dynamic = retVal[i];
 						if(achieve == null)
 						{
-							var errorTitle = 'Mod name: ' + Paths.currentModDirectory != null ? Paths.currentModDirectory : "None";
+							var errorTitle = 'Mod name: ' + Mods.currentModDirectory != null ? Mods.currentModDirectory : "None";
 							var errorMsg = 'Achievement #${i+1} is invalid.';
 							#if windows
 							lime.app.Application.current.window.alert(errorMsg, errorTitle);
@@ -263,11 +312,11 @@ class Achievements {
 						key = key.trim();
 						if(achievements.exists(key)) continue;
 
-						createAchievement(key, achieve, Paths.currentModDirectory);
+						createAchievement(key, achieve, Mods.currentModDirectory);
 					}
 				}
 			} catch(e:Dynamic) {
-				var errorTitle = 'Mod name: ' + Paths.currentModDirectory != null ? Paths.currentModDirectory : "None";
+				var errorTitle = 'Mod name: ' + Mods.currentModDirectory != null ? Mods.currentModDirectory : "None";
 				var errorMsg = 'Error loading achievements.json: $e';
 				#if windows
 				lime.app.Application.current.window.alert(errorMsg, errorTitle);
@@ -277,6 +326,7 @@ class Achievements {
 		}
 		return retVal;
 	}
+	#end
 
 	#if LUA_ALLOWED
 	public static function addLuaCallbacks(lua:State)
@@ -290,7 +340,7 @@ class Achievements {
 			}
 			return getScore(name);
 		});
-		Lua_helper.add_callback(lua, "setAchievementScore", function(name:String, ?value:Float = 1, ?saveIfNotUnlocked:Bool = true):Float
+		Lua_helper.add_callback(lua, "setAchievementScore", function(name:String, ?value:Float = 0, ?saveIfNotUnlocked:Bool = true):Float
 		{
 			if(!achievements.exists(name))
 			{
@@ -328,7 +378,6 @@ class Achievements {
 		});
 		Lua_helper.add_callback(lua, "achievementExists", function(name:String) return achievements.exists(name));
 	}
-	#end
 	#end
 }
 #end

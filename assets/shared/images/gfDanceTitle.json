@@ -1,11 +1,14 @@
 {	
 	"titlex":-150,
-	"titley":1500,
+	"titley":-100,
 	"startx":100,
 	"starty":576,
+	"gfChar":true,
+	"gfSprite":"",
+	"gfAnimArray": [],
+	"gfAnimIndices": [[], []],
 	"gfx":512,
 	"gfy":40,
 	"backgroundSprite":"",
-	"bpm":102,
-	"endY":-100
+	"bpm":150
 }

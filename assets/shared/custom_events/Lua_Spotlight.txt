@@ -1,0 +1,3 @@
+Dadbattle Spotlight Recreation in Lua
+Value 1: Target Character (dad, bf, gf)
+Value 2: Enable / Disable (true/false)

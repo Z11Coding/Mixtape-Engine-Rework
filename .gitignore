@@ -8,16 +8,19 @@ art/test_x64-debug-officialrelease.bat
 ### VS Code
 export/*
 .vscode/*
-.haxelib/
 *.code-workspace
 # Local history which shouldn't be shared.
 .history
 .ionide
-# macOS file attribute which can cause problems when uploading.
-*.DS_Store
 # ! means a file should be added regardless of it it gets ignored prior.
 # Including to allow others to use already set-up configuration tweaked for the project.
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.haxelib/discord_rpc/git/
+.haxelib/linc_luajit/git/
+.haxelib/hxCodec/git/
+.haxelib/lime/discord_rpc/git/
+.haxelib/lime/hxCodec/git/
+.haxelib/lime/linc_luajit/git/

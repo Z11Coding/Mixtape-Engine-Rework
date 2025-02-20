@@ -4,25 +4,21 @@ import backend.WeekData;
 
 import objects.Character;
 
-import states.menus.MainMenuState;
+import states.MainMenuState;
 import states.FreeplayState;
-import objects.Alphabet;
-import states.editors.*;
-import states.editors.charting.*;
 
 class MasterEditorMenu extends MusicBeatState
 {
 	var options:Array<String> = [];
 	var optionsOG:Array<String> = [
+		'Chart Editor',
+		'Character Editor',
+		'Stage Editor',
 		'Week Editor',
 		'Menu Character Editor',
 		'Dialogue Editor',
 		'Dialogue Portrait Editor',
-		'Character Editor',
-		'Chart Editor',
-		'Stage Editor',
 		/*'Note Splash Debug'*/ //Might bother with notesplash in general in the future. def not right now though
-		'3D Benchmark'
 	];
 	var dialogueChoices:Array<String> = [
 		'OG Chart Editor',
@@ -128,12 +124,10 @@ class MasterEditorMenu extends MusicBeatState
 			{
 				switch (options[curSelected])
 				{
-					case 'JS Chart Editor':
-						MusicBeatState.switchState(new JSChartingState());
+					case 'OG Chart Editor':
+						MusicBeatState.switchState(new ChartingStateOG());
 					case 'Psych Chart Editor':
 						MusicBeatState.switchState(new ChartingStatePsych());
-					case 'Mixtape Chart Editor':
-						MusicBeatState.switchState(new states.editors.charting.ChartingStateMixtape());
 				}
 				FlxG.sound.music.volume = 0;
 				#if PRELOAD_ALL
@@ -158,46 +152,8 @@ class MasterEditorMenu extends MusicBeatState
 						FlxG.switchState(new DialogueEditorState());
 					case 'Dialogue Portrait Editor':
 						FlxG.switchState(new DialogueCharacterEditorState());
-					case '3D Benchmark':
-						LoadingState.loadAndSwitchState(BenchmarkState.new, false);
 				}
 			}
-		}
-
-		if (FlxG.keys.justPressed.SEVEN)
-		{
-			for (i in 1...100)
-			{
-				var peep:FlxSprite = new FlxSprite();
-				var x:Float = FlxG.random.float(-32, 1316);
-				peep.makeGraphic(32, 32, FlxColor.RED);
-				peep.x = x;
-				peep.y = FlxG.random.float(-200, -800);
-				FlxTween.tween(peep, {x: x + FlxG.random.float(-250, 250), y: 760, angle: FlxG.random.float(-180, 180)}, FlxG.random.float(1.5, 2), {
-					onComplete: function(e)
-					{
-						peep.destroy();
-					},
-					ease: FlxEase.expoIn
-				});
-				add(peep);
-			}
-
-			var murder:FlxSprite = new FlxSprite();
-			murder.loadGraphic(Paths.image('troll'));
-			murder.screenCenter();
-			new FlxTimer().start(1.5, function(f)
-			{
-				FlxTween.tween(murder, {alpha: 0}, 0.5, {
-					onComplete: function(e)
-					{
-						murder.destroy();
-					}
-				});
-			});
-			add(murder);
-
-			FlxG.sound.play(Paths.sound('troll'));
 		}
 		
 		var bullShit:Int = 0;

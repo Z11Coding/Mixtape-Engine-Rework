@@ -4,10 +4,9 @@ class Rating
 {
 	public var name:String = '';
 	public var image:String = '';
-	public var counter:String = '';
 	public var hitWindow:Null<Int> = 0; //ms
 	public var ratingMod:Float = 1;
-	public var score:Int = 500;
+	public var score:Int = 400;
 	public var noteSplash:Bool = true;
 	public var hits:Int = 0;
 
@@ -15,8 +14,7 @@ class Rating
 	{
 		this.name = name;
 		this.image = name;
-		this.counter = name + 's';
-		this.hitWindow = Reflect.field(ClientPrefs, name + 'Window');
+		this.hitWindow = Reflect.field(ClientPrefs.data, name + 'Window');
 		if(hitWindow == null)
 		{
 			hitWindow = 0;
@@ -25,36 +23,30 @@ class Rating
 
 	public static function loadDefault():Array<Rating>
 	{
-		var ratingsData:Array<Rating> = [];
-
-		if (!ClientPrefs.data.noPerfectJudge)
-		{
-			ratingsData.push(new Rating('perfect'));
-		}
-
+		var ratingsData:Array<Rating>;
 		if (ClientPrefs.data.useMarvs)
-		{			
-			var rating:Rating = new Rating('marverlous');
+		{
+			ratingsData = [new Rating('marv')]; //highest rating goes first
+			
+			var rating:Rating = new Rating('sick');
 			rating.ratingMod = 1;
-			rating.score = 400;
+			rating.score = 350;
 			rating.noteSplash = true;
 			ratingsData.push(rating);
 		}
-
-		var rating:Rating = new Rating('sick');
-		rating.ratingMod = 1;
-		rating.score = 350;
-		rating.noteSplash = true;
-		ratingsData.push(rating);
+		else
+		{
+			ratingsData = [new Rating('sick')]; //highest rating goes first
+		}
 
 		var rating:Rating = new Rating('good');
-		rating.ratingMod = 0.7;
+		rating.ratingMod = 0.67;
 		rating.score = 200;
 		rating.noteSplash = false;
 		ratingsData.push(rating);
 
 		var rating:Rating = new Rating('bad');
-		rating.ratingMod = 0.4;
+		rating.ratingMod = 0.34;
 		rating.score = 100;
 		rating.noteSplash = false;
 		ratingsData.push(rating);
@@ -65,10 +57,5 @@ class Rating
 		rating.noteSplash = false;
 		ratingsData.push(rating);
 		return ratingsData;
-	}
-	
-	public function increase(blah:Int = 1)
-	{
-		Reflect.setField(states.PlayState.instance, counter, Reflect.field(states.PlayState.instance, counter) + blah);
 	}
 }

@@ -7,8 +7,6 @@ import flixel.math.FlxPoint;
 import flixel.math.FlxMath;
 import backend.math.*;
 import flixel.FlxG;
-import objects.notes.NoteObject;
-import objects.notes.StrumNote;
 
 class AlphaModifier extends NoteModifier 
 {
@@ -137,7 +135,7 @@ class AlphaModifier extends NoteModifier
 
 	override function getSubmods(){
 		var subMods:Array<String> = ["noteAlpha", "alpha", "hidden", "hiddenOffset", "sudden", "suddenOffset", "blink", "vanish", "dark", "hideDarkGlow", "hideStealthGlow", "stealthPastReceptors"];
-		for(i in 0...Note.ammo[states.PlayState.mania]){
+		for(i in 0...Note.ammo[PlayState.mania]){
 			subMods.push('noteAlpha$i');
 			subMods.push('alpha$i');
 			subMods.push('dark$i');

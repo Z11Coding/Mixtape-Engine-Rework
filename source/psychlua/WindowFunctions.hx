@@ -1,7 +1,6 @@
 package psychlua;
-import llua.State;
-import utils.window.*;
-import states.PlayState;
+
+import backend.window.*;
 class WindowFunctions
 {
 	public static function implement(funk:FunkinLua)

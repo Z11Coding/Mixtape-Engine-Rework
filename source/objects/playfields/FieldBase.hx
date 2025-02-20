@@ -1,7 +1,6 @@
 package objects.playfields;
 
 import haxe.exceptions.NotImplementedException;
-import flixel.FlxObject;
 
 class FieldBase extends FlxObject {
     public function preDraw()throw new NotImplementedException();

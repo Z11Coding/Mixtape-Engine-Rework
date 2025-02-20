@@ -1,7 +1,7 @@
 package shaders;
 
 import flixel.system.FlxAssets.FlxShader;
-import objects.notes.Note;
+import objects.Note;
 
 class RGBPalette {
 	public var shader(default, null):RGBPaletteShader = new RGBPaletteShader();
@@ -12,29 +12,25 @@ class RGBPalette {
 
 	private function set_r(color:FlxColor) {
 		r = color;
-		if (shader != null)
-			shader.r.value = [color.redFloat, color.greenFloat, color.blueFloat];
+		shader.r.value = [color.redFloat, color.greenFloat, color.blueFloat];
 		return color;
 	}
 
 	private function set_g(color:FlxColor) {
 		g = color;
-		if (shader != null)
-			shader.g.value = [color.redFloat, color.greenFloat, color.blueFloat];
+		shader.g.value = [color.redFloat, color.greenFloat, color.blueFloat];
 		return color;
 	}
 
 	private function set_b(color:FlxColor) {
 		b = color;
-		if (shader != null)
-			shader.b.value = [color.redFloat, color.greenFloat, color.blueFloat];
+		shader.b.value = [color.redFloat, color.greenFloat, color.blueFloat];
 		return color;
 	}
 	
 	private function set_mult(value:Float) {
 		mult = FlxMath.bound(value, 0, 1);
-		if (shader != null)
-			shader.mult.value = [mult];
+		shader.mult.value = [mult];
 		return mult;
 	}
 

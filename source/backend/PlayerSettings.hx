@@ -1,6 +1,6 @@
-package;
+package backend;
 
-import Controls;
+import ControlsOld;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.util.FlxSignal;
@@ -25,9 +25,9 @@ class PlayerSettings
 	public var id(default, null):Int;
 
 	#if (haxe >= "4.0.0")
-	public final controls:Controls;
+	public final controls:ControlsOld;
 	#else
-	public var controls:Controls;
+	public var controls:ControlsOld;
 	#end
 
 	// public var avatar:Player;
@@ -36,7 +36,7 @@ class PlayerSettings
 	function new(id, scheme)
 	{
 		this.id = id;
-		this.controls = new Controls('player$id', scheme);
+		this.controls = new ControlsOld('player$id', scheme);
 	}
 
 	public function setKeyboardScheme(scheme)

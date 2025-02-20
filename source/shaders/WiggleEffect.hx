@@ -10,7 +10,6 @@ enum WiggleEffectType
 	HEAT_WAVE_HORIZONTAL;
 	HEAT_WAVE_VERTICAL;
 	FLAG;
-	HEAT_WAVE_BOTH;
 }
 
 class WiggleEffect
@@ -21,13 +20,9 @@ class WiggleEffect
 	public var waveFrequency(default, set):Float = 0;
 	public var waveAmplitude(default, set):Float = 0;
 
-	public function new(typeOfEffect:WiggleEffectType = DREAMY, waveSpeed:Float = 0, waveFrequency:Float = 0, waveAmplitude:Float = 0):Void
+	public function new():Void
 	{
 		shader.uTime.value = [0];
-		this.waveSpeed = waveSpeed;
-		this.waveFrequency = waveFrequency;
-		this.waveAmplitude = waveAmplitude;
-		this.effectType = effectType;
 	}
 
 	public function update(elapsed:Float):Void
@@ -81,7 +76,6 @@ class WiggleShader extends FlxShader
 		const int EFFECT_TYPE_HEAT_WAVE_HORIZONTAL = 2;
 		const int EFFECT_TYPE_HEAT_WAVE_VERTICAL = 3;
 		const int EFFECT_TYPE_FLAG = 4;
-		const int EFFECT_TYPE_HEAT_WAVE_BOTH = 5;
 		
 		uniform int effectType;
 		
@@ -99,9 +93,6 @@ class WiggleShader extends FlxShader
 		 * How much the pixels are going to stretch over the waves
 		 */
 		uniform float uWaveAmplitude;
-
-		uniform float verticalStrength;
-		uniform float horizontalStrength;
 
 		vec2 sineWave(vec2 pt)
 		{
@@ -130,11 +121,6 @@ class WiggleShader extends FlxShader
 			{
 				y = sin(pt.y * uFrequency + 10.0 * pt.x + uTime * uSpeed) * uWaveAmplitude;
 				x = sin(pt.x * uFrequency + 5.0 * pt.y + uTime * uSpeed) * uWaveAmplitude;
-			}
-			else if (effectType == EFFECT_TYPE_HEAT_WAVE_BOTH)
-			{
-				x = sin(pt.x * (uFrequency * horizontalStrength) + uTime * (uSpeed * horizontalStrength)) * (uWaveAmplitude * horizontalStrength);
-				y = sin(pt.y * (uFrequency * verticalStrength) + uTime * (uSpeed * verticalStrength)) * (uWaveAmplitude * verticalStrength);
 			}
 			
 			return vec2(pt.x + x, pt.y + y);

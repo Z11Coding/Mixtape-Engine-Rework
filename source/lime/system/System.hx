@@ -534,8 +534,8 @@ class System
 	{
 		// executes first!!
 		#if (sys && !macro)
-		utils.NativeAPI.registerAsDPICompatible();
-		utils.CommandLineHandler.parseCommandLine(Sys.args());
+		backend.util.NativeAPI.registerAsDPICompatible();
+		backend.CommandLineHandler.parseCommandLine(Sys.args());
 		#end
 
 		if (__applicationEntryPoint == null)

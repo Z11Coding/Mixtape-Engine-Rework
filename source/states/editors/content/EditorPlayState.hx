@@ -2,29 +2,18 @@ package states.editors.content;
 
 import backend.modchart.ModManager;
 
-import music.Song;
+import backend.Song;
 import backend.Rating;
-import objects.playfields.NotefieldManager;
 
-import objects.notes.Note;
-import objects.notes.NoteSplash;
-import objects.notes.StrumNote;
+import objects.Note;
+import objects.NoteSplash;
+import objects.StrumNote;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;
 import flixel.animation.FlxAnimationController;
 import flixel.input.keyboard.FlxKey;
 import openfl.events.KeyboardEvent;
-import objects.playfields.PlayField;
-
-typedef SpeedEvent =
-{
-	position:Float, // the y position where the change happens (modManager.getVisPos(songTime))
-	startTime:Float, // the song position (conductor.songTime) where the change starts
-	songTime:Float, // the song position (conductor.songTime) when the change ends
-	?startSpeed:Float, // the starting speed
-	speed:Float // speed mult after the change
-}
 
 class EditorPlayState extends MusicBeatSubstate
 {
@@ -421,7 +410,7 @@ class EditorPlayState extends MusicBeatSubstate
 				}
 			}
 
-			var swagNote:Note = new Note(note.strumTime, note.noteData);
+			var swagNote:Note = new Note(note.strumTime, note.noteData, oldNote, false, this);
 			swagNote.mustPress = note.mustPress;
 			swagNote.sustainLength = note.sustainLength;
 			swagNote.gfNote = note.gfNote;
@@ -455,7 +444,7 @@ class EditorPlayState extends MusicBeatSubstate
 				{
 					oldNote = allNotes[Std.int(allNotes.length - 1)];
 
-					var sustainNote:Note = new Note(swagNote.strumTime + (Conductor.stepCrochet * susNote), note.noteData);
+					var sustainNote:Note = new Note(swagNote.strumTime + (Conductor.stepCrochet * susNote), note.noteData, oldNote, true, this);
 					sustainNote.mustPress = swagNote.mustPress;
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = swagNote.noteType;
@@ -580,13 +569,13 @@ class EditorPlayState extends MusicBeatSubstate
 
 		FlxG.sound.music.pause();
 		vocals.pause();
-		opponentVocals.pause();
+		if (opponentVocals != null) opponentVocals.pause();
 
 		if(finishTimer != null)
 			finishTimer.destroy();
 
 		Conductor.songPosition = FlxG.sound.music.time = vocals.time = startPos - Conductor.offset;
-		opponentVocals.time = startPos - Conductor.offset;
+		if (opponentVocals != null) opponentVocals.time = startPos - Conductor.offset;
 		close();
 	}
 	
@@ -627,7 +616,7 @@ class EditorPlayState extends MusicBeatSubstate
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
-		var daRating:Rating = Conductor.judgeNotePsych(ratingsData, noteDiff / playbackRate);
+		var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
 
 		note.ratingMod = daRating.ratingMod;
 		if(!note.ratingDisabled) daRating.hits++;
@@ -832,8 +821,8 @@ class EditorPlayState extends MusicBeatSubstate
 	
 	function opponentNoteHit(note:Note, field:PlayField):Void
 	{
-		if (PlayState.SONG.needsVoices && opponentVocals.length <= 0)
-			vocals.volume = 1;
+		if (PlayState.SONG.needsVoices && opponentVocals != null && opponentVocals.length <= 0)
+			opponentVocals.volume = 1;
 
 		if (note.visible)
 		{
@@ -843,7 +832,7 @@ class EditorPlayState extends MusicBeatSubstate
 			var spr:StrumNote = field.strumNotes[note.noteData];
 			if (spr != null)
 			{
-				spr.playAnim('confirm', true);
+				spr.playAnim('confirm', true, note);
 				spr.resetAnim = time;
 			}
 		}
@@ -876,7 +865,7 @@ class EditorPlayState extends MusicBeatSubstate
 		{
 			var spr = field.strumNotes[note.noteData];
 			if (spr != null && field.keysPressed[note.noteData])
-				spr.playAnim('confirm', true);
+				spr.playAnim('confirm', true, note);
 		}
 		vocals.volume = 1;
 		

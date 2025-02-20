@@ -2,13 +2,29 @@
 <project>
 	<!-- _________________________ Application Settings _________________________ -->
 
-	<app title="Friday Night Funkin': Mixtape Engine" file="MixtapeEngine" packageName="com.Z11Gaming.Mixtapeengine" package="com.Z11Gaming.Mixtapeengine" main="Main" version="0.3.0" company="Z11Gaming" />
+	<app title="Mixtape Engine" file="MixEngine" packageName="com.z11gaming.mixtapeengine" package="com.z11gaming.mixtapeengine" main="Main" version="0.2.8" company="Z11Gaming" />
+
+	<!--Switch Export with Unique ApplicationID and Icon-->
+	<set name="APP_ID" value="0x0100f6c013bbc000" />
+
+	<!-- NOTE TO SELF: DISABLE THIS IF ISSUES ARE FOUND -->
+	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB"/> <!-- stable luas PUT AFTER FIRST LINE WITH APP NAME AND ETC -->
+
+	<!--
+		Define the OpenFL sprite which displays the preloader.
+		You can't replace the preloader's logic here, sadly, but you can extend it.
+		Basic preloading logic is done by `openfl.display.Preloader`.
+	-->
+	<!--app preloader="backend.FunkinPreloader" / -->
 	<app preloader="flixel.system.FlxPreloader" />
+
+	<!--Minimum without FLX_NO_GAMEPAD: 11.8, without FLX_NO_NATIVE_CURSOR: 11.2-->
+	<set name="SWF_VERSION" value="11.8" />
 
 	<!-- ____________________________ Window Settings ___________________________ -->
 
 	<!--These window settings apply to all targets-->
-	<window width="1280" height="720" background="#000000" hardware="true" vsync="false" />
+	<window width="1280" height="720" fps="60" background="#000000" hardware="true" vsync="false" />
 
 	<!--HTML5-specific-->
 	<window if="html5" resizable="true" />
@@ -17,7 +33,10 @@
 	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" vsync="false"/>
 
 	<!--Mobile-specific-->
-	<window if="mobile" orientation="landscape" fullscreen="false" width="1280" height="720" resizable="false"/>
+	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" resizable="false"/>
+
+	<!--Switch-specific-->
+	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
 
 	<!-- _____________________________ Path Settings ____________________________ -->
 
@@ -29,27 +48,36 @@
 	<!-- ______________________ MIXTAPE ENGINE CUSTOMIZATION ______________________ -->
 	
 	<define name="BASE_GAME_FILES" />
-	<define name="MODS_ALLOWED" if="desktop || mobile" unless="web" />
-	<define name="LUA_ALLOWED" if="desktop || mobile" unless="web" />
-	<define name="HSCRIPT_ALLOWED" if="desktop || mobile" unless="web" />
+	<define name="MODS_ALLOWED" if="desktop" />
+	<define name="HSCRIPT_ALLOWED" if="desktop" />
+	<define name="LUA_ALLOWED" if="desktop" />
+	<!--Remove if you dont want Psych Engine mod compatibility-->
 	<define name="PE_MOD_COMPATIBILITY" if="LUA_ALLOWED" />
+	<!--Remove if you dont want the engine to autoupdate-->
+	<define name="DO_AUTO_UPDATE" unless="debug"/>
 	<define name="ACHIEVEMENTS_ALLOWED" />
-	<define name="VIDEOS_ALLOWED" if="desktop || mobile" unless="32bits || web"/>
-	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
-	<define name="DISCORD_ALLOWED" if="desktop || mobile" unless="web" />
+	<define name="DISCORD_ALLOWED" />
 	<define name="TRANSLATIONS_ALLOWED" />
+	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
 	<define name="MULTICORE_LOADING" if="desktop" />
 	<define name="loadBenchmark" if="MULTICORE_LOADING"/>
+	<define name="VIDEOS_ALLOWED" if="windows || linux || android" unless="32bits"/>
 	<define name="SHOW_LOADING_SCREEN" />
-	<define name="test"/>
 	<define name="IRIS_DEBUG"/>
-	<define name ="HXCPP_GC_MOVING"/>
-	<define name="HXCPP_GC_BIG_BLOCKS"/>
-	<define name="HXCPP_GC_DYNAMIC_SIZE"/>
-	<define name="HXCPP_GC_SUMMARY"/>
+	<define name="test"/>
+	<!-- <define name="UNDERTALE"/> -->
+
+	<section if="officialBuild">
+		<define name="TITLE_SCREEN_EASTER_EGG"/>
+		<define name="BASE_GAME_FILES" />
+	</section>
+
+
 	<!-- __________________________ Game Assets & Etc. __________________________ -->
-	<!-- DONT ENABLE THIS!! shut up shadowmario ill enable whatever i want-->
-	<define name="CHECK_FOR_UPDATES" />
+
+	<!-- Turn on Crash Handler -->
+	<define name="CRASH_HANDLER" if="desktop release" />
+
 
 	<!-- Assets -->
 	<assets path="assets/fonts" />
@@ -60,19 +88,27 @@
 	<assets path="assets/videos"        library="videos"        if="VIDEOS_ALLOWED"/>
 	<assets path="assets/songs"         library="songs"         exclude="*.ogg" if="web"/>
 	<assets path="assets/songs"         library="songs"         exclude="*.mp3" unless="web"/>
-	<assets path="assets/week_assets"   rename="assets" 		exclude="*.ogg" if="web"/>
-	<assets path="assets/week_assets"   rename="assets" 		exclude="*.mp3" unless="web"/>
-	<assets path="assets/models"        						library="models"        /> 
-	<assets path="assets/models"        						library="models"        />
 	<section if="TITLE_SCREEN_EASTER_EGG">
 		<assets path="assets/secrets" rename="assets" exclude="*.ogg" if="web"/>
 		<assets path="assets/secrets" rename="assets" exclude="*.mp3"  unless="web"/>
 	</section>
 
-	<library name="splash"        preload="true" />
 	<library name="videos"        preload="true" if="VIDEOS_ALLOWED"/>
 	<library name="songs"         preload="true" />
 	<library name="week_assets"   preload="true" />
+
+	<section if="TRANSLATIONS_ALLOWED">
+		<assets path="assets/translations" rename="assets" exclude="*.ogg" if="web"/>
+		<assets path="assets/translations" rename="assets" exclude="*.mp3"  unless="web"/>
+	</section>
+
+	<section if="BASE_GAME_FILES">
+		<assets path="assets/base_game" rename="assets" exclude="*.ogg" if="web"/>
+		<assets path="assets/base_game" rename="assets" exclude="*.mp3"  unless="web"/>
+	</section>
+
+	<!-- DONT ENABLE THIS -->
+	<define name="CHECK_FOR_UPDATES" if="desktop officialBuild"/>
 	
 	<section if="MODS_ALLOWED">
 		<assets path='example_mods' rename='mods' embed='false'/>
@@ -87,37 +123,21 @@
 		<assets path="alsoft.txt" rename="plugins/alsoft.conf" type="text" unless="windows"/>
 	</section>
 
-	<assets path="assets/fonts" />
 	<!-- _______________________________ Libraries ______________________________ -->
 
-	<haxelib name="lime" />
-	<haxelib name="flixel" version="5.6.2" />
-	<haxelib name="flixel-ui" version="2.6.1" />
-	<haxelib name="flixel-addons" version="3.2.3" />
-	<haxelib name="away3d" version="git"/>
+	<haxelib name="lime" /> <!-- Game engine backend -->
+	<haxelib name="openfl" /> <!-- Game engine backend -->
+	<haxelib name="flixel" version="5.6.1"/> <!-- Game engine -->
 	<haxelib name="haxeui-core" /> <!-- UI framework -->
 	<haxelib name="haxeui-flixel" /> <!-- Integrate HaxeUI with Flixel -->
-	<haxelib name="openfl" /> <!-- Game engine backend -->
 	<haxelib name="flixel-text-input" /> <!-- Improved text field rendering for HaxeUI -->
+	<haxelib name="flixel-ui" />
 	<haxelib name="flixel-addons" version="3.2.2"/>
 	<haxelib name="tjson" version="1.4.0"/>
 
 	<!--Base Game Stuff-->
 	<haxelib name="grig.audio"/>
 	<haxelib name="funkin.vis"/>
-
-	<!-- Archipelago Stuff-->
-	<haxelib name="helder.set" />
-	<haxelib name="yaml" />
-	<haxelib name="hxWebSockets" />
-	<haxelib name="haxe-concurrent" />
-	<haxelib name="actuate" />
-
-	<!--JS stuff needed-->
-	<haxelib name="hscript" />
-	<haxedef name="hscriptPos" />
-	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
-	<!--<haxelib name="hxCodec" if="VIDEOS_ALLOWED"/>-->
 
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
@@ -129,32 +149,59 @@
 	<!-- Disable Discord IO Thread -->
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />
 	<haxedef name="NO_PRECOMPILED_HEADERS" if="linux" />
-
+	
 	<!--In case you want to use the addons package-->
 	<haxelib name="tentools" />
 	<haxelib name="systools" />
 	<ndll name="systools" haxelib="systools" />
+	
 
-	<!-- Enables a terminal log prompt on debug builds -->
-	<haxelib name="hxcpp-debug-server" if="debug"/>
-	<haxedef name="HXC_LIBVLC_LOGGING" if="VIDEOS_ALLOWED debug" />
-	<haxedef name="HXVLC_NO_SHARE_DIRECTORY" if="VIDEOS_ALLOWED" />
+	<!-- Disable Discord IO Thread -->
+	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />
+	<haxedef name="NO_PRECOMPILED_HEADERS" if="linux" />
 
 	<haxelib name="faxe" if='switch'/>
 
 	<!--Avoid memory leaks with for loops in HScript-->
 	<haxedef name="loop_unroll_max_cost" value="25" />
-
-	<define name="x86_BUILD" if="32bits" />
+	
 
 	<!-- ______________________________ Haxedefines _____________________________ -->
+
+	<!--Enable the Flixel core recording system-->
+	<!--<haxedef name="FLX_RECORD" />-->
+
+	<!--Disable the right and middle mouse buttons-->
+	<!-- <haxedef name="FLX_NO_MOUSE_ADVANCED" /> -->
+
+	<!--Disable the native cursor API on Flash-->
+	<!--<haxedef name="FLX_NO_NATIVE_CURSOR" />-->
+
+	<!--Optimise inputs, be careful you will get null errors if you don't use conditionals in your game-->
+	<!-- <haxedef name="FLX_NO_MOUSE" if="mobile" /> -->
+	<!-- <haxedef name="FLX_NO_KEYBOARD" if="mobile" /> -->
+	<!-- <haxedef name="FLX_NO_TOUCH" if="desktop" /> -->
+	<!--<haxedef name="FLX_NO_GAMEPAD" />-->
+
+	<!--Disable the Flixel core sound tray-->
+	<!--<haxedef name="FLX_NO_SOUND_TRAY" />-->
+
+	<!--Disable the Flixel sound management code-->
+	<!--<haxedef name="FLX_NO_SOUND_SYSTEM" />-->
 
 	<!--Disable the Flixel core focus lost screen-->
 	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
 
-	<!--Allow working memory greater than 1 Gig. NOTE: i recommend using Flixel 5.2.2 for this to work!-->
-	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
-	<!--also fixes like any "Memory Exhausted" issues you might get when compiling-->
+	<!--Allow working memory greater than 1 Gig-->
+	<haxedef name="HXCPP_GC_BIG_BLOCKS"/>
+
+	<!-- Enables a terminal log prompt on debug builds -->
+	<haxelib name="hxcpp-debug-server" if="debug"/>
+	<haxedef name="HXC_LIBVLC_LOGGING" if="VIDEOS_ALLOWED debug" />
+	<haxedef name="HXVLC_NO_SHARE_DIRECTORY" if="VIDEOS_ALLOWED" />
+	<define name="x86_BUILD" if="32bits" />
+
+	
 	
 	<!-- Show debug traces for hxCodec -->
 	<haxedef name="HXC_DEBUG_TRACE" if="debug" />
@@ -164,22 +211,28 @@
 
 	<!--Enable this for Nape release builds for a serious peformance improvement-->
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />
+	
+	<!--Used for Izzy Engine's crash handler-->
+	<haxedef name="HXCPP_STACK_TRACE" if="CRASH_HANDLER"/>
+	<haxedef name="HXCPP_CHECK_POINTER" if="CRASH_HANDLER" />
+	<haxedef name="HXCPP_STACK_LINE" if="CRASH_HANDLER" />
 
-	<!--Used for the engine's crash handler-->
-	<haxedef name="HXCPP_CHECK_POINTER"/>
-	<haxedef name="HXCPP_STACK_LINE"/>
-	<haxedef name="HXCPP_STACK_TRACE"/>
-	<haxedef name="HXCPP_CATCH_SEGV" />
-
-	<!-- Javascript breaks with inline for reasons unknown -->
-	<haxedef name="no-inline" if="html5"/>
-
-	<haxedef name='no-deprecation-warnings' unless="debug" />
-
-	<!--This fixes compiling with macros according to official PE source code-->
+	<haxedef name='no-deprecation-warnings' />
+	
+	<!--Macro fixes-->
 	<haxeflag name="--macro" value="allowPackage('flash')" />
 	<haxeflag name="--macro" value="include('my.pack')" />
-	<haxeflag name="--resource" value="assets/embed/apworld/fridaynightfunkin.apworld@apworld" />
+	<haxeflag name="--macro" value="VoidFall.randomFailure()" />
+	<!-- <haxeflag name="macro" value="options.OptionCheck.processOptions()" /> -->
+	<!-- <haxeflag name="macro" value="ReflectCheck.replaceVariableAccesses()" /> -->
+	<!-- <haxeflag name="macro" value="backend.ChanceValidator.checkChanceRange()" /> -->
+
+	<haxedef name="hscriptPos" /> <!-- for logging -->
+
+	<!-- <haxeflag name="macro" value="VariableInitializer.build()" /> -->
+	<!-- Run a script before and after building>
+	<prebuild haxe="source/Prebuild.hx"/>
+	<postbuild haxe="source/Postbuild.hx"/> -->
 
 	<!-- Enable this on platforms which do not support dropping files onto the window. -->
 	<haxedef name="FILE_DROP_UNSUPPORTED" if="mac" />
@@ -190,10 +243,15 @@
 	<!-- Haxe 4.3.0+: Enable pretty syntax errors and stuff. -->
 	<!-- pretty (haxeflixel default), indent, classic (haxe compiler default) -->
 	<haxedef name="message.reporting" value="pretty" />
-	
+
+	<!-- Fix compiling issues -->
+	<!-- setenv name="HAXEPATH" value="./"/ -->
+
+
 	<!-- _________________________________ Custom _______________________________ -->
 
 	<!--Place custom nodes like icons here (higher priority to override the HaxeFlixel icon)-->
+
 	<assets path='art/iconOG.png' rename='icon.png' if="linux" />
 	
 	<icon path="art/icon16.png" size='16'/>

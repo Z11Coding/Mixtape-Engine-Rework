@@ -1,7 +1,7 @@
 package backend;
 
 import openfl.utils.Assets;
-import utils.CoolUtil;
+
 import haxe.Json;
 
 typedef ModsList = {

@@ -1,7 +1,6 @@
 package psychlua;
-import llua.State;
+
 import openfl.utils.Assets;
-import states.PlayState;
 
 #if (LUA_ALLOWED && flxanimate)
 class FlxAnimateFunctions

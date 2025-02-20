@@ -3,7 +3,7 @@ package backend;
 import lime.media.AudioManager;
 import flixel.sound.FlxSound;
 import flixel.FlxState;
-import utils.NativeAPI;
+import backend.util.NativeAPI;
 
 /**
  * if youre stealing this keep this comment at least please lol

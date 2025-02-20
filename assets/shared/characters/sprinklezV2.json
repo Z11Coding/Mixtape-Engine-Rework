@@ -1,0 +1,160 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [-20, 58],
+			"anim": "singUPmiss",
+			"fps": 24,
+			"name": "upMISS",
+			"indices": []
+		},
+		{
+			"offsets": [-68, -5],
+			"loop": false,
+			"fps": 24,
+			"anim": "firstDeath",
+			"indices": [],
+			"name": "firstDeath"
+		},
+		{
+			"offsets": [-70, -4],
+			"loop": false,
+			"fps": 24,
+			"anim": "deathLoop",
+			"indices": [],
+			"name": "deathLoop"
+		},
+		{
+			"offsets": [-69, -3],
+			"loop": true,
+			"fps": 24,
+			"anim": "deathConfirm",
+			"indices": [],
+			"name": "deathConfirm"
+		},
+		{
+			"loop": false,
+			"offsets": [0, 0],
+			"anim": "danceLeft",
+			"fps": 24,
+			"name": "gfDanceLeft",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [0, 0],
+			"anim": "danceRight",
+			"fps": 24,
+			"name": "gfDanceRight",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-42, -15],
+			"anim": "singDOWNmiss",
+			"fps": 24,
+			"name": "downMISS",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-28, 28],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "GFup",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-39, -25],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "GFdown",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-64, -43],
+			"anim": "gf pre attack",
+			"fps": 24,
+			"name": "gf pre attack",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [37, -49],
+			"anim": "gf attack",
+			"fps": 24,
+			"name": "gf attack",
+			"indices": []
+		},
+		{
+			"offsets": [66, -19],
+			"loop": false,
+			"fps": 24,
+			"anim": "gf dodge",
+			"indices": [],
+			"name": "gf dodge"
+		},
+		{
+			"offsets": [75, -29],
+			"loop": false,
+			"fps": 24,
+			"anim": "gf hit",
+			"indices": [],
+			"name": "gf hit"
+		},
+		{
+			"offsets": [-32, -7],
+			"loop": false,
+			"fps": 24,
+			"anim": "hey",
+			"indices": [],
+			"name": "hey"
+		},
+		{
+			"offsets": [-61, -22],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHT",
+			"indices": [],
+			"name": "GFleft"
+		},
+		{
+			"offsets": [83, -32],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFT",
+			"indices": [],
+			"name": "GFright"
+		},
+		{
+			"offsets": [-59, -10],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"indices": [],
+			"name": "left MISS"
+		},
+		{
+			"offsets": [94, -34],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"indices": [],
+			"name": "rightMISS"
+		}
+	],
+	"vocals_file": "gf",
+	"no_antialiasing": true,
+	"score_name": "Girlfriend",
+	"image": "characters/ChibiGF-V2",
+	"position": [-50, 240],
+	"healthicon": "gfchibi",
+	"flip_x": true,
+	"healthbar_colors": [235, 100, 161],
+	"camera_position": [60, 10],
+	"sing_duration": 6.1,
+	"scale": 1,
+	"_editor_isPlayer": false
+}

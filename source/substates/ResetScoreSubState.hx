@@ -1,12 +1,10 @@
 package substates;
 
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.FlxSubState;
-import flixel.util.FlxColor;
-import objects.HealthIcon;
 import backend.WeekData;
-import backend.Difficulty;
+import backend.Highscore;
+
+import flixel.FlxSubState;
+import objects.HealthIcon;
 
 class ResetScoreSubState extends MusicBeatSubstate
 {
@@ -34,7 +32,7 @@ class ResetScoreSubState extends MusicBeatSubstate
 		if(week > -1) {
 			name = WeekData.weeksLoaded.get(WeekData.weeksList[week]).weekName;
 		}
-		name += ' (' + Difficulty.list[difficulty] + ')?';
+		name += ' (' + Difficulty.getString(difficulty) + ')?';
 
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0;
@@ -96,9 +94,9 @@ class ResetScoreSubState extends MusicBeatSubstate
 		} else if(controls.ACCEPT) {
 			if(onYes) {
 				if(week == -1) {
-					backend.Highscore.resetSong(song, difficulty);
+					Highscore.resetSong(song, difficulty);
 				} else {
-					backend.Highscore.resetWeek(WeekData.weeksList[week], difficulty);
+					Highscore.resetWeek(WeekData.weeksList[week], difficulty);
 				}
 			}
 			FlxG.sound.play(Paths.sound('cancelMenu'), 1);

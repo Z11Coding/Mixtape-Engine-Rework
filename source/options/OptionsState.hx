@@ -1,55 +1,22 @@
 package options;
 
-import flash.text.TextField;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.FlxCamera;
-import flixel.addons.display.FlxGridOverlay;
-import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.math.FlxMath;
-import flixel.text.FlxText;
-import flixel.util.FlxColor;
-import lime.utils.Assets;
-import flixel.FlxSubState;
-import flash.text.TextField;
-import flixel.FlxG;
-import flixel.FlxObject;
-import flixel.FlxSprite;
-import flixel.util.FlxSave;
-import haxe.Json;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxTimer;
-import flixel.input.keyboard.FlxKey;
-import flixel.graphics.FlxGraphic;
-import backend.Controls;
-import objects.Alphabet;
-import substates.PauseSubState;
-import states.PlayState;
+import states.MainMenuState;
+import backend.StageData;
+import backend.gamejolt.GameJolt.GameJoltAPI;
+import backend.gamejolt.GameJolt.GameJoltLogin;
 
 class OptionsState extends MusicBeatState
 {
-
-    var kId = 0;
-    var keys:Array<FlxKey> = [D, E, B, U, G, SEVEN]; // lol
-	var konamiIndex:Int = 0; // Track the progress in the Konami code sequence
-	var konamiCode = [];
-	var isEnteringKonamiCode:Bool = false;
-	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Optimization', 'Game Rendering', 'Visuals and UI', 'Gameplay', 'Misc'];
+	var options:Array<String> = ['Controls', /*'Adjust Delay and Combo', TODO: make this work*/'Graphics', 'Visuals and UI', 'Gameplay' #if TRANSLATIONS_ALLOWED , 'Language' #end, /*'GameJolt Login', //Not right now*/ 'Misc.'];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
-	public static var onPlayState:Bool = false;
-	public var enteringDebugMenu:Bool = false;
-	private var mainCamera:FlxCamera;
-	private var subCamera:FlxCamera;
-	private var otherCamera:FlxCamera;
+	public static var cameFromPlaystate:Bool = false;
 
 	function openSelectedSubstate(label:String) {
 		switch(label) {
 			case 'Note Colors':
-				if (!ClientPrefs.data.enableColorShader) CoolUtil.coolError("It appears that you don't have the 'Enable Note Colors' option enabled!\nTo prevent a crash, you cannot access this menu unless you turn the option on.\nYou can find it in the Visuals & UI menu.", "JS Engine Anti-Crash Tool");
-				else openSubState(new options.NotesSubState());
+				openSubState(new options.NotesSubState());
 			case 'Controls':
 				openSubState(new options.ControlsSubState());
 			case 'Graphics':
@@ -58,76 +25,48 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.VisualsUISubState());
 			case 'Gameplay':
 				openSubState(new options.GameplaySettingsSubState());
-			case 'Optimization':
-				openSubState(new options.OptimizationSubState());
-			case 'Game Rendering':
-				openSubState(new options.GameRendererSettingsSubState());
+			case 'Misc.':
+				openSubState(new options.OtherSettingsSubState());
 			case 'Adjust Delay and Combo':
-				LoadingState.loadAndSwitchState(() -> new options.NoteOffsetState());
-			case 'Misc':
-				openSubState(new options.MiscSettingsSubState());
+				LoadingState.loadAndSwitchState(new options.NoteOffsetState());
+			case 'Language':
+				openSubState(new options.LanguageSubState());	
+			case 'GameJolt Login':
+				LoadingState.loadAndSwitchState(new GameJoltLogin());
 		}
 	}
 
 	var selectorLeft:Alphabet;
 	var selectorRight:Alphabet;
-	var camFollow:FlxObject;
-	var camFollowPos:FlxObject;
 
 	override function create() {
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
-		mainCamera = initPsychCamera();
-		subCamera = new FlxCamera();
-		otherCamera = new FlxCamera();
-		subCamera.bgColor.alpha = 0;
-		otherCamera.bgColor.alpha = 0;
-
-		FlxG.cameras.add(subCamera, false);
-		FlxG.cameras.add(otherCamera, false);
-
-		camFollow = new FlxObject(0, 0, 1, 1);
-		camFollowPos = new FlxObject(0, 0, 1, 1);
-		add(camFollow);
-		add(camFollowPos);
-		FlxG.cameras.list[FlxG.cameras.list.indexOf(subCamera)].follow(camFollowPos);
-
-		#if desktop
+		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
 		#end
 
-		var yScroll:Float = Math.max(0.25 - (0.05 * (options.length - options.length)), 0.1);
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
 		bg.updateHitbox();
-		bg.scrollFactor.set(0, 0);
 
 		bg.screenCenter();
-		bg.y -= 5;
 		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
 		add(bg);
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
 
-		for (i in 0...options.length)
+		for (num => option in options)
 		{
-			var optionText:Alphabet = new Alphabet(0, 0, options[i], true);
+			var optionText:Alphabet = new Alphabet(0, 0, Language.getPhrase('options_$option', option), true);
 			optionText.screenCenter();
-			optionText.y += (100 * (i - (options.length / 2))) + 50;
-			optionText.scrollFactor.set(0, yScroll*1.5);
-			optionText.cameras = [subCamera];
+			optionText.y += (92 * (num - (options.length / 2))) + 45;
 			grpOptions.add(optionText);
 		}
-		//I TOOK THIS FROM THE MAIN MENU STATE, NOT FROM DENPA ENGINE
+
 		selectorLeft = new Alphabet(0, 0, '>', true);
-		selectorLeft.scrollFactor.set(0, yScroll*1.5);
-		selectorLeft.cameras = [subCamera];
-		add(selectorLeft);
+		//add(selectorLeft);
 		selectorRight = new Alphabet(0, 0, '<', true);
-		selectorRight.scrollFactor.set(0, yScroll*1.5);
-		selectorRight.cameras = [subCamera];
-		add(selectorRight);
+		//add(selectorRight);
 
 		changeSelection();
 		ClientPrefs.saveSettings();
@@ -136,12 +75,21 @@ class OptionsState extends MusicBeatState
 	}
 
 	override function closeSubState() {
+		FlxTween.globalManager.clear();
 		super.closeSubState();
 		ClientPrefs.saveSettings();
+		#if DISCORD_ALLOWED
+		DiscordClient.changePresence("Options Menu", null);
+		
+		#end
 	}
 
+	//var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[0]);
 	override function update(elapsed:Float) {
 		super.update(elapsed);
+
+		if (FlxG.sound.music != null)
+			Conductor.songPosition = FlxG.sound.music.time;
 
 		if (controls.UI_UP_P) {
 			changeSelection(-1);
@@ -150,43 +98,30 @@ class OptionsState extends MusicBeatState
 			changeSelection(1);
 		}
 
-		var lerpVal:Float = CoolUtil.clamp(elapsed * 7.5, 0, 1);
-		camFollowPos.setPosition(FlxMath.lerp(camFollowPos.x, camFollow.x, lerpVal), FlxMath.lerp(camFollowPos.y, camFollow.y, lerpVal));
-
-		if (controls.BACK && !isEnteringKonamiCode) {
+		if (controls.BACK) {
 			FlxG.sound.play(Paths.sound('cancelMenu'));
-			if(PauseSubState.inPause)
+			if (cameFromPlaystate) 
 			{
-				PauseSubState.inPause = false;
-				backend.StageData.loadDirectory(PlayState.SONG);
-				LoadingState.loadAndSwitchState(PlayState.new);
-				FlxG.sound.music.volume = 0;
+				StageData.loadDirectory(PlayState.SONG);
+				LoadingState.loadAndSwitchState(new states.PlayState());
 			}
-			else FlxG.switchState(Type.createInstance(MenuTracker.mainMenuState, []));
+			else MusicBeatState.switchState(new states.MainMenuState());
 		}
-		if (controls.ACCEPT && !isEnteringKonamiCode) {
-			if (isEnteringKonamiCode) return;
+
+		if (controls.ACCEPT) {
 			openSelectedSubstate(options[curSelected]);
 		}
+	}
 
-        if (FlxG.keys.justPressed.ANY) {
-            var k = keys[kId];
+	override function beatHit()
+	{
+		super.beatHit();
 
-            if (FlxG.keys.anyJustPressed([k])) {
-                #if desktop kId++; #end
-                if (kId >= keys.length) {
-					enteringDebugMenu = true;
-					kId = 0;
-                    FlxTween.tween(FlxG.camera, {alpha: 0}, 1.5, {startDelay: 1, ease: FlxEase.cubeOut});
-                    if (FlxG.sound.music != null)
-                        FlxTween.tween(FlxG.sound.music, {pitch: 0, volume: 0}, 2.5, {ease: FlxEase.cubeOut});
-                    FlxTween.tween(FlxG.camera, {zoom: 0.1, angle: -15}, 2.5, {ease: FlxEase.cubeIn, onComplete: function(t) {
-					FlxG.camera.angle = 0;
-                        openSubState(new options.SuperSecretDebugMenu());
-                    }});
-                }
-            }
-        }
+		FlxG.camera.zoom = zoomies;
+
+		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+			ease: FlxEase.quadOut
+		});
 	}
 	
 	function changeSelection(change:Int = 0) {
@@ -203,34 +138,14 @@ class OptionsState extends MusicBeatState
 			bullShit++;
 
 			item.alpha = 0.6;
-			var thing:Float = 0;
 			if (item.targetY == 0) {
 				item.alpha = 1;
-				if(grpOptions.members.length > 4) {
-					thing = grpOptions.members.length * 8;
-				}
 				selectorLeft.x = item.x - 63;
 				selectorLeft.y = item.y;
 				selectorRight.x = item.x + item.width + 15;
 				selectorRight.y = item.y;
 			}
 		}
-		camFollow.setPosition(FlxG.width / 2, (curSelected * (grpOptions.members.length * 10)));
-
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
-function checkKonamiCode():Bool {
-    if (konamiCode[konamiIndex].justPressed) {
-        konamiIndex++;
-	if (konamiIndex > 6) isEnteringKonamiCode = true;
-        if (konamiIndex >= konamiCode.length) {
-            return true;
-	    konamiIndex = 0;
-        }
-    } else { //you messed up the code
-        konamiIndex = 0;
-	isEnteringKonamiCode = false;
-    }
-    return false;
-}
 }

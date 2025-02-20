@@ -1,5 +1,4 @@
 package backend;
-import states.PlayState;
 
 class Difficulty
 {
@@ -8,22 +7,9 @@ class Difficulty
 		'Normal',
 		'Hard'
 	];
-
-	public static var defaultListFull:Array<String> = [
-		'Easy',
-		'Normal',
-		'Hard',
-		'Erect',
-		'Nightmare'
-	];
-
-	public static final defaultDifficulty:String = 'Normal'; //The chart that has no postfix and starting difficulty on Freeplay/Story Mode
-
-	public static var defaultDifficultyThings:Array<String> = ['Normal', 'normal'];
+	private static final defaultDifficulty:String = 'Normal'; //The chart that has no postfix and starting difficulty on Freeplay/Story Mode
 
 	public static var list:Array<String> = [];
-
-	public static var currentDifficulty:String = 'Normal';
 
 	inline public static function getFilePath(num:Null<Int> = null)
 	{
@@ -76,16 +62,11 @@ class Difficulty
 	{
 		var diffName:String = list[num == null ? PlayState.storyDifficulty : num];
 		if(diffName == null) diffName = defaultDifficulty;
-		return canTranslate ? backend.Language.getPhrase('difficulty_$diffName', diffName) : diffName;
+		return canTranslate ? Language.getPhrase('difficulty_$diffName', diffName) : diffName;
 	}
 
 	inline public static function getDefault():String
 	{
 		return defaultDifficulty;
-	}
-
-	public static function difficultyString():String
-	{
-		return list[PlayState.storyDifficulty].toUpperCase();
 	}
 }

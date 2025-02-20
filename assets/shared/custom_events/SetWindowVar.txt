@@ -1,0 +1,4 @@
+Sets a specified variable of the window
+
+Value 1: Variable
+Value 2: Value

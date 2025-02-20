@@ -3,7 +3,6 @@ package backend;
 import lime.utils.Assets;
 import openfl.utils.Assets as OpenFlAssets;
 import haxe.Json;
-import states.PlayState;
 
 typedef WeekFile =
 {
@@ -160,14 +159,6 @@ class WeekData {
 				}
 			}
 		}
-	}
-
-	public static function modFolderName(weekName:String):String {
-		var week:WeekData = weeksLoaded.get(weekName);
-		if(week != null && week.folder != null && week.folder.length > 0) {
-			return week.folder;
-		}
-		return '';
 	}
 
 	private static function getWeekFile(path:String):WeekFile {

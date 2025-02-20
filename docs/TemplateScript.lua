@@ -1,38 +1,38 @@
 -- Lua stuff
 
 function onCreate()
-	-- When the lua file is started/created, some variables weren't created yet
+	-- triggered when the lua file is started, some variables weren't created yet
 end
 
 function onCreatePost()
-	-- End of "create", all variables have already been loaded, recommended.
+	-- end of "create"
 end
 
 function onDestroy()
-	-- When the lua file is ended (Song fade out finished)
+	-- triggered when the lua file is ended (Song fade out finished)
 end
 
 
 -- Gameplay/Song interactions
 function onBeatHit()
-	-- Triggered 4 times per section
+	-- triggered 4 times per section
 end
 
 function onStepHit()
-	-- Triggered 16 times per section
+	-- triggered 16 times per section
 end
 
 function onUpdate(elapsed)
-	-- Start of "update", some variables weren't updated yet
+	-- start of "update", some variables weren't updated yet
 end
 
 function onUpdatePost(elapsed)
-	-- End of "update"
+	-- end of "update"
 end
 
 function onStartCountdown()
-	-- Countdown started, duh
-	-- Return Function_Stop if you want to stop the countdown from happening (Can be used to trigger dialogues and stuff! You can trigger the countdown with startCountdown())
+	-- countdown started, duh
+	-- return Function_Stop if you want to stop the countdown from happening (Can be used to trigger dialogues and stuff! You can trigger the countdown with startCountdown())
 	return Function_Continue;
 end
 
@@ -49,7 +49,7 @@ function onSongStart()
 end
 
 function onEndSong()
-	-- Song ended/starting transition (Will be delayed if you're unlocking an achievement)
+	-- song ended/starting transition (Will be delayed if you're unlocking an achievement)
 	-- return Function_Stop to stop the song from ending for playing a cutscene or something.
 	return Function_Continue;
 end
@@ -80,11 +80,11 @@ end
 
 -- Dialogue (When a dialogue is finished, it calls startCountdown again)
 function onNextDialogue(line)
-	-- Triggered when the next dialogue line starts, dialogue line starts with 1
+	-- triggered when the next dialogue line starts, dialogue line starts with 1
 end
 
 function onSkipDialogue(line)
-	-- Triggered when you press Enter and skip a dialogue line that was still being typed, dialogue line starts with 1
+	-- triggered when you press Enter and skip a dialogue line that was still being typed, dialogue line starts with 1
 end
 
 
@@ -160,4 +160,23 @@ function onTimerCompleted(tag, loops, loopsLeft)
 	-- A loop from a timer you called has been completed, value "tag" is it's tag
 	-- loops = how many loops it will have done when it ends completely
 	-- loopsLeft = how many are remaining
+end
+function onCheckForAchievement(name)
+	
+	--deals with achievement checks
+	
+	--EX:
+--[[
+  if name == 'sick-full-combo' and getProperty('bads') == 0 and getProperty('goods') == 0 and getProperty('shits') == 0 and getProperty('endingSong') then
+    return Function_Continue
+  end
+  if name == 'bad-health-finish' and getProperty('health') < 0.01 and getProperty('endingSong') then
+    return Function_Continue
+  end
+  if name == 'halfway' and getSongPosition >  getPropertyFromClass('flixel.FlxG','sound.music.length')/2 then
+    return Function_Continue
+  end
+	
+	
+	]]--
 end

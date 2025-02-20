@@ -1,13 +1,10 @@
 package psychlua;
 
-import lime.app.Application;
-import llua.State;
 import flixel.FlxBasic;
 import objects.Character;
 import psychlua.LuaUtils;
 import psychlua.CustomSubstate;
 import backend.modchart.SubModifier;
-import states.PlayState;
 
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
@@ -51,7 +48,6 @@ class HScript extends Iris
 			catch(e:Dynamic)
 			{
 				FunkinLua.luaTrace('ERROR (${hs.origin}) - $e', false, false, FlxColor.RED);
-				Application.current.window.alert('ERROR (${hs.name}) - - $e', 'HScript Error');
 			}
 		}
 	}
@@ -118,17 +114,17 @@ class HScript extends Iris
 		set('FlxEase', flixel.tweens.FlxEase);
 		set('FlxColor', CustomFlxColor);
 		set('Countdown', backend.BaseStage.Countdown);
-		set('PlayState', states.PlayState);
-		set('Paths', backend.Paths);
-		set('Conductor', music.Conductor);
-		set('ClientPrefs', backend.ClientPrefs);
+		set('PlayState', PlayState);
+		set('Paths', Paths);
+		set('Conductor', Conductor);
+		set('ClientPrefs', ClientPrefs);
 		#if ACHIEVEMENTS_ALLOWED
-		set('Achievements', backend.Achievements);
+		set('Achievements', Achievements);
 		#end
-		set('Character', objects.Character);
-		set('Alphabet', objects.Alphabet);
-		set('Note', objects.notes.Note);
-		set('CustomSubstate', psychlua.CustomSubstate);
+		set('Character', Character);
+		set('Alphabet', Alphabet);
+		set('Note', objects.Note);
+		set('CustomSubstate', CustomSubstate);
 		#if (!flash && sys)
 		set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
 		#end
@@ -259,8 +255,8 @@ class HScript extends Iris
 		set('createGlobalCallback', function(name:String, func:Dynamic)
 		{
 			for (script in PlayState.instance.luaArray)
-				if(script != null && script.getScript().lua != null && !script.getScript().closed)
-					Lua_helper.add_callback(script.getScript().lua, name, func);
+				if(script != null && script.lua != null && !script.closed)
+					Lua_helper.add_callback(script.lua, name, func);
 
 			FunkinLua.customFunctions.set(name, func);
 		});
@@ -324,12 +320,11 @@ class HScript extends Iris
 		{
 			set('addBehindGF', PlayState.instance.addBehindGF);
 			set('addBehindDad', PlayState.instance.addBehindDad);
-			//set('addBehindDad2', PlayState.instance.addBehindDad2);
+			set('addBehindDad2', PlayState.instance.addBehindDad2);
 			set('addBehindBF', PlayState.instance.addBehindBF);
-			//set('addBehindBF2', PlayState.instance.addBehindBF2);
+			set('addBehindBF2', PlayState.instance.addBehindBF2);
 		}
 
-		/*
 		//Troll Engine Hscript Functions
 		set("NoteObject", objects.NoteObject);
 		set("PlayField", objects.playfields.PlayField);
@@ -401,7 +396,7 @@ class HScript extends Iris
 			{
 				PlayState.instance.modManager.queueEaseP(step, endStep, modName, percent, style, player, startVal);
 			}
-		);*/
+		);
 
 		//Base game things
 		set("FlxPoint", {
@@ -414,63 +409,7 @@ class HScript extends Iris
 		#else
 		set("VideoSprite", objects.VideoSprite);
 		#end
-
-		// Archipelago Scripting
-		// set("Archipelago", archipelago.APGameState);
-		// set("APGameState", archipelago.APGameState);
-
-		set("addAPItem", function(item:Dynamic)
-		{
-			trace("This doesn't do anything....... YET!");		
-		});
-
-		/*
-		// Streamer VS Chat stuff.
-		if (PlayState.instance != null && Std.is(PlayState.instance, archipelago.APPlayState)) {
-			var SvC = cast(PlayState.instance, archipelago.APPlayState);
-			set("addSvCEffect", function(effect:String, action:Void->Void, ?apply:Dynamic) {
-				if (apply == null) apply = {};
-				apply.ttl = Reflect.hasField(apply, "ttl") && apply.ttl != null ? apply.ttl : 0;
-				apply.playSound = Reflect.hasField(apply, "playSound") && apply.playSound != null ? apply.playSound : "";
-				apply.playSoundVol = Reflect.hasField(apply, "playSoundVol") && apply.playSoundVol != null ? apply.playSoundVol : 1;
-				apply.noIcon = Reflect.hasField(apply, "noIcon") && apply.noIcon != null ? apply.noIcon : true;
-				apply.alwaysEnd = Reflect.hasField(apply, "alwaysEnd") && apply.alwaysEnd != null ? apply.alwaysEnd : true;
-				apply.effect = Reflect.hasField(apply, "effect") && apply.effect != null ? apply.effect : effect;
-				apply.onEnd = Reflect.hasField(apply, "onEnd") && apply.onEnd != null ? apply.onEnd : () -> null;
-				var thing = function() {
-					try {
-						action();
-					} catch (e:Dynamic) {
-						trace('Failed to dispatch HScript SvC Effect: $e');
-						FunkinLua.luaTrace('Failed to dispatch HScript SvC Effect: $e', false, false, FlxColor.RED);
-					}
-
-					try {
-						SvC.applyEffect(apply.ttl, apply.onEnd, apply.playSound, apply.playSoundVol, apply.noIcon, apply.alwaysEnd, apply.effect);
-					} catch (e:Dynamic) {
-						trace('Failed to finish execution for an unknown reason: $e');
-						FunkinLua.luaTrace('Failed to finish execution for an unknown reason: $e', false, false, FlxColor.RED);
-					}
-				}
-						SvC.effectMap.set(this.name, thing);
-						SvC.addEffect(thing + this.name);
-					});
-			// set("doEffect", function() {
-			// 	ap.doEffect();
-			// });
-			set("effectMap", cast(PlayState.instance, archipelago.APPlayState).effectMap);
-			// set("effect", ???);
-
-			set("registerSvCEffect", function() {
-				var SvC = cast(PlayState.instance, archipelago.APPlayState);
-				var effect = function() {
-					this.executeFunction("doSvCEffect", [SvC]);
-				}
-				SvC.effectMap.set(this.name, effect);
-				SvC.addEffect(effect + this.name);
-			});
-		}*/
-	}	
+	}
 
 	public function executeCode(?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null):IrisCall {
 		if (funcToRun == null) return null;
@@ -632,31 +571,35 @@ class CustomFlxColor {
 	public static var MAGENTA(default, null):Int = FlxColor.MAGENTA;
 	public static var CYAN(default, null):Int = FlxColor.CYAN;
 
-	public static function fromInt(Value:Int):Int {
+	public static function fromInt(Value:Int):Int 
+	{
 		return cast FlxColor.fromInt(Value);
 	}
 
-	public static function fromRGB(Red:Int, Green:Int, Blue:Int, Alpha:Int = 255):Int {
+	public static function fromRGB(Red:Int, Green:Int, Blue:Int, Alpha:Int = 255):Int
+	{
 		return cast FlxColor.fromRGB(Red, Green, Blue, Alpha);
 	}
-
-	public static function fromRGBFloat(Red:Float, Green:Float, Blue:Float, Alpha:Float = 1):Int {	
+	public static function fromRGBFloat(Red:Float, Green:Float, Blue:Float, Alpha:Float = 1):Int
+	{	
 		return cast FlxColor.fromRGBFloat(Red, Green, Blue, Alpha);
 	}
 
-	public static inline function fromCMYK(Cyan:Float, Magenta:Float, Yellow:Float, Black:Float, Alpha:Float = 1):Int {
+	public static inline function fromCMYK(Cyan:Float, Magenta:Float, Yellow:Float, Black:Float, Alpha:Float = 1):Int
+	{
 		return cast FlxColor.fromCMYK(Cyan, Magenta, Yellow, Black, Alpha);
 	}
 
-	public static function fromHSB(Hue:Float, Sat:Float, Brt:Float, Alpha:Float = 1):Int {	
+	public static function fromHSB(Hue:Float, Sat:Float, Brt:Float, Alpha:Float = 1):Int
+	{	
 		return cast FlxColor.fromHSB(Hue, Sat, Brt, Alpha);
 	}
-
-	public static function fromHSL(Hue:Float, Sat:Float, Light:Float, Alpha:Float = 1):Int {	
+	public static function fromHSL(Hue:Float, Sat:Float, Light:Float, Alpha:Float = 1):Int
+	{	
 		return cast FlxColor.fromHSL(Hue, Sat, Light, Alpha);
 	}
-
-	public static function fromString(str:String):Int {
+	public static function fromString(str:String):Int
+	{
 		return cast FlxColor.fromString(str);
 	}
 }

@@ -3,9 +3,9 @@ package substates;
 import flixel.FlxSprite;
 import haxe.Json;
 import lime.utils.Assets;
-import objects.FunkinSprite;
+import backend.FunkinSprite;
 // import flxtyped group
-import substates.MusicBeatSubstate;
+import backend.MusicBeatSubstate;
 import states.StoryMenuState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.util.FlxTimer;
@@ -13,7 +13,7 @@ import flixel.FlxG;
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
 import flixel.util.FlxSignal;
-import states.menus.MainMenuState;
+import states.MainMenuState;
 import flixel.addons.transition.FlxTransitionableState;
 import openfl.display.BitmapData;
 import states.FreeplayState;
@@ -139,13 +139,12 @@ class StickerSubState extends MusicBeatSubstate
 
     for (ind => sticker in grpStickers.members)
     {
-      grpStickers.visible = false;
       new FlxTimer().start(sticker.timing, _ -> {
         sticker.visible = false;
         var daSound:String = FlxG.random.getObject(sounds);
         //FunkinSound.playOnce(Paths.sound(daSound));
-        //if (!ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
-        //else FlxG.sound.play(Paths.sound(funny[FlxG.random.int(0,1)]));
+        if (!ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
+        else FlxG.sound.play(Paths.sound(funny[FlxG.random.int(0,1)]));
 
         if (grpStickers == null || ind == grpStickers.members.length - 1)
         {
@@ -241,7 +240,7 @@ class StickerSubState extends MusicBeatSubstate
 
         sticker.visible = true;
         var daSound:String = FlxG.random.getObject(sounds);
-        if (!backend.ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
+        if (!ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
         else FlxG.sound.play(Paths.sound(funny[FlxG.random.int(0,1)]));
 
         var frameTimer:Int = FlxG.random.int(0, 2);
@@ -265,8 +264,9 @@ class StickerSubState extends MusicBeatSubstate
               FunkinSprite.purgeCache();
               MusicBeatState.emptyStickers = new StickerSubState(grpStickers.members);
               MusicBeatState.reopen = true;
-
-              backend.TransitionState.currenttransition = null;
+              //trace("reopen: " + MusicBeatState.reopen);
+              //FlxG.state.openSubState(emptyStickers);
+              TransitionState.currenttransition = null;
               return targetState(this);
             });
           }
@@ -310,7 +310,7 @@ class StickerSubState extends MusicBeatSubstate
   }
 }
 
-class StickerSprite extends objects.FunkinSprite
+class StickerSprite extends FunkinSprite
 {
   public var timing:Float = 0;
 

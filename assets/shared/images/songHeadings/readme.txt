@@ -1,1 +1,0 @@
-This is where you put your song headings. The game will automatically find them when you type the exact name of the heading.

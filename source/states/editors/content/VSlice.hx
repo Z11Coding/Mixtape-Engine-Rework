@@ -1,12 +1,12 @@
 package states.editors.content;
 
-import music.Song;
+import backend.Song;
 import backend.Difficulty;
 
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
 
-import music.Section.SwagSection;
+import backend.Section.SwagSection;
 
 // Chart
 typedef VSliceChart =
@@ -261,7 +261,7 @@ class VSlice
 				player2: metadata.playData.characters.opponent,
 				gfVersion: metadata.playData.characters.girlfriend,
 				stage: stage,
-				format: 'psych_v1',
+				format: 'mixtape_v1_convert',
 
 				player4: null,
 				player5: null,
@@ -272,7 +272,7 @@ class VSlice
 
 			Reflect.setField(swagSong, 'artist', metadata.artist);
 			Reflect.setField(swagSong, 'charter', metadata.charter);
-			Reflect.setField(swagSong, 'generatedBy', 'Mixtape Engine v${MenuTracker.psychEngineVersion} - Chart Editor V-Slice Importer');
+			Reflect.setField(swagSong, 'generatedBy', 'Mixtape Engine v${MainMenuState.psychEngineVersion} - Chart Editor V-Slice Importer');
 			songDifficulties.set(diff, swagSong);
 		}
 		var pack:PsychPackage = {difficulties: songDifficulties, events: null};
@@ -337,7 +337,7 @@ class VSlice
 		}
 
 		var notes:Array<VSliceNote> = [];
-		var generatedBy:String = 'Mixtape Engine v${MenuTracker.psychEngineVersion} - Chart Editor V-Slice Exporter';
+		var generatedBy:String = 'Psych Engine v${MainMenuState.psychEngineVersion} - Chart Editor V-Slice Exporter';
 		var timeChanges:Array<VSliceTimeChange> = [];
 		
 		var time:Float = 0;
@@ -471,12 +471,6 @@ class VSlice
 			sectionNotes: [],
 			sectionBeats: 4,
 			mustHitSection: true,
-			typeOfSection: 0,
-			gfSection: false,
-			exSection: false,
-			changeBPM: false,
-			bpm: 180,
-			altAnim: false
 		};
 	}
 

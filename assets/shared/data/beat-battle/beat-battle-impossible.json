@@ -1,0 +1,7981 @@
+{
+	"song": {
+		"startMania": 3,
+		"player1": "bf",
+		"gfVersion": "gf",
+		"notes": [
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						0,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						1200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						1350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						1500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						1650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						1800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						2100,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 150
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						2400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						2550,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						2700,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						2850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						3000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						3150,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						3300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						3600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						3675,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						3750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						3825,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						3900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						3975,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						4050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						4125,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						4200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						4500,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 150
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						4800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						5100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						5400,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						5700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						6000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						6150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						6300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						6450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						6600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						6900,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						7200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						7350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						7500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						7650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						7800,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						7950,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						8100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						8400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						8475,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						8550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						8625,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						8700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						8775,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						8850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						8925,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						9000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						9300,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						9600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						9750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						9825,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						9900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						10050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						10200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						10500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						10575,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						10650,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						10725,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						10800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						10950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						11025,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						11100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						11250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						11400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						11700,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						12000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						12150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						12300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						12450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						12600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						12750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						12825,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						12900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						13050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						13125,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						13200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						13275,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						13350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						13425,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						13500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						13575,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						13650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						13725,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						13800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						14100,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						14400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						14550,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						14625,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						14700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						14850,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						15000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						15300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						15375,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						15450,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						15525,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						15600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						15750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						15825,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						15900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						16050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						16200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						16500,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						16800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						16950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						17100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						17250,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						17400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						17550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						17625,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						17700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						17850,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						17925,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						18000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						18075,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						18150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						18225,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						18300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						18375,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						18450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						18525,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						18600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						18900,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						19200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						19500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						19650,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						19725,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						19800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						20100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						20400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						20550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						20700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						20850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						21000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						21300,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						21600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						21750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						21900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						22050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						22200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						22350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						22500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						22800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						22875,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						22950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						23025,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						23100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						23175,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						23250,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						23325,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						23400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						23700,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						24000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						24300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						24450,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						24525,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						24600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						24900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						25200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						25350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						25500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						25650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						25800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						26100,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						26400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						26550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						26700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						26850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						27000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						27150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						27300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						27600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						27675,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						27750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						27825,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						27900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						27975,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						28050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						28125,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						28200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						28500,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						28800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						28950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						29025,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						29100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						29250,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						29400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						29700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						29775,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						29850,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						29925,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						30000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						30150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						30225,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						30300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						30450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						30600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						30900,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						31200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						31350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						31500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						31650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						31800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						31950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32025,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						32250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32325,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32475,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						32625,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						32700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						32775,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						32850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						32925,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						33000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						33300,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						33600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						33750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						33825,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						33900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						34050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						34200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						34500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						34575,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						34650,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						34725,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						34800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						34950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						35025,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						35100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						35250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						35400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						35700,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						36000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						36150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						36300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						36450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						36600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						36750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						36825,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						36900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						37050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						37125,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						37200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						37275,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						37350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						37425,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						37500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						37575,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						37650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						37725,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						37800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						38100,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						38400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						38700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						39000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						39300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						39600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						39900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						40200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						40500,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						40800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						40950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						41100,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						41250,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						41400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						41700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						42000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						42150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						42300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						42450,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						42600,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						42900,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						43200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						43500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						43800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						44100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						44400,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						44700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						45000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						45300,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						45600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						45750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						45900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						46050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						46200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						46350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						46500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						46650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						46800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						46950,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						47100,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						47250,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						47400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						47550,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						47700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						47850,
+						0,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						48000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						48300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						48600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						48900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						49200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						49500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						49800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						50100,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						50400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						50550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						50700,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						50850,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						51000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						51300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						51600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						51750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						51900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						52050,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						52200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						52500,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						52800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						53100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						53400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						53700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						54000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						54300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						54600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						54900,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						55200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						55350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						55500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						55650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						55800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						55950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						56100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						56250,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						56400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						56550,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						56700,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						56850,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						57000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						57150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						57300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						57450,
+						0,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						57600,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						57750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						57900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						58050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						58200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						58350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						58425,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						58500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						58650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						58725,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						58800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						58950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						59100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						59250,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						59400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						59700,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						60000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						60075,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						60150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						60300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						60375,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						60450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						60600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						60675,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						60750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						60900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						61050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						61200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						61350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						61500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						61650,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						61800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						61875,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						61950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						62025,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						62100,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						62175,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						62250,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						62325,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						62400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						62700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						63000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						63300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						63600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						63750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						63900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						64050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						64200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						64500,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						64800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						65250,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						65400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						65850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						66000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						66150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						66300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						66450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						66600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						66750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						66900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						67050,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						67200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						67350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						67500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						67650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						67800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						67950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						68025,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						68100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						68250,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						68325,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						68400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						68550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						68700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						68850,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						69000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						69300,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						69600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						69675,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						69750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						69900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						69975,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						70050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						70200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						70275,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						70350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						70500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						70650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						70800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						70950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						71100,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						71250,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						71400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						71475,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						71550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						71625,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						71700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						71775,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						71850,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						71925,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						72000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						72300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						72600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						72900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						73200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						73350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						73500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						73650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						73800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						74100,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						74400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						74850,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						75000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						75450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						75600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						75750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						75900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						76050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						76200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						76350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						76500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						76650,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						76800,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						77100,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						77400,
+						0,
+						150,
+						"ArrowMech"
+					],
+					[
+						77700,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						78000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						78300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						78600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						78900,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						79200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						79350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						79500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						79650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						79800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						80100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						80400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						80550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						80700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						80850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						81000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						81300,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						81600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						81900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						82200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						82500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						82800,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						83100,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						83400,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						83700,
+						1,
+						150,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						84000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						84150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						84300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						84450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						84600,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						84750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						84900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						85050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						85200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						85350,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						85500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						85650,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						85800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						85950,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						86100,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						86250,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						86400,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						86700,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						87000,
+						0,
+						150,
+						"ArrowMech"
+					],
+					[
+						87300,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						87600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						87900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						88200,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						88500,
+						1,
+						150,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						88800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						88950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						89100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						89250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						89400,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						89700,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						90000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						90150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						90300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						90450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						90600,
+						0,
+						150,
+						"ArrowMech"
+					],
+					[
+						90900,
+						2,
+						150,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						91200,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						91500,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						91800,
+						0,
+						150,
+						"ArrowMech"
+					],
+					[
+						92100,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						92400,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						92700,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						93000,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						93300,
+						1,
+						150,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						93600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						93750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						93900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						94050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						94200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						94350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						94500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						94650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						94800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						94950,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						95100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						95250,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						95400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						95550,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						95700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						95850,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						96000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						96150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						96300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						96450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						96600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						96750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						96825,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						96900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						97050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						97125,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						97200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						97350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						97500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						97650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						97800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						98100,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						98400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						98475,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						98550,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						98700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						98775,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						98850,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						99000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						99075,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						99150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						99300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						99450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						99600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						99750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						99900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						100050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						100200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						100275,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						100350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						100425,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						100500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						100575,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						100650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						100725,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						100800,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						101100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						101400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						101700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						102000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						102150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						102300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						102450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						102600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						102900,
+						0,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						103200,
+						0,
+						300,
+						"ArrowMech"
+					],
+					[
+						103650,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						103800,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						104250,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						104400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						104550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						104700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						104850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						105000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						105150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						105300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						105450,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						105600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						105750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						105900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						106050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						106200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						106350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						106425,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						106500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						106650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						106725,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						106800,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						106950,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						107100,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						107250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						107400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						107700,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						108000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						108075,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						108150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						108300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						108375,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						108450,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						108600,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						108675,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						108750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						108900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						109050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						109200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						109350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						109500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						109650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						109800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						109875,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						109950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						110025,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						110100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						110175,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						110250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						110325,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						110400,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						110700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						111000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						111300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						111600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						111750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						111900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						112050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						112200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						112500,
+						0,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						112800,
+						0,
+						300,
+						"ArrowMech"
+					],
+					[
+						113250,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						113400,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						113850,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						114000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						114150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						114300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						114450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						114600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						114750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						114900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						115050,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						115200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						115500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						115800,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						116100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						116400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						116550,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						116700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						116850,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						117000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						117300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						115200,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						115500,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						115800,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						116100,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						116400,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						116550,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						116700,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						116850,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						117000,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						117300,
+						7,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						118800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						117600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						117750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						117900,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						118050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						118200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						118350,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						118500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						118875,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						118950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						119025,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						119100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						119175,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						119250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						119325,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						119400,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						119700,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						118800,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						117600,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						117750,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						117900,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						118050,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						118200,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						118350,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						118500,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						118875,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						118950,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						119025,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						119100,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						119175,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						119250,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						119325,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						119400,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						119700,
+						7,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						120000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						120300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						120600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						120900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						121200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						121350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						121500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						121650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						121800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						122100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						120000,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						120300,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						120600,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						120900,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						121200,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						121350,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						121500,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						121650,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						121800,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						122100,
+						7,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						123600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						122400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						122550,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						122700,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						122850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						123000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						123150,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						123300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						123675,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						123750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						123825,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						123900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						123975,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						124050,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						124125,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						124200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						124500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						123600,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						122400,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						122550,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						122700,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						122850,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						123000,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						123150,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						123300,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						123675,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						123750,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						123825,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						123900,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						123975,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						124050,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						124125,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						124200,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						124500,
+						7,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						124800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						125100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						125250,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						125325,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						125400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						125700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						126000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						126150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						126300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						126450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						126600,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						126900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						124800,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						125100,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						125250,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						125325,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						125400,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						125700,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						126000,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						126150,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						126300,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						126450,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						126600,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						126900,
+						5,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						127200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						127350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						127500,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						127650,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						127800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						127950,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						128100,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						128400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						128475,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						128550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						128625,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						128700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						128775,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						128850,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						128925,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						129000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						129300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						127200,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						127350,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						127500,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						127650,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						127800,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						127950,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						128100,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						128400,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						128475,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						128550,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						128625,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						128700,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						128775,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						128850,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						128925,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						129000,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						129300,
+						6,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						129600,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						129900,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						130200,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						130500,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						130800,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						130950,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						131100,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						131250,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						131400,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						131700,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						129600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						129900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						130200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						130500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						130800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						130950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						131100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						131250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						131400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						131700,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						132000,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						132150,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						132300,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						132450,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						132600,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						132750,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						132900,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						133200,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						133275,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						133350,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						133425,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						133500,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						133575,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						133650,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						133725,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						133800,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						134100,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						132000,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						132150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						132300,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						132450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						132600,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						132750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						132900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						133200,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						133275,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						133350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						133425,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						133500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						133575,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						133650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						133725,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						133800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						134100,
+						2,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						134400,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						134700,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						135000,
+						0,
+						150,
+						"ArrowMech"
+					],
+					[
+						135300,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						135900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						135600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						136200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						136500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						134400,
+						6,
+						150,
+						"ArrowMech"
+					],
+					[
+						134700,
+						5,
+						150,
+						"ArrowMech"
+					],
+					[
+						135000,
+						4,
+						150,
+						"ArrowMech"
+					],
+					[
+						135300,
+						5,
+						150,
+						"ArrowMech"
+					],
+					[
+						135900,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						135600,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						136200,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						136500,
+						5,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						136800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						136950,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						137100,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						137250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						137400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						137700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						138000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						138150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						138300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						138450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						138600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						138900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						136800,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						136950,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						137100,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						137250,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						137400,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						137700,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						138000,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						138150,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						138300,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						138450,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						138600,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						138900,
+						6,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						139200,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						139500,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						139800,
+						0,
+						150,
+						"ArrowMech"
+					],
+					[
+						140100,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						140400,
+						2,
+						150,
+						"ArrowMech"
+					],
+					[
+						140700,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						141000,
+						3,
+						150,
+						"ArrowMech"
+					],
+					[
+						141300,
+						1,
+						150,
+						"ArrowMech"
+					],
+					[
+						139200,
+						7,
+						150,
+						"ArrowMech"
+					],
+					[
+						139500,
+						5,
+						150,
+						"ArrowMech"
+					],
+					[
+						139800,
+						4,
+						150,
+						"ArrowMech"
+					],
+					[
+						140100,
+						7,
+						150,
+						"ArrowMech"
+					],
+					[
+						140400,
+						6,
+						150,
+						"ArrowMech"
+					],
+					[
+						140700,
+						5,
+						150,
+						"ArrowMech"
+					],
+					[
+						141000,
+						7,
+						150,
+						"ArrowMech"
+					],
+					[
+						141300,
+						5,
+						150,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						141600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						141750,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						141900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						142050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						142200,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						142350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						142500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						142650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						142800,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						142950,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						143100,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						143250,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						143400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						143550,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						143700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						143850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						141600,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						141750,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						141900,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						142050,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						142200,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						142350,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						142500,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						142650,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						142800,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						142950,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						143100,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						143250,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						143400,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						143550,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						143700,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						143850,
+						5,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": false,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						144000,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						144150,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						144300,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						144450,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						144600,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						144825,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						144750,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						144900,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						145050,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						145125,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						145200,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						145350,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						145500,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						145650,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						145800,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						146100,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						144000,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						144150,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						144300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						144450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						144600,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						144825,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						144750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						144900,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						145050,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						145125,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						145200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						145350,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						145500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						145650,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						145800,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						146100,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						146400,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						146475,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						146550,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						146700,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						146775,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						146850,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						147075,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						147000,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						147150,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						147300,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						147450,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						147600,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						147750,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						147900,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						148050,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						148275,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						148200,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						148425,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						148350,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						148500,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						148575,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						148650,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						148725,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						146400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						146475,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						146550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						146700,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						146775,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						146850,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						147075,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						147000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						147150,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						147300,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						147450,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						147600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						147750,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						147900,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						148050,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						148275,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						148200,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						148425,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						148350,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						148500,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						148575,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						148650,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						148725,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						148800,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						149100,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						149400,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						149700,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						150000,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						150150,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						150300,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						150450,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						150600,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						150900,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						148800,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						149100,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						149400,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						149700,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						150000,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						150150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						150300,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						150450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						150600,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						150900,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						151200,
+						4,
+						300,
+						"ArrowMech"
+					],
+					[
+						151650,
+						7,
+						0,
+						"ArrowMech"
+					],
+					[
+						151800,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						152250,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						152400,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						152550,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						152700,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						152850,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						153000,
+						6,
+						0,
+						"ArrowMech"
+					],
+					[
+						153150,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						153300,
+						4,
+						0,
+						"ArrowMech"
+					],
+					[
+						153450,
+						5,
+						0,
+						"ArrowMech"
+					],
+					[
+						151200,
+						0,
+						300,
+						"ArrowMech"
+					],
+					[
+						151650,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						151800,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						152250,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						152400,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						152550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						152700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						152850,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						153000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						153150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						153300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						153450,
+						1,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						153600,
+						0,
+						1050
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [
+					[
+						170400,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						170550,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						170700,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						170850,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						171000,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						171150,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						171300,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						171450,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						171600,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						171750,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						171900,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						172050,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						172200,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						172350,
+						3,
+						0,
+						"ArrowMech"
+					],
+					[
+						172500,
+						1,
+						0,
+						"ArrowMech"
+					],
+					[
+						172500,
+						0,
+						0,
+						"ArrowMech"
+					],
+					[
+						172650,
+						2,
+						0,
+						"ArrowMech"
+					],
+					[
+						172650,
+						3,
+						0,
+						"ArrowMech"
+					]
+				],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 200
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"exSection": false,
+				"gfSection": false,
+				"bpm": 100,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"exSection": false,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"exSection": false,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"exSection": false,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"exSection": false,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 100
+			},
+			{
+				"gfSection": false,
+				"altAnim": false,
+				"sectionNotes": [],
+				"bpm": 100,
+				"sectionBeats": 4,
+				"changeBPM": false,
+				"exSection": false,
+				"mustHitSection": true
+			}
+		],
+		"events": [
+			[
+				0,
+				[
+					[
+						"Camera_Zoom_Beat",
+						"2",
+						"2"
+					]
+				]
+			]
+		],
+		"player2": "sprinklezV2",
+		"mania": 3,
+		"splashSkin": "noteSplashes",
+		"song": "Beat Battle",
+		"needsVoices": true,
+		"arrowSkin": "",
+		"stage": "stage",
+		"validScore": true,
+		"format": "mixtape_v1_convert",
+		"bpm": 100,
+		"speed": 2.5
+	}
+}

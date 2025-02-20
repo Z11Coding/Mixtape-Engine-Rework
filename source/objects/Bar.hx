@@ -14,8 +14,8 @@ class Bar extends FlxSpriteGroup
 	public var barCenter(default, null):Float = 0;
 
 	// you might need to change this if you want to use a custom bar
-	public var barWidth(default, set):Float = 1;
-	public var barHeight(default, set):Float = 1;
+	public var barWidth(default, set):Int = 1;
+	public var barHeight(default, set):Int = 1;
 	public var barOffset:FlxPoint = new FlxPoint(3, 3);
 
 	public function new(x:Float, y:Float, image:String = 'healthBar', valueFunction:Void->Float = null, boundX:Float = 0, boundY:Float = 1)
@@ -25,17 +25,10 @@ class Bar extends FlxSpriteGroup
 		this.valueFunction = valueFunction;
 		setBounds(boundX, boundY);
 		
-		try
-		{
-			bg = new FlxSprite().loadGraphic(Paths.image(image));
-			bg.antialiasing = ClientPrefs.data.globalAntialiasing;
-			barWidth = bg.width - 6;
-			barHeight = bg.height - 6;
-		}
-		catch(e:Dynamic)
-		{
-			trace('Bar didnt load properly!: '+e);
-		}
+		bg = new FlxSprite().loadGraphic(Paths.image(image));
+		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
+		barWidth = Std.int(bg.width - 6);
+		barHeight = Std.int(bg.height - 6);
 
 		leftBar = new FlxSprite().makeGraphic(Std.int(bg.width), Std.int(bg.height), FlxColor.WHITE);
 		//leftBar.color = FlxColor.WHITE;
@@ -144,14 +137,14 @@ class Bar extends FlxSpriteGroup
 		return value;
 	}
 
-	private function set_barWidth(value:Float)
+	private function set_barWidth(value:Int)
 	{
 		barWidth = value;
 		regenerateClips();
 		return value;
 	}
 
-	private function set_barHeight(value:Float)
+	private function set_barHeight(value:Int)
 	{
 		barHeight = value;
 		regenerateClips();

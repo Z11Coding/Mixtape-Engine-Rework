@@ -1,6 +1,6 @@
 package backend;
 
-import objects.notes.Note;
+import objects.Note;
 
 typedef NoteTypeProperty = {
 	property:Array<String>,
@@ -16,8 +16,6 @@ class NoteTypesConfig
 	public static function loadNoteTypeData(name:String)
 	{
 		if(noteTypesData.exists(name)) return noteTypesData.get(name);
-
-		if (!FileSystem.exists('custom_notetypes/$name.txt')) return null;
 
 		var str:String = Paths.getTextFromFile('custom_notetypes/$name.txt');
 		if(str == null || !str.contains(':') || !str.contains('=')) noteTypesData.set(name, null);

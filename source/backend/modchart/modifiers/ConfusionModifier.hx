@@ -7,7 +7,6 @@ import flixel.math.FlxPoint;
 import flixel.math.FlxMath;
 import backend.math.*;
 import flixel.math.FlxAngle;
-import objects.notes.NoteObject;
 
 class ConfusionModifier extends NoteModifier {
     override function getName()return 'confusion';
@@ -85,7 +84,7 @@ class ConfusionModifier extends NoteModifier {
 			"dizzy"
         ];
 
-        for(i in 0...Note.ammo[states.PlayState.mania]){
+        for(i in 0...Note.ammo[PlayState.mania]){
 			subMods.push('note${i}AngleX');
 			subMods.push('receptor${i}AngleX');
 			subMods.push('note${i}AngleY');

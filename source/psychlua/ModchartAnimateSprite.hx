@@ -1,5 +1,5 @@
 package psychlua;
-import llua.State;
+
 #if flxanimate
 class ModchartAnimateSprite extends FlxAnimate
 {

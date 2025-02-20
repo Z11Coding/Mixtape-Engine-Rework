@@ -3,25 +3,78 @@ package shaders;
 import flixel.FlxG;
 import flixel.system.FlxAssets.FlxShader;
 
-class ColorSwap {
+class ColorSwap
+{
 	public var shader(default, null):ColorSwapShader = new ColorSwapShader();
 	public var hue(default, set):Float = 0;
 	public var saturation(default, set):Float = 0;
 	public var brightness(default, set):Float = 0;
+	public var daAlpha(default, set):Float = 1;
+	public var flash(default, set):Float = 0;
 
-	private function set_hue(value:Float) {
+	public var flashR(default, set):Float = 1;
+	public var flashG(default, set):Float = 1;
+	public var flashB(default, set):Float = 1;
+	public var flashA(default, set):Float = 1;
+
+	private function set_flashR(value:Float)
+	{
+		flashR = value;
+		shader.flashColor.value[0] = flashR;
+		return flashR;
+	}
+
+	private function set_flashG(value:Float)
+	{
+		flashG = value;
+		shader.flashColor.value[1] = flashG;
+		return flashG;
+	}
+
+	private function set_flashB(value:Float)
+	{
+		flashB = value;
+		shader.flashColor.value[2] = flashB;
+		return flashB;
+	}
+
+	private function set_flashA(value:Float)
+	{
+		flashA = value;
+		shader.flashColor.value[3] = flashA;
+		return flashA;
+	}
+
+	private function set_daAlpha(value:Float)
+	{
+		daAlpha = value;
+		shader.daAlpha.value[0] = daAlpha;
+		return daAlpha;
+	}
+
+	private function set_flash(value:Float)
+	{
+		flash = value;
+		shader.flash.value[0] = flash;
+		return flash;
+	}
+
+	private function set_hue(value:Float)
+	{
 		hue = value;
 		shader.uTime.value[0] = hue;
 		return hue;
 	}
 
-	private function set_saturation(value:Float) {
+	private function set_saturation(value:Float)
+	{
 		saturation = value;
 		shader.uTime.value[1] = saturation;
 		return saturation;
 	}
 
-	private function set_brightness(value:Float) {
+	private function set_brightness(value:Float)
+	{
 		brightness = value;
 		shader.uTime.value[2] = brightness;
 		return brightness;
@@ -30,65 +83,22 @@ class ColorSwap {
 	public function new()
 	{
 		shader.uTime.value = [0, 0, 0];
+		shader.flashColor.value = [1, 1, 1, 1];
+		shader.daAlpha.value = [1];
+		shader.flash.value = [0];
 		shader.awesomeOutline.value = [false];
 	}
 }
 
-class ColorSwapShader extends FlxShader {
+class ColorSwapShader extends FlxShader
+{
 	@:glFragmentSource('
-		varying float openfl_Alphav;
-		varying vec4 openfl_ColorMultiplierv;
-		varying vec4 openfl_ColorOffsetv;
-		varying vec2 openfl_TextureCoordv;
-
-		uniform bool openfl_HasColorTransform;
-		uniform vec2 openfl_TextureSize;
-		uniform sampler2D bitmap;
-
-		uniform bool hasTransform;
-		uniform bool hasColorTransform;
-    		uniform bool blurEnabled;
-    		uniform int passes;
-       		uniform float x;
-        	uniform float y;
-       		uniform bool isNote;
-
-		vec4 flixel_texture2D(sampler2D bitmap, vec2 coord)
-		{
-			vec4 color = texture2D(bitmap, coord);
-			if (!hasTransform)
-			{
-				return color;
-			}
-
-			if (color.a == 0.0)
-			{
-				return vec4(0.0, 0.0, 0.0, 0.0);
-			}
-
-			if (!hasColorTransform)
-			{
-				return color * openfl_Alphav;
-			}
-
-			color = vec4(color.rgb / color.a, color.a);
-
-			mat4 colorMultiplier = mat4(0);
-			colorMultiplier[0][0] = openfl_ColorMultiplierv.x;
-			colorMultiplier[1][1] = openfl_ColorMultiplierv.y;
-			colorMultiplier[2][2] = openfl_ColorMultiplierv.z;
-			colorMultiplier[3][3] = openfl_ColorMultiplierv.w;
-
-			color = clamp(openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);
-
-			if (color.a > 0.0)
-			{
-				return vec4(color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
-			}
-			return vec4(0.0, 0.0, 0.0, 0.0);
-		}
+		#pragma header
 
 		uniform vec3 uTime;
+		uniform float daAlpha;
+		uniform float flash;
+		uniform vec4 flashColor;
 		uniform bool awesomeOutline;
 
 		const float offset = 1.0 / 128.0;
@@ -157,6 +167,10 @@ class ColorSwapShader extends FlxShader {
 						color = vec4(1.0, 1.0, 1.0, 1.0);
 				}
 			}
+			if(flash != 0.0){
+				color = mix(color,flashColor,flash) * color.a;
+			}
+			color *= daAlpha;
 			gl_FragColor = color;
 
 			/* 
@@ -174,51 +188,8 @@ class ColorSwapShader extends FlxShader {
 					gl_FragColor = color;
 			} */
 		}')
-	@:glVertexSource('
-		attribute float openfl_Alpha;
-		attribute vec4 openfl_ColorMultiplier;
-		attribute vec4 openfl_ColorOffset;
-		attribute vec4 openfl_Position;
-		attribute vec2 openfl_TextureCoord;
-
-		varying float openfl_Alphav;
-		varying vec4 openfl_ColorMultiplierv;
-		varying vec4 openfl_ColorOffsetv;
-		varying vec2 openfl_TextureCoordv;
-
-		uniform mat4 openfl_Matrix;
-		uniform bool openfl_HasColorTransform;
-		uniform vec2 openfl_TextureSize;
-
-		attribute float alpha;
-		attribute vec4 colorMultiplier;
-		attribute vec4 colorOffset;
-		uniform bool hasColorTransform;
-		
-		void main(void)
-		{
-			openfl_Alphav = openfl_Alpha;
-			openfl_TextureCoordv = openfl_TextureCoord;
-
-			if (openfl_HasColorTransform) {
-				openfl_ColorMultiplierv = openfl_ColorMultiplier;
-				openfl_ColorOffsetv = openfl_ColorOffset / 255.0;
-			}
-
-			gl_Position = openfl_Matrix * openfl_Position;
-
-			openfl_Alphav = openfl_Alpha * alpha;
-			if (hasColorTransform)
-			{
-				openfl_ColorOffsetv = colorOffset / 255.0;
-				openfl_ColorMultiplierv = colorMultiplier;
-			}
-		}')
-
 	public function new()
 	{
 		super();
-        	this.y.value = [0.0075];
-		this.passes.value = [10];
 	}
 }

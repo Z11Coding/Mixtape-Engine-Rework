@@ -1,6 +1,4 @@
 package backend;
-import llua.State;
-import objects.Alphabet.AlphaCharacter;
 
 class Language
 {

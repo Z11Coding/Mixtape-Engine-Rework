@@ -3,13 +3,10 @@ package backend;
 import flixel.FlxBasic;
 import flixel.FlxObject;
 import flixel.FlxSubState;
+import flixel.group.FlxGroup;
 
-import objects.notes.Note;
-import objects.notes.Note.EventNote;
+import objects.Note;
 import objects.Character;
-import states.PlayState;
-import stages.objects.*;
-import stages.gimmicks.*;
 
 enum Countdown
 {
@@ -40,8 +37,10 @@ enum HenchmenKillState
 
 class BaseStage extends FlxBasic
 {
-	private var game(default, set):Dynamic = PlayState.instance;
-	public var onPlayState:Bool = false;
+	private var game(get, never):Dynamic;
+	public var onPlayState(get, never):Bool;
+
+	// public static var currentStage:BaseStage;
 
 	// some variables for convenience
 	public var paused(get, never):Bool;
@@ -50,14 +49,22 @@ class BaseStage extends FlxBasic
 	public var seenCutscene(get, never):Bool;
 	public var inCutscene(get, set):Bool;
 	public var canPause(get, set):Bool;
-	public var members(get, never):Dynamic;
+	public var members(get, never):Array<FlxBasic>;
 
 	public var boyfriend(get, never):Character;
+	public var bf2(get, never):Character;
 	public var dad(get, never):Character;
+	public var dad2(get, never):Character;
 	public var gf(get, never):Character;
 	public var boyfriendGroup(get, never):FlxSpriteGroup;
+	public var boyfriendGroup2(get, never):FlxSpriteGroup;
 	public var dadGroup(get, never):FlxSpriteGroup;
+	public var dadGroup2:FlxSpriteGroup;
 	public var gfGroup(get, never):FlxSpriteGroup;
+
+	public var unspawnNotes(get, never):Array<Note>;
+	public var allNotes(get, never):Array<Note>;
+	public var currentChart(get, never):Array<Note>;
 	
 	public var camGame(get, never):FlxCamera;
 	public var camHUD(get, never):FlxCamera;
@@ -68,15 +75,14 @@ class BaseStage extends FlxBasic
 
 	public function new()
 	{
-		this.game = MusicBeatState.getState();
-		if(this.game == null)
+		if(game == null)
 		{
-			FlxG.log.warn('Invalid state for the stage added!');
+			FlxG.log.error('Invalid state for the stage added!');
 			destroy();
 		}
 		else 
 		{
-			this.game.stages.push(this);
+			game.stages.push(this);
 			super();
 			create();
 		}
@@ -85,7 +91,7 @@ class BaseStage extends FlxBasic
 	//main callbacks
 	public function create() {}
 	public function createPost() {}
-	//public function update(elapsed:Float) {}
+	override function update(elapsed:Float) {}
 	public function countdownTick(count:Countdown, num:Int) {}
 	public function startSong() {}
 	public function onEndSong() {} //To compensate for the frickin endSong function not working for some reason
@@ -110,22 +116,21 @@ class BaseStage extends FlxBasic
 	public function eventPushedUnique(event:EventNote) {}
 
 	// Note Hit/Miss
-	public function goodNoteHit(note:Note) {}
-	public function opponentNoteHit(note:Note) {}
-	public function noteMiss(note:Note) {}
+	public function goodNoteHit(note:Note, field:PlayField) {}
+	public function opponentNoteHit(note:Note, field:PlayField) {}
+	public function noteMiss(note:Note, field:PlayField) {}
 	public function noteMissPress(direction:Int) {}
 
-	// Game Over
-	public function onGameOver() {}
-
 	// Things to replace FlxGroup stuff and inject sprites directly into the state
-	function add(object:FlxBasic) game.add(object);
-	function remove(object:FlxBasic) game.remove(object);
-	function insert(position:Int, object:FlxBasic) game.insert(position, object);
+	function add(object:FlxBasic) return FlxG.state.add(object);
+	function remove(object:FlxBasic, splice:Bool = false) return FlxG.state.remove(object, splice);
+	function insert(position:Int, object:FlxBasic) return FlxG.state.insert(position, object);
 	
-	public function addBehindGF(obj:FlxBasic) insert(members.indexOf(game.gfGroup), obj);
-	public function addBehindBF(obj:FlxBasic) insert(members.indexOf(game.boyfriendGroup), obj);
-	public function addBehindDad(obj:FlxBasic) insert(members.indexOf(game.dadGroup), obj);
+	public function addBehindGF(obj:FlxBasic) return insert(members.indexOf(game.gfGroup), obj);
+	public function addBehindBF(obj:FlxBasic) return insert(members.indexOf(game.boyfriendGroup), obj);
+	public function addBehindBF2(obj:FlxBasic) return insert(members.indexOf(game.boyfriendGroup2), obj);
+	public function addBehindDad(obj:FlxBasic) return insert(members.indexOf(game.dadGroup), obj);
+	public function addBehindDad2(obj:FlxBasic) return insert(members.indexOf(game.dadGroup2), obj);
 	public function setDefaultGF(name:String) //Fix for the Chart Editor on Base Game stages
 	{
 		var gfVersion:String = PlayState.SONG.gfVersion;
@@ -135,6 +140,9 @@ class BaseStage extends FlxBasic
 			PlayState.SONG.gfVersion = gfVersion;
 		}
 	}
+
+	public function getStageObject(name:String) //Objects can only be accessed *after* create(), use createPost() if you want to mess with them on init
+		return game.variables.get(name);
 
 	//start/end callback functions
 	public function setStartCallback(myfn:Void->Void)
@@ -149,24 +157,8 @@ class BaseStage extends FlxBasic
 	}
 
 	// overrides
-	function startCountdown() 
-	{
-		if(onPlayState && !PlayState.instance.skipCountdown) 
-		{
-			PlayState.instance.startCountdown(); 
-			return true;
-		}
-		else return false;
-	}
-	function endSong() 
-	{
-		if(onPlayState)
-		{
-			PlayState.instance.endSong();
-			return true;
-		}
-		else return false;
-	}
+	function startCountdown() if(onPlayState) return PlayState.instance.startCountdown(); else return false;
+	function endSong() if(onPlayState)return PlayState.instance.endSong(); else return false;
 	function moveCameraSection() if(onPlayState) PlayState.instance.moveCameraSection();
 	function moveCamera(isDad:Bool) if(onPlayState) PlayState.instance.moveCamera(isDad);
 	inline private function get_paused() return game.paused;
@@ -186,20 +178,36 @@ class BaseStage extends FlxBasic
 		return value;
 	}
 	inline private function get_members() return game.members;
-	inline private function set_game(value:MusicBeatState)
-	{
-		onPlayState = (Std.isOfType(value, PlayState));
-		game = value;
-		return value;
-	}
+
+	inline private function get_game() return cast FlxG.state;
+	inline private function get_onPlayState() return (Std.isOfType(FlxG.state, states.PlayState));
 
 	inline private function get_boyfriend():Character return game.boyfriend;
+	inline private function get_bf2():Character return game.bf2;
 	inline private function get_dad():Character return game.dad;
+	inline private function get_dad2():Character return game.dad2;
 	inline private function get_gf():Character return game.gf;
 
 	inline private function get_boyfriendGroup():FlxSpriteGroup return game.boyfriendGroup;
+	inline private function get_boyfriendGroup2():FlxSpriteGroup return game.boyfriendGroup2;
 	inline private function get_dadGroup():FlxSpriteGroup return game.dadGroup;
+	inline private function get_dadGroup2():FlxSpriteGroup return game.dadGroup2;
 	inline private function get_gfGroup():FlxSpriteGroup return game.gfGroup;
+
+	inline private function get_unspawnNotes():Array<Note>
+	{
+		return cast game.unspawnNotes;
+	}
+
+	inline private function get_allNotes():Array<Note>
+	{
+		return cast game.allNotes;
+	}
+
+	inline private function get_currentChart():Array<Note>
+	{
+		return cast game.curChart;
+	}
 	
 	inline private function get_camGame():FlxCamera return game.camGame;
 	inline private function get_camHUD():FlxCamera return game.camHUD;

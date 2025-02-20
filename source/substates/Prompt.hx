@@ -1,12 +1,11 @@
 package substates;
+
 import flixel.*;
 import flixel.FlxSubState;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxUIPopup;
-import flixel.text.FlxText;
 import flixel.ui.FlxButton;
-import flixel.util.FlxColor;
-import flixel.util.FlxTimer;
+
 import openfl.display.BitmapData;
 import openfl.geom.Rectangle;
 
@@ -28,7 +27,7 @@ class Prompt extends MusicBeatSubstate
 	var buttonAccept:FlxButton;
 	var buttonNo:FlxButton;
 	var cornerSize:Int = 10;
-	public function new(promptText:String='', defaultSelected:Int = 0, okCallback:Void->Void, ?cancelCallback:Void->Void, ?acceptOnDefault:Bool=false, ?option1:String=null, ?option2:String=null) 
+	public function new(promptText:String='', defaultSelected:Int = 0, okCallback:Void->Void, cancelCallback:Void->Void,acceptOnDefault:Bool=false,option1:String=null,option2:String=null) 
 	{
 		selected = defaultSelected;
 		okc = okCallback;
@@ -50,7 +49,6 @@ class Prompt extends MusicBeatSubstate
 	
 	override public function create():Void 
 	{
-		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 		super.create();
 		if (goAnyway){
 			

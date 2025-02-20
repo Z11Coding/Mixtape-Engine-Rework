@@ -1,5 +1,5 @@
 // https://www.youtube.com/watch?v=RFRmlPC8Ujo
-package shaders;
+package;
 
 import flixel.system.FlxAssets.FlxShader;
 import openfl.display.BitmapData;

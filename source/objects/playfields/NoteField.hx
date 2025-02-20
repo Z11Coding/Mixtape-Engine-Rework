@@ -1,6 +1,5 @@
 package objects.playfields;
 
-import haxe.Exception;
 import math.*;
 import flixel.math.FlxMath;
 import flixel.math.FlxAngle;
@@ -14,11 +13,9 @@ import flixel.graphics.FlxGraphic;
 import backend.modchart.Modifier.RenderInfo;
 import backend.modchart.ModManager;
 import flixel.system.FlxAssets.FlxShader;
-import objects.notes.NoteObject;
-import objects.notes.Note;
-import backend.math.Vector3;
-import backend.math.VectorHelpers;
-import states.PlayState;
+import objects.NoteObject;
+
+using StringTools;
 
 typedef RenderObject =
 {
@@ -173,7 +170,7 @@ class NoteField extends FieldBase
 			var object = drawNote(obj, pos);
 			if (object == null)
 				continue;
-			object.zIndex += (obj.animation != null && obj.animation.curAnim != null && obj.animation.curAnim.name == 'confirm') ? -1 : -2;
+			object.zIndex += (obj.animation != null && obj.animation.curAnim != null && obj.animation.curAnim.name == 'confirm') ? 1 : 0;
 
 			lookupMap.set(obj, object);
 			drawQueue.push(object);
@@ -409,9 +406,9 @@ class NoteField extends FieldBase
 		var tWid = hold.frameWidth * hold.scale.x;
 		var bWid = (function()
 		{
-			/*if (hold.prevNote != null && hold.prevNote.scale != null && hold.prevNote.isSustainNote)
+			if (hold.prevNote != null && hold.prevNote.scale != null && hold.prevNote.isSustainNote)
 				return hold.prevNote.frameWidth * hold.prevNote.scale.x;
-			else*/
+			else
 				return tWid;
 		})();
 
@@ -676,18 +673,7 @@ class NoteField extends FieldBase
 			if(len <= 0) len = e.message.length;
 			#if windows
 			lime.app.Application.current.window.alert('ERROR: ' + e.message.substr(0, len)+'\nChances are your noteskin broke if you\'re reading this', 'Error Loading!');
-			// FlxTween.tween(FlxG.sound.music, { pitch: 0 }, FlxG.random.float(1, 3), {
-			// 	onComplete: function(e) {
-			// 		if (PlayState.isStoryMode) {
-			// 			FlxG.switchState(new states.StoryMenuState());
-			// 		} else {
-			// 			FlxG.switchState(new states.FreeplayState());
-			// 		}
-			// 		return null;
-			// 	}
-			// });
-			Main.closeGame();
-					
+			Sys.exit(0);
 			#else
 			throw 'Error: '+e+'\nChances are your noteskin broke something if you\'re reading this';
 			#end

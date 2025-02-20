@@ -9,11 +9,10 @@ import lime.system.Clipboard;
 
 import objects.TypedAlphabet;
 
-import cutscenes.DialogueBoxPsych;
-import cutscenes.DialogueCharacter;
+import backend.cutscenes.DialogueBoxPsych;
+import backend.cutscenes.DialogueCharacter;
 
-import substates.Prompt2;
-import backend.ui.*;
+import states.editors.content.Prompt;
 
 class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -607,7 +606,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 					transitioning = true;
 				}
-				else openSubState(new substates.Prompt2.ExitConfirmationPrompt(function() transitioning = true));
+				else openSubState(new ExitConfirmationPrompt(function() transitioning = true));
 			}
 
 			ghostLoop.setPosition(character.x, character.y);

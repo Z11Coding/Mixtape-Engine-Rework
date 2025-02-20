@@ -1,5 +1,5 @@
 package psychlua;
-import llua.State;
+
 class DebugLuaText extends FlxText
 {
 	public var disableTime:Float = 6;

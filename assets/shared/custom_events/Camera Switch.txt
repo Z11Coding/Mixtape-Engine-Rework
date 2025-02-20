@@ -1,0 +1,5 @@
+value 1: TIME - mark this, in seconds, how fast
+should the camera turn on / off.
+
+value 2:  TYPE - mark this with either 'on' / 'off'
+if you want the camera to turn on / off.

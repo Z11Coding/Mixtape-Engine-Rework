@@ -23,10 +23,8 @@ import openfl.events.IOErrorEvent;
 import psychlua.ModchartSprite;
 import flash.net.FileFilter;
 
-import substates.Prompt;
-import substates.Prompt2.BasePrompt2 as BasePrompt;
+import states.editors.content.Prompt;
 import states.editors.content.PreloadListSubState;
-import backend.ui.*;
 
 class StageEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -1438,7 +1436,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				MusicBeatState.switchState(new states.editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 			}
-			else openSubState(new substates.Prompt2.ExitConfirmationPrompt());
+			else openSubState(new ExitConfirmationPrompt());
 			return;
 		}
 

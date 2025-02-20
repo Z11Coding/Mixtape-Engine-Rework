@@ -9,16 +9,9 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
-import music.Song;
+import backend.Song;
 import flixel.addons.transition.FlxTransitionableState;
-import archipelago.APEntryState;
-import states.PlayState;
-import backend.ClientPrefs;
-import backend.TransitionState;
-import backend.Mods;
-import backend.Difficulty;
-import archipelago.APPlayState;
-import backend.WeekData;
+import shop.ShopData.MoneyPopup;
 
 class RankingSubstate extends MusicBeatSubstate
 {
@@ -30,27 +23,19 @@ class RankingSubstate extends MusicBeatSubstate
 	var ranking:String = "NA";
 	var rankingNum:Int = 15;
 
-	var comboRankLimit:Int = 0;
-	public static var comboRankSetLimit:Int = 0;
-	var accRankLimit:Int = 0;
-	public static var accRankSetLimit:Int = 0;
-	public function new()
+	public function new(x:Float, y:Float)
 	{
 		super();
-		// PlayState.songEndTriggered = false;
-		music.Conductor.songPosition = 0;
 
 		generateRanking();
 
 		if (!PlayState.instance.cpuControlled)
 			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
-	}
 
-	override function create()
-	{
 		pauseMusic = new FlxSound().loadEmbedded(Paths.formatToSongPath(ClientPrefs.data.pauseMusic), true, true);
 		pauseMusic.volume = 0;
 		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
+
 		FlxG.sound.list.add(pauseMusic);
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -124,6 +109,17 @@ class RankingSubstate extends MusicBeatSubstate
 		FlxTween.tween(hint, {alpha: 1, y: 645 - hint.height}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+
+		/*if (PlayState.isStoryMode)
+		{
+			var stichValue:Int = Std.int(PlayState.campaignScore / 600);
+			add(new MoneyPopup(stichValue, cameras[0]));
+		}
+		else
+		{
+			var stichValue:Int = Std.int(PlayState.instance.songScore / 600);
+			add(new MoneyPopup(stichValue, cameras[0]));
+		}*/
 	}
 
 	override function update(elapsed:Float)
@@ -135,131 +131,36 @@ class RankingSubstate extends MusicBeatSubstate
 
 		if (FlxG.keys.justPressed.ANY || PlayState.instance.practiceMode)
 		{
-			PlayState.instance.paused = false;
+			//PlayState.endingSong = false;
+
 			switch (PlayState.gameplayArea)
 			{
 				case "Story":
 					if (PlayState.storyPlaylist.length <= 0)
 					{
 						Mods.loadTopMod();
-						FlxG.sound.playMusic(Paths.music('panixPress'));
+					    FlxG.sound.playMusic(Paths.music('panixPress'));
 						TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 					}
 					else
 					{
 						var difficulty:String = Difficulty.getFilePath();
 
-						trace('LOADING NEXT SONG');
-						trace(Paths.formatToSongPath(PlayState.storyPlaylist[0]) + difficulty);
+                        trace('LOADING NEXT SONG');
+                        trace(Paths.formatToSongPath(PlayState.storyPlaylist[0]) + difficulty);
 
-						FlxTransitionableState.skipNextTransIn = true;
-						FlxTransitionableState.skipNextTransOut = true;
+                        FlxTransitionableState.skipNextTransIn = true;
+                        FlxTransitionableState.skipNextTransOut = true;
 
-						PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0] + difficulty, PlayState.storyPlaylist[0]);
-						FlxG.sound.music.stop();
+                        PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0] + difficulty, PlayState.storyPlaylist[0]);
+                        FlxG.sound.music.stop();
 						TransitionState.transitionState(states.PlayState, {transitionType: "stickers"});
 					}
 				case "Freeplay":
-					trace('WENT BACK TO FREEPLAY??');
-					Mods.loadTopMod();
-					FlxG.sound.playMusic(Paths.music('panixPress'));
+                    trace('WENT BACK TO FREEPLAY??');
+				    Mods.loadTopMod();
+				    FlxG.sound.playMusic(Paths.music('panixPress'));
 					TransitionState.transitionState(states.FreeplayState, {transitionType: "stickers"});
-				case "APFreeplay":
-					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
-					FlxG.sound.playMusic(Paths.music('panixPress'));
-					TransitionState.transitionState(states.FreeplayState, {transitionType: "stickers"});
-					var locationId = (PlayState.SONG.song);
-					trace('Combo Required:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
-					trace('Accuracy Required:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
-					if (comboRankSetLimit <= comboRankLimit && accRankLimit <= accRankSetLimit)
-					{
-						trace(APPlayState.currentMod);
-						if (APPlayState.currentMod.trim() != "")
-						{
-							locationId += " (" + APPlayState.currentMod + ")";
-						}
-						trace(locationId.trim());
-						var locationIdInt = APEntryState.apGame.info().get_location_id(locationId.trim());
-						trace('Location ID: ' + locationIdInt);
-
-						if (locationIdInt == null || locationIdInt <= 0)
-						{
-							// trace('First if: locationIdInt is 0');
-							for (song in WeekData.getCurrentWeek().songs)
-							{
-								// trace("Current Week: " + WeekData.getCurrentWeek().songs);
-								// trace("Object: " + WeekData.getCurrentWeek());
-								// trace("Checking song: " + song[0]);
-								// trace("Comparing: " + (cast song[0] : String).toLowerCase().trim() + " to " + PlayState.SONG.song.trim().toLowerCase());
-								if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-									(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-								{
-									locationIdInt = APPlayState.currentMod.trim() != ""
-										? APEntryState.apGame.info().get_location_id(song[0] + " (" + APPlayState.currentMod + ")")
-										: APEntryState.apGame.info().get_location_id(song[0]);
-									// trace('First if: Found matching song, locationIdInt set to ' + locationIdInt);
-									locationId = APPlayState.currentMod.trim() != ""
-										? song[0] + " (" + APPlayState.currentMod + ")"
-										: song[0];
-									break;
-								}
-							}
-						}
-
-						if (locationIdInt <= 0 || locationIdInt == null)
-						{
-							// trace('Second if: locationIdInt is still 0');
-							for (song in WeekData.getCurrentWeek().songs)
-							{
-								var songPath = APPlayState.currentMod.trim() != ""
-									? "mods/" + APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-									: "assets/shared" + (song[0] + Difficulty.getFilePath());
-								var songJson:SwagSong = null;
-								var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + APPlayState.currentMod + "/data", ".json");
-
-								for (json in jsonStuff)
-								{
-									// trace("Checking: " + json); trace("Comparing to: " + songPath);
-									if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
-									{
-										songJson = Song.parseJSON(File.getContent(json));
-										// trace('Second if: Found matching song, testing...');
-										// trace("Song: " + songJson.song); trace("Song File: " + songJson);
-										if (songJson != null)
-										{
-											// trace("Song: " + songJson.song); trace("Comparing to: " + PlayState.SONG.song);
-											// trace("Song: " + songJson.song.trim().toLowerCase().replace(" ", "-")); trace("Comparing to: " + PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"));
-											if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-											{
-												// trace('Second if: Found matching song, locationIdInt set to ' + locationIdInt);
-												locationIdInt = APPlayState.currentMod.trim() != ""
-													? APEntryState.apGame.info().get_location_id(song[0] + " (" + APPlayState.currentMod + ")")
-													: APEntryState.apGame.info().get_location_id(song[0]);
-												locationId = APPlayState.currentMod.trim() != "" ? song[0] + " (" + APPlayState.currentMod + ")" : song[0];
-												break;
-											}
-										}
-									} 
-								}
-							}
-						}
-						trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
-						trace(APEntryState.apGame.info().get_location_name(locationIdInt));
-						trace(PlayState.SONG.song);
-						archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Go check it out!", "archipelago", function() {
-							FlxG.sound.playMusic(Paths.sound('secret'));
-						});
-					}
-
-					var locationIdInt = APEntryState.apGame.info().get_location_id(locationId.trim());
-					if (locationIdInt != null && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-"))
-					{
-						archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-							FlxG.sound.playMusic(Paths.sound('secret'));
-						});
-						APEntryState.apGame.info().set_goal();
-					}						
-					Mods.loadTopMod();
 			}
 		}
 	}
@@ -273,20 +174,18 @@ class RankingSubstate extends MusicBeatSubstate
 
 	function generateRanking():String
 	{
-		if (PlayState.instance.songMisses == 0 && PlayState.instance.bads == 0 && PlayState.instance.shits == 0 && PlayState.instance.goods == 0 && PlayState.instance.sicks == 0 && PlayState.instance.marvs == 0 && ClientPrefs.data.useMarvs && !ClientPrefs.data.noPerfectJudge) // Perfect Full Combo
-			{ comboRank = "PFC"; comboRankLimit = 1; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.bads == 0 && PlayState.instance.shits == 0 && PlayState.instance.goods == 0 && PlayState.instance.sicks == 0 && ClientPrefs.data.useMarvs) // Marvelous Full Combo
-			{ comboRank = "MFC"; comboRankLimit = 2; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.bads == 0 && PlayState.instance.shits == 0 && PlayState.instance.goods == 0) // Sick Full Combo
-			{ comboRank = "SFC"; comboRankLimit = 3; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.bads == 0 && PlayState.instance.shits == 0 && PlayState.instance.goods >= 1) // Good Full Combo (Nothing but Goods & Sicks)
-			{ comboRank = "GFC"; comboRankLimit = 4; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.bads >= 1 && PlayState.instance.shits == 0 && PlayState.instance.goods >= 0) // Alright Full Combo (Bads, Goods and Sicks)
-			{ comboRank = "AFC"; comboRankLimit = 5; }
+		if (PlayState.instance.songMisses == 0 && PlayState.bads == 0 && PlayState.shits == 0 && PlayState.goods == 0 && PlayState.sicks == 0 && ClientPrefs.data.useMarvs) // Marvelous Full Combo
+			comboRank = "MFC";
+		else if (PlayState.instance.songMisses == 0 && PlayState.bads == 0 && PlayState.shits == 0 && PlayState.goods == 0) // Sick Full Combo
+			comboRank = "SFC";
+		else if (PlayState.instance.songMisses == 0 && PlayState.bads == 0 && PlayState.shits == 0 && PlayState.goods >= 1) // Good Full Combo (Nothing but Goods & Sicks)
+			comboRank = "GFC";
+		else if (PlayState.instance.songMisses == 0 && PlayState.bads >= 1 && PlayState.shits == 0 && PlayState.goods >= 0) // Alright Full Combo (Bads, Goods and Sicks)
+			comboRank = "AFC";
 		else if (PlayState.instance.songMisses == 0) // Regular FC
-			{ comboRank = "FC"; comboRankLimit = 6; }
+			comboRank = "FC";
 		else if (PlayState.instance.songMisses < 10) // Single Digit Combo Breaks
-			{ comboRank = "SDCB"; comboRankLimit = 7; }
+			comboRank = "SDCB";
 
 		var acc = backend.Highscore.floorDecimal(PlayState.instance.ratingPercent * 100, 2);
 
@@ -321,52 +220,36 @@ class RankingSubstate extends MusicBeatSubstate
 				{
 					case 0:
 						ranking = "P";
-						accRankLimit = 1;
 					case 1:
 						ranking = "X";
-						accRankLimit = 2;
 					case 2:
 						ranking = "X-";
-						accRankLimit = 3;
 					case 3:
 						ranking = "SS+";
-						accRankLimit = 4;
 					case 4:
 						ranking = "SS";
-						accRankLimit = 5;
 					case 5:
 						ranking = "SS-";
-						accRankLimit = 6;
 					case 6:
 						ranking = "S+";
-						accRankLimit = 7;
 					case 7:
 						ranking = "S";
-						accRankLimit = 8;
 					case 8:
 						ranking = "S-";
-						accRankLimit = 9;
 					case 9:
 						ranking = "A+";
-						accRankLimit = 10;
 					case 10:
 						ranking = "A";
-						accRankLimit = 11;
 					case 11:
 						ranking = "A-";
-						accRankLimit = 11;
 					case 12:
 						ranking = "B";
-						accRankLimit = 12;
 					case 13:
 						ranking = "C";
-						accRankLimit = 13;
 					case 14:
 						ranking = "D";
-						accRankLimit = 14;
 					case 15:
 						ranking = "E";
-						accRankLimit = 15;
 				}
 
 				if (PlayState.deathCounter >= 30 || acc == 0)

@@ -1,15 +1,9 @@
 package states;
 
-import flixel.FlxG;
-import flixel.FlxSprite;
 import flixel.FlxSubState;
-import flixel.text.FlxText;
-import flixel.util.FlxColor;
+
 import flixel.effects.FlxFlicker;
 import lime.app.Application;
-import flixel.addons.transition.FlxTransitionableState;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxTimer;
 
 class FlashingState extends MusicBeatState
 {
@@ -18,11 +12,6 @@ class FlashingState extends MusicBeatState
 	var warnText:FlxText;
 	override function create()
 	{
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
-
-		MusicBeatState.windowNameSuffix = " - Flashing Lights Warning Screen";
-
 		super.create();
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -35,7 +24,7 @@ class FlashingState extends MusicBeatState
 			Press ESCAPE to ignore this message.\n
 			You've been warned!",
 			32);
-		warnText.setFormat("VCR OSD Mono", 32, FlxColor.WHITE, CENTER);
+		warnText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER);
 		warnText.screenCenter(Y);
 		add(warnText);
 	}
@@ -54,14 +43,14 @@ class FlashingState extends MusicBeatState
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					FlxFlicker.flicker(warnText, 1, 0.1, false, true, function(flk:FlxFlicker) {
 						new FlxTimer().start(0.5, function (tmr:FlxTimer) {
-							FlxG.switchState(TitleState.new);
+							MusicBeatState.switchState(new TitleState());
 						});
 					});
 				} else {
 					FlxG.sound.play(Paths.sound('cancelMenu'));
 					FlxTween.tween(warnText, {alpha: 0}, 1, {
 						onComplete: function (twn:FlxTween) {
-							FlxG.switchState(TitleState.new);
+							MusicBeatState.switchState(new TitleState());
 						}
 					});
 				}

@@ -1,11 +1,11 @@
 name: Help me!
 description: If you need help using the engine.
-labels: [help wanted, status: pending triage]
+labels: [help wanted]
 body:
   - type: textarea
     id: description
     attributes:
-      label: "Describe your problem here. If you are modding, please try testing your problem in a clean version of the engine instead, this ensures the problem is actually caused by the engine itself. Also, if you're using an older version of JSE, please try the latest action build in the Actions tab or the latest release build. The issue has probably been fixed since that version. Oh yeah, and also be sure to check the pinned 'JS Engine: Known Issues' issue, to double check if your issue hasn't already been found!"
+      label: "Describe your problem here."
     validations:
       required: true
 
@@ -28,8 +28,6 @@ body:
         - "Windows x86/x32"
         - "Linux"
         - "Mac"
-        - "Android"
-        - "iOS"
         - "HTML5/Browser"
         - "Flash/Air-based target"
         - "Neko, HashLink, or other build system"

@@ -1,5 +1,5 @@
 package states;
-import stages.objects.*;
+import states.stages.objects.*;
 
 class What extends MusicBeatState 
 {
@@ -25,7 +25,7 @@ class What extends MusicBeatState
 
     override public function create()
     {
-        states.InitState.gameInitialized = true;
+        states.FirstCheckState.gameInitialized = true;
         // var titleStateCheckFunc = EventFunc.createEventFunc(
         //     "CheckForTitleState", // eventName
         //     EventType.EqualTo(TitleState), // eventType, checking for equality with TitleState class

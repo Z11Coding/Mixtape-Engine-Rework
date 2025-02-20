@@ -10,5 +10,3 @@ typedef SongMetaSection = {
     var charter:String;
     var mod:String;
 }
-
-//TODO: Expand this

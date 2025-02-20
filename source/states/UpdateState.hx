@@ -1,5 +1,4 @@
 package states;
-
 import openfl.display.BlendMode;
 import flixel.util.FlxAxes;
 import flixel.addons.display.FlxBackdrop;
@@ -9,7 +8,7 @@ import flixel.util.FlxTimer;
 import haxe.zip.Compress;
 import haxe.zip.Entry;
 import haxe.zip.Reader;
-import utils.JSEZip;
+import backend.util.JSEZip;
 import haxe.zip.Uncompress;
 import sys.io.File;
 import openfl.utils.ByteArray;
@@ -28,7 +27,8 @@ import flixel.util.FlxColor;
 import flixel.text.FlxText;
 import flixel.FlxSprite;
 import sys.io.Process;
-import states.TitleState;
+import flixel.util.FlxGradient;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
 class UpdateState extends MusicBeatState
 {
@@ -49,50 +49,89 @@ class UpdateState extends MusicBeatState
 
 	var currentTask:String = "download_update"; // download_update,install_update
 
+	var loadingL:FlxSprite;
+	var w = 775;
+    var h = 550;
+
+	var listoSongs:Array<String> = [
+		'Breakfast', 
+		'Tea Time', 
+		'Celebration', 
+		'Drippy Genesis', 
+		'Reglitch', 
+		'False Memory', 
+		'Funky Genesis', 
+		'Late Night Cafe', 
+		'Late Night Jersey', 
+		'Silly Little Sample Song'
+	];
+
+	var gradientBar:FlxSprite;
+	var bg:FlxSprite;
 	var checker:FlxBackdrop;
-	override function create()
-	{
+
+	public override function create() {
 		super.create();
-		FlxG.sound.playMusic(Paths.music('updateSong'), 0);
+		FlxG.autoPause = false;
+
+		FlxG.sound.playMusic(Paths.music(listoSongs[FlxG.random.int(0, 10)]), 0);
 		FlxG.sound.music.pitch = 1;
 
 		FlxG.sound.music.fadeIn(4, 0, 0.7);
-		var bg:FlxSprite = new FlxSprite(0, 0).loadGraphic(Paths.image("aboutMenu"));
-		bg.color = 0xFFFF8C19;
-		bg.scale.set(1.1, 1.1);
+
+		bg = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
+		bg.scrollFactor.set(0, 0);
+		bg.setGraphicSize(Std.int(bg.width * 1.175));
+		bg.color = 0xff270138;
+		bg.updateHitbox();
+		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
 		add(bg);
 
-		checker = new FlxBackdrop(Paths.image('checker'), FlxAxes.XY);
-		checker.scale.set(1.4, 1.4);
-		checker.color = 0xFF006AFF;
+		gradientBar = FlxGradient.createGradientFlxSprite(Math.round(FlxG.width), 512, [0x00ff0000, 0x55AE59E4, 0xAAFFA319], 1, 90, true);
+		gradientBar.y = FlxG.height - gradientBar.height;
+		add(gradientBar);
+		gradientBar.scrollFactor.set(0, 0);
+
+		checker = new FlxBackdrop(Paths.image('loading/bgpattern'), XY, Std.int(0.2), Std.int(0.2));
 		checker.blend = BlendMode.LAYER;
 		add(checker);
 		checker.scrollFactor.set(0, 0.07);
-		checker.alpha = 0.2;
-		checker.updateHitbox();
 
-		text = new FlxText(0, 0, 0, "Please wait, Mixtape Engine is updating...", 18);
-		text.setFormat("VCR OSD Mono", 18, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		text = new FlxText(0, 0, 0, "Updating Your Mixtape...", 18);
+		text.setFormat(Paths.font('funkin.ttf'), 18, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
 		add(text);
 		text.screenCenter(X);
 		text.y = 290;
 
+		loadingL = new FlxSprite(337.60, 27.30).loadGraphic(Paths.image("loading/loading"));
+		loadingL.antialiasing = true;
+        loadingL.screenCenter(X);
+        add(loadingL);
+
+        var loading = new FlxSprite().loadGraphic(Paths.image("loading/updating"));
+        loading.scale.set(0.85, 0.85);
+        loading.updateHitbox();
+        loading.y = FlxG.height - (loading.height * 1.15);
+        loading.screenCenter(X);
+        loading.antialiasing = true;
+        add(loading);
+		
 		progBar_bg = new FlxSprite(FlxG.width / 2, text.y + 50).makeGraphic(500, 20, FlxColor.BLACK);
 		add(progBar_bg);
 		progBar_bg.x -= 250;
 		progressBar = new FlxBar(progBar_bg.x + 5, progBar_bg.y + 5, LEFT_TO_RIGHT, Std.int(progBar_bg.width - 10), Std.int(progBar_bg.height - 10), this,
 			"entire_progress", 0, 100);
 		progressBar.numDivisions = 3000;
-		progressBar.createFilledBar(0xFF8F8F8F, 0xFFAD4E00);
+		progressBar.createFilledBar(0xFF4E2796, 0xFFFF7300);
 		add(progressBar);
 
 		progressText = new FlxText(progressBar.x, progressBar.y - 20, 0, "0%", 16);
-		progressText.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		progressText.setFormat(Paths.font('fnf1.ttf'), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
 		add(progressText);
 
 		download_info = new FlxText(progressBar.x + progBar_bg.width, progressBar.y + progBar_bg.height, 0, "0B / 0B", 16);
-		download_info.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		download_info.setFormat(Paths.font('fnf1.ttf'), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
 		add(download_info);
 
 		zip = new URLLoader();
@@ -105,22 +144,20 @@ class UpdateState extends MusicBeatState
 		startDownload();
 	}
 
+	var t:Float = 0;
 	var lastVare:Float = 0;
-
 	var lastTrackedBytes:Float = 0;
 	var lastTime:Float = 0;
 	var time:Float = 0;
 	var speed:Float = 0;
-
 	var downloadTime:Float = 0;
-
 	var currentFile:String = "";
+	public override function update(elapsed:Float) {
+		t += elapsed; // for speed calculations
+		checker.x -= 0.45 / (ClientPrefs.data.framerate / 60);
+		checker.y -= 0.16 / (ClientPrefs.data.framerate / 60);
+		loadingL.angle = Math.sin(t / 10) * 10;
 
-	override function update(elapsed:Float)
-	{
-		super.update(elapsed);
-		checker.x += 0.45 / (ClientPrefs.data.framerate / 60);
-		checker.y += (0.16 / (ClientPrefs.data.framerate / 60));
 		switch (currentTask)
 		{
 			case "download_update":
@@ -152,8 +189,9 @@ class UpdateState extends MusicBeatState
 				progressText.text = FlxMath.roundDecimal(entire_progress, 2) + "%";
 				download_info.text = currentFile;
 				download_info.x = (progBar_bg.x + progBar_bg.width) - download_info.width;
-			default: 
 		}
+		
+		super.update(elapsed);
 	}
 
 	inline function getPlatform():String
@@ -178,7 +216,7 @@ class UpdateState extends MusicBeatState
 	inline function getUpdateLink()
 	{
 		var fileEnd = #if android 'apk' #else 'zip' #end;
-		online_url = "https://github.com/Z11Coding/Mixtape-Engine/releases/download/" + TitleState.updateVersion + '/Mixtape-${getPlatform()}.$fileEnd';
+		online_url = "https://github.com/Z11Coding/Vs.-Z11-Mixtape-Madness/releases/download/" + FirstCheckState.updateVersion + '/Mixtape-Madness-${getPlatform()}.$fileEnd';
 		trace("update url: " + online_url);
 	}
 
@@ -306,21 +344,12 @@ class UpdateState extends MusicBeatState
 		var fileBytes:Bytes = cast(zip.data, ByteArray);
 		text.text = "Update downloaded successfully, saving update file...";
 		text.screenCenter(X);
-		File.saveBytes(path + "Mixtape Engine v" + TitleState.updateVersion + ".zip", fileBytes);
+		File.saveBytes(path + "Mixtape Madness v" + FirstCheckState.updateVersion + ".zip", fileBytes);
 		text.text = "Unpacking update file...";
 		text.screenCenter(X);
-
-		JSEZip.unzip(path + "Mixtape Engine v" + TitleState.updateVersion + ".zip", "./update/raw/");
+		JSEZip.unzip(path + "Mixtape Madness v" + FirstCheckState.updateVersion + ".zip", "./update/raw/");
 		text.text = "Update has finished! The update will be installed shortly..";
 		text.screenCenter(X);
-
-		zip.removeEventListener(ProgressEvent.PROGRESS, onDownloadProgress);
-		zip.removeEventListener(openfl.events.Event.COMPLETE, onDownloadComplete);
-
-		progressText.text = 'Complete';
-		progressText.screenCenter(X);
-
-		currentTask = 'complete';
 
 		FlxG.sound.play(Paths.sound('confirmMenu'));
 
@@ -334,4 +363,5 @@ class UpdateState extends MusicBeatState
 	{
 		CoolUtil.updateTheEngine();
 	}
+
 }

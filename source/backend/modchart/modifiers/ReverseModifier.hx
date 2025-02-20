@@ -7,9 +7,7 @@ import backend.math.*;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import objects.playfields.NoteField;
-import objects.notes.NoteObject.ObjectType;
-import objects.notes.NoteObject;
-
+import objects.NoteObject.ObjectType;
 class ReverseModifier extends NoteModifier 
 {
 	inline function lerp(a:Float, b:Float, c:Float) 
@@ -26,7 +24,7 @@ class ReverseModifier extends NoteModifier
 		return false;
 
     public function getReverseValue(dir:Int, player:Int){
-        var kNum = Note.ammo[states.PlayState.mania];
+        var kNum = Note.ammo[PlayState.mania];
         var val:Float = 0;
         if(dir>=kNum * 0.5)
             val += getSubmodValue("split", player);
@@ -84,7 +82,7 @@ class ReverseModifier extends NoteModifier
     override function getSubmods(){
         var subMods:Array<String> = ["cross", "split", "alternate", "centered", "unboundedReverse"];
 
-		for (i in 0...Note.ammo[states.PlayState.mania]){
+		for (i in 0...Note.ammo[PlayState.mania]){
             subMods.push('reverse${i}');
         }
 

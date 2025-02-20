@@ -1,0 +1,4 @@
+makes bf and the opponent bop to the bpm
+
+anyway just do "true" and "false" on value 1
+to enable and disable it
