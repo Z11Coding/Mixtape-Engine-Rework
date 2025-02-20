@@ -49,6 +49,8 @@ import states.FirstCheckState;
 	public var progression:Int = 0;
 	public var videoPreload2:Bool = false;
 	public var enableArtemis:Bool = false;
+	public var noAntimash:Bool = false;
+	public var doubleGhosts:Bool = true;
 	public var mixupMode:Bool = false;
 	public var aiDifficulty:String = 'Average FNF Player';
 	public var arrowHSV:Array<Array<Int>> = [

@@ -39,24 +39,44 @@ class StageWeek1 extends BaseStage
 
 	override function createPost() {
         super.createPost();
-       if(ClientPrefs.data.gimmicksAllowed) {
+       	if(ClientPrefs.data.gimmicksAllowed) {
 			crowdPleaser = new Week1Gimmick();
 			crowdPleaser.cameras = [camHUD];
 			add(crowdPleaser);
+			switch(songName.toLowerCase().replace('-', ' '))
+			{
+				case 'bopeebo':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+				case 'fresh':
+					crowdPleaser.crowdAttentionLoss = 0.03;
+				case 'dad':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+				case 'small argument':
+					crowdPleaser.crowdAttentionLoss = 0.004;
+				case 'beat battle':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+				case 'beat battle 2':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+			}
 		}
     }
 
 	override function startSong()
-		crowdPleaser.startGimmick();
+		if (ClientPrefs.data.gimmicksAllowed) crowdPleaser.startGimmick();
 
 	override function goodNoteHit(note:Note, field:PlayField) {
-		crowdPleaser.crowdAppeasment += 1;
+		if (ClientPrefs.data.gimmicksAllowed) crowdPleaser.crowdAppeasment += 1;
 		super.goodNoteHit(note, field);
 	}
 	
 	override function noteMiss(note:Note, field:PlayField) {
-		crowdPleaser.crowdAppeasment -= 5;
+		if (ClientPrefs.data.gimmicksAllowed) crowdPleaser.crowdAppeasment -= 5;
 		super.noteMiss(note, field);
+	}
+
+	override function beatHit() {
+		if (ClientPrefs.data.gimmicksAllowed) crowdPleaser.doClap(curBeat);
+		super.beatHit();
 	}
 
 	override function eventPushed(event:objects.Note.EventNote)

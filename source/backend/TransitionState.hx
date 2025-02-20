@@ -1,6 +1,5 @@
 package backend;
 
-import states.WelcomeToPain;
 import backend.window.CppAPI;
 import flixel.FlxState;
 import flixel.tweens.FlxTween;
@@ -52,16 +51,6 @@ class TransitionState {
         }
         trace("Switched to state: " + Type.getClassName(targetState));
         currenttransition = null;
-        var chanceToPain:Map<String, Float> = new Map<String, Float>();
-        chanceToPain.set('WelcomeToPain', 5);
-        chanceToPain.set('Nothing', 100 - chanceToPain.get('WelcomeToPain'));
-        var chance:Dynamic = ChanceSelector.selectFromMap(chanceToPain);
-        if (chance == 'WelcomeToPain')
-        {
-            var tempHold:Class<FlxState> = WelcomeToPain;
-            stateArgs = [Type.createInstance(targetState, stateArgs), stateArgs];
-            targetState = tempHold;
-        }
         trace("Switch complete.");
         isTransitioning = false;
         if (targetState == null) {

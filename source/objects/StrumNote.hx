@@ -6,10 +6,7 @@ import flixel.addons.plugin.FlxMouseControl;
 
 import shaders.RGBPalette;
 import shaders.RGBPalette.RGBShaderReference;
-
 import backend.math.Vector3;
-
-using StringTools;
 
 class StrumNote extends NoteObject
 {
@@ -104,24 +101,19 @@ class StrumNote extends NoteObject
 		FlxG.plugins.add(new FlxMouseControl());
 		animation = new PsychAnimationController(this);
 		
-		if (PlayState.mania <= 8)
+		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
+		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData]];
+		if(PlayState.instance != null && PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData]];
+		if(leData <= arr.length)
 		{
-			rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
-			rgbShader.enabled = false;
-			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
-			var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[Note.gfxIndex[PlayState.mania][leData]];
-			if(PlayState.instance != null && PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[Note.gfxIndex[PlayState.mania][leData]];
-			if(leData <= PlayState.mania)
+			@:bypassAccessor
 			{
-				@:bypassAccessor
-				{
-					rgbShader.r = arr[0];
-					rgbShader.g = arr[1];
-					rgbShader.b = arr[2];
-				}
+				rgbShader.r = arr[0];
+				rgbShader.g = arr[1];
+				rgbShader.b = arr[2];
 			}
 		}
-		else useRGBShader = false;
 		this.field = field;
 		super(x, y);
 		objType = STRUM;
@@ -131,9 +123,12 @@ class StrumNote extends NoteObject
 		// trace(noteData);
 
 		var skin:String = 'normal';
-		if(PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1 && (!Paths.doesImageAssetExist(Paths.modsImages('noteskins/normal')) || !Paths.doesImageAssetExist(Paths.getPath('images/noteskins/normal')))) skin = 'normal';
-			texture = skin; //Load texture and anims
+		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1 && (!Paths.doesImageAssetExist(Paths.modsImages('noteskins/normal')) || !Paths.doesImageAssetExist(Paths.getPath('images/noteskins/normal')))) 
+			skin = PlayState.SONG.arrowSkin;
+		else 
+			skin = "normal";
 
+		texture = skin; //Load texture and anims
 		scrollFactor.set();
 	}
 
@@ -172,23 +167,59 @@ class StrumNote extends NoteObject
 		}
 		else
 		{
-			frames = Paths.getSparrowAtlas('noteskins/'+texture);
+			frames = Paths.getSparrowAtlas(texture);
 
 			antialiasing = ClientPrefs.data.globalAntialiasing;
-
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
-	
-			animation.addByPrefix('static', 'arrow' + animationArray[0]);
-			animation.addByPrefix('pressed', animationArray[1] + ' press', 24, false);
-			animation.addByPrefix('confirm', animationArray[1] + ' confirm', 24, false);
+
+			switch (Math.abs(noteData))
+			{
+				case 0:
+					attemptToAddAnimationByPrefix('static', 'arrowLEFT');
+					attemptToAddAnimationByPrefix('pressed', 'left press', 24, false);
+					attemptToAddAnimationByPrefix('confirm', 'left confirm', 24, false);
+				case 1:
+					attemptToAddAnimationByPrefix('static', 'arrowDOWN');
+					attemptToAddAnimationByPrefix('pressed', 'down press', 24, false);
+					attemptToAddAnimationByPrefix('confirm', 'down confirm', 24, false);
+				case 2:
+					attemptToAddAnimationByPrefix('static', 'arrowUP');
+					attemptToAddAnimationByPrefix('pressed', 'up press', 24, false);
+					attemptToAddAnimationByPrefix('confirm', 'up confirm', 24, false);
+				case 3:
+					attemptToAddAnimationByPrefix('static', 'arrowRIGHT');
+					attemptToAddAnimationByPrefix('pressed', 'right press', 24, false);
+					attemptToAddAnimationByPrefix('confirm', 'right confirm', 24, false);
+			}
+
+			attemptToAddAnimationByPrefix('static', 'arrow' + animationArray[0]);
+			attemptToAddAnimationByPrefix('pressed', animationArray[1] + ' press');
+			attemptToAddAnimationByPrefix('confirm', animationArray[1] + ' confirm', 24, false);
 		}
-		defScale.copyFrom(scale);
+		//defScale.copyFrom(scale);
 		updateHitbox();
 
 		if(lastAnim != null)
 		{
 			playAnim(lastAnim, true);
 		}
+	}
+
+	var ogArrowList:Array<String> = [
+		"LEFT",
+		"DOWN",
+		"UP",
+		"RIGHT",
+	];
+
+	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
+	{
+		var animFrames = [];
+		@:privateAccess
+		animation.findByPrefix(animFrames, prefix); // adds valid frames to animFrames
+		if(animFrames.length < 1) return;
+
+		animation.addByPrefix(name, prefix, framerate, doLoop);
 	}
 
 /* 	public function postAddedToGroup() {
@@ -235,9 +266,12 @@ class StrumNote extends NoteObject
 
 	public function playAnim(anim:String, ?force:Bool = false, ?note:Note) {
 		animation.play(anim, force);
-		centerOrigin();
-		centerOffsets();
-		updateZIndex();
+		if(animation.curAnim != null)
+		{
+			centerOrigin();
+			centerOffsets();
+			updateZIndex();
+		}
 		if(useRGBShader) rgbShader.enabled = (animation.curAnim != null && animation.curAnim.name != 'static');
 	}
 }

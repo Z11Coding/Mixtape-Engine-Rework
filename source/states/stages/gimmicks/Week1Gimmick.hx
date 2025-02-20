@@ -160,7 +160,7 @@ class Week1Gimmick extends Bar
             COD.setCOD(null, 'The crowd got bored and left.\n[pause:0.5](And BF got pelted by a tomato)');
             PlayState.instance.die();
         }
-        if (canKill) PlayState.instance.health -= healthDrainMult / (ClientPrefs.data.framerate / 120); //for consistancy
+        if (allowDrain && canKill) PlayState.instance.health -= healthDrainMult / (ClientPrefs.data.framerate / 120); //for consistancy
         if (crowdAppeasment >= 0 && crowdAppeasment <= 9) crowdState = MAD;
         if (crowdAppeasment >= 10 && crowdAppeasment <= 39) crowdState = UNHAPPY;
         if (crowdAppeasment >= 40 && crowdAppeasment <= 59) crowdState = NEUTRAL;

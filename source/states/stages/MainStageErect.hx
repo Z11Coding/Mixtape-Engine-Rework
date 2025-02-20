@@ -68,6 +68,7 @@ class MainStageErect extends PicoCapableStage {
 			crowdPleaser.cameras = [camHUD];
 			add(crowdPleaser);
 		}
+        
         switch(songName.toLowerCase().replace('-', ' '))
         {
             case 'bopeebo erect':

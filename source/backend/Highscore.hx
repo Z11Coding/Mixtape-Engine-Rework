@@ -1,22 +1,5 @@
 package backend;
 
-typedef HighscoreSet = {
-	weekScores:Map<String, Int>,
-	songScores:Map<String, Int>,
-	songRating:Map<String, Float>,
-	songMisses:Map<String, Int>,
-	songRanks:Map<String, Int>,
-	songDeaths:Map<String, Int>,
-	weekScoresOpp:Map<String, Int>,
-	songScoresOpp:Map<String, Int>,
-	songRatingOpp:Map<String, Float>,
-	songMissesOpp:Map<String, Int>,
-	songRanksOpp:Map<String, Int>,
-	songDeathsOpp:Map<String, Int>,
-	modifiers:Map<String, Dynamic>,
-	isOppMode:Bool
-};
-
 class Highscore
 {
 	public static var weekScores:Map<String, Int> = new Map();
@@ -25,6 +8,7 @@ class Highscore
 	public static var songMisses:Map<String, Int> = new Map<String, Int>();
 	public static var songRanks:Map<String, Int> = new Map<String, Int>();
 	public static var songDeaths:Map<String, Int> = new Map<String, Int>();
+	public static var endlessScores:Map<String, Int> = new Map<String, Int>();
 
 	//For the Opponent
 	public static var weekScoresOpp:Map<String, Int> = new Map();
@@ -33,8 +17,12 @@ class Highscore
 	public static var songMissesOpp:Map<String, Int> = new Map<String, Int>();
 	public static var songRanksOpp:Map<String, Int> = new Map<String, Int>();
 	public static var songDeathsOpp:Map<String, Int> = new Map<String, Int>();
+	public static var endlessScoresOpp:Map<String, Int> = new Map<String, Int>();
 
-	public static var isOppMode:Bool = ClientPrefs.getGameplaySetting('opponentplay', false);
+	public static var saveMod:String = "";
+	// Gameplay settings
+	var mixupMode:Bool = false;
+	var gimmicksAllowed:Bool = false;
 	public static function resetSong(song:String, diff:Int = 0):Void
 	{
 		var daSong:String = formatSong(song, diff);
@@ -69,27 +57,13 @@ class Highscore
 	public static function saveRank(song:String, score:Int = 0, ?diff:Int = 0):Void
 	{
 		var daSong:String = formatSong(song, diff);
-
-		if (isOppMode)
+		if (songRanks.exists(daSong))
 		{
-			if (songRanksOpp.exists(daSong))
-			{
-				if (songRanksOpp.get(daSong) > score)
-					setRank(daSong, score);
-			}
-			else
+			if (songRanks.get(daSong) > score)
 				setRank(daSong, score);
 		}
 		else
-		{
-			if (songRanks.exists(daSong))
-			{
-				if (songRanks.get(daSong) > score)
-					setRank(daSong, score);
-			}
-			else
-				setRank(daSong, score);
-		}
+			setRank(daSong, score);
 	}
 
 	public static function saveDeaths(song:String, deaths:Int = 0, ?diff:Int = 0):Void
@@ -99,91 +73,71 @@ class Highscore
 		setDeaths(daSong, deaths);
 	}
 
-	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?misses:Int = 0):Void
+	public static function saveEndlessScore(song:String, score:Int = 0):Void
+	{
+		var daSong:String = song;
+
+		if (endlessScores.exists(daSong))
+		{
+			if (endlessScores.get(daSong) < score)
+				setEndless(daSong, score);
+		}
+		else
+			setEndless(daSong, score);
+	}
+
+	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?misses:Int = 0, ?deaths:Int = 0):Void
 	{
 		//Score and Rating now save seperately and Misses now save as well.
 		if(song == null) return;
 		var daSong:String = formatSong(song, diff);
-		if (isOppMode)
-		{
-			if (songScoresOpp.exists(daSong)) {
-				if (songScoresOpp.get(daSong) < score) {
-					setScore(daSong, score);
-				}
-			}
-			else {
-				setScore(daSong, score);
-			}
-			if (songRatingOpp.exists(daSong)) {
-				if (songRatingOpp.get(daSong) < rating) {
-					setRating(daSong, rating);
-				}
-			}
-			else {
-				if(rating >= 0) setRating(daSong, rating);
-			}
-			if (songMissesOpp.exists(daSong)) {
-				if (songMissesOpp.get(daSong) > misses) {
-					setMisses(daSong, misses);
-				}
-			}
-			else {
-				if(misses >= 0) setMisses(daSong, misses);
+		var songMod:String = daSong+saveMod;
+		if (songScores.exists(songMod)) {
+			if (songScores.get(songMod) < score) {
+				setScore(songMod, score);
 			}
 		}
-		else
-		{
-			if (songScores.exists(daSong)) {
-				if (songScores.get(daSong) < score) {
-					setScore(daSong, score);
-				}
+		else {
+			setScore(songMod, score);
+		}
+		if (songRating.exists(songMod)) {
+			if (songRating.get(songMod) < rating) {
+				setRating(songMod, rating);
 			}
-			else {
-				setScore(daSong, score);
+		}
+		else {
+			if(rating >= 0) setRating(songMod, rating);
+		}
+		if (songMisses.exists(songMod)) {
+			if (songMisses.get(songMod) > misses) {
+				setMisses(songMod, misses);
 			}
-			if (songRating.exists(daSong)) {
-				if (songRating.get(daSong) < rating) {
-					setRating(daSong, rating);
-				}
+		}
+		else {
+			if(misses >= 0) setMisses(songMod, misses);
+		}
+
+		if (songDeaths.exists(songMod)) {
+			if (songDeaths.get(songMod) > deaths) {
+				setDeaths(songMod, deaths);
 			}
-			else {
-				if(rating >= 0) setRating(daSong, rating);
-			}
-			if (songMisses.exists(daSong)) {
-				if (songMisses.get(daSong) > misses) {
-					setMisses(daSong, misses);
-				}
-			}
-			else {
-				if(misses >= 0) setMisses(daSong, misses);
-			}
+		}
+		else {
+			if(deaths >= 0) setDeaths(songMod, deaths);
 		}
 	}
 
 	public static function saveWeekScore(week:String, score:Int = 0, ?diff:Int = 0):Void
 	{
 		var daWeek:String = formatSong(week, diff);
-
-		if (isOppMode)
+		var weekMod:String = daWeek+saveMod;
+		if (weekScores.exists(weekMod))
 		{
-			if (weekScoresOpp.exists(daWeek))
-			{
-				if (weekScoresOpp.get(daWeek) < score)
-					setWeekScore(daWeek, score);
-			}
-			else
+			if (weekScores.get(weekMod) < score)
 				setWeekScore(daWeek, score);
 		}
 		else
-		{
-			if (weekScores.exists(daWeek))
-			{
-				if (weekScores.get(daWeek) < score)
-					setWeekScore(daWeek, score);
-			}
-			else
-				setWeekScore(daWeek, score);
-		}
+			setWeekScore(daWeek, score);
 	}
 
 	/**
@@ -191,103 +145,56 @@ class Highscore
 	 */
 	static function setRank(song:String, score:Int):Void
 	{
-		if (isOppMode)
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			songRanksOpp.set(song, score);
-			FlxG.save.data.songRanksOpp = songRanksOpp;
-		}
-		else
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			songRanks.set(song, score);
-			FlxG.save.data.songRanks = songRanks;	
-		}
+		// Reminder that I don't need to format this song, it should come formatted!
+		songRanks.set(song, score);
+		FlxG.save.data.songRanks = songRanks;	
 		FlxG.save.flush();
 	}
 	static function setDeaths(song:String, deaths:Int):Void
 	{
-		if (isOppMode)
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			var deathCounter:Int = songDeathsOpp.get(song) + deaths;
+		// Reminder that I don't need to format this song, it should come formatted!
+		var deathCounter:Int = songDeaths.get(song) + deaths;
 
-			songDeathsOpp.set(song, deathCounter);
-			FlxG.save.data.songDeathsOpp = songDeathsOpp;
-		}
-		else
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			var deathCounter:Int = songDeaths.get(song) + deaths;
-
-			songDeaths.set(song, deathCounter);
-			FlxG.save.data.songDeaths = songDeaths;
-		}
+		songDeaths.set(song, deathCounter);
+		FlxG.save.data.songDeaths = songDeaths;
 		FlxG.save.flush();
 	}
+
+	static function setEndless(song:String, score:Int):Void
+	{
+		endlessScores.set(song, score);
+		FlxG.save.data.endlessScores = endlessScores;
+		FlxG.save.flush();
+	}
+
 	static function setScore(song:String, score:Int):Void
 	{
-		if (isOppMode)
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			songScoresOpp.set(song, score);
-			FlxG.save.data.songScoresOpp = songScoresOpp;
-		}
-		else
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			songScores.set(song, score);
-			FlxG.save.data.songScores = songScores;
-		}
+		// Reminder that I don't need to format this song, it should come formatted!
+		songScores.set(song, score);
+		FlxG.save.data.songScores = songScores;
 		FlxG.save.flush();
 	}
 	static function setWeekScore(week:String, score:Int):Void
 	{
-		if (isOppMode)
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			weekScoresOpp.set(week, score);
-			FlxG.save.data.weekScoresOpp = weekScoresOpp;
-		}
-		else
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			weekScores.set(week, score);
-			FlxG.save.data.weekScores = weekScores;
-		}
+		// Reminder that I don't need to format this song, it should come formatted!
+		weekScores.set(week, score);
+		FlxG.save.data.weekScores = weekScores;
 		FlxG.save.flush();
 	}
 
 	static function setRating(song:String, rating:Float):Void
 	{
 		// Reminder that I don't need to format this song, it should come formatted!
-		if (isOppMode)
-		{
-			songRatingOpp.set(song, rating);
-			FlxG.save.data.songRatingOpp = songRatingOpp;
-		}
-		else
-		{
-			songRating.set(song, rating);
-			FlxG.save.data.songRating = songRating;
-		}
+		songRating.set(song, rating);
+		FlxG.save.data.songRating = songRating;
 		FlxG.save.flush();
 	}
 
 	static function setMisses(song:String, misses:Int):Void
 	{
-		if (isOppMode)
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			songMissesOpp.set(song, misses);
-			FlxG.save.data.songMissesOpp = songMissesOpp;
-		}
-		else
-		{
-			// Reminder that I don't need to format this song, it should come formatted!
-			songMisses.set(song, misses);
-			FlxG.save.data.songMisses = songMisses;
-		}
+		// Reminder that I don't need to format this song, it should come formatted!
+		songMisses.set(song, misses);
+		FlxG.save.data.songMisses = songMisses;
 		FlxG.save.flush();
 	}
 
@@ -299,115 +206,96 @@ class Highscore
 	public static function getScore(song:String, diff:Int):Int
 	{
 		var daSong:String = formatSong(song, diff);
-		if (isOppMode)
-		{
-			if (!songScoresOpp.exists(daSong))
-				setScore(daSong, 0);
+		var songMod:String = daSong+saveMod;
+		if (!songScores.exists(songMod))
+			setScore(songMod, 0);
 
-			return songScoresOpp.get(daSong);
-		}
-		else
-		{
-			if (!songScores.exists(daSong))
-				setScore(daSong, 0);
-
-			return songScores.get(daSong);
-		}
-		return songScores.get(daSong);
+		return songScores.get(songMod);
 	}
+	
 	public static function getRank(song:String, diff:Int):Int
 	{
-		if (isOppMode)
-		{
-			if (!songRanksOpp.exists(formatSong(song, diff)))
-				setRank(formatSong(song, diff), 16);
-			return songRanksOpp.get(formatSong(song, diff));
-		}
-		else
-		{
-			if (!songRanks.exists(formatSong(song, diff)))
-				setRank(formatSong(song, diff), 16);
-			return songRanks.get(formatSong(song, diff));
-		}
+		var daSong:String = formatSong(song, diff);
+		var songMod:String = daSong+saveMod;
+		if (!songRanks.exists(songMod))
+			setRank(songMod, 16);
 
-		return songRanks.get(formatSong(song, diff));
+		return songRanks.get(songMod);
 	}
+
 	public static function getDeaths(song:String, diff:Int):Int
 	{
-		if (isOppMode)
-		{
-			if (!songDeathsOpp.exists(formatSong(song, diff)))
-				setDeaths(formatSong(song, diff), 0);
-			return songDeathsOpp.get(formatSong(song, diff));
-		}
-		else
-		{
-			if (!songDeaths.exists(formatSong(song, diff)))
-				setDeaths(formatSong(song, diff), 0);
-			return songDeaths.get(formatSong(song, diff));
-		}
+		var daSong:String = formatSong(song, diff);
+		var songMod:String = daSong+saveMod;
+		if (!songDeaths.exists(songMod))
+			setDeaths(songMod, 0);
 
-		return songDeaths.get(formatSong(song, diff));
+		return songDeaths.get(songMod);
 	}
+
 	public static function getRating(song:String, diff:Int):Float
 	{
 		var daSong:String = formatSong(song, diff);
-		if (isOppMode)
-		{
-			if (!songRatingOpp.exists(daSong))
-				setRating(daSong, 0);
+		var songMod:String = daSong+saveMod;
+		if (!songRating.exists(songMod))
+			setRank(songMod, 0);
 
-			return songRatingOpp.get(daSong);
-		}
-		else
-		{
-			if (!songRating.exists(daSong))
-				setRating(daSong, 0);
-
-			return songRating.get(daSong);
-		}
-		return songRating.get(daSong);
+		return songRating.get(songMod);
 	}
 
 	public static function getMisses(song:String, diff:Int):Int
 	{
 		var daSong:String = formatSong(song, diff);
-		if (isOppMode)
-		{
-			if (!songMissesOpp.exists(daSong))
-				setMisses(daSong, 0);	
+		var songMod:String = daSong+saveMod;
+		if (!songMisses.exists(songMod))
+			setMisses(songMod, 0);	
 	
-			return songMissesOpp.get(daSong);
-		}
-		else
-		{
-			if (!songMisses.exists(daSong))
-				setMisses(daSong, 0);	
-	
-			return songMisses.get(daSong);
-		}
-		return songMisses.get(daSong);
+		return songMisses.get(songMod);
 	}
 
 	public static function getWeekScore(week:String, diff:Int):Int
 	{
 		var daWeek:String = formatSong(week, diff);
-		if (isOppMode)
-		{
-			if (!weekScoresOpp.exists(daWeek))
-				setWeekScore(daWeek, 0);
+		var weekMod:String = daWeek+saveMod;
+		if (!weekScores.exists(weekMod))
+				setWeekScore(weekMod, 0);
 	
-			return weekScoresOpp.get(daWeek);
-		}
-		else
-		{
-			if (!weekScores.exists(daWeek))
-				setWeekScore(daWeek, 0);
-	
-			return weekScores.get(daWeek);
-		}
+		return weekScores.get(weekMod);
+	}
 
-		return weekScores.get(daWeek);
+	public static function reloadModifiers(?customMod:String):Void
+	{
+		saveMod = "";
+		var playAsGF:Bool = ClientPrefs.getGameplaySetting('gfMode', false);
+		var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');		
+		var opponentmode:Bool = ClientPrefs.getGameplaySetting('opponentplay', false);
+		var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
+		var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
+		var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
+		if (bothMode)
+			saveMod += "-bothMode";
+		else if (opponentmode)
+			saveMod += "-opponentMode";
+		else if (playAsGF)
+			saveMod += "-gfMode";
+		if (chartModifier != "Normal")
+			saveMod += "-"+chartModifier;
+		if (!ClientPrefs.data.gimmicksAllowed)
+			saveMod += "-noGimmick";
+		if (!ClientPrefs.data.modcharts)
+			saveMod += "-noModchart";
+		if (ClientPrefs.data.noAntimash)
+			saveMod += "-noAntimash";
+		if (!ClientPrefs.data.drain)
+			saveMod += "-noHealthDrain";
+		if (!ClientPrefs.data.useMarvs)
+			saveMod += "-noMarvs";
+		if (loopModeChallenge)
+			saveMod += "-endlessChallenge";
+		else if (loopMode)
+			saveMod += "-endless";
+		if (customMod != "" && customMod != null)
+			saveMod += customMod;
 	}
 
 	public static function load():Void

@@ -109,13 +109,7 @@ class FirstCheckState extends MusicBeatState
 				}
 				else
 				{
-					switch (FlxG.random.bool(12) && !ClientPrefs.data.gotit && !FlxG.save.data.updated)
-					{
-						case false:
-							FlxG.switchState(new states.CacheState());
-						case true:
-							FlxG.switchState(new states.WelcomeToPain());
-					}
+					FlxG.switchState(new states.CacheState());
 				}
 			}
 
@@ -129,13 +123,7 @@ class FirstCheckState extends MusicBeatState
 				FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 				new FlxTimer().start(2, function(tmr:FlxTimer)
 				{
-					switch (FlxG.random.bool(12) && !ClientPrefs.data.gotit && !FlxG.save.data.updated)
-					{
-						case false:
-							FlxG.switchState(new states.CacheState());
-						case true:
-							FlxG.switchState(new states.WelcomeToPain());
-					}
+					FlxG.switchState(new states.CacheState());
 				});
 			}
 
