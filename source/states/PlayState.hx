@@ -8069,18 +8069,11 @@ if (result < 0 || result > mania) {
 
 	public function KillNotes()
 	{
-		while(allNotes.length > 0) {
-			var daNote:Note = allNotes[0];
-			daNote.active = false;
-			daNote.visible = false;
-
-			daNote.kill();
-			notes.remove(daNote, true);
-			// daNote.destroy();
-		}
+		notes.clear();
 		allNotes = [];
 		unspawnNotes = [];
-		for(field in playfields){
+		for (field in playfields)
+		{
 			field.clearDeadNotes();
 			field.spawnedNotes = [];
 			field.noteQueue = [[], [], [], []];
