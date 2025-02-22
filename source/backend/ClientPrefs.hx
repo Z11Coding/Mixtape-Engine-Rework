@@ -396,7 +396,8 @@ class ClientPrefs {
 		'debug_2'		=> [EIGHT, NONE],
 
 		'fullscreen'	=> [F11],
-		'sidebar'		=> [GRAVEACCENT]
+		'sidebar'		=> [GRAVEACCENT],
+		'dodge'			=> [SPACE],
 	];
 
 	public static var gamepadBinds:Map<String, Array<FlxGamepadInputID>> = [

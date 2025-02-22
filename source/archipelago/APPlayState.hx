@@ -1082,7 +1082,7 @@ effectMap = [
     }
 ];
 
-addEffect("freeze");
+        addEffect("freeze");
 
         debugKeysDodge = ClientPrefs.keyBinds.get('dodge').copy();
 
