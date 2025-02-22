@@ -440,9 +440,9 @@ class FreeplayState extends MusicBeatState
 
 	function collectAndRelease()
 	{
-		//APEntryState.apGame.info().Say("!release");
-		//APEntryState.apGame.info().Say("!collect");
-		//APEntryState.apGame.info().poll();
+		APEntryState.apGame.info().Say("!release");
+		APEntryState.apGame.info().Say("!collect");
+		APEntryState.apGame.info().poll();
 	}
 
 	override function closeSubState() {
@@ -482,7 +482,7 @@ class FreeplayState extends MusicBeatState
 			}
 
 			for (i in 0...WeekData.weeksList.length) {
-				if(weekIsLocked(WeekData.weeksList[i])/* && !APEntryState.inArchipelagoMode*/) continue;
+				if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
 
 				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 				var leSongs:Array<String> = [];
@@ -514,7 +514,7 @@ class FreeplayState extends MusicBeatState
 							}
 							if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 							{
-								/*if (APEntryState.inArchipelagoMode)
+								if (APEntryState.inArchipelagoMode)
 								{
 									var songNameThing:String = song[0];
 									for (songName in curUnlocked.keys())
@@ -523,7 +523,7 @@ class FreeplayState extends MusicBeatState
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
 								}
-								else*/ addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 							}
 						}
 						else
@@ -537,7 +537,7 @@ class FreeplayState extends MusicBeatState
 								}
 								if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 								{
-									/*if (APEntryState.inArchipelagoMode)
+									if (APEntryState.inArchipelagoMode)
 									{
 										var songNameThing:String = song[0];
 										for (songName in curUnlocked.keys())
@@ -546,7 +546,7 @@ class FreeplayState extends MusicBeatState
 												addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 										}
 									}
-									else*/ addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+									else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							}
 						}
@@ -554,7 +554,7 @@ class FreeplayState extends MusicBeatState
 				}
 			}
 
-			/*if (APEntryState.inArchipelagoMode)
+			if (APEntryState.inArchipelagoMode)
 			{
 				if (refresh)
 				{
@@ -578,7 +578,7 @@ class FreeplayState extends MusicBeatState
 				}
 			}
 			else
-			{*/
+			{
 				if (refresh)
 				{
 					if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
@@ -597,7 +597,7 @@ class FreeplayState extends MusicBeatState
 					if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
 						addSong('Beat Battle 2', 0, "gf", FlxColor.fromRGB(165, 0, 77));
 				}
-			//}
+			}
 			
 			for (i in 0...songs.length)
 			{
@@ -830,9 +830,9 @@ class FreeplayState extends MusicBeatState
 						colorTween.cancel();
 					}
 					FlxG.sound.play(Paths.sound('cancelMenu'));
-					/*if (APEntryState.inArchipelagoMode)
+					if (APEntryState.inArchipelagoMode)
 						FlxG.switchState(new archipelago.APCategoryState(APEntryState.apGame, APEntryState.ap));
-					else*/
+					else
 						FlxG.switchState(new CategoryState());
 				}
 			}
