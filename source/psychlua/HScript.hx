@@ -520,17 +520,23 @@ class HScript extends Iris
 			final ret = Reflect.callMethod(null, func, args ?? []);
 			return {funName: funcToRun, signature: func, returnValue: ret};
 		}
-		catch(e:IrisError) {
-			var pos:HScriptInfos = cast this.interp.posInfos();
-			pos.funcName = funcToRun;
-			#if LUA_ALLOWED
-			if (parentLua != null)
-			{
-				pos.isLua = true;
-				if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
+		catch(e:Dynamic) {
+			if (Std.is(e, IrisError)) {
+				var pos:HScriptInfos = cast this.interp.posInfos();
+				pos.funcName = funcToRun;
+				#if LUA_ALLOWED
+				if (parentLua != null)
+				{
+					pos.isLua = true;
+					if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
+				}
+				#end
+				Iris.error(Printer.errorToString(e, false), pos);
+			} else {
+				// Handle non-IrisError exceptions
+				trace("Error calling function in HScript: " + e);
+				return null;
 			}
-			#end
-			Iris.error(Printer.errorToString(e, false), pos);
 		}
 		return null;
 	}

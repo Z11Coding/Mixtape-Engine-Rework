@@ -10057,15 +10057,19 @@ if (result < 0 || result > mania) {
 			didntPress = false;
 		}
 
-		if (gf != null
-			&& !gfScared
-			&& curBeat % Math.round(gfSpeed * gf.danceEveryNumBeats) == 0
-			&& !gf.stunned
-			&& gf.animation.curAnim.name != null
-			&& !gf.animation.curAnim.name.startsWith("sing")
-			&& !gf.stunned)
-		{
-			gf.dance();
+		try {
+			if (gf != null
+				&& !gfScared
+				&& curBeat % Math.round(gfSpeed * gf.danceEveryNumBeats) == 0
+				&& !gf.stunned
+				&& gf.animation.curAnim.name != null
+				&& !gf.animation.curAnim.name.startsWith("sing")
+				&& !gf.stunned)
+			{
+				gf.dance();
+			}
+		} catch (e:Dynamic) {
+			// trace('Error processing GF dance: ' + e);
 		}
 		if (curBeat % boyfriend.danceEveryNumBeats == 0
 			&& boyfriend.animation.curAnim != null
