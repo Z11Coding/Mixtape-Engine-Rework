@@ -14,7 +14,7 @@ import states.PlayState;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
 
-import trolllua.os.Windows;
+import backend.os.Windows;
 
 import flixel.FlxG;
 import flixel.math.FlxPoint;
