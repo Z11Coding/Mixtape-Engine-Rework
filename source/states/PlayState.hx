@@ -9366,8 +9366,13 @@ if (result < 0 || result > mania) {
 			if (field.autoPlayed)
 			{
 				var time:Float = 0.15;
-				if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
-					time += 0.15;
+				try {
+					if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail')) {
+						time += 0.15;
+					}
+				} catch (e:Dynamic) {
+					trace('Error processing sustain note: ' + e);
+				}
 
 				StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % Note.ammo[mania], time, note);
 			}
