@@ -162,11 +162,12 @@ class APGameState {
     {
         if ((Reflect.hasField(data, "cause") && Reflect.hasField(data, "source") && Reflect.hasField(data, "time")) && !APPlayState.deathByLink)
         {
+            if (info().slot != data.source) {
             var dl:Dynamic = data;
             if (!APPlayState.deathByLink){
             APPlayState.deathLinkPacket = dl;
             APPlayState.deathByLink = true;}
-        }
+        } }
         // trace(data);
     }
 
