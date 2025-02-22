@@ -53,7 +53,10 @@ import psychlua.HScript;
 #end
 
 #if HSCRIPT_ALLOWED
+import psychlua.HScript.HScriptInfos;
 import crowplexus.iris.Iris;
+import crowplexus.hscript.Expr.Error as IrisError;
+import crowplexus.hscript.Printer;
 #end
 
 #if SScript
@@ -62,17 +65,18 @@ import tea.SScript;
 
 
 // Mixtape Stuff
-import backend.modchart.ModManager;
-import openfl.filters.BitmapFilter;
 import backend.STMetaFile.MetadataFile;
+import backend.AIPlayer;
+import backend.modchart.ModManager;
+import backend.window.CppAPI;
 import flixel.addons.effects.FlxTrail;
 import flixel.addons.effects.FlxTrailArea;
-import openfl.Lib;
-import backend.AIPlayer;
 import objects.NoteObject.ObjectType;
+import openfl.Lib;
+import openfl.filters.BitmapFilter;
 import shaders.ShadersHandler;
+import shaders.Shaders.ShaderEffect;
 import yutautil.Anomoly;
-import backend.window.CppAPI;
 
 /**
  * This is where all the Gameplay stuff happens and is managed
@@ -102,6 +106,8 @@ typedef SpeedEvent =
 
 class PlayState extends MusicBeatState
 {
+
+	public var delayOffset:Float = 0; // for the delay effect
 	private var specialOverlays:FlxTypedGroup<FlxSprite>;
 	public var motionBlur:shaders.Shaders.MotionBlur;
 	public var modManager:ModManager;
@@ -116,6 +122,9 @@ class PlayState extends MusicBeatState
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
 
+	public var instVolumeMultiplier:Float = 1;
+	public var vocalVolumeMultiplier:Float = 1;
+
 	public static var ratingStuff:Array<Dynamic> = [
 		['Ur Bad Kid. Ur Bad.', 0.2], //From 0% to 19%
 		['Really Bad', 0.4], //From 20% to 39%
@@ -126,7 +135,8 @@ class PlayState extends MusicBeatState
 		['Good', 0.8], //From 70% to 79%
 		['Great', 0.9], //From 80% to 89%
 		['Sick!', 1], //From 90% to 99%
-		['Botplay Because There Is Literally\nNo Way Your Actually Doing This.', 1] //The value on this one isn't used actually, since Perfect is always "1"
+		['Literal Perfection', 1] //The value on this one is used actually, and Perfect is always "1"
+		//Dont ask me how, it just is ig.
 	];
 
 	// event variables
@@ -151,7 +161,13 @@ class PlayState extends MusicBeatState
 	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
 	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
 	#end
-	public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
+
+	public var camGameShaders:Array<ShaderEffect> = [];
+	public var camVisualShaders:Array<ShaderEffect> = [];
+	public var camDialogueShaders:Array<ShaderEffect> = [];
+	public var camHUDShaders:Array<ShaderEffect> = [];
+	public var camOtherShaders:Array<ShaderEffect> = [];
+
 
 	public var BF_X:Float = 770;
 	public var BF_Y:Float = 100;
@@ -222,9 +238,7 @@ class PlayState extends MusicBeatState
 	public var tracks:Array<FlxSound> = [];
 
 	public var dad:Character = null;
-
-	public static var dad2:Character = null;
-
+	public var dad2:Character = null;
 	public var gf:Character = null;
 	public var boyfriend:Character = null;
 	public var bf2:Character = null;
@@ -415,12 +429,15 @@ class PlayState extends MusicBeatState
 	private var controlArray:Array<String>;
 
 	// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	public var bfkilledcheck = false;
+	public var bfkilledcheck:Bool = false;
 
-	var filters:Array<BitmapFilter> = [];
-	var camfilters2:Array<BitmapFilter> = [];
+	public var camGamefilters:Array<BitmapFilter> = [];
+	public var camHUDfilters:Array<BitmapFilter> = [];
+	public var camVisualfilters:Array<BitmapFilter> = [];
+	public var camOtherfilters:Array<BitmapFilter> = [];
+	public var camDialoguefilters:Array<BitmapFilter> = [];
+
 	var ch = 2 / 1000;
-
 	public var shaderUpdates:Array<Float->Void> = [];
 
 	var metadata:MetadataFile;
@@ -431,6 +448,7 @@ class PlayState extends MusicBeatState
 	var blackUnderlay:FlxSprite;
 
 	public var freezeNotes:Bool = false;
+	public var localFreezeNotes:Bool = false;
 	public var sh_r:Float = 600;
 
 	var rotRate:Float;
@@ -800,24 +818,23 @@ class PlayState extends MusicBeatState
 
 		if (ClientPrefs.data.shaders)
 		{
-			camGame.setFilters(camfilters2);
+			camGame.setFilters(camGamefilters);
 			camGame.filtersEnabled = true;
-			camHUD.setFilters(filters);
+			camHUD.setFilters(camHUDfilters);
 			camHUD.filtersEnabled = true;
-			camVisual.setFilters(filters);
+			camVisual.setFilters(camVisualfilters);
 			camVisual.filtersEnabled = true;
-			camOther.setFilters(filters);
+			camOther.setFilters(camOtherfilters);
 			camOther.filtersEnabled = true;
-			camDialogue.setFilters(filters);
+			camDialogue.setFilters(camDialoguefilters);
 			camDialogue.filtersEnabled = true;
-			filters.push(shaders.ShadersHandler.chromaticAberration);
-			camfilters2.push(shaders.ShadersHandler.chromaticAberration);
-			camfilters2.push(new ShaderFilter(ShadersHandler.rainShader));
-			// camfilters2.push(new ShaderFilter(motionBlur));
+			camHUDfilters.push(shaders.ShadersHandler.chromaticAberration);
+			camVisualfilters.push(shaders.ShadersHandler.chromaticAberration);
+			camOtherfilters.push(shaders.ShadersHandler.chromaticAberration);
+			camDialoguefilters.push(shaders.ShadersHandler.chromaticAberration);
+			camGamefilters.push(shaders.ShadersHandler.chromaticAberration);
+			camGamefilters.push(new ShaderFilter(ShadersHandler.rainShader));
 			ShadersHandler.setupRainShader();
-			// camfilters2.push(shaders.ShadersHandler.rainShader);
-			/*filters.push(ShadersHandler.fuckingTriangle); //this shader has a cool feature for all the wrong reasons >:)
-				camfilters.push(ShadersHandler.fuckingTriangle); */
 		}
 
 		camHUD.filtersEnabled = true;
@@ -825,10 +842,16 @@ class PlayState extends MusicBeatState
 
 		rave = new FlxTypedGroup<FlxSprite>();
 		// add(rave);
-		for (i in 0...8)
+		var raveLightsColors:Array<FlxColor>;
+		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
+		var zoomOut = 1 / defaultCamZoom;
+		var screenWidth = Std.int(FlxG.width * zoomOut * 2);
+		var screenHeight = Std.int(FlxG.height * zoomOut * 2);
+		for (i in 0...4)
 		{
-			var light2:FlxSprite = new FlxSprite().loadGraphic(Paths.image('rave/ravelight' + i, 'rave'));
+			var light2:FlxSprite = new FlxSprite().makeGraphic(screenWidth, screenHeight);
 			light2.scrollFactor.set(0, 0);
+			light2.color = raveLightsColors[i];
 			light2.cameras = [camHUD];
 			light2.visible = false;
 			light2.updateHitbox();
@@ -2278,6 +2301,216 @@ class PlayState extends MusicBeatState
 		return null;
 	}
 
+	public function addShaderToCamera(cam:String, ?effect:ShaderEffect, ?shader:ShaderFilter)
+	{ // STOLE FROM ANDROMEDA
+
+		switch (cam.toLowerCase())
+		{
+			case 'camhud' | 'hud':
+				if (effect != null)
+					camHUDShaders.push(effect);
+				var newCamEffects:Array<BitmapFilter> = []; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
+				for (i in camHUDfilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camHUDShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camHUD.setFilters(newCamEffects);
+			case 'camother' | 'other':
+				if (effect != null)
+					camOtherShaders.push(effect);
+				var newCamEffects:Array<BitmapFilter> = []; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
+				for (i in camOtherfilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camOtherShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camOther.setFilters(newCamEffects);
+			case 'camgame' | 'game':
+				if (effect != null)
+					camGameShaders.push(effect);
+				var newCamEffects:Array<BitmapFilter> = []; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
+				for (i in camGamefilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camGameShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camGame.setFilters(newCamEffects);
+			case 'camvisual' | 'visual':
+				if (effect != null)
+					camVisualShaders.push(effect);
+				var newCamEffects:Array<BitmapFilter> = []; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
+				for (i in camVisualfilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camVisualShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camVisual.setFilters(newCamEffects);
+			case 'camdialogue' | 'dialogue':
+				if (effect != null)
+					camDialogueShaders.push(effect);
+				var newCamEffects:Array<BitmapFilter> = []; // IT SHUTS HAXE UP IDK WHY BUT WHATEVER IDK WHY I CANT JUST ARRAY<SHADERFILTER>
+				for (i in camDialoguefilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camDialogueShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camDialogue.setFilters(newCamEffects);
+			default:
+				if (modchartSprites.exists(cam))
+				{
+					Reflect.setProperty(modchartSprites.get(cam), "shader", effect.shader);
+				}
+				else if (modchartTexts.exists(cam))
+				{
+					Reflect.setProperty(modchartTexts.get(cam), "shader", effect.shader);
+				}
+				else if (variables.exists(cam))
+				{
+					Reflect.setProperty(variables.get(cam), "shader", effect.shader);
+				}
+				else
+				{
+					var OBJ = Reflect.getProperty(PlayState.instance, cam);
+					Reflect.setProperty(OBJ, "shader", effect.shader);
+				}
+		}
+	}
+
+	public function removeShaderFromCamera(cam:String, ?effect:ShaderEffect, ?shader:ShaderFilter)
+	{
+		switch (cam.toLowerCase())
+		{
+			case 'camhud' | 'hud':
+				if (effect != null)
+					camHUDShaders.remove(effect);
+				for (i in camHUDfilters)
+					if (shader == i)
+						camHUDfilters.remove(i);
+				var newCamEffects:Array<BitmapFilter> = [];
+				for (i in camHUDfilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camHUDShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camHUD.setFilters(newCamEffects);
+			case 'camother' | 'other':
+				if (effect != null)
+					camOtherShaders.remove(effect);
+				for (i in camOtherfilters)
+					if (shader == i)
+						camOtherfilters.remove(i);
+				var newCamEffects:Array<BitmapFilter> = [];
+				for (i in camOtherfilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camOtherShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camOther.setFilters(newCamEffects);
+			case 'camvisual' | 'visual':
+				if (effect != null)
+					camVisualShaders.remove(effect);
+				for (i in camVisualfilters)
+					if (shader == i)
+						camVisualfilters.remove(i);
+				var newCamEffects:Array<BitmapFilter> = [];
+				for (i in camVisualfilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camVisualShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camVisual.setFilters(newCamEffects);
+			case 'camdialogue' | 'dialogue':
+				if (effect != null)
+					camDialogueShaders.remove(effect);
+				for (i in camDialoguefilters)
+					if (shader == i)
+						camDialoguefilters.remove(i);
+				var newCamEffects:Array<BitmapFilter> = [];
+				for (i in camDialoguefilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camDialogueShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camDialogue.setFilters(newCamEffects);
+			default:
+				if (effect != null)
+					camGameShaders.remove(effect);
+				for (i in camGamefilters)
+					if (shader == i)
+						camGamefilters.remove(i);
+				var newCamEffects:Array<BitmapFilter> = [];
+				for (i in camGamefilters)
+				{
+					newCamEffects.push(shader);
+				}
+				for (i in camGameShaders)
+				{
+					newCamEffects.push(new ShaderFilter(i.shader));
+				}
+				camGame.setFilters(newCamEffects);
+		}
+	}
+
+	public function clearShaderFromCamera(cam:String)
+	{
+		switch (cam.toLowerCase())
+		{
+			case 'camhud' | 'hud':
+				camHUDShaders = [];
+				camHUDfilters = [];
+				var newCamEffects:Array<BitmapFilter> = [];
+				camHUD.setFilters(newCamEffects);
+			case 'camother' | 'other':
+				camOtherShaders = [];
+				camOtherfilters = [];
+				var newCamEffects:Array<BitmapFilter> = [];
+				camOther.setFilters(newCamEffects);
+			case 'camvisual' | 'visual':
+				camVisualShaders = [];
+				camVisualfilters = [];
+				var newCamEffects:Array<BitmapFilter> = [];
+				camOther.setFilters(newCamEffects);
+			case 'camdialogue' | 'dialogue':
+				camDialogueShaders = [];
+				camDialoguefilters = [];
+				var newCamEffects:Array<BitmapFilter> = [];
+				camOther.setFilters(newCamEffects);
+			default:
+				camGameShaders = [];
+				camGamefilters = [];
+				var newCamEffects:Array<BitmapFilter> = [];
+				camGame.setFilters(newCamEffects);
+		}
+	}
+
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false, ?isGhost:Bool = false, ?isBF:Bool = false)
 	{
 		if (gfCheck && char.curCharacter.startsWith('gf'))
@@ -3034,9 +3267,11 @@ class PlayState extends MusicBeatState
 		vocals.pause();
 		opponentVocals.pause();
 		gfVocals.pause();
-	try {	for (track in tracks)
-			track.pause();
-	} catch (e:Dynamic) {	trace('Error pausing track: ' + e);	}
+		try {	
+			for (track in tracks)
+				track.pause();
+		} 
+		catch (e:Dynamic) {	trace('Error pausing track: ' + e);	}
 
 		FlxG.sound.music.time = time - Conductor.offset;
 		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
@@ -4229,12 +4464,20 @@ if (result < 0 || result > mania) {
 			{
 				var playerVocals = Paths.voices(songData.song,
 					(boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-				if (playerVocals != null)
-				{
-					vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.music('empty'));
-					FlxG.sound.list.add(vocals);
-				}
+				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song));
+				FlxG.sound.list.add(vocals);
+			}
+		}
+		catch (e)
+		{
+			addTextToDebug("Something's wrong with your vocals!", FlxColor.RED);
+			trace("Something's wrong with your vocals!");
+		}
 
+		try
+		{
+			if (songData.needsVoices)
+			{
 				var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
 				if (oppVocals != null)
 				{
@@ -4251,15 +4494,6 @@ if (result < 0 || result > mania) {
 						gfVocals.loadEmbedded(gfVoc != null ? gfVoc : Paths.music('empty'));
 						FlxG.sound.list.add(gfVocals);
 					}
-				}
-			}
-			else if (songData.needsVoices)
-			{
-				var playerVocals = Paths.voices(songData.song);
-				if (playerVocals != null)
-				{
-					vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song));
-					FlxG.sound.list.add(vocals);
 				}
 			}
 		}
@@ -5136,13 +5370,13 @@ if (result < 0 || result > mania) {
 				vocals.time = 0;
 
 			if (FlxG.sound.music != null)
-				FlxG.sound.music.volume = 1;
+				FlxG.sound.music.volume = 1 * instVolumeMultiplier;
 			if (vocals != null)
-				vocals.volume = 1;
+				vocals.volume = 1 * vocalVolumeMultiplier;
 			if (opponentVocals != null)
-				opponentVocals.volume = 1;
+				opponentVocals.volume = 1 * vocalVolumeMultiplier;
 			if (gfVocals != null)
-				gfVocals.volume = 1;
+				gfVocals.volume = 1 * vocalVolumeMultiplier;
 
 			if (!fromDeathState)
 			{
@@ -6392,12 +6626,12 @@ if (result < 0 || result > mania) {
 		vocals.time = 0;
 
 		if (FlxG.sound.music != null)
-			FlxG.sound.music.volume = 1;
-		vocals.volume = 1;
+			FlxG.sound.music.volume = 1 * instVolumeMultiplier;
+		vocals.volume = 1 * vocalVolumeMultiplier;
 		if (opponentVocals != null)
-			opponentVocals.volume = 1;
+			opponentVocals.volume = 1 * vocalVolumeMultiplier;
 		if (gfVocals != null)
-			gfVocals.volume = 1;
+			gfVocals.volume = 1 * vocalVolumeMultiplier;
 
 		allNotes = [];
 		unspawnNotes = [];
@@ -7142,10 +7376,12 @@ if (result < 0 || result > mania) {
 				if (value1 == 'true' || value1 == 'True')
 				{
 					freezeNotes = true;
+					localFreezeNotes = true;
 				}
 				else
 				{
 					freezeNotes = false;
+					localFreezeNotes = false;
 				}
 
 			case 'Funnie Window Tween':
@@ -7631,12 +7867,12 @@ if (result < 0 || result > mania) {
 		var finishCallback:Void->Void = endSong; // In case you want to change it in a specific song.
 
 		updateTime = false;
-		FlxG.sound.music.volume = 0;
-		vocals.volume = 0;
+		FlxG.sound.music.volume = 0 * instVolumeMultiplier;
+		vocals.volume = 0 * vocalVolumeMultiplier;
 		vocals.pause();
-		opponentVocals.volume = 0;
+		opponentVocals.volume = 0 * vocalVolumeMultiplier;
 		opponentVocals.pause();
-		gfVocals.volume = 0;
+		gfVocals.volume = 0 * vocalVolumeMultiplier;
 		gfVocals.pause();
 		for (track in tracks)
 		{
@@ -7774,6 +8010,7 @@ if (result < 0 || result > mania) {
 				return false;
 			}
 
+			paused = true;
 			if (isStoryMode)
 			{
 				if (!cpuControlled && !playAsGF)
@@ -7806,7 +8043,7 @@ if (result < 0 || result > mania) {
 					{
 						camHUD.alpha -= 1 / 10;
 					}, 10);
-					openSubState(new substates.RankingSubstate(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
+					openSubState(new substates.RankingSubstate());
 				}
 				else
 				{
@@ -7815,14 +8052,14 @@ if (result < 0 || result > mania) {
 						camHUD.alpha -= 1 / 10;
 					}, 10);
 					gameplayArea = "Story";
-					openSubState(new substates.RankingSubstate(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
+					openSubState(new substates.RankingSubstate());
 				}
 			}
 			else
 			{
 				gameplayArea = "Freeplay";
 				#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
-				openSubState(new substates.RankingSubstate(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
+				openSubState(new substates.RankingSubstate());
 				changedDifficulty = false;
 			}
 			transitioning = true;
@@ -7921,9 +8158,9 @@ if (result < 0 || result > mania) {
 		// trace(noteDiff, ' ' + Math.abs(note.strumTime - Conductor.songPosition));
 
 		// boyfriend.playAnim('hey');
-		vocals.volume = 1;
-		opponentVocals.volume = 1;
-		gfVocals.volume = 1;
+		vocals.volume = 1 * vocalVolumeMultiplier;
+		opponentVocals.volume = 1 * vocalVolumeMultiplier;
+		gfVocals.volume = 1 * vocalVolumeMultiplier;
 		for (track in tracks)
 			track.volume = 1;
 
@@ -8144,8 +8381,8 @@ if (result < 0 || result > mania) {
 		// trace(noteDiff, ' ' + Math.abs(note.strumTime - Conductor.songPosition));
 
 		// boyfriend.playAnim('hey');
-		opponentVocals.volume = 1;
-		gfVocals.volume = 1;
+		opponentVocals.volume = 1 * vocalVolumeMultiplier;
+		gfVocals.volume = 1 * vocalVolumeMultiplier;
 		for (track in tracks)
 			track.volume = 1;
 
@@ -8620,9 +8857,9 @@ if (result < 0 || result > mania) {
 			health -= daNote.missHealth * healthLoss;
 			if (instakillOnMiss)
 			{
-				vocals.volume = 0;
-				opponentVocals.volume = 0;
-				gfVocals.volume = 0;
+				vocals.volume = 0 * vocalVolumeMultiplier;
+				opponentVocals.volume = 0 * vocalVolumeMultiplier;
+				gfVocals.volume = 0 * vocalVolumeMultiplier;
 				for (track in tracks)
 					track.volume = 0;
 				doDeathCheck(true);
@@ -8642,7 +8879,7 @@ if (result < 0 || result > mania) {
 		ArtemisIntegration.breakCombo ();
 		#end
 
-		vocals.volume = 0;
+		vocals.volume = 0 * vocalVolumeMultiplier;
 
 		totalPlayed++;
 		RecalculateRating();
@@ -8690,9 +8927,9 @@ if (result < 0 || result > mania) {
 			health -= 0.05 * healthLoss;
 			if (instakillOnMiss)
 			{
-				vocals.volume = 0;
-				opponentVocals.volume = 0;
-				gfVocals.volume = 0;
+				vocals.volume = 0 * vocalVolumeMultiplier;
+				opponentVocals.volume = 0 * vocalVolumeMultiplier;
+				gfVocals.volume = 0 * vocalVolumeMultiplier;
 				for (track in tracks)
 					track.volume = 0;
 				doDeathCheck(true);
@@ -8755,7 +8992,7 @@ if (result < 0 || result > mania) {
 			{
 				bf2.playAnim('sing' + Note.keysShit.get(mania).get('anims')[direction] + 'miss', true);
 			}
-			vocals.volume = 0;
+			vocals.volume = 0 * vocalVolumeMultiplier;
 		}
 		stagesFunc(function(stage:BaseStage) stage.noteMissPress(direction));
 		callOnScripts('noteMissPress', [direction]);
@@ -8996,12 +9233,13 @@ if (result < 0 || result > mania) {
 		}
 
 		note.hitByOpponent = true;
+		vocals.volume = 1 * vocalVolumeMultiplier;
 		if (opponentVocals.length <= 0)
-			vocals.volume = 1;
+			opponentVocals.volume = 1 * vocalVolumeMultiplier;
 		if (gfVocals.length <= 0 && (note.gfNote || note.noteType == 'GF Duet'))
-			gfVocals.volume = 1;
+			gfVocals.volume = 1 * vocalVolumeMultiplier;
 		for (track in tracks)
-			track.volume = 1;
+			track.volume = 1 * vocalVolumeMultiplier;
 
 		if (opponentmode)
 		{
@@ -9068,9 +9306,9 @@ if (result < 0 || result > mania) {
 		}
 		dad.color = 0xFF003BB9;
 		if (opponentVocals != null && opponentVocals.length <= 0)
-			opponentVocals.volume = 0;
+			opponentVocals.volume = 0 * vocalVolumeMultiplier;
 		if (gfVocals != null && gfVocals.length <= 0 && (daNote.gfNote || daNote.noteType == 'GF Duet'))
-			gfVocals.volume = 1;
+			gfVocals.volume = 1 * vocalVolumeMultiplier;
 		comboOpp = 0;
 	}
 
@@ -9312,7 +9550,7 @@ if (result < 0 || result > mania) {
 		ArtemisIntegration.sendBoyfriendHealth (health);
 		#end
 		bfkilledcheck = false;
-		vocals.volume = 1;
+		vocals.volume = 1 * vocalVolumeMultiplier;
 		var isSus:Bool = note.isSustainNote; // GET OUT OF MY HEAD, GET OUT OF MY HEAD, GET OUT OF MY HEAD
 		var leData:Int = Math.round(Math.abs(note.noteData));
 		var leType:String = note.noteType;
@@ -9493,9 +9731,9 @@ if (result < 0 || result > mania) {
 			if(FlxG.sound.music.time >= FlxG.sound.music.length)
 				Conductor.songPosition = FlxG.sound.music.length;
 			else
-				Conductor.songPosition = FlxG.sound.music.time;
+				Conductor.songPosition = FlxG.sound.music.time + (delayOffset * 1.5);
 
-			setVocalsTime(Conductor.songPosition);
+			if (vocals != null) setVocalsTime(Conductor.songPosition - (delayOffset * 1.5));
 
 			FlxG.sound.music.play();
 			for (i in [vocals, opponentVocals, gfVocals])
@@ -9507,8 +9745,8 @@ if (result < 0 || result > mania) {
 		{
 			while(Conductor.songPosition > 20 && FlxG.sound.music.time < 20)
 			{
-				FlxG.sound.music.time = Conductor.songPosition;
-				setVocalsTime(Conductor.songPosition);
+				FlxG.sound.music.time = Conductor.songPosition + (delayOffset * 1.5);
+				setVocalsTime(Conductor.songPosition + (delayOffset * 1.5));
 
 				FlxG.sound.music.play();
 				for (i in [vocals, opponentVocals, gfVocals])
@@ -9678,11 +9916,13 @@ if (result < 0 || result > mania) {
 		ArtemisIntegration.setBeat (curBeat);
 		ArtemisIntegration.setSongProgress ((Conductor.songPosition - ClientPrefs.data.noteOffset) / songLength * 100);
 		#end
-
-		/*if (generatedMusic)
-			{
-				notes.sort(FlxSort.byY, ClientPrefs.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-		}*/
+		
+		/*
+		if (generatedMusic)
+		{
+			notes.sort(FlxSort.byY, ClientPrefs.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+		}
+		*/
 
 		if (curBeat % 32 == 0 && RandomSpeedChange && !songAboutToLoop)
 		{
@@ -9991,13 +10231,14 @@ if (result < 0 || result > mania) {
 		try
 		{
 			newScript = new HScript(null, file);
-			newScript.executeFunction('onCreate');
+			if (newScript.exists('onCreate')) newScript.call('onCreate');
 			trace('initialized hscript interp successfully: $file');
 			hscriptArray.push(newScript);
 		}
-		catch(e:Dynamic)
+		catch(e:IrisError)
 		{
-			addTextToDebug('ERROR ON LOADING ($file) - $e', FlxColor.RED);
+			var pos:HScriptInfos = cast {fileName: file, showLine: false};
+			Iris.error(Printer.errorToString(e, false), pos);
 			var newScript:HScript = cast (Iris.instances.get(file), HScript);
 			if(newScript != null)
 				newScript.destroy();
@@ -10056,7 +10297,7 @@ if (result < 0 || result > mania) {
 	}
 
 	public function callOnHScript(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		var returnVal:String = LuaUtils.Function_Continue;
+		var returnVal:Dynamic = LuaUtils.Function_Continue;
 
 		#if HSCRIPT_ALLOWED
 		if(exclusions == null) exclusions = new Array();
@@ -10073,9 +10314,9 @@ if (result < 0 || result > mania) {
 			if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
 				continue;
 
-			try
+			var callValue = script.call(funcToCall, args);
+			if(callValue != null)
 			{
-				var callValue = script.call(funcToCall, args);
 				var myValue:Dynamic = callValue.returnValue;
 
 				if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
@@ -10086,10 +10327,6 @@ if (result < 0 || result > mania) {
 
 				if(myValue != null && !excludeValues.contains(myValue))
 					returnVal = myValue;
-			}
-			catch(e:Dynamic)
-			{
-				addTextToDebug('ERROR (${script.origin}: $funcToCall) - $e', FlxColor.RED);
 			}
 		}
 		#end
@@ -10122,8 +10359,6 @@ if (result < 0 || result > mania) {
 			if(exclusions.contains(script.origin))
 				continue;
 
-			if(!instancesExclude.contains(variable))
-				instancesExclude.push(variable);
 			script.set(variable, arg);
 		}
 		#end
@@ -10374,24 +10609,41 @@ if (result < 0 || result > mania) {
 							&& !playAsGF);
 
 					case 'beat_battle_fanatic':
-						if (altsongname.toLowerCase() == 'beat battle'
-							&& (Difficulty.getString().toUpperCase() == 'SEMIIMPOSSIBLE'
-								|| Difficulty.getString().toUpperCase() == 'IMPOSSIBLE')
-							&& !changedDifficulty
-							&& !usedPractice
-							&& songMisses < 26
-							&& !playAsGF
-							&& Achievements.isUnlocked('beat_battle_god'))
+						if (FlxG.save.data.bbChecks == null)
+							FlxG.save.data.bbChecks = [false, false];
+						switch (altsongname.toLowerCase())
 						{
-							Achievements.addScore('beat_battle_fanatic');
-						}
+							case 'beat battle':
+								var bbCheck:Int = 0;
+								var bbHasChecked:Bool = false;
+								for (i in 1...4)
+								{
+									if (Highscore.getScore('beat-battle', i) > 0)
+										bbCheck = Highscore.getScore('beat-battle', i);
+									if (bbCheck > 0)
+										bbHasChecked = true;
+								}
 
-						if (altsongname.toLowerCase() == 'beat battle 2'
-							&& ClientPrefs.data.modcharts
-							&& !usedPractice
-							&& !playAsGF)
-						{
-							Achievements.addScore('beat_battle_fanatic');
+								if (bbHasChecked && !FlxG.save.data.bbChecks[0])
+								{
+									Achievements.addScore('beat_battle_fanatic');
+									FlxG.save.data.bbChecks[0] = true;
+									FlxG.save.flush();
+								}
+							case 'beat battle 2':
+								var bb2Check:Int = 0;
+								var bb2HasChecked:Bool = false;
+								if (Highscore.getScore('beat-battle-2', 0) > 0)
+									bb2Check = Highscore.getScore('beat-battle-2', 0);
+								if (bb2Check > 0)
+									bb2HasChecked = true;
+
+								if (bb2HasChecked && !FlxG.save.data.bbChecks[1])
+								{
+									Achievements.addScore('beat_battle_fanatic');
+									FlxG.save.data.bbChecks[1] = true;
+									FlxG.save.flush();
+								}
 						}
 
 

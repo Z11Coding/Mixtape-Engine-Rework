@@ -14,7 +14,6 @@ function onCreatePost()
         makeLuaSprite("oldtimer")
         makeGraphic("oldtimer", screenWidth, screenHeight, '000000')
         setSpriteShader("oldtimer", "old timer")
-        addHaxeLibrary("ShaderFilter", "openfl.filters");
     end
     if not middlescroll then
         setValue('transformX', -315, 0)
@@ -99,9 +98,12 @@ function onStepHit()
     if curStep == 32 then
         doTweenAlpha('reveal', 'black', 0, stepCrochet*0.001*128, 'sineInOut')
     end
+
     if (shadersEnabled) then
-        if (shadersEnabled) then
-            runHaxeCode([[
+        runHaxeCode([[
+            import openfl.filters.ShaderFilter;
+            function onStepHit()
+            {
                 if (curStep == 1)
                 {
                     game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
@@ -132,33 +134,34 @@ function onStepHit()
                     game.camGame.setFilters([]);
                     game.camHUD.setFilters([]);
                 }
-            ]]);
-        end
-        if curStep == 284 then
-            setObjectCamera('black', 'other')
-            setProperty('black.alpha', 1)
-        end
-        if curStep == 288 then
-            cameraFlash('other', 'FFFFFF', 1)
-            setProperty('black.alpha', 0)
-        end
-        if curStep == 732 then
-            setProperty('black.alpha', 1)
-        end
-        if curStep == 736 then
-            cameraFlash('other', 'FFFFFF', 1)
-            setProperty('black.alpha', 0)
-        end
-        if curStep == 864 then
-            cameraFlash('other', 'FFFFFF', 1)
-        end
-        if curStep == 1120 then
-            if getPropertyFromClass('backend.ClientPrefs', 'data.modcharts') then setValue('centerrotateZ', 0, 0) end
-            cameraFlash('other', 'FFFFFF', 1)
-        end
-        if curStep == 1184 then
-            setProperty('black.alpha', 1)
-        end
+            }
+        ]]);
+    end
+        
+    if curStep == 284 then
+        setObjectCamera('black', 'other')
+        setProperty('black.alpha', 1)
+    end
+    if curStep == 288 then
+        cameraFlash('other', 'FFFFFF', 1)
+        setProperty('black.alpha', 0)
+    end
+    if curStep == 732 then
+        setProperty('black.alpha', 1)
+    end
+    if curStep == 736 then
+        cameraFlash('other', 'FFFFFF', 1)
+        setProperty('black.alpha', 0)
+    end
+    if curStep == 864 then
+        cameraFlash('other', 'FFFFFF', 1)
+    end
+    if curStep == 1120 then
+        if getPropertyFromClass('backend.ClientPrefs', 'data.modcharts') then setValue('centerrotateZ', 0, 0) end
+        cameraFlash('other', 'FFFFFF', 1)
+    end
+    if curStep == 1184 then
+        setProperty('black.alpha', 1)
     end
 end
 

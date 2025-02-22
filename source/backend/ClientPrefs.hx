@@ -53,6 +53,8 @@ import states.FirstCheckState;
 	public var doubleGhosts:Bool = true;
 	public var mixupMode:Bool = false;
 	public var aiDifficulty:String = 'Average FNF Player';
+	public var splashAlpha:Float = 0.6;
+	public var splashSkin:String = 'Psych';
 	public var arrowHSV:Array<Array<Int>> = [
 		[0, 0, 0], [0, 0, 0], 
 		[0, 0, 0], [0, 0, 0], 
@@ -171,13 +173,9 @@ import states.FirstCheckState;
 	public var loadingScreen:Bool = true;
 	public var language:String = 'en-US';
 
-	//charcter select stuff
-	public static var bfMultiUnlock:Bool = false;
-	public static var playableGFUnlock:Bool = false;
-	public static var playablejellyUnlock:Bool = false;
-	public static var playableneoUnlock:Bool = false;
-	public static var playablejmaidUnlock:Bool = false;
-	public static var playablespoopyUnlock:Bool = false;
+	//Arcipelago stuff
+	public var notePopup:Bool = true;
+	public var deathlink:Bool = true;
 
 	public function new()
 	{
@@ -530,37 +528,6 @@ class ClientPrefs {
 					if(gamepadBinds.exists(control)) gamepadBinds.set(control, keys);
 			}
 			reloadVolumeKeys();
-		}
-	}
-
-	public static function saveCharSlect() {
-		FlxG.save.data.bfMultiUnlock = SaveVariables.bfMultiUnlock;
-		FlxG.save.data.playableGFUnlock = SaveVariables.playableGFUnlock;
-		FlxG.save.data.playablejellyUnlock = SaveVariables.playablejellyUnlock;
-		FlxG.save.data.playableneoUnlock = SaveVariables.playableneoUnlock;
-		FlxG.save.data.playablejmaidUnlock = SaveVariables.playablejmaidUnlock;
-		FlxG.save.data.playablespoopyUnlock = SaveVariables.playablespoopyUnlock;
-		FlxG.save.flush();
-	}
-
-	public static function loadCharSlect() {
-		if(FlxG.save.data.bfMultiUnlock != null) {
-			SaveVariables.bfMultiUnlock = FlxG.save.data.bfMultiUnlock;
-		}
-		if(FlxG.save.data.playableGFUnlock != null) {
-			SaveVariables.playableGFUnlock = FlxG.save.data.playableGFUnlock;
-		}
-		if(FlxG.save.data.playablejellyUnlock != null) {
-			SaveVariables.playablejellyUnlock = FlxG.save.data.playablejellyUnlock;
-		}
-		if(FlxG.save.data.playableneoUnlock != null) {
-			SaveVariables.playableneoUnlock = FlxG.save.data.playableneoUnlock;
-		}
-		if(FlxG.save.data.playablejmaidUnlock != null) {
-			SaveVariables.playablejmaidUnlock = FlxG.save.data.playablejmaidUnlock;
-		}
-		if(FlxG.save.data.playablespoopyUnlock != null) {
-			SaveVariables.playablespoopyUnlock = FlxG.save.data.playablespoopyUnlock;
 		}
 	}
 

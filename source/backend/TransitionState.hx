@@ -62,9 +62,14 @@ class TransitionState {
 
     public static function transitionState(targetState:Class<FlxState>, options:Dynamic = null, ?args:Array<Dynamic>, ?required:Bool = false):Void {
         isTransitioning = true;
-        if (required) {
-        requiredTransition = { targetState: targetState, options: options, args: args, required: true };
-    }
+        if (required)
+            requiredTransition = { targetState: targetState, options: options, args: args, required: true };
+
+        if (targetState == states.ExitState && targetState == null)
+        {
+            trace("Exit state was null! (somehow)\nTriggering Emergency Exit!");
+            Main.closeGame();
+        }
 
         if (targetState == null) {
             trace("Target state is null. Ignoring transition request.");
@@ -76,7 +81,7 @@ class TransitionState {
             return;
         }
 
-        if (targetState == ExitState) {
+        if (targetState == states.ExitState) {
             trace("Preparing to exit game...");
             requiredTransition = { targetState: targetState, options: options, args: args, required: true };
         }
@@ -314,6 +319,180 @@ class TransitionState {
                 switchState(targetState, onComplete, args);
             }
         });
+    }
+
+    public static function fakeTransition(options:Dynamic = null):Void {
+        var duration:Float = options != null && Reflect.hasField(options, "duration") ? options.duration : 1;
+        var transitionType:String = options != null && Reflect.hasField(options, "transitionType") ? options.transitionType : "fadeOut";
+        var originalSprites:Array<{sprite:FlxSprite, x:Float, y:Float, alpha:Float}> = [];
+
+        // Store original state of sprites
+        for (object in FlxG.state.members) {
+            if (object != null && Std.is(object, FlxSprite)) {
+                var sprite = cast(object, FlxSprite);
+                originalSprites.push({sprite: sprite, x: sprite.x, y: sprite.y, alpha: sprite.alpha});
+            }
+        }
+
+        var restoreSprites = function() {
+            for (original in originalSprites) {
+                original.sprite.x = original.x;
+                original.sprite.y = original.y;
+                original.sprite.alpha = original.alpha;
+                if (!FlxG.state.members.contains(original.sprite)) {
+                    FlxG.state.add(original.sprite);
+                }
+            }
+        };
+
+        switch (transitionType) {
+            case "fadeOut":
+                FlxTween.tween(FlxG.camera, { alpha: 0 }, duration, {
+                    onComplete: function(_) {
+                        FlxTween.tween(FlxG.camera, { alpha: 1 }, duration, {
+                            onComplete: function(_) {
+                                restoreSprites();
+                            }
+                        });
+                    }
+                });
+            case "fadeColor":
+                var color:Int = options != null && Reflect.hasField(options, "color") ? options.color : FlxColor.BLACK;
+                FlxG.camera.fade(color, duration, true, function():Void {
+                    FlxG.camera.fade(FlxColor.TRANSPARENT, duration, true, function():Void {
+                        restoreSprites();
+                    });
+                });
+            case "slideLeft":
+                slideScreen(-FlxG.width, 0, duration, null, function() {
+                    slideScreen(0, 0, duration, null, function() {
+                        restoreSprites();
+                    });
+                });
+            case "slideRight":
+                slideScreen(FlxG.width, 0, duration, null, function() {
+                    slideScreen(0, 0, duration, null, function() {
+                        restoreSprites();
+                    });
+                });
+            case "slideUp":
+                slideScreen(0, -FlxG.height, duration, null, function() {
+                    slideScreen(0, 0, duration, null, function() {
+                        restoreSprites();
+                    });
+                });
+            case "slideDown":
+                slideScreen(0, FlxG.height, duration, null, function() {
+                    slideScreen(0, 0, duration, null, function() {
+                        restoreSprites();
+                    });
+                });
+            case "fallRandom":
+                var sprites: Array<FlxSprite> = [];
+                var completedTweens = 0;
+                var totalTweens = 0;
+            
+                // Collect valid sprites
+                for (object in FlxG.state.members) {
+                    if (object != null && Std.is(object, FlxSprite)) {
+                        sprites.push(cast(object));
+                    }
+                }
+                totalTweens = sprites.length;
+            
+                // Function to check if all tweens are complete
+                var checkAllComplete = function() {
+                    if (completedTweens >= totalTweens) {
+                        restoreSprites();
+                    }
+                };
+            
+                // Apply a tween to each sprite with a random delay
+                for (sprite in sprites) {
+                    var delay = FlxG.random.float(0, 1); // Adjust max delay as needed
+                    var direction = FlxG.random.float(-1, 1);
+                    var timer = new FlxTimer();
+                    timer.start(delay, function(timer:FlxTimer) {
+                        FlxTween.tween(sprite, { y: FlxG.height + sprite.height, x: sprite.x + direction * FlxG.random.float(100, 200) }, duration, {
+                            onComplete: function(_) {
+                                sprite.exists = false;
+                                completedTweens++;
+                                checkAllComplete();
+                            }
+                        });
+                    }, 1);
+                }
+            
+                // In case there are no sprites, directly restore state
+                if (totalTweens == 0) {
+                    restoreSprites();
+                }
+            
+            case "fallSequential":
+                var randomDirection:Bool = true; // Ensure this is defined appropriately
+                var delayIncrement = 0.0;
+                var objectsToTween: Array<FlxSprite> = [];
+                
+                // Collect valid objects first
+                for (object in FlxG.state.members) {
+                    if (object != null && Std.is(object, FlxSprite)) {
+                        objectsToTween.push(cast(object));
+                    }
+                }
+                
+                // Function to process each object with a delay
+                var processNextObject: Void->Void = null;
+                processNextObject = function() {
+                    if (objectsToTween.length > 0) {
+                        var sprite = objectsToTween.shift();
+                        var direction = randomDirection ? FlxG.random.float(-1, 1) : 0;
+                        FlxTween.tween(sprite, { y: FlxG.height + sprite.height, x: sprite.x + direction * FlxG.random.float(100, 200) }, duration, {
+                            onComplete: function(_) {
+                                sprite.exists = false;
+                                new FlxTimer().start(0.1, function(timer:FlxTimer) { processNextObject(); }, 1);
+                            }
+                        });
+                    } else {
+                        // All objects processed, restore state
+                        restoreSprites();
+                    }
+                };
+                
+                // Start processing with the first object
+                processNextObject();
+            case 'transparent fade':
+                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
+                function(twn:FlxTween)
+                {
+                    restoreSprites();
+                    CppAPI.setWindowOppacity(1);
+                }}, 
+                function(num)
+                {
+                    CppAPI.setWindowOppacity(num);
+                });
+            case 'transparent close':
+                if (FlxG.sound.music != null && FlxG.sound.music.playing)
+                {
+                    FlxG.sound.music.stop();
+                    FlxG.sound.play(Paths.music('gameOverEnd'));
+                }
+                else
+                {
+                    FlxG.sound.play(Paths.music('gameOverEnd'));
+                }
+                if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
+                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
+                function(twn:FlxTween)
+                {
+                    restoreSprites();
+                    CppAPI.setWindowOppacity(1);
+                }}, 
+                function(num)
+                {
+                    CppAPI.setWindowOppacity(num);
+                });
+        }
     }
 
     // static function slideWindow(x:Float, y:Float, duration:Float, targetState:Class<FlxState>, onComplete:Dynamic, ?args:Array<Dynamic>):Void {

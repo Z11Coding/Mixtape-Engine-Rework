@@ -8,16 +8,65 @@ import substates.StickerSubState;
 import backend.Song;
 import flixel.tweens.FlxTween;
 
+
+// Troll Engine Modding Support
+#if HSCRIPT_ALLOWED
+import trolllua.FunkinHScript;
+import trolllua.states.*;
+#end
+
+#if SCRIPTABLE_STATES
+import trolllua.states.HScriptOverridenState;
+
+@:autoBuild(trolllua.macros.ScriptingMacro.addScriptingCallbacks([
+	"create",
+	"update",
+	"destroy",
+	"openSubState",
+	"closeSubState",
+	"stepHit",
+	"beatHit",
+	"sectionHit"
+]))
+#end
+
 class MusicBeatState extends FlxState
 {
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;
-
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
-
 	private var curDecStep:Float = 0;
 	private var curDecBeat:Float = 0;
+
+	public var canBeScripted(get, default):Bool = false;
+	@:noCompletion function get_canBeScripted() return canBeScripted;
+
+	//// To be defined by the scripting macro
+	@:noCompletion public var _extensionScript:FunkinHScript;
+
+	@:noCompletion public function _getScriptDefaultVars() 
+		return new Map<String, Dynamic>();
+	
+	@:noCompletion public function _startExtensionScript(folder:String, scriptName:String) 
+		return;
+
+	////
+	public function new(?canBeScripted:Bool = true) {
+		super();
+		this.canBeScripted = canBeScripted;
+	}
+
+	override public function destroy() 
+	{
+		super.destroy();
+		
+		if (_extensionScript != null) {
+			_extensionScript.stop();
+			_extensionScript = null;
+		}
+	}
+	
 	public var controls(get, never):Controls;
 	private function get_controls()
 	{
@@ -25,6 +74,10 @@ class MusicBeatState extends FlxState
 	}
 
 	var _psychCameraInitialized:Bool = false;
+
+	public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
+	public static function getVariables()
+		return getState().variables;
 
 	override function create() {
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
@@ -286,10 +339,43 @@ class MusicBeatState extends FlxState
 		FlxTransitionableState.skipNextTransIn = false;
 	}
 
-	public static function resetState() {
-		if(FlxTransitionableState.skipNextTransIn) {FlxG.resetState(); FlxTransitionableState.skipNextTransIn = false;}
-		else startTransition();
-		FlxTransitionableState.skipNextTransIn = false;
+	public static function resetState(?skipTrans:Bool = false) {
+		if (skipTrans) {
+			FlxTransitionableState.skipNextTransIn = true;
+			FlxTransitionableState.skipNextTransOut = true;
+		}
+
+		#if HSCRIPT_ALLOWED
+		if (FlxG.state is OldHScriptedState){
+			var state:OldHScriptedState = cast FlxG.state;
+			FlxG.switchState(OldHScriptedState.fromPath(state.scriptPath));
+		}
+		#if SCRIPTABLE_STATES
+		else if (FlxG.state is HScriptOverridenState) {
+			var state:HScriptOverridenState = cast FlxG.state;
+			var overriden = HScriptOverridenState.fromAnother(state);
+
+			if (overriden!=null) {
+				FlxG.switchState(overriden);
+			}else {
+				trace("State override script file is gone!", "Switching to", state.parentClass);
+				FlxG.switchState(Type.createInstance(state.parentClass, []));
+			}
+		}
+		#end
+		else if (FlxG.state is HScriptedState) {
+			var state:HScriptedState = cast FlxG.state;
+
+			if (Paths.exists(state.scriptPath))
+				FlxG.switchState(new HScriptedState(state.scriptPath));
+			else{
+				trace("State script file is gone!", "Switching to", states.MainMenuState);
+				FlxG.switchState(new states.MainMenuState());
+			}
+		}
+		#end
+		else
+			FlxG.resetState();
 	}
 
 	// Custom made Trans in

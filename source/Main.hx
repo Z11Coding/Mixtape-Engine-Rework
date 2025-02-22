@@ -2,7 +2,6 @@ package;
 
 import flixel.graphics.FlxGraphic;
 import flixel.FlxGame;
-import flixel.FlxState;
 import openfl.Assets;
 import openfl.Lib;
 import openfl.display.FPS;
@@ -10,16 +9,13 @@ import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.display.StageScaleMode;
 import lime.app.Application;
-import states.FirstCheckState;
 import backend.AudioSwitchFix;
 import backend.FunkinRatioScaleMode;
 import backend.MemoryCounter;
 import haxe.ui.Toolkit;
-import backend.ImageCache;
-import backend.JSONCache;
 import openfl.events.NativeProcessExitEvent;
 import psychlua.*;
-import StateMap; #if linux import lime.graphics.Image; #end
+#if linux import lime.graphics.Image; #end
 // crash handler stuff
 #if CRASH_HANDLER
 import openfl.events.UncaughtErrorEvent;
@@ -30,7 +26,6 @@ import sys.io.File;
 import sys.io.Process;
 #end
 // Gamejolt
-import backend.gamejolt.GameJolt;
 import backend.gamejolt.GameJolt.GJToastManager;
 import backend.debug.FPSCounter;
 import backend.window.WindowUtils;
@@ -167,15 +162,6 @@ class Main extends Sprite
 		backend.window.CppAPI.darkMode();
 		backend.window.CppAPI.allowHighDPI();
 		backend.window.CppAPI.setOld();
-		Paths.crawlDirectory("assets/data", "json", GlobalResources.jsonFilePaths);
-		// trace(ChanceSelector.selectMultiple([1, 2, 3, {key: "value"}, [()=>4, ()=>5, ()=>6].map(f -> f()), new Map<String, Int>().set("a", 7)], 3, true).map(v -> switch v { case Array(f): f(); case Map(k, v): k + Std.string(v); case {key: k}: k; case _: Std.string(v); }));
-		var mathSolver:MathSolver2 = new MathSolver2();
-		var expression:String = Std.string(Std.random(10000)) + " + " + Std.string(Std.random(10000)) + " - " + Std.string(Std.random(10000)) + " * "
-			+ Std.string(Std.random(10000)) + " / " + Std.string(Std.random(10000)) + " & " + Std.string(Std.random(10000)) + " + (8 + 8)";
-		trace("Expression: " + expression);
-		trace("Evaluated Result: " + mathSolver.evaluate(expression));
-		// trace(Paths.url("https://cdn.discordapp.com/attachments/631085887467421716/1260066510269845534/loading.xml?ex=668df7e2&is=668ca662&hm=7ff6c46036177698e1b10924bd42724f8636a6e24622a89fb054b00d84038649&"));
-		// trace(HoldableVariable.createVariable(FlxG.state).evaluate());
 		Toolkit.init();
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
@@ -361,15 +347,10 @@ class Main extends Sprite
 				case "ChartingStateOG":
 					// new Prompt("Are you sure you want to exit? Your progress will not be saved.", function (result:Bool) {
 
-				case 'WelcomeToPain':
-					pressedOnce = false;
-					WindowUtils.__triedClosing = false;
-					WindowUtils.preventClosing = true;
-					return;
 				default:
 					// Default behavior: close the window
 					FlxG.autoPause = false;
-					TransitionState.transitionState(ExitState, {transitionType: "transparent close"});
+					TransitionState.transitionState(states.ExitState, {transitionType: "transparent close"});
 			}
 		}
 		else
@@ -471,7 +452,7 @@ class Main extends Sprite
 					"Fatal Error");
 				trace("Unable to recover...");
 				// var assetWaitState:AssetWaitState = new AssetWaitState(MusicBeatState); // Provide the initial state
-				FlxG.switchState(new ExitState());
+				FlxG.switchState(new states.ExitState());
 
 			case "CacheState":
 				Application.current.window.alert("Major Error occurred while caching data.\nSkipping Cache Operation.", "Fatal Error");

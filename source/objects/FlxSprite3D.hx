@@ -1,9 +1,9 @@
-package onjects;
+package objects;
 
 import flixel.math.FlxPoint;
 import flixel.math.FlxAngle;
-import math.VectorHelpers;
-import math.Vector3;
+import backend.math.VectorHelpers;
+import backend.math.Vector3;
 import flixel.graphics.frames.FlxFrame.FlxFrameType;
 import openfl.Vector;
 import openfl.geom.ColorTransform;

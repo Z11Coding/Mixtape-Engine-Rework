@@ -96,25 +96,13 @@ class MoneyPopup extends FlxSpriteGroup {
 
 class ShopData {
     public static var items:Map<String, Dynamic> = new Map<String, Dynamic>();
-    public static function initShop()
+    public static function reloadShop()
     {
-        //items.set('Item Name', ['Description', Cost (Int), 'Image Name', Is Hidden (Bool), Is Bought (Bool)]);
-        /*if (FlxG.save.data.shopItems != null) items = FlxG.save.data.shopItems;
-        else
-        {
-            //Test Item
-            items.set('Test', ['This is literally just to test the items description', 100, 'emptyAchievement', false, false]);
-            items.set('h?', ['h?', 100, 'unknownMod', false, false]);
-        }*/
-        //Test Item
-        items.set('Fanta Can', ['(Insert dylan line here)', 100, 'emptyAchievement', false, false]);
-        items.set('h?', ['h?', 100, 'unknownMod', false, false]);
-        items.set('Test A', ['Space Test 1', 100, 'unknownMod', false, false]);
-        items.set('Test B', ['Space Test 2', 100, 'unknownMod', false, false]);
-        items.set('Test C', ['Space Test 3', 100, 'unknownMod', false, false]);
-    }
-
-    public static function saveShop() {
-        FlxG.save.data.shopItems = items;
+        //items.set('Item Name', ['Description', Cost (Int), 'Image Name', Is Hidden (Bool), Is Bought (Bool), Is one-time buy (Bool)]);
+        items.set('Perma Extra HP',  ['Permanantly ups the amount of health you have.', 100000, 'emptyAchievement', false, false, false]);
+        items.set('Anti-Tutorial',   ['Makes you immune to the "Tutorial Swap" effect per amount owned', 50000, 'emptyAchievement', false, false, false]);
+        items.set('+1 Life',         ['Allows you to not only not die, but doesn\'t trigger deathlink too.\n(You can still die to deathlink, though!)', 20000, 'emptyAchievement', false, false, false]);
+        items.set('Dylan Special',   ['Makes it so that for 8 seconds, Botplay is enabled with no consiquence.', 5500, 'emptyAchievement', false, false, false]);
+        items.set('Bottle of Water', ['Drink some water to heal mid-song!\n(HEAL keybind)', 1200, 'emptyAchievement', false, false, false]);
     }
 }

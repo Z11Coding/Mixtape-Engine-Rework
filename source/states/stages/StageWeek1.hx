@@ -52,11 +52,11 @@ class StageWeek1 extends BaseStage
 				case 'dad':
 					crowdPleaser.crowdAttentionLoss = 0.04;
 				case 'small argument':
-					crowdPleaser.crowdAttentionLoss = 0.004;
+					crowdPleaser.crowdAttentionLoss = 0.02;
 				case 'beat battle':
 					crowdPleaser.crowdAttentionLoss = 0.04;
 				case 'beat battle 2':
-					crowdPleaser.crowdAttentionLoss = 0.04;
+					crowdPleaser.crowdAttentionLoss = 0.005;
 			}
 		}
     }

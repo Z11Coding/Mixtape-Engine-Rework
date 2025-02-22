@@ -16,7 +16,7 @@ import sys.FileSystem;
 import openfl.utils.Assets;
 #end
 
-using StringTools;
+import haxe.Json;
 
 class CoolUtil
 {
@@ -97,6 +97,9 @@ class CoolUtil
 		//trace(snap);
 		return (m / snap);
 	}
+
+	inline public static function snap(f:Float, snap:Float):Float
+		return backend.math.CoolMath.snap(f, snap);
 	
 	public static function getLastOfArray<T>(a:Array<T>):T {
 		return a[a.length - 1];
@@ -177,6 +180,20 @@ class CoolUtil
 		}
 		countByColor = [];
 		return maxKey;
+	}
+
+	inline public static function parseLog(msg:Dynamic):LogData {
+		try {
+			if (msg is String)
+				return cast(Json.parse(msg));
+			return cast(msg);
+		}
+		catch (e) {
+			return {
+				content: msg,
+				hue: null
+			}
+		}
 	}
 
 	public static function numberArray(max:Int, ?min = 0):Array<Int>
@@ -470,4 +487,9 @@ class CoolUtil
 	{
 		return lerp * (FlxG.elapsed / (1 / 60));
 	}
+}
+
+typedef LogData = {
+	var content:String;
+	var hue:Null<Float>;
 }

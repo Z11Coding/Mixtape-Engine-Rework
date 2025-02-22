@@ -8,8 +8,8 @@ import backend.Song;
 import objects.HealthIcon;
 import objects.MusicPlayer;
 
-//import archipelago.ArchPopup;
-//import archipelago.APEntryState;
+import archipelago.ArchPopup;
+import archipelago.APEntryState;
 
 import states.editors.ChartingStateOG;
 
@@ -24,7 +24,7 @@ import flixel.ui.FlxButton;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
-//import archipelago.PacketTypes.ClientStatus;
+import archipelago.PacketTypes.ClientStatus;
 
 class FreeplayState extends MusicBeatState
 {
@@ -113,7 +113,7 @@ class FreeplayState extends MusicBeatState
 			lastCategory = CategoryState.loadWeekForce;
 		} 
 
-		/*if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			APEntryState.apGame.info().Sync();
 
 			function getLastParenthesesContent(input:String):String {
@@ -145,7 +145,7 @@ class FreeplayState extends MusicBeatState
 					APEntryState.inArchipelagoMode = false;
 				}, false, "Return to Archipelago Menu", "Return to Main Menu"));
 			}
-		}*/
+		}
 		Highscore.reloadModifiers();
 		//Paths.clearStoredMemory();
 		//Paths.clearUnusedMemory();
@@ -1074,17 +1074,15 @@ class FreeplayState extends MusicBeatState
 								LoadingState.loadNextDirectory();
 								alreadyClicked = true;
 								MusicBeatState.reopen = false; //Fix a sticker bug
-								LoadingState.loadAndSwitchState(new states.PlayState());
+								TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
+								/*LoadingState.prepareToSong();
+								LoadingState.loadAndSwitchState(new states.PlayState());*/
 							}
-							else TransitionState.transitionState(states.PlayState, {transitionType: "instant"});
+							else TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
 						}
-						else TransitionState.transitionState(states.PlayState);
+						else TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
 						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 						stopMusicPlay = true;
-						/*
-						* APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState2, {transitionType: "instant"}
-						* saving it for when it's needed again
-						*/
 					}
 				}
 				else {

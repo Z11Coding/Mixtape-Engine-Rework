@@ -164,8 +164,8 @@ class Week1Gimmick extends Bar
         if (crowdAppeasment >= 0 && crowdAppeasment <= 9) crowdState = MAD;
         if (crowdAppeasment >= 10 && crowdAppeasment <= 39) crowdState = UNHAPPY;
         if (crowdAppeasment >= 40 && crowdAppeasment <= 59) crowdState = NEUTRAL;
-        if (crowdAppeasment >= 60 && crowdAppeasment <= 79) crowdState = HAPPY;
-        if (crowdAppeasment >= 80 && crowdAppeasment <= 100) crowdState = VIBING;
+        if (crowdAppeasment >= 60 && crowdAppeasment <= 89) crowdState = HAPPY;
+        if (crowdAppeasment >= 90 && crowdAppeasment <= 100) crowdState = VIBING;
         if (crowdAppeasment > 150) crowdAppeasment = 150; // Cap
         super.update(elapsed);
         for (note in 0...3)
@@ -205,7 +205,6 @@ class Week1Gimmick extends Bar
                     PlayState.instance.modManager.setValue('noteShake', 0);
                     trace('Crowd Mood: Neutral');
                     setColors(FlxColor.BLACK, FlxColor.BLUE);
-                    healthDrainMult = 0.001;
                     if (onCrowdNeutral != null) onCrowdNeutral();
                 case HAPPY:
                     doClapping = false;

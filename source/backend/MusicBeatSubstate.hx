@@ -1,9 +1,34 @@
 package backend;
 
+import trolllua.FunkinHScript;
 import flixel.FlxSubState;
+
+@:autoBuild(trolllua.macros.ScriptingMacro.addScriptingCallbacks([
+	"create",
+	"update",
+	"destroy",
+	"close",
+	"openSubState",
+	"closeSubState",
+	"stepHit",
+	"beatHit",
+], "substates"))
 
 class MusicBeatSubstate extends FlxSubState
 {
+	public var canBeScripted(get, default):Bool = true;
+	@:noCompletion function get_canBeScripted() return canBeScripted;
+
+	//// To be defined by the scripting macro
+	@:noCompletion public var _extensionScript:FunkinHScript;
+
+	@:noCompletion public function _getScriptDefaultVars() 
+		return new Map<String, Dynamic>();
+
+	@:noCompletion public function _startExtensionScript(folder:String, scriptName:String) 
+		return;
+
+	////
 	public function new()
 	{
 		super();

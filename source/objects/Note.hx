@@ -24,6 +24,18 @@ typedef EventNote = {
 	value2:String
 }
 
+typedef NoteSplashData = {
+	disabled:Bool,
+	texture:String,
+	useGlobalShader:Bool, //breaks r/g/b but makes it copy default colors for your custom note
+	useRGBShader:Bool,
+	antialiasing:Bool,
+	r:FlxColor,
+	g:FlxColor,
+	b:FlxColor,
+	a:Float
+}
+
 typedef PreloadedChartNote = {
 	var strumTime:Float;
 	var noteData:Int;
@@ -432,6 +444,18 @@ class Note extends NoteObject
 	public static var globalRgbShaders:Array<RGBPalette> = [];
 	public static var SUSTAIN_SIZE:Int = 44;
 	public static var defaultNoteSkin(default, never):String = 'normalNOTE';
+	public var noteSplashData:NoteSplashData = {
+		disabled: false,
+		texture: null,
+		antialiasing: !PlayState.isPixelStage,
+		useGlobalShader: false,
+		useRGBShader: (PlayState.SONG != null) ? !(PlayState.SONG.disableNoteRGB == true) : true,
+		r: -1,
+		g: -1,
+		b: -1,
+		a: ClientPrefs.data.splashAlpha
+	};
+
 
 	//AI Stuff
 	public var AIStrumTime:Float = 0;
@@ -506,6 +530,7 @@ class Note extends NoteObject
 	}
 
 	private function set_noteType(value:String):String {
+		noteSplashData.texture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes/noteSplashes';
 		noteSplashTexture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes';
 		defaultRGB();
 		if(noteData > -1 && noteType != value) {

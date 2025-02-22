@@ -14,8 +14,7 @@ import backend.modchart.Modifier.RenderInfo;
 import backend.modchart.ModManager;
 import flixel.system.FlxAssets.FlxShader;
 import objects.NoteObject;
-
-using StringTools;
+import backend.math.VectorHelpers;
 
 typedef RenderObject =
 {

@@ -12,6 +12,7 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import openfl.system.System;
 import openfl.geom.Rectangle;
+import flixel.addons.display.FlxRuntimeShader;
 
 import lime.utils.Assets;
 import flash.media.Sound;
@@ -26,8 +27,54 @@ import backend.Mods;
 
 class Paths
 {
+	inline public static var IMAGE_EXT = "png";
 	inline public static var SOUND_EXT = #if web "mp3" #else "ogg" #end;
 	inline public static var VIDEO_EXT = "mp4";
+
+	public static final HSCRIPT_EXTENSIONS:Array<String> = ["hscript", "hxs", "hx"];
+	public static final LUA_EXTENSIONS:Array<String> = ["lua"];
+	public static final SCRIPT_EXTENSIONS:Array<String> = [
+		"hscript",
+		"hxs",
+		"hx",
+		#if LUA_ALLOWED "lua" #end]; // TODo: initialize this by combining the top 2 vars ^
+
+	// Troll Engine Things
+	public static function getFileWithExtensions(scriptPath:String, extensions:Array<String>) {
+		for (fileExt in extensions) {
+			var baseFile:String = '$scriptPath.$fileExt';
+			for (file in [#if MODS_ALLOWED Paths.modFolders(baseFile), #end Paths.getSharedPath(baseFile)]) {
+				if (Paths.exists(file))
+					return file;
+			}
+		}
+
+		return null;
+	}
+
+	public static function isHScript(file:String){
+		for(ext in Paths.HSCRIPT_EXTENSIONS)
+			if(file.endsWith('.$ext'))
+				return true;
+		
+		return false;
+	}
+	public inline static function getHScriptPath(scriptPath:String)
+	{
+		#if HSCRIPT_ALLOWED
+		return getFileWithExtensions(scriptPath, Paths.HSCRIPT_EXTENSIONS);
+		#else
+		return null;
+		#end
+	}
+
+	public inline static function getLuaPath(scriptPath:String) {
+		#if LUA_ALLOWED
+		return getFileWithExtensions(scriptPath, Paths.LUA_EXTENSIONS);
+		#else
+		return null;
+		#end
+	}
 
 	public static function excludeAsset(key:String) {
 		if (!dumpExclusions.contains(key))
@@ -419,6 +466,43 @@ class Paths
 		localTrackedAssets.push(key);
 		return graph;
 	}	
+
+	/** returns a FlxRuntimeShader but with file names lol **/ 
+	public static function getShader(fragFile:String = null, vertFile:String = null, version:Int = 120):FlxRuntimeShader
+	{
+		try{
+			var fragPath:Null<String> = fragFile==null ? null : shaderFragment(fragFile);
+			var vertPath:Null<String> = vertFile==null ? null : shaderVertex(vertFile);
+
+			return new FlxRuntimeShader(
+				fragFile==null ? null : File.getContent(fragPath), 
+				vertFile==null ? null : File.getContent(vertPath),
+				//version
+			);
+		}catch(e:Dynamic){
+			trace("Shader compilation error:" + e.message);
+		}
+
+		return null;		
+	}
+
+	inline static public function getFolders(dir:String, ?modsOnly:Bool = false){
+		#if !MODS_ALLOWED
+		return [Paths.getShadersPath('$dir/')];
+		
+		#else
+		var foldersToCheck:Array<String> = [
+			Paths.mods(Mods.currentModDirectory + '/$dir/'),
+			Paths.mods('$dir/'),
+			Paths.modFolders('$dir/'),
+		];
+
+		if(!modsOnly)
+			foldersToCheck.push(Paths.getSharedPath('$dir/'));
+
+		return foldersToCheck;
+		#end
+	}
 
 	inline static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
 	{

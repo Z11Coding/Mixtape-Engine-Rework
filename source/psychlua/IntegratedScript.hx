@@ -123,7 +123,7 @@ class IntegratedHScript {
 
         var hs = new HScript(null, tempFilePath);
         if (runCreatePost) {
-            hs.executeFunction("onCreatePost", []);
+            hs.call("onCreatePost", []);
         }
         // trace("Internal HScript loaded successfully: " + script.name);
 

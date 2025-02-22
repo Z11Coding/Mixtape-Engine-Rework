@@ -4,6 +4,7 @@ class DaShop extends MusicBeatState
 {
     private var icons:FlxTypedGroup<FlxSprite>;
     var curItem:Int = 0;
+    var lerpItem:Float = 0;
     var descBG:FlxSprite;
     var desc:undertale.UnderTextParser;
     var max = 0;
@@ -13,6 +14,7 @@ class DaShop extends MusicBeatState
     var theText:FlxText;
     var lerpScore:Int = 0;
     var noItems:FlxText;
+    var selected:Bool = false;
 
     //Item Stuff
     var itemArray:Array<Dynamic> = [];
@@ -21,7 +23,7 @@ class DaShop extends MusicBeatState
     var itemDesc:String = '';
     
     override function create() {
-        ShopData.initShop();
+        ShopData.reloadShop();
 
         var bg = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
 		bg.setGraphicSize(Std.int(bg.width * 1.175));
@@ -71,11 +73,15 @@ class DaShop extends MusicBeatState
 		descBG.scrollFactor.set(1,1);
         add(descBG);
 
+        var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
         desc = new undertale.UnderTextParser(250, descBG.y + 30, Std.int(FlxG.width * 0.6), '', 20);
         desc.font = Paths.font("fnf1.ttf");
-        desc.sounds = [FlxG.sound.load(Paths.sound('ut/monsterfont'), 0.6)];
         desc.alignment = CENTER;
         desc.scrollFactor.set(1,1);
+        for (letter in alphabet) {
+			desc.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+			desc.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+		}
         add(desc);
         super.create();
     }
@@ -86,7 +92,7 @@ class DaShop extends MusicBeatState
         max = 0;
         for (i in ShopData.items.keys())
         {
-            if (!ShopData.items.get(i)[3] || !ShopData.items.get(i)[4])
+            if (!ShopData.items.get(i)[3] || (!ShopData.items.get(i)[4] && ShopData.items.get(i)[5]))
             {
                 trace(i);
                 var imageFile:String = ShopData.items.get(i)[2];
@@ -122,6 +128,7 @@ class DaShop extends MusicBeatState
             {
                 spr.alpha = 0.5;
             }
+            //updateScrollable(icons[spr.ID], laps);
 
         });
 
@@ -146,6 +153,16 @@ class DaShop extends MusicBeatState
         theText.setPosition(popupBG.getGraphicMidpoint().x - 10, popupBG.getGraphicMidpoint().y - (theText.height / 2));
     }
 
+    /*private function updateScrollable(obj:Scrollable, elapsed:Float = 0.0) {
+		obj.x = ((obj.targetY - lerpItem) * obj.distancePerItem.x) + obj.startPosition.x;
+		obj.y = ((obj.targetY - lerpItem) * 1.3 * obj.distancePerItem.y) + obj.startPosition.y;
+
+		if (selected)
+			obj.alpha -= elapsed * 4;
+		else
+			obj.alpha = FlxMath.bound(obj.alpha + elapsed * 5, 0, 0.6);
+	}*/
+
     function buyItem(item:Int)
     {
         var itemName = itemArray[item][0];
@@ -169,7 +186,7 @@ class DaShop extends MusicBeatState
             trace('Bought!');
             FlxG.sound.play(Paths.sound("confirmMenu"));
             PlayerInfo.curMoney -= cost;
-            ShopData.items.get(itemName)[3] = true;
+            PlayerInfo.curItems.set(itemName, PlayerInfo.curItems.get(itemName) != null ? PlayerInfo.curItems.get(itemName)+1 : 1);
             reloadShop();
         }
     }

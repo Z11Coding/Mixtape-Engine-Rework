@@ -46,7 +46,8 @@ class MainMenuState extends MusicBeatState
 		'story_mode',
 		'freeplay',
 		#if MODS_ALLOWED 'mods', #end
-		'credits'
+		'credits',
+		'shop'
 	];
 	public var iconBG:FlxSprite;
 	var leftItem:FlxSprite;
@@ -237,9 +238,9 @@ class MainMenuState extends MusicBeatState
 
 		super.create();
 
-		//archButton = new FlxButton(versionShit.x, versionShit.y - 300, 'Archipelago Login', function(){FlxG.switchState(new archipelago.APEntryState());});
-		//archButton.scrollFactor.set();
-		//add(archButton);
+		archButton = new FlxButton(versionShit.x, versionShit.y - 300, 'Archipelago Login', function(){FlxG.switchState(new archipelago.APEntryState());});
+		archButton.scrollFactor.set();
+		add(archButton);
 
 		FlxG.camera.follow(camFollow, null, 9);
 	}
@@ -534,6 +535,8 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new CreditsState());
 			case 'options':
 				MusicBeatState.switchState(new options.OptionsState());
+			case 'shop':
+				MusicBeatState.switchState(new shop.DaShop());
 		}
 	}
 

@@ -17,7 +17,6 @@ class PlayerInfo {
             curMoney = 0;
         }
         FlxG.save.data.curItems = curItems;
-        ShopData.saveShop();
         FlxG.save.flush();
     }
 
@@ -30,8 +29,6 @@ class PlayerInfo {
             curItems.set('money', 0);
             curItems.set('stuffyouown', []);
         }
-
-        curMoney = curItems.get('money');
     }
 
 }

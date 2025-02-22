@@ -68,11 +68,11 @@ class CustomPathModifier extends NoteModifier {
 			dir++;
 		}
 
-		if (Main.showDebugTraces){
+		/*if (Main.showDebugTraces){
 			for(dir in 0...totalDists.length){
 				trace(dir, totalDists[dir]);
 			}
-		}
+		}*/
 	}
 
 

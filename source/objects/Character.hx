@@ -90,6 +90,9 @@ class Character extends FlxSprite
 	//Used by playfield
 	public var controlled:Bool = false;
 	public static var animationsLoaded:Bool = false;
+
+	public var invuln:Bool = false;
+	
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
 	{
 		super(x, y);

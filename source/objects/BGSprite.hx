@@ -32,3 +32,13 @@ class BGSprite extends FlxSprite
 		}
 	}
 }
+
+class AltBGSprite extends FlxSprite
+{
+	public function new(x:Float = 0, y:Float = 0, image:String, ?anim:String, ?loop:Bool=false) {
+		super(x, y);
+		frames = Paths.getSparrowAtlas(image);
+		animation.addByPrefix("idle", anim, 24, loop);
+		animation.play("idle");
+	}
+}
