@@ -115,7 +115,13 @@ class CacheState extends MusicBeatState
 
 		//Cursor.cursorMode = Cross;
 		FlxTransitionableState.skipNextTransOut = false;
-		newDest = new What();
+		switch (FlxG.random.bool(89))
+		{
+			case true:
+				newDest = new SplashScreen();
+			case false:
+				newDest = new What();
+		}
 		//FlxG.sound.play(Paths.music('celebration'));
 		for (folder in Mods.getModDirectories())
 		{
@@ -128,7 +134,7 @@ class CacheState extends MusicBeatState
 		if((FlxG.save.data.musicPreload2 != null && ClientPrefs.data.musicPreload2 == false)
 			|| (FlxG.save.data.graphicsPreload2 != null && ClientPrefs.data.graphicsPreload2 == false)
 				|| (FlxG.save.data.videoPreload2 != null && ClientPrefs.data.videoPreload2 == false)) {
-				FlxG.switchState(new What());
+				FlxG.switchState(newDest);
 				dontBother = true;
 				allowMusic = false;
 		}	

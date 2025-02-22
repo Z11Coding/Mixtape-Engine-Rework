@@ -6,6 +6,7 @@ import flixel.FlxState;
 import backend.PsychCamera;
 import substates.StickerSubState;
 import backend.Song;
+import archipelago.APEntryState;
 
 class MusicBeatChartingState extends FlxUIState
 {
@@ -99,6 +100,7 @@ class MusicBeatChartingState extends FlxUIState
 		});
 
 		super.update(elapsed);
+		if (APEntryState.apGame != null) APEntryState.apGame.info().poll();
 	}
 
 	private function updateSection():Void

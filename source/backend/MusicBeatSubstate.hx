@@ -2,6 +2,7 @@ package backend;
 
 import trolllua.FunkinHScript;
 import flixel.FlxSubState;
+import archipelago.APEntryState;
 
 @:autoBuild(trolllua.macros.ScriptingMacro.addScriptingCallbacks([
 	"create",
@@ -74,6 +75,7 @@ class MusicBeatSubstate extends FlxSubState
 		}
 
 		super.update(elapsed);
+		if (APEntryState.apGame != null) APEntryState.apGame.info().poll();
 	}
 
 	private function updateSection():Void

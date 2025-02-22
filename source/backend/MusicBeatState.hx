@@ -7,6 +7,7 @@ import backend.PsychCamera;
 import substates.StickerSubState;
 import backend.Song;
 import flixel.tweens.FlxTween;
+import archipelago.APEntryState;
 
 
 // Troll Engine Modding Support
@@ -179,6 +180,7 @@ class MusicBeatState extends FlxState
 		backend.window.WindowUtils.updateTitle();
 
 		super.update(elapsed);
+		if (APEntryState.apGame != null) APEntryState.apGame.info().poll();
 	}
 
 	private function updateSection():Void
