@@ -141,7 +141,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	public var baseXPositions:Array<Float> = [];
 	public function setDefaultBaseXPositions() {
-		for (i in 0...this.keyCount)
+		for (i in 0...this.keyCount * 2)
 			this.baseXPositions[i] = modManager.getBaseX(i, this.playerId, keyCount);
 	}
 	public inline function getBaseX(direction:Int)

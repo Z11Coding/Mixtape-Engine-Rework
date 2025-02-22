@@ -1375,7 +1375,7 @@ class Client {
 					}
 
 					trace(players);
-					ArchPopup.startPopupCustom("Please wait...", "Fetching data for games...", "ArchColor");
+					ArchPopup.startPopupCustom("Please wait...", "Fetching data for games...", "archColor");
 
 					function data():Void {
 						var gamePackages:Map<String, DataPackageObject> = [];
@@ -1402,12 +1402,12 @@ class Client {
 							games: gameData,
 						};
 						_dataPackage = data;
-						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "ArchColor");
+						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					}
 
 				yutautil.Threader.runInThread(data(), "DataPackageFetcher");
 
-				// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "ArchColor");
+				// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					//
 
 				trace("Data: " + slot_data);
