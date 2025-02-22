@@ -9152,10 +9152,13 @@ if (result < 0 || result > mania) {
 				{
 					if (dad != null)
 					{
-						if (!note.animation.curAnim.name.endsWith('tail'))
-						{
-							dad.playAnim('sing' + Note.keysShit.get(mania).get('anims')[Std.int(Math.abs(note.noteData))] + altAnim, true);
-							dad.holdTimer = 0;
+						try {
+							if (!note.animation.curAnim.name.endsWith('tail')) {
+								dad.playAnim('sing' + Note.keysShit.get(mania).get('anims')[Std.int(Math.abs(note.noteData))] + altAnim, true);
+								dad.holdTimer = 0;
+							}
+						} catch (e:Dynamic) {
+							trace('Error playing animation: ' + e);
 						}
 					}
 				}
