@@ -65,6 +65,8 @@ class FirstCheckState extends MusicBeatState
 
 			Language.reloadPhrases();
 
+			COD.initCOD();
+
 			#if sys
 			ArtemisIntegration.initialize();
 			ArtemisIntegration.setGameState ("title");

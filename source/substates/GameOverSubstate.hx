@@ -61,6 +61,8 @@ class GameOverSubstate extends MusicBeatSubstate
 	var overlayConfirmOffsets:FlxPoint = FlxPoint.get();
 	override function create()
 	{
+		if (FlxG.camera.bgColor != 0xFF000000)
+			FlxG.camera.bgColor = 0xFF000000; //So that the game over looks right
 		archipelago.APPlayState.deathByLink = false;
 		instance = this;
 

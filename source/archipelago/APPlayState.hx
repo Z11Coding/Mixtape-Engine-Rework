@@ -1792,7 +1792,7 @@ public function doEffect(effect:String)
             catch(e) {trace('DEATHLINKPACK WAS NULL!');}
             if (cause.trim() == "") cause = deathLinkPacket.source + " has died.\n[pause:0.5](How Unfortunate...)";
             COD.setCOD(null, cause);
-            die();  
+            die();
             trace("Triggering DeathLink!");
         }
         #if cpp			
@@ -2021,7 +2021,8 @@ public function doEffect(effect:String)
                 noiseSound.pause();
             }
         }
-        if (health <= 0 && bfkilledcheck && !deathByLink) APEntryState.apGame.info().sendDeathLink(COD.COD.COD); // Don't ask why it works like this...
+        if (health <= 0 && bfkilledcheck && !deathByLink) 
+            APEntryState.apGame.info().sendDeathLink(COD.COD.COD); // Don't ask why it works like this...
         super.doDeathCheck();
         return true;
     }

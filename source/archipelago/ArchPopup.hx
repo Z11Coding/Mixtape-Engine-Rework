@@ -178,6 +178,7 @@ class ArchPopup extends openfl.display.Sprite {
 
 		var newPop:ArchPopup = new ArchPopup('You Got A Song: ' + if (daSong != 'null') daSong else 'Nothing lol', 'Go Check Freeplay!', daSong, image, endFunc);
 		_popups.push(newPop);
+		FlxG.sound.play(Paths.sound('streamervschat/invuln'));
 		//trace('Giving achievement ' + achieve);
 	}
 

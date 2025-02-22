@@ -4630,7 +4630,7 @@ if (result < 0 || result > mania) {
 				Paths.sound(event.value1); // Precache sound
 		}
 
-		stagesFunc(function(stage:BaseStage) stage.eventPushedUnique(event));
+		stagesFunc(function(stage:BaseStage) stage.eventPushed(event));
 		eventsPushed.push(event.event);
 	}
 
