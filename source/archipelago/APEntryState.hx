@@ -608,7 +608,7 @@ class APEntryState extends FlxState
 	{
 		//this is the stupidest way to fix elapsed being weird
 		e++;
-		titleText.color = FlxColor.fromHSL(((e / (20 * 2.0)) / 300 * 360) % 360, 1.0, 0.5*1.0);
+		titleText.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
 		if (FlxG.keys.justPressed.HOME) runArch();
 		if(swagShader != null) swagShader.hue += 0.45 / (ClientPrefs.data.framerate / 60);
 		if (!ClientPrefs.data.lowQuality)

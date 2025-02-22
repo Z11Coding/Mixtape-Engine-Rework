@@ -68,6 +68,8 @@ class Main extends Sprite
 	public static function main():Void
 	{
 		Lib.current.addChild(new Main());
+		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
+		Lib.current.addChild(new archipelago.console.SideUI());
 	}
 
 	public function new()
