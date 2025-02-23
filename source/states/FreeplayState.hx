@@ -778,7 +778,7 @@ class FreeplayState extends MusicBeatState
 			Song.loadFromJson(poop, songLowercase);
 			PlayState.isStoryMode = false;
 			PlayState.storyDifficulty = curDifficulty;
-			forceUnlockCheck(songs[curSelected].songName, Mods.currentModDirectory);
+			forceUnlockCheck(songs[curSelected].songName, WeekData.getCurrentWeek().folder);
 		}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));
