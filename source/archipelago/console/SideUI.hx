@@ -49,7 +49,8 @@ class SideUI extends Sprite {
 					return;
 				}
 				else {
-                    FlxG.state.openSubState(new Prompt("Cannot open the console while not in Archipelago Mode!", 0, null, null, false));
+                    //FlxG.state.openSubState(new Prompt("Cannot open the console while not in Archipelago Mode!", 0, null, null, false));
+					trace('Cannot open the console while not in Archipelago Mode!');
 				}
 			}
 			
