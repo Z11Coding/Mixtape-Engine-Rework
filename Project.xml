@@ -242,6 +242,8 @@
 	<!-- <haxeflag name="macro" value="options.OptionCheck.processOptions()" /> -->
 	<!-- <haxeflag name="macro" value="ReflectCheck.replaceVariableAccesses()" /> -->
 	<!-- <haxeflag name="macro" value="backend.ChanceValidator.checkChanceRange()" /> -->
+	<haxeflag name="--resource" value="assets/embed/apworld/fridaynightfunkin.apworld@apworld" />
+
 
 	<section if="HSCRIPT_ALLOWED">
 		<haxelib name="hscript"/>

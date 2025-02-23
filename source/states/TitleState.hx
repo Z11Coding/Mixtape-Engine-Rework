@@ -533,11 +533,23 @@ class TitleState extends MusicBeatState
 			{
 				case 1:
 					if (!playJingle) {
-						//FlxG.sound.music.stop();
-						FlxG.sound.music.time = 0;
-						FlxG.sound.playMusic(Paths.music('panixPress'), 0);
-						FlxG.sound.music.fadeIn(4, 0, 0.7);
-						playJingle = true;
+						try {
+							FlxG.sound.playMusic(Paths.music('panixPress'), 0);
+							FlxG.sound.music.time = 0;
+							FlxG.sound.music.fadeIn(4, 0, 0.7);
+							playJingle = true;
+						} catch (e:Dynamic) {
+							trace("Error playing music: " + e);
+							try {
+								FlxG.sound.playMusic(Paths.music('panixPress'), 0);
+								FlxG.sound.music.time = 0;
+								FlxG.sound.music.fadeIn(4, 0, 0.7);
+								playJingle = true;
+							} catch (e2:Dynamic) {
+								trace("Error playing music on retry: " + e2);
+								playJingle = true;
+							}
+						}
 					}
 				case 2:
 					#if PSYCH_WATERMARKS

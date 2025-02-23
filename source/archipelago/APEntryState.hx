@@ -1,5 +1,7 @@
 package archipelago;
 
+import lime.app.Application;
+import haxe.io.Bytes;
 import substates.RankingSubstate;
 import states.FreeplayState;
 import backend.modules.SyncUtils;
@@ -441,22 +443,7 @@ class APEntryState extends FlxState
 	public static function installAPWorld():Void
 	{
 		#if sys
-		var programDataPath = null;
-		for (drive in FileSystem.readDirectory("C:/"))
-		{
-			var potentialPath = drive + "ProgramData/Archipelago/";
-			trace("Checking for Archipelago directory at " + potentialPath);
-			if (FileSystem.exists(potentialPath))
-			{
-				programDataPath = potentialPath;
-				break;
-			}
-		}
-		if (programDataPath == null)
-		{
-			trace("Archipelago directory not found on any drive.");
-			return;
-		}
+		var programDataPath = "C:/ProgramData/Archipelago/";
 		var launcherPath = programDataPath + "ArchipelagoLauncher.exe";
 		var customWorldsPath = programDataPath + "custom_worlds/";
 		var apWorldFile = customWorldsPath + "fridaynightfunkin.apworld";
@@ -466,30 +453,44 @@ class APEntryState extends FlxState
 			trace("ArchipelagoLauncher found. Installing or updating .apworld file.");
 			// Create a temp file to run with the system.
 			var apworld = haxe.Resource.getBytes("apworld");
+			if (FileSystem.exists(apWorldFile)) {
+				var installedApworld = File.getBytes(apWorldFile);
+				if (apworld.compare(installedApworld) == 0) {
+					trace("You already have this version of the APWorld.");
+					Application.current.window.alert("You already have this version of the APWorld.", "APWorld Installation");
+					return;
+				}
+			}
 			File.saveBytes("fridaynightfunkin.apworld", apworld);
+
 			Sys.command("cmd /c start fridaynightfunkin.apworld");
 
-			new FlxTimer().start(5, function(the)
-			{
-				while (true)
-				{
-					try
-					{
+			while (!FileSystem.exists(apWorldFile)) {
+				Sys.sleep(1); // Sleep for 1 second before checking again
+			}
+
+			while (true) {
+				var installedApworld = File.getBytes(apWorldFile);
+				if (apworld.compare(installedApworld) == 0) {
+					try {
 						FileSystem.deleteFile("fridaynightfunkin.apworld");
 						trace("APWorld installed successfully.");
 						break;
+					} catch (e:Dynamic) {
+						// trace("Failed to delete file: " + e);
 					}
-					catch (e:Dynamic)
-					{
-						// trace("Failed to delete file, retrying...");
-					}
+				} else {
+					trace("Waiting for APWorld file to match the embedded one...");
+					Sys.sleep(1); // Sleep for 1 second before checking again
+					installedApworld = File.getBytes(apWorldFile);
 				}
-			});
-			// FileSystem.deleteFile("fridaynightfunkin.apworld");
+			}
 		}
 		else
 		{
 			trace("Archipelago was not found. Please install Archipelago to install the .apworld file.");
+			Application.current.window.alert("Archipelago was not found. Please install Archipelago to install the .apworld file.
+			\nNote: If your Archipelago Installation is not in the C Drive, it is currently not supported to be installed to other drives... yet.", "APWorld Installation");
 		}
 		#end
 	}

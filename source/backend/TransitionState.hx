@@ -88,8 +88,20 @@ class TransitionState {
     
         if (currenttransition != null) {
             trace("Transition already in progress. Ignoring new transition request.");
-            return;
-        }
+            timers.transition.start(5, function(timer:FlxTimer) {
+                if (currenttransition != null) {
+                    trace("Transition timer expired. Resetting current transition.");
+                    currenttransition = null;
+                }
+                if (Type.getClass(FlxG.state) != targetState) {
+                    trace("Waiting transition is needed...");
+                    var newTransitoon = currenttransition;
+                    currenttransition = null;
+                    requiredTransition = null;
+                    transitionState(newTransitoon.targetState, newTransitoon.options, newTransitoon.args, true);
+                    }});
+                    return;
+                }
         //trace("Transitioning to state: " + Type.getClassName(targetState));
         //trace("Options: " + options);
         currenttransition = { targetState: targetState, options: options, args: args };

@@ -7,6 +7,8 @@ import haxe.macro.Context;
 import haxe.macro.ExprTools;
 import haxe.macro.Type;
 import haxe.macro.Printer;
+import sys.thread.Mutex;
+import sys.thread.Thread;
 
 /**
  * Represents a thread baked into compilation.
@@ -622,5 +624,77 @@ class PatientThreadQueue extends ThreadQueue {
                 break;
             }
         }
+    }
+}
+
+typedef Threaded<T> = ThreadAccess<T>;
+
+class ThreadAccess<T> {
+    private var value:T;
+    private var mutex:Mutex;
+
+    public function new(value:T) {
+        this.value = value;
+        this.mutex = new Mutex();
+    }
+
+    public function get(callback:T -> Void):Void {
+        Thread.create(() -> {
+            mutex.acquire();
+            try {
+                callback(value);
+            } catch (e:Dynamic) {
+                trace("Exception in thread function: " + e + " ... " + haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+                mutex.release();
+            }
+        });
+    }
+
+    public function set(newValue:T, callback:Void -> Void):Void {
+        Thread.create(() -> {
+            mutex.acquire();
+            try {
+                value = newValue;
+                callback();
+                mutex.release();
+            }
+            catch (e:Dynamic) {
+                trace("Exception in thread function: " + e + " ... " + haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+                mutex.release();
+            }
+        });
+    }
+
+    public function call<R>(func:T -> R, callback:R -> Void):Void {
+        Thread.create(() -> {
+            mutex.acquire();
+            try {
+                var result = func(value);
+                callback(result);
+            } catch (e:Dynamic) {
+                trace("Exception in thread function: " + e + " ... " + haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+                mutex.release();
+            }
+        });
+    }
+
+    public function getSync():T {
+        mutex.acquire();
+        var result = value;
+        mutex.release();
+        return result;
+    }
+
+    public function setSync(newValue:T):Void {
+        mutex.acquire();
+        value = newValue;
+        mutex.release();
+    }
+
+    public function callSync<R>(func:T -> R):R {
+        mutex.acquire();
+        var result = func(value);
+        mutex.release();
+        return result;
     }
 }

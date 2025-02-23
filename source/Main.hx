@@ -800,7 +800,7 @@ class CommandPrompt
 				print("Exiting game...");
 				if (args.length == 0)
 				{
-					this.switchState("ExitState");
+					this.switchState("states.ExitState");
 				}
 				else if (args.length == 1 && args[1] == "forced")
 				{
