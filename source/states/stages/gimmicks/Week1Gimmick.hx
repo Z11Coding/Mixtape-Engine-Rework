@@ -127,6 +127,13 @@ class Week1Gimmick extends Bar
     }
 
     /**
+     * Unpauses the mechanic
+     */
+    public function unpauseGimmick() {
+        allowDrain = true;
+    }
+
+    /**
      * Stops the mechanic completely and resets it.
      */
     public function stopGimmick() {

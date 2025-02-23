@@ -421,9 +421,10 @@ class PhillyStreets extends BaseStage
 	var lightCanSnd:FlxSound;
 	var kickCanSnd:FlxSound;
 	var kneeCanSnd:FlxSound;
+	var didCreateCan = false;
+	var didCreateCasing = false;
 	function precache()
 	{
-		var didCreateCan = false;
 		function createCan()
 		{
 			if(didCreateCan) return;
@@ -444,7 +445,6 @@ class PhillyStreets extends BaseStage
 			didCreateCan = true;
 		}
 
-		var didCreateCasing = false;
 		function precacheCasing()
 		{
 			if(didCreateCasing) return;
@@ -485,6 +485,9 @@ class PhillyStreets extends BaseStage
 					precacheCasing();
 			}
 		}
+
+		createCan();
+		precacheCasing();
 
 		for (i in 1...5)
 			Paths.sound('shots/shot$i');

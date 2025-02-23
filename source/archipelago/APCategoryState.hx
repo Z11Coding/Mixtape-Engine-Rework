@@ -10,7 +10,7 @@ class APCategoryState extends states.CategoryState {
         this.gameState = gameState;
         this.AP = gameState.info();
         menuItems = [];
-        super(['All', 'Hinted', 'Unlocked', 'Unplayed', 'Options', 'Quit'], false, false, true, false, false);
+        super(['All', /*'Hinted', 'Unlocked', For a later version*/ 'Unplayed', 'Options', 'Quit'], false, false, true, false, false);
         menuLocks = [false, false, false, false];
         specialOptions = [null, null, null, null];
 

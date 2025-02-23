@@ -147,15 +147,11 @@ class MainTab extends TabSprite {
 	}
 
 	override function onShow() {
-		var songsLeft = [];
-		for (song in APEntryState.apGame.info().missingLocations)
-			songsLeft.push(APEntryState.apGame.info().get_location_name(song));
 		nickname.text = APEntryState.inArchipelagoMode ? APEntryState.ap.slot : "Archipelago Not Active!";
 		info.text = 
 		  "Song Needed for Completion: "+APEntryState.victorySong
 		+ "\nDeathLink: "+APEntryState.deathLink
 		+ "\nTotal Song Amount: "+APEntryState.fullSongCount
-		+ "\nSongs Left: "+ songsLeft.toString()
 		+ "\nHint Cost: "+ APEntryState.apGame.info().hintCostPoints
 		+ "\nHint Points Left: "+ APEntryState.apGame.info().hintPoints
 		+ "\nCurrent Run Time: "+ APEntryState.apGame.info().localConnectTime;

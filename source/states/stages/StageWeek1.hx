@@ -57,6 +57,9 @@ class StageWeek1 extends BaseStage
 					crowdPleaser.crowdAttentionLoss = 0.04;
 				case 'beat battle 2':
 					crowdPleaser.crowdAttentionLoss = 0.005;
+				default:
+					crowdPleaser.crowdAttentionLoss = 0;
+					crowdPleaser.visible = false;
 			}
 		}
     }
@@ -137,6 +140,23 @@ class StageWeek1 extends BaseStage
 						defaultCamZoom -= 0.12;
 						FlxTween.tween(dadbattleFog, {alpha: 0}, 0.7, {onComplete: function(twn:FlxTween) dadbattleFog.visible = false});
 				}
+			case "Enable Crowd Mechanic":
+				crowdPleaser.visible = true;
+				if(flValue1 == null) flValue1 = 0.03;
+				var val:Int = Math.round(flValue1);	
+				crowdPleaser.crowdAttentionLoss = val;
+				crowdPleaser.startGimmick();
+				
+			case "Disable Crowd Mechanic":
+				crowdPleaser.visible = false;	
+				crowdPleaser.crowdAttentionLoss = 0;
+				crowdPleaser.stopGimmick();
+
+			case "Pause Crowd Mechanic":
+				crowdPleaser.pauseGimmick();
+
+			case "Unpause Crowd Mechanic":
+				crowdPleaser.unpauseGimmick();
 		}
 	}
 }

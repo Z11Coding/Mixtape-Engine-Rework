@@ -101,17 +101,10 @@ class FreeplayState extends MusicBeatState
 		{item: "beat battle 2", chance: 5} // 5% chance to do Beat Battle 2
 	];
 	
+	var unplayedSongs:Map<String, String> = new Map<String, String>();
 	override function create()
 	{
 		instance = this; // For Archipelago
-
-		// if (lastCategory != CategoryState.loadWeekForce)
-		// {
-		// 	//so it doesn't do weird things. might rework later
-		// 	//update: I reworked it
-		// 	curSelected = 0;
-		// 	lastCategory = CategoryState.loadWeekForce;
-		// } 
 
 		if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode) {
 			new FlxTimer().start(3, function(tmr:FlxTimer)
@@ -393,6 +386,23 @@ class FreeplayState extends MusicBeatState
 		// trace('curSelected after change: ' + curSelected);
 	}
 
+	function isModName(name:String):Bool {
+        var mods = Mods.parseList().enabled;
+        // trace("Checking: " + mod);
+
+        if (mods != null && mods.length > 0) {
+            for (mod in mods) {
+                // trace("Looking for: " + name);
+                if (mod == name) {
+                    // trace("Found: " + mod);
+                    return true;
+                }
+            }
+        }
+        // trace("Not Found: " + name);
+        return false;
+    }
+
 	public function checkStringCombinations(input:String, target:String):Bool {
 		var combinations:Array<String> = [];
 		var chars:Array<String> = input.split('');
@@ -528,7 +538,20 @@ class FreeplayState extends MusicBeatState
 							{
 								colors = [146, 113, 253];
 							}
-							if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
+							if (CategoryState.loadWeekForce == "unplayed")
+							{
+								if (APEntryState.inArchipelagoMode)
+								{
+									var songNameThing:String = song[0];
+									for (songName in curUnlocked.keys())
+									{
+										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && songNameThing.trim().toLowerCase().replace('-', ' ') == unplayedSongs.get(songName))
+											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+									}
+								}
+								else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+							}
+							else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 							{
 								if (APEntryState.inArchipelagoMode)
 								{
@@ -541,6 +564,7 @@ class FreeplayState extends MusicBeatState
 								}
 								else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 							}
+								
 						}
 						else
 						{	
@@ -551,7 +575,21 @@ class FreeplayState extends MusicBeatState
 								{
 									colors = [146, 113, 253];
 								}
-								if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
+
+								if (CategoryState.loadWeekForce == "unplayed")
+								{
+									if (APEntryState.inArchipelagoMode)
+									{
+										var songNameThing:String = song[0];
+										for (songName in curUnlocked.keys())
+										{
+											if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && songNameThing.trim().toLowerCase().replace('-', ' ') == unplayedSongs.get(songName))
+												addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+										}
+									}
+									else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								}
+								else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 								{
 									if (APEntryState.inArchipelagoMode)
 									{

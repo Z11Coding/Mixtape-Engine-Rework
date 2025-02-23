@@ -1405,7 +1405,7 @@ class Client {
 						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					}
 
-				yutautil.Threader.runInThread(data(), "DataPackageFetcher");
+					yutautil.Threader.runInThread(data(), "DataPackageFetcher");
 
 				// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					//
