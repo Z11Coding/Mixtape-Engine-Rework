@@ -521,8 +521,8 @@ class FreeplayState extends MusicBeatState
 					leChars.push(leWeek.songs[j][1]);
 				}
 
-				trace("CurUnlocked: " + curUnlocked);
-				trace("CurMissing: " + curMissing);
+				// trace("CurUnlocked: " + curUnlocked);
+				// trace("CurMissing: " + curMissing);
 
 				WeekData.setDirectoryFromWeek(leWeek);
 				for (song in leWeek.songs)
