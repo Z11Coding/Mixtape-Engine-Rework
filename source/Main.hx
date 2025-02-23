@@ -472,6 +472,7 @@ class Main extends Sprite
 					Sys.println("Cannot restart from compiled build.");
 					Application.current.window.alert("The game encountered a critical error.", "Game Bricked");
 					Application.current.window.alert("Unable to restart due to running a Compiled build.", "Error");
+					Main.closeGame();
 				}
 				else
 				{
