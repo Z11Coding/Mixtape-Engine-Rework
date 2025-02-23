@@ -113,6 +113,13 @@ class FreeplayState extends MusicBeatState
 			lastCategory = CategoryState.loadWeekForce;
 		} 
 
+		if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode) {
+			new FlxTimer().start(3, function(tmr:FlxTimer)
+			{
+				APEntryState.gonnaRunSync = false;
+			});
+		}
+
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			APEntryState.apGame.info().Sync();
 
