@@ -130,7 +130,6 @@ class Threader {
             #end
         };
         return macro yutautil.Threader.ThreadChecker.safeThread($threadExpr, $nameExpr);
-        trace("Threaded section of code prepared.");
     }
 
     /**
@@ -533,6 +532,7 @@ class ThreadChecker {
         if (hasWaitForThreads) {
             Context.error("You can't create an infinite waiting thread." + (thread != null ? " (" + thread + ")" : ""), expr.pos);
         }
+        trace("Threaded section of code prepared.");
         return expr;
     }
 

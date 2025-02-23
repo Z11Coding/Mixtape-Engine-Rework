@@ -105,13 +105,13 @@ class FreeplayState extends MusicBeatState
 	{
 		instance = this; // For Archipelago
 
-		if (lastCategory != CategoryState.loadWeekForce)
-		{
-			//so it doesn't do weird things. might rework later
-			//update: I reworked it
-			curSelected = 0;
-			lastCategory = CategoryState.loadWeekForce;
-		} 
+		// if (lastCategory != CategoryState.loadWeekForce)
+		// {
+		// 	//so it doesn't do weird things. might rework later
+		// 	//update: I reworked it
+		// 	curSelected = 0;
+		// 	lastCategory = CategoryState.loadWeekForce;
+		// } 
 
 		if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode) {
 			new FlxTimer().start(3, function(tmr:FlxTimer)
@@ -333,7 +333,7 @@ class FreeplayState extends MusicBeatState
 		missingText.visible = false;
 		add(missingText);
 
-		if(curSelected >= songs.length) curSelected = -1;
+		// if(curSelected >= songs.length) curSelected = -1;
 		try {
 			bg.color = songs[curSelected].color;
 			intendedColor = bg.color;
@@ -368,7 +368,6 @@ class FreeplayState extends MusicBeatState
 		player = new MusicPlayer(this);
 		add(player);
 		
-		changeSelection();
 		updateTexts();
 		super.create();
 		FlxTween.tween(rank, {alpha: 1}, 0.5, {ease: FlxEase.quartInOut});
@@ -382,6 +381,16 @@ class FreeplayState extends MusicBeatState
 		trace(hh);
 
 		reloadSongs(true);
+		changeSelection();
+
+
+		// trace('curSelected before change: ' + curSelected);
+		// if (curSelected < 0) {
+		// 	curSelected = 0;
+		// } else if (curSelected >= songs.length) {
+		// 	curSelected = songs.length - 1;
+		// }
+		// trace('curSelected after change: ' + curSelected);
 	}
 
 	public function checkStringCombinations(input:String, target:String):Bool {
@@ -1315,7 +1324,7 @@ class FreeplayState extends MusicBeatState
 		if (curSelected < -1)
 			curSelected = songs.length - 1;
 		if (songs.length > 0 && curSelected >= songs.length)
-			curSelected = -1;
+			curSelected = songs.length - 1;
 
 		if (curSelected == -1)
 			playFreakyMusic('freeplayRandom');
