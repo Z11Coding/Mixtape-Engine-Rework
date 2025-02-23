@@ -886,7 +886,8 @@ class PhillyStreets extends BaseStage
 				dad.holdTimer = 0;
 				dad.playAnim('lightCan', true);
 				dad.specialAnim = true;
-				lightCanSnd.play(true, sndTime - 65);
+				try { lightCanSnd.play(true, sndTime - 65); }
+				catch(e) {trace('Sound Was Null!');}
 				
 				game.isCameraOnForcedPos = true;
 				game.defaultCamZoom += 0.1;
@@ -897,7 +898,8 @@ class PhillyStreets extends BaseStage
 				dad.holdTimer = 0;
 				dad.playAnim('kickCan', true);
 				dad.specialAnim = true;
-				kickCanSnd.play(true, sndTime - 50);
+				try { kickCanSnd.play(true, sndTime - 50); }
+				catch(e) {trace('Sound Was Null!');}
 				spraycan.playCanStart();
 				camFollow.x += 250;
 				game.cameraSpeed = 1.5;
@@ -912,7 +914,8 @@ class PhillyStreets extends BaseStage
 				dad.holdTimer = 0;
 				dad.playAnim('kneeCan', true);
 				dad.specialAnim = true;
-				kneeCanSnd.play(true, sndTime - 22);
+				try { kneeCanSnd.play(true, sndTime - 22); }
+				catch(e) {trace('Sound Was Null!');}
 		}
 	}
 	

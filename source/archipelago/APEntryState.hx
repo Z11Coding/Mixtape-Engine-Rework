@@ -86,6 +86,7 @@ class APEntryState extends FlxState
 
 	public static var unlockable:Array<String> = [];
 	public static var inArchipelagoMode:Bool = false;
+	public static var gonnaRunSync:Bool = false;
 	public static var lowFilterAmount:Float = 1;
 	public static var deathLink:Bool = false;
 	public static var victorySong:String = '???';
@@ -590,6 +591,7 @@ class APEntryState extends FlxState
 	function runArch():Void // Soon
 	{
 		inArchipelagoMode = true;
+		gonnaRunSync = true; // You'll thank me later
 		WeekData.reloadWeekFiles(false);
 		FlxG.save.data.closeDuringOverRide = false;
 		FlxG.save.data.manualOverride = false;

@@ -41,6 +41,7 @@ class MainTab extends TabSprite {
 
 		info = new TextField();
 		info.selectable = false;
+		info.wordWrap = true;
 		var format = TabSprite.getDefaultFormat();
 		format.size = 15;
 		info.defaultTextFormat = format;
@@ -86,7 +87,6 @@ class MainTab extends TabSprite {
 		var format = TabSprite.getDefaultFormat();
 		format.color = data.hue != null ? FlxColor.fromHSL(data.hue, 1.0, 0.8) : FlxColor.WHITE;
 		msg.defaultTextFormat = format;
-		msg.height = 1000;
 		msg.wordWrap = true;
 		msg.text = data.content;
 		msg.height = msg.textHeight + 1;
