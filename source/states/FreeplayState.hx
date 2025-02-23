@@ -649,8 +649,6 @@ class FreeplayState extends MusicBeatState
 
 	function forceUnlockCheck(songName:String, modName:String):Void {
 		var locationId = songName;
-		trace('Combo Required:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
-		trace('Accuracy Required:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
 		trace(modName);
 		if (modName.trim() != "") {
 			locationId += " (" + modName + ")";
@@ -701,13 +699,13 @@ class FreeplayState extends MusicBeatState
 		trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
 		trace(APEntryState.apGame.info().get_location_name(locationIdInt));
 		trace(songName);
-		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Go check it out!", "archipelago", function() {
+		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Go check it out!", "archColor", function() {
 			FlxG.sound.playMusic(Paths.sound('secret'));
 		});
 	
 		locationIdInt = APEntryState.apGame.info().get_location_id(locationId.trim());
 		if (locationIdInt != null && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-")) {
-			archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+			archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archColor", function() {
 				FlxG.sound.playMusic(Paths.sound('secret'));
 			});
 			APEntryState.apGame.info().set_goal();
@@ -772,6 +770,15 @@ class FreeplayState extends MusicBeatState
 					searchBar.updateHitbox();
 				}});
 			searchBar.updateHitbox();
+		}
+
+		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode)  {
+			var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
+			var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
+			Song.loadFromJson(poop, songLowercase);
+			PlayState.isStoryMode = false;
+			PlayState.storyDifficulty = curDifficulty;
+			forceUnlockCheck(songs[curSelected].songName, Mods.currentModDirectory);
 		}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));

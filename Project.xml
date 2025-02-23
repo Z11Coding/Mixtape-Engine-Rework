@@ -72,11 +72,15 @@
 		<define name="BASE_GAME_FILES" />
 	</section>
 
+	<haxedef name="traceShaderLineNumbers"/>
+
 
 	<!-- __________________________ Game Assets & Etc. __________________________ -->
 
 	<!-- Turn on Crash Handler -->
 	<define name="CRASH_HANDLER" if="desktop release" />
+	<!--Remove if you dont want states to be modified with scripts. This only disables extension/overrides and not the HScriptedState class-->
+    <!--<define name="SCRIPTABLE_STATES" if="HSCRIPT_ALLOWED" /> -->
 
 
 	<!-- Assets -->
@@ -263,6 +267,13 @@
 
 	<!-- Fix compiling issues -->
 	<!-- setenv name="HAXEPATH" value="./"/ -->
+
+	<!-- NOTE TO SELF: DISABLE THIS IF ISSUES ARE FOUND -->
+	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB" if="LUA_ALLOWED" /> <!-- stable luas PUT AFTER FIRST LINE WITH APP NAME AND ETC -->
+	<define name="NO_PRECOMPILED_HEADERS" if="LUA_ALLOWED linux" />
+
+	<!-- Javascript breaks with inline for reasons unknown -->
+	<haxedef name="no-inline" if="html5"/>
 
 	<!-- NOTE TO SELF: DISABLE THIS IF ISSUES ARE FOUND -->
 	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB" if="LUA_ALLOWED" /> <!-- stable luas PUT AFTER FIRST LINE WITH APP NAME AND ETC -->

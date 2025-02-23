@@ -86,7 +86,7 @@ class MainTab extends TabSprite {
 		var format = TabSprite.getDefaultFormat();
 		format.color = data.hue != null ? FlxColor.fromHSL(data.hue, 1.0, 0.8) : FlxColor.WHITE;
 		msg.defaultTextFormat = format;
-		msg.height = 10000;
+		msg.height = 1000;
 		msg.wordWrap = true;
 		msg.text = data.content;
 		msg.height = msg.textHeight + 1;

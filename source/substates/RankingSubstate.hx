@@ -178,10 +178,10 @@ class RankingSubstate extends MusicBeatSubstate
 						// trace('First if: locationIdInt is 0');
 						for (song in WeekData.getCurrentWeek().songs)
 						{
-							// trace("Current Week: " + WeekData.getCurrentWeek().songs);
-							// trace("Object: " + WeekData.getCurrentWeek());
-							// trace("Checking song: " + song[0]);
-							// trace("Comparing: " + (cast song[0] : String).toLowerCase().trim() + " to " + PlayState.SONG.song.trim().toLowerCase());
+							trace("Current Week: " + WeekData.getCurrentWeek().songs);
+							trace("Object: " + WeekData.getCurrentWeek());
+							trace("Checking song: " + song[0]);
+							trace("Comparing: " + (cast song[0] : String).toLowerCase().trim() + " to " + PlayState.SONG.song.trim().toLowerCase());
 							if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
 								(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 							{
@@ -210,19 +210,19 @@ class RankingSubstate extends MusicBeatSubstate
 
 							for (json in jsonStuff)
 							{
-								// trace("Checking: " + json); trace("Comparing to: " + songPath);
+								trace("Checking: " + json); trace("Comparing to: " + songPath);
 								if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
 								{
 									songJson = Song.parseJSON(File.getContent(json));
-									// trace('Second if: Found matching song, testing...');
-									// trace("Song: " + songJson.song); trace("Song File: " + songJson);
+									trace('Second if: Found matching song, testing...');
+									trace("Song: " + songJson.song); trace("Song File: " + songJson);
 									if (songJson != null)
 									{
-										// trace("Song: " + songJson.song); trace("Comparing to: " + PlayState.SONG.song);
-										// trace("Song: " + songJson.song.trim().toLowerCase().replace(" ", "-")); trace("Comparing to: " + PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"));
+										trace("Song: " + songJson.song); trace("Comparing to: " + PlayState.SONG.song);
+										trace("Song: " + songJson.song.trim().toLowerCase().replace(" ", "-")); trace("Comparing to: " + PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"));
 										if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 										{
-											// trace('Second if: Found matching song, locationIdInt set to ' + locationIdInt);
+											trace('Second if: Found matching song, locationIdInt set to ' + locationIdInt);
 											locationIdInt = archipelago.APPlayState.currentMod.trim() != ""
 												? archipelago.APEntryState.apGame.info().get_location_id(song[0] + " (" + archipelago.APPlayState.currentMod + ")")
 												: archipelago.APEntryState.apGame.info().get_location_id(song[0]);
