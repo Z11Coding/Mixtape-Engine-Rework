@@ -377,6 +377,8 @@ class ClientPrefs {
 		'note_ate16' 	=> [I, NONE],
 		'note_ate17' 	=> [O, NONE],
 		'note_ate18' 	=> [P, NONE],
+
+		'dodge'			=> [SPACE, NONE],
 		
 		'ui_left'		=> [A, LEFT],
 		'ui_down'		=> [S, DOWN],
@@ -395,9 +397,8 @@ class ClientPrefs {
 		'debug_1'		=> [SEVEN, NONE],
 		'debug_2'		=> [EIGHT, NONE],
 
-		'fullscreen'	=> [F11],
-		'sidebar'		=> [GRAVEACCENT],
-		'dodge'			=> [SPACE],
+		'fullscreen'	=> [F11, NONE],
+		'sidebar'		=> [GRAVEACCENT, NONE],
 	];
 
 	public static var gamepadBinds:Map<String, Array<FlxGamepadInputID>> = [

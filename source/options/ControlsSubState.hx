@@ -228,11 +228,6 @@ class ControlsSubState extends MusicBeatSubstate
 		[false, 'Up 4', 	'note_ate17'],
 		[false, 'Right 4',  'note_ate18'],
 		[true],
-		[true, 'Misc.'],
-		[true, 'Dodge',  'dodge',       'Dodge'],
-		[true, 'Taunt',  'qt_taunt',    'Taunt'],
-		[true, 'Use BE', 'bot_energy',  'Use BE'],
-		[true],
 		[true, 'UI'],
 		[true, 'Left',  'ui_left',  'UI Left'],
 		[true, 'Down',  'ui_down',  'UI Down'],
@@ -256,6 +251,7 @@ class ControlsSubState extends MusicBeatSubstate
 		[true, 'Extras'],
 		[false, 'FullScreen', 'fullscreen', 'Fullscreen'],
 		[true,  'Sidebar',    'sidebar',    'Sidebar'],
+		[true, 'Dodge',  'dodge',       'Dodge'],
 	];
 	var curOptions:Array<Int>;
 	var curOptionsValid:Array<Int>;
@@ -389,45 +385,49 @@ class ControlsSubState extends MusicBeatSubstate
 	}
 	function addKeyText(text:Alphabet, option:Array<Dynamic>, id:Int)
 	{
-		for (n in 0...2)
-		{
-			var textX:Float = 350 + n * 300;
-
-			var key:String = null;
-			if(onKeyboardMode)
+		try {
+			for (n in 0...2)
 			{
-				var savKey:Array<Null<FlxKey>> = ClientPrefs.keyBinds.get(option[2]);
-				key = InputFormatter.getKeyName((savKey[n] != null) ? savKey[n] : NONE);
+				var textX:Float = 350 + n * 300;
+
+				var key:String = null;
+				if(onKeyboardMode)
+				{
+					var savKey:Array<Null<FlxKey>> = ClientPrefs.keyBinds.get(option[2]);
+					key = InputFormatter.getKeyName((savKey[n] != null) ? savKey[n] : NONE);
+				}
+				else
+				{
+					var savKey:Array<Null<FlxGamepadInputID>> = ClientPrefs.gamepadBinds.get(option[2]);
+					key = InputFormatter.getGamepadName((savKey[n] != null) ? savKey[n] : NONE);
+				}
+
+				var attach:Alphabet = new Alphabet(textX + 210, 248, key, false);
+				attach.isMenuItem = true;
+				attach.changeX = false;
+				attach.distancePerItem.y = 60;
+				attach.targetY = text.targetY;
+				attach.ID = Math.floor(grpBinds.length / 2);
+				attach.snapToPosition();
+				attach.y += FlxG.height * 2;
+				grpBinds.add(attach);
+
+				playstationCheck(attach);
+				attach.scaleX = Math.min(1, 230 / attach.width);
+				//attach.text = key;
+
+				// spawn black bars at the right of the key name
+				var black:AttachedSprite = new AttachedSprite();
+				black.makeGraphic(250, 78, FlxColor.BLACK);
+				black.alphaMult = 0.4;
+				black.sprTracker = text;
+				black.yAdd = -6;
+				black.xAdd = textX;
+				grpBlacks.add(black);
 			}
-			else
-			{
-				var savKey:Array<Null<FlxGamepadInputID>> = ClientPrefs.gamepadBinds.get(option[2]);
-				key = InputFormatter.getGamepadName((savKey[n] != null) ? savKey[n] : NONE);
-			}
-
-			var attach:Alphabet = new Alphabet(textX + 210, 248, key, false);
-			attach.isMenuItem = true;
-			attach.changeX = false;
-			attach.distancePerItem.y = 60;
-			attach.targetY = text.targetY;
-			attach.ID = Math.floor(grpBinds.length / 2);
-			attach.snapToPosition();
-			attach.y += FlxG.height * 2;
-			grpBinds.add(attach);
-
-			playstationCheck(attach);
-			attach.scaleX = Math.min(1, 230 / attach.width);
-			//attach.text = key;
-
-			// spawn black bars at the right of the key name
-			var black:AttachedSprite = new AttachedSprite();
-			black.makeGraphic(250, 78, FlxColor.BLACK);
-			black.alphaMult = 0.4;
-			black.sprTracker = text;
-			black.yAdd = -6;
-			black.xAdd = textX;
-			grpBlacks.add(black);
-		}
+		} 
+		catch(e)
+		{trace("Something Was Null! Skipping");}
 	}
 
 	function playstationCheck(alpha:Alphabet)
