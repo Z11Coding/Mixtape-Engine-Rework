@@ -646,6 +646,74 @@ class FreeplayState extends MusicBeatState
 	public static var gfVocals:FlxSound = null;
 	var holdTime:Float = 0;
 	var stopMusicPlay:Bool = false;
+
+	function forceUnlockCheck(songName:String, modName:String):Void {
+		var locationId = songName;
+		trace('Combo Required:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
+		trace('Accuracy Required:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
+		trace(modName);
+		if (modName.trim() != "") {
+			locationId += " (" + modName + ")";
+		}
+		trace(locationId.trim());
+		var locationIdInt = archipelago.APEntryState.apGame.info().get_location_id(locationId.trim());
+		trace('Location ID: ' + locationIdInt);
+	
+		if (locationIdInt == null || locationIdInt <= 0) {
+			for (song in WeekData.getCurrentWeek().songs) {
+				if ((cast song[0] : String).toLowerCase().trim() == songName.trim().toLowerCase() ||
+					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.trim().toLowerCase().replace(" ", "-")) {
+					locationIdInt = modName.trim() != ""
+						? archipelago.APEntryState.apGame.info().get_location_id(song[0] + " (" + modName + ")")
+						: archipelago.APEntryState.apGame.info().get_location_id(song[0]);
+					locationId = modName.trim() != ""
+						? song[0] + " (" + modName + ")"
+						: song[0];
+					break;
+				}
+			}
+		}
+	
+		if (locationIdInt <= 0 || locationIdInt == null) {
+			for (song in WeekData.getCurrentWeek().songs) {
+				var songPath = modName.trim() != ""
+					? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+					: "assets/shared" + (song[0] + Difficulty.getFilePath());
+				var songJson:SwagSong = null;
+				var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + modName + "/data", ".json");
+	
+				for (json in jsonStuff) {
+					if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
+						songJson = Song.parseJSON(File.getContent(json));
+						if (songJson != null) {
+							if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.trim().toLowerCase().replace(" ", "-")) {
+								locationIdInt = modName.trim() != ""
+									? archipelago.APEntryState.apGame.info().get_location_id(song[0] + " (" + modName + ")")
+									: archipelago.APEntryState.apGame.info().get_location_id(song[0]);
+								locationId = modName.trim() != "" ? song[0] + " (" + modName + ")" : song[0];
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
+		trace(APEntryState.apGame.info().get_location_name(locationIdInt));
+		trace(songName);
+		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Go check it out!", "archipelago", function() {
+			FlxG.sound.playMusic(Paths.sound('secret'));
+		});
+	
+		locationIdInt = APEntryState.apGame.info().get_location_id(locationId.trim());
+		if (locationIdInt != null && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-")) {
+			archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+				FlxG.sound.playMusic(Paths.sound('secret'));
+			});
+			APEntryState.apGame.info().set_goal();
+		}
+	}
+
 	override function update(elapsed:Float)
 	{
 		if (songs[curSelected] != null) 
