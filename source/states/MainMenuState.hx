@@ -46,8 +46,7 @@ class MainMenuState extends MusicBeatState
 		'story_mode',
 		'freeplay',
 		#if MODS_ALLOWED 'mods', #end
-		'credits',
-		'shop'
+		'credits'
 	];
 	public var iconBG:FlxSprite;
 	var leftItem:FlxSprite;
