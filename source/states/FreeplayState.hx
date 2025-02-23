@@ -773,11 +773,15 @@ class FreeplayState extends MusicBeatState
 		}
 
 		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode)  {
-			var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
-			var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
-			Song.loadFromJson(poop, songLowercase);
-			PlayState.isStoryMode = false;
-			PlayState.storyDifficulty = curDifficulty;
+			try {
+				var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
+				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
+				Song.loadFromJson(poop, songLowercase);
+				PlayState.isStoryMode = false;
+				PlayState.storyDifficulty = curDifficulty;
+			} catch (e:Dynamic) {
+				trace('Error loading song: ' + e);
+			}
 			forceUnlockCheck(songs[curSelected].songName, WeekData.getCurrentWeek().folder);
 		}
 
