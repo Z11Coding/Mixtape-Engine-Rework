@@ -8,6 +8,28 @@ class OtherSettingsSubState extends BaseOptionsMenu
 		title = 'Misc. Settings.';
 		rpcTitle = 'Misc. Settings'; // for Discord Rich Presence
 
+		var option:Option = new Option('Music Volume',
+			"The volume of the music.", 
+			'songVolume', 
+			'int'
+		);
+		option.displayFormat = '%v';
+		option.changeValue = 1;
+		option.minValue = 0;
+		option.maxValue = 100;
+		addOption(option);
+
+		var option:Option = new Option('SFX Volume',
+			"The volume of the sound effects.", 
+			'sfxVolume', 
+			'int'
+		);
+		option.displayFormat = '%v';
+		option.changeValue = 1;
+		option.minValue = 0;
+		option.maxValue = 100;
+		addOption(option);
+
 		var option:Option = new Option('Show Crash Dialogue',
 			"If checked, The game will show a dialogue when it crashes.", 'showCrash', 'bool');
 			addOption(option);

@@ -43,7 +43,7 @@ class EditorPlayState extends MusicBeatSubstate
 	public var modManager:ModManager;
 	public var playerField:PlayField;
 	public var dadField:PlayField;
-	public var notefields = new NotefieldManager();
+	public var notefields = new NotefieldRenderer();
 	public var playfields = new FlxTypedGroup<PlayField>();
 	public var allNotes:Array<Note> = []; // all notes
 

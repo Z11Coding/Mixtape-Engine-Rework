@@ -1,5 +1,8 @@
 package flixel;
 
+import shaders.NoteColorSwap;
+import backend.ClientPrefs;
+
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.DisplayObject;
@@ -168,6 +171,7 @@ class FlxCamera extends FlxBasic
 	 * make the camera look at specified point in world coordinates.
 	 */
 	public var scroll:FlxPoint = FlxPoint.get();
+	public var scrollZ:Float = 0; // for FlxSprite3D
 
 	/**
 	 * `scroll`, but without the offset
@@ -785,13 +789,13 @@ class FlxCamera extends FlxBasic
 		var currItem:FlxDrawBaseItem<Dynamic> = _headOfDrawStack;
 		while (currItem != null)
 		{
-			currItem.render(this);
+			currItem.renderCamera(this);
 			currItem = currItem.next;
 		}
 	}
 
 	public function drawPixels(?frame:FlxFrame, ?pixels:BitmapData, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?smoothing:Bool = false,
-			?shader:FlxShader):Void
+			?shader:FlxShader, ?colorSwap:NoteColorSwap):Void
 	{
 		if (FlxG.renderBlit)
 		{
@@ -823,7 +827,7 @@ class FlxCamera extends FlxBasic
 	}
 
 	public function copyPixels(?frame:FlxFrame, ?pixels:BitmapData, ?sourceRect:Rectangle, destPoint:Point, ?transform:ColorTransform, ?blend:BlendMode,
-			?smoothing:Bool = false, ?shader:FlxShader):Void
+			?smoothing:Bool = false, ?shader:FlxShader, ?colorSwap:NoteColorSwap):Void
 	{
 		if (FlxG.renderBlit)
 		{
@@ -867,7 +871,7 @@ class FlxCamera extends FlxBasic
 	}
 
 	public function drawTriangles(graphic:FlxGraphic, vertices:DrawData<Float>, indices:DrawData<Int>, uvtData:DrawData<Float>, ?colors:DrawData<Int>,
-			?position:FlxPoint, ?blend:BlendMode, repeat:Bool = false, smoothing:Bool = false, ?transform:ColorTransform, ?shader:FlxShader):Void
+			?position:FlxPoint, ?blend:BlendMode, repeat:Bool = false, smoothing:Bool = false, ?transform:ColorTransform, ?shader:FlxShader, ?colorSwap:NoteColorSwap):Void
 	{
 		if (FlxG.renderBlit)
 		{
@@ -1169,7 +1173,7 @@ class FlxCamera extends FlxBasic
 		updateFlash(elapsed);
 		updateFade(elapsed);
 
-		flashSprite.filters = filtersEnabled && ClientPrefs.data.shaders ? filters : null;
+		flashSprite.filters = (filtersEnabled && ClientPrefs.data.shaders) ? filters : null;
 
 		updateFlashSpritePosition();
 		updateShake(elapsed);
@@ -1903,6 +1907,18 @@ class FlxCamera extends FlxBasic
 	 */
 	public function onResize():Void
 	{
+		@:privateAccess{
+            if (flashSprite != null){
+                if (flashSprite.__cacheBitmapData != null)
+                {
+                    flashSprite.__cacheBitmapData.disposeImage();
+                    flashSprite.__cacheBitmapData.dispose();
+                }
+                flashSprite.__cacheBitmap = null;
+                flashSprite.__cacheBitmapData = null;
+            }
+        }
+		
 		updateFlashOffset();
 		setScale(scaleX, scaleY);
 	}

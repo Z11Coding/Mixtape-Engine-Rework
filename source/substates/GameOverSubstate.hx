@@ -68,6 +68,13 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		Conductor.songPosition = 0;
 
+		Cache.loadWithList([
+			{path: characterName, type: 'IMAGE'},
+			{path: deathSoundName, type: 'SOUND'},
+			{path: loopSoundName, type: 'MUSIC'},
+			{path: endSoundName, type: 'MUSIC'}
+		]);
+
 		if(boyfriend == null)
 		{
 			boyfriend = new Character(PlayState.instance.boyfriend.getScreenPosition().x, PlayState.instance.boyfriend.getScreenPosition().y, characterName, true);

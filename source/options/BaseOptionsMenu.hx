@@ -171,11 +171,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				MusicBeatState.switchState(new states.FirstCheckState());
 				ClientPrefs.saveSettings();
 			}
-            else if (title == 'Cache Settings.') {
-                ClientPrefs.saveSettings();
-                FlxG.sound.play(Paths.sound('cancelMenu'));
-                FlxG.switchState(new states.CacheState());
-            } else {
+            else {
                 close();
                 FlxG.sound.play(Paths.sound('cancelMenu'));
             }

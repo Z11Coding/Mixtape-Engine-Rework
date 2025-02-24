@@ -123,6 +123,12 @@ import states.FirstCheckState;
 	public var convertEK:Bool = true;
 	public var showKeybindsOnStart:Bool = true;
 	public var starHidden:Bool = false;
+	#if MULTICORE_LOADING
+	public var multicoreLoading:Bool = false;
+	#end
+	public var songVolume:Int = 1;
+	public var masterVolume:Int = 1;
+	public var sfxVolume:Int = 1;
 	public var gameplaySettings:Map<String, Dynamic> = [
 		'scrollspeed' => 1.0,
 		'scrolltype' => 'multiplicative', 

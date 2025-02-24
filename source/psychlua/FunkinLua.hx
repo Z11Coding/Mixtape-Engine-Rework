@@ -223,6 +223,8 @@ class FunkinLua {
 		// build target (windows, mac, linux, etc.)
 		set('buildTarget', LuaUtils.getBuildTarget());
 
+		set('modManager', PlayState.instance.modManager);
+
 		for (name => func in customFunctions)
 		{
 			if(func != null)
@@ -264,6 +266,16 @@ class FunkinLua {
 		});
 	
 		// mod manager
+		Lua_helper.add_callback(lua, "newPlayField", function()
+		{
+			PlayState.instance.newPlayfield();
+		});
+
+		Lua_helper.add_callback(lua, "initPlayfield", function(field:PlayField)
+		{
+			PlayState.instance.initPlayfield(field);
+		});
+		
 		Lua_helper.add_callback(lua, "setPercent", function(modName:String, val:Float, player:Int = -1)
 		{
 			PlayState.instance.modManager.setPercent(modName, val, player);

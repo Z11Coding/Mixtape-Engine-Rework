@@ -165,6 +165,106 @@ class Character extends FlxSprite
 		dance();
 	}
 
+	public static function parseIndices(indices:Array<Any>):Array<Int>
+	{
+		var parsed:Array<Int> = [];
+
+		for (expr in indices)
+		{
+			if (expr is Int)
+				parsed.push(expr);
+			else if (expr is String)
+			{
+				var expr:String = Std.string(expr);
+				var isRange:Bool = expr.contains("...");
+				var exprArgs:Array<String> = expr.split(isRange ? "..." : "*");
+
+				switch (exprArgs.length){
+					case 0: 
+						// Can't do anything lol
+					case 1:
+						parsed.push(Std.parseInt(exprArgs[0]));
+					default:
+						var exprA = Std.parseInt(exprArgs[0]);
+						var exprB = Std.parseInt(exprArgs[1]);
+						
+						if (isRange){
+							// starting from 'a' and ending on 'b'
+							for (frameN in exprA...(exprB + 1))
+								parsed.push(frameN);
+						}else{
+							// 'a' repeated 'b' times
+							for (_ in 0...(exprB + 1))
+								parsed.push(exprA);
+						}
+				}		
+			}
+		}
+
+		return parsed;
+	}
+
+	//Specifically for rhe Precache
+	public static function getCharacterFile(characterName:String):Null<CharacterFile>
+	{
+		var characterPath:String = 'characters/$characterName.json';
+
+		var path:String = Paths.getPath(characterPath, TEXT);
+		#if MODS_ALLOWED
+		if (!FileSystem.exists(path))
+		#else
+		if (!Assets.exists(path))
+		#end
+		{
+			path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+		}
+
+		var json:Null<Dynamic> = null;
+		try
+		{
+			#if MODS_ALLOWED
+			json = Json.parse(File.getContent(path));
+			#else
+			json = Json.parse(Assets.getText(path));
+			#end
+		}
+		catch(e:Dynamic)
+		{
+			trace('Error loading character file of "$characterPath": $e');
+		}
+
+		if (json == null){
+			trace('Could not find character "$characterName" JSON file');
+			return null;
+		}		
+
+		var json:CharacterFile = json;
+		
+		try{
+			for (anim in json.animations){
+				try{
+					if (anim.indices != null)
+						anim.indices = parseIndices(anim.indices);
+				}catch(e){
+					trace('$characterName: Error parsing anim indices for ${anim.name}');
+				}
+			}
+
+			if (json.healthbar_colors == null)
+				json.healthbar_colors = [192, 192, 192];
+			else if (json.healthbar_colors is String){
+				var color:Null<FlxColor> = FlxColor.fromString(cast json.healthbar_colors);
+				json.healthbar_colors = (color==null) ? null : [color.red, color.green, color.blue];
+			}
+
+			return json;
+		}catch(e){
+			trace('$characterName: Error loading character JSON file');
+		}
+
+		return null;
+	}
+
 	public function loadCharacterFile(json:Dynamic)
 	{
 		isAnimateAtlas = false;
@@ -408,6 +508,18 @@ class Character extends FlxSprite
 		}
 
 		return value;
+	}
+
+	public static function returnCharacterPreload(characterName:String):Array<cache.Cache.AssetPreload>{
+		var char = getCharacterFile(characterName);
+
+		if (char == null)
+			return [];
+
+		return [
+			{path: char.image}, // spritesheet
+			{path: 'icons/icon-${char.healthicon}'} // icon
+		];
 	}
 
 	public var danced:Bool = false;

@@ -128,7 +128,7 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
 						trace("Ew, no internet!");
-						FlxG.switchState(new states.CacheState());
+						FlxG.switchState(new states.SplashScreen());
 					});
 					return;
 				}
@@ -146,7 +146,7 @@ class FirstCheckState extends MusicBeatState
 						trace('versions arent matching!');
 						MusicBeatState.switchState(new states.OutdatedState());
 					}
-					else FlxG.switchState(new states.CacheState());
+					else FlxG.switchState(new states.SplashScreen());
 				}
 
 				http.onError = function(error)
@@ -158,7 +158,7 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
-						FlxG.switchState(new states.CacheState());
+						FlxG.switchState(new states.SplashScreen());
 					});
 				}
 
@@ -171,7 +171,7 @@ class FirstCheckState extends MusicBeatState
 		}
 		else
 		{
-			FlxG.switchState(new states.CacheState());
+			FlxG.switchState(new states.SplashScreen());
 		}
 	}
 }

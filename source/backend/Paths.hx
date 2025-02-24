@@ -83,6 +83,7 @@ class Paths
 
 	public static var dumpExclusions:Array<String> = ['assets/shared/music/panixpress.$SOUND_EXT'];
 	// haya I love you for the base cache dump I took to the max
+	/// haya I love you for the base cache dump I took to the max
 	public static function clearUnusedMemory()
 	{
 		// clear non local assets in the tracked assets list
@@ -91,13 +92,42 @@ class Paths
 			// if it is not currently contained within the used local assets
 			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
 			{
-				destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
-				currentTrackedAssets.remove(key); // and remove the key from local cache map
+				// get rid of it
+				var obj = currentTrackedAssets.get(key);
+				@:privateAccess
+				if (obj != null)
+				{
+					Assets.cache.image.remove(key);
+					FlxG.bitmap._cache.remove(key);
+					obj.destroy();
+					currentTrackedAssets.remove(key);
+
+					// trace('cleared $key');
+				}
 			}
 		}
-
 		// run the garbage collector for good measure lmfao
 		System.gc();
+	}
+
+	/** removeBitmap(FlxSprite.graphic.key); **/
+	public static function removeBitmap(key:String)
+	{
+		var obj = currentTrackedAssets.get(key);
+		if (obj != null) @:privateAccess {
+			localTrackedAssets.remove(key);
+
+			Assets.cache.image.remove(key);
+			FlxG.bitmap._cache.remove(key);
+			obj.destroy();
+			currentTrackedAssets.remove(key);
+			
+			//trace('removed $key');
+			//return true;
+		}
+
+		//trace('did not remove $key');
+		//return false;
 	}
 
 	// define the locally tracked assets
@@ -106,32 +136,27 @@ class Paths
 	public static function clearStoredMemory()
 	{
 		// clear anything not in the tracked assets list
-		for (key in FlxG.bitmap._cache.keys())
-		{
-			if (!currentTrackedAssets.exists(key))
-				destroyGraphic(FlxG.bitmap.get(key));
+		@:privateAccess
+		for (key => obj in FlxG.bitmap._cache) {
+			if (obj != null && !currentTrackedAssets.exists(key)) {
+				// trace('cleared $key');
+				Assets.cache.image.remove(key);
+				FlxG.bitmap._cache.remove(key);
+				obj.destroy();
+			}
 		}
 
 		// clear all sounds that are cached
-		for (key => asset in currentTrackedSounds)
-		{
-			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key) && asset != null)
-			{
-				Assets.cache.clear(key);
+		for (key => obj in currentTrackedSounds) {
+			if (obj != null && !localTrackedAssets.contains(key) && !dumpExclusions.contains(key)) {
+				Assets.cache.audio.remove(key);
 				currentTrackedSounds.remove(key);
 			}
 		}
-		// flags everything to be cleared out next unused memory clear
-		localTrackedAssets = [];
-		#if !html5 openfl.Assets.cache.clear("songs"); #end
-	}
 
-	inline static function destroyGraphic(graphic:FlxGraphic)
-	{
-		// free some gpu memory
-		//if (graphic != null && graphic.bitmap != null && graphic.bitmap.__texture != null)
-			//graphic.bitmap.__texture.dispose();
-		FlxG.bitmap.remove(graphic);
+		// flags everything to be cleared out next unused memory clear
+		localTrackedAssets.resize(0);
+		#if !html5 openfl.Assets.cache.clear("songs"); #end
 	}
 
 	static public var currentLevel:String;
@@ -374,55 +399,64 @@ class Paths
 		return toRet;
 	}
 
-	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
-	static public function image(key:String, ?library:String = null, ?allowGPU:Bool = false):FlxGraphic
+	public static function getGraphic(path:String, cache:Bool = true, gpu:Bool = false):Null<FlxGraphic>
 	{
-		if(ImageCache.exists(getPath('images/$key.png', IMAGE, library)) && !allowGPU){
-            trace(key + " is in the cache");
-            return ImageCache.get(getPath('images/$key.png', IMAGE, library));
-        }
-		else if(ImageCache.exists(modsImages(key)) && !allowGPU){
-            trace(key + " is in the cache");
-            return ImageCache.get(modsImages(key));
-        }
-        else{
-			//if (allowGPU) trace(key + " can't be loaded due to GPU Cache being on");
-			//else trace(key + " is NOT in the cache");
-		
-			var bitmap:BitmapData = null;
-			var file:String = null;
+		var newGraphic:FlxGraphic = cache ? currentTrackedAssets.get(path) : null;
+		if (newGraphic == null) {
+			var bitmap:BitmapData = getBitmapData(path);
+			if (bitmap == null) return null;
 
-			#if MODS_ALLOWED
-			file = modsImages(key);
-			if (currentTrackedAssets.exists(file))
-			{
-				localTrackedAssets.push(file);
-				return currentTrackedAssets.get(file);
-			}
-			else if (FileSystem.exists(file))
-				bitmap = BitmapData.fromFile(file);
-			else
-			#end
-			{
-				file = getPath('images/$key.png', IMAGE, library);
-				if (currentTrackedAssets.exists(file))
-				{
-					localTrackedAssets.push(file);
-					return currentTrackedAssets.get(file);
-				}
-				else if (OpenFlAssets.exists(file, IMAGE))
-					bitmap = OpenFlAssets.getBitmapData(file);
+			if (gpu) {
+				var texture = FlxG.stage.context3D.createRectangleTexture(bitmap.width, bitmap.height, BGRA, true);
+				texture.uploadFromBitmapData(bitmap);
+				bitmap.image.data = null;
+				bitmap.dispose();
+				bitmap = BitmapData.fromTexture(texture);
 			}
 
-			if (bitmap != null)
-			{
-				var retVal = cacheBitmap(file, bitmap, allowGPU);
-				if(retVal != null) return retVal;
-			}
+			newGraphic = FlxGraphic.fromBitmapData(bitmap, false, path, cache);
+			newGraphic.persist = true;
+			newGraphic.destroyOnNoUse = false;
 
-			trace('oh no its returning null NOOOO ($file)');
-			return null;
+			if (cache) {
+				localTrackedAssets.push(path);
+				currentTrackedAssets.set(path, newGraphic);
+			}
 		}
+
+		return newGraphic;
+	}
+
+	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
+
+	inline public static function cacheGraphic(path:String):Null<FlxGraphic>
+		return getGraphic(path, true);
+
+	inline public static function imagePath(key:String):String
+		return getPath('images/$key.$IMAGE_EXT');
+
+	inline public static function imageExists(key:String):Bool
+		return Paths.exists(imagePath(key));
+
+	inline static public function image(key:String, ?library:String, ?allowgpu:Bool):Null<FlxGraphic>
+		return returnGraphic(key, library);
+
+	public static function returnGraphic(key:String, ?library:String):Null<FlxGraphic>
+	{
+		var path:String = imagePath(key);
+
+		if (currentTrackedAssets.exists(path)) {
+			if (!localTrackedAssets.contains(path)) 
+				localTrackedAssets.push(path);
+
+			return currentTrackedAssets.get(path);
+		}
+
+		var graphic = getGraphic(path);
+		if (graphic==null)
+			trace('bitmap "$key" => "$path" returned null.');
+
+		return graphic;
 	}
 
 	public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData, ?allowGPU:Bool = true):FlxGraphic
@@ -512,6 +546,33 @@ class Paths
 		#else
 		return (OpenFlAssets.exists(path, TEXT)) ? Assets.getText(path) : null;
 		#end
+	}
+
+	public static function getBitmapData(path:String):Null<BitmapData> {
+		#if sys
+		if (FileSystem.exists(path))
+			return BitmapData.fromFile(path);
+		#end
+
+		#if MODS_ALLOWED
+		if (FileSystem.exists(path))
+			return BitmapData.fromFile(path);
+		else #end if (OpenFlAssets.exists(path, IMAGE))
+			return OpenFlAssets.getBitmapData(path);
+
+		return null;
+	}
+
+	inline public static function getSound(path:String):Null<Sound> {
+		#if sys
+		if (FileSystem.exists(path))
+			return Sound.fromFile(path);
+		#else
+		if(OpenFlAssets.exists(path, SOUND))
+			OpenFlAssets.getSound(path);
+		#end
+
+		return null;
 	}
 
 	inline static public function font(key:String)
@@ -667,6 +728,37 @@ class Paths
 		}
 		localTrackedAssets.push(file);
 		return currentTrackedSounds.get(file);
+	}
+
+	inline public static function soundPath(path:String, key:String, ?library:String)
+	{
+		return getPath('$path/$key.$SOUND_EXT');
+	}
+
+	public static function returnSoundCache(path:String, key:String, ?library:String)
+	{
+		var gottenPath:String = soundPath(path, key, library);
+	
+		if (currentTrackedSounds.exists(gottenPath)) {
+			if (!localTrackedAssets.contains(gottenPath))
+				localTrackedAssets.push(gottenPath);
+
+			return currentTrackedSounds.get(gottenPath);
+		}
+		
+		var sound = getSound(gottenPath);
+		if (sound != null) {
+			currentTrackedSounds.set(gottenPath, sound);
+	
+			if (!localTrackedAssets.contains(gottenPath))
+				localTrackedAssets.push(gottenPath);	
+			
+			return sound;
+		}
+		
+		trace('sound $path, $key => $gottenPath returned null');
+		
+		return null;
 	}
 
 	#if MODS_ALLOWED

@@ -253,7 +253,6 @@ class PlayState extends MusicBeatState
 
 	// Handles the new epic mega sexy cam code that i've done
 	public var camFollow:FlxObject;
-
 	private static var prevCamFollow:FlxObject;
 
 	public var strumLineNotes:FlxTypedGroup<StrumNote>;
@@ -505,7 +504,7 @@ class PlayState extends MusicBeatState
 	public var playerField:PlayField;
 	public var dadField:PlayField;
 
-	public var notefields = new NotefieldManager();
+	public var notefields = new NotefieldRenderer();
 	public var playfields = new FlxTypedGroup<PlayField>();
 	public var allNotes:Array<Note> = []; // all notes
 
@@ -612,6 +611,8 @@ class PlayState extends MusicBeatState
 	// Stores Ratings and Combo Sprites in a group
 	public var comboGroupOpp:FlxSpriteGroup;
 
+	// not Troll Engine making up like 15% if this engine lmao 
+	var shitToLoad:Array<AssetPreload> = [];
 	override public function create()
 	{
 		try
@@ -1005,6 +1006,89 @@ class PlayState extends MusicBeatState
 		girlfriendCameraOffset = stageData.camera_girlfriend;
 		if (girlfriendCameraOffset == null)
 			girlfriendCameraOffset = [0, 0];
+
+		cacheCountdown();
+		cachePopUpScore();
+		for (i in 1...4) // TODO: Be able to add more than 4 miss sounds
+			shitToLoad.push({path: 'missnote$i', type: 'SOUND'});
+
+		shitToLoad.push({path: "healthBar"});
+		shitToLoad.push({path: "timeBar"});
+		shitToLoad.push({path: "alphabet"});
+		shitToLoad.push({path: "normalNOTE"});
+		shitToLoad.push({path: "noteskins/normalNOTE"});
+		shitToLoad.push({path: "noteskins/NOTE"});
+
+		// Why do it in the loading screen when you can inconveniently put it in playstate?
+		try
+		{
+			var folder:String = Paths.formatToSongPath(Song.loadedSongName);
+			var path:String = Paths.json('$folder/preload');
+			var json:Dynamic = null;
+
+			#if MODS_ALLOWED
+			var moddyFile:String = Paths.modsJson('$folder/preload');
+			if (FileSystem.exists(moddyFile)) json = Json.parse(File.getContent(moddyFile));
+			else json = Json.parse(File.getContent(path));
+			#else
+			json = Json.parse(Assets.getText(path));
+			#end
+
+			if(json != null)
+			{
+				var imgs:Array<String> = [];
+				var snds:Array<String> = [];
+				var mscs:Array<String> = [];
+				for (asset in Reflect.fields(json))
+				{
+					var filters:Int = Reflect.field(json, asset);
+					var asset:String = asset.trim();
+
+					if(filters < 0 || StageData.validateVisibility(filters))
+					{
+						if(asset.startsWith('images/'))
+							imgs.push(asset.substr('images/'.length));
+						else if(asset.startsWith('sounds/'))
+							snds.push(asset.substr('sounds/'.length));
+						else if(asset.startsWith('music/'))
+							mscs.push(asset.substr('music/'.length));
+					}
+				}
+				for (i in imgs)
+					shitToLoad.push({
+						path: i
+					});
+				for (i in snds)
+					shitToLoad.push({
+						path: i,
+						type: 'SOUND'
+					});
+				for (i in mscs)
+					shitToLoad.push({
+						path: i,
+						type: 'MUSIC'
+					});
+			}
+		}
+		catch(e:Dynamic) {}
+
+		var characters:Array<String> = [SONG.player1, SONG.player2];
+		if (!stageData.hide_girlfriend)
+			characters.push(SONG.gfVersion);
+		if (SONG.player4 != null)
+			characters.push(SONG.player4);
+		if (SONG.player5 != null)
+			characters.push(SONG.player5);
+
+		for (character in characters) {
+			if (character != null) {
+				for (data in Character.returnCharacterPreload(character))
+					shitToLoad.push(data);
+			}
+		}
+
+		Cache.loadWithList(shitToLoad);
+		shitToLoad = [];
 
 		boyfriendGroup = new FlxSpriteGroup(BF_X, BF_Y);
 		boyfriendGroup2 = new FlxSpriteGroup(BF2_X, BF2_Y);
@@ -1460,7 +1544,7 @@ class PlayState extends MusicBeatState
 		}
 		add(camFollow);
 
-		FlxG.camera.follow(camFollow, LOCKON, 0);
+		FlxG.camera.follow(camFollow, LOCKON, 1);
 		FlxG.camera.zoom = defaultCamZoom;
 		FlxG.camera.snapToTarget();
 
@@ -1722,13 +1806,6 @@ class PlayState extends MusicBeatState
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 
-		// PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
-		if (ClientPrefs.data.hitsoundVolume > 0)
-			Paths.sound('hitsound');
-		for (i in 1...4)
-			Paths.sound('missnote$i');
-		Paths.image('alphabet');
-
 		if (PauseSubState.songName != null)
 			Paths.music(PauseSubState.songName);
 		else if (Paths.formatToSongPath(ClientPrefs.data.pauseMusic) != 'none')
@@ -1762,9 +1839,6 @@ class PlayState extends MusicBeatState
 		#end
 
 		super.create();
-
-		cacheCountdown();
-		cachePopUpScore();
 
 		add(blackOverlay);
 
@@ -1827,49 +1901,44 @@ class PlayState extends MusicBeatState
 
 		modManager = new ModManager(this);
 
+		//// Generate playfields so you can actually, well, play the game
+		#if ALLOW_DEPRECATION
 		callOnScripts("prePlayfieldCreation"); // backwards compat
+		// TODO: add deprecation messages to function callbacks somehow
+		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
-		playerField = new PlayField(modManager);
-		playerField.modNumber = 0;
-		playerField.characters = [];
-		playerField.noteField.isEditor = false;
-		for (n => ch in boyfriendMap)
-			playerField.characters.push(ch);
-		for (n => ch in boyfriendMap2)
-			playerField.characters.push(ch);
-
-		playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
-		playerField.autoPlayed = opponentmode || cpuControlled || playAsGF;
-		playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
-
-		dadField = new PlayField(modManager);
-		dadField.isPlayer = opponentmode && !playAsGF || bothMode;
-		dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || playAsGF) || (bothMode && cpuControlled);
-		dadField.AIPlayer = AIMode;
-		dadField.modNumber = 1;
-		dadField.characters = [];
-		dadField.noteField.isEditor = false;
-		for (n => ch in dadMap)
-			dadField.characters.push(ch);
-		for (n => ch in dadMap2)
-			dadField.characters.push(ch);
-		dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
-
-		playfields.add(dadField);
-		playfields.add(playerField);
-
-		initPlayfield(dadField);
-		initPlayfield(playerField);
-
 		if (!playAsGF)
 		{
-			playerField.cameras = [camHUD];
-			dadField.cameras = [camHUD];
-			playfields.cameras = [camHUD];
 			strumLineNotes.cameras = [camHUD];
+			playfields.cameras = [camHUD];
+		}
+		
+		modManager.playerAmount = 2;
+		for (i in 0...modManager.playerAmount)
+			newPlayfield();
+		
+		playerField = playfields.members[0];
+		if (playerField != null) {
+			playerField.noteField.isEditor = false;
+			playerField.characters = [for(ch in boyfriendMap) ch];
+			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
+			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || playAsGF;
+			playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
 		}
 
+		dadField = playfields.members[1];
+		if (dadField != null) {
+			dadField.noteField.isEditor = false;
+			dadField.characters = [for(ch in dadMap) ch];
+			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
+			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || playAsGF) || (bothMode && cpuControlled);
+			dadField.AIPlayer = AIMode;
+			dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
+		}
+		
+		#if ALLOW_DEPRECATION
 		callOnScripts("postPlayfieldCreation"); // backwards compat
+		#end
 		callOnScripts("onPlayfieldCreationPost");
 		return true;
 	}		
@@ -2673,12 +2742,12 @@ class PlayState extends MusicBeatState
 			introAlts = introAssets.get('pixel');
 
 		for (asset in introAlts)
-			Paths.image(asset);
+			shitToLoad.push({path: asset});
 
-		Paths.sound('intro3' + introSoundsSuffix);
-		Paths.sound('intro2' + introSoundsSuffix);
-		Paths.sound('intro1' + introSoundsSuffix);
-		Paths.sound('introGo' + introSoundsSuffix);
+		shitToLoad.push({path: 'intro3' + introSoundsSuffix, type: 'SOUND'});
+		shitToLoad.push({path: 'intro2' + introSoundsSuffix, type: 'SOUND'});
+		shitToLoad.push({path: 'intro1' + introSoundsSuffix, type: 'SOUND'});
+		shitToLoad.push({path: 'introGo' + introSoundsSuffix, type: 'SOUND'});
 	}
 
 	public function startCountdown()
@@ -5007,6 +5076,7 @@ if (result < 0 || result > mania) {
 	{
 		var field = new PlayField(modManager);
 		field.modNumber = playfields.members.length;
+		field.playerId = field.modNumber;
 		field.cameras = playfields.cameras;
 		initPlayfield(field);
 		playfields.add(field);
@@ -5054,6 +5124,14 @@ if (result < 0 || result > mania) {
 
 			callOnScripts('onSpawnNotePost', [dunceNote]);
 		});
+
+		field.holdDropped.add((daNote:Note, field:PlayField) -> {
+			if (!field.isPlayer)return;
+		});
+
+		field.holdFinished.add((daNote:Note, field:PlayField) -> {
+			if (!field.isPlayer)return;
+		}); 
 	}
 
 	// Updating Discord Rich Presence.
@@ -5177,7 +5255,7 @@ if (result < 0 || result > mania) {
 
 		if (!inCutscene && !paused && !freezeCamera)
 		{
-			FlxG.camera.followLerp = 2.4 * cameraSpeed * playbackRate;
+			FlxG.camera.followLerp = 0.1 * cameraSpeed * playbackRate;
 			if (!startingSong && !endingSong && boyfriend.getAnimationName().startsWith('idle'))
 			{
 				boyfriendIdleTime += elapsed;
@@ -8132,17 +8210,15 @@ if (result < 0 || result > mania) {
 				uiSkin = ClientPrefs.data.uiSkin;
 		}
 
-		Paths.image(getUiSkin(uiSkin, "marv", altPart));
-		Paths.image(getUiSkin(uiSkin, "sick", altPart));
-		Paths.image(getUiSkin(uiSkin, "good", altPart));
-		Paths.image(getUiSkin(uiSkin, "bad", altPart));
-		Paths.image(getUiSkin(uiSkin, "shit", altPart));
-		Paths.image(getUiSkin(uiSkin, "combo", altPart));
+		shitToLoad.push({path: getUiSkin(uiSkin, "marv", altPart)});
+		shitToLoad.push({path: getUiSkin(uiSkin, "sick", altPart)});
+		shitToLoad.push({path: getUiSkin(uiSkin, "good", altPart)});
+		shitToLoad.push({path: getUiSkin(uiSkin, "bad", altPart)});
+		shitToLoad.push({path: getUiSkin(uiSkin, "shit", altPart)});
+		shitToLoad.push({path: getUiSkin(uiSkin, "combo", altPart)});
 
 		for (i in 0...10)
-		{
-			getUiSkin(uiSkin, '', altPart, true, Std.int(i));
-		}
+			shitToLoad.push({path: getUiSkin(uiSkin, '', altPart, true, Std.int(i))});
 	}
 
 	private function popUpScore(note:Note = null):Void

@@ -40,6 +40,9 @@ class MusicBeatState extends FlxState
 	private var curDecStep:Float = 0;
 	private var curDecBeat:Float = 0;
 
+	public static var pubCurDecStep:Float = 0;
+	public static var pubCurDecBeat:Float = 0;
+
 	public var canBeScripted(get, default):Bool = false;
 	@:noCompletion function get_canBeScripted() return canBeScripted;
 
@@ -239,6 +242,7 @@ class MusicBeatState extends FlxState
 	{
 		curBeat = Math.floor(curStep / 4);
 		curDecBeat = curDecStep/4;
+		pubCurDecBeat = pubCurDecStep/4;
 	}
 
 	private function updateCurStep():Void
@@ -247,6 +251,7 @@ class MusicBeatState extends FlxState
 
 		var shit = ((Conductor.songPosition - ClientPrefs.data.noteOffset) - lastChange.songTime) / lastChange.stepCrochet;
 		curDecStep = lastChange.stepTime + shit;
+		pubCurDecStep = lastChange.stepTime + shit;
 		curStep = lastChange.stepTime + Math.floor(shit);
 	}
 

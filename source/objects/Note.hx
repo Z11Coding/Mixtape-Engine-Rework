@@ -73,10 +73,6 @@ typedef PreloadedChartNote = {
 
 class Note extends NoteObject
 {
-	public var vec3Cache:Vector3 = new Vector3(); // for vector3 operations in modchart code
-	public var mAngle:Float = 0;
-	public var bAngle:Float = 0;
-
 	public static var gfxLetter:Array<String> = [
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'
@@ -283,7 +279,6 @@ class Note extends NoteObject
 		'Both Alt Note'
 	];
 
-	public var extraData:Map<String, Dynamic> = new Map<String, Dynamic>();
 	public var noteDiff:Float = 1000;
 	
 	// basic stuff
@@ -361,7 +356,6 @@ class Note extends NoteObject
 	// do not tuch
 	public var baseScaleX:Float = 1;
 	public var baseScaleY:Float = 1;
-	public var zIndex:Float = 0;
 	public var z:Float = 0;
 	public var realColumn:Int;
 	@:isVar
@@ -378,6 +372,7 @@ class Note extends NoteObject
 
 
 	// mod manager
+	public var holdGlow:Bool = true; // Whether holds should "glow" / increase in alpha when held
 	public var garbage:Bool = false; // if this is true, the note will be removed in the next update cycle
 	public var alphaMod:Float = 1;
 	public var alphaMod2:Float = 1; // TODO: unhardcode this shit lmao
@@ -390,7 +385,6 @@ class Note extends NoteObject
 	public var requiresTap:Bool = true; 
 	public var tripProgress:Float = 0;
 	public var isHeld:Bool = false;
-	public var multAlpha:Float = 1;
 	/** The maximum amount of time you can release a hold before it counts as a miss**/
 	public var maxReleaseTime:Float = 0.25;
 
@@ -402,8 +396,20 @@ class Note extends NoteObject
 
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
-	public var copyAngle:Bool = true;
 	public var copyAlpha:Bool = true;
+	public var copyVerts:Bool = true;
+	#if PE_MOD_COMPATIBILITY
+	@:isVar
+	public var multAlpha(get, set):Float;
+	function get_multAlpha()return alphaMod;
+	function set_multAlpha(v:Float)return alphaMod = v;
+	
+	// Angle is controlled by verts in the modchart system
+
+	@:isVar public var copyAngle(get, set):Bool;
+	function get_copyAngle()return copyVerts;
+	function set_copyAngle(val:Bool)return copyVerts = val;
+	#end
 
 	public var rating:String = 'unknown';
 	public var ratingMod:Float = 0; //9 = unknown, 0.25 = shit, 0.5 = bad, 0.75 = good, 1 = sick

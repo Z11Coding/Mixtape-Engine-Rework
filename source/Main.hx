@@ -250,6 +250,9 @@ class Main extends Sprite
 
 		#if CRASH_HANDLER
 		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
+		#if cpp
+		untyped __global__.__hxcpp_set_critical_error_handler(onCrash);
+		#end
 		#end
 
 		#if DISCORD_ALLOWED
@@ -263,20 +266,8 @@ class Main extends Sprite
 		});
 
 		// shader coords fix
-		FlxG.signals.gameResized.add(function(w, h)
-		{
-			if (FlxG.cameras != null)
-			{
-				for (cam in FlxG.cameras.list)
-				{
-					if (cam != null && cam.filters != null)
-						resetSpriteCache(cam.flashSprite);
-				}
-			}
-
-			if (FlxG.game != null)
-				resetSpriteCache(FlxG.game);
-		});
+		FlxG.signals.gameResized.add((w, h) -> resetSpriteCaches());
+		FlxG.signals.focusGained.add(resetSpriteCaches);
 
 		#if android
 		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
@@ -287,6 +278,16 @@ class Main extends Sprite
 		backend.modules.EvacuateDebugPlugin.initialize();
 		backend.modules.ForceCrashPlugin.initialize();
 		backend.modules.MemoryGCPlugin.initialize();
+	}
+
+	// shader coords fix
+	function resetSpriteCaches() {
+		for (cam in FlxG.cameras.list) {
+			if (cam != null && cam.filters != null)
+				resetSpriteCache(cam.flashSprite);
+		}
+		if (FlxG.game != null)
+			resetSpriteCache(FlxG.game);
 	}
 
 	public static function dummy():Void
@@ -618,6 +619,7 @@ class Main extends Sprite
 
 	public static function simulateLargeJSONCache():Void
 	{
+		/*
 		var largeJSONCache = new haxe.ds.StringMap<Dynamic>();
 		for (i in 0...100000)
 		{ // Large number of JSON files
@@ -626,7 +628,7 @@ class Main extends Sprite
 		for (key in largeJSONCache.keys())
 		{
 			JSONCache.addToCache(largeJSONCache.get(key));
-		}
+		}*/
 	}
 }
 

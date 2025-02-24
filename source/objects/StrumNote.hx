@@ -12,9 +12,7 @@ class StrumNote extends NoteObject
 {
 
 	public var rgbShader:RGBShaderReference;
-	public var vec3Cache:Vector3 = new Vector3(); // for vector3 operations in modchart code
 
-	public var zIndex:Float = 0;
 	public var desiredZIndex:Float = 0;
 	public var z:Float = 0;
 	
@@ -24,7 +22,6 @@ class StrumNote extends NoteObject
 		super.destroy();
 	}	
 	public var isQuant:Bool = false;
-	private var colorSwap:ColorSwap;
 	public var resetAnim:Float = 0;
 	public var direction:Float = 90;
 	public var downScroll:Bool = false;

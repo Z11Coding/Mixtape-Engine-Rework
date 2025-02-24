@@ -95,7 +95,7 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.addons.transition.FlxTransitionableState;
 
 import objects.playfields.*;
-
+import cache.Cache;
 import shop.*;
 
 // Yuta's bull

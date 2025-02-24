@@ -1207,18 +1207,14 @@ class FreeplayState extends MusicBeatState
 					if (FlxG.keys.pressed.SHIFT){
 						TransitionState.transitionState(ChartingStateOG, {transitionType: "stickers"});
 					} else{
-						if (!CacheState.didPreCache)
+						if (!alreadyClicked)
 						{
-							if (!alreadyClicked)
-							{
-								LoadingState.loadNextDirectory();
-								alreadyClicked = true;
-								MusicBeatState.reopen = false; //Fix a sticker bug
-								TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
-								/*LoadingState.prepareToSong();
-								LoadingState.loadAndSwitchState(new states.PlayState());*/
-							}
-							else TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
+							LoadingState.loadNextDirectory();
+							alreadyClicked = true;
+							MusicBeatState.reopen = false; //Fix a sticker bug
+							TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
+							/*LoadingState.prepareToSong();
+							LoadingState.loadAndSwitchState(new states.PlayState());*/
 						}
 						else TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
 						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end

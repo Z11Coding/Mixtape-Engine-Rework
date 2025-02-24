@@ -1,6 +1,6 @@
 package flixel.graphics.tile;
 
-#if FLX_DRAW_QUADS
+import openfl.display.Sprite;
 import flixel.FlxCamera;
 import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.tile.FlxDrawBaseItem.FlxDrawItemType;
@@ -9,6 +9,8 @@ import flixel.system.FlxAssets.FlxShader;
 import openfl.Vector;
 import openfl.display.ShaderParameter;
 import openfl.geom.ColorTransform;
+
+import shaders.NoteColorSwap;
 
 class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 {
@@ -22,6 +24,11 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
 
+	var hsvShifts:Array<Float>;
+	var daAlphas:Array<Float>;
+	var flashes:Array<Float>;
+	var flashColors:Array<Float>;
+
 	public function new()
 	{
 		super();
@@ -29,6 +36,11 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		rects = new Vector<Float>();
 		transforms = new Vector<Float>();
 		alphas = [];
+
+		hsvShifts = [];
+		daAlphas = [];
+		flashes = [];
+		flashColors = [];
 	}
 
 	override public function reset():Void
@@ -37,6 +49,12 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		rects.length = 0;
 		transforms.length = 0;
 		alphas.splice(0, alphas.length);
+
+		hsvShifts.splice(0, hsvShifts.length);
+		daAlphas.splice(0, daAlphas.length);
+		flashes.splice(0, flashes.length);
+		flashColors.splice(0, flashColors.length);
+
 		if (colorMultipliers != null)
 			colorMultipliers.splice(0, colorMultipliers.length);
 		if (colorOffsets != null)
@@ -51,9 +69,14 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		alphas = null;
 		colorMultipliers = null;
 		colorOffsets = null;
+
+		hsvShifts = null;
+		daAlphas = null;
+		flashes = null;
+		flashColors = null;
 	}
 
-	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform):Void
+	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform, ?colorSwap:NoteColorSwap):Void
 	{
 		var rect = frame.frame;
 		rects.push(rect.x);
@@ -68,8 +91,28 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		transforms.push(matrix.tx);
 		transforms.push(matrix.ty);
 
+		var alphaMultiplier = transform != null ? transform.alphaMultiplier : 1.0;
 		for (i in 0...VERTICES_PER_QUAD)
-			alphas.push(transform != null ? transform.alphaMultiplier : 1.0);
+			alphas.push(alphaMultiplier);
+
+		if (colorSwap != null)
+		{
+			for (i in 0...VERTICES_PER_QUAD)
+			{
+				hsvShifts.push(colorSwap.hue);
+				hsvShifts.push(colorSwap.saturation);
+				hsvShifts.push(colorSwap.brightness);
+
+				daAlphas.push(colorSwap.daAlpha);
+
+				flashes.push(colorSwap.flash);
+
+				flashColors.push(colorSwap.flashR);
+				flashColors.push(colorSwap.flashG);
+				flashColors.push(colorSwap.flashB);
+				flashColors.push(colorSwap.flashA);
+			}
+		}
 
 		if (colored || hasColorOffsets)
 		{
@@ -110,7 +153,7 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	}
 
 	#if !flash
-	override public function render(camera:FlxCamera):Void
+	override public function render(sprite:Sprite, ?antialiasing:Bool = true, ?debugLayer:Sprite):Void
 	{
 		if (rects.length == 0)
 			return;
@@ -120,7 +163,7 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 			return;
 
 		shader.bitmap.input = graphics.bitmap;
-		shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
+		shader.bitmap.filter = (antialiasing || this.antialiasing) ? LINEAR : NEAREST;
 		shader.alpha.value = alphas;
 
 		if (colored || hasColorOffsets)
@@ -129,16 +172,25 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 			shader.colorOffset.value = colorOffsets;
 		}
 
+		if (shader is NoteColorSwapShader)
+		{
+			var swapShader:NoteColorSwapShader = cast shader;
+			swapShader.hsvShift.value = hsvShifts;
+			swapShader.daAlpha.value = daAlphas;
+			swapShader.flash.value = flashes;
+			swapShader.flashColor.value = flashColors;
+		}
+
 		setParameterValue(shader.hasTransform, true);
 		setParameterValue(shader.hasColorTransform, colored || hasColorOffsets);
 
 		#if (openfl > "8.7.0")
-		camera.canvas.graphics.overrideBlendMode(blend);
+		sprite.graphics.overrideBlendMode(blend);
 		#end
-		camera.canvas.graphics.beginShaderFill(shader);
-		camera.canvas.graphics.drawQuads(rects, null, transforms);
+		sprite.graphics.beginShaderFill(shader);
+		sprite.graphics.drawQuads(rects, null, transforms);
 
-		super.render(camera);
+		super.render(sprite, antialiasing, debugLayer);
 	}
 
 	inline function setParameterValue(parameter:ShaderParameter<Bool>, value:Bool):Void
@@ -149,4 +201,3 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	}
 	#end
 }
-#end

@@ -1,0 +1,12 @@
+backend/Paths.hx (line 145)
+states/CacheState.hx (line 159)
+flixel/FlxGame.hx (line 639)
+flixel/FlxGame.hx (line 726)
+flixel/FlxGame.hx (line 679)
+flixel/FlxGame.hx (line 558)
+
+Uncaught Error: Null Object Reference
+Please report this error to the GitHub page: https://github.com/Z11Coding/Mixtape-Engine
+
+> Crash Handler written by: sqirra-rng
+> Crash prevented!
