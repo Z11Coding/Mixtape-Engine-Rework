@@ -12,7 +12,7 @@ class APCategoryState extends states.CategoryState {
         menuItems = [];
         super(['All', /*'Hinted', 'Unlocked', For a later version*/ 'Unplayed', 'Options', 'Quit'], false, false, true, false, false);
         menuLocks = [false, false, false, false];
-        specialOptions = [null, null, null, null];
+        specialOptions = [null, null];
 
         var opFunc = function() {
             MusicBeatState.switchState(new options.OptionsState());

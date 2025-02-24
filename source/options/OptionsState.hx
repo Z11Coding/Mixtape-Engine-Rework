@@ -27,6 +27,8 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.GameplaySettingsSubState());
 			case 'Misc.':
 				openSubState(new options.OtherSettingsSubState());
+			case 'Archipelago':
+				openSubState(new options.ArchipelagoSettingsSubState());
 			case 'Adjust Delay and Combo':
 				LoadingState.loadAndSwitchState(new options.NoteOffsetState());
 			case 'Language':
@@ -43,6 +45,9 @@ class OptionsState extends MusicBeatState
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
 		#end
+
+		if (archipelago.APEntryState.inArchipelagoMode) options.push('Archipelago');
+
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
