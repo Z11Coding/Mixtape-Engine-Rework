@@ -1130,6 +1130,9 @@ class FreeplayState extends MusicBeatState
 						if (songLowercase == "song-not-found")
 						{
 							h = ChanceSelector.selectOption(hh, false, true, true);
+							if (APEntryState.inArchipelagoMode) {
+								h = "normal error";
+							}
 							switch (h)
 							{
 								case "small argument":

@@ -5506,7 +5506,7 @@ if (result < 0 || result > mania) {
 			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
 		}
 
-		if (controls.PAUSE && startedCountdown && canPause)
+		if (controls.PAUSE && startedCountdown && canPause && !endingSong)
 		{
 			var ret:Dynamic = callOnScripts('onPause', null, true);
 			if (ret != LuaUtils.Function_Stop)
