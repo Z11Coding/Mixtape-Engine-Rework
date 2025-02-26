@@ -1,4 +1,4 @@
-package states.stages;
+    package states.stages;
 
 import openfl.display.BlendMode;
 import shaders.AdjustColorShader;
@@ -67,7 +67,7 @@ class MainStageErect extends PicoCapableStage {
 			crowdPleaser = new Week1Gimmick();
 			crowdPleaser.cameras = [camHUD];
 			add(crowdPleaser);
-		}
+		
         
         switch(songName.toLowerCase().replace('-', ' '))
         {
@@ -79,20 +79,25 @@ class MainStageErect extends PicoCapableStage {
                 crowdPleaser.crowdAttentionLoss = 0.04;
         }
     }
+    }
 
     override function startSong()
+    if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
 		crowdPleaser.startGimmick();
 
     override function onEndSong() {
+        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
 		crowdPleaser.stopGimmick();
     }
 
 	override function goodNoteHit(note:Note, field:PlayField) {
+        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
 		crowdPleaser.crowdAppeasment += 1;
 		super.goodNoteHit(note, field);
 	}
 	
 	override function noteMiss(note:Note, field:PlayField) {
+        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
 		crowdPleaser.crowdAppeasment -= 5;
 		super.noteMiss(note, field);
     }
@@ -103,6 +108,7 @@ class MainStageErect extends PicoCapableStage {
 
     override function beatHit() {
         super.beatHit();
+        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
         crowdPleaser.doClap(curBeat);
     }
     

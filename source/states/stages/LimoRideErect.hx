@@ -160,12 +160,31 @@ class LimoRideErect extends BaseStage
 
 		// add(mist2);
 		// add(mist1);
-		if (ClientPrefs.data.shaders)
-		{
-			grpLimoDancers.forEach(s -> s.shader = colorShader);
-			gf.shader = colorShader;
-			dad.shader = colorShader;
-			boyfriend.shader = colorShader;
+		try {
+			if (ClientPrefs.data.shaders) {
+				try {
+					grpLimoDancers.forEach(s -> s.shader = colorShader);
+				} catch (e:Dynamic) {
+					trace("Error applying shader to limo dancers: " + e);
+				}
+				try {
+					gf.shader = colorShader;
+				} catch (e:Dynamic) {
+					trace("Error applying shader to gf: " + e);
+				}
+				try {
+					dad.shader = colorShader;
+				} catch (e:Dynamic) {
+					trace("Error applying shader to dad: " + e);
+				}
+				try {
+					boyfriend.shader = colorShader;
+				} catch (e:Dynamic) {
+					trace("Error applying shader to boyfriend: " + e);
+				}
+			}
+		} catch (e:Dynamic) {
+			trace("Error applying shaders: " + e);
 		}
 	}
 
