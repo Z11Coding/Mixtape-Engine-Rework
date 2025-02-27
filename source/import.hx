@@ -65,9 +65,7 @@ import flxanimate.PsychFlxAnimate as FlxAnimate;
 
 
 import shaders.ColorSwap;
-
 import backend.math.Vector3;
-
 import backend.util.MemoryUtil;
 import backend.Cursor;
 

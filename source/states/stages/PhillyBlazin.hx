@@ -112,7 +112,7 @@ class PhillyBlazin extends BaseStage
 	override function createPost()
 	{
 		try { FlxG.camera.focusOn(camFollow.getPosition()); }
-		catch(e) {trace("Camera was null! Ignoring Xam placement!");}
+		catch(e) {trace("Camera was null! Ignoring Cam placement!");}
 		FlxG.camera.fade(FlxColor.BLACK, 1.5, true, null, true);
 
 		for (character in boyfriendGroup.members)

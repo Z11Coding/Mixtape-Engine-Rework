@@ -277,17 +277,12 @@
 	<!-- Javascript breaks with inline for reasons unknown -->
 	<haxedef name="no-inline" if="html5"/>
 
-	<!-- NOTE TO SELF: DISABLE THIS IF ISSUES ARE FOUND -->
-	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB" if="LUA_ALLOWED" /> <!-- stable luas PUT AFTER FIRST LINE WITH APP NAME AND ETC -->
-	<define name="NO_PRECOMPILED_HEADERS" if="LUA_ALLOWED linux" />
-
 
 	<!-- _________________________________ Custom _______________________________ -->
 
 	<!--Place custom nodes like icons here (higher priority to override the HaxeFlixel icon)-->
 
 	<assets path='art/iconOG.png' rename='icon.png' if="linux" />
-	
 	<icon path="art/icon16.png" size='16'/>
 	<icon path="art/icon32.png" size='32'/>
 	<icon path="art/icon64.png" size='64'/>

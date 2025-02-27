@@ -339,7 +339,6 @@ class Main extends Sprite
 	}
 
 	public static var pressedOnce:Bool = false;
-
 	public static function handleStateBasedClosing()
 	{
 		if (!pressedOnce || WindowUtils.__triedClosing)
