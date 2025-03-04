@@ -292,7 +292,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return spawnedNotes.contains(note) || noteQueue[note.column]!=null && noteQueue[note.column].contains(note);
 	
 	// sends an input to the playfield
-	public function input(data:Int){
+	public function input(data:Int):Null<Note> {
 		if(data > keyCount || data < 0)return null;
 		
 		var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> note.requiresTap);
@@ -301,14 +301,22 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		#else
         noteList.sort((a, b) -> Std.int(b.strumTim - a.strumTime)); // so lowPriority actually works (even though i hate it lol!)
         #end
+		var recentHold:Null<Note> = null;
 		while (noteList.length > 0)
 		{
 			var note:Note = noteList.pop();
-            noteHitCallback(note, this);
-            return note;
+			if (note.wasGoodHit && note.holdType == HEAD && note.holdingTime < note.sustainLength)
+				recentHold = note; // for the sake of ghost-tapping shit.
+				// returned lower so that holds dont interrupt hitting other notes as, even though that'd make sense, it also feels like shit to play on some songs i.e Bopeebo
+			else {
+				if (note.wasGoodHit)
+					continue;	
+				noteHitCallback(note, this);
+				return note;
+			}
 		}
 
-		return null;
+		return recentHold;
 	}
 
 	// generates the receptors

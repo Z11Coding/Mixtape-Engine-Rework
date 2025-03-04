@@ -93,8 +93,7 @@ class StrumNote extends NoteObject
 		column = leData;
 		field = playField;
 		this.noteData = leData;
-		this.ID = noteData;
-		// trace(noteData);
+		this.ID = noteData; 
 
 		var skin:String = null;
 		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
@@ -105,7 +104,10 @@ class StrumNote extends NoteObject
 			var customSkin:String = skin + Note.getNoteSkinPostfix();
 			if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
 		}
-		else skin = 'noteskins/strums';
+		else {
+			var customSkin:String = 'NOTE_assets' + Note.getNoteSkinPostfix();
+			skin = 'noteskins/' + (PlayState.isPixelStage ? customSkin : 'strums');
+		}
 
 		texture = skin; //Load texture and anims
 		scrollFactor.set();
@@ -129,7 +131,7 @@ class StrumNote extends NoteObject
 		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[column];
 		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[column];
 		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[column]; //jic
-		var pxDV:Int = PlayState.mania != 17 ? Note.pixelNotesDivisionValue[0] : Note.pixelNotesDivisionValue[1];
+		var pxDV:Int = Note.pixelNotesDivisionValue[0];
 
 		if(PlayState.isPixelStage)
 		{
@@ -151,7 +153,6 @@ class StrumNote extends NoteObject
 		else
 		{
 			frames = Paths.getSparrowAtlas(texture);
-
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
 

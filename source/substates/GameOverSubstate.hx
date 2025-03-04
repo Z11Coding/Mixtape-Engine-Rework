@@ -11,6 +11,11 @@ import flixel.math.FlxPoint;
 import states.StoryMenuState;
 import states.FreeplayState;
 
+//It has its own folder cuz it was made for something much bigger. 
+//im just too lazy to move it.
+//-sans
+import undertale.UnderTextParser;
+
 class GameOverSubstate extends MusicBeatSubstate
 {
 	public var boyfriend:Character;

@@ -451,7 +451,6 @@ class Note extends NoteObject
 		}
 	}
 
-	var dontCopyScale:Bool = false;
 	private function set_texture(value:String):String {
 		if(texture != value) reloadNote(value);
 
@@ -557,7 +556,7 @@ class Note extends NoteObject
 
 		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
 		// MAKE SURE ITS DEFINITELY OFF SCREEN?
-		y -= 2000;
+		if (!isSustainNote) y -= 2000;
 		this.strumTime = strumTime;
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
@@ -613,8 +612,8 @@ class Note extends NoteObject
 
 			//offsetY += height / 2;
 
-			if (PlayState.isPixelStage)
-				offsetX += 30;
+			//if (PlayState.isPixelStage)
+				//offsetX += 30;
 
 			if (prevNote.isSustainNote)
 			{
@@ -634,7 +633,6 @@ class Note extends NoteObject
 					prevNote.scale.y *= (6 / height); //Auto adjust note size
 				}
 				prevNote.updateHitbox();
-				prevNote.defScale.copyFrom(prevNote.scale);
 
 				// offsetY += height / 2;
 				// prevNote.setGraphicSize();
@@ -652,7 +650,7 @@ class Note extends NoteObject
 			centerOffsets();
 			centerOrigin();
 		}
-		x += offsetX;
+		//x += offsetX;
 	}
 
 	public function hasAnimation(anim:String):Bool
@@ -698,7 +696,7 @@ class Note extends NoteObject
 		{
 			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
 			if (skin == null || skin.length < 1)
-				skin = "noteskins/NOTE_assets";
+				skin = "noteskins/NOTE_assets" + postfix;
 		}
 		else rgbShader.enabled = false;
 
@@ -738,21 +736,15 @@ class Note extends NoteObject
 				default:
 					if(isSustainNote) {
 						var graphic = Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix);
-						loadGraphic(graphic, true, Math.floor(graphic.width / 18), Math.floor(graphic.height / 2));
+						loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[0]), Math.floor(graphic.height / 2));
 						originalHeight = graphic.height / 2;
 					} else {
 						var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
-						loadGraphic(graphic, true, Math.floor(graphic.width / 18), Math.floor(graphic.height / 5));
+						loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[0]), Math.floor(graphic.height / 5));
 					}
 					setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
 					loadPixelNoteAnims();
 					antialiasing = false;
-
-					if(isSustainNote) {
-						offsetX += _lastNoteOffX;
-						_lastNoteOffX = (width - 7) * (PlayState.daPixelZoom / 2);
-						offsetX -= _lastNoteOffX;
-					}
 			}
 		} else {
 			switch (noteType)
@@ -770,8 +762,7 @@ class Note extends NoteObject
 				default:
 					frames = Paths.getSparrowAtlas(skin);
 					loadNoteAnims();
-					if(!isSustainNote)
-					{
+					if (!isSustainNote) {
 						centerOffsets();
 						centerOrigin();
 					}
@@ -784,7 +775,7 @@ class Note extends NoteObject
 		if (inEditor)
 			setGraphicSize(ChartingState.GRID_SIZE, ChartingState.GRID_SIZE);
 		
-		if (!dontCopyScale) defScale.copyFrom(scale);
+		defScale.copyFrom(scale);
 		updateHitbox();
 
 		if(animName != null)
@@ -814,21 +805,21 @@ class Note extends NoteObject
 			attemptToAddAnimationByPrefix(gfxLetter[column] + ' hold', colArray[Note.keysShit.get(mania).get('colArray')[column]] + ' hold piece');
 		}
 		
-		if (!isSustainNote)
-			setGraphicSize(Std.int(defaultWidth * scales[mania]));
+		if (isSustainNote)
+			setGraphicSize(Std.int(defaultWidth * scales[mania]), Std.int(defaultHeight * scales[mania] * 5));
 		else
-			setGraphicSize(Std.int(defaultWidth * scales[mania]), Std.int(defaultHeight * scales[0]));
+			setGraphicSize(Std.int(defaultWidth * scales[mania]));
 		updateHitbox();
 	}
 
 	function loadPixelNoteAnims() {
 		for (i in 0...gfxLetter.length)
 		{
-			animation.add(gfxLetter[i], [i + pixelNotesDivisionValue[1]]);
+			animation.add(gfxLetter[i], [i + pixelNotesDivisionValue[0]]);
 			if (isSustainNote)
 			{
 				animation.add(gfxLetter[i] + ' hold', [i]);
-				animation.add(gfxLetter[i] + ' tail', [i + pixelNotesDivisionValue[1]]);
+				animation.add(gfxLetter[i] + ' tail', [i + pixelNotesDivisionValue[0]]);
 			}
 		}
 	}

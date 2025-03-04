@@ -123,7 +123,7 @@ class ChartingStrumNote extends FlxSprite
 		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
 		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
 		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[noteData]; //jic
-		var pxDV:Int = PlayState.mania != 17 ? Note.pixelNotesDivisionValue[0] : Note.pixelNotesDivisionValue[1];
+		var pxDV:Int = Note.pixelNotesDivisionValue[0];
 
 		if(PlayState.isPixelStage)
 		{

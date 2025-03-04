@@ -1501,7 +1501,82 @@ class PlayState extends MusicBeatState
 
 	private var noteTypes:Array<String> = [];
 	private var eventsPushed:Array<String> = [];
-	private var totalColumns: Int = Note.ammo[mania];
+	private var totalColumns:Int = Note.ammo[mania];
+	var prevNoteData:Int = -1;
+	var initialNoteData:Int = -1;
+	var caseExecutionCount:Int = FlxG.random.int(-50, 50);
+	var currentModifier:Int = -1;
+	var stair:Int = 0;
+
+	public static function getNumberFromAnims(note:Int, mania:Int):Int {
+		var animMap:Map<String, Int> = new Map<String, Int>();
+		animMap.set("LEFT", 0);
+		animMap.set("DOWN", 1);
+		animMap.set("UP", 2);
+		animMap.set("RIGHT", 3);
+
+		var anims:Array<String> = Note.keysShit.get(mania).get("anims");
+		var animKeys:Array<String> = [
+			for (key in animMap.keys())
+				if (key == "LEFT") "RIGHT" else if (key == "RIGHT") "LEFT" else key
+		];
+
+		var result:Int;
+
+		if (mania > 3) {
+			var anim = animKeys[note];
+			var matchingIndices:Array<Int> = [];
+			if (note < animKeys.length) {
+				for (i in 0...anims.length) {
+					if (anims[i] == anim) {
+						matchingIndices.push(i);
+					}
+				}
+				if (matchingIndices.length > 0) {
+					var randomIndex = Std.int(Math.random() * matchingIndices.length);
+					result = matchingIndices[randomIndex];
+				} else {
+					var randomIndex = Std.int(Math.random() * mania);
+					result = randomIndex;
+				}
+			} else {
+				if (matchingIndices.length > 0) {
+					var randomIndex = Std.int(Math.random() * matchingIndices.length);
+					result = matchingIndices[randomIndex];
+				} else {
+					var randomIndex = Std.int(Math.random() * mania);
+					result = randomIndex;
+				}
+			}
+		} else { // mania == 3
+			var anim = anims[note];
+			if (note < anims.length) {
+				if (animMap.exists(anim)) {
+					result = animMap.get(anim);
+				} else {
+					throw 'No matching animation found';
+				}
+			} else {
+				result = animMap.get(anim);
+			}
+		}
+
+		// Ensure result is within bounds
+		if (result < 0 || result > mania) {
+			trace("OOB NOtE: " + note + " MANIA: " + mania + " RESULT: " + result);
+			var foundValidAnimation = false;
+			while (!foundValidAnimation) {
+				var randomIndex = Std.int(Math.random() * anims.length);
+				var randomAnim = anims[randomIndex];
+				if (animMap.exists(randomAnim)) {
+					result = animMap.get(randomAnim);
+					foundValidAnimation = true;
+				}
+			}
+		}
+
+		return result;
+	}
 
 	private function generateSong():Void
 	{
@@ -1610,10 +1685,10 @@ class PlayState extends MusicBeatState
 				swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
 				swagNote.animSuffix = isAlt ? "-alt" : "";
 				swagNote.mustPress = gottaHitNote;
-				swagNote.sustainLength = holdLength;
+				swagNote.sustainLength = songNotes[2];
 				swagNote.noteType = noteType;
 				swagNote.ID = allNotes.length;
-				swagNote.holdType = holdLength > 0 ? HEAD : TAP;
+				swagNote.holdType = songNotes[2] > 0 ? HEAD : TAP;
 	
 				////
 
@@ -1634,7 +1709,7 @@ class PlayState extends MusicBeatState
 					swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
 
 				var playfield:PlayField = playfields.members[swagNote.fieldIndex];
-				notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
+				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
 
 				if (playfield != null)
 				{
@@ -1658,27 +1733,93 @@ class PlayState extends MusicBeatState
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = swagNote.noteType;
 					sustainNote.scrollFactor.set();
-					swagNote.tail.push(sustainNote);
-					swagNote.unhitTail.push(sustainNote);
 					sustainNote.parent = swagNote;
 					sustainNote.fieldIndex = swagNote.fieldIndex;
 					sustainNote.field = swagNote.field;
 					sustainNote.ID = allNotes.length;
 					sustainNote.holdType = susPart;
-
+					swagNote.tail.push(sustainNote);
+					swagNote.unhitTail.push(sustainNote);
 					playfield.queue(sustainNote);
 					allNotes.push(sustainNote);
-					notes.insert(sustainNote.ID, sustainNote);
+					
+					sustainNote.correctionOffset = swagNote.height / 2;
+					if(!PlayState.isPixelStage)
+					{
+						if(oldNote.isSustainNote)
+						{
+							oldNote.scale.y *= Note.SUSTAIN_SIZE / oldNote.frameHeight;
+							oldNote.scale.y /= playbackRate;
+							oldNote.resizeByRatio(curStepCrochet / Conductor.stepCrochet);
+						}
+
+						if(ClientPrefs.data.downScroll)
+							sustainNote.correctionOffset = 0;
+					}
+					else if(oldNote.isSustainNote)
+					{
+						oldNote.scale.y /= playbackRate;
+						oldNote.resizeByRatio(curStepCrochet / Conductor.stepCrochet);
+					}
+
+					if (sustainNote.mustPress) sustainNote.x += FlxG.width / 2; // general offset
+					else if(ClientPrefs.data.middleScroll)
+					{
+						sustainNote.x += 310;
+						if(noteColumn > 1) //Up and Right
+							sustainNote.x += FlxG.width / 2 + 25;
+					}
+					//notes.insert(sustainNote.ID, sustainNote);
 					callOnScripts("onGeneratedSustainNote", [sustainNote, section]);
 
 					oldNote = swagNote;
 				}
 
-				if(roundSus > 0) {
+				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
+				final roundSus:Int = Math.round(swagNote.sustainLength / curStepCrochet);
+				if (roundSus > 0)
+				{
+					if (ClientPrefs.data.inputSystem == 'Kade Engine')
+						swagNote.isParent = true;
+					for (susNote in 0...roundSus)
+					{
+						oldNote = allNotes[Std.int(allNotes.length - 1)];
+
+						var sustainNote:Note = new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
+						sustainNote.mustPress = gottaHitNote;
+						sustainNote.gfNote = swagNote.gfNote;
+						sustainNote.exNote = swagNote.exNote;
+						sustainNote.animSuffix = swagNote.animSuffix;
+						sustainNote.noteType = swagNote.noteType;
+						sustainNote.noteIndex = swagNote.noteIndex;
+						if (chartModifier == 'Amalgam' && currentModifier == 11)
+						{
+							sustainNote.multSpeed = swagNote.multSpeed;
+						}
+						if (sustainNote == null || !sustainNote.alive)
+							break;
+						sustainNote.ID = allNotes.length;
+						sustainNote.scrollFactor.set();
+						swagNote.tail.push(sustainNote);
+						swagNote.unhitTail.push(sustainNote);
+						sustainNote.parent = swagNote;
+						// allNotes.push(sustainNote);
+						sustainNote.fieldIndex = swagNote.fieldIndex;
+						playfield.queue(sustainNote);
+						allNotes.push(sustainNote);
+
+						if (sustainNote.mustPress)
+						{
+							sustainNote.x += FlxG.width * 0.5; // general offset
+						}
+					}
+				}
+
+				/*if(roundSus > 0) {
 					for (susNote in 0...roundSus)
 						makeSustain(susNote, PART);
 					makeSustain(roundSus, END);
-				}
+				}*/
 
 				if(!noteTypes.contains(swagNote.noteType))
 					noteTypes.push(swagNote.noteType);
