@@ -12,6 +12,7 @@ import flixel.util.FlxColor;
 import backend.Song;
 import flixel.addons.transition.FlxTransitionableState;
 import archipelago.APEntryState;
+import backend.WeekData;
 
 class RankingSubstate extends MusicBeatSubstate
 {
@@ -265,23 +266,22 @@ class RankingSubstate extends MusicBeatSubstate
 
 	function generateRanking():String
 	{
-		if (PlayState.instance.songMisses == 0 && PlayState.bads == 0 && PlayState.shits == 0 && PlayState.goods == 0 && PlayState.sicks == 0 && ClientPrefs.data.useMarvs) // Marvelous Full Combo
+		if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits == 0 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits == 0 && PlayState.instance.ratingsData[0].hits == 0 && ClientPrefs.data.useMarvs) // Marvelous Full Combo
 			{ comboRank = "MFC"; comboRankLimit = 1; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.bads == 0 && PlayState.shits == 0 && PlayState.goods == 0) // Sick Full Combo
+		else if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits == 0 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits == 0) // Sick Full Combo
 			{ comboRank = "SFC"; comboRankLimit = 2; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.bads == 0 && PlayState.shits == 0 && PlayState.goods >= 1) // Good Full Combo (Nothing but Goods & Sicks)
+		else if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits == 0 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits >= 1) // Good Full Combo (Nothing but Goods & Sicks)
 			{ comboRank = "GFC"; comboRankLimit = 3; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.bads >= 1 && PlayState.shits == 0 && PlayState.goods >= 0) // Alright Full Combo (Bads, Goods and Sicks)
+		else if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits >= 1 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits >= 0) // Alright Full Combo (Bads, Goods and Sicks)
 			{ comboRank = "AFC"; comboRankLimit = 4; }
 		else if (PlayState.instance.songMisses == 0) // Regular FC
 			{ comboRank = "FC"; comboRankLimit = 5; }
 		else if (PlayState.instance.songMisses < 10) // Single Digit Combo Breaks
 			{ comboRank = "SDCB"; comboRankLimit = 6; }
 
-		var acc = backend.Highscore.floorDecimal(PlayState.instance.ratingPercent * 100, 2);
+		var acc = CoolUtil.floorDecimal(PlayState.instance.ratingPercent * 100, 2);
 
 		// WIFE TIME :)))) (based on Wife3)
-
 		var wifeConditions:Array<Bool> = [
 			acc >= 99.9935, // P
 			acc >= 99.980, // X

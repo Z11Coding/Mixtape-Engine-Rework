@@ -8,7 +8,7 @@ import archipelago.Client;
 import archipelago.PacketTypes;
 import archipelago.APDisconnectSubstate;
 import archipelago.APCategoryState;
-
+import backend.WeekData;
 import haxe.ds.Option;
 
 // Enums

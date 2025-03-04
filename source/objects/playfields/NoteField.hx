@@ -38,7 +38,7 @@ class NoteField extends FieldBase
 	]);
 	var HOLD_INDICES:Vector<Int> = new Vector<Int>(0, false);
 
-	public var tryForceHoldsBehind:Bool = true; // Field tries to push holds behind receptors and notes
+	public var tryForceHoldsBehind:Bool = false; // Field tries to push holds behind receptors and notes
 
 	public var holdSubdivisions(default, set):Int;
 	public var optimizeHolds = false; //ClientPrefs.data.optimizeHolds;
@@ -128,6 +128,7 @@ class NoteField extends FieldBase
 		var drawMod = modManager.get("drawDistance");
 		var drawDist = drawMod == null ? FlxG.height : drawMod.getValue(modNumber);
 		var multAllowed = modManager.get("disableDrawDistMult");
+		var alwaysDraw = modManager.get("alwaysDraw").getValue(modNumber) != 0; // Forces notes to draw, no matter the draw distance
 		if (multAllowed == null || multAllowed.getValue(modNumber) == 0)
 			drawDist *= drawDistMod;
 		var lookAheadTime = modManager.getValue("lookAheadTime", modNumber);
@@ -377,9 +378,7 @@ class NoteField extends FieldBase
 		
 		var strumDiff = (Conductor.songPosition - hold.strumTime);
 		var visualDiff = (Conductor.visualPosition - hold.visualTime); // TODO: get the start and end visualDiff and interpolate so that changing speeds mid-hold will look better
-		var sv;
-		if (isEditor) sv = states.editors.EditorPlayState.instance.getSV(hold.strumTime).speed / 2;
-		else sv = PlayState.instance.getSV(hold.strumTime).speed;
+		var sv = PlayState.instance.getSV(hold.strumTime).speed;
 
 
 /* 		var basePos = simpleDraw ? hold.vec3Cache : modManager.getPos(visualDiff, strumDiff, curDecBeat, hold.column, modNumber, hold, this,
@@ -574,177 +573,183 @@ class NoteField extends FieldBase
 	private var quad3 = new Vector3(); // bottom right
 	function drawNote(sprite:NoteObject, pos:Vector3, ?nextPos:Vector3):Null<RenderObject>
 	{
-		if (!sprite.visible || !sprite.alive)
-			return null;
+		try {
+			if (!sprite.visible || !sprite.alive)
+				return null;
 
-		if (sprite.frame == null)
-			return null;
-		
+			if (sprite.frame == null)
+				return null;
+			
 
-		var render = false;
-		for (camera in cameras)
-		{
-			if (camera.alpha > 0 && camera.visible)
+			var render = false;
+			for (camera in cameras)
 			{
-				render = true;
-				break;
+				if (camera.alpha > 0 && camera.visible)
+				{
+					render = true;
+					break;
+				}
 			}
-		}
-		if (!render)
-			return null;
+			if (!render)
+				return null;
 
-		var isNote = (sprite.objType == NOTE);
-		var note:Note = isNote ? cast sprite : null;
+			var isNote = (sprite.objType == NOTE);
+			var note:Note = isNote ? cast sprite : null;
 
-		var width = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.height * sprite.scale.x : sprite.frame.frame.width * sprite.scale.x;
-		var height = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.width * sprite.scale.y : sprite.frame.frame.height * sprite.scale.y;
-		scalePoint.set(1, 1);
-		var diff:Float =0;
-		var visPos:Float = 0;
-		if(isNote) {
-			var speed = modManager.getNoteSpeed(note, modNumber, songSpeed);
-			diff = Conductor.songPosition - note.strumTime;
-			visPos = -((Conductor.visualPosition - note.visualTime) * speed);
-		}
+			var width = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.height * sprite.scale.x : sprite.frame.frame.width * sprite.scale.x;
+			var height = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.width * sprite.scale.y : sprite.frame.frame.height * sprite.scale.y;
+			scalePoint.set(1, 1);
+			var diff:Float =0;
+			var visPos:Float = 0;
+			if(isNote) {
+				var speed = modManager.getNoteSpeed(note, modNumber, songSpeed);
+				diff = Conductor.songPosition - note.strumTime;
+				visPos = -((Conductor.visualPosition - note.visualTime) * speed);
+			}
 
-		var info:RenderInfo = {
-			alpha: sprite.alpha,
-			glow: 0,
-			scale: scalePoint
-		};
-
-		if(!isNote || note.copyAlpha)
-			info = modManager.getExtraInfo(visPos, diff, curDecBeat, info, sprite, modNumber, sprite.column);
-
-		var alpha = info.alpha;
-		var glow = info.glow;
-
-		final QUAD_SIZE = 4;
-		final halfWidth = sprite.frameWidth * sprite.scale.x * 0.5;
-		final halfHeight = sprite.frameHeight * sprite.scale.y * 0.5;
-		final xOff = sprite.frame.offset.x * sprite.scale.x;
-		final yOff = sprite.frame.offset.y * sprite.scale.y;
-		// If someone can make frameX/frameY be taken into account properly then feel free lol ^^
-
-		quad0.setTo(xOff - halfWidth, 			yOff - halfHeight, 			0); // top left
-		quad1.setTo(width + xOff - halfWidth, 	yOff - halfHeight, 			0); // top right
-		quad2.setTo(xOff - halfWidth, 			height + yOff - halfHeight,	0); // bottom left
-		quad3.setTo(width + xOff - halfWidth, 	height + yOff - halfHeight,	0); // bottom right
-
-		for (idx in 0...QUAD_SIZE)
-		{
-			var quad = switch(idx) {
-				case 0: quad0;
-				case 1: quad1;
-				case 2: quad2;
-				case 3: quad3;
-				default: null;
+			var info:RenderInfo = {
+				alpha: sprite.alpha,
+				glow: 0,
+				scale: scalePoint
 			};
-			var angle = sprite.angle;
-			var radAngles:Float = 0;
 
-			if (nextPos != null){
-				var diffX = nextPos.x - pos.x;
-				var diffY = nextPos.y - pos.y;
-				var orient = modManager.getValue("orient", modNumber);
+			if(!isNote || note.copyAlpha)
+				info = modManager.getExtraInfo(visPos, diff, curDecBeat, info, sprite, modNumber, sprite.column);
 
-				radAngles += Math.atan2(diffY, diffX) * orient;
-				var reverse:ReverseModifier = cast modManager.register.get("reverse");
-				angle -= 90 * orient * FlxMath.lerp(1, -1, reverse.getReverseValue(sprite.column, modNumber));
-			}
+			var alpha = info.alpha;
+			var glow = info.glow;
 
-			if(isNote)
-				angle += note.typeOffsetAngle;
-			
-			var vert = VectorHelpers.rotateV3(quad, 0, 0, (FlxAngle.TO_RAD * angle) + radAngles, quad);
-			vert.x = vert.x + sprite.offsetX;
-			vert.y = vert.y + sprite.offsetY;
+			final QUAD_SIZE = 4;
+			final halfWidth = sprite.frameWidth * sprite.scale.x * 0.5;
+			final halfHeight = sprite.frameHeight * sprite.scale.y * 0.5;
+			final xOff = sprite.frame.offset.x * sprite.scale.x;
+			final yOff = sprite.frame.offset.y * sprite.scale.y;
+			// If someone can make frameX/frameY be taken into account properly then feel free lol ^^
 
-			if (isNote)
+			quad0.setTo(xOff - halfWidth, 			yOff - halfHeight, 			0); // top left
+			quad1.setTo(width + xOff - halfWidth, 	yOff - halfHeight, 			0); // top right
+			quad2.setTo(xOff - halfWidth, 			height + yOff - halfHeight,	0); // bottom left
+			quad3.setTo(width + xOff - halfWidth, 	height + yOff - halfHeight,	0); // bottom right
+
+			for (idx in 0...QUAD_SIZE)
 			{
-				vert.x = vert.x + note.typeOffsetX;
-				vert.y = vert.y + note.typeOffsetY;
+				var quad = switch(idx) {
+					case 0: quad0;
+					case 1: quad1;
+					case 2: quad2;
+					case 3: quad3;
+					default: null;
+				};
+				var angle = sprite.angle;
+				var radAngles:Float = 0;
+
+				if (nextPos != null){
+					var diffX = nextPos.x - pos.x;
+					var diffY = nextPos.y - pos.y;
+					var orient = modManager.getValue("orient", modNumber);
+
+					radAngles += Math.atan2(diffY, diffX) * orient;
+					var reverse:ReverseModifier = cast modManager.register.get("reverse");
+					angle -= 90 * orient * FlxMath.lerp(1, -1, reverse.getReverseValue(sprite.column, modNumber));
+				}
+
+				if(isNote)
+					angle += note.typeOffsetAngle;
+				
+				var vert = VectorHelpers.rotateV3(quad, 0, 0, (FlxAngle.TO_RAD * angle) + radAngles, quad);
+				vert.x = vert.x + sprite.offsetX;
+				vert.y = vert.y + sprite.offsetY;
+
+				if (isNote)
+				{
+					vert.x = vert.x + note.typeOffsetX;
+					vert.y = vert.y + note.typeOffsetY;
+				}
+
+				if (isNote && !note.copyVerts){
+					// still should have perspective, even if not copying verts!
+					// Maybe we should move perspective stuff out of a modifier???
+					var mod:Modifier = modManager.register.get("__perspective");
+					if (mod != null && mod.isRenderMod())
+						vert = mod.modifyVert(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
+				}else
+					vert = modManager.modifyVertex(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
+
+				vert.x = vert.x * scalePoint.x;
+				vert.y = vert.y * scalePoint.y;
+
+	/* 			vert.x *= zoom;
+				vert.y *= zoom; */
+				if (sprite.flipX)
+					vert.x = -vert.x;
+				if (sprite.flipY)
+					vert.y = -vert.x;
+				
+				//quad.setTo(vert.x, vert.y, vert.z);
 			}
 
-			if (isNote && !note.copyVerts){
-				// still should have perspective, even if not copying verts!
-				// Maybe we should move perspective stuff out of a modifier???
-				var mod:Modifier = modManager.register.get("__perspective");
-				if (mod != null && mod.isRenderMod())
-					vert = mod.modifyVert(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
-			}else
-				vert = modManager.modifyVertex(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
+			var frameRect = sprite.frame.uv;
 
-			vert.x = vert.x * scalePoint.x;
-			vert.y = vert.y * scalePoint.y;
+			var vertices = switch (sprite.frame.angle) {
+				case ANGLE_0:
+					new Vector<Float>(8, false, [
+						pos.x + quad0.x, pos.y + quad0.y,
+						pos.x + quad1.x, pos.y + quad1.y,
+						pos.x + quad2.x, pos.y + quad2.y,
+						pos.x + quad3.x, pos.y + quad3.y
+					]);
+				case ANGLE_90:
+					new Vector<Float>(8, false, [
+						pos.x + quad1.x, pos.y + quad1.y,
+						pos.x + quad3.x, pos.y + quad3.y,
+						pos.x + quad0.x, pos.y + quad0.y,
+						pos.x + quad2.x, pos.y + quad2.y
+					]);
+				case ANGLE_270:
+					new Vector<Float>(8, false, [
+						pos.x + quad2.x, pos.y + quad2.y,
+						pos.x + quad0.x, pos.y + quad0.y,
+						pos.x + quad3.x, pos.y + quad3.y,
+						pos.x + quad1.x, pos.y + quad1.y
+					]);
+			}
+			var uvData = new Vector<Float>(8, false, [
+				frameRect.x,		frameRect.y,
+				frameRect.width,	frameRect.y,
+				frameRect.x,		frameRect.height,
+				frameRect.width,	frameRect.height
+			]);
+			var shader = sprite.shader != null ? sprite.shader : defaultShader;
+			if (shader != sprite.shader)
+				sprite.shader = shader;
 
-/* 			vert.x *= zoom;
-			vert.y *= zoom; */
-			if (sprite.flipX)
-				vert.x = -vert.x;
-			if (sprite.flipY)
-				vert.y = -vert.x;
-			
-			//quad.setTo(vert.x, vert.y, vert.z);
+			var graphic:FlxGraphic = sprite.frame == null ? sprite.graphic : sprite.frame.parent;
+
+			final totalTriangles = Std.int(vertices.length / 2);
+			var alphas = new FastVector<Float>(totalTriangles);
+			var glows = new FastVector<Float>(totalTriangles);
+			for (i in 0...totalTriangles)
+			{
+				alphas[i] = alpha;
+				glows[i] = glow;
+			}
+
+			return {
+				graphic: graphic,
+				shader: shader,
+				alphas: cast alphas,
+				glows: cast glows,
+				uvData: uvData,
+				vertices: vertices,
+				indices: NOTE_INDICES,
+				zIndex: pos.z + sprite.zIndex,
+				colorSwap: sprite.colorSwap,
+				antialiasing: sprite.antialiasing
+			}
 		}
-
-		var frameRect = sprite.frame.uv;
-
-		var vertices = switch (sprite.frame.angle) {
-			case ANGLE_0:
-				new Vector<Float>(8, false, [
-					pos.x + quad0.x, pos.y + quad0.y,
-					pos.x + quad1.x, pos.y + quad1.y,
-					pos.x + quad2.x, pos.y + quad2.y,
-					pos.x + quad3.x, pos.y + quad3.y
-				]);
-			case ANGLE_90:
-				new Vector<Float>(8, false, [
-					pos.x + quad1.x, pos.y + quad1.y,
-					pos.x + quad3.x, pos.y + quad3.y,
-					pos.x + quad0.x, pos.y + quad0.y,
-					pos.x + quad2.x, pos.y + quad2.y
-				]);
-			case ANGLE_270:
-				new Vector<Float>(8, false, [
-					pos.x + quad2.x, pos.y + quad2.y,
-					pos.x + quad0.x, pos.y + quad0.y,
-					pos.x + quad3.x, pos.y + quad3.y,
-					pos.x + quad1.x, pos.y + quad1.y
-				]);
-		}
-		var uvData = new Vector<Float>(8, false, [
-			frameRect.x,		frameRect.y,
-			frameRect.width,	frameRect.y,
-			frameRect.x,		frameRect.height,
-			frameRect.width,	frameRect.height
-		]);
-		var shader = sprite.shader != null ? sprite.shader : defaultShader;
-		if (shader != sprite.shader)
-			sprite.shader = shader;
-
-		var graphic:FlxGraphic = sprite.frame == null ? sprite.graphic : sprite.frame.parent;
-
-		final totalTriangles = Std.int(vertices.length / 2);
-		var alphas = new FastVector<Float>(totalTriangles);
-		var glows = new FastVector<Float>(totalTriangles);
-		for (i in 0...totalTriangles)
-		{
-			alphas[i] = alpha;
-			glows[i] = glow;
-		}
-
-		return {
-			graphic: graphic,
-			shader: shader,
-			alphas: cast alphas,
-			glows: cast glows,
-			uvData: uvData,
-			vertices: vertices,
-			indices: NOTE_INDICES,
-			zIndex: pos.z + sprite.zIndex,
-			colorSwap: sprite.colorSwap,
-			antialiasing: sprite.antialiasing
+		catch(e){
+			trace("Error:" + e);
+			return null;
 		}
 	}
 

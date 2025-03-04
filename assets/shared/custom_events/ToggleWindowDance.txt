@@ -1,5 +1,0 @@
-Switches between predefined window movements
-A list of window movements can be found in the lua file
-
-Value 1: Window Dance
-Value 2: Strength (if applicable)

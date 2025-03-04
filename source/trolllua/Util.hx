@@ -201,7 +201,7 @@ class Util
 
 	inline public static function getTextObject(name:String):FlxText
 	{
-		return PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : Reflect.getProperty(PlayState.instance, name);
+		return PlayState.instance.variables.exists(name) ? PlayState.instance.variables.get(name) : Reflect.getProperty(PlayState.instance, name);
 	}
 
 	public static function getGroupStuff(leArray:Dynamic, variable:String) {
@@ -256,38 +256,8 @@ class Util
 		}
 	}
 
-	public static function resetTextTag(tag:String) {
-		if(!PlayState.instance.modchartTexts.exists(tag))
-			return;
-
-		var pee:FlxText = PlayState.instance.modchartTexts.get(tag);
-		pee.kill();
-		if(pee != null)
-			PlayState.instance.remove(pee, true);
-		
-		pee.destroy();
-		PlayState.instance.modchartTexts.remove(tag);
-	}
-
-	public static function resetSpriteTag(tag:String) {
-		if(!PlayState.instance.modchartSprites.exists(tag))
-			return;
-
-		var pee:psychlua.ModchartSprite = PlayState.instance.modchartSprites.get(tag);
-		pee.kill();
-		if(pee.wasAdded)
-			PlayState.instance.remove(pee, true);
-		
-		pee.destroy();
-		PlayState.instance.modchartSprites.remove(tag);
-	}
-
 	public static function cancelTween(tag:String) {
-		if (PlayState.instance.modchartTweens.exists(tag)) {
-			PlayState.instance.modchartTweens.get(tag).cancel();
-			PlayState.instance.modchartTweens.get(tag).destroy();
-			PlayState.instance.modchartTweens.remove(tag);
-		}
+		psychlua.LuaUtils.cancelTween(tag);
 	}
 
 	public static function tweenShit(tag:String, vars:String)
@@ -302,13 +272,7 @@ class Util
 	}
 
 	public static function cancelTimer(tag:String) {
-		if (PlayState.instance.modchartTimers.exists(tag)) 
-		{
-			var theTimer = PlayState.instance.modchartTimers.get(tag);
-			theTimer.cancel();
-			theTimer.destroy();
-			PlayState.instance.modchartTimers.remove(tag);
-		}
+		psychlua.LuaUtils.cancelTimer(tag);
 	}
 
 	public static function getMouseClicked(button:String) {
@@ -424,7 +388,7 @@ class Util
 
 	public static function getObjectDirectly(objectName:String, ?checkForTextsToo:Bool = true):Dynamic
 	{
-		var coverMeInPiss:Dynamic = PlayState.instance.getLuaObject(objectName, checkForTextsToo);
+		var coverMeInPiss:Dynamic = PlayState.instance.getLuaObject(objectName);
 		if(coverMeInPiss==null)
 			coverMeInPiss = getVarInArray(getInstance(), objectName);
 
@@ -448,7 +412,7 @@ class Util
 	}
 
 	inline public static function getLuaObject(tag:String, ?checkForTextsToo:Bool)
-		return PlayState.instance.getLuaObject(tag, checkForTextsToo);
+		return PlayState.instance.getLuaObject(tag);
 
 	public static function getDirectSprite(tag:String, ?checkForTextsToo:Bool = true):Null<FlxSprite> {
 		var modSpr = getLuaObject(tag, checkForTextsToo);

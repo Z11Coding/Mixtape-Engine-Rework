@@ -293,7 +293,7 @@ class ScriptingMacro
 							var path = filePath + fileName;
 							if (Paths.exists(path))
 							{
-								_extensionScript = funkin.scripts.FunkinHScript.fromFile(path, path, _getScriptDefaultVars());
+								_extensionScript = trolllua.FunkinHScript.fromFile(path, path, _getScriptDefaultVars());
 								_extensionScript.call("new", []);
 								break;
 							}

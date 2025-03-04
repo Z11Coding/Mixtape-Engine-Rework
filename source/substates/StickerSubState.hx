@@ -3,7 +3,7 @@ package substates;
 import flixel.FlxSprite;
 import haxe.Json;
 import lime.utils.Assets;
-import backend.FunkinSprite;
+import objects.FunkinSprite;
 // import flxtyped group
 import backend.MusicBeatSubstate;
 import states.StoryMenuState;

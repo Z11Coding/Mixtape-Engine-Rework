@@ -1,60 +1,59 @@
 package options;
 
 import states.MainMenuState;
-import backend.StageData;
-import backend.gamejolt.GameJolt.GameJoltAPI;
-import backend.gamejolt.GameJolt.GameJoltLogin;
+import stages.StageData;
 
 class OptionsState extends MusicBeatState
 {
-	var options:Array<String> = ['Controls', /*'Adjust Delay and Combo', TODO: make this work*/'Graphics', 'Visuals and UI', 'Gameplay' #if TRANSLATIONS_ALLOWED , 'Language' #end, /*'GameJolt Login', //Not right now*/ 'Misc.'];
+	var options:Array<String> = [
+		'Note Colors',
+		'Controls',
+		'Adjust Delay and Combo',
+		'Graphics',
+		'Visuals',
+		'Gameplay'
+		#if TRANSLATIONS_ALLOWED , 'Language' #end
+	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
-	public static var cameFromPlaystate:Bool = false;
+	public static var onPlayState:Bool = false;
 
 	function openSelectedSubstate(label:String) {
-		switch(label) {
+		switch(label)
+		{
 			case 'Note Colors':
-				openSubState(new options.NotesSubState());
+				openSubState(new options.NotesColorSubState());
 			case 'Controls':
 				openSubState(new options.ControlsSubState());
 			case 'Graphics':
 				openSubState(new options.GraphicsSettingsSubState());
-			case 'Visuals and UI':
-				openSubState(new options.VisualsUISubState());
+			case 'Visuals':
+				openSubState(new options.VisualsSettingsSubState());
 			case 'Gameplay':
 				openSubState(new options.GameplaySettingsSubState());
-			case 'Misc.':
-				openSubState(new options.OtherSettingsSubState());
-			case 'Archipelago':
-				openSubState(new options.ArchipelagoSettingsSubState());
 			case 'Adjust Delay and Combo':
-				LoadingState.loadAndSwitchState(new options.NoteOffsetState());
+				MusicBeatState.switchState(new options.NoteOffsetState());
 			case 'Language':
-				openSubState(new options.LanguageSubState());	
-			case 'GameJolt Login':
-				LoadingState.loadAndSwitchState(new GameJoltLogin());
+				openSubState(new options.LanguageSubState());
 		}
 	}
 
 	var selectorLeft:Alphabet;
 	var selectorRight:Alphabet;
 
-	override function create() {
+	override function create()
+	{
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
 		#end
 
-		if (archipelago.APEntryState.inArchipelagoMode) options.push('Archipelago');
-
-
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.color = 0xFFea71fd;
 		bg.updateHitbox();
 
 		bg.screenCenter();
-		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
 		add(bg);
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
@@ -69,9 +68,9 @@ class OptionsState extends MusicBeatState
 		}
 
 		selectorLeft = new Alphabet(0, 0, '>', true);
-		//add(selectorLeft);
+		add(selectorLeft);
 		selectorRight = new Alphabet(0, 0, '<', true);
-		//add(selectorRight);
+		add(selectorRight);
 
 		changeSelection();
 		ClientPrefs.saveSettings();
@@ -79,71 +78,47 @@ class OptionsState extends MusicBeatState
 		super.create();
 	}
 
-	override function closeSubState() {
-		FlxTween.globalManager.clear();
+	override function closeSubState()
+	{
 		super.closeSubState();
 		ClientPrefs.saveSettings();
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
-		
 		#end
 	}
 
-	//var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[0]);
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (FlxG.sound.music != null)
-			Conductor.songPosition = FlxG.sound.music.time;
-
-		if (controls.UI_UP_P) {
+		if (controls.UI_UP_P)
 			changeSelection(-1);
-		}
-		if (controls.UI_DOWN_P) {
+		if (controls.UI_DOWN_P)
 			changeSelection(1);
-		}
 
-		if (controls.BACK) {
+		if (controls.BACK)
+		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
-			if (cameFromPlaystate) 
+			if(onPlayState)
 			{
 				StageData.loadDirectory(PlayState.SONG);
-				LoadingState.loadAndSwitchState(new states.PlayState());
+				LoadingState.loadAndSwitchState(new PlayState());
+				FlxG.sound.music.volume = 0;
 			}
-			else MusicBeatState.switchState(new states.MainMenuState());
+			else MusicBeatState.switchState(new MainMenuState());
 		}
-
-		if (controls.ACCEPT) {
-			openSelectedSubstate(options[curSelected]);
-		}
-	}
-
-	override function beatHit()
-	{
-		super.beatHit();
-
-		FlxG.camera.zoom = zoomies;
-
-		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
-			ease: FlxEase.quadOut
-		});
+		else if (controls.ACCEPT) openSelectedSubstate(options[curSelected]);
 	}
 	
-	function changeSelection(change:Int = 0) {
-		curSelected += change;
-		if (curSelected < 0)
-			curSelected = options.length - 1;
-		if (curSelected >= options.length)
-			curSelected = 0;
+	function changeSelection(change:Int = 0)
+	{
+		curSelected = FlxMath.wrap(curSelected + change, 0, options.length - 1);
 
-		var bullShit:Int = 0;
-
-		for (item in grpOptions.members) {
-			item.targetY = bullShit - curSelected;
-			bullShit++;
-
+		for (num => item in grpOptions.members)
+		{
+			item.targetY = num - curSelected;
 			item.alpha = 0.6;
-			if (item.targetY == 0) {
+			if (item.targetY == 0)
+			{
 				item.alpha = 1;
 				selectorLeft.x = item.x - 63;
 				selectorLeft.y = item.y;
@@ -152,5 +127,11 @@ class OptionsState extends MusicBeatState
 			}
 		}
 		FlxG.sound.play(Paths.sound('scrollMenu'));
+	}
+
+	override function destroy()
+	{
+		ClientPrefs.loadPrefs();
+		super.destroy();
 	}
 }

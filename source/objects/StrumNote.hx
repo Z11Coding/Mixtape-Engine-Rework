@@ -7,29 +7,19 @@ import flixel.addons.plugin.FlxMouseControl;
 import shaders.RGBPalette;
 import shaders.RGBPalette.RGBShaderReference;
 import backend.math.Vector3;
+import objects.playfields.PlayField;
 
 class StrumNote extends NoteObject
 {
 
 	public var rgbShader:RGBShaderReference;
 
-	public var desiredZIndex:Float = 0;
 	public var z:Float = 0;
-	
-	override function destroy()
-	{
-		defScale.put();
-		super.destroy();
-	}	
-	public var isQuant:Bool = false;
 	public var resetAnim:Float = 0;
 	public var direction:Float = 90;
 	public var downScroll:Bool = false;
 	public var sustainReduce:Bool = true;
-	private var player:Int;
 	
-	//private var player:Int;
-
 	public var animationArray:Array<String> = ['static', 'pressed', 'confirm'];
 	public var static_anim(default, set):String = "static";
 	public var pressed_anim(default, set):String = "pressed"; // in case you would use this on lua
@@ -78,24 +68,9 @@ class StrumNote extends NoteObject
 		return value;
 	}
 
-	public function getZIndex(?daZ:Float)
-	{
-		if(daZ==null)daZ = z;
-		var animZOffset:Float = 0;
-		if (animation.curAnim != null && animation.curAnim.name == 'confirm')
-			animZOffset += 1;
-		return z + desiredZIndex + animZOffset;
-	}
-
-	function updateZIndex()
-	{
-		zIndex = getZIndex();
-	}
-	
-	var field:PlayField;
+	private var field:PlayField;
 	public var useRGBShader:Bool = true;
-	public function new(x:Float, y:Float, leData:Int, ?field:PlayField) {
-		FlxG.plugins.add(new FlxMouseControl());
+	public function new(x:Float, y:Float, leData:Int, ?playField:PlayField) {
 		animation = new PsychAnimationController(this);
 		
 		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
@@ -111,23 +86,34 @@ class StrumNote extends NoteObject
 				rgbShader.b = arr[2];
 			}
 		}
-		this.field = field;
+
 		super(x, y);
 		objType = STRUM;
 		noteData = leData;
+		column = leData;
+		field = playField;
 		this.noteData = leData;
 		this.ID = noteData;
 		// trace(noteData);
 
-		var skin:String = 'normal';
-		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1 && (!Paths.doesImageAssetExist(Paths.modsImages('noteskins/normal')) || !Paths.doesImageAssetExist(Paths.getPath('images/noteskins/normal')))) 
-			skin = PlayState.SONG.arrowSkin;
-		else 
-			skin = "normal";
+		var skin:String = null;
+		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
+		else skin = Note.defaultNoteSkin;
+
+		if (Note.getNoteSkinPostfix() != '')
+		{
+			var customSkin:String = skin + Note.getNoteSkinPostfix();
+			if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
+		}
+		else skin = 'noteskins/strums';
 
 		texture = skin; //Load texture and anims
 		scrollFactor.set();
+		playAnim('static');
 	}
+
+	override function toString()
+		return '(column: $column | texture $texture | visible: $visible)';
 
 	public function reloadNote()
 	{
@@ -137,39 +123,39 @@ class StrumNote extends NoteObject
 
 		frames = Paths.getSparrowAtlas(br);
 
-		antialiasing = ClientPrefs.data.globalAntialiasing;
+		antialiasing = ClientPrefs.data.antialiasing;
 		setGraphicSize(Std.int(width * 0.7));
 
-		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
-		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
-		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[noteData]; //jic
-		var pxDV:Int = Note.pixelNotesDivisionValue;
+		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[column];
+		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[column];
+		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[column]; //jic
+		var pxDV:Int = PlayState.mania != 17 ? Note.pixelNotesDivisionValue[0] : Note.pixelNotesDivisionValue[1];
 
 		if(PlayState.isPixelStage)
 		{
-			loadGraphic(Paths.image('noteskins/pixelUI/' + texture));
-			width = width / Note.pixelNotesDivisionValue;
+			loadGraphic(Paths.image('pixelUI/' + texture));
+			width = width / pxDV;
 			height = height / 5;
 			antialiasing = false;
-			loadGraphic(Paths.image('noteskins/pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
+			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
 			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
 
 			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
 			updateHitbox();
 			antialiasing = false;
-			animation.add('static', [daFrames[noteData]]);
-			animation.add('pressed', [daFrames[noteData] + pxDV, daFrames[noteData] + (pxDV * 2)], 12, false);
-			animation.add('confirm', [daFrames[noteData] + (pxDV * 3), daFrames[noteData] + (pxDV * 4)], 24, false);
+			animation.add('static', [daFrames[column]]);
+			animation.add('pressed', [daFrames[column] + pxDV, daFrames[column] + (pxDV * 2)], 12, false);
+			animation.add('confirm', [daFrames[column] + (pxDV * 3), daFrames[column] + (pxDV * 4)], 24, false);
 			//i used windows calculator
 		}
 		else
 		{
 			frames = Paths.getSparrowAtlas(texture);
 
-			antialiasing = ClientPrefs.data.globalAntialiasing;
+			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
 
-			switch (Math.abs(noteData))
+			switch (Math.abs(column))
 			{
 				case 0:
 					attemptToAddAnimationByPrefix('static', 'arrowLEFT');
@@ -193,7 +179,7 @@ class StrumNote extends NoteObject
 			attemptToAddAnimationByPrefix('pressed', animationArray[1] + ' press');
 			attemptToAddAnimationByPrefix('confirm', animationArray[1] + ' confirm', 24, false);
 		}
-		//defScale.copyFrom(scale);
+		defScale.copyFrom(scale);
 		updateHitbox();
 
 		if(lastAnim != null)
@@ -219,21 +205,14 @@ class StrumNote extends NoteObject
 		animation.addByPrefix(name, prefix, framerate, doLoop);
 	}
 
-/* 	public function postAddedToGroup() {
-		playAnim('static');
-		x += Note.swagWidth * noteData;
-		x += 50;
-		x += ((FlxG.width* 0.5) * player);
-		ID = noteData;
-	} */
 	public function playerPosition()
 	{
 		playAnim('static');
 		switch (PlayState.mania)
 		{
-			case 0 | 1 | 2: x += width * noteData;
-			case 3: x += (Note.swagWidth * noteData);
-			default: x += ((width - Note.lessX[PlayState.mania]) * noteData);
+			case 0 | 1 | 2: x += width * column;
+			case 3: x += (Note.swagWidth * column);
+			default: x += ((width - Note.lessX[PlayState.mania]) * column);
 		}
 
 		x += Note.xtra[PlayState.mania];
@@ -251,12 +230,12 @@ class StrumNote extends NoteObject
 				resetAnim = 0;
 			}
 		}
+
 		if(animation.curAnim != null){
 			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) 
 				centerOrigin();
 			
 		}
-		updateZIndex();
 
 		super.update(elapsed);
 	}
@@ -267,7 +246,6 @@ class StrumNote extends NoteObject
 		{
 			centerOrigin();
 			centerOffsets();
-			updateZIndex();
 		}
 		if(useRGBShader) rgbShader.enabled = (animation.curAnim != null && animation.curAnim.name != 'static');
 	}

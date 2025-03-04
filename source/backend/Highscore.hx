@@ -10,26 +10,16 @@ class Highscore
 	public static var songDeaths:Map<String, Int> = new Map<String, Int>();
 	public static var endlessScores:Map<String, Int> = new Map<String, Int>();
 
-	//For the Opponent
-	public static var weekScoresOpp:Map<String, Int> = new Map();
-	public static var songScoresOpp:Map<String, Int> = new Map<String, Int>();
-	public static var songRatingOpp:Map<String, Float> = new Map<String, Float>();
-	public static var songMissesOpp:Map<String, Int> = new Map<String, Int>();
-	public static var songRanksOpp:Map<String, Int> = new Map<String, Int>();
-	public static var songDeathsOpp:Map<String, Int> = new Map<String, Int>();
-	public static var endlessScoresOpp:Map<String, Int> = new Map<String, Int>();
-
 	public static var saveMod:String = "";
 	// Gameplay settings
 	var mixupMode:Bool = false;
 	var gimmicksAllowed:Bool = false;
+
 	public static function resetSong(song:String, diff:Int = 0):Void
 	{
 		var daSong:String = formatSong(song, diff);
 		setScore(daSong, 0);
 		setRating(daSong, 0);
-		setMisses(daSong, 0);
-		setRank(daSong, 0);
 	}
 
 	public static function resetWeek(week:String, diff:Int = 0):Void
@@ -38,68 +28,23 @@ class Highscore
 		setWeekScore(daWeek, 0);
 	}
 
-	public static function floorDecimal(value:Float, decimals:Int):Float
-	{
-		if(decimals < 1)
-		{
-			return Math.floor(value);
-		}
-
-		var tempMult:Float = 1;
-		for (i in 0...decimals)
-		{
-			tempMult *= 10;
-		}
-		var newValue:Float = Math.floor(value * tempMult);
-		return newValue / tempMult;
-	}
-
-	public static function saveRank(song:String, score:Int = 0, ?diff:Int = 0):Void
-	{
-		var daSong:String = formatSong(song, diff);
-		if (songRanks.exists(daSong))
-		{
-			if (songRanks.get(daSong) > score)
-				setRank(daSong, score);
-		}
-		else
-			setRank(daSong, score);
-	}
-
-	public static function saveDeaths(song:String, deaths:Int = 0, ?diff:Int = 0):Void
-	{
-		var daSong:String = formatSong(song, diff);
-
-		setDeaths(daSong, deaths);
-	}
-
-	public static function saveEndlessScore(song:String, score:Int = 0):Void
-	{
-		var daSong:String = song;
-
-		if (endlessScores.exists(daSong))
-		{
-			if (endlessScores.get(daSong) < score)
-				setEndless(daSong, score);
-		}
-		else
-			setEndless(daSong, score);
-	}
-
 	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?misses:Int = 0, ?deaths:Int = 0):Void
 	{
-		//Score and Rating now save seperately and Misses now save as well.
 		if(song == null) return;
 		var daSong:String = formatSong(song, diff);
 		var songMod:String = daSong+saveMod;
-		if (songScores.exists(songMod)) {
-			if (songScores.get(songMod) < score) {
+		if (songScores.exists(songMod))
+		{
+			if (songScores.get(songMod) < score)
+			{
 				setScore(songMod, score);
 			}
 		}
-		else {
+		else
+		{
 			setScore(songMod, score);
 		}
+
 		if (songRating.exists(songMod)) {
 			if (songRating.get(songMod) < rating) {
 				setRating(songMod, rating);
@@ -108,6 +53,7 @@ class Highscore
 		else {
 			if(rating >= 0) setRating(songMod, rating);
 		}
+
 		if (songMisses.exists(songMod)) {
 			if (songMisses.get(songMod) > misses) {
 				setMisses(songMod, misses);
@@ -127,6 +73,45 @@ class Highscore
 		}
 	}
 
+	public static function saveRank(song:String, score:Int = 0, ?diff:Int = 0):Void
+	{
+		var daSong:String = formatSong(song, diff);
+		var songMod:String = daSong+saveMod;
+		if (songRanks.exists(songMod))
+		{
+			if (songRanks.get(songMod) > score)
+				setRank(songMod, score);
+		}
+		else
+			setRank(songMod, score);
+	}
+
+	public static function saveDeaths(song:String, deaths:Int = 0, ?diff:Int = 0):Void
+	{
+		var daSong:String = formatSong(song, diff);
+		var songMod:String = daSong+saveMod;
+		if (songDeaths.exists(songMod))
+		{
+			if (songDeaths.get(songMod) > deaths)
+				setDeaths(songMod, deaths);
+		}
+		else
+			setDeaths(songMod, deaths);
+	}
+
+	public static function saveEndlessScore(song:String, score:Int = 0):Void
+	{
+		var daSong:String = song;
+		var songMod:String = daSong+saveMod;
+		if (endlessScores.exists(songMod))
+		{
+			if (endlessScores.get(songMod) < score)
+				setEndless(songMod, score);
+		}
+		else
+			setEndless(songMod, score);
+	}
+
 	public static function saveWeekScore(week:String, score:Int = 0, ?diff:Int = 0):Void
 	{
 		var daWeek:String = formatSong(week, diff);
@@ -134,10 +119,9 @@ class Highscore
 		if (weekScores.exists(weekMod))
 		{
 			if (weekScores.get(weekMod) < score)
-				setWeekScore(daWeek, score);
+				setWeekScore(weekMod, score);
 		}
-		else
-			setWeekScore(daWeek, score);
+		else setWeekScore(weekMod, score);
 	}
 
 	/**
@@ -150,6 +134,7 @@ class Highscore
 		FlxG.save.data.songRanks = songRanks;	
 		FlxG.save.flush();
 	}
+
 	static function setDeaths(song:String, deaths:Int):Void
 	{
 		// Reminder that I don't need to format this song, it should come formatted!
@@ -167,6 +152,17 @@ class Highscore
 		FlxG.save.flush();
 	}
 
+	static function setMisses(song:String, misses:Int):Void
+	{
+		// Reminder that I don't need to format this song, it should come formatted!
+		songMisses.set(song, misses);
+		FlxG.save.data.songMisses = songMisses;
+		FlxG.save.flush();
+	}
+
+	/**
+	 * YOU SHOULD FORMAT SONG WITH formatSong() BEFORE TOSSING IN SONG VARIABLE
+	 */
 	static function setScore(song:String, score:Int):Void
 	{
 		// Reminder that I don't need to format this song, it should come formatted!
@@ -174,6 +170,7 @@ class Highscore
 		FlxG.save.data.songScores = songScores;
 		FlxG.save.flush();
 	}
+
 	static function setWeekScore(week:String, score:Int):Void
 	{
 		// Reminder that I don't need to format this song, it should come formatted!
@@ -190,29 +187,11 @@ class Highscore
 		FlxG.save.flush();
 	}
 
-	static function setMisses(song:String, misses:Int):Void
-	{
-		// Reminder that I don't need to format this song, it should come formatted!
-		songMisses.set(song, misses);
-		FlxG.save.data.songMisses = songMisses;
-		FlxG.save.flush();
-	}
-
 	public static function formatSong(song:String, diff:Int):String
 	{
 		return Paths.formatToSongPath(song) + Difficulty.getFilePath(diff);
 	}
 
-	public static function getScore(song:String, diff:Int):Int
-	{
-		var daSong:String = formatSong(song, diff);
-		var songMod:String = daSong+saveMod;
-		if (!songScores.exists(songMod))
-			setScore(songMod, 0);
-
-		return songScores.get(songMod);
-	}
-	
 	public static function getRank(song:String, diff:Int):Int
 	{
 		var daSong:String = formatSong(song, diff);
@@ -233,16 +212,6 @@ class Highscore
 		return songDeaths.get(songMod);
 	}
 
-	public static function getRating(song:String, diff:Int):Float
-	{
-		var daSong:String = formatSong(song, diff);
-		var songMod:String = daSong+saveMod;
-		if (!songRating.exists(songMod))
-			setRank(songMod, 0);
-
-		return songRating.get(songMod);
-	}
-
 	public static function getMisses(song:String, diff:Int):Int
 	{
 		var daSong:String = formatSong(song, diff);
@@ -253,13 +222,33 @@ class Highscore
 		return songMisses.get(songMod);
 	}
 
+	public static function getScore(song:String, diff:Int):Int
+	{
+		var daSong:String = formatSong(song, diff);
+		var songMod:String = daSong+saveMod;
+		if (!songScores.exists(songMod))
+			setScore(songMod, 0);
+
+		return songScores.get(songMod);
+	}
+
+	public static function getRating(song:String, diff:Int):Float
+	{
+		var daSong:String = formatSong(song, diff);
+		var songMod:String = daSong+saveMod;
+		if (!songRating.exists(songMod))
+			setRating(songMod, 0);
+
+		return songRating.get(songMod);
+	}
+
 	public static function getWeekScore(week:String, diff:Int):Int
 	{
 		var daWeek:String = formatSong(week, diff);
 		var weekMod:String = daWeek+saveMod;
 		if (!weekScores.exists(weekMod))
-				setWeekScore(weekMod, 0);
-	
+			setWeekScore(weekMod, 0);
+
 		return weekScores.get(weekMod);
 	}
 
@@ -301,53 +290,21 @@ class Highscore
 	public static function load():Void
 	{
 		if (FlxG.save.data.weekScores != null)
-		{
 			weekScores = FlxG.save.data.weekScores;
-		}
-		if (FlxG.save.data.songScores != null)
-		{
-			songScores = FlxG.save.data.songScores;
-		}
-		if (FlxG.save.data.songRating != null)
-		{
-			songRating = FlxG.save.data.songRating;
-		}
-		if (FlxG.save.data.songMisses != null)
-		{
-			songMisses = FlxG.save.data.songMisses;
-		}
-		if (FlxG.save.data.songRanks != null)
-		{
-			songRanks = FlxG.save.data.songRanks;
-		}
-		if (FlxG.save.data.songDeaths != null)
-		{
-			songDeaths = FlxG.save.data.songDeaths;
-		}
 
-		if (FlxG.save.data.weekScoresOpp != null)
-		{
-			weekScoresOpp = FlxG.save.data.weekScoresOpp;
-		}
-		if (FlxG.save.data.songScoresOpp != null)
-		{
-			songScoresOpp = FlxG.save.data.songScoresOpp;
-		}
-		if (FlxG.save.data.songRatingOpp != null)
-		{
-			songRatingOpp = FlxG.save.data.songRatingOpp;
-		}
-		if (FlxG.save.data.songMissesOpp != null)
-		{
-			songMissesOpp = FlxG.save.data.songMissesOpp;
-		}
-		if (FlxG.save.data.songRanksOpp != null)
-		{
-			songRanksOpp = FlxG.save.data.songRanksOpp;
-		}
-		if (FlxG.save.data.songDeathsOpp != null)
-		{
-			songDeathsOpp = FlxG.save.data.songDeathsOpp;
-		}
+		if (FlxG.save.data.songScores != null)
+			songScores = FlxG.save.data.songScores;
+
+		if (FlxG.save.data.songRating != null)
+			songRating = FlxG.save.data.songRating;
+
+		if (FlxG.save.data.songMisses != null)
+			songMisses = FlxG.save.data.songMisses;
+		
+		if (FlxG.save.data.songRanks != null)
+			songRanks = FlxG.save.data.songRanks;
+		
+		if (FlxG.save.data.songDeaths != null)
+			songDeaths = FlxG.save.data.songDeaths;
 	}
 }

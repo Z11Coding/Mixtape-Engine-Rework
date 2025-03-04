@@ -26,7 +26,7 @@ class CreditsState extends MusicBeatState
 
 		persistentUpdate = true;
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
+		bg.antialiasing = ClientPrefs.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
 		
@@ -38,19 +38,6 @@ class CreditsState extends MusicBeatState
 		#end
 
 		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
-			['Beta Testers'],
-			['Dylan',		        'dylan',		    '',					                                         'https://docs.google.com/document/d/1Ece_WG4QBnYSlRPEotqwCXxAEz2o_ugF_9YgSQ3oelU/edit?usp=sharing',		'9ff1cd'],
-			['Dave',				'dave',			    '',						                                     'https://twitter.com/vids144p/status/1792668118222864402',		'f62681'],
-			['Fanta in my system Team'],
-			['JDST',		        'jsdt',		        'Main Director, Artist, Animator and Composer of (SONG NAME HERE)',					 'https://docs.google.com/document/d/1Ece_WG4QBnYSlRPEotqwCXxAEz2o_ugF_9YgSQ3oelU/edit?usp=sharing',		'9ff1cd'],
-			['Magi',				'magi',			    'Composer of (SONG NAME HERE)',						                                 'https://twitter.com/vids144p/status/1792668118222864402',		'f62681'],
-			['Z11Gaming',			'z11',			    'Main Coder and Composer of Funky Fanta',						                     'https://www.youtube.com/watch?v=Lc1TUnTKMLo',		'2e1745'],
-			[''],
-			['Fanta in my system Special Thanks :)'],
-			['kmill2113',		    'kmill',			'Got that Fanta In His System',						         'https://www.tiktok.com/@kmill2113?lang=en',		'14967B'],
-			['BigNinjaKai',		    'kai',		        'OnlyCans',					                                 '',		'444444'],
-			['Kevin',				'k',			    'Can Solo Herobrine',						                 '',		'14967B'],
-			[''],
 			["Psych Engine Team"],
 			["Shadow Mario",		"shadowmario",		"Main Programmer and Head of Psych Engine",					"https://ko-fi.com/shadowmario",	"444444"],
 			["Riveren",				"riveren",			"Main Artist/Animator of Psych Engine",						"https://x.com/riverennn",			"14967B"],
@@ -59,14 +46,14 @@ class CreditsState extends MusicBeatState
 			["bb-panzu",			"bb",				"Ex-Programmer of Psych Engine",							"https://x.com/bbsub3",				"3E813A"],
 			[""],
 			["Engine Contributors"],
-			["crowplexus",			"crowplexus",		"HScript Iris, Input System v3, and Other PRs",				"https://github.com/crowplexus",	"CFCFCF"],
+			["crowplexus",			"crowplexus",	"Linux Support, HScript Iris, Input System v3, and Other PRs",	"https://twitter.com/IamMorwen",	"CFCFCF"],
 			["Kamizeta",			"kamizeta",			"Creator of Pessy, Psych Engine's mascot.",				"https://www.instagram.com/cewweey/",	"D21C11"],
 			["MaxNeton",			"maxneton",			"Loading Screen Easter Egg Artist/Animator.",	"https://bsky.app/profile/maxneton.bsky.social","3C2E4E"],
 			["Keoiki",				"keoiki",			"Note Splash Animations and Latin Alphabet",				"https://x.com/Keoiki_",			"D2D2D2"],
 			["SqirraRNG",			"sqirra",			"Crash Handler and Base code for\nChart Editor's Waveform",	"https://x.com/gedehari",			"E1843A"],
 			["EliteMasterEric",		"mastereric",		"Runtime Shaders support and Other PRs",					"https://x.com/EliteMasterEric",	"FFBD40"],
 			["MAJigsaw77",			"majigsaw",			".MP4 Video Loader Library (hxvlc)",						"https://x.com/MAJigsaw77",			"5F5F5F"],
-			["Tahir Toprak Karabekiroglu",	"tahir",	"Note Splash Editor and Other PRs",							"https://x.com/TahirKarabekir",		"A04397"],
+			["Tahir Toprak Karabekiroglu",	"tahir",	"Mac Support, Note Splash Editor\nand Other PRs",			"https://x.com/TahirKarabekir",		"A04397"],
 			["iFlicky",				"flicky",			"Composer of Psync and Tea Time\nAnd some sound effects",	"https://x.com/flicky_i",			"9E29CF"],
 			["KadeDev",				"kade",				"Fixed some issues on Chart Editor and Other PRs",			"https://x.com/kade0912",			"64A250"],
 			["superpowers04",		"superpowers04",	"LUA JIT Fork",												"https://x.com/superpowers04",		"B957ED"],
@@ -77,6 +64,9 @@ class CreditsState extends MusicBeatState
 			["PhantomArcade",		"phantomarcade",	"Animator of Friday Night Funkin'",							"https://x.com/PhantomArcade3K",	"FADC45"],
 			["evilsk8r",			"evilsk8r",			"Artist of Friday Night Funkin'",							"https://x.com/evilsk8r",			"5ABD4B"],
 			["kawaisprite",			"kawaisprite",		"Composer of Friday Night Funkin'",							"https://x.com/kawaisprite",		"378FC7"],
+			[""],
+			["Psych Engine Discord"],
+			["Join the Psych Ward!", "discord", "", "https://discord.gg/2ka77eMXDv", "5165F6"]
 		];
 		
 		for(i in defaultList)
@@ -147,7 +137,7 @@ class CreditsState extends MusicBeatState
 	{
 		if (FlxG.sound.music.volume < 0.7)
 		{
-			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
+			FlxG.sound.music.volume += 0.5 * elapsed;
 		}
 
 		if(!quitting)

@@ -8,8 +8,8 @@ import haxe.Json;
 
 import objects.TypedAlphabet;
 
-import backend.cutscenes.DialogueBoxPsych;
-import backend.cutscenes.DialogueCharacter;
+import cutscenes.DialogueBoxPsych;
+import cutscenes.DialogueCharacter;
 import states.editors.content.Prompt;
 
 class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
@@ -35,8 +35,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 			text: DEFAULT_TEXT,
 			boxState: DEFAULT_BUBBLETYPE,
 			speed: 0.05,
-			sound: '',
-			skipDis: false
+			sound: ''
 		};
 
 		dialogueFile = {
@@ -50,7 +49,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		add(character);
 
 		box = new FlxSprite(70, 370);
-		box.antialiasing = ClientPrefs.data.globalAntialiasing;
+		box.antialiasing = ClientPrefs.data.antialiasing;
 		box.frames = Paths.getSparrowAtlas('speech_bubble');
 		box.scrollFactor.set();
 		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
@@ -101,7 +100,6 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 	var angryCheckbox:PsychUICheckBox;
 	var speedStepper:PsychUINumericStepper;
 	var soundInputText:PsychUIInputText;
-	var skipCheckbox:PsychUICheckBox;
 	function addDialogueLineUI() {
 		var tab_group = UI_box.getTab('Dialogue Line').menu;
 
@@ -113,12 +111,6 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		{
 			updateTextBox();
 			dialogueFile.dialogue[curSelected].boxState = (angryCheckbox.checked ? 'angry' : 'normal');
-		};
-
-		skipCheckbox = new PsychUICheckBox(angryCheckbox.x, angryCheckbox.y + 120, "Skip Text (On Finish)", 200);
-		skipCheckbox.onClick = function()
-		{
-			dialogueFile.dialogue[curSelected].skipDis = skipCheckbox.checked;
 		};
 
 		soundInputText = new PsychUIInputText(10, speedStepper.y + 40, 150, '', 8);
@@ -146,7 +138,6 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		tab_group.add(new FlxText(10, lineInputText.y - 18, 0, 'Text:'));
 		tab_group.add(characterInputText);
 		tab_group.add(angryCheckbox);
-		tab_group.add(skipCheckbox);
 		tab_group.add(speedStepper);
 		tab_group.add(soundInputText);
 		tab_group.add(lineInputText);
@@ -161,8 +152,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 			text: defaultLine.text,
 			boxState: defaultLine.boxState,
 			speed: defaultLine.speed,
-			sound: '',
-			skipDis: defaultLine.skipDis
+			sound: ''
 		};
 		return copyLine;
 	}
@@ -378,7 +368,6 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		lineInputText.text = curDialogue.text;
 		angryCheckbox.checked = (curDialogue.boxState == 'angry');
 		speedStepper.value = curDialogue.speed;
-		skipCheckbox.checked = curDialogue.skipDis;
 
 		if (curDialogue.sound == null) curDialogue.sound = '';
 		soundInputText.text = curDialogue.sound;
@@ -431,7 +420,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
 		_file.addEventListener(Event.CANCEL, onLoadCancel);
 		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file.browse([jsonFilter]);
+		_file.browse([#if !mac jsonFilter #end]);
 	}
 
 	function onLoadComplete(_):Void

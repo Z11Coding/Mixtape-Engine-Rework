@@ -7,4 +7,3 @@ mallEvil
 school
 schoolEvil
 tank
-portal

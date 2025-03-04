@@ -1,7 +1,5 @@
 package archipelago.console;
 
-package online.backend;
-
 import flixel.FlxBasic;
 
 //thread safe function handler

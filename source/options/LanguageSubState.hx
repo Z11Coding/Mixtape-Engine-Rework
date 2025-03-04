@@ -1,5 +1,7 @@
 package options;
 
+import openfl.utils.Assets;
+
 class LanguageSubState extends MusicBeatSubstate
 {
 	#if TRANSLATIONS_ALLOWED
@@ -13,7 +15,7 @@ class LanguageSubState extends MusicBeatSubstate
 
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
-		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
+		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.screenCenter();
 		add(bg);
 		add(grpLanguages);
@@ -112,7 +114,6 @@ class LanguageSubState extends MusicBeatSubstate
 				FlxTransitionableState.skipNextTransIn = true;
 				FlxTransitionableState.skipNextTransOut = true;
 				MusicBeatState.resetState();
-				MusicBeatState.reopen = false;
 			}
 			else close();
 			FlxG.sound.play(Paths.sound('cancelMenu'));

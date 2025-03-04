@@ -6,6 +6,9 @@ import objects.playfields.NoteField;
 import trolllua.FunkinHScript;
 import backend.modchart.Modifier;
 import backend.math.Vector3;
+import objects.StrumNote;
+import objects.Note;
+import objects.NoteObject;
 
 class HScriptModifier extends Modifier
 {

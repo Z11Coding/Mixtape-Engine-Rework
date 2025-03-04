@@ -1,7 +1,0 @@
-A TOGGLE, that will show both chars, putting the cam between them
-IT IS BUGGY ON PIXEL STAGES
-Input values are optional
-
-Value1: change Zoom
-value2: keep Camera Active / ignore Toggle to change Zoom
-[Ex: 0.8, a]

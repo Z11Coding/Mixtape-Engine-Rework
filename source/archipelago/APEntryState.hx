@@ -4,7 +4,8 @@ import lime.app.Application;
 import haxe.io.Bytes;
 import substates.RankingSubstate;
 import states.FreeplayState;
-import backend.modules.SyncUtils;
+import yutautil.modules.SyncUtils;
+import backend.FileDialogHandler;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -31,6 +32,8 @@ import yaml.Parser;
 import flash.net.FileFilter;
 import archipelago.PacketTypes.JSONMessagePart;
 import archipelago.PacketTypes.NetworkItem;
+
+using yutautil.CollectionUtils;
 
 typedef APSettings =
 {
@@ -81,7 +84,6 @@ class APEntryState extends FlxState
 	public static var yamlName:String;
 	var checker:FlxBackdrop;
 	var gradientBar:FlxSprite = new FlxSprite(0, 0).makeGraphic(FlxG.width, 300, 0x83B700FF);
-	var swagShader:ColorSwap = null;
 	var titleText:ColoredAlphabet;
 	public static var ap:Client;
 	public static var apGame:APGameState;
@@ -129,8 +131,6 @@ class APEntryState extends FlxState
 	{
 		Cursor.show();
 		Cursor.cursorMode = Default;
-		swagShader = new ColorSwap();
-
 		if (APSettingsSubState.globalSongList.length <= 0)
 			APSettingsSubState.generateSongList();
 
@@ -593,7 +593,7 @@ class APEntryState extends FlxState
 	{
 		inArchipelagoMode = true;
 		gonnaRunSync = true; // You'll thank me later
-		WeekData.reloadWeekFiles(false);
+		backend.WeekData.reloadWeekFiles(false);
 		FlxG.save.data.closeDuringOverRide = false;
 		FlxG.save.data.manualOverride = false;
 		FlxG.save.data.storyWeek = null;
@@ -613,7 +613,6 @@ class APEntryState extends FlxState
 		e++;
 		titleText.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
 		//if (FlxG.keys.justPressed.HOME) runArch(); debug that is no longer needed
-		if(swagShader != null) swagShader.hue += 0.45 / (ClientPrefs.data.framerate / 60);
 		if (!ClientPrefs.data.lowQuality)
 		{
 			checker.x -= 0.45 / (ClientPrefs.data.framerate / 60);

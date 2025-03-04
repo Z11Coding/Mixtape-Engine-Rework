@@ -4,10 +4,16 @@ import cpp.Float32;
 //import states.PlayState.LuaScript;
 import yutautil.Threader;
 import yutautil.Threader.MemLimitThreadQ;
-import backend.modules.SyncUtils;
+import yutautil.modules.SyncUtils;
 import cpp.abi.Abi;
 import haxe.Constraints.IMap;
 import haxe.ds.StringMap;
+using yutautil.ChanceSelector;
+using yutautil.Table;
+using yutautil.DataStorage;
+using yutautil.IterSingle;
+using yutautil.HoldableVariable;
+using yutautil.CollectionUtils;
 
 // @:inline
 // enum ListFunc {

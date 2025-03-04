@@ -1,9 +1,0 @@
-Tweens a window variable
-
-Works the same as TweenWindowPos
-but instead of x it's only IDs
-
-WARNING: Only works on Integers or Floats
-
-Value 1: Variable to tween
-Value 2: Value to tween it to

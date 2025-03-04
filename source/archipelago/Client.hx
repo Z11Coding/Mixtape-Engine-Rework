@@ -21,6 +21,7 @@ import lime.app.Event;
 
 using StringTools;
 using archipelago.Bitsets;
+using yutautil.CollectionUtils;
 
 enum Status {
 	GOAL;

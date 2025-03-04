@@ -1,13 +1,13 @@
-package funkin.scripts;
+package trolllua;
 
-import funkin.scripts.FunkinScript.ScriptType;
-import funkin.states.*;
-import funkin.states.PlayState;
-import funkin.scripts.Globals.*;
-import funkin.scripts.Util;
-import funkin.scripts.Util.*;
-import funkin.objects.*;
-import funkin.modchart.SubModifier;
+import trolllua.FunkinScript.ScriptType;
+import states.*;
+import states.PlayState;
+import trolllua.Globals.*;
+import trolllua.Util;
+import trolllua.Util.*;
+import objects.*;
+import backend.modchart.SubModifier;
 
 import flixel.*;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -22,11 +22,11 @@ import haxe.Constraints.Function;
 import Type.ValueType;
 
 #if DISCORD_ALLOWED
-import funkin.api.Discord;
+import backend.Discord;
 #end
 
 #if (cpp && windows)
-import funkin.api.os.Windows;
+import backend.window.os.Windows;
 #end
 
 #if LUA_ALLOWED

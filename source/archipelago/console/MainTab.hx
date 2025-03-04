@@ -159,4 +159,6 @@ class MainTab extends TabSprite {
 		nickname.x = widthTab / 2 - nickname.width / 2;
 		updateMessages();
 	}
+
+		
 }

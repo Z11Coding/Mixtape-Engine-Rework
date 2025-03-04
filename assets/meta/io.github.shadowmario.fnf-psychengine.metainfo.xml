@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.z11coding.fnf-mixtapeengine</id>
-  <launchable type="desktop-id">io.github.z11coding.fnf-mixtapeengine.desktop</launchable>
-  <name>MixtapeEngine</name>
-  <developer id="github.com/z11coding">
-    <name>Z11Coding</name>
-    <contact>https://github.com/Z11Coding/</contact>
+  <id>io.github.shadowmario.fnf-psychengine</id>
+  <launchable type="desktop-id">io.github.shadowmario.fnf-psychengine.desktop</launchable>
+  <name>PsychEngine</name>
+  <developer id="github.com/shadowmario">
+    <name>ShadowMario</name>
+    <contact>https://github.com/ShadowMario/</contact>
   </developer>
   <summary>Desktop implementation of Friday Night Funkin'</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>Apache-2.0</project_license>
-  <url type="homepage">https://github.com/Z11Coding/Z11-s-Modpack-Mixup</url>
+  <url type="homepage">https://github.com/ShadowMario/FNF-PsychEngine</url>
   <description>
-      <p>funny engine haha</p>
+      <p>Engine originally used on the Mind Games Mod for Friday Night Funkin', intended to be a fix for the vanilla version's
+          many issues while keeping the casual play aspect of it. Also aiming to be an easier alternative to newbie developers
+          wanting to make their own variants.</p>
   </description>
   <screenshots>
     <screenshot type="default">
@@ -61,5 +63,5 @@
     <content_attribute id="language-profanity">moderate</content_attribute>
     <content_attribute id="language-humor">intense</content_attribute>
   </content_rating>
-  <update_contact>https://github.com/Z11Coding/Z11-s-Modpack-Mixup</update_contact>
+  <update_contact>https://github.com/ShadowMario/FNF-PsychEngine</update_contact>
 </component>

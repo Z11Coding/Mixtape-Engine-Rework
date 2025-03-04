@@ -6,6 +6,9 @@ import objects.playfields.NoteField;
 import flixel.math.FlxPoint;
 import flixel.FlxSprite;
 import backend.math.Vector3;
+import objects.StrumNote;
+import objects.Note;
+import objects.NoteObject;
 // Based on Schmovin' and Andromeda's modifier systems
 
 enum ModifierType {

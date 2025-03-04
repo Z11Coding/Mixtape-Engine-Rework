@@ -1,66 +1,81 @@
 package;
 
+#if android
+import android.content.Context;
+#end
+
+import debug.FPSCounter;
+
 import flixel.graphics.FlxGraphic;
 import flixel.FlxGame;
+import flixel.FlxState;
+import haxe.io.Path;
 import openfl.Assets;
 import openfl.Lib;
-import openfl.display.FPS;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.display.StageScaleMode;
 import lime.app.Application;
-import backend.AudioSwitchFix;
-import backend.FunkinRatioScaleMode;
-import backend.MemoryCounter;
+import states.TitleState;
+import psychlua.LuaUtils;
 import haxe.ui.Toolkit;
 import openfl.events.NativeProcessExitEvent;
-import psychlua.*;
-#if linux import lime.graphics.Image; #end
-// crash handler stuff
-#if CRASH_HANDLER
-import openfl.events.UncaughtErrorEvent;
-import haxe.CallStack;
-import haxe.io.Path;
-import sys.FileSystem;
-import sys.io.File;
-import sys.io.Process;
+
+#if HSCRIPT_ALLOWED
+import crowplexus.iris.Iris;
+import psychlua.HScript.HScriptInfos;
 #end
-// Gamejolt
-import backend.gamejolt.GameJolt.GJToastManager;
-import backend.debug.FPSCounter;
-import backend.window.WindowUtils;
+
+#if linux
+import lime.graphics.Image;
+#end
 
 #if desktop
 import backend.ALSoftConfig; // Just to make sure DCE doesn't remove this, since it's not directly referenced anywhere else.
 #end
 
-#if linux
-@:cppInclude('./external/gamemode_client.h')
-@:cppFileCode('
-	#define GAMEMODE_AUTO
-')
+//crash handler stuff
+#if CRASH_HANDLER
+import openfl.events.UncaughtErrorEvent;
+import haxe.CallStack;
+import haxe.io.Path;
 #end
 
-typedef Test ={key:String, value:Int};
+import backend.Highscore;
 
+// NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
+#if (linux && !debug)
+@:cppInclude('./external/gamemode_client.h')
+@:cppFileCode('#define GAMEMODE_AUTO')
+#end
+#if windows
+@:buildXml('
+<target id="haxe">
+	<lib name="wininet.lib" if="windows" />
+	<lib name="dwmapi.lib" if="windows" />
+</target>
+')
+@:cppFileCode('
+#include <windows.h>
+#include <winuser.h>
+#pragma comment(lib, "Shell32.lib")
+extern "C" HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(PCWSTR AppID);
+')
+#end
+// // // // // // // // //
 class Main extends Sprite
 {
 	var game = {
 		width: 1280, // WINDOW width
 		height: 720, // WINDOW height
-		initialState: #if UNDERTALE undertale.BATTLEFIELD #else /*backend.TestState*/ states.FirstCheckState #end, // initial game state
-		zoom: -1.0, // game state bounds
+		initialState: states.FirstCheckState, // initial game state
 		framerate: 60, // default framerate
-		skipSplash: true, // if the default flixel splash screen should be skipped
+		skipSplash: FlxG.random.bool(99), // if the default flixel splash screen should be skipped
 		startFullscreen: false // if the game should start at fullscreen mode
 	};
 
 	public static var cmdArgs:Array<String> = Sys.args();
-	public static var noTerminalColor:Bool = false;
-	public static var playTest:Bool = false;
-	public static var forceGPUOnlyBitmapsOff:Bool = #if windows false #else true #end;
 
-	// public var initStuff = game;
 	public static var fpsVar:FPSCounter;
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
@@ -72,94 +87,37 @@ class Main extends Sprite
 		Lib.current.addChild(new archipelago.console.SideUI());
 	}
 
+	@:dox(hide)
+	public static var audioDisconnected:Bool = false;
+	public static var changeID:Int = 0;
 	public function new()
 	{
 		super();
+		#if windows
+		// DPI Scaling fix for windows 
+		// this shouldn't be needed for other systems
+		// Credit to YoshiCrafter29 for finding this function
+		untyped __cpp__("SetProcessDPIAware();");
+
+		var display = lime.system.System.getDisplay(0);
+		if (display != null) {
+			var dpiScale:Float = display.dpi / 96;
+			Application.current.window.width = Std.int(game.width * dpiScale);
+			Application.current.window.height = Std.int(game.height * dpiScale);
+		}
+		#end
+
 		// Credits to MAJigsaw77 (he's the og author for this code)
 		#if android
 		Sys.setCwd(Path.addTrailingSlash(Context.getExternalFilesDir()));
 		#elseif ios
 		Sys.setCwd(lime.system.System.applicationStorageDirectory);
 		#end
-		if (stage != null)
-		{
-			yutautil.Threader.runInThread(init(), 'init');
-		}
-		else
-		{
-			addEventListener(Event.ADDED_TO_STAGE, init);
-		}
+
 		#if VIDEOS_ALLOWED
-		hxvlc.util.Handle.init();
+		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
 		#end
-	}
 
-	@:dox(hide)
-	public static var audioDisconnected:Bool = false;
-	public static var changeID:Int = 0;
-	public static var scaleMode:FunkinRatioScaleMode;
-
-	private function init(?E:Event):Void
-	{
-		if (hasEventListener(Event.ADDED_TO_STAGE))
-		{
-			removeEventListener(Event.ADDED_TO_STAGE, init);
-		}
-
-		setupGame();
-	}
-
-	public static function dumpObject(graphic:FlxGraphic)
-	{
-		@:privateAccess
-		for (key in FlxG.bitmap._cache.keys())
-		{
-			var obj = FlxG.bitmap._cache.get(key);
-			if (obj != null)
-			{
-				if (obj == graphic)
-				{
-					Assets.cache.removeBitmapData(key);
-					FlxG.bitmap._cache.remove(key);
-					obj.destroy();
-					break;
-				}
-			}
-		}
-	}
-
-	// Gamejolt
-	public static var gjToastManager:GJToastManager;
-
-	// taken from forever engine, cuz optimization very pog.
-	// thank you shubs :)
-	public static function dumpCache()
-	{
-		///* SPECIAL THANKS TO HAYA
-		@:privateAccess
-		for (key in FlxG.bitmap._cache.keys())
-		{
-			var obj = FlxG.bitmap._cache.get(key);
-			if (obj != null)
-			{
-				Assets.cache.removeBitmapData(key);
-				FlxG.bitmap._cache.remove(key);
-				obj.destroy();
-			}
-		}
-		Assets.cache.clear("songs");
-		// */
-	}
-
-	private function setupGame():Void
-	{
-		// trace(StateCollector.collectStates());
-		// trace(StateCollector.collectFlxStates());
-		if (cmdArgs.indexOf('check') != -1)
-		{
-			// kill any running instances of the game
-			Sys.command("taskkill /f /im MixEngine.exe");
-		}
 		backend.window.CppAPI._setWindowLayered();
 		backend.window.CppAPI.darkMode();
 		backend.window.CppAPI.allowHighDPI();
@@ -168,75 +126,91 @@ class Main extends Sprite
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
 
-		var stageWidth:Int = Lib.current.stage.stageWidth;
-		var stageHeight:Int = Lib.current.stage.stageHeight;
-
-		if (game.zoom == -1.0)
-		{
-			var ratioX:Float = stageWidth / game.width;
-			var ratioY:Float = stageHeight / game.height;
-			game.zoom = Math.min(ratioX, ratioY);
-			game.width = Math.ceil(stageWidth / game.zoom);
-			game.height = Math.ceil(stageHeight / game.zoom);
-		}
-
 		#if LUA_ALLOWED
 		Mods.pushGlobalMods();
 		#end
 		Mods.loadTopMod();
 
 		FlxG.save.bind('Mixtape', CoolUtil.getSavePath());
-
 		Highscore.load();
 
 		MemoryUtil.init();
 		WindowUtils.init();
+
 		var commandPrompt = new CommandPrompt();
 		yutautil.Threader.runInThread(commandPrompt.start());
+		#if HSCRIPT_ALLOWED
+		Iris.warn = function(x, ?pos:haxe.PosInfos) {
+			Iris.logLevel(WARN, x, pos);
+			var newPos:HScriptInfos = cast pos;
+			if (newPos.showLine == null) newPos.showLine = true;
+			var msgInfo:String = (newPos.funcName != null ? '(${newPos.funcName}) - ' : '')  + '${newPos.fileName}:';
+			#if LUA_ALLOWED
+			if (newPos.isLua == true) {
+				msgInfo += 'HScript:';
+				newPos.showLine = false;
+			}
+			#end
+			if (newPos.showLine == true) {
+				msgInfo += '${newPos.lineNumber}:';
+			}
+			msgInfo += ' $x';
+			if (PlayState.instance != null)
+				PlayState.instance.addTextToDebug('WARNING: $msgInfo', FlxColor.YELLOW);
+		}
+		Iris.error = function(x, ?pos:haxe.PosInfos) {
+			Iris.logLevel(ERROR, x, pos);
+			var newPos:HScriptInfos = cast pos;
+			if (newPos.showLine == null) newPos.showLine = true;
+			var msgInfo:String = (newPos.funcName != null ? '(${newPos.funcName}) - ' : '')  + '${newPos.fileName}:';
+			#if LUA_ALLOWED
+			if (newPos.isLua == true) {
+				msgInfo += 'HScript:';
+				newPos.showLine = false;
+			}
+			#end
+			if (newPos.showLine == true) {
+				msgInfo += '${newPos.lineNumber}:';
+			}
+			msgInfo += ' $x';
+			if (PlayState.instance != null)
+				PlayState.instance.addTextToDebug('ERROR: $msgInfo', FlxColor.RED);
+		}
+		Iris.fatal = function(x, ?pos:haxe.PosInfos) {
+			Iris.logLevel(FATAL, x, pos);
+			var newPos:HScriptInfos = cast pos;
+			if (newPos.showLine == null) newPos.showLine = true;
+			var msgInfo:String = (newPos.funcName != null ? '(${newPos.funcName}) - ' : '')  + '${newPos.fileName}:';
+			#if LUA_ALLOWED
+			if (newPos.isLua == true) {
+				msgInfo += 'HScript:';
+				newPos.showLine = false;
+			}
+			#end
+			if (newPos.showLine == true) {
+				msgInfo += '${newPos.lineNumber}:';
+			}
+			msgInfo += ' $x';
+			if (PlayState.instance != null)
+				PlayState.instance.addTextToDebug('FATAL: $msgInfo', 0xFFBB0000);
+		}
+		#end
+
 		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(psychlua.CallbackHandler.call)); #end
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
-		try
-		{
-			addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
-				game.skipSplash, game.startFullscreen));
-		}
-		catch (e:haxe.Exception)
-		{
-			addChild(new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
-				game.skipSplash, game.startFullscreen));
-		}
+		addChild(new FlxGame(game.width, game.height, game.initialState, game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
 
-		ClientPrefs.loadPrefs();
-		AudioSwitchFix.init();
-		WindowUtils.onClosing = function()
-		{
-			if (commandPrompt != null)
-				commandPrompt.active = false;
-			commandPrompt = null;
-			handleStateBasedClosing();
-		}
-		FlxG.signals.preStateSwitch.add(onStateSwitch);
-		FlxGraphic.defaultPersist = false;
 		#if !mobile
 		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);
 		addChild(fpsVar);
-		// memoryCounter = new MemoryCounter(10, 3, 0xffffff);
-		// addChild(memoryCounter);
 		Lib.current.stage.align = "tl";
 		Lib.current.stage.scaleMode = StageScaleMode.NO_SCALE;
-		if (fpsVar != null)
-		{
+		if(fpsVar != null) {
 			fpsVar.visible = ClientPrefs.data.showFPS;
 		}
-		/*if (memoryCounter != null)
-			{
-				memoryCounter.visible = ClientPrefs.data.showFPS;
-		}*/
 		#end
-
-		FlxG.scaleMode = scaleMode = new FunkinRatioScaleMode();
 
 		#if linux
 		var icon = Image.fromFile("icon.png");
@@ -248,6 +222,10 @@ class Main extends Sprite
 		FlxG.mouse.visible = false;
 		#end
 
+		FlxG.fixedTimestep = false;
+		FlxG.game.focusLostFramerate = 60;
+		FlxG.keys.preventDefaultKeys = [TAB];
+		
 		#if CRASH_HANDLER
 		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
 		#if cpp
@@ -260,10 +238,6 @@ class Main extends Sprite
 		#end
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
-		stage.window.onDropFile.add(function(path:String)
-		{
-			trace("user dropped file with path: " + path);
-		});
 
 		// shader coords fix
 		FlxG.signals.gameResized.add((w, h) -> resetSpriteCaches());
@@ -273,8 +247,14 @@ class Main extends Sprite
 		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
 		#end
 
-		gjToastManager = new GJToastManager();
-		addChild(gjToastManager);
+		WindowUtils.onClosing = function()
+		{
+			if (commandPrompt != null)
+				commandPrompt.active = false;
+			commandPrompt = null;
+			handleStateBasedClosing();
+		}
+
 		backend.modules.EvacuateDebugPlugin.initialize();
 		backend.modules.ForceCrashPlugin.initialize();
 		backend.modules.MemoryGCPlugin.initialize();
@@ -290,36 +270,12 @@ class Main extends Sprite
 			resetSpriteCache(FlxG.game);
 	}
 
-	public static function dummy():Void
-	{
-	}
-
-	static function resetSpriteCache(sprite:Sprite):Void
-	{
+	static function resetSpriteCache(sprite:Sprite):Void {
 		@:privateAccess {
-			sprite.__cacheBitmap = null;
+		        sprite.__cacheBitmap = null;
 			sprite.__cacheBitmapData = null;
 		}
 	}
-
-	private static function onStateSwitch()
-	{
-		scaleMode.resetSize();
-	}
-
-	public function getFPS():Float
-	{
-		return fpsCounter.currentFPS;
-	}
-
-	public static var memoryCounter:MemoryCounter;
-
-	public static function toggleMem(memEnabled:Bool):Void
-	{
-		memoryCounter.visible = memEnabled;
-	}
-
-	public static var fpsCounter:FPS;
 
 	public static function onClosing(e:Event):Void
 	{
@@ -394,7 +350,11 @@ class Main extends Sprite
 		}
 
 		errMsg += "\nUncaught Error: " + e.error;
-		errMsg += "\nPlease report this error to the GitHub page: https://github.com/Z11Coding/Mixtape-Engine\n\n> Crash Handler written by: sqirra-rng\n> Crash prevented!";
+		// remove if you're modding and want the crash log message to contain the link
+		// please remember to actually modify the link for the github page to report the issues to.
+		errMsg += "\nPlease report this error to the GitHub page: https://github.com/Z11Gaming/Mixtape-Engine-Rework";
+		errMsg += "\n\n> Crash Handler written by: sqirra-rng";
+		errMsg += "\n\n> Modified by: Yutamon";
 
 		if (!FileSystem.exists("./crash/"))
 			FileSystem.createDirectory("./crash/");
@@ -420,10 +380,6 @@ class Main extends Sprite
 					if (PlayState.isStoryMode)
 					{
 						FlxG.switchState(new states.StoryMenuState());
-					}
-					else if (PlayState.CacheMode)
-					{
-						FlxG.resetState();
 					}
 					else
 					{
@@ -527,113 +483,13 @@ class Main extends Sprite
 					dummy();
 			}
 		}
-		TransitionState.currenttransition = null;
-		if (TransitionState.isTransitioning)
-		{
-			TransitionState.isTransitioning = false;
-		}
-		if (TransitionState.requiredTransition != null)
-		{
-			TransitionState.transitionState(TransitionState.requiredTransition.targetState, TransitionState.requiredTransition.args, true);
-		}
+		//FlxG.switchState(TransitionState.requiredTransition.targetState);
 	}
 	#end
 
-	public static function simulateMemoryLeak():Void
+	public static function dummy():Void
 	{
-		var list:Array<Dynamic> = [];
-		var cycleCount:Int = 0;
-		while (cycleCount < 100)
-		{
-			// Continuously add large objects to the list without ever clearing it
-			var array:Array<Int> = [];
-			for (i in 0...1000000)
-			{
-				array.push(i);
-			}
-			list.push({data: array});
-			cycleCount++;
-		}
 	}
-
-	public static function simulateCrash():Void
-	{
-		// Simulate a crash by dividing by zero
-		var zero:Int = 0;
-		var result:Float = 10 / zero;
-	}
-
-	public static function simulateSlowdown():Void
-	{
-		var cycleCount:Int = 0;
-		while (cycleCount < 100)
-		{
-			// Perform a large number of unnecessary calculations in a tight loop
-			for (i in 0...1000000)
-			{
-				Math.sin(Math.random());
-			}
-			cycleCount++;
-		}
-	}
-
-	public static function simulateFrequentCalls():Void
-	{
-		var itemChancesMap:Map<Dynamic, Float> = new Map<Dynamic, Float>();
-		itemChancesMap.set("Option1", 0.5);
-		itemChancesMap.set("Option2", 0.5);
-
-		for (i in 0...10000)
-		{ // Frequent calls
-			var selectedOption = ChanceSelector.selectFromMap(itemChancesMap);
-		}
-		trace("Completed frequent calls to selectFromMap");
-	}
-
-	public static function simulateIntenseMaps():Void
-	{
-		var numMaps:Int = Std.int(Math.random() * 10 + 1); // Random number of maps between 1 and 10
-		var maps:Array<Chance> = [];
-
-		for (i in 0...numMaps)
-		{
-			var chance:Float = Math.random() * 99999999; // Random chance value between 0 and 99999999
-			maps.push({item: "Map" + i, chance: chance});
-		}
-
-		var selectedMap = ChanceSelector.selectFromOptions(maps);
-		trace("Selected map from random maps:", selectedMap);
-	}
-
-	public static function simulateLargeOptions():Void
-	{
-		var largeOptions:Array<Chance> = [];
-		for (i in 0...100000)
-		{ // Large number of options
-			largeOptions.push({item: "Option" + i, chance: Math.random()});
-		}
-		var selectedOption = ChanceSelector.selectFromOptions(largeOptions);
-		trace("Selected option from large options:", selectedOption);
-	}
-
-	public static function simulateLargeJSONCache():Void
-	{
-		/*
-		var largeJSONCache = new haxe.ds.StringMap<Dynamic>();
-		for (i in 0...100000)
-		{ // Large number of JSON files
-			largeJSONCache.set("file" + i, {data: "Some data for file " + i});
-		}
-		for (key in largeJSONCache.keys())
-		{
-			JSONCache.addToCache(largeJSONCache.get(key));
-		}*/
-	}
-}
-
-class GlobalResources
-{
-	public static var jsonFilePaths:Array<String> = [];
 }
 
 typedef Boolean = Bool;
@@ -767,7 +623,6 @@ class CommandPrompt
 
 		// Now finalArgs contains the correctly combined arguments
 		// You can proceed with using finalArgs as needed
-
 		switch (command)
 		{
 			case "switchState":
@@ -833,27 +688,6 @@ class CommandPrompt
 				{
 					print("Error: debugMenu does not accept any arguments.");
 				}
-			case "forceSecret":
-				if (args.length == 1)
-				{
-					states.MainMenuState.secretOverride = args[0];
-					this.switchState("states.MainMenuState");
-				}
-				else
-				{
-					print("Error: forceSecret requires exactly one argument.");
-				}
-			// case "stopThread":
-			// 	if (args.length == 1) {
-			// 		Threader.stopThread(args[0]);
-			// 	} else {
-			// 		print("Error: stopThread requires exactly one argument.");
-			// 	}
-			// case "listThreads":
-			// 	var threads:Array<String> = Threader.listThreads();
-			// 	for (thread in threads) {
-			// 		print("Thread: " + thread);
-			// 	}
 
 			case "playSong":
 				var songName = args[0];
@@ -923,127 +757,6 @@ class CommandPrompt
 
 					FlxG.state.openSubState(new substates.DiffSubState());
 				}
-
-			// case "playSongLoose":
-			// 	var songName = args[0];
-			// 	var song = Paths.formatToSongPath(songName);
-			// 	var songChoices:Array<String> = [];
-			// 	var listChoices:Array<String> = [];
-			// 	var difficulties = backend.Paths.crawlMulti([
-			// 		'assets/data/$songName',
-			// 		'assets/shared/data/$songName',
-			// 		'mods/data/$songName'
-			// 	].concat(Mods.getModDirectories().map(dir -> '$dir/data/$songName')), 'json', []);
-			// 	var foundSongs:Map<String, Array<String>> = new Map();
-			// 	for (difficulty in difficulties)
-			// 	{
-			// 		var fileName = Path.withoutDirectory(difficulty);
-			// 		var baseName = fileName.split("-")[0];
-			// 		if (!foundSongs.exists(baseName))
-			// 		{
-			// 			foundSongs.set(baseName, []);
-			// 		}
-			// 		foundSongs.get(baseName).push(fileName.replace(".json", ""));
-			// 	}
-			// 	if (foundSongs.keys().length == 0)
-			// 	{
-			// 		GlobalException.throwGlobally("No songs found.", null, true);
-			// 	}
-			// 	for (song in foundSongs.keys())
-			// 	{
-			// 		songChoices.push(song);
-			// 		listChoices.push(song);
-			// 		print("Song: " + song);
-			// 		for (difficulty in foundSongs.get(song))
-			// 		{
-			// 			print("  Difficulty: " + difficulty);
-			// 		}
-			// 	}
-			// 	if (song != null)
-			// 	{
-			// 		substates.DiffSubState.songChoices = songChoices;
-			// 		substates.DiffSubState.listChoices = listChoices;
-			// 		backend.Difficulty.list = foundSongs.get(songName);
-
-			// 		// Check if the camera is in the default position
-			// 		var defaultCameraPosition = {x: 0, y: 0};
-			// 		if (FlxG.camera.scroll.x != defaultCameraPosition.x || FlxG.camera.scroll.y != defaultCameraPosition.y)
-			// 		{
-			// 			// Tween quickly to the default position
-			// 			FlxTween.tween(FlxG.camera.scroll, {x: defaultCameraPosition.x, y: defaultCameraPosition.y}, 0.5, {ease: FlxEase.quadOut});
-			// 		}
-
-			// 		FlxG.state.openSubState(new substates.DiffSubState());
-			// 	}
-				// case "do":
-				// 	if (args.length >= 2) {
-				// 		var subCommand = args[0];
-				// 		var code = args.slice(1).join(" ");
-						
-				// 		switch (subCommand) {
-				// 			case "hx", "haxe", "code":
-				// 				try {
-				// 					haxe.macro.Context.eval(code);
-				// 					print("Executed code: " + code);
-				// 				} catch (e:haxe.Exception) {
-				// 					print("Error executing code: " + e.toString());
-				// 				}
-								
-					// 		case "func":
-					// 			var funcName = args[1];
-					// 			var funcArgs = args.slice(2);
-								
-					// 			// Check for different function call formats
-					// 			if (funcArgs.length == 1 && funcArgs[0].startsWith("(") && funcArgs[0].endsWith(")")) {
-					// 				// Format: func(arg, arg)
-					// 				try {
-					// 					var func = Reflect.field(this, funcName);
-					// 					if (func != null && Reflect.isFunction(func)) {
-					// 						var callArgs = funcArgs[0].substring(1, funcArgs[0].length - 1).split(",");
-					// 						Reflect.callMethod(this, func, callArgs);
-					// 						print("Executed function: " + funcName + " with arguments: " + callArgs.join(", "));
-					// 					} else {
-					// 						print("Error: Function " + funcName + " not found.");
-					// 					}
-					// 				} catch (e:haxe.Exception) {
-					// 					print("Error executing function: " + e.toString());
-					// 				}
-					// 			} else if (funcArgs.length > 0 && funcArgs[0] == "()") {
-					// 				// Format: func() arg arg
-					// 				try {
-					// 					var func = Reflect.field(this, funcName);
-					// 					if (func != null && Reflect.isFunction(func)) {
-					// 						Reflect.callMethod(this, func, funcArgs.slice(1));
-					// 						print("Executed function: " + funcName + " with arguments: " + funcArgs.slice(1).join(", "));
-					// 					} else {
-					// 						print("Error: Function " + funcName + " not found.");
-					// 					}
-					// 				} catch (e:haxe.Exception) {
-					// 					print("Error executing function: " + e.toString());
-					// 				}
-					// 			} else if (funcArgs.length > 0) {
-					// 				// Format: func arg arg
-					// 				try {
-					// 					var func = Reflect.field(this, funcName);
-					// 					if (func != null && Reflect.isFunction(func)) {
-					// 						Reflect.callMethod(this, func, funcArgs);
-					// 						print("Executed function: " + funcName + " with arguments: " + funcArgs.join(", "));
-					// 					} else {
-					// 						print("Error: Function " + funcName + " not found.");
-					// 					}
-					// 				} catch (e:haxe.Exception) {
-					// 					print("Error executing function: " + e.toString());
-					// 				}
-					// 			} else {
-					// 				print("Error: Invalid function call format.");
-					// 			}
-								
-					// 		default:
-					// 			print("Error: Unknown sub-command for 'do'.");
-					// 	}
-					// } else {
-					// 	print("Error: 'do' requires at least two arguments.");
-					// }
 					
 			default:
 				if (args.length == 2 && args[1] == '=')

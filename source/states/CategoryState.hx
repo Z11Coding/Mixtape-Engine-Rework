@@ -2,12 +2,16 @@ package states;
 import flixel.input.keyboard.FlxKey;
 import flixel.addons.transition.FlxTransitionableState;
 import backend.WeekData;
+import yutautil.ChanceSelector.Chance;
+
+using yutautil.CollectionUtils;
 
 typedef Category = {
 	var name:String;
 	var transition:Void -> Void;
 	var isLocked:Bool;
 }
+
 class CategoryState extends MusicBeatState
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
@@ -210,7 +214,7 @@ class CategoryState extends MusicBeatState
 				lock.animation.addByPrefix('lock', 'lock');
 				lock.animation.play('lock');
 				lock.ID = i;
-				lock.antialiasing = ClientPrefs.data.globalAntialiasing;
+				lock.antialiasing = ClientPrefs.data.antialiasing;
 				grpLocks.add(lock);	
 			}
 		}

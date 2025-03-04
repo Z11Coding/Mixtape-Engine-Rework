@@ -1,8 +1,8 @@
 package yutautil.save;
 
 import sys.io.File;
-
 using yutautil.save.MixSave;
+using yutautil.CollectionUtils;
 
 enum OutputType {
     MixSaveWrapperType;

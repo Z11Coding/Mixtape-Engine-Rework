@@ -24,7 +24,7 @@ class ProxyField extends FieldBase {
 	@:allow(objects.playfields.NotefieldRenderer)
 	var proxiedField:NoteField;
 
-	public function new(field:NoteField){
+	public function new(field:NoteField) {
 		super(0,0);
 		proxiedField = field;
 	}

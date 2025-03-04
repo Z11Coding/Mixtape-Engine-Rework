@@ -53,7 +53,7 @@ class NoteObject extends FlxSprite {
 
 	override function drawComplex(camera:FlxCamera):Void
 	{
-		prepareMatrix(camera);
+		drawComplex(camera);
 		camera.drawPixels(_frame, framePixels, _matrix, colorTransform, blend, antialiasing, shader, colorSwap);
 	}
 

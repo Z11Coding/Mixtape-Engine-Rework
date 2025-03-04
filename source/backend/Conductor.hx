@@ -16,15 +16,18 @@ class Conductor
 	public static var bpm(default, set):Float = 100;
 	public static var crochet:Float = ((60 / bpm) * 1000); // beats in milliseconds
 	public static var stepCrochet:Float = crochet / 4; // steps in milliseconds
-	public static var visualPosition:Float = 0;
-	public static var lastSongPos:Float;
 	public static var songPosition:Float = 0;
+	public static var visualPosition:Float = 0;
 	public static var offset:Float = 0;
 
 	//public static var safeFrames:Int = 10;
 	public static var safeZoneOffset:Float = 0; // is calculated in create(), is safeFrames in milliseconds
-
 	public static var bpmChangeMap:Array<BPMChangeEvent> = [];
+
+	private inline static final _internalJackLimit:Float = 192 / 16;
+	public static var jackLimit(get, default):Float = -1;
+	@:noCompletion static function get_jackLimit()
+		return (jackLimit < 0) ? (jackLimit = Conductor.stepCrochet / _internalJackLimit) : jackLimit;
 
 	public static function judgeNote(arr:Array<Rating>, diff:Float=0):Rating // die
 	{
@@ -138,6 +141,7 @@ class Conductor
 
 	public static function set_bpm(newBPM:Float):Float {
 		bpm = newBPM;
+		jackLimit = -1;
 		crochet = calculateCrochet(bpm);
 		stepCrochet = crochet / 4;
 

@@ -71,7 +71,7 @@ class DiffSubState extends MusicBeatSubstate
 			pausebg.scrollFactor.set();
 			pausebg.updateHitbox();
 			pausebg.screenCenter();
-			pausebg.antialiasing = ClientPrefs.data.globalAntialiasing;
+			pausebg.antialiasing = ClientPrefs.data.antialiasing;
 			add(pausebg);
 			pausebg.x += 200;
 			pausebg.y -= 200;
@@ -87,7 +87,7 @@ class DiffSubState extends MusicBeatSubstate
 			pausebg1.scrollFactor.set();
 			pausebg1.updateHitbox();
 			pausebg1.screenCenter();
-			pausebg1.antialiasing = ClientPrefs.data.globalAntialiasing;
+			pausebg1.antialiasing = ClientPrefs.data.antialiasing;
 			add(pausebg1);
 			pausebg1.x -= 150;
 			pausebg1.y += 150;
@@ -103,7 +103,7 @@ class DiffSubState extends MusicBeatSubstate
 			iconBG.scrollFactor.set();
 			iconBG.updateHitbox();
 			iconBG.screenCenter();
-			iconBG.antialiasing = ClientPrefs.data.globalAntialiasing;
+			iconBG.antialiasing = ClientPrefs.data.antialiasing;
 			add(iconBG);
 			iconBG.x += 100;
 			iconBG.y += 100;

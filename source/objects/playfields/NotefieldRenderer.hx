@@ -8,6 +8,7 @@ import objects.playfields.NoteField;
 import objects.playfields.FieldBase;
 import objects.proxies.ProxyField;
 import flixel.util.FlxSort;
+import flixel.FlxBasic;
 @:structInit
 class FinalRenderObject extends RenderObject {
 	public var sourceField:FieldBase;

@@ -1,5 +1,5 @@
 package states;
-import states.stages.objects.*;
+import states.SplashScreen.SplashGlowParticle;
 
 class What extends MusicBeatState 
 {
@@ -21,7 +21,7 @@ class What extends MusicBeatState
     var what:FlxSound;
     var whatGrad:FlxSprite;
     var whatLogo:FlxSprite;
-    var phillyGlowParticles:FlxTypedGroup<PhillyGlowParticle>;
+    var phillyGlowParticles:FlxTypedGroup<SplashGlowParticle>;
 
     override public function create()
     {
@@ -81,7 +81,7 @@ class What extends MusicBeatState
         what5.y += 200;
         what5.alpha = 0;
         add(what5);
-        phillyGlowParticles = new FlxTypedGroup<PhillyGlowParticle>();
+        phillyGlowParticles = new FlxTypedGroup<SplashGlowParticle>();
         phillyGlowParticles.visible = true;
         add(phillyGlowParticles);
         what = new FlxSound().loadEmbedded(Paths.sound('WHAT_STARTUP'));
@@ -118,7 +118,7 @@ class What extends MusicBeatState
             {
                 for (i in 0...particlesNum)
                 {
-                    var particle:PhillyGlowParticle = new PhillyGlowParticle(-400 + width * i + FlxG.random.float(-width / 5, width / 5), 400 + 200 + (FlxG.random.float(0, 125) + j * 40), color);
+                    var particle:SplashGlowParticle = new SplashGlowParticle(-400 + width * i + FlxG.random.float(-width / 5, width / 5), 400 + 200 + (FlxG.random.float(0, 125) + j * 40), color);
                     phillyGlowParticles.add(particle);
                 }
             }

@@ -24,7 +24,7 @@ class SplashScreen extends MusicBeatState
     var splashSound:FlxSound;
     var splashGrad:FlxSprite;
     var mixtapeLogo:FlxSprite;
-    var phillyGlowParticles:FlxTypedGroup<PhillyGlowParticle>;
+    var splashGlowParticles:FlxTypedGroup<SplashGlowParticle>;
     var initX:Float;
 
     override public function create()
@@ -83,9 +83,9 @@ class SplashScreen extends MusicBeatState
         tape.y = mixtapeEngine.y;
         engine.y = mixtapeEngine.y;
 
-        phillyGlowParticles = new FlxTypedGroup<PhillyGlowParticle>();
-        phillyGlowParticles.visible = true;
-        add(phillyGlowParticles);
+        splashGlowParticles = new FlxTypedGroup<SplashGlowParticle>();
+        splashGlowParticles.visible = true;
+        add(splashGlowParticles);
 
         splashSound = new FlxSound().loadEmbedded(Paths.sound('You Win'));
         splashSound.volume = 0.5;
@@ -114,8 +114,8 @@ class SplashScreen extends MusicBeatState
         {
             for (i in 0...particlesNum)
             {
-                var particle:PhillyGlowParticle = new PhillyGlowParticle(-400 + width * i + FlxG.random.float(-width / 5, width / 5), 400 + 200 + (FlxG.random.float(0, 125) + j * 40), color);
-                phillyGlowParticles.add(particle);
+                var particle:SplashGlowParticle = new SplashGlowParticle(-400 + width * i + FlxG.random.float(-width / 5, width / 5), 400 + 200 + (FlxG.random.float(0, 125) + j * 40), color);
+                splashGlowParticles.add(particle);
             }
         }
         splashTA = FlxTween.tween(splashGrad, {alpha: 0}, 1, {ease: FlxEase.expoInOut});
@@ -205,16 +205,16 @@ class SplashScreen extends MusicBeatState
             FlxG.switchState(FirstCheckState.relaunch ? new MainMenuState() : new TitleState());
             splashSound.stop();
         }
-        if(phillyGlowParticles != null)
+        if(splashGlowParticles != null)
         {
-            var i:Int = phillyGlowParticles.members.length-1;
+            var i:Int = splashGlowParticles.members.length-1;
             while (i > 0)
             {
-                var particle = phillyGlowParticles.members[i];
+                var particle = splashGlowParticles.members[i];
                 if(particle.alpha <= 0)
                 {
                     particle.kill();
-                    phillyGlowParticles.remove(particle, true);
+                    splashGlowParticles.remove(particle, true);
                     particle.destroy();
                 }
                 --i;
@@ -222,4 +222,48 @@ class SplashScreen extends MusicBeatState
         }
         super.update(e);
     }
+}
+
+class SplashGlowParticle extends FlxSprite
+{
+	var lifeTime:Float = 0;
+	var decay:Float = 0;
+	var originalScale:Float = 1;
+	public function new(x:Float = 0, y:Float = 0, color:FlxColor = FlxColor.WHITE)
+	{
+		super(x, y);
+		this.color = color;
+
+		loadGraphic(Paths.image('effects/particle'));
+		lifeTime = FlxG.random.float(0.6, 0.9);
+		decay = FlxG.random.float(0.8, 1);
+		if(!ClientPrefs.data.flashing)
+		{
+			decay *= 0.5;
+			alpha = 0.5;
+		}
+
+		originalScale = FlxG.random.float(0.75, 1);
+		scale.set(originalScale, originalScale);
+
+		scrollFactor.set(FlxG.random.float(0.3, 0.75), FlxG.random.float(0.65, 0.75));
+		velocity.set(FlxG.random.float(-40, 40), FlxG.random.float(-175, -250));
+		acceleration.set(FlxG.random.float(-10, 10), 25);
+		antialiasing = ClientPrefs.data.antialiasing;
+	}
+
+	override function update(elapsed:Float)
+	{
+		lifeTime -= elapsed;
+		if(lifeTime < 0)
+		{
+			lifeTime = 0;
+			alpha -= decay * elapsed;
+			if(alpha > 0)
+			{
+				scale.set(originalScale * alpha, originalScale * alpha);
+			}
+		}
+		super.update(elapsed);
+	}
 }

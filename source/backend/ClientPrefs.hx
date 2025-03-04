@@ -4,68 +4,27 @@ import flixel.util.FlxSave;
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
-import states.FirstCheckState;
+import states.TitleState;
 
 // Add a variable here and it will get automatically saved
 @:structInit class SaveVariables {
-	public var showCrash:Bool = true;
 	public var downScroll:Bool = false;
-	public var silentVol:Bool = false;
-	public var noParticles:Bool = false;
-	public var modcharts:Bool = true;
-	public var loadCustomNoteGraphicschartEditor:Bool = false;
-	public var musicPreload2:Bool = false;
-	public var graphicsPreload2:Bool = false;
-	public var experimentalCaching:Bool = false;
-	public var saveCache:Bool = false;
-	public var cacheCharts:Bool = false;
-	public var shaders:Bool = true;
-	public var autoPause:Bool = true;
-	public var drain:Bool = true;
-	public var username:Bool = false;
-	public var beatSky:Bool = false;
 	public var middleScroll:Bool = false;
+	public var opponentStrums:Bool = true;
 	public var showFPS:Bool = true;
 	public var flashing:Bool = true;
-	public var globalAntialiasing:Bool = true;
-	public var noteSplashes:Bool = true;
+	public var autoPause:Bool = true;
+	public var antialiasing:Bool = true;
+	public var noteSkin:String = 'Default';
+	public var splashSkin:String = 'Psych';
+	public var splashAlpha:Float = 0.6;
 	public var lowQuality:Bool = false;
+	public var shaders:Bool = true;
+	public var cacheOnGPU:Bool = #if !switch false #else true #end; // GPU Caching made by Raltyro
 	public var framerate:Int = 60;
-	public var cursing:Bool = true;
-	public var violence:Bool = true;
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
-	public var wife3:Bool = true;
-	public var cacheOnGPU:Bool = false;
-	public var checkForUpdates:Bool = true;
-	public var gimmicksAllowed:Bool = true;
-	public var opponentStrums:Bool = true;
-	public var drawDistanceModifier:Float = 1;
-	public var holdSubdivs:Float = 2;
-	public var optimizeHolds:Bool = true;
-	public var gotit:Bool = false;
-	public var inGameRatings:Bool = false;
 	public var noteOffset:Int = 0;
-	public var progression:Int = 0;
-	public var videoPreload2:Bool = false;
-	public var enableArtemis:Bool = false;
-	public var noAntimash:Bool = false;
-	public var doubleGhosts:Bool = true;
-	public var mixupMode:Bool = false;
-	public var aiDifficulty:String = 'Average FNF Player';
-	public var splashAlpha:Float = 0.6;
-	public var splashSkin:String = 'Psych';
-	public var arrowHSV:Array<Array<Int>> = [
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0],
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0], 
-		[0, 0, 0], [0, 0, 0]
-	];
 	public var arrowRGB:Array<Array<FlxColor>> = [
 		[0xFFC24B99, 0xFFFFFFFF, 0xFF3C1F56],
 		[0xFF00FFFF, 0xFFFFFFFF, 0xFF1542B7],
@@ -76,7 +35,6 @@ import states.FirstCheckState;
 		[0xFF3DCAFF, 0xFFF4FFFF, 0xFF003060],
 		[0xFF71E300, 0xFFF6FFE6, 0xFF003100],
 		[0xFFFF884E, 0xFFFFFAF5, 0xFF6C0000]];
-
 	public var arrowRGBExtra:Array<Array<FlxColor>> = [
 		[0xFFC24B99, 0xFFFFFFFF, 0xFF3C1F56],
 		[0xFF00FFFF, 0xFFFFFFFF, 0xFF1542B7],
@@ -106,29 +64,16 @@ import states.FirstCheckState;
 		[0xFFB055BC, 0xFFf4f4ff, 0xFF4D0060],
 		[0xFFdf3e23, 0xFFffe6e9, 0xFF440000],
 		[0xFF2F69E5, 0xFFf5f5ff, 0xFF000F5D]];
-	public var imagesPersist:Bool = false;
+
 	public var ghostTapping:Bool = true;
 	public var timeBarType:String = 'Time Left';
 	public var scoreZoom:Bool = true;
 	public var noReset:Bool = false;
 	public var healthBarAlpha:Float = 1;
-	public var controllerMode:Bool = false;
-	public var comboStacking:Bool = false;
 	public var hitsoundVolume:Float = 0;
 	public var pauseMusic:String = 'Tea Time';
-	public var uiSkin:String = 'Mixtape Engine';
-	public var noteSkin:String = 'Default';
-	public var pauseBPM:Int = 105;
-	public var antimash:Bool = true;
-	public var convertEK:Bool = true;
-	public var showKeybindsOnStart:Bool = true;
-	public var starHidden:Bool = false;
-	#if MULTICORE_LOADING
-	public var multicoreLoading:Bool = false;
-	#end
-	public var songVolume:Int = 1;
-	public var masterVolume:Int = 1;
-	public var sfxVolume:Int = 1;
+	public var checkForUpdates:Bool = true;
+	public var comboStacking:Bool = true;
 	public var gameplaySettings:Map<String, Dynamic> = [
 		'scrollspeed' => 1.0,
 		'scrolltype' => 'multiplicative', 
@@ -141,6 +86,7 @@ import states.FirstCheckState;
 		// oh yeah and you'd have to actually convert the difference to seconds which I already do, because this is based on beats and stuff. but it should work
 		// just fine. but I wont implement it because I don't know how you handle sustains and other stuff like that.
 		// oh yeah when you calculate the bps divide it by the songSpeed or rate because it wont scroll correctly when speeds exist.
+		// -kade
 		'songspeed' => 1.0,
 		'randomspeedchange' => false,
 		'healthgain' => 1.0,
@@ -160,34 +106,44 @@ import states.FirstCheckState;
 		'loopPlayMult' => 1.05,
 		'bothMode' => false,
 	];
-	public var inputSystem:String = 'Native';
-	public var volUp:String = 'Volup';
-	public var volDown:String = 'Voldown';
-	public var volMax:String = 'VolMAX';
 
-	public var comboOffset:Array<Int> = [0, 0, 0, 0, 0];
+	public var comboOffset:Array<Int> = [0, 0, 0, 0];
 	public var ratingOffset:Int = 0;
 	public var marvWindow:Int = 22;
 	public var sickWindow:Int = 45;
 	public var goodWindow:Int = 90;
 	public var badWindow:Int = 135;
 	public var safeFrames:Float = 10;
-	public var useMarvs:Bool = true;
 	public var guitarHeroSustains:Bool = true;
 	public var discordRPC:Bool = true;
-	public var audioBreak:Bool = false;
 	public var loadingScreen:Bool = true;
 	public var language:String = 'en-US';
 
-	//Arcipelago stuff
-	public var notePopup:Bool = true;
-	public var deathlink:Bool = true;
-
-	public function new()
-	{
-		//Why does haxe needs this again?
-	}
+	#if MULTICORE_LOADING
+	public var multicoreLoading:Bool = false;
+	#end
+	public var useMarvs:Bool = true;
+	public var drain:Bool = true;
+	public var noAntimash:Bool = false;
+	public var modcharts:Bool = true;
+	public var gimmicksAllowed:Bool = true;
+	public var showCrash:Bool = true;
+	public var notePopup:Bool = false;
+	public var audioBreak:Bool = false;
+	public var holdSubdivs:Float = 2;
+	public var drawDistanceModifier:Float = 1;
+	public var optimizeHolds:Bool = true;
+	public var doubleGhosts:Bool = true;
+	public var mixupMode:Bool = false;
+	public var aiDifficulty:String = 'Average FNF Player';
+	public var inputSystem:String = 'Native';
+	public var volUp:String = 'Volup';
+	public var volDown:String = 'Voldown';
+	public var volMax:String = 'VolMAX';
+	public var menuSong:String = 'panixPress';
+	public var username:Bool = false;
 }
+
 class ClientPrefs {
 	public static var data:SaveVariables = {};
 	public static var defaultData:SaveVariables = {};
@@ -400,11 +356,11 @@ class ClientPrefs {
 		'volume_up'		=> [NUMPADPLUS, PLUS],
 		'volume_down'	=> [NUMPADMINUS, MINUS],
 		
-		'debug_1'		=> [SEVEN, NONE],
-		'debug_2'		=> [EIGHT, NONE],
+		'debug_1'		=> [SEVEN],
+		'debug_2'		=> [EIGHT],
 
-		'fullscreen'	=> [F11, NONE],
-		'sidebar'		=> [GRAVEACCENT, NONE],
+		'fullscreen'	=> [F11],
+		'sidebar'		=> [GRAVEACCENT],
 	];
 
 	public static var gamepadBinds:Map<String, Array<FlxGamepadInputID>> = [
@@ -423,6 +379,9 @@ class ClientPrefs {
 		'pause'			=> [START],
 		'reset'			=> [BACK],
 
+		'debug_1'		=> [NONE],
+		'debug_2'		=> [NONE],
+
 		'sidebar'		=> [],
 	];
 	public static var defaultKeys:Map<String, Array<FlxKey>> = null;
@@ -431,31 +390,26 @@ class ClientPrefs {
 	public static function resetKeys(controller:Null<Bool> = null) //Null = both, False = Keyboard, True = Controller
 	{
 		if(controller != true)
-		{
 			for (key in keyBinds.keys())
-			{
 				if(defaultKeys.exists(key))
 					keyBinds.set(key, defaultKeys.get(key).copy());
-			}
-		}
+
 		if(controller != false)
-		{
 			for (button in gamepadBinds.keys())
-			{
 				if(defaultButtons.exists(button))
 					gamepadBinds.set(button, defaultButtons.get(button).copy());
-			}
-		}
 	}
 
-	public static function clearInvalidKeys(key:String) {
+	public static function clearInvalidKeys(key:String)
+	{
 		var keyBind:Array<FlxKey> = keyBinds.get(key);
 		var gamepadBind:Array<FlxGamepadInputID> = gamepadBinds.get(key);
 		while(keyBind != null && keyBind.contains(NONE)) keyBind.remove(NONE);
 		while(gamepadBind != null && gamepadBind.contains(NONE)) gamepadBind.remove(NONE);
 	}
 
-	public static function loadDefaultKeys() {
+	public static function loadDefaultKeys()
+	{
 		defaultKeys = keyBinds.copy();
 		defaultButtons = gamepadBinds.copy();
 	}
@@ -548,121 +502,18 @@ class ClientPrefs {
 		return /*PlayState.isStoryMode ? defaultValue : */ (data.gameplaySettings.exists(name) ? data.gameplaySettings.get(name) : defaultValue);
 	}
 
-	// private static function saveOptionsIni() {
-	// 	var file:sys.io.FileOutput = sys.io.File.write(data.optionsFilePath);
-	// 	if (file != null) {
-	// 		file.writeString("[Keyboard]\n");
-	// 		for (key in keyBinds.keys()) {
-	// 			var keyBind:Array<FlxKey> = keyBinds.get(key);
-	// 			file.writeString(key + "=");
-	// 			for (i in 0...keyBind.length) {
-	// 				file.writeString(keyBind[i].toString());
-	// 				if (i < keyBind.length - 1) {
-	// 					file.writeString(",");
-	// 				}
-	// 			}
-	// 			file.writeString("\n");
-	// 		}
-
-	// 		file.writeString("\n[Gamepad]\n");
-	// 		for (button in gamepadBinds.keys()) {
-	// 			var gamepadBind:Array<FlxGamepadInputID> = gamepadBinds.get(button);
-	// 			file.writeString(button + "=");
-	// 			for (i in 0...gamepadBind.length) {
-	// 				file.writeString(gamepadBind[i].toString());
-	// 				if (i < gamepadBind.length - 1) {
-	// 					file.writeString(",");
-	// 				}
-	// 			}
-	// 			file.writeString("\n");
-	// 		}
-
-	// 		file.close();
-	// 	} else {
-	// 		FlxG.log.add("Failed to save options file!");
-	// 	}
-	// }
-
-	// private static function loadOptionsIni() {
-	// 	var file:sys.io.FileInput = sys.io.File.read(data.optionsFilePath);
-	// 	if (file != null) {
-	// 		var lines:Array<String> = file.readString().split("\n");
-	// 		var section:String = "";
-	// 		for (line in lines) {
-	// 			line = line.trim();
-	// 			if (line.length == 0 || line.charAt(0) == ";") {
-	// 				continue;
-	// 			} else if (line.charAt(0) == "[") {
-	// 				section = line.substring(1, line.length - 1);
-	// 			} else {
-	// 				var parts:Array<String> = line.split("=");
-	// 				if (parts.length == 2) {
-	// 					var key:String = parts[0].trim();
-	// 					var values:Array<String> = parts[1].split(",");
-	// 					if (section == "Keyboard") {
-	// 						var keyBind:Array<FlxKey> = [];
-	// 						for (value in values) {
-	// 							keyBind.push(FlxKey.fromString(value.trim()));
-	// 						}
-	// 						keyBinds.set(key, keyBind);
-	// 					} else if (section == "Gamepad") {
-	// 						var gamepadBind:Array<FlxGamepadInputID> = [];
-	// 						for (value in values) {
-	// 							gamepadBind.push(FlxGamepadInputID.fromString(value.trim()));
-	// 						}
-	// 						gamepadBinds.set(key, gamepadBind);
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 		file.close();
-	// 	} else {
-	// 		FlxG.log.add("Failed to load options file!");
-	// 	}
-	// }
-
-	// private static function saveOptionsJson() {
-	// 	var jsonData:String = haxe.Json.stringify({ keyboard: keyBinds, gamepad: gamepadBinds });
-	// 	var file:sys.io.FileOutput = sys.io.File.write(data.optionsFilePath);
-	// 	if (file != null) {
-	// 		file.writeString(jsonData);
-	// 		file.close();
-	// 	} else {
-	// 		FlxG.log.add("Failed to save options file!");
-	// 	}
-	// }
-
-	// private static function loadOptionsJson() {
-	// 	var file:sys.io.FileInput = sys.io.File.read(data.optionsFilePath);
-	// 	if (file != null) {
-	// 		var jsonData:String = file.readString();
-	// 		var json:Dynamic = haxe.Json.parse(jsonData);
-	// 		if (json != null) {
-	// 			if (json.keyboard != null) {
-	// 				keyBinds = json.keyboard;
-	// 			}
-	// 			if (json.gamepad != null) {
-	// 				gamepadBinds = json.gamepad;
-	// 			}
-	// 		}
-	// 		file.close();
-	// 	} else {
-	// 		FlxG.log.add("Failed to load options file!");
-	// 	}
-	// }
-
-	public static function reloadVolumeKeys() {
-		FirstCheckState.muteKeys = keyBinds.get('volume_mute').copy();
-		FirstCheckState.volumeDownKeys = keyBinds.get('volume_down').copy();
-		FirstCheckState.volumeUpKeys = keyBinds.get('volume_up').copy();
+	public static function reloadVolumeKeys()
+	{
+		TitleState.muteKeys = keyBinds.get('volume_mute').copy();
+		TitleState.volumeDownKeys = keyBinds.get('volume_down').copy();
+		TitleState.volumeUpKeys = keyBinds.get('volume_up').copy();
 		toggleVolumeKeys(true);
 	}
-
 	public static function toggleVolumeKeys(?turnOn:Bool = true)
 	{
 		final emptyArray = [];
-		FlxG.sound.muteKeys = turnOn ? FirstCheckState.muteKeys : emptyArray;
-		FlxG.sound.volumeDownKeys = turnOn ? FirstCheckState.volumeDownKeys : emptyArray;
-		FlxG.sound.volumeUpKeys = turnOn ? FirstCheckState.volumeUpKeys : emptyArray;
+		FlxG.sound.muteKeys = turnOn ? TitleState.muteKeys : emptyArray;
+		FlxG.sound.volumeDownKeys = turnOn ? TitleState.volumeDownKeys : emptyArray;
+		FlxG.sound.volumeUpKeys = turnOn ? TitleState.volumeUpKeys : emptyArray;
 	}
 }

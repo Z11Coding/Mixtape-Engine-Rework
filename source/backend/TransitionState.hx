@@ -84,6 +84,10 @@ class TransitionState {
         if (targetState == states.ExitState) {
             trace("Preparing to exit game...");
             requiredTransition = { targetState: targetState, options: options, args: args, required: true };
+            new FlxTimer().start(3, function(timer:FlxTimer) { 
+                trace("GAME IS STILL OPEN! FORCE CLOSING!");
+                Main.closeGame();
+            });
         }
     
         if (currenttransition != null) {

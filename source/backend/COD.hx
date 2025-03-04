@@ -1,4 +1,5 @@
 package backend;
+import objects.Note;
 class COD
 {
     public static var deathVar:String;

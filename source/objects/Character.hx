@@ -10,7 +10,7 @@ import openfl.utils.Assets;
 import haxe.Json;
 
 import backend.Song;
-import states.stages.objects.TankmenBG;
+import stages.objects.TankmenBG;
 
 typedef CharacterFile = {
 	var animations:Array<AnimArray>;
@@ -18,8 +18,6 @@ typedef CharacterFile = {
 	var scale:Float;
 	var sing_duration:Float;
 	var healthicon:String;
-
-	var score_name:String;
 
 	var position:Array<Float>;
 	var camera_position:Array<Float>;
@@ -53,9 +51,7 @@ class Character extends FlxSprite
 
 	public var isPlayer:Bool = false;
 	public var curCharacter:String = DEFAULT_CHARACTER;
-	public var isMissing:Bool = false;
 
-	public var colorTween:FlxTween;
 	public var holdTimer:Float = 0;
 	public var heyTimer:Float = 0;
 	public var specialAnim:Bool = false;
@@ -66,19 +62,22 @@ class Character extends FlxSprite
 	public var danceIdle:Bool = false; //Character use "danceLeft" and "danceRight" instead of "idle"
 	public var skipDance:Bool = false;
 
-	public var scoreName:String = 'Boyfriend'; //The name for the scores in "Mixup Mode"
-
 	public var healthIcon:String = 'face';
 	public var animationsArray:Array<AnimArray> = [];
 
 	public var positionArray:Array<Float> = [0, 0];
 	public var cameraPosition:Array<Float> = [0, 0];
-	public var healthColorArray:Array<Int> = [0, 0, 0];
+	public var healthColorArray:Array<Int> = [255, 0, 0];
 
 	public var missingCharacter:Bool = false;
 	public var missingText:FlxText;
 	public var hasMissAnimations:Bool = false;
 	public var vocalsFile:String = '';
+
+	public var controlled:Bool = false;
+	public static var animationsLoaded:Bool = false;
+
+	public var invuln:Bool = false;
 
 	//Used on Character Editor
 	public var imageFile:String = '';
@@ -87,16 +86,12 @@ class Character extends FlxSprite
 	public var originalFlipX:Bool = false;
 	public var editorIsPlayer:Null<Bool> = null;
 
-	//Used by playfield
-	public var controlled:Bool = false;
-	public static var animationsLoaded:Bool = false;
-
-	public var invuln:Bool = false;
-	
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
 	{
 		super(x, y);
+
 		animation = new PsychAnimationController(this);
+
 		animOffsets = new Map<String, Array<Dynamic>>();
 		this.isPlayer = isPlayer;
 		changeCharacter(character);
@@ -109,20 +104,6 @@ class Character extends FlxSprite
 				playAnim("shoot1");
 			case 'pico-blazin', 'darnell-blazin':
 				skipDance = true;
-		}
-
-		if (PlayState.instance != null)
-		{
-			switch(Paths.formatToSongPath(Song.loadedSongName))
-			{	
-				case 'fangirl-frenzy':
-					if (curCharacter == "Zenetta" && !animationsLoaded)
-					{
-						trace("Load FF");
-						loadMappedAnimsFF();
-						animationsLoaded = true; // This way it only loads it once
-					}
-			}
 		}
 	}
 
@@ -163,106 +144,6 @@ class Character extends FlxSprite
 		hasMissAnimations = hasAnimation('singLEFTmiss') || hasAnimation('singDOWNmiss') || hasAnimation('singUPmiss') || hasAnimation('singRIGHTmiss');
 		recalculateDanceIdle();
 		dance();
-	}
-
-	public static function parseIndices(indices:Array<Any>):Array<Int>
-	{
-		var parsed:Array<Int> = [];
-
-		for (expr in indices)
-		{
-			if (expr is Int)
-				parsed.push(expr);
-			else if (expr is String)
-			{
-				var expr:String = Std.string(expr);
-				var isRange:Bool = expr.contains("...");
-				var exprArgs:Array<String> = expr.split(isRange ? "..." : "*");
-
-				switch (exprArgs.length){
-					case 0: 
-						// Can't do anything lol
-					case 1:
-						parsed.push(Std.parseInt(exprArgs[0]));
-					default:
-						var exprA = Std.parseInt(exprArgs[0]);
-						var exprB = Std.parseInt(exprArgs[1]);
-						
-						if (isRange){
-							// starting from 'a' and ending on 'b'
-							for (frameN in exprA...(exprB + 1))
-								parsed.push(frameN);
-						}else{
-							// 'a' repeated 'b' times
-							for (_ in 0...(exprB + 1))
-								parsed.push(exprA);
-						}
-				}		
-			}
-		}
-
-		return parsed;
-	}
-
-	//Specifically for rhe Precache
-	public static function getCharacterFile(characterName:String):Null<CharacterFile>
-	{
-		var characterPath:String = 'characters/$characterName.json';
-
-		var path:String = Paths.getPath(characterPath, TEXT);
-		#if MODS_ALLOWED
-		if (!FileSystem.exists(path))
-		#else
-		if (!Assets.exists(path))
-		#end
-		{
-			path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
-		}
-
-		var json:Null<Dynamic> = null;
-		try
-		{
-			#if MODS_ALLOWED
-			json = Json.parse(File.getContent(path));
-			#else
-			json = Json.parse(Assets.getText(path));
-			#end
-		}
-		catch(e:Dynamic)
-		{
-			trace('Error loading character file of "$characterPath": $e');
-		}
-
-		if (json == null){
-			trace('Could not find character "$characterName" JSON file');
-			return null;
-		}		
-
-		var json:CharacterFile = json;
-		
-		try{
-			for (anim in json.animations){
-				try{
-					if (anim.indices != null)
-						anim.indices = parseIndices(anim.indices);
-				}catch(e){
-					trace('$characterName: Error parsing anim indices for ${anim.name}');
-				}
-			}
-
-			if (json.healthbar_colors == null)
-				json.healthbar_colors = [192, 192, 192];
-			else if (json.healthbar_colors is String){
-				var color:Null<FlxColor> = FlxColor.fromString(cast json.healthbar_colors);
-				json.healthbar_colors = (color==null) ? null : [color.red, color.green, color.blue];
-			}
-
-			return json;
-		}catch(e){
-			trace('$characterName: Error loading character JSON file');
-		}
-
-		return null;
 	}
 
 	public function loadCharacterFile(json:Dynamic)
@@ -312,7 +193,6 @@ class Character extends FlxSprite
 
 		// data
 		healthIcon = json.healthicon;
-		scoreName = json.score_name;
 		singDuration = json.sing_duration;
 		flipX = (json.flip_x != isPlayer);
 		healthColorArray = (json.healthbar_colors != null && json.healthbar_colors.length > 2) ? json.healthbar_colors : [161, 161, 161];
@@ -322,7 +202,7 @@ class Character extends FlxSprite
 
 		// antialiasing
 		noAntialiasing = (json.no_antialiasing == true);
-		antialiasing = ClientPrefs.data.globalAntialiasing ? !noAntialiasing : false;
+		antialiasing = ClientPrefs.data.antialiasing ? !noAntialiasing : false;
 
 		// animations
 		animationsArray = json.animations;
@@ -391,7 +271,7 @@ class Character extends FlxSprite
 			specialAnim = false;
 			dance();
 		}
-		else if ((getAnimationName().endsWith('miss') || isMissing) && isAnimationFinished())
+		else if (getAnimationName().endsWith('miss') && isAnimationFinished())
 		{
 			dance();
 			finishAnimation();
@@ -410,39 +290,6 @@ class Character extends FlxSprite
 					animationNotes.shift();
 				}
 				if(isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
-		}
-
-		if (PlayState.instance != null)
-		{
-			switch(Paths.formatToSongPath(Song.loadedSongName))
-			{
-				case 'fangirl-frenzy':
-					switch (curCharacter)
-					{
-						case 'Z11-true-player':
-							if (animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
-							{
-								var noteData:Int = 1;
-								if (animationNotes[0][1] > (Note.ammo[PlayState.mania] - 1))
-									noteData = Std.int(animationNotes[0][1] % Note.ammo[PlayState.mania]);
-								var animToPlay:String = 'sing'+Note.keysShit.get(PlayState.mania).get('anims')[Std.int(Math.abs(noteData))];
-								playAnim(animToPlay, true);
-								animationNotes.shift();
-							}
-							if (isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
-						case "Zenetta":
-							if (animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
-							{
-								var noteData:Int = 1;
-								if (animationNotes[0][1] < (Note.ammo[PlayState.mania]))
-									noteData = Std.int(animationNotes[0][1] % Note.ammo[PlayState.mania]);
-								var animToPlay:String = 'sing'+Note.keysShit.get(PlayState.mania).get('anims')[Std.int(Math.abs(noteData))];
-								playAnim(animToPlay, true);
-								animationNotes.shift();
-							}
-							if (isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
-					}
-			}
 		}
 
 		if (getAnimationName().startsWith('sing')) holdTimer += elapsed;
@@ -510,18 +357,6 @@ class Character extends FlxSprite
 		return value;
 	}
 
-	public static function returnCharacterPreload(characterName:String):Array<cache.Cache.AssetPreload>{
-		var char = getCharacterFile(characterName);
-
-		if (char == null)
-			return [];
-
-		return [
-			{path: char.image}, // spritesheet
-			{path: 'icons/icon-${char.healthicon}'} // icon
-		];
-	}
-
 	public var danced:Bool = false;
 
 	/**
@@ -547,46 +382,7 @@ class Character extends FlxSprite
 
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
-		if (AnimName == null)
-			return;
-
-		colorTransform.redMultiplier = 1;
-		colorTransform.greenMultiplier = 1;
-		colorTransform.blueMultiplier = 1;
-
 		specialAnim = false;
-		isMissing = AnimName.endsWith("miss");
-
-		@:privateAccess
-		if (animation._animations.get(AnimName) == null) {
-			if (AnimName.endsWith("-alt")) {
-				AnimName = AnimName.substring(0, AnimName.length - "-alt".length);
-			}
-
-			if (AnimName.endsWith("miss")) {
-				AnimName = AnimName.substring(0, AnimName.length - "miss".length);
-				colorTransform.redMultiplier = 0.5;
-				colorTransform.greenMultiplier = 0.3;
-				colorTransform.blueMultiplier = 0.5;
-			}
-
-			if (AnimName == "taunt") {
-				AnimName = "hey";
-			}
-
-			if (AnimName == "hey" && curCharacter.startsWith("tankman") && animation._animations.get(AnimName) == null) {
-				AnimName = "singUP-alt";
-			}
-
-			if (animation._animations.get(AnimName) == null) {
-				if (AnimName == "hey") {
-					specialAnim = false;
-					heyTimer = 0;
-				}
-				return;
-			}
-		}
-
 		if(!isAnimateAtlas)
 		{
 			animation.play(AnimName, Force, Reversed, Frame);
@@ -598,12 +394,12 @@ class Character extends FlxSprite
 		}
 		_lastPlayedAnimation = AnimName;
 
-		var daOffset = animOffsets.get(AnimName);
-		if (animOffsets.exists(AnimName)) {
+		if (hasAnimation(AnimName))
+		{
+			var daOffset = animOffsets.get(AnimName);
 			offset.set(daOffset[0], daOffset[1]);
 		}
-		else
-			offset.set(0, 0);
+		//else offset.set(0, 0);
 
 		if (curCharacter.startsWith('gf-') || curCharacter == 'gf')
 		{
@@ -616,32 +412,6 @@ class Character extends FlxSprite
 			if (AnimName == 'singUP' || AnimName == 'singDOWN')
 				danced = !danced;
 		}
-
-		if (Paths.formatToSongPath(Song.loadedSongName) == 'fangirl-frenzy')
-		{
-			switch (curCharacter)
-			{
-				case 'Z11-true-player':
-					if (animation.curAnim.name != 'idle') PlayState.instance.health += 0.023 * ClientPrefs.getGameplaySetting('healthgain', 1);
-				case "Zenetta":
-					if (!animation.curAnim.name.contains('dance')) PlayState.instance.health -= 0.023 * ClientPrefs.getGameplaySetting('healthloss', 1);
-			}
-		}
-	}
-
-	function loadMappedAnimsFF():Void
-	{
-		trace("Loaded FF"); 
-		try
-		{
-			var songData:SwagSong = Song.getChart('fangirl-frenzy-other', Paths.formatToSongPath(Song.loadedSongName));
-			if(songData != null)
-				for (section in songData.notes)
-					for (songNotes in section.sectionNotes)
-						animationNotes.push(songNotes);
-			animationNotes.sort(sortAnims);
-		}
-		catch(e:Dynamic) {trace("Failed To Load FF!");}
 	}
 
 	function loadMappedAnims():Void

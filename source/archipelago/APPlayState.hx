@@ -13,6 +13,13 @@ import flixel.util.FlxDestroyUtil;
 import objects.Character;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
+import flixel.FlxObject;
+import objects.Note;
+import backend.InputFormatter;
+import stages.StageData;
+import objects.playfields.PlayField;
+
+using yutautil.Table;
 class APPlayState extends PlayState {
     public static var apGame:APGameState;
     public static var deathByLink:Bool = false;
@@ -137,7 +144,7 @@ class APPlayState extends PlayState {
             }
         }
 
-        currentMod = WeekData.getCurrentWeek().folder;
+        currentMod = backend.WeekData.getCurrentWeek().folder;
 
         if (!APEntryState.inArchipelagoMode)
         {
@@ -168,12 +175,12 @@ effectMap = [
         var originalShaders:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
         var ttl:Float = 12;
         var onEnd:(Void->Void) = function() {
-            for (sprite in playerField.strumNotes) {
+            /*for (sprite in playerField.strumNotes) {
                 sprite.shader = originalShaders.get(sprite);
             };
             for (sprite in dadField.strumNotes) {
                 sprite.shader = originalShaders.get(sprite);
-            };
+            };*/
             for (daNote in unspawnNotes) {
                 if (daNote == null) continue;
                 if (daNote.strumTime >= Conductor.songPosition)
@@ -200,14 +207,14 @@ effectMap = [
                 blurEffect.setStrength(2, 2);
             else
                 blurEffect.setStrength(32, 32);
-            for (sprite in playerField.strumNotes) {
+            /*for (sprite in playerField.strumNotes) {
                 originalShaders.set(sprite, sprite.shader);
                 sprite.shader = blurEffect.shader;
             };
             for (sprite in dadField.strumNotes) {
                 originalShaders.set(sprite, sprite.shader);
                 sprite.shader = blurEffect.shader;
-            };
+            };*/
             for (daNote in unspawnNotes) {
                 if (daNote == null) continue;
                 if (daNote.strumTime >= Conductor.songPosition) {
@@ -272,12 +279,12 @@ effectMap = [
     'spin' => function() {
         var ttl:Float = 15;
         var onEnd:(Void->Void) = function() {
-            modManager.setValue('roll', 0);
+            //modManager.setValue('roll', 0);
         };
         var playSound:String = "spin";
         var playSoundVol:Float = 1;
         var noIcon:Bool = false;
-        modManager.setValue('roll', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
+        //modManager.setValue('roll', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
         applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'spin');
     },
     'songslower' => function() {
@@ -568,13 +575,13 @@ effectMap = [
     'ghost' => function() {
         var ttl:Float = 15;
         var onEnd:(Void->Void) = function() {
-            modManager.setValue('sudden', 0);
+            //modManager.setValue('sudden', 0);
         };
         var playSound:String = "ghost";
         var playSoundVol:Float = 0.5;
         var noIcon:Bool = false;
 
-        modManager.setValue('sudden', 1);
+        //modManager.setValue('sudden', 1);
 
         applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
     },
@@ -595,6 +602,7 @@ effectMap = [
         applyEffect(0, null, playSound, 1, noIcon);
     },
     'nostrum' => function() {
+        /*
         var ttl:Float = 13;
         var onEnd:(Void->Void) = function() {
             for (i in 0...playerField.strumNotes.length)
@@ -607,7 +615,7 @@ effectMap = [
         for (i in 0...playerField.strumNotes.length)
             playerField.strumNotes[i].visible = false;
 
-        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
+        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);*/
     },
     'jackspam' => function() {
         var noIcon:Bool = true;
@@ -627,6 +635,7 @@ effectMap = [
         }
     },
     'sever' => function() {
+        /*
         var ttl:Float = 6;
         var onEnd:(Void->Void) = function() {
             playerField.strumNotes[picked].alpha = 1;
@@ -667,7 +676,7 @@ effectMap = [
         explosion.animation.play("boom", true);
         add(explosion);
 
-        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);
+        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);*/
     },
     'shake' => function() {
         var noIcon:Bool = false;
@@ -849,6 +858,7 @@ effectMap = [
         addNoteSvCLegacy(4, lastPoint, lastPoint, -1);
     },
     'randomize' => function() {
+        /*
         var ttl:Float = 10;
 		var availableS:String = "";
 		switch (FlxG.random.bool(15)) {
@@ -868,7 +878,7 @@ effectMap = [
         modManager.queueEase(curStep, curStep+3, availableS, .96, "sineInOut");
         trace(availableS);
 
-        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');
+        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');*/
     },
     'randomizeAlt' => function() {
         var ttl:Float = 10;
@@ -925,20 +935,20 @@ effectMap = [
     'opponentPlay' => function() {
         var ttl:Float = 12;
         var onEnd:(Void->Void) = function() {
-            opponentmode =  false;
+            /*opponentmode =  false;
             playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
             playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
             playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
             dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
             dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
             dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
-            health = MaxHP + health;
+            health = MaxHP + health;*/
         };
         var playSound:String = "randomize";
         var playSoundVol:Float = 0.7;
         var noIcon:Bool = true;
 
-        opponentmode =  true;
+        /*opponentmode =  true;
         playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
         playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
         playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
@@ -947,9 +957,10 @@ effectMap = [
         dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
         health = MaxHP - health;
 
-        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'opponentPlay');
+        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'opponentPlay');*/
     },
     'bothplay' => function() {
+        /*
         var ttl:Float = 12;
         var onEnd:(Void->Void) = function() {
             bothMode = false;
@@ -972,7 +983,7 @@ effectMap = [
         dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
         dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
 
-        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'bothplay');
+        applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'bothplay');*/
     },
     'fakeheal' => function() {
         var noIcon:Bool = true;
@@ -1032,7 +1043,7 @@ effectMap = [
                         FlxG.save.data.songPos = Conductor.songPosition;
                         FlxG.save.flush();
                     
-                        PlayState.SONG = Song.loadFromJson(Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
+                        PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
                         PlayState.storyWeek = 0;
                         Mods.currentModDirectory = 'week1';
                         Difficulty.list = Difficulty.defaultList.copy();
@@ -1260,9 +1271,10 @@ effectMap = [
 		add(shieldSprite);
 
         if (cpuControlled)
-            {
-                set_cpuControlled(false);
-            }
+        {
+            //set_cpuControlled(false);
+            cpuControlled = false;
+        }
     }
 
     public function addEffect(e:String)
@@ -1288,7 +1300,7 @@ effectMap = [
             trace("RESISTANCE OVERRIDE!"); // what are the chances
         }
         // Check if there are any mustPress notes available
-        if (allNotes.filter(function(note:Note):Bool
+        /*if (allNotes.filter(function(note:Note):Bool
         {
             return note.field == playerField && note.noteType == '' && !note.isSustainNote;
         }).length == 0)
@@ -1352,7 +1364,7 @@ effectMap = [
                 }
             }
         }
-        Sys.println('');
+        Sys.println('');*/
         super.startCountdown();
         return true;
     }
@@ -1492,6 +1504,7 @@ public function doEffect(effect:String)
 			}
 			else freezeNotes = false;
         }
+
         if (doRandomize)
         {
             if (curStep % 16 == 0)
@@ -1514,9 +1527,9 @@ public function doEffect(effect:String)
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        modManager.queueEase(curStep, curStep+3, 'reverse', effectiveDownScroll ? 1 : 0, "sineInOut");
+        //modManager.queueEase(curStep, curStep+3, 'reverse', effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
-		healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
+		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
 		iconP2.y = healthBar.y - (iconP2.height / 2);
 		scoreTxt.y = (effectiveDownScroll ? FlxG.height * 0.1 - 72 : FlxG.height * 0.9 + 36);
@@ -1722,7 +1735,7 @@ public function doEffect(effect:String)
 			{}
 		swagNote.x += FlxG.width / 2;
 
-        if (swagNote.fieldIndex == -1 && swagNote.field == null)
+        /*f (swagNote.fieldIndex == -1 && swagNote.field == null)
             swagNote.field = swagNote.mustPress ? playerField : dadField;
         if (swagNote.field != null)
             swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
@@ -1731,14 +1744,14 @@ public function doEffect(effect:String)
         {
             playfield.queue(swagNote); // queues the note to be spawned
             unspawnNotes.push(swagNote);
-            allNotes.push(swagNote); // just for the sake of convenience
+            //allNotes.push(swagNote); // just for the sake of convenience
         }
         else
         {
             swagNote.destroy();
-        }
-		unspawnNotes.sort(sortByNotes);
-        allNotes.sort(sortByNotes);
+        }*/
+		unspawnNotes.sort(PlayState.sortByTime);
+        //allNotes.sort(sortByNotes);
         /*for (field in playfields.members)
         {
             var goobaeg:Array<Note> = [];
@@ -1832,7 +1845,8 @@ public function doEffect(effect:String)
 				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
 			}
 		}
-		if(gfVocals != null && gfVocals.playing)
+		
+        /*if(gfVocals != null && gfVocals.playing)
 		{
 			@:privateAccess
 			{
@@ -1844,6 +1858,7 @@ public function doEffect(effect:String)
 				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
 			}
 		}
+
 		for (track in tracks)
 		{
 			if(track != null && track.playing)
@@ -1858,7 +1873,7 @@ public function doEffect(effect:String)
 					//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
 				}
 			}
-		}
+		}*/
 		#end
         curEffect = FlxG.random.int(0, 40);
         if (isFrozen) boyfriend.stunned = true;
@@ -1872,13 +1887,14 @@ public function doEffect(effect:String)
 					note.blockHit = false;
 			});
 		}
-        for(queue in playerField.noteQueue){
+
+        /*for(queue in playerField.noteQueue){
             for(note in queue)
             {
                 if (note.noteData == picked)
                     note.blockHit = true;
             }
-		}
+		}*/
 
         if (!endingSong)
             FlxG.save.data.activeItems = activeItems;
@@ -2022,7 +2038,7 @@ public function doEffect(effect:String)
             }
         }
         if (health <= 0 && bfkilledcheck && !deathByLink) 
-            APEntryState.apGame.info().sendDeathLink(COD.COD.COD); // Don't ask why it works like this...
+            APEntryState.apGame.info().sendDeathLink(COD.COD);
         super.doDeathCheck();
         return true;
     }
@@ -2078,7 +2094,7 @@ public function doEffect(effect:String)
 
 	var switched:Bool = false;
 
-	function keybindSwitch(keybind:String = 'normal'):Void
+	/*function keybindSwitch(keybind:String = 'normal'):Void
 	{
 		switched = true;
 
@@ -2120,9 +2136,9 @@ public function doEffect(effect:String)
 
 		// Switch based on the provided keybind
 		switchKeys(keybind);
-	}
+	}*/
 
-    override public function keyShit()
+    override public function keysCheck()
     {
         // FlxG.watch.addQuick('asdfa', upP);
 		if (startedCountdown && !boyfriend.stunned && generatedMusic)
@@ -2152,20 +2168,20 @@ public function doEffect(effect:String)
                 });
             }
         }
-		super.keyShit();
+		super.keysCheck();
     }
 
     override function noteMiss(daNote:Note, field:PlayField)
     {
         var char:Character = boyfriend;
-		if (opponentmode || field == dadField)
-			char = dad;
+		/*if (opponentmode || field == dadField)
+			char = dad;*/
 		if (daNote.gfNote)
 			char = gf;
-		if (daNote.exNote && field == playerField)
+		/*if (daNote.exNote && field == playerField)
 			char = bf2;
 		if (daNote.exNote && field == dadField)
-			char = dad2;
+			char = dad2;*/
         if (!boyfriend.invuln)
         {
             if (daNote.isAlert)
@@ -2260,14 +2276,14 @@ public function doEffect(effect:String)
 				nope.alpha = 0.8;
 				nope.cameras = [camHUD];
 
-				for (spr in playerField.strumNotes)
+				/*for (spr in playerField.strumNotes)
 				{
 					if (Math.abs(note.noteData) == spr.ID)
 					{
 						nope.x = (spr.x + spr.width / 2) - nope.width / 2;
 						nope.y = (spr.y + spr.height / 2) - nope.height / 2;
 					}
-				};
+				};*/
 
 				add(nope);
 
@@ -2285,22 +2301,22 @@ public function doEffect(effect:String)
 				songMisses++;
 				FlxG.sound.play(Paths.sound('streamervschat/freeze'));
 				frozenInput++;
-				for (sprite in playerField.strumNotes)
+				/*for (sprite in playerField.strumNotes)
 				{
 					sprite.color = 0x0073b5;
-					isFrozen = true;
-				};
+				};*/
+                isFrozen = true;
 				new FlxTimer().start(2, function(timer)
 				{
 					frozenInput--;
 					if (frozenInput <= 0)
 					{
-						for (sprite in playerField.strumNotes)
+						/*for (sprite in playerField.strumNotes)
 						{
 							sprite.color = 0xffffff;
-							isFrozen = false;
-							boyfriend.stunned = false;
-						};
+						};*/
+                        isFrozen = false;
+                        boyfriend.stunned = false;
 					}
 					FlxDestroyUtil.destroy(timer);
 				});
@@ -2319,19 +2335,22 @@ public function doEffect(effect:String)
 
 			if (note.visible)
             {
-                if (field.autoPlayed)
+                if (/*field.autoPlayed*/ cpuControlled)
                 {
                     var time:Float = 0.15;
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
                         time += 0.15;
     
-                    StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % Note.ammo[PlayState.mania], time, note);
+                    strumPlayAnim(false, Std.int(Math.abs(note.noteData)) % Note.ammo[PlayState.mania], time, /*note*/);
                 }
                 else
                 {
+                    /*
                     var spr = field.strumNotes[note.noteData];
                     if (spr != null && field.keysPressed[note.noteData])
-                        spr.playAnim('confirm', true, note);
+                        spr.playAnim('confirm', true, note);*/
+                    var spr = playerStrums.members[note.noteData];
+    				if(spr != null) spr.playAnim('confirm', true);
                 }
             }
 
@@ -2341,8 +2360,8 @@ public function doEffect(effect:String)
 			vocals.volume = 1 * vocalVolumeMultiplier;
 			if (opponentVocals != null)
 				opponentVocals.volume = 1 * vocalVolumeMultiplier;
-			if (gfVocals != null)
-				gfVocals.volume = 1 * vocalVolumeMultiplier;
+			/*if (gfVocals != null)
+				gfVocals.volume = 1 * vocalVolumeMultiplier;*/
 
 			if (!note.isSustainNote)
 			{
@@ -2391,9 +2410,9 @@ public function doEffect(effect:String)
         super.closeSubState();
     }
 
-    override public function noteMissPress(direction:Int = 1)
+    override public function noteMissPress(direction:Int = 1, field:PlayField)
     {
-        super.noteMissPress(direction);
+        super.noteMissPress(direction, field);
         setBoyfriendInvuln(4 / 60);
     }
 

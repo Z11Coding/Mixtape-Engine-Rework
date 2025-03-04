@@ -1,6 +1,6 @@
 package backend.util;
 
-import backend.os.HiddenProcess;
+import backend.window.os.HiddenProcess;
 #if cpp
 import cpp.vm.Gc;
 #elseif hl
@@ -67,7 +67,7 @@ class MemoryUtil {
 	public static function getTotalMem():Float
 	{
 		#if windows
-		return backend.os.Windows.getTotalRam();
+		return backend.window.os.Windows.getTotalRam();
 		#elseif mac
 		return backend.os.Mac.getTotalRam();
 		#elseif linux

@@ -4,7 +4,6 @@ import flixel.FlxBasic;
 import objects.Character;
 import psychlua.LuaUtils;
 import psychlua.CustomSubstate;
-
 import backend.modchart.SubModifier;
 
 #if LUA_ALLOWED
@@ -158,7 +157,7 @@ class HScript extends Iris
 		set('FlxTween', flixel.tweens.FlxTween);
 		set('FlxEase', flixel.tweens.FlxEase);
 		set('FlxColor', CustomFlxColor);
-		set('Countdown', backend.BaseStage.Countdown);
+		set('Countdown', stages.BaseStage.Countdown);
 		set('PlayState', PlayState);
 		set('Paths', Paths);
 		set('Conductor', Conductor);
@@ -295,15 +294,6 @@ class HScript extends Iris
 			return false;
 		});
 
-		if(PlayState.instance == FlxG.state)
-		{
-			set('addBehindGF', PlayState.instance.addBehindGF);
-			set('addBehindDad', PlayState.instance.addBehindDad);
-			set('addBehindDad2', PlayState.instance.addBehindDad2);
-			set('addBehindBF', PlayState.instance.addBehindBF);
-			set('addBehindBF2', PlayState.instance.addBehindBF2);
-		}
-
 		// For adding your own callbacks
 		// not very tested but should work
 		#if LUA_ALLOWED
@@ -435,6 +425,13 @@ class HScript extends Iris
 			get: FlxPoint.get,
 			weak: FlxPoint.weak
 		});
+
+		// hi its me lethrial adding a new and exciting function to hscript!
+		// thank you random guy from fnf weekly
+		set('setGameOverVideo', function(name:String = null) {
+			if (name != null) substates.GameOverSubstate.instance.setGameOverVideo(name);
+			else trace('No argument for game over video!');
+		});
 	}
 
 	#if LUA_ALLOWED
@@ -520,23 +517,17 @@ class HScript extends Iris
 			final ret = Reflect.callMethod(null, func, args ?? []);
 			return {funName: funcToRun, signature: func, returnValue: ret};
 		}
-		catch(e:Dynamic) {
-			if (Std.is(e, IrisError)) {
-				var pos:HScriptInfos = cast this.interp.posInfos();
-				pos.funcName = funcToRun;
-				#if LUA_ALLOWED
-				if (parentLua != null)
-				{
-					pos.isLua = true;
-					if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
-				}
-				#end
-				Iris.error(Printer.errorToString(e, false), pos);
-			} else {
-				// Handle non-IrisError exceptions
-				trace("Error calling function in HScript: " + e);
-				return null;
+		catch(e:IrisError) {
+			var pos:HScriptInfos = cast this.interp.posInfos();
+			pos.funcName = funcToRun;
+			#if LUA_ALLOWED
+			if (parentLua != null)
+			{
+				pos.isLua = true;
+				if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
 			}
+			#end
+			Iris.error(Printer.errorToString(e, false), pos);
 		}
 		return null;
 	}

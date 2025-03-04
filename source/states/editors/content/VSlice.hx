@@ -6,8 +6,6 @@ import backend.Difficulty;
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
 
-import backend.Section.SwagSection;
-
 // Chart
 typedef VSliceChart =
 {
@@ -261,18 +259,15 @@ class VSlice
 				player2: metadata.playData.characters.opponent,
 				gfVersion: metadata.playData.characters.girlfriend,
 				stage: stage,
-				format: 'mixtape_v1_convert',
+				format: 'psych_v1_convert',
 
-				player4: null,
-				player5: null,
-				extraTracks: [],
-				mania: Note.defaultMania,
-				startMania: Note.defaultMania
+				mania: objects.Note.defaultMania,
+				startMania: objects.Note.defaultMania
 			}
 
 			Reflect.setField(swagSong, 'artist', metadata.artist);
 			Reflect.setField(swagSong, 'charter', metadata.charter);
-			Reflect.setField(swagSong, 'generatedBy', 'Mixtape Engine v${MainMenuState.psychEngineVersion} - Chart Editor V-Slice Importer');
+			Reflect.setField(swagSong, 'generatedBy', 'Psych Engine v${MainMenuState.psychEngineVersion} - Chart Editor V-Slice Importer');
 			songDifficulties.set(diff, swagSong);
 		}
 		var pack:PsychPackage = {difficulties: songDifficulties, events: null};

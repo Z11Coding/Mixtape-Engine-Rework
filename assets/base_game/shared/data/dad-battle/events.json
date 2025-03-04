@@ -1,4 +1,5 @@
 {
+	"song": {
 		"events": [
 			[
 				32000,
@@ -233,3 +234,4 @@
 		],
 		"format": "psych_v1_convert"
 	}
+}

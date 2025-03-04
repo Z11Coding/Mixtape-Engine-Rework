@@ -1,5 +1,5 @@
 package states;
-import backend.modules.SyncUtils;
+import yutautil.modules.SyncUtils;
 import backend.Highscore;
 import backend.Achievements;
 import backend.util.WindowUtil;
@@ -45,43 +45,9 @@ class FirstCheckState extends MusicBeatState
 			lime.app.Application.current.window.alert("You cannot access this state. It is for initialization only.", "Debug");
 			throw new haxe.Exception("Invalid state access!");	
 		}
+		
 		if (!relaunch)
-		{
-			FlxG.mouse.visible = false;
-
-			Paths.clearStoredMemory();
-			Paths.clearUnusedMemory();
-
-			WindowUtil.initWindowEvents();
-			WindowUtil.disableCrashHandler();
-			FlxSprite.defaultAntialiasing = true;
-
-			FlxG.fixedTimestep = false;
-			FlxG.game.focusLostFramerate = 60;
-			FlxG.keys.preventDefaultKeys = [TAB];
-
-			ClientPrefs.loadPrefs();
-			ClientPrefs.reloadVolumeKeys();
-
-			Language.reloadPhrases();
-
 			COD.initCOD();
-
-			#if sys
-			ArtemisIntegration.initialize();
-			ArtemisIntegration.setGameState ("title");
-			ArtemisIntegration.resetModName ();
-			ArtemisIntegration.setFadeColor ("#FF000000");
-			ArtemisIntegration.sendProfileRelativePath ("assets/artemis/modpack-mixup.json");
-			ArtemisIntegration.resetAllFlags ();
-			ArtemisIntegration.autoUpdateControls ();
-			Application.current.onExit.add (function (exitCode) {
-				ArtemisIntegration.setBackgroundColor ("#00000000");
-				ArtemisIntegration.setGameState ("closed");
-				ArtemisIntegration.resetModName ();
-			});
-			#end
-		}
 
 		super.create();
 

@@ -1,6 +1,6 @@
 package backend.util;
 
-import backend.os.*;
+import backend.window.os.*;
 import flixel.util.typeLimit.OneOfTwo;
 import flixel.util.typeLimit.OneOfThree;
 
@@ -105,7 +105,7 @@ class NativeAPI {
 	 * Sets the console colors
 	 */
 	public static function setConsoleColors(foregroundColor:ConsoleColor = NONE, ?backgroundColor:ConsoleColor = NONE) {
-		if(Main.noTerminalColor) return;
+		//if(Main.noTerminalColor) return;
 
 		#if (windows && !hl)
 		if(foregroundColor == NONE)

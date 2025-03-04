@@ -1,10 +1,10 @@
 package states.editors.content;
 
-import objects.Note;
+import objects.charting.ChartingNote;
 import shaders.RGBPalette;
 import flixel.util.FlxDestroyUtil;
 
-class MetaNote extends Note
+class MetaNote extends ChartingNote
 {
 	public static var noteTypeTexts:Map<Int, FlxText> = [];
 	public var isEvent:Bool = false;
@@ -25,23 +25,23 @@ class MetaNote extends Note
 	{
 		this.chartNoteData = v; //despite being so arbitrary its sadly needed to fix a bug on moving notes
 		this.songData[1] = v;
-		this.noteData = v % ChartingStatePsych.GRID_COLUMNS_PER_PLAYER;
-		this.mustPress = (v < ChartingStatePsych.GRID_COLUMNS_PER_PLAYER);
+		this.noteData = v % ChartingState.GRID_COLUMNS_PER_PLAYER;
+		this.mustPress = (v < ChartingState.GRID_COLUMNS_PER_PLAYER);
 		
 		if(!PlayState.isPixelStage)
 			loadNoteAnims();
 		else
 			loadPixelNoteAnims();
 
-		if(Note.globalRgbShaders != null && Note.globalRgbShaders.contains(rgbShader.parent)) //Is using a default shader
-			rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(noteData));
+		if(ChartingNote.globalRgbShaders.contains(rgbShader.parent)) //Is using a default shader
+			rgbShader = new RGBShaderReference(this, ChartingNote.initializeGlobalRGBShader(noteData));
 
-		animation.play(Note.keysShit.get(mania).get('letters')[noteData]);
+		animation.play(ChartingNote.colArray[this.noteData % ChartingNote.colArray.length] + 'Scroll');
 		updateHitbox();
 		if(width > height)
-			setGraphicSize(ChartingStatePsych.GRID_SIZE);
+			setGraphicSize(ChartingState.GRID_SIZE);
 		else
-			setGraphicSize(0, ChartingStatePsych.GRID_SIZE);
+			setGraphicSize(0, ChartingState.GRID_SIZE);
 
 		updateHitbox();
 	}
@@ -66,7 +66,7 @@ class MetaNote extends Note
 				sustainSprite = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE);
 				sustainSprite.scrollFactor.x = 0;
 			}
-			sustainSprite.setGraphicSize(8, Math.max(ChartingStatePsych.GRID_SIZE/4, (Math.round((v * ChartingStatePsych.GRID_SIZE + ChartingStatePsych.GRID_SIZE) / stepCrochet) * zoom) - ChartingStatePsych.GRID_SIZE/2));
+			sustainSprite.setGraphicSize(8, Math.max(ChartingState.GRID_SIZE/4, (Math.round((v * ChartingState.GRID_SIZE + ChartingState.GRID_SIZE) / stepCrochet) * zoom) - ChartingState.GRID_SIZE/2));
 			sustainSprite.updateHitbox();
 		}
 	}
@@ -94,7 +94,7 @@ class MetaNote extends Note
 		{
 			if(!noteTypeTexts.exists(num))
 			{
-				txt = new FlxText(0, 0, ChartingStatePsych.GRID_SIZE, (num > 0) ? Std.string(num) : '?', 16);
+				txt = new FlxText(0, 0, ChartingState.GRID_SIZE, (num > 0) ? Std.string(num) : '?', 16);
 				txt.autoSize = false;
 				txt.alignment = CENTER;
 				txt.borderStyle = SHADOW;
@@ -146,7 +146,7 @@ class EventMetaNote extends MetaNote
 		//trace('events: $events');
 		
 		loadGraphic(Paths.image('editors/eventIcon'));
-		setGraphicSize(ChartingStatePsych.GRID_SIZE);
+		setGraphicSize(ChartingState.GRID_SIZE);
 		updateHitbox();
 
 		eventText = new FlxText(0, 0, 400, '', 12);

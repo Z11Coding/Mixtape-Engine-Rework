@@ -1,2 +1,0 @@
-Change the camera zoom setting.
-value1 = Value to zoom

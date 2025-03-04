@@ -5,7 +5,7 @@ class TypedAlphabet extends Alphabet
 	public var onFinish:Void->Void = null;
 	public var finishedText:Bool = false;
 	public var delay:Float = 0.05;
-	public var sound:String = 'defA';
+	public var sound:String = 'dialogue';
 	public var volume:Float = 1;
 
 	public function new(x:Float, y:Float, text:String = "", ?delay:Float = 0.05, ?bold:Bool = false)
@@ -36,10 +36,7 @@ class TypedAlphabet extends Alphabet
 				showCharacterUpTo(_curLetter + 1);
 				if(!playedSound && sound != '' && (delay > 0.025 || _curLetter % 2 == 0))
 				{
-					if (Paths.exists(Paths.file2(sound, 'sounds/voice', 'ogg')))
-						FlxG.sound.play(Paths.sound('voice/'+sound), volume);
-					else
-						FlxG.sound.play(Paths.sound('voice/defA'), volume);
+					FlxG.sound.play(Paths.sound(sound), volume);
 				}
 				playedSound = true;
 
@@ -86,13 +83,7 @@ class TypedAlphabet extends Alphabet
 		if(finishedText) return;
 
 		showCharacterUpTo(letters.length - 1);
-		if(sound != '') 
-		{
-			if (Paths.exists(Paths.file2(sound, 'sounds/voice', 'ogg')))
-				FlxG.sound.play(Paths.sound('voice/'+sound), volume);
-			else
-				FlxG.sound.play(Paths.sound('voice/defA'), volume);
-		}
+		if(sound != '') FlxG.sound.play(Paths.sound(sound), volume);
 		finishedText = true;
 		
 		if(onFinish != null) onFinish();

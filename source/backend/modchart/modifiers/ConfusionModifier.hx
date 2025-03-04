@@ -41,7 +41,7 @@ class ConfusionModifier extends NoteModifier {
 
 			if(note.isSustainNote){
 				angleZ = 0;	
-                trace(angleX, angleY, angleZ);
+                //trace(angleX, angleY, angleZ);
             }else{
 				var noteBeat = note.beat - beat;
 				

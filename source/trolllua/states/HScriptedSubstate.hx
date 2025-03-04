@@ -4,7 +4,7 @@ import trolllua.FunkinHScript;
 
 class HScriptedSubstate extends MusicBeatSubstate
 {
-	public var scriptPath:String;
+	/*public var scriptPath:String;
 
 	public function new(scriptFullPath:String, ?scriptVars:Map<String, Dynamic>)
 	{
@@ -35,5 +35,5 @@ class HScriptedSubstate extends MusicBeatSubstate
 		}
 
 		return null;
-	}
+	}*/
 }

@@ -3,9 +3,10 @@ package options;
 import objects.AttachedText;
 import objects.CheckboxThingie;
 
+import options.Option.OptionType;
+
 class GameplayChangersSubstate extends MusicBeatSubstate
 {
-	private var curOption:GameplayOption = null;
 	private var curSelected:Int = 0;
 	private var optionsArray:Array<Dynamic> = [];
 
@@ -13,12 +14,15 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	private var checkboxGroup:FlxTypedGroup<CheckboxThingie>;
 	private var grpTexts:FlxTypedGroup<AttachedText>;
 
+	private var curOption(get, never):GameplayOption;
+	function get_curOption() return optionsArray[curSelected]; //shorter lol
+
 	function getOptions()
 	{
-		var goption:GameplayOption = new GameplayOption('Scroll Type', 'scrolltype', 'string', 'multiplicative', ["multiplicative", "constant"]);
+		var goption:GameplayOption = new GameplayOption('Scroll Type', 'scrolltype', STRING, 'multiplicative', ["multiplicative", "constant"]);
 		optionsArray.push(goption);
 
-		var option:GameplayOption = new GameplayOption('Scroll Speed', 'scrollspeed', 'float', 1);
+		var option:GameplayOption = new GameplayOption('Scroll Speed', 'scrollspeed', FLOAT, 1);
 		option.scrollSpeed = 2.0;
 		option.minValue = 0.35;
 		option.changeValue = 0.05;
@@ -36,19 +40,17 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(option);
 
 		#if FLX_PITCH
-		var option:GameplayOption = new GameplayOption('Playback Rate', 'songspeed', 'float', 1);
+		var option:GameplayOption = new GameplayOption('Playback Rate', 'songspeed', FLOAT, 1);
 		option.scrollSpeed = 1;
 		option.minValue = 0.5;
-		option.maxValue = Math.POSITIVE_INFINITY;
+		option.maxValue = 3.0;
 		option.changeValue = 0.05;
 		option.displayFormat = '%vX';
 		option.decimals = 2;
 		optionsArray.push(option);
-
-		optionsArray.push(new GameplayOption('Random Playback Rate', 'randomspeedchange', 'bool', false));
 		#end
 
-		var option:GameplayOption = new GameplayOption('Health Gain Multiplier', 'healthgain', 'float', 1);
+		var option:GameplayOption = new GameplayOption('Health Gain Multiplier', 'healthgain', FLOAT, 1);
 		option.scrollSpeed = 2.5;
 		option.minValue = 0;
 		option.maxValue = 5;
@@ -56,7 +58,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		option.displayFormat = '%vX';
 		optionsArray.push(option);
 
-		var option:GameplayOption = new GameplayOption('Health Loss Multiplier', 'healthloss', 'float', 1);
+		var option:GameplayOption = new GameplayOption('Health Loss Multiplier', 'healthloss', FLOAT, 1);
 		option.scrollSpeed = 2.5;
 		option.minValue = 0.5;
 		option.maxValue = 5;
@@ -64,32 +66,9 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		option.displayFormat = '%vX';
 		optionsArray.push(option);
 
-		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', 'string', 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", 'Sequential', 'Mirror', 'Skip',  "Amalgam"]));
-
-		var option:GameplayOption = new GameplayOption('Convert Mania', 'convertMania', 'int', 3);
-		option.scrollSpeed = 2;
-		option.minValue = Note.minMania;
-		option.maxValue = Note.maxMania;
-		optionsArray.push(option);
-		
-		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', 'bool', false));
-		optionsArray.push(new GameplayOption('Practice Mode', 'practice', 'bool', false));
-		optionsArray.push(new GameplayOption('Botplay', 'botplay', 'bool', false));
-		optionsArray.push(new GameplayOption('Showcase Mode', 'showcase', 'bool', false));
-		optionsArray.push(new GameplayOption('GF Mode', 'gfMode', 'bool', false));
-		optionsArray.push(new GameplayOption('Opponent Mode', 'opponentplay', 'bool', false));
-		optionsArray.push(new GameplayOption('Play Both Sides', 'bothMode', 'bool', false));
-
-		optionsArray.push(new GameplayOption('Loop Mode', 'loopMode', 'bool', false));
-		optionsArray.push(new GameplayOption('Loop Challenge Mode', 'loopModeC', 'bool', false));
-		var option:GameplayOption = new GameplayOption('Challenge Mode Mult.', 'loopPlayMult', 'float', 1.05);
-		option.scrollSpeed = 1;
-		option.minValue = 1.05;
-		option.maxValue = 2;
-		option.changeValue = 0.05;
-		option.displayFormat = '%vX';
-		option.decimals = 2;
-		optionsArray.push(option);
+		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
+		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
+		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
 	}
 
 	public function getOptionByName(name:String)
@@ -125,15 +104,16 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		for (i in 0...optionsArray.length)
 		{
-			var optionText:Alphabet = new Alphabet(200, 360, optionsArray[i].name, true);
+			var optionText:Alphabet = new Alphabet(150, 360, optionsArray[i].name, true);
 			optionText.isMenuItem = true;
 			optionText.setScale(0.8);
 			optionText.targetY = i;
 			grpOptions.add(optionText);
 
-			if(optionsArray[i].type == 'bool') {
-				optionText.x += 90;
-				optionText.startPosition.x += 90;
+			if(optionsArray[i].type == BOOL)
+			{
+				optionText.x += 60;
+				optionText.startPosition.x += 60;
 				optionText.snapToPosition();
 				var checkbox:CheckboxThingie = new CheckboxThingie(optionText.x - 105, optionText.y, optionsArray[i].getValue() == true);
 				checkbox.sprTracker = optionText;
@@ -141,7 +121,9 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 				checkbox.offsetY = -52;
 				checkbox.ID = i;
 				checkboxGroup.add(checkbox);
-			} else {
+			}
+			else
+			{
 				optionText.snapToPosition();
 				var valueText:AttachedText = new AttachedText(Std.string(optionsArray[i].getValue()), optionText.width + 40, 0, true, 0.8);
 				valueText.sprTracker = optionText;
@@ -163,15 +145,13 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	override function update(elapsed:Float)
 	{
 		if (controls.UI_UP_P)
-		{
 			changeSelection(-1);
-		}
-		if (controls.UI_DOWN_P)
-		{
-			changeSelection(1);
-		}
 
-		if (controls.BACK) {
+		if (controls.UI_DOWN_P)
+			changeSelection(1);
+
+		if (controls.BACK)
+		{
 			close();
 			ClientPrefs.saveSettings();
 			FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -179,12 +159,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		if(nextAccept <= 0)
 		{
-			var usesCheckbox = true;
-			if(curOption.type != 'bool')
-			{
-				usesCheckbox = false;
-			}
-
+			var usesCheckbox:Bool = (curOption.type == BOOL);
 			if(usesCheckbox)
 			{
 				if(controls.ACCEPT)
@@ -194,44 +169,49 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 					curOption.change();
 					reloadCheckboxes();
 				}
-			} else {
-				if(controls.UI_LEFT || controls.UI_RIGHT) {
+			}
+			else
+			{
+				if(controls.UI_LEFT || controls.UI_RIGHT)
+				{
 					var pressed = (controls.UI_LEFT_P || controls.UI_RIGHT_P);
-					if(holdTime > 0.5 || pressed) {
-						if(pressed) {
+					if(holdTime > 0.5 || pressed)
+					{
+						if(pressed)
+						{
 							var add:Dynamic = null;
-							if(curOption.type != 'string') {
+							if(curOption.type != STRING)
 								add = controls.UI_LEFT ? -curOption.changeValue : curOption.changeValue;
-							}
 
 							switch(curOption.type)
 							{
-								case 'int' | 'float' | 'percent':
+								case INT, FLOAT, PERCENT:
 									holdValue = curOption.getValue() + add;
 									if(holdValue < curOption.minValue) holdValue = curOption.minValue;
 									else if (holdValue > curOption.maxValue) holdValue = curOption.maxValue;
 
 									switch(curOption.type)
 									{
-										case 'int':
+										case INT:
 											holdValue = Math.round(holdValue);
 											curOption.setValue(holdValue);
 
-										case 'float' | 'percent':
+										case FLOAT, PERCENT:
 											holdValue = FlxMath.roundDecimal(holdValue, curOption.decimals);
 											curOption.setValue(holdValue);
+
+										default:
 									}
 
-								case 'string':
+								case STRING:
 									var num:Int = curOption.curOption; //lol
 									if(controls.UI_LEFT_P) --num;
 									else num++;
 
-									if(num < 0) {
+									if(num < 0)
 										num = curOption.options.length - 1;
-									} else if(num >= curOption.options.length) {
+									else if(num >= curOption.options.length)
 										num = 0;
-									}
 
 									curOption.curOption = num;
 									curOption.setValue(curOption.options[num]); //lol
@@ -256,33 +236,38 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 										}
 									}
 									//trace(curOption.options[num]);
+
+								default:
 							}
 							updateTextFrom(curOption);
 							curOption.change();
 							FlxG.sound.play(Paths.sound('scrollMenu'));
-						} else if(curOption.type != 'string') {
+						}
+						else if(curOption.type != STRING)
+						{
 							holdValue = Math.max(curOption.minValue, Math.min(curOption.maxValue, holdValue + curOption.scrollSpeed * elapsed * (controls.UI_LEFT ? -1 : 1)));
 
 							switch(curOption.type)
 							{
-								case 'int':
+								case INT:
 									curOption.setValue(Math.round(holdValue));
 								
-								case 'float' | 'percent':
+								case FLOAT, PERCENT:
 									var blah:Float = Math.max(curOption.minValue, Math.min(curOption.maxValue, holdValue + curOption.changeValue - (holdValue % curOption.changeValue)));
 									curOption.setValue(FlxMath.roundDecimal(blah, curOption.decimals));
+
+								default:
 							}
 							updateTextFrom(curOption);
 							curOption.change();
 						}
 					}
 
-					if(curOption.type != 'string') {
+					if(curOption.type != STRING)
 						holdTime += elapsed;
-					}
-				} else if(controls.UI_LEFT_R || controls.UI_RIGHT_R) {
-					clearHold();
 				}
+				else if(controls.UI_LEFT_R || controls.UI_RIGHT_R)
+					clearHold();
 			}
 
 			if(controls.RESET)
@@ -291,12 +276,11 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 				{
 					var leOption:GameplayOption = optionsArray[i];
 					leOption.setValue(leOption.defaultValue);
-					if(leOption.type != 'bool')
+					if(leOption.type != BOOL)
 					{
-						if(leOption.type == 'string')
-						{
+						if(leOption.type == STRING)
 							leOption.curOption = leOption.options.indexOf(leOption.getValue());
-						}
+
 						updateTextFrom(leOption);
 					}
 
@@ -305,9 +289,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 						leOption.displayFormat = "%vX";
 						leOption.maxValue = 3;
 						if(leOption.getValue() > 3)
-						{
 							leOption.setValue(3);
-						}
+
 						updateTextFrom(leOption);
 					}
 					leOption.change();
@@ -326,45 +309,35 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	function updateTextFrom(option:GameplayOption) {
 		var text:String = option.displayFormat;
 		var val:Dynamic = option.getValue();
-		if(option.type == 'percent') val *= 100;
+		if(option.type == PERCENT) val *= 100;
 		var def:Dynamic = option.defaultValue;
 		option.text = text.replace('%v', val).replace('%d', def);
 	}
 
 	function clearHold()
 	{
-		if(holdTime > 0.5) {
+		if(holdTime > 0.5)
 			FlxG.sound.play(Paths.sound('scrollMenu'));
-		}
+
 		holdTime = 0;
 	}
 	
 	function changeSelection(change:Int = 0)
 	{
-		curSelected += change;
-		if (curSelected < 0)
-			curSelected = optionsArray.length - 1;
-		if (curSelected >= optionsArray.length)
-			curSelected = 0;
-
-		var bullShit:Int = 0;
-
-		for (item in grpOptions.members) {
-			item.targetY = bullShit - curSelected;
-			bullShit++;
-
+		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);
+		for (num => item in grpOptions.members)
+		{
+			item.targetY = num - curSelected;
 			item.alpha = 0.6;
-			if (item.targetY == 0) {
+			if (item.targetY == 0)
 				item.alpha = 1;
-			}
 		}
-		for (text in grpTexts) {
+		for (text in grpTexts)
+		{
 			text.alpha = 0.6;
-			if(text.ID == curSelected) {
+			if(text.ID == curSelected)
 				text.alpha = 1;
-			}
 		}
-		curOption = optionsArray[curSelected]; //shorter lol
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
@@ -380,10 +353,7 @@ class GameplayOption
 	private var child:Alphabet;
 	public var text(get, set):String;
 	public var onChange:Void->Void = null; //Pressed enter (on Bool type options) or pressed/held left/right (on other types)
-
-	public var type(get, default):String = 'bool'; //bool, int (or integer), float (or fl), percent, string (or str)
-	// Bool will use checkboxes
-	// Everything else will use a text
+	public var type:OptionType = BOOL;
 
 	public var showBoyfriend:Bool = false;
 	public var scrollSpeed:Float = 50; //Only works on int/float, defines how fast it scrolls per second while holding left/right
@@ -401,7 +371,7 @@ class GameplayOption
 	public var displayFormat:String = '%v'; //How String/Float/Percent/Int values are shown, %v = Current value, %d = Default value
 	public var name:String = 'Unknown';
 
-	public function new(name:String, variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null)
+	public function new(name:String, variable:String, type:OptionType, defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null)
 	{
 		_name = name;
 		this.name = Language.getPhrase('setting_$name', name);
@@ -414,63 +384,58 @@ class GameplayOption
 		{
 			switch(type)
 			{
-				case 'bool':
+				case BOOL:
 					defaultValue = false;
-				case 'int' | 'float':
+				case INT, FLOAT:
 					defaultValue = 0;
-				case 'percent':
+				case PERCENT:
 					defaultValue = 1;
-				case 'string':
+				case STRING:
 					defaultValue = '';
-					if(options.length > 0) {
+					if(options.length > 0)
 						defaultValue = options[0];
-					}
+
+				default:
 			}
 		}
 
-		if(getValue() == null) {
+		if(getValue() == null)
 			setValue(defaultValue);
-		}
 
 		switch(type)
 		{
-			case 'string':
+			case STRING:
 				var num:Int = options.indexOf(getValue());
-				if(num > -1) {
+				if(num > -1)
 					curOption = num;
-				}
-	
-			case 'percent':
+
+			case PERCENT:
 				displayFormat = '%v%';
 				changeValue = 0.01;
 				minValue = 0;
 				maxValue = 1;
 				scrollSpeed = 0.5;
 				decimals = 2;
+
+			default:
 		}
 	}
 
 	public function change()
 	{
 		//nothing lol
-		if(onChange != null) {
+		if(onChange != null)
 			onChange();
-		}
 	}
 
 	public function getValue():Dynamic
-	{
 		return ClientPrefs.data.gameplaySettings.get(variable);
-	}
+
 	public function setValue(value:Dynamic)
-	{
 		ClientPrefs.data.gameplaySettings.set(variable, value);
-	}
 
 	public function setChild(child:Alphabet)
-	{
 		this.child = child;
-	}
 
 	var _name:String = null;
 	var _text:String = null;
@@ -486,19 +451,5 @@ class GameplayOption
 			return _text;
 		}
 		return null;
-	}
-
-	private function get_type()
-	{
-		var newValue:String = 'bool';
-		switch(type.toLowerCase().trim())
-		{
-			case 'int' | 'float' | 'percent' | 'string': newValue = type;
-			case 'integer': newValue = 'int';
-			case 'str': newValue = 'string';
-			case 'fl': newValue = 'float';
-		}
-		type = newValue;
-		return type;
 	}
 }

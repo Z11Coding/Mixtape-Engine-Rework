@@ -189,6 +189,8 @@ class MusicPlayer extends FlxGroup
 			setVocalsTime(0);
 		}
 
+		if (FlxG.keys.justPressed.M) muteVocals();
+
 		if (playing)
 		{
 			if(FreeplayState.vocals != null)
@@ -216,6 +218,16 @@ class MusicPlayer extends FlxGroup
 			FreeplayState.vocals.time = time;
 		if (FreeplayState.opponentVocals != null && FreeplayState.opponentVocals.length > time)
 			FreeplayState.opponentVocals.time = time;
+	}
+
+	var curMuteState:Bool = false;
+	function muteVocals()
+	{
+		curMuteState =! curMuteState;
+		if (FreeplayState.vocals != null && FreeplayState.vocals.playing)
+			FreeplayState.vocals.volume = curMuteState ? 0 : 0.8;
+		if (FreeplayState.opponentVocals != null && FreeplayState.opponentVocals.playing)
+			FreeplayState.opponentVocals.time = curMuteState ? 0 : 0.8;
 	}
 
 	public function pauseOrResume(resume:Bool = false) 
@@ -259,7 +271,7 @@ class MusicPlayer extends FlxGroup
 
 		if (playingMusic)
 		{
-			instance.bottomText.text = Language.getPhrase('musicplayer_tip', 'Press SPACE to Pause / Press ESCAPE to Exit / Press R to Reset the Song');
+			instance.bottomText.text = Language.getPhrase('musicplayer_tip', 'Press SPACE to Pause / Press ESCAPE to Exit / Press R to Reset the Song / Press M to mute the vocals');
 			positionSong();
 			
 			progressBar.setRange(0, FlxG.sound.music.length);

@@ -1,7 +1,6 @@
 package backend.modchart;
 // @author Nebula_Zorua
 
-import states.editors.EditorPlayState;
 import objects.playfields.NoteField;
 import backend.modchart.Modifier;
 import backend.modchart.modifiers.*;
@@ -11,6 +10,8 @@ import flixel.tweens.FlxEase;
 import flixel.math.FlxPoint;
 import flixel.FlxG;
 import flixel.FlxState;
+import objects.Note;
+import objects.NoteObject;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
 // NEW: Now also has some features of mirin (aliases, nodes)
@@ -105,6 +106,7 @@ class ModManager {
 		quickRegister(new RotateModifier(this, 'center', new Vector3(FlxG.width* 0.5, FlxG.height* 0.5)));
 		quickRegister(new LocalRotateModifier(this, 'local'));
 
+		registerAux("alwaysDraw");
 		registerAux("spiralHolds");
 		registerAux("orient");
 		registerAux("lookAheadTime"); // used for holds and orient
@@ -586,8 +588,8 @@ class ModManager {
 		diff += getValue("centeredPath", player) * Note.swagWidth; // Each 100% moves the path by receptor size
 		
 		pos.setTo(
-			Note.halfWidth + getBaseX(data, player, field.field.keyCount),
-			Note.halfWidth + 50 + diff,
+			Note.halfWidth + field.field.getBaseX(data),
+			Note.halfWidth + 50,
 			0
 		);
 

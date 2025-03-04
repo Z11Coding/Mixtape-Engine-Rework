@@ -9,8 +9,8 @@ import lime.system.Clipboard;
 
 import objects.TypedAlphabet;
 
-import backend.cutscenes.DialogueBoxPsych;
-import backend.cutscenes.DialogueCharacter;
+import cutscenes.DialogueBoxPsych;
+import cutscenes.DialogueCharacter;
 
 import states.editors.content.Prompt;
 
@@ -89,7 +89,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		mainGroup.add(ghostIdle);
 
 		box = new FlxSprite(70, 370);
-		box.antialiasing = ClientPrefs.data.globalAntialiasing;
+		box.antialiasing = ClientPrefs.data.antialiasing;
 		box.frames = Paths.getSparrowAtlas('speech_bubble');
 		box.scrollFactor.set();
 		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
@@ -413,7 +413,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 	}
 
 	public function UIEvent(id:String, sender:Dynamic) {
-		trace(id, sender);
+		//trace(id, sender);
 		if(id == PsychUICheckBox.CLICK_EVENT)
 			unsavedProgress = true;
 
@@ -624,7 +624,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
 		_file.addEventListener(Event.CANCEL, onLoadCancel);
 		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file.browse([jsonFilter]);
+		_file.browse([#if !mac jsonFilter #end]);
 	}
 
 	function onLoadComplete(_):Void

@@ -11,12 +11,12 @@ class Cursor
   /**
    * The current cursor mode.
    * Set this value to change the cursor graphic.
-   */
+  */
   public static var cursorMode(default, set):Null<CursorMode> = null;
 
   /**
    * Show the cursor.
-   */
+  */
   public static inline function show():Void
   {
     FlxG.mouse.visible = true;
@@ -26,7 +26,7 @@ class Cursor
 
   /**
    * Hide the cursor.
-   */
+  */
   public static inline function hide():Void
   {
     FlxG.mouse.visible = false;

@@ -3,6 +3,8 @@ package objects;
 import haxe.Json;
 import openfl.utils.Assets;
 
+using yutautil.CollectionUtils;
+
 interface Scrollable extends IFlxSprite {
 	public var targetY:Int;
 	public var distancePerItem:FlxPoint;
@@ -478,17 +480,16 @@ class ColoredAlphabet extends Alphabet
 			this.text = getRandomizedText();
 			if (dynamicRainbow)
 			{
-					letters.forEachT(letter -> {
-						if (letter != null)
-						{
-							var rainbowThing = new flixel.addons.effects.chainable.FlxRainbowEffect();
-							rainbowThing.apply(letter.bitmap);
-							rainbowThings.push(rainbowThing);
-						}
-					});
+				letters.forEachT(letter -> {
+					if (letter != null)
+					{
+						var rainbowThing = new flixel.addons.effects.chainable.FlxRainbowEffect();
+						rainbowThing.apply(letter.bitmap);
+						rainbowThings.push(rainbowThing);
+					}
+				});
 				// dynamicRainbowify(rainbowSettings.jump, rainbowSettings.index);
 				// rainbowSettings.index += rainbowSettings.jump;
-
 			}
 		}
 
@@ -795,7 +796,7 @@ class ColoredAlphabet extends Alphabet
 		{
 			super(x, y);
 			image = 'alphabet';
-			antialiasing = ClientPrefs.data.globalAntialiasing;
+			antialiasing = ClientPrefs.data.antialiasing;
 		}
 
 		public var curLetter:Letter = null;

@@ -1,12 +1,14 @@
 package backend;
 
+import backend.ClientPrefs;
+
 class Rating
 {
 	public var name:String = '';
 	public var image:String = '';
 	public var hitWindow:Null<Int> = 0; //ms
 	public var ratingMod:Float = 1;
-	public var score:Int = 400;
+	public var score:Int = 350;
 	public var noteSplash:Bool = true;
 	public var hits:Int = 0;
 
@@ -14,30 +16,19 @@ class Rating
 	{
 		this.name = name;
 		this.image = name;
-		this.hitWindow = Reflect.field(ClientPrefs.data, name + 'Window');
-		if(hitWindow == null)
+		this.hitWindow = 0;
+
+		var window:String = name + 'Window';
+		try
 		{
-			hitWindow = 0;
+			this.hitWindow = Reflect.field(ClientPrefs.data, window);
 		}
+		catch(e) FlxG.log.error(e);
 	}
 
 	public static function loadDefault():Array<Rating>
 	{
-		var ratingsData:Array<Rating>;
-		if (ClientPrefs.data.useMarvs)
-		{
-			ratingsData = [new Rating('marv')]; //highest rating goes first
-			
-			var rating:Rating = new Rating('sick');
-			rating.ratingMod = 1;
-			rating.score = 350;
-			rating.noteSplash = true;
-			ratingsData.push(rating);
-		}
-		else
-		{
-			ratingsData = [new Rating('sick')]; //highest rating goes first
-		}
+		var ratingsData:Array<Rating> = [new Rating('sick')]; //highest rating goes first
 
 		var rating:Rating = new Rating('good');
 		rating.ratingMod = 0.67;

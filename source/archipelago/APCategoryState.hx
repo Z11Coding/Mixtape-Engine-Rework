@@ -1,5 +1,7 @@
 package archipelago;
 
+using yutautil.CollectionUtils;
+
 class APCategoryState extends states.CategoryState {
 
     public var AP:archipelago.Client;
@@ -35,8 +37,7 @@ class APCategoryState extends states.CategoryState {
 
     override function update(elapsed:Float)
     {
-        AP.poll();
-        
         super.update(elapsed);
+        AP.poll();
     }
 }

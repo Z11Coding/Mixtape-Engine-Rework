@@ -6,6 +6,7 @@ import flixel.system.FlxAssets.FlxShader;
 import shaders.NoteColorSwap;
 import haxe.ds.Vector as FastVector;
 import openfl.Vector;
+import flixel.FlxObject;
 @:structInit
 class RenderObject {
 	public var graphic:FlxGraphic;

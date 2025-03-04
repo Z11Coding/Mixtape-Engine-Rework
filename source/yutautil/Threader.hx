@@ -105,7 +105,7 @@ class Threader {
         var threadExpr = macro {
             #if sys
             yutautil.Threader.quietThreads.push($nameExpr);
-            var thrd = Thread.create(function() {
+            var thrd = sys.thread.Thread.create(function() {
                 try {
                     trace("Set command to run in a thread...");
                     if ($nameExpr != "") {

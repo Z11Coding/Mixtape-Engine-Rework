@@ -1,5 +1,6 @@
 package substates;
 
+import objects.GameOverVideoSprite;
 import backend.WeekData;
 
 import objects.Character;
@@ -10,15 +11,11 @@ import flixel.math.FlxPoint;
 import states.StoryMenuState;
 import states.FreeplayState;
 
-//It has its own folder cuz it was made for something much bigger. 
-//im just too lazy to move it.
-//-sans
-import undertale.UnderTextParser;
-
 class GameOverSubstate extends MusicBeatSubstate
 {
 	public var boyfriend:Character;
 	var camFollow:FlxObject;
+
 	var stagePostfix:String = "";
 
 	public static var characterName:String = 'bf-dead';
@@ -26,7 +23,10 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var loopSoundName:String = 'gameOver';
 	public static var endSoundName:String = 'gameOverEnd';
 	public static var deathDelay:Float = 0;
-	public static var causeofdeath:UnderTextParser;
+
+	public static var video:Null<GameOverVideoSprite> = null;
+	public static var isVideo:Bool = false;
+
 	public static var instance:GameOverSubstate;
 	public function new(?playStateBoyfriend:Character = null)
 	{
@@ -43,6 +43,9 @@ class GameOverSubstate extends MusicBeatSubstate
 		loopSoundName = 'gameOver';
 		endSoundName = 'gameOverEnd';
 		deathDelay = 0;
+
+		video = null;
+		isVideo = false;
 
 		var _song = PlayState.SONG;
 		if(_song != null)
@@ -61,19 +64,9 @@ class GameOverSubstate extends MusicBeatSubstate
 	var overlayConfirmOffsets:FlxPoint = FlxPoint.get();
 	override function create()
 	{
-		if (FlxG.camera.bgColor != 0xFF000000)
-			FlxG.camera.bgColor = 0xFF000000; //So that the game over looks right
-		archipelago.APPlayState.deathByLink = false;
 		instance = this;
 
 		Conductor.songPosition = 0;
-
-		Cache.loadWithList([
-			{path: characterName, type: 'IMAGE'},
-			{path: deathSoundName, type: 'SOUND'},
-			{path: loopSoundName, type: 'MUSIC'},
-			{path: endSoundName, type: 'MUSIC'}
-		]);
 
 		if(boyfriend == null)
 		{
@@ -106,7 +99,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			overlay.frames = Paths.getSparrowAtlas('Pico_Death_Retry');
 			overlay.animation.addByPrefix('deathLoop', 'Retry Text Loop', 24, true);
 			overlay.animation.addByPrefix('deathConfirm', 'Retry Text Confirm', 24, false);
-			overlay.antialiasing = ClientPrefs.data.globalAntialiasing;
+			overlay.antialiasing = ClientPrefs.data.antialiasing;
 			overlayConfirmOffsets.set(250, 200);
 			overlay.visible = false;
 			add(overlay);
@@ -132,7 +125,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				var neneKnife:FlxSprite = new FlxSprite(boyfriend.x - 450, boyfriend.y - 250);
 				neneKnife.frames = Paths.getSparrowAtlas('NeneKnifeToss');
 				neneKnife.animation.addByPrefix('anim', 'knife toss', 24, false);
-				neneKnife.antialiasing = ClientPrefs.data.globalAntialiasing;
+				neneKnife.antialiasing = ClientPrefs.data.antialiasing;
 				neneKnife.animation.finishCallback = function(_)
 				{
 					remove(neneKnife);
@@ -142,18 +135,6 @@ class GameOverSubstate extends MusicBeatSubstate
 				neneKnife.animation.play('anim', true);
 			}
 		}
-
-		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-		causeofdeath = new UnderTextParser(boyfriend.x, boyfriend.y - 100, FlxG.width, "", 32);
-		causeofdeath.scrollFactor.set(0,0);
-		causeofdeath.font = Paths.font("determination-extended.ttf");
-        causeofdeath.color = 0xFFFFFFFF; 
-		for (letter in alphabet) {
-			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
-			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
-		}
-		add(causeofdeath);
-
 
 		super.create();
 	}
@@ -193,11 +174,11 @@ class GameOverSubstate extends MusicBeatSubstate
 	
 				Mods.loadTopMod();
 				if (PlayState.isStoryMode)
-					TransitionState.transitionState(StoryMenuState);
+					MusicBeatState.switchState(new StoryMenuState());
 				else
-					TransitionState.transitionState(FreeplayState);
+					MusicBeatState.switchState(new FreeplayState());
 	
-				FlxG.sound.playMusic(Paths.music('panixPress'));
+				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop)
@@ -235,8 +216,6 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		FlxG.sound.music.play(true);
 		FlxG.sound.music.volume = volume;
-		causeofdeath.resetText(COD.getCOD());
-        causeofdeath.start(0.05, true);
 	}
 
 	function endBullshit():Void
@@ -266,6 +245,34 @@ class GameOverSubstate extends MusicBeatSubstate
 			});
 			PlayState.instance.callOnScripts('onGameOverConfirm', [true]);
 		}
+	}
+
+	public function setGameOverVideo(name:String) // called in hscript
+	{
+		isVideo = true;
+
+		endSoundName = "empty";
+		deathSoundName = "empty";
+		loopSoundName = "empty";
+
+		boyfriend.visible = false;
+
+		video = new GameOverVideoSprite();
+
+		video.addCallback('onFormat',()->{
+			video.setGraphicSize(0, FlxG.height);
+			video.updateHitbox();
+			video.screenCenter();
+			video.antialiasing = true;
+			video.cameras = [PlayState.instance.camOther];
+		});
+		video.addCallback('onEnd',()->{
+			FlxG.resetState();
+		});
+
+		video.load(Paths.video(name));
+		video.play();
+		add(video);
 	}
 
 	override function destroy()
