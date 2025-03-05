@@ -158,6 +158,31 @@ class CollectionUtils
 		}
 	}
 
+	public static inline function exists(input:Dynamic, ?checkUninitialized:Bool = false):Dynamic {
+		if (checkUninitialized) {
+			try {
+				if (input == null) {
+					return false;
+				}
+				return true;
+			} catch (e:Dynamic) {
+				return null;
+			}
+		} else {
+			return input != null;
+		}
+	}
+
+	public static inline function catchWith<T>(tryFunc:Void->T, catchFunc:Dynamic->T):Dynamic {
+		return try {
+			tryFunc();
+		} catch (e:Dynamic) {
+			catchFunc(e);
+		}
+	}
+
+
+
 	public static inline function toArray<T>(input:Dynamic, ?type):Array<Any>
 	{
 		if (Std.is(input, Array))

@@ -142,6 +142,25 @@ class MixSaveWrapper {
         return wrapper;
     }
 
+    public static function newWithDynamic(mixSave:MixSave, data:Dynamic, filePath:String = "save/mixsave.json"):MixSaveWrapper {
+        var wrapper = new MixSaveWrapper(mixSave, filePath);
+        for (field in Reflect.fields(data)) {
+            wrapper.mixSave.content.set(field, Reflect.field(data, field));
+        }
+        return wrapper;
+    }
+
+    public static function newWithDefault(filePath:String = "save/mixsave.json"):MixSaveWrapper {
+        var wrapper = new MixSaveWrapper(new MixSave(), filePath, false);
+        if (!sys.FileSystem.exists(filePath)) {
+            wrapper.mixSave.content = new Map();
+            wrapper.save();
+        } else {
+            wrapper.load();
+        }
+        return wrapper;
+    }
+
     public function isEmpty():Bool {
         return mixSave.content.toArray().length <= 0;
     }

@@ -339,6 +339,60 @@ class Paths
 		return crawl(directoryPath, fileExtension, targetArray != null ? targetArray : [], 0);
 	}
 
+	public static function url(url:String):String {
+		// Basic validation (consider more robust validation/sanitization)
+		if (!isValidUrl(url)) {
+			throw "Invalid URL";
+		}
+
+		var curlCommand = "curl -s " + '"' + url + '"'; // -s for silent mode
+		try {
+			var process = new Process("curl", [url]);
+			var output = process.stdout.readAll().toString();
+			process.close();
+			return output;
+		} catch (e:Dynamic) {
+			// Handle or log the error
+			trace('Error executing curl command: $e');
+			return null; // or handle as appropriate
+		}
+	}
+
+	public static function connectWebSocket(url:String):hx.ws.WebSocket {
+		if (!isValidUrl(url)) {
+			throw "Invalid URL";
+		}
+
+		// Not to be used, at least not yet.
+
+		var ws = new hx.ws.WebSocket(url);
+		ws.onopen = function() {
+			trace("WebSocket connection opened");
+		};
+		ws.onmessage = function(event) {
+			trace("Message received: " + event);
+		};
+		ws.onclose = function() {
+			trace("WebSocket connection closed from:" + url);
+		};
+		ws.onerror = function(event) {
+			trace("WebSocket error: " + event.message);
+		};
+		return ws;
+	}
+
+	// Basic URL validation (implement a more comprehensive check)
+	static function isValidUrl(url:String):Bool {
+		return url.startsWith("http://") || url.startsWith("https://") || isValidIp(url);
+	}
+
+	// Basic IP address validation
+	static function isValidIp(ip:String):Bool {
+		var ipPattern:EReg = ~/^((25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})\.){3}(25[0-5]|2[0-4]\d|1\d{2}|\d{1,2})$/;
+		return ipPattern.match(ip);
+	}
+
+
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
 	{
 		#if MODS_ALLOWED
