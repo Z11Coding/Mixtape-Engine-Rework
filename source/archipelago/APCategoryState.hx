@@ -24,7 +24,15 @@ class APCategoryState extends states.CategoryState {
             AP.disconnect_socket();
             MusicBeatState.switchState(new archipelago.APEntryState());
         };
-        specialOptions.push(opFunc);
+
+        // Ensure specialOptions are set correctly for 'Options' and 'Quit'
+        for (i in 0...menuItems.length) {
+            if (menuItems[i] == 'Options') {
+            specialOptions[i] = opFunc;
+            } else if (menuItems[i] == 'Quit') {
+            specialOptions[i] = quitFunc;
+            }
+        }
 
         this.specialOptions.pushMulti([opFunc, quitFunc]);
 

@@ -461,9 +461,9 @@ class APEntryState extends FlxState
 					return;
 				}
 			}
-			File.saveBytes("fridaynightfunkin.apworld", apworld);
+			File.saveBytes("fridaynightfunkin.apworld", apworld); 
 
-			Sys.command("cmd /c start fridaynightfunkin.apworld");
+			Sys.command("cmd /c start fridaynightfunkin.apworld"); 
 
 			while (!FileSystem.exists(apWorldFile)) {
 				Sys.sleep(1); // Sleep for 1 second before checking again
