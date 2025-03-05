@@ -82,10 +82,15 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	function get_judgeManager()
 		return judgeManager;
 	public var spawnedNotes:Array<Note> = []; // spawned notes
+
 	public var spawnedByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned notes by data. Used for input
+	public var tapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned tap notes (with requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
+	public var noTapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned tap notes (without requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
 	public var noteQueue:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // unspawned notes
+	
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
+	
 	public var noteField:NoteField; // renderer
 	public var modNumber:Int = 0; // used for the mod manager. can be set to a different number to give it a different set of modifiers. can be set to 0 to sync the modifiers w/ bf's, and 1 to sync w/ the opponent's
 	public var modManager:ModManager; // the mod manager. will be set automatically by playstate so dw bout this
@@ -215,6 +220,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public function removeNote(daNote:Note){
 		daNote.active = false;
 		daNote.visible = false;
+		daNote.kill();
 
 		noteRemoved.dispatch(daNote, this);
 
@@ -222,6 +228,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		spawnedNotes.remove(daNote);
 		if (spawnedByData[daNote.column] != null)
 			spawnedByData[daNote.column].remove(daNote);
+
+		if (tapsByData[daNote.column] != null)
+			tapsByData[daNote.column].remove(daNote);
+
+		if (noTapsByData[daNote.column] != null)
+			noTapsByData[daNote.column].remove(daNote);
 
 		if (noteQueue[daNote.column] != null)
 			noteQueue[daNote.column].remove(daNote);
@@ -253,13 +265,23 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 		}
 
-		//trace(noteQueue[note.column]);
-
-		if (spawnedByData[note.column]!=null)
+		if (spawnedByData[note.column] != null)
 			spawnedByData[note.column].push(note);
 		else
 			return;
 		
+
+		if(note.holdType == HEAD || note.holdType == TAP){
+			if(note.requiresTap){
+				if (tapsByData[note.column] != null)
+					tapsByData[note.column].push(note);
+			}else{
+				if (noTapsByData[note.column] != null)
+					noTapsByData[note.column].push(note);
+			}
+
+		}
+
 		noteSpawned.dispatch(note, this);
 		spawnedNotes.push(note);
 		note.handleRendering = false;
@@ -448,7 +470,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						var receptor = strumNotes[daNote.column];
 						var oldSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
 						var lastTime:Float = daNote.holdingTime;
-						daNote.holdingTime = Conductor.songPosition - daNote.strumTime;
+						daNote.holdingTime = daNote.sustainLength;
 						if (daNote.holdingTime > daNote.sustainLength)
 							daNote.holdingTime = daNote.sustainLength;
 						var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
@@ -470,7 +492,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						/*if(autoPlayed && daNote.tripProgress <= 0.5)
 							holdPressCallback(daNote, this); // would set tripProgress back to 1 but idk maybe the roll script wants to do its own shit*/
 
-						if(daNote.tripProgress <= 0){
+						if(daNote.tripProgress <= 0) {
 							holdDropped.dispatch(daNote, this);
 							daNote.tripProgress = 0;
 							daNote.tooLate=true;
@@ -489,12 +511,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							{
 								if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
 									noteHitCallback(tail, this);
+									trace("hitting tail hold");
 								}
 							}
 
 							if (daNote.holdingTime >= daNote.sustainLength)
 							{
-								//trace("finished hold");
+								trace("finished hold");
 								holdFinished.dispatch(daNote, this);
 								daNote.holdingTime = daNote.sustainLength;
 								isHolding[daNote.column] = false;
@@ -567,7 +590,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}else{
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
-					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> !note.ignoreNote && note.requiresTap);
+					var noteList = getTapNotesWithEnd(data, Conductor.songPosition + 180, (note:Note) -> !note.isSustainNote, false);
 					
 					#if PE_MOD_COMPATIBILITY
 					// so lowPriority actually works (even though i hate it lol!)
@@ -597,8 +620,44 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		var collected:Array<Note> = [];
 		for (note in spawnedByData[dir])
 		{
-			if (note.alive && note.column == dir && !note.wasGoodHit && !note.tooLate)
+			if (note.alive && note.column == dir)
 			{
+				if (filter == null || filter(note))
+					collected.push(note);
+			}
+		}
+		return collected;
+	}
+ 
+	// get all living TAP notes
+	public function getTapNotes(dir:Int, ?filter:Note->Bool, requiresTap:Bool = true):Array<Note> {
+		var array = requiresTap ? tapsByData[dir] : noTapsByData[dir];
+
+		if (array == null)
+			return [];
+
+		var collected:Array<Note> = [];
+		for (note in array) {
+			if (note.alive && note.column == dir) {
+				if (filter == null || filter(note))
+					collected.push(note);
+			}
+		}
+		return collected;
+	}
+
+	// gets all living TAP notes before a certain time w/ optional filter
+	public function getTapNotesWithEnd(dir:Int, end:Float, ?filter:Note->Bool, requiresTap:Bool = true):Array<Note> {
+		var array = requiresTap ? tapsByData[dir] : noTapsByData[dir];
+
+		if (array == null)
+			return [];
+
+		var collected:Array<Note> = [];
+		for (note in array) {
+			if (note.strumTime > end)
+				break;
+			if (note.alive && note.column == dir && !note.wasGoodHit && !note.tooLate) {
 				if (filter == null || filter(note))
 					collected.push(note);
 			}
