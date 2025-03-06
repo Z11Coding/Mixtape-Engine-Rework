@@ -22,7 +22,7 @@ class NoteObject extends FlxSprite {
 
 	public var column:Int = 0;
 	@:isVar
-	public var noteData(get,set):Int; // backwards compat
+	public var noteData(get, set):Int; // backwards compat
 	inline function get_noteData()return column;
 	inline function set_noteData(v:Int)return column = v;
 

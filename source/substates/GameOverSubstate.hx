@@ -29,6 +29,8 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var endSoundName:String = 'gameOverEnd';
 	public static var deathDelay:Float = 0;
 
+	public static var causeofdeath:UnderTextParser;
+
 	public static var video:Null<GameOverVideoSprite> = null;
 	public static var isVideo:Bool = false;
 
@@ -141,6 +143,17 @@ class GameOverSubstate extends MusicBeatSubstate
 			}
 		}
 
+		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+		causeofdeath = new UnderTextParser(boyfriend.x, boyfriend.y - 100, FlxG.width, "", 32);
+		causeofdeath.scrollFactor.set(0,0);
+		causeofdeath.font = Paths.font("determination-extended.ttf");
+        causeofdeath.color = 0xFFFFFFFF; 
+		for (letter in alphabet) {
+			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+		}
+		add(causeofdeath);
+
 		super.create();
 	}
 
@@ -221,6 +234,8 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		FlxG.sound.music.play(true);
 		FlxG.sound.music.volume = volume;
+		causeofdeath.resetText(COD.getCOD());
+        causeofdeath.start(0.05, true);
 	}
 
 	function endBullshit():Void

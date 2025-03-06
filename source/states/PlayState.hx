@@ -3465,10 +3465,83 @@ class PlayState extends MusicBeatState
 		});
 	}
 
+	private function strumKeyDown(column:Int, player:Int = -1) {
+		if (strumsBlocked[column]) return;
+		
+		if (callOnScripts("onKeyPress", [column]) == LuaUtils.Function_Stop)
+			return;
+		
+		var hitNotes:Array<Note> = []; // what could scripts possibly do with this information
+		var controlledFields:Array<PlayField> = [];
+		
+		for (field in playfields.members) {
+			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed) 
+				continue;
+
+			controlledFields.push(field);
+			field.keysPressed[column] = true;
+
+			if (endingSong) 
+				continue;
+
+			var note:Note = {
+				var ret:Dynamic = callOnScripts("onFieldInput", [field, column, hitNotes]);
+				if (ret == LuaUtils.Function_Stop) null;
+				else if (ret is Note) ret;
+				else field.input(column);
+			}
+
+			if (note == null) {
+				var spr:StrumNote = field.strumNotes[column];
+				if (spr != null) {
+					spr.playAnim('pressed');
+					spr.resetAnim = 0;
+				}
+			}else {
+				hitNotes.push(note);
+			}
+		}
+		
+		if (hitNotes.length == 0) {
+			for (field in controlledFields) {				
+				callOnScripts('onGhostTap', [column, field]);
+
+				if (!ClientPrefs.data.ghostTapping)
+					noteMissPress(column, field);
+			}
+		}
+
+		//trace('strum down: $column');
+	}
+
+	private function strumKeyUp(column:Int, player:Int = -1) {
+		// doesnt matter if THIS is done while paused
+		// only worry would be if we implemented Lifts
+		// but afaik we arent doing that
+		// (though could be interesting to add)
+
+		for (field in playfields.members) {
+			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed) 
+				continue;
+
+			field.keysPressed[column] = false;
+			
+			if (!field.isHolding[column]) {
+				var spr:StrumNote = field.strumNotes[column];
+				if (spr != null){
+					spr.playAnim('static');
+					spr.resetAnim = 0;
+				}
+			}
+		}
+
+		callOnScripts('onKeyRelease', [column]);
+	}
+
 	public var strumsBlocked:Array<Bool> = [];
+	var pressed:Array<FlxKey> = [];
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
-
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
 
@@ -3479,13 +3552,22 @@ class PlayState extends MusicBeatState
 			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
 			#end
 
-			keyPressed(key);
+			if (paused || !startedCountdown || inCutscene)
+				return;
+			
+			if (pressed.contains(key)) return;
+			pressed.push(key);
+
+			if (key != -1) strumKeyDown(key);
+
+			//keyPressed(key);
 		}
 	}
 
 	private function keyPressed(key:Int, player:Int = -1)
 	{
 		if(cpuControlled || paused || inCutscene || key < 0 || key >= playerStrums.length || !generatedMusic || endingSong || boyfriend.stunned) return;
+		if (strumsBlocked[key]) return;
 
 		var ret:Dynamic = callOnScripts('onKeyPressPre', [key]);
 		if(ret == LuaUtils.Function_Stop) return;
@@ -3557,7 +3639,9 @@ class PlayState extends MusicBeatState
 	{
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
-		if(!controls.controllerMode && key > -1) keyReleased(key);
+		//if(!controls.controllerMode && key > -1) keyReleased(key);
+		pressed.remove(key);
+		if (key != -1) strumKeyUp(key);
 	}
 
 	private function keyReleased(key:Int, ?player:Int = -1)
@@ -3617,6 +3701,23 @@ class PlayState extends MusicBeatState
 
 		if (startedCountdown && !inCutscene && !boyfriend.stunned && generatedMusic)
 		{
+			if (notes.length > 0) {
+				for (n in notes) { // I can't do a filter here, that's kinda awesome
+					var canHit:Bool = (n != null && !strumsBlocked[n.noteData] && n.canBeHit
+						&& n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit);
+
+					if (guitarHeroSustains)
+						canHit = canHit && n.parent != null && n.parent.wasGoodHit;
+
+					if (canHit && n.isSustainNote) {
+						var released:Bool = !holdArray[n.noteData];
+
+						if (!released)
+							goodNoteHit(n, n.field);
+					}
+				}
+			}
+
 			if (!holdArray.contains(true) || endingSong)
 				playerDance();
 
