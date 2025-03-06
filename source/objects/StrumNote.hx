@@ -159,26 +159,26 @@ class StrumNote extends NoteObject
 			switch (Math.abs(column))
 			{
 				case 0:
-					attemptToAddAnimationByPrefix('static', 'arrowLEFT');
-					attemptToAddAnimationByPrefix('pressed', 'left press', 24, false);
-					attemptToAddAnimationByPrefix('confirm', 'left confirm', 24, false);
+					attemptToAddAnimationByPrefix('static', 'arrowLEFT', 24, true);
+					attemptToAddAnimationByPrefix('pressed', 'left press');
+					attemptToAddAnimationByPrefix('confirm', 'left confirm');
 				case 1:
-					attemptToAddAnimationByPrefix('static', 'arrowDOWN');
-					attemptToAddAnimationByPrefix('pressed', 'down press', 24, false);
-					attemptToAddAnimationByPrefix('confirm', 'down confirm', 24, false);
+					attemptToAddAnimationByPrefix('static', 'arrowDOWN', 24, true);
+					attemptToAddAnimationByPrefix('pressed', 'down press');
+					attemptToAddAnimationByPrefix('confirm', 'down confirm');
 				case 2:
-					attemptToAddAnimationByPrefix('static', 'arrowUP');
-					attemptToAddAnimationByPrefix('pressed', 'up press', 24, false);
-					attemptToAddAnimationByPrefix('confirm', 'up confirm', 24, false);
+					attemptToAddAnimationByPrefix('static', 'arrowUP', 24, true);
+					attemptToAddAnimationByPrefix('pressed', 'up press');
+					attemptToAddAnimationByPrefix('confirm', 'up confirm');
 				case 3:
-					attemptToAddAnimationByPrefix('static', 'arrowRIGHT');
-					attemptToAddAnimationByPrefix('pressed', 'right press', 24, false);
-					attemptToAddAnimationByPrefix('confirm', 'right confirm', 24, false);
+					attemptToAddAnimationByPrefix('static', 'arrowRIGHT', 24, true);
+					attemptToAddAnimationByPrefix('pressed', 'right press');
+					attemptToAddAnimationByPrefix('confirm', 'right confirm');
 			}
 
-			attemptToAddAnimationByPrefix('static', 'arrow' + animationArray[0]);
+			attemptToAddAnimationByPrefix('static', 'arrow' + animationArray[0], 24, true);
 			attemptToAddAnimationByPrefix('pressed', animationArray[1] + ' press');
-			attemptToAddAnimationByPrefix('confirm', animationArray[1] + ' confirm', 24, false);
+			attemptToAddAnimationByPrefix('confirm', animationArray[1] + ' confirm');
 		}
 		defScale.copyFrom(scale);
 		updateHitbox();
@@ -196,7 +196,7 @@ class StrumNote extends NoteObject
 		"RIGHT",
 	];
 
-	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
+	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = false)
 	{
 		var animFrames = [];
 		@:privateAccess

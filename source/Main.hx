@@ -385,8 +385,6 @@ class Main extends Sprite
 								FlxG.sound.play(Paths.sound("metal_pipe"));
 								if (PlayState.isStoryMode) {
 									FlxG.switchState(new states.StoryMenuState());
-								} else if (PlayState.CacheMode) {
-									FlxG.resetState();
 								} else {
 									FlxG.switchState(new states.FreeplayState());
 								}
@@ -412,7 +410,7 @@ class Main extends Sprite
 							Application.current.window.alert("Something went extremely wrong... You may want to check some things in the files!\nFailed to load TitleState!",
 								"Fatal Error");
 							trace("Unable to recover...");
-							FlxG.switchState(new ExitState());
+							FlxG.switchState(new states.ExitState());
 							handled = true;
 		
 						case "CacheState":
@@ -437,7 +435,7 @@ class Main extends Sprite
 								var mainGame = mainInstance.game;
 								var initialState = Type.getClass(mainGame.initialState);
 								var restartProcess = new Process("MixEngine.exe", ["GameJoltBug", "restart"]);
-								FlxG.switchState(new ExitState());
+								FlxG.switchState(new states.ExitState());
 							}
 							trace("Recommended to recompile the game to fix the issue.");
 							handled = true;

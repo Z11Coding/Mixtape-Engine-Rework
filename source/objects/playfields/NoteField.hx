@@ -38,7 +38,7 @@ class NoteField extends FieldBase
 	]);
 	var HOLD_INDICES:Vector<Int> = new Vector<Int>(0, false);
 
-	public var tryForceHoldsBehind:Bool = false; // Field tries to push holds behind receptors and notes
+	public var tryForceHoldsBehind:Bool = true; // Field tries to push holds behind receptors and notes
 
 	public var holdSubdivisions(default, set):Int;
 	public var optimizeHolds = false; //ClientPrefs.data.optimizeHolds;
@@ -197,6 +197,9 @@ class NoteField extends FieldBase
 			var object = drawNote(obj, pos);
 			if (object == null)
 				continue;
+
+			if (tryForceHoldsBehind)
+				object.zIndex -= 2; // so that way strums are always behind no matter what
 
 			lookupMap.set(obj, object);
 			drawQueue.push(object);

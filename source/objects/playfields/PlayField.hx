@@ -313,6 +313,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public function hasNote(note:Note)
 		return spawnedNotes.contains(note) || noteQueue[note.column]!=null && noteQueue[note.column].contains(note);
 	
+	var closestNotes:Array<Note> = [];
+	var strumsBlocked:Array<Bool> = [];
 	// sends an input to the playfield
 	public function input(data:Int){
 		if (!PlayState.instance.boyfriend.stunned)
@@ -321,19 +323,28 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			{
 				case "Native":
 					if(data > keyCount || data < 0)return null;
-					
-					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.isSustainNote && note.requiresTap);
+		
+					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> note.requiresTap);
 					#if PE_MOD_COMPATIBILITY
 					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); // so lowPriority actually works (even though i hate it lol!)
 					#else
-					noteList.sort((a, b) -> Std.int(b.strumTime - a.strumTime)); //so lowPriority actually works (even though i hate it lol!)
+					noteList.sort((a, b) -> Std.int(b.strumTim - a.strumTime)); // so lowPriority actually works (even though i hate it lol!)
 					#end
+					var recentHold:Null<Note> = null;
 					while (noteList.length > 0)
 					{
 						var note:Note = noteList.pop();
-						if (!note.blockHit) noteHitCallback(note, this);
-						return note;
+						if (note.wasGoodHit && note.holdingTime < note.sustainLength)
+							recentHold = note; // for the sake of ghost-tapping shit.
+							// returned lower so that holds dont interrupt hitting other notes as, even though that'd make sense, it also feels like shit to play on some songs i.e Bopeebo
+						else {
+							if (note.wasGoodHit)
+								continue;	
+							noteHitCallback(note, this);
+							return note;
+						}
 					}
+					return recentHold;
 				case 'Rhythm':
 					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.isSustainNote && note.requiresTap);
 					noteList.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
@@ -361,7 +372,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 					if (!ClientPrefs.data.ghostTapping)
 					{
-						PlayState.instance.noteMissPress(data);
+						PlayState.instance.ogNoteMissPress(data);
 					}
 				case 'BEAT! Engine':
 					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.isSustainNote && note.requiresTap);
@@ -420,7 +431,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 					else if (canMiss)
 					{
-						PlayState.instance.noteMissPress(data);
+						PlayState.instance.ogNoteMissPress(data);
 					}
 
 					// I dunno what you need this for but here you go
@@ -449,7 +460,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 					closestNotes.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 
-					var dataNotes = [];
+					var dataNotes:Array<Note> = [];
 					for (i in closestNotes)
 						if (i.noteData == data && !i.isSustainNote)
 							dataNotes.push(i);
@@ -488,7 +499,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 					else if (canMiss)
 					{
-						PlayState.instance.noteMissPress(data);
+						PlayState.instance.ogNoteMissPress(data);
 					}
 				case 'ZoroForce EK':
 					var hittableNotes = [];
@@ -541,7 +552,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						noteHitCallback(daNote, this);
 					}
 					else if (!ClientPrefs.data.ghostTapping)
-						PlayState.instance.noteMissPress(data);
+						PlayState.instance.ogNoteMissPress(data);
 
 				case "Mic'ed Up Engine":
 					PlayState.instance.notes.forEachAlive(function(daNote:Note)
@@ -612,7 +623,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							for (shit in 0...keysPressed.length)
 							{ // if a direction is hit that shouldn't be
 								if (keysPressed[shit] && !directionList.contains(shit))
-									PlayState.instance.noteMissPress(shit);
+									PlayState.instance.ogNoteMissPress(shit);
 							}
 						}
 						for (coolNote in possibleNotes)
@@ -636,7 +647,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					{
 						for (shit in 0...keysPressed.length)
 							if (keysPressed[shit])
-								PlayState.instance.noteMissPress(shit);
+								PlayState.instance.ogNoteMissPress(shit);
 					}
 
 					if (dontCheck && possibleNotes.length > 0 || !ClientPrefs.data.noAntimash && possibleNotes.length > 0)
@@ -647,7 +658,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							PlayState.instance.scoreTxt.color = FlxColor.RED;
 							for (shit in 0...keysPressed.length)
 								if (keysPressed[shit])
-									PlayState.instance.noteMissPress(shit);
+									PlayState.instance.ogNoteMissPress(shit);
 							PlayState.instance.health -= 0.05;
 							PlayState.instance.bfkilledcheck = true;
 						}
@@ -668,7 +679,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						}
 					}else{
 						if(!ClientPrefs.data.ghostTapping)
-							PlayState.instance.noteMissPress(data);
+							PlayState.instance.ogNoteMissPress(data);
 					}
 
 				case "YoshiEngine":
@@ -732,7 +743,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 					final defNotes:Array<Note> = [for (v in closestNotes) v];
 
-					haxe.ds.ArraySort.sort(defNotes, sortNotes);
+					haxe.ds.ArraySort.sort(defNotes, sortByOrderNote);
 
 					if (closestNotes.length != 0)
 					{
@@ -755,7 +766,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						return coolNote;
 					}
 					else if (!ClientPrefs.data.ghostTapping)
-						PlayState.instance.noteMissPress(data);
+						PlayState.instance.ogNoteMissPress(data);
 
 					Conductor.songPosition = lastConductorTime;
 			}
@@ -871,7 +882,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			modManager.updateObject(curDecBeat, daNote, modNumber);
 
 			// check for hold inputs
-			if(!daNote.isSustainNote){
+			if(daNote.isSustainNote){
 				if(daNote.column > keyCount-1){
 					garbage.push(daNote);
 					continue;
@@ -884,10 +895,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
                         isHolding[daNote.column] = true;
                         if(wasHeld != isHeld){
                             if(isHeld){
+								trace("Holding!");
                                 if(holdPressCallback != null)
                                     holdPressCallback(daNote, this);
-                            }else if(holdReleaseCallback!=null)
+                            }else if(holdReleaseCallback!=null) {
                                 holdReleaseCallback(daNote, this);
+								trace("Hold Released!");
+							}
                         }
 
 						var receptor = strumNotes[daNote.column];
@@ -1013,19 +1027,18 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}else{
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
-					var noteList = getTapNotesWithEnd(data, Conductor.songPosition + 180, (note:Note) -> !note.isSustainNote, false);
-					
+					var noteList = getNotesWithEnd(data, Conductor.songPosition);
 					#if PE_MOD_COMPATIBILITY
 					// so lowPriority actually works (even though i hate it lol!)
 					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); 
 					#else
 					noteList.sort((a, b) -> Std.int(b.strumTime - a.strumTime));
 					#end
-					
 					while (noteList.length > 0)
 					{
 						var note:Note = noteList.pop();
 						noteHitCallback(note, this);
+						if (!note.isSustainNote) keysPressed[data] = false;
 					}
 				}
 			}

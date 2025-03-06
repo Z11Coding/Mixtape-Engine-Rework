@@ -11,7 +11,7 @@ import objects.MusicPlayer;
 import archipelago.ArchPopup;
 import archipelago.APEntryState;
 
-import states.editors.ChartingStateOG;
+//import states.editors.ChartingStateOG;
 
 import flixel.addons.ui.FlxUIInputText;
 
@@ -25,6 +25,8 @@ import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import archipelago.PacketTypes.ClientStatus;
+import yutautil.ChanceSelector;
+import yutautil.ChanceSelector.Chance;
 
 class FreeplayState extends MusicBeatState
 {
@@ -164,11 +166,6 @@ class FreeplayState extends MusicBeatState
 		DiscordClient.changePresence("In the Menus", null);
 		#end
 
-		#if sys
-		ArtemisIntegration.setGameState ("menu");
-		ArtemisIntegration.resetModName ();
-		#end
-
 		if(WeekData.weeksList.length < 1)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
@@ -220,7 +217,7 @@ class FreeplayState extends MusicBeatState
 		Mods.loadTopMod();
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.globalAntialiasing;
+		bg.antialiasing = ClientPrefs.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
 
@@ -331,17 +328,11 @@ class FreeplayState extends MusicBeatState
 		try {
 			bg.color = songs[curSelected].color;
 			intendedColor = bg.color;
-			#if sys
-			ArtemisIntegration.setBackgroundFlxColor (intendedColor);
-			#end
 		}
 		catch(e)
 		{
 			bg.color = FlxColor.WHITE;
 			intendedColor = bg.color;
-			#if sys
-			ArtemisIntegration.setBackgroundFlxColor (intendedColor);
-			#end
 		}
 		lerpSelected = curSelected;
 
@@ -372,6 +363,9 @@ class FreeplayState extends MusicBeatState
 		}});
 
 		// Main.simulateIntenseMaps();
+		if (FlxG.save.data.gotbeatbattle) hh.remove("beat battle");
+		if (FlxG.save.data.gotbeatbattle2) hh.remove("beat battle 2");
+		if (FlxG.save.data.gotsmallargument) hh.remove("small argument");
 		trace(hh);
 
 		reloadSongs(true);
@@ -1205,22 +1199,16 @@ class FreeplayState extends MusicBeatState
 					}
 				
 					if (FlxG.keys.pressed.SHIFT){
-						TransitionState.transitionState(ChartingStateOG, {transitionType: "stickers"});
+						//TransitionState.transitionState(ChartingStateOG, {transitionType: "stickers"});
 					} else{
-						if (!CacheState.didPreCache)
+						if (!alreadyClicked)
 						{
-							if (!alreadyClicked)
-							{
-								LoadingState.loadNextDirectory();
-								alreadyClicked = true;
-								MusicBeatState.reopen = false; //Fix a sticker bug
-								TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
-								/*LoadingState.prepareToSong();
-								LoadingState.loadAndSwitchState(new states.PlayState());*/
-							}
-							else TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
+							LoadingState.loadNextDirectory();
+							alreadyClicked = true;
+							MusicBeatState.reopen = false; //Fix a sticker bug
+							LoadingState.prepareToSong();
+							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
 						}
-						else TransitionState.transitionState(APEntryState.inArchipelagoMode ? archipelago.APPlayState : states.PlayState, {transitionType: "instant"});
 						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 						stopMusicPlay = true;
 					}
@@ -1393,9 +1381,6 @@ class FreeplayState extends MusicBeatState
 						colorTween.cancel();
 					}
 					intendedColor = newColor;
-					#if sys
-					ArtemisIntegration.setBackgroundFlxColor (intendedColor);
-					#end
 					colorTween = FlxTween.color(bg, 1, bg.color, intendedColor, {
 						onComplete: function(twn:FlxTween) {
 							colorTween = null;

@@ -20,7 +20,10 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		var option:Option = new Option('Input System', "The input system you wish to use.", 'inputSystem', 'string',
+		var option:Option = new Option('Input System', 
+		"The input system you wish to use.", 
+		'inputSystem', 
+		STRING,
 		[
 			"Native", 
 			"BEAT! Engine", 

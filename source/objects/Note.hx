@@ -386,7 +386,7 @@ class Note extends NoteObject
 	public var tripProgress:Float = 1;
 	public var isHeld:Bool = false;
 	/** The maximum amount of time you can release a hold before it counts as a miss**/
-	public var maxReleaseTime:Float = 1.25;
+	public var maxReleaseTime:Float = 0.25;
 	public var typeOffsetX:Float = 0; // used to offset notes, mainly for note types. use in place of offset.x and offset.y when offsetting notetypes
 	public var typeOffsetY:Float = 0;
 	public var requiresTap:Bool = true; 

@@ -325,6 +325,8 @@ class PlayState extends MusicBeatState
 	public static var Crashed:Bool = false;
 	public static var savedTime:Float = 0;
 	public static var playAsGF:Bool = false;
+	public var mashViolations:Int = 0;
+	public var mashing:Int = 0;
 	var needSkip:Bool = false;
 	var skipActive:Bool = false;
 	var skipText:FlxText;
@@ -1688,7 +1690,7 @@ class PlayState extends MusicBeatState
 				swagNote.sustainLength = songNotes[2];
 				swagNote.noteType = noteType;
 				swagNote.ID = allNotes.length;
-				swagNote.holdType = songNotes[2] > 0 ? HEAD : TAP;
+				swagNote.holdType = TAP;
 	
 				////
 
@@ -1781,6 +1783,7 @@ class PlayState extends MusicBeatState
 				{
 					if (ClientPrefs.data.inputSystem == 'Kade Engine')
 						swagNote.isParent = true;
+					swagNote.holdType = HEAD;
 					for (susNote in 0...roundSus)
 					{
 						oldNote = allNotes[Std.int(allNotes.length - 1)];
@@ -1800,6 +1803,7 @@ class PlayState extends MusicBeatState
 							break;
 						sustainNote.ID = allNotes.length;
 						sustainNote.scrollFactor.set();
+						sustainNote.holdType = susNote > 0 ? PART : END;
 						swagNote.tail.push(sustainNote);
 						swagNote.unhitTail.push(sustainNote);
 						sustainNote.parent = swagNote;
@@ -3805,6 +3809,16 @@ class PlayState extends MusicBeatState
 		stagesFunc(function(stage:BaseStage) stage.noteMissPress(direction));
 		callOnScripts('noteMissPress', [direction]);
 	}
+	
+	public function ogNoteMissPress(direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
+	{
+		if(ClientPrefs.data.ghostTapping) return; //fuck it
+
+		noteMissCommon(direction);
+		FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
+		stagesFunc(function(stage:BaseStage) stage.noteMissPress(direction));
+		callOnScripts('noteMissPress', [direction]);
+	}
 
 	function noteMissCommon(direction:Int, note:Note = null)
 	{
@@ -4015,6 +4029,18 @@ class PlayState extends MusicBeatState
 				combo++;
 				if(combo > 9999) combo = 9999;
 				popUpScore(note);
+			}
+
+			if (ClientPrefs.data.inputSystem == "Mic'ed Up Engine")
+			{
+				if (mashing != 0)
+					mashing = 0;
+
+				if (mashViolations >= 1)
+					mashViolations--;
+
+				if (mashViolations < 0)
+					mashViolations = 0;
 			}
 			var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
 			if (guitarHeroSustains && note.isSustainNote) gainHealth = false;
