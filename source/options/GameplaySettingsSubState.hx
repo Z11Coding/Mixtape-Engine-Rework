@@ -20,6 +20,21 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Input System', "The input system you wish to use.", 'inputSystem', 'string',
+		[
+			"Native", 
+			"BEAT! Engine", 
+			"Kade Engine", 
+			"ZoroForce EK", 
+			"Mic'ed Up Engine", 
+			"Andromeda Engine (legacy)",
+			"YoshiEngine",
+			"Kade Engine Community",
+			"Rhythm"
+		]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('Opponent Notes',
 			'If unchecked, opponent notes get hidden.',
 			'opponentStrums',

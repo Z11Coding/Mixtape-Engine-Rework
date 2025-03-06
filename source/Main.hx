@@ -370,101 +370,97 @@ class Main extends Sprite
 		}
 		trace("Crash caused in: " + Type.getClassName(Type.getClass(FlxG.state)));
 		// Handle different states
-		switch (Type.getClassName(Type.getClass(FlxG.state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(FlxG.state)).split(".")) - 1])
-		{
-			case "PlayState":
-				PlayState.Crashed = true;
-				// Check if it's a Null Object Reference error
-				if (errType.contains("Null Object Reference"))
-				{
-					if (PlayState.isStoryMode)
-					{
-						FlxG.switchState(new states.StoryMenuState());
+
+				// Handle different states
+				var stateClassName = Type.getClassName(Type.getClass(FlxG.state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(FlxG.state)).split(".")) - 1];
+				var stateClass:Class<Dynamic> = Type.getClass(FlxG.state);
+				var handled = false;
+		
+				while (stateClass != null && !handled) {
+					switch (stateClassName) {
+						case "PlayState":
+							PlayState.Crashed = true;
+							if (errType.contains("Null Object Reference")) {
+								FlxG.sound.music != null ? FlxG.sound.music.stop() : null;
+								FlxG.sound.play(Paths.sound("metal_pipe"));
+								if (PlayState.isStoryMode) {
+									FlxG.switchState(new states.StoryMenuState());
+								} else if (PlayState.CacheMode) {
+									FlxG.resetState();
+								} else {
+									FlxG.switchState(new states.FreeplayState());
+								}
+								PlayState.Crashed = false;
+							}
+							handled = true;
+		
+						case "ChartingState":
+							if (e.error.toLowerCase().contains("null object reference")) {
+								Application.current.window.alert("You tried to load a Chart that doesn't exist!", "Chart Error");
+							}
+							handled = true;
+		
+						case "FreeplayState", "StoryModeState":
+							FlxG.switchState(new states.CategoryState());
+							handled = true;
+		
+						case "MainMenuState":
+							FlxG.switchState(new states.TitleState());
+							handled = true;
+		
+						case "TitleState":
+							Application.current.window.alert("Something went extremely wrong... You may want to check some things in the files!\nFailed to load TitleState!",
+								"Fatal Error");
+							trace("Unable to recover...");
+							FlxG.switchState(new ExitState());
+							handled = true;
+		
+						case "CacheState":
+							Application.current.window.alert("Major Error occurred while caching data.\nSkipping Cache Operation.", "Fatal Error");
+							FlxG.switchState(new states.What());
+							handled = true;
+		
+						case "What":
+							trace("Restarting Game...");
+							FlxG.switchState(new states.TitleState());
+							handled = true;
+		
+						case "OptionsState", "GameJoltState":
+							if (Sys.args().indexOf("-livereload") != -1) {
+								Sys.println("Cannot restart from compiled build.");
+								Application.current.window.alert("The game encountered a critical error.", "Game Bricked");
+								Application.current.window.alert("Unable to restart due to running a Compiled build.", "Error");
+							} else {
+								Application.current.window.alert("The game encountered a critical error and will now restart.", "Game Bricked");
+								trace("The game was bricked. Restarting...");
+								var mainInstance = new Main();
+								var mainGame = mainInstance.game;
+								var initialState = Type.getClass(mainGame.initialState);
+								var restartProcess = new Process("MixEngine.exe", ["GameJoltBug", "restart"]);
+								FlxG.switchState(new ExitState());
+							}
+							trace("Recommended to recompile the game to fix the issue.");
+							handled = true;
+		
+						case "ExitState":
+							Application.current.window.alert("Somehow, a crash occurred during the exiting process. Forcing exit.", "???");
+							trace("Performing Emergency Exit.");
+							Main.closeGame();
+							handled = true;
+		
+						default:
+							stateClass = Type.getSuperClass(stateClass);
+							stateClassName = stateClass != null ? Type.getClassName(stateClass).split(".")[Lambda.count(Type.getClassName(stateClass).split(".")) - 1] : null;
 					}
-					else
-					{
-						FlxG.switchState(new states.FreeplayState());
-					}
-					PlayState.Crashed = false;
 				}
-
-			case "ChartingState":
-				// Check if it's a "Chart doesn't exist" error
-				if (e.error.toLowerCase().contains("null object reference"))
-				{
-					// Show an extra error dialog
-					Application.current.window.alert("You tried to load a Chart that doesn't exist!", "Chart Error");
-				}
-
-			case "FreeplayState", "StoryModeState":
-				// Switch back to MainMenuState
-				FlxG.switchState(new states.CategoryState());
-
-			case "MainMenuState":
-				// Go back to TitleState
-				FlxG.switchState(new states.TitleState());
-
-			case "TitleState":
-				// Show an error dialog and close the game
-				Application.current.window.alert("Something went extremely wrong... You may want to check some things in the files!\nFailed to load TitleState!",
-					"Fatal Error");
-				trace("Unable to recover...");
-				// var assetWaitState:AssetWaitState = new AssetWaitState(MusicBeatState); // Provide the initial state
-				FlxG.switchState(new states.ExitState());
-
-			case "CacheState":
-				Application.current.window.alert("Major Error occurred while caching data.\nSkipping Cache Operation.", "Fatal Error");
-				FlxG.switchState(new states.What());
-
-			case "What":
-				trace("Restarting Game...");
-				FlxG.switchState(new states.TitleState());
-
-
-			case "OptionsState", "GameJoltState":
-				// Show an error dialog and restart the game
-				if (Sys.args().indexOf("-livereload") != -1)
-				{
-					Sys.println("Cannot restart from compiled build.");
-					Application.current.window.alert("The game encountered a critical error.", "Game Bricked");
-					Application.current.window.alert("Unable to restart due to running a Compiled build.", "Error");
-					Main.closeGame();
-				}
-				else
-				{
-					Application.current.window.alert("The game encountered a critical error and will now restart.", "Game Bricked");
-					trace("The game was bricked. Restarting...");
+		
+				if (!handled) {
 					var mainInstance = new Main();
 					var mainGame = mainInstance.game;
-					var initialState = Type.getClass(mainGame.initialState);
-					// var cachedData = new haxe.ds.StringMap<Dynamic>();
-					// var cachedData = new haxe.ds.StringMap<Dynamic>();
-					// cachedData.set("ImageCache", ImageCache.cache);
-					// cachedData.set("JSONCache", JSONCache.cache);
-					// var cache = Json.stringify(cachedData);
-
-					var restartProcess = new Process("MixEngine.exe", ["GameJoltBug", "restart"]);
-					// FlxG.switchState(restartProcess);
-					Sys.exit(1);
+					FlxG.switchState(Type.createInstance(states.TitleState, []));
+					trace("Unhandled state: " + (Type.getClassName(Type.getClass(FlxG.state))));
+					trace("Restarting Game...");
 				}
-				trace("Recommended to recompile the game to fix the issue.");
-
-			case "ExitState":
-				{
-					// Show an error dialog and close the game
-					Application.current.window.alert("Somehow, a crash occurred during the exiting process. Forcing exit.", "???");
-					trace("Performing Emergency Exit.");
-					Main.closeGame();
-				}
-
-			default:
-				// For other states, reset to MainMenuState
-				var mainInstance = new Main();
-				var mainGame = mainInstance.game;
-				FlxG.switchState(Type.createInstance(states.TitleState, []));
-				trace("Unhandled state: " + (Type.getClassName(Type.getClass(FlxG.state))));
-				trace("Restarting Game...");
-		}
 
 		// Additional error handling or recovery mechanisms can be added here
 
