@@ -532,7 +532,7 @@ class FreeplayState extends MusicBeatState
 					{
 						colors = [146, 113, 253];
 					}
-					if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
+					if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
 					{
 						if (refresh)
 						{
