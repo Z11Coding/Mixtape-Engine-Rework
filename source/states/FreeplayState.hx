@@ -28,6 +28,23 @@ import archipelago.PacketTypes.ClientStatus;
 import yutautil.ChanceSelector;
 import yutautil.ChanceSelector.Chance;
 
+class VictorySong extends ColoredAlphabet
+{
+
+	public function new(x:Float, y:Float, text:String, color:Int)
+	{
+		super(x, y, text, color);
+	}
+
+	var e:Int = 0;
+
+	override function update(elapsed:Float)
+	{
+		e++;
+		super.update(elapsed);
+		this.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
+}
+}
 class FreeplayState extends MusicBeatState
 {
 	public static var instance:FreeplayState;
@@ -89,6 +106,7 @@ class FreeplayState extends MusicBeatState
 	public static var doChange:Bool = false;
 	public static var multisong:Bool = false;
 	public static var callVictory:Bool = false;
+	// private static var spawnedVictorySong:ColoredAlphabet;
 	var h:String;
 	var mismatched:String = "";
 	var rankTable:Array<String> = [
@@ -655,7 +673,27 @@ class FreeplayState extends MusicBeatState
 			
 			for (i in 0...songs.length)
 			{
-				var songText:Alphabet = new Alphabet(90, 320, songs[i].songName, true);
+
+				function isVictorySong(songName:String, modName:String):Bool {
+					var locationId = songName;
+					if (modName.trim() != "") {
+						locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
+					}
+					var locationIdInt = archipelago.APEntryState.apGame.info().get_location_id(locationId.trim());
+					return locationIdInt != null && locationIdInt > 0 && archipelago.APEntryState.apGame.info().get_location_name(locationIdInt) == APEntryState.victorySong;
+				}
+
+				var songText:Alphabet;
+				if (APEntryState.inArchipelagoMode) {
+					var songName:String = songs[i].songName;
+					var modName:String = songs[i].folder;
+					var locationId:Int = APEntryState.apGame.info().get_location_id(songName + (modName != "" ? " (" + modName + ")" : ""));
+					var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
+					var color:FlxColor = isMissing ? FlxColor.WHITE : FlxColor.GREEN;
+					songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color);
+				} else {
+					songText = new Alphabet(90, 320, songs[i].songName, true);
+				}
 				songText.targetY = i;
 				grpSongs.add(songText);
 
@@ -764,7 +802,14 @@ class FreeplayState extends MusicBeatState
 			});
 			APEntryState.apGame.info().set_goal();
 		}
+
+
+
+		reloadSongs(true);
+		
 	}
+
+
 
 	override function update(elapsed:Float)
 	{
@@ -780,7 +825,6 @@ class FreeplayState extends MusicBeatState
 
 		if (APEntryState.inArchipelagoMode)
 				APEntryState.apGame.info().poll();
-
 
 
 		if (FlxG.sound.music != null)

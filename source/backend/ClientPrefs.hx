@@ -144,6 +144,8 @@ import states.TitleState;
 	public var volMax:String = 'VolMAX';
 	public var menuSong:String = 'panixPress';
 	public var username:Bool = false;
+
+	public var deathlink:Bool = false;
 }
 
 class ClientPrefs {

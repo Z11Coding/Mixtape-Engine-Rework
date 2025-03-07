@@ -200,6 +200,16 @@ class APGameState {
 	function sendMessageSimple(text:Dynamic)
         archipelago.console.MainTab.addMessage(text);
 
+    public function disconnectAP()
+    {
+        _ap.disconnect_socket();
+        _ap = null;
+        if (APEntryState.ap != null)
+        {
+            APEntryState.ap = null;
+        }
+    }
+
     public static var isSync:Bool = false;
     function addSongs(song:Array<NetworkItem>)
     {
@@ -236,41 +246,41 @@ class APGameState {
                 itemName = info().get_item_name(songName.item);
             }
 
-            var missing = false;
-            for (missingLocation in info().missingLocations) {
-                var locationName = info().get_location_name(missingLocation);
-                locationName = locationName.replace("<cOpen>", "{")
-                    .replace("<cClose>", "}")
-                    .replace("<sOpen>", "[")
-                    .replace("<sClose>", "]");
+            // var missing = false;
+            // for (missingLocation in info().missingLocations) {
+            //     var locationName = info().get_location_name(missingLocation);
+            //     locationName = locationName.replace("<cOpen>", "{")
+            //         .replace("<cClose>", "}")
+            //         .replace("<sOpen>", "[")
+            //         .replace("<sClose>", "]");
 
-                var locationModName = "";
-                var locationFirstParenIndex = locationName.indexOf("(");
-                var locationEndParenIndex = locationName.lastIndexOf(")");
-                while (locationFirstParenIndex != -1) {
-                    if (locationEndParenIndex != -1) {
-                        locationModName = locationName.substring(locationFirstParenIndex + 1, locationEndParenIndex);
-                        if (isModName(locationModName)) {
-                            locationName = locationName.substring(0, locationFirstParenIndex).trim();
-                            break;
-                        } else {
-                            locationFirstParenIndex = locationName.indexOf("(", locationFirstParenIndex + 1);
-                        }
-                    } else {
-                        break;
-                    }
-                }
-                if (locationFirstParenIndex == -1 || !isModName(locationModName)) {
-                    locationModName = "";
-                    locationName = info().get_location_name(missingLocation);
-                }
+            //     var locationModName = "";
+            //     var locationFirstParenIndex = locationName.indexOf("(");
+            //     var locationEndParenIndex = locationName.lastIndexOf(")");
+            //     while (locationFirstParenIndex != -1) {
+            //         if (locationEndParenIndex != -1) {
+            //             locationModName = locationName.substring(locationFirstParenIndex + 1, locationEndParenIndex);
+            //             if (isModName(locationModName)) {
+            //                 locationName = locationName.substring(0, locationFirstParenIndex).trim();
+            //                 break;
+            //             } else {
+            //                 locationFirstParenIndex = locationName.indexOf("(", locationFirstParenIndex + 1);
+            //             }
+            //         } else {
+            //             break;
+            //         }
+            //     }
+            //     if (locationFirstParenIndex == -1 || !isModName(locationModName)) {
+            //         locationModName = "";
+            //         locationName = info().get_location_name(missingLocation);
+            //     }
 
-                if (locationName == itemName && locationModName == modName) {
-                    missing = true;
-                    break;
-                }
-            }
-            trace("Location: " + songName.location + " Missing: " + missing);
+            //     if (locationName == itemName && locationModName == modName) {
+            //         missing = true;
+            //         break;
+            //     }
+            // }
+            // trace("Location: " + songName.location + " Missing: " + missing);
 
             if (!states.FreeplayState.curUnlocked.exists(itemName))
             {
@@ -278,9 +288,9 @@ class APGameState {
                 {
                     if (!isSync) ArchPopup.startPopupSong(itemName, 'archColor');
                     states.FreeplayState.curUnlocked.set(itemName, modName);
-                    if (missing) {
-                        states.FreeplayState.curMissing.set(itemName, modName);
-                    }
+                    // if (missing) {
+                    //     states.FreeplayState.curMissing.set(itemName, modName);
+                    // }
                     if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
                     for (song in states.FreeplayState.curUnlocked.keys())
                     {
@@ -294,6 +304,19 @@ class APGameState {
         }
         isSync = false;
     }
+
+    public function isLocationMissing(location:String):Bool
+    {
+        for (missing in info().missingLocations)
+        {
+            if (info().get_location_name(missing) == location)
+            {
+                return true;
+            }
+           }
+           return false; 
+
+        }
 
     function isModName(name:String):Bool {
         var mods = Mods.parseList().enabled;

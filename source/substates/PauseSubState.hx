@@ -1,5 +1,6 @@
 package substates;
 
+import archipelago.APPlayState;
 import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
@@ -48,6 +49,9 @@ class PauseSubState extends MusicBeatSubstate
 		} else if(PlayState.instance.practiceMode && !PlayState.instance.startingSong)
 			menuItemsOG.insert(3, 'Skip Time');
 		menuItems = menuItemsOG;
+
+		if (archipelago.APEntryState.inArchipelagoMode)
+			menuItems.push('Skip Check');
 
 		for (i in 0...Difficulty.list.length) {
 			var diff:String = Difficulty.getString(i);
@@ -331,6 +335,10 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.changedDifficulty = false;
 					PlayState.chartingMode = false;
 					FlxG.camera.followLerp = 0;
+				case 'Skip Check':
+					if (PlayState.instance is APPlayState)
+					PlayState.instance.endSong();
+					close();
 			}
 		}
 	}

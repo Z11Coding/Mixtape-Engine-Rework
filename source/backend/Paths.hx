@@ -816,8 +816,19 @@ class Paths
 	}
 
 	#if MODS_ALLOWED
-	inline static public function mods(key:String = '')
-		return 'mods/' + key;
+	inline static public function mods(key:String = ''):String {
+		var path = 'mods/' + key;
+		if (!FileSystem.exists('mods/')) {
+			FileSystem.createDirectory('mods/');
+			for (folder in Mods.ignoreModFolders) {
+				var folderPath = 'mods/' + folder;
+				if (!FileSystem.exists(folderPath)) {
+					FileSystem.createDirectory(folderPath);
+				}
+			}
+		}
+		return path;
+	}
 
 	inline static public function modsJson(key:String)
 		return modFolders('data/' + key + '.json');

@@ -439,7 +439,17 @@ class Main extends Sprite
 							}
 							trace("Recommended to recompile the game to fix the issue.");
 							handled = true;
-		
+
+						case "APDisconnectSubstate":
+							Application.current.window.alert("The game encountered a critical error and will now restart.", "AP Disconnect Error");
+							trace("AP Disconnect Error. Restarting...");
+							var mainInstance = new Main();
+							var mainGame = mainInstance.game;
+							var initialState = Type.getClass(mainGame.initialState);
+							var restartProcess = new Process("MixEngine.exe", ["APDisconnectError", "restart"]);
+							// FlxG.switchState(new states.ExitState());
+							Main.closeGame();
+							handled = true;
 						case "ExitState":
 							Application.current.window.alert("Somehow, a crash occurred during the exiting process. Forcing exit.", "???");
 							trace("Performing Emergency Exit.");

@@ -1,5 +1,6 @@
 package substates;
 
+import archipelago.APPlayState;
 import objects.GameOverVideoSprite;
 import backend.WeekData;
 
@@ -72,6 +73,12 @@ class GameOverSubstate extends MusicBeatSubstate
 	override function create()
 	{
 		instance = this;
+
+		if (Std.is(PlayState.instance, APPlayState) && APPlayState.deathByLink)
+		{
+			APPlayState.deathByLink = false;
+			APPlayState.deathLinkPacket = null;
+		}
 
 		Conductor.songPosition = 0;
 

@@ -43,6 +43,9 @@ class TitleState extends MusicBeatState
 
 	public static var initialized:Bool = false;
 	public static var globalBPM:Float;
+	private static var GJBug:Bool = false;
+	private static var APBug:Bool = false;
+
 
 	var credGroup:FlxGroup = new FlxGroup();
 	var textGroup:FlxGroup = new FlxGroup();
@@ -110,6 +113,19 @@ class TitleState extends MusicBeatState
 		else
 			startIntro();
 		#end
+
+		if (Main.cmdArgs.indexOf("GameJoltBug") != -1 && !GJBug)
+		{
+			GJBug = true;
+			FlxG.sound.playMusic(Paths.music('panixPress'), 0);
+			FlxG.switchState(new options.OptionsState());
+		}
+
+		if (Main.cmdArgs.indexOf("APDisconnectError") != -1 && !APBug)
+		{
+			APBug = true;
+			FlxG.switchState(new archipelago.APEntryState());
+		}
 	}
 
 	var logoBl:FlxSprite;

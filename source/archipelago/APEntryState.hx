@@ -67,7 +67,7 @@ typedef APOptions =
     var	MHPWeight:Int;
 }
 
-class APEntryState extends FlxState
+class APEntryState extends MusicBeatState
 {
 	static final wsCheck = ~/^wss?:\/\//;
 

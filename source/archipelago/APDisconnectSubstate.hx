@@ -39,6 +39,7 @@ class APDisconnectSubstate extends FlxSubState
         _ap.onSlotConnected.remove(onSlotConnected);
         onReconnect.dispatch();
         close();
+		MusicBeatState.switchState(new APCategoryState(APPlayState.apGame));
     }
 
     function onSocketDisconnected():Void {
