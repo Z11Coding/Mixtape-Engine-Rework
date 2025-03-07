@@ -1,5 +1,6 @@
 package states;
 
+import archipelago.APGameState;
 import flixel.FlxObject;
 import flixel.effects.FlxFlicker;
 import lime.app.Application;
@@ -19,12 +20,15 @@ class MainMenuState extends MusicBeatState
 	public static var mixtapeEngineVersion:String = '1.0.0'; // this is used for Discord RPC
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
+	private var archButton:PsychUIButton;
 	var allowMouse:Bool = true; //Turn this off to block mouse movement in menus
 
 	var menuItems:FlxTypedGroup<FlxSprite>;
 	var leftItem:FlxSprite;
 	var rightItem:FlxSprite;
 	var archipelagoItem:FlxSprite;
+
+	var checker:flixel.addons.display.FlxBackdrop;
 
 	//Centered/Text options
 	var optionShit:Array<String> = [
@@ -44,7 +48,17 @@ class MainMenuState extends MusicBeatState
 	static var showOutdatedWarning:Bool = true;
 	override function create()
 	{
+
+
+		checker = new flixel.addons.display.FlxBackdrop(Paths.image('mainmenu/Main_Checker'), XY, Std.int(0.2), Std.int(0.2));
+		
 		super.create();
+
+				if (archipelago.APEntryState.inArchipelagoMode) {
+			FlxG.switchState(new archipelago.APCategoryState(archipelago.APPlayState.apGame));
+		}
+
+
 
 		#if MODS_ALLOWED
 		Mods.pushGlobalMods();
@@ -103,6 +117,10 @@ class MainMenuState extends MusicBeatState
 			archipelagoItem = createMenuItemArch(archipelagoOption, FlxG.width - 60, 260);
 			archipelagoItem.x -= archipelagoItem.width;
 		}
+
+		archButton = new PsychUIButton(leftItem.x, leftItem.y - 200, 'Archipelago Login', function(){FlxG.switchState(new archipelago.APEntryState());});
+		archButton.scrollFactor.set();
+		add(archButton);
 
 		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
 		psychVer.scrollFactor.set();

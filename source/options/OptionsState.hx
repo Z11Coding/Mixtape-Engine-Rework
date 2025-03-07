@@ -36,6 +36,8 @@ class OptionsState extends MusicBeatState
 				MusicBeatState.switchState(new options.NoteOffsetState());
 			case 'Language':
 				openSubState(new options.LanguageSubState());
+				case 'Archipelago':
+					openSubState(new options.ArchipelagoSettingsSubState());
 		}
 	}
 
@@ -47,6 +49,9 @@ class OptionsState extends MusicBeatState
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Options Menu", null);
 		#end
+
+		if (archipelago.APEntryState.inArchipelagoMode) options.push('Archipelago');
+
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.antialiasing = ClientPrefs.data.antialiasing;

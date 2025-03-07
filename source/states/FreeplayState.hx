@@ -355,6 +355,11 @@ class FreeplayState extends MusicBeatState
 		
 		updateTexts();
 		super.create();
+
+
+
+
+
 		FlxTween.tween(rank, {alpha: 1}, 0.5, {ease: FlxEase.quartInOut});
 		FlxTween.tween(searchBar, {y: 100}, 0.6, {
 			ease: FlxEase.elasticInOut, 
@@ -524,7 +529,7 @@ class FreeplayState extends MusicBeatState
 					{
 						colors = [146, 113, 253];
 					}
-					if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
+					if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
 					{
 						if (refresh)
 						{
@@ -772,6 +777,11 @@ class FreeplayState extends MusicBeatState
 					multisong = false;
 			}
 		}
+
+		if (APEntryState.inArchipelagoMode)
+				APEntryState.apGame.info().poll();
+
+
 
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
