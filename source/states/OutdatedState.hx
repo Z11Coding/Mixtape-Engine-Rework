@@ -11,14 +11,18 @@ class OutdatedState extends MusicBeatState
 {
 	public static var leftState:Bool = false;
 	var warnText:FlxText;
+	var betaText:String = '';
 	override function create()
 	{
 		super.create();
+
+		betaText = FirstCheckState.betaVersion != 'none' ? "\n(This is a beta update, so feel free to skip it)" : "(This is an actual update)";
+
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		add(bg);
 
 		warnText = new FlxText(0, 0, FlxG.width,
-			"A newer version of this mod is available.\nWould you like to update?\n(ENTER for yes, ESC for no.)",
+			"A newer version of this engine is available.\nWould you like to update?"+ betaText +"\n(ENTER for yes, ESC for no.)",
 			32);
 		warnText.setFormat(Paths.font('funkin.ttf'), 32, FlxColor.WHITE, CENTER);
 		warnText.screenCenter(Y);
