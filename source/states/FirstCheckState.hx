@@ -15,6 +15,7 @@ class FirstCheckState extends MusicBeatState
 	public static var volumeUpKeys:Array<FlxKey> = [FlxKey.NUMPADPLUS, FlxKey.PLUS];
 	public static var gameInitialized = false;
 	public static var updateVersion:String = '';
+	public static var betaVersion:String = '';
 	public static var relaunch:Bool = false;
 
 	var updateAlphabet:Alphabet;
@@ -59,7 +60,7 @@ class FirstCheckState extends MusicBeatState
 			add(updateRibbon);
 
 			updateIcon = new FlxSprite(FlxG.width - 75, FlxG.height - 75);
-			updateIcon.frames = Paths.getSparrowAtlas("pauseAlt/bfLol", "shared");
+			updateIcon.frames = Paths.getSparrowAtlas("pauseAlt/bfLol");
 			updateIcon.animation.addByPrefix("dance", "funnyThing instance 1", 20, true);
 			updateIcon.animation.play("dance");
 			updateIcon.setGraphicSize(65);
@@ -103,6 +104,7 @@ class FirstCheckState extends MusicBeatState
 				http.onData = function(data:String)
 				{
 					updateVersion = data.split('\n')[0].trim();
+					betaVersion = data.split('\n')[1].trim();
 					var curVersion:String = MainMenuState.mixtapeEngineVersion.trim();
 					trace('version online: ' + updateVersion + ', your version: ' + curVersion);
 					var updateVersionNum = Std.parseFloat(updateVersion.replace(".", ""));

@@ -118,10 +118,6 @@ class MainMenuState extends MusicBeatState
 			archipelagoItem.x -= archipelagoItem.width;
 		}
 
-		// archButton = new PsychUIButton(leftItem.x, leftItem.y - 200, 'Archipelago Login', function(){FlxG.switchState(new archipelago.APEntryState());});
-		// archButton.scrollFactor.set();
-		// add(archButton);
-
 		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
 		psychVer.scrollFactor.set();
 		psychVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);

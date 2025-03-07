@@ -216,7 +216,7 @@ class UpdateState extends MusicBeatState
 	inline function getUpdateLink()
 	{
 		var fileEnd = #if android 'apk' #else 'zip' #end;
-		online_url = "https://github.com/Z11Coding/Mixtape-Engine-Rework/releases/download/beta/" + FirstCheckState.updateVersion + '/Mixtape-Madness-${getPlatform()}.$fileEnd';
+		online_url = "https://github.com/Z11Coding/Mixtape-Engine-Rework/releases/download/" + FirstCheckState.betaVersion != 'none' ? FirstCheckState.betaVersion : FirstCheckState.updateVersion + '/Mixtape-Engine-${getPlatform()}.$fileEnd';
 		trace("update url: " + online_url);
 	}
 

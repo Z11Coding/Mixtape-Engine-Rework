@@ -1,5 +1,7 @@
 package options;
 
+import objects.charting.ChartingNote;
+import objects.charting.ChartingStrumNote;
 import objects.Note;
 import objects.StrumNote;
 import objects.NoteSplash;
@@ -8,7 +10,7 @@ import objects.Alphabet;
 class VisualsSettingsSubState extends BaseOptionsMenu
 {
 	var noteOptionID:Int = -1;
-	var notes:FlxTypedGroup<StrumNote>;
+	var notes:FlxTypedGroup<ChartingStrumNote>;
 	var splashes:FlxTypedGroup<NoteSplash>;
 	var noteY:Float = 90;
 	public function new()
@@ -17,17 +19,17 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		rpcTitle = 'Visuals Settings Menu'; //for Discord Rich Presence
 
 		// for note skins and splash skins
-		notes = new FlxTypedGroup<StrumNote>();
+		notes = new FlxTypedGroup<ChartingStrumNote>();
 		splashes = new FlxTypedGroup<NoteSplash>();
-		for (i in 0...Note.colArray.length)
+		for (i in 0...ChartingNote.colArray.length)
 		{
-			var note:StrumNote = new StrumNote(370 + (560 / Note.colArray.length) * i, -200, i);
+			var note:ChartingStrumNote = new ChartingStrumNote(370 + (560 / ChartingNote.colArray.length) * i, -200, i, 0);
 			changeNoteSkin(note);
 			notes.add(note);
 			
 			var splash:NoteSplash = new NoteSplash(0, 0, NoteSplash.defaultNoteSplash + NoteSplash.getSplashSkinPostfix());
 			splash.inEditor = true;
-			splash.babyArrow = note;
+			splash.babyArrowCharting = note;
 			splash.ID = i;
 			splash.kill();
 			splashes.add(splash);
@@ -210,14 +212,14 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	function onChangeNoteSkin()
 	{
-		notes.forEachAlive(function(note:StrumNote) {
+		notes.forEachAlive(function(note:ChartingStrumNote) {
 			changeNoteSkin(note);
 			note.centerOffsets();
 			note.centerOrigin();
 		});
 	}
 
-	function changeNoteSkin(note:StrumNote)
+	function changeNoteSkin(note:ChartingStrumNote)
 	{
 		var skin:String = Note.defaultNoteSkin;
 		var customSkin:String = skin + Note.getNoteSkinPostfix();

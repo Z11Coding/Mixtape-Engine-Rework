@@ -3,6 +3,7 @@ package objects;
 import backend.animation.PsychAnimationController;
 import shaders.RGBPalette;
 import flixel.system.FlxAssets.FlxShader;
+import objects.charting.ChartingStrumNote;
 
 typedef RGB = {
 	r:Null<Int>,
@@ -33,6 +34,7 @@ class NoteSplash extends FlxSprite
 	public var texture:String;
 	public var config(default, set):NoteSplashConfig;
 	public var babyArrow:StrumNote;
+	public var babyArrowCharting:ChartingStrumNote;
 	public var noteData:Int = 0;
 
 	public var copyX:Bool = true;
@@ -209,6 +211,9 @@ class NoteSplash extends FlxSprite
 		if (babyArrow != null)
 			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth); // To prevent it from being misplaced for one game tick
 
+		if (babyArrowCharting != null)
+			setPosition(babyArrowCharting.x - Note.swagWidth * 0.95, babyArrowCharting.y - Note.swagWidth); // Specifically so that the VisualSettingsSubstate stops crying
+
 		if (note != null)
 			noteData = note.noteData;
 
@@ -355,6 +360,15 @@ class NoteSplash extends FlxSprite
 
 			if (copyY)
 				y = babyArrow.y - Note.swagWidth;
+		}
+
+		if (babyArrowCharting != null)
+		{
+			if (copyX)
+				x = babyArrowCharting.x - Note.swagWidth * 0.95;
+
+			if (copyY)
+				y = babyArrowCharting.y - Note.swagWidth;
 		}
 		super.update(elapsed);
 	}
