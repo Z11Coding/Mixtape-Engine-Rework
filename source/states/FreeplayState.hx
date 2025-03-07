@@ -355,6 +355,11 @@ class FreeplayState extends MusicBeatState
 		
 		updateTexts();
 		super.create();
+
+
+
+
+
 		FlxTween.tween(rank, {alpha: 1}, 0.5, {ease: FlxEase.quartInOut});
 		FlxTween.tween(searchBar, {y: 100}, 0.6, {
 			ease: FlxEase.elasticInOut, 
@@ -363,9 +368,9 @@ class FreeplayState extends MusicBeatState
 		}});
 
 		// Main.simulateIntenseMaps();
-		if (FlxG.save.data.gotbeatbattle) hh.remove("beat battle");
-		if (FlxG.save.data.gotbeatbattle2) hh.remove("beat battle 2");
-		if (FlxG.save.data.gotsmallargument) hh.remove("small argument");
+		if (FlxG.save.data.gotbeatbattle) hh = hh.filter(function(chance:Chance) return chance.item != "beat battle");
+		if (FlxG.save.data.gotbeatbattle2) hh = hh.filter(function(chance:Chance) return chance.item != "beat battle 2");
+		if (FlxG.save.data.gotsmallargument) hh = hh.filter(function(chance:Chance) return chance.item != "small argument");
 		trace(hh);
 
 		reloadSongs(true);
@@ -775,6 +780,11 @@ class FreeplayState extends MusicBeatState
 					multisong = false;
 			}
 		}
+
+		if (APEntryState.inArchipelagoMode)
+				APEntryState.apGame.info().poll();
+
+
 
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;

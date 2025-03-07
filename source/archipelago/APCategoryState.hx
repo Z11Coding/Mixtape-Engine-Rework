@@ -8,7 +8,7 @@ class APCategoryState extends states.CategoryState {
     public var gameState:archipelago.APGameState;
 
 
-    public function new(gameState:archipelago.APGameState, ap:Client) {
+    public function new(gameState:archipelago.APGameState, ?AP:archipelago.Client) {
         this.gameState = gameState;
         this.AP = gameState.info();
         menuItems = [];

@@ -403,7 +403,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         if (Reflect.hasField(yamlThing, "songList")) {
             var songList = Reflect.field(yamlThing, "songList");
             var uniqueSongList = new Array<String>();
-            for (song in yutautil.CollectionUtils.toArray(songList)) {
+            for (song in yutautil.CollectionUtils.toArray(globalSongList)) {
                 if (!uniqueSongList.contains(song)) {
                     uniqueSongList.push(song);
                 }
