@@ -27,6 +27,7 @@
 	<define name="DISCORD_ALLOWED" />
 	<define name="TRANSLATIONS_ALLOWED" />
 	<define name="IRIS_DEBUG"/>
+	<define name="ARCHIPELAGO_ALLOWED"/>
 
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY" if="LUA_ALLOWED" />

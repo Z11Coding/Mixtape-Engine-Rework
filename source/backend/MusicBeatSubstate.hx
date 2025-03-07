@@ -1,6 +1,7 @@
 package backend;
 
 import flixel.FlxSubState;
+import archipelago.APEntryState;
 
 class MusicBeatSubstate extends FlxSubState
 {
@@ -49,6 +50,7 @@ class MusicBeatSubstate extends FlxSubState
 		}
 
 		super.update(elapsed);
+		if (APEntryState.apGame != null) APEntryState.apGame.info().poll();
 	}
 
 	private function updateSection():Void

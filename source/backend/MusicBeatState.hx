@@ -2,6 +2,7 @@ package backend;
 
 import flixel.FlxState;
 import backend.PsychCamera;
+import archipelago.APEntryState;
 
 class MusicBeatState extends FlxState
 {
@@ -118,6 +119,7 @@ class MusicBeatState extends FlxState
 		});
 
 		super.update(elapsed);
+		if (APEntryState.apGame != null) APEntryState.apGame.info().poll();
 	}
 
 	private function updateSection():Void

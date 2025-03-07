@@ -373,6 +373,8 @@ class LoadingState extends MusicBeatState
 		intrusive = false;
 		#end
 
+		trace(target);
+
 		LoadingState.isIntrusive = intrusive;
 		_startPool();
 		loadNextDirectory();

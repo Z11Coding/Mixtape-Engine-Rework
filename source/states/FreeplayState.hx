@@ -99,9 +99,9 @@ class FreeplayState extends MusicBeatState
 
 	var hh:Array<Chance> = [
 		{item: "normal error", chance: 95}, // 95% chance to got the normal error screen
-		{item: "small argument", chance: 5}, // 5% chance to play Small Argument
-		{item: "beat battle", chance: 5}, // 5% chance to play Beat Battle
-		{item: "beat battle 2", chance: 5} // 5% chance to do Beat Battle 2
+		{item: "small argument", chance: FlxG.save.data.gotbeatbattle ? 0 : 5}, // 5% chance to play Small Argument
+		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle2 ? 0 : 5}, // 5% chance to play Beat Battle
+		{item: "beat battle 2", chance: FlxG.save.data.gotsmallargument ? 0 : 5} // 5% chance to do Beat Battle 2
 	];
 	
 	var unplayedSongs:Map<String, String> = new Map<String, String>();
@@ -363,9 +363,6 @@ class FreeplayState extends MusicBeatState
 		}});
 
 		// Main.simulateIntenseMaps();
-		if (FlxG.save.data.gotbeatbattle) hh.remove("beat battle");
-		if (FlxG.save.data.gotbeatbattle2) hh.remove("beat battle 2");
-		if (FlxG.save.data.gotsmallargument) hh.remove("small argument");
 		trace(hh);
 
 		reloadSongs(true);
@@ -1203,7 +1200,6 @@ class FreeplayState extends MusicBeatState
 					} else{
 						if (!alreadyClicked)
 						{
-							LoadingState.loadNextDirectory();
 							alreadyClicked = true;
 							MusicBeatState.reopen = false; //Fix a sticker bug
 							LoadingState.prepareToSong();

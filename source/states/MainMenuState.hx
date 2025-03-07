@@ -10,6 +10,7 @@ enum MainMenuColumn {
 	LEFT;
 	CENTER;
 	RIGHT;
+	UPRIGHT;
 }
 
 class MainMenuState extends MusicBeatState
@@ -23,6 +24,7 @@ class MainMenuState extends MusicBeatState
 	var menuItems:FlxTypedGroup<FlxSprite>;
 	var leftItem:FlxSprite;
 	var rightItem:FlxSprite;
+	var archipelagoItem:FlxSprite;
 
 	//Centered/Text options
 	var optionShit:Array<String> = [
@@ -34,6 +36,7 @@ class MainMenuState extends MusicBeatState
 
 	var leftOption:String = #if ACHIEVEMENTS_ALLOWED 'achievements' #else null #end;
 	var rightOption:String = 'options';
+	var archipelagoOption:String = #if ARCHIPELAGO_ALLOWED 'archipelago' #else null #end;
 
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
@@ -94,6 +97,12 @@ class MainMenuState extends MusicBeatState
 			rightItem = createMenuItem(rightOption, FlxG.width - 60, 490);
 			rightItem.x -= rightItem.width;
 		}
+		
+		if (archipelagoOption != null)
+		{
+			archipelagoItem = createMenuItemArch(archipelagoOption, FlxG.width - 60, 260);
+			archipelagoItem.x -= archipelagoItem.width;
+		}
 
 		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
 		psychVer.scrollFactor.set();
@@ -142,6 +151,21 @@ class MainMenuState extends MusicBeatState
 		return menuItem;
 	}
 
+	function createMenuItemArch(name:String, x:Float, y:Float):FlxSprite
+	{
+		var menuItem:FlxSprite = new FlxSprite(x, y);
+		menuItem.frames = Paths.getSparrowAtlas('mainmenu/$name');
+		menuItem.animation.addByPrefix('idle', 'archipellego logi0000', 24, true);
+		menuItem.animation.addByPrefix('selected', 'archipellego logi', 24, true);
+		menuItem.animation.play('idle');
+		menuItem.updateHitbox();
+		
+		menuItem.antialiasing = ClientPrefs.data.antialiasing;
+		menuItem.scrollFactor.set();
+		menuItems.add(menuItem);
+		return menuItem;
+	}
+
 	var selectedSomethin:Bool = false;
 
 	var timeNotMoving:Float = 0;
@@ -152,7 +176,7 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
-			if (controls.UI_UP_P)
+			if (controls.UI_UP_P && curColumn != RIGHT)
 				changeItem(-1);
 
 			if (controls.UI_DOWN_P)
@@ -174,6 +198,8 @@ class MainMenuState extends MusicBeatState
 						selectedItem = leftItem;
 					case RIGHT:
 						selectedItem = rightItem;
+					case UPRIGHT:
+						selectedItem = archipelagoItem;
 				}
 
 				if(leftItem != null && FlxG.mouse.overlaps(leftItem))
@@ -191,6 +217,15 @@ class MainMenuState extends MusicBeatState
 					if(selectedItem != rightItem)
 					{
 						curColumn = RIGHT;
+						changeItem();
+					}
+				}
+				else if(archipelagoItem != null && FlxG.mouse.overlaps(archipelagoItem))
+				{
+					allowMouse = true;
+					if(selectedItem != archipelagoItem)
+					{
+						curColumn = UPRIGHT;
 						changeItem();
 					}
 				}
@@ -254,6 +289,25 @@ class MainMenuState extends MusicBeatState
 						curColumn = CENTER;
 						changeItem();
 					}
+
+					if(controls.UI_UP_P)
+					{
+						curColumn = UPRIGHT;
+						changeItem();
+					}
+
+				case UPRIGHT:
+					if(controls.UI_LEFT_P)
+					{
+						curColumn = CENTER;
+						changeItem();
+					}
+
+					if(controls.UI_DOWN_P)
+					{
+						curColumn = RIGHT;
+						changeItem();
+					}
 			}
 
 			if (controls.BACK)
@@ -288,6 +342,10 @@ class MainMenuState extends MusicBeatState
 					case RIGHT:
 						option = rightOption;
 						item = rightItem;
+
+					case UPRIGHT:
+						option = archipelagoOption;
+						item = archipelagoItem;
 				}
 
 				FlxFlicker.flicker(item, 1, 0.06, false, false, function(flick:FlxFlicker)
@@ -324,6 +382,8 @@ class MainMenuState extends MusicBeatState
 							CoolUtil.browserLoad('https://ninja-muffin24.itch.io/funkin');
 							selectedSomethin = false;
 							item.visible = true;
+						case 'archipelago':
+							MusicBeatState.switchState(new archipelago.APEntryState());
 						default:
 							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;
@@ -373,6 +433,8 @@ class MainMenuState extends MusicBeatState
 				selectedItem = leftItem;
 			case RIGHT:
 				selectedItem = rightItem;
+			case UPRIGHT:
+				selectedItem = archipelagoItem;
 		}
 		selectedItem.animation.play('selected');
 		selectedItem.centerOffsets();
