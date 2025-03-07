@@ -99,6 +99,10 @@ class WindowsData
 		taskbarWasVisible = _hideTaskbar();
 	}
 
+
+
+
+
 	@:functionCode('
 		if (!static_cast<bool>(wasVisible)) {
 			return;
