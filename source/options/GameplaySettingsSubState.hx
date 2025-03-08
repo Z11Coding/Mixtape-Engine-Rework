@@ -57,6 +57,18 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeAutoPause;
 
+		var option:Option = new Option('Allow Mechanics',
+		'If unchecked, turns off the mechanics for songs that have them.',
+		'gimmicksAllowed',
+		'bool');
+	addOption(option);
+
+	var option:Option = new Option('Allow Modcharts',
+	'If unchecked, turns off the modcharts for songs that have them.',
+	'modcharts',
+	'bool');
+addOption(option);
+
 		var option:Option = new Option('Disable Reset Button',
 			"If checked, pressing Reset won't do anything.",
 			'noReset',
