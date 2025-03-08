@@ -9,6 +9,8 @@ import lime.system.Clipboard;
 import flixel.util.FlxGradient;
 import objects.StrumNote;
 import objects.Note;
+import objects.charting.ChartingStrumNote;
+import objects.charting.ChartingNote;
 
 import shaders.RGBPalette;
 import shaders.RGBPalette.RGBShaderReference;
@@ -80,7 +82,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		modeNotes = new FlxTypedGroup<FlxSprite>();
 		add(modeNotes);
 
-		myNotes = new FlxTypedGroup<StrumNote>();
+		myNotes = new FlxTypedGroup<ChartingStrumNote>();
 		add(myNotes);
 
 		var bg:FlxSprite = new FlxSprite(720).makeGraphic(FlxG.width - 720, FlxG.height, FlxColor.BLACK);
@@ -382,14 +384,14 @@ class NotesColorSubState extends MusicBeatSubstate
 			}
 			else if (pointerOverlaps(myNotes))
 			{
-				myNotes.forEachAlive(function(note:StrumNote) {
+				myNotes.forEachAlive(function(note:ChartingStrumNote) {
 					if (curSelectedNote != note.ID && pointerOverlaps(note))
 					{
 						modeBG.visible = notesBG.visible = false;
 						curSelectedNote = note.ID;
 						onModeColumn = false;
-						bigNote.rgbShader.parent = Note.globalRgbShaders[note.ID];
-						bigNote.shader = Note.globalRgbShaders[note.ID].shader;
+						bigNote.rgbShader.parent = ChartingNote.globalRgbShaders[note.ID];
+						bigNote.shader = ChartingNote.globalRgbShaders[note.ID].shader;
 						updateNotes();
 						FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 					}
@@ -554,8 +556,8 @@ class NotesColorSubState extends MusicBeatSubstate
 		
 		modeBG.visible = false;
 		notesBG.visible = true;
-		bigNote.rgbShader.parent = Note.globalRgbShaders[curSelectedNote];
-		bigNote.shader = Note.globalRgbShaders[curSelectedNote].shader;
+		bigNote.rgbShader.parent = ChartingNote.globalRgbShaders[curSelectedNote];
+		bigNote.shader = ChartingNote.globalRgbShaders[curSelectedNote].shader;
 		updateNotes();
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
@@ -573,8 +575,8 @@ class NotesColorSubState extends MusicBeatSubstate
 	// notes sprites functions
 	var skinNote:FlxSprite;
 	var modeNotes:FlxTypedGroup<FlxSprite>;
-	var myNotes:FlxTypedGroup<StrumNote>;
-	var bigNote:Note;
+	var myNotes:FlxTypedGroup<ChartingStrumNote>;
+	var bigNote:ChartingNote;
 	public function spawnNotes()
 	{
 		dataArray = !onPixel ? ClientPrefs.data.arrowRGB : ClientPrefs.data.arrowRGBPixel;
@@ -585,7 +587,7 @@ class NotesColorSubState extends MusicBeatSubstate
 			note.kill();
 			note.destroy();
 		});
-		myNotes.forEachAlive(function(note:StrumNote) {
+		myNotes.forEachAlive(function(note:ChartingStrumNote) {
 			note.kill();
 			note.destroy();
 		});
@@ -628,11 +630,11 @@ class NotesColorSubState extends MusicBeatSubstate
 			modeNotes.add(newNote);
 		}
 
-		Note.globalRgbShaders = [];
+		ChartingNote.globalRgbShaders = [];
 		for (i in 0...dataArray.length)
 		{
-			Note.initializeGlobalRGBShader(i);
-			var newNote:StrumNote = new StrumNote(150 + (480 / dataArray.length * i), 200, i);
+			ChartingNote.initializeGlobalRGBShader(i);
+			var newNote:ChartingStrumNote = new ChartingStrumNote(150 + (480 / dataArray.length * i), 200, i, 0);
 			newNote.useRGBShader = true;
 			newNote.setGraphicSize(102);
 			newNote.updateHitbox();
@@ -640,12 +642,12 @@ class NotesColorSubState extends MusicBeatSubstate
 			myNotes.add(newNote);
 		}
 
-		bigNote = new Note(0, 0, false, true);
+		bigNote = new ChartingNote(0, 0, false, true);
 		bigNote.setPosition(250, 325);
 		bigNote.setGraphicSize(250);
 		bigNote.updateHitbox();
-		bigNote.rgbShader.parent = Note.globalRgbShaders[curSelectedNote];
-		bigNote.shader = Note.globalRgbShaders[curSelectedNote].shader;
+		bigNote.rgbShader.parent = ChartingNote.globalRgbShaders[curSelectedNote];
+		bigNote.shader = ChartingNote.globalRgbShaders[curSelectedNote].shader;
 		for (i in 0...Note.colArray.length)
 		{
 			if(!onPixel) bigNote.animation.addByPrefix('note$i', Note.colArray[i] + '0', 24, true);
@@ -706,11 +708,11 @@ class NotesColorSubState extends MusicBeatSubstate
 
 	function setShaderColor(value:FlxColor) dataArray[curSelectedNote][curSelectedMode] = value;
 	function getShaderColor() return dataArray[curSelectedNote][curSelectedMode];
-	function getShader() return Note.globalRgbShaders[curSelectedNote];
+	function getShader() return ChartingNote.globalRgbShaders[curSelectedNote];
 
 	override function destroy()
 	{
-		Note.globalRgbShaders = [];
+		ChartingNote.globalRgbShaders = [];
 		super.destroy();
 	}
 }

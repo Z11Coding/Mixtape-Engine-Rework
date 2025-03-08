@@ -46,7 +46,9 @@ class APCategoryState extends states.CategoryState {
     override function create()
     {
         super.create();
-
+        if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode) {
+			APEntryState.apGame.info().Sync();
+		}
     }
 
     var shopItem:FlxSprite;

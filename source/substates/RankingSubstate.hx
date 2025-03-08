@@ -135,29 +135,10 @@ class RankingSubstate extends MusicBeatSubstate
 			switch (PlayState.gameplayArea)
 			{
 				case "Story":
-					if (PlayState.storyPlaylist.length <= 0)
-					{
-						Mods.loadTopMod();
-						FlxG.sound.playMusic(Paths.music('panixPress'));
-						TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
-					}
-					else
-					{
-						var difficulty:String = Difficulty.getFilePath();
-
-						trace('LOADING NEXT SONG');
-						trace(Paths.formatToSongPath(PlayState.storyPlaylist[0]) + difficulty);
-
-						FlxTransitionableState.skipNextTransIn = true;
-						FlxTransitionableState.skipNextTransOut = true;
-
-						PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0] + difficulty, PlayState.storyPlaylist[0]);
-						FlxG.sound.music.stop();
-						TransitionState.transitionState(states.PlayState, {transitionType: "stickers"});
-					}
+					FlxG.sound.playMusic(Paths.music('panixPress'));
+					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
-					Mods.loadTopMod();
 					FlxG.sound.playMusic(Paths.music('panixPress'));
 					TransitionState.transitionState(states.FreeplayState, {transitionType: "stickers"});
 				case "APFreeplay":

@@ -14,8 +14,9 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 		// addOption(option);
 
 		var option:Option = new Option('Enable Deathlink',
-			"if checked, you will die if anyone else with Deathlink dies.", 'deathlink',
-			'bool');
+			"if checked, you will die if anyone else with Deathlink dies.", 
+			'deathlink',
+			BOOL);
 		option.onChange = function()
 		{
 			if (archipelago.APEntryState.inArchipelagoMode)
@@ -23,6 +24,12 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 				archipelago.APEntryState.ap.toggleDeathLink(option.getValue());
 			}
 		};
+		addOption(option);
+
+		var option:Option = new Option('Middlescroll',
+			'If checked, your notes get centered.',
+			'middleScroll',
+			BOOL);
 		addOption(option);
 
 		super();

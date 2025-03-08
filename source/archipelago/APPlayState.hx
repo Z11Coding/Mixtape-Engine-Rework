@@ -2069,11 +2069,10 @@ public function doEffect(effect:String)
 		{
 			// For Later
 		}
+        PlayState.gameplayArea = "APFreeplay";
         super.endSong();
-		PlayState.gameplayArea = "APFreeplay";
         paused = true;
         states.FreeplayState.callVictory = PlayState.SONG.song == APEntryState.victorySong;
-		openSubState(new substates.RankingSubstate());
         return true; //why does endsong need this?????
     }
 

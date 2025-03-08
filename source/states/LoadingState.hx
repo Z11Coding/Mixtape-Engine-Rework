@@ -68,6 +68,9 @@ class LoadingState extends MusicBeatState
 	var curPercent:Float = 0;
 	var stateChangeDelay:Float = 0;
 
+	public static var skipText:FlxText;
+	public static var allowSkip:Bool = false;
+
 	#if PSYCH_WATERMARKS
 	var logo:FlxSprite;
 	var pessy:FlxSprite;
@@ -90,6 +93,7 @@ class LoadingState extends MusicBeatState
 	override function create()
 	{
 		persistentUpdate = true;
+		allowSkip = false;
 		barGroup = new FlxSpriteGroup();
 		add(barGroup);
 
@@ -177,6 +181,12 @@ class LoadingState extends MusicBeatState
 		funkay.updateHitbox();
 		addBehindBar(funkay);
 		#end
+
+		skipText = new FlxText(0, barBack.y - 30, "Press ESC to skip loading if it's stuck.");
+		skipText.size = 20;
+		skipText.alpha = 0;
+		skipText.screenCenter(X);
+		addBehindBar(skipText);
 		super.create();
 
 		if (stateChangeDelay <= 0 && checkLoaded())
@@ -196,6 +206,13 @@ class LoadingState extends MusicBeatState
 	{
 		super.update(elapsed);
 		if (dontUpdate) return;
+
+		if (allowSkip && controls.ACCEPT)
+		{
+			transitioning = true;
+			onLoad();
+			return;
+		}
 
 		if (!transitioning)
 		{
@@ -364,6 +381,11 @@ class LoadingState extends MusicBeatState
 
 		Paths.setCurrentLevel(directory);
 		trace('Setting asset folder to ' + directory);
+
+		new FlxTimer().start(5, function(time:FlxTimer){
+			FlxTween.tween(skipText, {alpha: 1}, {ease: FlxEase.sineInOut});
+			allowSkip = true;
+		});
 	}
 
 	static var isIntrusive:Bool = false;

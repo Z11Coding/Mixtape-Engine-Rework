@@ -11,8 +11,9 @@ class OptionsState extends MusicBeatState
 		'Adjust Delay and Combo',
 		'Graphics',
 		'Visuals',
-		'Gameplay'
-		#if TRANSLATIONS_ALLOWED , 'Language' #end
+		'Gameplay',
+		#if TRANSLATIONS_ALLOWED 'Language', #end
+		"Mixtape Settings"
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
@@ -36,8 +37,10 @@ class OptionsState extends MusicBeatState
 				MusicBeatState.switchState(new options.NoteOffsetState());
 			case 'Language':
 				openSubState(new options.LanguageSubState());
-				case 'Archipelago':
-					openSubState(new options.ArchipelagoSettingsSubState());
+			case 'Archipelago':
+				openSubState(new options.ArchipelagoSettingsSubState());
+			case 'Mixtape Settings':
+				openSubState(new options.MixtapeSettingsSubState());
 		}
 	}
 

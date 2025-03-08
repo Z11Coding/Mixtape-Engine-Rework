@@ -3,6 +3,7 @@ import flixel.input.keyboard.FlxKey;
 import flixel.addons.transition.FlxTransitionableState;
 import backend.WeekData;
 import yutautil.ChanceSelector.Chance;
+import archipelago.APEntryState;
 
 using yutautil.CollectionUtils;
 
@@ -112,15 +113,11 @@ class CategoryState extends MusicBeatState
 
 	override function create()
 	{
-		// if (APEntryState.inArchipelagoMode && !(this is APCategoryState)) {
-		// 	FlxG.switchState(new states.FreeplayState());
-		// 	return;
-		// }
 		MemoryUtil.clearMajor();
 		menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
 		FlxTransitionableState.skipNextTransOut = false;
 
-		if (showSecrets && FlxG.save.data.gotIntoAnArgument) menuItems.insert(menuItems.length+1, "Secrets");
+		if (showSecrets && (FlxG.save.data.gotIntoAnArgument || FlxG.save.data.gotbeatbattle || FlxG.save.data.gotbeatbattle2)) menuItems.insert(menuItems.length+1, "Secrets");
 
 		WeekData.reloadWeekFiles(false);
 		var weeks:Array<WeekData> = [];
@@ -147,7 +144,7 @@ class CategoryState extends MusicBeatState
 				if (!menuItems.contains("Mods")) {
 					menuItems.push("Mods");
 				}
-				break;
+				break; 
 			}
 		}
 

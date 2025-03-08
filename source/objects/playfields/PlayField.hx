@@ -1019,7 +1019,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			for(i in 0...keyCount){
 				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss)){
 					var hitDiff = Conductor.songPosition - daNote.strumTime;
-					if (hitDiff + 60 >= 0){
+					if (!daNote.isSustainNote && hitDiff >= 0 || daNote.isSustainNote && hitDiff + 80 >= 0){
 						noteHitCallback(daNote, this);
 					}
 				}

@@ -2,12 +2,16 @@ package stages;
 
 import stages.objects.*;
 import objects.Character;
+import stages.gimmicks.Week1Gimmick;
+import objects.Note;
 
 class StageWeek1 extends BaseStage
 {
 	var dadbattleBlack:BGSprite;
 	var dadbattleLight:BGSprite;
 	var dadbattleFog:DadBattleFog;
+	var crowdPleaser:Week1Gimmick;
+	var allowCrowdOpinion:Bool = ClientPrefs.data.gimmicksAllowed && ClientPrefs.data.stageGimmick;
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('stageback', -600, -200, 0.9, 0.9);
@@ -34,6 +38,58 @@ class StageWeek1 extends BaseStage
 			add(stageCurtains);
 		}
 	}
+
+	override function createPost() {
+        super.createPost();
+       	if(allowCrowdOpinion) {
+			crowdPleaser = new Week1Gimmick();
+			crowdPleaser.cameras = [camHUD];
+			add(crowdPleaser);
+			switch(songName.toLowerCase().replace('-', ' '))
+			{
+				case 'bopeebo':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+				case 'fresh':
+					crowdPleaser.crowdAttentionLoss = 0.03;
+				case 'dad':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+				case 'small argument':
+					crowdPleaser.crowdAttentionLoss = 0.02;
+				case 'beat battle':
+					crowdPleaser.crowdAttentionLoss = 0.04;
+				case 'beat battle 2':
+					crowdPleaser.crowdAttentionLoss = 0.005;
+				default:
+					crowdPleaser.crowdAttentionLoss = 0;
+					crowdPleaser.visible = false;
+			}
+		}
+    }
+
+	override function startSong()
+		if (allowCrowdOpinion) crowdPleaser.startGimmick();
+
+	override function endSong() {
+        if (crowdPleaser != null && allowCrowdOpinion)
+		crowdPleaser.stopGimmick();
+        return true;
+    }
+
+	override function goodNoteHit(note:Note) {
+		if (allowCrowdOpinion) crowdPleaser.crowdAppeasment += 1;
+		super.goodNoteHit(note);
+	}
+	
+	override function noteMiss(note:Note) {
+		if (allowCrowdOpinion) crowdPleaser.crowdAppeasment -= 5;
+		super.noteMiss(note);
+	}
+
+	override function beatHit() {
+		if (allowCrowdOpinion) crowdPleaser.doClap(curBeat);
+		super.beatHit();
+	}
+	
 	override function eventPushed(event:objects.Note.EventNote)
 	{
 		switch(event.event)

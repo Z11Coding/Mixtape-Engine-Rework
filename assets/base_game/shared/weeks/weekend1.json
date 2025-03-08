@@ -20,5 +20,6 @@
 
 	"hideStoryMode": false,
 	"hideFreeplay": false,
-	"difficulties": "Easy, Normal, Hard"
+	"difficulties": "Easy, Normal, Hard",
+	"category": "pico"
 }

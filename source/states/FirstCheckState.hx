@@ -60,7 +60,7 @@ class FirstCheckState extends MusicBeatState
 			add(updateRibbon);
 
 			updateIcon = new FlxSprite(FlxG.width - 75, FlxG.height - 75);
-			updateIcon.frames = Paths.getSparrowAtlas("pauseAlt/bfLol");
+			updateIcon.frames = Paths.getSparrowAtlas("pause/pauseAlt/bfLol");
 			updateIcon.animation.addByPrefix("dance", "funnyThing instance 1", 20, true);
 			updateIcon.animation.play("dance");
 			updateIcon.setGraphicSize(65);

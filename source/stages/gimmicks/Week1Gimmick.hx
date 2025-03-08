@@ -192,7 +192,7 @@ class Week1Gimmick extends Bar
                     //PlayState.instance.modManager.setValue('noteShake', 8);
                     trace('Crowd Mood: Mad');
                     setColors(FlxColor.BLACK, FlxColor.RED);
-                    healthDrainMult = 0.01;
+                    healthDrainMult = 0.01 / ClientPrefs.data.framerate;
                     if (onCrowdMad != null) onCrowdMad();
                 case UNHAPPY:
                     if (crowdBoo.playing)
@@ -201,7 +201,7 @@ class Week1Gimmick extends Bar
                     //PlayState.instance.modManager.setValue('noteShake', 4);
                     trace('Crowd Mood: Unhappy');
                     setColors(FlxColor.BLACK, FlxColor.fromRGB(102, 4, 4));
-                    healthDrainMult = 0.004;
+                    healthDrainMult = 0.004 / ClientPrefs.data.framerate;
                     if (onCrowdUnhappy != null) onCrowdUnhappy();
                 case NEUTRAL:
                     if (crowdBoo.playing)

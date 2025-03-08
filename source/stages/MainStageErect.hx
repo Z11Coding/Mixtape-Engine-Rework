@@ -11,6 +11,7 @@ class MainStageErect extends PicoCapableStage {
 	var dadbattleLight:BGSprite;
 	var peeps:BGSprite;
     var crowdPleaser:Week1Gimmick;
+    var allowCrowdOpinion:Bool = ClientPrefs.data.gimmicksAllowed && ClientPrefs.data.stageGimmick;
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('erect/backDark', 729, -170);
@@ -64,42 +65,42 @@ class MainStageErect extends PicoCapableStage {
             boyfriend.shader = makeCoolShader(12,0,-23,7);
         }
 
-        if(ClientPrefs.data.gimmicksAllowed) {
+        if(allowCrowdOpinion) {
 			crowdPleaser = new Week1Gimmick();
 			crowdPleaser.cameras = [camHUD];
 			add(crowdPleaser);
 		
         
-        switch(songName.toLowerCase().replace('-', ' '))
-        {
-            case 'bopeebo erect':
-                crowdPleaser.crowdAttentionLoss = 0.04;
-            case 'fresh erect':
-                crowdPleaser.crowdAttentionLoss = 0.03;
-            case 'dad battle erect':
-                crowdPleaser.crowdAttentionLoss = 0.04;
+            switch(songName.toLowerCase().replace('-', ' '))
+            {
+                case 'bopeebo erect':
+                    crowdPleaser.crowdAttentionLoss = 0.04;
+                case 'fresh erect':
+                    crowdPleaser.crowdAttentionLoss = 0.03;
+                case 'dad battle erect':
+                    crowdPleaser.crowdAttentionLoss = 0.04;
+            }
         }
-    }
     }
 
     override function startSong()
-    if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
+    if (crowdPleaser != null && allowCrowdOpinion)
 		crowdPleaser.startGimmick();
 
     override function endSong() {
-        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
+        if (crowdPleaser != null && allowCrowdOpinion)
 		crowdPleaser.stopGimmick();
         return true;
     }
 
 	override function goodNoteHit(note:Note/*, field:PlayField*/) {
-        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
+        if (crowdPleaser != null && allowCrowdOpinion)
 		crowdPleaser.crowdAppeasment += 1;
 		super.goodNoteHit(note/*, field*/);
 	}
 	
 	override function noteMiss(note:Note/*, field:PlayField*/) {
-        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
+        if (crowdPleaser != null && allowCrowdOpinion)
 		crowdPleaser.crowdAppeasment -= 5;
 		super.noteMiss(note/*, field*/);
     }
@@ -110,7 +111,7 @@ class MainStageErect extends PicoCapableStage {
 
     override function beatHit() {
         super.beatHit();
-        if (crowdPleaser != null && ClientPrefs.data.gimmicksAllowed)
+        if (crowdPleaser != null && allowCrowdOpinion)
         crowdPleaser.doClap(curBeat);
     }
     

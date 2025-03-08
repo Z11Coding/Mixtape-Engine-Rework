@@ -30,6 +30,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var endSoundName:String = 'gameOverEnd';
 	public static var deathDelay:Float = 0;
 
+	public static var deathbysquare:FlxSprite;
 	public static var causeofdeath:UnderTextParser;
 
 	public static var video:Null<GameOverVideoSprite> = null;
@@ -150,10 +151,17 @@ class GameOverSubstate extends MusicBeatSubstate
 			}
 		}
 
+		deathbysquare = new FlxSprite().makeGraphic(500, 300, 0xFFFFFFFF);
+		deathbysquare.scrollFactor.set();
+		deathbysquare.x += 800;
+		deathbysquare.y -= 100; 
+		deathbysquare.alpha = 0.3;
+		add(deathbysquare);
+
 		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-		causeofdeath = new UnderTextParser(boyfriend.x, boyfriend.y - 100, FlxG.width, "", 32);
-		causeofdeath.scrollFactor.set(0,0);
-		causeofdeath.font = Paths.font("determination-extended.ttf");
+		causeofdeath = new UnderTextParser(deathbysquare.x, deathbysquare.y + 125, Std.int(deathbysquare.width), "", 32);
+		causeofdeath.scrollFactor.set();
+		causeofdeath.font = Paths.font("fnf1.ttf");
         causeofdeath.color = 0xFFFFFFFF; 
 		for (letter in alphabet) {
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));

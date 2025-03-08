@@ -344,6 +344,10 @@ class PlayState extends MusicBeatState
 	var middlecircle:FlxSprite;
 
 	// Troll Engine
+	private var AIScore:Int = 0;
+	private var AIMisses:Int = 0;
+	private var AITotalNotesHit:Float = 0;
+	private var AITotalPlayed:Int = 0;
 	public var modManager:ModManager;
 	public var notefields = new NotefieldRenderer();
 	public var playfields = new FlxTypedGroup<PlayField>();
@@ -351,8 +355,14 @@ class PlayState extends MusicBeatState
 	public var playerField:PlayField;
 	public var dadField:PlayField;
 	public var holdsGiveHP:Bool = false;
+	public var playerScoreTxt:FlxText;
+	public var opponentScoreTxt:FlxText;
+	public var ratingNameAI:String = '?';
+	public var ratingPercentAI:Float;
+	public var ratingFCAI:String;
 	public var currentSV:SpeedEvent = {position: 0, startTime: 0, speed: 1 #if EASED_SVs , startSpeed: 1 #end};
 	var speedChanges:Array<SpeedEvent> = [];
+	var aiText:String;
 
 	public var camGamefilters:Array<BitmapFilter> = [];
 	public var camHUDfilters:Array<BitmapFilter> = [];
@@ -1377,6 +1387,19 @@ class PlayState extends MusicBeatState
 		callOnScripts('onUpdateScore', [miss]);
 	}
 
+	public function updateScoreAI(miss:Bool = false, scoreBop:Bool = true)
+	{
+		var ret:Dynamic = callOnScripts('preUpdateScoreAI', [miss], true);
+		if (ret == LuaUtils.Function_Stop)
+			return;
+
+		updateScoreText();
+		if (!miss && !cpuControlled && scoreBop)
+			doScoreBop();
+
+		callOnScripts('onUpdateScoreAI', [miss]);
+	}
+
 	public dynamic function updateScoreText()
 	{
 		var str:String = Language.getPhrase('rating_$ratingName', ratingName);
@@ -1386,29 +1409,47 @@ class PlayState extends MusicBeatState
 			str += ' (${percent}%) - ' + Language.getPhrase(ratingFC);
 		}
 
-		var tempScore:String;
-		if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [songScore, songMisses, str]);
-		else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [songScore, str]);
-		scoreTxt.text = tempScore;
+		if (health <= 0.0475)
+		{
+			scoreTxt.text = "DON'T MISS!";
+			scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
+		}
+		else {
+			var tempScore:String;
+			if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [songScore, songMisses, str]);
+			else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [songScore, str]);
+			scoreTxt.text = tempScore;
+			scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
+		}
 	}
 
 	public dynamic function fullComboFunction()
 	{
-		var sicks:Int = ratingsData[0].hits;
-		var goods:Int = ratingsData[1].hits;
-		var bads:Int = ratingsData[2].hits;
-		var shits:Int = ratingsData[3].hits;
-
 		ratingFC = "";
-		if(songMisses == 0)
+
+		var marvs:Int = ratingsData[0].hits;
+		var sicks:Int = ratingsData[1].hits;
+		var goods:Int = ratingsData[2].hits;
+		var bads:Int = ratingsData[3].hits;
+		var shits:Int = ratingsData[4].hits;
+
+		if (songMisses == 0)
 		{
-			if (bads > 0 || shits > 0) ratingFC = 'FC';
-			else if (goods > 0) ratingFC = 'GFC';
-			else if (sicks > 0) ratingFC = 'SFC';
+			if (bads > 0 || shits > 0)
+				ratingFC = '[Full Combo]';
+			else if (goods > 0)
+				ratingFC = '[Good Full Combo]';
+			else if (sicks > 0)
+				ratingFC = '[Sick Full Combo]';
+			else if (marvs > 0)
+				ratingFC = '[Marvioulus Full Combo]';
 		}
-		else {
-			if (songMisses < 10) ratingFC = 'SDCB';
-			else ratingFC = 'Clear';
+		else
+		{
+			if (songMisses < 10)
+				ratingFC = '[Single Digit Combo Break]';
+			else
+				ratingFC = '[Ok I guess...]';
 		}
 	}
 
@@ -2604,7 +2645,10 @@ class PlayState extends MusicBeatState
 		// RESET = Quick Game Over Screen
 		if (!ClientPrefs.data.noReset && controls.RESET && canReset && !inCutscene && startedCountdown && !endingSong)
 		{
+			archipelago.APPlayState.deathByLink = true; //To prevent self-made deaths (People would hate you for this)
 			health = 0;
+			die();
+			COD.setPresetCOD('r');
 			trace("RESET = True");
 		}
 		doDeathCheck();
@@ -2748,8 +2792,23 @@ class PlayState extends MusicBeatState
 
 	public var isDead:Bool = false; //Don't mess with this on Lua!!!
 	public var gameOverTimer:FlxTimer;
+	var killPlayer:Bool;
 	function doDeathCheck(?skipHealthCheck:Bool = false) {
-		if (((skipHealthCheck && instakillOnMiss) || health <= 0) && !practiceMode && !isDead && gameOverTimer == null)
+		switch (ClientPrefs.data.healthMode) {
+			case "OG":
+				killPlayer = health <= 0 
+				&& !practiceMode 
+				&& !isDead 
+				&& gameOverTimer == null;
+			
+			case "Mixtape":
+				killPlayer = health <= 0 
+				&& !practiceMode 
+				&& !isDead 
+				&& bfkilledcheck
+				&& gameOverTimer == null;
+		}
+		if (skipHealthCheck || instakillOnMiss || killPlayer)
 		{
 			var ret:Dynamic = callOnScripts('onGameOver', null, true);
 			if(ret != LuaUtils.Function_Stop)
@@ -3239,8 +3298,6 @@ class PlayState extends MusicBeatState
 					#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
 					canResync = false;
-					MusicBeatState.switchState(new StoryMenuState());
-
 					// if ()
 					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay')) {
 						StoryMenuState.weekCompleted.set(WeekData.weeksList[storyWeek], true);
@@ -3250,6 +3307,12 @@ class PlayState extends MusicBeatState
 						FlxG.save.flush();
 					}
 					changedDifficulty = false;
+					gameplayArea = "Story";
+					new FlxTimer().start(0.1, function(tmr:FlxTimer)
+					{
+						camHUD.alpha -= 1 / 10;
+					}, 10);
+					openSubState(new substates.RankingSubstate());
 				}
 				else
 				{
@@ -3272,14 +3335,18 @@ class PlayState extends MusicBeatState
 			}
 			else
 			{
-				trace('WENT BACK TO FREEPLAY??');
 				Mods.loadTopMod();
 				#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
 				canResync = false;
-				MusicBeatState.switchState(new FreeplayState());
-				FlxG.sound.playMusic(Paths.music('freakyMenu'));
+				if (gameplayArea != "APFreeplay")
+					gameplayArea = "Freeplay";
 				changedDifficulty = false;
+				new FlxTimer().start(0.1, function(tmr:FlxTimer)
+				{
+					camHUD.alpha -= 1 / 10;
+				}, 10);
+				openSubState(new substates.RankingSubstate());
 			}
 			transitioning = true;
 		}
@@ -3722,7 +3789,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			if (!holdArray.contains(true) || endingSong)
+			if (!holdArray.contains(true) && !endingSong)
 				playerDance();
 
 			#if ACHIEVEMENTS_ALLOWED
@@ -3868,9 +3935,14 @@ class PlayState extends MusicBeatState
 		{
 			vocals.volume = 0;
 			opponentVocals.volume = 0;
-			doDeathCheck(true);
+			die();
+			COD.setPresetCOD(note, 'miss');
 		}
 
+		COD.setPresetCOD(note, 'miss0');
+
+		bfkilledcheck = true;
+		
 		var lastCombo:Int = combo;
 		combo = 0;
 
@@ -4073,6 +4145,8 @@ class PlayState extends MusicBeatState
 			noteMiss(note, field);
 			if(!note.noteSplashData.disabled && !note.isSustainNote) spawnNoteSplashOnNote(note);
 		}
+
+		bfkilledcheck = false;
 
 		stagesFunc(function(stage:BaseStage) stage.goodNoteHit(note));
 		var result:Dynamic = callOnLuas('goodNoteHit', [notes.members.indexOf(note), leData, leType, isSus]);
@@ -4369,24 +4443,27 @@ class PlayState extends MusicBeatState
 
 		for(script in hscriptArray)
 		{
-			@:privateAccess
-			if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
-				continue;
+			try {
+				@:privateAccess
+				if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
+					continue;
 
-			var callValue = script.call(funcToCall, args);
-			if(callValue != null)
-			{
-				var myValue:Dynamic = callValue.returnValue;
-
-				if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+				var callValue = script.call(funcToCall, args);
+				if(callValue != null)
 				{
-					returnVal = myValue;
-					break;
-				}
+					var myValue:Dynamic = callValue.returnValue;
 
-				if(myValue != null && !excludeValues.contains(myValue))
-					returnVal = myValue;
+					if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+					{
+						returnVal = myValue;
+						break;
+					}
+
+					if(myValue != null && !excludeValues.contains(myValue))
+						returnVal = myValue;
+				}
 			}
+			catch(e) {}
 		}
 		#end
 

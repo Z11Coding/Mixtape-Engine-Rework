@@ -144,8 +144,9 @@ import states.TitleState;
 	public var volMax:String = 'VolMAX';
 	public var menuSong:String = 'panixPress';
 	public var username:Bool = false;
-
 	public var deathlink:Bool = false;
+	public var stageGimmick:Bool = false;
+	public var healthMode:String = 'Mixtape';
 }
 
 class ClientPrefs {
@@ -371,22 +372,22 @@ class ClientPrefs {
 		'note_up'		=> [DPAD_UP, Y],
 		'note_left'		=> [DPAD_LEFT, X],
 		'note_down'		=> [DPAD_DOWN, A],
-		'note_right'	=> [DPAD_RIGHT, B],
+		'note_right'	=> [DPAD_RIGHT, B], 
 		
 		'ui_up'			=> [DPAD_UP, LEFT_STICK_DIGITAL_UP],
 		'ui_left'		=> [DPAD_LEFT, LEFT_STICK_DIGITAL_LEFT],
 		'ui_down'		=> [DPAD_DOWN, LEFT_STICK_DIGITAL_DOWN],
-		'ui_right'		=> [DPAD_RIGHT, LEFT_STICK_DIGITAL_RIGHT],
+		'ui_right'		=> [DPAD_RIGHT, LEFT_STICK_DIGITAL_RIGHT], 
 		
-		'accept'		=> [A, START],
+		'accept'		=> [A, START], 
 		'back'			=> [B],
 		'pause'			=> [START],
-		'reset'			=> [BACK],
+		'reset'			=> [BACK], 
 
-		'debug_1'		=> [NONE],
-		'debug_2'		=> [NONE],
+		'debug_1'		=> [],
+		'debug_2'		=> [],
 
-		'sidebar'		=> [],
+		'sidebar'		=> [], 
 	];
 	public static var defaultKeys:Map<String, Array<FlxKey>> = null;
 	public static var defaultButtons:Map<String, Array<FlxGamepadInputID>> = null;
