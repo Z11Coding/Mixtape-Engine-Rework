@@ -2073,6 +2073,7 @@ public function doEffect(effect:String)
         super.endSong();
         paused = true;
         states.FreeplayState.callVictory = PlayState.SONG.song == APEntryState.victorySong;
+        openSubState(new substates.RankingSubstate());
         return true; //why does endsong need this?????
     }
 

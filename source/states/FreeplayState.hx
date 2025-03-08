@@ -644,17 +644,17 @@ class FreeplayState extends MusicBeatState
 				var isMissing:Bool = false;
 				var color:FlxColor = 0xFFFFFFFF;
 
-				if (APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all") {
+				if (APEntryState.inArchipelagoMode) {
 					songName = songs[i].songName;
 					modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
 					locationId = APEntryState.apGame.info().get_location_id(songName + (modName != "" ? " (" + modName + ")" : ""));
 					isMissing = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
-					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+					if (CategoryState.loadWeekForce == "all") color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
 					for (daSongName in curUnlocked.keys())
 					{
 						if (((songName.trim().toLowerCase().replace('-', ' ') == daSongName.trim().toLowerCase().replace('-', ' ')) && modName == curUnlocked.get(daSongName)) && isMissing) {
-							color = FlxColor.WHITE;
+							if (CategoryState.loadWeekForce == "all") color = FlxColor.WHITE;
 							unplayedList.push(songName);
 						}
 					}
