@@ -74,7 +74,7 @@ class UpdateState extends MusicBeatState
 		super.create();
 		FlxG.autoPause = false;
 
-		FlxG.sound.playMusic(Paths.music(listoSongs[FlxG.random.int(0, 10)]), 0);
+		FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(listoSongs[FlxG.random.int(0, 10)])), 0);
 		FlxG.sound.music.pitch = 1;
 
 		FlxG.sound.music.fadeIn(4, 0, 0.7);
@@ -93,23 +93,23 @@ class UpdateState extends MusicBeatState
 		add(gradientBar);
 		gradientBar.scrollFactor.set(0, 0);
 
-		checker = new FlxBackdrop(Paths.image('loading/bgpattern'), XY, Std.int(0.2), Std.int(0.2));
+		checker = new FlxBackdrop(Paths.image('loading_screen/bgpattern'), XY, Std.int(0.2), Std.int(0.2));
 		checker.blend = BlendMode.LAYER;
 		add(checker);
 		checker.scrollFactor.set(0, 0.07);
 
 		text = new FlxText(0, 0, 0, "Updating Your Mixtape...", 18);
 		text.setFormat(Paths.font('funkin.ttf'), 18, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-		add(text);
+		//add(text);
 		text.screenCenter(X);
 		text.y = 290;
 
-		loadingL = new FlxSprite(337.60, 27.30).loadGraphic(Paths.image("loading/loading"));
+		loadingL = new FlxSprite(337.60, 27.30).loadGraphic(Paths.image("loading_screen/loading"));
 		loadingL.antialiasing = true;
         loadingL.screenCenter(X);
         add(loadingL);
 
-        var loading = new FlxSprite().loadGraphic(Paths.image("loading/updating"));
+        var loading = new FlxSprite().loadGraphic(Paths.image("loading_screen/updating"));
         loading.scale.set(0.85, 0.85);
         loading.updateHitbox();
         loading.y = FlxG.height - (loading.height * 1.15);
@@ -215,8 +215,10 @@ class UpdateState extends MusicBeatState
 
 	inline function getUpdateLink()
 	{
+		trace(FirstCheckState.betaVersion);
+		trace(FirstCheckState.updateVersion);
 		var fileEnd = #if android 'apk' #else 'zip' #end;
-		online_url = "https://github.com/Z11Coding/Mixtape-Engine-Rework/releases/download/" + FirstCheckState.betaVersion != 'none' ? FirstCheckState.betaVersion : FirstCheckState.updateVersion + '/Mixtape-Engine-${getPlatform()}.$fileEnd';
+		online_url = 'https://github.com/Z11Coding/Mixtape-Engine-Rework/releases/download/${FirstCheckState.betaVersion != null ? FirstCheckState.betaVersion : FirstCheckState.updateVersion}/Mixtape-Engine-${getPlatform()}.$fileEnd';
 		trace("update url: " + online_url);
 	}
 
@@ -344,10 +346,10 @@ class UpdateState extends MusicBeatState
 		var fileBytes:Bytes = cast(zip.data, ByteArray);
 		text.text = "Update downloaded successfully, saving update file...";
 		text.screenCenter(X);
-		File.saveBytes(path + "Mixtape Madness v" + FirstCheckState.updateVersion + ".zip", fileBytes);
+		File.saveBytes(path + "Mixtape Engine v" + FirstCheckState.updateVersion + ".zip", fileBytes);
 		text.text = "Unpacking update file...";
 		text.screenCenter(X);
-		JSEZip.unzip(path + "Mixtape Madness v" + FirstCheckState.updateVersion + ".zip", "./update/raw/");
+		JSEZip.unzip(path + "Mixtape Engine v" + FirstCheckState.updateVersion + ".zip", "./update/raw/");
 		text.text = "Update has finished! The update will be installed shortly..";
 		text.screenCenter(X);
 

@@ -26,7 +26,7 @@ class FirstCheckState extends MusicBeatState
 		var response:Dynamic = null;
 		var urls = [
 			"https://httpbin.org/get",
-			"https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine/refs/heads/main/gitVersion.txt",
+			"https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine-Rework/refs/heads/Archipelago/gitVersion.txt",
 			"https://www.google.com"
 		];
 		for (url in urls) {
@@ -99,12 +99,12 @@ class FirstCheckState extends MusicBeatState
 					});
 					return;
 				}
-				var http = new haxe.Http("https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine/refs/heads/main/gitVersion.txt");
+				var http = new haxe.Http("https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine-Rework/refs/heads/Archipelago/gitVersion.txt");
 
 				http.onData = function(data:String)
 				{
-					updateVersion = data.split('\n')[0].trim();
-					betaVersion = data.split('\n')[1].trim();
+					updateVersion = data.split(':')[0].trim();
+					betaVersion = data.split(':')[1].trim();
 					var curVersion:String = MainMenuState.mixtapeEngineVersion.trim();
 					trace('version online: ' + updateVersion + ', your version: ' + curVersion);
 					var updateVersionNum = Std.parseFloat(updateVersion.replace(".", ""));

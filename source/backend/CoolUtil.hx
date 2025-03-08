@@ -8,7 +8,7 @@ class CoolUtil
 {
 	public static function checkForUpdates(url:String = null):String {
 		if (url == null || url.length == 0)
-			url = "https://raw.githubusercontent.com/Z11Gaming/FNF-PsychEngine/main/gitVersion.txt";
+			url = "https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine-Rework/refs/heads/Archipelago/gitVersion.txt";
 		var version:String = states.MainMenuState.psychEngineVersion.trim();
 		if(ClientPrefs.data.checkForUpdates) {
 			trace('checking for updates...');
@@ -218,11 +218,11 @@ class CoolUtil
 		theBatch += "  pause\r\n";
 		theBatch += "  exit /b\r\n";
 		theBatch += ")\r\n";
-		theBatch += "taskkill /F /IM MixEngine.exe\r\n";
+		theBatch += "taskkill /F /IM Mixtape.exe\r\n";
 		theBatch += "cd /d \"%~dp0\"\r\n";
 		theBatch += "xcopy /e /y \"!sourceDirectory!\" \"!destinationDirectory!\"\r\n";
 		theBatch += "rd /s /q \"!sourceDirectory!\"\r\n";
-		theBatch += "start /d \"!destinationDirectory!\" MixEngine.exe\r\n";
+		theBatch += "start /d \"!destinationDirectory!\" Mixtape.exe\r\n";
 		theBatch += "rd /s /q \"%~dp0\\update\"\r\n";
 		theBatch += "del \"%~f0\"\r\n";
 		theBatch += "endlocal\r\n";
