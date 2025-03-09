@@ -4,17 +4,17 @@ class APInfo {
     public static var ap:Client;
     public static var apGame:APGameState;
 
-    public static final baseGame:Array<String> = 
+	public static final baseGame:Array<String> = 
 	[
 		'Bopeebo', 'Fresh', 'Dad Battle',
-	 	'Spookeez', 'South', 'Monster',
-	 	'Pico', 'Philly Nice', 'Blammed',
-	 	'Satin Panties', 'High', 'Milf',
-	 	'Cocoa', 'Eggnog', 'Winter Horrorland',
-	 	'Senpai', 'Roses', 'Thorns',
-	 	'Ugh', 'Guns', 'Stress',
-	 	'Darnell', 'Lit Up', '2Hot', 'Blazin',
-		'Darnell (BF Mix)'
+		'Spookeez', 'South', 'Monster',
+		'Pico', 'Philly Nice', 'Blammed',
+		'Satin Panties', 'High', 'Milf',
+		'Cocoa', 'Eggnog', 'Winter Horrorland',
+		'Senpai', 'Roses', 'Thorns',
+		'Ugh', 'Guns', 'Stress',
+		'Darnell', 'Lit Up', '2Hot', 'Blazin',
+		'Darnell (BF Mix)', 'Tutorial'
 	];
 
 	public static final baseErect:Array<String> = 
@@ -33,7 +33,7 @@ class APInfo {
 		'Bopeebo (Pico mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
 	 	'Spookeez (Pico mix)', 'South (Pico mix)',
 	 	'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
-	 	'Eggnog (Pico mix)',
+	 	'Eggnog (Pico Mix)',
 	 	'Ugh (Pico mix)', 'Guns (Pico mix)'
 	];
 
