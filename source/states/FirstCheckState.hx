@@ -136,6 +136,8 @@ class FirstCheckState extends MusicBeatState
 				updateRibbon.visible = true;
 				updateRibbon.alpha = 1;
 			});
+
+			archipelago.APEntryState.checkAndAlertAPWorld();
 		}
 		else
 		{

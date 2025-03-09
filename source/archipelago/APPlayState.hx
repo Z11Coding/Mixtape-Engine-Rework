@@ -1803,7 +1803,11 @@ public function doEffect(effect:String)
                 if (deathLinkPacket.cause != null && (deathLinkPacket.cause != "" || deathLinkPacket.cause != " ")) cause = deathLinkPacket.cause + "\n[pause:0.5](Sounds like a skill issue...)";
             }
             catch(e) {trace('DEATHLINKPACK WAS NULL!');}
-            if (cause.trim() == "") cause = deathLinkPacket.source + " has died.\n[pause:0.5](How Unfortunate...)";
+            try {
+                if (cause.trim() == "") cause = deathLinkPacket.source + " has died.\n[pause:0.5](How Unfortunate...)";
+            } catch (e:Dynamic) {
+                cause = "???\n[pause:0.5](Someone died... somehow...)\n[pause:0.5](Unsure how...)";
+            }
             COD.setCOD(null, cause);
             die();
             trace("Triggering DeathLink!");

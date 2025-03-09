@@ -440,6 +440,48 @@ class APEntryState extends MusicBeatState
 		runArch();
 	}
 
+	public static function checkAPWorld():{status:String, message:String}
+	{
+		#if sys
+		var programDataPath = "C:/ProgramData/Archipelago/";
+		var customWorldsPath = programDataPath + "custom_worlds/";
+		var apWorldFile = customWorldsPath + "fridaynightfunkin.apworld";
+
+		try {
+			if (FileSystem.exists(apWorldFile))
+			{
+				trace("APWorld file found.");
+				var apworld = haxe.Resource.getBytes("apworld");
+				var installedApworld = File.getBytes(apWorldFile);
+				if (apworld.compare(installedApworld) == 0) {
+					trace("APWorld file matches the current version.");
+					return {status: "exact", message: "APWorld file matches the current version."};
+				} else {
+					trace("APWorld file does not match the current version.");
+					return {status: "outdated", message: "APWorld file does not match the current version."};
+				}
+			}
+			else
+			{
+				trace("APWorld file not found.");
+				return {status: "missing", message: "APWorld file not found."};
+			}
+		} catch (e:Dynamic) {
+			trace("Error checking APWorld file: " + e);
+			return {status: "error", message: "Error checking APWorld file: " + e};
+		}
+		#end
+		return {status: "unsupported", message: "System not supported."};
+	}
+
+	public static function checkAndAlertAPWorld():Void
+	{
+		var result = checkAPWorld();
+		if (result.status == "outdated") {
+			Application.current.window.alert(result.message + "\nPlease update it in the AP Menu.", "APWorld Update Recommended");
+		}
+	}
+
 	public static function installAPWorld():Void
 	{
 		#if sys
