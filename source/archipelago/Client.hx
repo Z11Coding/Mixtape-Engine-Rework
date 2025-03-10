@@ -1403,6 +1403,7 @@ class Client {
 							games: gameData,
 						};
 						_dataPackage = data;
+						APGameState.isSync = true;
 						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					}
 

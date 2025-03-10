@@ -23,21 +23,21 @@ class ArchPopup extends openfl.display.Sprite {
 	var alphaTween:FlxTween;
 	var lastScale:Float = 1;
     public static var daUnlockSong:String = 'Nothing lol';
-	public static var instances:yutautil.LimitedArray<ArchPopup> = new yutautil.LimitedArray<ArchPopup>(6);
+	// public static var instances:yutautil.LimitedArray<ArchPopup> = new yutautil.LimitedArray<ArchPopup>(6);
 
 	public function new(name:String, desc:String, ?song:String, ?image:String, ?onFinish:Void->Void)
 	{
 		super();
 
-		instances.add(this, 'remove_oldest');
+		// instances.add(this, 'remove_oldest');
 
-		for (popup in _popups)
-		{
-			if (instances.indexOf(popup) == -1)
-			{
-				popup.destroy();
-			}
-		}
+		// for (popup in _popups)
+		// {
+		// 	if (instances.indexOf(popup) == -1)
+		// 	{
+		// 		popup.destroy();
+		// 	}
+		// }
 
 		// bg
 		graphics.beginFill(FlxColor.BLACK);
