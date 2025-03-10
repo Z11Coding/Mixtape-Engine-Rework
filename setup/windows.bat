@@ -13,11 +13,22 @@ haxelib install hscript-iris 1.1.3
 haxelib install tjson 1.4.0
 haxelib install hxdiscord_rpc 1.2.4
 haxelib install hxvlc 2.0.1 --skip-dependencies
+haxelib install helder.set 0.3.1
+haxelib install yaml 2.0.1
+haxelib install hxWebSockets 1.4.0
+haxelib install haxe-concurrent 5.1.3
+haxelib install actuate 1.9.0
 haxelib set lime 8.1.2
 haxelib set openfl 9.3.3
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7
 haxelib git funkin.vis https://github.com/FunkinCrew/funkVis 22b1ce089dd924f15cdc4632397ef3504d464e90
 haxelib git grig.audio https://gitlab.com/haxe-grig/grig.audio.git cbf91e2180fd2e374924fe74844086aab7891666
+haxelib git haxeui-core https://github.com/haxeui/haxeui-core 51c23588614397089a5ce182cddea729f0be6fa0
+haxelib git haxeui-flixel https://github.com/haxeui/haxeui-flixel da27e833947f32ef007ed11f523aa5524f5a5d54
+haxelib git flixel-text-input https://github.com/FunkinCrew/flixel-text-input 951a0103a17bfa55eed86703ce50b4fb0d7590bc
+haxelib git tentools https://github.com/TentaRJ/tentools.git
+haxelib git systools https://github.com/haya3218/systools
+haxelib run lime rebuild systools windows
 echo Finished!
 pause

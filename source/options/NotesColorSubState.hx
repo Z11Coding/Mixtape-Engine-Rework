@@ -635,6 +635,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		{
 			ChartingNote.initializeGlobalRGBShader(i);
 			var newNote:ChartingStrumNote = new ChartingStrumNote(150 + (480 / dataArray.length * i), 200, i, 0);
+			if (PlayState.isPixelStage) newNote.texture = 'noteskins/NOTE_assets';
 			newNote.useRGBShader = true;
 			newNote.setGraphicSize(102);
 			newNote.updateHitbox();

@@ -86,11 +86,14 @@ class VideoSprite extends FlxSpriteGroup {
 
 		if(FlxG.state != null)
 		{
-			if(FlxG.state.members.contains(this))
-				FlxG.state.remove(this);
+			try {
+				if(FlxG.state.members.contains(this))
+					FlxG.state.remove(this);
 
-			if(FlxG.state.subState != null && FlxG.state.subState.members.contains(this))
-				FlxG.state.subState.remove(this);
+				if(FlxG.state.subState != null && FlxG.state.subState.members.contains(this))
+					FlxG.state.subState.remove(this);
+			}
+			catch(e) {trace("There was nothing to delete?");}
 		}
 		super.destroy();
 		alreadyDestroyed = true;

@@ -161,16 +161,18 @@ class SpookyMansionErect extends PicoCapableStage
 					gfGhost.alpha = 1;
 					boyfriendGhost.alpha = 1;
 					dadGhost.alpha = 1;
-					FlxTween.tween(boyfriendGhost, {alpha: 0}, 1.5);
-					FlxTween.tween(gfGhost, {alpha: 0}, 1.5);
-					FlxTween.tween(dadGhost, {alpha: 0}, 1.5);
-
 					FlxTween.tween(halloweenBGLight, {alpha: 0}, 1.5);
 					FlxTween.tween(stairsLight, {alpha: 0}, 1.5);
 
-					FlxTween.tween(boyfriend, {alpha: 1}, 1.5);
-					FlxTween.tween(gf, {alpha: 1}, 1.5);
-					FlxTween.tween(dad, {alpha: 1}, 1.5);
+					FlxTween.tween(boyfriend, {alpha: 1}, 1.5, {onComplete: function(twn:FlxTween) {
+						boyfriendGhost.alpha = 0;
+					}});
+					FlxTween.tween(gf, {alpha: 1}, 1.5, {onComplete: function(twn:FlxTween) {
+						gfGhost.alpha = 0;
+					}});
+					FlxTween.tween(dad, {alpha: 1}, 1.5, {onComplete: function(twn:FlxTween) {
+						dadGhost.alpha = 0;
+					}});
 				}
 			});
 

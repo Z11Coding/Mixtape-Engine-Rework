@@ -218,10 +218,11 @@ class RankingSubstate extends MusicBeatSubstate
 							}
 						}
 					}
+					
 					trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
 					trace(APEntryState.apGame.info().get_location_name(locationIdInt));
 					trace(PlayState.SONG.song);
-					archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Go check it out!", "archipelago", function() {
+					archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Good Job!", "archColor", function() {
 						FlxG.sound.playMusic(Paths.sound('secret'));
 					});
 
@@ -232,7 +233,7 @@ class RankingSubstate extends MusicBeatSubstate
 							FlxG.sound.playMusic(Paths.sound('secret'));
 						});
 						APEntryState.apGame.info().set_goal();
-					}						
+					}
 					Mods.loadTopMod();
 			}
 		}

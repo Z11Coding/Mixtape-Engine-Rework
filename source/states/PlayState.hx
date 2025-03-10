@@ -2248,6 +2248,7 @@ class PlayState extends MusicBeatState
 		}
 	}*/
 
+	// Might make scripted video pausing better in the future but this works for now.
 	override function openSubState(SubState:FlxSubState)
 	{
 		stagesFunc(function(stage:BaseStage) stage.openSubState(SubState));
@@ -2261,6 +2262,9 @@ class PlayState extends MusicBeatState
 			}
 			FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if(!tmr.finished) tmr.active = false);
 			FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = false);
+
+			for (tag in MusicBeatState.getVariables().keys())
+				if (tag.contains("_video")) MusicBeatState.getVariables().get(tag).pause();
 		}
 
 		super.openSubState(SubState);
@@ -2280,6 +2284,8 @@ class PlayState extends MusicBeatState
 			}
 			FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if(!tmr.finished) tmr.active = true);
 			FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = true);
+			for (tag in MusicBeatState.getVariables().keys())
+				if (tag.contains("_video")) MusicBeatState.getVariables().get(tag).resume();
 
 			paused = false;
 			callOnScripts('onResume');
@@ -2433,7 +2439,7 @@ class PlayState extends MusicBeatState
 	public var paused:Bool = false;
 	public var canReset:Bool = true;
 	public var startedCountdown:Bool = false;
-	var canPause:Bool = true;
+	public var canPause:Bool = true;
 	var freezeCamera:Bool = false;
 	var allowDebugKeys:Bool = true;
 
@@ -2576,7 +2582,7 @@ class PlayState extends MusicBeatState
 			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
 		}
 
-		if (controls.PAUSE && startedCountdown && canPause)
+		if (controls.PAUSE && startedCountdown && canPause && !endingSong)
 		{
 			var ret:Dynamic = callOnScripts('onPause', null, true);
 			if(ret != LuaUtils.Function_Stop) {

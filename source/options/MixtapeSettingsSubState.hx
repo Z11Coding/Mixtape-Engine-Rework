@@ -28,6 +28,25 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 				"Random (NA)",
 			]);
 		addOption(option);
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('Input System', 
+		"The input system you wish to use.", 
+		'inputSystem', 
+		STRING,
+		[
+			"Native", 
+			"BEAT! Engine", 
+			"Kade Engine", 
+			"ZoroForce EK", 
+			"Mic'ed Up Engine", 
+			"Andromeda Engine (legacy)",
+			"YoshiEngine",
+			"Kade Engine Community",
+			"Rhythm"
+		]);
+		addOption(option);
+		option.displayFormat = '< %v >';
 
 		super();
 	}

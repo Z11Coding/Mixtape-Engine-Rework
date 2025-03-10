@@ -99,7 +99,10 @@ class ChartingStrumNote extends FlxSprite
 			var customSkin:String = skin + Note.getNoteSkinPostfix();
 			if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
 		}
-		else skin = 'noteskins/strums';
+		else {
+			var customSkin:String = 'NOTE_assets' + Note.getNoteSkinPostfix();
+			skin = 'noteskins/' + (PlayState.isPixelStage ? customSkin : 'strums');
+		}
 
 		texture = skin; //Load texture and anims
 		scrollFactor.set();
@@ -123,41 +126,40 @@ class ChartingStrumNote extends FlxSprite
 		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
 		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
 		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[noteData]; //jic
-		var pxDV:Int = Note.pixelNotesDivisionValue[0];
+		var pxDV:Int = Note.pixelNotesDivisionValue[1];
 
 		if(PlayState.isPixelStage)
 		{
 			loadGraphic(Paths.image('pixelUI/' + texture));
-			width = width / 4;
+			width = width / pxDV;
 			height = height / 5;
-			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
-
 			antialiasing = false;
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom));
+			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
+			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
 
-			animation.add('green', [6]);
-			animation.add('red', [7]);
-			animation.add('blue', [5]);
-			animation.add('purple', [4]);
-			switch (Math.abs(noteData) % 4)
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
+			updateHitbox();
+			antialiasing = false;
+			switch (Math.abs(noteData))
 			{
 				case 0:
-					animation.add('static', [0]);
-					animation.add('pressed', [4, 8], 12, false);
-					animation.add('confirm', [12, 16], 24, false);
+					animation.add('static', [daFrames[0]]);
+					animation.add('pressed', [daFrames[0] + pxDV, daFrames[0] + (pxDV * 2)], 12, false);
+					animation.add('confirm', [daFrames[0] + (pxDV * 3), daFrames[0] + (pxDV * 4)], 24, false);
 				case 1:
-					animation.add('static', [1]);
-					animation.add('pressed', [5, 9], 12, false);
-					animation.add('confirm', [13, 17], 24, false);
+					animation.add('static', [daFrames[1]]);
+					animation.add('pressed', [daFrames[1] + pxDV, daFrames[1] + (pxDV * 2)], 12, false);
+					animation.add('confirm', [daFrames[1] + (pxDV * 3), daFrames[1] + (pxDV * 4)], 24, false);
 				case 2:
-					animation.add('static', [2]);
-					animation.add('pressed', [6, 10], 12, false);
-					animation.add('confirm', [14, 18], 12, false);
+					animation.add('static', [daFrames[2]]);
+					animation.add('pressed', [daFrames[2] + pxDV, daFrames[2] + (pxDV * 2)], 12, false);
+					animation.add('confirm', [daFrames[2] + (pxDV * 3), daFrames[2] + (pxDV * 4)], 24, false);
 				case 3:
-					animation.add('static', [3]);
-					animation.add('pressed', [7, 11], 12, false);
-					animation.add('confirm', [15, 19], 24, false);
+					animation.add('static', [daFrames[3]]);
+					animation.add('pressed', [daFrames[3] + pxDV, daFrames[3] + (pxDV * 2)], 12, false);
+					animation.add('confirm', [daFrames[3] + (pxDV * 3), daFrames[3] + (pxDV * 4)], 24, false);
 			}
+			//i used windows calculator
 		}
 		else
 		{

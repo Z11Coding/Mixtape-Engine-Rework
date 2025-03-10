@@ -20,24 +20,6 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		var option:Option = new Option('Input System', 
-		"The input system you wish to use.", 
-		'inputSystem', 
-		STRING,
-		[
-			"Native", 
-			"BEAT! Engine", 
-			"Kade Engine", 
-			"ZoroForce EK", 
-			"Mic'ed Up Engine", 
-			"Andromeda Engine (legacy)",
-			"YoshiEngine",
-			"Kade Engine Community",
-			"Rhythm"
-		]);
-		addOption(option);
-		option.displayFormat = '< %v >';
-
 		var option:Option = new Option('Opponent Notes',
 			'If unchecked, opponent notes get hidden.',
 			'opponentStrums',
@@ -61,13 +43,13 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		'If unchecked, turns off the mechanics for songs that have them.',
 		'gimmicksAllowed',
 		'bool');
-	addOption(option);
+		addOption(option);
 
-	var option:Option = new Option('Allow Modcharts',
-	'If unchecked, turns off the modcharts for songs that have them.',
-	'modcharts',
-	'bool');
-addOption(option);
+		var option:Option = new Option('Allow Modcharts',
+		'If unchecked, turns off the modcharts for songs that have them.',
+		'modcharts',
+		'bool');
+		addOption(option);
 
 		var option:Option = new Option('Disable Reset Button',
 			"If checked, pressing Reset won't do anything.",

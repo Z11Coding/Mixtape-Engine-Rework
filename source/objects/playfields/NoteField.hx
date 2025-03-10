@@ -128,7 +128,7 @@ class NoteField extends FieldBase
 		var drawMod = modManager.get("drawDistance");
 		var drawDist = drawMod == null ? FlxG.height : drawMod.getValue(modNumber);
 		var multAllowed = modManager.get("disableDrawDistMult");
-		var alwaysDraw = modManager.get("alwaysDraw").getValue(modNumber) != 0; // Forces notes to draw, no matter the draw distance
+		var alwaysDraw = try{ modManager.get("alwaysDraw").getValue(modNumber) != 0;} catch(e) {false;} // Forces notes to draw, no matter the draw distance
 		if (multAllowed == null || multAllowed.getValue(modNumber) == 0)
 			drawDist *= drawDistMod;
 		var lookAheadTime = modManager.getValue("lookAheadTime", modNumber);
@@ -143,7 +143,7 @@ class NoteField extends FieldBase
 				var speed = modManager.getNoteSpeed(daNote, modNumber, songSpeed);
 				var visPos = -((Conductor.visualPosition - daNote.visualTime) * speed);
 
-				if (visPos > drawDist || (daNote.wasGoodHit && daNote.sustainLength > 0))
+				if ((visPos > drawDist && !alwaysDraw) || (daNote.wasGoodHit && daNote.sustainLength > 0))
 					continue; // don't draw
 
 				if (!daNote.copyX && !daNote.copyY) {
