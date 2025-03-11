@@ -3,6 +3,7 @@ package objects;
 import backend.animation.PsychAnimationController;
 
 import flixel.util.FlxSort;
+import flixel.util.FlxDestroyUtil;
 
 import openfl.utils.AssetType;
 import openfl.utils.Assets;
@@ -10,7 +11,6 @@ import haxe.Json;
 
 import backend.Song;
 import stages.objects.TankmenBG;
-import flixel.util.FlxDestroyUtil;
 
 typedef CharacterFile = {
 	var animations:Array<AnimArray>;
@@ -74,15 +74,17 @@ class Character extends FlxSprite
 	public var hasMissAnimations:Bool = false;
 	public var vocalsFile:String = '';
 
+	public var controlled:Bool = false;
+	public static var animationsLoaded:Bool = false;
+
+	public var invuln:Bool = false;
+
 	//Used on Character Editor
 	public var imageFile:String = '';
 	public var jsonScale:Float = 1;
 	public var noAntialiasing:Bool = false;
 	public var originalFlipX:Bool = false;
 	public var editorIsPlayer:Null<Bool> = null;
-
-	public var invuln:Bool = false;
-	public var controlled:Bool = false;
 
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
 	{

@@ -194,7 +194,7 @@ class SpookyMansionErect extends PicoCapableStage
 
 	function makeChars()
 	{
-		var bfName = PlayState.instance.boyfriend.curCharacter == 'pico-dark' ? "pico-player" : "bf";
+		var bfName = PlayState.instance.boyfriend.curCharacter == 'pico-dark' ? "pico-playable" : "bf";
 
 		boyfriendGhost = new Character(game.boyfriend.x, game.boyfriend.y, bfName, true);
 		addBehindBF(boyfriendGhost);

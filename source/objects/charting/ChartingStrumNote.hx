@@ -101,7 +101,7 @@ class ChartingStrumNote extends FlxSprite
 		}
 		else {
 			var customSkin:String = 'NOTE_assets' + Note.getNoteSkinPostfix();
-			skin = 'noteSkins/' + (PlayState.isPixelStage ? customSkin : 'strums');
+			skin = 'noteskins/' + (PlayState.isPixelStage ? customSkin : 'strums');
 		}
 
 		texture = skin; //Load texture and anims
