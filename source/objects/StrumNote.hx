@@ -95,21 +95,7 @@ class StrumNote extends NoteObject
 		this.noteData = leData;
 		this.ID = noteData; 
 
-		var skin:String = null;
-		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
-		else skin = Note.defaultNoteSkin;
-
-		if (Note.getNoteSkinPostfix() != '')
-		{
-			var customSkin:String = skin + Note.getNoteSkinPostfix();
-			if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
-		}
-		else {
-			var customSkin:String = 'NOTE_assets' + Note.getNoteSkinPostfix();
-			skin = 'noteskins/' + (PlayState.isPixelStage ? customSkin : 'strums');
-		}
-
-		texture = skin; //Load texture and anims
+		texture = ''; //Load texture and anims
 		scrollFactor.set();
 		playAnim('static');
 	}
@@ -119,14 +105,24 @@ class StrumNote extends NoteObject
 
 	public function reloadNote()
 	{
+		var skin:String = texture;
+		if(texture.length < 1)
+		{
+			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
+			if ((skin == null || skin.length < 1) && PlayState.isPixelStage)
+				skin = "noteSkins/NOTE_assets";
+			else if ((skin == null || skin.length < 1) && !PlayState.isPixelStage)
+				skin = "noteSkins/strums";
+		}
+
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
-		var br:String = texture;
+		var br:String = skin;
 
 		frames = Paths.getSparrowAtlas(br);
 
 		antialiasing = ClientPrefs.data.antialiasing;
-		setGraphicSize(Std.int(width * 0.7));
+		setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
 
 		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[column];
 		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[column];
@@ -135,11 +131,12 @@ class StrumNote extends NoteObject
 
 		if(PlayState.isPixelStage)
 		{
-			loadGraphic(Paths.image('pixelUI/' + texture));
+			loadGraphic(Paths.image('pixelUI/' + skin));
+			pxDV = Note.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 			width = width / pxDV;
 			height = height / 5;
 			antialiasing = false;
-			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
+			loadGraphic(Paths.image('pixelUI/' + skin), true, Math.floor(width), Math.floor(height));
 			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
 
 			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
@@ -152,7 +149,7 @@ class StrumNote extends NoteObject
 		}
 		else
 		{
-			frames = Paths.getSparrowAtlas(texture);
+			frames = Paths.getSparrowAtlas(skin);
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
 

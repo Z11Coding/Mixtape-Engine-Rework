@@ -4,8 +4,9 @@ import stages.objects.*;
 import cutscenes.CutsceneHandler;
 import substates.GameOverSubstate;
 import objects.Character;
+import stages.PicoCapableStage;
 
-class Tank extends BaseStage
+class Tank extends PicoCapableStage
 {
 	var tankWatchtower:BGSprite;
 	var tankGround:BackgroundTank;

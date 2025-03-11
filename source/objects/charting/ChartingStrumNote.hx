@@ -116,16 +116,6 @@ class ChartingStrumNote extends FlxSprite
 	{
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
-		var br:String = texture;
-
-		frames = Paths.getSparrowAtlas(br);
-
-		antialiasing = ClientPrefs.data.antialiasing;
-		setGraphicSize(Std.int(width * 0.7));
-
-		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
-		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
-		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[noteData]; //jic
 		var pxDV:Int = Note.pixelNotesDivisionValue[1];
 
 		if(PlayState.isPixelStage)
@@ -167,7 +157,9 @@ class ChartingStrumNote extends FlxSprite
 
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
-
+			animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
+			animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+			animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[noteData]; //jic
 			switch (Math.abs(noteData))
 			{
 				case 0:

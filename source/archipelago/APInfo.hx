@@ -6,6 +6,7 @@ class APInfo {
 
 	public static final baseGame:Array<String> = 
 	[
+		'Tutorial',
 		'Bopeebo', 'Fresh', 'Dad Battle',
 		'Spookeez', 'South', 'Monster',
 		'Pico', 'Philly Nice', 'Blammed',
@@ -13,8 +14,7 @@ class APInfo {
 		'Cocoa', 'Eggnog', 'Winter Horrorland',
 		'Senpai', 'Roses', 'Thorns',
 		'Ugh', 'Guns', 'Stress',
-		'Darnell', 'Lit Up', '2Hot', 'Blazin',
-		'Darnell (BF Mix)', 'Tutorial'
+		'Darnell (BF Mix)'
 	];
 
 	public static final baseErect:Array<String> = 
@@ -30,6 +30,7 @@ class APInfo {
 
 	public static final basePico:Array<String> = 
 	[
+		'Darnell', 'Lit Up', '2Hot', 'Blazin',
 		'Bopeebo (Pico mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
 	 	'Spookeez (Pico mix)', 'South (Pico mix)',
 	 	'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',

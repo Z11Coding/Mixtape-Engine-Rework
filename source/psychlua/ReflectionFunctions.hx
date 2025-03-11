@@ -32,6 +32,15 @@ class ReflectionFunctions
 			return value;
 		});
 		Lua_helper.add_callback(lua, "getPropertyFromClass", function(classVar:String, variable:String, ?allowMaps:Bool = false) {
+			var trueVar:String = variable;
+			switch(classVar) {
+				case "PlayState":
+					classVar = "states.PlayState";
+				case "ClientPrefs":
+					classVar = "backend.ClientPrefs";
+					variable = 'data.$trueVar';
+			}
+			
 			var myClass:Dynamic = Type.resolveClass(classVar);
 			if(myClass == null)
 			{
@@ -50,6 +59,15 @@ class ReflectionFunctions
 			return LuaUtils.getVarInArray(myClass, variable, allowMaps);
 		});
 		Lua_helper.add_callback(lua, "setPropertyFromClass", function(classVar:String, variable:String, value:Dynamic, ?allowMaps:Bool = false, ?allowInstances:Bool = false) {
+			var trueVar:String = variable;
+			switch(classVar) {
+				case "PlayState":
+					classVar = "states.PlayState";
+				case "ClientPrefs":
+					classVar = "backend.ClientPrefs";
+					variable = 'data.$trueVar';
+			}
+			
 			var myClass:Dynamic = Type.resolveClass(classVar);
 			if(myClass == null)
 			{

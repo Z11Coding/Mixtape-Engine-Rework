@@ -293,7 +293,7 @@ class Note extends NoteObject
 	public static var swagWidthAlt:Float = 160; //For ModManager
 	public static var colArray:Array<String> = ['purple', 'blue', 'green', 'red'];
 	public static var colArrayAlt:Array<String> = ['purple', 'blue', 'green', 'red', 'white', 'yellow', 'violet', 'black', 'dark'];
-	public static var defaultNoteSkin(default, never):String = 'noteskins/NOTE_assets';
+	public static var defaultNoteSkin(default, never):String = 'noteSkins/NOTE_assets';
 
 	public var noteSplashData:NoteSplashData = {
 		disabled: false,
@@ -683,6 +683,8 @@ class Note extends NoteObject
 		return globalRgbShaders[noteData];
 	}
 
+	public var publicTexture:String = '';
+	public var publicTextureSus:String = '';
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
@@ -696,7 +698,7 @@ class Note extends NoteObject
 		{
 			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
 			if (skin == null || skin.length < 1)
-				skin = "noteskins/NOTE_assets" + postfix;
+				skin = "noteSkins/NOTE_assets" + postfix;
 		}
 		else rgbShader.enabled = false;
 
@@ -734,15 +736,17 @@ class Note extends NoteObject
 				case 'Fake Heal Note':
 					loadGraphic(Paths.image("streamervschat/pixelUI/fakehealnote"), false);
 				default:
+					publicTexture = 'pixelUI/' + skinPixel + skinPostfix;
+					publicTextureSus = 'pixelUI/' + skinPixel + 'ENDS' + skinPostfix;
 					if(isSustainNote) {
 						var graphic = Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix);
-						loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[0]), Math.floor(graphic.height / 2));
+						loadGraphic(graphic, true, Math.floor(graphic.width / pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0]), Math.floor(graphic.height / 2));
 						originalHeight = graphic.height / 2;
 					} else {
 						var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
-						loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[0]), Math.floor(graphic.height / 5));
+						loadGraphic(graphic, true, Math.floor(graphic.width / pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]), Math.floor(graphic.height / 5));
 					}
-					setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
+					setGraphicSize(Std.int(width * PlayState.daPixelZoom * pixelScales[PlayState.mania]));
 					loadPixelNoteAnims();
 					antialiasing = false;
 			}
@@ -815,11 +819,12 @@ class Note extends NoteObject
 	function loadPixelNoteAnims() {
 		for (i in 0...gfxLetter.length)
 		{
-			animation.add(gfxLetter[i], [i + pixelNotesDivisionValue[0]]);
+			var graphic = Paths.image(publicTexture);
+			animation.add(gfxLetter[i], [i + pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]]);
 			if (isSustainNote)
 			{
 				animation.add(gfxLetter[i] + ' hold', [i]);
-				animation.add(gfxLetter[i] + ' tail', [i + pixelNotesDivisionValue[0]]);
+				animation.add(gfxLetter[i] + ' tail', [i + (pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
 			}
 		}
 	}

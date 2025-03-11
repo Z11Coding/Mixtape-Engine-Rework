@@ -114,6 +114,7 @@ class MainTab extends TabSprite {
 			message.width = Std.int(instance.widthTab);
 			message.y = lastY = (lastY ?? Lib.application.window.height - instance.chatBg.height) - (message.textHeight + 5);
 			instance.msgSprite.addChild(message);
+			message.visible = message.y <= instance.info.y;
 		}
 	}
 
@@ -144,6 +145,10 @@ class MainTab extends TabSprite {
 			msgSprite.y = 0;
 		if (msgSprite.y >= msgSprite.height)
 			msgSprite.y = msgSprite.height;
+
+		for (message in messages) {
+			message.visible = message.y <= info.y;
+		}
 	}
 
 	override function onShow() {

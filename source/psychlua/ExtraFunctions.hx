@@ -105,6 +105,7 @@ class ExtraFunctions
 			}
 			FunkinLua.luaTrace('initSaveData: Save file already initialized: ' + name);
 		});
+		
 		Lua_helper.add_callback(lua, "flushSaveData", function(name:String) {
 			var variables = MusicBeatState.getVariables();
 			if(variables.exists('save_$name'))

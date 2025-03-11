@@ -391,7 +391,6 @@ class PlayState extends MusicBeatState
 	{
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
-		Paths.clearStoredMemory();
 		if(nextReloadAll)
 		{
 			Paths.clearUnusedMemory();
@@ -1183,10 +1182,11 @@ class PlayState extends MusicBeatState
 			return false;
 		}
 
-		seenCutscene = true;
-		inCutscene = false;
 		var ret:Dynamic = callOnScripts('onStartCountdown', null, true);
 		if(ret != LuaUtils.Function_Stop) {
+			seenCutscene = true;
+			inCutscene = false;
+
 			if (skipCountdown || startOnTime > 0) skipArrowStartTween = true;
 
 			trace("Starting Countdown!");
@@ -2180,11 +2180,16 @@ class PlayState extends MusicBeatState
 			field.fadeIn(skipArrowStartTween);
 
 		#if PE_MOD_COMPATIBILITY
-		for (i in dadField.strumNotes)
+		for (i in dadField.strumNotes) {
 			opponentStrums.add(i);
+			strumLineNotes.add(i);
+		}
 
-		for (i in playerField.strumNotes)
+		for (i in playerField.strumNotes) {
 			playerStrums.add(i);
+			strumLineNotes.add(i);
+		}
+		
 		#end
 	}
 
@@ -2812,6 +2817,12 @@ class PlayState extends MusicBeatState
 				&& !practiceMode 
 				&& !isDead 
 				&& bfkilledcheck
+				&& gameOverTimer == null;
+
+			default:
+				killPlayer = health <= 0 
+				&& !practiceMode 
+				&& !isDead 
 				&& gameOverTimer == null;
 		}
 		if (skipHealthCheck || instakillOnMiss || killPlayer)

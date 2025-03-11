@@ -142,8 +142,9 @@ class FreeplayState extends MusicBeatState
 				return "";
 			}
 
-			if (curUnlocked.exists(APEntryState.victorySong) && callVictory)
+			if (curUnlocked.exists(APEntryState.victorySong.trim().toLowerCase().replace('-', ' ')) && callVictory)
 			{
+				trace("GOAL COMPLETE");
 				callVictory = false;
 				APEntryState.apGame.info().clientStatus = ClientStatus.GOAL;
 				openSubState(new Prompt("Congradulations! You Win!", 0, 
@@ -649,7 +650,7 @@ class FreeplayState extends MusicBeatState
 					modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
 					locationId = APEntryState.apGame.info().get_location_id(songName + (modName != "" ? " (" + modName + ")" : ""));
 					isMissing = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
-					if (CategoryState.loadWeekForce == "all") color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
 					for (daSongName in curUnlocked.keys())
 					{
@@ -665,7 +666,7 @@ class FreeplayState extends MusicBeatState
 				}
 
 				var songText:Alphabet;
-				if (APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all") {
+				if (APEntryState.inArchipelagoMode) {
 					//trace('Song: ' + songName + ', Mod: ' + (modName != "" ? modName : "(not modded)") + ', Missing: ' + isMissing);
 					songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color);
 				} else {
