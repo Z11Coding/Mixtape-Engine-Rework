@@ -88,7 +88,7 @@ class Cache
 						if (loadedGraphics != null)
 							for (key => value in loadedGraphics){
 								Paths.localTrackedAssets.push(key);
-								Paths.currentTrackedAssets.set(key, value);
+								// Paths.currentTrackedAssets.set(key, value);
 	
 								#if traceLoading
 								trace('loaded:$key',value);

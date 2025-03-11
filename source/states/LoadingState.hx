@@ -847,7 +847,10 @@ class LoadingState extends MusicBeatState
 				else trace('no such image $key exists');
 			}
 
-			return Paths.currentTrackedAssets.get(requestKey).bitmap;
+			var parentFolder:String = Mods.currentModDirectory;
+			if (Paths.currentTrackedAssets.exists(parentFolder) && Paths.currentTrackedAssets.get(parentFolder).exists(requestKey)) {
+				return Paths.currentTrackedAssets.get(parentFolder).get(requestKey).bitmap;
+			}
 		}
 		catch(e:haxe.Exception)
 		{

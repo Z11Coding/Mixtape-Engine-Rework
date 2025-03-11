@@ -24,6 +24,7 @@ import haxe.Json;
 import backend.Mods;
 #end
 
+
 @:access(openfl.display.BitmapData)
 class Paths
 {
@@ -91,8 +92,10 @@ class Paths
 			// if it is not currently contained within the used local assets
 			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
 			{
-				destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
-				currentTrackedAssets.remove(key); // and remove the key from local cache map
+				for (folder in currentTrackedAssets.keys()){
+					if (currentTrackedAssets.get(folder).exists(key))
+				destroyGraphic(currentTrackedAssets.get(folder).get(key)); // get rid of the graphic
+				currentTrackedAssets.get(folder).remove(key);} // and remove the key from local cache map
 			}
 		}
 
@@ -166,17 +169,34 @@ class Paths
 			for (member in FlxG.state.subState.members)
 				checkForGraphics(member);
 
-		for (key in currentTrackedAssets.keys())
+		var modGraphics:Array<Map<String, FlxGraphic>> = [];
+
+		for (folder in currentTrackedAssets.keys())
+			modGraphics.push(currentTrackedAssets.get(folder));
+
+		for (mod in modGraphics)
 		{
-			// if it is not currently contained within the used local assets
-			if (!dumpExclusions.contains(key))
+			for (key in mod.keys())
 			{
-				var graphic:FlxGraphic = currentTrackedAssets.get(key);
-				if(!protectedGfx.contains(graphic))
+				// if it is not currently contained within the used local assets
+				if (!dumpExclusions.contains(key))
 				{
-					destroyGraphic(graphic); // get rid of the graphic
-					currentTrackedAssets.remove(key); // and remove the key from local cache map
-					//trace('deleted $key');
+					var graphic:FlxGraphic = mod.get(key);
+					if(!protectedGfx.contains(graphic))
+					{
+						destroyGraphic(graphic); // get rid of the graphic
+						mod.remove(key); // and remove the key from local cache map
+						// Make sure to remove the key from the actual currentTrackedAssets map
+						for (folder in currentTrackedAssets.keys())
+						{
+							if (currentTrackedAssets.get(folder).exists(key))
+							{
+								currentTrackedAssets.get(folder).remove(key);
+								break;
+							}
+						}
+						//trace('deleted $key');
+					}
 				}
 			}
 		}
@@ -481,9 +501,10 @@ class Paths
 		return toRet;
 	}
 
-	public static function getGraphic(path:String, cache:Bool = true, gpu:Bool = false):Null<FlxGraphic>
+	public static function getGraphic(path:String, cache:Bool = true, gpu:Bool = false, ?parentFolder:String = null):Null<FlxGraphic>
 	{
-		var newGraphic:FlxGraphic = cache ? currentTrackedAssets.get(path) : null;
+		var folderKey = parentFolder != null ? parentFolder : "shared";
+		var newGraphic:FlxGraphic = cache ? currentTrackedAssets.get(folderKey).get(path) : null;
 		if (newGraphic == null) {
 			var bitmap:BitmapData = getBitmapData(path);
 			if (bitmap == null) return null;
@@ -501,15 +522,18 @@ class Paths
 			newGraphic.destroyOnNoUse = false;
 
 			if (cache) {
+				if (!currentTrackedAssets.exists(folderKey)) {
+					currentTrackedAssets.set(folderKey, new Map<String, FlxGraphic>());
+				}
 				localTrackedAssets.push(path);
-				currentTrackedAssets.set(path, newGraphic);
+				currentTrackedAssets.get(folderKey).set(path, newGraphic);
 			}
 		}
 
 		return newGraphic;
 	}
 
-	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
+	public static var currentTrackedAssets:Map<String, Map<String, FlxGraphic>> = [];
 	inline public static function cacheGraphic(path:String):Null<FlxGraphic>
 		return getGraphic(path, true);
 
@@ -526,7 +550,7 @@ class Paths
 		if (currentTrackedAssets.exists(key))
 		{
 			localTrackedAssets.push(key);
-			return currentTrackedAssets.get(key);
+			return currentTrackedAssets.get(parentFolder).get(key);
 		}
 		return cacheBitmap(key, parentFolder, bitmap, allowGPU);
 	}
@@ -568,23 +592,28 @@ class Paths
 		graph.persist = true;
 		graph.destroyOnNoUse = false;
 
-		currentTrackedAssets.set(key, graph);
+		var folderKey = parentFolder != null ? parentFolder : "shared";
+		if (!currentTrackedAssets.exists(folderKey)) {
+			currentTrackedAssets.set(folderKey, new Map<String, FlxGraphic>());
+		}
+		currentTrackedAssets.get(folderKey).set(key, graph);
 		localTrackedAssets.push(key);
 		return graph;
 	}
 
-	public static function returnGraphic(key:String, ?library:String):Null<FlxGraphic>
+	public static function returnGraphic(key:String, ?library:String, ?parentFolder:String = null):Null<FlxGraphic>
 	{
+		var folderKey = parentFolder != null ? parentFolder : "shared";
 		var path:String = imagePath(key);
 
-		if (currentTrackedAssets.exists(path)) {
+		if (currentTrackedAssets.exists(folderKey) && currentTrackedAssets.get(folderKey).exists(path)) {
 			if (!localTrackedAssets.contains(path)) 
 				localTrackedAssets.push(path);
 
-			return currentTrackedAssets.get(path);
+			return currentTrackedAssets.get(folderKey).get(path);
 		}
 
-		var graphic = getGraphic(path);
+		var graphic = getGraphic(path, true, false, parentFolder);
 		if (graphic==null)
 			trace('bitmap "$key" => "$path" returned null.');
 
