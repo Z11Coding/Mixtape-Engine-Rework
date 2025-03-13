@@ -12,12 +12,16 @@ typedef StageFile = {
 	var stageUI:String;
 
 	var boyfriend:Array<Dynamic>;
+	var boyfriend2:Array<Dynamic>;
 	var girlfriend:Array<Dynamic>;
 	var opponent:Array<Dynamic>;
+	var opponent2:Array<Dynamic>;
 	var hide_girlfriend:Bool;
 
 	var camera_boyfriend:Array<Float>;
+	var camera_boyfriend2:Array<Float>;
 	var camera_opponent:Array<Float>;
+	var camera_opponent2:Array<Float>;
 	var camera_girlfriend:Array<Float>;
 	var camera_speed:Null<Float>;
 
@@ -44,19 +48,25 @@ class StageData {
 			stageUI: "normal",
 
 			boyfriend: [770, 100],
+			boyfriend2: [770, 100],
 			girlfriend: [400, 130],
 			opponent: [100, 100],
+			opponent2: [100, 100],
 			hide_girlfriend: false,
 
 			camera_boyfriend: [0, 0],
+			camera_boyfriend2: [0, 0],
 			camera_opponent: [0, 0],
+			camera_opponent2: [0, 0],
 			camera_girlfriend: [0, 0],
 			camera_speed: 1,
 
 			_editorMeta: {
 				gf: "gf",
 				dad: "dad",
-				boyfriend: "bf"
+				dad2: "dad",
+				boyfriend: "bf",
+				bf2: "bf"
 			}
 		};
 	}
@@ -114,8 +124,8 @@ class StageData {
 		return 'stage';
 	}
 
-	public static var reservedNames:Array<String> = ['gf', 'gfGroup', 'dad', 'dadGroup', 'boyfriend', 'boyfriendGroup']; //blocks these names from being used on stage editor's name input text
-	public static function addObjectsToState(objectList:Array<Dynamic>, gf:FlxSprite, dad:FlxSprite, boyfriend:FlxSprite, ?group:Dynamic = null, ?ignoreFilters:Bool = false)
+	public static var reservedNames:Array<String> = ['gf', 'gfGroup', 'dad', 'dadGroup', 'boyfriend', 'boyfriendGroup', 'dad2', 'dadGroup2', 'bf2', 'boyfriendGroup2']; //blocks these names from being used on stage editor's name input text
+	public static function addObjectsToState(objectList:Array<Dynamic>, gf:FlxSprite, dad:FlxSprite, boyfriend:FlxSprite, dad2:FlxSprite, bf2:FlxSprite, ?group:Dynamic = null, ?ignoreFilters:Bool = false)
 	{
 		var addedObjects:Map<String, FlxSprite> = [];
 		for (num => data in objectList)
@@ -144,6 +154,21 @@ class StageData {
 						boyfriend.ID = num;
 						if (group != null) group.add(boyfriend);
 						addedObjects.set('boyfriend', boyfriend);
+					}
+
+				case 'dad2', 'dadGroup2':
+					if(dad2 != null)
+					{
+						dad2.ID = num;
+						if (group != null) group.add(dad2);
+						addedObjects.set('dad2', dad2);
+					}
+				case 'bf2', 'boyfriendGroup2':
+					if(bf2 != null)
+					{
+						bf2.ID = num;
+						if (group != null) group.add(bf2);
+						addedObjects.set('bf2', bf2);
 					}
 
 				case 'square', 'sprite', 'animatedSprite':

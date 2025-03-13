@@ -105,6 +105,7 @@ import states.TitleState;
 		'loopModeC' => false,
 		'loopPlayMult' => 1.05,
 		'bothMode' => false,
+		'maniaMode' => false,
 	];
 
 	// public var inputSystem:String = 'Native';
@@ -147,6 +148,8 @@ import states.TitleState;
 	public var deathlink:Bool = false;
 	public var stageGimmick:Bool = false;
 	public var healthMode:String = 'Mixtape';
+	public var iconBounce:String = 'Mixtape';
+	public var pauseBPM:Int = 102;
 }
 
 class ClientPrefs {

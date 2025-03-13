@@ -18,6 +18,8 @@ import backend.Rating;
 import objects.Character;
 import objects.NoteSplash;
 import flixel.FlxBasic;
+import objects.NoteObject;
+import objects.Note.SustainPart;
 
 /*
 The system is seperated into 3 classes:
@@ -322,6 +324,21 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			switch (ClientPrefs.data.inputSystem)
 			{
 				case "Native":
+					if(data > keyCount || data < 0)return null;
+					
+					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.tooLate);
+					#if PE_MOD_COMPATIBILITY
+					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); // so lowPriority actually works (even though i hate it lol!)
+					#else
+					noteList.sort((a, b) -> Std.int(b.strumTime - a.strumTime)); //so lowPriority actually works (even though i hate it lol!)
+					#end
+					while (noteList.length > 0)
+					{	
+						var note:Note = noteList.pop();
+						if (!note.blockHit) noteHitCallback(note, this);
+						return note;
+					}
+				case "Native-old":
 					if(data > keyCount || data < 0)return null;
 		
 					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> note.requiresTap);
@@ -666,7 +683,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							PlayState.instance.mashViolations++;
 					}
 
-				case "Andromeda Engine (legacy)":
+				case "Andromeda (legacy)":
 					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.isSustainNote && note.requiresTap);
 					noteList.sort((a,b)->Std.int(a.strumTime-b.strumTime)); // SHOULD be in order?
 					// But just incase, we do this sort
@@ -882,13 +899,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			modManager.updateObject(curDecBeat, daNote, modNumber);
 
 			// check for hold inputs
-			if(daNote.isSustainNote){
+			if(!daNote.isSustainNote){
 				if(daNote.column > keyCount-1){
 					garbage.push(daNote);
 					continue;
 				}
 				if(daNote.holdingTime < daNote.sustainLength && inControl && !daNote.blockHit){
 					if(!daNote.tooLate && daNote.wasGoodHit){
+						trace("hitting tail hold");
 						var isHeld:Bool = autoPlayed || keysPressed[daNote.column];
                         var wasHeld:Bool = daNote.isHeld;
                         daNote.isHeld = isHeld;
@@ -907,9 +925,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						var receptor = strumNotes[daNote.column];
 						var oldSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
 						var lastTime:Float = daNote.holdingTime;
-						daNote.holdingTime = daNote.sustainLength;
-						if (daNote.holdingTime > daNote.sustainLength)
-							daNote.holdingTime = daNote.sustainLength;
+						daNote.holdingTime = Conductor.songPosition - daNote.strumTime + 120;
 						var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
 						if(oldSteps < currentSteps)
 							if(holdStepCallback != null)
@@ -923,7 +939,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							
 							daNote.tripProgress = 1.0;
 						}else
-							daNote.tripProgress -= elapsed / (daNote.maxReleaseTime);
+							daNote.tripProgress -= elapsed / (daNote.maxReleaseTime * 1);
 
 						// if rolls are ever implemented, uncomment this
 						/*if(autoPlayed && daNote.tripProgress <= 0.5)
@@ -966,6 +982,19 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 				}
 			}
+
+			//kade is just evil lmao
+			if (daNote.isParent && daNote.tooLate && !daNote.isSustainNote)
+			{
+				PlayState.instance.health -= 0.15; // give a health punishment for failing a LN
+				trace("hold fell over at the start");
+				for (i in daNote.childs)
+				{
+					i.alpha = 0.3;
+					i.susActive = false;
+				}
+			}
+
 			// check for note deletion
 			if (daNote.garbage)
 				garbage.push(daNote);
@@ -1027,7 +1056,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}else{
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
-					var noteList = getNotesWithEnd(data, Conductor.songPosition);
+					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> note.isSustainNote && note.prevNote != null);
 					#if PE_MOD_COMPATIBILITY
 					// so lowPriority actually works (even though i hate it lol!)
 					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); 
@@ -1038,7 +1067,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					{
 						var note:Note = noteList.pop();
 						noteHitCallback(note, this);
-						if (!note.isSustainNote) keysPressed[data] = false;
 					}
 				}
 			}

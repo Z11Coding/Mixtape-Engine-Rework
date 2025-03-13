@@ -257,6 +257,8 @@ class VSlice
 			
 				player1: metadata.playData.characters.player,
 				player2: metadata.playData.characters.opponent,
+				player4: null,
+				player5: null,
 				gfVersion: metadata.playData.characters.girlfriend,
 				stage: stage,
 				format: 'psych_v1_convert',

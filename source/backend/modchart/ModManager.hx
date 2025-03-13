@@ -561,12 +561,14 @@ class ModManager {
 			}
 		}
 		
-		obj.updateHitbox();
-		if (obj.objType == NOTE) {
-			var cum:Note = cast obj;
-			cum.offset.x += cum.typeOffsetX;
-			cum.offset.y += cum.typeOffsetY;
-		}
+		try {
+			obj.updateHitbox();	
+			if (obj.objType == NOTE) {
+				var cum:Note = cast obj;
+				cum.offset.x += cum.typeOffsetX;
+				cum.offset.y += cum.typeOffsetY;
+			}
+		} catch(e) {trace("Something went wrong trying to update this note!");}
 	}
 
 	public inline function getBaseVisPosD(diff:Float, songSpeed:Float = 1)

@@ -17,12 +17,14 @@ typedef SwagSong =
 
 	var player1:String;
 	var player2:String;
+	var player4:String;
+	var player5:String;
 	var gfVersion:String;
 	var stage:String;
 	var format:String;
 
-	var mania:Int;
-	var startMania:Int;
+	var mania:Null<Int>;
+	var startMania:Null<Int>;
 
 	@:optional var gameOverChar:String;
 	@:optional var gameOverSound:String;
@@ -42,6 +44,7 @@ typedef SwagSection =
 	var mustHitSection:Bool;
 	@:optional var altAnim:Bool;
 	@:optional var gfSection:Bool;
+	@:optional var exSection:Bool;
 	@:optional var bpm:Float;
 	@:optional var changeBPM:Bool;
 }

@@ -861,14 +861,11 @@ class Note extends NoteObject
 
 		mania = PlayState.mania;
 
-		if (hitByOpponent)
-				wasGoodHit = true;
-			var diff = (strumTime - Conductor.songPosition);
-			if (diff < -Conductor.safeZoneOffset && !wasGoodHit)
-				tooLate = true;
-		
-		if (hitByOpponent)
-			wasGoodHit = true;
+		if (hitByOpponent) wasGoodHit = true;
+
+		var diff = (strumTime - Conductor.songPosition);
+		if (diff < -Conductor.safeZoneOffset && !wasGoodHit)
+			tooLate = true;
 
 		if (tooLate && !inEditor)
 		{

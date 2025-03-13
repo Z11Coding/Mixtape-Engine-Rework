@@ -119,9 +119,12 @@ class LoadingState extends MusicBeatState
 		#if HSCRIPT_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.trim().length > 0)
 		{
-			var scriptPath:String = 'mods/${Mods.currentModDirectory}/data/LoadingScreen.hx'; //mods/My-Mod/data/LoadingScreen.hx
+			//mods/My-Mod/data/LoadingScreen.hx
+			//TODO: Figure out why the actual this thing isnt working
+			var scriptPath:String = 'mods/${Mods.currentModDirectory}/data/LoadingScreen'; 
 			if(FileSystem.exists(scriptPath))
 			{
+				trace(scriptPath); 
 				try
 				{
 					hscript = new HScript(null, scriptPath);

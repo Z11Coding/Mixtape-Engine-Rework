@@ -105,7 +105,28 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		['Change Character', "Value 1: Character to change (Dad, BF, GF)\nValue 2: New character's name"],
 		['Change Scroll Speed', "Value 1: Scroll Speed Multiplier (1 is default)\nValue 2: Time it takes to change fully in seconds."],
 		['Set Property', "Value 1: Variable name\nValue 2: New value"],
-		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"]
+		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"],
+		['Change Mania', "Value 1: The new mania value (min: 0; max: 9)"],
+        ['Change Mania (Special)', "Value 1: The new mania value (min: 0; max: 9)"],
+        ['Dad Fly', "Fly da dad. Value 1: True or False"],
+        ['Turn on StrumFocus', "focuses the strums"],
+        ['Turn off StrumFocus', "un-focuses the strums"],
+        ['Fade In', "Hello There.\nValue 1 = time it takes to fade."],
+        ['Fade Out', "Bye Bye!\nValue 1 = time it takes to fade."],
+        ['Silhouette', 'KSGDUSN UYGD WHERE DID THE CHARACTERS GO!?!?!!?\nValue 1 Can Either Be Black Or White. Leave Blank For Normal'],
+        ['Save Song Posititon', 'Place event where the player will start the song when they retry after they die.'],
+        ['False Timer', 'Dang that was a short so-OH MY GOD WAIT I HAVE 5 MINUTES LEFT WHAT!\nPlace the event where the timer will revert back to the next\nfalse timer event or the actual length of the song.'],
+        ['Static', "Da Static\nValue 1 = Type Of Static:\n0 = Full Static\n1 = I See You\n2 = Half Static\n3 = No Static"],
+        ['Static Fade', "Da Static Fade\nValue 1 = Time To Fade Static\nValue 2 = Alpha to Fade Static To"],
+        ['Thunderstorm Trigger', "Ayo Its Raining.\nValue 1 = Type Of Storm.\n0 = light rain\n1 = heavy rain\n2 = thunderstorm\n3 = clear skys"],
+        ['Rave Mode', "Reworked and WAY cooler!\nValue 1 can either be \n0(Off), 1(Light Rave), 2(Light Rave with Spotlight),\n3(Light Rave with Philly Glow), 4(Light Rave with Spotlight and Philly Glow),\n5(Heavy Rave), 6(Heavy Rave with Spotlight),\n7(Heavy Rave with Philly Glow), 8(Heavy Rave with Spotlight and Philly Glow)\nValue 2 can either be A or M for Auto and Manual toggle.\n\nFor now, the spotlight is automated, and same with\nPhilly Glow, but i'm working on it."],
+        ['gfScared', "Value 1 can be true or false."],
+        ['Freeze Notes', "Freeze The Notes Mid-Song"],
+        ['Chrom Beat Effect', "Does The Chromatic Abberation Effect\nOn Every Beathit.\nSlow = Every 4 beats\nFast = Every 2 beats\nFaster = Every 1 beat\nslower = Every 8 beats\nMUST BE LOWER CASE!"],
+        ['Change Lyric', 'AYO LYRICS!?!?!?!?!?!?ASKJSD:LKHSFCHU:OSCHNFC:OUSJKL BFLJS BFHNIKKS FNCS CFL>SFBHPOIS FLJKSN\nValue 1 = Lyrics\nValue 2 = Color And Effect\nValue 2 Is Optional.\nEx. Value 1 = da lyric Value 2 = white,fadein'],
+        ['Enable or Disable Dad Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.'],
+        ['Enable or Disable BF Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.'],
+        ['Enable or Disable GF Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.']
 	];
 	
 	public static var keysArray:Array<FlxKey> = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT]; //Used for Vortex Editor
@@ -669,6 +690,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 			player1: 'bf',
 			player2: 'dad',
+			player4: 'dad',
+			player5: 'bf',
 			gfVersion: 'gf',
 			stage: 'stage',
 			format: 'psych_v1',

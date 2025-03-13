@@ -75,6 +75,8 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		instance = this;
 
+		FlxG.camera.bgColor = 0xFF000000; // to fix mods that like to change its color (looking at you, 17bucks)
+
 		if (Std.is(PlayState.instance, APPlayState) && APPlayState.deathByLink)
 		{
 			APPlayState.deathByLink = false;
