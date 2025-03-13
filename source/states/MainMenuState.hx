@@ -126,7 +126,7 @@ class MainMenuState extends MusicBeatState
 		fnfVer.scrollFactor.set();
 		fnfVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(fnfVer);
-		var mixVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Mixtape Engine v" + mixtapeEngineVersion, 12);
+		var mixVer:FlxText = new FlxText(fnfVer.width + 12, FlxG.height - 24, 0, "Mixtape Engine v" + mixtapeEngineVersion, 12);
 		mixVer.scrollFactor.set();
 		mixVer.setFormat(Paths.font("comboFont.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(mixVer);
@@ -174,7 +174,7 @@ class MainMenuState extends MusicBeatState
 		var menuItem:FlxSprite = new FlxSprite(x, y);
 		menuItem.frames = Paths.getSparrowAtlas('mainmenu/$name');
 		menuItem.animation.addByPrefix('idle', 'archipellego logi0000', 24, true);
-		menuItem.animation.addByPrefix('selected', 'archipellego logi', 24, true);
+		menuItem.animation.addByPrefix('selected', 'selected', 24, true);
 		menuItem.animation.play('idle');
 		menuItem.updateHitbox();
 		

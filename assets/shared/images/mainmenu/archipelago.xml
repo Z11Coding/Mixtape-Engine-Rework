@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="archipelago.png">
+<TextureAtlas imagePath="archipelago logo.png">
 	<!-- Created with Adobe Animate version 23.0.0.407 -->
 	<!-- http://www.adobe.com/products/animate.html -->
 	<SubTexture name="archipellego logi0000" x="10" y="10" width="189" height="189"/>
@@ -8,7 +8,10 @@
 	<SubTexture name="archipellego logi0003" x="209" y="10" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
 	<SubTexture name="archipellego logi0004" x="209" y="10" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
 	<SubTexture name="archipellego logi0005" x="209" y="10" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
-	<SubTexture name="archipellego logi0006" x="10" y="209" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
-	<SubTexture name="archipellego logi0007" x="10" y="209" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
-	<SubTexture name="archipellego logi0008" x="10" y="209" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
+	<SubTexture name="archipellego logi0006" x="407" y="10" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
+	<SubTexture name="archipellego logi0007" x="407" y="10" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
+	<SubTexture name="archipellego logi0008" x="407" y="10" width="188" height="189" frameX="0" frameY="0" frameWidth="189" frameHeight="189"/>
+	<SubTexture name="selected0000" x="605" y="10" width="201" height="202" frameX="-37" frameY="-37" frameWidth="276" frameHeight="276"/>
+	<SubTexture name="selected0001" x="10" y="222" width="276" height="276"/>
+	<SubTexture name="selected0002" x="296" y="222" width="256" height="255" frameX="-10" frameY="-11" frameWidth="276" frameHeight="276"/>
 </TextureAtlas>
