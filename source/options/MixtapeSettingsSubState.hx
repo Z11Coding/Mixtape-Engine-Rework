@@ -8,6 +8,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		title = 'Mixtape Settings.';
 		rpcTitle = 'Mixtape Settings'; // for Discord Rich Presence
 
+		var option:Option = new Option('---GAMEPLAY---',
+			"",
+			'',
+			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Ghost Doubles',
+			"If checked, when hitting more than one note, a ghost of the character will appear.",
+			'doubleGhosts',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Base Stage Gimmicks',
 			"if checked, each weeks gimmick will activate.", 
 			'stageGimmick',
@@ -50,20 +62,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
-		var option:Option = new Option('Pause Screen Song:',
-			"What song do you prefer for the Pause Screen?",
-			'pauseMusic',
-			STRING,
-			['None', 'Breakfast', 'Tea Time', 'Celebration', 'Drippy Genesis', 'Reglitch', 'False Memory', 'Funky Genesis', 'Late Night Cafe', 'Late Night Jersey', 'Silly Little Sample Song']);
-		addOption(option);
-		option.onChange = onChangePauseMusic;
-
-		var option:Option = new Option('Allow Username Detection',
-			"Uncheck this to prevent the game from leaking your computer name. Usually a good idea for streamers.",
-			'username',
-			BOOL);
-		addOption(option);
-
 		var option:Option = new Option('Mix-Up Mode',
 			"Have you ever hear of Funky Friday/Friday Night Bloxin'?\nWell is essentially that, except it's single player.",
 			'mixupMode',
@@ -85,6 +83,32 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		);
 		//addOption(option);
 		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('---MENUS---',
+			"",
+			'',
+			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Pause Screen Song:',
+			"What song do you prefer for the Pause Screen?",
+			'pauseMusic',
+			STRING,
+			['None', 'Breakfast', 'Tea Time', 'Celebration', 'Drippy Genesis', 'Reglitch', 'False Memory', 'Funky Genesis', 'Late Night Cafe', 'Late Night Jersey', 'Silly Little Sample Song']);
+		addOption(option);
+		option.onChange = onChangePauseMusic;
+
+		var option:Option = new Option('---MISC.---',
+			"",
+			'',
+			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Allow Username Detection',
+			"Uncheck this to prevent the game from leaking your computer name. Usually a good idea for streamers.",
+			'username',
+			BOOL);
+		addOption(option);
 
 		var option:Option = new Option('Break The Sticker Audio',
 			"Literally just locks the sound to a funny bug I found.",
