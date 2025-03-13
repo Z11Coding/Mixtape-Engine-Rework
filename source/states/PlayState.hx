@@ -4105,7 +4105,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			if(!cpuControlled)
+			if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 			{
 				var spr = playerStrums.members[note.noteData];
 				if(spr != null) spr.playAnim('confirm', true);
