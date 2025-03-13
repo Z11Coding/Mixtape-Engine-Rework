@@ -489,13 +489,13 @@ class PlayState extends MusicBeatState
 		chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 		trace("Chart Modifier: " + chartModifier);
 		bothMode = ClientPrefs.getGameplaySetting('bothMode', false);
-		mixupMode = (ClientPrefs.data.mixupMode || SONG.song == "Small Argument" && !inArchipelagoMode) && !bothMode;
+		mixupMode = (ClientPrefs.data.mixupMode /*|| SONG.song == "Small Argument" && !inArchipelagoMode*/) && !bothMode;
 		opponentmode = ClientPrefs.getGameplaySetting('opponentplay', false) && !bothMode;
 		playAsGF = ClientPrefs.getGameplaySetting('gfMode', false) && !bothMode && !opponentmode; // dont do it to yourself its not worth it
 		holdsGiveHP = ClientPrefs.getGameplaySetting('holdsgivehp', holdsGiveHP);
 		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
 		AIMode = ClientPrefs.data.mixupMode && !bothMode;
-		AIDifficulty = (SONG.song == "Small Argument" && !inArchipelagoMode) ? "Baby Mode" : ClientPrefs.data.aiDifficulty;
+		AIDifficulty = /*(SONG.song == "Small Argument" && !inArchipelagoMode) ? "Baby Mode" : */ClientPrefs.data.aiDifficulty;
 		gimmicksAllowed = ClientPrefs.data.gimmicksAllowed;
 		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
 
@@ -3078,7 +3078,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if ((loopMode || loopModeChallenge || curSong == "Small Argument" && !inArchipelagoMode)
+		if ((loopMode || loopModeChallenge/* || curSong == "Small Argument" && !inArchipelagoMode*/)
 			&& startedCountdown
 			&& !endingSong)
 		{
@@ -3431,10 +3431,10 @@ class PlayState extends MusicBeatState
 		endingSong = false;
 		songAboutToLoop = false;
 
-		if ((curSong == "Small Argument" && !inArchipelagoMode)
+		/*if ((curSong == "Small Argument" && !inArchipelagoMode)
 			&& AIPlayer.diff != 6
 			&& AIScore != songScore) // Six is the highest there is. It's literally botplay at that point.
-			AIPlayer.diff += 1;
+			AIPlayer.diff += 1;*/
 
 		trace("AI LEVEL: " + AIPlayer.diff);
 		var AIPlayMap = [];
@@ -3510,7 +3510,7 @@ class PlayState extends MusicBeatState
 					bf2.stunned = true;
 				deathCounter++;
 
-				if (loopMode || loopModeChallenge || curSong == "Small Argument" && !inArchipelagoMode)
+				if (loopMode || loopModeChallenge/* || curSong == "Small Argument" && !inArchipelagoMode*/)
 				{
 					Highscore.saveEndlessScore(SONG.song.toLowerCase() + saveMod, songScore);
 				}
