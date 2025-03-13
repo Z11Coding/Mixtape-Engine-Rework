@@ -17,7 +17,7 @@ enum MainMenuColumn {
 class MainMenuState extends MusicBeatState
 {
 	public static var psychEngineVersion:String = '1.0.3'; // This is also used for Discord RPC
-	public static var mixtapeEngineVersion:String = '4.3.1'; // this is used for Discord RPC
+	public static var mixtapeEngineVersion:String = '4.4.0'; // this is used for Discord RPC
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 	private var archButton:PsychUIButton;
@@ -126,6 +126,10 @@ class MainMenuState extends MusicBeatState
 		fnfVer.scrollFactor.set();
 		fnfVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(fnfVer);
+		var mixVer:FlxText = new FlxText(12, FlxG.height - 24, 0, "Mixtape Engine v" + mixtapeEngineVersion, 12);
+		mixVer.scrollFactor.set();
+		mixVer.setFormat(Paths.font("comboFont.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(mixVer);
 		changeItem();
 
 		#if ACHIEVEMENTS_ALLOWED

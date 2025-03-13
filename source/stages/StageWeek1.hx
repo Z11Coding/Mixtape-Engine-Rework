@@ -60,8 +60,7 @@ class StageWeek1 extends BaseStage
 				case 'beat battle 2':
 					crowdPleaser.crowdAttentionLoss = 0.005;
 				default:
-					crowdPleaser.crowdAttentionLoss = 0;
-					crowdPleaser.visible = false;
+					allowCrowdOpinion = false;
 			}
 		}
     }
