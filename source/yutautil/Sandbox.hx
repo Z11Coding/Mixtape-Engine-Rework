@@ -93,7 +93,7 @@ class Sandbox<T> {
 
     private function createProxy(instance:T):Dynamic {
         var proxy = {};
-        var fields = Type.getInstanceFields(instance);
+        var fields = Type.getInstanceFields(cast instance);
         for (field in fields) {
             var value = Reflect.field(instance, field);
             if (Reflect.isFunction(value)) {
