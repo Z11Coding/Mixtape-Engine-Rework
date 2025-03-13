@@ -46,6 +46,7 @@ class Sandbox<T> {
     }
 
     private function defaultCatchFunction(e:ErrorType, method:MethodName, args:MethodArgs):Void {
+        trace('Error in sandbox for object: ' + Type.getClassName(Type.getClass(instance)));
         trace('Error in method: ' + method);
         trace('Arguments: ' + args);
         trace('Error: ' + e);
@@ -107,3 +108,4 @@ class Sandbox<T> {
         return proxy;
     }
 }
+ 
