@@ -68,7 +68,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"Have you ever hear of Funky Friday/Friday Night Bloxin'?\nWell is essentially that, except it's single player.",
 			'mixupMode',
 			BOOL);
-		addOption(option);
+		//addOption(option);
 
 		var option:Option = new Option('Opp. Difficulty',
 			"ONLY WORKS IF MIX-UP MODE IS ON!!!\nSet the level of how badly the opponent beats your butt.",
@@ -83,7 +83,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"Average FNF Player",
 			"Dont"]
 		);
-		addOption(option);
+		//addOption(option);
 		option.displayFormat = '< %v >';
 
 		var option:Option = new Option('Break The Sticker Audio',

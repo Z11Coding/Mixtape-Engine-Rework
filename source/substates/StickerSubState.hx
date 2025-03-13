@@ -241,7 +241,7 @@ class StickerSubState extends MusicBeatSubstate
         sticker.visible = true;
         var daSound:String = FlxG.random.getObject(sounds);
         if (!ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
-        else FlxG.sound.play(Paths.sound(funny[FlxG.random.int(0,1)]));
+        else FlxG.sound.play(Paths.sound('broken/${funny[FlxG.random.int(0,1)]}'));
 
         var frameTimer:Int = FlxG.random.int(0, 2);
 
