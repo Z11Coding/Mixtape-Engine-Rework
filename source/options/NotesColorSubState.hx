@@ -55,6 +55,9 @@ class NotesColorSubState extends MusicBeatSubstate
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Note Colors Menu", null);
 		#end
+
+		Cursor.cursorMode = Default;
+		Cursor.show();
 		
 		onPixel = PlayState.isPixelStage;
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));

@@ -163,6 +163,17 @@ class MainTab extends TabSprite {
 
 		nickname.x = widthTab / 2 - nickname.width / 2;
 		updateMessages();
+		Cursor.cursorMode = Default;
+		wasVisible = FlxG.mouse.visible;
+		if (!FlxG.mouse.visible) {
+			Cursor.show();
+		}
+
+	}
+
+	var wasVisible:Bool = false;
+	override function onHide() {
+		Cursor.hide();
 	}
 
 		

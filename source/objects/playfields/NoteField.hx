@@ -19,6 +19,7 @@ import backend.modchart.ModManager;
 import backend.modchart.Modifier.RenderInfo;
 import shaders.NoteColorSwap;
 import states.PlayState;
+import objects.Note;
 import backend.MusicBeatState;
 import haxe.ds.Vector as FastVector;
 import objects.playfields.FieldBase;
@@ -346,7 +347,7 @@ class NoteField extends FieldBase
 
 	var crotchet:Float = Conductor.getCrotchetAtTime(0.0) / 4.0;
 	function drawHold(hold:Note, ?prevAlpha:Float, ?prevGlow:Float):Null<RenderObject>
-	{
+	{ 
 		try {if (hold.animation.curAnim == null || hold.scale == null || hold.frame == null) return null;}
 		catch(e) {
 			trace("Note was null!");
@@ -471,7 +472,7 @@ class NoteField extends FieldBase
 			}
 			lastMe = bot;
 
-			for (_ in 0...2) { // why was this keyCount lol??  
+			for (_ in 0...Note.ammo[PlayState.mania]) { // why was this keyCount lol??  
 				alphas.push(info.alpha);
 				glows.push(info.glow);
 			}

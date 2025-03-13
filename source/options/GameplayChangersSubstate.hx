@@ -2,6 +2,7 @@ package options;
 
 import objects.AttachedText;
 import objects.CheckboxThingie;
+import objects.Note;
 
 import options.Option.OptionType;
 
@@ -68,9 +69,28 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
 		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
+		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", 'Sequential', 'Mirror', 'Skip',  "Amalgam"]));
+		var option:GameplayOption = new GameplayOption('Convert Mania', 'convertMania', INT, 3);
+		option.scrollSpeed = 2.5;
+		option.minValue = Note.minMania;
+		option.maxValue = Note.maxMania;
+		optionsArray.push(option);
+
 		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
 		optionsArray.push(new GameplayOption('Showcase Mode', 'showcase', BOOL, false));
 		optionsArray.push(new GameplayOption('Mania Mode', 'maniaMode', BOOL, false));
+		optionsArray.push(new GameplayOption('Opponent Mode', 'opponentplay', BOOL, false));
+		optionsArray.push(new GameplayOption('Play Both Sides', 'bothMode', BOOL, false));
+		optionsArray.push(new GameplayOption('Loop Mode', 'loopMode', BOOL, false));
+		optionsArray.push(new GameplayOption('Loop Challenge Mode', 'loopModeC', BOOL, false));
+		var option:GameplayOption = new GameplayOption('Challenge Mode Mult.', 'loopPlayMult', FLOAT, 1.05);
+		option.scrollSpeed = 1;
+		option.minValue = 1.05;
+		option.maxValue = 2;
+		option.changeValue = 0.05;
+		option.displayFormat = '%vX';
+		option.decimals = 2;
+		optionsArray.push(option);
 	}
 
 	public function getOptionByName(name:String)

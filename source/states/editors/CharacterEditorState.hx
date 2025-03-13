@@ -67,6 +67,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	override function create()
 	{
+		Cursor.show();
+		Cursor.cursorMode = Default;
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
 
@@ -152,7 +154,6 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		add(frameAdvanceText);
 
 		addHelpScreen();
-		FlxG.mouse.visible = true;
 		FlxG.camera.zoom = 1;
 
 		makeUIMenu();
@@ -941,8 +942,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		}
 		else holdingArrowsTime = 0;
 
-		if(FlxG.mouse.pressedRight && (FlxG.mouse.deltaScreenX != 0 || FlxG.mouse.deltaScreenY != 0))
+		if(FlxG.mouse.overlaps(character) && FlxG.mouse.pressedRight && (FlxG.mouse.deltaScreenX != 0 || FlxG.mouse.deltaScreenY != 0))
 		{
+			Cursor.cursorMode = Grabbing;
 			character.offset.x -= FlxG.mouse.deltaScreenX;
 			character.offset.y -= FlxG.mouse.deltaScreenY;
 			changedOffset = true;
@@ -1061,7 +1063,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			}
 			else
 			{
-				FlxG.mouse.visible = false;
+				Cursor.hide();
 				MusicBeatState.switchState(new PlayState());
 			}
 			return;

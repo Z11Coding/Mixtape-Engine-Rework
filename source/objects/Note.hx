@@ -57,7 +57,7 @@ class Note extends NoteObject
 	public static var ammo:Array<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 	public static var scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39, 0.36, 0.32, 0.31, 0.31, 0.3, 0.26, 0.26, 0.22]; 
 	public static var lessX:Array<Int> = [0, 0, 0, 0, 0, 8, 7, 8, 8, 7, 6, 6, 8, 7, 6, 7, 6, 6];
-	public static var separator:Array<Int> = [99, 99, 99, 1, 1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 7, 6, 5];
+	public static var separator:Array<Int> = [99, 99, 99, 1, 1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 7, 6, 5, 4];
 	public static var xtra:Array<Int> = [150, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	public static var posRest:Array<Int> = [0, 0, 0, 0, 25, 32,46, 52, 60, 40, 45, 30, 30, 29,72, 37, 61, 16];
 	public static var gridSizes:Array<Int> = [40, 40, 40, 40, 40, 40, 40, 40, 40, 35, 30, 25, 25, 20, 20, 20, 20, 15];
@@ -85,6 +85,7 @@ class Note extends NoteObject
 		0 => [
 			"letters" => ["E"], 
 			"anims" => ["UP"], 
+			"singAnims" => ["singUP"], 
 			"strumAnims" => ["SPACE"], 
 			"pixelAnimIndex" => [4],
 			"colArray" => [2]
@@ -92,6 +93,7 @@ class Note extends NoteObject
 		1 => [
 				"letters" => ["A", "D"], 
 				"anims" => ["LEFT", "RIGHT"], 
+				"singAnims" => ["singLEFT", "singRIGHT"], 
 				"strumAnims" => ["LEFT", "RIGHT"], 
 				"pixelAnimIndex" => [0, 3],
 				"colArray" => [0, 3]
@@ -99,6 +101,7 @@ class Note extends NoteObject
 		2 => [
 				"letters" => ["A", "E", "D"], 
 				"anims" => ["LEFT", "UP", "RIGHT"], 
+				"singAnims" => ["singLEFT", "singUP", "singRIGHT"], 
 				"strumAnims" => ["LEFT", "SPACE", "RIGHT"], 
 				"pixelAnimIndex" => [0, 4, 3],
 				"colArray" => [0, 2, 3]
@@ -106,6 +109,7 @@ class Note extends NoteObject
 		3 => [
 				"letters" => ["A", "B", "C", "D"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT"], 
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT"], 
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3],
 				"colArray" => [0, 1, 2, 3]
@@ -114,6 +118,7 @@ class Note extends NoteObject
 		4 => [
 				"letters" => ["A", "B", "E", "C", "D"], 
 				"anims" => ["LEFT", "DOWN", "UP", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "SPACE", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 4, 2, 3],
 				"colArray" => [0, 1, 2, 2, 3]
@@ -121,6 +126,7 @@ class Note extends NoteObject
 		5 => [
 				"letters" => ["A", "C", "D", "F", "B", "I"], 
 				"anims" => ["LEFT", "UP", "RIGHT", "LEFT", "DOWN", "RIGHT"],
+				"singAnims" => ["singLEFT", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singRIGHT"],
 				"strumAnims" => ["LEFT", "UP", "RIGHT", "LEFT", "DOWN", "RIGHT"], 
 				"pixelAnimIndex" => [0, 2, 3, 5, 1, 8],
 				"colArray" => [0, 2, 3, 0, 1, 3]
@@ -128,6 +134,7 @@ class Note extends NoteObject
 		6 => [
 				"letters" => ["A", "C", "D", "E", "F", "B", "I"], 
 				"anims" => ["LEFT", "UP", "RIGHT", "UP", "LEFT", "DOWN", "RIGHT"],
+				"singAnims" => ["singLEFT", "singUP", "singRIGHT", "singUP", "singLEFT", "singDOWN", "singRIGHT"],
 				"strumAnims" => ["LEFT", "UP", "RIGHT", "SPACE", "LEFT", "DOWN", "RIGHT"], 
 				"pixelAnimIndex" => [0, 2, 3, 4, 5, 1, 8],
 				"colArray" => [0, 2, 3, 2, 0, 1, 3]
@@ -135,6 +142,7 @@ class Note extends NoteObject
 		7 => [
 				"letters" => ["A", "B", "C", "D", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 3]
@@ -142,6 +150,7 @@ class Note extends NoteObject
 		8 => [
 				"letters" => ["A", "B", "C", "D", "E", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "UP", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singUP", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "SPACE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 4, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 2, 0, 1, 2, 3]
@@ -149,6 +158,7 @@ class Note extends NoteObject
 		9 => [
 				"letters" => ["A", "B", "C", "D", "E", "N", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "UP", "UP", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singUP", "singUP", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "SPACE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 4, 13, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 2, 2, 0, 1, 2, 3]
@@ -156,6 +166,7 @@ class Note extends NoteObject
 		10 => [
 				"letters" => ["A", "B", "C", "D", "J", "E", "M", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "SPACE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 4, 12, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 2, 3, 0, 1, 2, 3]
@@ -163,6 +174,7 @@ class Note extends NoteObject
 		11 => [
 				"letters" => ["A", "B", "C", "D", "J", "K", "L", "M", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 10, 11, 12, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
@@ -170,6 +182,7 @@ class Note extends NoteObject
 		12 => [
 				"letters" => ["A", "B", "C", "D", "J", "K", "N", "L", "M", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 10, 13, 11, 12, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 2, 3, 0, 1, 2, 3]
@@ -177,6 +190,7 @@ class Note extends NoteObject
 		13 => [
 				"letters" => ["A", "B", "C", "D", "J", "K", "E", "N", "L", "M", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "UP", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singUP", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "CIRCLE", "SPACE", "CIRCLE", "CIRCLE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 10, 4, 13, 11, 12, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 2, 2, 3, 0, 1, 2, 3]
@@ -184,6 +198,7 @@ class Note extends NoteObject
 		14 => [
 				"letters" => ["A", "B", "C", "D", "J", "K", "E", "N", "E", "L", "M", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "UP", "UP", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singUP", "singUP", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "CIRCLE", "SPACE", "CIRCLE", "SPACE", "CIRCLE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 10, 4, 13, 4, 11, 12, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 2, 2, 2, 3, 0, 1, 2, 3]
@@ -191,6 +206,7 @@ class Note extends NoteObject
 		15 => [
 				"letters" => ["A", "B", "C", "D", "J", "K", "L", "M", "O", "P", "Q", "R", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 10, 11, 12, 14, 15, 16, 17, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
@@ -198,6 +214,7 @@ class Note extends NoteObject
 		16 => [
 				"letters" => ["A", "B", "C", "D", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "F", "G", "H", "I"], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 9, 10, 11, 12, 13, 14, 15, 16, 17, 5, 6, 7, 8],
 				"colArray" => [0, 1, 2, 3, 0, 1, 2, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
@@ -207,6 +224,8 @@ class Note extends NoteObject
 				'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'], 
 				"anims" => ["LEFT", "DOWN", "UP", "RIGHT", "UP", "LEFT", "DOWN", "UP", "RIGHT",
 				"LEFT", "DOWN", "UP", "RIGHT", "UP", "LEFT", "DOWN", "UP", "RIGHT"],
+				"singAnims" => ["singLEFT", "singDOWN", "singUP", "singRIGHT", "singUP", "singLEFT", "singDOWN", "singUP", "singRIGHT",
+				"singLEFT", "singDOWN", "singUP", "singRIGHT", "singUP", "singLEFT", "singDOWN", "singUP", "singRIGHT"],
 				"strumAnims" => ["LEFT", "DOWN", "UP", "RIGHT", "SPACE", "LEFT", "DOWN", "UP", "RIGHT", 
 				"LEFT", "DOWN", "UP", "RIGHT", "CIRCLE", "LEFT", "DOWN", "UP", "RIGHT"], 
 				"pixelAnimIndex" => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
@@ -360,7 +379,6 @@ class Note extends NoteObject
 	public var holdType:SustainPart = TAP;
 	public var parentNote:Note; 
 	public var childrenNotes:Array<Note> = [];
-	public var mania:Int = 3;
 	var ogW:Float;
 	var ogH:Float;
 	public static var defaultWidth:Float = 0;
@@ -411,7 +429,6 @@ class Note extends NoteObject
 	function set_multAlpha(v:Float)return alphaMod = v;
 	
 	// Angle is controlled by verts in the modchart system
-
 	@:isVar public var copyAngle(get, set):Bool;
 	function get_copyAngle()return copyVerts;
 	function set_copyAngle(val:Bool)return copyVerts = val;
@@ -460,10 +477,10 @@ class Note extends NoteObject
 
 	public function defaultRGB()
 	{
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[noteData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[noteData];
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData]];
+		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData]];
 
-		if (arr != null && noteData > -1 && noteData <= arr.length)
+		if (arr != null && noteData > -1 && noteData <= PlayState.mania)
 		{
 			rgbShader.r = arr[0];
 			rgbShader.g = arr[1];
@@ -541,7 +558,6 @@ class Note extends NoteObject
 		isSustainNote = sustainNote;
 		this.inEditor = inEditor;
 		this.moves = false;
-		mania = PlayState.mania;
 		this.beat = Conductor.getBeat(strumTime);
 
 		if (isSustainNote && prevNote != null) {
@@ -571,15 +587,15 @@ class Note extends NoteObject
 			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) rgbShader.enabled = false;
 			texture = '';
 
-			x += swagWidth * (noteData % Note.ammo[mania]);
+			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
-				animToPlay = Note.keysShit.get(mania).get('letters')[noteData];
+				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
 				if (hasAnimation(animToPlay))
 					animation.play(animToPlay);
 				else
 				{
-					animToPlay = colArray[Note.keysShit.get(mania).get('colArray')[noteData]];
+					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
 					animation.play(animToPlay + 'Scroll');
 				}
 			}
@@ -601,10 +617,10 @@ class Note extends NoteObject
 			copyAngle = false;
 
 			var animToPlay:String = '';
-			animToPlay = Note.keysShit.get(mania).get('letters')[noteData] + ' tail';
+			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
 			if (!hasAnimation(animToPlay))
 			{
-				animToPlay = colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + 'holdend';
+				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
 			}
 			animation.play(animToPlay);
 
@@ -618,10 +634,10 @@ class Note extends NoteObject
 			if (prevNote.isSustainNote)
 			{
 				var animToPlay2:String = '';
-				animToPlay2 = Note.keysShit.get(mania).get('letters')[noteData] + ' hold';
+				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
 				if (!hasAnimation(animToPlay2))
 				{
-					animToPlay2 = colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + 'hold';
+					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
 				}
 				prevNote.animation.play(animToPlay2);
 
@@ -664,8 +680,8 @@ class Note extends NoteObject
 		{
 			var newRGB:RGBPalette = new RGBPalette();
 			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGBExtra[noteData] : ClientPrefs.data.arrowRGBPixelExtra[noteData];
-			
-			if (arr != null && noteData > -1 && noteData <= arr.length)
+			trace(arr.length);
+			if (noteData > -1 && noteData <= arr.length) 
 			{
 				newRGB.r = arr[0];
 				newRGB.g = arr[1];
@@ -795,24 +811,27 @@ class Note extends NoteObject
 	}
 
 	function loadNoteAnims() {
-		attemptToAddAnimationByPrefix(gfxLetter[column], colArray[Note.keysShit.get(mania).get('colArray')[column]] + '0');
-		attemptToAddAnimationByPrefix(gfxLetter[column], colArray[Note.keysShit.get(mania).get('colArray')[column]] + '0');
-		attemptToAddAnimationByPrefix(gfxLetter[column], gfxLetter[column] + '0');
-
-		if (isSustainNote)
+		for (i in 0...gfxLetter.length)
 		{
-			attemptToAddAnimationByPrefix(gfxLetter[column] + ' hold', gfxLetter[column] + ' hold');
-			attemptToAddAnimationByPrefix(gfxLetter[column] + ' tail', gfxLetter[column] + ' tail');
-			
-			attemptToAddAnimationByPrefix(gfxLetter[column] + ' tail', 'pruple end hold');
-			attemptToAddAnimationByPrefix(gfxLetter[column] + ' tail', colArray[Note.keysShit.get(mania).get('colArray')[column]] + ' hold end');
-			attemptToAddAnimationByPrefix(gfxLetter[column] + ' hold', colArray[Note.keysShit.get(mania).get('colArray')[column]] + ' hold piece');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], gfxLetter[i] + '0');
+
+			if (isSustainNote)
+			{				
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', 'pruple end hold');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + ' hold end');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + ' hold piece');
+
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
+			}
 		}
 		
 		if (isSustainNote)
-			setGraphicSize(Std.int(defaultWidth * scales[mania]), Std.int(defaultHeight * scales[mania] * 5));
+			setGraphicSize(Std.int(defaultWidth * scales[PlayState.mania]), Std.int(defaultHeight * scales[PlayState.mania] * 5));
 		else
-			setGraphicSize(Std.int(defaultWidth * scales[mania]));
+			setGraphicSize(Std.int(defaultWidth * scales[PlayState.mania]));
 		updateHitbox();
 	}
 
@@ -858,8 +877,6 @@ class Note extends NoteObject
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-
-		mania = PlayState.mania;
 
 		if (hitByOpponent) wasGoodHit = true;
 

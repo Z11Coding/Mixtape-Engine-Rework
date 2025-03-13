@@ -174,7 +174,7 @@ class MainMenuState extends MusicBeatState
 		var menuItem:FlxSprite = new FlxSprite(x, y);
 		menuItem.frames = Paths.getSparrowAtlas('mainmenu/$name');
 		menuItem.animation.addByPrefix('idle', 'archipellego logi0000', 24, true);
-		menuItem.animation.addByPrefix('selected', 'selected', 24, true);
+		menuItem.animation.addByPrefix('selected', 'selected', 15, false);
 		menuItem.animation.play('idle');
 		menuItem.updateHitbox();
 		

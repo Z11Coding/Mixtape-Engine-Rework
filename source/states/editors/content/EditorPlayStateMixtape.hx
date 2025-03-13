@@ -92,6 +92,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		super();
 		
+		Cursor.hide();
 		/* setting up some important data */
 		this.playbackRate = playbackRate;
 		this.startPos = Conductor.songPosition;
@@ -610,6 +611,8 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			finishTimer.cancel();
 			finishTimer.destroy();
 		}
+		Cursor.show();
+		Cursor.cursorMode = Default;
 		close();
 	}
 

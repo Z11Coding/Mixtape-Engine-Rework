@@ -160,18 +160,18 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		super();
 		this.modManager = modMgr;
 
-		//grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
-		//add(grpNoteSplashes);
+		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
+		add(grpNoteSplashes);
 
 		strumAttachments = new FlxTypedGroup<NoteObject>();
 		strumAttachments.visible = false;
 		add(strumAttachments);
 
-		/*var splash:NoteSplash = new NoteSplash(100, 100, 0);
-		splash.handleRendering = false;
+		var splash:NoteSplash = new NoteSplash();
+//		splash.handleRendering = false;
 		grpNoteSplashes.add(splash);
 		grpNoteSplashes.visible = false; // so they dont get drawn
-		splash.alpha = 0.0;*/
+		splash.alpha = 0.0;
 
 		////
 		noteField = new NoteField(this, modMgr);
@@ -834,15 +834,21 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.zIndex, Obj2.zIndex);
 	}
 
-	// spawns a notesplash w/ specified skin. optional note to derive the skin and colours from.
+	// spawns a notesplash.
+	public function spawnNoteSplashOnNote(note:Note) {
+		if(note != null) {
+			var strum:StrumNote = strumNotes[note.noteData];
+			if(strum != null)
+				spawnSplash(strum.x, strum.y, note.noteData, note, strum);
+		}
+	}
 
-	/*public function spawnSplash(note:Note, splashSkin:String){
+	public function spawnSplash(x:Float = 0, y:Float = 0, ?data:Int = 0, ?note:Note, ?strum:StrumNote) {
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.setupNoteSplash(0, 0, note.column);
-		splash.handleRendering = false;
+		splash.babyArrow = strum;
+		splash.spawnSplashNote(x, y, data, note);
 		grpNoteSplashes.add(splash);
-		return splash;
-	}*/
+	}
 
 	// spawns notes, deals w/ hold inputs, etc.
 	override public function update(elapsed:Float){

@@ -70,6 +70,8 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 	public function new(noteList:Array<ChartingNote>, allVocals:Array<FlxSound>)
 	{
 		super();
+
+		Cursor.hide();
 		
 		/* setting up some important data */
 		this.vocals = allVocals[0];
@@ -503,6 +505,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			finishTimer.destroy();
 
 		Conductor.songPosition = FlxG.sound.music.time = vocals.time = opponentVocals.time = startPos - Conductor.offset;
+		Cursor.show();
 		close();
 	}
 	

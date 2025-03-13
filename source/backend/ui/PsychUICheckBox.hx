@@ -47,11 +47,12 @@ class PsychUICheckBox extends FlxSpriteGroup
 			if((mousePos.x >= screenPos.x && mousePos.x < screenPos.x + width) &&
 				(mousePos.y >= screenPos.y && mousePos.y < screenPos.y + height))
 			{
+				Cursor.cursorMode = Grabbing;
 				checked = !checked;
 				if(onClick != null) onClick();
 				if(broadcastCheckBoxEvent) PsychUIEventHandler.event(CLICK_EVENT, this);
 			}
-		}
+		} 
 	}
 
 	function set_checked(v:Any)
