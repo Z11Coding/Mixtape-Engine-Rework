@@ -144,7 +144,7 @@ class StickerSubState extends MusicBeatSubstate
         var daSound:String = FlxG.random.getObject(sounds);
         //FunkinSound.playOnce(Paths.sound(daSound));
         if (!ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
-        else FlxG.sound.play(Paths.sound(funny[FlxG.random.int(0,1)]));
+        else FlxG.sound.play(Paths.sound('broken/${funny[FlxG.random.int(0,1)]}'));
 
         if (grpStickers == null || ind == grpStickers.members.length - 1)
         {
