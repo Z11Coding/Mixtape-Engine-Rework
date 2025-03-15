@@ -32,7 +32,7 @@ class APPlayState extends PlayState {
     public static var notePositions:Array<Int> = [0, 1, 2, 3];
     public static var validWords:Array<String> = [];
     public static var controlButtons:Array<String> = [];
-    public static var ogScroll:Bool = ClientPrefs.data.downScroll;
+    public var ogScroll:Bool = ClientPrefs.data.downScroll;
 	public var allowSetChartModifier:Bool = false;
     public var activeItems:Array<Int> = [0, 0, 0, 0]; // Shield, Curse, MHP, Traps
     public var itemAmount:Int = 0;

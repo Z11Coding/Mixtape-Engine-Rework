@@ -107,5 +107,9 @@ class Sandbox<T> {
         }
         return proxy;
     }
+
+    // private function updateProxy(field:Dynamic, value:Dynamic):Void {
+    //     Reflect.setField(proxy, field, value);
+    // }
 }
  
