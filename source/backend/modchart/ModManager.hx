@@ -1,9 +1,11 @@
 package backend.modchart;
 // @author Nebula_Zorua
 
+import objects.StrumNote;
 import objects.playfields.NoteField;
 import backend.modchart.Modifier;
 import backend.modchart.modifiers.*;
+import backend.modchart.modifiers.extra.*;
 import backend.modchart.events.*;
 import backend.math.Vector3;
 import flixel.tweens.FlxEase;
@@ -88,6 +90,7 @@ class ModManager {
 			ConfusionModifier, 
 			OpponentModifier, 
 			TransformModifier, 
+			//PsychTransformModifier,
 			InfinitePathModifier,
 			PathModifier,
 			AccelModifier,
@@ -542,34 +545,26 @@ class ModManager {
 	}
 
 	public function updateObject(beat:Float, obj:NoteObject, player:Int){
-		if (obj != null && obj.active) {
-			for (name in getActiveMods(player))
-			{
-				/*if (!obj.active)
-					continue;*/
+		if (obj.active)
+		for (name in getActiveMods(player))
+		{
+			/*if (!obj.active)
+				continue;*/
 
-				var mod:Modifier = notemodRegister.get(name);
-				if (mod==null) continue;
-				
-				if(obj.objType == NOTE){
-					if (mod.ignoreUpdateNote()) continue;
-					mod.updateNote(beat, cast obj, player);
-				}
-				else if(obj.objType == STRUM){
-					if (mod.ignoreUpdateReceptor()) continue;
-					mod.updateReceptor(beat, cast obj, player);
-				}
+			var mod:Modifier = notemodRegister.get(name);
+			if (mod==null) continue;
+			
+			if(obj.objType == NOTE){
+				if (mod.ignoreUpdateNote()) continue;
+				mod.updateNote(beat, cast obj, player);
 			}
-				
-			try {
-				if (obj.objType == NOTE) {
-					obj.updateHitbox();
-					var cum:Note = cast obj;
-					cum.offset.x += cum.typeOffsetX;
-					cum.offset.y += cum.typeOffsetY;
-				}
-			} catch(e) {trace("Something went wrong trying to update this note!");}
+			else if(obj.objType == STRUM){
+				if (mod.ignoreUpdateReceptor()) continue;
+				mod.updateReceptor(beat, cast obj, player);
+			}
 		}
+		
+		obj.updateHitbox();
 	}
 
 	public inline function getBaseVisPosD(diff:Float, songSpeed:Float = 1)

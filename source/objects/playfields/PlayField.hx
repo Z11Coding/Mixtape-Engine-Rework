@@ -792,6 +792,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return null;
 	}
 
+	public var ogStrumPosX:Array<Null<Float>> = [];
+	public var ogStrumPosY:Array<Null<Float>> = [];
 	// generates the receptors
 	public function generateStrums(){
 		var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
@@ -807,7 +809,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			babyArrow.cameras = cameras;
 			strumNotes.push(babyArrow);
 			babyArrow.playerPosition();
+			ogStrumPosX.push(babyArrow.x);
+			ogStrumPosY.push(babyArrow.y);
 		}
+		// Testing Something
+		StrumNote.ogStrumPosX = ogStrumPosX;
+		StrumNote.ogStrumPosY = ogStrumPosY;
 	}
 
 	// does the introduction thing for the receptors. story mode usually sets skip to true. OYT uses this when mario comes in
@@ -898,8 +905,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		var garbage:Array<Note> = [];
 		for (daNote in spawnedNotes)
 		{
-			if(!daNote.alive){
-				spawnedNotes.remove(daNote);
+			if(!daNote.alive || daNote == null){
+				spawnedNotes.remove(daNote);	
 				continue;
 			}
 			modManager.updateObject(curDecBeat, daNote, modNumber);

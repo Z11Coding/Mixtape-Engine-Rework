@@ -1,6 +1,5 @@
 package backend.modchart.modifiers;
 import flixel.FlxSprite;
-import backend.ui.*;
 import backend.modchart.*;
 import flixel.math.FlxPoint;
 import flixel.math.FlxMath;
@@ -20,7 +19,7 @@ class TransformModifier extends NoteModifier { // this'll be transformX in ModMa
         return Modifier.ModifierOrder.LAST;
 
     override function getPos( visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
-    {
+    {   
         pos.x += getValue(player) + getSubmodValue("transformX-a",player);
 		pos.y += getSubmodValue("transformY", player) + getSubmodValue("transformY-a",player);
         pos.z += getSubmodValue('transformZ', player) + getSubmodValue("transformZ-a",player);

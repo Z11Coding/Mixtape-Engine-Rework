@@ -157,8 +157,7 @@ class NoteField extends FieldBase
 					taps.push(daNote);
 					continue;
 				}
-				
-				else if (daNote.isSustainNote)
+				else if (daNote != null && daNote.isSustainNote)
 				{
 					holds.push(daNote);
 				}
@@ -350,7 +349,7 @@ class NoteField extends FieldBase
 	{ 
 		try {if (hold.animation.curAnim == null || hold.scale == null || hold.frame == null) return null;}
 		catch(e) {
-			trace("Note was null!");
+			//trace("Note was null!");
 			return null;
 		}
 

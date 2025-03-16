@@ -403,6 +403,8 @@ class Client {
 	public var _hOnThrow(null, default):(String, Dynamic) -> Void = (_, _) -> {};
 	#end
 
+	public var dontTryToReconnect:Bool = false;
+
 	/**
 		Creates a new instance of the Archipelago client.
 		@param uuid The unique ID for this client. Deprecated, and likely to be removed in a later version.
@@ -1050,8 +1052,8 @@ class Client {
 					_hOnThrow("poll", new Exception("Connect timed out"));
 					trace("Connect timed out. Retrying.");
 				} else
-					trace("Reconnecting to server");
-				connect_socket();
+				if (!dontTryToReconnect) trace("Reconnecting to server");
+				if (!dontTryToReconnect) connect_socket();
 			}
 		}
 	}
@@ -1599,6 +1601,7 @@ class Client {
 
 	/** Creates a new websocket client and connects to the server. **/
 	private function connect_socket() {
+		dontTryToReconnect = false; 
 		if (_ws != null)
 			_ws.close();
 		if (uri.length == 0) {
@@ -1636,6 +1639,7 @@ class Client {
 		if (_ws != null) {
 			_ws.close();
 			state = State.DISCONNECTED;
+			dontTryToReconnect = true;
 		}
 	}
 

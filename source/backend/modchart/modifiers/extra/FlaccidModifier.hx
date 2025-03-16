@@ -1,4 +1,4 @@
-package backend.modchart.modifiers;
+package backend.modchart.modifiers.extra;
 
 import backend.modchart.*;
 import backend.math.Vector3;

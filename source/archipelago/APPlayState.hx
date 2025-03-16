@@ -1154,7 +1154,7 @@ effectMap = [
 		trace(validWords.length + " words accepted");
 		trace(validWords);
 		controlButtons.resize(0);
-		for (thing in [
+		/*for (thing in [
             ClientPrefs.keyBinds.get('note_left').copy().toString(),
             ClientPrefs.keyBinds.get('note_down').copy().toString(),
             ClientPrefs.keyBinds.get('note_up').copy().toString(),
@@ -1170,7 +1170,7 @@ effectMap = [
 		])
 		{
 			controlButtons.push(StringTools.trim(thing).toLowerCase());
-		}
+		}*/
 
         if (FlxG.save.data.activeItems == null)
 		{
@@ -2353,7 +2353,7 @@ public function doEffect(effect:String)
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
                         time += 0.15;
     
-                    strumPlayAnim(false, Std.int(Math.abs(note.noteData)) % Note.ammo[PlayState.mania], time, /*note*/);
+                    strumPlayAnim(field, note.column % field.keyCount, time, /*note*/);
                 }
                 else
                 {

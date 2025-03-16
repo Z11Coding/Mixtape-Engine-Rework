@@ -57,8 +57,8 @@ class Note extends NoteObject
 	public static var ammo:Array<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 	public static var scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39, 0.36, 0.32, 0.31, 0.31, 0.3, 0.26, 0.26, 0.22]; 
 	public static var lessX:Array<Int> = [0, 0, 0, 0, 0, 8, 7, 8, 8, 7, 6, 6, 8, 7, 6, 7, 6, 6];
-	public static var separator:Array<Int> = [99, 99, 99, 1, 1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 7, 6, 5, 4];
-	public static var xtra:Array<Int> = [150, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	public static var separator:Array<Int> = [-50, 99, 99, 1, 1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 7, 6, 5, 4];
+	public static var xtra:Array<Int> = [1, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	public static var posRest:Array<Int> = [0, 0, 0, 0, 25, 32,46, 52, 60, 40, 45, 30, 30, 29,72, 37, 61, 16];
 	public static var gridSizes:Array<Int> = [40, 40, 40, 40, 40, 40, 40, 40, 40, 35, 30, 25, 25, 20, 20, 20, 20, 15];
 	public static var xPosButBetter:Array<Float> = [2, 2, 2, 2, 1.5, 1.1, 1.1, 1, 1, 2, 2, 2, 2, 1.2, 2, 2, 2, 2];
@@ -731,7 +731,7 @@ class Note extends NoteObject
 		if(skinPostfix != '' && (customSkin == _lastValidChecked || Paths.fileExists('images/' + path + customSkin + '.png', IMAGE)))
 		{
 			skin = customSkin;
-			_lastValidChecked = customSkin;
+			_lastValidChecked = customSkin; 
 		}
 		else skinPostfix = '';
 
@@ -811,7 +811,7 @@ class Note extends NoteObject
 	}
 
 	function loadNoteAnims() {
-		for (i in 0...gfxLetter.length)
+		/*for (i in 0...gfxLetter.length)
 		{
 			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + '0');
 			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + '0');
@@ -826,12 +826,32 @@ class Note extends NoteObject
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
 			}
+		}*/
+
+		for (i in 0...gfxLetter.length)
+		{
+			attemptToAddAnimationByPrefix(gfxLetter[i], gfxLetter[i] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + '0');
+
+			if (isSustainNote)
+			{
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
+
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', 'pruple end hold');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold end');
+
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold piece');
+			}
 		}
 		
 		if (isSustainNote)
-			setGraphicSize(Std.int(defaultWidth * scales[PlayState.mania]), Std.int(defaultHeight * scales[PlayState.mania] * 5));
+			setGraphicSize(Std.int(width * scales[PlayState.mania]), Std.int(defaultHeight * scales[PlayState.mania] * 5));
 		else
-			setGraphicSize(Std.int(defaultWidth * scales[PlayState.mania]));
+			setGraphicSize(Std.int(width * scales[PlayState.mania]));
 		updateHitbox();
 	}
 

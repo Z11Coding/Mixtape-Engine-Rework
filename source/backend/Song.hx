@@ -70,6 +70,49 @@ class Song
 	public var gfVersion:String = 'gf';
 	public var format:String = 'psych_v1';
 
+	private static function convertMixtape(songJson:Dynamic) // Convert old charts to mixtape format
+	{
+		if(songJson.gfVersion == null)
+		{
+			songJson.gfVersion = songJson.player3;
+			songJson.player3 = null;
+		}
+
+		if(songJson.events == null)
+		{
+			songJson.events = [];
+			for (secNum in 0...songJson.notes.length)
+			{
+				var sec:SwagSection = songJson.notes[secNum];
+
+				var i:Int = 0;
+				var notes:Array<Dynamic> = sec.sectionNotes;
+				var len:Int = notes.length;
+				while(i < len)
+				{
+					var note:Array<Dynamic> = notes[i];
+					if(note[1] < 0)
+					{
+						songJson.events.push([note[0], [[note[2], note[3], note[4]]]]);
+						notes.remove(note);
+						len = notes.length;
+					}
+					else i++;
+				}
+			}
+		}
+		if (songJson.mania == null)
+		{
+			songJson.mania = Note.defaultMania;
+			//trace("Song mania value is NULL, set to " + Note.defaultMania);
+		}
+		if (songJson.startMania == null)
+		{
+			songJson.startMania = Note.defaultMania;
+			//trace("Song mania value is NULL, set to " + Note.defaultMania);
+		}
+	}
+
 	public static function convert(songJson:Dynamic) // Convert old charts to psych_v1 format
 	{
 		if(songJson.gfVersion == null)
@@ -180,6 +223,14 @@ class Song
 						trace('converting chart $nameForError with format $fmt to psych_v1 format...');
 						songJson.format = 'psych_v1_convert';
 						convert(songJson);
+					}
+
+				case 'mixtape_v1':
+					if(!fmt.startsWith('mixtape_v1')) //Convert to Mixtape 1.0 format
+					{
+						trace('converting chart $nameForError with format $fmt to Mixtape_v1 format...');
+						songJson.format = 'mixtape_v1_convert';
+						convertMixtape(songJson);
 					}
 			}
 		}

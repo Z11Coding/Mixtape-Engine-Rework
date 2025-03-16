@@ -19,6 +19,9 @@ class StrumNote extends NoteObject
 	public var direction:Float = 90;
 	public var downScroll:Bool = false;
 	public var sustainReduce:Bool = true;
+
+	public static var ogStrumPosX:Array<Null<Float>> = [];
+	public static var ogStrumPosY:Array<Null<Float>> = [];
 	
 	public var animationArray:Array<String> = ['static', 'pressed', 'confirm'];
 	public var static_anim(default, set):String = "static";

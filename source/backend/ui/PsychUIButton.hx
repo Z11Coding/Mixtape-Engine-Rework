@@ -82,7 +82,7 @@ class PsychUIButton extends FlxSpriteGroup
 				bg.color = style.bgColor;
 				bg.alpha = style.bgAlpha;
 				text.color = style.textColor;
-				Cursor.cursorMode = (overlapped) ? Pointer : Default;
+				//Cursor.cursorMode = (overlapped) ? Pointer : Default;
 			}
 
 			if(overlapped && FlxG.mouse.justPressed)
@@ -91,7 +91,7 @@ class PsychUIButton extends FlxSpriteGroup
 				bg.color = clickStyle.bgColor;
 				bg.alpha = clickStyle.bgAlpha;
 				text.color = clickStyle.textColor;
-				Cursor.cursorMode = Grabbing;
+				//Cursor.cursorMode = Grabbing;
 				if(onClick != null) onClick();
 				if(broadcastButtonEvent) PsychUIEventHandler.event(CLICK_EVENT, this);
 			}

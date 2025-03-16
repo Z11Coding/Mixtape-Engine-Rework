@@ -559,8 +559,7 @@ class ChartingNote extends FlxSprite
 		{
 			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
 			if(skin == null || skin.length < 1)
-				skin = 'noteSkins/' + "strums";
-			rgbShader.enabled = false;
+				skin = "noteSkins/NOTE_assets";
 		}
 		else rgbShader.enabled = false;
 
