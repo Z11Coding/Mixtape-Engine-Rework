@@ -144,6 +144,14 @@ class APPlayState extends PlayState {
             }
         }
 
+        if (ogScroll != ClientPrefs.data.downScroll)
+        {
+            ogScroll = ClientPrefs.data.downScroll;
+            effectiveDownScroll = ogScroll;
+            updateScrollUI();
+            trace("Scrolling changed to " + (effectiveDownScroll ? "down" : "up") + ", as for some reason, it wasn't before.");
+        }
+
         currentMod = backend.WeekData.getCurrentWeek().folder;
 
         if (!APEntryState.inArchipelagoMode)
