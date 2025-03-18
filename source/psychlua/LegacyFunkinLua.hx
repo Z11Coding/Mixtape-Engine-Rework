@@ -3175,11 +3175,11 @@ class LegacyFunkinLua {
 	var lastCalledFunction:String = '';
 	public function call(func:String, args:Array<Dynamic>):Dynamic {
 		#if LUA_ALLOWED
-		if(closed) return Function_Continue;
+		if(closed) return LuaUtils.Function_Continue;
 
 		lastCalledFunction = func;
 		try {
-			if(lua == null) return Function_Continue;
+			if(lua == null) return LuaUtils.Function_Continue;
 
 			Lua.getglobal(lua, func);
 			var type:Int = Lua.type(lua, -1);
@@ -3189,7 +3189,7 @@ class LegacyFunkinLua {
 					luaTrace("ERROR (" + func + "): attempt to call a " + typeToString(type) + " value", false, false, FlxColor.RED);
 
 				Lua.pop(lua, 1);
-				return Function_Continue;
+				return LuaUtils.Function_Continue;
 			}
 
 			for (arg in args) Convert.toLua(lua, arg);
@@ -3199,12 +3199,12 @@ class LegacyFunkinLua {
 			if (status != Lua.LUA_OK) {
 				var error:String = getErrorMessage(status);
 				luaTrace("ERROR (" + func + "): " + error, false, false, FlxColor.RED);
-				return Function_Continue;
+				return LuaUtils.Function_Continue;
 			}
 
 			// If successful, pass and then return the result.
 			var result:Dynamic = cast Convert.fromLua(lua, -1);
-			if (result == null) result = Function_Continue;
+			if (result == null) result = LuaUtils.Function_Continue;
 
 			Lua.pop(lua, 1);
 			return result;
@@ -3213,7 +3213,7 @@ class LegacyFunkinLua {
 			trace(e);
 		}
 		#end
-		return Function_Continue;
+		return LuaUtils.Function_Continue;
 	}
 
 	static function addAnimByIndices(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24, loop:Bool = false)
