@@ -191,6 +191,14 @@ class CoolUtil
 		}
 	}
 
+	public static function precacheSound(sound:String, ?library:String = null):Void {
+		Paths.sound(sound);
+	}
+
+	public static function precacheMusic(sound:String, ?library:String = null):Void {
+		Paths.music(sound);
+	}
+
 	public static function updateTheEngine():Void
 	{
 		// Get the directory of the executable

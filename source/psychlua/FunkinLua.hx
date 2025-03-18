@@ -227,6 +227,16 @@ class FunkinLua {
 		});*/
 	
 		// mod manager
+
+
+		Lua_helper.add_callback(lua, "runInLegacyMode", function() {
+			this.closed = true;
+			PlayState.instance.luaArray.remove(this);
+			new LegacyFunkinLua(scriptName);
+			trace('A script has been converted to Legacy mode: ' + scriptName);
+		});
+
+		
 		Lua_helper.add_callback(lua, "newPlayField", function()
 		{
 			PlayState.instance.newPlayfield();

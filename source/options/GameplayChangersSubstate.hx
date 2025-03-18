@@ -91,6 +91,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		option.displayFormat = '%vX';
 		option.decimals = 2;
 		optionsArray.push(option);
+
+		optionsArray.push(new GameplayOption('Legacy Psych Mode', 'legacyMode', BOOL, false));
 	}
 
 	public function getOptionByName(name:String)

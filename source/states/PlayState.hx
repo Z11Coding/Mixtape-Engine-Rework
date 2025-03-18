@@ -143,6 +143,16 @@ class PlayState extends MusicBeatState
 	public var hscriptArray:Array<HScript> = [];
 	#end
 
+
+	#if LUA_ALLOWED
+	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
+	public var modchartSprites:Map<String, ModchartSprite> = new Map<String, ModchartSprite>();
+	public var modchartTimers:Map<String, FlxTimer> = new Map<String, FlxTimer>();
+	public var modchartSounds:Map<String, FlxSound> = new Map<String, FlxSound>();
+	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
+	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
+	#end
+
 	public var BF_X:Float = 770;
 	public var BF_Y:Float = 100;
 	public var BF2_X:Float = 770;
@@ -326,7 +336,8 @@ class PlayState extends MusicBeatState
 
 	// Lua shit
 	public static var instance:PlayState;
-	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = []; #end
+	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = [];
+	public var legacyLuaArray:Array<LegacyFunkinLua> = []; #end
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 	private var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
@@ -771,15 +782,16 @@ class PlayState extends MusicBeatState
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					new FunkinLua(folder + file);
+					(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
 				#end
 
 				#if HSCRIPT_ALLOWED
 				if(file.toLowerCase().endsWith('.hx'))
 					initHScript(folder + file);
 				#end
-			}
+			
 		#end
+}	
 			
 		var camPos:FlxPoint = FlxPoint.get(girlfriendCameraOffset[0], girlfriendCameraOffset[1]);
 		if(gf != null)
@@ -1127,7 +1139,7 @@ class PlayState extends MusicBeatState
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					new FunkinLua(folder + file);
+					(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
 				#end
 
 				#if HSCRIPT_ALLOWED
@@ -1342,7 +1354,9 @@ class PlayState extends MusicBeatState
 					break;
 				}
 			}
-			if(doPush) new FunkinLua(luaFile);
+			if(doPush)
+				(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
+
 		}
 		#end
 
@@ -1375,8 +1389,18 @@ class PlayState extends MusicBeatState
 		#end
 	}
 
-	public function getLuaObject(tag:String):Dynamic
-		return variables.get(tag);
+	public function getLuaObject(tag:String, text:Bool = true):FlxSprite
+		{
+			#if LUA_ALLOWED
+			if (modchartSprites.exists(tag))
+				return modchartSprites.get(tag);
+			if (text && modchartTexts.exists(tag))
+				return modchartTexts.get(tag);
+			if (variables.exists(tag))
+				return variables.get(tag);
+			#end
+			return null;
+		}
 
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false) {
 		if(gfCheck && char.curCharacter.startsWith('gf')) { //IF DAD IS GIRLFRIEND, HE GOES TO HER POSITION
@@ -3950,7 +3974,14 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	public function triggerEvent(eventName:String, value1:String, value2:String, strumTime:Float) {
+	public function getControl(key:String)
+		{
+			var pressed:Bool = Reflect.getProperty(controls, key);
+			// trace('Control result: ' + pressed);
+			return pressed;
+		}
+
+	public function triggerEvent(eventName:String, value1:String, value2:String, ?strumTime:Float) {
 		var flValue1:Null<Float> = Std.parseFloat(value1);
 		var flValue2:Null<Float> = Std.parseFloat(value2);
 		if(Math.isNaN(flValue1)) flValue1 = null;
@@ -5797,7 +5828,13 @@ class PlayState extends MusicBeatState
 			lua.call('onDestroy', []);
 			lua.stop();
 		}
+		for (lua in legacyLuaArray)
+		{
+			lua.call('onDestroy', []);
+			lua.stop();
+		}
 		luaArray = null;
+		legacyLuaArray = null;
 		FunkinLua.customFunctions.clear();
 		#end
 
@@ -6020,7 +6057,7 @@ class PlayState extends MusicBeatState
 			for (script in luaArray)
 				if(script.scriptName == luaToLoad) return false;
 
-			new FunkinLua(luaToLoad);
+			(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(luaToLoad) : new FunkinLua(luaToLoad));
 			return true;
 		}
 		return false;
@@ -6087,8 +6124,10 @@ class PlayState extends MusicBeatState
 		if(exclusions == null) exclusions = [];
 		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
 
-		var arr:Array<FunkinLua> = [];
-		for (script in luaArray)
+		// var lua = flixel.util.typeLimit.OneOfTwo;
+
+		var arr:Array<Dynamic> = [];
+		for (script in yutautil.CollectionUtils.toIterable(cast(luaArray:Array<Dynamic>).concat(legacyLuaArray)))
 		{
 			if(script.closed)
 			{
@@ -6114,7 +6153,7 @@ class PlayState extends MusicBeatState
 
 		if(arr.length > 0)
 			for (script in arr)
-				luaArray.remove(script);
+			(luaArray.contains(script)) ? luaArray.remove(script) : legacyLuaArray.remove(cast(script, LegacyFunkinLua));
 		#end
 		return returnVal;
 	}

@@ -45,7 +45,7 @@ import sys.io.File;
 
 import Type.ValueType;
 import backend.Controls;
-import backend.cutscenes.DialogueBoxPsych;
+import cutscenes.DialogueBoxPsych;
 import states.PlayState;
 import objects.Character;
 
@@ -60,6 +60,12 @@ import backend.Discord;
 #end
 
 using StringTools;
+
+import objects.StrumNote;
+import objects.Note;
+import backend.WeekData;
+import backend.Song;
+import backend.Highscore;
 
 class LegacyFunkinLua {
 	public static var Function_Stop:Dynamic = 1;
@@ -106,6 +112,7 @@ class LegacyFunkinLua {
 			return;
 		}
 		scriptName = script;
+		states.PlayState.instance.legacyLuaArray.push(this);
 		initHaxeModule();
 
 		trace('lua file loaded succesfully:' + script);
@@ -256,7 +263,7 @@ class LegacyFunkinLua {
 
 		Lua_helper.add_callback(lua, "runInNewMode", function(mode:String, song:String, week:Int, difficulty:Int, stage:Int, storyMode:Bool = false) {
 			this.closed = true;
-			PlayState.instance.luaArray.remove(this);
+			PlayState.instance.legacyLuaArray.remove(this);
 			new FunkinLua(this.scriptName);
 			trace('A script has been reloaded in New FunkinLua.');
 		});
@@ -490,6 +497,8 @@ class LegacyFunkinLua {
 			var runningScripts:Array<String> = [];
 			for (idx in 0...PlayState.instance.luaArray.length)
 				runningScripts.push(PlayState.instance.luaArray[idx].getScriptName());
+			for (idx in 0...PlayState.instance.legacyLuaArray.length)
+				runningScripts.push(PlayState.instance.legacyLuaArray[idx].getScriptName());
 
 
 			return runningScripts;
@@ -839,7 +848,7 @@ class LegacyFunkinLua {
 						}
 					}
 				}
-				PlayState.instance.luaArray.push(new FunkinLua(cervix));
+				PlayState.instance.legacyLuaArray.push(new LegacyFunkinLua(cervix));
 				return;
 			}
 			luaTrace("addLuaScript: Script doesn't exist!", false, false, FlxColor.RED);
@@ -1759,7 +1768,7 @@ class LegacyFunkinLua {
 			{
 				leSprite.loadGraphic(Paths.image(image));
 			}
-			leSprite.antialiasing = ClientPrefs.data.globalAntialiasing;
+			leSprite.antialiasing = ClientPrefs.data.antialiasing;
 			PlayState.instance.modchartSprites.set(tag, leSprite);
 			leSprite.active = true;
 		});
@@ -1769,7 +1778,7 @@ class LegacyFunkinLua {
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
 
 			loadFrames(leSprite, image, spriteType);
-			leSprite.antialiasing = ClientPrefs.data.globalAntialiasing;
+			leSprite.antialiasing = ClientPrefs.data.antialiasing;
 			PlayState.instance.modchartSprites.set(tag, leSprite);
 		});
 

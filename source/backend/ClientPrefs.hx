@@ -115,6 +115,7 @@ import states.TitleState;
 		'loopPlayMult' => 1.05,
 		'bothMode' => false,
 		'maniaMode' => false,
+		'legacyMode' => false
 	];
 
 	// public var inputSystem:String = 'Native';

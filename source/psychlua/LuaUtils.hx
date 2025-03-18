@@ -39,6 +39,29 @@ class LuaUtils
 		} : null;
 	}
 
+	// Legacy shit.
+
+	inline public static function getTextObject(name:String):FlxText
+		{
+			return #if LUA_ALLOWED PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : #end Reflect.getProperty(PlayState.instance, name);
+		}
+
+		
+	public static function resetTextTag(tag:String) {
+		#if LUA_ALLOWED
+		if(!PlayState.instance.modchartTexts.exists(tag)) {
+			return;
+		}
+
+		var target:FlxText = PlayState.instance.modchartTexts.get(tag);
+		target.kill();
+		PlayState.instance.remove(target, true);
+		target.destroy();
+		PlayState.instance.modchartTexts.remove(tag);
+		#end
+	}
+
+
 	public static function setVarInArray(instance:Dynamic, variable:String, value:Dynamic, allowMaps:Bool = false):Any
 	{
 		var splitProps:Array<String> = variable.split('[');

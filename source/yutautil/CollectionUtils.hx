@@ -26,6 +26,8 @@ using yutautil.CollectionUtils;
  */
 @:generic typedef Predicate<T> = T->Bool;
 
+typedef LuaScript = flixel.util.typeLimit.OneOfTwo<psychlua.FunkinLua, psychlua.LegacyFunkinLua>;
+
 // abstract Collection<T>(Dynamic) from Array<T> to Array<T> {
 //     @:from public static inline function fromList<T>(list:List<T>):Collection<T> {
 //         return cast list;
@@ -1146,7 +1148,7 @@ class CollectionUtils
 
 	// Only for Funkin Lua Legacy...
 
-	/*public static inline function getScriptName(s:LuaScript):String
+	public static inline function getScriptName(s:LuaScript):String
 	{
 		return switch (Type.getClass(s)) {
 		case psychlua.FunkinLua:
@@ -1180,7 +1182,7 @@ class CollectionUtils
 		default:
 			throw "Unsupported LuaScript type";
 		}
-	}*/
+	}
 
 
 	public static function createTestData():Void
