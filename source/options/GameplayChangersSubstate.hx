@@ -49,6 +49,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		option.displayFormat = '%vX';
 		option.decimals = 2;
 		optionsArray.push(option);
+
+		optionsArray.push(new GameplayOption('Random Playback Rate', 'randomspeedchange', BOOL, false));
 		#end
 
 		var option:GameplayOption = new GameplayOption('Health Gain Multiplier', 'healthgain', FLOAT, 1);

@@ -33,8 +33,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			[
 				"OG", 
 				"Mixtape", 
-				"Kade (NA)",
-				"Tabi (NA)", 
+				"Kade",
+				"Tabi", 
 				"Double (NA)", 
 				"Lives (NA)", 
 				"Lives + HealthBar (NA)", 

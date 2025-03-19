@@ -650,21 +650,21 @@ class Note extends NoteObject
 				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
 				if(createdFrom != null && createdFrom.songSpeed != null) prevNote.scale.y *= createdFrom.songSpeed;
 
-				if(PlayState.isPixelStage) {
+				/*if(PlayState.isPixelStage) {
 					prevNote.scale.y *= 1.19;
 					prevNote.scale.y *= (6 / height); //Auto adjust note size
-				}
+				}*/
 				prevNote.updateHitbox();
 
 				// offsetY += height / 2;
 				// prevNote.setGraphicSize();
 			}
 
-			if(PlayState.isPixelStage)
+			/*if(PlayState.isPixelStage)
 			{
 				scale.y *= PlayState.daPixelZoom;
 				updateHitbox();
-			}
+			}*/
 			earlyHitMult = 0;
 		}
 		else if(!isSustainNote)

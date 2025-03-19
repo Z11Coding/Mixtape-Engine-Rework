@@ -128,6 +128,7 @@ class FreeplayState extends MusicBeatState
 	var ticketCounter:FlxText = null;
 	override function create()
 	{
+		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
@@ -1323,7 +1324,7 @@ class FreeplayState extends MusicBeatState
 		updateTexts(elapsed);
 		super.update(elapsed);
 
-		ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\nTickets Total: ${APInfo.ticketWinCount}\nTickets Left: ${Std.int(APInfo.ticketCount - APInfo.ticketWinCount)}';
+		if (ticketCounter != null) ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\nTickets Total: ${APInfo.ticketWinCount}\nTickets Left: ${Std.int(APInfo.ticketCount - APInfo.ticketWinCount)}';
 
 		grpLocks.forEach(function(lock:FlxSprite)
 		{

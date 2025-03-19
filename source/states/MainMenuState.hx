@@ -49,7 +49,7 @@ class MainMenuState extends MusicBeatState
 	override function create()
 	{
 
-
+		Cursor.cursorMode = Default;
 		checker = new flixel.addons.display.FlxBackdrop(Paths.image('mainmenu/Main_Checker'), XY, Std.int(0.2), Std.int(0.2));
 		
 		super.create();
