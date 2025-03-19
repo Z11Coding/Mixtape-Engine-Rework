@@ -430,6 +430,7 @@ class PlayState extends MusicBeatState
 	public var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
 	public var loopPlayMult:Float = ClientPrefs.getGameplaySetting('loopPlayMult', 1.05);
 	public var maniaMode:Bool = ClientPrefs.getGameplaySetting('maniaMode', false);
+	public var RandomSpeedChange:Bool = ClientPrefs.getGameplaySetting('randomspeedchange', false);
 	public var gimmicksAllowed:Bool = false;
 	public var mixupMode:Bool = false;
 
@@ -1199,6 +1200,13 @@ class PlayState extends MusicBeatState
 		cachePopUpScore();
 
 		if(eventNotes.length < 1) checkEventNote();
+
+		switch(ClientPrefs.data.healthMode) {
+			case "Kade":
+				pressMissDamage = 0.20; //nah that's cruel
+			default:
+				pressMissDamage = 0.05;
+		}
 	}
 
 	function set_songSpeed(value:Float):Float
@@ -2575,12 +2583,10 @@ class PlayState extends MusicBeatState
 				}
 
 				var spot = 0;
-				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
-				final roundSus:Int = Math.round(swagNote.sustainLength / curStepCrochet);
+				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet);
 				if (roundSus > 0)
 				{
-					if (ClientPrefs.data.inputSystem == 'Kade Engine')
-						swagNote.isParent = true;
+					swagNote.isParent = true;
 					swagNote.holdType = HEAD;
 					for (susNote in 0...roundSus)
 					{
@@ -2614,13 +2620,10 @@ class PlayState extends MusicBeatState
 							sustainNote.x += FlxG.width * 0.5; // general offset
 						}
 
-						if (ClientPrefs.data.inputSystem == 'Kade Engine')
-						{ // if fireable ever plays this
-							sustainNote.parent = swagNote;
-							swagNote.childs.push(sustainNote);
-							sustainNote.spotInLine = spot;
-							spot++;
-						}
+						sustainNote.parent = swagNote;
+						swagNote.childs.push(sustainNote);
+						sustainNote.spotInLine = spot;
+						spot++;
 					}
 				}
 
@@ -3305,6 +3308,14 @@ class PlayState extends MusicBeatState
 			camGame.visible = false;
 		}
 
+		if (ClientPrefs.data.healthMode == "Tabi" && storyDifficulty > 0)
+		{
+			if (health > 0)
+			{
+				health -= 0.001 / ClientPrefs.data.framerate;
+			}
+		}
+
 		super.update(elapsed);
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
@@ -3445,27 +3456,31 @@ class PlayState extends MusicBeatState
 			checkEventNote();
 		}
 
+		MaxHP = ClientPrefs.data.healthMode == "Tabi" ? 3 : 2;
+
 		if (health > MaxHP)
 			health = MaxHP;
 		if (health < 0)
 			health = 0;
 
-		if (health < MaxHP && extraHealth > 0)
-		{
-			var neededHealth = MaxHP - health;
-			var healthToAdd = Math.min(extraHealth, neededHealth);
-			health += healthToAdd;
-			extraHealth -= healthToAdd;
-		}
-
-		if (noHeal)
-		{
-			MaxHP = health;
-			if (extraHealth > 0)
+		if (ClientPrefs.data.healthMode != "Tabi") { //Don't want to cause an overlap
+			if (health < MaxHP && extraHealth > 0)
 			{
-				MaxHP += extraHealth;
-				health += extraHealth;
-				extraHealth = 0;
+				var neededHealth = MaxHP - health;
+				var healthToAdd = Math.min(extraHealth, neededHealth);
+				health += healthToAdd;
+				extraHealth -= healthToAdd;
+			}
+
+			if (noHeal)
+			{
+				MaxHP = health;
+				if (extraHealth > 0)
+				{
+					MaxHP += extraHealth;
+					health += extraHealth;
+					extraHealth = 0;
+				}
 			}
 		}
 
@@ -3533,7 +3548,7 @@ class PlayState extends MusicBeatState
 			skipActive = false;
 		}
 
-		#if debug
+		//#if debug
 		if(!endingSong && !startingSong) {
 			if (FlxG.keys.justPressed.ONE) {
 				KillNotes();
@@ -3544,7 +3559,7 @@ class PlayState extends MusicBeatState
 				clearNotesBefore(Conductor.songPosition);
 			}
 		}
-		#end
+		//#end
 
 		setOnScripts('botPlay', cpuControlled);
 		callOnScripts('onUpdatePost', [elapsed]);
@@ -3602,19 +3617,36 @@ class PlayState extends MusicBeatState
 	{
 		var iconOffset:Int = 26;
 		var healthRatio:Float = health / MaxHP;
-		if (!noHeal) {
-			iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
-			iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
-		}
-		else {
-			iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset + (healthRatio * 150 - 75);
-			iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2 + (healthRatio * 150 - 75);
-		}
+		switch (ClientPrefs.data.healthMode) {
+			case "Tabi":
+				var p2ToUse:Float = healthBar.x + (healthBar.width * (FlxMath.remapToRange((health / 2 * 100), 0, 100, 100, 0) * 0.01)) - (iconP2.width - iconOffset);
+				if (iconP2.x - iconP2.width / 2 < healthBar.x && iconP2.x > p2ToUse)
+				{
+					healthBar.offset.x = iconP2.x - p2ToUse;
+				} else {
+					healthBar.offset.x = 0;
+				}
+				iconP1.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange((health / 2 * 100), 0, 100, 100, 0) * 0.01) - iconOffset);
+				iconP2.x = p2ToUse;
+				if (iconP12 != null)
+					iconP12.x = iconP1.x + 25;
+				if (iconP22 != null)
+					iconP22.x = iconP2.x - 25;
+			default:
+				if (!noHeal) {
+					iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
+					iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
+				}
+				else {
+					iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset + (healthRatio * 150 - 75);
+					iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2 + (healthRatio * 150 - 75);
+				}
 
-		if (iconP12 != null)
-			iconP12.x = iconP1.x + 25;
-		if (iconP22 != null)
-			iconP22.x = iconP2.x - 25;
+				if (iconP12 != null)
+					iconP12.x = iconP1.x + 25;
+				if (iconP22 != null)
+					iconP22.x = iconP2.x - 25;
+		}
 	}
 
 	var iconsAnimations:Bool = true;
@@ -3877,6 +3909,19 @@ class PlayState extends MusicBeatState
 				&& gameOverTimer == null;
 			
 			case "Mixtape":
+				killPlayer = health <= 0 
+				&& !practiceMode 
+				&& !isDead 
+				&& bfkilledcheck
+				&& gameOverTimer == null;
+
+			case "Kade":
+				killPlayer = health <= 0 
+				&& !practiceMode 
+				&& !isDead 
+				&& gameOverTimer == null;
+
+			case "Tabi":
 				killPlayer = health <= 0 
 				&& !practiceMode 
 				&& !isDead 
@@ -5567,7 +5612,28 @@ class PlayState extends MusicBeatState
 		var lastCombo:Int = combo;
 		combo = 0;
 
-		health -= subtract * healthLoss;
+		switch (ClientPrefs.data.healthMode) {
+			case "Kade":
+				if (note.isParent) {
+					health -= 0.15; // give a health punishment for failing a LN
+					trace("hold fell over at the start");
+				}
+				else {
+					if (!note.wasGoodHit && !note.isSustainNote)
+					{
+						health -= 0.15;
+					}
+				}
+
+			case "Tabi":
+				if (!note.isSustainNote) health -= 0.1;
+				health -= 0.0475;
+				health -= 0.04;
+				health -= 0.08;
+
+			default:
+				health -= subtract * healthLoss;
+		}
 		songScore -= 10;
 		if(!endingSong) songMisses++;
 		totalPlayed++;
@@ -5667,6 +5733,17 @@ class PlayState extends MusicBeatState
 
 				if(canPlay) char.playAnim(animToPlay, true);
 				char.holdTimer = 0;
+			}
+		}
+
+		if (health > 0)
+		{
+			if (note.isSustainNote)
+			{
+				health -= 0.0005;
+			} else {
+				//health -= 0.04;
+				health -= 0.03;
 			}
 		}
 
@@ -5781,7 +5858,37 @@ class PlayState extends MusicBeatState
 			}
 			var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
 			if (guitarHeroSustains && note.isSustainNote) gainHealth = false;
-			if (gainHealth) health += note.hitHealth * healthGain;
+			if (gainHealth){
+				switch (ClientPrefs.data.healthMode) {
+					case "Kade":
+						var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
+						var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
+						switch (daRating.name)
+						{
+							case 'shit':
+								health -= 0.1;
+							case 'bad':
+								health -= 0.06;
+							case 'sick':
+								if (health < 2)
+									health += 0.04;
+							case 'marv':
+								if (health < 2)
+									health += 0.08;
+						}
+					case "Tabi":
+						if (note.noteData >= 0)
+							health += 0.023;
+						else
+							health += 0.004;
+						health += 0.05;
+						if (storyDifficulty > 0)
+						{
+							health += 0.05;
+						}
+					default: health += note.hitHealth * healthGain;
+				}
+			} 
 
 		}
 		else //Notes that count as a miss if you hit them (Hurt notes for example)
@@ -5929,6 +6036,13 @@ class PlayState extends MusicBeatState
 		if(lastBeatHit >= curBeat) {
 			//trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
 			return;
+		}
+
+		if (curBeat % 32 == 0 && RandomSpeedChange && !songAboutToLoop)
+		{
+			// goes up to 3x speed cuz screw you thats why
+			var randomShit = FlxMath.roundDecimal(FlxG.random.float(0.45, 2), 2);
+			lerpSongSpeed(randomShit, 1);
 		}
 
 		switch (ClientPrefs.data.iconBounce) {
