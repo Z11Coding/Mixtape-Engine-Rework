@@ -13,6 +13,7 @@ import backend.Song;
 import flixel.addons.transition.FlxTransitionableState;
 import archipelago.APEntryState;
 import backend.WeekData;
+import archipelago.*;
 
 class RankingSubstate extends MusicBeatSubstate
 {
@@ -154,7 +155,7 @@ class RankingSubstate extends MusicBeatSubstate
 						locationId += " (" + archipelago.APPlayState.currentMod + ")";
 					}
 					trace(locationId.trim());
-					var locationIdInts = APGameState.locationData(locationId.trim());
+					var locationIdInts = APInfo.apGame.locationData(locationId.trim());
 					trace('Location IDs: ' + locationIdInts);
 
 					if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
@@ -167,7 +168,7 @@ class RankingSubstate extends MusicBeatSubstate
 								locationId = archipelago.APPlayState.currentMod.trim() != ""
 									? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
 									: song[0];
-								locationIdInts = APGameState.locationData(locationId.trim());
+								locationIdInts = APInfo.apGame.locationData(locationId.trim());
 								break;
 							}
 						}
@@ -195,7 +196,7 @@ class RankingSubstate extends MusicBeatSubstate
 											locationId = archipelago.APPlayState.currentMod.trim() != "" 
 												? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
 												: song[0];
-											locationIdInts = APGameState.locationData(locationId.trim());
+											locationIdInts = APInfo.apGame.locationData(locationId.trim());
 											break;
 										}
 									}
@@ -217,7 +218,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 					for (locationIdInt in locationIdInts)
 					{
-						if (locationIdInt != null && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-"))
+						if (locationIdInt != 0 && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-"))
 						{
 							archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
 								FlxG.sound.playMusic(Paths.sound('secret'));
