@@ -114,7 +114,7 @@ class FirstCheckState extends MusicBeatState
 						trace('versions arent matching!');
 						MusicBeatState.switchState(new states.OutdatedState());
 					}
-					else FlxG.switchState(new states.SplashScreen());
+					else FlxG.switchState(new APCheckState());
 				}
 
 				http.onError = function(error)
@@ -137,7 +137,41 @@ class FirstCheckState extends MusicBeatState
 				updateRibbon.alpha = 1;
 			});
 
-			archipelago.APEntryState.checkAndAlertAPWorld();
+
+			}
+		else
+		{
+			FlxG.switchState(new states.SplashScreen());
+		}
+	}
+}
+
+class APCheckState extends MusicBeatState
+{
+	override public function create()
+	{
+		super.create();
+		if (!archipelago.APEntryState.checkAndAlertAPWorld())
+		{
+			var update = new haxe.ui.containers.dialogs.MessageBox();
+			update.title = "Archipelago World";
+			update.text = "Would you like to install the version of the APWorld for this version of Mixtape Engine?";
+			update.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+			
+			update.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+			{
+				if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
+				{
+					archipelago.APEntryState.installAPWorld();
+					FlxG.switchState(new states.SplashScreen());
+				}
+				else
+				{
+					FlxG.switchState(new states.SplashScreen());
+				}
+			};
+			
+			update.show();
 		}
 		else
 		{

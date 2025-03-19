@@ -2046,6 +2046,8 @@ class PlayState extends MusicBeatState
 
 	private function generateSong():Void
 	{
+
+		
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');

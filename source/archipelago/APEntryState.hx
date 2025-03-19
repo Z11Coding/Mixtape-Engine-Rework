@@ -474,12 +474,23 @@ class APEntryState extends MusicBeatState
 		return {status: "unsupported", message: "System not supported."};
 	}
 
-	public static function checkAndAlertAPWorld():Void
+	public static function checkAndAlertAPWorld():Bool
 	{
 		var result = checkAPWorld();
 		if (result.status == "outdated") {
 			Application.current.window.alert(result.message + "\nPlease update it in the AP Menu.", "APWorld Update Recommended");
 		}
+		else if (result.status == "missing") {
+			Application.current.window.alert(result.message + "\nPlease install it in the AP Menu.", "APWorld Missing");
+		}
+		else if (result.status == "error") {
+			Application.current.window.alert(result.message, "APWorld Error");
+		}
+		else if (result.status == "unsupported") {
+			Application.current.window.alert(result.message + "\nYou cannot use AP on this System.", "Unsupported Error");
+		}
+
+		return result.status == "exact";
 	}
 
 	public static function installAPWorld():Void
