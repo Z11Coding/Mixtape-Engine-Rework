@@ -101,6 +101,24 @@ class APGameState {
     private var _saveData:yutautil.save.MixSaveWrapper;
     public var connected(get, never):Bool;
 
+    public function locationData(songName:String):Array<Int> {
+        var matchingLocations:Array<Int> = [];
+        
+        for (missing in info().missingLocations) {
+            if (info().get_location_name(missing).startsWith(songName)) {
+                matchingLocations.push(missing);
+            }
+        }
+
+        for (checked in info().checkedLocations) {
+            if (info().get_location_name(checked).startsWith(songName)) {
+                matchingLocations.push(checked);
+            }
+        }
+
+        return matchingLocations;
+    }
+
     public static var currentPackages:DynamicAccess<GameData> = new DynamicAccess<GameData>();
 
     public var itemManager(get, set):Dynamic;    
