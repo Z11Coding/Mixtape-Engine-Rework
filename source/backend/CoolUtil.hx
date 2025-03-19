@@ -244,13 +244,13 @@ class CoolUtil
 	}
 
 	inline public static function parseLog(msg:Dynamic):LogData {
-		try {
+		return try {
 			if (msg is String)
-				return cast(Json.parse(msg));
-			return cast(msg);
+				cast(Json.parse(msg));
+			cast(msg);
 		}
 		catch (e) {
-			return {
+			{
 				content: msg,
 				hue: null
 			}
