@@ -103,17 +103,38 @@ class APGameState {
 
     public function locationData(songName:String):Array<Int> {
         var matchingLocations:Array<Int> = [];
-        
-        for (missing in info().missingLocations) {
-            if (info().get_location_name(missing).startsWith(songName)) {
-                matchingLocations.push(missing);
+        var exactMatch:Int = -1;
+        var hasDashNumber:Bool = false;
+
+        var missingLocations = info()?.missingLocations;
+        var checkedLocations = info()?.checkedLocations;
+
+        if (missingLocations != null) {
+            for (missing in missingLocations) {
+                var locationName = info().get_location_name(missing);
+                if (locationName == songName) {
+                    exactMatch = missing;
+                } else if (new EReg("^" + songName + "-\\d+$", "").match(locationName)) {
+                    matchingLocations.push(missing);
+                    hasDashNumber = true;
+                }
             }
         }
 
-        for (checked in info().checkedLocations) {
-            if (info().get_location_name(checked).startsWith(songName)) {
-                matchingLocations.push(checked);
+        if (checkedLocations != null) {
+            for (checked in checkedLocations) {
+                var locationName = info().get_location_name(checked);
+                if (locationName == songName) {
+                    exactMatch = checked;
+                } else if (new EReg("^" + songName + "-\\d+$", "").match(locationName)) {
+                    matchingLocations.push(checked);
+                    hasDashNumber = true;
+                }
             }
+        }
+
+        if (!hasDashNumber && exactMatch != -1) {
+            return [exactMatch];
         }
 
         return matchingLocations;
@@ -336,7 +357,6 @@ class APGameState {
             }
            }
            return false; 
-
         }
 
     function isModName(name:String):Bool {

@@ -160,6 +160,11 @@ class CollectionUtils
 		}
 	}
 
+
+	public static inline function matchRegex(input:String, pattern:EReg):Bool {
+		return pattern.match(input);
+	}
+
 	public static inline function exists(input:Dynamic, ?checkUninitialized:Bool = false):Dynamic {
 		if (checkUninitialized) {
 			try {

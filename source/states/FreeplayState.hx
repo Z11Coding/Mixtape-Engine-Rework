@@ -642,15 +642,15 @@ class FreeplayState extends MusicBeatState
 
 				var songName:String = '';
 				var modName:String = '';
-				var locationId:Int = 0;
+				var locationId:Array<Int> = [];
 				var isMissing:Bool = false;
 				var color:FlxColor = 0xFFFFFFFF;
 
 				if (APEntryState.inArchipelagoMode) {
 					songName = songs[i].songName;
 					modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
-					locationId = APEntryState.apGame.info().get_location_id(songName + (modName != "" ? " (" + modName + ")" : "") + "-0");
-					isMissing = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
+					locationId = APEntryState.apGame.locationData(songName + (modName != "" ? " (" + modName + ")" : ""));
+					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
 					for (daSongName in curUnlocked.keys())
@@ -665,14 +665,18 @@ class FreeplayState extends MusicBeatState
 						trueMissing.push(songName);
 					}
 				}
-
 				var songText:Alphabet;
 				if (APEntryState.inArchipelagoMode) {
-					//trace('Song: ' + songName + ', Mod: ' + (modName != "" ? modName : "(not modded)") + ', Missing: ' + isMissing);
-					songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color);
+					if (locationId.length > 0 && locationId.indexOf(0) == -1) {
+						//trace('Song: ' + songName + ', Mod: ' + (modName != "" ? modName : "(not modded)") + ', Missing: ' + isMissing);
+						songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color);
+					} else {
+						continue;
+					}
 				} else {
 					songText = new Alphabet(90, 320, songs[i].songName, true);
 				}
+				// if (songText.exists(true)) {
 				songText.targetY = i;
 				grpSongs.add(songText);
 
@@ -692,6 +696,7 @@ class FreeplayState extends MusicBeatState
 				// but over on mixtape engine we do arrays better
 				iconArray.push(icon);
 				iconList.add(icon);
+				// }
 
 				// songText.x += 40;
 				// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
