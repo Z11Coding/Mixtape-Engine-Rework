@@ -141,6 +141,9 @@ class APGameState {
         _seed = _ap.seed;
 
         archipelago.APPlayState.apGame = this;
+        archipelago.APInfo.apGame = this;
+        archipelago.APInfo.ap = _ap;
+
 
         // var dataPackageHash = haxe.crypto.Sha1.make(_ap._dataPackage);
         _saveData = new yutautil.save.MixSaveWrapper(new yutautil.save.MixSave(), "save/"+ "ap_" + _ap.seed + ".json", true);
