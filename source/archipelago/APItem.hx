@@ -97,12 +97,13 @@ class APItem {
         this.condition = condition;
         this.onTrigger = onTrigger;
         this.isException = isException;
+        this.toSync = toSync;
 
         if (this.condition.type == Everywhere) {
             this.isException = true;
         }
 
-        if (APEntryState.gonnaRunSync && toSync) {
+        if (APEntryState.gonnaRunSync && this.toSync) {
             allItems.push(this); trace('Item to sync: ${this.name}');
         } else if (!APEntryState.gonnaRunSync) {
             allItems.push(this); trace('Item: ${this.name}');
