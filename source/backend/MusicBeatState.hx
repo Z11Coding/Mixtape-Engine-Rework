@@ -41,6 +41,9 @@ class MusicBeatState extends FlxState
 
 		if(!_psychCameraInitialized) initPsychCamera();
 
+		if (archipelago.APEntryState.inArchipelagoMode)
+			archipelago.APItem.doCheck();
+
 		super.create();
 
 		if(!skip) {

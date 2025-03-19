@@ -421,6 +421,8 @@ class APEntryState extends MusicBeatState
 			 		APInfo.ticketWinCount = slotData.ticketWinCount;}
 		catch(e) {  APInfo.ticketCount = slotData.ticketCount;
 					APInfo.ticketWinCount = -1;}
+
+					APInfo.ticketCount = 0;
 		closeSubState();
 		inArchipelagoMode = true;
 		var FNF = new FlxSave();

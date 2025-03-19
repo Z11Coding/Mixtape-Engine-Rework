@@ -29,7 +29,10 @@ enum SetReplyPacketType {
 }
 
 enum ItemFlag {
-    None; LogicalAdvancement; Important; Trap;
+    None; // Nothing special about this item
+    LogicalAdvancement; // Indicates the item can unlock logical advancement
+    Important; // Indicates the item is especially useful
+    Trap; // Indicates the item is a trap
 }
 
 enum DataStorageOperationType {
@@ -104,6 +107,8 @@ class APGameState {
     public var connected(get, never):Bool;
 
     public var APLocations:Array<Int> = [];
+    public var APItems:Map<String, Int> = new Map<String, Int>();
+    public var ItemIndex:Int = 0;
 
     public function locationData(songName:String):Array<Int> {
         // trace("Starting locationData function with songName: " + songName);
@@ -252,15 +257,44 @@ class APGameState {
             APEntryState.ap = null;
         }
     }
+    public function findSpecialItems():Map<String, Int> {
+        var specialItems:Map<String, Int> = new Map<String, Int>();
+        var apInfo = info();
+
+        for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys()) {
+            var itemName = item.replace("<cOpen>", "{")
+                .replace("<cClose>", "}")
+                .replace("<sOpen>", "[")
+                .replace("<sClose>", "]");
+
+            var isSpecialItem = locationData(itemName).isEmpty();
+            if (isSpecialItem) {
+                specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
+            }
+        }
+        trace("Special Items: " + specialItems);
+
+        return specialItems;
+    }
 
     public static var isSync:Bool = false;
     function addSongs(song:Array<NetworkItem>)
     {
+        var nonSongs:Map<String, Int> = [];
         states.FreeplayState.curMissing.clear();
+
 
         for (songName in song)
         {
+            trace(ItemIndex + " - " + songName.index);
+
             var itemName = info().get_item_name(songName.item);
+
+            if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
+                {
+                nonSongs.set(itemName, songName.index);
+                continue;
+                }
 
             // Convert special keywords back to actual brackets
             itemName = itemName.replace("<cOpen>", "{")
@@ -345,7 +379,23 @@ class APGameState {
                 }
             }
         }
-        isSync = false;
+
+        for (items in nonSongs.keys())
+        {
+            
+            if (nonSongs.get(items) <= ItemIndex)
+                {
+                    continue;
+                }
+                else
+                {
+                    ItemIndex = nonSongs.get(items);
+                    archipelago.APItem.createItemByName(items);
+                }
+        }
+        archipelago.APItem.doCheck();
+                isSync = false;
+
     }
 
     public function isLocationMissing(location:String):Bool

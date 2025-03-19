@@ -160,6 +160,8 @@ class APPlayState extends PlayState {
             return;
         }
 
+        MaxHP += archipelago.APItem.maxHPUp / 2;
+
 
 
 		
@@ -2082,6 +2084,11 @@ public function doEffect(effect:String)
 			// For Later
 		}
         PlayState.gameplayArea = "APFreeplay";
+
+        if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
+                    archipelago.APItem.activeItem = null;
+
+
         super.endSong();
         paused = true;
         states.FreeplayState.callVictory = PlayState.SONG.song == APEntryState.victorySong;
