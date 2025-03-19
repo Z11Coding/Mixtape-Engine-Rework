@@ -656,7 +656,7 @@ class FreeplayState extends MusicBeatState
 					for (daSongName in curUnlocked.keys())
 					{
 						if (((songName.trim().toLowerCase().replace('-', ' ') == daSongName.trim().toLowerCase().replace('-', ' ')) && modName == curUnlocked.get(daSongName)) && isMissing) {
-							if (CategoryState.loadWeekForce == "all") color = FlxColor.WHITE;
+							color = FlxColor.WHITE;
 							unplayedList.push(songName);
 						}
 					}

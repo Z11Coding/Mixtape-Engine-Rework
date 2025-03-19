@@ -476,21 +476,25 @@ class APEntryState extends MusicBeatState
 
 	public static function checkAndAlertAPWorld():Bool
 	{
-		var result = checkAPWorld();
-		if (result.status == "outdated") {
-			Application.current.window.alert(result.message + "\nPlease update it in the AP Menu.", "APWorld Update Recommended");
-		}
-		else if (result.status == "missing") {
-			Application.current.window.alert(result.message + "\nPlease install it in the AP Menu.", "APWorld Missing");
-		}
-		else if (result.status == "error") {
-			Application.current.window.alert(result.message, "APWorld Error");
-		}
-		else if (result.status == "unsupported") {
-			Application.current.window.alert(result.message + "\nYou cannot use AP on this System.", "Unsupported Error");
-		}
-
-		return result.status == "exact";
+		return switch (checkAPWorld().status) {
+			case "outdated":
+				Application.current.window.alert("APWorld file does not match the current version.\nPlease update it in the AP Menu.", "APWorld Update Recommended");
+				false;
+			case "missing":
+				Application.current.window.alert("APWorld file not found.\nPlease install it in the AP Menu.", "APWorld Missing");
+				false;
+			case "error":
+				Application.current.window.alert("Error checking APWorld file.\nPlease try again.", "APWorld Error");
+				false;
+			case "unsupported":
+				Application.current.window.alert("System not supported.\nYou cannot use AP on this System.", "Unsupported Error");
+				true;
+			case "exact":
+				true;
+			default:
+				Application.current.window.alert("Unexpected status encountered.\nPlease report this issue.\nStatus = " + checkAPWorld().status, "Unexpected Error");
+				false;
+		};
 	}
 
 	public static function installAPWorld():Void
