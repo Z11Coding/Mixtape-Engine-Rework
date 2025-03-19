@@ -10,6 +10,7 @@ import objects.MusicPlayer;
 
 import archipelago.ArchPopup;
 import archipelago.APEntryState;
+import archipelago.APInfo;
 
 //import states.editors.ChartingStateOG;
 
@@ -43,7 +44,7 @@ class VictorySong extends ColoredAlphabet
 		e++;
 		super.update(elapsed);
 		this.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
-}
+	}
 }
 class FreeplayState extends MusicBeatState
 {
@@ -123,6 +124,8 @@ class FreeplayState extends MusicBeatState
 		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle2 || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
 		{item: "beat battle 2", chance: FlxG.save.data.gotsmallargument || APEntryState.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
 	];
+
+	var ticketCounter:FlxText = null;
 	override function create()
 	{
 		instance = this; // For Archipelago
@@ -308,10 +311,6 @@ class FreeplayState extends MusicBeatState
 		updateTexts();
 		super.create();
 
-
-
-
-
 		FlxTween.tween(rank, {alpha: 1}, 0.5, {ease: FlxEase.quartInOut});
 		FlxTween.tween(searchBar, {y: 100}, 0.6, {
 			ease: FlxEase.elasticInOut, 
@@ -319,20 +318,17 @@ class FreeplayState extends MusicBeatState
 				searchBar.updateHitbox();
 		}});
 
-		// Main.simulateIntenseMaps();
 		trace(hh);
 
 		reloadSongs(true);
 		changeSelection();
 
-
-		// trace('curSelected before change: ' + curSelected);
-		// if (curSelected < 0) {
-		// 	curSelected = 0;
-		// } else if (curSelected >= songs.length) {
-		// 	curSelected = songs.length - 1;
-		// }
-		// trace('curSelected after change: ' + curSelected);
+		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+			ticketCounter = new FlxText(FlxG.width - 600, FlxG.height - 300, 0, "0/0", 32);
+			ticketCounter.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			ticketCounter.scrollFactor.set();
+			add(ticketCounter);
+		}
 	}
 
 	function isModName(name:String):Bool {
@@ -1326,6 +1322,8 @@ class FreeplayState extends MusicBeatState
 
 		updateTexts(elapsed);
 		super.update(elapsed);
+
+		ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\nTickets Total: ${APInfo.ticketWinCount}\nTickets Left: ${Std.int(APInfo.ticketCount - APInfo.ticketWinCount)}';
 
 		grpLocks.forEach(function(lock:FlxSprite)
 		{

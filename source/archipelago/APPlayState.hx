@@ -2361,7 +2361,7 @@ public function doEffect(effect:String)
                     var spr = field.strumNotes[note.noteData];
                     if (spr != null && field.keysPressed[note.noteData])
                         spr.playAnim('confirm', true, note);*/
-                    var spr = playerStrums.strumNotes[note.noteData];
+                    var spr = playerStrums.members[note.noteData];
     				if(spr != null) spr.playAnim('confirm', true);
                 }
             }

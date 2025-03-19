@@ -1,13 +1,8 @@
 package states;
+
+import archipelago.APEntryState;
 import yutautil.modules.SyncUtils;
-import backend.Highscore;
-import backend.Achievements;
-import backend.util.WindowUtil;
 import flixel.input.keyboard.FlxKey;
-import states.UpdateState;
-import flixel.ui.FlxBar;
-import openfl.system.System;
-import lime.app.Application;
 class FirstCheckState extends MusicBeatState
 {
 	public static var muteKeys:Array<FlxKey> = [FlxKey.ZERO];
@@ -32,7 +27,7 @@ class FirstCheckState extends MusicBeatState
 		for (url in urls) {
 			response = SyncUtils.syncHttpRequest(url);
 			if (response != null && response != '') {
-			return true;
+				return true;
 			}
 		}
         return response != null || response == '';
@@ -47,8 +42,7 @@ class FirstCheckState extends MusicBeatState
 			throw new haxe.Exception("Invalid state access!");	
 		}
 		
-		if (!relaunch)
-			COD.initCOD();
+		if (!relaunch) COD.initCOD();
 
 		super.create();
 
@@ -82,6 +76,7 @@ class FirstCheckState extends MusicBeatState
 			updateAlphabet.y = updateIcon.y;
 			add(updateAlphabet);
 			updateIcon.y += 15;
+
 
 			var tmr = new FlxTimer().start(2, function(tmr:FlxTimer)
 			{
@@ -173,9 +168,6 @@ class APCheckState extends MusicBeatState
 			
 			update.show();
 		}
-		else
-		{
-			FlxG.switchState(new states.SplashScreen());
-		}
+		else FlxG.switchState(new states.SplashScreen());
 	}
 }

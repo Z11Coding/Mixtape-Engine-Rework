@@ -87,6 +87,7 @@ class MainTab extends TabSprite {
 		var format = TabSprite.getDefaultFormat();
 		format.color = data.hue != null ? FlxColor.fromHSL(data.hue, 1.0, 0.8) : FlxColor.WHITE;
 		msg.defaultTextFormat = format;
+		msg.height = 10000;
 		msg.wordWrap = true;
 		msg.text = data.content;
 		msg.height = msg.textHeight + 1;
@@ -114,7 +115,6 @@ class MainTab extends TabSprite {
 			message.width = Std.int(instance.widthTab);
 			message.y = lastY = (lastY ?? Lib.application.window.height - instance.chatBg.height) - (message.textHeight + 5);
 			instance.msgSprite.addChild(message);
-			message.visible = message.y <= instance.info.y;
 		}
 	}
 

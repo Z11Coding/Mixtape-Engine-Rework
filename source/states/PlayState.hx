@@ -227,8 +227,8 @@ class PlayState extends MusicBeatState
 	private static var prevCamFollow:FlxObject;
 
 	public var strumLineNotes:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
-	//public var opponentStrums:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
-	//public var playerStrums:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
+	public var opponentStrums:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
+	public var playerStrums:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash> = new FlxTypedGroup<NoteSplash>();
 
 	public var camZooming:Bool = false;
@@ -403,8 +403,8 @@ class PlayState extends MusicBeatState
 	public var notefields = new NotefieldRenderer();
 	public var playfields = new FlxTypedGroup<PlayField>();
 	public var allNotes:Array<Note> = []; // all notes
-	public var playerStrums:PlayField;
-	public var opponentStrums:PlayField;
+	public var playerField:PlayField;
+	public var dadField:PlayField;
 	public var holdsGiveHP:Bool = false;
 	public var playerScoreTxt:FlxText;
 	public var opponentScoreTxt:FlxText;
@@ -437,9 +437,6 @@ class PlayState extends MusicBeatState
 	public var instVolumeMultiplier:Float = 1;
 	public var vocalVolumeMultiplier:Float = 1;
 	var inArchipelagoMode:Bool = false;
-
-	// Nightmare Vision
-	public var scriptedStrumOffsets:Array<FlxPoint> = [];
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -488,8 +485,8 @@ class PlayState extends MusicBeatState
 		});
 
 		// Because some things do actually use these lol
-		//opponentStrums = new FlxTypedGroup<StrumNote>();
-		//playerStrums = new FlxTypedGroup<StrumNote>();
+		opponentStrums = new FlxTypedGroup<StrumNote>();
+		playerStrums = new FlxTypedGroup<StrumNote>();
 
 		if(FlxG.sound.music != null)
 			FlxG.sound.music.stop();
@@ -581,13 +578,6 @@ class PlayState extends MusicBeatState
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.bpm = SONG.bpm;
-
-		scriptedStrumOffsets = [];
-		for(i in 0...Note.ammo[mania]){
-			//scriptedNoteOffsets.push(new FlxPoint(0, 0)); later
-			scriptedStrumOffsets.push(new FlxPoint(0, 0));
-			//scriptedSustainOffsets.push(new FlxPoint(0, 0));
-		}
 
 		#if DISCORD_ALLOWED
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
@@ -1003,24 +993,24 @@ class PlayState extends MusicBeatState
 		for (i in 0...modManager.playerAmount)
 			newPlayfield();
 
-		trace("Making playerStrums!");
-		playerStrums = playfields.members[0];
-		if (playerStrums != null) {
-			playerStrums.noteField.isEditor = false;
-			playerStrums.characters = [for(ch in boyfriendMap) ch];
-			playerStrums.isPlayer = !opponentmode && !playAsGF || bothMode;
-			playerStrums.autoPlayed = !playerStrums.isPlayer || opponentmode || cpuControlled || playAsGF;
-			playerStrums.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
+		trace("Making PlayerField!");
+		playerField = playfields.members[0];
+		if (playerField != null) {
+			playerField.noteField.isEditor = false;
+			playerField.characters = [for(ch in boyfriendMap) ch];
+			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
+			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || playAsGF;
+			playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
 		}
 
-		trace("Making opponentStrums!");
-		opponentStrums = playfields.members[1];
-		if (opponentStrums != null) {
-			opponentStrums.noteField.isEditor = false;
-			opponentStrums.isPlayer = opponentmode && !playAsGF || bothMode;
-			opponentStrums.autoPlayed = !opponentStrums.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || playAsGF) || (bothMode && cpuControlled);
-			opponentStrums.AIPlayer = AIMode;
-			opponentStrums.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
+		trace("Making DadField!");
+		dadField = playfields.members[1];
+		if (dadField != null) {
+			dadField.noteField.isEditor = false;
+			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
+			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || playAsGF) || (bothMode && cpuControlled);
+			dadField.AIPlayer = AIMode;
+			dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
 		}
 		
 		#if ALLOW_DEPRECATION
@@ -1323,8 +1313,8 @@ class PlayState extends MusicBeatState
 					boyfriendGroup2.add(newBoyfriend);
 					startCharacterPos(newBoyfriend);
 					newBoyfriend.alpha = 0.00001;
-					if (playerStrums != null)
-						playerStrums.characters.push(newBoyfriend);
+					if (playerField != null)
+						playerField.characters.push(newBoyfriend);
 					startCharacterScripts(newBoyfriend.curCharacter);
 				}
 		}
@@ -1565,16 +1555,15 @@ class PlayState extends MusicBeatState
 
 			trace("Starting Countdown!");
 			canPause = true;
-			/*for (i in 0...playerStrums.strumNotes.length) {
-				setOnScripts('defaultPlayerStrumX' + i, playerStrums.strumNotes[i].x);
-				setOnScripts('defaultPlayerStrumY' + i, playerStrums.strumNotes[i].y);
+			for (i in 0...playerStrums.length) {
+				setOnScripts('defaultPlayerStrumX' + i, playerField.baseXPositions[i]);
+				setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
 			}
-
 			for (i in 0...opponentStrums.length) {
-				setOnScripts('defaultOpponentStrumX' + i, opponentStrums.strumNotes[i].x);
-				setOnScripts('defaultOpponentStrumY' + i, opponentStrums.strumNotes[i].y);
+				setOnScripts('defaultOpponentStrumX' + i, dadField.baseXPositions[i]);
+				setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
 				//if(ClientPrefs.data.middleScroll) opponentStrums.members[i].visible = false;
-			}*/
+			}
 
 			if (skipCountdown || startOnTime > 0)
 				skipArrowStartTween = true;
@@ -2566,7 +2555,7 @@ class PlayState extends MusicBeatState
 				callOnScripts("onGeneratedNote", [swagNote, section]);
 			
 				if (swagNote.fieldIndex == -1 && swagNote.field == null)
-					swagNote.field = swagNote.mustPress ? playerStrums : opponentStrums;
+					swagNote.field = swagNote.mustPress ? playerField : dadField;
 
 				if (swagNote.field != null)
 					swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
@@ -2757,8 +2746,8 @@ class PlayState extends MusicBeatState
 
 		mania = newValue;
 
-		playerStrums.strumNotes = [];
-		opponentStrums.strumNotes = [];
+		playerField.strumNotes = [];
+		dadField.strumNotes = [];
 		setOnScripts('mania', mania);
 
 		notes.forEachAlive(function(note:Note)
@@ -2936,18 +2925,18 @@ class PlayState extends MusicBeatState
 		for(field in playfields.members)
 			field.fadeIn(skipArrowStartTween);
 
-		/*#if PE_MOD_COMPATIBILITY
-		for (i in opponentStrums.strumNotes) {
+		#if PE_MOD_COMPATIBILITY
+		for (i in dadField.strumNotes) {
 			opponentStrums.add(i);
 			strumLineNotes.add(i);
 		}
 
-		for (i in playerStrums.strumNotes) {
+		for (i in playerField.strumNotes) {
 			playerStrums.add(i);
 			strumLineNotes.add(i);
 		}
 		
-		#end*/
+		#end
 	}
 
 	public static function sortByTime(Obj1:Dynamic, Obj2:Dynamic):Int
@@ -3290,7 +3279,7 @@ class PlayState extends MusicBeatState
 		bfkilledcheck = true;
 		doDeathCheck(true);
 		health = 0;
-		noteMissPress(3, opponentmode ? opponentStrums : playerStrums); // just to make sure you actually die
+		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
 	}
 
 	override public function update(elapsed:Float)
@@ -3443,24 +3432,6 @@ class PlayState extends MusicBeatState
 			trace("RESET = True");
 		}
 		doDeathCheck();
-
-		if(startedCountdown){
-			for (strum in opponentStrums.strumNotes)
-			{
-				var pos = modManager.getPos(0, 0, curDecBeat, strum.noteData, 1, strum, opponentStrums.noteField, strum.vec3Cache);
-				modManager.updateObject(curDecBeat, strum, 1);
-				strum.x = pos.x + scriptedStrumOffsets[strum.noteData].x;
-				strum.y = pos.y + scriptedStrumOffsets[strum.noteData].y;
-			};
-
-			for (strum in playerStrums.strumNotes)
-			{
-				var pos = modManager.getPos(0, 0, curDecBeat, strum.noteData, 0, strum, playerStrums.noteField, strum.vec3Cache);
-				modManager.updateObject(curDecBeat, strum, 0);
-				strum.x = pos.x + scriptedStrumOffsets[strum.noteData].x;
-				strum.y = pos.y + scriptedStrumOffsets[strum.noteData].y;
-			};
-		}
 
 		if (generatedMusic)
 		{
@@ -3774,7 +3745,7 @@ class PlayState extends MusicBeatState
 		}
 		if(!cpuControlled)
 		{
-			for (note in playerStrums.strumNotes)
+			for (note in playerStrums)
 				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
 				{
 					note.playAnim('static');
@@ -5298,7 +5269,7 @@ class PlayState extends MusicBeatState
 
 	private function keyPressed(key:Int, player:Int = -1)
 	{
-		if(cpuControlled || paused || inCutscene || key < 0 || key >= playerStrums.strumNotes.length || !generatedMusic || endingSong || boyfriend.stunned) return;
+		if(cpuControlled || paused || inCutscene || key < 0 || key >= playerStrums.length || !generatedMusic || endingSong || boyfriend.stunned) return;
 		if (strumsBlocked[key]) return;
 
 		var ret:Dynamic = callOnScripts('onKeyPressPre', [key]);
@@ -5380,7 +5351,7 @@ class PlayState extends MusicBeatState
 
 	private function keyReleased(key:Int, ?player:Int = -1)
 	{
-		if(cpuControlled || !startedCountdown || paused || key < 0 || key >= playerStrums.strumNotes.length) return;
+		if(cpuControlled || !startedCountdown || paused || key < 0 || key >= playerStrums.length) return;
 
 		var ret:Dynamic = callOnScripts('onKeyReleasePre', [key]);
 		if(ret == LuaUtils.Function_Stop) return;
@@ -5605,11 +5576,11 @@ class PlayState extends MusicBeatState
 		// play character anims
 		var char:Character = boyfriend;
 		if((note != null && note.gfNote) || (SONG.notes[curSection] != null && SONG.notes[curSection].gfSection)) char = gf;
-		if (opponentmode || note.field == opponentStrums)
+		if (opponentmode || note.field == dadField)
 			char = dad;
-		if (note.exNote && note.field == playerStrums)
+		if (note.exNote && note.field == playerField)
 			char = bf2;
-		if (note.exNote && note.field == opponentStrums)
+		if (note.exNote && note.field == dadField)
 			char = dad2;
 
 		if(char != null && (note == null || !note.noMissAnimation) && char.hasMissAnimations)

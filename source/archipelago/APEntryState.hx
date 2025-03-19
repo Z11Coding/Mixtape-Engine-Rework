@@ -412,11 +412,15 @@ class APEntryState extends MusicBeatState
 		polltimer.stop();
 		ap.onRoomInfo.remove(onRoomInfo);
 		ap.onSlotRefused.remove(onSlotRefused);
-		ap.onSocketDisconnected.remove(onSocketDisconnected);
+		//ap.onSocketDisconnected.remove(onSocketDisconnected);
 		ap.onSlotConnected.remove(onSlotConnected);
 		deathLink = slotData.deathlink == 0 ? false : true;
 		victorySong = slotData.victoryLocation;
 		fullSongCount = slotData.fullSongCount;
+		try {		APInfo.ticketCount = slotData.ticketCount;
+			 		APInfo.ticketWinCount = slotData.ticketWinCount;}
+		catch(e) {  APInfo.ticketCount = slotData.ticketCount;
+					APInfo.ticketWinCount = -1;}
 		closeSubState();
 		inArchipelagoMode = true;
 		var FNF = new FlxSave();

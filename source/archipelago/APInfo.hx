@@ -4,6 +4,9 @@ class APInfo {
     public static var ap:Client;
     public static var apGame:APGameState;
 
+	public static var ticketCount:Int = 0;
+	public static var ticketWinCount:Int = 1;
+
 	public static final baseGame:Array<String> = 
 	[
 		'Tutorial',
