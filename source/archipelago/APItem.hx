@@ -134,6 +134,9 @@ class APItem {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
                         if (playState != null && playState.startedCountdown) {
                             // Call the die() function once the countdown has started
+                                backend.COD.COD.COD = "Killed by Blue Balls Curse.";
+                            playState.deathByBlueBalls = true;
+
                             playState.die();
                         } else {
                             // Retry after a short delay if countdown hasn't started

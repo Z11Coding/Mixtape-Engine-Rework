@@ -277,7 +277,23 @@ class GameOverSubstate extends MusicBeatSubstate
 			{
 				FlxG.camera.fade(FlxColor.BLACK, 2, false, function()
 				{
-					MusicBeatState.resetState();
+					if (Std.is(PlayState.instance, APPlayState) && APPlayState.deathByBlueBalls)
+					{
+						APPlayState.deathByBlueBalls = false;
+						FlxG.camera.visible = false;
+						FlxG.sound.music.stop();
+						PlayState.deathCounter = 0;
+						PlayState.seenCutscene = false;
+						PlayState.chartingMode = false;
+
+						Mods.loadTopMod();
+						MusicBeatState.switchState(new FreeplayState());
+						FlxG.sound.playMusic(Paths.music('freakyMenu'));
+					}
+					else
+					{
+						MusicBeatState.resetState();
+					}
 				});
 			});
 			PlayState.instance.callOnScripts('onGameOverConfirm', [true]);
