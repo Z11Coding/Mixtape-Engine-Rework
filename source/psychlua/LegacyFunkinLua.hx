@@ -76,6 +76,7 @@ class LegacyFunkinLua {
 	public var camTarget:FlxCamera;
 	public var scriptName:String = '';
 	public var closed:Bool = false;
+	public static var emulatableVersions:Array<String> = ['0.6.3', '0.7', '0.7.1', '0.7.3'];
 
 	#if hscript
 	public static var hscript:HScriptLegacy = null;
@@ -167,8 +168,9 @@ class LegacyFunkinLua {
 		set('rating', 0);
 		set('ratingName', '');
 		set('ratingFC', '');
-		set('version', states.MainMenuState.psychEngineVersion.trim());
-		set('version', states.MainMenuState.mixtapeEngineVersion.trim());
+		set('version', Std.string(ClientPrefs.getGameplaySetting('legacyType')).toLowerCase().trim() != 'none' 
+			? Std.string(ClientPrefs.getGameplaySetting('legacyType')).trim() 
+			: states.MainMenuState.psychEngineVersion.trim());
 
 		set('inGameOver', false);
 		set('mustHitSection', false);

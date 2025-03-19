@@ -95,48 +95,48 @@ typedef SetNotifyPacket = { keys: Array<String> };
 
 class APGameState {
 
+    public static var instance:APGameState;
+
     private var _ap:Client;
     private var _seed:String;
     private var _disconnectSubstate:APDisconnectSubstate;
     private var _saveData:yutautil.save.MixSaveWrapper;
     public var connected(get, never):Bool;
 
+    public var APLocations:Array<Int> = [];
+
     public function locationData(songName:String):Array<Int> {
+        // trace("Starting locationData function with songName: " + songName);
         var matchingLocations:Array<Int> = [];
         var exactMatch:Int = -1;
         var hasDashNumber:Bool = false;
+        var reg = new EReg("^" + EReg.escape(songName) + "(?:-\\d+)?$", "");
+        var apInfo = info();
 
-        var missingLocations = info()?.missingLocations;
-        var checkedLocations = info()?.checkedLocations;
+        // trace("Iterating through APLocations...");
+        for (location in APLocations) {
+            var locationName = apInfo.get_location_name(location);
+            // trace("Checking location: " + location + " with name: " + locationName);
 
-        if (missingLocations != null) {
-            for (missing in missingLocations) {
-                var locationName = info().get_location_name(missing);
-                if (locationName == songName) {
-                    exactMatch = missing;
-                } else if (new EReg("^" + songName + "-\\d+$", "").match(locationName)) {
-                    matchingLocations.push(missing);
-                    hasDashNumber = true;
-                }
+            if (locationName == songName) {
+                // trace("Exact match found for location: " + location);
+                exactMatch = location;
+                break;
+            } else if (reg.match(locationName)) {           //     trace("Matching location with dash-number found: " + location);
+                matchingLocations.push(location);
+                hasDashNumber = true;
             }
         }
 
-        if (checkedLocations != null) {
-            for (checked in checkedLocations) {
-                var locationName = info().get_location_name(checked);
-                if (locationName == songName) {
-                    exactMatch = checked;
-                } else if (new EReg("^" + songName + "-\\d+$", "").match(locationName)) {
-                    matchingLocations.push(checked);
-                    hasDashNumber = true;
-                }
-            }
-        }
+        // trace("Finished iterating through APLocations.");
+        // trace("Exact match: " + exactMatch + ", hasDashNumber: " + hasDashNumber);
 
         if (!hasDashNumber && exactMatch != -1) {
+            // trace("Returning exact match as the result: [" + exactMatch + "]");
             return [exactMatch];
         }
 
+        // trace("Returning matching locations: " + matchingLocations);
         return matchingLocations;
     }
 
@@ -164,6 +164,7 @@ class APGameState {
         archipelago.APPlayState.apGame = this;
         archipelago.APInfo.apGame = this;
         archipelago.APInfo.ap = _ap;
+        instance = this;
 
 
         // var dataPackageHash = haxe.crypto.Sha1.make(_ap._dataPackage);

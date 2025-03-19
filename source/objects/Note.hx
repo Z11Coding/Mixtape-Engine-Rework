@@ -539,6 +539,12 @@ class Note extends NoteObject
 		return '(column: $column | noteType: $noteType | strumTime: $strumTime | visible: $visible)';
 	}
 
+	override function set_alpha(Alpha:Float):Float {
+		multAlpha = Alpha;
+		// trace('set alpha: ' + Alpha);
+		return super.set_alpha(Alpha);
+	}
+
 	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null)
 	{
 		super();

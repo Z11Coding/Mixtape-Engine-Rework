@@ -98,7 +98,7 @@ class NotefieldRenderer extends FlxBasic {
 			var indices = object.indices;
 			var colorSwap = object.colorSwap;
 			var transforms:Array<ColorTransform> = []; // todo use fastvector
-			var multAlpha = object.sourceField.alpha * 1;
+			var multAlpha = (object.sourceField.alpha * 1);
 			for (n in 0...Std.int(vertices.length / 2)) {
 				var glow = glows[n];
 				var transfarm:ColorTransform = new ColorTransform();

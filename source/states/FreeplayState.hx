@@ -635,11 +635,7 @@ class FreeplayState extends MusicBeatState
 					if (modName == null) modName = "";
 					var locationId = songName;
 					locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
-					locationId += "-0";
-					var locationIdInt = archipelago.APEntryState.apGame.info().get_location_id(locationId.trim());
-					return locationIdInt != null && locationIdInt > 0 && archipelago.APEntryState.apGame.info().get_location_name(locationIdInt) == APEntryState.victorySong;
-				}
-
+					return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');}
 				var songName:String = '';
 				var modName:String = '';
 				var locationId:Array<Int> = [];
@@ -665,15 +661,17 @@ class FreeplayState extends MusicBeatState
 						trueMissing.push(songName);
 					}
 				}
-				var songText:Alphabet;
+				var songText:Alphabet = null;
+				// for (locId in locationId) {
+				// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));
+				// }
+				// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
+
 				if (APEntryState.inArchipelagoMode) {
 					if (locationId.length > 0 && locationId.indexOf(0) == -1) {
 						//trace('Song: ' + songName + ', Mod: ' + (modName != "" ? modName : "(not modded)") + ', Missing: ' + isMissing);
-						songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color);
-					} else {
-						continue;
-					}
-				} else {
+						songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color); 
+				} } else {
 					songText = new Alphabet(90, 320, songs[i].songName, true);
 				}
 				// if (songText.exists(true)) {
@@ -729,65 +727,79 @@ class FreeplayState extends MusicBeatState
 		if (modName.trim() != "") {
 			locationId += " (" + modName + ")";
 		}
+
 		trace(locationId.trim());
-		var locationIdInt = archipelago.APEntryState.apGame.info().get_location_id(locationId.trim());
-		trace('Location ID: ' + locationIdInt);
-	
-		if (locationIdInt == null || locationIdInt <= 0) {
-			for (song in WeekData.getCurrentWeek().songs) {
-				if ((cast song[0] : String).toLowerCase().trim() == songName.trim().toLowerCase() ||
-					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.trim().toLowerCase().replace(" ", "-")) {
-					locationIdInt = modName.trim() != ""
-						? archipelago.APEntryState.apGame.info().get_location_id(song[0] + " (" + modName + ")")
-						: archipelago.APEntryState.apGame.info().get_location_id(song[0]);
-					locationId = modName.trim() != ""
-						? song[0] + " (" + modName + ")"
+		var locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+		trace('Location IDs: ' + locationIdInts);
+
+		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
+		{
+			for (song in WeekData.getCurrentWeek().songs)
+			{
+				if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
+					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+				{
+					locationId = archipelago.APPlayState.currentMod.trim() != ""
+						? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
 						: song[0];
+					locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 					break;
 				}
 			}
 		}
-	
-		if (locationIdInt <= 0 || locationIdInt == null) {
-			for (song in WeekData.getCurrentWeek().songs) {
-				var songPath = modName.trim() != ""
-					? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+
+		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
+		{
+			for (song in WeekData.getCurrentWeek().songs)
+			{
+				var songPath = archipelago.APPlayState.currentMod.trim() != ""
+					? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
 					: "assets/shared" + (song[0] + Difficulty.getFilePath());
 				var songJson:SwagSong = null;
-				var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + modName + "/data", ".json");
-	
-				for (json in jsonStuff) {
-					if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
+				var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json");
+
+				for (json in jsonStuff)
+				{
+					if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
+					{
 						songJson = Song.parseJSON(File.getContent(json));
-						if (songJson != null) {
-							if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.trim().toLowerCase().replace(" ", "-")) {
-								locationIdInt = modName.trim() != ""
-									? archipelago.APEntryState.apGame.info().get_location_id(song[0] + " (" + modName + ")")
-									: archipelago.APEntryState.apGame.info().get_location_id(song[0]);
-								locationId = modName.trim() != "" ? song[0] + " (" + modName + ")" : song[0];
+						if (songJson != null)
+						{
+							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+							{
+								locationId = archipelago.APPlayState.currentMod.trim() != "" 
+									? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
+									: song[0];
+								locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 								break;
 							}
 						}
-					}
+					} 
 				}
 			}
 		}
-		trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
-		trace(APEntryState.apGame.info().get_location_name(locationIdInt));
-		trace(songName);
-		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInt) + " to Archipelago!", "Go check it out!", "archColor", function() {
+		
+		for (locationIdInt in locationIdInts)
+		{
+			trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
+			trace(APEntryState.apGame.info().get_location_name(locationIdInt));
+		}
+		trace(PlayState.SONG.song);
+
+		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
 			FlxG.sound.playMusic(Paths.sound('secret'));
 		});
-	
-		locationIdInt = APEntryState.apGame.info().get_location_id(locationId.trim());
-		if (locationIdInt != null && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-")) {
-			archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archColor", function() {
-				FlxG.sound.playMusic(Paths.sound('secret'));
-			});
-			APEntryState.apGame.info().set_goal();
+
+		for (locationIdInt in locationIdInts)
+		{
+			if (locationIdInt != 0 && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-"))
+			{
+				archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+					FlxG.sound.playMusic(Paths.sound('secret'));
+				});
+				APEntryState.apGame.info().set_goal();
+			}
 		}
-
-
 
 		reloadSongs(true);
 		

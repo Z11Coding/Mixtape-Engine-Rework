@@ -93,6 +93,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(option);
 
 		optionsArray.push(new GameplayOption('Legacy Psych Mode', 'legacyMode', BOOL, false));
+		optionsArray.push(new GameplayOption('Legacy Emulated Version', 'legacyType', STRING, '0.6.3', psychlua.LegacyFunkinLua.emulatableVersions.concat(["None"])));
 	}
 
 	public function getOptionByName(name:String)

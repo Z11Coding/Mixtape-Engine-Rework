@@ -108,6 +108,10 @@ class Sandbox<T> {
         return proxy;
     }
 
+    // private macro function __args__(f:F):Array<Dynamic> {
+    //     return Context.getArguments();
+    // }
+
     // private function updateProxy(field:Dynamic, value:Dynamic):Void {
     //     Reflect.setField(proxy, field, value);
     // }
