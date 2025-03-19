@@ -155,7 +155,7 @@ class RankingSubstate extends MusicBeatSubstate
 						locationId += " (" + archipelago.APPlayState.currentMod + ")";
 					}
 					trace(locationId.trim());
-					var locationIdInts = APInfo.apGame.locationData(locationId.trim());
+					var locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 					trace('Location IDs: ' + locationIdInts);
 
 					if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
@@ -168,7 +168,7 @@ class RankingSubstate extends MusicBeatSubstate
 								locationId = archipelago.APPlayState.currentMod.trim() != ""
 									? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
 									: song[0];
-								locationIdInts = APInfo.apGame.locationData(locationId.trim());
+								locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 								break;
 							}
 						}
@@ -196,7 +196,7 @@ class RankingSubstate extends MusicBeatSubstate
 											locationId = archipelago.APPlayState.currentMod.trim() != "" 
 												? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
 												: song[0];
-											locationIdInts = APInfo.apGame.locationData(locationId.trim());
+											locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 											break;
 										}
 									}
