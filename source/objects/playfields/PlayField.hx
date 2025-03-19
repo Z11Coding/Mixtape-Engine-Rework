@@ -997,7 +997,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			}
 
 			//kade is just evil lmao
-			if (daNote.isParent && daNote.tooLate && !daNote.isSustainNote)
+			if (ClientPrefs.data.inputSystem == "Kade" && daNote.isParent && daNote.tooLate && !daNote.isSustainNote)
 			{
 				PlayState.instance.health -= 0.15; // give a health punishment for failing a LN
 				trace("hold fell over at the start");

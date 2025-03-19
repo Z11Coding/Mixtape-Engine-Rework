@@ -3619,7 +3619,7 @@ class PlayState extends MusicBeatState
 		var healthRatio:Float = health / MaxHP;
 		switch (ClientPrefs.data.healthMode) {
 			case "Tabi":
-				var p2ToUse:Float = healthBar.x + (healthBar.width * (FlxMath.remapToRange((health / 2 * 100), 0, 100, 100, 0) * 0.01)) - (iconP2.width - iconOffset);
+				var p2ToUse:Float = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
 				if (iconP2.x - iconP2.width / 2 < healthBar.x && iconP2.x > p2ToUse)
 				{
 					healthBar.offset.x = iconP2.x - p2ToUse;

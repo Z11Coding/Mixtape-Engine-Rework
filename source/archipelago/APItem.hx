@@ -101,11 +101,13 @@ class APItem {
         if (this.condition.type == Everywhere) {
             this.isException = true;
         }
-        allItems.push(this);
 
-        // if ((!archipelago.APGameState.isSynced && !toSync))
-            
-
+        if (APEntryState.gonnaRunSync && toSync) {
+            allItems.push(this); trace('Item to sync: ${this.name}');
+        } else if (!APEntryState.gonnaRunSync) {
+            allItems.push(this); trace('Item: ${this.name}');
+        }
+   
     }
 
     public static function popup(desc:String):Void {
@@ -134,7 +136,9 @@ class APItem {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
                         if (playState != null && playState.startedCountdown) {
                             // Call the die() function once the countdown has started
-                                backend.COD.COD.COD = "Killed by Blue Balls Curse."; // HOW AND WHY DOES THIS WORK THE WAY IT DOES????
+                                // HOW AND WHY DOES THIS WORK THE WAY IT DOES???? - Yuta
+                                // Welcome back old friend - Z11
+                                backend.COD.COD.COD = "Killed by Blue Balls Curse.";
                             archipelago.APPlayState.deathByBlueBalls = true;
 
                             playState.die();

@@ -278,6 +278,7 @@ class APGameState {
     }
 
     public static var isSync:Bool = false;
+    var haventranyet:Bool = true;
     function addSongs(song:Array<NetworkItem>)
     {
         var nonSongs:Map<String, Int> = [];
@@ -384,17 +385,17 @@ class APGameState {
         {
             
             if (nonSongs.get(items) <= ItemIndex)
-                {
-                    continue;
-                }
-                else
-                {
-                    ItemIndex = nonSongs.get(items);
-                    archipelago.APItem.createItemByName(items);
-                }
+            {
+                continue;
+            }
+            else
+            {
+                ItemIndex = nonSongs.get(items);
+                archipelago.APItem.createItemByName(items);
+            }
         }
         archipelago.APItem.doCheck();
-                isSync = false;
+        isSync = false;
 
     }
 
