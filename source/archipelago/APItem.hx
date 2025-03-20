@@ -3,7 +3,7 @@ package archipelago;
 import haxe.ds.StringMap;
 
 typedef Condition = {
-    var checkFn:Void->Bool;
+    var checkFn:APItem->Bool;
     var type:ConditionType;
 }
 
@@ -14,16 +14,23 @@ enum ConditionType {
 }
 
 class ConditionHelper {
-    public static inline function create(check:Void->Bool, type:ConditionType):Condition {
+    private static inline function create(check:APItem->Bool, type:ConditionType):Condition {
         return { checkFn: check, type: type };
     }
 
-    public static inline function check(condition:Condition, item:APItem):Bool {
-        return condition.checkFn();
+    public static inline function check(item:APItem):Bool {
+        return item.condition.checkFn(item);
     }
-    public static var Everywhere = ConditionHelper.create(function():Bool { return true; }, ConditionType.Everywhere);
-    public static var PlayState = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.PlayState) && !states.PlayState.instance.startingSong;}, ConditionType.PlayState);
-    public static var Freeplay = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay);
+
+    public static inline function Everywhere():Condition { 
+        return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere); 
+    }
+    public static inline function PlayState():Condition { 
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (!states.PlayState.instance.startingSong || item.isException); }, ConditionType.PlayState); 
+    }
+    public static inline function Freeplay():Condition { 
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay); 
+    }
 }
 
 class ActiveArray {
@@ -116,7 +123,7 @@ class APItem {
     public static function createItemByName(name:String):APItem {
         switch (name) {
             case "Blue Balls Curse":
-                return new APItem(name, ConditionHelper.Everywhere, function() {
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
                     // Check if shields are available
                     if (shields > 0) {
                         shields--;
@@ -147,29 +154,29 @@ class APItem {
                     }, 100);
                 }, false, false);
             case "Fake Transition":
-                return new APItem(name, ConditionHelper.Everywhere, function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
+                return new APItem(name, ConditionHelper.Everywhere(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
-                return new APItem(name, ConditionHelper.Everywhere, function() {popup("You got a ticket!");
+                return new APItem(name, ConditionHelper.Everywhere(), function() {popup("You got a ticket!");
                     archipelago.APInfo.ticketCount++;
                 }, true, true);
             case "SvC Effect":
-                return new APItem(name, ConditionHelper.PlayState, function() APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]), true, false);
+                return new APItem(name, ConditionHelper.PlayState(), function() APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]), true, false);
             case "Ghost Chat":
-                return new APItem(name, ConditionHelper.PlayState, function() APPlayState.instance.triggerGhostChat(), true, false);
+                return new APItem(name, ConditionHelper.PlayState(), function() APPlayState.instance.triggerGhostChat(), true, false);
             case "Shield":
-                return new APItem(name, ConditionHelper.Everywhere, function() {
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
                     shields++;
                     trace("Shield acquired! Current shields: " + shields);
                     popup("You got a shield!");
                 }, true, true);
             case "Max HP Up":
-                return new APItem(name, ConditionHelper.Everywhere, function() {
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
                     maxHPUp++;
                     trace("Max HP increased! Current max HP: " + maxHPUp);
                     popup("You got a max HP up!");
                 }, true, true);
             case "Tutorial Trap":
-                return new APItem(name, ConditionHelper.PlayState, function() {
+                return new APItem(name, ConditionHelper.PlayState(), function() {
                     // Wait for PlayState's startedCountdown to become active
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
@@ -193,16 +200,16 @@ class APItem {
             trace("Triggering item: " + this.name);
             trace("Is exception: " + this.isException);
             trace("Condition type: " + this.condition.type);
-            trace("Condition check result: " + this.condition.checkFn());
+            trace("Condition check result: " + this.condition.checkFn(this));
 
-            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn()) {
+            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this)) {
                 trace("Setting active item to: " + this.name);
                 APItem.activeItem = this;
             } else {
                 trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
-            if (this.condition.checkFn()) {
+            if (this.condition.checkFn(this)) {
                 trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
             } else {
@@ -213,16 +220,16 @@ class APItem {
             trace("Triggering item: " + this.name);
             trace("Is exception: " + this.isException);
             trace("Condition type: " + this.condition.type);
-            trace("Condition check result: " + this.condition.checkFn());
+            trace("Condition check result: " + this.condition.checkFn(this));
 
-            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn()) {
+            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this)) {
                 trace("Setting active item to: " + this.name);
                 APItem.activeItem = this;
             } else {
                 trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
-            if (this.condition.checkFn()) {
+            if (this.condition.checkFn(this)) {
                 trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
             } else {
@@ -273,7 +280,7 @@ class APItem {
             if (!allowedToTrigger && !item.isException) {
                 continue;
             }
-            if (item.condition.checkFn()) {
+            if (item.condition.checkFn(item)) {
                 if (!triggered || item.isException) {
                     item.trigger();
                     if (!item.isException) {
