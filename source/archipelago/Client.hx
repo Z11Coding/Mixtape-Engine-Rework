@@ -953,8 +953,10 @@ class Client {
 		@return Whether the operation was successful.
 	**/
 	public var firstSync:Bool = true;
+	var a:Bool = false;
 	public function Sync():Bool {
-		firstSync = false;
+		if (!a) a = true;
+		else firstSync = false;
 		if (state < State.SLOT_CONNECTED)
 			return false;
 		return InternalSend(OutgoingPacket.Sync);

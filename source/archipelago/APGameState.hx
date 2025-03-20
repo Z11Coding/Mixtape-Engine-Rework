@@ -386,14 +386,18 @@ class APGameState {
 
         for (items in nonSongsNames)
         {
-            if (nonSongs.get(items) <= ItemIndex)
-            {
-                continue;
-            }
-            else
-            {
-                ItemIndex = nonSongs.get(items);
-                archipelago.APItem.createItemByName(items);
+            if (items == 'ticket') archipelago.APItem.createItemByName(items);
+            else {
+                if (nonSongs.get(items) <= ItemIndex)
+                {
+                    continue;
+                }
+                else
+                {
+                    trace('triggering $items');
+                    ItemIndex = nonSongs.get(items);
+                    archipelago.APItem.createItemByName(items);
+                }
             }
         }
         archipelago.APItem.doCheck();

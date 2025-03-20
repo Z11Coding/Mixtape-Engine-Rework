@@ -18,11 +18,11 @@ class ConditionHelper {
         return { checkFn: check, type: type };
     }
 
-    public static inline function check(condition:Condition):Bool {
+    public static inline function check(condition:Condition, item:APItem):Bool {
         return condition.checkFn();
     }
     public static var Everywhere = ConditionHelper.create(function():Bool { return true; }, ConditionType.Everywhere);
-    public static var PlayState = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.PlayState);}, ConditionType.PlayState);
+    public static var PlayState = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.PlayState) && !states.PlayState.instance.startingSong;}, ConditionType.PlayState);
     public static var Freeplay = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay);
 }
 
@@ -133,13 +133,12 @@ class APItem {
                     // Wait for PlayState's startedCountdown to become active
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
-                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
+                        if (playState != null && playState.startedCountdown) {
                             // Call the die() function once the countdown has started
-                                // HOW AND WHY DOES THIS WORK THE WAY IT DOES???? - Yuta
-                                // Welcome back old friend - Z11
-                                backend.COD.COD.COD = "Killed by Blue Balls Curse.";
+                            // HOW AND WHY DOES THIS WORK THE WAY IT DOES???? - Yuta
+                            // Welcome back old friend - Z11
+                            backend.COD.COD.COD = "Killed by Blue Balls Curse.";
                             archipelago.APPlayState.deathByBlueBalls = true;
-
                             playState.die();
                         } else {
                             // Retry after a short delay if countdown hasn't started
@@ -151,52 +150,30 @@ class APItem {
                 return new APItem(name, ConditionHelper.Everywhere, function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere, function() {popup("You got a ticket!");
-                    archipelago.APInfo.ticketCount++;}   
-                );
+                    archipelago.APInfo.ticketCount++;
+                }, true, true);
             case "SvC Effect":
-                return new APItem(name, ConditionHelper.PlayState, function() {
-                    // Wait for PlayState's startedCountdown to become active
-                    haxe.Timer.delay(function checkCountdown() {
-                        var playState:archipelago.APPlayState = cast states.PlayState.instance;
-                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
-                            APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]);
-                        } else {
-                            // Retry after a short delay if countdown hasn't started
-                            haxe.Timer.delay(checkCountdown, 100);
-                        }
-                    }, 100);
-                }, false, false);
+                return new APItem(name, ConditionHelper.PlayState, function() APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]), true, false);
             case "Ghost Chat":
-                return new APItem(name, ConditionHelper.PlayState, function() {
-                    // Wait for PlayState's startedCountdown to become active
-                    haxe.Timer.delay(function checkCountdown() {
-                        var playState:archipelago.APPlayState = cast states.PlayState.instance;
-                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
-                            APPlayState.instance.triggerGhostChat();
-                        } else {
-                            // Retry after a short delay if countdown hasn't started
-                            haxe.Timer.delay(checkCountdown, 100);
-                        }
-                    }, 100);
-                }, false, false);
+                return new APItem(name, ConditionHelper.PlayState, function() APPlayState.instance.triggerGhostChat(), true, false);
             case "Shield":
                 return new APItem(name, ConditionHelper.Everywhere, function() {
                     shields++;
                     trace("Shield acquired! Current shields: " + shields);
                     popup("You got a shield!");
-                });
+                }, true, true);
             case "Max HP Up":
                 return new APItem(name, ConditionHelper.Everywhere, function() {
                     maxHPUp++;
                     trace("Max HP increased! Current max HP: " + maxHPUp);
                     popup("You got a max HP up!");
-                });
+                }, true, true);
             case "Tutorial Trap":
                 return new APItem(name, ConditionHelper.PlayState, function() {
                     // Wait for PlayState's startedCountdown to become active
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
-                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
+                        if (playState != null && playState.startedCountdown) {
                             APPlayState.instance.doEffect('songSwitch');
                         } else {
                             // Retry after a short delay if countdown hasn't started
@@ -211,7 +188,8 @@ class APItem {
 
     public function trigger():Void {
         trace('is Gonna Run Sync: ${APGameState.isSync}');
-        if (APGameState.isSync && !this.toSync) {
+        if (APInfo.ap.firstSync && this.toSync) {
+            trace("RUNNING FIRST SYNC!");
             trace("Triggering item: " + this.name);
             trace("Is exception: " + this.isException);
             trace("Condition type: " + this.condition.type);
@@ -230,7 +208,8 @@ class APItem {
             } else {
                 trace("Condition failed, onTrigger not executed for item: " + this.name);
             }
-        } else if (!APGameState.isSync) {
+        } else if (!APInfo.ap.firstSync) {
+            trace("RUNNING NORMAL SYNC!");
             trace("Triggering item: " + this.name);
             trace("Is exception: " + this.isException);
             trace("Condition type: " + this.condition.type);

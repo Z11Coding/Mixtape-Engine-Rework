@@ -5985,6 +5985,7 @@ class PlayState extends MusicBeatState
 		mania = 3;
 		instance = null;
 		super.destroy();
+		endingSong = true;
 	}
 
 	var lastStepHit:Int = -1;

@@ -333,6 +333,9 @@ class FreeplayState extends MusicBeatState
 				archipelago.APGameState.haventranyet = false;
 			});
 		}
+
+		if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
+			archipelago.APItem.activeItem = null;
 	}
 
 	function isModName(name:String):Bool {
@@ -1139,8 +1142,10 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 
+				var vicCheck:Bool = isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && APInfo.ticketWinCount - APInfo.ticketCount == 0;
 				//You need the song AND the tickets.
-				if (isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && (APInfo.ticketWinCount - APInfo.ticketCount) == 0 && trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
+				trace('can play victory song: ${vicCheck}');
+				if (isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && !vicCheck) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)
@@ -1153,8 +1158,9 @@ class FreeplayState extends MusicBeatState
 					});
 					FlxTween.color(ticketCounter, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
 					return;
-				} 
-				else if (trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
+				}
+				
+				if (trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)
