@@ -294,7 +294,6 @@ class APGameState {
             if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
             {
                 nonSongs.set(itemName, songName.index);
-                nonSongsNames.push(itemName);
                 continue;
             }
 
