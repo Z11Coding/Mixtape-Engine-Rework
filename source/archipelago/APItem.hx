@@ -22,7 +22,7 @@ class ConditionHelper {
         return condition.checkFn();
     }
     public static var Everywhere = ConditionHelper.create(function():Bool { return true; }, ConditionType.Everywhere);
-    public static var PlayState = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.PlayState); }, ConditionType.PlayState);
+    public static var PlayState = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.PlayState);}, ConditionType.PlayState);
     public static var Freeplay = ConditionHelper.create(function():Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay);
 }
 
@@ -103,18 +103,15 @@ class APItem {
             this.isException = true;
         }
 
-        if (APGameState.isSync && this.toSync) {
-            allItems.push(this); trace('Item to sync: ${this.name}');
-        } else if (!APGameState.isSync) {
-            allItems.push(this); trace('Item: ${this.name}');
-        }
-   
+        allItems.push(this);
     }
 
     public static function popup(desc:String):Void {
-        archipelago.ArchPopup.startPopupCustom("AP Item!", desc, "archColor", function() {
-            FlxG.sound.playMusic(Paths.sound('secret'));
-    });}
+        if (!APGameState.haventranyet) {
+            archipelago.ArchPopup.startPopupCustom("AP Item!", desc, "archColor", function() {
+            FlxG.sound.playMusic(Paths.sound('secret'));});
+        }
+    }
 
     public static function createItemByName(name:String):APItem {
         switch (name) {
@@ -123,6 +120,7 @@ class APItem {
                     // Check if shields are available
                     if (shields > 0) {
                         shields--;
+                        ArchPopup.startPopupCustom("Death Avoided!", 'Shields left: $shields', "archWhite");
                         return; // Do nothing else if shields are consumed
                     }
 
@@ -135,7 +133,7 @@ class APItem {
                     // Wait for PlayState's startedCountdown to become active
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
-                        if (playState != null && playState.startedCountdown) {
+                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
                             // Call the die() function once the countdown has started
                                 // HOW AND WHY DOES THIS WORK THE WAY IT DOES???? - Yuta
                                 // Welcome back old friend - Z11
@@ -156,9 +154,31 @@ class APItem {
                     archipelago.APInfo.ticketCount++;}   
                 );
             case "SvC Effect":
-                return new APItem(name, ConditionHelper.PlayState, function() trace("SvC Effect triggered!"));
+                return new APItem(name, ConditionHelper.PlayState, function() {
+                    // Wait for PlayState's startedCountdown to become active
+                    haxe.Timer.delay(function checkCountdown() {
+                        var playState:archipelago.APPlayState = cast states.PlayState.instance;
+                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
+                            APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]);
+                        } else {
+                            // Retry after a short delay if countdown hasn't started
+                            haxe.Timer.delay(checkCountdown, 100);
+                        }
+                    }, 100);
+                }, false, false);
             case "Ghost Chat":
-                return new APItem(name, ConditionHelper.PlayState, function() trace("Ghost Chat triggered!"));
+                return new APItem(name, ConditionHelper.PlayState, function() {
+                    // Wait for PlayState's startedCountdown to become active
+                    haxe.Timer.delay(function checkCountdown() {
+                        var playState:archipelago.APPlayState = cast states.PlayState.instance;
+                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
+                            APPlayState.instance.triggerGhostChat();
+                        } else {
+                            // Retry after a short delay if countdown hasn't started
+                            haxe.Timer.delay(checkCountdown, 100);
+                        }
+                    }, 100);
+                }, false, false);
             case "Shield":
                 return new APItem(name, ConditionHelper.Everywhere, function() {
                     shields++;
@@ -172,7 +192,18 @@ class APItem {
                     popup("You got a max HP up!");
                 });
             case "Tutorial Trap":
-                return new APItem(name, ConditionHelper.PlayState, function() trace("Tutorial Trap triggered!"), true);
+                return new APItem(name, ConditionHelper.PlayState, function() {
+                    // Wait for PlayState's startedCountdown to become active
+                    haxe.Timer.delay(function checkCountdown() {
+                        var playState:archipelago.APPlayState = cast states.PlayState.instance;
+                        if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
+                            APPlayState.instance.doEffect('songSwitch');
+                        } else {
+                            // Retry after a short delay if countdown hasn't started
+                            haxe.Timer.delay(checkCountdown, 100);
+                        }
+                    }, 100);
+                }, true, false);
             default:
                 throw "Unknown item name: " + name;
         }

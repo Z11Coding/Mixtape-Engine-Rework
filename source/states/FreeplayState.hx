@@ -325,7 +325,7 @@ class FreeplayState extends MusicBeatState
 		changeSelection();
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
-			ticketCounter = new FlxText(FlxG.width - 600, FlxG.height - 300, 0, "0/0", 32);
+			ticketCounter = new FlxText(FlxG.width - 470, FlxG.height - 630, 0, "0/0", 32);
 			ticketCounter.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			ticketCounter.scrollFactor.set();
 			add(ticketCounter);
@@ -630,12 +630,6 @@ class FreeplayState extends MusicBeatState
 			
 			for (i in 0...songs.length)
 			{
-
-				function isVictorySong(songName:String, modName:String):Bool {
-					if (modName == null) modName = "";
-					var locationId = songName;
-					locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
-					return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');}
 				var songName:String = '';
 				var modName:String = '';
 				var locationId:Array<Int> = [];
@@ -712,6 +706,13 @@ class FreeplayState extends MusicBeatState
 			if (PlayState.SONG != null) Conductor.bpm = PlayState.SONG.bpm;
 		}
 	} 
+
+	function isVictorySong(songName:String, modName:String):Bool {
+		if (modName == null) modName = "";
+		var locationId = songName;
+		locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
+		return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');
+	}
 
 	var instPlaying:Int = -1;
 	var trackPlaying:String = null;
@@ -1138,7 +1139,22 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 
-				if (trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
+				//You need the song AND the tickets.
+				if (isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && (APInfo.ticketWinCount - APInfo.ticketCount) == 0 && trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
+					FlxG.camera.shake(0.005, 0.5);
+					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
+					grpSongs.forEach(function(item:FlxSprite)
+					{
+						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					});
+					grpLocks.forEach(function(item:FlxSprite)
+					{
+						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					});
+					FlxTween.color(ticketCounter, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					return;
+				} 
+				else if (trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)

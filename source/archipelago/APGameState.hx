@@ -282,6 +282,7 @@ class APGameState {
     function addSongs(song:Array<NetworkItem>)
     {
         var nonSongs:Map<String, Int> = [];
+        var nonSongsNames:Array<String> = [];
         states.FreeplayState.curMissing.clear();
 
 
@@ -292,10 +293,11 @@ class APGameState {
             var itemName = info().get_item_name(songName.item);
 
             if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
-                {
+            {
                 nonSongs.set(itemName, songName.index);
+                nonSongsNames.push(itemName);
                 continue;
-                }
+            }
 
             // Convert special keywords back to actual brackets
             itemName = itemName.replace("<cOpen>", "{")
@@ -381,29 +383,19 @@ class APGameState {
             }
         }
 
-        for (items in nonSongs.keys())
-        {
-            
-            if (nonSongs.get(items) <= ItemIndex)
-            {
-                continue;
-            }
-            else
-            {
-                if (haventranyet) {
-                    if (!trapList.contains(items)) {
-                        ItemIndex = nonSongs.get(items);
-                        archipelago.APItem.createItemByName(items);
-                    }
-                } else {
-                    ItemIndex = nonSongs.get(items);
-                    archipelago.APItem.createItemByName(items);
+        for (item in nonSongsNames) {
+            trace(item);
+            if (haventranyet) {
+                if (!trapList.contains(item)) {
+                    ItemIndex = nonSongs.get(item);
+                    archipelago.APItem.createItemByName(item);
                 }
+            } else {
+                ItemIndex = nonSongs.get(item);
+                archipelago.APItem.createItemByName(item);
             }
         }
-        if (!haventranyet) {
-            archipelago.APItem.doCheck();
-        }
+        archipelago.APItem.doCheck();
         //haventranyet = false;
         isSync = false;
 

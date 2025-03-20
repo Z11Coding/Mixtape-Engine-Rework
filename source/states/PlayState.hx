@@ -1802,7 +1802,7 @@ class PlayState extends MusicBeatState
 			str += ' (${percent}%) - ' + Language.getPhrase(ratingFC);
 		}
 
-		if (health <= 0.0475 && ClientPrefs.data.healthMode == "Mixtape")
+		if (health <= 0.0475 && (ClientPrefs.data.healthMode == "Mixtape" || ClientPrefs.data.healthMode == "Tabi"))
 		{
 			scoreTxt.text = "DON'T MISS!";
 			scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
@@ -3313,11 +3313,11 @@ class PlayState extends MusicBeatState
 			camGame.visible = false;
 		}
 
-		if (ClientPrefs.data.healthMode == "Tabi" && storyDifficulty > 0)
+		if (ClientPrefs.data.healthMode == "Tabi")
 		{
 			if (health > 0)
 			{
-				health -= 0.001 / ClientPrefs.data.framerate;
+				health -= 0.001 / (ClientPrefs.data.framerate / 60);
 			}
 		}
 
@@ -3624,7 +3624,7 @@ class PlayState extends MusicBeatState
 		var healthRatio:Float = health / MaxHP;
 		switch (ClientPrefs.data.healthMode) {
 			case "Tabi":
-				var p2ToUse:Float = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
+				var p2ToUse:Float = healthBar.x + (healthBar.width * (FlxMath.remapToRange((health / 2 * 100), 0, 100, 100, 0) * 0.01)) - (iconP2.width - iconOffset) / 2;
 				if (iconP2.x - iconP2.width / 2 < healthBar.x && iconP2.x > p2ToUse)
 				{
 					healthBar.offset.x = iconP2.x - p2ToUse;
@@ -5636,7 +5636,7 @@ class PlayState extends MusicBeatState
 				health -= 0.04;
 				health -= 0.08;
 
-			default:
+			case "Mixtape" | "OG":
 				health -= subtract * healthLoss;
 		}
 		songScore -= 10;
@@ -5741,7 +5741,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (health > 0)
+		if (ClientPrefs.data.healthMode == "Tabi" && health > 0)
 		{
 			if (note.isSustainNote)
 			{
@@ -5887,11 +5887,9 @@ class PlayState extends MusicBeatState
 						else
 							health += 0.004;
 						health += 0.05;
-						if (storyDifficulty > 0)
-						{
-							health += 0.05;
-						}
-					default: health += note.hitHealth * healthGain;
+						health += 0.05;
+					case "Mixtape" | "OG": 
+						health += note.hitHealth * healthGain;
 				}
 			} 
 

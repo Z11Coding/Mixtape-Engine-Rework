@@ -145,10 +145,6 @@ class MainTab extends TabSprite {
 			msgSprite.y = 0;
 		if (msgSprite.y >= msgSprite.height)
 			msgSprite.y = msgSprite.height;
-
-		for (message in messages) {
-			message.visible = message.y <= info.y;
-		}
 	}
 
 	override function onShow() {

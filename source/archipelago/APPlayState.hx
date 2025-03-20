@@ -21,6 +21,8 @@ import objects.playfields.PlayField;
 
 using yutautil.Table;
 class APPlayState extends PlayState {
+    public static var instance:APPlayState;
+
     public static var apGame:APGameState;
     public static var deathByLink:Bool = false;
     public static var deathByBlueBalls:Bool = false;
@@ -73,7 +75,7 @@ class APPlayState extends PlayState {
 	var picked:Int = 0;
     var wordList:Array<String> = [];
 	var nonoLetters:String = "";
-	var effectArray:Array<String> = [
+	public var effectArray:Array<String> = [
 		'colorblind', 'blur', 'lag', 'mine', 'warning', 'heal', 'spin', 'songslower', 'songfaster', 'scrollswitch', 'scrollfaster', 'scrollslower', 'rainbow',
 		'cover', 'ghost', 'flashbang', 'nostrum', 'jackspam', 'spam', 'sever', 'shake', 'poison', 'dizzy', 'noise', 'flip', 'invuln',
 		'desync', 'mute', 'ice', 'randomize', 'randomizeAlt', 'opponentPlay', 'bothplay', 'fakeheal', 'spell', 'terminate', 'lowpass', 'notif'
@@ -105,7 +107,7 @@ class APPlayState extends PlayState {
 		⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠉⠉⠉⠉⠈⠄⠄⠄⠄⠄⠄",
 		"You know what that means, FISH!"
 	];
-	var curEffect:Int = 0;
+	public var curEffect:Int = 0;
 
 	public var effectMap:Map<String, Void->Void>;
 	var effectendsin:FlxText;
@@ -133,6 +135,7 @@ class APPlayState extends PlayState {
 
     override public function create()
     {
+        instance = this; // For traps and items
         if (APEntryState.inArchipelagoMode)
         {
             if (FlxG.save.data.activeItems != null)
@@ -1380,9 +1383,10 @@ effectMap = [
         return true;
     }
 
-    override function startSong()
+    // I feel bad for the poor soul that has this trigger on them multiple times
+    public function triggerGhostChat()
     {
-        /*effectTimer.start(5, function(timer)
+        effectTimer.start(5, function(timer)
         {
             if (paused)
                 return;
@@ -1394,26 +1398,10 @@ effectMap = [
 
         randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer)
         {
-            if (curEffect <= 38) doEffect(effectArray[curEffect]);
-            else if (curEffect > 38)
-            {
-                switch (curEffect)
-                {
-                    case 38:
-                        activeItems[0] += 1;
-                        ArchPopup.startPopupCustom('You Got an Item!', '+1 Shield ( ' + activeItems[0] + ' Left)', 'archColor');
-                    case 39:
-                        activeItems[1] = 1;
-                        ArchPopup.startPopupCustom('You Got an Item!', "Blue Ball's Curse", 'archWhite');
-                    case 40:
-                        activeItems[2] += 1;
-						MaxHP = 2+activeItems[2];
-                        ArchPopup.startPopupCustom('You Got an Item!', "Max HP Up!", 'archColor');
-                }
-            }
+            doEffect(effectArray[curEffect]);
             tmr.reset(FlxG.random.float(5, 10));
-        });*/
-        super.startSong();
+        });
+        trace("Ghost Chat Activated! L E T  T H E  C H A O S  B E G I N !");
     }
     
     function addNonoLetters(keyBind:String) {
@@ -1446,9 +1434,8 @@ effectMap = [
     var oldRate:Int = 60;
 	var noIcon:Bool = false;
 	var available:Array<Int> = [];
-
 	
-public function doEffect(effect:String)
+    public function doEffect(effect:String)
 	{
 		if (paused || endingSong) return;
 		
@@ -1890,7 +1877,7 @@ public function doEffect(effect:String)
 			}
 		}*/
 		#end
-        curEffect = FlxG.random.int(0, 40);
+        curEffect = FlxG.random.int(0, 38);
         if (isFrozen) boyfriend.stunned = true;
         if (notes != null)
 		{
