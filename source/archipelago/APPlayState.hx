@@ -1123,7 +1123,7 @@ effectMap = [
 			var content:String = sys.io.File.getContent(Paths.txt("words"));
 			wordList = content.toLowerCase().split("\n");
 		}
-        wordList.push(PlayState.SONG.song);
+        wordList.push(PlayState.SONG?.song);
 		trace(wordList.length + " words loaded");
 		trace(wordList);
 		validWords.resize(0);

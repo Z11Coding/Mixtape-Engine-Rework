@@ -278,7 +278,7 @@ class APGameState {
     }
 
     public static var isSync:Bool = false;
-    var haventranyet:Bool = true;
+    public static var haventranyet:Bool = true;
     function addSongs(song:Array<NetworkItem>)
     {
         var nonSongs:Map<String, Int> = [];
@@ -390,14 +390,33 @@ class APGameState {
             }
             else
             {
-                ItemIndex = nonSongs.get(items);
-                archipelago.APItem.createItemByName(items);
+                if (haventranyet) {
+                    if (!trapList.contains(items)) {
+                        ItemIndex = nonSongs.get(items);
+                        archipelago.APItem.createItemByName(items);
+                    }
+                } else {
+                    ItemIndex = nonSongs.get(items);
+                    archipelago.APItem.createItemByName(items);
+                }
             }
         }
-        archipelago.APItem.doCheck();
+        if (!haventranyet) {
+            archipelago.APItem.doCheck();
+        }
+        //haventranyet = false;
         isSync = false;
 
     }
+
+    // A bandage fix till we have enough brainpower to fix this properly
+    var trapList:Array<String> = [
+        "Blue Balls Curse",
+        "Fake Transition",
+        "SvC Effect",
+        "Ghost Chat",
+        "Tutorial Trap"
+    ];
 
     public function isLocationMissing(location:String):Bool
     {

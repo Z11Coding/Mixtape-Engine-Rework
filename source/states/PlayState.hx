@@ -444,6 +444,11 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		if (SONG == null) {
+			var songLowercase:String = Paths.formatToSongPath('tutorial');
+			var poop:String = Highscore.formatSong(songLowercase, storyDifficulty);	
+			Song.loadFromJson(poop, songLowercase);
+		}
 		inArchipelagoMode = archipelago.APEntryState.inArchipelagoMode;
 		if (inArchipelagoMode && !(this is archipelago.APPlayState))
 		{
@@ -1964,7 +1969,7 @@ class PlayState extends MusicBeatState
 
 	private var noteTypes:Array<String> = [];
 	private var eventsPushed:Array<String> = [];
-	private var totalColumns:Int = Note.ammo[SONG.mania != null ? SONG.mania : mania];
+	private var totalColumns:Int = Note.ammo[SONG?.mania != null ? SONG?.mania : mania];
 	var prevNoteData:Int = -1;
 	var initialNoteData:Int = -1;
 	var caseExecutionCount:Int = FlxG.random.int(-50, 50);

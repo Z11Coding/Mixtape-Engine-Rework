@@ -409,6 +409,7 @@ class APEntryState extends MusicBeatState
 	function onSlotConnected(slotData:Dynamic):Void
 	{
 		trace("Connected - switching to game state");
+		gonnaRunSync = true; // You'll thank me later
 		polltimer.stop();
 		ap.onRoomInfo.remove(onRoomInfo);
 		ap.onSlotRefused.remove(onSlotRefused);
@@ -443,6 +444,7 @@ class APEntryState extends MusicBeatState
 		// if (ClientPrefs.data.deathlink)
 		apGame.info().toggleDeathLink(deathLink);
 
+		APGameState.isSync = true;
 		runArch();
 	}
 
@@ -655,7 +657,6 @@ class APEntryState extends MusicBeatState
 	function runArch():Void // Soon
 	{
 		inArchipelagoMode = true;
-		gonnaRunSync = true; // You'll thank me later
 		backend.WeekData.reloadWeekFiles(false);
 		FlxG.save.data.closeDuringOverRide = false;
 		FlxG.save.data.manualOverride = false;

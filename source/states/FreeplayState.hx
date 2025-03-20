@@ -131,7 +131,7 @@ class FreeplayState extends MusicBeatState
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 
-		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+		if (APEntryState.apGame != null && APEntryState.apGame.info() != null && APEntryState.gonnaRunSync) {
 			APEntryState.apGame.info().Sync();
 			APEntryState.gonnaRunSync = false;
 
@@ -329,6 +329,9 @@ class FreeplayState extends MusicBeatState
 			ticketCounter.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			ticketCounter.scrollFactor.set();
 			add(ticketCounter);
+			new FlxTimer().start(1, function(tmr:FlxTimer) {
+				archipelago.APGameState.haventranyet = false;
+			});
 		}
 	}
 

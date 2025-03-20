@@ -103,9 +103,9 @@ class APItem {
             this.isException = true;
         }
 
-        if (APEntryState.gonnaRunSync && this.toSync) {
+        if (APGameState.isSync && this.toSync) {
             allItems.push(this); trace('Item to sync: ${this.name}');
-        } else if (!APEntryState.gonnaRunSync) {
+        } else if (!APGameState.isSync) {
             allItems.push(this); trace('Item: ${this.name}');
         }
    
@@ -179,23 +179,45 @@ class APItem {
         }
 
     public function trigger():Void {
-        trace("Triggering item: " + this.name);
-        trace("Is exception: " + this.isException);
-        trace("Condition type: " + this.condition.type);
-        trace("Condition check result: " + this.condition.checkFn());
+        trace('is Gonna Run Sync: ${APGameState.isSync}');
+        if (APGameState.isSync && !this.toSync) {
+            trace("Triggering item: " + this.name);
+            trace("Is exception: " + this.isException);
+            trace("Condition type: " + this.condition.type);
+            trace("Condition check result: " + this.condition.checkFn());
 
-        if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn()) {
-            trace("Setting active item to: " + this.name);
-            APItem.activeItem = this;
-        } else {
-            trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
-        }
+            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn()) {
+                trace("Setting active item to: " + this.name);
+                APItem.activeItem = this;
+            } else {
+                trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
+            }
 
-        if (this.condition.checkFn()) {
-            trace("Condition passed, executing onTrigger for item: " + this.name);
-            onTrigger();
-        } else {
-            trace("Condition failed, onTrigger not executed for item: " + this.name);
+            if (this.condition.checkFn()) {
+                trace("Condition passed, executing onTrigger for item: " + this.name);
+                onTrigger();
+            } else {
+                trace("Condition failed, onTrigger not executed for item: " + this.name);
+            }
+        } else if (!APGameState.isSync) {
+            trace("Triggering item: " + this.name);
+            trace("Is exception: " + this.isException);
+            trace("Condition type: " + this.condition.type);
+            trace("Condition check result: " + this.condition.checkFn());
+
+            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn()) {
+                trace("Setting active item to: " + this.name);
+                APItem.activeItem = this;
+            } else {
+                trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
+            }
+
+            if (this.condition.checkFn()) {
+                trace("Condition passed, executing onTrigger for item: " + this.name);
+                onTrigger();
+            } else {
+                trace("Condition failed, onTrigger not executed for item: " + this.name);
+            }
         }
 
         trace("Removing item from allItems: " + this.name);
