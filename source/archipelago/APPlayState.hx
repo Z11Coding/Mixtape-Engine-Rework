@@ -1386,16 +1386,6 @@ effectMap = [
     // I feel bad for the poor soul that has this trigger on them multiple times
     public function triggerGhostChat()
     {
-        effectTimer.start(5, function(timer)
-        {
-            if (paused)
-                return;
-            if (startingSong)
-                return;
-            if (endingSong)
-                return;
-        }, 0);
-
         randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer)
         {
             doEffect(effectArray[curEffect]);

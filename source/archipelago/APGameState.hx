@@ -282,7 +282,6 @@ class APGameState {
     function addSongs(song:Array<NetworkItem>)
     {
         var nonSongs:Map<String, Int> = [];
-        var nonSongsNames:Array<String> = [];
         states.FreeplayState.curMissing.clear();
 
 
@@ -321,6 +320,7 @@ class APGameState {
                     break;
                 }
             }
+            
             if (firstParenIndex == -1 || !isModName(modName)) {
                 modName = "";
                 itemName = info().get_item_name(songName.item);
@@ -383,20 +383,19 @@ class APGameState {
             }
         }
 
-        for (item in nonSongsNames) {
-            trace(item);
-            if (haventranyet) {
-                if (!trapList.contains(item)) {
-                    ItemIndex = nonSongs.get(item);
-                    archipelago.APItem.createItemByName(item);
-                }
-            } else {
-                ItemIndex = nonSongs.get(item);
-                archipelago.APItem.createItemByName(item);
+        for (items in nonSongs.keys())
+        {
+            if (nonSongs.get(items) <= ItemIndex)
+            {
+                continue;
+            }
+            else
+            {
+                ItemIndex = nonSongs.get(items);
+                archipelago.APItem.createItemByName(items);
             }
         }
         archipelago.APItem.doCheck();
-        //haventranyet = false;
         isSync = false;
 
     }
