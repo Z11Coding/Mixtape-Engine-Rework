@@ -108,7 +108,7 @@ class APGameState {
 
     public var APLocations:Array<Int> = [];
     public var APItems:Map<String, Int> = new Map<String, Int>();
-    public var ItemIndex:Int = 0;
+    public var ItemIndex:Int = 1;
 
     public function locationData(songName:String):Array<Int> {
         // trace("Starting locationData function with songName: " + songName);
@@ -282,6 +282,7 @@ class APGameState {
     function addSongs(song:Array<NetworkItem>)
     {
         var nonSongs:Map<String, Int> = [];
+        var nonSongsNames:Array<String> = [];
         states.FreeplayState.curMissing.clear();
 
 
@@ -294,6 +295,7 @@ class APGameState {
             if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
             {
                 nonSongs.set(itemName, songName.index);
+                nonSongsNames.push(itemName);
                 continue;
             }
 
@@ -382,7 +384,7 @@ class APGameState {
             }
         }
 
-        for (items in nonSongs.keys())
+        for (items in nonSongsNames)
         {
             if (nonSongs.get(items) <= ItemIndex)
             {

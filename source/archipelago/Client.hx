@@ -952,7 +952,9 @@ class Client {
 		Synchronizes check progress with the multiworld server.
 		@return Whether the operation was successful.
 	**/
+	public var firstSync:Bool = true;
 	public function Sync():Bool {
+		firstSync = false;
 		if (state < State.SLOT_CONNECTED)
 			return false;
 		return InternalSend(OutgoingPacket.Sync);
