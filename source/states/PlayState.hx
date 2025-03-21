@@ -369,7 +369,7 @@ class PlayState extends MusicBeatState
 	public var maskedSongLength:Float = -1;
 	public var saveMod:String = ""; // The modifier that allows sperate saves depending how how you want to play the game
 	public var lyrics:FlxText;
-	public var lyricsArray:Array<String> = [];
+	public var rainIntensity:Float = 0;
 	var lastUpdateTime:Float = 0.0;
 	var endingTimeLimit:Int = 20;
 	var metadata:MetadataFile;
@@ -393,6 +393,11 @@ class PlayState extends MusicBeatState
 	public var localFreezeNotes:Bool = false;
 	var justmissed:Bool = false;
 	var middlecircle:FlxSprite;
+	var hasGlow:Bool = false;
+	var strumFocus:Bool = false;
+	var daStatic:FlxSprite;
+	var thunderON:Bool = false;
+	var gfScared:Bool = false;
 
 	// Troll Engine
 	private var AIScore:Int = 0;
@@ -841,6 +846,7 @@ class PlayState extends MusicBeatState
 		add(noteGroup);
 
 		if (ClientPrefs.data.doubleGhosts) {
+			trace("Running Double Ghost");
 			IntegratedScript.runNamelessHScript("
 			import psychlua.LuaUtils;
 
@@ -1192,6 +1198,27 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		add(blackOverlay);
+
+		raveLight = new FlxSprite(0, 0).makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
+		raveLight.cameras = [camHUD];
+		raveLight.antialiasing = true;
+		raveLight.scrollFactor.set(0, 0);
+		raveLight.updateHitbox();
+		raveLight.screenCenter();
+		raveLight.active = false;
+		raveLight.alpha = 0;
+		raveLight.visible = false;
+
+		daStatic = new FlxSprite(0, 0);
+		daStatic.frames = Paths.getSparrowAtlas('effects/static');
+		daStatic.animation.addByPrefix('static', 'lestatic', 24, true);
+		daStatic.animation.play('static');
+		daStatic.setGraphicSize(FlxG.width, FlxG.height);
+		daStatic.screenCenter();
+		daStatic.cameras = [camOther];
+		daStatic.alpha = 0;
+		add(daStatic);
+
 		lyrics = new FlxText(0, 100, 1280, "", 32, true);
 		lyrics.scrollFactor.set();
 		lyrics.cameras = [camOther];
@@ -1211,6 +1238,40 @@ class PlayState extends MusicBeatState
 				pressMissDamage = 0.20; //nah that's cruel
 			default:
 				pressMissDamage = 0.05;
+		}
+
+		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
+	}
+
+	function doStaticSign(lestatic:Int = 0)
+	{
+		trace('static Time Number: ' + lestatic);
+
+		switch (lestatic)
+		{
+			case 0:
+				daStatic.alpha = 1;
+			case 1:
+				daStatic.alpha = 0.5;
+			case 2:
+				daStatic.alpha = 0;
+
+				daStatic.animation.play('static');
+				daStatic.animation.finishCallback = function(pog:String)
+				{
+					daStatic.animation.play('static');
+				}
+		}
+	}
+
+	function doStaticSignFade(lestatictime:Float = 0, lestaticamount:Float = 0)
+	{
+		FlxTween.tween(daStatic, {alpha: lestaticamount}, lestatictime, {ease: FlxEase.expoInOut});
+
+		daStatic.animation.play('static');
+		daStatic.animation.finishCallback = function(pog:String)
+		{
+			daStatic.animation.play('static');
 		}
 	}
 
@@ -4476,6 +4537,194 @@ class PlayState extends MusicBeatState
 				var color:String = split[0];
 				var effect:String = split[1];
 				lyricManager(split[0].trim(), split[1].trim());
+
+			case 'Turn on StrumFocus':
+				strumFocus = true;
+
+			case 'Turn off StrumFocus':
+				strumFocus = false;
+				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 0);
+				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 1);
+
+			case 'Fade Out':
+				FlxTween.tween(blackOverlay, {alpha: 1}, Std.parseFloat(value1));
+				FlxTween.tween(camHUD, {alpha: 0}, Std.parseFloat(value1));
+
+			case 'Fade In':
+				FlxTween.tween(blackOverlay, {alpha: 0}, Std.parseFloat(value1));
+				FlxTween.tween(camHUD, {alpha: 1}, Std.parseFloat(value1));
+
+			case 'Silhouette':
+				theShadow(value1);
+
+			case 'Save Song Posititon':
+				trace(Conductor.songPosition);
+				savedTime = Conductor.songPosition;
+
+			case 'Change Stage':
+				var stageName = value1;
+				// var newStageDatas = new Array<Dynamic>();
+
+				for (lua in luaArray)
+				{ 
+					var lua:Dynamic = cast(lua);
+					if (lua.scriptName == 'stages/' + stageName + '.lua')
+					{
+						return;
+					}
+					else if (lua.scriptName == 'stages/' + curStage + '.lua')
+					{
+						lua.call('onDestroy', []);
+						lua.closed = true;
+						lua.stop();
+					}
+				}
+				for (hscript in hscriptArray)
+				{
+					if (hscript.origin == 'stages/' + stageName + '.hx')
+					{
+						return;
+					}
+					else if (hscript.origin == 'stages/' + curStage + '.hx')
+					{
+						if(hscript != null)
+						{
+							if(hscript.exists('onDestroy')) hscript.call('onDestroy');
+							hscript.destroy();
+						}
+					}
+				}
+
+				// for (stage in MusicBeatState.stages)
+				// {
+				// 	if (stage is BaseStage)
+				// 	{
+				// 		stage.destroy();
+				// 	}
+				// }
+
+				stagesFunc(function(stage:BaseStage) stage.destroy());
+
+				switch (stageName)
+				{
+					case 'stage':
+						new StageWeek1(); // Week 1
+					case 'spooky':
+						new Spooky(); // Week 2
+					case 'philly':
+						new Philly(); // Week 3
+					case 'limo':
+						new Limo(); // Week 4
+					case 'mall':
+						new Mall(); // Week 5 - Cocoa, Eggnog
+					case 'mallEvil':
+						new MallEvil(); // Week 5 - Winter Horrorland
+					case 'school':
+						new School(); // Week 6 - Senpai, Roses
+					case 'schoolEvil':
+						new SchoolEvil(); // Week 6 - Thorns
+					case 'tank':
+						new Tank(); // Week 7 - Ugh, Guns, Stress
+					case 'phillyStreets':
+						new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
+					case 'phillyBlazin':
+						new PhillyBlazin(); // Weekend 1 - Blazin
+					case 'mainStageErect':
+						new MainStageErect(); // Week 1 Special
+					case 'spookyMansionErect':
+						new SpookyMansionErect(); // Week 2 Special
+					case 'phillyTrainErect':
+						new PhillyTrainErect(); // Week 3 Special
+					case 'limoRideErect':
+						new LimoRideErect(); // Week 4 Special
+					case 'mallXmasErect':
+						new MallXmasErect(); // Week 5 Special
+					case 'phillyStreetsErect':
+						new PhillyStreetsErect(); // Weekend 1 Special
+					case 'desktop':
+						new Desktop(); // Literally your desktop as a stage lmao
+					default:
+				}
+
+				#if LUA_ALLOWED
+				startLuasNamed('stages/' + stageName + '.lua');
+				#end
+				#if HSCRIPT_ALLOWED
+				startHScriptsNamed('stages/' + stageName + '.hx');
+				#end
+				var scripts:Array<Array<Dynamic>> = [luaArray, hscriptArray];
+				stagesFunc(function(stage:BaseStage) stage.createPost());
+				for (stuff in scripts)
+				{
+					for (script in stuff)
+					{
+						if (script is HScript)
+						{
+							var script:HScript = cast(script);
+							if (script.origin == 'stages/' + stageName + '.hx' || script.origin == 'stages/' + stageName + '.lua')
+							{
+								script.call('onCreatePost', []);
+							}
+						}
+						else if (script is FunkinLua)
+						{
+							var script:FunkinLua = cast(script);
+							if (script.scriptName == 'stages/' + stageName + '.lua')
+							{
+								script.call('onCreatePost', []);
+							}
+						}
+					}
+				}
+			
+			case 'Static':
+				if (value1 == 'true' || value1 == 'True' || value1 == 'on' || value1 == 'On')
+				{
+					doStaticSign(Std.parseInt(value2));
+					daStatic.alpha == 1;
+				}
+				else
+				{
+					daStatic.alpha == 0;
+				}
+				if (value2 == '' || value2 == null)
+				{
+					doStaticSign(3);
+					daStatic.alpha == 0;
+				}
+
+			case 'Static Fade':
+				doStaticSignFade(Std.parseFloat(value1), Std.parseFloat(value2));
+
+			case 'Rave Mode':
+				if (ClientPrefs.data.flashing)
+				{
+					switch (value1.toLowerCase())
+					{
+						case '0' | 'off' | 'false':
+							ravemode = false;
+						case '1' | 'on' | 'true':
+							ravemode = true;
+					}
+				}
+
+			case 'gfScared':
+				var newValue:Bool = false;
+				if (value1.toLowerCase() == "true")
+					newValue = true;
+				gfScared = newValue;
+
+			case 'Freeze Notes':
+				if (value1 == 'true' || value1 == 'True')
+				{
+					freezeNotes = true;
+					localFreezeNotes = true;
+				}
+				else
+				{
+					freezeNotes = false;
+					localFreezeNotes = false;
+				}
 		}
 
 		stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));
