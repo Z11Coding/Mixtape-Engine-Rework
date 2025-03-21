@@ -291,6 +291,7 @@ class PlayState extends MusicBeatState
 
 	public var camHUD:FlxCamera;
 	public var camGame:FlxCamera;
+	public var camCredit:FlxCamera;
 	public var camOther:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
@@ -369,6 +370,7 @@ class PlayState extends MusicBeatState
 	public var maskedSongLength:Float = -1;
 	public var saveMod:String = ""; // The modifier that allows sperate saves depending how how you want to play the game
 	public var lyrics:FlxText;
+	public var rainIntensity:Float = 0;
 	var lastUpdateTime:Float = 0.0;
 	var endingTimeLimit:Int = 20;
 	var metadata:MetadataFile;
@@ -381,6 +383,17 @@ class PlayState extends MusicBeatState
 	var skipTo:Float;
 	var blackOverlay:FlxSprite;
 	var blackUnderlay:FlxSprite;
+	var raveLight:FlxSprite;
+
+	// Song Credits
+	public var introStageBar:FlxSprite;
+	public var introStageText:FlxTypedGroup<FlxText>;
+	public var introStageStuff:FlxTypedGroup<Dynamic>;
+	var credText:Array<String> = [];
+	var songTxt:FlxText;
+	var artistTxt:FlxText;
+	var charterTxt:FlxText;
+	var modTxt:FlxText;
 
 	// AI things. You wouldn't get it.
 	var AIMode:Bool = false;
@@ -396,6 +409,7 @@ class PlayState extends MusicBeatState
 	var strumFocus:Bool = false;
 	var daStatic:FlxSprite;
 	var thunderON:Bool = false;
+	var gfScared:Bool = false;
 
 	// Troll Engine
 	private var AIScore:Int = 0;
@@ -564,10 +578,13 @@ class PlayState extends MusicBeatState
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();
+		camCredit = new FlxCamera();
 		camOther = new FlxCamera();
 		camHUD.bgColor.alpha = 0;
+		camCredit.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD, false);
+		FlxG.cameras.add(camCredit, false);
 		FlxG.cameras.add(camOther, false);
 
 		try
@@ -864,7 +881,7 @@ class PlayState extends MusicBeatState
 		add(uiGroup);
 		add(noteGroup);
 
-		if (ClientPrefs.data.doubleGhosts) {+
+		if (ClientPrefs.data.doubleGhosts) {
 			trace("Running Double Ghost");
 			IntegratedScript.runNamelessHScript("
 			import psychlua.LuaUtils;
@@ -1291,6 +1308,16 @@ class PlayState extends MusicBeatState
 
 		add(blackOverlay);
 
+		raveLight = new FlxSprite(0, 0).makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
+		raveLight.cameras = [camHUD];
+		raveLight.antialiasing = true;
+		raveLight.scrollFactor.set(0, 0);
+		raveLight.updateHitbox();
+		raveLight.screenCenter();
+		raveLight.active = false;
+		raveLight.alpha = 0;
+		raveLight.visible = false;
+
 		daStatic = new FlxSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
 		daStatic.animation.addByPrefix('static', 'lestatic', 24, true);
@@ -1321,6 +1348,8 @@ class PlayState extends MusicBeatState
 			default:
 				pressMissDamage = 0.05;
 		}
+
+		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
 	}
 
 	function doStaticSign(lestatic:Int = 0)
@@ -1352,37 +1381,6 @@ class PlayState extends MusicBeatState
 		daStatic.animation.finishCallback = function(pog:String)
 		{
 			daStatic.animation.play('static');
-		}
-	}
-
-	function doThunderstorm(stormType:Int = 0)
-	{
-		switch (stormType)
-		{
-			case 0:
-				FlxTween.num(rainIntensity, 0.04, 2, {ease: FlxEase.expoOut}, function(num)
-				{
-					rainIntensity = num;
-				});
-				thunderON = false;
-			case 1:
-				FlxTween.num(rainIntensity, 0.07, 2, {ease: FlxEase.expoOut}, function(num)
-				{
-					rainIntensity = num;
-				});
-				thunderON = false;
-			case 2:
-				FlxTween.num(rainIntensity, 0.09, 2, {ease: FlxEase.expoOut}, function(num)
-				{
-					rainIntensity = num;
-				});
-				thunderON = true;
-			case 3:
-				FlxTween.num(rainIntensity, 0, 2, {ease: FlxEase.expoOut}, function(num)
-				{
-					rainIntensity = num;
-				});
-				thunderON = false;
 		}
 	}
 
@@ -1834,6 +1832,11 @@ class PlayState extends MusicBeatState
 				{
 					case 0:
 						FlxG.sound.play(Paths.sound('intro3' + introSoundsSuffix), 0.6);
+						introStageStuff.visible = true;
+						FlxTween.tween(songTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
+						FlxTween.tween(artistTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
+						FlxTween.tween(charterTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
+						FlxTween.tween(modTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
 						tick = THREE;
 					case 1:
 						countdownReady = createCountdownSprite(introAlts[0], antialias);
@@ -1848,6 +1851,10 @@ class PlayState extends MusicBeatState
 						FlxG.sound.play(Paths.sound('introGo' + introSoundsSuffix), 0.6);
 						tick = GO;
 					case 4:
+						new FlxTimer().start(2, function(tmr:FlxTimer)
+						{
+							FlxTween.tween(camCredit, {alpha: 0, y: 1000}, 1, {ease: FlxEase.circInOut});
+						});
 						tick = START;
 				}
 
@@ -3513,6 +3520,25 @@ class PlayState extends MusicBeatState
 			}
 		}
 
+		if (FlxG.sound.music != null && !endingSong && !startingSong && !paused)
+			FlxG.sound.music.volume = 1 * instVolumeMultiplier;
+
+		if (FlxG.keys.justPressed.NINE)
+			iconP1.swapOldIcon();
+
+		specialOverlays.forEachAlive(function(sprite:FlxSprite)
+		{
+			sprite.screenCenter();
+			if (sprite.alpha > 0)
+			{
+				var zoomOut = 1 / defaultCamZoom;
+				var screenWidth = Std.int(FlxG.width * zoomOut * 2);
+				var screenHeight = Std.int(FlxG.height * zoomOut * 2);
+
+				sprite.scale.set(screenWidth, screenHeight);
+			}
+		});
+
 		super.update(elapsed);
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
@@ -4842,40 +4868,16 @@ class PlayState extends MusicBeatState
 			case 'Static Fade':
 				doStaticSignFade(Std.parseFloat(value1), Std.parseFloat(value2));
 
-			case 'Thunderstorm Trigger':
-				if (value1 == '' || value1 == null)
-				{
-					doThunderstorm(3);
-				}
-				else
-				{
-					doThunderstorm(Std.parseInt(value1));
-				}
-
 			case 'Rave Mode':
 				if (ClientPrefs.data.flashing)
 				{
-					switch (value1)
+					switch (value1.toLowerCase())
 					{
-						case '0':
+						case '0' | 'off' | 'false':
 							ravemode = false;
-							ravemodeV2 = false;
-						case '1':
+						case '1' | 'on' | 'true':
 							ravemode = true;
-							ravemodeV2 = false;
-						case '2':
-							ravemode = false;
-							ravemodeV2 = true;
 					}
-				}
-
-				if (Std.string(value2) == 'A')
-				{
-					autoBotsRollOut = true;
-				}
-				else
-				{
-					autoBotsRollOut = false;
 				}
 
 			case 'gfScared':
@@ -6417,6 +6419,11 @@ class PlayState extends MusicBeatState
 			return;
 		}
 
+		if (gfScared && curStep % 2 == 0)
+		{
+			gf.playAnim('scared', true);
+		}
+
 		lastStepHit = curStep;
 		setOnScripts('curStep', curStep);
 		callOnScripts('onStepHit');
@@ -6455,6 +6462,9 @@ class PlayState extends MusicBeatState
 	}
 
 	var lastBeatHit:Int = -1;
+	var raveLightsColors:Array<FlxColor>;
+	var curLightEvent:Int = -1;
+	var ravemode:Bool = false;
 	override function beatHit()
 	{
 		if(lastBeatHit >= curBeat) {
@@ -6516,6 +6526,25 @@ class PlayState extends MusicBeatState
 			iconP12.updateHitbox();
 
 		characterBopper(curBeat);
+
+		if (ravemode && ClientPrefs.data.flashing)
+		{
+			raveLight.visible = true;
+			curLightEvent = FlxG.random.int(0, raveLightsColors.length-1, [curLightEvent]);
+			var color:FlxColor = raveLightsColors[curLightEvent];
+			raveLight.color = color;
+			raveLight.alpha = 0.4;
+			FlxTween.tween(raveLight, {alpha: 0}, Conductor.stepCrochet*0.001*4, {});
+			if(ClientPrefs.data.camZooms)
+			{
+				FlxG.camera.zoom += 0.5;
+				camHUD.zoom += 0.1;
+			}
+		}
+		else
+		{
+			raveLight.visible = false;
+		}
 
 		super.beatHit();
 		lastBeatHit = curBeat;
