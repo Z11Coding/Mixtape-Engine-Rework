@@ -260,11 +260,13 @@ class APGameState {
         if ((Reflect.hasField(data, "cause") && Reflect.hasField(data, "source") && Reflect.hasField(data, "time")) && !APPlayState.deathByLink)
         {
             if (info().slot != data.source) {
-            var dl:Dynamic = data;
-            if (!APPlayState.deathByLink){
-            APPlayState.deathLinkPacket = dl;
-            APPlayState.deathByLink = true;}
-        } }
+                var dl:Dynamic = data;
+                if (!APPlayState.deathByLink){
+                    APPlayState.deathLinkPacket = dl;
+                    APPlayState.deathByLink = true;
+                }
+            }
+        } 
         // trace(data);
     }
 
@@ -433,28 +435,42 @@ class APGameState {
             }
         }
 
+        nonSongsNames.sort(function(a:String, b:String):Int {
+            a = a.toUpperCase();
+            b = b.toUpperCase();
+            
+            if (a < b) {
+                return 1;
+            }
+            else if (a > b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+
+        trace(nonSongsNames);
+
         for (items in nonSongsNames)
         {
-                if (nonSongs.get(items) <= ItemIndex)
-                {
-                    continue;
-                }
-                else
-                {
-                    trace('triggering $items');
-                    ItemIndex = nonSongs.get(items);
-                    archipelago.APItem.createItemByName(items);
-                }
+            if (items == 'ticket') archipelago.APItem.createItemByName(items);
+            
+            if (nonSongs.get(items) <= ItemIndex)
+            {
+                continue;
             }
-        archipelago.APItem.doCheck();
-        isSync = false;
+            else
+            {
+                trace('triggering $items');
+                ItemIndex = nonSongs.get(items);
+                archipelago.APItem.createItemByName(items);
+            }
+            archipelago.APItem.doCheck();
+            isSync = false;
 
-        trace("AP State Saving...");
-
-
-        updateSaveData();
-
-
+            trace("AP State Saving...");
+            updateSaveData();
+        }
     }
 
     // A bandage fix till we have enough brainpower to fix this properly
@@ -477,6 +493,7 @@ class APGameState {
            }
            return false; 
         }
+    }
 
     function isModName(name:String):Bool {
         var mods = Mods.parseList().enabled;
