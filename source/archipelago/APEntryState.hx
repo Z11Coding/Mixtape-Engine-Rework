@@ -67,6 +67,25 @@ typedef APOptions =
     var	MHPWeight:Int;
 }
 
+// class RandomSettings {
+// 	public static function addRandom(options:APOptions):APOptions {
+// 		var newOptions:APOptions = {};
+// 		for (field in Reflect.fields(options)) {
+// 			var value = Reflect.field(options, field);
+// 			if (field != "songList") {
+// 				if (Std.isOfType(value, String)) {
+// 					Reflect.setField(newOptions, field, value + "_random");
+// 				} else {
+// 					Reflect.setField(newOptions, field, value);
+// 				}
+// 			} else {
+// 				Reflect.setField(newOptions, field, value); // Keep songList unchanged
+// 			}
+// 		}
+// 		return newOptions;
+// 	}
+// }
+
 class APEntryState extends MusicBeatState
 {
 	static final wsCheck = ~/^wss?:\/\//;
