@@ -2076,8 +2076,7 @@ class APPlayState extends PlayState {
 
         super.endSong();
         paused = true;
-        states.FreeplayState.lastSongPlayed = PlayState.SONG.song;
-        states.FreeplayState.lastModPlayed = currentMod;
+        states.FreeplayState.callVictory = PlayState.SONG.song == APEntryState.victorySong;
         openSubState(new substates.RankingSubstate());
         return true; //why does endsong need this?????
     }
