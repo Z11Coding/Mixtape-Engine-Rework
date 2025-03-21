@@ -22,6 +22,17 @@ class ConditionHelper {
         return item.condition.checkFn(item);
     }
 
+    public static inline function Special():Condition { 
+        return ConditionHelper.create(function(item:APItem):Bool { 
+            if (Std.is(FlxG.state, states.FreeplayState)) {
+                return true; // Acts like Everywhere in Freeplay
+            } else if (Std.is(FlxG.state, states.PlayState)) {
+                return PlayState().checkFn(item);
+            }
+            return false; // Default to false for other states
+        }, ConditionType.Everywhere); 
+    }
+
     public static inline function Everywhere():Condition { 
         return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere); 
     }
@@ -164,7 +175,7 @@ class APItem {
                     }, 100);
                 }, false, false);
             case "Fake Transition":
-                return new APItem(name, ConditionHelper.Everywhere(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
+                return new APItem(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {popup("You got a ticket!");
                     archipelago.APInfo.ticketCount++;

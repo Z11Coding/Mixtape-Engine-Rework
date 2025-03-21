@@ -1087,7 +1087,7 @@ class APPlayState extends PlayState {
                     });
                 };
 
-                FlxTween.num(playbackRate, 0, 0.5, {
+                FlxTween.num(playbackRate, 0.0000000000000000001, 0.5, {
                     onComplete: function(e) {
                         FlxG.sound.play(Paths.sound('streamervschat/$selectedSound'), 1, false, null, true, function() {
                             FlxTween.num(playbackRate, 0, 0.5, {

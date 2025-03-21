@@ -48,7 +48,7 @@ class MusicBeatState extends FlxState
 
 		super.create();
 
-		// backend.window.CppAPI.setWindowOppacity(0);
+		// if (backend.window.CppAPI.getWindowOpacity()!=1)
 		FlxTween.num(0, 1, 0.5, {
 			ease: FlxEase.sineInOut,
 			onComplete: function(tween:FlxTween)
