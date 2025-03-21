@@ -1,5 +1,6 @@
 #if LUA_ALLOWED
 package psychlua;
+import archipelago.APEntryState;
 
 import backend.WeekData;
 import backend.Highscore;
@@ -460,6 +461,12 @@ class FunkinLua {
 		});
 
 		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
+			if(APEntryState.inArchipelagoMode)
+			{
+				luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
+				states.FreeplayState.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
+			}
+
 			if(name == null || name.length < 1)
 				name = Song.loadedSongName;
 			if (difficultyNum == -1)

@@ -725,7 +725,7 @@ class FreeplayState extends MusicBeatState
 	var holdTime:Float = 0;
 	var stopMusicPlay:Bool = false;
 
-	function forceUnlockCheck(songName:String, modName:String):Void {
+	public static function forceUnlockCheck(songName:String, modName:String):Void {
 		var locationId = songName;
 		trace(modName);
 		if (modName.trim() != "") {
@@ -804,9 +804,8 @@ class FreeplayState extends MusicBeatState
 				APEntryState.apGame.info().set_goal();
 			}
 		}
-
-		reloadSongs(true);
-		
+		if (instance != null)
+			instance.reloadSongs(true);
 	}
 
 

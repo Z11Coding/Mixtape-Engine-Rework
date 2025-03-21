@@ -1423,17 +1423,28 @@ class APPlayState extends PlayState {
 	var available:Array<Int> = [];
 	
     public function doEffect(effect:String)
-	{
-        trace('im finna act up');
-		if (paused || endingSong) return;
-		
-		if (effectMap.exists(effect)) {
-			effectMap.get(effect)();
+    {
+        // trace('im finna act up');
+        if (!APEntryState.inArchipelagoMode)
+        if (paused || endingSong) return;
+        
+        if (APEntryState.inArchipelagoMode && (paused || endingSong)) {
+            new FlxTimer().start(0.1, function(tmr:FlxTimer) {
+                if (!paused && !endingSong) {
+                    doEffect(effect);
+                }
+                FlxDestroyUtil.destroy(tmr);
+            });
+            return;
+        }
+        
+        if (effectMap.exists(effect)) {
+            effectMap.get(effect)();
             trace('running effect: $effect');
-		} else {
-			trace("Effect not found: " + effect);
-		}
-	}
+        } else {
+            trace("Effect not found: " + effect);
+        }
+    }
 	
 	inline public function applyEffect(ttl:Float, onEnd:(Void->Void), playSound:String, playSoundVol:Float, noIcon:Bool, alwaysEnd:Bool = false, ?effect:String = "")
 	{

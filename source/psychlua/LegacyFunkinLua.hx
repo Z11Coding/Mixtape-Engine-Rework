@@ -938,6 +938,11 @@ class LegacyFunkinLua {
 		});
 
 		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
+			if(archipelago.APEntryState.inArchipelagoMode)
+				{
+					luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
+					states.FreeplayState.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
+				}
 			if(name == null || name.length < 1)
 				name = PlayState.SONG.song;
 			if (difficultyNum == -1)
