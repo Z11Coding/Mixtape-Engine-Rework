@@ -503,7 +503,6 @@ class TransitionState {
                 {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
-                    archipelago.ArchPopup.startPopupCustom("APItem: Fake Transition (Trap)", 'Gotcha!', "archWhite");
                 }}, 
                 function(num)
                 {

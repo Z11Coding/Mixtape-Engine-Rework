@@ -418,8 +418,12 @@ class APEntryState extends MusicBeatState
 		deathLink = slotData.deathlink == 0 ? false : true;
 		victorySong = slotData.victoryLocation;
 		fullSongCount = slotData.fullSongCount;
-		APInfo.ticketWinCount = slotData.ticketWinCount;
-		APInfo.ticketCount = 0;
+		try {		APInfo.ticketCount = slotData.ticketCount;
+			 		APInfo.ticketWinCount = slotData.ticketWinCount;}
+		catch(e) {  APInfo.ticketCount = slotData.ticketCount;
+					APInfo.ticketWinCount = -1;}
+
+					APInfo.ticketCount = 0;
 		closeSubState();
 		inArchipelagoMode = true;
 		var FNF = new FlxSave();
