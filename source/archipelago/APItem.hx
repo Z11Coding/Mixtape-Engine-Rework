@@ -26,7 +26,7 @@ class ConditionHelper {
         return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere); 
     }
     public static inline function PlayState():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || item.isException); }, ConditionType.PlayState); 
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong)); }, ConditionType.PlayState); 
     }
     public static inline function Freeplay():Condition { 
         return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay); 
@@ -38,6 +38,10 @@ class ActiveArray {
 
     public function new(items:Array<APItem>) {
         this.items = items;
+    }
+    
+    public function getItems():Array<APItem> {
+        return items;
     }
 
     public function push(item:APItem):Void {
@@ -99,7 +103,7 @@ class APItem {
 
     private static var allItems:ActiveArray = new ActiveArray([]);
 
-    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = true) {
+    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false) {
         this.name = name;
         this.condition = condition;
         this.onTrigger = onTrigger;
@@ -110,7 +114,13 @@ class APItem {
             this.isException = true;
         }
 
+        this.toSync = false;
+
         allItems.push(this);
+    }
+
+    public static function getItems():Array<APItem> {
+        return allItems.getItems().copy();
     }
 
     public static function popup(desc:String):Void {

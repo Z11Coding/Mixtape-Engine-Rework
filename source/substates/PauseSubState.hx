@@ -88,6 +88,7 @@ class PauseSubState extends MusicBeatSubstate
 			(Difficulty.getString().toUpperCase() + 
 			(PlayState.instance.chartModifier != "Normal" ? ' (' + PlayState.instance.chartModifier + ')'.toUpperCase() : '') + 
 			(Std.is(PlayState.instance, archipelago.APPlayState) ? ' (AP)' : '')), 32);
+			
 		levelDifficulty.scrollFactor.set();
 		levelDifficulty.setFormat(Paths.font('vcr.ttf'), 32);
 		levelDifficulty.updateHitbox();

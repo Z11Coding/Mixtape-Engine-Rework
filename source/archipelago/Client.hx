@@ -1411,6 +1411,7 @@ class Client {
 						_dataPackage = data;
 						APGameState.instance.APLocations = missingLocations.concat(checkedLocations);
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
+						APGameState.instance.initSaveData();
 						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					}
 

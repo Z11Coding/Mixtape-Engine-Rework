@@ -108,7 +108,7 @@ class APGameState {
 
     public var APLocations:Array<Int> = [];
     public var APItems:Map<String, Int> = new Map<String, Int>();
-    public var ItemIndex:Int = 1;
+    public var ItemIndex:Int = -1;
 
     public function locationData(songName:String):Array<Int> {
         // trace("Starting locationData function with songName: " + songName);
@@ -171,14 +171,6 @@ class APGameState {
         archipelago.APInfo.ap = _ap;
         instance = this;
 
-
-        // var dataPackageHash = haxe.crypto.Sha1.make(_ap._dataPackage);
-        _saveData = new yutautil.save.MixSaveWrapper(new yutautil.save.MixSave(), "save/"+ "ap_" + _ap.seed + ".json", true);
-
-        _saveData.addItem("slotData", slotData);
-        _saveData.addItem("seed", _seed);
-
-
         _disconnectSubstate = new APDisconnectSubstate(_ap);
         _disconnectSubstate.setSeed(_seed);
         _disconnectSubstate.onCancel.add(onCancel);
@@ -197,8 +189,65 @@ class APGameState {
 		// _ap.onSlotRefused.add(onSlotRefused);
 		_ap.onSlotConnected.add(onSlotConnected);
         APPlayState.deathByLink = false;
+    }
 
+    public function initSaveData():Void {
+        var combinedChecksum = haxe.crypto.Sha1.encode(haxe.Json.stringify(currentPackages));
+        var saveFileName = "save/ap_" + _ap.slot + "_" + _ap.seed + "_" + combinedChecksum + ".json";
+        _saveData = new yutautil.save.MixSaveWrapper(new yutautil.save.MixSave(), saveFileName, true);
 
+        _saveData.addItem("slot", _ap.slot);
+        _saveData.fancyFormat = true;
+        _saveData.addItem("seed", _seed);
+        if (_saveData.hasItem("checksum")) {
+            var savedChecksum = _saveData.getItem("checksum");
+            if (savedChecksum == combinedChecksum) {
+            trace("Checksum matches the current combined checksum.");
+            } else {
+            trace("Checksum does not match the current combined checksum.");
+            }
+            
+        } else {
+            _saveData.addItem("checksum", combinedChecksum);
+        }
+        if (_saveData.hasItem("itemIndex")) {
+            ItemIndex = _saveData.getItem("itemIndex");
+        }
+        if (_saveData.hasItem("activeItem")) {
+            var activeItem = _saveData.getItem("activeItem");
+            APItem.activeItem = (activeItem != null && activeItem != "null") ? archipelago.APItem.createItemByName(activeItem) : null;
+        }
+        if (_saveData.hasItem("waitingItems")) {
+            var waitingItems:Array<String> = _saveData.getItem("waitingItems");
+            for (itemName in waitingItems) {
+            archipelago.APItem.createItemByName(itemName);
+            }
+        }
+        if (_saveData.hasItem("tickets")) {
+            APInfo.ticketCount = _saveData.getItem("tickets");
+        }
+        if (_saveData.hasItem("shields")) {
+            APItem.shields = _saveData.getItem("shields");
+        }
+        if (_saveData.hasItem("MaxHP")) {
+            APItem.maxHPUp = _saveData.getItem("MaxHP");
+        }
+        _saveData.save();
+    }
+
+    public function updateSaveData():Void {
+        if (_saveData == null) {
+            trace("Save data is not ready yet...");
+            return;
+        }
+        _saveData.addItem("itemIndex", ItemIndex);
+        _saveData.addItem("activeItem", APItem.activeItem?.name);
+        _saveData.addItem("waitingItems", APItem.getItems().map(item -> item.name));
+        _saveData.addItem("tickets", APInfo.ticketCount);
+        _saveData.addItem("shields", APItem.shields);
+        _saveData.addItem("MaxHP", APItem.maxHPUp);
+        _saveData.save();
+        trace("Save data updated...");
     }
 
     public function info()
@@ -386,8 +435,6 @@ class APGameState {
 
         for (items in nonSongsNames)
         {
-            if (items == 'ticket') archipelago.APItem.createItemByName(items);
-            else {
                 if (nonSongs.get(items) <= ItemIndex)
                 {
                     continue;
@@ -399,9 +446,14 @@ class APGameState {
                     archipelago.APItem.createItemByName(items);
                 }
             }
-        }
         archipelago.APItem.doCheck();
         isSync = false;
+
+        trace("AP State Saving...");
+
+
+        updateSaveData();
+
 
     }
 

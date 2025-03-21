@@ -75,6 +75,14 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		instance = this;
 
+		var camCOD = new FlxCamera(0, 0, FlxG.width, FlxG.height);
+		camCOD.bgColor = 0xFF000000;
+		camCOD.scroll.set();
+		camCOD.target = null;
+		camCOD.visible = true;
+
+		
+
 		FlxG.camera.bgColor = 0xFF000000; // to fix mods that like to change its color (looking at you, 17bucks)
 
 		if (Std.is(PlayState.instance, APPlayState) && APPlayState.deathByLink)
@@ -158,6 +166,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		deathbysquare.x += 800;
 		deathbysquare.y -= 100; 
 		deathbysquare.alpha = 0.3;
+		// deathbysquare.cameras = [camCOD];
 		add(deathbysquare);
 
 		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -169,6 +178,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 		}
+		// causeofdeath.cameras = [camCOD];
 		add(causeofdeath);
 
 		super.create();

@@ -87,24 +87,21 @@ class UnderTextParser extends FlxTypeText {
         //     }
         // }
 
-        for (sound in soundOnChars.keys())
-        {
-            if (soundOnChars.get(sound) != null && _finalText.charAt(_length).toLowerCase() == sound)
-            {
+        if (!soundlessChars.contains(_finalText.charAt(_length))) {
+            for (sound in soundOnChars.keys()) {
+            if (soundOnChars.get(sound) != null && _finalText.charAt(_length).toLowerCase() == sound) {
                 soundOnChars.get(sound).play();
-            }
-            else {
+            } else {
                 if (typingSound != null) typingSound.play();
             }
-        }
-
-        for (i in 0...soundlessChars.length)
-        {
-            if (soundlessChars != null && _finalText.charAt(_length) == soundlessChars[i])
-            {
-                soundOnChars.mapT(sound -> sound.pause());
-                if (typingSound != null) typingSound.pause();
             }
+        } else {
+            for (sound in soundOnChars.keys()) {
+            if (soundOnChars.get(sound) != null) {
+                soundOnChars.get(sound).pause();
+            }
+            }
+            if (typingSound != null) typingSound.pause();
         }
 
         delay = speed;  

@@ -87,6 +87,106 @@ class CollectionUtils
 		return l;
 	}
 
+	// public static inline function valTween<T>(value:T, start:T, finish:T, duration:Float, onUpdate:T->Void, onComplete:Void->Void):Void
+	// {
+	// 	if (Std.is(value, String))
+	// 	{
+	// 		var startStr = (start : String);
+	// 		var finishStr = (finish : String);
+	// 		var length = Math.max(startStr.length, finishStr.length);
+	// 		var step = Math.ceil(length / (duration * 60)); // Assuming 60 FPS
+	// 		var currentIndex = 0;
+
+	// 		FlxTween.tween({index: 0}, {index: length}, duration, {
+	// 			type: FlxTween.linear,
+	// 			onUpdate: function(data) {
+	// 				currentIndex = Math.min(Math.round(data.index), length);
+	// 				var newValue = finishStr.substr(0, currentIndex);
+	// 				onUpdate(cast newValue);
+	// 			},
+	// 			onComplete: onComplete
+	// 		});
+	// 	}
+	// 	else if (Std.is(value, Float) || Std.is(value, Int))
+	// 	{
+	// 		FlxTween.tween({val: start}, {val: finish}, duration, {
+	// 			type: FlxTween.linear,
+	// 			onUpdate: function(data) {
+	// 				onUpdate(cast data.val);
+	// 			},
+	// 			onComplete: onComplete
+	// 		});
+	// 	}
+	// 	else if (Std.is(value, Array))
+	// 	{
+	// 		var startArr = (start : Array<Dynamic>);
+	// 		var finishArr = (finish : Array<Dynamic>);
+	// 		var maxLength = Math.max(startArr.length, finishArr.length);
+	// 		var step = Math.ceil(maxLength / (duration * 60)); // Assuming 60 FPS
+	// 		var currentIndex = 0;
+
+	// 		FlxTween.tween({index: 0}, {index: maxLength}, duration, {
+	// 			type: FlxTween.linear,
+	// 			onUpdate: function(data) {
+	// 				currentIndex = Math.min(Math.round(data.index), maxLength);
+	// 				var newValue = [];
+	// 				for (i in 0...currentIndex)
+	// 				{
+	// 					if (i < startArr.length && i < finishArr.length)
+	// 					{
+	// 						// Change items if they differ
+	// 						newValue.push(finishArr[i]);
+	// 					}
+	// 					else if (i >= startArr.length)
+	// 					{
+	// 						// Add items from finishArr
+	// 						newValue.push(finishArr[i]);
+	// 					}
+	// 					// If i >= finishArr.length, items are implicitly removed
+	// 				}
+	// 				onUpdate(cast newValue);
+	// 			},
+	// 			onComplete: onComplete
+	// 		});
+	// 	}
+	// 	else if (Std.is(value, List))
+	// 	{
+	// 		var startList = (start : List<Dynamic>);
+	// 		var finishList = (finish : List<Dynamic>);
+	// 		var maxLength = Math.max(startList.length, finishList.length);
+	// 		var step = Math.ceil(maxLength / (duration * 60)); // Assuming 60 FPS
+	// 		var currentIndex = 0;
+
+	// 		FlxTween.tween({index: 0}, {index: maxLength}, duration, {
+	// 			type: FlxTween.linear,
+	// 			onUpdate: function(data) {
+	// 				currentIndex = Math.min(Math.round(data.index), maxLength);
+	// 				var newValue = new List<Dynamic>();
+	// 				for (i in 0...currentIndex)
+	// 				{
+	// 					if (i < startList.length && i < finishList.length)
+	// 					{
+	// 						// Change items if they differ
+	// 						newValue.add(finishList[i]);
+	// 					}
+	// 					else if (i >= startList.length)
+	// 					{
+	// 						// Add items from finishList
+	// 						newValue.add(finishList[i]);
+	// 					}
+	// 					// If i >= finishList.length, items are implicitly removed
+	// 				}
+	// 				onUpdate(cast newValue);
+	// 			},
+	// 			onComplete: onComplete
+	// 		});
+	// 	}
+	// 	else
+	// 	{
+	// 		throw "Unsupported type for valTween";
+	// 	}
+	// }
+
 	public static inline extern overload function getFromList<T>(list:List<T>, index:Int):T
 	{
 		return listIndex(list, index);
