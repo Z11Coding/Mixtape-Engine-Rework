@@ -288,7 +288,7 @@ class APGameState {
 
         for (songName in song)
         {
-            trace(ItemIndex + " - " + songName.index);
+            //trace(ItemIndex + " - " + songName.index);
 
             var itemName = info().get_item_name(songName.item);
 
@@ -386,7 +386,7 @@ class APGameState {
 
         for (items in nonSongsNames)
         {
-            if (items == 'ticket') archipelago.APItem.createItemByName(items);
+            if (items == 'Ticket') archipelago.APItem.createItemByName(items);
             else {
                 if (nonSongs.get(items) <= ItemIndex)
                 {

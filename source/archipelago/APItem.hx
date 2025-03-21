@@ -113,9 +113,9 @@ class APItem {
         allItems.push(this);
     }
 
-    public static function popup(desc:String):Void {
+    public static function popup(desc:String, ?title:String, ?isWhite:Bool = false):Void {
         if (!APGameState.haventranyet) {
-            archipelago.ArchPopup.startPopupCustom("AP Item!", desc, "archColor", function() {
+            archipelago.ArchPopup.startPopupCustom(title != null ? title : "AP Item!", desc, !isWhite ? "archColor" : "archWhite", function() {
             FlxG.sound.playMusic(Paths.sound('secret'));});
         }
     }
@@ -127,12 +127,13 @@ class APItem {
                     // Check if shields are available
                     if (shields > 0) {
                         shields--;
-                        ArchPopup.startPopupCustom("Death Avoided!", 'Shields left: $shields', "archWhite");
+                        popup('Shields left: $shields', "Death Avoided!", true);
                         return; // Do nothing else if shields are consumed
                     }
 
                     // Ensure we are in APPlayState
                     if (!Std.is(FlxG.state, archipelago.APPlayState)) {
+                        popup('Unfortunate...', "APItem: Blue Balls Curse (Trap)", true);
                         // Switch to APPlayState if not already there
                         FlxG.switchState(new archipelago.APPlayState());
                     }
@@ -156,24 +157,30 @@ class APItem {
             case "Fake Transition":
                 return new APItem(name, ConditionHelper.Everywhere(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
-                return new APItem(name, ConditionHelper.Everywhere(), function() {popup("You got a ticket!");
+                return new APItem(name, ConditionHelper.Everywhere(), function() {popup("One step closer...", "You got a ticket!");
                     archipelago.APInfo.ticketCount++;
                 }, true, true);
             case "SvC Effect":
-                return new APItem(name, ConditionHelper.PlayState(), function() APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]), true, false);
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]);
+                    popup('Effect: ${APPlayState.instance.effectArray[APPlayState.instance.curEffect]}', "APItem: SvC Effect (Trap)", true);
+                }, true, false);
             case "Ghost Chat":
-                return new APItem(name, ConditionHelper.PlayState(), function() APPlayState.instance.triggerGhostChat(), true, false);
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.triggerGhostChat();
+                    popup('I wish you luck...', "APItem: SvC Effect (Trap)", true);
+                }, true, false);
             case "Shield":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     shields++;
                     trace("Shield acquired! Current shields: " + shields);
-                    popup("You got a shield!");
+                    popup('Shields left: $shields', "APItem: Shield");
                 }, true, true);
             case "Max HP Up":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     maxHPUp++;
                     trace("Max HP increased! Current max HP: " + maxHPUp);
-                    popup("You got a max HP up!");
+                    popup('Current Max HP: +$maxHPUp', "APItem: Max HP Increase");
                 }, true, true);
             case "Tutorial Trap":
                 return new APItem(name, ConditionHelper.PlayState(), function() {
@@ -181,63 +188,64 @@ class APItem {
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
                         if (playState != null && playState.startedCountdown) {
+                            popup('Go relearn the basics and then come back.', "APItem: Tutorial (trap)");
                             APPlayState.instance.doEffect('songSwitch');
                         } else {
                             // Retry after a short delay if countdown hasn't started
                             haxe.Timer.delay(checkCountdown, 100);
                         }
                     }, 100);
-                }, true, false);
+                }, false, false);
             default:
                 throw "Unknown item name: " + name;
         }
         }
 
     public function trigger():Void {
-        trace('is Gonna Run Sync: ${APGameState.isSync}');
+        //trace('is Gonna Run Sync: ${APGameState.isSync}');
         if (APInfo.ap.firstSync && this.toSync) {
-            trace("RUNNING FIRST SYNC!");
-            trace("Triggering item: " + this.name);
-            trace("Is exception: " + this.isException);
-            trace("Condition type: " + this.condition.type);
-            trace("Condition check result: " + this.condition.checkFn(this));
+            //trace("RUNNING FIRST SYNC!");
+            //trace("Triggering item: " + this.name);
+            //trace("Is exception: " + this.isException);
+            //trace("Condition type: " + this.condition.type);
+            //trace("Condition check result: " + this.condition.checkFn(this));
 
             if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this)) {
-                trace("Setting active item to: " + this.name);
+                //trace("Setting active item to: " + this.name);
                 APItem.activeItem = this;
             } else {
-                trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
+                //trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
             if (this.condition.checkFn(this)) {
-                trace("Condition passed, executing onTrigger for item: " + this.name);
+                //trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
             } else {
-                trace("Condition failed, onTrigger not executed for item: " + this.name);
+                //trace("Condition failed, onTrigger not executed for item: " + this.name);
             }
         } else if (!APInfo.ap.firstSync) {
-            trace("RUNNING NORMAL SYNC!");
-            trace("Triggering item: " + this.name);
-            trace("Is exception: " + this.isException);
-            trace("Condition type: " + this.condition.type);
-            trace("Condition check result: " + this.condition.checkFn(this));
+            //trace("RUNNING NORMAL SYNC!");
+            //trace("Triggering item: " + this.name);
+            //trace("Is exception: " + this.isException);
+           // trace("Condition type: " + this.condition.type);
+           // trace("Condition check result: " + this.condition.checkFn(this));
 
             if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this)) {
-                trace("Setting active item to: " + this.name);
+                //trace("Setting active item to: " + this.name);
                 APItem.activeItem = this;
             } else {
-                trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
+                //trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
             if (this.condition.checkFn(this)) {
-                trace("Condition passed, executing onTrigger for item: " + this.name);
+                //trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
             } else {
-                trace("Condition failed, onTrigger not executed for item: " + this.name);
+                //trace("Condition failed, onTrigger not executed for item: " + this.name);
             }
         }
 
-        trace("Removing item from allItems: " + this.name);
+        //trace("Removing item from allItems: " + this.name);
         allItems.remove(this);
     }
 
