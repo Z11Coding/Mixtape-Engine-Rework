@@ -308,6 +308,7 @@ class APGameState {
             APEntryState.ap = null;
         }
     }
+
     public function findSpecialItems():Map<String, Int> {
         var specialItems:Map<String, Int> = new Map<String, Int>();
         var apInfo = info();
@@ -490,9 +491,8 @@ class APGameState {
             {
                 return true;
             }
-           }
-           return false; 
         }
+        return false; 
     }
 
     function isModName(name:String):Bool {
