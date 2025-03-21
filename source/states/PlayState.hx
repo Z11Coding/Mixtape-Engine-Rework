@@ -182,6 +182,9 @@ class PlayState extends MusicBeatState
 	public static var uiPrefix:String = "";
 	public static var uiPostfix:String = "";
 	public static var isPixelStage(get, never):Bool;
+	var raveLight:FlxSprite;
+	var raveLightsColors:Array<Int>;
+	var ravemode:Bool;
 
 	@:noCompletion
 	static function set_stageUI(value:String):String
@@ -4805,11 +4808,7 @@ class PlayState extends MusicBeatState
 				case 'white':
 					lyrics.color = FlxColor.WHITE;
 				default:
-					if (color.contains('#')) {
-						// Ill deal with
-					} else if (color.contains('0x')) {
-						// These later
-					}
+					lyrics.color = FlxColor.fromString(color);
 			}
 		}
 		else lyrics.color = FlxColor.WHITE;
