@@ -30,6 +30,11 @@ class CppAPI
 		setWindowOppacity(a);
 	}
 
+	public static inline function getWindowOpacity():Float
+	{
+		return getWindowOpacity();
+	}
+
 	public static function _setWindowLayered()
 	{
 		WindowsData._setWindowLayered();

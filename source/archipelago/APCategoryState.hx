@@ -38,8 +38,10 @@ class APCategoryState extends states.CategoryState {
 
         states.ExitState.addExitCallback(function() {
             if (AP != null){
+                APGameState.instance?.updateSaveData();
                 trace("Properly disconnecting from server before exiting...");
             AP.disconnect_socket();}
+            AP = null;
         });
     }
 

@@ -166,7 +166,11 @@ class MixSaveWrapper {
     }
 
     public function toString():String {
-        return mixSave.content.toString();
+        return 'MixSaveWrapper(\n' +
+            '    filePath: "' + filePath + '",\n' +
+            '    fancyFormat: ' + Std.string(fancyFormat) + ',\n' +
+            '    content: ' + mixSave.content.toString() + '\n' +
+        ')';
     }
     public function toMap():Map<String, Dynamic> {
         return mixSave.content;
