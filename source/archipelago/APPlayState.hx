@@ -1928,7 +1928,7 @@ class APPlayState extends PlayState {
 			}
 			else if (spellPrompts[i].ttl <= 0)
 			{
-                COD.setCOD("Apparently, " + apGame.info().slot + " bad at spelling.");
+                COD.setCOD('Apparently, ${apGame.info().slot} is bad at spelling.');
 				die(); 
 				FlxG.sound.play(Paths.sound('streamervschat/spellfail'));
 				camOther.flash(FlxColor.RED, 1, null, true);

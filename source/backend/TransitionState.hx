@@ -55,7 +55,7 @@ class TransitionState {
         trace("Switch complete.");
         isTransitioning = false;
         if (targetState == null) {
-            trace("Target state is null. 49celling switch.");
+            trace("Target state is null. Cancelling switch.");
             targetState = Type.getClass(FlxG.state);
         }
         FlxG.switchState(Type.createInstance(targetState, stateArgs != null ? stateArgs : []));
