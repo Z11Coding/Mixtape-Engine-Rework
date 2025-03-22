@@ -220,7 +220,9 @@ class APGameState {
         if (_saveData.hasItem("waitingItems")) {
             var waitingItems:Array<String> = _saveData.getItem("waitingItems");
             for (itemName in waitingItems) {
-            archipelago.APItem.createItemByName(itemName);
+            itemName.indexOf("Chart Modifier") != -1 && itemName.indexOf("(") != -1 && itemName.indexOf(")") != -1 
+                ? archipelago.APItem.APChartModifier.restoreFromSave(itemName.substring(itemName.indexOf("(") + 1, itemName.indexOf(")")))
+                : archipelago.APItem.createItemByName(itemName);
             }
         }
         if (_saveData.hasItem("tickets")) {
@@ -247,7 +249,7 @@ class APGameState {
         _saveData.addItem("shields", APItem.shields);
         _saveData.addItem("MaxHP", APItem.maxHPUp);
         _saveData.save();
-        trace("Save data updated...");
+        trace("Save data updated!");
     }
 
     public function info()
@@ -331,8 +333,9 @@ class APGameState {
 
     public static var isSync:Bool = false;
     public static var haventranyet:Bool = true;
+    // var tickets:Int = 0;
     function addSongs(song:Array<NetworkItem>)
-    {
+    { var tickets = 0;
         var nonSongs:Map<String, Int> = [];
         var nonSongsNames:Array<String> = [];
         states.FreeplayState.curMissing.clear();
@@ -436,25 +439,35 @@ class APGameState {
             }
         }
 
-        /*nonSongsNames.sort(function(a:String, b:String):Int {
-            a = a.toUpperCase();
-            b = b.toUpperCase();
+        // nonSongsNames.sort(function(a:String, b:String):Int {
+        //     a = a.toUpperCase();
+        //     b = b.toUpperCase();
             
-            if (a < b) {
-                return 1;
-            }
-            else if (a > b) {
-                return -1;
-            } else {
-                return 0;
-            }
-        });*/
+        //     if (a < b) {
+        //         return 1;
+        //     }
+        //     else if (a > b) {
+        //         return -1;
+        //     } else {
+        //         return 0;
+        //     }
+        // });
 
-        trace(nonSongsNames);
+        for (item in nonSongsNames) {
+            if (item == "Ticket") {
+                tickets++;
+                archipelago.APItem.createItemByName(item).trigger();
+            }
+        }
+        
+        if (info().casualSync)
+        if (APInfo.ticketCount != tickets) {
+            APInfo.ticketCount = tickets;
+        }
 
         for (items in nonSongsNames)
         {
-            if (items == 'ticket') archipelago.APItem.createItemByName(items);
+            if (items == 'Ticket') continue;
             
             if (nonSongs.get(items) <= ItemIndex)
             {

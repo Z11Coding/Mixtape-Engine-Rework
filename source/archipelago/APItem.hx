@@ -217,6 +217,8 @@ class APItem {
                         }
                     }, 100);
                 }, true, false);
+            case "Chart Modifier Trap":
+                return new APChartModifier();
             default:
                 throw "Unknown item name: " + name;
         }
@@ -318,5 +320,25 @@ class APItem {
                 }
             }
         }
+    }
+}
+
+class APChartModifier extends APItem {
+    public var chartModifier:String;
+
+    public function new(?chartModifier:String) {
+        var modifiers = chartModifier != null ? [chartModifier] : ["Normal", "Random", "RandomBasic", "RandomComplex", "Flip", "Pain", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"];
+        this.chartModifier = modifiers[Std.random(modifiers.length)];
+        super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
+            ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
+            if (this.chartModifier == "ManiaConverter") {
+                ClientPrefs.data.gameplaySettings.set("convertMania", 8);
+            }
+            APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
+        }, true, false);
+    }
+
+    public static function restoreFromSave(modifier:String):Void {
+        new APChartModifier(modifier);
     }
 }
