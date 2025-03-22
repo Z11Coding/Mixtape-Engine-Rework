@@ -179,7 +179,7 @@ class APItem {
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     if (!archipelago.APGameState.instance.info().casualSync)
-                    popup("One step closer...", "You got a ticket!");
+                    popup(archipelago.APInfo.ticketCount > archipelago.APInfo.ticketWinCount ? "Not that you needed it..." : "One step closer...", "You got a ticket!");
                     archipelago.APInfo.ticketCount++;
                 }, true, true);
             case "SvC Effect":

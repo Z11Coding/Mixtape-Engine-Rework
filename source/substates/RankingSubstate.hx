@@ -220,7 +220,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 					for (locationIdInt in locationIdInts)
 					{
-						if (locationIdInt != 0 && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-"))
+						if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
 						{
 							archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
 								FlxG.sound.playMusic(Paths.sound('secret'));
