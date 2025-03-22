@@ -26,12 +26,6 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 		};
 		addOption(option);
 
-		var option:Option = new Option('Middlescroll',
-			'If checked, your notes get centered.',
-			'middleScroll',
-			BOOL);
-		addOption(option);
-
 		super();
 	}
 
