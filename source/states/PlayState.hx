@@ -1244,6 +1244,7 @@ class PlayState extends MusicBeatState
 		}
 
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
+		if (!inArchipelagoMode) MaxHP = ClientPrefs.data.healthMode == "Tabi" ? 3 : 2;
 	}
 
 	function doStaticSign(lestatic:Int = 0)
@@ -3524,8 +3525,6 @@ class PlayState extends MusicBeatState
 			}
 			checkEventNote();
 		}
-
-		MaxHP = ClientPrefs.data.healthMode == "Tabi" ? 3 : 2;
 
 		if (health > MaxHP)
 			health = MaxHP;
