@@ -129,6 +129,12 @@ class ModSettingsSubState extends BaseOptionsMenu
 				addOption(newOption);
 				//updateTextFrom(newOption);
 			}
+			var mixtapeOptions = 
+			[
+				new Option('Legacy Lua Mode', '(Exclusive to Mixtape Engine)\nIf you enable this, this mod will always use this Legacy Mode setting.', 'legacy_lua_mode', BOOL),
+				new Option('Legacy Version', '(Exclusive to Mixtape Engine)\nIf you enable this, this mod will always use this Legacy Version setting.', 'legacy_version', STRING, psychlua.LegacyFunkinLua.emulatableVersions, 'legacy_version')
+		];
+		mixtapeOptions.map(option -> addOption(option)).map(option -> mixtapeOptions.remove(option));
 		}
 		catch(e:Dynamic)
 		{

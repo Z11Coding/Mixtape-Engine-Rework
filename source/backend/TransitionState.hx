@@ -55,7 +55,7 @@ class TransitionState {
         trace("Switch complete.");
         isTransitioning = false;
         if (targetState == null) {
-            trace("Target state is null. Cancelling switch.");
+            trace("Target state is null. 49celling switch.");
             targetState = Type.getClass(FlxG.state);
         }
         FlxG.switchState(Type.createInstance(targetState, stateArgs != null ? stateArgs : []));
@@ -492,8 +492,14 @@ class TransitionState {
             case 'transparent close': var psPause = states.PlayState.instance?.paused;
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
-                    if (!states.PlayState.instance?.paused){
-                    FlxG.sound.music.pause(); states.PlayState.instance.paused = true;}
+                    try {
+                        if (!states.PlayState.instance?.paused) {
+                            FlxG.sound.music.pause();
+                            states.PlayState.instance.paused = true;
+                        }
+                    } catch (e:Dynamic) {
+                        trace("Error while pausing music or setting paused state: " + e);
+                    }
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }
                 else
@@ -508,7 +514,7 @@ class TransitionState {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
                     FlxG.sound.resume();
-                    if (!psPause) states.PlayState.instance.paused = false;
+                    try { if (!psPause) states.PlayState.instance.paused = false; } catch (_) {}
                     ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
                 }}, 
                 function(num)

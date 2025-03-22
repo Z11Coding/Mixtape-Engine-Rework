@@ -434,7 +434,7 @@ class Main extends Sprite
 								var mainInstance = new Main();
 								var mainGame = mainInstance.game;
 								var initialState = Type.getClass(mainGame.initialState);
-								var restartProcess = new Process("MixEngine.exe", ["GameJoltBug", "restart"]);
+								var restartProcess = new Process("Mixtape.exe", ["GameJoltBug", "restart"]);
 								FlxG.switchState(new states.ExitState());
 							}
 							trace("Recommended to recompile the game to fix the issue.");
@@ -446,7 +446,7 @@ class Main extends Sprite
 							var mainInstance = new Main();
 							var mainGame = mainInstance.game;
 							var initialState = Type.getClass(mainGame.initialState);
-							var restartProcess = new Process("MixEngine.exe", ["APDisconnectError", "restart"]);
+							var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
 							// FlxG.switchState(new states.ExitState());
 							Main.closeGame();
 							handled = true;
@@ -482,6 +482,18 @@ class Main extends Sprite
 						FlxTween.globalManager.clear();
 						trace("Tween Error occurred. Clearing all tweens.");
 					}
+					if (file.contains("FlxSound.hx"))
+					{
+						FlxG.sound.music != null ? FlxG.sound.music.stop() : null;
+						trace("Music Error occurred. Stopping music.");
+					}
+					if (file.contains("flixel/FlxG.hx"))
+					{
+						trace("Critical FLXG Error occurred. Restarting game...");
+						new Process("Mixtape.exe", ["CriticalError", "restart"]);
+						Main.closeGame();
+					}
+
 
 				default:
 					dummy();

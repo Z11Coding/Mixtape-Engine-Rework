@@ -1741,6 +1741,8 @@ class APPlayState extends PlayState {
 	var doRandomize:Bool = false;
     override public function update(elapsed:Float)
     {
+        // if (archipelago.APItem.activeItem is archipelago.APItem.APChartModifier && cast(archipealgo.APItem.activeItem:archipelago.APItem.APChartModifier).chartModifier != chartModifier)
+        // 
         if ((startedCountdown && !(inCutscene || (function()
         {
             var hasVideoSprite = false;

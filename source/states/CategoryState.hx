@@ -223,6 +223,10 @@ class CategoryState extends MusicBeatState
 	var inDialogue:Bool = false;
 	override function update(elapsed:Float)
 	{
+		if (archipelago.APEntryState.inArchipelagoMode && !(this is archipelago.APCategoryState)) {
+			FlxG.switchState(new archipelago.APCategoryState(archipelago.APGameState.instance));
+			return;
+		}
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
 
