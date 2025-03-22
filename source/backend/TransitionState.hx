@@ -492,6 +492,7 @@ class TransitionState {
             case 'transparent close':
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
+                    if (!states.PlayState.instance?.paused)
                     FlxG.sound.music.pause();
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }

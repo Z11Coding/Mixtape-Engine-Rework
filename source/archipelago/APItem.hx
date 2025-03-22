@@ -342,7 +342,7 @@ class APChartModifier extends APItem {
                 ClientPrefs.data.gameplaySettings.set("convertMania", 8);
             }
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
-        }, true, false);
+        }, false, false);
     }
 
     public static function restoreFromSave(modifier:String):Void {
