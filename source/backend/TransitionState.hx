@@ -492,7 +492,7 @@ class TransitionState {
             case 'transparent close':
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
-                    FlxG.sound.music.stop();
+                    FlxG.sound.music.pause();
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }
                 else
@@ -506,6 +506,7 @@ class TransitionState {
                 {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
+                    FlxG.sound.resume();
                     ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
                 }}, 
                 function(num)
