@@ -710,7 +710,7 @@ class FreeplayState extends MusicBeatState
 		}
 	} 
 
-	function isVictorySong(songName:String, modName:String):Bool {
+	public static function isVictorySong(songName:String, modName:String):Bool {
 		if (modName == null) modName = "";
 		var locationId = songName;
 		locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
