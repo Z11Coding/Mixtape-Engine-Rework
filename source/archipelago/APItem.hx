@@ -178,6 +178,7 @@ class APItem {
                 return new APItem(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    if (!archipelago.APGameState.instance.info().casualSync)
                     popup("One step closer...", "You got a ticket!");
                     archipelago.APInfo.ticketCount++;
                 }, true, true);

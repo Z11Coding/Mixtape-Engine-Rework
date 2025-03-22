@@ -456,7 +456,7 @@ class APGameState {
         for (item in nonSongsNames) {
             if (item == "Ticket") {
                 tickets++;
-                archipelago.APItem.createItemByName(item).trigger();
+                archipelago.APItem.createItemByName(item);
             }
         }
 
