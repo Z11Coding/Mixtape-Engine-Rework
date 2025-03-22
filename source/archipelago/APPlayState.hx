@@ -2073,6 +2073,9 @@ class APPlayState extends PlayState {
 		}
         PlayState.gameplayArea = "APFreeplay";
 
+        if (chartModifier != "Normal")
+            chartModifier = "Normal";
+
 
         super.endSong();
         paused = true;
