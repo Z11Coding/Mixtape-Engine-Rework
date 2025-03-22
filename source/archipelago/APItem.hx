@@ -333,7 +333,7 @@ class APChartModifier extends APItem {
     public var chartModifier:String;
 
     public function new(?chartModifier:String) {
-        var modifiers = chartModifier != null ? [chartModifier] : ["Normal", "Random", "RandomBasic", "RandomComplex", "Flip", "Pain", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"];
+        var modifiers = chartModifier != null ? [chartModifier] : ["Random", "RandomBasic", "RandomComplex", "Flip", "Pain", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"];
         this.chartModifier = modifiers[Std.random(modifiers.length)];
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
