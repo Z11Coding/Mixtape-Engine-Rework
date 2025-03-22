@@ -120,9 +120,9 @@ class FreeplayState extends MusicBeatState
 
 	var hh:Array<Chance> = [
 		{item: "normal error", chance: 95}, // 95% chance to got the normal error screen
-		{item: "small argument", chance: FlxG.save.data.gotbeatbattle || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
-		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle2 || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
-		{item: "beat battle 2", chance: FlxG.save.data.gotsmallargument || APEntryState.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+		{item: "small argument", chance: FlxG.save.data.gotsmallargument || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
+		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
+		{item: "beat battle 2", chance: FlxG.save.data.gotbeatbattle2 || APEntryState.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
 	];
 
 	var ticketCounter:FlxText = null;

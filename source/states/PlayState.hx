@@ -131,7 +131,7 @@ class PlayState extends MusicBeatState
 	];
 
 	//event variables
-	private var isCameraOnForcedPos:Bool = false;
+	public var isCameraOnForcedPos:Bool = false;
 
 	public var boyfriendMap:Map<String, Character> = new Map<String, Character>();
 	public var boyfriendMap2:Map<String, Character> = new Map<String, Character>();
@@ -294,6 +294,7 @@ class PlayState extends MusicBeatState
 
 	public var camHUD:FlxCamera;
 	public var camGame:FlxCamera;
+	public var camCredit:FlxCamera;
 	public var camOther:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
@@ -367,6 +368,9 @@ class PlayState extends MusicBeatState
 	public static var playAsGF:Bool = false;
 	private var specialOverlays:FlxTypedGroup<FlxSprite>;
 	private var timerExtensions:Array<Float>;
+	public var introStageBar:FlxSprite;
+	public var introStageText:FlxTypedGroup<FlxText>;
+	public var introStageStuff:FlxTypedGroup<Dynamic>;
 	public var mashViolations:Int = 0;
 	public var mashing:Int = 0;
 	public var maskedSongLength:Float = -1;
@@ -385,6 +389,11 @@ class PlayState extends MusicBeatState
 	var skipTo:Float;
 	var blackOverlay:FlxSprite;
 	var blackUnderlay:FlxSprite;
+	var credText:Array<String> = [];
+	var songTxt:FlxText;
+	var artistTxt:FlxText;
+	var charterTxt:FlxText;
+	var modTxt:FlxText;
 
 	// AI things. You wouldn't get it.
 	var AIMode:Bool = false;
@@ -569,10 +578,13 @@ class PlayState extends MusicBeatState
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();
+		camCredit = new FlxCamera();
 		camOther = new FlxCamera();
+		camCredit.bgColor.alpha = 0;
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD, false);
+		FlxG.cameras.add(camCredit, false);
 		FlxG.cameras.add(camOther, false);
 		
 		try
@@ -1383,38 +1395,6 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function doStaticSign(lestatic:Int = 0)
-	{
-		trace('static Time Number: ' + lestatic);
-
-		switch (lestatic)
-		{
-			case 0:
-				daStatic.alpha = 1;
-			case 1:
-				daStatic.alpha = 0.5;
-			case 2:
-				daStatic.alpha = 0;
-
-				daStatic.animation.play('static');
-				daStatic.animation.finishCallback = function(pog:String)
-				{
-					daStatic.animation.play('static');
-				}
-		}
-	}
-
-	function doStaticSignFade(lestatictime:Float = 0, lestaticamount:Float = 0)
-	{
-		FlxTween.tween(daStatic, {alpha: lestaticamount}, lestatictime, {ease: FlxEase.expoInOut});
-
-		daStatic.animation.play('static');
-		daStatic.animation.finishCallback = function(pog:String)
-		{
-			daStatic.animation.play('static');
-		}
-	}
-
 	function doThunderstorm(stormType:Int = 0)
 	{
 		switch (stormType)
@@ -1908,6 +1888,10 @@ class PlayState extends MusicBeatState
 						FlxG.sound.play(Paths.sound('introGo' + introSoundsSuffix), 0.6);
 						tick = GO;
 					case 4:
+						new FlxTimer().start(2, function(tmr:FlxTimer)
+						{
+							FlxTween.tween(camCredit, {alpha: 0, y: 1000}, 1, {ease: FlxEase.circInOut});
+						});
 						tick = START;
 				}
 

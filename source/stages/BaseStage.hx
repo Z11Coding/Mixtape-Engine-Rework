@@ -37,7 +37,7 @@ enum NeneState
 
 class BaseStage extends FlxBasic
 {
-	private var game(get, never):Dynamic;
+	private var game(get, never):PlayState;
 	public var onPlayState(get, never):Bool;
 
 	// some variables for convenience
@@ -57,6 +57,7 @@ class BaseStage extends FlxBasic
 	public var gfGroup(get, never):FlxSpriteGroup;
 
 	public var unspawnNotes(get, never):Array<Note>;
+	public var allNotes(get, never):Array<Note>;
 	
 	public var camGame(get, never):FlxCamera;
 	public var camHUD(get, never):FlxCamera;
@@ -183,6 +184,11 @@ class BaseStage extends FlxBasic
 	{
 		return cast game.unspawnNotes;
 	}
+
+	inline private function get_allNotes():Array<Note>
+	{
+		return cast game.allNotes;
+	}
 	
 	inline private function get_camGame():FlxCamera return game.camGame;
 	inline private function get_camHUD():FlxCamera return game.camHUD;
@@ -195,4 +201,7 @@ class BaseStage extends FlxBasic
 		return game.defaultCamZoom;
 	}
 	inline private function get_camFollow():FlxObject return game.camFollow;
+	inline private function camFollow_set(x:Float,y:Float) {
+		camFollow.setPosition(x,y);
+	}
 }
