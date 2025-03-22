@@ -22,7 +22,11 @@ class APCategoryState extends states.CategoryState {
 
         var quitFunc = function() {
             AP.disconnect_socket();
-            MusicBeatState.switchState(new archipelago.APEntryState());
+            states.ExitState.addExitCallback(function() {
+                var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
+                
+            });
+            FlxG.switchState(new states.ExitState());
         };
 
         // Ensure specialOptions are set correctly for 'Options' and 'Quit'

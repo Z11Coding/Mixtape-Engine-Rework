@@ -1741,6 +1741,8 @@ class APPlayState extends PlayState {
 	var doRandomize:Bool = false;
     override public function update(elapsed:Float)
     {
+        // if (archipelago.APItem.activeItem is archipelago.APItem.APChartModifier && cast(archipealgo.APItem.activeItem:archipelago.APItem.APChartModifier).chartModifier != chartModifier)
+        // 
         if ((startedCountdown && !(inCutscene || (function()
         {
             var hasVideoSprite = false;
@@ -1926,6 +1928,7 @@ class APPlayState extends PlayState {
 			}
 			else if (spellPrompts[i].ttl <= 0)
 			{
+                COD.setCOD("Apparently, " + apGame.info().slot + " bad at spelling.");
 				die(); 
 				FlxG.sound.play(Paths.sound('streamervschat/spellfail'));
 				camOther.flash(FlxColor.RED, 1, null, true);

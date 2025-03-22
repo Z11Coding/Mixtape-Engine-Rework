@@ -342,6 +342,9 @@ class APChartModifier extends APItem {
                 ClientPrefs.data.gameplaySettings.set("convertMania", 8);
             }
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
+            if (archipelago.APPlayState.instance?.startingSong) {
+                MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
+            }
         }, false, false);
     }
 

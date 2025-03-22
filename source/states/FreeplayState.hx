@@ -892,7 +892,11 @@ class FreeplayState extends MusicBeatState
 			} catch (e:Dynamic) {
 				trace('Error loading song: ' + e);
 			}
-			forceUnlockCheck(songs[curSelected].songName, WeekData.getCurrentWeek().folder);
+			try {
+				forceUnlockCheck(songs[curSelected].songName, WeekData.getCurrentWeek().folder);
+			} catch (e:Dynamic) {
+				trace("You can't check nothing, silly!");
+			}
 		}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));
