@@ -459,7 +459,7 @@ class APGameState {
                 archipelago.APItem.createItemByName(item).trigger();
             }
         }
-        
+
         if (info().casualSync)
         if (APInfo.ticketCount != tickets) {
             APInfo.ticketCount = tickets;
@@ -485,6 +485,7 @@ class APGameState {
             updateSaveData();
         }
         isSync = false;
+        info().casualSync = false;
     }
 
     // A bandage fix till we have enough brainpower to fix this properly
