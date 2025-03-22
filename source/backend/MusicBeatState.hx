@@ -49,18 +49,25 @@ class MusicBeatState extends FlxState
 		super.create();
 
 		// if (backend.window.CppAPI.getWindowOpacity()!=1)
-		FlxTween.num(0, 1, 0.5, {
-			ease: FlxEase.sineInOut,
-			onComplete: function(tween:FlxTween)
+		if (emergencyOpacityFix) {
+			CppAPI.setWindowOppacity(1);
+		}
+
+		if (firstRun) {
+			FlxTween.num(0, 1, 0.5, {
+				ease: FlxEase.sineInOut,
+				onComplete: function(tween:FlxTween)
+				{
+					#if cpp
+					backend.window.CppAPI.setWindowOpacity(1);
+					#end
+					firstRun = false;
+				}
+			}, function(num)
 			{
-				#if cpp
-				backend.window.CppAPI.setWindowOpacity(1);
-				#end
-			}
-		}, function(num)
-		{
-			CppAPI.setWindowOpacity(num);
-		});
+				CppAPI.setWindowOpacity(num);
+			});
+		}
 
 		if (!skip)
 		{
@@ -94,6 +101,8 @@ class MusicBeatState extends FlxState
 		}
 	}
 
+	public static var firstRun:Bool = true;
+	public static var emergencyOpacityFix:Bool = false;
 	public function initPsychCamera():PsychCamera
 	{
 		var camera = new PsychCamera();

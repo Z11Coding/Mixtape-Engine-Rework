@@ -1,5 +1,6 @@
 package backend;
 
+import archipelago.ArchPopup;
 import backend.window.CppAPI;
 import flixel.FlxState;
 import flixel.tweens.FlxTween;
@@ -477,6 +478,7 @@ class TransitionState {
                 // Start processing with the first object
                 processNextObject();
             case 'transparent fade':
+                MusicBeatState.emergencyOpacityFix = true;    
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
@@ -497,12 +499,14 @@ class TransitionState {
                 {
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }
+                MusicBeatState.emergencyOpacityFix = true;
                 if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
+                    ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
                 }}, 
                 function(num)
                 {

@@ -131,7 +131,7 @@ class FreeplayState extends MusicBeatState
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 
-		if (APEntryState.apGame != null && APEntryState.apGame.info() != null && APEntryState.gonnaRunSync) {
+		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			APEntryState.apGame.info().Sync();
 			APEntryState.gonnaRunSync = false;
 

@@ -481,11 +481,11 @@ class APGameState {
                 archipelago.APItem.createItemByName(items);
             }
             archipelago.APItem.doCheck();
-            isSync = false;
 
             trace("AP State Saving...");
             updateSaveData();
         }
+        isSync = false;
     }
 
     // A bandage fix till we have enough brainpower to fix this properly
