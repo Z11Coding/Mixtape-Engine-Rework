@@ -182,7 +182,9 @@ class RankingSubstate extends MusicBeatSubstate
 								? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
 								: "assets/shared" + (song[0] + Difficulty.getFilePath());
 							var songJson:SwagSong = null;
-							var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json");
+							var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
+								? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
+								: Paths.crawlDirectoryOG("assets/shared/data", ".json"); // I'm an idiot for not realizing this bug sooner. - Yuta
 
 							for (json in jsonStuff)
 							{
