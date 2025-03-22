@@ -2012,7 +2012,7 @@ class APPlayState extends PlayState {
 
     public static function APInstance()
     {
-        if (instance != null)
+        if (instance != null && instance is APPlayState)
             return instance;
         return null;
     }
