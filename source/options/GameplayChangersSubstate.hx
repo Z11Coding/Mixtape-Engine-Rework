@@ -1,5 +1,6 @@
 package options;
 
+import archipelago.APEntryState;
 import objects.AttachedText;
 import objects.CheckboxThingie;
 import objects.Note;
@@ -71,12 +72,13 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
 		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
+		if (!APEntryState.inArchipelagoMode){
 		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", 'Sequential', 'Mirror', 'Skip',  "Amalgam"]));
 		var option:GameplayOption = new GameplayOption('Convert Mania', 'convertMania', INT, 3);
 		option.scrollSpeed = 2.5;
 		option.minValue = Note.minMania;
 		option.maxValue = Note.maxMania;
-		optionsArray.push(option);
+		optionsArray.push(option);}
 
 		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
 		optionsArray.push(new GameplayOption('Showcase Mode', 'showcase', BOOL, false));
