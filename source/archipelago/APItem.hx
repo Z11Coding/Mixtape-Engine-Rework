@@ -99,7 +99,7 @@ class APItem {
     public static var allowedToTrigger(get, never):Bool;
 
     static function get_allowedToTrigger():Bool {
-        return activeItem == null || activeItem.isException;
+        return activeItem == null || activeItem.isException || activeItem.name == "Tutorial Trap";
     }
     public static var activeItem:APItem;
     public static var shields:Int = 0;
@@ -211,6 +211,12 @@ class APItem {
                         if (playState != null && playState.startedCountdown) {
                             popup('Go relearn the basics', "APItem: Tutorial Trap");
                             APPlayState.instance.doEffect('songSwitch');
+                            if (APItem.activeItem !=null) 
+                                allItems.push(APItem.activeItem);
+                            activeItem = new APItem("Tutorial Trap", ConditionHelper.PlayState(), function() {
+                                popup('Go relearn the basics', "APItem: Tutorial Trap");
+                                APPlayState.instance.doEffect('songSwitch');
+                            }, true, false);
                         } else {
                             // Retry after a short delay if countdown hasn't started
                             haxe.Timer.delay(checkCountdown, 100);
