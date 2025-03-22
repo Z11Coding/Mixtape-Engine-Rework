@@ -37,7 +37,7 @@ class ConditionHelper {
         return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere); 
     }
     public static inline function PlayState():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong)); }, ConditionType.PlayState); 
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong && backend.TransitionState.currenttransition == null)); }, ConditionType.PlayState); 
     }
     public static inline function Freeplay():Condition { 
         return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay); 
