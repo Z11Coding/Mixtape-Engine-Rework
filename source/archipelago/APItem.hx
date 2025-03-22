@@ -343,7 +343,7 @@ class APChartModifier extends APItem {
             }
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
             if (archipelago.APPlayState.instance?.startingSong) {
-                MusicBeatState.switchState(new states.PlayState());
+                MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
             }
         }, false, false);
     }
