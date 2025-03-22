@@ -28,6 +28,11 @@ function onUpdatePost(elapsed)
     setShaderFloat("oldtimer", "iTime", os.clock());
 end
 
+function onSkipIntro()
+    cancelTween('reveal')
+    setProperty('black.alpha', 0)
+end
+
 function loadModchart()
     if getPropertyFromClass('backend.ClientPrefs', 'data.modcharts') then
         queueSet(348, 'reverse', 0.5, 0)
