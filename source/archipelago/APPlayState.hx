@@ -2005,6 +2005,11 @@ class APPlayState extends PlayState {
         return true;
     }
 
+    public function forceResync()
+    {
+        resyncVocals();
+    }
+
     override public function endSong():Bool
     {
         if (effectTimer != null && effectTimer.active)

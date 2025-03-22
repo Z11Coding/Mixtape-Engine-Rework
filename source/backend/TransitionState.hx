@@ -514,7 +514,10 @@ class TransitionState {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
                     FlxG.sound.resume();
-                    try { if (!psPause) states.PlayState.instance.paused = false; states.PlayState.instance.canResync=true } catch (_) {}
+                    try { 
+                        if (!psPause) cast(states.PlayState.instance, archipelago.APPlayState).paused = false; 
+                        cast(states.PlayState.instance, archipelago.APPlayState).forceResync(); 
+                    } catch (_) {}
                     ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
                 }}, 
                 function(num)
