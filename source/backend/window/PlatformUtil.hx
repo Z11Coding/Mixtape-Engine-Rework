@@ -43,7 +43,7 @@ void InitNotifyIconData(HWND hWnd) {
     m_NID.dwInfoFlags = NIIF_INFO;
     m_NID.uVersion = NOTIFYICON_VERSION_4;
 
-    StringCchCopy(m_NID.szTip, sizeof(m_NID.szTip) / sizeof(TCHAR), "Psych Engine Notification");
+    StringCchCopy(m_NID.szTip, sizeof(m_NID.szTip) / sizeof(TCHAR), "Mixtape Engine Notification");
 }
 
 // Show the notification
