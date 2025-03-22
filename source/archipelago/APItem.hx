@@ -203,6 +203,9 @@ class APItem {
                     maxHPUp++;
                     trace("Max HP increased! Current max HP: " + maxHPUp);
                     popup('Current Max HP: +$maxHPUp', "You got a max HP up!");
+                    if (APPlayState.APInstance() != null) {
+                        APPlayState.APInstance().MaxHP += 0.5;
+                    }
                 }, true, true);
             case "Tutorial Trap":
                 return new APItem(name, ConditionHelper.PlayState(), function() {
