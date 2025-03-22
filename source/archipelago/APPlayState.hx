@@ -2073,7 +2073,7 @@ class APPlayState extends PlayState {
 		}
         PlayState.gameplayArea = "APFreeplay";
 
-        if (chartModifier != "Normal")
+        // if (chartModifier != "Normal")
             chartModifier = "Normal";
 
 
