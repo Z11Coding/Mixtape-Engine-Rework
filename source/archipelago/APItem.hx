@@ -134,9 +134,9 @@ class APItem {
         return allItems.getItems().copy();
     }
 
-    public static function popup(desc:String):Void {
+    public static function popup(desc:String, ?title:String, ?isWhite:Bool = false):Void {
         if (!APGameState.haventranyet) {
-            archipelago.ArchPopup.startPopupCustom("AP Item!", desc, "archColor", function() {
+            archipelago.ArchPopup.startPopupCustom(title != null ? title : "AP Item!", desc, isWhite ? "archWhite" : "archColor", function() {
             FlxG.sound.playMusic(Paths.sound('secret'));});
         }
     }
@@ -148,7 +148,7 @@ class APItem {
                     // Check if shields are available
                     if (shields > 0) {
                         shields--;
-                        ArchPopup.startPopupCustom("Death Avoided!", 'Shields left: $shields', "archWhite");
+                        popup('Shields left: $shields', "Death Avoided!", true);
                         return; // Do nothing else if shields are consumed
                     }
 
@@ -177,24 +177,31 @@ class APItem {
             case "Fake Transition":
                 return new APItem(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
-                return new APItem(name, ConditionHelper.Everywhere(), function() {popup("You got a ticket!");
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup("One step closer...", "You got a ticket!");
                     archipelago.APInfo.ticketCount++;
                 }, true, true);
             case "SvC Effect":
-                return new APItem(name, ConditionHelper.PlayState(), function() APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]), true, false);
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Effect: ${APPlayState.instance.effectArray[APPlayState.instance.curEffect]}', "APItem: SvC Effect", true);
+                    APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]);
+                }, true, false);
             case "Ghost Chat":
-                return new APItem(name, ConditionHelper.PlayState(), function() APPlayState.instance.triggerGhostChat(), true, false);
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('May the chat be merciful on you...', "APItem: Ghost Chat", true);
+                    APPlayState.instance.triggerGhostChat();
+                }, true, false);
             case "Shield":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     shields++;
                     trace("Shield acquired! Current shields: " + shields);
-                    popup("You got a shield!");
+                    popup('Shields Left: $shields', "You got a shield!");
                 }, true, true);
             case "Max HP Up":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     maxHPUp++;
                     trace("Max HP increased! Current max HP: " + maxHPUp);
-                    popup("You got a max HP up!");
+                    popup('Current Max HP: +$maxHPUp', "You got a max HP up!");
                 }, true, true);
             case "Tutorial Trap":
                 return new APItem(name, ConditionHelper.PlayState(), function() {
@@ -202,6 +209,7 @@ class APItem {
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
                         if (playState != null && playState.startedCountdown) {
+                            popup('Go relearn the basics', "APItem: Tutorial Trap");
                             APPlayState.instance.doEffect('songSwitch');
                         } else {
                             // Retry after a short delay if countdown hasn't started
@@ -212,7 +220,7 @@ class APItem {
             default:
                 throw "Unknown item name: " + name;
         }
-        }
+    }
 
     public function trigger():Void {
         trace('is Gonna Run Sync: ${APGameState.isSync}');
