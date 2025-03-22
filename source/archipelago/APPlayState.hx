@@ -2073,7 +2073,7 @@ class APPlayState extends PlayState {
 
         if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
         {
-            ClientPrefs.data.gameplaySettings.chartModifier = "Normal";
+            ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
         }
 
 
