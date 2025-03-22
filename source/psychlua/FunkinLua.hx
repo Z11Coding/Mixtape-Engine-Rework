@@ -1381,7 +1381,9 @@ class FunkinLua {
 					game.remove(game.videoCutscene);
 					game.videoCutscene.destroy();
 				}
+				game.paused = true;
 				game.videoCutscene = game.startVideo(videoFile, forMidSong, canSkip, shouldLoop, playOnLoad);
+				game.paused = false;
 				return true;
 			}
 			else
