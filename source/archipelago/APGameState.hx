@@ -453,15 +453,14 @@ class APGameState {
         //     }
         // });
 
-        trace(nonSongsNames);
-
         for (item in nonSongsNames) {
             if (item == "Ticket") {
                 tickets++;
                 archipelago.APItem.createItemByName(item).trigger();
             }
         }
-
+        
+        if (info().casualSync)
         if (APInfo.ticketCount != tickets) {
             APInfo.ticketCount = tickets;
         }

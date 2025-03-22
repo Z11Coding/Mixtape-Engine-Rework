@@ -954,7 +954,9 @@ class Client {
 	**/
 	public var firstSync:Bool = true;
 	var a:Bool = false;
+	public var casualSync:Bool = false;
 	public function Sync():Bool {
+		casualSync = true;
 		if (!a) a = true;
 		else firstSync = false;
 		if (state < State.SLOT_CONNECTED)
