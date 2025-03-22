@@ -339,7 +339,7 @@ class APChartModifier extends APItem {
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
             if (this.chartModifier == "ManiaConverter") {
-                ClientPrefs.data.gameplaySettings.set("convertMania", 8);
+                ClientPrefs.data.gameplaySettings.set("convertMania", 4 + Std.random(5));
             }
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
             if (archipelago.APPlayState.instance?.startingSong) {

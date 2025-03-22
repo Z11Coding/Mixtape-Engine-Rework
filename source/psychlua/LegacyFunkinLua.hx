@@ -182,7 +182,7 @@ class LegacyFunkinLua {
 		set('healthLossMult', PlayState.instance.healthLoss);
 		set('playbackRate', PlayState.instance.playbackRate);
 		set('instakillOnMiss', PlayState.instance.instakillOnMiss);
-		set('botPlay', PlayState.instance.cpuControlled);
+		set('botPlay', PlayState.instance.cpuControlled || ClientPrefs.getGameplaySetting('showcase', false));
 		set('practice', PlayState.instance.practiceMode);
 
 		for (i in 0...4) {
