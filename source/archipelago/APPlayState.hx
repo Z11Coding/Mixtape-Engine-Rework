@@ -1173,47 +1173,6 @@ class APPlayState extends PlayState {
 			controlButtons.push(StringTools.trim(thing).toLowerCase());
 		}*/
 
-        if (FlxG.save.data.activeItems == null)
-		{
-			switch (activeItems[3])
-			{
-				case 1:
-					chartModifier = 'Flip';
-				case 2:
-					chartModifier = 'Random';
-				case 3:
-					chartModifier = 'Stairs';
-				case 4:
-					chartModifier = 'Wave';
-				case 5:
-					chartModifier = 'SpeedRando';
-				case 6:
-					chartModifier = 'Amalgam';
-				case 7:
-					chartModifier = 'Trills';
-				case 8:
-					chartModifier = "SpeedUp";
-				case 9:
-					if (PlayState.SONG.mania == 3)
-					{
-						chartModifier = "ManiaConverter";
-						convertMania = FlxG.random.int(4, Note.maxMania);
-					}
-					else
-					{
-						chartModifier = "4K Only";
-					}
-				default:
-					chartModifier = allowSetChartModifier && ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != null ? ClientPrefs.getGameplaySetting('chartModifier', 'Normal') : "Normal";
-			}
-			if (chartModifier == "ManiaConverter")
-			{
-				ArchPopup.startPopupCustom("convertMania value is:", "" + convertMania + "", 'archColor');
-            }
-            if (chartModifier != 'Normal') ArchPopup.startPopupCustom('You Got an Item!', "Chart Modifier Trap (" + chartModifier + ")", 'archColor');
-			//MaxHP = activeItems[2];
-		}
-
         filterMap = [
             "Grayscale" => {
                 var matrix:Array<Float> = [
@@ -1523,7 +1482,7 @@ class APPlayState extends PlayState {
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        modManager.queueEase(curStep, curStep+3, 'reverse', effectiveDownScroll ? 1 : 0, "sineInOut");
+        modManager.queueEase(curStep, curStep+3, 'reverse', 1, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
