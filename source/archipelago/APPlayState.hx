@@ -290,12 +290,12 @@ class APPlayState extends PlayState {
             'spin' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    //modManager.setValue('roll', 0);
+                    modManager.setValue('roll', 0);
                 };
                 var playSound:String = "spin";
                 var playSoundVol:Float = 1;
                 var noIcon:Bool = false;
-                //modManager.setValue('roll', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
+                modManager.setValue('roll', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'spin');
             },
             'songslower' => function() {
@@ -586,13 +586,13 @@ class APPlayState extends PlayState {
             'ghost' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    //modManager.setValue('sudden', 0);
+                    modManager.setValue('sudden', 0);
                 };
                 var playSound:String = "ghost";
                 var playSoundVol:Float = 0.5;
                 var noIcon:Bool = false;
 
-                //modManager.setValue('sudden', 1);
+                modManager.setValue('sudden', 1);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
@@ -798,7 +798,6 @@ class APPlayState extends PlayState {
                 camAngle = 180;
                 camHUD.angle = camAngle;
                 camGame.angle = camAngle;
-
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'flip');
             },
             'invuln' => function() {
@@ -869,7 +868,6 @@ class APPlayState extends PlayState {
                 addNoteSvCLegacy(4, lastPoint, lastPoint, -1);
             },
             'randomize' => function() {
-                /*
                 var ttl:Float = 10;
                 var availableS:String = "";
                 switch (FlxG.random.bool(15)) {
@@ -889,7 +887,7 @@ class APPlayState extends PlayState {
                 modManager.queueEase(curStep, curStep+3, availableS, .96, "sineInOut");
                 trace(availableS);
 
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');*/
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');
             },
             'randomizeAlt' => function() {
                 var ttl:Float = 10;
@@ -1525,7 +1523,7 @@ class APPlayState extends PlayState {
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        //modManager.queueEase(curStep, curStep+3, 'reverse', effectiveDownScroll ? 1 : 0, "sineInOut");
+        modManager.queueEase(curStep, curStep+3, 'reverse', effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
