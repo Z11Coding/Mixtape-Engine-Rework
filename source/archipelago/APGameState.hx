@@ -343,7 +343,7 @@ class APGameState {
 
         for (songName in song)
         {
-            trace(ItemIndex + " - " + songName.index);
+            //trace(ItemIndex + " - " + songName.index);
 
             var itemName = info().get_item_name(songName.item);
 

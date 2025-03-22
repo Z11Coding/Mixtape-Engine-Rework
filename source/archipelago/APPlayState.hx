@@ -1482,7 +1482,7 @@ class APPlayState extends PlayState {
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        modManager.queueEase(curStep, curStep+3, 'reverse', 1, "sineInOut");
+        modManager.queueEase(curStep, curStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
