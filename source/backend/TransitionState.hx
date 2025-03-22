@@ -489,11 +489,11 @@ class TransitionState {
                 {
                     CppAPI.setWindowOppacity(num);
                 });
-            case 'transparent close':
+            case 'transparent close': var psPause = states.PlayState.instance?.paused;
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
-                    if (!states.PlayState.instance?.paused)
-                    FlxG.sound.music.pause();
+                    if (!states.PlayState.instance?.paused){
+                    FlxG.sound.music.pause(); states.PlayState.instance.paused = true;}
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }
                 else
@@ -508,6 +508,7 @@ class TransitionState {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
                     FlxG.sound.resume();
+                    if (!psPause) states.PlayState.instance.paused = false;
                     ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
                 }}, 
                 function(num)

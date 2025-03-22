@@ -874,7 +874,7 @@ class FreeplayState extends MusicBeatState
 			searchBar.updateHitbox();
 		}
 
-		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode)  {
+		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !searchBar.hasFocus)  {
 			try {
 				var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
 				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
@@ -1141,7 +1141,7 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 
-				var vicCheck:Bool = isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && APInfo.ticketWinCount - APInfo.ticketCount == 0;
+				var vicCheck:Bool = isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
 				if (isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && !vicCheck) {
