@@ -184,8 +184,8 @@ class APItem {
                 return new APItem(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    if (!archipelago.APGameState.instance.info().casualSync)
                     archipelago.APInfo.ticketCount++;
+                    if (!archipelago.APGameState.instance.info().casualSync)
                     popup(archipelago.APInfo.ticketCount > archipelago.APInfo.ticketWinCount ? "Not that you needed it..." : archipelago.APInfo.ticketCount == archipelago.APInfo.ticketWinCount ? "You have all you need!" : "One step closer...", "You got a ticket!");
                 }, true, true);
             case "SvC Effect":
