@@ -136,7 +136,7 @@ class APPlayState extends PlayState {
     override public function create()
     { if (ghostChat) triggerGhostChat();
 
-        
+
         instance = this; // For traps and items
         if (APEntryState.inArchipelagoMode)
         {
@@ -1104,7 +1104,7 @@ class APPlayState extends PlayState {
             }
         ];
 
-        addEffect("freeze");
+        // addEffect("freeze");
 
         debugKeysDodge = ClientPrefs.keyBinds.get('dodge').copy();
 
