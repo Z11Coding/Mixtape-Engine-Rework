@@ -1049,7 +1049,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
                                 FlxG.save.data.SONG = PlayState.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
-                                FlxG.save.data.songPos = Conductor.songPosition;
+                                FlxG.save.data.songPos = FlxG.sound.music.time;
                                 FlxG.save.flush();
                             
                                 PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
