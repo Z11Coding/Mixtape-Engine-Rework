@@ -244,7 +244,7 @@ class APGameState {
         }
         _saveData.addItem("itemIndex", ItemIndex);
         _saveData.addItem("activeItem", APItem.activeItem?.name);
-        _saveData.addItem("waitingItems", APItem.getItems().map(item -> item.name));
+        _saveData.addItem("waitingItems", APItem.getItems().map(item -> item.name).concat([if (APPlayState.ghostChat) "Ghost Chat" else null]).filter(item -> item != null));
         _saveData.addItem("tickets", APInfo.ticketCount);
         _saveData.addItem("shields", APItem.shields);
         _saveData.addItem("MaxHP", APItem.maxHPUp);
