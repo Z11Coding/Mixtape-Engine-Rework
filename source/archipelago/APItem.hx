@@ -226,7 +226,7 @@ class APItem {
                             activeItem = new APItem("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
-                            }, true, false, true);
+                            }, false, false, true);
                         } else {
                             // Retry after a short delay if countdown hasn't started
                             haxe.Timer.delay(checkCountdown, 100);
