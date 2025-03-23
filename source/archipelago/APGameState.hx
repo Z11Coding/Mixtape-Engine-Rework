@@ -220,7 +220,7 @@ class APGameState {
         if (_saveData.hasItem("waitingItems")) {
             var waitingItems:Array<String> = _saveData.getItem("waitingItems");
             for (itemName in waitingItems) {
-            itemName.indexOf("Chart Modifier") != -1 && itemName.indexOf("(") != -1 && itemName.indexOf(")") != -1 
+            itemName.indexOf("Chart Modifier Trap") != -1 && itemName.indexOf("(") != -1 && itemName.indexOf(")") != -1 
                 ? archipelago.APItem.APChartModifier.restoreFromSave(itemName.substring(itemName.indexOf("(") + 1, itemName.indexOf(")")))
                 : archipelago.APItem.createItemByName(itemName);
             }

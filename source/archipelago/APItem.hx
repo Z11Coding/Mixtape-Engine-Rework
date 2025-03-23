@@ -226,6 +226,9 @@ class APItem {
                             activeItem = new APItem("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
+                                APPlayState.instance.playfields.forEach(function(pf) {
+                                    pf.autoPlayed = true;
+                                });
                             }, false, false, true);
                         } else {
                             // Retry after a short delay if countdown hasn't started
