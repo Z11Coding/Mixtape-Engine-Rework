@@ -129,6 +129,7 @@ class APItem {
         if (!activeOnly)
         allItems.push(this); else
         if (activeItem == null || activeItem.isException || activeItem.name == "Tutorial Trap") {
+            activeItem != null ? allItems.unshift(activeItem) : null;
             activeItem = this; 
         } else {
             allItems.push(this);
