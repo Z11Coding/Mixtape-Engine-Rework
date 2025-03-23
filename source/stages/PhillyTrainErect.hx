@@ -352,7 +352,7 @@ class PhillyTrainErect extends PicoCapableStage
 
 		cutsceneHandler.timer(11.2, () ->
 		{
-			if (explode == true)
+			if (explode == true)	
 			{
 				bloodPool.visible = true;
 				bloodPool.anim.play("bloodPool", true);
