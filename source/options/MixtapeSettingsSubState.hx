@@ -116,6 +116,27 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('---DEBUG---',
+			"",
+			'',
+			LABEL);
+
+		addOption(option);
+
+		var option:Option = new Option('Ignore Tween Errors',
+			"Disables the error message that appears when a tween is called on a non-existent object.",
+			'ignoreTweenErrors',
+			BOOL);
+
+		addOption(option);
+
+		var option:Option = new Option('Show Crash Dialogue',
+			"Disables the crash dialogue that appears when the game crashes.",
+			'showCrash',
+			BOOL);
+
+			addOption(option);
+
 		super();
 	}
 

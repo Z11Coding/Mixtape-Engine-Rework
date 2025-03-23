@@ -114,7 +114,7 @@ class APItem {
 
     private static var allItems:ActiveArray = new ActiveArray([]);
 
-    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false) {
+    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false) {
         this.name = name;
         this.condition = condition;
         this.onTrigger = onTrigger;
@@ -126,8 +126,13 @@ class APItem {
         }
 
         this.toSync = false;
-
-        allItems.push(this);
+        if (!activeOnly)
+        allItems.push(this); else
+        if (activeItem == null || activeItem.isException || activeItem.name == "Tutorial Trap") {
+            activeItem = this; 
+        } else {
+            allItems.push(this);
+        }
     }
 
     public static function getItems():Array<APItem> {
@@ -220,7 +225,7 @@ class APItem {
                             activeItem = new APItem("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
-                            }, true, false);
+                            }, true, false, true);
                         } else {
                             // Retry after a short delay if countdown hasn't started
                             haxe.Timer.delay(checkCountdown, 100);

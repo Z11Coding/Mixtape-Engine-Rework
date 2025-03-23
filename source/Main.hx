@@ -364,6 +364,24 @@ class Main extends Sprite
 		Sys.println(errMsg);
 		Sys.println("Crash dump saved in " + Path.normalize(path));
 
+		for (stackItem in callStack)
+			{
+				switch (stackItem)
+				{
+					case FilePos(s, file, line, column):
+						if (file.contains("FlxTween.hx"))
+						{
+							FlxTween.globalManager.clear();
+							trace("Tween Error occurred. Clearing all tweens.");
+							if (ClientPrefs.data.ignoreTweenErrors)
+								return;
+						}
+					default:
+						trace("Unhandled stack item: " + stackItem);
+						dummy();
+				}
+				}
+
 		if (ClientPrefs.data.showCrash)
 		{
 			Application.current.window.alert(errMsg, "Error!");
@@ -477,11 +495,6 @@ class Main extends Sprite
 			switch (stackItem)
 			{
 				case FilePos(s, file, line, column):
-					if (file.contains("FlxTween.hx"))
-					{
-						FlxTween.globalManager.clear();
-						trace("Tween Error occurred. Clearing all tweens.");
-					}
 					if (file.contains("FlxSound.hx"))
 					{
 						FlxG.sound.music != null ? FlxG.sound.music.stop() : null;

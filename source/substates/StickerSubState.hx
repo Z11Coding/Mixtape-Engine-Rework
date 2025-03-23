@@ -50,6 +50,7 @@ class StickerSubState extends MusicBeatSubstate
   {
     super();
 
+
     if (oldStickers == null && targetState == null) 
     {
       return;
@@ -191,7 +192,10 @@ class StickerSubState extends MusicBeatSubstate
       grpStickers.clear();
     }
 
+
     var stickerInfo:StickerInfo = new StickerInfo('stickers-set-1');
+    if (stickerInfo.crashed) return;
+
     var stickers:Map<String, Array<String>> = new Map<String, Array<String>>();
     for (stickerSets in stickerInfo.getPack("all"))
     {
@@ -204,7 +208,7 @@ class StickerSubState extends MusicBeatSubstate
     while (xPos <= FlxG.width /*&& loopCount < 100*/) // Add a condition to limit the loop count
     {
       var stickerSet:String = getRandomStickerSet(stickers);
-      var sticker:String = FlxG.random.getObject(stickers.get(stickerSet));
+        var sticker:String = try{FlxG.random.getObject(stickers.get(stickerSet));}catch(e:Dynamic){trace(e);null;};
       var sticky:StickerSprite = new StickerSprite(0, 0, stickerInfo.name, sticker);
 
 
@@ -329,11 +333,19 @@ class StickerInfo
   public var artist:String;
   public var stickers:Map<String, Array<String>>;
   public var stickerPacks:Map<String, Array<String>>;
+  public var crashed:Bool = false;
 
-  public function new(stickerSet:String):Void
-  {
-    var path = Paths.file('images/transitionSwag/' + stickerSet + '/stickers.json');
-    var json = Json.parse(Assets.getText(path));
+  public function new(stickerSet:String):Void{
+    var path:String;
+    var json:Dynamic;
+  try {
+     path = Paths.file('images/transitionSwag/' + stickerSet + '/stickers.json');
+     json = Json.parse(Assets.getText(path)); } catch (e:Dynamic) { trace(e); 
+    MusicBeatState.switchState(Type.createInstance(backend.TransitionState.currenttransition.targetState, []));
+    json = null;
+    crashed = true;
+    return;
+    }
 
     // doin this dipshit nonsense cuz i dunno how to deal with casting a json object with
     // a dash in its name (sticker-packs)
@@ -370,7 +382,7 @@ class StickerInfo
   }
 
   public function getPack(packName:String):Array<String>
-  {
+  {if (this.stickerPacks == null) return [];
     return this.stickerPacks[packName];
   }
 }

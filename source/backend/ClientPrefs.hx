@@ -142,6 +142,7 @@ import states.TitleState;
 	public var modcharts:Bool = true;
 	public var gimmicksAllowed:Bool = true;
 	public var showCrash:Bool = true;
+	public var ignoreTweenErrors:Bool = false;
 	public var notePopup:Bool = false;
 	public var audioBreak:Bool = false;
 	public var holdSubdivs:Float = 2;
