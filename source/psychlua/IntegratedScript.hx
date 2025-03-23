@@ -75,8 +75,14 @@ class IntegratedLuaScript {
     }
 
     private static function isPlayState():Bool {
-        // Replace this with the actual check for PlayState
-        return Std.is(FlxG.state, PlayState);
+        var currentClass = Type.getClass(FlxG.state);
+        while (currentClass != null) {
+            if (currentClass == PlayState) {
+                return true;
+            }
+            currentClass = cast(Type.getSuperClass(currentClass));
+        }
+        return false;
     }
 }
 
@@ -133,7 +139,14 @@ class IntegratedHScript {
     }
 
     private static function isPlayState():Bool {
-        return Std.is(FlxG.state, PlayState);
+        var currentClass = Type.getClass(FlxG.state);
+        while (currentClass != null) {
+            if (currentClass == PlayState) {
+                return true;
+            }
+            currentClass = cast(Type.getSuperClass(currentClass));
+        }
+        return false;
     }
 }
 

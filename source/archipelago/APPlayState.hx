@@ -134,7 +134,9 @@ class APPlayState extends PlayState {
 	}
 
     override public function create()
-    {
+    { if (ghostChat) triggerGhostChat();
+
+        
         instance = this; // For traps and items
         if (APEntryState.inArchipelagoMode)
         {
@@ -1337,9 +1339,10 @@ class APPlayState extends PlayState {
         return true;
     }
 
+    public static var ghostChat:Bool = false;
     // I feel bad for the poor soul that has this trigger on them multiple times
     public function triggerGhostChat()
-    {
+    { ghostChat = true;
         randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer)
         {
             tmr.reset(FlxG.random.float(5, 10));
@@ -2021,6 +2024,11 @@ class APPlayState extends PlayState {
     {
         if (effectTimer != null && effectTimer.active)
 			effectTimer.cancel();
+
+        if (ghostChat)
+        {
+            ghostChat = false;
+        }
 
 		ClientPrefs.data.downScroll = ogScroll;
 
