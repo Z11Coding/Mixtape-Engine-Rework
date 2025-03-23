@@ -306,6 +306,23 @@ class UnderTextParser extends FlxTypeText {
     private function reactFunction():Void {
         // Code to react when typedText reaches the specified location
     }
+
+    public static function removeFormatting(text:String):String {
+        var result:String = "";
+        var i:Int = 0;
+        while (i < text.length) {
+            if (text.charAt(i) == '[') {
+                var endTag:Int = text.indexOf(']', i);
+                if (endTag != -1) {
+                    i = endTag + 1;
+                    continue;
+                }
+            }
+            result += text.charAt(i);
+            i++;
+        }
+        return result;
+    }
 }
 
 class PatternSplitter {
