@@ -80,7 +80,7 @@ class CountdownPopup extends openfl.display.Sprite {
             // Play countdown sound
             if (countdown > 0) {
                 FlxG.sound.play(Paths.sound('countdown/tick'));
-            else if (countdown == 0) {
+            } else if (countdown == 0) {
                 FlxG.sound.play(Paths.sound('countdown/end'));
             }
     }
