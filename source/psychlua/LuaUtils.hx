@@ -2,6 +2,7 @@ package psychlua;
 
 import backend.WeekData;
 import objects.Character;
+import stages.StageData;
 
 import openfl.display.BlendMode;
 import Type.ValueType;
@@ -42,11 +43,10 @@ class LuaUtils
 	// Legacy shit.
 
 	inline public static function getTextObject(name:String):FlxText
-		{
-			return #if LUA_ALLOWED PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : #end Reflect.getProperty(PlayState.instance, name);
-		}
+	{
+		return #if LUA_ALLOWED PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : #end Reflect.getProperty(PlayState.instance, name);
+	}
 
-		
 	public static function resetTextTag(tag:String) {
 		#if LUA_ALLOWED
 		if(!PlayState.instance.modchartTexts.exists(tag)) {
@@ -60,7 +60,6 @@ class LuaUtils
 		PlayState.instance.modchartTexts.remove(tag);
 		#end
 	}
-
 
 	public static function setVarInArray(instance:Dynamic, variable:String, value:Dynamic, allowMaps:Bool = false):Any
 	{
@@ -94,7 +93,7 @@ class LuaUtils
 			return value;
 		}
 
-		if(MusicBeatState.getVariables().exists(variable))
+		if(instance is MusicBeatState && MusicBeatState.getVariables().exists(variable))
 		{
 			MusicBeatState.getVariables().set(variable, value);
 			return value;
@@ -131,7 +130,7 @@ class LuaUtils
 			return instance.get(variable);
 		}
 
-		if(MusicBeatState.getVariables().exists(variable))
+		if(instance is MusicBeatState && MusicBeatState.getVariables().exists(variable))
 		{
 			var retVal:Dynamic = MusicBeatState.getVariables().get(variable);
 			if(retVal != null)
@@ -286,6 +285,9 @@ class LuaUtils
 		}
 		return false;
 	}
+	public static function isLuaSupported(value:Any):Bool {
+		return (value == null || isOfTypes(value, [Bool, Int, Float, String, Array]) || Type.typeof(value) == ValueType.TObject);
+	}
 	
 	public static function getTargetInstance()
 	{
@@ -295,7 +297,9 @@ class LuaUtils
 
 	public static inline function getLowestCharacterGroup():FlxSpriteGroup
 	{
-		var group:FlxSpriteGroup = PlayState.instance.gfGroup;
+		var stageData:StageFile = StageData.getStageFile(PlayState.SONG.stage);
+		var group:FlxSpriteGroup = (stageData.hide_girlfriend ? PlayState.instance.boyfriendGroup : PlayState.instance.gfGroup);
+
 		var pos:Int = PlayState.instance.members.indexOf(group);
 
 		var newPos:Int = PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup);

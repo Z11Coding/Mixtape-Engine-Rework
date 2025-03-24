@@ -26,7 +26,7 @@ import crowplexus.iris.Iris;
 import psychlua.HScript.HScriptInfos;
 #end
 
-#if linux
+#if (linux || mac)
 import lime.graphics.Image;
 #end
 
@@ -54,6 +54,7 @@ import backend.Highscore;
 @:cppInclude('./external/gamemode_client.h')
 @:cppFileCode('#define GAMEMODE_AUTO')
 #end
+
 #if windows
 @:buildXml('
 <target id="haxe">
@@ -71,7 +72,7 @@ extern "C" HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(PCWSTR AppID);
 // // // // // // // // //
 class Main extends Sprite
 {
-	var game = {
+	public static final game = {
 		width: 1280, // WINDOW width
 		height: 720, // WINDOW height
 		initialState: states.FirstCheckState, // initial game state
@@ -99,18 +100,8 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
-		#if windows
-		// DPI Scaling fix for windows 
-		// this shouldn't be needed for other systems
-		// Credit to YoshiCrafter29 for finding this function
-		untyped __cpp__("SetProcessDPIAware();");
-
-		var display = lime.system.System.getDisplay(0);
-		if (display != null) {
-			var dpiScale:Float = display.dpi / 96;
-			Application.current.window.width = Std.int(game.width * dpiScale);
-			Application.current.window.height = Std.int(game.height * dpiScale);
-		}
+		#if (cpp && windows)
+		backend.window.Native.fixScaling();
 		#end
 
 		// Credits to MAJigsaw77 (he's the og author for this code)
@@ -222,7 +213,7 @@ class Main extends Sprite
 		}
 		#end
 
-		#if linux
+		#if (linux || mac) // fix the app icon not showing up on the Linux Panel / Mac Dock
 		var icon = Image.fromFile("icon.png");
 		Lib.current.stage.window.setIcon(icon);
 		#end
@@ -246,6 +237,10 @@ class Main extends Sprite
 		#if DISCORD_ALLOWED
 		DiscordClient.prepare();
 		#end
+
+		FlxG.fixedTimestep = false;
+		FlxG.game.focusLostFramerate = 60;
+		FlxG.keys.preventDefaultKeys = [TAB];
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
@@ -475,8 +470,7 @@ class Main extends Sprite
 							} else {
 								Application.current.window.alert("The game encountered a critical error and will now restart.", "Game Bricked");
 								trace("The game was bricked. Restarting...");
-								var mainInstance = new Main();
-								var mainGame = mainInstance.game;
+								var mainGame = Main.game;
 								var initialState = Type.getClass(mainGame.initialState);
 								var restartProcess = new Process("Mixtape.exe", ["GameJoltBug", "restart"]);
 								FlxG.switchState(new states.ExitState());
@@ -487,8 +481,7 @@ class Main extends Sprite
 						case "APDisconnectSubstate":
 							Application.current.window.alert("The game encountered a critical error and will now restart.", "AP Disconnect Error");
 							trace("AP Disconnect Error. Restarting...");
-							var mainInstance = new Main();
-							var mainGame = mainInstance.game;
+							var mainGame = Main.game;
 							var initialState = Type.getClass(mainGame.initialState);
 							var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
 							// FlxG.switchState(new states.ExitState());
@@ -507,8 +500,7 @@ class Main extends Sprite
 				}
 		
 				if (!handled) {
-					var mainInstance = new Main();
-					var mainGame = mainInstance.game;
+					var mainGame = Main.game;
 					FlxG.switchState(Type.createInstance(states.TitleState, []));
 					trace("Unhandled state: " + (Type.getClassName(Type.getClass(FlxG.state))));
 					trace("Restarting Game...");

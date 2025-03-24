@@ -2029,7 +2029,7 @@ class PlayState extends MusicBeatState
 			var tempScore:String;
 			if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [songScore, songMisses, str]);
 			else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [songScore, str]);
-			scoreTxt.text = tempScore;
+			scoreTxt.text = '$tempScore | Health: ${CoolUtil.floorDecimal((health/2) * 100, 2)}%';
 			scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
 		}
 	}
@@ -2794,7 +2794,8 @@ class PlayState extends MusicBeatState
 				swagNote.sustainLength = songNotes[2];
 				swagNote.noteType = noteType;
 				swagNote.ID = allNotes.length;
-				swagNote.holdType = TAP;
+				swagNote.holdType = swagNote.sustainLength > 0 ? HEAD : TAP;
+				swagNote.isParent = swagNote.sustainLength > 0;
 				swagNote.scrollFactor.set();
 				if (chartModifier == 'Amalgam' && currentModifier == 11)
 				{
@@ -2826,11 +2827,10 @@ class PlayState extends MusicBeatState
 				}
 
 				var spot = 0;
-				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet);
+				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
+				final roundSus:Int = Math.round(swagNote.sustainLength / curStepCrochet) -1;
 				if (roundSus > 0)
 				{
-					swagNote.isParent = true;
-					swagNote.holdType = HEAD;
 					for (susNote in 0...roundSus)
 					{
 						oldNote = allNotes[Std.int(allNotes.length - 1)];
