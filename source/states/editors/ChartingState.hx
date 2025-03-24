@@ -243,6 +243,22 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		super();
 	}
 
+	public override function handleFileDrop(file:String)
+	{
+		try
+		{
+			if(file.endsWith('.json'))
+			{
+				var chart:SwagSong = Song.loadFromJson(file);
+				MusicBeatState.resetState();
+			}
+		}
+		catch(e:Dynamic)
+		{
+			trace('Error loading file: $e');
+		}
+	}
+
 	var bg:FlxSprite;
 	var theme:ChartingTheme = DEFAULT;
 

@@ -239,6 +239,22 @@ class Main extends Sprite
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
+		// try { // WHY THE HELL IS THIS CRASHING???????????????????
+		// 	stage.window.onDropFile.add(function(path:String)
+		// 	{
+		// 		trace("user dropped file with path: " + path);
+		// 		try {
+		// 			if (Std.is(FlxG.state, backend.MusicBeatState))
+		// 				(cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
+		// 		} catch (e:Dynamic) {
+		// 			trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
+		// 			trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
+		// 		}
+		// 	});
+		// } catch (e:Dynamic) {
+		// 	trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
+		// }
+
 		// shader coords fix
 		FlxG.signals.gameResized.add((w, h) -> resetSpriteCaches());
 		FlxG.signals.focusGained.add(resetSpriteCaches);

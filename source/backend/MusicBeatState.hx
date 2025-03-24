@@ -19,6 +19,12 @@ class MusicBeatState extends FlxState
 	public static var pubCurDecStep:Float = 0;
 	public static var pubCurDecBeat:Float = 0;
 
+	public function handleFileDrop(file:String)
+	{
+		// trace('dropped files: ' + files);
+		// This can be added to the state that needs it, and handle any files dropped.
+	}
+
 	override public function destroy()
 	{
 		super.destroy();
