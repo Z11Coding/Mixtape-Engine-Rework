@@ -36,12 +36,6 @@ class FirstCheckState extends MusicBeatState
 	override public function create()
 	{ 
 		//backend.window.Priority.setPriority(0);
-		if (gameInitialized && !relaunch)
-		{
-			lime.app.Application.current.window.alert("You cannot access this state. It is for initialization only.", "Debug");
-			throw new haxe.Exception("Invalid state access!");	
-		}
-		
 		if (!relaunch) COD.initCOD();
 
 		super.create();
@@ -136,7 +130,7 @@ class FirstCheckState extends MusicBeatState
 			}
 		else
 		{
-			FlxG.switchState(new states.SplashScreen());
+			FlxG.switchState(new TitleState());
 		}
 	}
 }

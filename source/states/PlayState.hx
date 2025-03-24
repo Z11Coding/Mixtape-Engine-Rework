@@ -4189,7 +4189,7 @@ class PlayState extends MusicBeatState
 				&& !isDead 
 				&& gameOverTimer == null;
 		}
-		if (skipHealthCheck || instakillOnMiss || killPlayer)
+		if (skipHealthCheck || instakillOnMiss && killPlayer || killPlayer)
 		{
 			var ret:Dynamic = callOnScripts('onGameOver', null, true);
 			if(ret != LuaUtils.Function_Stop)
