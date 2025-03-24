@@ -1362,7 +1362,7 @@ class FreeplayState extends MusicBeatState
 		updateTexts(elapsed);
 		super.update(elapsed);
 
-		if (ticketCounter != null) ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\nTickets Total: ${APInfo.ticketWinCount}\nTickets Left: ${Std.int(APInfo.ticketWinCount - APInfo.ticketCount)}';
+		if (ticketCounter != null) ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\nTickets Needed: ${APInfo.ticketWinCount}\nTickets Left: ${Std.int(APInfo.ticketWinCount - APInfo.ticketCount)}';
 
 		grpLocks.forEach(function(lock:FlxSprite)
 		{

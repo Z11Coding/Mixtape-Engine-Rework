@@ -42,6 +42,7 @@ class DTable<T>
 	public function setCell(row:Int, col:Int, value:T):Void
 	{
 		table[row][col] = value;
+		// haxe.Rest;
 	}
 
 	public function getByLinearIndex(index:Int):T

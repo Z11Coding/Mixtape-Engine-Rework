@@ -24,6 +24,23 @@ class LambdaCalculus {
         return parse({ func: expr, arg: arg });
     }
 
+    public static function solve(expr:LambdaExpr):Dynamic {
+        switch expr {
+            case { name }:
+                if (name.match(/^\d+$/)) return Std.parseInt(name); // Return number if it's a numeric string
+                return expr.name;
+            case { param, body }:
+                return { param: param, body: solve(body) };
+            case { func, arg }:
+                var f = solve(func);
+                var a = solve(arg);
+                if (f == "succ") return succ(a);
+                if (f == "pred") return pred(a);
+                if (f == "Y") return solve({ param: "f", body: { param: "x", body: call(call(a, a), a) } });
+                return { func: f, arg: a };
+        }
+    }
+
     /**
      * Reduce a lambda expression using beta reduction.
      * Example: reduce({ func: { param: "x", body: { name: "x" } }, arg: { name: "y" } }) -> { name: "y" }
