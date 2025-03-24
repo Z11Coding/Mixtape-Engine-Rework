@@ -220,11 +220,18 @@ class APGameState {
         if (_saveData.hasItem("waitingItems")) {
             var waitingItems:Array<String> = _saveData.getItem("waitingItems");
             for (itemName in waitingItems) {
-            itemName.indexOf("Chart Modifier Trap") != -1 && itemName.indexOf("(") != -1 && itemName.indexOf(")") != -1 
-                ? archipelago.APItem.APChartModifier.restoreFromSave(itemName.substring(itemName.indexOf("(") + 1, itemName.indexOf(")")))
-                : archipelago.APItem.createItemByName(itemName);
+            if (itemName.indexOf("Chart Modifier Trap") != -1) {
+                var startIndex = itemName.indexOf("(");
+                var endIndex = itemName.indexOf(")");
+                if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+                    var modifier = itemName.substring(startIndex + 1, endIndex);
+                    archipelago.APItem.APChartModifier.restoreFromSave(modifier);
+                } else {
+                    archipelago.APItem.createItemByName(itemName);
+                }
             }
         }
+    }
         if (_saveData.hasItem("tickets")) {
             APInfo.ticketCount = _saveData.getItem("tickets");
         }

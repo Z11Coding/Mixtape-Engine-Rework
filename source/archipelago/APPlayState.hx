@@ -1344,10 +1344,7 @@ class APPlayState extends PlayState {
     public function triggerGhostChat()
     { ghostChat = true;
         randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer)
-        {
-            tmr.reset(FlxG.random.float(5, 10));
-            doEffect(effectArray[curEffect]);
-        });
+        tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0))); doEffect(effectArray[curEffect]);
         trace("Ghost Chat Activated! L E T  T H E  C H A O S  B E G I N !");
     }
     
