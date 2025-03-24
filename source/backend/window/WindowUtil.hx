@@ -1,4 +1,3 @@
-#if windows
 package backend.window;
 
 // most codes stolen from vs dave and bambi source code.
@@ -44,4 +43,3 @@ class WindowUtil
 	}
     #end
 }
-#end
