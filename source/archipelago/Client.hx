@@ -232,6 +232,12 @@ class Client {
 	public var onPrintJSON(default, null) = new Event<(Array<JSONMessagePart>, Null<NetworkItem>, Null<Int>) -> Void>();
 
 	/**
+		Called when a Countdown packet is received.
+		@param countdown The countdown data.
+	**/
+	public var onCountdown(default, null) = new Event<Dynamic->Void>();
+
+	/**
 		Called when a Bounced packet is received.
 		@param data The data contained in the packet.
 	**/
@@ -299,6 +305,9 @@ class Client {
 
 	inline function _hOnPrintJSON(data, item, receiving)
 		return onPrintJSON.dispatch(data, item, receiving);
+
+	inline function _hOnCountdown(countdown)
+		return onCountdown.dispatch(countdown);
 
 	inline function _hOnBounced(data)
 		return onBounced.dispatch(data);
@@ -1472,6 +1481,10 @@ class Client {
 
 				case PrintJSON(data, type, receiving, item, found, team, slot, message, tags, countdown):
 					_hOnPrintJSON(data, item, receiving);
+
+					if (type == "Countdown" && countdown != null) {
+						_hOnCountdown(countdown);
+					}
 
 				case Bounced(games, slots, tags, data):
 					if (games != null && !games.contains(game))

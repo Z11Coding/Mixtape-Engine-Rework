@@ -181,6 +181,16 @@ class APGameState {
 		_ap.onPrint.add(sendMessageSimple);
 		_ap.onItemsReceived.add(addSongs);
         _ap.onBounced.add(bouncy);
+        _ap.onCountdown.add(function(countdown:Int) {
+            if (CountdownPopup.instance == null) {
+            var popup = new archipelago.CountdownPopup("AP Countdown", "The AP is about to begin!", countdown);
+            popup.onFinish = function() {
+                // Start the AP!
+            };
+        } else {
+            CountdownPopup.instance.updateCountdown(countdown);
+        }
+        });
         // _ap.onConnect.add(function() {
         //     _ap.clientStatus = ClientStatus.CONNECTED;
         // });

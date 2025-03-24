@@ -8,22 +8,29 @@ import flixel.tweens.FlxEase;
 import flixel.FlxG;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
+import flixel.system.FlxSound;
 
 class CountdownPopup extends openfl.display.Sprite {
     public var onFinish:Void->Void = null;
-    private var countdown:Int;
+    private var countdown:Int = -1; // Initialize with -1 to indicate no value yet
     private var lastScale:Float = 1;
     private var intendedY:Float = 0;
     private var timePassed:Float = -1;
-    private var countedTime:Float = 0;
     private var lerpTime:Float = 0;
     private var bitmaps:Array<BitmapData> = [];
     private var textDisplay:FlxText;
+    public static var instance:CountdownPopup = null;
 
-    public function new(name:String, desc:String, countdown:Int, ?onFinish:Void->Void) {
+    // private var name:String;
+    private var desc:String;
+
+    public function new(name:String, desc:String, initialCountdown:Int, ?onFinish:Void->Void) {
         super();
-        this.countdown = countdown;
+        this.countdown = initialCountdown;
         this.onFinish = onFinish;
+        instance = this;
+        this.name = name;
+        this.desc = desc;
 
         // Background
         graphics.beginFill(FlxColor.BLACK);
@@ -39,6 +46,9 @@ class CountdownPopup extends openfl.display.Sprite {
         drawTextAt(textDisplay, 'Countdown: ' + countdown, textX, textY + 60);
         graphics.endFill();
 
+        // Play initial sound
+        FlxG.sound.play(Paths.sound('countdown/start'));
+
         // Add to stage
         FlxG.stage.addEventListener(Event.RESIZE, onResize);
         addEventListener(Event.ENTER_FRAME, update);
@@ -52,6 +62,27 @@ class CountdownPopup extends openfl.display.Sprite {
         this.scaleY = lastScale;
         intendedY = 20;
     }
+
+    public function updateCountdown(newCountdown:Int) {
+        if (newCountdown != countdown) {
+            countdown = newCountdown;
+        }
+
+            // Clear and redraw graphics
+            graphics.clear();
+            graphics.beginFill(FlxColor.BLACK);
+            graphics.drawRoundRect(0, 0, 420, 130, 16, 16);
+            drawTextAt(textDisplay, name, 15, 20);
+            drawTextAt(textDisplay, desc, 15, 50);
+            drawTextAt(textDisplay, 'Countdown: ' + countdown, 15, 80);
+            graphics.endFill();
+
+            // Play countdown sound
+            if (countdown > 0) {
+                FlxG.sound.play(Paths.sound('countdown/tick'));
+    }
+}
+
 
     private function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float) {
         text.text = str;
@@ -74,21 +105,15 @@ class CountdownPopup extends openfl.display.Sprite {
 
         if (elapsed >= 0.5) return; // Skip if passed through a loading screen
 
-        countedTime += elapsed;
-        if (countedTime >= 1 && countdown > 0) {
-            countdown--;
-            countedTime = 0;
-            graphics.clear();
-            graphics.beginFill(FlxColor.BLACK);
-            graphics.drawRoundRect(0, 0, 420, 130, 16, 16);
-            drawTextAt(textDisplay, 'Countdown: ' + countdown, 15, 80);
-            graphics.endFill();
-        }
-
-        if (countdown <= 0) {
+        // Only update position if countdown is active
+        if (countdown > 0) {
             lerpTime = Math.min(1, lerpTime + elapsed);
             y = ((FlxEase.elasticOut(lerpTime) * (intendedY + 130)) - 130) * lastScale;
-            if (lerpTime >= 1) destroy();
+        } else if (countdown == 0) {
+            y -= FlxG.height * 2 * elapsed * lastScale;
+            if (y <= -130 * lastScale) {
+                destroy();
+            }
         }
     }
 
