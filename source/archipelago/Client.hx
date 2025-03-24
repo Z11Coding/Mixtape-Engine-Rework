@@ -1501,9 +1501,8 @@ class Client {
 					_hOnBounced(data);
 					// trace(data);
 
-				// BUG: "Cannot access non-static abstract field statically" on extracting "keys"
-				// case Retrieved(keys):
-				//	_hOnRetrieved(keys);
+				case Retrieved(keys):
+					_hOnRetrieved(keys);
 
 				case SetReply(key, value, original_value):
 					_hOnSetReply(key, value, original_value);

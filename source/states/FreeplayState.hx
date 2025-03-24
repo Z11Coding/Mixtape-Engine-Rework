@@ -104,6 +104,8 @@ class FreeplayState extends MusicBeatState
 
 	public static var curUnlocked:Map<String, String> = new Map<String, String>();
 	public static var curMissing:Map<String, String> = new Map<String, String>();
+	public static var curHinted:Map<String, String> = new Map<String, String>();
+	public static var hintTable:Map<String, String> = new Map<String, String>();
 	public static var trueMissing:Array<String> = [];
 	public static var unplayedList:Array<String> = [];
 	public static var doChange:Bool = false;
@@ -134,6 +136,10 @@ class FreeplayState extends MusicBeatState
 		#end
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
+
+		var checker = archipelago.APGameState.instance?.info();
+		checker.poll();
+		checker.Get(['_read_hints_${checker.team}_${checker.slotnr}']);
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			APEntryState.apGame.info().Sync();
@@ -522,6 +528,24 @@ class FreeplayState extends MusicBeatState
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							}
+							else if (CategoryState.loadWeekForce == 'hinted')
+							{
+
+
+								var songNameThing:String = song[0];
+								var modName:String = leWeek.folder;
+								var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
+								var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
+								for (songName in curHinted.keys())
+								{
+									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curHinted.get(songName)) && !isMissing)
+										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								}
+
+							}
+
+
+
 							else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 							{
 								if (APEntryState.inArchipelagoMode)
@@ -737,6 +761,8 @@ class FreeplayState extends MusicBeatState
 	var holdTime:Float = 0;
 	var stopMusicPlay:Bool = false;
 
+	// public static function addHint(song:String, item)
+
 	public static function forceUnlockCheck(songName:String, modName:String):Void {
 		var locationId = songName;
 		trace(modName);
@@ -808,13 +834,13 @@ class FreeplayState extends MusicBeatState
 
 		for (locationIdInt in locationIdInts)
 		{
-			if (locationIdInt != 0 && APEntryState.apGame.info().get_location_name(locationIdInt).trim().toLowerCase().replace(" ", "-") == APEntryState.victorySong.trim().toLowerCase().replace(" ", "-"))
-			{
-				archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-					FlxG.sound.playMusic(Paths.sound('secret'));
-				});
-				APEntryState.apGame.info().set_goal();
-			}
+			if (locationIdInt != 0 && states.FreeplayState.isVictorySong(songName, modName))
+				{
+					archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+						FlxG.sound.playMusic(Paths.sound('secret'));
+					});
+					APEntryState.apGame.info().set_goal();
+				}
 		}
 		if (instance != null)
 			instance.reloadSongs(true);

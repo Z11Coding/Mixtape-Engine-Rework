@@ -51,7 +51,7 @@ class PauseSubState extends MusicBeatSubstate
 		menuItems = menuItemsOG;
 
 		if (archipelago.APEntryState.inArchipelagoMode)
-			menuItems.push('Skip Check');
+			menuItemsOG.insert(3, 'Skip Check');
 
 		for (i in 0...Difficulty.list.length) {
 			var diff:String = Difficulty.getString(i);

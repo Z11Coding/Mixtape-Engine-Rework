@@ -148,6 +148,7 @@ class APPlayState extends PlayState {
                 activeItems[2] = 0;
 				FlxG.save.flush();
             }
+            PlayState.chartingMode = false;
         }
 
         if (ogScroll != ClientPrefs.data.downScroll)

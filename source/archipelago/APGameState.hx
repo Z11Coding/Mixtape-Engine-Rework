@@ -191,6 +191,52 @@ class APGameState {
             CountdownPopup.instance.updateCountdown(countdown);
         }
         });
+
+        _ap.onRetrieved.add(function(retrievedPacket:haxe.DynamicAccess<Dynamic>) {
+            trace("Retrieved packet: " + retrievedPacket);
+            for (key in retrievedPacket.keys()) {
+                var value = retrievedPacket.get(key);
+                if (key.indexOf("_read_hints_") != -1) {
+                    var hint:Hint = cast value;
+                        if (!hint.found) {
+                            // Grab the location and remove the -# from it.
+                            var location = hint.location;
+                            var locationName = _ap.get_location_name(location);
+                            var dashIndex = locationName.indexOf("-");
+                            if (dashIndex != -1) {
+                                locationName = locationName.substring(0, dashIndex);
+                            }
+
+                            var findingPlayerName = _ap.get_player_alias(hint.finding_player);
+                            var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
+                            var itemName = _ap.get_item_name(hint.item, _ap.get_player_game(hint.finding_player));
+
+
+                            var message:String;
+                            if (hint.receiving_player == _ap.slotnr) {
+                                message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
+                            } else if (hint.finding_player == _ap.slotnr) {
+                                message = "This song has " + receivingPlayerName + "'s item: " + itemName;
+                            } else {
+                                message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
+                            }
+
+                            if (FreeplayState.hintTable.exists(locationName)) {
+                                FreeplayState.hintTable.set(locationName, FreeplayState.hintTable.get(locationName) + "\n" + message);
+                            } else {
+                                FreeplayState.hintTable.set(locationName, message);
+                            }
+                        }
+                }
+            }
+            for (hint in FreeplayState.hintTable.keys()) {
+                var message = FreeplayState.hintTable.get(hint);
+                trace("Hint: " + hint + " - " + message);
+                var hintSong = getSongAndMod(hint);
+                FreeplayState.curHinted.set(hintSong.song, hintSong.mod);
+            }
+        });
+
         // _ap.onConnect.add(function() {
         //     _ap.clientStatus = ClientStatus.CONNECTED;
         // });
@@ -328,6 +374,32 @@ class APGameState {
         }
     }
 
+    public function getSongAndMod(songName:String):{ song:String, ?mod:String }
+    {
+        var input = songName;
+        var modName = "";
+        var firstParenIndex = songName.indexOf("(");
+        var endParenIndex = songName.lastIndexOf(")");
+        while (firstParenIndex != -1) {
+            if (endParenIndex != -1) {
+                modName = songName.substring(firstParenIndex + 1, endParenIndex);
+                if (isModName(modName)) {
+                    songName = songName.substring(0, firstParenIndex).trim();
+                    break;
+                } else {
+                    firstParenIndex = songName.indexOf("(", firstParenIndex + 1);
+                }
+            } else {
+                break;
+            }
+        }
+        if (firstParenIndex == -1 || !isModName(modName)) {
+            modName = "";
+            songName = input;
+        }
+        return modName != null && modName != "" ? { song: songName, mod: modName } : { song: songName };
+    }
+
     public function findSpecialItems():Map<String, Int> {
         var specialItems:Map<String, Int> = new Map<String, Int>();
         var apInfo = info();
@@ -444,7 +516,6 @@ class APGameState {
                     // if (missing) {
                     //     states.FreeplayState.curMissing.set(itemName, modName);
                     // }
-                    if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
                     for (song in states.FreeplayState.curUnlocked.keys())
                     {
                         var parts = song.split("||");
@@ -503,6 +574,7 @@ class APGameState {
         }
         isSync = false;
         info().casualSync = false;
+        if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
     }
 
     // A bandage fix till we have enough brainpower to fix this properly
