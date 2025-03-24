@@ -134,6 +134,8 @@ class Main extends Sprite
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
 
+		// yutautil.save.MixSaveWrapperBeta.testFunctionSave();
+
 		#if LUA_ALLOWED
 		Mods.pushGlobalMods();
 		#end

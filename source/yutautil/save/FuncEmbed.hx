@@ -28,7 +28,7 @@ class FuncEmbed {
      * Converts a function expression to its string representation and optionally checks for errors.
      *
      * @param func The function expression to convert to a string.
-     * @param unsafe Optional boolean flag to skip error checking. Defaults to false. Should only be used when a function needs a context.
+     * @param unsafe Optional boolean flag to skip error checking. Defaults to false. Should only be used when a function needs a context in which cannot be accessed at compile time.
      * @return The string representation of the function expression.
      *
      * If `unsafe` is false, the function will check for errors in the function expression.
@@ -70,10 +70,10 @@ class FuncEmbed {
      * @param run Optional parameter to determine if the function should be executed immediately.
      * @return The result of the function execution, or null if an error occurs.
      */
-    public static function runFunctionFromString(funcStr:String, context:Dynamic, ?run = false):Dynamic {
+    public static function runFunctionFromString(funcStr:String, context:Dynamic, ?run = false, ?contextName:String):Dynamic {
         var parser = new Parser();
         var interp = new Interp();
-        interp.variables.set("context", context);
+        interp.variables.set(contextName != null ? contextName : "context", context);
 
         // Convert the expression string into a format that HScript can read
         var hscriptExprStr = funcStr;
