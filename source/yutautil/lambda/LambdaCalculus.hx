@@ -2,6 +2,7 @@ package lambda;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import haxe.Rest;
 
 // Define structured types for lambda expressions
 typedef LambdaVar = { name: String };
@@ -17,6 +18,10 @@ class LambdaCalculus {
     public static function parse(expr:String):LambdaExpr {
         var tokens = tokenize(expr);
         return parseTokens(tokens);
+    }
+
+    public static function call(expr:LambdaExpr, arg:LambdaExpr):LambdaExpr {
+        return parse({ func: expr, arg: arg });
     }
 
     /**
@@ -71,6 +76,8 @@ class LambdaCalculus {
                 if (tokens.shift() != ".") throw "Expected '.'";
                 var body = parseTokens(tokens);
                 return { param, body };
+            case "Y": // Handle recursion using the Y combinator
+                return parseTokens(["(", "\\", "f", ".", "(", "\\", "x", ".", "f", "(", "x", "x", ")", ")", "(", "\\", "x", ".", "f", "(", "x", "x", ")", ")", ")"].concat(tokens));
             default:
                 return { name: token };
         }
@@ -88,7 +95,25 @@ class LambdaCalculus {
         }
     }
 
-        /**
+    public static macro function lambda(expr:Expr):Expr {
+        switch expr {
+            case { expr: EConst(c) }:
+                return macro LambdaCalculus.parse($v{c});
+            default:
+                Context.error("Expected a string", expr.pos);
+                return macro null;
+        }
+    }
+
+    public static function succ(n:Int):Int {
+        return n + 1;
+    }
+
+    public static function pred(n:Int):Int {
+        return n - 1;
+    }
+
+    /**
      * Macro to convert a function body into a lambda expression.
      * Example:
      * @lambda
@@ -96,7 +121,7 @@ class LambdaCalculus {
      * ->
      * LambdaCalculus.parse("(λx.λy.(x + y))")
      */
-     public static macro function simplifyFunction(expr:Expr):Expr {
+    public static macro function simplifyFunction(expr:Expr):Expr {
         switch expr {
             case { expr: EFunction(f) }:
                 var params = f.args.map(arg -> arg.name);
