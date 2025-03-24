@@ -137,11 +137,11 @@ class FreeplayState extends MusicBeatState
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 
-		var checker = archipelago.APGameState.instance?.info();
-		checker.poll();
-		checker.Get(['_read_hints_${checker.team}_${checker.slotnr}']);
-
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+			var checker = archipelago.APGameState.instance?.info();
+			checker.poll();
+			checker.Get(['_read_hints_${checker.team}_${checker.slotnr}']);
+			
 			APEntryState.apGame.info().Sync();
 			APEntryState.gonnaRunSync = false;
 

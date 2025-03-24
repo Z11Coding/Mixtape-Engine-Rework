@@ -14,7 +14,7 @@ import flixel.FlxState;
 import flash.media.Sound;
 
 import backend.Song;
-import stages.StageData;
+import backend.StageData;
 import objects.Character;
 
 import sys.thread.Thread;
@@ -68,9 +68,6 @@ class LoadingState extends MusicBeatState
 	var curPercent:Float = 0;
 	var stateChangeDelay:Float = 0;
 
-	public static var skipText:FlxText;
-	public static var allowSkip:Bool = false;
-
 	#if PSYCH_WATERMARKS
 	var logo:FlxSprite;
 	var pessy:FlxSprite;
@@ -92,15 +89,7 @@ class LoadingState extends MusicBeatState
 	#end
 	override function create()
 	{
-		@:privateAccess
-		if(PlayState._lastLoadedModDirectory != Mods.currentModDirectory)
-		{
-			trace('CHANGED MOD DIRECTORY, RELOADING STUFF');
-			Paths.freeGraphicsFromMemory();
-		}
-
 		persistentUpdate = true;
-		allowSkip = false;
 		barGroup = new FlxSpriteGroup();
 		add(barGroup);
 
@@ -119,12 +108,9 @@ class LoadingState extends MusicBeatState
 		#if HSCRIPT_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.trim().length > 0)
 		{
-			//mods/My-Mod/data/LoadingScreen.hx
-			//TODO: Figure out why the actual this thing isnt working
-			var scriptPath:String = 'mods/${Mods.currentModDirectory}/data/LoadingScreen'; 
+			var scriptPath:String = 'mods/${Mods.currentModDirectory}/data/LoadingScreen.hx'; //mods/My-Mod/data/LoadingScreen.hx
 			if(FileSystem.exists(scriptPath))
 			{
-				trace(scriptPath); 
 				try
 				{
 					hscript = new HScript(null, scriptPath);
@@ -191,12 +177,6 @@ class LoadingState extends MusicBeatState
 		funkay.updateHitbox();
 		addBehindBar(funkay);
 		#end
-
-		skipText = new FlxText(0, barBack.y - 30, "Press ESC to skip loading if it's stuck.");
-		skipText.size = 20;
-		skipText.alpha = 0;
-		skipText.screenCenter(X);
-		addBehindBar(skipText);
 		super.create();
 
 		if (stateChangeDelay <= 0 && checkLoaded())
@@ -216,13 +196,6 @@ class LoadingState extends MusicBeatState
 	{
 		super.update(elapsed);
 		if (dontUpdate) return;
-
-		if (allowSkip && controls.ACCEPT)
-		{
-			transitioning = true;
-			onLoad();
-			return;
-		}
 
 		if (!transitioning)
 		{
@@ -391,11 +364,6 @@ class LoadingState extends MusicBeatState
 
 		Paths.setCurrentLevel(directory);
 		trace('Setting asset folder to ' + directory);
-
-		new FlxTimer().start(5, function(time:FlxTimer){
-			FlxTween.tween(skipText, {alpha: 1}, {ease: FlxEase.sineInOut});
-			allowSkip = true;
-		});
 	}
 
 	static var isIntrusive:Bool = false;
@@ -404,8 +372,6 @@ class LoadingState extends MusicBeatState
 		#if !SHOW_LOADING_SCREEN
 		intrusive = false;
 		#end
-
-		trace(target);
 
 		LoadingState.isIntrusive = intrusive;
 		_startPool();
@@ -444,7 +410,13 @@ class LoadingState extends MusicBeatState
 	static var dontPreloadDefaultVoices:Bool = false;
 	static function _startPool()
 	{
-		threadPool = new FixedThreadPool(#if MULTITHREADED_LOADING #if cpp getCPUThreadsCount() #else 8 #end #else 1 #end);
+		#if MULTITHREADED_LOADING
+		// Due to the Main thread and Discord thread, we decrease it by 2.
+		var threadCount:Int = Std.int(Math.max(1, getCPUThreadsCount() - #if DISCORD_ALLOWED 2 #else 1 #end));
+		#else
+		var threadCount:Int = 1;
+		#end
+		threadPool = new FixedThreadPool(threadCount);
 	}
 
 	public static function prepareToSong()
