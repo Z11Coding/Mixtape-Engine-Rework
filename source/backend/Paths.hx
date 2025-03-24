@@ -182,6 +182,11 @@ class Paths
 		}
 	}
 
+	public static function nukeMemory(){
+		freeGraphicsFromMemory();
+		currentTrackedSounds.clear();
+	}
+
 	/** returns a FlxRuntimeShader but with file names lol **/ 
 	public static function getShader(fragFile:String = null, vertFile:String = null, version:Int = 120):FlxRuntimeShader
 	{
