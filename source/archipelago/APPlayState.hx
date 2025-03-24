@@ -78,7 +78,7 @@ class APPlayState extends PlayState {
 	public var effectArray:Array<String> = [
 		'colorblind', 'blur', 'lag', 'mine', 'warning', 'heal', 'spin', 'songslower', 'songfaster', 'scrollswitch', 'scrollfaster', 'scrollslower', 'rainbow',
 		'cover', 'ghost', 'flashbang', 'nostrum', 'jackspam', 'spam', 'sever', 'shake', 'poison', 'dizzy', 'noise', 'flip', 'invuln',
-		'desync', 'mute', 'ice', 'randomize', 'randomizeAlt', 'opponentPlay', 'bothplay', 'fakeheal', 'spell', 'terminate', 'lowpass', 'notif'
+		'desync', 'mute', 'ice', 'randomize', 'randomizeAlt', 'opponentPlay', 'bothplay', 'fakeheal', 'spell', 'terminate', 'lowpass', #if windows 'notif' #end
 	];
 	var notifs:Array<String> = [
 		"You're crazy...",
@@ -361,7 +361,7 @@ class APPlayState extends PlayState {
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd, 'scrollfaster');
             },
             'notif' => function() {
-                backend.window.CppAPI.sendWindowsNotification("Archipelago", notifs[FlxG.random.int(0, notifs.length-1)]);
+                #if windows backend.window.CppAPI.sendWindowsNotification("Archipelago", notifs[FlxG.random.int(0, notifs.length-1)]); #end
             },
             'scrollslower' => function() {
                 var changeAmount:Float = FlxG.random.float(0.1, 0.9);

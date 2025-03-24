@@ -732,8 +732,10 @@ class PlayState extends MusicBeatState
 				new MallXmasErect(); // Week 5 Special
 			case 'phillyStreetsErect':
 				new PhillyStreetsErect(); // Weekend 1 Special
+			#if windows 
 			case 'desktop':
 				new Desktop(); // Literally your desktop as a stage lmao
+			#end
 		}
 		if (isPixelStage) introSoundsSuffix = '-pixel';
 

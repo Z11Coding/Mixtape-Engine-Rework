@@ -69,9 +69,9 @@ class MemoryUtil {
 		#if windows
 		return backend.window.os.Windows.getTotalRam();
 		#elseif mac
-		return backend.os.Mac.getTotalRam();
+		return backend.window.os.Mac.getTotalRam();
 		#elseif linux
-		return backend.os.Linux.getTotalRam();
+		return backend.window.os.Linux.getTotalRam();
 		#else
 		return 0;
 		#end

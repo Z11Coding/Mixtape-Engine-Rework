@@ -41,6 +41,12 @@ import haxe.CallStack;
 import haxe.io.Path;
 #end
 
+#if sys
+import sys.FileSystem;
+import sys.io.Process;
+import haxe.io.BytesOutput;
+#end
+
 import backend.Highscore;
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
@@ -118,10 +124,12 @@ class Main extends Sprite
 		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
 		#end
 
+		#if windows
 		backend.window.CppAPI._setWindowLayered();
 		backend.window.CppAPI.darkMode();
 		backend.window.CppAPI.allowHighDPI();
 		backend.window.CppAPI.setOld();
+		#end
 		Toolkit.init();
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
@@ -535,6 +543,43 @@ class Main extends Sprite
 	public static function dummy():Void
 	{
 	}
+
+	#if sys
+	// https://github.com/openfl/hxp/blob/master/src/hxp/System.hx
+	public static function runProcess(command:String, ?args:Array<String>):Null<String> {
+		var process = new Process(command, args);
+		var buffer = new BytesOutput();
+		var waiting = true;
+
+		while (waiting) {
+			try {
+				var current = process.stdout.readAll(1024);
+				buffer.write(current);
+
+				if (current.length == 0)
+					waiting = false;
+			} catch (e) {
+				waiting = false;
+			}
+		}
+
+		var result = process.exitCode();
+		var output = buffer.getBytes().toString();
+		var retVal:Null<String> = output;
+
+		if (output == "") {
+			var error = process.stderr.readAll().toString();
+			process.close();
+
+			if (result != 0 || error != "")
+				retVal = null;
+		} else {
+			process.close();
+		}
+		
+		return retVal;
+	}
+	#end
 }
 
 typedef Boolean = Bool;

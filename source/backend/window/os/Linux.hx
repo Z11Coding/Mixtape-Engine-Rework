@@ -1,4 +1,4 @@
-package backend.os;
+package backend.window.os;
 
 #if linux
 @:cppFileCode("#include <stdio.h>")

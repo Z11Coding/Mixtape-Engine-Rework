@@ -246,6 +246,7 @@ class TransitionState {
             case "instant":
                 switchState(targetState, onComplete, args);
             case 'transparent fade':
+                #if windows
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
@@ -255,6 +256,7 @@ class TransitionState {
                 {
                     CppAPI.setWindowOppacity(num);
                 });
+                #end
             case 'transparent close':
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
@@ -266,6 +268,7 @@ class TransitionState {
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }
                 if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
+                #if windows
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
@@ -275,6 +278,7 @@ class TransitionState {
                 {
                     CppAPI.setWindowOppacity(num);
                 });
+                #end
         }
         //trace("Transition complete!");
     }
@@ -323,7 +327,7 @@ class TransitionState {
                     }
                 });
             case "transparent fade":
-				CppAPI.setWindowOppacity(1);
+				#if windows CppAPI.setWindowOppacity(1); #end
 				trace("Post-switch transparent fade complete.");
             default:
                 trace("Unknown post-switch transition type: " + transitionType);
@@ -479,6 +483,7 @@ class TransitionState {
                 processNextObject();
             case 'transparent fade':
                 MusicBeatState.emergencyOpacityFix = true;    
+                #if windows
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
@@ -489,6 +494,7 @@ class TransitionState {
                 {
                     CppAPI.setWindowOppacity(num);
                 });
+                #end
             case 'transparent close': var psPause = states.PlayState.instance?.paused;
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
@@ -508,6 +514,7 @@ class TransitionState {
                 }
                 MusicBeatState.emergencyOpacityFix = true;
                 if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
+                #if windows
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
@@ -524,6 +531,7 @@ class TransitionState {
                 {
                     CppAPI.setWindowOppacity(num);
                 });
+                #end
         }
     }
 
