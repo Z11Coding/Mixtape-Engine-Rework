@@ -19,7 +19,7 @@ haxelib install hxWebSockets 1.4.0
 haxelib install haxe-concurrent 5.1.3
 haxelib install actuate 1.9.0
 haxelib install flixel-ui 2.6.1
-axelib install hscript 2.5.0
+haxelib install hscript 2.5.0
 haxelib set lime 8.1.2
 haxelib set openfl 9.3.3
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
