@@ -128,8 +128,10 @@ class FreeplayState extends MusicBeatState
 	var ticketCounter:FlxText = null;
 	override function create()
 	{
+		#if windows
 		backend.window.CppAPI.resetAffixes();
 		backend.window.CppAPI.resetTitle();
+		#end
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 

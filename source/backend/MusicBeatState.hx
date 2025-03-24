@@ -55,6 +55,7 @@ class MusicBeatState extends FlxState
 		super.create();
 
 		// if (backend.window.CppAPI.getWindowOpacity()!=1)
+		#if windows
 		if (emergencyOpacityFix) {
 			CppAPI.setWindowOppacity(1);
 		}
@@ -74,6 +75,7 @@ class MusicBeatState extends FlxState
 				CppAPI.setWindowOpacity(num);
 			});
 		}
+		#end
 
 		if (!skip)
 		{

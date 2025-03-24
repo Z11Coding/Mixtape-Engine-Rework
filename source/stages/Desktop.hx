@@ -14,28 +14,34 @@ class Desktop extends BaseStage
         bg.makeGraphic(FlxG.width, FlxG.height, 0xff000000);
         add(bg);
 
+        #if windows 
         CppAPI.setTransparency("Mixtape Engine", 0xff000000);
         if (!FlxG.fullscreen)
         {
             FlxG.fullscreen = true;
         }
+        #end
 
         super.create();
     }
 
     override function update(elapsed:Float)
     {
+        #if windows
         if (!FlxG.fullscreen)
-            {
-                FlxG.fullscreen = true;
-            }
+        {
+            FlxG.fullscreen = true;
+        }
+        #end
         super.update(elapsed);
     }
 
     override function destroy()
     {
+        #if windows
         CppAPI.setTransparency("Mixtape Engine", 0x00000001);
         FlxG.fullscreen = wasFullscreen;
+        #end
         super.destroy();
     }
 }

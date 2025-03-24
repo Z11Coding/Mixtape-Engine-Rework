@@ -124,10 +124,12 @@ class Main extends Sprite
 		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
 		#end
 
+		#if windows
 		backend.window.CppAPI._setWindowLayered();
 		backend.window.CppAPI.darkMode();
 		backend.window.CppAPI.allowHighDPI();
 		backend.window.CppAPI.setOld();
+		#end
 		Toolkit.init();
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
