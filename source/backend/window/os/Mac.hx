@@ -1,4 +1,4 @@
-package backend.os;
+package backend.window.os;
 
 #if mac
 @:cppFileCode("#include <sys/sysctl.h>")

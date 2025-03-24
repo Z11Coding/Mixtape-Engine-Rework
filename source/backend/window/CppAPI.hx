@@ -4,7 +4,7 @@ import backend.window.*;
 
 class CppAPI
 {
-	#if (cpp && (!linux || !mac))
+	#if windows
 	public static function obtainRAM():Int
 	{
 		return WindowsData.obtainRAM();
