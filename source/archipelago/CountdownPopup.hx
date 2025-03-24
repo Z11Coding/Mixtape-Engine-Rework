@@ -84,8 +84,6 @@ class CountdownPopup extends openfl.display.Sprite {
                 FlxG.sound.play(Paths.sound('countdown/end'));
             }
     }
-}
-
 
     private function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float) {
         text.text = str;
