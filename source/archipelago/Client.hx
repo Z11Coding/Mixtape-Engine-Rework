@@ -517,6 +517,25 @@ class Client {
 		}
 	}
 
+	public function toggleTrapLink(enable:Bool) {
+		if (enable) {
+			set_tags(['AP', 'Testing', 'TrapLink']);
+		} else {
+			set_tags(['AP', 'Testing']);
+		}
+	}
+
+	public function changeTags(tags:Array<String>) {
+		var defaultTags = ['AP', 'Testing'];
+		for (tag in tags) {
+			if (defaultTags.indexOf(tag) == -1) {
+				defaultTags.push(tag);
+			}
+		}
+		tags = defaultTags;
+		set_tags(tags);
+	}
+
 	public inline function get_server_time()
 		return serverConnectTime + (Timer.stamp() - localConnectTime);
 
