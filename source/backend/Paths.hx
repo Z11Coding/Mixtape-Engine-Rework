@@ -469,6 +469,10 @@ class Paths
 	{
 		var songKey:String = '${formatToSongPath(song)}/Voices';
 		if(postfix != null) songKey += '-' + postfix;
+
+		// if (!Paths.exists(getPath(songKey, SOUND, 'songs', modsAllowed))) {
+		// 	return null;
+		// }
 		//trace('songKey test: $songKey');
 		return returnSound(songKey, 'songs', modsAllowed, false);
 	}
@@ -767,6 +771,8 @@ class Paths
 	public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true)
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
+
+		trace('precaching sound: $file');
 
 		//trace('precaching sound: $file');
 		if(!currentTrackedSounds.exists(file))

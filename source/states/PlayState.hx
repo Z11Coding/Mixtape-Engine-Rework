@@ -2311,14 +2311,37 @@ class PlayState extends MusicBeatState
 		{
 			if (songData.needsVoices)
 			{
-				var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-				vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-				
-				var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-				if(oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+				var currentMod = backend.WeekData.getCurrentWeek().folder;
+				if (currentMod != null && currentMod != "")
+				{
+					var generalVocals = Paths.voices(songData.song);
+					if (generalVocals != null && generalVocals.length > 0)
+					{
+						vocals.loadEmbedded(generalVocals);
+					}
+					else
+					{
+						var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+						
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
-				var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-				if(gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
+				}
+				else
+				{
+					var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+					vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+					
+					var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+					if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+					var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+					if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+				}
 			}
 		}
 		catch (e:Dynamic) {}
