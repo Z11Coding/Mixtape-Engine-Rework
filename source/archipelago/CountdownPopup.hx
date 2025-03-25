@@ -68,21 +68,21 @@ class CountdownPopup extends openfl.display.Sprite {
             countdown = newCountdown;
         }
 
-            // Clear and redraw graphics
-            graphics.clear();
-            graphics.beginFill(FlxColor.BLACK);
-            graphics.drawRoundRect(0, 0, 420, 130, 16, 16);
-            drawTextAt(textDisplay, name, 15, 20);
-            drawTextAt(textDisplay, desc, 15, 50);
-            drawTextAt(textDisplay, 'Countdown: ' + countdown, 15, 80);
-            graphics.endFill();
+        // Clear and redraw graphics
+        graphics.clear();
+        graphics.beginFill(FlxColor.BLACK);
+        graphics.drawRoundRect(0, 0, 420, 130, 16, 16);
+        drawTextAt(textDisplay, name, 15, 20);
+        drawTextAt(textDisplay, desc, 15, 50);
+        drawTextAt(textDisplay, 'Countdown: ' + countdown, 15, 80);
+        graphics.endFill();
 
-            // Play countdown sound
-            if (countdown > 0) {
-                FlxG.sound.play(Paths.sound('countdown/tick'));
-            } else if (countdown == 0) {
-                FlxG.sound.play(Paths.sound('countdown/end'));
-            }
+        // Play countdown sound
+        if (countdown > 0) {
+            FlxG.sound.play(Paths.sound('countdown/tick'));
+        } else if (countdown == 0) {
+            FlxG.sound.play(Paths.sound('countdown/end'));
+        }
     }
     private function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float) {
         try {

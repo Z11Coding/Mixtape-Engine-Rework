@@ -2828,7 +2828,7 @@ class PlayState extends MusicBeatState
 
 				var spot = 0;
 				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
-				final roundSus:Int = Math.round(swagNote.sustainLength / curStepCrochet) -1;
+				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet) -1;
 				if (roundSus > 0)
 				{
 					for (susNote in 0...roundSus)
