@@ -772,7 +772,7 @@ class Paths
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
 
-		trace('precaching sound: $file');
+		// trace('precaching sound: $file');
 
 		//trace('precaching sound: $file');
 		if(!currentTrackedSounds.exists(file))
