@@ -1396,11 +1396,15 @@ class APPlayState extends PlayState {
             return;
         }
         
-        if (effectMap.exists(effect)) {
+        try {
+            if (effectMap.exists(effect)) {
             effectMap.get(effect)();
             trace('running effect: $effect');
-        } else {
+            } else {
             trace("Effect not found: " + effect);
+            }
+        } catch (e:Dynamic) {
+            trace("Error while executing effect: " + effect + " - " + e);
         }
     }
 	

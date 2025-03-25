@@ -84,14 +84,17 @@ class CountdownPopup extends openfl.display.Sprite {
                 FlxG.sound.play(Paths.sound('countdown/end'));
             }
     }
-
     private function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float) {
-        text.text = str;
-        text.updateHitbox();
-        var clonedBitmap:BitmapData = text.graphic.bitmap.clone();
-        bitmaps.push(clonedBitmap);
-        graphics.beginBitmapFill(clonedBitmap, new Matrix(1, 0, 0, 1, textX, textY), false, false);
-        graphics.drawRect(textX, textY, text.width + textX, text.height + textY);
+        try {
+            text.text = str;
+            text.updateHitbox();
+            var clonedBitmap:BitmapData = text.graphic.bitmap.clone();
+            bitmaps.push(clonedBitmap);
+            graphics.beginBitmapFill(clonedBitmap, new Matrix(1, 0, 0, 1, textX, textY), false, false);
+            graphics.drawRect(textX, textY, text.width + textX, text.height + textY);
+        } catch (e:Dynamic) {
+            trace('Error in drawTextAt: ' + e);
+        }
     }
 
     private function update(e:Event) {

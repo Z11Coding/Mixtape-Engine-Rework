@@ -24,6 +24,13 @@ class APDisconnectSubstate extends FlxSubState
 		super(FlxColor.fromRGBFloat(0, 0, 0, .5));
 		_ap = ap;
 		Cursor.show();
+
+		// AP.disconnect_socket();
+		states.ExitState.addExitCallback(function() {
+			var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
+			
+		});
+		FlxG.switchState(new states.ExitState());
 	}
 
 	public function setSeed(seed:String):Void {

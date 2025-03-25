@@ -574,7 +574,11 @@ class APGameState {
         }
         isSync = false;
         info().casualSync = false;
-        if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
+        try {
+            if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
+        } catch (e:Dynamic) {
+            archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
+        }
     }
 
     // A bandage fix till we have enough brainpower to fix this properly
