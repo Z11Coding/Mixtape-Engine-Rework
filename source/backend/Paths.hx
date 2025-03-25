@@ -184,6 +184,8 @@ class Paths
 
 	public static function nukeMemory(){
 		freeGraphicsFromMemory();
+		clearUnusedMemory();
+		clearStoredMemory();
 		currentTrackedSounds.clear();
 	}
 
