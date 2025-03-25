@@ -56,4 +56,15 @@ class COD
 
 	public static function getCOD():String
 		return deathVar+"\n[pause:0.5]"+COD;
+
+	public static function getCODNoPause():String
+		return deathVar+"\n"+COD;
+
+	public static function getCODNoVar():String
+		return COD;
+
+	public static function resetCOD():Void
+	{
+		COD = "???";
+	}
 }

@@ -5,6 +5,7 @@ import haxe.ds.StringMap;
 typedef Condition = {
     var checkFn:APItem->Bool;
     var type:ConditionType;
+    var ?extraConditions:Array<APItem->Bool>;
 }
 
 enum ConditionType {
@@ -19,7 +20,7 @@ class ConditionHelper {
     }
 
     public static inline function check(item:APItem):Bool {
-        return item.condition.checkFn(item);
+        return item.condition.checkFn(item) && (item.condition.extraConditions == null || item.condition.extraConditions.map(function(fn) { return fn(item); }).contains(false) == false);
     }
 
     public static inline function Special():Condition { 

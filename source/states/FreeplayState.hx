@@ -927,6 +927,7 @@ class FreeplayState extends MusicBeatState
 			} catch (e:Dynamic) {
 				trace("You can't check nothing, silly!");
 			}
+			MusicBeatState.resetState();
 		}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));

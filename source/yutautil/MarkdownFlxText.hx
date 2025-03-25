@@ -64,4 +64,26 @@ class MarkdownFlxText extends FlxText {
         }
         return input;
     }
+
+
+
+/**
+ * Combine FlxTexts into a single FlxText, concatenating their text and formatting.
+ * @param texts The FlxText instances to combine.
+ * @return A new FlxText instance with the combined text and formatting.
+ */
+
+public static function combine(texts:Array<FlxText>):FlxText {
+    var combinedText = new FlxText();
+    var combinedFormat = new FlxTextFormat();
+    for (text in texts) {
+        combinedText.text += text.text;
+        for (format in text._formatRanges) {
+            combinedText.addFormat(format.format, format.range.start + combinedText.text.length, format.range.end + combinedText.text.length);
+        }
+    }
+    return combinedText;
+}
+
+
 }
