@@ -141,7 +141,7 @@ class FreeplayState extends MusicBeatState
 			var checker = archipelago.APGameState.instance?.info();
 			checker.poll();
 			checker.Get(['_read_hints_${checker.team}_${checker.slotnr}']);
-			
+
 			APEntryState.apGame.info().Sync();
 			APEntryState.gonnaRunSync = false;
 
@@ -707,7 +707,6 @@ class FreeplayState extends MusicBeatState
 				} } else {
 					songText = new Alphabet(90, 320, songs[i].songName, true);
 				}
-				// if (songText.exists(true)) {
 				songText.targetY = i;
 				grpSongs.add(songText);
 
