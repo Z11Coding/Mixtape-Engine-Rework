@@ -328,6 +328,7 @@ effectMap = [
                 playSound = 'banana';
                 playSoundVol = 0.5;
                 errorMessage.scale.x = errorMessage.scale.y = 0.5;
+            #if windows
             case 6:
                 errorMessage = new VideoHandlerMP4();
                 cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/mark'), null, false, false).setDimensions(378, 362);
@@ -397,6 +398,7 @@ effectMap = [
                 errorMessage.x = errorMessage.y = 0;
                 errorMessage.blend = ADD;
                 playSound = 'wheel';
+            #end
             case 14:
                 var transitions = ["fadeOut", "fadeColor", "slideLeft", "slideRight", "slideUp", "slideDown", "slideRandom", "fallRandom", "fallSequential"];
                 var transition = transitions[FlxG.random.int(0, transitions.length - 1)];

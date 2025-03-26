@@ -10,12 +10,13 @@ import flixel.util.FlxColor;
 import openfl.media.Video;
 import openfl.net.NetConnection;
 import openfl.net.NetStream;
-import streamervschat.vlc.VlcBitmap;
+#if windows import streamervschat.vlc.VlcBitmap; #end
 
 // THIS IS FOR TESTING
 // DONT STEAL MY CODE >:(
 class VideoHandlerMP4 extends FlxSprite
 {
+	#if windows 
 	public var video:Video;
 	public var netStream:NetStream;
 
@@ -84,8 +85,7 @@ class VideoHandlerMP4 extends FlxSprite
 	}
 
 	#if desktop
-	public function playMP4(path:String, callback:Void->Void, ?repeat:Bool = false, ?canSkip:Bool = false, ?isWindow:Bool = false,
-			?isFullscreen:Bool = false):VideoHandlerMP4
+	public function playMP4(path:String, callback:Void->Void, ?repeat:Bool = false, ?canSkip:Bool = false, ?isWindow:Bool = false, ?isFullscreen:Bool = false):VideoHandlerMP4
 	{
 		skipable = canSkip;
 
@@ -298,4 +298,16 @@ class VideoHandlerMP4 extends FlxSprite
 	{
 		vlcBitmap.resume();
 	}
+
+	#else
+	public function new(?x:Float = 0, ?y:Float = 0)
+	{
+		super(x, y);
+	}
+	public function playMP4(path:String, callback:Void->Void, ?repeat:Bool = false, ?canSkip:Bool = false, ?isWindow:Bool = false, ?isFullscreen:Bool = false):VideoHandlerMP4
+	{
+		return this;
+	}
+
+	#end
 }
