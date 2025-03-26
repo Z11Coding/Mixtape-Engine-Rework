@@ -545,7 +545,7 @@ class APPlayState extends PlayState {
                         errorMessage.blend = ADD;
                         playSound = 'wheel';
                     #end
-                    case #if windows 14 #else 9:
+                    case #if windows 14 #else 9 #end:
                         var transitions = ["fadeOut", "fadeColor", "slideLeft", "slideRight", "slideUp", "slideDown", "slideRandom", "fallRandom", "fallSequential"];
                         var transition = transitions[FlxG.random.int(0, transitions.length - 1)];
                         var duration = FlxG.random.float(0.5, 2);
