@@ -1889,6 +1889,7 @@ class APPlayState extends PlayState {
                     ArchPopup.startPopupCustom('You Got an Item!', "Keybind Switch (S A N D)", 'archColor');
             }
         }*/
+        #if windows
 		for (video in addedMP4s)
 		{
 			if (video != null)
@@ -1898,6 +1899,7 @@ class APPlayState extends PlayState {
                     addedMP4s.remove(video);
             }
 		}
+        #end
 
         if (activeItems[0] > 0 && health <= 0)
         {
