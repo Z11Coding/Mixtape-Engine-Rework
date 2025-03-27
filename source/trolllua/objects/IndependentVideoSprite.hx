@@ -17,12 +17,12 @@ import haxe.io.Bytes;
 import sys.FileSystem;
 
 #if (hxvlc)
-	#if (hxvlc > "1.5.5")
-		import hxvlc.util.typeLimit.OneOfThree;
-	#else
-		import hxvlc.util.OneOfThree;
-	#end
-	import hxvlc.flixel.FlxVideoSprite as CurrentVideoSprite;
+#if (hxvlc > "1.5.5")
+	import hxvlc.util.typeLimit.OneOfThree;
+#else
+	import hxvlc.util.OneOfThree;
+#end
+import hxvlc.flixel.FlxVideoSprite as CurrentVideoSprite;
 #end
 
 class IndependentVideoSprite extends CurrentVideoSprite {
