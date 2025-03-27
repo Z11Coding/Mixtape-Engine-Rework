@@ -279,6 +279,11 @@ class Main extends Sprite
 		backend.modules.EvacuateDebugPlugin.initialize();
 		backend.modules.ForceCrashPlugin.initialize();
 		backend.modules.MemoryGCPlugin.initialize();
+
+		var dummyDate = Date.now();
+		var eDate = yutautil.ExtendedDate.fromDate(dummyDate);
+		trace("Extended Date: " + eDate);
+		trace("Extended Date: " + eDate.asString());
 	}
 
 	// shader coords fix
