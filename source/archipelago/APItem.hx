@@ -253,7 +253,7 @@ class APItem {
             //trace("Condition type: " + this.condition.type);
             //trace("Condition check result: " + this.condition.checkFn(this));
 
-            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this)) {
+            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this) && APItem.allowedToTrigger) {
                 //trace("Setting active item to: " + this.name);
                 APItem.activeItem = this;
             } else {

@@ -3634,7 +3634,7 @@ class PlayState extends MusicBeatState
 		for (playfield in playfields.members)
 		{
 			if (playfield.isPlayer)
-				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || archipelago.APItem.activeItem?.name == 'Tutorial Trap'; 
+				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || (archipelago.APItem.activeItem?.name == 'Tutorial Trap' && PlayState.SONG.song.toLowerCase() != 'Tutorial'.toLowerCase()); 
 		}
 
 		if(botplayTxt != null && botplayTxt.visible) {
