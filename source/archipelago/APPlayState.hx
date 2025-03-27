@@ -438,7 +438,7 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = false;
                 var alwaysEnd:Bool = true;
 
-                var random = FlxG.random.int(0, 14);
+                var random = FlxG.random.int(0, #if windows 14 #else 9 #end);
                 var randomPosition:Bool = true;
 
                 switch (random) {
@@ -474,6 +474,7 @@ class APPlayState extends PlayState {
                         playSound = 'banana';
                         playSoundVol = 0.5;
                         errorMessage.scale.x = errorMessage.scale.y = 0.5;
+                    #if windows
                     case 6:
                         errorMessage = new VideoHandlerMP4();
                         cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/mark'), null, false, false).setDimensions(378, 362);
@@ -543,7 +544,8 @@ class APPlayState extends PlayState {
                         errorMessage.x = errorMessage.y = 0;
                         errorMessage.blend = ADD;
                         playSound = 'wheel';
-                    case 14:
+                    #end
+                    case #if windows 14 #else 9 #end:
                         var transitions = ["fadeOut", "fadeColor", "slideLeft", "slideRight", "slideUp", "slideDown", "slideRandom", "fallRandom", "fallSequential"];
                         var transition = transitions[FlxG.random.int(0, transitions.length - 1)];
                         var duration = FlxG.random.float(0.5, 2);
@@ -1887,6 +1889,7 @@ class APPlayState extends PlayState {
                     ArchPopup.startPopupCustom('You Got an Item!', "Keybind Switch (S A N D)", 'archColor');
             }
         }*/
+        #if windows
 		for (video in addedMP4s)
 		{
 			if (video != null)
@@ -1896,6 +1899,7 @@ class APPlayState extends PlayState {
                     addedMP4s.remove(video);
             }
 		}
+        #end
 
         if (activeItems[0] > 0 && health <= 0)
         {

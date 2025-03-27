@@ -1080,6 +1080,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					{
 						var note:Note = noteList.pop();
 						noteHitCallback(note, this);
+						if (!note.isSustainNote) keysPressed[data] = false;
 					}
 				}
 			}

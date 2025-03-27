@@ -12,6 +12,7 @@ package backend.window;
     macOS: TODO
 */
 
+#if windows
 @:cppFileCode('#include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
@@ -24,6 +25,7 @@ package backend.window;
 
 #pragma comment(lib, "Dwmapi")
 #pragma comment(lib, "Shell32.lib")')
+#end
 class WindowUtil
 {
     #if windows

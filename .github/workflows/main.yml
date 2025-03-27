@@ -47,7 +47,7 @@ jobs:
       - name: Publish Artifact
         uses: actions/upload-artifact@v4.3.4
         with:
-          name: linuxBuild
+          name: Mixtape-Engine-linux
           path: 'export/release/linux/bin'
   buildWindows:
     runs-on: windows-latest
@@ -76,7 +76,7 @@ jobs:
       - name: Publish Artifact
         uses: actions/upload-artifact@v4.3.4
         with:
-          name: windowsBuild
+          name: Mixtape-Engine-windows
           path: export/release/windows/bin
   buildMac:
     runs-on: macos-15
@@ -104,5 +104,5 @@ jobs:
       - name: Publish Artifact
         uses: actions/upload-artifact@v4.3.4
         with:
-          name: macBuild
+          name: Mixtape-Engine-macOS
           path: export/release/macos/bin
