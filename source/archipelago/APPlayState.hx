@@ -1043,7 +1043,7 @@ class APPlayState extends PlayState {
             },
             'songSwitch' => function() {
                 // var haltTween:NumTween = new NumTween(null, null);
-                    FlxTween.num(playbackRate, 0.00000000000000000000000000001, 0.5, {
+                    FlxTween.num(playbackRate, 0.0000000000000000001, 0.5, {
                     onComplete: function(e) {
                         FlxG.sound.play(Paths.sound('streamervschat/itcomes'), 1, false, null, true, function() {
                             trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
