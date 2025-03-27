@@ -316,20 +316,41 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		lilbfGroup = new FlxSpriteGroup(100, 405);
 		liloppGroup = new FlxSpriteGroup(50, 556);
-
-		lilbf = new Character(0, 0, "bf", false);
-		lilbf.scrollFactor.set();
-		lilbf.setGraphicSize(Std.int(lilbf.width * 0.5));
-		lilbfMap.set(lilbf.curCharacter, lilbf);
-        lilbfGroup.add(lilbf);
+		try {
+			lilbf = new Character(0, 0, PlayState.SONG.player1 != null ? PlayState.SONG.player1 : "bf", false);
+			if (lilbf?.frames == null) throw "No bitmap data";
+			lilbf.scrollFactor.set();
+			lilbf.setGraphicSize(Std.int(lilbf.width * 0.5));
+			lilbfMap.set(lilbf.curCharacter, lilbf);
+			lilbfGroup.add(lilbf);
+		} catch (e:Dynamic) {
+			trace("Failed to load character for player1, resetting to default 'bf'.");
+			lilbf = new Character(0, 0, "bf", false);
+			lilbf.scrollFactor.set();
+			lilbf.setGraphicSize(Std.int(lilbf.width * 0.5));
+			lilbfMap.set(lilbf.curCharacter, lilbf);
+			lilbfGroup.add(lilbf);
+		}
 
 		lilbf.flipX = !lilbf.flipX;
 
-		lilopp = new Character(0, 0, "bf-pixel-opponent", false);
-		lilopp.scrollFactor.set();
-		lilopp.setGraphicSize(Std.int(lilopp.width * 0.5));
-		liloppMap.set(lilopp.curCharacter, lilopp);
-        liloppGroup.add(lilopp);
+		try {
+			lilopp = new Character(0, 0, PlayState.SONG.player2 != null ? PlayState.SONG.player2 : "bf-pixel-opponent", false);
+			if (lilopp?.frames == null) throw "No bitmap data";
+			lilopp.scrollFactor.set();
+			// lilopp.y = lilbf.y;
+			// lilopp.x = lilbf.x + lilbf.width + 10;
+			lilopp.setGraphicSize(Std.int(lilopp.width * 0.5));
+			liloppMap.set(lilopp.curCharacter, lilopp);
+			liloppGroup.add(lilopp);
+		} catch (e:Dynamic) {
+			trace("Failed to load character for player2, resetting to default 'bf-pixel-opponent'.");
+			lilopp = new Character(0, 0, "bf-pixel-opponent", false);
+			lilopp.scrollFactor.set();
+			lilopp.setGraphicSize(Std.int(lilopp.width * 0.5));
+			liloppMap.set(lilopp.curCharacter, lilopp);
+			liloppGroup.add(lilopp);
+		}
 		
 		for (key in lilbf.animOffsets.keys()) {
             lilbf.animOffsets[key][0] *= lilbf.scale.x;
