@@ -1103,7 +1103,7 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
-		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
+		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, MaxHP);
 		healthBar.screenCenter(X);
 		healthBar.leftToRight = false;
 		healthBar.scrollFactor.set();
@@ -1362,7 +1362,8 @@ class PlayState extends MusicBeatState
 		}
 
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
-		if (!inArchipelagoMode) MaxHP = ClientPrefs.data.healthMode == "Tabi" ? 3 : 2;
+		if (!inArchipelagoMode) MaxHP = 2 + ClientPrefs.data.healthMode == "Tabi" ? 1 : 0;
+		initY = healthBar.y;
 	}
 
 	function doStaticSign(lestatic:Int = 0)
@@ -3551,6 +3552,7 @@ class PlayState extends MusicBeatState
 		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
 	}
 
+	var initY:Float;
 	override public function update(elapsed:Float)
 	{
 		if(!inCutscene && !paused && !freezeCamera) {
@@ -3658,9 +3660,6 @@ class PlayState extends MusicBeatState
 				openCharacterEditor();
 		}
 
-		if (healthBar.bounds.max != null && health > healthBar.bounds.max)
-			health = healthBar.bounds.max;
-
 		updateIconsScale(elapsed);
 		updateIconsPosition();
 
@@ -3728,18 +3727,33 @@ class PlayState extends MusicBeatState
 		{
 			if(!inCutscene)
 			{
-				if(!cpuControlled)
-					keysCheck();
-				else
-					playerDance();
+				if(!cpuControlled) keysCheck();
+				else playerDance();
 			}
 			checkEventNote();
 		}
 
-		if (health > MaxHP)
-			health = MaxHP;
-		if (health < 0)
-			health = 0;
+		if (health < 0) health = 0;
+		if (health > MaxHP) health = MaxHP;
+
+		if (!inArchipelagoMode && ClientPrefs.data.healthMode == "Tabi") {
+			healthBar.x = FlxG.width / 2 - healthBar.width / 2;
+			healthBar.y = initY; 
+			if (health >= 2) {
+				var amount = (health - 2) * 100;
+				var rX = FlxG.random.float(-2, 2);
+				var rY = FlxG.random.float(-2, 2);
+		
+				for (spr in [healthBar, iconP1, iconP2]) {
+					spr.x -= amount;
+					spr.x += rX;
+					spr.y += rY;
+				}
+			}
+
+			for (icon in [iconP1, iconP2])
+				icon.y = healthBar.y - (icon.height / 2);
+		}
 
 		if (ClientPrefs.data.healthMode != "Tabi") { //Don't want to cause an overlap
 			if (health < MaxHP && extraHealth > 0)
@@ -3896,20 +3910,6 @@ class PlayState extends MusicBeatState
 		var iconOffset:Int = 26;
 		var healthRatio:Float = health / MaxHP;
 		switch (ClientPrefs.data.healthMode) {
-			case "Tabi":
-				var p2ToUse:Float = healthBar.x + (healthBar.width * (FlxMath.remapToRange((health / 2 * 100), 0, 100, 100, 0) * 0.01)) - (iconP2.width - iconOffset);
-				if (iconP2.x - iconP2.width / 2 < healthBar.x && iconP2.x > p2ToUse)
-				{
-					healthBar.offset.x = iconP2.x - p2ToUse;
-				} else {
-					healthBar.offset.x = 0;
-				}
-				iconP1.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange((health / 2 * 100), 0, 100, 100, 0) * 0.01) - iconOffset);
-				iconP2.x = p2ToUse;
-				if (iconP12 != null)
-					iconP12.x = iconP1.x + 25;
-				if (iconP22 != null)
-					iconP22.x = iconP2.x - 25;
 			default:
 				if (!noHeal) {
 					iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
