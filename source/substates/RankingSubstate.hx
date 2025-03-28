@@ -147,8 +147,8 @@ class RankingSubstate extends MusicBeatSubstate
 					FlxG.sound.playMusic(Paths.music('panixPress'));
 					TransitionState.transitionState(states.FreeplayState, {transitionType: "stickers"});
 					var locationId = (PlayState.SONG.song);
-					trace('Combo Required:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
-					trace('Accuracy Required:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
+					trace('Combo Gotten:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
+					trace('Accuracy Gotten:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
 					trace(archipelago.APPlayState.currentMod);
 					if (archipelago.APPlayState.currentMod.trim() != "")
 					{

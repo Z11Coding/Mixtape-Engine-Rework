@@ -244,8 +244,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         gradeRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, grade:String)
         {
             APEntryState.gameSettings.FNF.graderequirement = grade;
-            RankingSubstate.comboRankSetLimit = id;
-            trace(id);
+            trace(id); 
         });
         gradeRequirement.selectedLabel = APEntryState.gameSettings.FNF.graderequirement;
 
@@ -253,8 +252,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         accRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, accuracy:String)
         {
             APEntryState.gameSettings.FNF.accrequirement = accuracy;
-            RankingSubstate.accRankSetLimit = id;
-            trace(id);
+            trace(id); 
         });
         accRequirement.selectedLabel = APEntryState.gameSettings.FNF.accrequirement;
 
