@@ -296,6 +296,7 @@ class PlayState extends MusicBeatState
 	public var camGame:FlxCamera;
 	public var camCredit:FlxCamera;
 	public var camOther:FlxCamera;
+	public var camCOD:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
 	public var songScore:Int = 0;
@@ -580,12 +581,15 @@ class PlayState extends MusicBeatState
 		camHUD = new FlxCamera();
 		camCredit = new FlxCamera();
 		camOther = new FlxCamera();
+		camCOD = new FlxCamera(); //For gameover COD
 		camCredit.bgColor.alpha = 0;
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
+		camCOD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camCredit, false);
 		FlxG.cameras.add(camOther, false);
+		FlxG.cameras.add(camCOD, false);
 		
 		try
 		{
@@ -1362,7 +1366,7 @@ class PlayState extends MusicBeatState
 		}
 
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
-		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 1 : 0);
+		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
 	}
 
