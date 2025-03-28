@@ -1103,7 +1103,7 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
-		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, MaxHP);
+		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
 		healthBar.screenCenter(X);
 		healthBar.leftToRight = false;
 		healthBar.scrollFactor.set();
@@ -3755,7 +3755,7 @@ class PlayState extends MusicBeatState
 				icon.y = healthBar.y - (icon.height / 2);
 		}
 
-		if (ClientPrefs.data.healthMode != "Tabi") { //Don't want to cause an overlap
+
 			if (health < MaxHP && extraHealth > 0)
 			{
 				var neededHealth = MaxHP - health;
@@ -3774,7 +3774,7 @@ class PlayState extends MusicBeatState
 					extraHealth = 0;
 				}
 			}
-		}
+		
 
 		if ((loopMode || loopModeChallenge/* || curSong == "Small Argument" && !inArchipelagoMode*/)
 			&& startedCountdown
