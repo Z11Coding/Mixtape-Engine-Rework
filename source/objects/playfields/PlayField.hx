@@ -958,39 +958,22 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						/*if(autoPlayed && daNote.tripProgress <= 0.5)
 							holdPressCallback(daNote, this); // would set tripProgress back to 1 but idk maybe the roll script wants to do its own shit*/
 
-						if(daNote.tripProgress <= 0) {
-							holdDropped.dispatch(daNote, this);
-							daNote.tripProgress = 0;
-							daNote.tooLate=true;
-							daNote.wasGoodHit=false;
-							for(tail in daNote.unhitTail){
-								tail.tooLate = true;
-								tail.blockHit = true;
-								tail.ignoreNote = true;
+						for (tail in daNote.unhitTail)
+						{
+							if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
+								noteHitCallback(tail, this);
+								trace("hitting tail hold");
 							}
+						}
+
+						if (daNote.holdingTime >= daNote.sustainLength)
+						{
+							trace("finished hold");
+							holdFinished.dispatch(daNote, this);
+							daNote.holdingTime = daNote.sustainLength;
 							isHolding[daNote.column] = false;
 							if (!isHeld)
 								receptor.playAnim("static", true);
-
-						}else{
-							for (tail in daNote.unhitTail)
-							{
-								if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
-									noteHitCallback(tail, this);
-									trace("hitting tail hold");
-								}
-							}
-
-							if (daNote.holdingTime >= daNote.sustainLength)
-							{
-								trace("finished hold");
-								holdFinished.dispatch(daNote, this);
-								daNote.holdingTime = daNote.sustainLength;
-								isHolding[daNote.column] = false;
-								if (!isHeld)
-									receptor.playAnim("static", true);
-							}
-
 						}
 					}
 				}
@@ -1069,7 +1052,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}else{
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
-					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> note.isSustainNote && note.prevNote != null);
+					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> note.isSustainNote && (note.prevNote != null || note.unhitTail.length > 0));
 					#if PE_MOD_COMPATIBILITY
 					// so lowPriority actually works (even though i hate it lol!)
 					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); 

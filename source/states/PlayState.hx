@@ -1103,7 +1103,7 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
-		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, MaxHP);
+		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
 		healthBar.screenCenter(X);
 		healthBar.leftToRight = false;
 		healthBar.scrollFactor.set();
@@ -1362,7 +1362,7 @@ class PlayState extends MusicBeatState
 		}
 
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
-		if (!inArchipelagoMode) MaxHP = 2 + ClientPrefs.data.healthMode == "Tabi" ? 1 : 0;
+		if (!inArchipelagoMode) MaxHP = ClientPrefs.data.healthMode == "Tabi" ? 3 : 2;
 		initY = healthBar.y;
 	}
 
@@ -3733,8 +3733,8 @@ class PlayState extends MusicBeatState
 			checkEventNote();
 		}
 
-		if (health < 0) health = 0;
 		if (health > MaxHP) health = MaxHP;
+		if (health < 0) health = 0;
 
 		if (!inArchipelagoMode && ClientPrefs.data.healthMode == "Tabi") {
 			healthBar.x = FlxG.width / 2 - healthBar.width / 2;

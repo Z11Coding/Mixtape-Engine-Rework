@@ -52,6 +52,7 @@ class PicoCapableStage extends BaseStage {
             }
         }
     }
+    
     override function startSong() {
         super.startSong();
 
