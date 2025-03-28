@@ -3755,7 +3755,7 @@ class PlayState extends MusicBeatState
 				icon.y = healthBar.y - (icon.height / 2);
 		}
 
-		if (ClientPrefs.data.healthMode != "Tabi") { //Don't want to cause an overlap
+
 			if (health < MaxHP && extraHealth > 0)
 			{
 				var neededHealth = MaxHP - health;
@@ -3774,7 +3774,7 @@ class PlayState extends MusicBeatState
 					extraHealth = 0;
 				}
 			}
-		}
+		
 
 		if ((loopMode || loopModeChallenge/* || curSong == "Small Argument" && !inArchipelagoMode*/)
 			&& startedCountdown
