@@ -51,8 +51,8 @@ typedef APOptions =
     var	deathlink:Bool;
     var	unlock_type:String;
     var	unlock_method:String;
-	var	graderequirement:String;
-	var	accrequirement:String;
+	var	graderequirement:Int;
+	var	accrequirement:Int;
     var	songList:Array<String>;
     var	ticket_percentage:Int;
     var	ticket_win_percentage:Int;
@@ -65,6 +65,37 @@ typedef APOptions =
     var	fakeTransWeight:Int;
     var	shieldWeight:Int;
     var	MHPWeight:Int;
+}
+
+enum ComboRank {
+	ANY;
+	MFC;
+	SFC;
+	GFC;
+	AFC;
+	FC;
+	SDCB;
+	CLEAR;
+}
+
+enum AccuracyRank {
+	P;
+	X;
+	XMINUS;
+	SSPLUS;
+	SS;
+	SSMINUS;
+	SPLUS;
+	S;
+	SMINUS;
+	APLUS;
+	A;
+	AMINUS;
+	B;
+	C;
+	D;
+	E;
+	F;
 }
 
 class APEntryState extends MusicBeatState
@@ -96,6 +127,9 @@ class APEntryState extends MusicBeatState
 	public static var victorySong:String = '???';
 	public static var fullSongCount:Int = 1;
 
+	var accReq:AccuracyRank;
+	var comReq:ComboRank;
+
 	var fileDialog:FileDialogHandler = new FileDialogHandler();
 	var bpmTxt:FlxText;
 
@@ -111,8 +145,8 @@ class APEntryState extends MusicBeatState
 			deathlink: false,
 			unlock_type: 'Songs',
 			unlock_method: 'Song Completion',
-			graderequirement: "Any",
-			accrequirement: "Any",
+			graderequirement: 0,
+			accrequirement: 0,
 			songList: [],
 			ticket_percentage: 15,
 			ticket_win_percentage: 15,

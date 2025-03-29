@@ -25,9 +25,11 @@ class RankingSubstate extends MusicBeatSubstate
 	var ranking:String = "NA";
 	var rankingNum:Int = 15;
 
+	var accuracyNeeded:Float = 0;
 	var comboRankLimit:Int = 0;
-	public static var comboRankSetLimit:Int = 0;
 	var accRankLimit:Int = 0;
+
+	public static var comboRankSetLimit:Int = 0;
 	public static var accRankSetLimit:Int = 0;
 	public function new()
 	{
@@ -86,27 +88,68 @@ class RankingSubstate extends MusicBeatSubstate
 		hint.updateHitbox();
 		add(hint);
 
-		switch (comboRank)
-		{
-			case 'MFC':
-				hint.text = "Congrats! You're perfect!";
-			case 'GFC':
-				hint.text = "You're doing great! Try getting only sicks for MFC";
-			case 'FC':
-				hint.text = "Good job. Try getting goods at minimum for GFC.";
-			case 'SDCB':
-				hint.text = "Nice. Try not missing at all for FC.";
-		}
+		if (!archipelago.APEntryState.inArchipelagoMode) {
+			trace("Not in AP");
+			switch (comboRank)
+			{
+				case 'MFC':
+					hint.text = "Congrats! You're perfect!";
+				case 'SFC':
+					hint.text = "Almost Perfection! Try getting only marvelous for MFC";
+				case 'GFC':
+					hint.text = "You're doing great! Try getting only sicks for SFC";
+				case 'FC':
+					hint.text = "Good job. Try getting goods at minimum for GFC.";
+				case 'SDCB':
+					hint.text = "Nice. Try not missing at all for FC.";
+			}
 
-		if (PlayState.instance.cpuControlled)
-		{
-			hint.y -= 35;
-			hint.text = "If you wanna gather that rank, disable botplay.";
-		}
+			if (PlayState.instance.cpuControlled)
+			{
+				hint.y -= 35;
+				hint.text = 'If you wanna gather that rank, disable botplay.' + FlxG.random.bool(3) ?? '\n(Dirty cheater...)';
+			}
 
-		if (PlayState.deathCounter >= 30)
-		{
-			hint.text = "skill issue\nnoob";
+			if (PlayState.deathCounter >= 30)
+			{
+				hint.text = "...how are you this bad...";
+			}
+		} else {
+			trace("in AP");
+			if (accRankSetLimit != 0 || comboRankSetLimit != 0) {
+				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.ratingPercent * 100, 4);
+				if (accRankLimit > accRankSetLimit) hint.text = 'Accuracy Rank not high enough! (${accuracyNeeded - percent}% off.)';
+				if (comboRankLimit > comboRankSetLimit) hint.text += '\nCombo Rank not high enough! (${comboRankLimit - comboRankSetLimit} ranks off.)';
+				hint.text += '\n(Better luck next time!)';
+				if (comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
+					hint.text = "Song Completed!\n(Good job!)";
+				}
+			} else {
+				switch (comboRank)
+				{
+					case 'MFC':
+						hint.text = "Congrats! You're perfect!";
+					case 'SFC':
+						hint.text = "Almost Perfection! Try getting only marvelous for MFC";
+					case 'GFC':
+						hint.text = "You're doing great! Try getting only sicks for SFC";
+					case 'FC':
+						hint.text = "Good job. Try getting goods at minimum for GFC.";
+					case 'SDCB':
+						hint.text = "Nice. Try not missing at all for FC.";
+				}
+
+				if (PlayState.instance.cpuControlled)
+				{
+					hint.y -= 35;
+					hint.text = 'If you wanna gather that rank, disable botplay.' + FlxG.random.bool(3) ?? '\n(Dirty cheater...)';
+				}
+
+				if (PlayState.deathCounter >= 30)
+				{
+					hint.text = "...how are you this bad...";
+				}
+			}
 		}
 
 		hint.screenCenter(X);
@@ -158,74 +201,76 @@ class RankingSubstate extends MusicBeatSubstate
 					var locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 					trace('Location IDs: ' + locationIdInts);
 
-					if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-					{
-						for (song in WeekData.getCurrentWeek().songs)
+					if (comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
+						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
 						{
-							if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-								(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+							for (song in WeekData.getCurrentWeek().songs)
 							{
-								locationId = archipelago.APPlayState.currentMod.trim() != ""
-									? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
-									: song[0];
-								locationIdInts = APEntryState.apGame.locationData(locationId.trim());
-								break;
-							}
-						}
-					}
-
-					if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-					{
-						for (song in WeekData.getCurrentWeek().songs)
-						{
-							var songPath = archipelago.APPlayState.currentMod.trim() != ""
-								? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-								: "assets/shared" + (song[0] + Difficulty.getFilePath());
-							var songJson:SwagSong = null;
-							var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
-								? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
-								: Paths.crawlDirectoryOG("assets/shared/data", ".json"); // I'm an idiot for not realizing this bug sooner. - Yuta
-
-							for (json in jsonStuff)
-							{
-								if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
+								if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
+									(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 								{
-									songJson = Song.parseJSON(File.getContent(json));
-									if (songJson != null)
-									{
-										if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-										{
-											locationId = archipelago.APPlayState.currentMod.trim() != "" 
-												? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
-												: song[0];
-											locationIdInts = APEntryState.apGame.locationData(locationId.trim());
-											break;
-										}
-									}
-								} 
+									locationId = archipelago.APPlayState.currentMod.trim() != ""
+										? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
+										: song[0];
+									locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+									break;
+								}
 							}
 						}
-					}
-					
-					for (locationIdInt in locationIdInts)
-					{
-						trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
-						trace(APEntryState.apGame.info().get_location_name(locationIdInt));
-					}
-					trace(PlayState.SONG.song);
 
-					archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
-						FlxG.sound.playMusic(Paths.sound('secret'));
-					});
-
-					for (locationIdInt in locationIdInts)
-					{
-						if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
+						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
 						{
-							archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-								FlxG.sound.playMusic(Paths.sound('secret'));
-							});
-							APEntryState.apGame.info().set_goal();
+							for (song in WeekData.getCurrentWeek().songs)
+							{
+								var songPath = archipelago.APPlayState.currentMod.trim() != ""
+									? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+									: "assets/shared" + (song[0] + Difficulty.getFilePath());
+								var songJson:SwagSong = null;
+								var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
+									? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
+									: Paths.crawlDirectoryOG("assets/shared/data", ".json"); // I'm an idiot for not realizing this bug sooner. - Yuta
+
+								for (json in jsonStuff)
+								{
+									if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
+									{
+										songJson = Song.parseJSON(File.getContent(json));
+										if (songJson != null)
+										{
+											if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+											{
+												locationId = archipelago.APPlayState.currentMod.trim() != "" 
+													? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
+													: song[0];
+												locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+												break;
+											}
+										}
+									} 
+								}
+							}
+						}
+						
+						for (locationIdInt in locationIdInts)
+						{
+							trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
+							trace(APEntryState.apGame.info().get_location_name(locationIdInt));
+						}
+						trace(PlayState.SONG.song);
+
+						archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
+							FlxG.sound.playMusic(Paths.sound('secret'));
+						});
+
+						for (locationIdInt in locationIdInts)
+						{
+							if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
+							{
+								archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+									FlxG.sound.playMusic(Paths.sound('secret'));
+								});
+								APEntryState.apGame.info().set_goal();
+							}
 						}
 					}
 					Mods.loadTopMod();
@@ -254,6 +299,7 @@ class RankingSubstate extends MusicBeatSubstate
 			{ comboRank = "FC"; comboRankLimit = 5; }
 		else if (PlayState.instance.songMisses < 10) // Single Digit Combo Breaks
 			{ comboRank = "SDCB"; comboRankLimit = 6; }
+		else { comboRank = "Clear"; comboRankLimit = 7; }
 
 		var acc = CoolUtil.floorDecimal(PlayState.instance.ratingPercent * 100, 2);
 
@@ -275,6 +321,25 @@ class RankingSubstate extends MusicBeatSubstate
 			acc >= 70, // C
 			acc >= 60, // D
 			acc < 60 // E
+		];
+
+		var accConditions:Array<Float> = [
+			99.9935, // P
+			99.980, // X
+			99.950, // X-
+			99.90, // SS+
+			99.80, // SS
+			99.70, // SS-
+			99.50, // S+
+			99, // S
+			96.50, // S-
+			93, // A+
+			90, // A
+			85, // A-
+			80, // B
+			70, // C
+			60, // D
+			60 // E
 		];
 
 		for (i in 0...wifeConditions.length)
@@ -339,6 +404,7 @@ class RankingSubstate extends MusicBeatSubstate
 					ranking = "F";
 				break;
 			}
+			accuracyNeeded = accConditions[accRankSetLimit];
 		}
 		return ranking;
 	}

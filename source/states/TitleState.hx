@@ -133,12 +133,12 @@ class TitleState extends MusicBeatState
 	var danceLeft:Bool = false;
 	var titleText:FlxSprite;
 	var swagShader:ColorSwap = null;
-
+	var usingDefaultLogo:Bool = false;
 	function startIntro()
 	{
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
-			FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+			FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 0);
 
 		loadJsonData();
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
@@ -146,10 +146,16 @@ class TitleState extends MusicBeatState
 
 		logoBl = new FlxSprite(logoPosition.x, logoPosition.y);
 		logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+		if (logoBl.frames == null) { 
+			logoBl.frames = Paths.getSparrowAtlas('bump');
+			usingDefaultLogo = true;
+		}
 		logoBl.antialiasing = ClientPrefs.data.antialiasing;
 
-		logoBl.animation.addByPrefix('bump', 'logo bumpin', 24, false);
+		if (usingDefaultLogo) logoBl.animation.addByPrefix('bump', 'bump', 24, false);
+		else logoBl.animation.addByPrefix('bump', 'logo bumpin', 24, false);
 		logoBl.animation.play('bump');
+		if (usingDefaultLogo) logoBl.setGraphicSize(Std.int(logoBl.width * 0.4));
 		logoBl.updateHitbox();
 
 		gfDance = new FlxSprite(gfPosition.x, gfPosition.y);
@@ -542,7 +548,7 @@ class TitleState extends MusicBeatState
 			{
 				case 1:
 					//FlxG.sound.music.stop();
-					FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+					FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 0);
 					FlxG.sound.music.fadeIn(4, 0, 0.7);
 				case 2:
 					createCoolText(['Mixtape Engine by'], 40);
@@ -610,7 +616,7 @@ class TitleState extends MusicBeatState
 						FlxG.camera.flash(FlxColor.WHITE, 2);
 						skippedIntro = true;
 
-						FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+						FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 0);
 						FlxG.sound.music.fadeIn(4, 0, 0.7);
 						return;
 				}
@@ -632,7 +638,7 @@ class TitleState extends MusicBeatState
 					remove(credGroup);
 					FlxG.camera.flash(FlxColor.WHITE, 3);
 					sound.onComplete = function() {
-						FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+						FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 0);
 						FlxG.sound.music.fadeIn(4, 0, 0.7);
 						transitioning = false;
 						#if ACHIEVEMENTS_ALLOWED

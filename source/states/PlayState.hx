@@ -3556,7 +3556,8 @@ class PlayState extends MusicBeatState
 		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
 	}
 
-	var initY:Float;
+	public var initY:Float;
+	var lastHealth:Float = -1;
 	override public function update(elapsed:Float)
 	{
 		if(!inCutscene && !paused && !freezeCamera) {
@@ -3572,6 +3573,12 @@ class PlayState extends MusicBeatState
 			}
 		}
 		else FlxG.camera.followLerp = 0;
+
+		//So that the health text works
+		if (health != lastHealth) {
+			updateScoreText();
+			lastHealth = health;
+		}
 		callOnScripts('onUpdate', [elapsed]);
 
 		//Just to make sure
@@ -5253,7 +5260,7 @@ class PlayState extends MusicBeatState
 				if (storyPlaylist.length <= 0)
 				{
 					Mods.loadTopMod();
-					FlxG.sound.playMusic(Paths.music('freakyMenu'));
+					FlxG.sound.playMusic(Paths.music(Constants.menuMusic));
 					#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
 					canResync = false;

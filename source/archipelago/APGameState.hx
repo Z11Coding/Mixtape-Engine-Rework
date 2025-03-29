@@ -689,6 +689,9 @@ class APGameState {
         _ap.clientStatus = ClientStatus.UNKNOWN;
         _ap.onSocketDisconnected.remove(onSocketDisconnected);
         _ap = null;
+        APEntryState.ap = null;
+        APEntryState.apGame = null;
+        APEntryState.inArchipelagoMode = false;
         MusicBeatState.switchState(new APEntryState());
     }
 

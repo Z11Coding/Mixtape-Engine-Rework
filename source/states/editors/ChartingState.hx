@@ -4154,7 +4154,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			PlayState.chartingMode = false;
 			MusicBeatState.switchState(new states.editors.MasterEditorMenu());
-			FlxG.sound.playMusic(Paths.music('menuSongs/freakyMenu-' + ClientPrefs.data.menuSong));
+			FlxG.sound.playMusic(Paths.music(Constants.menuMusic));
 			FlxG.mouse.visible = false;
 		}, btnWid);
 		btn.text.alignment = LEFT;
