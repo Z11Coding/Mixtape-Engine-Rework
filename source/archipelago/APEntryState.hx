@@ -51,8 +51,8 @@ typedef APOptions =
     var	deathlink:Bool;
     var	unlock_type:String;
     var	unlock_method:String;
-	var	graderequirement:Int;
-	var	accrequirement:Int;
+	var	graderequirement:String;
+	var	accrequirement:String;
     var	songList:Array<String>;
     var	ticket_percentage:Int;
     var	ticket_win_percentage:Int;
@@ -145,8 +145,8 @@ class APEntryState extends MusicBeatState
 			deathlink: false,
 			unlock_type: 'Songs',
 			unlock_method: 'Song Completion',
-			graderequirement: 0,
-			accrequirement: 0,
+			graderequirement: "Any",
+			accrequirement: "Any",
 			songList: [],
 			ticket_percentage: 15,
 			ticket_win_percentage: 15,
