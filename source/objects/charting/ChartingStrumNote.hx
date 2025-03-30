@@ -121,8 +121,9 @@ class ChartingStrumNote extends FlxSprite
 		if(PlayState.isPixelStage)
 		{
 			loadGraphic(Paths.image('pixelUI/' + texture));
-			width = width / pxDV;
+			pxDV = Note.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 			height = height / 5;
+			width = width / pxDV;
 			antialiasing = false;
 			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
 			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
@@ -130,25 +131,9 @@ class ChartingStrumNote extends FlxSprite
 			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
 			updateHitbox();
 			antialiasing = false;
-			switch (Math.abs(noteData))
-			{
-				case 0:
-					animation.add('static', [daFrames[0]]);
-					animation.add('pressed', [daFrames[0] + pxDV, daFrames[0] + (pxDV * 2)], 12, false);
-					animation.add('confirm', [daFrames[0] + (pxDV * 3), daFrames[0] + (pxDV * 4)], 24, false);
-				case 1:
-					animation.add('static', [daFrames[1]]);
-					animation.add('pressed', [daFrames[1] + pxDV, daFrames[1] + (pxDV * 2)], 12, false);
-					animation.add('confirm', [daFrames[1] + (pxDV * 3), daFrames[1] + (pxDV * 4)], 24, false);
-				case 2:
-					animation.add('static', [daFrames[2]]);
-					animation.add('pressed', [daFrames[2] + pxDV, daFrames[2] + (pxDV * 2)], 12, false);
-					animation.add('confirm', [daFrames[2] + (pxDV * 3), daFrames[2] + (pxDV * 4)], 24, false);
-				case 3:
-					animation.add('static', [daFrames[3]]);
-					animation.add('pressed', [daFrames[3] + pxDV, daFrames[3] + (pxDV * 2)], 12, false);
-					animation.add('confirm', [daFrames[3] + (pxDV * 3), daFrames[3] + (pxDV * 4)], 24, false);
-			}
+			animation.add('static', [daFrames[noteData]]);
+			animation.add('pressed', [daFrames[noteData] + pxDV, daFrames[noteData] + (pxDV * 2)], 12, false);
+			animation.add('confirm', [daFrames[noteData] + (pxDV * 3), daFrames[noteData] + (pxDV * 4)], 24, false);
 			//i used windows calculator
 		}
 		else
@@ -181,7 +166,7 @@ class ChartingStrumNote extends FlxSprite
 			}
 
 			attemptToAddAnimationByPrefix('static', 'arrow' + animationArray[0]);
-			attemptToAddAnimationByPrefix('pressed', animationArray[1] + ' press');
+			attemptToAddAnimationByPrefix('pressed', animationArray[1] + ' press', 24, false);
 			attemptToAddAnimationByPrefix('confirm', animationArray[1] + ' confirm', 24, false);
 		}
 		updateHitbox();

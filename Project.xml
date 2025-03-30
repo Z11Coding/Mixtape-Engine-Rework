@@ -28,6 +28,7 @@
 	<define name="TRANSLATIONS_ALLOWED" />
 	<define name="IRIS_DEBUG"/>
 	<define name="ARCHIPELAGO_ALLOWED"/>
+	<define name="CHECK_FOR_UPDATES"/>
 
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY" if="LUA_ALLOWED" />
@@ -101,8 +102,6 @@
 		<haxelib name="funkin.vis" if="BASE_GAME_FILES"/>
 		<haxelib name="FlxPartialSound" version="git"/>
 	</section>
-
-	<define name="CHECK_FOR_UPDATES" if="desktop officialBuild"/>
 
 	<section if="MODS_ALLOWED">
 		<assets path='example_mods' rename='mods' embed='false' type='template' unless="mac"/>

@@ -474,11 +474,8 @@ class PlayState extends MusicBeatState
 		}
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
-		if(nextReloadAll)
-		{
-			Paths.clearUnusedMemory();
-			Language.reloadPhrases();
-		}
+		Paths.clearUnusedMemory();
+		Language.reloadPhrases();
 		nextReloadAll = false;
 
 		startCallback = startCountdown;

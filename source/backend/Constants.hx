@@ -27,6 +27,9 @@ class Constants {
             case "Base Game":
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freakyMenu')));
                 Conductor.bpm = 102;
+            case "Freeplay Random":
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freeplayRandom')));
+                Conductor.bpm = 145;
             case "Pause Menu":
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')));
                 switch (ClientPrefs.data.pauseMusic)
