@@ -90,12 +90,22 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
-		var option:Option = new Option('Pause Screen Song:',
+		var option:Option = new Option('Menu Music:',
+			"What song do you prefer for the Main Menu?\n(And like 90% of every other menu as well)",
+			'menuSong',
+			STRING,
+			['None', 'Panix Press', 'TitleMania', 'Base Game', 'Pause Menu']);
+		addOption(option);
+		option.displayFormat = '< %v >';
+		option.onChange = onChangeMenuMusic;
+		
+		var option:Option = new Option('Pause Music:',
 			"What song do you prefer for the Pause Screen?",
 			'pauseMusic',
 			STRING,
 			['None', 'Breakfast', 'Tea Time', 'Celebration', 'Drippy Genesis', 'Reglitch', 'False Memory', 'Funky Genesis', 'Late Night Cafe', 'Late Night Jersey', 'Silly Little Sample Song']);
 		addOption(option);
+		option.displayFormat = '< %v >';
 		option.onChange = onChangePauseMusic;
 
 		var option:Option = new Option('---MISC.---',
@@ -169,24 +179,20 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			case 'Silly Little Sample Song':
 				indeed = 10;
 		}
-		/*
-		if (controls.UI_RIGHT_P)
-			indeed++;
-		if (controls.UI_LEFT_P)
-			indeed--;
-		if (indeed < 0)
-			indeed = curBPMList.length - 1;
-		if (indeed >= curBPMList.length)
-			indeed = 0;
-		*/
 		if(ClientPrefs.data.pauseMusic == 'None')
 			FlxG.sound.music.volume = 0;
 		else
-			FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(ClientPrefs.data.pauseMusic)));
+			FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')));
 
 		changedMusic = true;
 		Conductor.bpm = curBPMList[indeed];
 		ClientPrefs.data.pauseBPM = curBPMList[indeed];
+	}
+
+	function onChangeMenuMusic()
+	{
+		Constants.changeMenuMusic(ClientPrefs.data.menuSong);
+		changedMusic = true;
 	}
 
 	override function update(e:Float)

@@ -284,7 +284,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	override function destroy()
 	{
-		if(changedMusic && !OptionsState.onPlayState) FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 1, true);
+		if(changedMusic && !OptionsState.onPlayState) Constants.playMenuMusic();
 		Note.globalRgbShaders = [];
 		super.destroy();
 	}

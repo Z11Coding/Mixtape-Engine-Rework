@@ -155,7 +155,7 @@ import states.TitleState;
 	public var volUp:String = 'Volup';
 	public var volDown:String = 'Voldown';
 	public var volMax:String = 'VolMAX';
-	public var menuSong:String = 'panixPress';
+	public var menuSong:String = 'TitleMania';
 	public var username:Bool = false;
 	public var deathlink:Bool = false;
 	public var stageGimmick:Bool = false;
