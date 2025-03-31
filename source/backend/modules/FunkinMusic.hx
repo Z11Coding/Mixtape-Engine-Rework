@@ -1,10 +1,9 @@
 package backend.modules;
 
-package backend.modules;
-
 import flixel.system.FlxSound;
+import backend.FunkinSound;
 
-class FunkinSound extends SoundLayer {
+class FunkinMusic extends SoundLayer {
     public var bpm:Float;
     public var sections:Array<{start:Float, end:Float}>;
     public var currentSectionIndex:Int;
@@ -22,7 +21,7 @@ class FunkinSound extends SoundLayer {
         var totalDuration:Float = this.sound.length; // Get total duration of the sound in seconds
         
         // Create sections based on the calculated start and end times
-        for (i in 0...Int(totalDuration / sectionDuration)) {
+        for (i in 0...Std.int(totalDuration / sectionDuration)) {
             var start:Float = i * sectionDuration;
             var end:Float = (i + 1) * sectionDuration;
             this.sections.push({start: start, end: end});
@@ -33,8 +32,8 @@ class FunkinSound extends SoundLayer {
         this.sections.push({start: start, end: end});
     }
 
-    public function play():Void {
-        this.sound.play();
+    public override function play():Void {
+        super.play();
         this.sound.onComplete = this.onSoundComplete;
     }
 

@@ -1,10 +1,11 @@
 package backend.modules;
 
 import flixel.system.FlxSound;
+import backend.FunkinSound;
 
 // Represents a single sound layer
 class SoundLayer {
-	public var sound:FlxSound;
+	public var sound:FunkinSound;
 	public var id:String;
 
 	public function new(id:String, soundPath:String) {

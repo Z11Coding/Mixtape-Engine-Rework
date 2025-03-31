@@ -1,5 +1,6 @@
 package states;
 
+import yutautil.AprilFools;
 import archipelago.APEntryState;
 import yutautil.modules.SyncUtils;
 import flixel.input.keyboard.FlxKey;
@@ -80,6 +81,16 @@ class FirstCheckState extends MusicBeatState
 		// var combinedText = yutautil.MarkdownFlxText.combine([text3, text4, text5, text6, text7, text8, text9]);
 		// combinedText.y = 200;
 		// add(combinedText);
+
+		if (AprilFools.allowAF)
+		{
+			var aprilFoolsText = new FlxText(0, 0, FlxG.width, "April Fools!");
+			aprilFoolsText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
+			add(aprilFoolsText);
+		}
+		else {
+			ClientPrefs.data.aprilFools = true;
+		}
 
 		if (!relaunch)
 		{

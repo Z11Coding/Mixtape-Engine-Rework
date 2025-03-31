@@ -144,7 +144,12 @@ class TitleState extends MusicBeatState
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
 
 		logoBl = new FlxSprite(logoPosition.x, logoPosition.y);
-		logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+		try {
+			logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+		} catch (e:haxe.Exception) {
+			trace('[ERROR] Failed to load logoBumpin atlas: ' + e.details());
+			logoBl.frames = null;
+		}
 		if (logoBl.frames == null) { 
 			logoBl.frames = Paths.getSparrowAtlas('bump');
 			usingDefaultLogo = true;
