@@ -114,6 +114,14 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		}
 	}
 
+	public static function createFromEnum(x:Float, y:Float, enumL:Enum<Dynamic>, callback:Int->String->Void, ?width:Float = 100):PsychUIDropDownMenu
+	{
+		var list:Array<String> = [];
+		for (item in Type.allEnums(enumL))
+			list.push(Type.enumConstructor(item));
+		return new PsychUIDropDownMenu(x, y, list, callback, width);
+	}
+
 	private function showDropDownClickFix()
 	{
 		if(FlxG.mouse.justPressed)

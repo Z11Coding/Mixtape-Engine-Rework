@@ -18,6 +18,21 @@ enum Month {
     December;
 }
 
+// enum MonthDate {
+//     January(31);
+//     February(28); // Leap year not considered
+//     March(31);
+//     April(30);
+//     May(31);
+//     June(30);
+//     July(31);
+//     August(31);
+//     September(30);
+//     October(31);
+//     November(30);
+//     December(31);
+// }
+
 enum Day {
     Sunday;
     Monday;
@@ -26,6 +41,11 @@ enum Day {
     Thursday;
     Friday;
     Saturday;
+}
+
+enum StringMode {
+    Names;
+    Numbers;
 }
 
 typedef NewDateObject = {year:Null<Int>, month:Null<Int>, day:Null<Int>, ?hour:Int, ?minute:Int, ?second:Int};
@@ -37,6 +57,10 @@ class ExtendedDate extends FlxBasic {
 
     public var dateAccess:Dynamic;
 
+    public static var instance:ExtendedDate;
+
+    public var StringMode:StringMode = null;
+
     public function new(year:Int, month:Int, day:Int, hour:Int = 0, minute:Int = 0, second:Int = 0) {
         if (ExtendedDate.date == null) {
             ExtendedDate.date = Date.now();
@@ -45,6 +69,14 @@ class ExtendedDate extends FlxBasic {
         this.dateAccess = ExtendedDate.date;
         super();
         trace("It is currently " + this.dateAccess);
+
+        if (instance != null) {
+            instance.destroy();
+        instance = null;
+        }
+
+        instance = this; // Prevent Overflow
+        this.StringMode = yutautil.ExtendedDate.StringMode.Names;
     }
 
     public static function createDate(type:Class<flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>>, now:Bool, _construct:NewDateObject):flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate> {
@@ -52,6 +84,10 @@ class ExtendedDate extends FlxBasic {
             (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ? 
                 (type == Date ? new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) : new ExtendedDate(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second)) : 
                 (type == Date ? Date.now() : ExtendedDate.newDate()));
+    }
+
+    public static inline function global():ExtendedDate {
+        return (ExtendedDate.instance == null ? new ExtendedDate(0, 0, 0) : ExtendedDate.instance);
     }
 
 
@@ -117,9 +153,21 @@ class ExtendedDate extends FlxBasic {
         return !this.isWeekend();
     }
 
+    public function isAprilFools():Bool {
+        return this.getMonth() == 3 && this.getDate() == 1;
+    }
+
     public function asString():String {
         return this.formatDate("%Y-%m-%d %H:%M:%S");
     }
+
+    // public override function toString():String {
+    //     return if (this.StringMode == StringMode.Names) {
+    //         getFullDateObject().month.toString() + " " + getFullDateObject().day.toString() + ", " + getFullDateObject().year.toString() + " " + this.time();
+    //     } else {
+    //         this.asString();
+    //     }
+    // }
 
     public static function getMonthByName(name:String):Month {
         return switch (name.toLowerCase()) {
@@ -195,6 +243,54 @@ class ExtendedDate extends FlxBasic {
             case 6: Day.Saturday;
             default: throw "Invalid day number";
         }
+    }
+
+    public static function getCurrentMonth():Month {
+        return getMonthByNumber(Date.now().getMonth() + 1);
+    }
+
+    public static function getCurrentDay():Day {
+        return getDayByNumber(Date.now().getDay() + 1);
+    }
+
+    public static function getCurrentMonthAndDay():{month:Month, day:Day} {
+        return {month: getCurrentMonth(), day: getCurrentDay()};
+    }
+
+    public static function getCurrentMonthDayYear():{month:Month, day:Day, year:Int} {
+        return {month: getCurrentMonth(), day: getCurrentDay(), year: Date.now().getFullYear()};
+    }
+
+    public static function getFullDateObject():{year:Int, month:Month, day:Day, date:Int, time:String} {
+        var now = Date.now();
+        return {
+            year: now.getFullYear(),
+            month: getMonthByNumber(now.getMonth() + 1),
+            day: getDayByNumber(now.getDay() + 1),  
+            date: now.getDate(),
+            time: ExtendedDate.formatDateObject(now, "%H:%M:%S")
+        };
+    }
+
+    public static function getCustomDateObject(date:flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>, format:String):{year:Int, month:Month, day:Day, date:Int, time:String} {
+        var date:Dynamic = date;
+        return {
+            year: date.getFullYear(),
+            month: getMonthByNumber(date.getMonth() + 1),
+            day: getDayByNumber(date.getDay() + 1),  
+            date: date.getDate(),
+            time: ExtendedDate.formatDateObject(date, format)
+        };
+    }
+
+    public function getDateObject():{year:Int, month:Month, day:Day, date:Int, time:String} {
+        return {
+            year: this.getFullYear(),
+            month: getMonthByNumber(this.getMonth() + 1),
+            day: getDayByNumber(this.getDay() + 1),  
+            date: this.getDate(),
+            time: this.time()
+        };
     }
 
     public function getDaysInMonth():Int {

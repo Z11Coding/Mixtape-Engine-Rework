@@ -162,6 +162,7 @@ import states.TitleState;
 	public var healthMode:String = 'Mixtape';
 	public var iconBounce:String = 'Mixtape';
 	public var pauseBPM:Int = 102;
+	public var aprilFools:Bool = true;
 }
 
 class ClientPrefs {

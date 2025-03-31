@@ -1193,6 +1193,26 @@ class CollectionUtils
 		return Math.random() * 1000000;
 	}
 
+	public static inline function enumValuesToIterable<T>(enumType:Enum<Dynamic>):Iterable<T>
+	{
+		return Type.getEnumConstructs(enumType).map(function(name) return Type.createEnum(enumType, name));
+	}
+
+	public static inline function enumValuesToArray<T>(enumType:Enum<Dynamic>):Array<T>
+	{
+		return Type.getEnumConstructs(enumType).map(function(name) return Type.createEnum(enumType, name));
+	}
+
+	public static inline function enumToString<T>(enumValue:Enum<Dynamic>):String
+	{
+		return Type.getEnumName(enumValue);
+	}
+
+	public static inline function enumStringList<T>(enumType:Enum<Dynamic>):Array<String>
+	{
+		return Type.getEnumConstructs(enumType).map(function(name) return name);
+	}
+
 	public static inline function isEmpty<T>(input:Dynamic):Bool
 	{
 		if (Std.is(input, Array))
