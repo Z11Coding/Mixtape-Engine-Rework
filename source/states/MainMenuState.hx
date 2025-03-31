@@ -143,14 +143,6 @@ class MainMenuState extends MusicBeatState
 		#end
 		#end
 
-		#if CHECK_FOR_UPDATES
-		if (showOutdatedWarning && ClientPrefs.data.checkForUpdates && substates.OutdatedSubState.updateVersion != psychEngineVersion) {
-			persistentUpdate = false;
-			showOutdatedWarning = false;
-			openSubState(new substates.OutdatedSubState());
-		}
-		#end
-
 		FlxG.camera.follow(camFollow, null, 0.15);
 	}
 
@@ -457,5 +449,19 @@ class MainMenuState extends MusicBeatState
 		selectedItem.animation.play('selected');
 		selectedItem.centerOffsets();
 		camFollow.y = selectedItem.getGraphicMidpoint().y;
+	}
+
+	override function beatHit()
+	{
+		super.beatHit();
+
+		if (!selectedSomethin)
+		{
+			FlxG.camera.zoom = zoomies;
+
+			FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+				ease: FlxEase.quadOut
+			});
+		}
 	}
 }

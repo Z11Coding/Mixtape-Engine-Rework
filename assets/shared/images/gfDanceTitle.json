@@ -1,6 +1,6 @@
 {	
-	"titlex":-150,
-	"titley":-100,
+	"titlex":150,
+	"titley":6500,
 	"startx":100,
 	"starty":576,
 	"gfChar":true,

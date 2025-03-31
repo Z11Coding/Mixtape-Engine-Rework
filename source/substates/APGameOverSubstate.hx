@@ -202,7 +202,7 @@ class APGameOverSubstate extends MusicBeatSubstate
 				Mods.loadTopMod();
 				MusicBeatState.switchState(new FreeplayState());
 	
-				FlxG.sound.playMusic(Paths.music('freakyMenu'));
+				FlxG.sound.playMusic(Paths.music(Constants.menuMusic));
 				PlayState.instance?.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop) coolStartDeath();

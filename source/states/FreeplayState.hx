@@ -83,7 +83,6 @@ class FreeplayState extends MusicBeatState
 
 	public static var searchBar:FlxUIInputText;
 	private var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
-	public var camGame:FlxCamera;
 	public static var SONG:SwagSong = null;
 
 	public static var lastCategory:String;
@@ -183,10 +182,6 @@ class FreeplayState extends MusicBeatState
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
-
-		camGame = new FlxCamera();
-		FlxG.cameras.reset(camGame);
-		FlxG.cameras.setDefaultDrawTarget(camGame, true);
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
@@ -1043,7 +1038,7 @@ class FreeplayState extends MusicBeatState
 					player.playingMusic = false;
 					player.switchPlayMusic();
 
-					FlxG.sound.playMusic(Paths.music('panixPress'), 0);
+					Constants.playMenuMusic(0);
 					FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
 				}
 				else 
@@ -1416,16 +1411,19 @@ class FreeplayState extends MusicBeatState
 		return null;
 	}
 
-	public function playFreakyMusic(?musName:String = 'panixPress', ?bpm:Float = 102) {
+	public function playFreakyMusic(?musName:String, ?bpm:Float = 102) {
 		if (trackPlaying == musName)
 			return;
 
-		FlxG.sound.playMusic(Paths.music(musName), 0);
-		FlxG.sound.music.fadeIn(3, 0, 0.7);
-		Conductor.bpm = bpm;
-		listening = false;
-		instPlaying = -1;
-		trackPlaying = musName;
+		if (musName == null) Constants.playMenuMusic(0);
+		else {
+			FlxG.sound.playMusic(Paths.music(musName), 0);
+			FlxG.sound.music.fadeIn(3, 0, 0.7);
+			Conductor.bpm = bpm;
+			listening = false;
+			instPlaying = -1;
+			trackPlaying = musName;
+		}
 		destroyFreeplayVocals();
 	}
 
@@ -1494,9 +1492,9 @@ class FreeplayState extends MusicBeatState
 			curSelected = songs.length - 1;
 
 		if (curSelected == -1)
-			playFreakyMusic('freeplayRandom');
-		else if (!player.playingMusic)
-			playFreakyMusic('panixPress', TitleState.globalBPM);
+			playFreakyMusic('menuMusic/freeplayRandom');
+		else if (!player.playingMusic) 
+			playFreakyMusic();
 		
 		try {
 			if (songs.length >= 0)
@@ -1700,9 +1698,9 @@ class FreeplayState extends MusicBeatState
 
 	override function beatHit()
 	{
-		camGame.zoom = zoomies;
+		FlxG.camera.zoom = zoomies;
 
-		FlxTween.tween(camGame, {zoom: 1}, Conductor.crochet / 1300, {
+		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
 			ease: FlxEase.quadOut
 		});
 

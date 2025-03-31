@@ -50,7 +50,7 @@ class StageWeek1 extends BaseStage
 				case 'bopeebo':
 					crowdPleaser.crowdAttentionLoss = 0.04;
 				case 'fresh':
-					crowdPleaser.crowdAttentionLoss = 0.03;
+					crowdPleaser.crowdAttentionLoss = 0.02;
 				case 'dad':
 					crowdPleaser.crowdAttentionLoss = 0.04;
 				case 'small argument':

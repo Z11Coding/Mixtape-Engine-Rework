@@ -67,6 +67,37 @@ typedef APOptions =
     var	MHPWeight:Int;
 }
 
+enum ComboRank {
+	ANY;
+	MFC;
+	SFC;
+	GFC;
+	AFC;
+	FC;
+	SDCB;
+	CLEAR;
+}
+
+enum AccuracyRank {
+	P;
+	X;
+	XMINUS;
+	SSPLUS;
+	SS;
+	SSMINUS;
+	SPLUS;
+	S;
+	SMINUS;
+	APLUS;
+	A;
+	AMINUS;
+	B;
+	C;
+	D;
+	E;
+	F;
+}
+
 class APEntryState extends MusicBeatState
 {
 	static final wsCheck = ~/^wss?:\/\//;
@@ -95,6 +126,9 @@ class APEntryState extends MusicBeatState
 	public static var deathLink:Bool = false;
 	public static var victorySong:String = '???';
 	public static var fullSongCount:Int = 1;
+
+	var accReq:AccuracyRank;
+	var comReq:ComboRank;
 
 	var fileDialog:FileDialogHandler = new FileDialogHandler();
 	var bpmTxt:FlxText;

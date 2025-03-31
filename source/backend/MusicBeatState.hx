@@ -163,7 +163,7 @@ class MusicBeatState extends FlxState
 		});
 
 		super.update(elapsed);
-		if (APEntryState.apGame != null)
+		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
 			APEntryState.apGame.info().poll();
 	}
 

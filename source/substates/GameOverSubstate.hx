@@ -166,7 +166,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		deathbysquare.x += 800;
 		deathbysquare.y -= 100; 
 		deathbysquare.alpha = 0.3;
-		// deathbysquare.cameras = [camCOD];
+		deathbysquare.cameras = [PlayState.instance.camCOD];
 		add(deathbysquare);
 
 		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -178,7 +178,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 		}
-		// causeofdeath.cameras = [camCOD];
+		causeofdeath.cameras = [PlayState.instance.camCOD];
 		add(causeofdeath);
 
 		super.create();
@@ -223,7 +223,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				else
 					MusicBeatState.switchState(new FreeplayState());
 	
-				FlxG.sound.playMusic(Paths.music('freakyMenu'));
+				Constants.playMenuMusic();
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop)
@@ -298,7 +298,7 @@ class GameOverSubstate extends MusicBeatSubstate
 
 						Mods.loadTopMod();
 						MusicBeatState.switchState(new FreeplayState());
-						FlxG.sound.playMusic(Paths.music('freakyMenu'));
+						Constants.playMenuMusic();
 					}
 					else
 					{
