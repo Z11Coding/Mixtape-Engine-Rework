@@ -1,5 +1,6 @@
 package archipelago;
 
+import backend.window.PlatformUtil;
 import haxe.ds.StringMap;
 
 typedef Condition = {
@@ -481,7 +482,57 @@ class APrilFools extends APItem {
         #if windows
         options.set(7, function() {
             APItem.createCustomItem("April Fools - Windows Notification", ConditionHelper.Everywhere(), function() {
-                backend.window.CppAPI.sendWindowsNotification("April Fools!", "This is a Windows notification!");
+                var creepyMessages = [
+                    "I can see you...",
+                    "Did you hear that?",
+                    "Don't look behind you.",
+                    "Your time is running out.",
+                    "Is someone watching?",
+                    "Check your surroundings.",
+                    "What was that noise?",
+                    "Are you alone?",
+                    "Something feels off.",
+                    "Why is it so quiet?"
+                ];
+
+                var funnyMessages = [
+                    "Your computer is now self-aware. Just kidding!",
+                    "Why did the programmer quit? They didn't get arrays.",
+                    "404: Your luck not found.",
+                    "Did you just press a button? Bold move.",
+                    "Your keyboard is plotting against you.",
+                    "Congratulations! You've won absolutely nothing!",
+                    "This is not a bug, it's a feature.",
+                    "Your mouse just moved on its own. Or did it?",
+                    "Don't worry, the code is 100% bug-free. Maybe.",
+                    "Fun fact: This message is completely pointless.",
+                    "Your computer loves you. Platonically, of course.",
+                    "Warning: Too much coffee detected in your system.",
+                    "Achievement unlocked: Reading random messages.",
+                    "Your screen is now 10% brighter. Just kidding!",
+                    "Did you know? This message is wasting your time.",
+                    "Your CPU is laughing at you right now.",
+                    "Error 42: Life, the universe, and everything.",
+                    "Your RAM just said 'hi'.",
+                    "This is a test. Or is it?",
+                    "Your GPU wants a vacation.",
+                    "Z11 is watching you.",
+                    "Yuta is watching you.",
+                    "Yuta is always watching.",
+                    "Z11 is always watching.",
+                    "Yuta and Z11 are always watching.",
+                    "Yuta and Z11 are always watching you.",
+                    "Yuta and Z11 are always watching you play.",
+                    "Yuta and Z11 are always watching you play this game.",
+                    "The void is coming."
+                ];
+
+                var randomMessage = Std.random(100) < 20 // 20% chance for creepy messages
+                    ? creepyMessages[Std.random(creepyMessages.length)]
+                    : funnyMessages[Std.random(funnyMessages.length)];
+                if (!PlatformUtil.sendWindowsNotification("Archipelago", randomMessage)) {
+                    APItem.popup(randomMessage, "Archipelago", true);
+                }
             });
         });
         #end
