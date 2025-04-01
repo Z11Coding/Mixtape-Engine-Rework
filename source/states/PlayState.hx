@@ -493,7 +493,6 @@ class PlayState extends MusicBeatState
 
 		PauseSubState.songName = null; //Reset to default
 		playbackRate = ClientPrefs.getGameplaySetting('songspeed');
-
 		keysArray = backend.Keybinds.fill();
 
 		controlArray = ['NOTE_LEFT', 'NOTE_DOWN', 'NOTE_UP', 'NOTE_RIGHT'];
@@ -1367,7 +1366,34 @@ class PlayState extends MusicBeatState
 		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
 
-		reverseNoteRules = FlxG.random.bool(15.7) || archipelago.APItem.activeItem?.name == "Input Reversal";
+		// my latest invention: THE CHAOS BRINGER
+		if (AprilFools.allowAF && !inArchipelagoMode) {
+			switch (FlxG.random.int(0, 5)) {
+				case 0: //Random Speed
+					playbackRate *= FlxG.random.float(0.1, 2);
+				case 1: //Reverse Input
+					reverseNoteRules = FlxG.random.bool(15.7) && !inArchipelagoMode  || archipelago.APItem.activeItem?.name == "Input Reversal";
+				case 2: //Progressive Speed
+					FlxTween.num(playbackRate, 2, inst.length-1, {ease: FlxEase.linear,
+						onComplete: function(twn:FlxTween)
+						{
+							playbackRate = 1;
+						}}, 
+						function(num){playbackRate = num;});
+				case 3: //Regressive Speed
+					FlxTween.num(playbackRate, 0.1, inst.length-1, {ease: FlxEase.linear,
+						onComplete: function(twn:FlxTween)
+						{
+							playbackRate = 1;
+						}}, 
+						function(num){playbackRate = num;});
+				case 4: //Random Modchart for no reason
+						AprilFools.randomModchartEffect();
+				case 5:
+					//Nothing
+
+			}
+		}
 	}
 
 	function doStaticSign(lestatic:Int = 0)
