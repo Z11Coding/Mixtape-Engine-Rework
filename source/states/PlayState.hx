@@ -451,6 +451,7 @@ class PlayState extends MusicBeatState
 	public var loopPlayMult:Float = ClientPrefs.getGameplaySetting('loopPlayMult', 1.05);
 	public var maniaMode:Bool = ClientPrefs.getGameplaySetting('maniaMode', false);
 	public var RandomSpeedChange:Bool = ClientPrefs.getGameplaySetting('randomspeedchange', false);
+	public var RandomSpeedChangeWild:Bool = false;
 	public var gimmicksAllowed:Bool = false;
 	public var mixupMode:Bool = false;
 
@@ -1365,35 +1366,6 @@ class PlayState extends MusicBeatState
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
 		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
-
-		// my latest invention: THE CHAOS BRINGER
-		if (AprilFools.allowAF && !inArchipelagoMode) {
-			switch (FlxG.random.int(0, 5)) {
-				case 0: //Random Speed
-					playbackRate *= FlxG.random.float(0.1, 2);
-				case 1: //Reverse Input
-					reverseNoteRules = FlxG.random.bool(15.7) && !inArchipelagoMode  || archipelago.APItem.activeItem?.name == "Input Reversal";
-				case 2: //Progressive Speed
-					FlxTween.num(playbackRate, 2, inst.length-1, {ease: FlxEase.linear,
-						onComplete: function(twn:FlxTween)
-						{
-							playbackRate = 1;
-						}}, 
-						function(num){playbackRate = num;});
-				case 3: //Regressive Speed
-					FlxTween.num(playbackRate, 0.1, inst.length-1, {ease: FlxEase.linear,
-						onComplete: function(twn:FlxTween)
-						{
-							playbackRate = 1;
-						}}, 
-						function(num){playbackRate = num;});
-				case 4: //Random Modchart for no reason
-						AprilFools.randomModchartEffect();
-				case 5:
-					//Nothing
-
-			}
-		}
 	}
 
 	function doStaticSign(lestatic:Int = 0)
@@ -2234,6 +2206,32 @@ class PlayState extends MusicBeatState
 
 		setOnScripts('songLength', songLength);
 		callOnScripts('onSongStart');
+
+		// my latest invention: THE CHAOS BRINGER
+		if (AprilFools.allowAF && !inArchipelagoMode) {
+			switch (FlxG.random.int(0, 5)) {
+				case 0: //Random Speed
+					trace("Random Speed");
+					playbackRate *= FlxG.random.float(0.1, 2);
+				case 1: //Reverse Input
+					trace("Reverse Input");
+					reverseNoteRules = !inArchipelagoMode  || archipelago.APItem.activeItem?.name == "Input Reversal";
+				case 2: //Random Speed Change
+					trace("Random Speed Change");
+					RandomSpeedChange = true;
+				case 3: //Wild Random Speed Change
+					trace("Wild Random Speed Change");
+					RandomSpeedChange = true;
+					RandomSpeedChangeWild = true;
+				case 4: //Random Modchart for no reason
+					trace("Random Modchart for no reason");
+					AprilFools.randomModchartEffect();
+				case 5:
+					trace("Nothing");
+					//Nothing
+
+			}
+		}
 	}
 
 	private var noteTypes:Array<String> = [];
@@ -6571,7 +6569,7 @@ class PlayState extends MusicBeatState
 		callOnScripts('onStepHit');
 	}
 
-	public function lerpSongSpeed(num:Float, time:Float):Void
+	public function lerpSongSpeed(num:Float, time:Float, ?staticLines:Bool = true):Void
 	{
 		FlxTween.num(playbackRate, num, time, {ease: FlxEase.sineInOut}, function(value:Float)
 		{
@@ -6579,27 +6577,29 @@ class PlayState extends MusicBeatState
 			resyncVocals();
 		});
 
-		var staticLinesNum = FlxG.random.int(3, 5);
-		for (i in 0...staticLinesNum)
-		{
-			var startPos = FlxG.random.float(0, FlxG.height);
-			var endPos = FlxG.random.float(0, FlxG.height);
+		if (staticLines) {
+			var staticLinesNum = FlxG.random.int(3, 5);
+			for (i in 0...staticLinesNum)
+			{
+				var startPos = FlxG.random.float(0, FlxG.height);
+				var endPos = FlxG.random.float(0, FlxG.height);
 
-			var line:FlxSprite = new FlxSprite().loadGraphic(Paths.image("effects/staticline"));
-			line.y = startPos;
-			line.updateHitbox();
-			line.cameras = [camHUD];
-			line.alpha = 0.3;
+				var line:FlxSprite = new FlxSprite().loadGraphic(Paths.image("effects/staticline"));
+				line.y = startPos;
+				line.updateHitbox();
+				line.cameras = [camHUD];
+				line.alpha = 0.3;
 
-			line.screenCenter(X);
-			add(line);
-			FlxTween.tween(line, {y: endPos}, time, {
-				ease: FlxEase.circInOut,
-				onComplete: function(twn:FlxTween)
-				{
-					line.destroy();
-				}
-			});
+				line.screenCenter(X);
+				add(line);
+				FlxTween.tween(line, {y: endPos}, time, {
+					ease: FlxEase.circInOut,
+					onComplete: function(twn:FlxTween)
+					{
+						line.destroy();
+					}
+				});
+			}
 		}
 	}
 
@@ -6614,7 +6614,8 @@ class PlayState extends MusicBeatState
 		if (curBeat % 32 == 0 && RandomSpeedChange && !songAboutToLoop)
 		{
 			// goes up to 3x speed cuz screw you thats why
-			var randomShit = FlxMath.roundDecimal(FlxG.random.float(0.45, 2), 2);
+			var randomSpeed = RandomSpeedChangeWild ? FlxG.random.float(0.2, 5) : FlxG.random.float(0.45, 2);
+			var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
 			lerpSongSpeed(randomShit, 1);
 		}
 

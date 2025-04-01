@@ -17,6 +17,7 @@ class FirstCheckState extends MusicBeatState
 	var updateAlphabet:Alphabet;
 	var updateIcon:FlxSprite;
 	var updateRibbon:FlxSprite;
+	var allowProgression:Bool = true; //For april fools
 
 	public static function checkInternetConnection():Bool {
 		var response:Dynamic = null;
@@ -84,15 +85,114 @@ class FirstCheckState extends MusicBeatState
 
 		if (AprilFools.allowAF)
 		{
+			allowProgression = false;
+			var randoTimer:Int = FlxG.random.int(2, 10);
 			var aprilFoolsText = new FlxText(0, 0, FlxG.width, "April Fools!");
-			aprilFoolsText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
+			aprilFoolsText.setFormat(Paths.font("vcr.ttf"), 128, FlxColor.WHITE, CENTER);
+			aprilFoolsText.screenCenter();
+			aprilFoolsText.alpha = 0;
 			add(aprilFoolsText);
+			FlxTween.num(0, 1, randoTimer, {ease: FlxEase.linear,
+				onComplete: function(twn:FlxTween) {
+					if (!relaunch)
+					{
+						remove(aprilFoolsText);
+						updateRibbon = new FlxSprite(0, FlxG.height - 75).makeGraphic(FlxG.width, 75, 0x88FFFFFF, true);
+						updateRibbon.visible = false;
+						updateRibbon.alpha = 0;
+						add(updateRibbon);
+			
+						updateIcon = new FlxSprite(FlxG.width - 75, FlxG.height - 75);
+						updateIcon.frames = Paths.getSparrowAtlas("pause/pauseAlt/bfLol");
+						updateIcon.animation.addByPrefix("dance", "funnyThing instance 1", 20, true);
+						updateIcon.animation.play("dance");
+						updateIcon.setGraphicSize(65);
+						updateIcon.updateHitbox();
+						updateIcon.antialiasing = true;
+						updateIcon.visible = false;
+						add(updateIcon);
+			
+						updateAlphabet = new ColoredAlphabet(0, 0, "Checking Your Vibe...", true, FlxColor.WHITE);
+						for(c in updateAlphabet.members) {
+							c.scale.x /= 2;
+							c.scale.y /= 2;
+							c.updateHitbox();
+							c.x /= 2;
+							c.y /= 2;
+						}
+						updateAlphabet.visible = false;
+						updateAlphabet.x = updateIcon.x - updateAlphabet.width - 10;
+						updateAlphabet.y = updateIcon.y;
+						add(updateAlphabet);
+						updateIcon.y += 15;
+			
+			
+						var tmr = new FlxTimer().start(2, function(tmr:FlxTimer)
+						{
+							trace('checking for update');
+							if (!checkInternetConnection())
+							{
+								updateAlphabet.text = 'Failed the vibe check! (No internet connection?)';
+								updateAlphabet.color = FlxColor.RED;
+								updateIcon.visible = false;
+								FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
+								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
+								new FlxTimer().start(2, function(tmr:FlxTimer) {
+									trace("Ew, no internet!");
+									FlxG.switchState(new states.SplashScreen());
+								});
+								return;
+							}
+							var http = new haxe.Http("https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine-Rework/refs/heads/Archipelago/gitVersion.txt");
+			
+							http.onData = function(data:String)
+							{
+								updateVersion = data.split(':')[0].trim();
+								betaVersion = data.split(':')[1].trim();
+								var curVersion:String = MainMenuState.mixtapeEngineVersion.trim();
+								trace('version online: ' + updateVersion + ', your version: ' + curVersion);
+								var updateVersionNum = Std.parseFloat(updateVersion.replace(".", ""));
+								var curVersionNum = Std.parseFloat(curVersion.replace(".", ""));
+								if (curVersionNum < updateVersionNum && ClientPrefs.data.checkForUpdates)
+								{
+									trace('versions arent matching!');
+									MusicBeatState.switchState(new states.OutdatedState());
+								}
+								else FlxG.switchState(new APCheckState());
+							}
+			
+							http.onError = function(error)
+							{
+								trace('error: $error');
+								updateAlphabet.text = 'Failed the vibe check!';
+								updateAlphabet.color = FlxColor.RED;
+								updateIcon.visible = false;
+								FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
+								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
+								new FlxTimer().start(2, function(tmr:FlxTimer) {
+									FlxG.switchState(new states.SplashScreen());
+								});
+							}
+			
+							http.request();
+							updateIcon.visible = true;
+							updateAlphabet.visible = true;
+							updateRibbon.visible = true;
+							updateRibbon.alpha = 1;
+						});
+					}
+					else
+					{
+						FlxG.switchState(new TitleState());
+					}
+				}}, 
+				function(num){aprilFoolsText.alpha = num;});
 		}
 		else {
 			ClientPrefs.data.aprilFools = true;
 		}
 
-		if (!relaunch)
+		if (!relaunch && allowProgression)
 		{
 			updateRibbon = new FlxSprite(0, FlxG.height - 75).makeGraphic(FlxG.width, 75, 0x88FFFFFF, true);
 			updateRibbon.visible = false;
@@ -177,10 +277,8 @@ class FirstCheckState extends MusicBeatState
 				updateRibbon.visible = true;
 				updateRibbon.alpha = 1;
 			});
-
-
-			}
-		else
+		}
+		else if (allowProgression)
 		{
 			FlxG.switchState(new TitleState());
 		}
