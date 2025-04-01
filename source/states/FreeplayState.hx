@@ -711,7 +711,11 @@ class FreeplayState extends MusicBeatState
 				} } else {
 					songText = new DynamicAlphabet(90, 320, songs[i].songName, true, true);
 				}
-				songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : true;
+				try {
+					songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : true;
+				} catch (e:Dynamic) {
+					trace("Error setting doShuffle: " + e);
+				}
 				songText.targetY = i;
 				grpSongs.add(songText);
 

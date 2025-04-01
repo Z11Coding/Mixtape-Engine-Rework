@@ -193,6 +193,8 @@ class APGameState {
         }
         });
 
+        _ap.toggleDeathLink(ClientPrefs.data.deathlink);
+
         _ap.onRetrieved.add(function(retrievedPacket:haxe.DynamicAccess<Dynamic>) {
             trace("Retrieved packet: " + retrievedPacket);
             for (key in retrievedPacket.keys()) {
