@@ -580,7 +580,7 @@ class APGameState {
         } catch (e:Dynamic) {
             archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
         }
-        if (AprilFools.allowAF && FlxG.random.bool(24.444))
+        if (AprilFools.allowAF && FlxG.random.bool(4.444))
             new APItem.APrilFools();
 
     }
