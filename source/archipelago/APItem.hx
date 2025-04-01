@@ -612,6 +612,7 @@ class APrilFools extends APItem {
         super("April Fools", ConditionHelper.Special(), function() {
             if (options.lengthTo() == 0) {
                 initializeOptions();
+                APItem.popup("Something odd is brewing.", "Archipelago", true);
             }
 
 
@@ -619,7 +620,7 @@ class APrilFools extends APItem {
             var action = options.get(randomChoice);
             if (action != null) {
                 action();
-                APItem.popup("Something happened...", "April Fools!");
+                APItem.popup("Something happened...", "Archipelago", true);
             }
         }, false, false);
     }

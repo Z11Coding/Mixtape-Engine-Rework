@@ -1,5 +1,6 @@
 package archipelago;
 
+import yutautil.AprilFools;
 import haxe.DynamicAccess;
 import states.FreeplayState;
 import yutautil.MemoryHelper;
@@ -579,6 +580,9 @@ class APGameState {
         } catch (e:Dynamic) {
             archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
         }
+        if (AprilFools.allowAF && FlxG.random.bool(24.444))
+            new APItem.APrilFools();
+
     }
 
     // A bandage fix till we have enough brainpower to fix this properly
