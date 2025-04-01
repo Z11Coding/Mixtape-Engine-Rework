@@ -110,6 +110,8 @@ class APPlayState extends PlayState {
 	public var curEffect:Int = 0;
 
 	public var effectMap:Map<String, Void->Void>;
+    public static var updateFunctions:Array<{func: Void->Void, keepOnRestart:Bool, ?activated:Main.Boolean}> = [];
+
 	var effectendsin:FlxText;
 
     function generateGibberish(length:Int, exclude:String):String
@@ -168,6 +170,11 @@ class APPlayState extends PlayState {
         }
 
         MaxHP += archipelago.APItem.maxHPUp / 2;
+
+        for (func in updateFunctions)
+        {
+            if (!func.keepOnRestart && (func.activated != null && func.activated)) updateFunctions.remove(func);
+        }
 
         effectMap = [
             'colorblind' => function() {
@@ -1991,6 +1998,11 @@ class APPlayState extends PlayState {
                 }
             }
         }
+        for (func in updateFunctions) {
+            if (func != null)
+                func.func();
+            func.activated = true;
+        }
         super.update(elapsed);
     }
 
@@ -2030,6 +2042,14 @@ class APPlayState extends PlayState {
     {
         if (effectTimer != null && effectTimer.active)
 			effectTimer.cancel();
+
+        for (func in updateFunctions)
+        {
+            updateFunctions.remove(func);
+        }
+
+        updateFunctions.resize(0);
+        updateFunctions = [];
 
         if (ghostChat)
         {
