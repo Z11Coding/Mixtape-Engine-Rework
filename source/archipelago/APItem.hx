@@ -350,6 +350,9 @@ class APChartModifier extends APItem {
 
     public function new(?chartModifier:String) {
         var modifiers = chartModifier != null ? [chartModifier] : ["Random", "RandomBasic", "RandomComplex", "Flip", "Pain", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"];
+        if (yutautil.AprilFools.allowAF) {
+            modifiers.push("SpeedRando");
+        }
         this.chartModifier = modifiers[Std.random(modifiers.length)];
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
