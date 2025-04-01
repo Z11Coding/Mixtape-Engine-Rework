@@ -1367,7 +1367,7 @@ class PlayState extends MusicBeatState
 		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
 
-		reverseNoteRules = FlxG.random.bool(15.7) && !inArchipelagoMode;
+		reverseNoteRules = FlxG.random.bool(15.7) || archipelago.APItem.activeItem?.name == "Input Reversal";
 	}
 
 	function doStaticSign(lestatic:Int = 0)

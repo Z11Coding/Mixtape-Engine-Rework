@@ -80,7 +80,7 @@ class PlatformUtil {
     ')
     #end
 
-    static public function sendWindowsNotification(title:String = "", desc:String = ""):Bool {
+    static public function  sendWindowsNotification(title:String = "", desc:String = ""):Bool {
         return true; // Actual logic is handled by C++ code
     }
 }
