@@ -367,7 +367,7 @@ class APChartModifier extends APItem {
         new APChartModifier(modifier);
     }
 }
-class APAprilFools extends APItem {
+class APrilFools extends APItem {
     private static var options:Map<Int, Void->Void> = new Map();
 
     static function initializeOptions():Void {
@@ -411,6 +411,25 @@ class APAprilFools extends APItem {
                     if (songList.length == 0) {
                         archipelago.APItem.popup("No songs available to switch!", "April Fools!");
                         return;
+                    } else {
+                        var randomSong:Int = FlxG.random.int(0, songList.length-1);
+                        switch (songList[randomSong].songName)
+                        {
+                            case 'Small Argument' | 'Beat Battle 2':
+                                Difficulty.list = ['Hard'];
+                            case "Beat Battle":
+                                Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                            default:
+                                Difficulty.loadFromWeek(backend.WeekData.weeksLoaded.get(backend.WeekData.weeksList[songList[randomSong].week]));
+                        }
+                        var randomDiff:Int = FlxG.random.int(0, Difficulty.list.length-1);
+                        var songLowercase:String = Paths.formatToSongPath(songList[randomSong].songName);
+                        var poop:String = backend.Highscore.formatSong(songLowercase, randomDiff);	
+                        backend.Song.loadFromJson(poop, songLowercase);
+                        states.PlayState.isStoryMode = false;
+                        states.PlayState.storyDifficulty = randomDiff;
+                        LoadingState.prepareToSong();
+                        LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
                     }
                 }
             });
