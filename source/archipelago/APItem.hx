@@ -477,6 +477,73 @@ class APrilFools extends APItem {
             });
         });
 
+        options.set(8, function() {
+            APItem.createCustomItem("April Fools - BF Disappearing Act", ConditionHelper.PlayState(), function() {
+            if (Std.is(FlxG.state, archipelago.APPlayState)) {
+                var playState:archipelago.APPlayState = cast FlxG.state;
+
+                // // Check if an equivalent function already exists
+                // if (playState.updateFunctions.exists(function(obj) return Reflect.compareMethods(obj.fn, function() {}))) {
+                // return;
+                // }
+
+                var bfDisappearFn = {
+                func: function() {
+                    if (playState.boyfriend != null) {
+                        if (FlxG.keys.justPressed.ENTER) {
+                            playState.boyfriend.alpha = 1;
+                            return;
+                        }
+                        playState.boyfriend.alpha -= 0.01;
+                        if (playState.boyfriend.alpha <= 0) {
+                            try {
+                                FlxG.sound.pause();
+                            } catch (e:Dynamic) {
+                                trace("Error pausing sound: " + e);
+                            }
+                            try {
+                                FlxG.sound.music.pause();
+                            } catch (e:Dynamic) {
+                                trace("Error pausing music: " + e);
+                            }
+                            playState.paused = true;
+                            // throw "Null Object Reference";
+                            backend.COD.COD.COD = "BF ceased to exist";
+                            playState.die();
+                            for (camera in FlxG.cameras.list) {
+                                flixel.tweens.FlxTween.num(camera.alpha, 0, 0.001, function(value:Float) {
+                                    camera.alpha = value;
+                                    // Cut the sound again.
+                                    try {
+                                        FlxG.sound.pause();
+                                    } catch (e:Dynamic) {
+                                        trace("Error pausing sound: " + e);
+                                    }
+                                    try {
+                                        FlxG.sound.music.pause();
+                                    } catch (e:Dynamic) {
+                                        trace("Error pausing music: " + e);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                },
+                keepOnRestart: true
+                };
+
+                if (!APPlayState.updateFunctions.map(function(obj) return Reflect.compareMethods(obj.func, bfDisappearFn.func)).contains(true)) {
+                    APPlayState.updateFunctions.push(bfDisappearFn);
+                } else {
+                    // If the function already exists, remove it first
+                    APPlayState.updateFunctions.remove(bfDisappearFn);
+                    // Then add it again to ensure it's the last one in the list
+                    APPlayState.updateFunctions.push(bfDisappearFn);
+                }
+            }
+            });
+        });
+
         // Windows Only, as notifications can't be sent this way on other platforms
         // We can do this because thanks to the conditional block it will only trigger on windows anyway
         #if windows
