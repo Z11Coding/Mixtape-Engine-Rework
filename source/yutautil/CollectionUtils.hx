@@ -1244,7 +1244,11 @@ class CollectionUtils
 
 	public static inline function lengthTo<T>(input:Dynamic):Int
 	{
-		if (Std.is(input, Array))
+		if (!exists(input, true))
+		{
+			return 0;
+		}
+		else if (Std.is(input, Array))
 		{
 			return (input : Array<T>).length;
 		}
@@ -1267,7 +1271,7 @@ class CollectionUtils
 		}
 		else
 		{
-			return 1;
+			return 0;
 		}
 	}
 

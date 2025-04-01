@@ -51,6 +51,12 @@ class FreeplayState extends MusicBeatState
 	public static var instance:FreeplayState;
 
 	var songs:Array<SongMetadata> = [];
+	public var songList(get, never):Array<SongMetadata>;
+
+	public function get_songList():Array<SongMetadata> {
+		return songs;
+	}
+	
 	var selector:FlxText;
 	private static var curSelected:Int = 0;
 	var lerpSelected:Float = 0;

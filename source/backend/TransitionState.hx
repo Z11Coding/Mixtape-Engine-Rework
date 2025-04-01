@@ -424,7 +424,7 @@ class TransitionState {
                 // Function to check if all tweens are complete
                 var checkAllComplete = function() {
                     if (completedTweens >= totalTweens) {
-                        restoreSprites();
+                        MusicBeatState.resetState();
                     }
                 };
             
@@ -446,7 +446,7 @@ class TransitionState {
             
                 // In case there are no sprites, directly restore state
                 if (totalTweens == 0) {
-                    restoreSprites();
+                    MusicBeatState.resetState();
                 }
             
             case "fallSequential":
@@ -475,7 +475,7 @@ class TransitionState {
                         });
                     } else {
                         // All objects processed, restore state
-                        restoreSprites();
+                        MusicBeatState.resetState();
                     }
                 };
                 

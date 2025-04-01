@@ -219,6 +219,56 @@ class MusicBeatState extends FlxState
 		curStep = lastChange.stepTime + Math.floor(shit);
 	}
 
+	public static function playSong(storyPlaylist:Array<String>, storyMode:Bool = false, difficulty:Int = 0, ?transition:String, ?type:String = null, ?manualDiff:Array<String> = null):Void {
+		var songs:Array<backend.Song.SwagSong> = [];
+
+		if (storyPlaylist.length > 1) {
+			storyMode = true;
+		}
+		Difficulty.resetList();
+		if (manualDiff != null) Difficulty.list = manualDiff;
+
+		if (storyMode) {
+			for (songPath in storyPlaylist) {
+				var songLowercase:String = Paths.formatToSongPath(songPath);
+				var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
+				songs.push(Song.loadFromJson(formattedSong, songLowercase));
+			}
+			PlayState.storyPlaylist = songs.map(function(song:SwagSong):String {
+				return song.song;
+			});
+			PlayState.SONG = null;
+		} else {
+			// songsInput is a String when storyMode is false
+			var songLowercase:String = Paths.formatToSongPath(storyPlaylist[0]);
+			var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
+			PlayState.SONG = Song.loadFromJson(formattedSong, songLowercase);
+		}
+
+		PlayState.isStoryMode = storyMode;
+		PlayState.storyDifficulty = difficulty;
+
+		// Additional setup for PlayState as needed
+
+		// Transition to PlayState
+		switch (transition) {
+			case "FlxG", "FlxG.switchState":
+				FlxG.switchState(new PlayState());
+				
+			case "MusicBeatState":
+				switchState(new PlayState());
+				
+			case "TransitionState":
+				TransitionState.transitionState(PlayState, {
+					transitionType: type
+				});
+				
+			default:
+				FlxG.switchState(new PlayState());
+
+		}
+	}
+
 	public static function switchState(nextState:FlxState = null)
 	{
 		if (nextState == null)

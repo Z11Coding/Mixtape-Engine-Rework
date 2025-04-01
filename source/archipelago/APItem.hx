@@ -263,6 +263,7 @@ class APItem {
             if (this.condition.checkFn(this)) {
                 //trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
+                allItems.remove(this);
             } else {
                 //trace("Condition failed, onTrigger not executed for item: " + this.name);
             }
@@ -283,13 +284,13 @@ class APItem {
             if (this.condition.checkFn(this)) {
                 //trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
+                allItems.remove(this);
             } else {
                 //trace("Condition failed, onTrigger not executed for item: " + this.name);
             }
         }
 
         //trace("Removing item from allItems: " + this.name);
-        allItems.remove(this);
     }
 
     public static function createItems():Void {
@@ -363,5 +364,125 @@ class APChartModifier extends APItem {
 
     public static function restoreFromSave(modifier:String):Void {
         new APChartModifier(modifier);
+    }
+}
+class APAprilFools extends APItem {
+    private static var options:Map<Int, Void->Void> = new Map();
+
+    static function initializeOptions():Void {
+        options.set(0, function() {
+            APItem.createCustomItem("April Fools - Nothing", ConditionHelper.Everywhere(), function() {
+                archipelago.APItem.popup("April Fools! Nothing happened this time.", "April Fools!");
+            });
+        });
+
+        options.set(1, function() {
+            APItem.createCustomItem("April Fools - Random Item", ConditionHelper.Everywhere(), function() {
+                var randomItem = ["Blue Balls Curse", "Fake Transition", "Ticket", "SvC Effect", "Ghost Chat", "Shield", "Max HP Up", "Tutorial Trap"];
+                var chosenItem = randomItem[Std.random(randomItem.length)];
+                archipelago.APItem.createItemByName(chosenItem);
+            });
+        });
+
+        options.set(2, function() {
+            APItem.createCustomItem("April Fools - No Heal", ConditionHelper.PlayState(), function() {
+                if (Std.is(FlxG.state, states.PlayState)) {
+                    var playState:states.PlayState = cast FlxG.state;
+                    playState.noHeal = true;
+                    archipelago.APItem.popup("Healing disabled! Good luck!", "April Fools!");
+                }
+            });
+        });
+
+        options.set(3, function() {
+            APItem.createCustomItem("April Fools - Fake Transition", ConditionHelper.Everywhere(), function() {
+                var transitionType = Std.random(2) == 0 ? "fallSequential" : "fallRandom";
+                TransitionState.fakeTransition({ transitionType: transitionType });
+                archipelago.APItem.popup("I hope you don't mind playing again!", "April Fools!");
+            });
+        });
+
+        options.set(4, function() {
+            APItem.createCustomItem("April Fools - Random Song", ConditionHelper.Freeplay(), function() {
+                if (Std.is(FlxG.state, states.FreeplayState)) {
+                    var freeplayState:states.FreeplayState = cast FlxG.state;
+                    var songList = freeplayState.songList;
+                    if (songList.length == 0) {
+                        archipelago.APItem.popup("No songs available to switch!", "April Fools!");
+                        return;
+                    }
+                }
+            });
+        });
+
+        options.set(5, function() {
+            APItem.createCustomItem("April Fools - Health/MaxHP", ConditionHelper.PlayState(), function() {
+                if (Std.is(FlxG.state, states.PlayState)) {
+                    var playState:states.PlayState = cast FlxG.state;
+                    if (Std.random(2) == 0) {
+                        var tween = flixel.tweens.FlxTween.num(playState.health, 0, 1, function(value:Float) {
+                            playState.health = value;
+                        });
+                        archipelago.APItem.popup("Your health is now 0!", "April Fools!");
+                    } else {
+                        var tween = flixel.tweens.FlxTween.num(playState.MaxHP, 0, 1, function(value:Float) {
+                            playState.MaxHP = value;
+                        });
+                        archipelago.APItem.popup("Your MaxHP is now 0!", "April Fools!");
+                    }
+                }
+            });
+        });
+
+
+        options.set(6, function() {
+            APItem.createCustomItem("April Fools - Screen Flip", ConditionHelper.PlayState(), function() {
+                if (Std.is(FlxG.state, states.PlayState)) {
+                    var playState:states.PlayState = cast FlxG.state;
+                    var randomChance = Std.random(100);
+                    var targetAngle = 180;
+
+                    if (randomChance < 10) { // 10% chance to overflip or underflip
+                        targetAngle = 180 + (Std.random(3) - 1) * 360;
+                    } else if (randomChance < 20) { // 10% chance to invert the screen
+                        targetAngle = 0;
+                    }
+
+                    flixel.FlxG.camera.angle = 0;
+                    flixel.tweens.FlxTween.num(0, targetAngle, 1, function(value:Float) {
+                        flixel.FlxG.camera.angle = value;
+                    });
+                    archipelago.APItem.popup("The screen is flipped!", "April Fools!");
+                }
+            });
+        });
+
+        // Windows Only, as notifications can't be sent this way on other platforms
+        #if windows
+        options.set(7, function() {
+            APItem.createCustomItem("April Fools - Windows Notification", ConditionHelper.Everywhere(), function() {
+                var notification = new haxe.win32.Notification("April Fools!", "This is a Windows notification!");
+                notification.show();
+            });
+        });
+
+
+
+    }
+
+    public function new() {
+        super("April Fools", ConditionHelper.Special(), function() {
+            if (options.lengthTo() == 0) {
+                initializeOptions();
+            }
+
+
+            var randomChoice = Std.random(options.lengthTo());
+            var action = options.get(randomChoice);
+            if (action != null) {
+                action();
+                APItem.popup("Something happened...", "April Fools!");
+            }
+        }, false, false);
     }
 }
