@@ -1606,7 +1606,7 @@ class LegacyFunkinLua {
 
 			#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
-			FlxG.sound.playMusic(Paths.music('panixPress'));
+			Constants.playMenuMusic();
 			PlayState.changedDifficulty = false;
 			PlayState.chartingMode = false;
 			PlayState.instance.transitioning = true;

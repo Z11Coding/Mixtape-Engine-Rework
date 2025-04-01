@@ -68,6 +68,8 @@ import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
 #end
 
+import yutautil.AprilFools;
+
 /**
  * This is where all the Gameplay stuff happens and is managed
  *
@@ -5715,69 +5717,77 @@ class PlayState extends MusicBeatState
 	public var strumsBlocked:Array<Bool> = [];
 	var closestNotes:Array<Note> = [];
 	var pressed:Array<FlxKey> = [];
+	var reverseNoteRules:Bool = FlxG.random.bool(50);
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
 
-		#if debug
-		//Prevents crash specifically on debug without needing to try catch shit
-		@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
-		#end
-		if (ClientPrefs.data.inputSystem == "Native-old") {
-			if (!controls.controllerMode)
-			{
+		if (AprilFools.allowAF && reverseNoteRules) {
+			if (pressed.contains(eventKey))
+				pressed.remove(eventKey);
+	
+			if (key != -1) strumKeyUp(key);
+		} else {
+			#if debug
+			//Prevents crash specifically on debug without needing to try catch shit
+			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
+			#end
+			if (ClientPrefs.data.inputSystem == "Native-old") {
+				if (!controls.controllerMode)
+				{
+					if (paused || !startedCountdown || inCutscene) return;
+					if (pressed.contains(eventKey)) return;
+					pressed.push(eventKey);
+					if (key != -1) strumKeyDown(key);
+				}
+			}
+			else {
 				if (paused || !startedCountdown || inCutscene) return;
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
-				if (key != -1) strumKeyDown(key);
-			}
-		}
-		else {
-			if (paused || !startedCountdown || inCutscene) return;
-			if (pressed.contains(eventKey)) return;
-			pressed.push(eventKey);
-			if (callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-	
-			if (key > -1)
-			{
-				var hitNotes:Array<Note> = [];
-				var controlledFields:Array<PlayField> = [];
-	
-				if (strumsBlocked[key]) return;
-				if (callOnScripts("onKeyPress", [key]) == LuaUtils.Function_Stop) return;	
-				for (field in playfields.members)
-				{
-					if (!field.autoPlayed && field.isPlayer && field.inControl)
-					{
-						controlledFields.push(field);
-						field.keysPressed[key] = true;
-						if (generatedMusic && !endingSong)
-						{
-							var note:Note = null;
-							var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
-							if (ret == LuaUtils.Function_Stop) continue;
-							else if ((ret.objType == NOTE)) note = ret;
-							else note = field.input(key);
-	
-							if (note == null)
-							{
-								var spr:StrumNote = field.strumNotes[key];
-								if (spr != null && spr.animation.curAnim.name != 'confirm')
-								{
-									spr.playAnim('pressed');
-									spr.resetAnim = 0;
-								}
-							}
-							else hitNotes.push(note);
-						}
-					}
-					if (hitNotes.length == 0 && controlledFields.length > 0)
-					{
-						callOnScripts('onGhostTap', [key]);
+				if (callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
 		
-						if (!ClientPrefs.data.ghostTapping)
-							noteMissPress(key, field);
+				if (key > -1)
+				{
+					var hitNotes:Array<Note> = [];
+					var controlledFields:Array<PlayField> = [];
+		
+					if (strumsBlocked[key]) return;
+					if (callOnScripts("onKeyPress", [key]) == LuaUtils.Function_Stop) return;	
+					for (field in playfields.members)
+					{
+						if (!field.autoPlayed && field.isPlayer && field.inControl)
+						{
+							controlledFields.push(field);
+							field.keysPressed[key] = true;
+							if (generatedMusic && !endingSong)
+							{
+								var note:Note = null;
+								var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
+								if (ret == LuaUtils.Function_Stop) continue;
+								else if ((ret.objType == NOTE)) note = ret;
+								else note = field.input(key);
+		
+								if (note == null)
+								{
+									var spr:StrumNote = field.strumNotes[key];
+									if (spr != null && spr.animation.curAnim.name != 'confirm')
+									{
+										spr.playAnim('pressed');
+										spr.resetAnim = 0;
+									}
+								}
+								else hitNotes.push(note);
+							}
+						}
+						if (hitNotes.length == 0 && controlledFields.length > 0)
+						{
+							callOnScripts('onGhostTap', [key]);
+			
+							if (!ClientPrefs.data.ghostTapping)
+								noteMissPress(key, field);
+						}
 					}
 				}
 			}
@@ -5860,10 +5870,75 @@ class PlayState extends MusicBeatState
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
 		//if(!controls.controllerMode && key > -1) keyReleased(key);
-		if (pressed.contains(eventKey))
-			pressed.remove(eventKey);
+		if (AprilFools.allowAF && reverseNoteRules) {
+			#if debug
+			//Prevents crash specifically on debug without needing to try catch shit
+			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
+			#end
+			if (ClientPrefs.data.inputSystem == "Native-old") {
+				if (!controls.controllerMode)
+				{
+					if (paused || !startedCountdown || inCutscene) return;
+					if (pressed.contains(eventKey)) return;
+					pressed.push(eventKey);
+					if (key != -1) strumKeyDown(key);
+				}
+			}
+			else {
+				if (paused || !startedCountdown || inCutscene) return;
+				if (pressed.contains(eventKey)) return;
+				pressed.push(eventKey);
+				if (callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
+		
+				if (key > -1)
+				{
+					var hitNotes:Array<Note> = [];
+					var controlledFields:Array<PlayField> = [];
+		
+					if (strumsBlocked[key]) return;
+					if (callOnScripts("onKeyPress", [key]) == LuaUtils.Function_Stop) return;	
+					for (field in playfields.members)
+					{
+						if (!field.autoPlayed && field.isPlayer && field.inControl)
+						{
+							controlledFields.push(field);
+							field.keysPressed[key] = true;
+							if (generatedMusic && !endingSong)
+							{
+								var note:Note = null;
+								var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
+								if (ret == LuaUtils.Function_Stop) continue;
+								else if ((ret.objType == NOTE)) note = ret;
+								else note = field.input(key);
+		
+								if (note == null)
+								{
+									var spr:StrumNote = field.strumNotes[key];
+									if (spr != null && spr.animation.curAnim.name != 'confirm')
+									{
+										spr.playAnim('pressed');
+										spr.resetAnim = 0;
+									}
+								}
+								else hitNotes.push(note);
+							}
+						}
+						if (hitNotes.length == 0 && controlledFields.length > 0)
+						{
+							callOnScripts('onGhostTap', [key]);
+			
+							if (!ClientPrefs.data.ghostTapping)
+								noteMissPress(key, field);
+						}
+					}
+				}
+			}
+		} else {
+			if (pressed.contains(eventKey))
+				pressed.remove(eventKey);
 
-		if (key != -1) strumKeyUp(key);
+			if (key != -1) strumKeyUp(key);
+		}
 	}
 
 	private function keyReleased(key:Int, ?player:Int = -1)

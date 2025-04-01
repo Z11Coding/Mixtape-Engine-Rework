@@ -6,34 +6,35 @@ class Constants {
 
     public static function playMenuMusic(?volume:Float, ?daSong:String, ?BPM:Float) { //It's a float because custom songs can be weird
         if (daSong != null) {
-            FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/$daSong')));
+            FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/$daSong')), volume);
             if (BPM != null) Conductor.bpm = BPM;
         } else {
-            changeMenuMusic(ClientPrefs.data.menuSong);
+            changeMenuMusic(ClientPrefs.data.menuSong, null, volume);
         }
     }
     
-    public static function changeMenuMusic(daSong:String, ?BPM:Float) { //It's a float because custom songs can be weird
+    public static function changeMenuMusic(daSong:String, ?BPM:Null<Float>, ?volume:Float) { //It's a float because custom songs can be weird
         switch (daSong) {
             case "None":
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/empty')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/empty')), volume);
                 Conductor.bpm = 0;
             case "Panix Press":
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/panixPress')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/panixPress')), volume);
                 Conductor.bpm = 150;
             case "TitleMania":
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania')), volume);
                 Conductor.bpm = 100;
             case "Base Game":
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freakyMenu')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freakyMenu')), volume);
                 Conductor.bpm = 102;
             case "Freeplay Random":
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freeplayRandom')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freeplayRandom')), volume);
                 Conductor.bpm = 145;
             case "Pause Menu":
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')), volume);
                 switch (ClientPrefs.data.pauseMusic)
                 {
+                    //dont question it
                     case 'None':
                         Conductor.bpm = 0;
                     case 'Breakfast':
@@ -58,7 +59,7 @@ class Constants {
                         Conductor.bpm = MixtapeSettingsSubState.curBPMList[10];
                 }
             default:
-                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/$daSong')));
+                FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/$daSong')), volume);
                 Conductor.bpm = BPM;
         }
 

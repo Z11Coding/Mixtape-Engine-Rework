@@ -1723,7 +1723,7 @@ class FreeplayState extends MusicBeatState
 		instance = null;
 		FlxG.autoPause = ClientPrefs.data.autoPause;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
-			FlxG.sound.playMusic(Paths.music('panixPress'));
+			Constants.playMenuMusic(0);
 	}	
 
 	// public static function addInternetModSource(url:String):Void {

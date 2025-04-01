@@ -117,7 +117,7 @@ class TitleState extends MusicBeatState
 		if (Main.cmdArgs.indexOf("GameJoltBug") != -1 && !GJBug)
 		{
 			GJBug = true;
-			FlxG.sound.playMusic(Paths.music('panixPress'), 0);
+			Constants.playMenuMusic(0);
 			FlxG.switchState(new options.OptionsState());
 		}
 
