@@ -514,7 +514,7 @@ class APrilFools extends APItem {
                             }
                             playState.paused = true;
                             // throw "Null Object Reference";
-                            backend.COD.COD.COD = "BF ceased to exist";
+                            backend.COD.COD.COD = "Ceased to exist...";
                             playState.die();
                             for (camera in FlxG.cameras.list) {
                                 flixel.tweens.FlxTween.num(camera.alpha, 0, 0.001, function(value:Float) {
