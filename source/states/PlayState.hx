@@ -5717,7 +5717,7 @@ class PlayState extends MusicBeatState
 	public var strumsBlocked:Array<Bool> = [];
 	var closestNotes:Array<Note> = [];
 	var pressed:Array<FlxKey> = [];
-	var reverseNoteRules:Bool = FlxG.random.bool(50);
+	var reverseNoteRules:Bool = FlxG.random.bool(15.7);
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
