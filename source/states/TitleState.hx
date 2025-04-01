@@ -138,7 +138,7 @@ class TitleState extends MusicBeatState
 	{
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
-			Constants.setMenuMusic(ClientPrefs.data.menuSong);
+			Constants.setMenuMusic(ClientPrefs.data.menuSong, null, 0, true);
 
 		loadJsonData();
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
