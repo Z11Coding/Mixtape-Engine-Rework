@@ -487,6 +487,9 @@ class APrilFools extends APItem {
                 // return;
                 // }
 
+                APItem.popup("BF is disappearing!", "April Fools!");
+                APItem.popup("Press ENTER to make him reappear!", "WARNING");
+
                 var bfDisappearFn = {
                 func: function() {
                     if (playState.boyfriend != null) {
