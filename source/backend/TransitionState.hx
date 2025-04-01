@@ -247,6 +247,7 @@ class TransitionState {
                 switchState(targetState, onComplete, args);
             case 'transparent fade':
                 #if windows
+                MusicBeatState.emergencyOpacityFix = true;
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
                 function(twn:FlxTween)
                 {
@@ -267,6 +268,7 @@ class TransitionState {
                 {
                     FlxG.sound.play(Paths.music('gameOverEnd'));
                 }
+                MusicBeatState.emergencyOpacityFix = true;
                 if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
                 #if windows
                 FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 

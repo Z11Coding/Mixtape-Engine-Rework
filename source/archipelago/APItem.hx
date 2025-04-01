@@ -459,6 +459,7 @@ class APAprilFools extends APItem {
         });
 
         // Windows Only, as notifications can't be sent this way on other platforms
+        // We can do this because thanks to the conditional block it will only trigger on windows anyway
         #if windows
         options.set(7, function() {
             APItem.createCustomItem("April Fools - Windows Notification", ConditionHelper.Everywhere(), function() {

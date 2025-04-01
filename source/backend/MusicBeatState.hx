@@ -234,7 +234,7 @@ class MusicBeatState extends FlxState
 				var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
 				songs.push(Song.loadFromJson(formattedSong, songLowercase));
 			}
-			PlayState.storyPlaylist = songs.map(function(song:SwagSong):String {
+			PlayState.storyPlaylist = songs.map(function(song:backend.Song.SwagSong):String {
 				return song.song;
 			});
 			PlayState.SONG = null;

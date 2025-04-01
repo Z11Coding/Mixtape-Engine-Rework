@@ -1311,7 +1311,6 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		add(blackOverlay);
-
 		
 		daStatic = new FlxSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
@@ -1367,6 +1366,8 @@ class PlayState extends MusicBeatState
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
 		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
+
+		reverseNoteRules = FlxG.random.bool(15.7) && !inArchipelagoMode;
 	}
 
 	function doStaticSign(lestatic:Int = 0)
@@ -5717,7 +5718,7 @@ class PlayState extends MusicBeatState
 	public var strumsBlocked:Array<Bool> = [];
 	var closestNotes:Array<Note> = [];
 	var pressed:Array<FlxKey> = [];
-	var reverseNoteRules:Bool = FlxG.random.bool(15.7);
+	var reverseNoteRules:Bool = false;
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;

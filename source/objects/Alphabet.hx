@@ -49,6 +49,7 @@ class Alphabet extends FlxSpriteGroup implements Scrollable
 
 	public var distancePerItem:FlxPoint = new FlxPoint(20, 120);
 	public var startPosition:FlxPoint = new FlxPoint(0, 0); // for the calculations
+	public var doShuffle:Bool = true; // For dynamic text
 
 	public function new(x:Float, y:Float, text:String = "", ?bold:Bool = true)
 	{
@@ -372,99 +373,98 @@ class ColoredAlphabet extends Alphabet
 	}
 }
 
-	class DynamicAlphabet extends Alphabet
+class DynamicAlphabet extends Alphabet
+{
+	private var originalText:String;
+	private var preserveType:Bool;
+
+	public function new(x:Float, y:Float, text:String = "", ?bold:Bool = true, PreserveType:Bool = false)
 	{
-		private var originalText:String;
-		private var preserveType:Bool;
+		super(x, y, text, bold);
+		this.originalText = text;
+		this.preserveType = PreserveType;
+	}
 
-		public function new(x:Float, y:Float, text:String = "", ?bold:Bool = true, PreserveType:Bool = false)
-		{
-			super(x, y, text, bold);
-			this.originalText = text;
-			this.preserveType = PreserveType;
-		}
+	override public function update(elapsed:Float):Void
+	{
+		super.update(elapsed);
+		this.text = doShuffle ? getRandomizedText() : originalText;
+	}
 
-		override public function update(elapsed:Float):Void
+	private function getRandomizedText():String
+	{
+		var randomizedText:String = '';
+		for (i in 0...originalText.length)
 		{
-			super.update(elapsed);
-			this.text = getRandomizedText();
-		}
-
-		private function getRandomizedText():String
-		{
-			var randomizedText:String = '';
-			for (i in 0...originalText.length)
+			var char = originalText.charAt(i);
+			if (preserveType)
 			{
-				var char = originalText.charAt(i);
-				if (preserveType)
+				if (isLetter(char))
 				{
-					if (isLetter(char))
-					{
-						randomizedText += getRandomLetter();
-					}
-					else if (isNumber(char))
-					{
-						randomizedText += getRandomNumber();
-					}
-					else if (isSymbol(char))
-					{
-						randomizedText += getRandomSymbol();
-					}
+					randomizedText += getRandomLetter();
 				}
-				else
+				else if (isNumber(char))
 				{
-					randomizedText += getRandomCharacter();
+					randomizedText += getRandomNumber();
+				}
+				else if (isSymbol(char))
+				{
+					randomizedText += getRandomSymbol();
 				}
 			}
-			return randomizedText;
+			else
+			{
+				randomizedText += getRandomCharacter();
+			}
 		}
-
-		private function isLetter(char:String):Bool
-		{
-			return char >= 'A' && char <= 'Z' || char >= 'a' && char <= 'z';
-		}
-
-		private function isNumber(char:String):Bool
-		{
-			return char >= '0' && char <= '9';
-		}
-
-		private function isSymbol(char:String):Bool
-		{
-			return !isLetter(char) && !isNumber(char);
-		}
-
-		private function getRandomLetter():String
-		{
-			var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-			return letters.charAt(FlxG.random.int(0, letters.length - 1));
-		}
-
-		private function getRandomNumber():String
-		{
-			var numbers = "0123456789";
-			return numbers.charAt(FlxG.random.int(0, numbers.length - 1));
-		}
-
-		private function getRandomSymbol():String
-		{
-			var symbols = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~";
-			return symbols.charAt(FlxG.random.int(0, symbols.length - 1));
-		}
-
-		private function getRandomCharacter():String
-		{
-			var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~";
-			return characters.charAt(FlxG.random.int(0, characters.length - 1));
-		}
+		return randomizedText;
 	}
+
+	private function isLetter(char:String):Bool
+	{
+		return char >= 'A' && char <= 'Z' || char >= 'a' && char <= 'z';
+	}
+
+	private function isNumber(char:String):Bool
+	{
+		return char >= '0' && char <= '9';
+	}
+
+	private function isSymbol(char:String):Bool
+	{
+		return !isLetter(char) && !isNumber(char);
+	}
+
+	private function getRandomLetter():String
+	{
+		var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		return letters.charAt(FlxG.random.int(0, letters.length - 1));
+	}
+
+	private function getRandomNumber():String
+	{
+		var numbers = "0123456789";
+		return numbers.charAt(FlxG.random.int(0, numbers.length - 1));
+	}
+
+	private function getRandomSymbol():String
+	{
+		var symbols = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~";
+		return symbols.charAt(FlxG.random.int(0, symbols.length - 1));
+	}
+
+	private function getRandomCharacter():String
+	{
+		var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~";
+		return characters.charAt(FlxG.random.int(0, characters.length - 1));
+	}
+}
 	class DynamicColoredAlphabet extends ColoredAlphabet
 	{
 		private var originalText:String;
 		private var preserveType:Bool;
 		private var dynamicRainbow:Bool;
 		private var rainbowThings:Array<flixel.addons.effects.chainable.FlxRainbowEffect>;
-
 		private var rainbowSettings = { index: 0, jump: 1 };
 
 		public function new(x:Float, y:Float, text:String = "", ?bold:Bool = true, ?color:FlxColor = 0xFFFFFF, PreserveType:Bool = false)
@@ -477,7 +477,7 @@ class ColoredAlphabet extends Alphabet
 		override public function update(elapsed:Float):Void
 		{
 			super.update(elapsed);
-			this.text = getRandomizedText();
+			this.text = doShuffle ? getRandomizedText() : originalText;
 			if (dynamicRainbow)
 			{
 				letters.forEachT(letter -> {
