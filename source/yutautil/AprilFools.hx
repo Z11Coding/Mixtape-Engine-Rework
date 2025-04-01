@@ -16,7 +16,7 @@ class AprilFools {
     }
 
     public static function randomModchartEffect(){
-        switch(FlxG.random.int(0, 54)) {
+        switch(FlxG.random.int(0, 54, [23, 24])) {
             case 0:
                 PlayState.instance.modManager.setValue('boost', 1);
             case 1:
@@ -62,11 +62,7 @@ class AprilFools {
             case 21:
                 PlayState.instance.modManager.setValue('bounceZ', 1);
             case 22:
-                PlayState.instance.modManager.setValue('tornadoTan', 1);
-            case 23:
-                PlayState.instance.modManager.setValue('tornadoZ', 1);
-            case 24:
-                PlayState.instance.modManager.setValue('tornadoTanZ', 1);
+                PlayState.instance.modManager.setValue('tornado', 1);
             case 25:
                 PlayState.instance.modManager.setValue('itgTornado', 1);
             case 26:

@@ -6611,7 +6611,7 @@ class PlayState extends MusicBeatState
 			return;
 		}
 
-		if (curBeat % 32 == 0 && RandomSpeedChange && !songAboutToLoop)
+		if ((curBeat % 32 == 0 && RandomSpeedChange || curBeat % 8 == 0 && RandomSpeedChange && RandomSpeedChangeWild) && !songAboutToLoop)
 		{
 			// goes up to 3x speed cuz screw you thats why
 			var randomSpeed = RandomSpeedChangeWild ? FlxG.random.float(0.2, 5) : FlxG.random.float(0.45, 2);
