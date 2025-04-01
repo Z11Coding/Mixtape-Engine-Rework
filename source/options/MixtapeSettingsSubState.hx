@@ -189,11 +189,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		ClientPrefs.data.pauseBPM = curBPMList[indeed];
 	}
 
-	function onChangeMenuMusic()
-	{
-		Constants.changeMenuMusic(ClientPrefs.data.menuSong);
-		changedMusic = true;
-	}
+	function onChangeMenuMusic() Constants.playMenuMusic(1);
 
 	override function update(e:Float)
 	{
@@ -211,5 +207,10 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
 			ease: FlxEase.quadOut
 		});
+	}
+
+	override function destroy() {
+		if (changedMusic) Constants.playMenuMusic(1);
+		super.destroy();
 	}
 }

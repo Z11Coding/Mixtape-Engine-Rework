@@ -28,13 +28,16 @@ import haxe.Json;
 import archipelago.PacketTypes.ClientStatus;
 import yutautil.ChanceSelector;
 import yutautil.ChanceSelector.Chance;
+import objects.Alphabet.DynamicAlphabet;
+import objects.Alphabet.DynamicColoredAlphabet;
+import yutautil.AprilFools;
 
-class VictorySong extends ColoredAlphabet
+class VictorySong extends DynamicColoredAlphabet
 {
 
-	public function new(x:Float, y:Float, text:String, color:Int)
+	public function new(x:Float, y:Float, text:String, color:Int, preserve:Bool)
 	{
-		super(x, y, text, color);
+		super(x, y, text, color, preserve);
 	}
 
 	var e:Int = 0;
@@ -704,10 +707,11 @@ class FreeplayState extends MusicBeatState
 				if (APEntryState.inArchipelagoMode) {
 					if (locationId.length > 0 && locationId.indexOf(0) == -1) {
 						//trace('Song: ' + songName + ', Mod: ' + (modName != "" ? modName : "(not modded)") + ', Missing: ' + isMissing);
-						songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color) : new ColoredAlphabet(90, 320, songName, true, 0xFFFFD700)) : new ColoredAlphabet(90, 320, songName, true, color); 
+						songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color, true) : new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) : new DynamicColoredAlphabet(90, 320, songName, true, color, true); 
 				} } else {
-					songText = new Alphabet(90, 320, songs[i].songName, true);
+					songText = new DynamicAlphabet(90, 320, songs[i].songName, true, true);
 				}
+				songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(songs.length*0.2) : true;
 				songText.targetY = i;
 				grpSongs.add(songText);
 
@@ -1417,13 +1421,13 @@ class FreeplayState extends MusicBeatState
 		return null;
 	}
 
-	public function playFreakyMusic(?musName:String, ?bpm:Float = 102) {
+	public function playFreakyMusic(?musName:String, ?bpm:Float = 145) {
 		if (trackPlaying == musName)
 			return;
 
 		if (musName == null) {
-			trackPlaying = 'menu';
 			if (trackPlaying != 'menu') Constants.playMenuMusic(0);
+			trackPlaying = 'menu';
 		} else {
 			FlxG.sound.playMusic(Paths.music(musName), 0);
 			FlxG.sound.music.fadeIn(3, 0, 0.7);
