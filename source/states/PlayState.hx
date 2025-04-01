@@ -6310,13 +6310,8 @@ class PlayState extends MusicBeatState
 
 		if (ClientPrefs.data.healthMode == "Tabi" && health > 0)
 		{
-			if (note.isSustainNote)
-			{
-				health -= 0.0005;
-			} else {
-				//health -= 0.04;
-				health -= 0.03;
-			}
+			health -= 0.04;
+			health -= 0.03;
 		}
 
 		if(opponentVocals.length <= 0) vocals.volume = 1;
@@ -6614,7 +6609,7 @@ class PlayState extends MusicBeatState
 		if ((curBeat % 32 == 0 && RandomSpeedChange || curBeat % 8 == 0 && RandomSpeedChange && RandomSpeedChangeWild) && !songAboutToLoop)
 		{
 			// goes up to 3x speed cuz screw you thats why
-			var randomSpeed = RandomSpeedChangeWild ? FlxG.random.float(0.2, 5) : FlxG.random.float(0.45, 2);
+			var randomSpeed = RandomSpeedChangeWild ? FlxG.random.float(0.2, 10) * (FlxG.random.bool(10) ? FlxG.random.float(2, 10) : 1) : FlxG.random.float(0.45, 2);
 			var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
 			lerpSongSpeed(randomShit, 1);
 		}

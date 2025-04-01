@@ -201,78 +201,78 @@ class RankingSubstate extends MusicBeatSubstate
 					var locationIdInts = APEntryState.apGame.locationData(locationId.trim());
 					trace('Location IDs: ' + locationIdInts);
 
-					if (comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
-						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
+					//if (comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
+					if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
+					{
+						for (song in WeekData.getCurrentWeek().songs)
 						{
-							for (song in WeekData.getCurrentWeek().songs)
+							if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
+								(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 							{
-								if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-									(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-								{
-									locationId = archipelago.APPlayState.currentMod.trim() != ""
-										? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
-										: song[0];
-									locationIdInts = APEntryState.apGame.locationData(locationId.trim());
-									break;
-								}
-							}
-						}
-
-						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-						{
-							for (song in WeekData.getCurrentWeek().songs)
-							{
-								var songPath = archipelago.APPlayState.currentMod.trim() != ""
-									? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-									: "assets/shared" + (song[0] + Difficulty.getFilePath());
-								var songJson:SwagSong = null;
-								var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
-									? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
-									: Paths.crawlDirectoryOG("assets/shared/data", ".json"); // I'm an idiot for not realizing this bug sooner. - Yuta
-
-								for (json in jsonStuff)
-								{
-									if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
-									{
-										songJson = Song.parseJSON(File.getContent(json));
-										if (songJson != null)
-										{
-											if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-											{
-												locationId = archipelago.APPlayState.currentMod.trim() != "" 
-													? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
-													: song[0];
-												locationIdInts = APEntryState.apGame.locationData(locationId.trim());
-												break;
-											}
-										}
-									} 
-								}
-							}
-						}
-						
-						for (locationIdInt in locationIdInts)
-						{
-							trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
-							trace(APEntryState.apGame.info().get_location_name(locationIdInt));
-						}
-						trace(PlayState.SONG.song);
-
-						archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
-							FlxG.sound.playMusic(Paths.sound('secret'));
-						});
-
-						for (locationIdInt in locationIdInts)
-						{
-							if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
-							{
-								archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-									FlxG.sound.playMusic(Paths.sound('secret'));
-								});
-								APEntryState.apGame.info().set_goal();
+								locationId = archipelago.APPlayState.currentMod.trim() != ""
+									? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
+									: song[0];
+								locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+								break;
 							}
 						}
 					}
+
+					if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
+					{
+						for (song in WeekData.getCurrentWeek().songs)
+						{
+							var songPath = archipelago.APPlayState.currentMod.trim() != ""
+								? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+								: "assets/shared" + (song[0] + Difficulty.getFilePath());
+							var songJson:SwagSong = null;
+							var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
+								? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
+								: Paths.crawlDirectoryOG("assets/shared/data", ".json"); // I'm an idiot for not realizing this bug sooner. - Yuta
+
+							for (json in jsonStuff)
+							{
+								if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
+								{
+									songJson = Song.parseJSON(File.getContent(json));
+									if (songJson != null)
+									{
+										if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+										{
+											locationId = archipelago.APPlayState.currentMod.trim() != "" 
+												? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
+												: song[0];
+											locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+											break;
+										}
+									}
+								} 
+							}
+						}
+					}
+					
+					for (locationIdInt in locationIdInts)
+					{
+						trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
+						trace(APEntryState.apGame.info().get_location_name(locationIdInt));
+					}
+					trace(PlayState.SONG.song);
+
+					archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
+						FlxG.sound.playMusic(Paths.sound('secret'));
+					});
+
+					for (locationIdInt in locationIdInts)
+					{
+						if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
+						{
+							archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+								FlxG.sound.playMusic(Paths.sound('secret'));
+							});
+							APEntryState.apGame.info().set_goal();
+						}
+					}
+					//}
 					Mods.loadTopMod();
 			}
 		}
