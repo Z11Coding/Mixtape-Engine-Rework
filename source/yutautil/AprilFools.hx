@@ -10,9 +10,10 @@ class AprilFools {
     private var _allowAF:Bool = false;
 
     public static var allowAF(get, never):Bool;
+    public static var debug:Bool = false;
 
     private static function get_allowAF():Bool {
-        return ClientPrefs.data.aprilFools && ExtendedDate.global().isAprilFools();
+        return ClientPrefs.data.aprilFools && (ExtendedDate.global().isAprilFools() || debug);
     }
 
     public static function randomModchartEffect(){

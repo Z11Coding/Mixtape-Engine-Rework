@@ -847,6 +847,122 @@ class CommandPrompt
 
 					FlxG.state.openSubState(new substates.DiffSubState());
 				}
+
+			case "debug":
+				if (args.length == 1)
+				{
+					switch (args[0])
+					{
+						case "aprilFools":
+							yutautil.AprilFools.debug = true;
+							print("April Fools debug mode enabled.");
+						default:
+							print("Error: Unknown debug argument.");
+					}
+				}
+				else
+				{
+					print("Error: debug requires exactly one argument.");
+				}
+
+			case "var":
+				if (args.length == 2) {
+					var variableName = args[0];
+					var newValue = args[1];
+					var currentState = FlxG.state;
+
+					if (currentState != null) {
+						var split:Array<String> = variableName.split('.');
+						var obj:Dynamic = currentState;
+
+						for (i in 0...split.length - 1) {
+							obj = Reflect.field(obj, split[i]);
+							if (obj == null) {
+								print("Error: Unable to access variable " + split[i]);
+								return;
+							}
+						}
+
+						var fieldName = split[split.length - 1];
+						var currentValue = Reflect.field(obj, fieldName);
+
+						try {
+							var typedValue:Dynamic;
+							switch (Type.typeof(currentValue)) {
+								case TBool:
+									typedValue = Std.parseBool(newValue);
+								case TInt:
+									typedValue = Std.parseInt(newValue);
+								case TFloat:
+									typedValue = Std.parseFloat(newValue);
+								case TString:
+									typedValue = newValue;
+								default:
+									throw "Unable to set variable properly.";
+							}
+
+							Reflect.setProperty(obj, fieldName, typedValue);
+							print("Variable: " + variableName + ", Type: " + Type.typeof(currentValue) + ", New Value: " + typedValue);
+						} catch (e:Dynamic) {
+							print("Error: Unable to set variable properly.");
+						}
+					} else {
+						print("Error: No active state.");
+					}
+				} else {
+					print("Error: var requires exactly two arguments.");
+				}
+
+			case "globalVar":
+				if (args.length == 2) {
+					var className = args[0].split('.')[0];
+					var variablePath = args[0].split('.').slice(1).join('.');
+					var newValue = args[1];
+
+					var targetClass:Dynamic = Type.resolveClass(className);
+					if (targetClass == null) {
+						print("Error: Class " + className + " not found.");
+						return;
+					}
+
+					var split:Array<String> = variablePath.split('.');
+					var obj:Dynamic = targetClass;
+
+					for (i in 0...split.length - 1) {
+						obj = Reflect.field(obj, split[i]);
+						if (obj == null) {
+							print("Error: Unable to access variable " + split[i]);
+							return;
+						}
+					}
+
+					var fieldName = split[split.length - 1];
+					var currentValue = Reflect.field(obj, fieldName);
+
+					try {
+						var typedValue:Dynamic;
+						switch (Type.typeof(currentValue)) {
+							case TBool:
+								typedValue = Std.parseBool(newValue);
+							case TInt:
+								typedValue = Std.parseInt(newValue);
+							case TFloat:
+								typedValue = Std.parseFloat(newValue);
+							case TString:
+								typedValue = newValue;
+							default:
+								throw "Unable to set variable properly.";
+						}
+
+						Reflect.setProperty(obj, fieldName, typedValue);
+						print("Global Variable: " + args[0] + ", Type: " + Type.typeof(currentValue) + ", New Value: " + typedValue);
+					} catch (e:Dynamic) {
+						print("Error: Unable to set variable properly.");
+					}
+				} else {
+					print("Error: globalVar requires exactly two arguments.");
+				}
+
 					
 			default:
 				if (args.length == 2 && args[1] == '=')

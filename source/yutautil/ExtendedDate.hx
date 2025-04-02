@@ -77,6 +77,13 @@ class ExtendedDate extends FlxBasic {
 
         instance = this; // Prevent Overflow
         this.StringMode = yutautil.ExtendedDate.StringMode.Names;
+
+        // Check birthdays, and make a small trace for them.
+        if (this.ZBirthday()) {
+            trace("Z's birthday is today!");
+        } else if (this.YutaBirthday()) {
+            trace("Yuta's birthday is today!");
+        }
     }
 
     public static function createDate(type:Class<flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>>, now:Bool, _construct:NewDateObject):flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate> {
@@ -155,6 +162,67 @@ class ExtendedDate extends FlxBasic {
 
     public function isAprilFools():Bool {
         return this.getMonth() == 3 && this.getDate() == 1;
+    }
+
+    public function isNewYearsDay():Bool {
+        return this.getMonth() == 0 && this.getDate() == 1;
+    }
+
+    public function isValentinesDay():Bool {
+        return this.getMonth() == 1 && this.getDate() == 14;
+    }
+
+    public function isIndependenceDay():Bool {
+        return this.getMonth() == 6 && this.getDate() == 4;
+    }
+
+    public function isHalloween():Bool {
+        return this.getMonth() == 9 && this.getDate() == 31;
+    }
+
+    public function isHalloweenSeason():Bool {
+        return this.getMonth() == 9 && this.getDate() >= 28 && this.getDate() <= 31;
+    }
+
+    public function isChristmas():Bool {
+        return this.getMonth() == 11 && this.getDate() == 25;
+    }
+
+    public function isChristmasSeason():Bool {
+        return (this.getMonth() == 11 && this.getDate() >= 24) || (this.getMonth() == 11 && this.getDate() <= 31);
+    }
+
+    public function isThanksgiving():Bool {
+        // Thanksgiving is the fourth Thursday of November
+        return this.getMonth() == 10 && this.getDay() == 4 && this.getWeekOfMonth() == 4;
+    }
+
+    // Creator / Friends Birthdays
+
+    public function ZBirthday():Bool {
+        return this.getMonth() == 11 && this.getDate() == 22;
+    }
+
+    public function YutaBirthday():Bool {
+        return this.getMonth() == 11 && this.getDate() == 10;
+    }
+
+    public function ZAge():Int {
+        var currentYear = this.getFullYear();
+        var age = currentYear - 2005;
+        if (this.getMonth() < 11 || (this.getMonth() == 11 && this.getDate() < 22)) {
+            age -= 1;
+        }
+        return age;
+    }
+
+    public function YutaAge():Int {
+        var currentYear = this.getFullYear();
+        var age = currentYear - 1999;
+        if (this.getMonth() < 11 || (this.getMonth() == 11 && this.getDate() < 10)) {
+            age -= 1;
+        }
+        return age;
     }
 
     public function asString():String {
