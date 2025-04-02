@@ -950,11 +950,11 @@ class CommandPrompt
 							default:
 								typedValue = newValue;
 
-						Reflect.setProperty(obj, fieldName, typedValue);
-						print("Global Variable: " + args[0] + ", Type: " + Type.typeof(currentValue) + ", New Value: " + typedValue);
-					} catch (e:Dynamic) {
-						print("Error: Unable to set variable properly.");
-					}
+							Reflect.setProperty(obj, fieldName, typedValue);
+							print("Global Variable: " + args[0] + ", Type: " + Type.typeof(currentValue) + ", New Value: " + typedValue);
+						}}catch (e:Dynamic) {
+							print("Error: Unable to set variable properly.");
+						}
 				} else {
 					print("Error: globalVar requires exactly two arguments.");
 				}
