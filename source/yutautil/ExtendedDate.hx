@@ -81,7 +81,8 @@ class ExtendedDate extends FlxBasic {
         // Check birthdays, and make a small trace for them.
         if (this.ZBirthday()) {
             trace("Z's birthday is today!");
-        } else if (this.YutaBirthday()) {
+        }
+        if (this.YutaBirthday()) {
             trace("Yuta's birthday is today!");
         }
     }
