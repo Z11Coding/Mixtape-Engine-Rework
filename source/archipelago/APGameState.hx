@@ -544,6 +544,7 @@ class APGameState {
         //     }
         // });
 
+
         for (item in nonSongsNames) {
             if (item == "Ticket") {
                 tickets++;
@@ -582,8 +583,11 @@ class APGameState {
         } catch (e:Dynamic) {
             archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
         }
-        if (AprilFools.allowAF && FlxG.random.bool(4.444))
-            new APItem.APrilFools();
+
+
+        // if (AprilFools.allowAF && FlxG.random.bool(50))
+            // new APItem.APrilFools(); // Not working as intended, for some reason. 
+
 
     }
 

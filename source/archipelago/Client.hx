@@ -504,7 +504,7 @@ class Client {
 	// }
 
 	public function sendDeathLink(COD:String) {
-		if (state == State.SLOT_CONNECTED && !APPlayState.deathByLink)
+		if (state == State.SLOT_CONNECTED && !APPlayState.deathByLink && ClientPrefs.data.deathlink)
 			InternalSend(OutgoingPacket.Bounce(null,null,['DeathLink'], {time: Timer.stamp(), cause: slot + ": " + COD, source: slot}));
 	}
 

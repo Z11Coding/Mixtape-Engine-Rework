@@ -254,14 +254,14 @@ class APItem {
             //trace("Condition type: " + this.condition.type);
             //trace("Condition check result: " + this.condition.checkFn(this));
 
-            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this) && APItem.allowedToTrigger) {
+            if (!this.isException && (this.condition.type != ConditionType.Everywhere) && this.condition.checkFn(this) && APItem.allowedToTrigger) {
                 //trace("Setting active item to: " + this.name);
                 APItem.activeItem = this;
             } else {
                 //trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
-            if (this.condition.checkFn(this)) {
+            if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
                 //trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
                 allItems.remove(this);
@@ -282,7 +282,7 @@ class APItem {
                 //trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
-            if (this.condition.checkFn(this)) {
+            if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
                 //trace("Condition passed, executing onTrigger for item: " + this.name);
                 onTrigger();
                 allItems.remove(this);
@@ -372,6 +372,8 @@ class APChartModifier extends APItem {
 }
 class APrilFools extends APItem {
     private static var options:Map<Int, Void->Void> = new Map();
+    private static var initialized:Bool = false;
+    private var triggered:Bool = false;
 
     static function initializeOptions():Void {
         options.set(0, function() {
@@ -614,20 +616,40 @@ class APrilFools extends APItem {
 
     }
 
-    public function new() {
-        super("April Fools", ConditionHelper.Special(), function() {
-            if (options.lengthTo() == 0) {
-                initializeOptions();
-                APItem.popup("Something odd is brewing.", "Archipelago", true);
-            }
-
-
-            var randomChoice = Std.random(options.lengthTo());
-            var action = options.get(randomChoice);
-            if (action != null) {
-                action();
-                APItem.popup("Something happened...", "Archipelago", true);
-            }
-        }, false, false);
+    public override function trigger():Void {
+        if (triggered) {
+            return; // Prevent multiple triggers
+        }
+        triggered = true; // Set triggered to true to prevent multiple triggers
+        super.trigger();
+        //trace("April Fools item triggered.");
     }
-}
+
+        public function new() {
+            super("April Fools", ConditionHelper.Special(), function() {
+                // trace("April Fools item triggered.");
+                if (!initialized) {
+                    initialized = true;
+                    trace("Initializing options for April Fools.");
+                    initializeOptions();
+                    APItem.popup("Something odd is brewing.", "Archipelago", true);
+                }
+
+                var optionss:Int = 0;
+                for (o in options.keys()) {
+                    optionss++;
+                }
+
+                var randomChoice = Std.random(optionss);
+                // trace("Random choice selected: " + randomChoice);
+                var action = options.get(randomChoice);
+                if (action != null) {
+                    // trace("Executing action for choice: " + randomChoice);
+                    action();
+                    APItem.popup("Something happened...", "Archipelago", true);
+                } else {
+                    // trace("No action found for choice: " + randomChoice);
+                }
+            }, false, false);
+        }
+    }
