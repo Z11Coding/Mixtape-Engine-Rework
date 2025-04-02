@@ -1052,7 +1052,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}else{
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
-					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> note.isSustainNote && (note.prevNote != null || note.unhitTail.length > 0));
+					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> (note.isSustainNote || note.istail) && (note.prevNote != null || note.unhitTail.length > -1));
 					#if PE_MOD_COMPATIBILITY
 					// so lowPriority actually works (even though i hate it lol!)
 					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); 
@@ -1063,7 +1063,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					{
 						var note:Note = noteList.pop();
 						noteHitCallback(note, this);
-						if (!note.isSustainNote) keysPressed[data] = false;
 					}
 				}
 			}
