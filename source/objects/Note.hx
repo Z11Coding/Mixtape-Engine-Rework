@@ -434,6 +434,8 @@ class Note extends NoteObject
 	function set_copyAngle(val:Bool)return copyVerts = val;
 	#end
 
+	public var istail:Bool = false;
+
 	//AI Stuff
 	public var AIStrumTime:Float = 0;
 	public var AIMiss:Bool = false;
@@ -618,6 +620,8 @@ class Note extends NoteObject
 			multAlpha = 0.6;
 			hitsoundDisabled = true;
 			if(ClientPrefs.data.downScroll) flipY = true;
+
+			istail = true;
 
 			//offsetY += height / 2;
 			copyAngle = false;
