@@ -388,7 +388,7 @@ class DynamicAlphabet extends Alphabet
 	override public function update(elapsed:Float):Void
 	{
 		super.update(elapsed);
-		this.text = doShuffle ? getRandomizedText() : originalText;
+		if (doShuffle) this.text = getRandomizedText();
 	}
 
 	private function getRandomizedText():String
@@ -477,7 +477,7 @@ class DynamicAlphabet extends Alphabet
 		override public function update(elapsed:Float):Void
 		{
 			super.update(elapsed);
-			this.text = doShuffle ? getRandomizedText() : originalText;
+			if (doShuffle) this.text = getRandomizedText();
 			if (dynamicRainbow)
 			{
 				letters.forEachT(letter -> {
