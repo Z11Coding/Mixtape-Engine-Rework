@@ -2,6 +2,7 @@ package yutautil;
 
 import Date;
 import flixel.FlxBasic;
+import haxe.ds.Either;
 
 enum Month {
     January;
@@ -17,21 +18,6 @@ enum Month {
     November;
     December;
 }
-
-// enum MonthDate {
-//     January(31);
-//     February(28); // Leap year not considered
-//     March(31);
-//     April(30);
-//     May(31);
-//     June(30);
-//     July(31);
-//     August(31);
-//     September(30);
-//     October(31);
-//     November(30);
-//     December(31);
-// }
 
 enum Day {
     Sunday;
@@ -52,6 +38,11 @@ typedef NewDateObject = {year:Null<Int>, month:Null<Int>, day:Null<Int>, ?hour:I
 
 typedef DateHandler = flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>;
 
+typedef BirthInfo = {
+    name: String,
+    birthday: Either<{year: Int, month: Int, day: Int}, {year: Int, month: Month, day: Int}>
+};
+
 class ExtendedDate extends FlxBasic {
     public static var date:Date;
 
@@ -60,6 +51,13 @@ class ExtendedDate extends FlxBasic {
     public static var instance:ExtendedDate;
 
     public var StringMode:StringMode = null;
+
+    public static var birthInfos:Array<BirthInfo> = [
+        {name: "Z11", birthday: Either.Left({year: 2005, month: 11, day: 22})},
+        {name: "Yuta", birthday: Either.Left({year: 1999, month: 11, day: 10})},
+        {name: "Magi", birthday: Either.Right({year: 2004, month: July, day: 29})},
+        {name: "Dylan", birthday: Either.Right({year: 2005, month: October, day: 26})},
+    ];
 
     public function new(year:Int, month:Int, day:Int, hour:Int = 0, minute:Int = 0, second:Int = 0) {
         if (ExtendedDate.date == null) {
@@ -72,19 +70,13 @@ class ExtendedDate extends FlxBasic {
 
         if (instance != null) {
             instance.destroy();
-        instance = null;
+            instance = null;
         }
 
         instance = this; // Prevent Overflow
         this.StringMode = yutautil.ExtendedDate.StringMode.Names;
 
-        // Check birthdays, and make a small trace for them.
-        if (this.ZBirthday()) {
-            trace("Z11's birthday is today!");
-        }
-        if (this.YutaBirthday()) {
-            trace("Yuta's birthday is today!");
-        }
+        this.checkBirthdays();
     }
 
     public static function createDate(type:Class<flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>>, now:Bool, _construct:NewDateObject):flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate> {
@@ -98,11 +90,9 @@ class ExtendedDate extends FlxBasic {
         return (ExtendedDate.instance == null ? new ExtendedDate(0, 0, 0) : ExtendedDate.instance);
     }
 
-
     public static function newDate():ExtendedDate {
         return ExtendedDate.fromDate(Date.now());
     }
-        
         
     public static function fromDate(date:Date):ExtendedDate {
         return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
@@ -198,45 +188,48 @@ class ExtendedDate extends FlxBasic {
         return this.getMonth() == 10 && this.getDay() == 4 && this.getWeekOfMonth() == 4;
     }
 
-    // Creator / Friends Birthdays
-
-    public function ZBirthday():Bool {
-        return this.getMonth() == 11 && this.getDate() == 22;
-    }
-
-    public function YutaBirthday():Bool {
-        return this.getMonth() == 11 && this.getDate() == 10;
-    }
-
-    public function ZAge():Int {
-        var currentYear = this.getFullYear();
-        var age = currentYear - 2005;
-        if (this.getMonth() < 11 || (this.getMonth() == 11 && this.getDate() < 22)) {
-            age -= 1;
+    public function isBirthday(birthInfo:BirthInfo):Bool {
+        var todayMonth = this.getMonth();
+        var todayDay = this.getDate();
+        return switch (birthInfo.birthday) {
+            case Either.Left(date):
+                date.month == todayMonth && date.day == todayDay;
+            case Either.Right(date):
+                (Type.enumIndex(date.month)+1) == todayMonth && date.day == todayDay;
         }
-        return age;
     }
 
-    public function YutaAge():Int {
+    public function getAge(birthInfo:BirthInfo):Int {
         var currentYear = this.getFullYear();
-        var age = currentYear - 1999;
-        if (this.getMonth() < 11 || (this.getMonth() == 11 && this.getDate() < 10)) {
-            age -= 1;
+        var todayMonth = this.getMonth();
+        var todayDay = this.getDate();
+        return switch (birthInfo.birthday) {
+            case Either.Left(date):
+                var age = currentYear - date.year;
+                if (todayMonth < date.month || (todayMonth == date.month && todayDay < date.day)) {
+                    age -= 1;
+                }
+                age;
+            case Either.Right(date):
+                var age = currentYear - date.year;
+                if (todayMonth < Type.enumIndex(date.month) || (todayMonth == Type.enumIndex(date.month) && todayDay < date.day)) {
+                    age -= 1;
+                }
+                age;
         }
-        return age;
+    }
+
+    public function checkBirthdays():Void {
+        for (birthInfo in birthInfos) {
+            if (this.isBirthday(birthInfo)) {
+                trace(birthInfo.name + "'s birthday is today!" + " They are " + this.getAge(birthInfo) + " years old.");
+            }
+        }
     }
 
     public function asString():String {
         return this.formatDate("%Y-%m-%d %H:%M:%S");
     }
-
-    // public override function toString():String {
-    //     return if (this.StringMode == StringMode.Names) {
-    //         getFullDateObject().month.toString() + " " + getFullDateObject().day.toString() + ", " + getFullDateObject().year.toString() + " " + this.time();
-    //     } else {
-    //         this.asString();
-    //     }
-    // }
 
     public static function getMonthByName(name:String):Month {
         return switch (name.toLowerCase()) {
@@ -459,8 +452,6 @@ class ExtendedDate extends FlxBasic {
         return new ExtendedDate(year, month, day, hour, minute, second);
     }
 
-    
-
     public function formatDate(format:String):String {
         var formatted:String = format;
         formatted = formatted.replace("%Y", "" + this.getFullYear());
@@ -483,14 +474,6 @@ class ExtendedDate extends FlxBasic {
         formatted = formatted.replace("%S", StringTools.lpad("" + date.getSeconds(), "0", 2));
         return formatted;
     }
-
-    // public function getMonthName():String {
-    //     return Type.enumConstructor(Month.values()[this.getMonth()]);
-    // }
-
-    // public function getDayName():String {
-    //     return Type.enumConstructor(Day.values()[this.getDay()]);
-    // }
 
     public function isLeapYear():Bool {
         var year = this.getFullYear();
