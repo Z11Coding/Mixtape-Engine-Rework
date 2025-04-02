@@ -942,16 +942,13 @@ class CommandPrompt
 						var typedValue:Dynamic;
 						switch (Type.typeof(currentValue)) {
 							case TBool:
-								typedValue = Std.parseBool(newValue);
+								typedValue = (newValue.toLowerCase() == "true");
 							case TInt:
 								typedValue = Std.parseInt(newValue);
 							case TFloat:
 								typedValue = Std.parseFloat(newValue);
-							case TString:
-								typedValue = newValue;
 							default:
-								throw "Unable to set variable properly.";
-						}
+								typedValue = newValue;
 
 						Reflect.setProperty(obj, fieldName, typedValue);
 						print("Global Variable: " + args[0] + ", Type: " + Type.typeof(currentValue) + ", New Value: " + typedValue);
