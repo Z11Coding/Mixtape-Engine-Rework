@@ -22,7 +22,7 @@ class FlowState extends MusicBeatState {
 		});
 	}
 
-    public function update(elapsed:Float):Void {
+	override public function update(elapsed:Float):Void {
         super.update(elapsed);
         if (currentSubState != null) {
             currentSubState.update(elapsed);

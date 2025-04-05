@@ -29,6 +29,12 @@ class SplashScreen extends MusicBeatState
 
     override public function create()
     {
+        // var currentDate = ExtendedDate.global();
+        // if (currentDate.getDate() == 5) {
+        //     // Skip intro and show video
+        //     FlxG.switchState(new objects.VideoSprite("bat"));
+        //     return;
+        // }
         states.FirstCheckState.gameInitialized = true;
         splashGrad = new FlxSprite().loadGraphic(Paths.image('effects/GradientSplash'));
         splashGrad.screenCenter();
@@ -46,7 +52,7 @@ class SplashScreen extends MusicBeatState
         initX = mix.x;
 
         tape = new FlxText(0, 0, 400, "TAPE", 32);
-        tape.font = Paths.font('FridayNightFunkin.ttf');
+        tape.font = Paths.font('FridayNightFunkin.ttf');    
         tape.screenCenter();
         tape.x -= 300;
         tape.y += 200;
