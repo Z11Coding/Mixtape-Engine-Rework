@@ -21,6 +21,28 @@ class FlowState extends MusicBeatState {
 			currentSubState.enter(currentSubState, function() {});
 		});
 	}
+
+    public function update(elapsed:Float):Void {
+        super.update(elapsed);
+        if (currentSubState != null) {
+            currentSubState.update(elapsed);
+        }
+    }
+
+    public function toFlxState():FlxState {
+        return this;
+    }
+    public function getCurrentSubState():BaseFlowState {
+        return currentSubState;
+    }
+    public function transitionToFlxState(newState:FlxState):Void {
+        if (currentSubState != null) {
+            currentSubState.exit(null, function() {
+                currentSubState = new BaseFlowState([]);
+                currentSubState.enter(currentSubState, function() {MusicBeatState.switchState(newState);});
+            });
+        }
+    }
 }
 
 class BaseFlowState {
@@ -63,4 +85,14 @@ class BaseFlowState {
 			});
 		}
 	}
+
+    /**
+     * Updates the state.
+     */
+    public function update(elapsed:Float):Void {
+        for (sprite in sprites) {
+            sprite.update(elapsed);
+        }
 }
+}
+
