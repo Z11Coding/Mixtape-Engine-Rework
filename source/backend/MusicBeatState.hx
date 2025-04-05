@@ -130,6 +130,15 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		if (Main.audioDisconnected && getState() == PlayState.instance)
+		{
+			//Save your progress and THEN reset it (I knew there was a common use for this)
+			//Doesn't save your exact spot, nor does it save anything but the place of your song, but i can work on that later
+			PlayState.instance.triggerEvent('Save Song Posititon', null, null);
+			FlxG.resetState();
+		}
+		else if (Main.audioDisconnected) FlxG.resetState();
+		
 		// everyStep();
 		var oldStep:Int = curStep;
 		timePassedOnState += elapsed;

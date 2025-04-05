@@ -16,7 +16,6 @@ import flixel.util.FlxSignal;
 import states.MainMenuState;
 import flixel.addons.transition.FlxTransitionableState;
 import openfl.display.BitmapData;
-import states.FreeplayState;
 import openfl.geom.Matrix;
 //import backend.FunkinSound;
 import openfl.display.Sprite;

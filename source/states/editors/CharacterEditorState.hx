@@ -69,8 +69,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	{
 		Cursor.show();
 		Cursor.cursorMode = Default;
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
+		Paths.clearStoredWithoutStickers();
 
 		FlxG.sound.music.stop();
 		camEditor = initPsychCamera();

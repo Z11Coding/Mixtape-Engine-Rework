@@ -3,7 +3,6 @@ package archipelago;
 import lime.app.Application;
 import haxe.io.Bytes;
 import substates.RankingSubstate;
-import states.FreeplayState;
 import yutautil.modules.SyncUtils;
 import backend.FileDialogHandler;
 #if sys

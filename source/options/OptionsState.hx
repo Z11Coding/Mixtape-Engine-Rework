@@ -76,7 +76,7 @@ class OptionsState extends MusicBeatState
 		}
 
 		selectorLeft = new Alphabet(0, 0, '>', true);
-		add(selectorLeft);
+		//add(selectorLeft);
 		selectorRight = new Alphabet(0, 0, '<', true);
 		add(selectorRight);
 
@@ -98,6 +98,9 @@ class OptionsState extends MusicBeatState
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
+		if (FlxG.sound.music != null)
+			Conductor.songPosition = FlxG.sound.music.time;
+
 		if (controls.UI_UP_P)
 			changeSelection(-1);
 		if (controls.UI_DOWN_P)
@@ -115,6 +118,17 @@ class OptionsState extends MusicBeatState
 			else MusicBeatState.switchState(new MainMenuState());
 		}
 		else if (controls.ACCEPT) openSelectedSubstate(options[curSelected]);
+	}
+
+	override function beatHit()
+	{
+		super.beatHit();
+
+		FlxG.camera.zoom = zoomies;
+
+		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+			ease: FlxEase.quadOut
+		});
 	}
 	
 	function changeSelection(change:Int = 0)

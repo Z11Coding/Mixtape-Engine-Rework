@@ -90,6 +90,15 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
+		var option:Option = new Option('Freeplay Menu:',
+			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nDOES NOTHING FOR NOW!",
+			'freeplayMenu',
+			STRING,
+			['Mixtape', 'Base Game']);
+		addOption(option);
+		option.displayFormat = '< %v >';
+		//option.onChange = onChangeFreeplayMenu;
+
 		var option:Option = new Option('Menu Music:',
 			"What song do you prefer for the Main Menu?\n(And like 90% of every other menu as well)",
 			'menuSong',
@@ -149,6 +158,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		super();
 	}
+
+	//function onChangeFreeplayMenu() GlobalFreeplay.setFreeplayMenu(ClientPrefs.data.freeplayMenu);
 
 	var changedMusic:Bool = false;
 	var indeed:Int = 0;
