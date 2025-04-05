@@ -125,6 +125,12 @@ class Main extends Sprite
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
 
+		if (cmdArgs.indexOf('check') != -1)
+		{
+			// kill any running instances of the game
+			Sys.command("taskkill /f /im MixEngine.exe");
+		}
+
 		// yutautil.save.MixSaveWrapperBeta.testFunctionSave();
 
 		#if LUA_ALLOWED

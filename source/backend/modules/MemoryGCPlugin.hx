@@ -27,6 +27,10 @@ class MemoryGCPlugin extends FlxBasic
       var perfStart:Float = TimerUtil.start();
       backend.util.MemoryUtilBase.collect(true);
       trace('Memory GC took: ${TimerUtil.seconds(perfStart)}');
+    } else if (FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.INSERT) {
+      var perfStart:Float = TimerUtil.start();
+      Paths.nukeMemory();
+      trace('Memory GC took: ${TimerUtil.seconds(perfStart)}');
     }
   }
 

@@ -182,11 +182,27 @@ class Paths
 		}
 	}
 
+	public static function clearStoredWithoutStickers() {
+		@:privateAccess
+		var cache = FlxG.bitmap._cache;
+		Paths.currentTrackedAssets.clear();
+		for (key => val in cache){
+			if(	key.toLowerCase().contains("transitionswag") || 
+				key.contains("bg_graphic_") ||
+				key == "images/justBf.png"
+			) Paths.currentTrackedAssets.set(key,val);
+			else cache.remove(key);
+		}
+		Paths.clearStoredMemory();
+	}
+
+	// The "If All Else Fails" option 
 	public static function nukeMemory(){
 		freeGraphicsFromMemory();
 		clearUnusedMemory();
 		clearStoredMemory();
 		currentTrackedSounds.clear();
+		backend.util.MemoryUtilBase.collect(true);
 	}
 
 	/** returns a FlxRuntimeShader but with file names lol **/ 
@@ -966,5 +982,46 @@ class Paths
 		if (path == null || path == "")
 			return false;
 		return OpenFlAssets.exists(path, AssetType.IMAGE);
+	}
+
+	public static inline function getContent(path:String) {
+        #if sys
+		return (FileSystem.exists(path)) ? File.getContent(path) : null;
+		#else
+		return (OpenFlAssets.exists(path, TEXT)) ? Assets.getText(path) : null;
+		#end
+    }
+
+	public static function readDirectory(directory:String):Array<String>
+	{
+		#if MODS_ALLOWED
+		return FileSystem.readDirectory(directory);
+		#else
+		var dirs:Array<String> = [];
+		for(dir in Assets.list().filter(folder -> folder.startsWith(directory)))
+		{
+			@:privateAccess
+			for(library in lime.utils.Assets.libraries.keys())
+			{
+				if(library != 'default' && Assets.exists('$library:$dir') && (!dirs.contains('$library:$dir') || !dirs.contains(dir)))
+					dirs.push('$library:$dir');
+				else if(Assets.exists(dir) && !dirs.contains(dir))
+					dirs.push(dir);
+			}
+		}
+		return dirs;
+		#end
+	}
+
+	public inline static function loadabsoluteGraphic(path:String):FlxGraphic {
+		if(!Paths.currentTrackedAssets.exists(path)) {
+			Paths.cacheBitmap(path,null,BitmapData.fromFile(path));
+		}
+		return Paths.currentTrackedAssets.get(path);
+	}
+
+	public inline static function getSoundChannel(sound:FlxSound){
+		@:privateAccess
+		return sound._channel.__audioSource;
 	}
 }

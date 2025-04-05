@@ -185,8 +185,7 @@ class FreeplayState extends MusicBeatState
 			}
 		}
 		Highscore.reloadModifiers();
-		//Paths.clearStoredMemory();
-		//Paths.clearUnusedMemory();
+		Paths.clearStoredWithoutStickers();
 
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;

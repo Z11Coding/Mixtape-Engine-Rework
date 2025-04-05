@@ -163,6 +163,7 @@ import states.TitleState;
 	public var iconBounce:String = 'Mixtape';
 	public var pauseBPM:Int = 102;
 	public var aprilFools:Bool = true;
+	public var freeplayMenu:String = 'Mixtape';
 }
 
 class ClientPrefs {

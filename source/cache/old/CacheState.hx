@@ -617,7 +617,7 @@ class CacheState extends MusicBeatState
 	public static var newDest:FlxState;
 	override function create()
 	{
-		Paths.clearStoredMemory();
+		Paths.clearStoredWithoutStickers();
 		Main.dumpCache();
 
 		#if LUA_ALLOWED
