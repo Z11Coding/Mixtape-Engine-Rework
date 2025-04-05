@@ -374,246 +374,221 @@ class APrilFools extends APItem {
     private static var options:Map<Int, Void->Void> = new Map();
     private static var initialized:Bool = false;
     private var triggered:Bool = false;
-
     static function initializeOptions():Void {
-        options.set(0, function() {
-            APItem.createCustomItem("April Fools - Nothing", ConditionHelper.Everywhere(), function() {
-                archipelago.APItem.popup("April Fools! Nothing happened this time.", "April Fools!");
-            });
-        });
-
-        options.set(1, function() {
-            APItem.createCustomItem("April Fools - Random Item", ConditionHelper.Everywhere(), function() {
-                var randomItem = ["Blue Balls Curse", "Fake Transition", "Ticket", "SvC Effect", "Ghost Chat", "Shield", "Max HP Up", "Tutorial Trap"];
-                var chosenItem = randomItem[Std.random(randomItem.length)];
-                archipelago.APItem.createItemByName(chosenItem);
-            });
-        });
-
-        options.set(2, function() {
-            APItem.createCustomItem("April Fools - No Heal", ConditionHelper.PlayState(), function() {
-                if (Std.is(FlxG.state, states.PlayState)) {
-                    var playState:states.PlayState = cast FlxG.state;
-                    playState.noHeal = true;
-                    archipelago.APItem.popup("Healing disabled! Good luck!", "April Fools!");
-                }
-            });
-        });
-
-        options.set(3, function() {
-            APItem.createCustomItem("April Fools - Fake Transition", ConditionHelper.Everywhere(), function() {
-                var transitionType = Std.random(2) == 0 ? "fallSequential" : "fallRandom";
-                TransitionState.fakeTransition({ transitionType: transitionType });
-                archipelago.APItem.popup("I hope you don't mind playing again!", "April Fools!");
-            });
-        });
-
-        options.set(4, function() {
-            APItem.createCustomItem("April Fools - Random Song", ConditionHelper.Freeplay(), function() {
-                if (Std.is(FlxG.state, states.FreeplayState)) {
-                    var freeplayState:states.FreeplayState = cast FlxG.state;
-                    var songList = freeplayState.songList;
-                    if (songList.length == 0) {
-                        archipelago.APItem.popup("No songs available to switch!", "April Fools!");
-                        return;
-                    } else {
-                        var randomSong:Int = FlxG.random.int(0, songList.length-1);
-                        switch (songList[randomSong].songName)
-                        {
-                            case 'Small Argument' | 'Beat Battle 2':
-                                Difficulty.list = ['Hard'];
-                            case "Beat Battle":
-                                Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
-                            default:
-                                Difficulty.loadFromWeek(backend.WeekData.weeksLoaded.get(backend.WeekData.weeksList[songList[randomSong].week]));
-                        }
-                        var randomDiff:Int = FlxG.random.int(0, Difficulty.list.length-1);
-                        var songLowercase:String = Paths.formatToSongPath(songList[randomSong].songName);
-                        var poop:String = backend.Highscore.formatSong(songLowercase, randomDiff);	
-                        backend.Song.loadFromJson(poop, songLowercase);
-                        states.PlayState.isStoryMode = false;
-                        states.PlayState.storyDifficulty = randomDiff;
-                        LoadingState.prepareToSong();
-                        LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+        options = [
+            0 => function() {
+                APItem.createCustomItem("April Fools - Nothing", ConditionHelper.Everywhere(), function() {
+                    archipelago.APItem.popup("April Fools! Nothing happened this time.", "April Fools!");
+                });
+            },
+            1 => function() {
+                APItem.createCustomItem("April Fools - Random Item", ConditionHelper.Everywhere(), function() {
+                    var randomItem = ["Blue Balls Curse", "Fake Transition", "Ticket", "SvC Effect", "Ghost Chat", "Shield", "Max HP Up", "Tutorial Trap"];
+                    var chosenItem = randomItem[Std.random(randomItem.length)];
+                    archipelago.APItem.createItemByName(chosenItem);
+                });
+            },
+            2 => function() {
+                APItem.createCustomItem("April Fools - No Heal", ConditionHelper.PlayState(), function() {
+                    if (Std.is(FlxG.state, states.PlayState)) {
+                        var playState:states.PlayState = cast FlxG.state;
+                        playState.noHeal = true;
+                        archipelago.APItem.popup("Healing disabled! Good luck!", "April Fools!");
                     }
-                }
-            });
-        });
-
-        options.set(5, function() {
-            APItem.createCustomItem("April Fools - Health/MaxHP", ConditionHelper.PlayState(), function() {
-                if (Std.is(FlxG.state, states.PlayState)) {
-                    var playState:states.PlayState = cast FlxG.state;
-                    if (Std.random(2) == 0) {
-                        var tween = flixel.tweens.FlxTween.num(playState.health, 0, 1, function(value:Float) {
-                            playState.health = value;
-                        });
-                        archipelago.APItem.popup("Your health is now 0!", "April Fools!");
-                    } else {
-                        var tween = flixel.tweens.FlxTween.num(playState.MaxHP, 0, 1, function(value:Float) {
-                            playState.MaxHP = value;
-                        });
-                        archipelago.APItem.popup("Your MaxHP is now 0!", "April Fools!");
-                    }
-                }
-            });
-        });
-
-
-        options.set(6, function() {
-            APItem.createCustomItem("April Fools - Screen Flip", ConditionHelper.PlayState(), function() {
-                if (Std.is(FlxG.state, states.PlayState)) {
-                    var playState:states.PlayState = cast FlxG.state;
-                    var randomChance = Std.random(100);
-                    var targetAngle = 180;
-
-                    if (randomChance < 10) { // 10% chance to overflip or underflip
-                        targetAngle = 180 + (Std.random(3) - 1) * 360;
-                    } else if (randomChance < 20) { // 10% chance to invert the screen
-                        targetAngle = 0;
-                    }
-
-                    flixel.FlxG.camera.angle = 0;
-                    flixel.tweens.FlxTween.num(0, targetAngle, 1, function(value:Float) {
-                        flixel.FlxG.camera.angle = value;
-                    });
-                    archipelago.APItem.popup("The screen is flipped!", "April Fools!");
-                }
-            });
-        });
-
-        options.set(8, function() {
-            APItem.createCustomItem("April Fools - BF Disappearing Act", ConditionHelper.PlayState(), function() {
-            if (Std.is(FlxG.state, archipelago.APPlayState)) {
-                var playState:archipelago.APPlayState = cast FlxG.state;
-
-                // // Check if an equivalent function already exists
-                // if (playState.updateFunctions.exists(function(obj) return Reflect.compareMethods(obj.fn, function() {}))) {
-                // return;
-                // }
-
-                APItem.popup("BF is disappearing!", "April Fools!");
-                APItem.popup("Press ENTER to make him reappear!", "WARNING");
-
-                var bfDisappearFn = {
-                func: function() {
-                    if (playState.boyfriend != null) {
-                        if (FlxG.keys.justPressed.ENTER) {
-                            playState.boyfriend.alpha = 1;
+                });
+            },
+            3 => function() {
+                APItem.createCustomItem("April Fools - Fake Transition", ConditionHelper.Everywhere(), function() {
+                    var transitionType = Std.random(2) == 0 ? "fallSequential" : "fallRandom";
+                    TransitionState.fakeTransition({ transitionType: transitionType });
+                    archipelago.APItem.popup("I hope you don't mind playing again!", "April Fools!");
+                });
+            },
+            4 => function() {
+                APItem.createCustomItem("April Fools - Random Song", ConditionHelper.Freeplay(), function() {
+                    if (Std.is(FlxG.state, states.FreeplayState)) {
+                        var freeplayState:states.FreeplayState = cast FlxG.state;
+                        var songList = freeplayState.songList;
+                        if (songList.length == 0) {
+                            archipelago.APItem.popup("No songs available to switch!", "April Fools!");
                             return;
-                        }
-                        playState.boyfriend.alpha -= 0.01;
-                        if (playState.boyfriend.alpha <= 0) {
-                            try {
-                                FlxG.sound.pause();
-                            } catch (e:Dynamic) {
-                                trace("Error pausing sound: " + e);
+                        } else {
+                            var randomSong:Int = FlxG.random.int(0, songList.length-1);
+                            switch (songList[randomSong].songName)
+                            {
+                                case 'Small Argument' | 'Beat Battle 2':
+                                    Difficulty.list = ['Hard'];
+                                case "Beat Battle":
+                                    Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                                default:
+                                    Difficulty.loadFromWeek(backend.WeekData.weeksLoaded.get(backend.WeekData.weeksList[songList[randomSong].week]));
                             }
-                            try {
-                                FlxG.sound.music.pause();
-                            } catch (e:Dynamic) {
-                                trace("Error pausing music: " + e);
-                            }
-                            playState.paused = true;
-                            // throw "Null Object Reference";
-                            backend.COD.COD.COD = "Ceased to exist...";
-                            playState.die();
-                            for (camera in FlxG.cameras.list) {
-                                flixel.tweens.FlxTween.num(camera.alpha, 0, 0.001, function(value:Float) {
-                                    camera.alpha = value;
-                                    // Cut the sound again.
-                                    try {
-                                        FlxG.sound.pause();
-                                    } catch (e:Dynamic) {
-                                        trace("Error pausing sound: " + e);
-                                    }
-                                    try {
-                                        FlxG.sound.music.pause();
-                                    } catch (e:Dynamic) {
-                                        trace("Error pausing music: " + e);
-                                    }
-                                });
-                            }
+                            var randomDiff:Int = FlxG.random.int(0, Difficulty.list.length-1);
+                            var songLowercase:String = Paths.formatToSongPath(songList[randomSong].songName);
+                            var poop:String = backend.Highscore.formatSong(songLowercase, randomDiff);	
+                            backend.Song.loadFromJson(poop, songLowercase);
+                            states.PlayState.isStoryMode = false;
+                            states.PlayState.storyDifficulty = randomDiff;
+                            LoadingState.prepareToSong();
+                            LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
                         }
                     }
-                },
-                keepOnRestart: true
-                };
+                });
+            },
+            5 => function() {
+                APItem.createCustomItem("April Fools - Health/MaxHP", ConditionHelper.PlayState(), function() {
+                    if (Std.is(FlxG.state, states.PlayState)) {
+                        var playState:states.PlayState = cast FlxG.state;
+                        if (Std.random(2) == 0) {
+                            var tween = flixel.tweens.FlxTween.num(playState.health, 0, 1, function(value:Float) {
+                                playState.health = value;
+                            });
+                            archipelago.APItem.popup("Your health is now 0!", "April Fools!");
+                        } else {
+                            var tween = flixel.tweens.FlxTween.num(playState.MaxHP, 0, 1, function(value:Float) {
+                                playState.MaxHP = value;
+                            });
+                            archipelago.APItem.popup("Your MaxHP is now 0!", "April Fools!");
+                        }
+                    }
+                });
+            },
+            6 => function() {
+                APItem.createCustomItem("April Fools - Screen Flip", ConditionHelper.PlayState(), function() {
+                    if (Std.is(FlxG.state, states.PlayState)) {
+                        var playState:states.PlayState = cast FlxG.state;
+                        var randomChance = Std.random(100);
+                        var targetAngle = 180;
 
-                if (!APPlayState.updateFunctions.map(function(obj) return Reflect.compareMethods(obj.func, bfDisappearFn.func)).contains(true)) {
-                    APPlayState.updateFunctions.push(bfDisappearFn);
-                } else {
-                    // If the function already exists, remove it first
-                    APPlayState.updateFunctions.remove(bfDisappearFn);
-                    // Then add it again to ensure it's the last one in the list
-                    APPlayState.updateFunctions.push(bfDisappearFn);
-                }
+                        if (randomChance < 10) { // 10% chance to overflip or underflip
+                            targetAngle = 180 + (Std.random(3) - 1) * 360;
+                        } else if (randomChance < 20) { // 10% chance to invert the screen
+                            targetAngle = 0;
+                        }
+
+                        flixel.FlxG.camera.angle = 0;
+                        flixel.tweens.FlxTween.num(0, targetAngle, 1, function(value:Float) {
+                            flixel.FlxG.camera.angle = value;
+                        });
+                        archipelago.APItem.popup("The screen is flipped!", "April Fools!");
+                    }
+                });
+            },
+            8 => function() {
+                APItem.createCustomItem("April Fools - BF Disappearing Act", ConditionHelper.PlayState(), function() {
+                    if (Std.is(FlxG.state, archipelago.APPlayState)) {
+                        var playState:archipelago.APPlayState = cast FlxG.state;
+
+                        APItem.popup("BF is disappearing!", "April Fools!");
+                        APItem.popup("Press ENTER to make him reappear!", "WARNING");
+
+                        var bfDisappearFn = {
+                            func: function() {
+                                if (playState.boyfriend != null) {
+                                    if (FlxG.keys.justPressed.ENTER) {
+                                        playState.boyfriend.alpha = 1;
+                                        return;
+                                    }
+                                    playState.boyfriend.alpha -= 0.01;
+                                    if (playState.boyfriend.alpha <= 0) {
+                                        try {
+                                            FlxG.sound.pause();
+                                        } catch (e:Dynamic) {
+                                            trace("Error pausing sound: " + e);
+                                        }
+                                        try {
+                                            FlxG.sound.music.pause();
+                                        } catch (e:Dynamic) {
+                                            trace("Error pausing music: " + e);
+                                        }
+                                        playState.paused = true;
+                                        backend.COD.COD.COD = "Ceased to exist...";
+                                        playState.die();
+                                        for (camera in FlxG.cameras.list) {
+                                            flixel.tweens.FlxTween.num(camera.alpha, 0, 0.001, function(value:Float) {
+                                                camera.alpha = value;
+                                                try {
+                                                    FlxG.sound.pause();
+                                                } catch (e:Dynamic) {
+                                                    trace("Error pausing sound: " + e);
+                                                }
+                                                try {
+                                                    FlxG.sound.music.pause();
+                                                } catch (e:Dynamic) {
+                                                    trace("Error pausing music: " + e);
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            },
+                            keepOnRestart: true
+                        };
+
+                        if (!APPlayState.updateFunctions.map(function(obj) return Reflect.compareMethods(obj.func, bfDisappearFn.func)).contains(true)) {
+                            APPlayState.updateFunctions.push(bfDisappearFn);
+                        } else {
+                            APPlayState.updateFunctions.remove(bfDisappearFn);
+                            APPlayState.updateFunctions.push(bfDisappearFn);
+                        }
+                    }
+                });
+            },
+            #if windows
+            7 => function() {
+                APItem.createCustomItem("April Fools - Windows Notification", ConditionHelper.Everywhere(), function() {
+                    var creepyMessages = [
+                        "I can see you...",
+                        "Did you hear that?",
+                        "Don't look behind you.",
+                        "Your time is running out.",
+                        "Is someone watching?",
+                        "Check your surroundings.",
+                        "What was that noise?",
+                        "Are you alone?",
+                        "Something feels off.",
+                        "Why is it so quiet?"
+                    ];
+
+                    var funnyMessages = [
+                        "Your computer is now self-aware. Just kidding!",
+                        "Why did the programmer quit? They didn't get arrays.",
+                        "404: Your luck not found.",
+                        "Did you just press a button? Bold move.",
+                        "Your keyboard is plotting against you.",
+                        "Congratulations! You've won absolutely nothing!",
+                        "This is not a bug, it's a feature.",
+                        "Your mouse just moved on its own. Or did it?",
+                        "Don't worry, the code is 100% bug-free. Maybe.",
+                        "Fun fact: This message is completely pointless.",
+                        "Your screen is now 10% brighter. Just kidding!",
+                        "Did you know? This message is wasting your time.",
+                        "Your CPU is laughing at you right now.",
+                        "Error 42: Life, the universe, and everything.",
+                        "Your RAM just said 'hi'.",
+                        "This is a test. Or is it?",
+                        "Your GPU wants a vacation.",
+                        "Z11 is watching you.",
+                        "Yuta is watching you.",
+                        "Yuta is always watching.",
+                        "Z11 is always watching.",
+                        "Yuta and Z11 are always watching.",
+                        "Yuta and Z11 are always watching you.",
+                        "Yuta and Z11 are always watching you play.",
+                        "Yuta and Z11 are always watching you play this game.",
+                        "The void is coming."
+                    ];
+
+                    var randomMessage = Std.random(100) < 20 // 20% chance for creepy messages
+                        ? creepyMessages[Std.random(creepyMessages.length)]
+                        : funnyMessages[Std.random(funnyMessages.length)];
+                    if (!PlatformUtil.sendWindowsNotification("Archipelago", randomMessage)) {
+                        APItem.popup(randomMessage, "Archipelago", true);
+                    }
+                });
             }
-            });
-        });
-
-        // Windows Only, as notifications can't be sent this way on other platforms
-        // We can do this because thanks to the conditional block it will only trigger on windows anyway
-        #if windows
-        options.set(7, function() {
-            APItem.createCustomItem("April Fools - Windows Notification", ConditionHelper.Everywhere(), function() {
-                var creepyMessages = [
-                    "I can see you...",
-                    "Did you hear that?",
-                    "Don't look behind you.",
-                    "Your time is running out.",
-                    "Is someone watching?",
-                    "Check your surroundings.",
-                    "What was that noise?",
-                    "Are you alone?",
-                    "Something feels off.",
-                    "Why is it so quiet?"
-                ];
-
-                var funnyMessages = [
-                    "Your computer is now self-aware. Just kidding!",
-                    "Why did the programmer quit? They didn't get arrays.",
-                    "404: Your luck not found.",
-                    "Did you just press a button? Bold move.",
-                    "Your keyboard is plotting against you.",
-                    "Congratulations! You've won absolutely nothing!",
-                    "This is not a bug, it's a feature.",
-                    "Your mouse just moved on its own. Or did it?",
-                    "Don't worry, the code is 100% bug-free. Maybe.",
-                    "Fun fact: This message is completely pointless.",
-                    "Your computer loves you. Platonically, of course.",
-                    "Warning: Too much coffee detected in your system.",
-                    "Achievement unlocked: Reading random messages.",
-                    "Your screen is now 10% brighter. Just kidding!",
-                    "Did you know? This message is wasting your time.",
-                    "Your CPU is laughing at you right now.",
-                    "Error 42: Life, the universe, and everything.",
-                    "Your RAM just said 'hi'.",
-                    "This is a test. Or is it?",
-                    "Your GPU wants a vacation.",
-                    "Z11 is watching you.",
-                    "Yuta is watching you.",
-                    "Yuta is always watching.",
-                    "Z11 is always watching.",
-                    "Yuta and Z11 are always watching.",
-                    "Yuta and Z11 are always watching you.",
-                    "Yuta and Z11 are always watching you play.",
-                    "Yuta and Z11 are always watching you play this game.",
-                    "The void is coming."
-                ];
-
-                var randomMessage = Std.random(100) < 20 // 20% chance for creepy messages
-                    ? creepyMessages[Std.random(creepyMessages.length)]
-                    : funnyMessages[Std.random(funnyMessages.length)];
-                if (!PlatformUtil.sendWindowsNotification("Archipelago", randomMessage)) {
-                    APItem.popup(randomMessage, "Archipelago", true);
-                }
-            });
-        });
-        #end
-
-
-
+            #end
+        ];
     }
 
     public override function trigger():Void {
@@ -623,7 +598,7 @@ class APrilFools extends APItem {
         triggered = true; // Set triggered to true to prevent multiple triggers
         super.trigger();
         //trace("April Fools item triggered.");
-    }
+    } 
 
         public function new() {
             super("April Fools", ConditionHelper.Special(), function() {
