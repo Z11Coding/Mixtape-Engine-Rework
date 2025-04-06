@@ -498,7 +498,11 @@ class FreeplayState extends MusicBeatState
 					{
 						colors = [146, 113, 253];
 					}
-					if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
+					if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (leWeek.folder != '' || leWeek.folder != null)))
+					{
+						addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+					}
+					else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
 					{
 						if (refresh)
 						{

@@ -37,6 +37,9 @@ class CategoryState extends MusicBeatState
 	private var hhhhhh:Bool = true;
 
 	public static var loadWeekForce:String = 'All';
+	public var catMode:String = ClientPrefs.data.showMods ? "Mods" : "Categories";
+
+	public var showModsAsCategories:Bool = ClientPrefs.data.showMods;
 
 	private static var curSelected:Int = 0;
 
@@ -125,6 +128,8 @@ class CategoryState extends MusicBeatState
 			weeks.push(WeekData.weeksLoaded.get(WeekData.weeksList[i]));
 		}
 		var mods:Bool = false;
+
+		if (catMode != 'Mods')
 		for (i in 0...weeks.length) {
 			//if(weekIsLocked(weeks[i].name)) continue;
 			if (mods) break;
@@ -139,7 +144,7 @@ class CategoryState extends MusicBeatState
 				leChars.push(leWeek.songs[j][1]);
 			}
 
-			if (leWeek.category == null && showMods) {
+			if (leWeek.category == null && showMods && catMode != 'Mods') {
 				mods = true;
 				if (!menuItems.contains("Mods")) {
 					menuItems.push("Mods");
@@ -154,7 +159,7 @@ class CategoryState extends MusicBeatState
 			existingCategories.push(item.toLowerCase());
 		}
 
-			if (softCoded)
+			if (softCoded && catMode != 'Mods')
 		for (week in weeks) {
 			if (week.category != null && !existingCategories.contains(week.category.toLowerCase())) {
 				menuItems.push(week.category);
@@ -170,12 +175,25 @@ class CategoryState extends MusicBeatState
 		}
 		menuItems = filteredItems;
 
+		if (catMode == 'Mods') {
+			menuItems = ["All"];
+			for (mods in backend.Mods.parseList().enabled) {
+				if (!menuItems.contains(mods)) {
+					menuItems.push(mods);
+				}
+			}
+		}
+
+
+
 		// Move "All" to the front of menuItems
 		if (menuItems.contains("All") && showAll) {
 			menuItems.remove("All");				
 			menuItems.insert(0, "All");
 		} else
 		{ if (menuItems.contains("All")) menuItems.remove("All"); }
+
+
 
 
 		// Main.simulateIntenseMaps();
@@ -220,9 +238,84 @@ class CategoryState extends MusicBeatState
 		super.create();
 	}
 
+	public function changeCategories(categories:Dynamic, showmods:Bool = true, showsecrets:Bool = true, showall:Bool = true, h:Bool = true):Void {
+		this.showMods = showmods;
+		this.showSecrets = showsecrets;
+		this.showAll = showall;
+		this.hhhhhh = h;
+		this.softCoded = true;
+		if (categories != null) {
+			menuItems = [];
+			if (Std.is(categories, Array)) {
+				menuItems = categories;
+				menuLocks = [];
+				for (i in 0...menuItems.length) {
+					menuLocks.push(false);
+				}
+			} else if (categories.isMap()) {
+				menuItems = [];
+				menuLocks = [];
+				for (key in categories.toIterable()) {
+					menuItems.push(key);
+					var lockValue = categories.get(key);
+					if (Std.is(lockValue, Bool)) {
+						menuLocks.push(lockValue);
+					} else if (Std.is(lockValue, Void -> Bool)) {
+						menuLocks.push(lockValue.toCallable()());
+					} else {
+						throw "CategoryState: 'categories' Map values must be either Bool or Void -> Bool!";
+					}
+				}
+			} else if (Reflect.isObject(categories)) {
+				var category:Category = cast categories;
+				menuItems = [category.name];
+				menuLocks = [category.isLocked];
+				if (category.transition != null) {
+					specialOptions.push(category.transition);
+				} else {
+					specialOptions.push(null);
+				}
+			} else {
+				throw "CategoryState: 'categories' must be either an Array<String>, a Map<String, Void -> Bool>, or a Category!";
+			}
+		} else {
+			menuItems = ["All", "Base", "Erect", "Pico"];
+			menuLocks = [false, false, false, false];
+		}
+		if (menuItems.contains("All") && !showAll) {
+			throw "CategoryState: 'All' category is disabled, yet it's in the menuItems array!";
+		}
+		if (menuItems.contains("Mods") && !showMods) {
+			throw "CategoryState: 'Mods' category is disabled, yet it's in the menuItems array!";
+		}
+		if (menuItems.contains("Secrets") && !showSecrets) {
+			throw "CategoryState: 'Secrets' category is disabled, yet it's in the menuItems array!";
+		}
+		// menuItems.mapIfBreak(it -> it.isEmpty(), throw "CategoryState: Empty strings are not allowed in the menuItems array!");
+
+		if (menuItems.contains("h?")) {
+			if (h) {
+				throw "CategoryState: 'h?' category is reserved for a secret!";
+			} else {
+				throw "CategoryState: 'h?' category is disabled, yet it's in the menuItems array!";
+			}
+		}
+		MusicBeatState.resetState();
+	}
+
 	var inDialogue:Bool = false;
 	override function update(elapsed:Float)
 	{
+		ClientPrefs.data.showMods && catMode != "Mods" || !ClientPrefs.data.showMods && catMode == "Mods" 
+			? MusicBeatState.resetState() 
+			: null;
+
+			if (showModsAsCategories != ClientPrefs.data.showMods) {
+				MusicBeatState.resetState();
+			}
+
+			// trace('CategoryState: ' + catMode + ' | ' + showModsAsCategories + ' | ' + ClientPrefs.data.showMods);
+
 		if (archipelago.APEntryState.inArchipelagoMode && !(this is archipelago.APCategoryState)) {
 			FlxG.switchState(new archipelago.APCategoryState(archipelago.APGameState.instance));
 			return;
@@ -248,6 +341,12 @@ class CategoryState extends MusicBeatState
 			if (downP)
 			{
 				changeSelection(shiftMult);
+			}
+
+			if (FlxG.keys.justPressed.CONTROL)
+			{
+				FlxG.sound.play(Paths.sound('acceptMenu'));
+				this.openSubState(new options.CategoriesSubstate());
 			}
 
 			if (controls.BACK)
