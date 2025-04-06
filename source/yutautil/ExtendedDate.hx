@@ -167,6 +167,48 @@ class ExtendedDate extends FlxBasic {
         return this.getMonth() == 6 && this.getDate() == 4;
     }
 
+    public function isLaborDay():Bool {
+        return this.getMonth() == 8 && this.getDay() == 1 && this.getWeekOfMonth() == 1;
+    }
+
+    public function isEaster():Bool {
+        // Easter is the first Sunday after the first full moon on or after the vernal equinox (March 21).
+        // This is a simplified version and may not be accurate for all years.
+        var year = this.getFullYear();
+        var month = this.getMonth();
+        var day = this.getDate();
+        var a = year % 19;
+        var b = Math.floor(year / 100);
+        var c = year % 100;
+        var d = Math.floor(b / 4);
+        var e = b % 4;
+        var f = Math.floor((b + 8) / 25);
+        var g = Math.floor((b - f + 1) / 16);
+        var h = (19 * a + b - d - g + 15) % 30;
+        var i = Math.floor(c / 16);
+        var k = c % 16;
+        var l = (32 + 2 * e + 2 * i - h - k) % 7;
+        var m = Math.floor((a + 11 * h + 22 * l) / 451);
+        var monthEaster = Math.floor((h + l - m + 90) / 25);
+        var dayEaster = (h + l - m + 28) % 31 + 1;
+        
+        return month == monthEaster && day == dayEaster;
+    }
+
+    public function isNewYearsEve():Bool {
+        return this.getMonth() == 11 && this.getDate() == 31;
+    }
+
+    public function isEasterSeason():Bool {
+        // Easter season is considered to be the 40 days leading up to Easter Sunday.
+        var year = this.getFullYear();
+        var month = this.getMonth();
+        var day = this.getDate();
+        var easterDate = new ExtendedDate(year, 3, 1); // March 1st
+        var easterSunday = easterDate.isEaster();
+        return easterSunday && (month == 2 || (month == 3 && day <= 31));
+    }
+
     public function isHalloween():Bool {
         return this.getMonth() == 9 && this.getDate() == 31;
     }
