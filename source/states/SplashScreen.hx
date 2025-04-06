@@ -173,7 +173,7 @@ class SplashScreen extends MusicBeatState
     override function stepHit()
     {
         super.stepHit();
-        if (!videoPlaying) {
+        if (!videoCutscene?.videoSprite?.bitmap?.isPlaying) {
             switch (curStep)
             {
                 case 3:
