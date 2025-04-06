@@ -504,6 +504,13 @@ class Main extends Sprite
 							trace("Performing Emergency Exit.");
 							Main.closeGame();
 							handled = true;
+
+						case "null", null:
+							// This is a null state, which means signals failed, and the game is bricked.
+							// We need to restart the game.
+							// Kill the game process and restart it.
+							var restartProcess = new Process("Mixtape.exe", ["GameBricked", "restart"]);
+							Main.closeGame(); // We can't switch to a new state if the game is bricked, so just close it.
 		
 						default:
 							stateClass = Type.getSuperClass(stateClass);

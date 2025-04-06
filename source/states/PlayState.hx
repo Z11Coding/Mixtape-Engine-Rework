@@ -2031,7 +2031,7 @@ class PlayState extends MusicBeatState
 			var tempScore:String;
 			if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [songScore, songMisses, str]);
 			else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [songScore, str]);
-			scoreTxt.text = '$tempScore | Health: ${CoolUtil.floorDecimal((health/2) * 100, 2)}%';
+			scoreTxt.text = '${tempScore} | Health: ${CoolUtil.floorDecimal((health / 2) * 100, 2)}%' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : '');
 			scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
 		}
 	}

@@ -244,54 +244,26 @@ class APItem {
                 throw "Unknown item name: " + name;
         }
     }
-
     public function trigger():Void {
-        //trace('is Gonna Run Sync: ${APGameState.isSync}');
-        if (APInfo.ap.firstSync && this.toSync) {
-            //trace("RUNNING FIRST SYNC!");
-            //trace("Triggering item: " + this.name);
-            //trace("Is exception: " + this.isException);
-            //trace("Condition type: " + this.condition.type);
-            //trace("Condition check result: " + this.condition.checkFn(this));
+        if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
+            // Check extraConditions if they exist
+            if (this.condition.extraConditions != null) {
+                for (extraCondition in this.condition.extraConditions) {
+                    if (!extraCondition(this)) {
+                        return; // Exit if any extra condition fails
+                    }
+                }
+            }
 
-            if (!this.isException && (this.condition.type != ConditionType.Everywhere) && this.condition.checkFn(this) && APItem.allowedToTrigger) {
-                //trace("Setting active item to: " + this.name);
+            // Set active item if conditions are met and it's not an Everywhere item
+            if (!this.isException && this.condition.type != ConditionType.Everywhere) {
                 APItem.activeItem = this;
-            } else {
-                //trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
             }
 
-            if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
-                //trace("Condition passed, executing onTrigger for item: " + this.name);
-                onTrigger();
-                allItems.remove(this);
-            } else {
-                //trace("Condition failed, onTrigger not executed for item: " + this.name);
-            }
-        } else if (!APInfo.ap.firstSync) {
-            //trace("RUNNING NORMAL SYNC!");
-            //trace("Triggering item: " + this.name);
-            //trace("Is exception: " + this.isException);
-            //trace("Condition type: " + this.condition.type);
-            //trace("Condition check result: " + this.condition.checkFn(this));
-
-            if (!this.isException && this.condition.type != ConditionType.Everywhere && this.condition.checkFn(this)) {
-                //trace("Setting active item to: " + this.name);
-                APItem.activeItem = this;
-            } else {
-                //trace("Active item not set due to condition, exception rules, or being an Everywhere item.");
-            }
-
-            if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
-                //trace("Condition passed, executing onTrigger for item: " + this.name);
-                onTrigger();
-                allItems.remove(this);
-            } else {
-                //trace("Condition failed, onTrigger not executed for item: " + this.name);
-            }
+            // Execute the onTrigger function and remove the item from the list
+            onTrigger();
+            allItems.remove(this);
         }
-
-        //trace("Removing item from allItems: " + this.name);
     }
 
     public static function createItems():Void {
@@ -325,7 +297,6 @@ class APItem {
     public static function doCheck():Void {
         allItems.checkAndTrigger();
     }
-
     public static function checkAndTrigger(items:Array<APItem>):Void {
         var triggered:Bool = false;
 
@@ -334,6 +305,14 @@ class APItem {
                 continue;
             }
             if (item.condition.checkFn(item)) {
+                // Check extraConditions if they exist
+                if (item.condition.extraConditions != null) {
+                    for (extraCondition in item.condition.extraConditions) {
+                        if (!extraCondition(item)) {
+                            continue; // Skip this item if any extra condition fails
+                        }
+                    }
+                }
                 if (!triggered || item.isException) {
                     item.trigger();
                     if (!item.isException) {

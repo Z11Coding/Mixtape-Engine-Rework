@@ -278,19 +278,16 @@ class APGameState {
         }
         if (_saveData.hasItem("waitingItems")) {
             var waitingItems:Array<String> = _saveData.getItem("waitingItems");
+            var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
             for (itemName in waitingItems) {
-            if (itemName.indexOf("Chart Modifier Trap") != -1) {
-                var startIndex = itemName.indexOf("(");
-                var endIndex = itemName.indexOf(")");
-                if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                    var modifier = itemName.substring(startIndex + 1, endIndex);
-                    archipelago.APItem.APChartModifier.restoreFromSave(modifier);
-                } else {
-                    archipelago.APItem.createItemByName(itemName);
-                }
+            if (reg.match(itemName)) {
+                var modifier = reg.matched(1);
+                archipelago.APItem.APChartModifier.restoreFromSave(modifier);
+            } else {
+                archipelago.APItem.createItemByName(itemName);
+            }
             }
         }
-    }
         if (_saveData.hasItem("tickets")) {
             APInfo.ticketCount = _saveData.getItem("tickets");
         }

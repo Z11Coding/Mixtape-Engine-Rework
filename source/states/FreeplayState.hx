@@ -769,57 +769,69 @@ class FreeplayState extends MusicBeatState
 	var stopMusicPlay:Bool = false;
 
 	// public static function addHint(song:String, item)
-
 	public static function forceUnlockCheck(songName:String, modName:String):Void {
+		trace("Starting forceUnlockCheck...");
+		trace("Input songName: " + songName);
+		trace("Input modName: " + modName);
+
 		var locationId = songName;
-		trace(modName);
+		trace("Initial locationId: " + locationId);
+
 		if (modName.trim() != "") {
 			locationId += " (" + modName + ")";
+			trace("Updated locationId with modName: " + locationId);
 		}
 
-		trace(locationId.trim());
+		trace("Final locationId after trimming: " + locationId.trim());
 		var locationIdInts = APEntryState.apGame.locationData(locationId.trim());
-		trace('Location IDs: ' + locationIdInts);
+		trace("Location IDs retrieved: " + locationIdInts);
 
-		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-		{
-			for (song in WeekData.getCurrentWeek().songs)
-			{
+		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
+			trace("Location IDs are null, empty, or contain 0. Attempting fallback logic...");
+			for (song in WeekData.getCurrentWeek().songs) {
+				trace("Checking song in current week: " + song[0]);
 				if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-				{
+					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
+					trace("Match found for song: " + song[0]);
 					locationId = archipelago.APPlayState.currentMod.trim() != ""
 						? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
 						: song[0];
+					trace("Updated locationId in fallback logic: " + locationId);
 					locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+					trace("Location IDs retrieved in fallback logic: " + locationIdInts);
 					break;
 				}
 			}
 		}
 
-		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-		{
-			for (song in WeekData.getCurrentWeek().songs)
-			{
+		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
+			trace("Location IDs are still null, empty, or contain 0. Attempting secondary fallback logic...");
+			for (song in WeekData.getCurrentWeek().songs) {
+				trace("Checking song in secondary fallback logic: " + song[0]);
 				var songPath = archipelago.APPlayState.currentMod.trim() != ""
 					? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
 					: "assets/shared" + (song[0] + Difficulty.getFilePath());
+				trace("Constructed songPath: " + songPath);
+
 				var songJson:SwagSong = null;
 				var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json");
+				trace("Retrieved JSON files: " + jsonStuff);
 
-				for (json in jsonStuff)
-				{
-					if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
-					{
+				for (json in jsonStuff) {
+					trace("Checking JSON file: " + json);
+					if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
+						trace("Match found for JSON file: " + json);
 						songJson = Song.parseJSON(File.getContent(json));
-						if (songJson != null)
-						{
-							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-							{
+						if (songJson != null) {
+							trace("Parsed song JSON successfully. Checking song name...");
+							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
+								trace("Match found for song in JSON: " + songJson.song);
 								locationId = archipelago.APPlayState.currentMod.trim() != "" 
 									? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
 									: song[0];
+								trace("Updated locationId in secondary fallback logic: " + locationId);
 								locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+								trace("Location IDs retrieved in secondary fallback logic: " + locationIdInts);
 								break;
 							}
 						}
@@ -828,29 +840,37 @@ class FreeplayState extends MusicBeatState
 			}
 		}
 		
-		for (locationIdInt in locationIdInts)
-		{
-			trace(APEntryState.apGame.info().LocationChecks([locationIdInt]));
-			trace(APEntryState.apGame.info().get_location_name(locationIdInt));
+		trace("Final locationIdInts: " + locationIdInts);
+		for (locationIdInt in locationIdInts) {
+			trace("Checking locationIdInt: " + locationIdInt);
+			trace("Location check result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
+			trace("Location name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
 		}
-		trace(PlayState.SONG.song);
+		trace("Current song in PlayState: " + PlayState.SONG.song);
 
 		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
+			trace("Popup triggered for sending location to Archipelago.");
 			FlxG.sound.playMusic(Paths.sound('secret'));
 		});
 
-		for (locationIdInt in locationIdInts)
-		{
-			if (locationIdInt != 0 && states.FreeplayState.isVictorySong(songName, modName))
-				{
-					archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-						FlxG.sound.playMusic(Paths.sound('secret'));
-					});
-					APEntryState.apGame.info().set_goal();
-				}
+		for (locationIdInt in locationIdInts) {
+			trace("Processing locationIdInt for victory song check: " + locationIdInt);
+			if (locationIdInt != 0 && states.FreeplayState.isVictorySong(songName, modName)) {
+				trace("Victory song condition met. Triggering victory popup...");
+				archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+					trace("Popup triggered for completing goal.");
+					FlxG.sound.playMusic(Paths.sound('secret'));
+				});
+				APEntryState.apGame.info().set_goal();
+				trace("Goal set in Archipelago.");
+			}
 		}
-		if (instance != null)
+
+		if (instance != null) {
+			trace("Reloading songs in FreeplayState instance...");
 			instance.reloadSongs(true);
+		}
+		trace("forceUnlockCheck completed.");
 	}
 
 
