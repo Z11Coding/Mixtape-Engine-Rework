@@ -152,7 +152,10 @@ class PlayState extends MusicBeatState
 	public var modchartSounds:Map<String, FlxSound> = new Map<String, FlxSound>();
 	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
 	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
+	public var modchartObjects:Map<String, FlxSprite> = new Map<String, FlxSprite>();
 	#end
+
+	public var comboOffsetCustom:Null<Array<Int>> = null;
 
 	public var BF_X:Float = 770;
 	public var BF_Y:Float = 100;
@@ -418,6 +421,7 @@ class PlayState extends MusicBeatState
 	private var AIMisses:Int = 0;
 	private var AITotalNotesHit:Float = 0;
 	private var AITotalPlayed:Int = 0;
+	public var zoomEveryBeat:Int = 1;
 	public var modManager:ModManager;
 	public var notefields = new NotefieldRenderer();
 	public var playfields = new FlxTypedGroup<PlayField>();
@@ -642,6 +646,8 @@ class PlayState extends MusicBeatState
 
 		GameOverSubstate.resetVariables();
 		songName = Paths.formatToSongPath(SONG.song);
+
+		comboOffsetCustom = null;
 		if(SONG.stage == null || SONG.stage.length < 1)
 			SONG.stage = StageData.vanillaSongStage(Paths.formatToSongPath(Song.loadedSongName));
 
@@ -4335,11 +4341,16 @@ class PlayState extends MusicBeatState
 	}
 
 	public function getControl(key:String)
-		{
-			var pressed:Bool = Reflect.getProperty(controls, key);
-			// trace('Control result: ' + pressed);
-			return pressed;
-		}
+	{
+		var pressed:Bool = Reflect.getProperty(controls, key);
+		// trace('Control result: ' + pressed);
+		return pressed;
+	}
+
+	public function triggerEventNote(eventName:String, value1:String, value2:String, ?strumTime:Float) {
+		triggerEvent(eventName, value1, value2, strumTime);
+		//Backwards Compatibilty
+	}
 
 	public function triggerEvent(eventName:String, value1:String, value2:String, ?strumTime:Float) {
 		var flValue1:Null<Float> = Std.parseFloat(value1);
@@ -5197,6 +5208,10 @@ class PlayState extends MusicBeatState
 				i.time = time;
 	}
 
+	function snapCamFollowToPos(x:Float, y:Float) { // Compat
+		camFollow.setPosition(x, y);
+	}
+
 	public function finishSong(?ignoreNoteOffset:Bool = false):Void
 	{
 		updateTime = false;
@@ -5441,8 +5456,14 @@ class PlayState extends MusicBeatState
 		rating.velocity.y -= FlxG.random.int(140, 175) * playbackRate;
 		rating.velocity.x -= FlxG.random.int(0, 10) * playbackRate;
 		rating.visible = (!ClientPrefs.data.hideHud && showRating);
-		rating.x += ClientPrefs.data.comboOffset[0];
-		rating.y -= ClientPrefs.data.comboOffset[1];
+		if (comboOffsetCustom != null) {
+			rating.x = comboOffsetCustom[0];
+			rating.y = comboOffsetCustom[1];
+		}
+		else {
+			rating.x += ClientPrefs.data.comboOffset[0];
+			rating.y -= ClientPrefs.data.comboOffset[1];
+		}
 		rating.antialiasing = antialias;
 
 		var comboSpr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
@@ -5482,8 +5503,16 @@ class PlayState extends MusicBeatState
 		{
 			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
 			numScore.screenCenter();
-			numScore.x = placement + (43 * daLoop) - 90 + ClientPrefs.data.comboOffset[2];
-			numScore.y += 80 - ClientPrefs.data.comboOffset[3];
+			numScore.x = placement + (43 * daLoop) - 90;
+			numScore.y += 80;
+			if (comboOffsetCustom != null) {
+				numScore.x = comboOffsetCustom[2] + (43 * daLoop);
+				numScore.y = comboOffsetCustom[3];
+			}
+			else {
+				numScore.x += ClientPrefs.data.comboOffset[2];
+				numScore.y -= ClientPrefs.data.comboOffset[3];
+			}
 
 			if (!PlayState.isPixelStage) numScore.setGraphicSize(Std.int(numScore.width * 0.5));
 			else numScore.setGraphicSize(Std.int(numScore.width * daPixelZoom));
@@ -6775,7 +6804,12 @@ class PlayState extends MusicBeatState
 		try
 		{
 			newScript = new HScript(null, file);
-			if (newScript.exists('onCreate')) newScript.call('onCreate');
+			if (newScript.exists('onCreate')) {
+				newScript.call('onCreate');
+			}
+			if (newScript.exists('onLoad')) {
+				newScript.call('onLoad');
+			}
 			trace('initialized hscript interp successfully: $file');
 			hscriptArray.push(newScript);
 		}

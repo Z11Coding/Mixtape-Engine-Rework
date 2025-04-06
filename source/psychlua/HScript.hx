@@ -19,6 +19,7 @@ import crowplexus.hscript.Printer;
 import objects.VideoSprite;
 
 import haxe.ValueException;
+import flixel.addons.display.FlxRuntimeShader;
 
 typedef HScriptInfos = {
 	> haxe.PosInfos,
@@ -166,6 +167,11 @@ class HScript extends Iris
 		set('Paths', Paths);
 		set('Conductor', Conductor);
 		set('ClientPrefs', ClientPrefs);
+		#if VIDEOS_ALLOWED //Compat stuff. you wouldn't get it
+		set('PsychVideoSprite', objects.FNFWeeklyVideoSprite);
+		set('FNFWeeklyVideoSprite', objects.FNFWeeklyVideoSprite);
+		set('VideoSprite', objects.FNFWeeklyVideoSprite);
+		#end
 		#if ACHIEVEMENTS_ALLOWED
 		set('Achievements', Achievements);
 		#end
@@ -182,6 +188,7 @@ class HScript extends Iris
 		#if flxanimate
 		set('FlxAnimate', FlxAnimate);
 		#end
+		set('Song', backend.Song);
 
 		// Functions & Variables
 		set('setVar', function(name:String, value:Dynamic) {
@@ -358,7 +365,6 @@ class HScript extends Iris
 		set("NoteField", objects.playfields.NoteField);
 		set("ProxyField", objects.proxies.ProxyField);
 		set("ProxySprite", objects.proxies.ProxySprite);
-		set("ModManager", backend.modchart.ModManager);
 		set("Modifier", backend.modchart.Modifier);
 		set("SubModifier", backend.modchart.SubModifier);
 		set("NoteModifier", backend.modchart.NoteModifier);
@@ -368,8 +374,7 @@ class HScript extends Iris
 		set("ModEvent", backend.modchart.events.ModEvent);
 		set("EaseEvent", backend.modchart.events.EaseEvent);
 		set("SetEvent", backend.modchart.events.SetEvent);
-
-		set("modMgr", PlayState.instance.modManager);
+		set("modManager", PlayState.instance.modManager);
 
 		set("setPercent", function(modName:String, val:Float, player:Int = -1)
 		{
@@ -436,6 +441,18 @@ class HScript extends Iris
 		set('setGameOverVideo', function(name:String = null) {
 			if (name != null) substates.GameOverSubstate.instance.setGameOverVideo(name);
 			else trace('No argument for game over video!');
+		});
+
+		set("newShader", function(fragFile:String = null, vertFile:String = null){ // returns a FlxRuntimeShader but with file names lol
+			var runtime:FlxRuntimeShader = null;
+
+			try{				
+				runtime = Paths.getShader(fragFile, vertFile);
+			}catch(e:Dynamic){
+				trace("Shader compilation error:" + e.message);
+			}
+
+			return runtime==null ? new FlxRuntimeShader() : runtime;
 		});
 
 		set('makeVideoSprite', function(tag:String, videoFile:String, ?x:Float, ?y:Float, ?camera:String = 'game', ?shouldLoop:Bool = false, ?playOnLoad:Bool = true, ?isCutscene:Bool = false, addBehind:String = 'none') {	
