@@ -11,11 +11,11 @@ class Desktop extends BaseStage
     {
         wasFullscreen = FlxG.fullscreen;
         bg = new FlxSprite(0, 0, null);
-        bg.makeGraphic(FlxG.width, FlxG.height, 0xff000000);
+        bg.makeGraphic(FlxG.width, FlxG.height, 0x00000000);
         add(bg);
 
         #if windows 
-        CppAPI.setTransparency("Mixtape Engine", 0xff000000);
+        CppAPI.setTransparency("Mixtape Engine", 0x00000000);
         if (!FlxG.fullscreen)
         {
             FlxG.fullscreen = true;

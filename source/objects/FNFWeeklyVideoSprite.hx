@@ -5,9 +5,9 @@ import hxvlc.flixel.FlxVideoSprite;
 #end
 
 //data play
-class GameOverVideoSprite extends FlxVideoSprite
+class FNFWeeklyVideoSprite extends FlxVideoSprite
 {
-    public static var heldVideos:Array<GameOverVideoSprite> = [];
+    public static var heldVideos:Array<FNFWeeklyVideoSprite> = [];
 
     //these are loading options that are just easier to understand lol
     public static final looping:String = ':input-repeat=65535';

@@ -1,7 +1,7 @@
 package substates;
 
 import archipelago.APPlayState;
-import objects.GameOverVideoSprite;
+import objects.FNFWeeklyVideoSprite;
 import backend.WeekData;
 
 import objects.Character;
@@ -33,7 +33,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var deathbysquare:FlxSprite;
 	public static var causeofdeath:UnderTextParser;
 
-	public static var video:Null<GameOverVideoSprite> = null;
+	public static var video:Null<FNFWeeklyVideoSprite> = null;
 	public static var isVideo:Bool = false;
 
 	public static var instance:GameOverSubstate;
@@ -259,54 +259,61 @@ class GameOverSubstate extends MusicBeatSubstate
 	var isEnding:Bool = false;
 	function coolStartDeath(?volume:Float = 1):Void
 	{
-		FlxG.sound.music.play(true);
-		FlxG.sound.music.volume = volume;
-		causeofdeath.resetText(COD.getCOD());
-        causeofdeath.start(0.05, true);
+		if (!isVideo) {
+			FlxG.sound.music.play(true);
+			FlxG.sound.music.volume = volume;
+			causeofdeath.resetText(COD.getCOD());
+			causeofdeath.start(0.05, true);
+		} else {
+			causeofdeath.visible = false;
+			deathbysquare.visible = false;
+		}
 	}
 
 	function endBullshit():Void
 	{
-		if (!isEnding)
-		{
-			isEnding = true;
-			if(boyfriend.hasAnimation('deathConfirm'))
-				boyfriend.playAnim('deathConfirm', true);
-			else if(boyfriend.hasAnimation('deathLoop'))
-				boyfriend.playAnim('deathLoop', true);
+		if (!isVideo) {
+			if (!isEnding)
+			{
+				isEnding = true;
+				if(boyfriend.hasAnimation('deathConfirm'))
+					boyfriend.playAnim('deathConfirm', true);
+				else if(boyfriend.hasAnimation('deathLoop'))
+					boyfriend.playAnim('deathLoop', true);
 
-			if(overlay != null && overlay.animation.exists('deathConfirm'))
-			{
-				overlay.visible = true;
-				overlay.animation.play('deathConfirm');
-				overlay.offset.set(overlayConfirmOffsets.x, overlayConfirmOffsets.y);
-			}
-			FlxG.sound.music.stop();
-			FlxG.sound.play(Paths.music(endSoundName));
-			new FlxTimer().start(0.7, function(tmr:FlxTimer)
-			{
-				FlxG.camera.fade(FlxColor.BLACK, 2, false, function()
+				if(overlay != null && overlay.animation.exists('deathConfirm'))
 				{
-					if (Std.is(PlayState.instance, APPlayState) && APPlayState.deathByBlueBalls)
+					overlay.visible = true;
+					overlay.animation.play('deathConfirm');
+					overlay.offset.set(overlayConfirmOffsets.x, overlayConfirmOffsets.y);
+				}
+				FlxG.sound.music.stop();
+				FlxG.sound.play(Paths.music(endSoundName));
+				new FlxTimer().start(0.7, function(tmr:FlxTimer)
+				{
+					FlxG.camera.fade(FlxColor.BLACK, 2, false, function()
 					{
-						APPlayState.deathByBlueBalls = false;
-						FlxG.camera.visible = false;
-						FlxG.sound.music.stop();
-						PlayState.deathCounter = 0;
-						PlayState.seenCutscene = false;
-						PlayState.chartingMode = false;
+						if (Std.is(PlayState.instance, APPlayState) && APPlayState.deathByBlueBalls)
+						{
+							APPlayState.deathByBlueBalls = false;
+							FlxG.camera.visible = false;
+							FlxG.sound.music.stop();
+							PlayState.deathCounter = 0;
+							PlayState.seenCutscene = false;
+							PlayState.chartingMode = false;
 
-						Mods.loadTopMod();
-						MusicBeatState.switchState(new FreeplayState());
-						Constants.playMenuMusic();
-					}
-					else
-					{
-						MusicBeatState.resetState();
-					}
+							Mods.loadTopMod();
+							MusicBeatState.switchState(new FreeplayState());
+							Constants.playMenuMusic();
+						}
+						else
+						{
+							MusicBeatState.resetState();
+						}
+					});
 				});
-			});
-			PlayState.instance.callOnScripts('onGameOverConfirm', [true]);
+				PlayState.instance.callOnScripts('onGameOverConfirm', [true]);
+			}
 		}
 	}
 
@@ -320,7 +327,7 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		boyfriend.visible = false;
 
-		video = new GameOverVideoSprite();
+		video = new FNFWeeklyVideoSprite();
 
 		video.addCallback('onFormat',()->{
 			video.setGraphicSize(0, FlxG.height);

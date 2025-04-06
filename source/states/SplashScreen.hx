@@ -1,5 +1,6 @@
 package states;
 import states.stages.objects.*;
+import objects.VideoSprite;
 
 //About time i got around to this
 class SplashScreen extends MusicBeatState 
@@ -27,6 +28,7 @@ class SplashScreen extends MusicBeatState
     var splashGlowParticles:FlxTypedGroup<SplashGlowParticle>;
     var initX:Float;
 
+    public var videoCutscene:VideoSprite = null;
     override public function create()
     {
         // var currentDate = ExtendedDate.global();
@@ -111,6 +113,47 @@ class SplashScreen extends MusicBeatState
         super.create();
     }
 
+    public function startVideo(name:String, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
+	{
+		#if VIDEOS_ALLOWED
+		var foundFile:Bool = false;
+		var fileName:String = Paths.video(name);
+
+		#if sys
+		if (FileSystem.exists(fileName))
+		#else
+		if (OpenFlAssets.exists(fileName))
+		#end
+		foundFile = true;
+
+		if (foundFile)
+		{
+			videoCutscene = new VideoSprite(fileName, forMidSong, canSkip, loop);
+
+			// Finish callback
+			function onVideoEnd()
+            {
+                videoCutscene = null;
+                Conductor.songPosition = 0;
+                TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+            }
+            videoCutscene.finishCallback = onVideoEnd;
+            videoCutscene.onSkip = onVideoEnd;
+			add(videoCutscene);
+
+			if (playOnLoad)
+				videoCutscene.play();
+			return videoCutscene;
+		}
+		else FlxG.log.error("Video not found: " + fileName);
+		#else
+		FlxG.log.warn('Platform not supported!');
+		Conductor.songPosition = 0;
+        TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+		#end
+		return null;
+	}
+
     function particleBoom() {
         splashGrad.alpha = 1;
         var particlesNum:Int = FlxG.random.int(8, 12);
@@ -130,44 +173,46 @@ class SplashScreen extends MusicBeatState
     override function stepHit()
     {
         super.stepHit();
-        switch (curStep)
-        {
-            case 3:
-                tape.alpha = 1;
-                tapeT = FlxTween.tween(tape, {x:initX + 235, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
-                tapeTA = FlxTween.tween(tape, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
-            case 6:
-                particleBoom();
-                engine.alpha = 1;
-                engineT = FlxTween.tween(engine, {x:tape.x + 305, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
-                engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
-            case 9:
-                FlxG.camera.zoom = 3;
-                FlxG.camera.scrollAngle = (360*2);
-            case 10:
-                mixtapeLogo.alpha = 1;
-                camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*2, {ease: FlxEase.sineInOut});
-            case 12:
-                mix.alpha = 1;
-                tape.alpha = 1;
-                FlxG.camera.zoom = 1.2;
-                FlxG.camera.scrollAngle = 15;
-                camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
-                mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
-                tapeTA = FlxTween.tween(tape, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
-            case 14:
-                FlxG.camera.zoom = 1.2;
-                FlxG.camera.scrollAngle = -15;
-                camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});    
-                engine.alpha = 1;
-                engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
-            case 16:
-                FlxG.camera.zoom = 1.5;
-                camTween = FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.stepCrochet*0.001*8, {ease: FlxEase.sineInOut});
-                particleBoom();
-                mixtapeEngine.alpha = 1;
-                FlxTween.tween(mixtapeEngine, {alpha: 0}, Conductor.stepCrochet*0.001*8, {ease: FlxEase.expoInOut});
-                FlxTween.tween(mixtapeLogo, {alpha: 0}, Conductor.stepCrochet*0.001*8, {ease: FlxEase.expoInOut});
+        if (!videoPlaying) {
+            switch (curStep)
+            {
+                case 3:
+                    tape.alpha = 1;
+                    tapeT = FlxTween.tween(tape, {x:initX + 235, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
+                    tapeTA = FlxTween.tween(tape, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
+                case 6:
+                    particleBoom();
+                    engine.alpha = 1;
+                    engineT = FlxTween.tween(engine, {x:tape.x + 305, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
+                    engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
+                case 9:
+                    FlxG.camera.zoom = 3;
+                    FlxG.camera.scrollAngle = (360*2);
+                case 10:
+                    mixtapeLogo.alpha = 1;
+                    camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*2, {ease: FlxEase.sineInOut});
+                case 12:
+                    mix.alpha = 1;
+                    tape.alpha = 1;
+                    FlxG.camera.zoom = 1.2;
+                    FlxG.camera.scrollAngle = 15;
+                    camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
+                    mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
+                    tapeTA = FlxTween.tween(tape, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
+                case 14:
+                    FlxG.camera.zoom = 1.2;
+                    FlxG.camera.scrollAngle = -15;
+                    camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});    
+                    engine.alpha = 1;
+                    engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
+                case 16:
+                    FlxG.camera.zoom = 1.5;
+                    camTween = FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.stepCrochet*0.001*8, {ease: FlxEase.sineInOut});
+                    particleBoom();
+                    mixtapeEngine.alpha = 1;
+                    FlxTween.tween(mixtapeEngine, {alpha: 0}, Conductor.stepCrochet*0.001*8, {ease: FlxEase.expoInOut});
+                    FlxTween.tween(mixtapeLogo, {alpha: 0}, Conductor.stepCrochet*0.001*8, {ease: FlxEase.expoInOut});
+            }
         }
     }
 
