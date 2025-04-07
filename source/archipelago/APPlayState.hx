@@ -26,6 +26,9 @@ class APPlayState extends PlayState {
     public static var apGame:APGameState;
     public static var deathByLink:Bool = false;
     public static var deathByBlueBalls:Bool = false;
+
+    public var checkedNotes:Array<archipelago.APNote> = new Array<archipelago.APNote>();
+
     public static var currentMod = "";
     public static var deathLinkPacket:Dynamic;
     public static var effectiveScrollSpeed:Float;

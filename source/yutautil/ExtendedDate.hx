@@ -195,6 +195,14 @@ class ExtendedDate extends FlxBasic {
         return month == monthEaster && day == dayEaster;
     }
 
+    public function isHatsuneMikuDay():Bool {
+        return this.getMonth() == 3 && this.getDate() == 9;
+    }
+
+    public function isHatsuneMikuBirthday():Bool {
+        return this.getMonth() == 8 && this.getDate() == 31;
+    }
+
     public function isNewYearsEve():Bool {
         return this.getMonth() == 11 && this.getDate() == 31;
     }

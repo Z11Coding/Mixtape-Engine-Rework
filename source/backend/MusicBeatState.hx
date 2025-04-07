@@ -19,6 +19,8 @@ class MusicBeatState extends FlxState
 	public static var pubCurDecStep:Float = 0;
 	public static var pubCurDecBeat:Float = 0;
 
+	public static var playErrorSound:Bool = false;
+
 	public function handleFileDrop(file:String)
 	{
 		// trace('dropped files: ' + files);
@@ -106,6 +108,11 @@ class MusicBeatState extends FlxState
 				}
 				{}
 			});
+		}
+		if (playErrorSound)
+		{
+			playErrorSound = false;
+			FlxG.sound.play(Paths.sound('error'), 1, false);
 		}
 	}
 

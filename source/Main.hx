@@ -419,6 +419,8 @@ class Main extends Sprite
 		{
 			Application.current.window.alert(errMsg, "Error!");
 		}
+
+		backend.MusicBeatState.playErrorSound = true;
 		trace("Crash caused in: " + Type.getClassName(Type.getClass(FlxG.state)));
 		// Handle different states
 
