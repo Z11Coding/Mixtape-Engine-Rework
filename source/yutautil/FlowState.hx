@@ -4,9 +4,11 @@ import flixel.FlxState;
 
 class FlowState extends MusicBeatState {
 	private var currentSubState:BaseFlowState;
+	private static var _this:FlowState;
 
 	public function new(initialState:BaseFlowState) {
 		super();
+		this._this = this; // A FlowState is meant to handle its own state transitions, so we can use this to reference it.
 		this.currentSubState = initialState;
 		this.currentSubState.enter(null, function() {});
 	}

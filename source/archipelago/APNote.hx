@@ -6,7 +6,7 @@ class APNote extends objects.Note {
 
 
     var APItem:NetworkItem;
-    var APItemLocation:Int = 0;
+    var APItemLocation:Null<Int> = null;
 
     public function new(note:objects.Note, location:Int, ?item:NetworkItem = null) {
         super(note.strumTime, note.noteData, note.prevNote, note.isSustainNote);

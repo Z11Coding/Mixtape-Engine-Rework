@@ -1160,8 +1160,9 @@ class GlobalException extends haxe.Exception
 		haxe.Timer.delay(function()
 		{
 			if (allowHandle)
-			{
+			{	
 				// Handle the exception
+				WindowUtils.preventClosing = true;
 				Main.onCrash(new UncaughtErrorEvent(UncaughtErrorEvent.UNCAUGHT_ERROR, exception));
 			}
 			else
