@@ -289,18 +289,24 @@ class RankingSubstate extends MusicBeatSubstate
 						FlxG.sound.playMusic(Paths.sound('secret'));
 					});
 
-					for (locationIdInt in locationIdInts)
-					{
-						trace("Checking victory condition for Location ID: " + locationIdInt);
-						if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
-						{
-							trace("Victory condition met for song: " + PlayState.SONG.song);
-							archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-								trace("Victory popup triggered.");
-								FlxG.sound.playMusic(Paths.sound('secret'));
-							});
-							APEntryState.apGame.info().set_goal();
-						}
+					// for (locationIdInt in locationIdInts)
+					// {
+					// 	trace("Checking victory condition for Location ID: " + locationIdInt);
+					// 	if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
+					// 	{
+					// 		trace("Victory condition met for song: " + PlayState.SONG.song);
+					// 		archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+					// 			trace("Victory popup triggered.");
+					// 			FlxG.sound.playMusic(Paths.sound('secret'));
+					// 		});
+					// 		// APEntryState.apGame.info().set_goal();
+					// 	}
+					// }
+					if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+						archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
+							trace("Goal achievement popup triggered.");
+							FlxG.sound.playMusic(Paths.sound('victory'));
+						});
 					}
 					Mods.loadTopMod();
 			}

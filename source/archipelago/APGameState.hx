@@ -227,6 +227,26 @@ class APGameState {
         return matchingNotes;
     }
 
+    public function checkGoal(songName:String, modName:String):Bool {
+        var info = info();
+        var locations = locationData(songName + " (" + modName + ")").concat(noteData(songName, modName));
+        var isGoal:Bool = true;
+        for (location in locations) {
+            if (info.missingLocations.contains(location)) {
+                isGoal = false;
+                break;
+            }
+        }
+        if (isGoal) {
+            setGoal();
+        }
+        return isGoal;
+    }
+
+    public function setGoal():Void {
+        info().set_goal();
+    }
+
     public function excludeCheckedLocations(locations:Array<Int>):Array<Int> {
         var checkedLocations:Array<Int> = info().checkedLocations;
         var uncheckedLocations:Array<Int> = [];
