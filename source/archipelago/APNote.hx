@@ -14,7 +14,6 @@ class APNote extends objects.Note {
         this.noteType = note.noteType;
 
         // Copy the properties from the original note to this new note, via reflection
-        // This is a bit of a hack, but it works for now.
         trace("Copying properties from original note to new note...");
         for (field in Reflect.fields(note)) {
             if (field != "ignoreNote" && field != "noteType" && field != "strumTime" && field != "noteData" && field != "prevNote" && field != "isSustainNote") {
@@ -25,13 +24,16 @@ class APNote extends objects.Note {
         trace("Properties copied. Destroying original note...");
 
         APItem = item;
-
         APItemLocation = location;
 
+        // Set a unique RGBShader color for APNotes
+        this.rgbShader.r = Std.int(Std.int((0x3380CC >> 16) & 0xFF) / Std.int(0xFF));
+        this.rgbShader.g = Std.int(Std.int((0x3380CC >> 8) & 0xFF) / Std.int(0xFF)); 
+        this.rgbShader.b = Std.int(Std.int(0x3380CC & 0xFF) / Std.int(0xFF));   
     }
 
     // Replace notes with a certain amount of locations.
-    public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = false):Array<APNote> {
+    public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true):Array<APNote> {
         var newNotes:Array<APNote> = [];
         var randomIndices:Array<Int> = [];
 

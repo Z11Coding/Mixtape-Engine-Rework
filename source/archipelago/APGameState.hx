@@ -146,6 +146,100 @@ class APGameState {
         return matchingLocations;
     }
 
+    public function noteData(songName:String, modName:String):Array<Int> {
+        trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
+        var matchingNotes:Array<Int> = [];
+        var reg = new EReg("^Note \\d+: " + EReg.escape(songName) + "$", "");
+        var apInfo = info();
+    
+        trace("Looking for locations matching pattern: " + "Note #: " + songName);
+    
+        // Initial matching using the regular expression
+        trace("Iterating through APLocations...");
+        for (location in APLocations) {
+            var locationName = apInfo.get_location_name(location);
+            if (reg.match(locationName)) {
+                matchingNotes.push(location);
+            }
+        }
+    
+        // Fallback logic if no matches are found
+        if (matchingNotes.length == 0) {
+            trace("No matches found. Attempting fallback logic...");
+            for (song in WeekData.getCurrentWeek().songs) {
+                trace("Checking song in current week: " + song[0]);
+                if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
+                    (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
+                    var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0]) + "$", "");
+                    for (location in APLocations) {
+                        var locationName = apInfo.get_location_name(location);
+                        if (fallbackReg.match(locationName)) {
+                            trace("Fallback match found: " + locationName);
+                            matchingNotes.push(location);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    
+        // Secondary fallback logic using JSON data
+        if (matchingNotes.length == 0) {
+            trace("No matches found in fallback logic. Attempting secondary fallback...");
+            for (song in WeekData.getCurrentWeek().songs) {
+                trace("Checking song in secondary fallback logic: " + song[0]);
+                var songPath = modName.trim() != ""
+                    ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+                    : "assets/shared" + (song[0] + Difficulty.getFilePath());
+                trace("Constructed songPath: " + songPath);
+    
+                var songJson:backend.Song.SwagSong = null;
+                var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + modName + "/data", ".json");
+                trace("Retrieved JSON files: " + jsonStuff);
+    
+                for (json in jsonStuff) {
+                    trace("Checking JSON file: " + json);
+                    if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
+                        trace("Match found for JSON file: " + json);
+                        songJson = backend.Song.parseJSON(File.getContent(json));
+                        if (songJson != null) {
+                            trace("Parsed song JSON successfully. Checking song name...");
+                            if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
+                                trace("Match found for song in JSON: " + songJson.song);
+                                var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0]) + "$", "");
+                                for (location in APLocations) {
+                                    var locationName = apInfo.get_location_name(location);
+                                    if (fallbackReg.match(locationName)) {
+                                        trace("Secondary fallback match found: " + locationName);
+                                        matchingNotes.push(location);
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    
+        trace("Finished iterating through APLocations.");
+        trace("Returning matching notes: " + matchingNotes);
+        return matchingNotes;
+    }
+
+    public function excludeCheckedLocations(locations:Array<Int>):Array<Int> {
+        var checkedLocations:Array<Int> = info().checkedLocations;
+        var uncheckedLocations:Array<Int> = [];
+
+        for (location in locations) {
+            if (!checkedLocations.contains(location)) {
+                uncheckedLocations.push(location);
+            }
+        }
+
+        return uncheckedLocations;
+    }
+
     public static var currentPackages:DynamicAccess<GameData> = new DynamicAccess<GameData>();
 
     public var itemManager(get, set):Dynamic;    
