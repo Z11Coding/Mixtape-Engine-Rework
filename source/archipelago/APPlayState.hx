@@ -2297,9 +2297,9 @@ class APPlayState extends PlayState {
             updateScore();
         }
 
-        if (note is archipealgo.APNote)
-            checkedNotes.push(note);
-        
+        if (note is archipelago.APNote)
+            checkedNotes.push(cast(note, archipelago.APNote));
+
         super.goodNoteHit(note, field);
     }
 

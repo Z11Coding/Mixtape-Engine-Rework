@@ -787,7 +787,7 @@ class FreeplayState extends MusicBeatState
 		}
 
 		trace("Final locationId after trimming: " + locationId.trim());
-		var locationIdInts = APEntryState.apGame.locationData(locationId.trim()).concat(APEntryState.apGame.noteData(locationId.trim()));
+		var locationIdInts = APEntryState.apGame.locationData(locationId.trim()).concat(APEntryState.apGame.noteData(songName.trim(), modName.trim()));
 		trace("Location IDs retrieved: " + locationIdInts);
 
 		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
