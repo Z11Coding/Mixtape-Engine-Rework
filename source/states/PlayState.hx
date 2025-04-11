@@ -2420,14 +2420,19 @@ class PlayState extends MusicBeatState
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
 				daBpm = section.bpm;
 
-			for (i in 0...section.sectionNotes.length) {
-				var swagNote:APNote = new APNote(spawnTime, noteColumn, oldNote);
-				swagNote.mustPress = gottaHitNote;
-				swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
-				swagNote.animSuffix = isAlt ? "-alt" : "";
-				swagNote.sustainLength = songNotes[2];
-				swagNote.noteType = noteType;
+			// Function to get random mappings from available indexes and a list of special integers
+			function getAPLocations(max:Int, loc:Array<Int>, gottaHit:Array<Bool>):Array<{index:Int, loc:Int}> {
+				var mappings:Array<{index:Int, loc:Int}> = [];
+				var indexes:Array<Int> = [for (i in 0...max) if (gottaHit[i]) i];
+				
+				for (i in 0...Std.int(Math.min(indexes.length, loc.length))) {
+					mappings.push({index: indexes[i], loc: loc[i]});
+				}
+				return mappings;
 			}
+
+			var gottaHit:Array<Bool> = [for (note in section.sectionNotes) note[1] < (SONG.mania != null ? totalColumns : Note.ammo[3])];
+			var APNotes:Array<{index:Int, loc:Int}> = (this is archipelago.APPlayState) ? getAPLocations(section.sectionNotes.length, archipelago.APGameState.instance.noteData(PlayState.SONG.song, archipelago.APPlayState.currentMod), gottaHit) : [];
 
 			for (i in 0...section.sectionNotes.length)
 			{
@@ -2437,6 +2442,15 @@ class PlayState extends MusicBeatState
 				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
 				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
+				var apNote:Bool = (function() {
+					for (apNoteData in APNotes) {
+						if (apNoteData.index == i) {
+							return true;
+						}
+					}
+					return false;
+				})();
+				var apLoc = APNotes.filter(function(apNoteData) return apNoteData.index == i)[0].loc;
 				if (Math.isNaN(holdLength)) holdLength = 0.0;
 
 				if (chartModifier != "4K Only" && chartModifier != "ManiaConverter") {
@@ -2842,6 +2856,8 @@ class PlayState extends MusicBeatState
 					oldNote = null;
 
 				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
+				if (apNote)
+					swagNote = new archipelago.APNote(swagNote, apLoc);
 				swagNote.mustPress = gottaHitNote;
 				if (!swagNote.mustPress)
 				{
