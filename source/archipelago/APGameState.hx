@@ -703,6 +703,18 @@ class APGameState {
         return false; 
     }
 
+    public function areLocationsMissing(locations:Array<Int>):Bool
+    {
+        for (location in locations)
+        {
+            if (isLocationMissing(info().get_location_name(location)))
+            {
+                return true;
+            }
+        }
+        return false; 
+    }
+
     function isModName(name:String):Bool {
         var mods = Mods.parseList().enabled;
         // trace("Checking: " + mod);
