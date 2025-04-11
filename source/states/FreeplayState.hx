@@ -547,12 +547,11 @@ class FreeplayState extends MusicBeatState
 							}
 							else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 							{
-								var songNameThing:String = song[0];
-								var modName:String = leWeek.folder;
-								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
-								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 								if (APEntryState.inArchipelagoMode)
 								{
+									var songNameThing:String = song[0];
+									var modName:String = leWeek.folder;
+									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
 									if (locationIds != null && locationIds.isNotEmpty())
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
