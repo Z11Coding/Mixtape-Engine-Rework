@@ -166,10 +166,9 @@ class PhillyStreetsErect extends BaseStage
 		mist.velocity.x = velX;
         return mist;
     }
+
 	function buildMist() // Probable will be really broken 😞
 	{
-
-		colorShader = new AdjustColorShader();
 
 		mist0 = makeMist('mistMid',1.2,0.6,172); //1000
 
@@ -203,31 +202,41 @@ class PhillyStreetsErect extends BaseStage
 		//trace(mist1.y);
     }
     
-        override function createPost()
-        {
-    
-            spraycanPile = new BGSprite('SpraycanPile', 920, 1045, 1, 1);
+    override function createPost()
+    {
+        colorShader = new AdjustColorShader();
 
-            add(spraycanPile);
-            darkenable.push(spraycanPile);
-            add(mist0);
-            add(mist1);
-            add(mist2);
-    
-            carSndAmbience = new FlxSound().loadEmbedded(Paths.sound("ambience/car"), true);
-            carSndAmbience.volume = 0.01;
-            carSndAmbience.play(false, FlxG.random.float(0, carSndAmbience.length));
-    
-            if (ClientPrefs.data.shaders)
-            {
-                // ? ambience
-                rainSndAmbience = new FlxSound().loadEmbedded(Paths.sound("ambience/rain"), true);
-                rainSndAmbience.volume = 0.01;
-                rainSndAmbience.play(false, FlxG.random.float(0, rainSndAmbience.length));
-            }
-    
-            super.createPost();
+        colorShader.hue = -5;
+        colorShader.saturation = -40;
+        colorShader.contrast = -25;
+        colorShader.brightness = -20;
+
+        if (boyfriend != null) boyfriend.shader = colorShader;
+        if (dad != null) dad.shader = colorShader;
+        if (gf != null) gf.shader = colorShader;
+
+        spraycanPile = new BGSprite('SpraycanPile', 920, 1045, 1, 1);
+
+        add(spraycanPile);
+        darkenable.push(spraycanPile);
+        add(mist0);
+        add(mist1);
+        add(mist2);
+
+        carSndAmbience = new FlxSound().loadEmbedded(Paths.sound("ambience/car"), true);
+        carSndAmbience.volume = 0.01;
+        carSndAmbience.play(false, FlxG.random.float(0, carSndAmbience.length));
+
+        if (ClientPrefs.data.shaders)
+        {
+            // ? ambience
+            rainSndAmbience = new FlxSound().loadEmbedded(Paths.sound("ambience/rain"), true);
+            rainSndAmbience.volume = 0.01;
+            rainSndAmbience.play(false, FlxG.random.float(0, rainSndAmbience.length));
         }
+
+        super.createPost();
+    }
     
     
         var videoEnded:Bool = false;

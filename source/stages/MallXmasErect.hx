@@ -59,10 +59,10 @@ class MallXmasErect extends PicoCapableStage
 			colorShader.hue = 5;
 			colorShader.saturation = 20;
 
-			boyfriend.shader = colorShader;
-			gf.shader = colorShader;
-			dad.shader = colorShader;
-			santa.shader = colorShader;
+			if (boyfriend != null) boyfriend.shader = colorShader;
+			if (gf != null) gf.shader = colorShader;
+			if (dad != null) dad.shader = colorShader;
+			if (santa != null) santa.shader = colorShader;
 		}
 		
 		@:privateAccess
