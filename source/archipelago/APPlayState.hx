@@ -1495,11 +1495,6 @@ class APPlayState extends PlayState {
     private override function generateSong():Void
     {
         super.generateSong();
-        if (PlayState.SONG == null) return;
-        archipelago.APNote.replaceNotes(allNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
-
-        for (field in playfields.members)
-			field.clearStackedNotes();
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void

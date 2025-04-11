@@ -382,6 +382,7 @@ class PlayState extends MusicBeatState
 	public var saveMod:String = ""; // The modifier that allows sperate saves depending how how you want to play the game
 	public var lyrics:FlxText;
 	public var rainIntensity:Float = 0;
+	public var skipTxt:FlxText;
 	var lastUpdateTime:Float = 0.0;
 	var endingTimeLimit:Int = 20;
 	var metadata:MetadataFile;
@@ -390,7 +391,6 @@ class PlayState extends MusicBeatState
 	var whiteBG:FlxSprite;
 	var needSkip:Bool = false;
 	var skipActive:Bool = false;
-	var skipText:FlxText;
 	var skipTo:Float;
 	var blackOverlay:FlxSprite;
 	var blackUnderlay:FlxSprite;
@@ -2192,21 +2192,21 @@ class PlayState extends MusicBeatState
 		if (needSkip && !skipActive)
 		{
 			skipActive = true;
-			skipText = new FlxText(healthBar.x + 80, healthBar.y - 110, 500);
-			skipText.text = "Press Space to Skip Intro";
-			skipText.size = 30;
-			skipText.color = FlxColor.WHITE;
-			skipText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 2, 1);
-			skipText.cameras = [camHUD];
-			skipText.alpha = 0;
-			skipText.font = Paths.font('comboFont.ttf');
-			FlxTween.tween(skipText, {alpha: 1}, 0.2);
-			add(skipText);
+			skipTxt = new FlxText(healthBar.x + 80, healthBar.y - 110, 500);
+			skipTxt.text = "Press Space to Skip Intro";
+			skipTxt.size = 30;
+			skipTxt.color = FlxColor.WHITE;
+			skipTxt.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 2, 1);
+			skipTxt.cameras = [camHUD];
+			skipTxt.alpha = 0;
+			skipTxt.font = Paths.font('comboFont.ttf');
+			FlxTween.tween(skipTxt, {alpha: 1}, 0.2);
+			add(skipTxt);
 		}
 		else
 		{
-			if (skipText != null)
-				FlxTween.tween(skipText, {alpha: 0}, 0.2);
+			if (skipTxt != null)
+				FlxTween.tween(skipTxt, {alpha: 0}, 0.2);
 		}
 
 		setOnScripts('songLength', songLength);
@@ -2450,7 +2450,7 @@ class PlayState extends MusicBeatState
 					}
 					return false;
 				})();
-				var apLoc = APNotes.filter(function(apNoteData) return apNoteData.index == i)[0].loc;
+				var apLoc = APNotes.filter(function(apNoteData) return apNoteData.index == i)[0]?.loc;
 				if (Math.isNaN(holdLength)) holdLength = 0.0;
 
 				if (chartModifier != "4K Only" && chartModifier != "ManiaConverter") {
@@ -3869,7 +3869,7 @@ class PlayState extends MusicBeatState
 
 		if (skipActive && Conductor.songPosition >= skipTo)
 		{
-			remove(skipText);
+			remove(skipTxt);
 			skipActive = false;
 		}
 
@@ -3892,10 +3892,10 @@ class PlayState extends MusicBeatState
 			opponentVocals.play();
 			gfVocals.time = Conductor.songPosition;
 			gfVocals.play();
-			FlxTween.tween(skipText, {alpha: 0}, 0.2, {
+			FlxTween.tween(skipTxt, {alpha: 0}, 0.2, {
 				onComplete: function(tw)
 				{
-					remove(skipText);
+					remove(skipTxt);
 				}
 			});
 			skipActive = false;

@@ -147,15 +147,15 @@ class APGameState {
     }
 
     public function noteData(songName:String, modName:String, ?week:String):Array<Int> {
-        trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
+        //trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
         var matchingNotes:Array<Int> = [];
         var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
         var apInfo = info();
     
-        trace("Looking for locations matching pattern: " + "Note #: " + songName + (modName != "" ? " (" + modName + ")" : ""));
+        //trace("Looking for locations matching pattern: " + "Note #: " + songName + (modName != "" ? " (" + modName + ")" : ""));
     
         // Initial matching using the regular expression
-        trace("Iterating through APLocations...");
+        //trace("Iterating through APLocations...");
         for (location in APLocations) {
             var locationName = apInfo.get_location_name(location);
             if (reg.match(locationName)) {
@@ -222,8 +222,8 @@ class APGameState {
             }
         }
     
-        trace("Finished iterating through APLocations.");
-        trace("Returning matching notes: " + matchingNotes);
+        //trace("Finished iterating through APLocations.");
+        //trace("Returning matching notes: " + matchingNotes);
         return matchingNotes;
     }
 
