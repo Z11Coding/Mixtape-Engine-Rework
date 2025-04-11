@@ -192,7 +192,7 @@ class RankingSubstate extends MusicBeatSubstate
 					var locationId = (PlayState.SONG.song);
 					trace('Combo Gotten:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
 					trace('Accuracy Gotten:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
-					if ()
+					
 					trace(archipelago.APPlayState.currentMod);
 					if (archipelago.APPlayState.currentMod.trim() != "")
 					{
