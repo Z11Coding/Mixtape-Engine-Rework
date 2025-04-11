@@ -149,10 +149,10 @@ class APGameState {
     public function noteData(songName:String, modName:String):Array<Int> {
         trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
         var matchingNotes:Array<Int> = [];
-        var reg = new EReg("^Note \\d+: " + EReg.escape(songName) + "$", "");
+        var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
         var apInfo = info();
     
-        trace("Looking for locations matching pattern: " + "Note #: " + songName);
+        trace("Looking for locations matching pattern: " + "Note #: " + songName + (modName != "" ? " (" + modName + ")" : ""));
     
         // Initial matching using the regular expression
         trace("Iterating through APLocations...");
@@ -170,7 +170,7 @@ class APGameState {
                 trace("Checking song in current week: " + song[0]);
                 if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
                     (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
-                    var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0]) + "$", "");
+                    var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
                     for (location in APLocations) {
                         var locationName = apInfo.get_location_name(location);
                         if (fallbackReg.match(locationName)) {
@@ -206,7 +206,7 @@ class APGameState {
                             trace("Parsed song JSON successfully. Checking song name...");
                             if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
                                 trace("Match found for song in JSON: " + songJson.song);
-                                var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0]) + "$", "");
+                                var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
                                 for (location in APLocations) {
                                     var locationName = apInfo.get_location_name(location);
                                     if (fallbackReg.match(locationName)) {

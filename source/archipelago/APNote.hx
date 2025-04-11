@@ -17,7 +17,11 @@ class APNote extends objects.Note {
         trace("Copying properties from original note to new note...");
         for (field in Reflect.fields(note)) {
             if (field != "ignoreNote" && field != "noteType" && field != "strumTime" && field != "noteData" && field != "prevNote" && field != "isSustainNote") {
-                Reflect.setField(this, field, Reflect.field(note, field));
+                try {
+                    Reflect.setField(this, field, Reflect.field(note, field));
+                } catch (e:Dynamic) {
+                    trace('Failed to copy field: ' + field + ' with error: ' + e);
+                }
             }
         }
         note.destroy();
