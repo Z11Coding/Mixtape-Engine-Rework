@@ -163,6 +163,9 @@ class APEntryState extends MusicBeatState
 
 	override function create()
 	{
+		if (!FlxG.sound.music.playing)
+			Constants.playMenuMusic();
+
 		Cursor.show();
 		Cursor.cursorMode = Default;
 		if (APSettingsSubState.globalSongList.length <= 0)

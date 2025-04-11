@@ -220,9 +220,9 @@ class CategoryState extends MusicBeatState
 			songText.isMenuItem = true;
 			songText.targetY = i;
 			songText.ID = i;
-			if (songText.letters[songText.letters.length-1].x > FlxG.width) {
+			/*"""if (songText.letters[songText.letters.length-1].x > FlxG.width) {
 				songText.scaleX = (songText.letters[songText.letters.length-1].x - FlxG.width) * 0.001;
-			}
+			}"""*/
 			grpMenuShit.add(songText);
 			var isLocked:Bool = menuLocks[i];
 			if (isLocked)

@@ -1496,24 +1496,10 @@ class APPlayState extends PlayState {
     {
         super.generateSong();
         if (PlayState.SONG == null) return;
-        var apNotes = archipelago.APNote.replaceNotes(unspawnNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
-        for (playfield in playfields) {
-            for (column in playfield.noteQueue)
-                for (note in column)
-            {
-                if (!unspawnNotes.contains(note))
-                {playfield.unqueue(note);}
-            
-            for (note in apNotes) {
-                if (note.field == playfield) {
-                    playfield.queue(note);
-                    note.field = playfield;
-                    note.fieldIndex = playfield.playerId;
-                }
-            }
-        }
-    }
+        archipelago.APNote.replaceNotes(allNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
 
+        for (field in playfields.members)
+			field.clearStackedNotes();
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
@@ -1731,7 +1717,7 @@ class APPlayState extends PlayState {
 			{}
 		swagNote.x += FlxG.width / 2;
 
-        /*f (swagNote.fieldIndex == -1 && swagNote.field == null)
+        if (swagNote.fieldIndex == -1 && swagNote.field == null)
             swagNote.field = swagNote.mustPress ? playerField : dadField;
         if (swagNote.field != null)
             swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
@@ -1740,42 +1726,16 @@ class APPlayState extends PlayState {
         {
             playfield.queue(swagNote); // queues the note to be spawned
             unspawnNotes.push(swagNote);
-            //allNotes.push(swagNote); // just for the sake of convenience
+            allNotes.push(swagNote); // just for the sake of convenience
         }
         else
         {
             swagNote.destroy();
-        }*/
+        }
 		unspawnNotes.sort(PlayState.sortByTime);
-        //allNotes.sort(sortByNotes);
-        /*for (field in playfields.members)
-        {
-            var goobaeg:Array<Note> = [];
-            for (column in field.noteQueue)
-            {
-                if (column.length >= Note.ammo[PlayState.mania])
-                {
-                    for (nIdx in 1...column.length)
-                    {
-                        var last = column[nIdx - 1];
-                        var current = column[nIdx];
-
-                        if (Math.abs(last.strumTime - current.strumTime) <= Conductor.stepCrochet / (192 / 16))
-                        {
-                            if (last.sustainLength < current.sustainLength) // keep the longer hold
-                                field.removeNote(last);
-                            else
-                            {
-                                current.kill();
-                                goobaeg.push(current); // mark to delete after, cant delete here because otherwise it'd fuck w/ stuff
-                            }
-                        }
-                    }
-                }
-            }
-            for (note in goobaeg)
-                field.removeNote(note);
-        }*/
+        allNotes.sort(PlayState.sortByTime);
+        for (field in playfields.members)
+			field.clearStackedNotes();
 	}
 
 	var isFrozen:Bool = false;
@@ -2288,17 +2248,12 @@ class APPlayState extends PlayState {
 			specialNoteHit(note, field);
 			return;
 		}
-        if (note.isCheck)
-        {
-            check++;
+
+        if (note.isCheck) {
             if (ClientPrefs.data.notePopup)
                 ArchPopup.startPopupCustom('You Found A Check!', '$check/$itemAmount', 'archColor'); // test
-            trace('Got: ' + check + '/' + itemAmount);
-            updateScore();
-        }
-
-        if (note is archipelago.APNote)
             checkedNotes.push(cast(note, archipelago.APNote));
+        }
 
         super.goodNoteHit(note, field);
     }

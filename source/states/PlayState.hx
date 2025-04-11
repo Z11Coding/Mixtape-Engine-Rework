@@ -2320,8 +2320,6 @@ class PlayState extends MusicBeatState
 
 	private function generateSong():Void
 	{
-
-		
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
@@ -2421,6 +2419,15 @@ class PlayState extends MusicBeatState
 		{
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
 				daBpm = section.bpm;
+
+			for (i in 0...section.sectionNotes.length) {
+				var swagNote:APNote = new APNote(spawnTime, noteColumn, oldNote);
+				swagNote.mustPress = gottaHitNote;
+				swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
+				swagNote.animSuffix = isAlt ? "-alt" : "";
+				swagNote.sustainLength = songNotes[2];
+				swagNote.noteType = noteType;
+			}
 
 			for (i in 0...section.sectionNotes.length)
 			{
@@ -2931,6 +2938,7 @@ class PlayState extends MusicBeatState
 					noteTypes.push(swagNote.noteType);
 			}
 		}
+
 		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
 		for (event in songData.events) //Event Notes
 			for (i in 0...event[1].length)
@@ -3041,7 +3049,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	public function changeMania(newValue:Int, skipStrumFadeOut:Bool = false, ?modifyNotes = false)
+	public function changeMania(newValue:Int, skipStrumFadeOut:Bool = false)
 	{
 		if (chartModifier == '4K Only' || chartModifier == 'maniaConverter')
 			return;
@@ -3072,13 +3080,10 @@ class PlayState extends MusicBeatState
 		for (field in playfields.members)
 		{
 			field.keyCount = Note.ammo[mania];
-			if (modifyNotes)
+			for (note in allNotes)
 			{
-				for (note in allNotes)
-				{
-					field.unqueue(note);
-					field.queue(note);
-				}
+				field.unqueue(note);
+				field.queue(note);
 			}
 			field.generateStrums();
 		}

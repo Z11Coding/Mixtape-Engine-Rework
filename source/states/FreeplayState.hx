@@ -8,10 +8,7 @@ import backend.Song;
 import objects.HealthIcon;
 import objects.MusicPlayer;
 
-import archipelago.ArchPopup;
-import archipelago.APEntryState;
-import archipelago.APInfo;
-
+import archipelago.*;
 //import states.editors.ChartingStateOG;
 
 import flixel.addons.ui.FlxUIInputText;
@@ -511,12 +508,12 @@ class FreeplayState extends MusicBeatState
 							{
 								colors = [146, 113, 253];
 							}
+							var songNameThing:String = song[0];
+							var modName:String = leWeek.folder;
+							var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+							var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 							if (CategoryState.loadWeekForce == "unplayed")
 							{
-								var songNameThing:String = song[0];
-								var modName:String = leWeek.folder;
-								var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-								var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
 								for (songName in curUnlocked.keys())
 								{
 									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
@@ -525,10 +522,6 @@ class FreeplayState extends MusicBeatState
 							} 
 							else if (CategoryState.loadWeekForce == "unlocked")
 							{
-								var songNameThing:String = song[0];
-								var modName:String = leWeek.folder;
-								var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-								var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
 								for (songName in curUnlocked.keys())
 								{
 									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
@@ -537,12 +530,6 @@ class FreeplayState extends MusicBeatState
 							}
 							else if (CategoryState.loadWeekForce == 'hinted')
 							{
-
-
-								var songNameThing:String = song[0];
-								var modName:String = leWeek.folder;
-								var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-								var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
 								for (songName in curHinted.keys())
 								{
 									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curHinted.get(songName)) && !isMissing)
@@ -550,18 +537,11 @@ class FreeplayState extends MusicBeatState
 								}
 
 							}
-
-
-
 							else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
 							{
 								if (APEntryState.inArchipelagoMode)
 								{
-									var songNameThing:String = song[0];
-									var modName:String = leWeek.folder;
-									var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-									var locationName:String = APEntryState.apGame.info().get_location_name(locationId);
-									if (locationName != null)
+									if (locationIds != null && locationIds.isNotEmpty())
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 								else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -578,12 +558,12 @@ class FreeplayState extends MusicBeatState
 									colors = [146, 113, 253];
 								}
 
+								var songNameThing:String = song[0];
+								var modName:String = leWeek.folder;
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 								if (CategoryState.loadWeekForce == "unplayed")
-								{
-									var songNameThing:String = song[0];
-									var modName:String = leWeek.folder;
-									var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-									var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
+								{	
 									for (songName in curUnlocked.keys())
 									{
 										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
@@ -592,10 +572,6 @@ class FreeplayState extends MusicBeatState
 								}
 								else if (CategoryState.loadWeekForce == "unlocked")
 								{
-									var songNameThing:String = song[0];
-									var modName:String = leWeek.folder;
-									var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-									var isMissing:Bool = APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(locationId));
 									for (songName in curUnlocked.keys())
 									{
 										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
@@ -606,11 +582,7 @@ class FreeplayState extends MusicBeatState
 								{
 									if (APEntryState.inArchipelagoMode)
 									{
-										var songNameThing:String = song[0];
-										var modName:String = leWeek.folder;
-										var locationId:Int = APEntryState.apGame.info().get_location_id(songNameThing + (modName != "" ? " (" + modName + ")" : "") + "-0");
-										var locationName:String = APEntryState.apGame.info().get_location_name(locationId);
-										if (locationName != null)
+										if (locationIds != null && locationIds.isNotEmpty())
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
 									else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -708,17 +680,11 @@ class FreeplayState extends MusicBeatState
 				// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
 
 				if (APEntryState.inArchipelagoMode) {
-					if (locationId.length > 0 && locationId.indexOf(0) == -1) {
-						//trace('Song: ' + songName + ', Mod: ' + (modName != "" ? modName : "(not modded)") + ', Missing: ' + isMissing);
-						songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color, true) : new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) : new DynamicColoredAlphabet(90, 320, songName, true, color, true); 
-				} } else {
+					songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color, true) : new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) : new DynamicColoredAlphabet(90, 320, songName, true, color, true); 
+				} else {
 					songText = new DynamicAlphabet(90, 320, songs[i].songName, true, true);
 				}
-				try {
-					songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
-				} catch (e:Dynamic) {
-					trace("Error setting doShuffle: " + e);
-				}
+				songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
 				songText.targetY = i;
 				grpSongs.add(songText);
 
