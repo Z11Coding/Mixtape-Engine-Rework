@@ -227,6 +227,10 @@ class APGameState {
         return matchingNotes;
     }
 
+    public function getSongLocations(songName:String, modName:String):Array<Int> {
+        return locationData(songName + " (" + modName + ")").concat(noteData(songName, modName));
+    }
+
     public function checkGoal(songName:String, modName:String):Bool {
         var info = info();
         var locations = locationData(songName + " (" + modName + ")").concat(noteData(songName, modName));
