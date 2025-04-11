@@ -1492,6 +1492,30 @@ class APPlayState extends PlayState {
 		super.stepHit();
 	}
 
+    private override function generateSong():Void
+    {
+        super.generateSong();
+        if (PlayState.SONG == null) return;
+        var apNotes = archipelago.APNote.replaceNotes(unspawnNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
+        for (playfield in playfields) {
+            for (column in playfield.noteQueue)
+                for (note in column)
+            {
+                if (!unspawnNotes.contains(note))
+                {playfield.unqueue(note);}
+            
+            for (note in apNotes) {
+                if (note.field == playfield) {
+                    playfield.queue(note);
+                    note.field = playfield;
+                    note.fieldIndex = playfield.playerId;
+                }
+            }
+        }
+    }
+
+    }
+
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
 	// 	super.generateNotes(song, AI);
 
