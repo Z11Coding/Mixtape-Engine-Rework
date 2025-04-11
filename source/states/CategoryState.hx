@@ -216,10 +216,13 @@ class CategoryState extends MusicBeatState
 
 		for (i in 0...menuItems.length)
 		{
-			var songText:Alphabet = new Alphabet(20 * i, 320, menuItems[i], true);
+			var songText:Alphabet = new Alphabet(20 * (!ClientPrefs.data.showMods ? i : 1), 320, menuItems[i], true);
 			songText.isMenuItem = true;
 			songText.targetY = i;
 			songText.ID = i;
+			if (songText.letters[songText.letters.length-1].x > FlxG.width) {
+				songText.scaleX = (songText.letters[songText.letters.length-1].x - FlxG.width) * 0.001;
+			}
 			grpMenuShit.add(songText);
 			var isLocked:Bool = menuLocks[i];
 			if (isLocked)
@@ -345,7 +348,7 @@ class CategoryState extends MusicBeatState
 
 			if (FlxG.keys.justPressed.CONTROL)
 			{
-				FlxG.sound.play(Paths.sound('acceptMenu'));
+				FlxG.sound.play(Paths.sound('confirmMenu'));
 				this.openSubState(new options.CategoriesSubstate());
 			}
 

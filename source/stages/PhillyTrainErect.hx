@@ -68,9 +68,9 @@ class PhillyTrainErect extends PicoCapableStage
 			colorShader.contrast = 0;
 			colorShader.brightness = -5;
 
-			boyfriend.shader = colorShader;
-			dad.shader = colorShader;
-			gf.shader = colorShader;
+			if (boyfriend != null) boyfriend.shader = colorShader;
+			if (dad != null) dad.shader = colorShader;
+			if (gf != null) gf.shader = colorShader;
 			phillyTrain.shader = colorShader;
 		}
 	}
@@ -85,9 +85,9 @@ class PhillyTrainErect extends PicoCapableStage
 				colorShader.contrast = 0;
 				colorShader.brightness = -5;
 
-				boyfriend.shader = colorShader;
-				dad.shader = colorShader;
-				gf.shader = colorShader;
+				if (boyfriend != null) boyfriend.shader = colorShader;
+				if (dad != null) dad.shader = colorShader;
+				if (gf != null) gf.shader = colorShader;
             }   
         }
     }

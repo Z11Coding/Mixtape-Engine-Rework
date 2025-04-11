@@ -1,6 +1,7 @@
 package states;
 import states.stages.objects.*;
 import objects.VideoSprite;
+import yutautil.ExtendedDate;
 
 //About time i got around to this
 class SplashScreen extends MusicBeatState 
@@ -29,87 +30,90 @@ class SplashScreen extends MusicBeatState
     var initX:Float;
 
     public var videoCutscene:VideoSprite = null;
+    var isVideo:Bool = false;
     override public function create()
     {
-        // var currentDate = ExtendedDate.global();
-        // if (currentDate.getDate() == 5) {
-        //     // Skip intro and show video
-        //     FlxG.switchState(new objects.VideoSprite("bat"));
-        //     return;
-        // }
+        var currentDate = ExtendedDate.global();
+        if (currentDate.getDate() == 6) {
+            // Skip intro and show video
+            trace("Playing Video!");
+            startVideo("splashscreen/bat");
+        }
         states.FirstCheckState.gameInitialized = true;
-        splashGrad = new FlxSprite().loadGraphic(Paths.image('effects/GradientSplash'));
-        splashGrad.screenCenter();
-        splashGrad.color = FlxColor.PURPLE;
-        splashGrad.alpha = 0;
-        add(splashGrad);
+        if (!isVideo) {
+            splashGrad = new FlxSprite().loadGraphic(Paths.image('effects/GradientSplash'));
+            splashGrad.screenCenter();
+            splashGrad.color = FlxColor.PURPLE;
+            splashGrad.alpha = 0;
+            add(splashGrad);
 
-        mix = new FlxText(0, 0, 400, "MIX", 32);
-        mix.font = Paths.font('FridayNightFunkin.ttf');
-        mix.screenCenter();
-        mix.x -= 300;
-        mix.size = 100;
-        mix.alpha = 0;
-        add(mix);
-        initX = mix.x;
+            mix = new FlxText(0, 0, 400, "MIX", 32);
+            mix.font = Paths.font('FridayNightFunkin.ttf');
+            mix.screenCenter();
+            mix.x -= 300;
+            mix.size = 100;
+            mix.alpha = 0;
+            add(mix);
+            initX = mix.x;
 
-        tape = new FlxText(0, 0, 400, "TAPE", 32);
-        tape.font = Paths.font('FridayNightFunkin.ttf');    
-        tape.screenCenter();
-        tape.x -= 300;
-        tape.y += 200;
-        tape.size = 100;
-        tape.alpha = 0;
-        add(tape);
+            tape = new FlxText(0, 0, 400, "TAPE", 32);
+            tape.font = Paths.font('FridayNightFunkin.ttf');
+            tape.screenCenter();
+            tape.x -= 300;
+            tape.y += 200;
+            tape.size = 100;
+            tape.alpha = 0;
+            add(tape);
 
-        engine = new FlxText(0, 0, 800, "ENGINE", 32);
-        engine.font = Paths.font('FridayNightFunkin.ttf');
-        engine.screenCenter();
-        engine.x -= 300;
-        engine.y += 200;
-        engine.size = 100;
-        engine.alpha = 0;
-        add(engine);
+            engine = new FlxText(0, 0, 800, "ENGINE", 32);
+            engine.font = Paths.font('FridayNightFunkin.ttf');
+            engine.screenCenter();
+            engine.x -= 300;
+            engine.y += 200;
+            engine.size = 100;
+            engine.alpha = 0;
+            add(engine);
 
-        mixtapeLogo = new FlxSprite().loadGraphic(Paths.image('logo'));
-        mixtapeLogo.screenCenter();
-        mixtapeLogo.alpha = 0;
-        mixtapeLogo.setGraphicSize(Std.int(mixtapeLogo.width * 0.3));
-        mixtapeLogo.y -= 50;
-        add(mixtapeLogo);
+            mixtapeLogo = new FlxSprite().loadGraphic(Paths.image('logo'));
+            mixtapeLogo.screenCenter();
+            mixtapeLogo.alpha = 0;
+            mixtapeLogo.setGraphicSize(Std.int(mixtapeLogo.width * 0.3));
+            mixtapeLogo.y -= 50;
+            add(mixtapeLogo);
 
-        mixtapeEngine = new FlxText(0, 0, 1200, "MIXTAPE ENGINE", 32);
-        mixtapeEngine.font = Paths.font('FridayNightFunkin.ttf');
-        mixtapeEngine.screenCenter();
-        mixtapeEngine.x += 100;
-        mixtapeEngine.size = 100;
-        mixtapeEngine.y += 200;
-        mixtapeEngine.alpha = 0;
-        add(mixtapeEngine);
+            mixtapeEngine = new FlxText(0, 0, 1200, "MIXTAPE ENGINE", 32);
+            mixtapeEngine.font = Paths.font('FridayNightFunkin.ttf');
+            mixtapeEngine.screenCenter();
+            mixtapeEngine.x += 100;
+            mixtapeEngine.size = 100;
+            mixtapeEngine.y += 200;
+            mixtapeEngine.alpha = 0;
+            add(mixtapeEngine);
 
-        mix.y = mixtapeEngine.y;
-        tape.y = mixtapeEngine.y;
-        engine.y = mixtapeEngine.y;
+            mix.y = mixtapeEngine.y;
+            tape.y = mixtapeEngine.y;
+            engine.y = mixtapeEngine.y;
 
-        splashGlowParticles = new FlxTypedGroup<SplashGlowParticle>();
-        splashGlowParticles.visible = true;
-        add(splashGlowParticles);
+            splashGlowParticles = new FlxTypedGroup<SplashGlowParticle>();
+            splashGlowParticles.visible = true;
+            add(splashGlowParticles);
 
-        splashSound = new FlxSound().loadEmbedded(Paths.sound('You Win'));
-        splashSound.volume = 0.5;
-        FlxG.sound.list.add(splashSound);
-        splashSound.onComplete = finishSong.bind();
-        Conductor.bpm = 100;
-        new FlxTimer().start(1, function(tmr:FlxTimer)
-        {
-            splashSound.play();
-            mix.x += 600;
-            tape.x += 600;
-            engine.x += 600;
-            mix.alpha = 1;
-            mixT = FlxTween.tween(mix, {x:initX, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
-            mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
-        });
+            splashSound = new FlxSound().loadEmbedded(Paths.sound('You Win'));
+            splashSound.volume = 0.5;
+            FlxG.sound.list.add(splashSound);
+            splashSound.onComplete = finishSong.bind();
+            Conductor.bpm = 100;
+            new FlxTimer().start(1, function(tmr:FlxTimer)
+            {
+                splashSound.play();
+                mix.x += 600;
+                tape.x += 600;
+                engine.x += 600;
+                mix.alpha = 1;
+                mixT = FlxTween.tween(mix, {x:initX, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
+                mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
+            });
+        }
         super.create();
     }
 
@@ -128,6 +132,7 @@ class SplashScreen extends MusicBeatState
 
 		if (foundFile)
 		{
+            isVideo = true; 
 			videoCutscene = new VideoSprite(fileName, forMidSong, canSkip, loop);
 
 			// Finish callback
@@ -139,6 +144,7 @@ class SplashScreen extends MusicBeatState
             }
             videoCutscene.finishCallback = onVideoEnd;
             videoCutscene.onSkip = onVideoEnd;
+            videoCutscene.screenCenter();
 			add(videoCutscene);
 
 			if (playOnLoad)
@@ -173,7 +179,7 @@ class SplashScreen extends MusicBeatState
     override function stepHit()
     {
         super.stepHit();
-        if (!videoCutscene?.videoSprite?.bitmap?.isPlaying) {
+        if (!isVideo) {
             switch (curStep)
             {
                 case 3:
@@ -228,21 +234,25 @@ class SplashScreen extends MusicBeatState
 
     override public function onFocus():Void
     {
-        FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if (!tmr.finished)
-            tmr.active = true);
-        FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
-            twn.active = true);
-        splashSound.resume();
+        if (!isVideo) {
+            FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if (!tmr.finished)
+                tmr.active = true);
+            FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
+                twn.active = true);
+            splashSound.resume();
+        }
         super.onFocus();
     }
 
     override public function onFocusLost():Void
     {
-        FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if (!tmr.finished)
-            tmr.active = false);
-        FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
-            twn.active = false);
-        splashSound.pause();
+        if (!isVideo) {
+            FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if (!tmr.finished)
+                tmr.active = false);
+            FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
+                twn.active = false);
+            splashSound.pause();
+        }
         super.onFocusLost();
     }
 
@@ -251,11 +261,12 @@ class SplashScreen extends MusicBeatState
         if(splashSound != null)
 			Conductor.songPosition = splashSound.time;
 
-        if (FlxG.keys.justPressed.ENTER) 
+        if (FlxG.keys.justPressed.ENTER && !isVideo) 
         {
             FlxG.switchState(FirstCheckState.relaunch ? new MainMenuState() : new TitleState());
             splashSound.stop();
         }
+
         if(splashGlowParticles != null)
         {
             var i:Int = splashGlowParticles.members.length-1;
