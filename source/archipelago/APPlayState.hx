@@ -2083,6 +2083,9 @@ class APPlayState extends PlayState {
             ghostChat = false;
         }
 
+        for (note in checkedNotes)
+            note.sendCheck();
+
 		ClientPrefs.data.downScroll = ogScroll;
 
         if (FlxG.save.data.manualOverride)
@@ -2293,6 +2296,10 @@ class APPlayState extends PlayState {
             trace('Got: ' + check + '/' + itemAmount);
             updateScore();
         }
+
+        if (note is archipealgo.APNote)
+            checkedNotes.push(note);
+        
         super.goodNoteHit(note, field);
     }
 

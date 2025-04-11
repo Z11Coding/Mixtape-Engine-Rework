@@ -146,7 +146,7 @@ class APGameState {
         return matchingLocations;
     }
 
-    public function noteData(songName:String, modName:String):Array<Int> {
+    public function noteData(songName:String, modName:String, ?week:String):Array<Int> {
         trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
         var matchingNotes:Array<Int> = [];
         var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");

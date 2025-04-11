@@ -46,7 +46,7 @@ class APNote extends objects.Note {
             var randomIndex = Std.random(notes.length);
             var note = notes[randomIndex];
 
-            var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()));
+            var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
             if (shouldIgnore) continue; // Skip if the note should be ignored
 
             // Check if the note should be ignored
