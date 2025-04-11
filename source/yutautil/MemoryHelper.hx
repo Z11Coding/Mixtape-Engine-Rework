@@ -57,4 +57,12 @@ class MemoryHelper {
             clearObject(object);
         }
     }
+
+    public static function clearMemoryStored():Void {
+        cpp.vm.Gc.compact();
+        cpp.vm.Gc.run(false);
+        cpp.vm.Gc.run(true);
+        trace("Memory cleared");
+    }
+
 }

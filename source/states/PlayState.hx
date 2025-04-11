@@ -6576,6 +6576,9 @@ class PlayState extends MusicBeatState
 		instance = null;
 		super.destroy();
 		endingSong = true;
+
+		yutautil.MemoryHelper.clearMemoryStored();
+
 	}
 
 	var lastStepHit:Int = -1;
