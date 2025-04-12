@@ -60,7 +60,7 @@ class APNote extends objects.Note {
             var location:Int = locations[i % locations.length];
             var apNote = new APNote(note, location, null); // Create a new APNote with the location
             newNotes.push(apNote);
-            notes.isCheck = true;
+            note.isCheck = true;
             notes[randomIndices[i]] = apNote; // Replace the original note with the APNote
         }
 
