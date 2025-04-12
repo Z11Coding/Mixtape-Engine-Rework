@@ -1497,7 +1497,7 @@ class APPlayState extends PlayState {
     {
         super.generateSong();
         if (PlayState.SONG == null) return;
-        archipelago.APNote.replaceNotes(allNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
+        archipelago.APNote.replaceNotes(unspawnNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
 
         for (field in playfields.members)
 			field.clearStackedNotes();
@@ -2026,8 +2026,12 @@ class APPlayState extends PlayState {
             ghostChat = false;
         }
 
-        for (note in checkedNotes)
+        trace("Sending checks for all checked notes...");
+        for (note in checkedNotes) {
+            trace("Sending check for note: " + note);
             note.sendCheck();
+        }
+        trace("All checks sent.");
 
 		ClientPrefs.data.downScroll = ogScroll;
 

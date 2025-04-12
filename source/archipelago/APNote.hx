@@ -60,8 +60,22 @@ class APNote extends objects.Note {
             var location:Int = locations[i % locations.length];
             var apNote = new APNote(note, location, null); // Create a new APNote with the location
             newNotes.push(apNote);
-            note.isCheck = true;
-            note = apNote; // Replace the original note with the APNote
+            notes[randomIndices[i]] = apNote; // Replace the original note with the APNote
+            for (queue in apNote.field.noteQueue) {
+                for (i in 0...queue.length) {
+                    if (queue[i] == note) {
+                        queue[i] = apNote; // Replace the note with apNote in the double-array
+                        queue[i].rgbShader.r = apNote.rgbShader.r; // Set the color of the new note
+                        queue[i].rgbShader.g = apNote.rgbShader.g; // Set the color of the new note
+                        queue[i].rgbShader.b = apNote.rgbShader.b; // Set the color of the new note
+                        note.rgbShader.r = 0xFF0000; // Set the color of the original note to red
+                        note.rgbShader.g = 0xFF0000; // Set the color of the original note to red
+                        note.rgbShader.b = 0xFF0000; // Set the color of the original note to red
+                        break; // Break out of the loop once the note is found and replaced
+                    }
+                }
+            }
+            apNote.isCheck = true; // Set the isCheck property to true
         }
 
         return newNotes;

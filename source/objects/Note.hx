@@ -357,6 +357,7 @@ class Note extends NoteObject
 	//TODO: Make this it's own object to help de-clutter Note
 	//Maybe even make note like BaseNote or something to make hardcoded sub-notetypes or something
 	public var isCheck:Bool = false;
+	public var checkInfo:{note:archipelago.APNote, loc:Int};
 	public var isMine:Bool = false;
 	public var isAlert:Bool = false;
 	public var isHeal:Bool = false;
