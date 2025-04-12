@@ -10,6 +10,18 @@ class APInfo {
 	public static var unlockMethod:String = "Song Completion";
 	public static var unlockType:String = "Per Song";
 
+	public static var hasNoteChecks(get, never):Bool;
+
+	public static var hasSongChecks(get, never):Bool;
+
+	public static function get_hasNoteChecks():Bool {
+		return unlockMethod == "Note Checks" || unlockMethod == "Both";
+	}
+
+	public static function get_hasSongChecks():Bool {
+		return unlockMethod == "Song Completion" || unlockMethod == "Both";
+	}
+
 	public static final baseGame:Array<String> = 
 	[
 		'Tutorial',
