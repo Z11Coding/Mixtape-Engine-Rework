@@ -1355,7 +1355,8 @@ class APPlayState extends PlayState {
     public static var ghostChat:Bool = false;
     // I feel bad for the poor soul that has this trigger on them multiple times
     public function triggerGhostChat()
-    { ghostChat = true;
+    { 
+        ghostChat = true;
         randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer)
         tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0))); doEffect(effectArray[curEffect]);
         trace("Ghost Chat Activated! L E T  T H E  C H A O S  B E G I N !");
@@ -1495,6 +1496,11 @@ class APPlayState extends PlayState {
     private override function generateSong():Void
     {
         super.generateSong();
+        if (PlayState.SONG == null) return;
+        archipelago.APNote.replaceNotes(allNotes, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
+
+        for (field in playfields.members)
+			field.clearStackedNotes();
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
@@ -1859,25 +1865,7 @@ class APPlayState extends PlayState {
         for (i in activeItems)
             if (i == 0)
                 FlxG.save.data.activeItems = null;
-
-        /*if (FlxG.keys.justPressed.F)
-        {
-            switch (FlxG.random.int(0, 2))
-            {
-                case 0:
-                    activeItems[0] += 1;
-                    ArchPopup.startPopupCustom('You Got an Item!', '+1 Shield ( ' + activeItems[0] + ' Left)', 'archColor');
-                case 1:
-                    activeItems[1] = 1;
-                    ArchPopup.startPopupCustom('You Got an Item!', "Blue Ball's Curse", 'archColor');
-                case 2:
-                    activeItems[2] += 1;
-                    ArchPopup.startPopupCustom('You Got an Item!', "Max HP Up!", 'archColor');
-                case 3:
-                    keybindSwitch('SAND');
-                    ArchPopup.startPopupCustom('You Got an Item!', "Keybind Switch (S A N D)", 'archColor');
-            }
-        }*/
+        
         #if windows
 		for (video in addedMP4s)
 		{
@@ -2245,8 +2233,7 @@ class APPlayState extends PlayState {
 		}
 
         if (note.isCheck) {
-            if (ClientPrefs.data.notePopup)
-                ArchPopup.startPopupCustom('You Found A Check!', '$check/$itemAmount', 'archColor'); // test
+            ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
             checkedNotes.push(cast(note, archipelago.APNote));
         }
 
