@@ -1610,7 +1610,7 @@ class FreeplayState extends MusicBeatState
 
 			if (songs[curSelected].songName != 'SONG NOT FOUND') 
 			{
-				Mods.currentModDirectory = songs[curSelected].folder;
+				Mods.currentModDirectory = songs[curSelected+1].folder;
 				PlayState.storyWeek = songs[curSelected].week;
 
 				switch (songs[curSelected].songName)

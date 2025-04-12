@@ -4,7 +4,7 @@ import archipelago.PacketTypes.NetworkItem;
 
 class APNote extends objects.Note {
     var APItem:NetworkItem;
-    var APItemLocation:Null<Int> = null;
+    public var APItemLocation:Null<Int> = null;
 
     public function new(note:objects.Note, location:Int, ?item:NetworkItem = null) {
         super(note.strumTime, note.noteData, note.prevNote, note.isSustainNote);
@@ -60,17 +60,18 @@ class APNote extends objects.Note {
             var location:Int = locations[i % locations.length];
             var apNote = new APNote(note, location, null); // Create a new APNote with the location
             newNotes.push(apNote);
-            notes[randomIndices[i]] = apNote; // Replace the original note with the APNote
+            notes[randomIndices[i]].isCheck = true; // Replace the original note with the APNote
+            note = apNote; // Also replace the original note with the APNote
             for (queue in apNote.field.noteQueue) {
                 for (i in 0...queue.length) {
                     if (queue[i] == note) {
                         queue[i] = apNote; // Replace the note with apNote in the double-array
-                        queue[i].rgbShader.r = apNote.rgbShader.r; // Set the color of the new note
-                        queue[i].rgbShader.g = apNote.rgbShader.g; // Set the color of the new note
-                        queue[i].rgbShader.b = apNote.rgbShader.b; // Set the color of the new note
-                        note.rgbShader.r = 0xFF0000; // Set the color of the original note to red
-                        note.rgbShader.g = 0xFF0000; // Set the color of the original note to red
-                        note.rgbShader.b = 0xFF0000; // Set the color of the original note to red
+                        queue[i].rgbShader.r = 0x3380CC; // Set the color of the new note
+                        queue[i].rgbShader.g = 0x3380CC; // Set the color of the new note
+                        queue[i].rgbShader.b = 0x3380CC; // Set the color of the new note
+                        note.rgbShader.r = 0x3380CC; // Set the color of the original note to red
+                        note.rgbShader.g = 0x3380CC; // Set the color of the original note to red
+                        note.rgbShader.b = 0x3380CC; // Set the color of the original note to red
                         break; // Break out of the loop once the note is found and replaced
                     }
                 }

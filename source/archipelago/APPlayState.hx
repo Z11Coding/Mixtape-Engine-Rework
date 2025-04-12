@@ -2027,6 +2027,7 @@ class APPlayState extends PlayState {
         trace("Sending checks for all checked notes...");
         for (note in checkedNotes) {
             trace("Sending check for note: " + note);
+            trace("Sending location: " + note.APItemLocation);
             note.sendCheck();
         }
         trace("All checks sent.");
