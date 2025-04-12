@@ -194,7 +194,9 @@ class APGameState {
                 trace("Constructed songPath: " + songPath);
     
                 var songJson:backend.Song.SwagSong = null;
-                var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + modName + "/data", ".json");
+                var jsonStuff:Array<String> = modName.trim() != "" 
+                    ? Paths.crawlDirectoryOG("mods/" + modName + "/data", ".json") 
+                    : Paths.crawlDirectoryOG("assets/shared/data", ".json");
                 trace("Retrieved JSON files: " + jsonStuff);
     
                 for (json in jsonStuff) {
@@ -234,17 +236,16 @@ class APGameState {
     public function checkGoal(songName:String, modName:String):Bool {
         var info = info();
         var locations = locationData(songName + (modName != "" ? " (" + modName + ")" : "")).concat(noteData(songName, modName));
-        var isGoal:Bool = true;
         for (location in locations) {
             if (info.missingLocations.contains(location)) {
-                isGoal = false;
-                break;
+                return false;
             }
         }
-        if (isGoal) {
+        if (states.FreeplayState.isVictorySong(songName, modName)) {
             setGoal();
+            return true;
         }
-        return isGoal;
+        return false;
     }
 
     public function setGoal():Void {
