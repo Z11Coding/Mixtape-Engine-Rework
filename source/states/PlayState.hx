@@ -2979,16 +2979,6 @@ class PlayState extends MusicBeatState
 			note.scale.set(1, 1);
 			note.updateHitbox();
 
-			/*
-				if (!isPixelStage) {
-					note.setGraphicSize(Std.int(note.width * Note.noteScales[mania]));
-					note.updateHitbox();
-				} else {
-					note.setGraphicSize(Std.int(note.width * daPixelZoom * (Note.noteScales[mania] + 0.3)));
-					note.updateHitbox();
-				}
-			*/
-
 			// Like reloadNote()
 
 			var lastScaleY:Float = note.scale.y;

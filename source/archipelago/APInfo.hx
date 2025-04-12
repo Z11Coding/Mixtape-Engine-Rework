@@ -7,6 +7,9 @@ class APInfo {
 	public static var ticketCount:Int = 0;
 	public static var ticketWinCount:Int = 1;
 
+	public static var unlockMethod:String = "Song Completion";
+	public static var unlockType:String = "Per Song";
+
 	public static final baseGame:Array<String> = 
 	[
 		'Tutorial',

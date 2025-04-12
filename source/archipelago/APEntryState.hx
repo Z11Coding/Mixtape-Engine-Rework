@@ -437,6 +437,9 @@ class APEntryState extends MusicBeatState
 		APInfo.ticketCount = 0;
 		RankingSubstate.comboRankSetLimit = slotData.gradeNeeded;
 		RankingSubstate.accRankSetLimit = slotData.accuracyNeeded;
+		APInfo.unlockMethod = slotData.locationType;
+		//APInfo.unlockType = slotData.locationMethod;
+		trace(APInfo.unlockMethod);
 		closeSubState();
 		inArchipelagoMode = true;
 		var FNF = new FlxSave();

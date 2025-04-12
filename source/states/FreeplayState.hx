@@ -514,9 +514,10 @@ class FreeplayState extends MusicBeatState
 								var modName:String = leWeek.folder;
 								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
+
 								for (songName in curUnlocked.keys())
 								{
-									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
+									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							} 
@@ -528,7 +529,7 @@ class FreeplayState extends MusicBeatState
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 								for (songName in curUnlocked.keys())
 								{
-									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
+									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							}
@@ -577,7 +578,7 @@ class FreeplayState extends MusicBeatState
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);	
 									for (songName in curUnlocked.keys())
 									{
-										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
+										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
 								}
@@ -589,7 +590,7 @@ class FreeplayState extends MusicBeatState
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 									for (songName in curUnlocked.keys())
 									{
-										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
+										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
 								}

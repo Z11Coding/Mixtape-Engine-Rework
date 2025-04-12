@@ -112,6 +112,8 @@ class APGameState {
     public var ItemIndex:Int = -1;
 
     public function locationData(songName:String):Array<Int> {
+        if (APInfo.unlockMethod != "Note Checks")
+            return [];
         // trace("Starting locationData function with songName: " + songName);
         var matchingLocations:Array<Int> = [];
         var exactMatch:Int = -1;
@@ -147,6 +149,8 @@ class APGameState {
     }
 
     public function noteData(songName:String, modName:String, ?week:String):Array<Int> {
+        if (APInfo.unlockMethod != "Song Completion")
+            return [];
         //trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
         var matchingNotes:Array<Int> = [];
         var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
@@ -527,8 +531,30 @@ class APGameState {
                 .replace("<cClose>", "}")
                 .replace("<sOpen>", "[")
                 .replace("<sClose>", "]");
+            
+            var modName = "";
+            var firstParenIndex = itemName.indexOf("(");
+            var endParenIndex = itemName.lastIndexOf(")");
+            while (firstParenIndex != -1) {
+                if (endParenIndex != -1) {
+                    modName = itemName.substring(firstParenIndex + 1, endParenIndex);
+                    if (isModName(modName)) {
+                        itemName = itemName.substring(0, firstParenIndex).trim();
+                        break;
+                    } else {
+                        firstParenIndex = itemName.indexOf("(", firstParenIndex + 1);
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            if (firstParenIndex == -1 || !isModName(modName)) {
+                modName = "";
+                itemName = item;
+            }
 
-            var isSpecialItem = locationData(itemName).isEmpty();
+            var isSpecialItem = locationData(itemName).concat(APEntryState.apGame.noteData(itemName, modName)).isEmpty();
             if (isSpecialItem) {
                 specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
             }
