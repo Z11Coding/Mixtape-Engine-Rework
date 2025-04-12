@@ -1865,7 +1865,7 @@ class APPlayState extends PlayState {
         for (i in activeItems)
             if (i == 0)
                 FlxG.save.data.activeItems = null;
-        
+
         #if windows
 		for (video in addedMP4s)
 		{
@@ -2021,10 +2021,8 @@ class APPlayState extends PlayState {
         updateFunctions.resize(0);
         updateFunctions = [];
 
-        if (ghostChat)
-        {
+        if (ghostChat) 
             ghostChat = false;
-        }
 
         trace("Sending checks for all checked notes...");
         for (note in checkedNotes) {

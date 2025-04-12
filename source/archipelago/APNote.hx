@@ -29,13 +29,13 @@ class APNote extends objects.Note {
         APItemLocation = location;
 
         // Set a unique RGBShader color for APNotes
-        this.rgbShader.r = 0x3380CC;
+        this.rgbShader.r = 0x3380CC; 
         this.rgbShader.g = 0x3380CC; 
-        this.rgbShader.b = 0x3380CC;   
+        this.rgbShader.b = 0x3380CC; 
     }
 
     // Replace notes with a certain amount of locations.
-    public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true):Array<APNote> {
+    public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
         var newNotes:Array<APNote> = [];
         var randomIndices:Array<Int> = [];
 
@@ -77,11 +77,10 @@ class APNote extends objects.Note {
             }
             apNote.isCheck = true; // Set the isCheck property to true
         }
-
-        return newNotes;
     }
 
     public function sendCheck():Void {
+        trace('Location ID: $APItemLocation');
         if (APItemLocation != null) {
             APEntryState.apGame.info().LocationChecks([APItemLocation]);
         }
