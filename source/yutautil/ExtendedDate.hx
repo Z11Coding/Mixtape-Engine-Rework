@@ -57,6 +57,7 @@ class ExtendedDate extends FlxBasic {
         {name: "Yuta", birthday: Either.Left({year: 1999, month: 11, day: 10})},
         {name: "Magi", birthday: Either.Right({year: 2004, month: July, day: 29})},
         {name: "Dylan", birthday: Either.Right({year: 2005, month: October, day: 26})},
+        {name: "AnotherGuy", birthday: Either.Right({year: 2000, month: April, day: 6})},
     ];
 
     public function new(year:Int, month:Int, day:Int, hour:Int = 0, minute:Int = 0, second:Int = 0) {
