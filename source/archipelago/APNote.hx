@@ -36,6 +36,45 @@ class APNote extends objects.Note {
         this.checkInfo = {note: this, loc: location}; // Set the checkInfo for the new note
     }
 
+        // Replace notes with a certain amount of locations.
+        public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) { // This needs to stay, since this will be useful for regular engines.
+            var newNotes:Array<APNote> = [];
+            var randomIndices:Array<Int> = [];
+    
+            // Generate a list of random unique indices
+            while (randomIndices.length < Math.min(locations.length, notes.length)) {
+                var randomIndex = Std.random(notes.length);
+                var note = notes[randomIndex];
+    
+                var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
+                if (shouldIgnore || randomIndices.contains(randomIndex)) continue; // Skip if the note should be ignored or already selected
+    
+                randomIndices.push(randomIndex);
+            }
+    
+            for (i in 0...randomIndices.length) {
+                var note:objects.Note = notes[randomIndices[i]];
+                var location:Int = locations[i % locations.length];
+                var apNote = new APNote(note, location, null); // Create a new APNote with the location
+                // apNote.noteIndex = note.noteIndex;
+                newNotes.push(apNote);
+    
+                // Replace the original note with the APNote
+                notes[randomIndices[i]].rgbShader.r = 0x3380CC; 
+                notes[randomIndices[i]].rgbShader.g = 0x3380CC; 
+                notes[randomIndices[i]].rgbShader.b = 0x3380CC; 
+                notes[randomIndices[i]] = apNote;
+    
+                apNote.index = i; // Set the index for the new note
+    
+    
+                // Set the checkInfo for the new note
+                apNote.checkInfo = {note: apNote, loc: location};
+            }
+            return newNotes; // Return the new notes
+        }
+    
+
     public static function replaceInQueue(notes:Array<Array<objects.Note>>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
         var newNotes:Array<APNote> = [];
         var flatNotes:Array<{lane:Int, index:Int, note:objects.Note}> = [];

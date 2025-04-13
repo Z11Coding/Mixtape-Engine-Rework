@@ -470,6 +470,8 @@ class FreeplayState extends MusicBeatState
 				iconArray.pop();
 			}
 
+			trace (curUnlocked);
+
 			for (i in 0...WeekData.weeksList.length) {
 				if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
 
@@ -522,7 +524,7 @@ class FreeplayState extends MusicBeatState
 
 								for (songName in curUnlocked.keys())
 								{
-									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && isMissing)
+									if (curUnlocked.exists(songName) && songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && leWeek.folder == curUnlocked.get(songName) && isMissing)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							} 
@@ -539,7 +541,7 @@ class FreeplayState extends MusicBeatState
 									}
 								for (songName in curUnlocked.keys())
 								{
-									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == curUnlocked.get(songName)) && !isMissing)
+									if (curUnlocked.exists(songName) && songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && leWeek.folder == curUnlocked.get(songName) && !isMissing)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							}
@@ -696,7 +698,7 @@ class FreeplayState extends MusicBeatState
 				if (APEntryState.inArchipelagoMode) {
 					songName = songs[i].songName;
 					modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
-					locationId = APEntryState.apGame.locationData(songName + (modName != "" ? " (" + modName + ")" : ""));
+					locationId = APEntryState.apGame.locationData(songName + (modName != "" ? " (" + modName + ")" : "")).concat(APEntryState.apGame.noteData(songName, modName));
 					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 

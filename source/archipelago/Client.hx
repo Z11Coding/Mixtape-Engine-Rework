@@ -1459,20 +1459,37 @@ class Client {
 						}
 						var gamesArray:Array<String> = uniqueGames.toArray();
 						trace("Fetching data for games: " + gamesArray);
+
 						GetDataPackage(gamesArray);
-						while (!_gotDataPackage) {
-							// Wait for _gotDataPackage to be true
-							Sys.sleep(0.1);
-						}
+						var remainingPackages:Int = gamesArray.length;
 						var gameData = new DynamicAccess<GameData>();
-						for (game in gamesArray) {
-							if (_dataPackage.games.exists(game)) {
-								gameData.set(game, _dataPackage.games[game]);
+
+						while (remainingPackages > 0) {
+							var currentData = _dataPackage;
+							while (_dataPackage == currentData) {
+								// Wait for _dataPackage to change
+								Sys.sleep(0.1);
+							}
+							for (game in gamesArray) {
+								if (_dataPackage.games.exists(game) && !gameData.exists(game)) {
+									gameData.set(game, _dataPackage.games[game]);
+									remainingPackages--;
+								}
 							}
 						}
 
 						APGameState.currentPackages = gameData;
-						//trace("Game Data: " + gameData);
+						// trace("Game Data: " + gameData);
+
+						var currentData = _dataPackage;
+
+						// Get the Friday Night Funkin' one again, for security.
+						GetDataPackage(["Friday Night Funkin"]);
+						while (_dataPackage == currentData) {
+							// Wait for _dataPackage to change
+							Sys.sleep(0.1);
+						}
+						gameData.set("Friday Night Funkin", _dataPackage.games["Friday Night Funkin"]);
 
 						var data:DataPackageObject = {
 							games: gameData,
@@ -1489,7 +1506,7 @@ class Client {
 						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					}
 
-					yutautil.Threader.runInThread(dataNew(), "DataPackageFetcher");
+					yutautil.Threader.runInThread(dataNew(), "DataPackageFetcher"); // Hopefully more optimal.
 
 				// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					//
