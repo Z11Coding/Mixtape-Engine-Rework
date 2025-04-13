@@ -111,22 +111,28 @@ class APGameState {
     public var APItems:Map<String, Int> = new Map<String, Int>();
     public var ItemIndex:Int = -1;
 
-    public function locationData(songName:String):Array<Int> {
+    public function locationData(songName:String, modName:String):Array<Int> {
         try {
             if (!APInfo.hasSongChecks) {
                 return [];
             }
-            // trace("Starting locationData function with songName: " + songName);
+
+            if (modName != null && modName != "") {
+                modName = modName.trim();
+            } else {
+                modName = "";
+            }
+            // trace("Starting locationData function with songName: " + songName + " and modName: " + modName);
             var matchingLocations:Array<Int> = [];
             var exactMatch:Int = -1;
             var hasDashNumber:Bool = false;
-            var reg = new EReg("^" + EReg.escape(songName) + "(?:-\\d+)?$", "");
+            var reg = new EReg("^" + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "(?:-\\d+)?$", "");
             var apInfo = info();
 
             for (location in APLocations) {
                 var locationName = apInfo.get_location_name(location);
 
-                if (locationName == songName) {
+                if (locationName == songName + (modName != "" ? " (" + modName + ")" : "")) {
                     exactMatch = location;
                     break;
                 } else if (reg.match(locationName)) {
@@ -139,11 +145,26 @@ class APGameState {
                 return [exactMatch];
             }
 
-            // trace("Matching locations: " + matchingLocations);
+            if (matchingLocations.length == 0) {
+                for (song in WeekData.getCurrentWeek().songs) {
+                    if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
+                        (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
+                        var fallbackReg = new EReg("^" + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "(?:-\\d+)?$", "");
+                        for (location in APLocations) {
+                            var locationName = apInfo.get_location_name(location);
+                            if (fallbackReg.match(locationName)) {
+                                trace("Fallback match found: " + locationName);
+                                matchingLocations.push(location);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
 
             return matchingLocations;
         } catch (e:Dynamic) {
-            var errorMessage = "Error in locationData function for song: " + songName + ". Reason: " + Std.string(e);
+            var errorMessage = "Error in locationData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
             trace(errorMessage);
             archipelago.APItem.popup(errorMessage, "Error: Locations", true);
             return [];
@@ -154,6 +175,12 @@ class APGameState {
         try {
             if (!APInfo.hasNoteChecks) {
                 return [];
+            }
+
+            if (modName != null && modName != "") {
+                modName = modName.trim();
+            } else {
+                modName = "";
             }
             // trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
             var matchingNotes:Array<Int> = [];
@@ -226,12 +253,12 @@ class APGameState {
     }
 
     public function getSongLocations(songName:String, modName:String):Array<Int> {
-        return locationData(songName + (modName != "" ? " (" + modName + ")" : "")).concat(noteData(songName, modName));
+        return locationData(songName, modName).concat(noteData(songName, modName));
     }
 
     public function checkGoal(songName:String, modName:String):Bool {
         var info = info();
-        var locations = locationData(songName + (modName != "" ? " (" + modName + ")" : "")).concat(noteData(songName, modName));
+        var locations = locationData(songName, modName).concat(noteData(songName, modName));
         for (location in locations) {
             if (info.missingLocations.contains(location)) {
                 return false;
@@ -533,7 +560,7 @@ class APGameState {
 
 
             //var itemsWhitelist:
-            var isSpecialItem = locationData(itemName).concat(APEntryState.apGame.noteData(data.song, data.mod)).isEmpty();
+            var isSpecialItem = locationData(data.song, data.mod).concat(APEntryState.apGame.noteData(data.song, data.mod)).isEmpty();
             if (isSpecialItem) {
                 specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
             }
@@ -571,7 +598,11 @@ class APGameState {
             .replace("<sClose>", "]");
 
             var data = getSongAndMod(itemName);
-            trace("Data: " + data.song + " - " + data.mod);
+            // trace("Data: " + data.song + " - " + data.mod);
+
+            if (data.mod == null || data.mod == "") {
+                data.mod = "";
+            }
 
             if (!states.FreeplayState.curUnlocked.exists(data.song))
             {

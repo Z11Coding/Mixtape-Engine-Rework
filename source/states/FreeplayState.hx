@@ -514,7 +514,7 @@ class FreeplayState extends MusicBeatState
 							{
 								var songNameThing:String = song[0];
 								var modName:String = leWeek.folder;
-								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 
 								if (locationIds.isEmpty())
@@ -532,7 +532,7 @@ class FreeplayState extends MusicBeatState
 							{
 								var songNameThing:String = song[0];
 								var modName:String = leWeek.folder;
-								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 
 								if (locationIds.isEmpty())
@@ -549,7 +549,7 @@ class FreeplayState extends MusicBeatState
 							{
 								var songNameThing:String = song[0];
 								var modName:String = leWeek.folder;
-								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 
 								if (locationIds.isEmpty())
@@ -569,7 +569,7 @@ class FreeplayState extends MusicBeatState
 								{
 									var songNameThing:String = song[0];
 									var modName:String = leWeek.folder;
-									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 
 									if (locationIds.isEmpty())
 										{
@@ -596,7 +596,7 @@ class FreeplayState extends MusicBeatState
 								{
 									var songNameThing:String = song[0];
 									var modName:String = leWeek.folder;
-									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);	
 									for (songName in curUnlocked.keys())
 									{
@@ -608,7 +608,7 @@ class FreeplayState extends MusicBeatState
 								{
 									var songNameThing:String = song[0];
 									var modName:String = leWeek.folder;
-									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 									for (songName in curUnlocked.keys())
 									{
@@ -622,7 +622,7 @@ class FreeplayState extends MusicBeatState
 									{
 										var songNameThing:String = song[0];
 										var modName:String = leWeek.folder;
-										var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing).concat(APEntryState.apGame.noteData(songNameThing, modName));
+										var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 										if (locationIds != null && locationIds.isNotEmpty())
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
@@ -698,7 +698,7 @@ class FreeplayState extends MusicBeatState
 				if (APEntryState.inArchipelagoMode) {
 					songName = songs[i].songName;
 					modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
-					locationId = APEntryState.apGame.locationData(songName + (modName != "" ? " (" + modName + ")" : "")).concat(APEntryState.apGame.noteData(songName, modName));
+					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
 					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
@@ -788,13 +788,13 @@ class FreeplayState extends MusicBeatState
 		var locationId = songName;
 		trace("Initial locationId: " + locationId);
 
-		if (modName.trim() != "") {
-			locationId += " (" + modName + ")";
-			trace("Updated locationId with modName: " + locationId);
-		}
+		// if (modName.trim() != "") {
+		// 	locationId += " (" + modName + ")";
+		// 	trace("Updated locationId with modName: " + locationId);
+		// }
 
 		trace("Final locationId after trimming: " + locationId.trim());
-		var locationIdInts = APEntryState.apGame.locationData(locationId.trim()).concat(APEntryState.apGame.noteData(songName.trim(), modName.trim()));
+		var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), modName.trim()).concat(APEntryState.apGame.noteData(songName.trim(), modName.trim()));
 		trace("Location IDs retrieved: " + locationIdInts);
 
 		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
@@ -804,11 +804,9 @@ class FreeplayState extends MusicBeatState
 				if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
 					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
 					trace("Match found for song: " + song[0]);
-					locationId = archipelago.APPlayState.currentMod.trim() != ""
-						? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
-						: song[0];
+					locationId = song[0];
 					trace("Updated locationId in fallback logic: " + locationId);
-					locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+					locationIdInts = APEntryState.apGame.locationData(locationId.trim(), modName);
 					trace("Location IDs retrieved in fallback logic: " + locationIdInts);
 					break;
 				}
@@ -837,11 +835,9 @@ class FreeplayState extends MusicBeatState
 							trace("Parsed song JSON successfully. Checking song name...");
 							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
 								trace("Match found for song in JSON: " + songJson.song);
-								locationId = archipelago.APPlayState.currentMod.trim() != "" 
-									? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
-									: song[0];
+								locationId = song[0];
 								trace("Updated locationId in secondary fallback logic: " + locationId);
-								locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+								locationIdInts = APEntryState.apGame.locationData(locationId.trim(), modName);
 								trace("Location IDs retrieved in secondary fallback logic: " + locationIdInts);
 								break;
 							}

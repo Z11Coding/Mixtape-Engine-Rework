@@ -194,12 +194,12 @@ class RankingSubstate extends MusicBeatSubstate
 					trace('Accuracy Gotten:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
 					if (APInfo.unlockMethod != "Note Checks") {
 						trace(archipelago.APPlayState.currentMod);
-						if (archipelago.APPlayState.currentMod.trim() != "")
-						{
-							locationId += " (" + archipelago.APPlayState.currentMod + ")";
-						}
+						// if (archipelago.APPlayState.currentMod.trim() != "")
+						// {
+						// 	locationId += " (" + archipelago.APPlayState.currentMod + ")";
+						// }
 						trace("Starting location ID processing for: " + locationId.trim());
-						var locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+						var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 						trace('Initial Location IDs: ' + locationIdInts);
 
 						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
@@ -212,10 +212,8 @@ class RankingSubstate extends MusicBeatSubstate
 									(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 								{
 									trace("Match found for song: " + song[0]);
-									locationId = archipelago.APPlayState.currentMod.trim() != ""
-										? song[0] + " (" + archipelago.APPlayState.currentMod + ")"
-										: song[0];
-									locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+									locationId = song[0];
+									locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 									trace("Updated Location IDs: " + locationIdInts);
 									break;
 								}
@@ -250,10 +248,8 @@ class RankingSubstate extends MusicBeatSubstate
 																			if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 																			{
 																				trace("Song JSON matches current song: " + songJson.song);
-																				locationId = archipelago.APPlayState.currentMod.trim() != "" 
-																					? song[0] + " (" + archipelago.APPlayState.currentMod + ")" 
-																					: song[0];
-																				locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+																				locationId = song[0];
+																				locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 																				trace("Updated Location IDs from JSON: " + locationIdInts);
 																				break;
 																			} 													else
@@ -261,10 +257,8 @@ class RankingSubstate extends MusicBeatSubstate
 																				trace("Location IDs still invalid, attempting to use name from JSON...");
 																				if (songJson != null && songJson.song != null)
 																				{
-																					locationId = archipelago.APPlayState.currentMod.trim() != "" 
-																						? songJson.song + " (" + archipelago.APPlayState.currentMod + ")" 
-																						: songJson.song;
-																					locationIdInts = APEntryState.apGame.locationData(locationId.trim());
+																					locationId = songJson.song;
+																					locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 																					trace("Updated Location IDs using JSON name: " + locationIdInts);
 																				}
 																			}
