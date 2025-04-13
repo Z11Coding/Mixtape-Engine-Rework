@@ -600,7 +600,7 @@ class Note extends NoteObject
 		if(noteData > -1)
 		{
 			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
-			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) rgbShader.enabled = false;
+			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
 			texture = '';
 
 			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
