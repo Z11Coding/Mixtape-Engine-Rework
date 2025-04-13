@@ -356,8 +356,8 @@ class Note extends NoteObject
 	//Archipelago
 	//TODO: Make this it's own object to help de-clutter Note
 	//Maybe even make note like BaseNote or something to make hardcoded sub-notetypes or something
-	public var isCheck:Bool = false;
-	public var checkInfo:{note:archipelago.APNote, loc:Int};
+	private var isCheck:Bool = false;
+	private var checkInfo:{note:Note, loc:Int};
 	public var isMine:Bool = false;
 	public var isAlert:Bool = false;
 	public var isHeal:Bool = false;
@@ -485,17 +485,16 @@ class Note extends NoteObject
 
 		if (arr != null && noteData > -1 && noteData <= PlayState.mania)
 		{
+			rgbShader.r = arr[0];
+			rgbShader.g = arr[1];
+			rgbShader.b = arr[2];
 			if (this is archipelago.APNote)
 			{
 				trace("AP Color.");
 				rgbShader.r = 0xFF313131;
 				rgbShader.g = 0xFFFFFFFF;
 				rgbShader.b = 0xFFB4B4B4;
-				return;
 			}
-			rgbShader.r = arr[0];
-			rgbShader.g = arr[1];
-			rgbShader.b = arr[2];
 		}
 		else
 		{

@@ -2856,13 +2856,6 @@ class PlayState extends MusicBeatState
 					oldNote = null;
 
 				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
-				/*if (apNote) {
-					swagNote = new archipelago.APNote(swagNote, apLoc);
-					swagNote.isCheck = true; //Just in case
-					swagNote.rgbShader.r = 0x3380CC;
-					swagNote.rgbShader.g = 0x3380CC; 
-					swagNote.rgbShader.b = 0x3380CC;   
-				}*/
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
 				if (!swagNote.mustPress)
