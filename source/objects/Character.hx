@@ -1,7 +1,7 @@
 package objects;
 
 import backend.animation.PsychAnimationController;
-
+import flixel.graphics.frames.FlxFrame;
 import flixel.util.FlxSort;
 
 import openfl.utils.AssetType;
@@ -38,7 +38,14 @@ typedef AnimArray = {
 	var offsets:Array<Int>;
 }
 
-class Character extends FlxSprite
+enum CharType {
+	BF;
+	GF;
+	DAD;
+	OTHER;
+}
+
+class Character extends FunkinSprite
 {
 	/**
 	 * In case a character is missing, it will use this on its place
@@ -84,7 +91,10 @@ class Character extends FlxSprite
 	public var invuln:Bool = false;
 	public var controlled:Bool = false;
 
-	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
+	// This is literally only for the dropshadow shader
+	public var charType:CharType = OTHER; 
+
+	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?chType:CharType = OTHER)
 	{
 		super(x, y);
 
@@ -92,11 +102,12 @@ class Character extends FlxSprite
 
 		animOffsets = new Map<String, Array<Dynamic>>();
 		this.isPlayer = isPlayer;
+		this.charType = chType;
 		changeCharacter(character);
 		
 		switch(curCharacter)
 		{
-			case 'pico-speaker':
+			case 'pico-speaker'|'otis-speaker':
 				skipDance = true;
 				loadMappedAnims();
 				playAnim("shoot1");
@@ -277,7 +288,7 @@ class Character extends FlxSprite
 
 		switch(curCharacter)
 		{
-			case 'pico-speaker':
+			case 'pico-speaker'|'otis-speaker':
 				if(animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
 				{
 					var noteData:Int = 1;

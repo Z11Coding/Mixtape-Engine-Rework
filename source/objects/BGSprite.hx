@@ -1,6 +1,6 @@
 package objects;
 
-class BGSprite extends FlxSprite
+class BGSprite extends FunkinSprite
 {
 	private var idleAnim:String;
 	public function new(image:String, x:Float = 0, y:Float = 0, ?scrollX:Float = 1, ?scrollY:Float = 1, ?animArray:Array<String> = null, ?loop:Bool = false) {
@@ -33,7 +33,7 @@ class BGSprite extends FlxSprite
 	}
 }
 
-class AltBGSprite extends FlxSprite
+class AltBGSprite extends FunkinSprite
 {
 	public function new(x:Float = 0, y:Float = 0, image:String, ?anim:String, ?loop:Bool=false) {
 		super(x, y);

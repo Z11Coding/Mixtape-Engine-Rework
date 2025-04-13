@@ -1,12 +1,15 @@
 package states.editors.content;
 
+import haxe.io.Path;
 import openfl.net.FileReference;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
 
 import haxe.Exception;
+#if sys
 import sys.io.File;
+#end
 import lime.ui.*;
 
 import flixel.FlxBasic;
@@ -103,7 +106,8 @@ class FileDialogHandler extends FlxBasic
 	{
 		@:privateAccess
 		this.path = _fileRef.__path;
-		this.data = File.getContent(this.path);
+		_fileRef.load();
+		this.data = _fileRef.data.toString(); //TODO Test this File.getContent(this.path);
 		this.completed = true;
 		trace('Loaded file from: $path');
 
@@ -177,7 +181,7 @@ class FileDialogHandler extends FlxBasic
 //Only way I could find to keep the path after saving a file
 class FileReferenceCustom extends FileReference
 {
-	@:allow(backend.FileDialogHandler)
+	@:allow(states.editors.content.FileDialogHandler)
 	var _trackSavedPath:String;
 	override function saveFileDialog_onSelect(path:String):Void
 	{

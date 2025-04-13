@@ -1,6 +1,6 @@
 package objects;
 
-class CheckboxThingie extends FlxSprite
+class CheckboxThingie extends FunkinSprite
 {
 	public var sprTracker:FlxSprite;
 	public var daValue(default, set):Bool;

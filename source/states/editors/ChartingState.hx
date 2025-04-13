@@ -3331,6 +3331,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				diff = false;
 				Song.getChart(cur, cur);
 			}
+			
 			if(loadedChart == null || !Reflect.hasField(loadedChart, 'song')) //Check if chart is ACTUALLY a chart and valid
 			{
 				showOutput('Error: File loaded is not a Psych Engine/FNF 0.2.x.x chart.', true);

@@ -3,10 +3,10 @@ package objects.proxies;
 import flixel.math.FlxRect;
 import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
 
-class ProxySprite extends FlxSprite {
-	var proxiedSprite:FlxSprite;
+class ProxySprite extends FunkinSprite {
+	var proxiedSprite:FunkinSprite;
 
-	public function new(x:Float, y:Float, sprite:FlxSprite){
+	public function new(x:Float, y:Float, sprite:FunkinSprite){
 		super(x, y);
 		proxiedSprite = sprite;
 	}

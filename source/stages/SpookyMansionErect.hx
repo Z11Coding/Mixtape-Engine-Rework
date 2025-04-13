@@ -1,10 +1,10 @@
 package stages;
 
+import stages.PicoCapableStage;
 import shaders.RainShader;
 import objects.Note;
 import objects.Character;
-import stages.PicoCapableStage;
-class SpookyMansionErect extends PicoCapableStage
+class SpookyMansionErect extends BaseStage
 {
 	var halloweenBG:BGSprite;
 	var halloweenBGLight:BGSprite;
@@ -19,6 +19,9 @@ class SpookyMansionErect extends PicoCapableStage
 	var gfGhost:Character;
 	var dadGhost:Character;
 
+	public function new() {
+		super();
+	}
 	override function create()
 	{
 		halloweenBG = new BGSprite('erect/bgDark', -360, -220);
@@ -30,7 +33,7 @@ class SpookyMansionErect extends PicoCapableStage
 		stairsLight.alpha = 0;
 
 		halloweenWindow = new BGSprite('erect/bgtrees', 200, 50, 0.8, 0.8, ["bgtrees0"],true);
-		
+		halloweenWindow.animation.curAnim.frameRate = 5;
 
 		add(halloweenWindow);
 		add(halloweenBG);
@@ -48,6 +51,7 @@ class SpookyMansionErect extends PicoCapableStage
 			shader = new shaders.RainShader();
 			shader.scale = FlxG.height / 200 * 2;
 			shader.intensity = 0.4;
+			shader.spriteMode = true;
 			halloweenWindow.shader = shader;
 		}
 
@@ -72,6 +76,7 @@ class SpookyMansionErect extends PicoCapableStage
 	{
 		super.beatHit();
 		if(ClientPrefs.data.lowQuality) return;
+		if(curBeat == 4 && songName == "spookeez-erect") lightningStrikeShit(false); 
 		if (FlxG.random.bool(10) && curBeat > lightningStrikeBeat + lightningOffset)
 		{
 			lightningStrikeShit(); 
@@ -84,20 +89,19 @@ class SpookyMansionErect extends PicoCapableStage
 		if (curBeat % game.gf.danceEveryNumBeats == 0 && !StringTools.startsWith(gf.getAnimationName(),'sing') && !game.gf.stunned)
 			gfGhost.dance();
 	}
-    override function goodNoteHit(note:Note/*, field:PlayField*/) {
+    override function goodNoteHit(note:Note) {
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    boyfriendGhost?.playAnim(anims[note.noteData],true);
-		super.goodNoteHit(note/*, field*/);
+		super.goodNoteHit(note);
     }
-    override function noteMiss(note:Note/*, field:PlayField*/) {
+    override function noteMiss(note:Note) {
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    boyfriendGhost?.playAnim(anims[note.noteData]+"miss",true);
-		super.noteMiss(note/*, field*/);
+		super.noteMiss(note);
     }
-    override function opponentNoteHit(note:Note/*, field:PlayField*/) {
+    override function opponentNoteHit(note:Note) {
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    dadGhost?.playAnim(anims[note.noteData],true);
-		super.opponentNoteHit(note/*, field*/);
     }
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {		
 		switch (eventName){
@@ -124,9 +128,9 @@ class SpookyMansionErect extends PicoCapableStage
 			}
 		}
 	}
-	function lightningStrikeShit():Void
+	function lightningStrikeShit(playSound:Bool = true):Void
 	{
-		FlxG.sound.play(Paths.soundRandom('thunder_', 1, 2));
+		if(playSound) FlxG.sound.play(Paths.soundRandom('thunder_', 1, 2));
 			FlxTimer.wait(0.06, () ->
 			{
 				halloweenBGLight.alpha = 0;
@@ -151,7 +155,7 @@ class SpookyMansionErect extends PicoCapableStage
 					gf.playAnim('scared', true);
 				if (ClientPrefs.data.flashing)
 				{
-					ABot_plink();
+					PicoCapableStage.instance?.ABot_plink();
 					boyfriend.alpha = 0;
 					dad.alpha = 0;
 					gf.alpha = 0;
@@ -161,18 +165,16 @@ class SpookyMansionErect extends PicoCapableStage
 					gfGhost.alpha = 1;
 					boyfriendGhost.alpha = 1;
 					dadGhost.alpha = 1;
+					FlxTween.tween(boyfriendGhost, {alpha: 0}, 1.5);
+					FlxTween.tween(gfGhost, {alpha: 0}, 1.5);
+					FlxTween.tween(dadGhost, {alpha: 0}, 1.5);
+
 					FlxTween.tween(halloweenBGLight, {alpha: 0}, 1.5);
 					FlxTween.tween(stairsLight, {alpha: 0}, 1.5);
 
-					FlxTween.tween(boyfriend, {alpha: 1}, 1.5, {onComplete: function(twn:FlxTween) {
-						boyfriendGhost.alpha = 0;
-					}});
-					FlxTween.tween(gf, {alpha: 1}, 1.5, {onComplete: function(twn:FlxTween) {
-						gfGhost.alpha = 0;
-					}});
-					FlxTween.tween(dad, {alpha: 1}, 1.5, {onComplete: function(twn:FlxTween) {
-						dadGhost.alpha = 0;
-					}});
+					FlxTween.tween(boyfriend, {alpha: 1}, 1.5);
+					FlxTween.tween(gf, {alpha: 1}, 1.5);
+					FlxTween.tween(dad, {alpha: 1}, 1.5);
 				}
 			});
 
@@ -194,23 +196,25 @@ class SpookyMansionErect extends PicoCapableStage
 
 	function makeChars()
 	{
-		var bfName = PlayState.instance.boyfriend.curCharacter == 'pico-dark' ? "pico-player" : "bf";
+		
+		var bfName = PlayState.instance.boyfriend.curCharacter.split("-")[0]; 
+		if(bfName == "pico") bfName = "pico-playable";
 
+		var gfMode = PlayState.instance.gf.curCharacter.split("-")[0];
+		gfGhost = new Character(game.gf.x, game.gf.y, gfMode);
+		if (gfMode == 'nene')
+			gfGhost.y -= 200;
+		game.add(gfGhost);
+		gfGhost.dance();
+		
 		boyfriendGhost = new Character(game.boyfriend.x, game.boyfriend.y, bfName, true);
-		addBehindBF(boyfriendGhost);
+		game.add(boyfriendGhost);
 		boyfriendGhost.dance();
 
 		dadGhost = new Character(game.dad.x, game.dad.y, 'spooky', true);
 		dadGhost.flipX = false;
-		addBehindDad(dadGhost);
+		game.add(dadGhost);
 		dadGhost.dance();
-
-		var gfMode = PlayState.instance.gf.curCharacter == 'nene-dark' ? "nene" : "gf";
-		gfGhost = new Character(game.gf.x, game.gf.y, gfMode);
-		//if (gfMode == 'nene')
-			//gfGhost.y -= 190;
-		addBehindGF(gfGhost);
-		gfGhost.dance();
 
 		boyfriendGhost.alpha = 0;
 		gfGhost.alpha = 0;

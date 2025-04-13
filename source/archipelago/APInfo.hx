@@ -32,7 +32,7 @@ class APInfo {
 		'Cocoa', 'Eggnog', 'Winter Horrorland',
 		'Senpai', 'Roses', 'Thorns',
 		'Ugh', 'Guns', 'Stress',
-		'Darnell (BF Mix)'
+		'Darnell (BF Mix)', 'Lit Up (BF Mix)'
 	];
 
 	public static final baseErect:Array<String> = 
@@ -53,7 +53,7 @@ class APInfo {
 	 	'Spookeez (Pico mix)', 'South (Pico mix)',
 	 	'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
 	 	'Eggnog (Pico Mix)',
-	 	'Ugh (Pico mix)', 'Guns (Pico mix)'
+	 	'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico mix)'
 	];
 
 	public static final secrets:Array<String> = [

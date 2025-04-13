@@ -254,17 +254,16 @@ class VSlice
 				needsVoices: true, //There's no value on V-Slice to identify if there are vocals as it checks automatically
 				speed: scrollSpeed,
 				offset: 0,
+				startMania: 3,
+				mania: 0,
 			
 				player1: metadata.playData.characters.player,
 				player2: metadata.playData.characters.opponent,
+				gfVersion: metadata.playData.characters.girlfriend,
 				player4: null,
 				player5: null,
-				gfVersion: metadata.playData.characters.girlfriend,
 				stage: stage,
-				format: 'psych_v1_convert',
-
-				mania: objects.Note.defaultMania,
-				startMania: objects.Note.defaultMania
+				format: 'psych_v1_convert'
 			}
 
 			Reflect.setField(swagSong, 'artist', metadata.artist);

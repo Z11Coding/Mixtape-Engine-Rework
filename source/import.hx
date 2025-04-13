@@ -38,6 +38,7 @@ import backend.ui.*; //Psych-UI
 import backend.util.MemoryUtil;
 import backend.Cursor;
 import backend.Constants;
+import objects.FunkinSprite;
 
 import stages.BaseStage;
 

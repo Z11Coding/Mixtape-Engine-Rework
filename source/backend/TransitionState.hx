@@ -58,6 +58,8 @@ class TransitionState {
             trace("Target state is null. Cancelling switch.");
             targetState = Type.getClass(FlxG.state);
         }
+        FunkinSprite.preparePurgeCache();
+        FunkinSprite.purgeCache();
         FlxG.switchState(Type.createInstance(targetState, stateArgs != null ? stateArgs : []));
     }
 

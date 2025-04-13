@@ -152,7 +152,7 @@ class PlayState extends MusicBeatState
 	public var modchartSounds:Map<String, FlxSound> = new Map<String, FlxSound>();
 	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
 	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
-	public var modchartObjects:Map<String, FlxSprite> = new Map<String, FlxSprite>();
+	public var modchartObjects:Map<String, FunkinSprite> = new Map<String, FunkinSprite>();
 	#end
 
 	public var comboOffsetCustom:Null<Array<Int>> = null;
@@ -186,7 +186,7 @@ class PlayState extends MusicBeatState
 	public static var uiPrefix:String = "";
 	public static var uiPostfix:String = "";
 	public static var isPixelStage(get, never):Bool;
-	var raveLight:FlxSprite;
+	var raveLight:FunkinSprite;
 	var raveLightsColors:Array<Int>;
 	var ravemode:Bool;
 
@@ -373,7 +373,7 @@ class PlayState extends MusicBeatState
 	public static var playAsGF:Bool = false;
 	private var specialOverlays:FlxTypedGroup<FlxSprite>;
 	private var timerExtensions:Array<Float>;
-	public var introStageBar:FlxSprite;
+	public var introStageBar:FunkinSprite;
 	public var introStageText:FlxTypedGroup<FlxText>;
 	public var introStageStuff:FlxTypedGroup<Dynamic>;
 	public var mashViolations:Int = 0;
@@ -388,12 +388,12 @@ class PlayState extends MusicBeatState
 	var metadata:MetadataFile;
 	var hasMetadataFile:Bool = false;
 	var Text:Array<String> = [];
-	var whiteBG:FlxSprite;
+	var whiteBG:FunkinSprite;
 	var needSkip:Bool = false;
 	var skipActive:Bool = false;
 	var skipTo:Float;
-	var blackOverlay:FlxSprite;
-	var blackUnderlay:FlxSprite;
+	var blackOverlay:FunkinSprite;
+	var blackUnderlay:FunkinSprite;
 	var credText:Array<String> = [];
 	var songTxt:FlxText;
 	var artistTxt:FlxText;
@@ -409,10 +409,10 @@ class PlayState extends MusicBeatState
 	public var freezeNotes:Bool = false;
 	public var localFreezeNotes:Bool = false;
 	var justmissed:Bool = false;
-	var middlecircle:FlxSprite;
+	var middlecircle:FunkinSprite;
 	var hasGlow:Bool = false;
 	var strumFocus:Bool = false;
-	var daStatic:FlxSprite;
+	var daStatic:FunkinSprite;
 	var thunderON:Bool = false;
 	var gfScared:Bool = false;
 
@@ -738,6 +738,8 @@ class PlayState extends MusicBeatState
 				new LimoRideErect(); // Week 4 Special
 			case 'mallXmasErect':
 				new MallXmasErect(); // Week 5 Special
+			case 'tankmanBattlefieldErect':
+				new TankmanBattlefieldErect(); // Week 7 Special
 			case 'phillyStreetsErect':
 				new PhillyStreetsErect(); // Weekend 1 Special
 			#if windows 
@@ -751,19 +753,22 @@ class PlayState extends MusicBeatState
 		var screenWidth = Std.int(FlxG.width * zoomOut * 2);
 		var screenHeight = Std.int(FlxG.height * zoomOut * 2);
 
-		whiteBG = new FlxSprite(-480, -480).makeGraphic(screenWidth, screenHeight, FlxColor.WHITE);
+		whiteBG = new FunkinSprite(-480, -480);
+		whiteBG.makeGraphic(screenWidth, screenHeight, FlxColor.WHITE);
 		whiteBG.updateHitbox();
 		whiteBG.antialiasing = true;
 		whiteBG.scrollFactor.set(0, 0);
 		whiteBG.active = false;
 		whiteBG.alpha = 0.0;
-		blackOverlay = new FlxSprite(0, 0).makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
+		blackOverlay = new FunkinSprite(0, 0);
+		blackOverlay.makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
 		blackOverlay.updateHitbox();
 		blackOverlay.screenCenter();
 		blackOverlay.antialiasing = true;
 		blackOverlay.scrollFactor.set(0, 0);
 		blackOverlay.alpha = maniaMode ? 1 : 0;
-		blackUnderlay = new FlxSprite(0, 0).makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
+		blackUnderlay = new FunkinSprite(0, 0);
+		blackUnderlay.makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
 		blackUnderlay.updateHitbox();
 		blackUnderlay.screenCenter();
 		blackUnderlay.antialiasing = true;
@@ -784,32 +789,32 @@ class PlayState extends MusicBeatState
 		if (!stageData.hide_girlfriend)
 		{
 			if(SONG.gfVersion == null || SONG.gfVersion.length < 1) SONG.gfVersion = 'gf'; //Fix for the Chart Editor
-			gf = new Character(0, 0, SONG.gfVersion);
+			gf = new Character(0, 0, SONG.gfVersion, false, GF);
 			startCharacterPos(gf);
 			gfGroup.scrollFactor.set(0.95, 0.95);
 			gfGroup.add(gf);
 		}
 
-		dad = new Character(0, 0, SONG.player2);
+		dad = new Character(0, 0, SONG.player2, false, DAD);
 		startCharacterPos(dad, true);
 		dadGroup.add(dad);
 
 		if (SONG.player4 != null)
 		{
-			dad2 = new Character(0, 0, SONG.player4);
+			dad2 = new Character(0, 0, SONG.player4, false, DAD);
 			startCharacterPos(dad2, true);
 			dadGroup2.add(dad2);
 			//threeLanes = true; later
 		}
 		else dad2 = null;
 
-		boyfriend = new Character(0, 0, SONG.player1, true);
+		boyfriend = new Character(0, 0, SONG.player1, true, BF);
 		startCharacterPos(boyfriend);
 		boyfriendGroup.add(boyfriend);
 
 		if (SONG.player5 != null)
 		{
-			bf2 = new Character(0, 0, SONG.player5, true);
+			bf2 = new Character(0, 0, SONG.player5, true, BF);
 			startCharacterPos(bf2, true);
 			boyfriendGroup2.add(bf2);
 		}
@@ -1225,7 +1230,8 @@ class PlayState extends MusicBeatState
 			if (Text[i] != null && Text[i].length > 0)
 			{
 				// Dont ask
-				introStageBar = new FlxSprite(daText[i].x, if (i == 2) daText[i].y else daText[i].y - 25).loadGraphic(Paths.image('invisabar'));
+				introStageBar = new FunkinSprite(daText[i].x, if (i == 2) daText[i].y else daText[i].y - 25);
+				introStageBar.loadTexture('invisabar');
 				introStageBar.scale.x = 2;
 				introStageBar.scale.y = 3;
 				introStageBar.scrollFactor.set();
@@ -1317,7 +1323,7 @@ class PlayState extends MusicBeatState
 
 		add(blackOverlay);
 		
-		daStatic = new FlxSprite(0, 0);
+		daStatic = new FunkinSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
 		daStatic.animation.addByPrefix('static', 'lestatic', 24, true);
 		daStatic.animation.play('static');
@@ -1327,7 +1333,8 @@ class PlayState extends MusicBeatState
 		daStatic.alpha = 0;
 		add(daStatic);
 
-		raveLight = new FlxSprite(0, 0).makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
+		raveLight = new FunkinSprite(0, 0);
+		raveLight.makeSolidColor(screenWidth, screenHeight, FlxColor.BLACK);
 		raveLight.cameras = [camHUD];
 		raveLight.antialiasing = true;
 		raveLight.scrollFactor.set(0, 0);
@@ -1337,7 +1344,7 @@ class PlayState extends MusicBeatState
 		raveLight.alpha = 0;
 		raveLight.visible = false;
 
-		daStatic = new FlxSprite(0, 0);
+		daStatic = new FunkinSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
 		daStatic.animation.addByPrefix('static', 'lestatic', 24, true);
 		daStatic.animation.play('static');
@@ -1501,7 +1508,7 @@ class PlayState extends MusicBeatState
 		switch(type) {
 			case 0:
 				if(!boyfriendMap.exists(newCharacter)) {
-					var newBoyfriend:Character = new Character(0, 0, newCharacter, true);
+					var newBoyfriend:Character = new Character(0, 0, newCharacter, true, BF);
 					boyfriendMap.set(newCharacter, newBoyfriend);
 					boyfriendGroup.add(newBoyfriend);
 					startCharacterPos(newBoyfriend);
@@ -1511,7 +1518,7 @@ class PlayState extends MusicBeatState
 
 			case 1:
 				if(!dadMap.exists(newCharacter)) {
-					var newDad:Character = new Character(0, 0, newCharacter);
+					var newDad:Character = new Character(0, 0, newCharacter, false, DAD);
 					dadMap.set(newCharacter, newDad);
 					dadGroup.add(newDad);
 					startCharacterPos(newDad, true);
@@ -1521,7 +1528,7 @@ class PlayState extends MusicBeatState
 
 			case 2:
 				if(gf != null && !gfMap.exists(newCharacter)) {
-					var newGf:Character = new Character(0, 0, newCharacter);
+					var newGf:Character = new Character(0, 0, newCharacter, false, DAD);
 					newGf.scrollFactor.set(0.95, 0.95);
 					gfMap.set(newCharacter, newGf);
 					gfGroup.add(newGf);
@@ -1532,7 +1539,7 @@ class PlayState extends MusicBeatState
 			case 3:
 				if (dad2 != null && !dadMap2.exists(newCharacter))
 				{
-					var newDad2:Character = new Character(0, 0, newCharacter);
+					var newDad2:Character = new Character(0, 0, newCharacter, false, DAD);
 					newDad2.scrollFactor.set(0.95, 0.95);
 					dadMap2.set(newCharacter, newDad2);
 					dadGroup2.add(newDad2);
@@ -1543,7 +1550,7 @@ class PlayState extends MusicBeatState
 			case 4:
 				if (bf2 != null && !boyfriendMap2.exists(newCharacter))
 				{
-					var newBoyfriend:Character = new Character(0, 0, newCharacter, true);
+					var newBoyfriend:Character = new Character(0, 0, newCharacter, true, BF);
 					boyfriendMap2.set(newCharacter, newBoyfriend);
 					boyfriendGroup2.add(newBoyfriend);
 					startCharacterPos(newBoyfriend);
@@ -1751,9 +1758,9 @@ class PlayState extends MusicBeatState
 	var finishTimer:FlxTimer = null;
 
 	// For being able to mess with the sprites on Lua
-	public var countdownReady:FlxSprite;
-	public var countdownSet:FlxSprite;
-	public var countdownGo:FlxSprite;
+	public var countdownReady:FunkinSprite;
+	public var countdownSet:FunkinSprite;
+	public var countdownGo:FunkinSprite;
 	public static var startOnTime:Float = 0;
 
 	function cacheCountdown()
@@ -1928,9 +1935,10 @@ class PlayState extends MusicBeatState
 		return true;
 	}
 
-	inline private function createCountdownSprite(image:String, antialias:Bool):FlxSprite
+	inline private function createCountdownSprite(image:String, antialias:Bool):FunkinSprite
 	{
-		var spr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(image));
+		var spr:FunkinSprite = new FunkinSprite();
+		spr.loadTexture(image);
 		spr.cameras = [camHUD];
 		spr.scrollFactor.set();
 		spr.updateHitbox();
@@ -4294,6 +4302,8 @@ class PlayState extends MusicBeatState
 				}
 				#end
 
+				stagesFunc(function(stage:BaseStage) stage.gameOver());
+
 				persistentUpdate = false;
 				persistentDraw = false;
 				FlxTimer.globalManager.clear();
@@ -5429,7 +5439,7 @@ class PlayState extends MusicBeatState
 		}
 
 		var placement:Float = FlxG.width * 0.35;
-		var rating:FlxSprite = new FlxSprite();
+		var rating:FunkinSprite = new FunkinSprite();
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
@@ -5480,7 +5490,8 @@ class PlayState extends MusicBeatState
 		}
 		rating.antialiasing = antialias;
 
-		var comboSpr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
+		var comboSpr:FunkinSprite = new FunkinSprite();
+		comboSpr.loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
 		comboSpr.screenCenter();
 		comboSpr.x = placement;
 		comboSpr.acceleration.y = FlxG.random.int(200, 300) * playbackRate * playbackRate;
@@ -5515,7 +5526,8 @@ class PlayState extends MusicBeatState
 		var separatedScore:String = Std.string(combo).lpad('0', 3);
 		for (i in 0...separatedScore.length)
 		{
-			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
+			var numScore:FunkinSprite = new FunkinSprite();
+			numScore.loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
 			numScore.screenCenter();
 			numScore.x = placement + (43 * daLoop) - 90;
 			numScore.y += 80;
@@ -5583,7 +5595,7 @@ class PlayState extends MusicBeatState
 		}
 
 		var placement:Float = FlxG.width * 0.35;
-		var rating:FlxSprite = new FlxSprite();
+		var rating:FunkinSprite = new FunkinSprite();
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
@@ -5628,7 +5640,8 @@ class PlayState extends MusicBeatState
 		rating.y -= ClientPrefs.data.comboOffset[1];
 		rating.antialiasing = antialias;
 
-		var comboSpr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
+		var comboSpr:FunkinSprite = new FunkinSprite();
+		comboSpr.loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
 		comboSpr.screenCenter();
 		comboSpr.x = placement;
 		comboSpr.acceleration.y = FlxG.random.int(200, 300) * playbackRate * playbackRate;
@@ -5663,7 +5676,8 @@ class PlayState extends MusicBeatState
 		var separatedScore:String = Std.string(combo).lpad('0', 3);
 		for (i in 0...separatedScore.length)
 		{
-			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
+			var numScore:FunkinSprite = new FunkinSprite();
+			numScore.loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
 			numScore.screenCenter();
 			numScore.x = placement + (43 * daLoop) - 90 + ClientPrefs.data.comboOffset[2];
 			numScore.y += 80 - ClientPrefs.data.comboOffset[3];
@@ -6624,7 +6638,8 @@ class PlayState extends MusicBeatState
 				var startPos = FlxG.random.float(0, FlxG.height);
 				var endPos = FlxG.random.float(0, FlxG.height);
 
-				var line:FlxSprite = new FlxSprite().loadGraphic(Paths.image("effects/staticline"));
+				var line:FunkinSprite = new FunkinSprite();
+				line.loadTexture("effects/staticline");
 				line.y = startPos;
 				line.updateHitbox();
 				line.cameras = [camHUD];

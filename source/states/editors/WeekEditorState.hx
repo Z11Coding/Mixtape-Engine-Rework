@@ -16,6 +16,8 @@ import objects.MenuItem;
 
 import states.editors.MasterEditorMenu;
 import states.editors.content.Prompt;
+import states.editors.content.FileDialogHandler;
+import haxe.Exception;
 
 class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -421,122 +423,50 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		lock.x = weekThing.width + 10 + weekThing.x;
 	}
 
-	private static var _file:FileReference;
+	static var fileDialog:FileDialogHandler = new FileDialogHandler();
 	public static function loadWeek() {
 		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
-		_file = new FileReference();
-		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.addEventListener(Event.CANCEL, onLoadCancel);
-		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file.browse([#if !mac jsonFilter #end]);
+		fileDialog.open([jsonFilter], function()
+		{
+			try
+			{
+				#if sys
+				loadedWeek = cast Json.parse(fileDialog.data);
+				if(loadedWeek.weekCharacters != null && loadedWeek.weekName != null) //Make sure it's really a week
+				{
+					trace("Successfully loaded file!");
+					loadError = false;
+
+					weekFileName = '';
+					unsavedProgress = false;
+					return;
+				}
+				loadError = true;
+				loadedWeek = null;
+				#else
+				trace("File couldn't be loaded! You aren't on Desktop, are you?");
+				#end
+			}
+			catch(e:Exception)
+			{
+				trace(e.stack);
+			}
+		});
 	}
 	
 	public static var loadedWeek:WeekFile = null;
 	public static var loadError:Bool = false;
-	private static function onLoadComplete(_):Void
-	{
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.removeEventListener(Event.CANCEL, onLoadCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-
-		#if sys
-		var fullPath:String = null;
-		@:privateAccess
-		if(_file.__path != null) fullPath = _file.__path;
-
-		if(fullPath != null) {
-			var rawJson:String = File.getContent(fullPath);
-			if(rawJson != null) {
-				loadedWeek = cast Json.parse(rawJson);
-				if(loadedWeek.weekCharacters != null && loadedWeek.weekName != null) //Make sure it's really a week
-				{
-					var cutName:String = _file.name.substr(0, _file.name.length - 5);
-					trace("Successfully loaded file: " + cutName);
-					loadError = false;
-
-					weekFileName = cutName;
-					_file = null;
-					unsavedProgress = false;
-					return;
-				}
-			}
-		}
-		loadError = true;
-		loadedWeek = null;
-		_file = null;
-		#else
-		trace("File couldn't be loaded! You aren't on Desktop, are you?");
-		#end
-	}
-
-	/**
-		* Called when the save file dialog is cancelled.
-		*/
-		private static function onLoadCancel(_):Void
-	{
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.removeEventListener(Event.CANCEL, onLoadCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file = null;
-		trace("Cancelled file loading.");
-	}
-
-	/**
-		* Called if there is an error while saving the gameplay recording.
-		*/
-	private static function onLoadError(_):Void
-	{
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.removeEventListener(Event.CANCEL, onLoadCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file = null;
-		trace("Problem loading file");
-	}
 
 	public static function saveWeek(weekFile:WeekFile) {
 		var data:String = haxe.Json.stringify(weekFile, "\t");
 		if (data.length > 0)
 		{
-			_file = new FileReference();
-			_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
-			_file.addEventListener(Event.CANCEL, onSaveCancel);
-			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-			_file.save(data, weekFileName + ".json");
+			fileDialog.save('$weekFileName.json', data,
+			function()
+			{
+				trace('Week saved successfully!');
+			}, null, function() trace('Error saving character!'));
 		}
-	}
-	
-	private static function onSaveComplete(_):Void
-	{
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.notice("Successfully saved file.");
-		unsavedProgress = false;
-	}
-
-	/**
-		* Called when the save file dialog is cancelled.
-		*/
-		private static function onSaveCancel(_):Void
-	{
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		trace("Cancelled file saving.");
-	}
-
-	/**
-		* Called if there is an error while saving the gameplay recording.
-		*/
-	private static function onSaveError(_):Void
-	{
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.error("Problem saving file");
 	}
 }
 

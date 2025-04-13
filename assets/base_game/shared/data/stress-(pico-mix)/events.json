@@ -1,0 +1,17 @@
+{
+	"events": [
+		[
+			62018.9606741573,
+			[
+				["Change Character", "dad", "tankman-bloody"]
+			]
+		],
+		[
+			63370.7865168539,
+			[
+				["Play Animation", "knifeToss", "bf"]
+			]
+		]
+	],
+	"format": "psych_v1"
+}

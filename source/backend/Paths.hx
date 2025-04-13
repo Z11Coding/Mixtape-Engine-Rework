@@ -540,9 +540,6 @@ class Paths
 	inline public static function cacheGraphic(path:String):Null<FlxGraphic>
 		return getGraphic(path, true);
 
-	inline public static function imagePath(key:String):String
-		return getPath('images/$key.$IMAGE_EXT');
-
 	inline public static function imageExists(key:String):Bool
 		return Paths.exists(imagePath(key));
 
@@ -556,6 +553,12 @@ class Paths
 			return currentTrackedAssets.get(key);
 		}
 		return cacheBitmap(key, parentFolder, bitmap, allowGPU);
+	}
+
+	public static function imagePath(key:String, ?parentFolder:String):String
+	{
+		key = Language.getFileTranslation('images/$key') + '.png';
+		return getPath(key, IMAGE, parentFolder);
 	}
 
 	public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData, ?allowGPU:Bool = true):FlxGraphic

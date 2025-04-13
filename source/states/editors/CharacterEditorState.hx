@@ -16,6 +16,7 @@ import objects.Bar;
 
 import states.editors.content.Prompt;
 import states.editors.content.PsychJsonPrinter;
+import states.editors.content.FileDialogHandler;
 
 class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -53,6 +54,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	var UI_characterbox:PsychUIBox;
 
 	var unsavedProgress:Bool = false;
+	var outputTxt:FlxText;
+	var outputAlpha:Float = 0;
 
 	var selectedFormat:FlxTextFormat = new FlxTextFormat(FlxColor.LIME);
 
@@ -160,6 +163,14 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		updatePointerPos();
 		updateHealthBar();
 		character.finishAnimation();
+
+		outputTxt = new FlxText(25, FlxG.height - 50, FlxG.width - 50, '', 20);
+		outputTxt.borderSize = 2;
+		outputTxt.borderStyle = OUTLINE_FAST;
+		outputTxt.scrollFactor.set();
+		outputTxt.cameras = [camHUD];
+		outputTxt.alpha = 0;
+		add(outputTxt);
 
 		if(ClientPrefs.data.cacheOnGPU) Paths.clearUnusedMemory();
 
@@ -1067,6 +1078,10 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			}
 			return;
 		}
+
+		outputTxt.alpha = outputAlpha;
+		outputTxt.visible = (outputAlpha > 0);
+		outputAlpha = Math.max(0, outputAlpha - elapsed);
 	}
 
 	final assetFolder = 'week1';  //load from assets/week1/
@@ -1245,44 +1260,10 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	}
 
 	// save
-	var _file:FileReference;
-	function onSaveComplete(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.notice("Successfully saved file.");
-	}
-
-	/**
-		* Called when the save file dialog is cancelled.
-		*/
-	function onSaveCancel(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-	}
-
-	/**
-		* Called if there is an error while saving the gameplay recording.
-		*/
-	function onSaveError(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.error("Problem saving file");
-	}
-
+	// This should be better now
+	var fileDialog:FileDialogHandler = new FileDialogHandler();
 	function saveCharacter() {
-		if(_file != null) return;
+		if(!fileDialog.completed) return;
 
 		var json:Dynamic = {
 			"animations": character.animationsArray,
@@ -1305,11 +1286,29 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		if (data.length > 0)
 		{
-			_file = new FileReference();
-			_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
-			_file.addEventListener(Event.CANCEL, onSaveCancel);
-			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-			_file.save(data, '$_char.json');
+			fileDialog.save('$_char.json', data,
+			function()
+			{
+				showOutput('Character saved successfully!');
+			}, null, function() showOutput('Error saving character!', true));
+		}
+	}
+
+	function showOutput(message:String, isError:Bool = false)
+	{
+		trace(message);
+		outputTxt.text = message;
+		outputTxt.y = FlxG.height - outputTxt.height - 30;
+		outputAlpha = 4;
+		if(isError)
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
+			outputTxt.color = FlxColor.RED;
+		}
+		else
+		{
+			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+			outputTxt.color = FlxColor.WHITE;
 		}
 	}
 }

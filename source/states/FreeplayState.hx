@@ -10,6 +10,7 @@ import objects.MusicPlayer;
 
 import archipelago.*;
 //import states.editors.ChartingStateOG;
+import states.editors.ChartingState;
 
 import flixel.addons.ui.FlxUIInputText;
 
@@ -1367,7 +1368,7 @@ class FreeplayState extends MusicBeatState
 					}
 				
 					if (FlxG.keys.pressed.SHIFT){
-						//TransitionState.transitionState(ChartingStateOG, {transitionType: "stickers"});
+						TransitionState.transitionState(ChartingState, {transitionType: "stickers"});
 					} else{
 						if (!alreadyClicked)
 						{

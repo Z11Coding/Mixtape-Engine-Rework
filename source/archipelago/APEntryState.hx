@@ -4,7 +4,7 @@ import lime.app.Application;
 import haxe.io.Bytes;
 import substates.RankingSubstate;
 import yutautil.modules.SyncUtils;
-import backend.FileDialogHandler;
+import states.editors.content.FileDialogHandler;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -274,7 +274,7 @@ class APEntryState extends MusicBeatState
 		{
 			if(!fileDialog.completed) return;
 			lowFilterAmount = 0.0134;
-			fileDialog.load(_slotInput.text, [new FileFilter('YAML', 'yaml')], function()
+			fileDialog.open(_slotInput.text, [new FileFilter('YAML', 'yaml')], function()
 			{
 				FlxTween.num(0.0134, 1, 1, {ease: FlxEase.sineInOut}, function(t) {
 					APEntryState.lowFilterAmount = t;

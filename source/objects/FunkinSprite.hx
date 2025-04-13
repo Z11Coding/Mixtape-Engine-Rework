@@ -7,6 +7,10 @@ import flixel.tweens.FlxTween;
 import openfl.display3D.textures.TextureBase;
 import backend.FixedBitmapData;
 import openfl.display.BitmapData;
+import flixel.math.FlxRect;
+import flixel.math.FlxPoint;
+import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
+import flixel.FlxCamera;
 
 /**
  * An FlxSprite with additional functionality.
@@ -85,7 +89,7 @@ class FunkinSprite extends FlxSprite
    */
   public function loadTexture(key:String):FunkinSprite
   {
-    var graphicKey:String = Paths.image(key).assetsKey;
+    var graphicKey:String = Paths.imagePath(key);
     if (!isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     loadGraphic(graphicKey);
@@ -93,19 +97,39 @@ class FunkinSprite extends FlxSprite
     return this;
   }
 
-  /**
-   * Load a static image as the sprite's texture.
-   * @param key The key of the texture to load.
-   * @return This sprite, for chaining.
-   */
-  public function loadSticker(key:String):FunkinSprite
+  public function loadTextureAsync(key:String, fade:Bool = false):Void
   {
-    var graphicKey:String = Paths.file2(key, 'images/transitionSwag', 'png');
-    if (!isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
+    var fadeTween:Null<FlxTween> = null;
+    if (fade)
+    {
+      fadeTween = FlxTween.tween(this, {alpha: 0}, 0.25);
+    }
 
-    loadGraphic(graphicKey);
+    trace('[ASYNC] Start loading image (${key})');
+    graphic.persist = true;
+    openfl.Assets.loadBitmapData(key)
+      .onComplete(function(bitmapData:openfl.display.BitmapData) {
+        trace('[ASYNC] Finished loading image');
+        var cache:Bool = false;
+        loadBitmapData(bitmapData, cache);
 
-    return this;
+        if (fadeTween != null)
+        {
+          fadeTween.cancel();
+          FlxTween.tween(this, {alpha: 1.0}, 0.25);
+        }
+      })
+      .onError(function(error:Dynamic) {
+        trace('[ASYNC] Failed to load image: ${error}');
+        if (fadeTween != null)
+        {
+          fadeTween.cancel();
+          this.alpha = 1.0;
+        }
+      })
+      .onProgress(function(progress:Int, total:Int) {
+        trace('[ASYNC] Loading image progress: ${progress}/${total}');
+      });
   }
 
   /**
@@ -113,9 +137,18 @@ class FunkinSprite extends FlxSprite
    * @param input The OpenFL `BitmapData` to apply
    * @return This sprite, for chaining
    */
-  public function loadBitmapData(input:BitmapData):FunkinSprite
+  public function loadBitmapData(input:BitmapData, cache:Bool = true):FunkinSprite
   {
-    loadGraphic(input);
+    if (cache)
+    {
+      loadGraphic(input);
+    }
+    else
+    {
+      var graphic:FlxGraphic = FlxGraphic.fromBitmapData(input, false, null, false);
+      this.graphic = graphic;
+      this.frames = this.graphic.imageFrame;
+    }
 
     return this;
   }
@@ -139,7 +172,7 @@ class FunkinSprite extends FlxSprite
    */
   public function loadSparrow(key:String):FunkinSprite
   {
-    var graphicKey:String = Paths.image(key).assetsKey;
+    var graphicKey:String = Paths.imagePath(key);
     if (!isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     this.frames = Paths.getSparrowAtlas(key);
@@ -154,7 +187,7 @@ class FunkinSprite extends FlxSprite
    */
   public function loadPacker(key:String):FunkinSprite
   {
-    var graphicKey:String = Paths.image(key).assetsKey;
+    var graphicKey:String = Paths.imagePath(key);
     if (!isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     this.frames = Paths.getPackerAtlas(key);
@@ -206,12 +239,12 @@ class FunkinSprite extends FlxSprite
 
   public static function cacheSparrow(key:String):Void
   {
-    cacheTexture(Paths.image(key).assetsKey);
+    cacheTexture(Paths.imagePath(key));
   }
 
   public static function cachePacker(key:String):Void
   {
-    cacheTexture(Paths.image(key).assetsKey);
+    cacheTexture(Paths.imagePath(key));
   }
 
   /**
@@ -250,6 +283,18 @@ class FunkinSprite extends FlxSprite
   }
 
   /**
+   * @param id The animation ID to check.
+   * @return Whether the animation is dynamic (has multiple frames). `false` for static, one-frame animations.
+   */
+  public function isAnimationDynamic(id:String):Bool
+  {
+    if (this.animation == null) return false;
+    var animData = this.animation.getByName(id);
+    if (animData == null) return false;
+    return animData.numFrames > 1;
+  }
+
+  /**
    * Acts similarly to `makeGraphic`, but with improved memory usage,
    * at the expense of not being able to paint onto the resulting sprite.
    *
@@ -282,6 +327,103 @@ class FunkinSprite extends FlxSprite
     result.updateHitbox();
 
     return result;
+  }
+
+  @:access(flixel.FlxCamera)
+  override function getBoundingBox(camera:FlxCamera):FlxRect
+  {
+    getScreenPosition(_point, camera);
+
+    _rect.set(_point.x, _point.y, width, height);
+    _rect = camera.transformRect(_rect);
+
+    if (isPixelPerfectRender(camera))
+    {
+      _rect.width = _rect.width / this.scale.x;
+      _rect.height = _rect.height / this.scale.y;
+      _rect.x = _rect.x / this.scale.x;
+      _rect.y = _rect.y / this.scale.y;
+      _rect.floor();
+      _rect.x = _rect.x * this.scale.x;
+      _rect.y = _rect.y * this.scale.y;
+      _rect.width = _rect.width * this.scale.x;
+      _rect.height = _rect.height * this.scale.y;
+    }
+
+    return _rect;
+  }
+
+  /**
+   * Returns the screen position of this object.
+   *
+   * @param   result  Optional arg for the returning point
+   * @param   camera  The desired "screen" coordinate space. If `null`, `FlxG.camera` is used.
+   * @return  The screen position of this object.
+   */
+  public override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
+  {
+    if (result == null) result = FlxPoint.get();
+
+    if (camera == null) camera = FlxG.camera;
+
+    result.set(x, y);
+    if (pixelPerfectPosition)
+    {
+      _rect.width = _rect.width / this.scale.x;
+      _rect.height = _rect.height / this.scale.y;
+      _rect.x = _rect.x / this.scale.x;
+      _rect.y = _rect.y / this.scale.y;
+      _rect.round();
+      _rect.x = _rect.x * this.scale.x;
+      _rect.y = _rect.y * this.scale.y;
+      _rect.width = _rect.width * this.scale.x;
+      _rect.height = _rect.height * this.scale.y;
+    }
+
+    return result.subtract(camera.scroll.x * scrollFactor.x, camera.scroll.y * scrollFactor.y);
+  }
+
+  override function drawSimple(camera:FlxCamera):Void
+  {
+    getScreenPosition(_point, camera).subtractPoint(offset);
+    if (isPixelPerfectRender(camera))
+    {
+      _point.x = _point.x / this.scale.x;
+      _point.y = _point.y / this.scale.y;
+      _point.round();
+
+      _point.x = _point.x * this.scale.x;
+      _point.y = _point.y * this.scale.y;
+    }
+
+    _point.copyToFlash(_flashPoint);
+    camera.copyPixels(_frame, framePixels, _flashRect, _flashPoint, colorTransform, blend, antialiasing);
+  }
+
+  override function drawComplex(camera:FlxCamera):Void
+  {
+    _frame.prepareMatrix(_matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
+    _matrix.translate(-origin.x, -origin.y);
+    _matrix.scale(scale.x, scale.y);
+
+    if (bakedRotationAngle <= 0)
+    {
+      updateTrig();
+
+      if (angle != 0) _matrix.rotateWithTrig(_cosAngle, _sinAngle);
+    }
+
+    getScreenPosition(_point, camera).subtractPoint(offset);
+    _point.add(origin.x, origin.y);
+    _matrix.translate(_point.x, _point.y);
+
+    if (isPixelPerfectRender(camera))
+    {
+      _matrix.tx = Math.round(_matrix.tx / this.scale.x) * this.scale.x;
+      _matrix.ty = Math.round(_matrix.ty / this.scale.y) * this.scale.y;
+    }
+
+    camera.drawPixels(_frame, framePixels, _matrix, colorTransform, blend, antialiasing, shader);
   }
 
   public override function destroy():Void
