@@ -291,9 +291,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		if (note is archipelago.APNote)
 		{
 			trace("APNote spawned!");
-		note.rgbShader.r = 0xFF313131;
-		note.rgbShader.g = 0xFFFFFFFF;
-		note.rgbShader.b = 0xFFB4B4B4;
 		}
 
 		note.spawned = true;

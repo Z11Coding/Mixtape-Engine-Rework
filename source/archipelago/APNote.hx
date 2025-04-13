@@ -12,6 +12,10 @@ class APNote extends objects.Note {
         this.ignoreNote = note.ignoreNote;
         this.noteType = note.noteType;
         this.isCheck = true;
+        // Set a unique RGBShader color for APNotes
+        this.rgbShader.r = 0x3380CC; 
+        this.rgbShader.g = 0x3380CC; 
+        this.rgbShader.b = 0x3380CC; 
         // Copy the properties from the original note to this new note, via reflection
         trace("Copying properties from original note to new note...");
         for (field in Reflect.fields(note)) {
@@ -28,11 +32,6 @@ class APNote extends objects.Note {
 
         APItem = item;
         APItemLocation = location;
-
-        // Set a unique RGBShader color for APNotes
-        this.rgbShader.r = 0x3380CC; 
-        this.rgbShader.g = 0x3380CC; 
-        this.rgbShader.b = 0x3380CC; 
 
         this.checkInfo = {note: this, loc: location}; // Set the checkInfo for the new note
     }
@@ -61,6 +60,9 @@ class APNote extends objects.Note {
             newNotes.push(apNote);
 
             // Replace the original note with the APNote
+            notes[randomIndices[i]].rgbShader.r = 0x3380CC; 
+            notes[randomIndices[i]].rgbShader.g = 0x3380CC; 
+            notes[randomIndices[i]].rgbShader.b = 0x3380CC; 
             notes[randomIndices[i]] = apNote;
 
             apNote.index = i; // Set the index for the new note
@@ -113,11 +115,13 @@ class APNote extends objects.Note {
             newNotes.push(apNote);
 
             // Replace the original note with the APNote
-            notes[lane][index] = apNote;
-            // Just in case, recolor.
-            notes[lane][index].rgbShader.r = 0xFF313131;
-            notes[lane][index].rgbShader.g = 0xFFFFFFFF;
-            notes[lane][index].rgbShader.b = 0xFFB4B4B4;
+            @:privateAccess{
+                notes[lane][index].isCheck = true;
+                notes[lane][index].checkInfo = {note: notes[lane][index], loc: location};
+                notes[lane][index].rgbShader.r = 0xFF313131;
+                notes[lane][index].rgbShader.g = 0xFFFFFFFF;
+                notes[lane][index].rgbShader.b = 0xFFB4B4B4;
+            }
 
             apNote.index = i; // Set the index for the new note
 

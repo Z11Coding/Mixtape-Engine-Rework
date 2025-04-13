@@ -1531,7 +1531,6 @@ class FreeplayState extends MusicBeatState
 			return;
 
 		_updateSongLastDifficulty();
-		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
 		var lastList:Array<String> = Difficulty.list;
 		curSelected += change;
@@ -1639,7 +1638,7 @@ class FreeplayState extends MusicBeatState
 
 			if (songs[curSelected].songName != 'SONG NOT FOUND') 
 			{
-				Mods.currentModDirectory = songs[curSelected+1].folder;
+				Mods.currentModDirectory = songs[curSelected].folder;
 				PlayState.storyWeek = songs[curSelected].week;
 
 				switch (songs[curSelected].songName)
@@ -1685,6 +1684,7 @@ class FreeplayState extends MusicBeatState
 
 		changeDiff();
 		_updateSongLastDifficulty();
+		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 	}
 
 	inline private function _updateSongLastDifficulty()

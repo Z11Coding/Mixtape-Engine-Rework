@@ -27,7 +27,7 @@ class APPlayState extends PlayState {
     public static var deathByLink:Bool = false;
     public static var deathByBlueBalls:Bool = false;
 
-    public var checkedNotes:Array<archipelago.APNote> = new Array<archipelago.APNote>();
+    public var checkedNotes:Array<Note> = new Array<Note>();
 
     public static var currentMod = "";
     public static var deathLinkPacket:Dynamic;
@@ -1506,34 +1506,6 @@ class APPlayState extends PlayState {
         if (apNotes.length !=0)
             archipelago.APItem.popup("APNotes currently are the only normal-looking notes.", "Note Checks", false);
         else return;
-
-        for (note in unspawnNotes)
-            for (apNote in apNotes) {
-                // trace("apNote: " + apNote.noteIndex + " note: " + note.noteIndex);
-                if (note.noteIndex != apNote.noteIndex) {
-                    note.rgbShader.r = 0xFF313131;
-                    note.rgbShader.g = 0xFFFFFFFF;
-                    note.rgbShader.b = 0xFFB4B4B4;
-                    apNote.rgbShader.r = 0xFF313131;
-                    apNote.rgbShader.g = 0xFFFFFFFF;
-                    apNote.rgbShader.b = 0xFFB4B4B4;
-                    // note = apNote;
-                    note.rgbShader.r = 0xFF313131;
-                    note.rgbShader.g = 0xFFFFFFFF;
-                    note.rgbShader.b = 0xFFB4B4B4;
-                    for (notes in allNotes) {
-                            if (notes.noteIndex != apNote.noteIndex) {
-                                notes.rgbShader.r = 0xFF313131;
-                                notes.rgbShader.g = 0xFFFFFFFF;
-                                notes.rgbShader.b = 0xFFB4B4B4;
-                                // notes = apNote;
-                            }
-                    }
-                    // trace("apNote: " + apNote.noteIndex + " note: " + note.noteIndex);
-                    // trace("Created APNote!");
-                    break; 
-                }
-                }
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
@@ -1881,23 +1853,14 @@ class APPlayState extends PlayState {
 					note.blockHit = true;
 				else
 					note.blockHit = false;
+
+                if (note is archipelago.APNote) {
+                    note.rgbShader.r = 0xFF313131;
+                    note.rgbShader.g = 0xFFFFFFFF;
+                    note.rgbShader.b = 0xFFB4B4B4;
+                }
 			});
 		}
-
-        /*for(queue in playerField.noteQueue){
-            for(note in queue)
-            {
-                if (note.noteData == picked)
-                    note.blockHit = true;
-            }
-		}*/
-
-        if (!endingSong)
-            FlxG.save.data.activeItems = activeItems;
-
-        for (i in activeItems)
-            if (i == 0)
-                FlxG.save.data.activeItems = null;
 
         #if windows
 		for (video in addedMP4s)
@@ -2060,9 +2023,9 @@ class APPlayState extends PlayState {
         trace("Sending checks for all checked notes...");
         for (note in checkedNotes) {
             trace("Sending check for note: " + note);
-            trace("Sending location: " + note.checkInfo.loc);
+            @:privateAccess trace("Sending location: " + note.checkInfo.loc);
             // note.checkInfo.note.sendCheck();
-            apGame.info().LocationChecks([note.checkInfo.loc]);
+            @:privateAccess apGame.info().LocationChecks([note.checkInfo.loc]);
         }
         trace("All checks sent.");
 
@@ -2269,6 +2232,7 @@ class APPlayState extends PlayState {
 			return;
 		}
 
+        @:privateAccess 
         if (note.isCheck || apNotes.contains(cast note)) {
             ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
             checkedNotes.push(cast(note, archipelago.APNote));
