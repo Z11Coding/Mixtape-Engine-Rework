@@ -470,7 +470,7 @@ class FreeplayState extends MusicBeatState
 				iconArray.pop();
 			}
 
-			trace (curUnlocked);
+			// trace (curUnlocked);
 
 			for (i in 0...WeekData.weeksList.length) {
 				if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
