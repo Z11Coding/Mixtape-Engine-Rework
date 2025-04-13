@@ -1502,10 +1502,6 @@ class APPlayState extends PlayState {
 
         for (field in playfields.members)
             field.clearStackedNotes();
-
-        if (apNotes.length !=0)
-            archipelago.APItem.popup("APNotes currently are the only normal-looking notes.", "Note Checks", false);
-        else return;
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
@@ -2023,9 +2019,10 @@ class APPlayState extends PlayState {
         trace("Sending checks for all checked notes...");
         for (note in checkedNotes) {
             trace("Sending check for note: " + note);
-            @:privateAccess trace("Sending location: " + note.checkInfo.loc);
-            // note.checkInfo.note.sendCheck();
-            @:privateAccess apGame.info().LocationChecks([note.checkInfo.loc]);
+            @:privateAccess{ 
+                trace("Sending location: " + note.checkInfo.loc);
+                apGame.info().LocationChecks([note.checkInfo.loc]);
+            }
         }
         trace("All checks sent.");
 
