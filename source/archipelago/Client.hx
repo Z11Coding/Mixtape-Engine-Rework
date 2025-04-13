@@ -1452,7 +1452,44 @@ class Client {
 						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					}
 
-					yutautil.Threader.runInThread(data(), "DataPackageFetcher");
+					function dataNew():Void {
+						var uniqueGames:Set<String> = new Set<String>();
+						for (game in players.mapT(function(p) return get_player_game(p.slot)).toIterable()) {
+							uniqueGames.add(game);
+						}
+						var gamesArray:Array<String> = uniqueGames.toArray();
+						trace("Fetching data for games: " + gamesArray);
+						GetDataPackage(gamesArray);
+						while (!_gotDataPackage) {
+							// Wait for _gotDataPackage to be true
+							Sys.sleep(0.1);
+						}
+						var gameData = new DynamicAccess<GameData>();
+						for (game in gamesArray) {
+							if (_dataPackage.games.exists(game)) {
+								gameData.set(game, _dataPackage.games[game]);
+							}
+						}
+
+						APGameState.currentPackages = gameData;
+						//trace("Game Data: " + gameData);
+
+						var data:DataPackageObject = {
+							games: gameData,
+						};
+						_dataPackage = data;
+						APGameState.instance.APLocations = missingLocations.concat(checkedLocations);
+						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
+						APGameState.instance.initSaveData();
+						try {
+							if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
+						} catch (e:Dynamic) {
+							backend.MusicBeatState.resetState();
+						}
+						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
+					}
+
+					yutautil.Threader.runInThread(dataNew(), "DataPackageFetcher");
 
 				// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 					//
