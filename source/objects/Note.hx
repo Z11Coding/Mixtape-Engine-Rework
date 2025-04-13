@@ -485,6 +485,14 @@ class Note extends NoteObject
 
 		if (arr != null && noteData > -1 && noteData <= PlayState.mania)
 		{
+			if (this is archipelago.APNote)
+			{
+				trace("AP Color.");
+				rgbShader.r = 0xFF313131;
+				rgbShader.g = 0xFFFFFFFF;
+				rgbShader.b = 0xFFB4B4B4;
+				return;
+			}
 			rgbShader.r = arr[0];
 			rgbShader.g = arr[1];
 			rgbShader.b = arr[2];

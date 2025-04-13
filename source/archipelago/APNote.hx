@@ -5,6 +5,7 @@ import archipelago.PacketTypes.NetworkItem;
 class APNote extends objects.Note {
     var APItem:NetworkItem;
     public var APItemLocation:Null<Int> = null;
+    public var index:Int = 0;
 
     public function new(note:objects.Note, location:Int, ?item:NetworkItem = null) {
         super(note.strumTime, note.noteData, note.prevNote, note.isSustainNote);
@@ -32,6 +33,8 @@ class APNote extends objects.Note {
         this.rgbShader.r = 0x3380CC; 
         this.rgbShader.g = 0x3380CC; 
         this.rgbShader.b = 0x3380CC; 
+
+        this.checkInfo = {note: this, loc: location}; // Set the checkInfo for the new note
     }
 
     // Replace notes with a certain amount of locations.
@@ -45,42 +48,87 @@ class APNote extends objects.Note {
             var note = notes[randomIndex];
 
             var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
-            if (shouldIgnore) continue; // Skip if the note should be ignored
+            if (shouldIgnore || randomIndices.contains(randomIndex)) continue; // Skip if the note should be ignored or already selected
 
-            // Check if the note should be ignored
-            if (!randomIndices.contains(randomIndex) && 
-                !note.ignoreNote && 
-                (!ignoreNonEmptyNoteType || note.noteType.isEmpty())) {
-                randomIndices.push(randomIndex);
-            }
+            randomIndices.push(randomIndex);
         }
 
         for (i in 0...randomIndices.length) {
             var note:objects.Note = notes[randomIndices[i]];
             var location:Int = locations[i % locations.length];
             var apNote = new APNote(note, location, null); // Create a new APNote with the location
+            // apNote.noteIndex = note.noteIndex;
             newNotes.push(apNote);
-            notes[randomIndices[i]].isCheck = true; // Replace the original note with the APNote
-            note = apNote; // Also replace the original note with the APNote
-            for (queue in apNote.field.noteQueue) {
-                for (i in 0...queue.length) {
-                    if (queue[i] == note) {
-                        queue[i] = apNote; // Replace the note with apNote in the double-array
-                        queue[i].rgbShader.r = 0x3380CC; // Set the color of the new note
-                        queue[i].rgbShader.g = 0x3380CC; // Set the color of the new note
-                        queue[i].rgbShader.b = 0x3380CC; // Set the color of the new note
-                        note.rgbShader.r = 0x3380CC; // Set the color of the original note to red
-                        note.rgbShader.g = 0x3380CC; // Set the color of the original note to red
-                        note.rgbShader.b = 0x3380CC; // Set the color of the original note to red
-                        break; // Break out of the loop once the note is found and replaced
-                    }
-                }
-            }
-            apNote.isCheck = true; // Set the isCheck property to true
+
+            // Replace the original note with the APNote
+            notes[randomIndices[i]] = apNote;
+
+            apNote.index = i; // Set the index for the new note
+
+
+            // Set the checkInfo for the new note
+            apNote.checkInfo = {note: apNote, loc: location};
         }
+        return newNotes; // Return the new notes
+    }
+
+    public static function replaceInQueue(notes:Array<Array<objects.Note>>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
+        var newNotes:Array<APNote> = [];
+        var flatNotes:Array<{lane:Int, index:Int, note:objects.Note}> = [];
+        
+        // Flatten the notes array into a single array with lane and index information
+        for (lane in 0...notes.length) {
+            for (index in 0...notes[lane].length) {
+                var note = notes[lane][index];
+                flatNotes.push({lane: lane, index: index, note: note});
+            }
+        }
+
+        var randomIndices:Array<Int> = [];
+
+        // Generate a list of random unique indices across all notes
+        while (randomIndices.length < Math.min(locations.length, flatNotes.length)) {
+            var randomIndex = Std.random(flatNotes.length);
+            var noteData = flatNotes[randomIndex];
+            var note = noteData.note;
+
+            var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
+            if (shouldIgnore || randomIndices.contains(randomIndex)) continue; // Skip if the note should be ignored or already selected
+
+            randomIndices.push(randomIndex);
+        }
+
+        for (i in 0...randomIndices.length) {
+            var randomIndex = randomIndices[i];
+            var noteData = flatNotes[randomIndex];
+            var lane = noteData.lane;
+            var index = noteData.index;
+            var note = noteData.note;
+            var location:Int = locations[i % locations.length];
+            var apNote = new APNote(note, location, null); // Create a new APNote with the location
+            // black coloring
+            apNote.rgbShader.r = 0xFF313131;
+            apNote.rgbShader.g = 0xFFFFFFFF;
+            apNote.rgbShader.b = 0xFFB4B4B4;
+            newNotes.push(apNote);
+
+            // Replace the original note with the APNote
+            notes[lane][index] = apNote;
+            // Just in case, recolor.
+            notes[lane][index].rgbShader.r = 0xFF313131;
+            notes[lane][index].rgbShader.g = 0xFFFFFFFF;
+            notes[lane][index].rgbShader.b = 0xFFB4B4B4;
+
+            apNote.index = i; // Set the index for the new note
+
+            // Set the checkInfo for the new note
+            apNote.checkInfo = {note: apNote, loc: location};
+        }
+        return newNotes; // Return the new notes
     }
 
     public function sendCheck():Void {
+
         trace('Location ID: $APItemLocation');
         if (APItemLocation != null) {
             APEntryState.apGame.info().LocationChecks([APItemLocation]);

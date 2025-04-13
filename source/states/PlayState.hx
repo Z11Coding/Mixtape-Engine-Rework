@@ -2863,6 +2863,7 @@ class PlayState extends MusicBeatState
 					swagNote.rgbShader.g = 0x3380CC; 
 					swagNote.rgbShader.b = 0x3380CC;   
 				}*/
+				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
 				if (!swagNote.mustPress)
 				{

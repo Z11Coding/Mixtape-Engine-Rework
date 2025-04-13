@@ -112,121 +112,109 @@ class APGameState {
     public var ItemIndex:Int = -1;
 
     public function locationData(songName:String):Array<Int> {
-        // trace("Starting locationData function with songName: " + songName);
-        var matchingLocations:Array<Int> = [];
-        var exactMatch:Int = -1;
-        var hasDashNumber:Bool = false;
-        var reg = new EReg("^" + EReg.escape(songName) + "(?:-\\d+)?$", "");
-        var apInfo = info();
+        try {
+            // trace("Starting locationData function with songName: " + songName);
+            var matchingLocations:Array<Int> = [];
+            var exactMatch:Int = -1;
+            var hasDashNumber:Bool = false;
+            var reg = new EReg("^" + EReg.escape(songName) + "(?:-\\d+)?$", "");
+            var apInfo = info();
 
-        // trace("Iterating through APLocations...");
-        for (location in APLocations) {
-            var locationName = apInfo.get_location_name(location);
-            // trace("Checking location: " + location + " with name: " + locationName);
+            for (location in APLocations) {
+                var locationName = apInfo.get_location_name(location);
 
-            if (locationName == songName) {
-                // trace("Exact match found for location: " + location);
-                exactMatch = location;
-                break;
-            } else if (reg.match(locationName)) {           //     trace("Matching location with dash-number found: " + location);
-                matchingLocations.push(location);
-                hasDashNumber = true;
+                if (locationName == songName) {
+                    exactMatch = location;
+                    break;
+                } else if (reg.match(locationName)) {
+                    matchingLocations.push(location);
+                    hasDashNumber = true;
+                }
             }
+
+            if (!hasDashNumber && exactMatch != -1) {
+                return [exactMatch];
+            }
+
+            return matchingLocations;
+        } catch (e:Dynamic) {
+            var errorMessage = "Error in locationData function for song: " + songName + ". Reason: " + Std.string(e);
+            trace(errorMessage);
+            archipelago.APItem.popup(errorMessage, "Error: Locations", true);
+            return [];
         }
-
-        // trace("Finished iterating through APLocations.");
-        // trace("Exact match: " + exactMatch + ", hasDashNumber: " + hasDashNumber);
-
-        if (!hasDashNumber && exactMatch != -1) {
-            // trace("Returning exact match as the result: [" + exactMatch + "]");
-            return [exactMatch];
-        }
-
-        // trace("Returning matching locations: " + matchingLocations);
-        return matchingLocations;
     }
 
     public function noteData(songName:String, modName:String, ?week:String):Array<Int> {
-        //trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
-        var matchingNotes:Array<Int> = [];
-        var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-        var apInfo = info();
-    
-        //trace("Looking for locations matching pattern: " + "Note #: " + songName + (modName != "" ? " (" + modName + ")" : ""));
-    
-        // Initial matching using the regular expression
-        //trace("Iterating through APLocations...");
-        for (location in APLocations) {
-            var locationName = apInfo.get_location_name(location);
-            if (reg.match(locationName)) {
-                matchingNotes.push(location);
-            }
-        }
-    
-        // Fallback logic if no matches are found
-        if (matchingNotes.length == 0) {
-            //trace("No matches found. Attempting fallback logic...");
-            for (song in WeekData.getCurrentWeek().songs) {
-                //trace("Checking song in current week: " + song[0]);
-                if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
-                    (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
-                    var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-                    for (location in APLocations) {
-                        var locationName = apInfo.get_location_name(location);
-                        if (fallbackReg.match(locationName)) {
-                            trace("Fallback match found: " + locationName);
-                            matchingNotes.push(location);
-                        }
-                    }
-                    break;
+        try {
+            // trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
+            var matchingNotes:Array<Int> = [];
+            var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+            var apInfo = info();
+        
+            for (location in APLocations) {
+                var locationName = apInfo.get_location_name(location);
+                if (reg.match(locationName)) {
+                    matchingNotes.push(location);
                 }
             }
-        }
-    
-        // Secondary fallback logic using JSON data
-        if (matchingNotes.length == 0) {
-            //trace("No matches found in fallback logic. Attempting secondary fallback...");
-            for (song in WeekData.getCurrentWeek().songs) {
-                //trace("Checking song in secondary fallback logic: " + song[0]);
-                var songPath = modName.trim() != ""
-                    ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-                    : "assets/shared/data/" + (song[0] + Difficulty.getFilePath());
-                //trace("Constructed songPath: " + songPath);
-    
-                var songJson:backend.Song.SwagSong = null;
-                var jsonStuff:Array<String> = modName.trim() != "" 
-                    ? Paths.crawlDirectory("mods/" + modName + "/data", ".json") 
-                    : Paths.crawlDirectory("assets/shared/data", ".json");
-                //trace("Retrieved JSON files: " + jsonStuff);
-    
-                for (json in jsonStuff) {
-                    //trace("Checking JSON file: " + json);
-                    if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
-                        trace("Match found for JSON file: " + json);
-                        songJson = backend.Song.parseJSON(File.getContent(json));
-                        if (songJson != null) {
-                            trace("Parsed song JSON successfully. Checking song name...");
-                            if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
-                                trace("Match found for song in JSON: " + songJson.song);
-                                var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-                                for (location in APLocations) {
-                                    var locationName = apInfo.get_location_name(location);
-                                    if (fallbackReg.match(locationName)) {
-                                        trace("Secondary fallback match found: " + locationName);
-                                        matchingNotes.push(location);
+        
+            if (matchingNotes.length == 0) {
+                for (song in WeekData.getCurrentWeek().songs) {
+                    if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
+                        (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
+                        var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+                        for (location in APLocations) {
+                            var locationName = apInfo.get_location_name(location);
+                            if (fallbackReg.match(locationName)) {
+                                trace("Fallback match found: " + locationName);
+                                matchingNotes.push(location);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        
+            if (matchingNotes.length == 0) {
+                for (song in WeekData.getCurrentWeek().songs) {
+                    var songPath = modName.trim() != ""
+                        ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+                        : "assets/shared/data/" + (song[0] + Difficulty.getFilePath());
+        
+                    var songJson:backend.Song.SwagSong = null;
+                    var jsonStuff:Array<String> = modName.trim() != "" 
+                        ? Paths.crawlDirectory("mods/" + modName + "/data", ".json") 
+                        : Paths.crawlDirectory("assets/shared/data", ".json");
+        
+                    for (json in jsonStuff) {
+                        if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
+                            songJson = backend.Song.parseJSON(File.getContent(json));
+                            if (songJson != null) {
+                                if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
+                                    var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+                                    for (location in APLocations) {
+                                        var locationName = apInfo.get_location_name(location);
+                                        if (fallbackReg.match(locationName)) {
+                                            trace("Secondary fallback match found: " + locationName);
+                                            matchingNotes.push(location);
+                                        }
                                     }
+                                    break;
                                 }
-                                break;
                             }
                         }
                     }
                 }
             }
+        
+            return matchingNotes;
+        } catch (e:Dynamic) {
+            var errorMessage = "Error in noteData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
+            trace(errorMessage);
+            archipelago.APItem.popup(errorMessage, "Error: Note Checks", true);
+            return [];
         }
-    
-        //trace("Finished iterating through APLocations.");
-        //trace("Returning matching notes: " + matchingNotes);
-        return matchingNotes;
     }
 
     public function getSongLocations(songName:String, modName:String):Array<Int> {
