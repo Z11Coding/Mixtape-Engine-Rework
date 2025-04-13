@@ -1497,7 +1497,7 @@ class APPlayState extends PlayState {
     private override function generateSong():Void
     {
         super.generateSong();
-        if (PlayState.SONG == null || archipelago.APItem.activeItem.name=="Tutorial Trap") return;
+        if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap") return;
         apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
 
         for (field in playfields.members)
