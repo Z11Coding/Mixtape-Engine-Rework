@@ -1497,7 +1497,7 @@ class APPlayState extends PlayState {
     private override function generateSong():Void
     {
         super.generateSong();
-        if (PlayState.SONG == null) return;
+        if (PlayState.SONG == null || archipelago.APItem.activeItem.name=="Tutorial Trap") return;
         apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
 
         for (field in playfields.members)
@@ -2191,6 +2191,14 @@ class APPlayState extends PlayState {
                 });
                 char.playAnim('hit', true);
             }
+            @:privateAccess
+            if (daNote.isCheck && daNote.ignoreNote)
+            {
+                // If the note is meant to be ignored for some reason, check it.
+                // This is used for the check notes that are not meant to be hit.
+                checkedNotes.push(cast(daNote, archipelago.APNote));
+                ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
+            }
 
             if (daNote.specialNote)
 			{
@@ -2230,7 +2238,7 @@ class APPlayState extends PlayState {
 		}
 
         @:privateAccess 
-        if (note.isCheck || apNotes.contains(cast note)) {
+        if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
             ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
             checkedNotes.push(cast(note, archipelago.APNote));
         }

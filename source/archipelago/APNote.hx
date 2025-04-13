@@ -101,6 +101,7 @@ class APNote extends objects.Note {
 
         // If there aren't enough available notes, make an exception for the ignoreNonEmptyNoteType rule
         if (availableNotes.length < locations.length) {
+            trace("Not enough available notes, ignoring non-empty note type rule.");
             ignoreNonEmptyNoteType = false;
         }
 
