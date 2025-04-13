@@ -340,7 +340,11 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.chartingMode = false;
 					FlxG.camera.followLerp = 0;
 				case 'Skip Check':
-					if (PlayState.instance is APPlayState)
+					var apPlayState:APPlayState = cast PlayState.instance;
+					@:privateAccess
+					for (note in apPlayState.apNotes)
+						if (note.isCheck && note.checkInfo != null)
+							apPlayState.checkedNotes.push(note);
 					PlayState.instance.endSong();
 					close();
 			}
