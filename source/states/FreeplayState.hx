@@ -703,10 +703,13 @@ class FreeplayState extends MusicBeatState
 					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
+					
+					var someLocationsNotMissing:Bool = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+
 					for (daSongName in curUnlocked.keys())
 					{
 						if (((songName.trim().toLowerCase().replace('-', ' ') == daSongName.trim().toLowerCase().replace('-', ' ')) && modName == curUnlocked.get(daSongName)) && isMissing) {
-							color = FlxColor.WHITE;
+							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
 							unplayedList.push(songName);
 						}
 					}
