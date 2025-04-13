@@ -87,6 +87,21 @@ class APNote extends objects.Note {
         }
 
         var randomIndices:Array<Int> = [];
+        var availableNotes:Array<Int> = [];
+
+        // Check for available notes based on the ignoreNonEmptyNoteType rule
+        for (i in 0...flatNotes.length) {
+            var note = flatNotes[i].note;
+            var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
+            if (!shouldIgnore) {
+                availableNotes.push(i);
+            }
+        }
+
+        // If there aren't enough available notes, make an exception for the ignoreNonEmptyNoteType rule
+        if (availableNotes.length < locations.length) {
+            ignoreNonEmptyNoteType = false;
+        }
 
         // Generate a list of random unique indices across all notes
         while (randomIndices.length < Math.min(locations.length, flatNotes.length)) {
