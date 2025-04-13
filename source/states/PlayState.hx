@@ -3613,6 +3613,10 @@ class PlayState extends MusicBeatState
 		}
 		else FlxG.camera.followLerp = 0;
 
+		if (FlxG.animationTimeScale != playbackRate) {
+			FlxG.animationTimeScale = playbackRate;
+		}
+
 		//So that the health text works
 		if (health != lastHealth) {
 			updateScoreText();

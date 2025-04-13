@@ -541,7 +541,7 @@ class FreeplayState extends MusicBeatState
 									}
 								for (songName in curUnlocked.keys())
 								{
-									if (curUnlocked.exists(songName) && songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && leWeek.folder == curUnlocked.get(songName) && !isMissing)
+									if (curUnlocked.exists(songName) && songNameThing.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && leWeek.folder == curUnlocked.get(songName))
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
 							}
