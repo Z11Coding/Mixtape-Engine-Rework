@@ -725,7 +725,15 @@ class FreeplayState extends MusicBeatState
 				// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
 
 				if (APEntryState.inArchipelagoMode) {
-					songText = isVictorySong(songName, modName) ? (isMissing ? new VictorySong(90, 320, songName, color, true) : new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) : new DynamicColoredAlphabet(90, 320, songName, true, color, true); 
+					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
+					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+					songText = isVictorySong(songName, modName) ? 
+						(isMissing ? 
+							(someLocationsNotMissing ? 
+								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
+								: new VictorySong(90, 320, songName, color, true)) 
+							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
+						: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
 				} else {
 					songText = new DynamicAlphabet(90, 320, songs[i].songName, true, true);
 				}

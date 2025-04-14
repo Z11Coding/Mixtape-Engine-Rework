@@ -979,7 +979,7 @@ class APPlayState extends PlayState {
                 dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
                 health = MaxHP - health;
 
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'opponentPlay');*/
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'opponentPlay');
             },
             'bothplay' => function() {
                 var ttl:Float = 12;
