@@ -695,6 +695,7 @@ class FreeplayState extends MusicBeatState
 				var locationId:Array<Int> = [];
 				var isMissing:Bool = false;
 				var color:FlxColor = 0xFFFFFFFF;
+				var someLocationsNotMissing:Bool = false;
 
 				if (APEntryState.inArchipelagoMode) {
 					songName = songs[i].songName;
@@ -704,7 +705,7 @@ class FreeplayState extends MusicBeatState
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
 					
-					var someLocationsNotMissing:Bool = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+					someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 
 					for (daSongName in curUnlocked.keys())
 					{
