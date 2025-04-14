@@ -11,6 +11,7 @@ import archipelago.APDisconnectSubstate;
 import archipelago.APCategoryState;
 import backend.WeekData;
 import haxe.ds.Option;
+import flixel.text.FlxTextFormat;
 
 // Enums
 enum PrintJsonType {
@@ -337,50 +338,8 @@ class APGameState {
 
         _ap.toggleDeathLink(ClientPrefs.data.deathlink);
 
-        _ap.onRetrieved.add(function(retrievedPacket:haxe.DynamicAccess<Dynamic>) {
-            trace("Retrieved packet: " + retrievedPacket);
-            for (key in retrievedPacket.keys()) {
-                var value = retrievedPacket.get(key);
-                if (key.indexOf("_read_hints_") != -1) {
-                    var hint:Hint = cast value;
-                        if (!hint.found) {
-                            // Grab the location and remove the -# from it.
-                            var location = hint.location;
-                            var locationName = _ap.get_location_name(location);
-                            var dashIndex = locationName.indexOf("-");
-                            if (dashIndex != -1) {
-                                locationName = locationName.substring(0, dashIndex);
-                            }
+        _ap.onRetrieved.add(handleRetrievedPacket);
 
-                            var findingPlayerName = _ap.get_player_alias(hint.finding_player);
-                            var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
-                            var itemName = _ap.get_item_name(hint.item, _ap.get_player_game(hint.finding_player));
-
-
-                            var message:String;
-                            if (hint.receiving_player == _ap.slotnr) {
-                                message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
-                            } else if (hint.finding_player == _ap.slotnr) {
-                                message = "This song has " + receivingPlayerName + "'s item: " + itemName;
-                            } else {
-                                message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
-                            }
-
-                            if (FreeplayState.hintTable.exists(locationName)) {
-                                FreeplayState.hintTable.set(locationName, FreeplayState.hintTable.get(locationName) + "\n" + message);
-                            } else {
-                                FreeplayState.hintTable.set(locationName, message);
-                            }
-                        }
-                }
-            }
-            for (hint in FreeplayState.hintTable.keys()) {
-                var message = FreeplayState.hintTable.get(hint);
-                trace("Hint: " + hint + " - " + message);
-                var hintSong = getSongAndMod(hint);
-                FreeplayState.curHinted.set(hintSong.song, hintSong.mod);
-            }
-        });
 
         // _ap.onConnect.add(function() {
         //     _ap.clientStatus = ClientStatus.CONNECTED;
@@ -391,6 +350,47 @@ class APGameState {
 		_ap.onSlotConnected.add(onSlotConnected);
         APPlayState.deathByLink = false;
     }
+
+    function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void {
+        trace("Retrieved packet: " + retrievedPacket);
+        for (key in retrievedPacket.keys()) {
+        var value = retrievedPacket.get(key);
+        if (key.indexOf("_read_hints_") != -1) {
+            var hint:Hint = cast value;
+            if (!hint.found) {
+                // Grab the location name directly and get the game of the finding player.
+                var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
+
+                var findingPlayerName = _ap.get_player_alias(hint.finding_player);
+                var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
+                var itemName = _ap.get_item_name(hint.item, _ap.get_player_game(hint.finding_player));
+
+                var message:String;
+                if (hint.receiving_player == _ap.slotnr) {
+                message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
+                } else if (hint.finding_player == _ap.slotnr) {
+                message = "This song has " + receivingPlayerName + "'s item: " + itemName;
+                } else {
+                message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
+                }
+
+                if (FreeplayState.hintTable.exists(locationName)) {
+                FreeplayState.hintTable.set(locationName, FreeplayState.hintTable.get(locationName) + "\n" + message);
+                } else {
+                FreeplayState.hintTable.set(locationName, message);
+                }
+            }
+        }
+        }
+        for (hint in FreeplayState.hintTable.keys()) {
+        var message = FreeplayState.hintTable.get(hint);
+        trace("Hint: " + hint + " - " + message);
+        var hintSong = getSongAndMod(hint);
+        FreeplayState.curHinted.set(hintSong.song, hintSong.mod != null ? hintSong.mod : "");
+        trace(hintSong);
+        }
+    }
+
 
     public function initSaveData():Void {
         var combinedChecksum = haxe.crypto.Sha1.encode(haxe.Json.stringify(currentPackages));
@@ -540,6 +540,31 @@ class APGameState {
             songName = input;
         }
         return modName != null && modName != "" ? { song: songName, mod: modName } : { song: songName };
+    }
+
+    public function getSongAndModFromLocation(locationID:Int):{ song:String, ?mod:String }
+    {
+        var locationName = info().get_location_name(locationID);
+        var songAndMod:{ song:String, ?mod:String };
+
+        // Check if it's a note location
+        var noteReg = new EReg("^Note \\d+: (.+)$", "");
+        if (noteReg.match(locationName)) {
+            var noteName = noteReg.matched(1);
+            songAndMod = getSongAndMod(noteName);
+        } else {
+            // Check if it's a song location with a dash number
+            var songReg = new EReg("^(.+?)(?:-\\d+)?$", "");
+            if (songReg.match(locationName)) {
+                var songName = songReg.matched(1);
+                songAndMod = getSongAndMod(songName);
+            } else {
+                // Default fallback
+                songAndMod = getSongAndMod(locationName);
+            }
+        }
+
+        return songAndMod;
     }
 
     public function findSpecialItems():Map<String, Int> {
