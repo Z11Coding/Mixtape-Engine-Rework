@@ -391,7 +391,9 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 				weekFile.difficulties = difficultiesInputText.text.trim();
 				unsavedProgress = true;
 			} else if(sender == categoryInputText) {
-				weekFile.category = categoryInputText.text.trim();
+				weekFile.category = categoryInputText.text.indexOf(",") != -1 
+					? categoryInputText.text.trim().split(",").map(function(item) return item.trim()) 
+					: categoryInputText.text.trim();
 				unsavedProgress = true;
 			}
 		}
