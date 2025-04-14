@@ -18,7 +18,7 @@ typedef WeekFile =
 	var hideStoryMode:Bool;
 	var hideFreeplay:Bool;
 	var difficulties:String;
-	var category:String;
+	var category:flixel.util.typeLimit.OneOfTwo<String, Array<String>>;
 }
 
 class WeekData {
@@ -38,7 +38,7 @@ class WeekData {
 	public var hideStoryMode:Bool;
 	public var hideFreeplay:Bool;
 	public var difficulties:String;
-	public var category:String;
+	public var category:flixel.util.typeLimit.OneOfTwo<String, Array<String>>;
 
 	public var fileName:String;
 

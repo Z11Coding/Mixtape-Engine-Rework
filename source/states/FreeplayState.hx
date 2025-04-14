@@ -492,7 +492,25 @@ class FreeplayState extends MusicBeatState
 				WeekData.setDirectoryFromWeek(leWeek);
 				for (song in leWeek.songs)
 				{
-					var categoryWhaat:String = leWeek.category;
+					var categoryWhaat:flixel.util.typeLimit.OneOfTwo<String, Array<String>> = null;
+					if (leWeek.category is String)
+					{
+						categoryWhaat = leWeek.category.split(',').map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						});
+					}
+					else if (leWeek.category is Array<String>)
+					{
+						categoryWhaat = leWeek.category.map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						});
+					}
+					else
+					{
+						categoryWhaat = [leWeek.category].map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						});
+					}
 					var colors:Array<Int> = song[2];
 					if(colors == null || colors.length < 3)
 					{
