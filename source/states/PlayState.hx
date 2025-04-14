@@ -240,6 +240,7 @@ class PlayState extends MusicBeatState
 
 	public var camZooming:Bool = false;
 	public var camZoomingMult:Float = 1;
+	public var camZoomingFrequency:Float = 4;
 	public var camZoomingDecay:Float = 1;
 	private var curSong:String = "";
 
@@ -316,6 +317,8 @@ class PlayState extends MusicBeatState
 	public static var deathCounter:Int = 0;
 
 	public var defaultCamZoom:Float = 1.05;
+	public var defaultStageZoom:Float = 1.05;
+	private static var zoomTween:FlxTween;
 
 	// how big to stretch the pixel art assets
 	public static var daPixelZoom:Float = 6;
@@ -655,6 +658,7 @@ class PlayState extends MusicBeatState
 
 		var stageData:StageFile = StageData.getStageFile(curStage);
 		defaultCamZoom = stageData.defaultZoom;
+		defaultStageZoom = defaultCamZoom;
 
 		stageUI = "normal";
 		if (stageData.stageUI != null && stageData.stageUI.trim().length > 0)
@@ -4751,6 +4755,24 @@ class PlayState extends MusicBeatState
 						});
 				}
 
+			case 'Vslice Scroll Speed':
+				if (songSpeedType != "constant")
+				{
+					if(flValue1 == null) flValue1 = 1;
+					if(flValue2 == null) flValue2 = 0;
+
+					var newValue:Float = ClientPrefs.getGameplaySetting('scrollspeed') * flValue1;
+					if(flValue2 <= 0)
+						songSpeed = newValue;
+					else
+						songSpeedTween = FlxTween.tween(this, {songSpeed: newValue}, flValue2 / playbackRate, {ease: FlxEase.quadInOut, onComplete:
+							function (twn:FlxTween)
+							{
+								songSpeedTween = null;
+							}
+						});
+				}
+
 			case 'Set Property':
 				try
 				{
@@ -4780,6 +4802,40 @@ class PlayState extends MusicBeatState
 			case 'Play Sound':
 				if(flValue2 == null) flValue2 = 1;
 				FlxG.sound.play(Paths.sound(value1), flValue2);
+
+			case 'SetCameraBop': //P-slice event notes
+				var val1 = Std.parseFloat(value1);
+				var val2 = Std.parseFloat(value2);
+				camZoomingMult = !Math.isNaN(val2) ? val2 : 1;
+				camZoomingFrequency = !Math.isNaN(val1) ? val1 : 4;
+
+			case 'ZoomCamera': //defaultCamZoom
+				var keyValues = value1.split(",");
+				if(keyValues.length != 2) {
+					trace("INVALID EVENT VALUE");
+					return;
+				}
+				var floaties = keyValues.map(s -> Std.parseFloat(s));
+				if(backend.util.ArrayTools.findIndex(floaties,s -> Math.isNaN(s)) != -1) {
+					trace("INVALID FLOATIES");
+					return;
+				}
+				var easeFunc = LuaUtils.getTweenEaseByString(value2);
+				if(zoomTween != null) zoomTween.cancel();
+				var targetZoom = floaties[1]*defaultStageZoom;
+				zoomTween = FlxTween.tween(this,{ defaultCamZoom:targetZoom},(Conductor.stepCrochet/1000)*floaties[0],{
+					onStart: (x) ->{
+						//camZooming = false;
+						camZoomingDecay = 7;
+					},
+					ease: easeFunc,
+					onComplete: (x) ->{
+						defaultCamZoom = targetZoom;
+						camZoomingDecay = 1;
+						//camZooming = true;
+						zoomTween = null;
+					}
+				});
 
 			case 'Change Mania':
 				var newMania:Int = 0;
@@ -6722,6 +6778,12 @@ class PlayState extends MusicBeatState
 
 		characterBopper(curBeat);
 
+		if (camZooming && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms && (curBeat % camZoomingFrequency) == 0)
+		{
+			FlxG.camera.zoom += 0.015 * camZoomingMult;
+			camHUD.zoom += 0.03 * camZoomingMult;
+		}
+
 		super.beatHit();
 		lastBeatHit = curBeat;
 
@@ -6761,12 +6823,6 @@ class PlayState extends MusicBeatState
 		{
 			if (generatedMusic && !endingSong && !isCameraOnForcedPos)
 				moveCameraSection();
-
-			if (camZooming && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms)
-			{
-				FlxG.camera.zoom += 0.015 * camZoomingMult;
-				camHUD.zoom += 0.03 * camZoomingMult;
-			}
 
 			if (SONG.notes[curSection].changeBPM)
 			{

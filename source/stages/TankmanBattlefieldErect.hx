@@ -12,6 +12,7 @@ class TankmanBattlefieldErect extends BaseStage {
 	var tankmanRun:FlxTypedGroup<TankmenBG>;
 
     override function create() {
+		new PicoCapableStage();
         super.create();
 
         var bg:BGSprite = new BGSprite('erect/bg', -985, -805, 1,1);
@@ -33,6 +34,10 @@ class TankmanBattlefieldErect extends BaseStage {
 
 		tankmanRun = new FlxTypedGroup<TankmenBG>();
 		add(tankmanRun);
+		if (songName == "stress-(pico-mix)" && !seenCutscene)
+		{
+			//setStartCallback(videoCutscene.bind('stressPicoCutscene'));
+		}
 
     }
     override function beatHit() {
@@ -44,6 +49,15 @@ class TankmanBattlefieldErect extends BaseStage {
         if(FlxG.random.bool(2)) sniper.animation.play('sip', true);
         if(songName.toLowerCase() == "stress (pico mix)"){
             // We gonna have some events here
+
+			if (curBeat == 184) {
+				dad.shader = null;
+				PlayState.instance.triggerEvent("Change Character", "dad", "tankman-bloody");
+				applyShader(dad,dad.curCharacter);
+				dad.animation.play("redheadsAnim", true);
+			}
+
+			if (curBeat == 188) boyfriend.animation.play("knifeToss", true);
         }
     }
     override function createPost(){
@@ -80,6 +94,34 @@ class TankmanBattlefieldErect extends BaseStage {
                 }
             }
         }
+	}
+
+	var videoEnded:Bool = false;
+
+	function videoCutscene(?videoName:String = null)
+	{
+		game.inCutscene = true;
+		if (!videoEnded && videoName != null)
+		{
+			#if VIDEOS_ALLOWED
+			game.startVideo(videoName);
+			function onVideoEnd() {
+				videoEnded = true;
+				game.videoCutscene = null;
+				videoCutscene();
+			}
+			game.videoCutscene.finishCallback = onVideoEnd; 
+			game.videoCutscene.onSkip = onVideoEnd;
+			#else // Make a timer to prevent it from crashing due to sprites not being ready yet.
+			new FlxTimer().start(0.0, function(tmr:FlxTimer)
+			{
+				videoEnded = true;
+				videoCutscene(videoName);
+			});
+			#end
+			return;
+		}
+		startCountdown();
 	}
 
     function applyShader(sprite:FlxSprite,char_name:String) {
