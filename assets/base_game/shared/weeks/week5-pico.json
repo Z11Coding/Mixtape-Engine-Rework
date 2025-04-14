@@ -4,11 +4,12 @@
 	"weekBackground": "christmas",
 	"weekBefore": "week4",
 	"startUnlocked": true,
+	"hideStoryMode": true,
 	"category": "pico",
 	"weekCharacters": [
 		"parents-christmas",
-		"bf",
-		"gf"
+		"pico-player",
+		"nene"
 	],
 	"songs": [
 		[
@@ -19,8 +20,16 @@
 				209,
 				255
 			]
+		],
+		[
+			"Cocoa (Pico Mix)",
+			"parents",
+			[
+				160,
+				209,
+				255
+			]
 		]
 	],
-	"hideStoryMode": true,
 	"weekName": "Week 5"
 }

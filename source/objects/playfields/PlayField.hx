@@ -307,7 +307,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		spawnedNotes.push(note);
 		note.handleRendering = false;
 
-		if (note is archipelago.APNote) {
+		@:privateAccess
+		if (note.isCheck) {
 			trace("APNote spawned: " + note);
 		}
 
