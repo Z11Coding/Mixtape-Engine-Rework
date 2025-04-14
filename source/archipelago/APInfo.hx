@@ -52,7 +52,7 @@ class APInfo {
 		'Bopeebo (Pico mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
 	 	'Spookeez (Pico mix)', 'South (Pico mix)',
 	 	'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
-	 	'Eggnog (Pico Mix)',
+	 	'Eggnog (Pico Mix)', 'Cocoa (Pico Mix)',
 	 	'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico mix)'
 	];
 

@@ -137,6 +137,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	var displayNameInputText:PsychUIInputText;
 	var weekNameInputText:PsychUIInputText;
 	var weekFileInputText:PsychUIInputText;
+	var categoryInputText:PsychUIInputText;
 	
 	var opponentInputText:PsychUIInputText;
 	var boyfriendInputText:PsychUIInputText;
@@ -159,6 +160,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		displayNameInputText = new PsychUIInputText(10, backgroundInputText.y + 60, 200, '', 8);
 		weekNameInputText = new PsychUIInputText(10, displayNameInputText.y + 60, 150, '', 8);
 		weekFileInputText = new PsychUIInputText(10, weekNameInputText.y + 40, 100, '', 8);
+		categoryInputText = new PsychUIInputText(130, weekFileInputText.y + 40, 100, '', 8);
 		reloadWeekThing();
 
 		hideCheckbox = new PsychUICheckBox(10, weekFileInputText.y + 40, "Hide Week from Story Mode?", 100);
@@ -174,6 +176,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		tab_group.add(new FlxText(displayNameInputText.x, displayNameInputText.y - 18, 0, 'Display Name:'));
 		tab_group.add(new FlxText(weekNameInputText.x, weekNameInputText.y - 18, 0, 'Week Name (for Reset Score Menu):'));
 		tab_group.add(new FlxText(weekFileInputText.x, weekFileInputText.y - 18, 0, 'Week File:'));
+		tab_group.add(new FlxText(categoryInputText.x, categoryInputText.y - 18, 0, 'Week Category:'));
 
 		tab_group.add(songsInputText);
 		tab_group.add(opponentInputText);
@@ -184,6 +187,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		tab_group.add(displayNameInputText);
 		tab_group.add(weekNameInputText);
 		tab_group.add(weekFileInputText);
+		tab_group.add(categoryInputText);
 		tab_group.add(hideCheckbox);
 	}
 
@@ -243,6 +247,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		hideCheckbox.checked = weekFile.hideStoryMode;
 
 		weekBeforeInputText.text = weekFile.weekBefore;
+
+		categoryInputText.text = weekFile.category;
 
 		difficultiesInputText.text = '';
 		if(weekFile.difficulties != null) difficultiesInputText.text = weekFile.difficulties;
@@ -383,6 +389,9 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 				unsavedProgress = true;
 			} else if(sender == difficultiesInputText) {
 				weekFile.difficulties = difficultiesInputText.text.trim();
+				unsavedProgress = true;
+			} else if(sender == categoryInputText) {
+				weekFile.category = categoryInputText.text.trim();
 				unsavedProgress = true;
 			}
 		}
