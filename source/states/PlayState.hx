@@ -2465,7 +2465,7 @@ class PlayState extends MusicBeatState
 					noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				}
 				else {
-					noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
+					noteColumn = Std.int(songNotes[1] % Note.ammo[mania]);
 				}
 
 				var gottaHitNote:Bool = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));

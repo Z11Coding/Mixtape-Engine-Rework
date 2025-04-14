@@ -122,11 +122,7 @@ class APNote extends objects.Note {
             var noteData = flatNotes[randomIndex];
             var lane = noteData.lane;
             var index = noteData.index;
-            var note = noteData.note;
             var location:Int = locations[i % locations.length];
-            var apNote = new APNote(note, location, null); // Create a new APNote with the location
-            // black coloring
-            newNotes.push(apNote);
 
             // Replace the original note with the APNote
             @:privateAccess{
@@ -138,11 +134,6 @@ class APNote extends objects.Note {
                 notes[lane][index].rgbShader.g = 0xFFFFFFFF;
                 notes[lane][index].rgbShader.b = 0xFFB4B4B4;
             }
-
-            apNote.index = i; // Set the index for the new note
-
-            // Set the checkInfo for the new note
-            apNote.checkInfo = {note: apNote, loc: location};
         }
         return newNotes; // Return the new notes
     }

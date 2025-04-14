@@ -417,7 +417,6 @@ class APSettingsSubState extends MusicBeatSubstate {
 			FileSystem.createDirectory("./PlayerSettings/");
 		Yaml.write("PlayerSettings/" + APEntryState.yamlName + ".yaml", mainSettings, Renderer.options().setFlowLevel(1));
 		#end
-		openSubState(new Prompt("Settings Exported Successfully!", 0, null, null, false));
 
         // Add actual settings.
         if (FileSystem.exists("PlayerSettings/" + APEntryState.yamlName + ".yaml")) {
@@ -436,6 +435,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         sys.io.File.saveContent("PlayerSettings/" + APEntryState.yamlName + ".yaml", finalDocument);
         #end
         close();
+
+        openSubState(new Prompt("Settings Exported Successfully!", 0, null, null, false));
 	}
 
     override function update(elapsed:Float) {
