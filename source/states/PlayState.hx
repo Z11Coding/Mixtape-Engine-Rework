@@ -2249,7 +2249,7 @@ class PlayState extends MusicBeatState
 
 	private var noteTypes:Array<String> = [];
 	private var eventsPushed:Array<String> = [];
-	private var totalColumns:Int = Note.ammo[SONG?.mania != null ? SONG?.mania : mania];
+	private var totalColumns:Int = Note.ammo[SONG?.mania != null ? SONG?.mania : 3];
 	var prevNoteData:Int = -1;
 	var initialNoteData:Int = -1;
 	var caseExecutionCount:Int = FlxG.random.int(-50, 50);
@@ -2259,16 +2259,21 @@ class PlayState extends MusicBeatState
 		var anims:Array<String> = Note.keysShit.get(mania).get("anims");
 		var animMap:Map<String, Int> = ["LEFT" => 0, "DOWN" => 1, "UP" => 2, "RIGHT" => 3];
 
-		// Handle cases where mania > 3
-		if (mania > 3) {
+		// Handle cases where mania > 4
+		if (mania > 4) {
 			var anim = anims[note % anims.length];
-			var matchingIndices = anims.filter(a -> a == anim).map(a -> anims.indexOf(a));
-			return matchingIndices.length > 0 ? matchingIndices[Std.int(Math.random() * matchingIndices.length)] : Std.int(Math.random() * mania);
+			var matchingIndices = [];
+			for (i in 0...anims.length) {
+				if (anims[i] == anim) {
+					matchingIndices.push(i);
+				}
+			}
+			return matchingIndices.length > 0 ? matchingIndices[Std.int(Math.random() * matchingIndices.length)] : note % mania;
 		}
 
-		// Handle cases where mania == 3
+		// Handle cases where mania <= 4
 		var anim = anims[note % anims.length];
-		return animMap.exists(anim) ? animMap.get(anim) : Std.int(Math.random() * mania);
+		return animMap.exists(anim) ? animMap.get(anim) : note % mania;
 	}
 
 	private function generateSong():Void
