@@ -11,7 +11,7 @@ import archipelago.APDisconnectSubstate;
 import archipelago.APCategoryState;
 import backend.WeekData;
 import haxe.ds.Option;
-import flixel.text.FlxTextFormat;
+import openfl.text.TextFormat;
 
 // Enums
 enum PrintJsonType {

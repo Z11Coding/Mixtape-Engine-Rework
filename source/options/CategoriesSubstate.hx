@@ -8,7 +8,7 @@ class CategoriesSubstate extends LightBaseOptionsMenu
         rpcTitle = 'Category Settings'; // for Discord Rich Presence
 
         var option:Option = new Option('Show Mods as Categories',
-            "Show mods as categories in the mod menu.", 
+            "Show mods as categories in the Categories menu.", 
             'showMods',
             BOOL);
         option.onChange = function actuallyChangeFucker()
