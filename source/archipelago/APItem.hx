@@ -108,6 +108,7 @@ class APItem {
     public static var maxHPUp:Int = 0;
 
     private var toSync:Bool = true;
+    public var triggered:Bool = false;
 
     public static var nonSongItemCounts:Map<String, Int> = new Map<String, Int>();
 
@@ -245,8 +246,21 @@ class APItem {
         }
     }
     public function trigger():Void {
+        if (this != APItem.activeItem && !this.isException && this.triggered) {
+            return; // Only the active item can trigger unless it's an exception
+        }
+
+        if (this.isException && (APItem.activeItem == null || APItem.activeItem.name != this.name)) {
+            // Push the current active item back into the queue
+            if (APItem.activeItem != null) {
+                allItems.unshift(APItem.activeItem);
+            }
+            // Swap out the active item for the exception
+            APItem.activeItem = this;
+        }
+
+        // Check conditions before triggering
         if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
-            // Check extraConditions if they exist
             if (this.condition.extraConditions != null) {
                 for (extraCondition in this.condition.extraConditions) {
                     if (!extraCondition(this)) {
@@ -255,14 +269,9 @@ class APItem {
                 }
             }
 
-            // Set active item if conditions are met and it's not an Everywhere item
-            if (!this.isException && this.condition.type != ConditionType.Everywhere) {
-                APItem.activeItem = this;
-            }
-
-            // Execute the onTrigger function and remove the item from the list
-            onTrigger();
-            allItems.remove(this);
+            // Trigger the item without removing it from the queue
+            this.onTrigger();
+            this.triggered = true; 
         }
     }
 
@@ -300,12 +309,17 @@ class APItem {
     public static function checkAndTrigger(items:Array<APItem>):Void {
         var triggered:Bool = false;
 
+        // Remove triggered items from the list.
+        allItems = new ActiveArray(allItems.getItems().filter(function(item:APItem) {
+            return !item.triggered;
+        }));
+
         for (item in items) {
-            if (!allowedToTrigger && !item.isException) {
+            if (!APItem.allowedToTrigger && !item.isException) {
                 continue;
             }
+
             if (item.condition.checkFn(item)) {
-                // Check extraConditions if they exist
                 if (item.condition.extraConditions != null) {
                     for (extraCondition in item.condition.extraConditions) {
                         if (!extraCondition(item)) {
@@ -313,6 +327,7 @@ class APItem {
                         }
                     }
                 }
+
                 if (!triggered || item.isException) {
                     item.trigger();
                     if (!item.isException) {
@@ -332,12 +347,12 @@ class APChartModifier extends APItem {
         if (yutautil.AprilFools.allowAF) {
             modifiers.push("SpeedRando");
         }
-        this.chartModifier = modifiers[Std.random(modifiers.length)];
+        do { // Until ManiaConverter is fixed, reroll if selected.
+            this.chartModifier = modifiers[Std.random(modifiers.length)];
+        } while (this.chartModifier == "ManiaConverter"); // Reroll if ManiaConverter is selected
+
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
-            if (this.chartModifier == "ManiaConverter") {
-                ClientPrefs.data.gameplaySettings.set("convertMania", 4 + Std.random(5));
-            }
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
             if (archipelago.APPlayState.instance?.startingSong) {
                 MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
@@ -352,7 +367,8 @@ class APChartModifier extends APItem {
 class APrilFools extends APItem {
     private static var options:Map<Int, Void->Void> = new Map();
     private static var initialized:Bool = false;
-    private var triggered:Bool = false;
+
+    
     static function initializeOptions():Void {
         options = [
             0 => function() {

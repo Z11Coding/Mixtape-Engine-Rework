@@ -1415,6 +1415,7 @@ class Client {
 
 					trace(players);
 					ArchPopup.startPopupCustom("Please wait...", "Fetching data for games...", "archColor");
+					ArchPopup.startPopupCustom("The game can now be played!", "Loading Data", "archColor");
 
 					function data():Void {
 						var gamePackages:Map<String, DataPackageObject> = [];
@@ -1503,7 +1504,7 @@ class Client {
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
 						}
-						return ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
+						return ArchPopup.startPopupCustom("All Game Data has been fetched! Refreshing local info, just in case!", "Refresh", "archColor");
 					}
 
 					yutautil.Threader.runInThread(dataNew(), "DataPackageFetcher"); // Hopefully more optimal.

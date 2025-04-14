@@ -631,6 +631,8 @@ class PlayState extends MusicBeatState
 		if (mania > Note.maxMania)
 			mania = Note.defaultMania;
 
+		trace("Mania set: " + mania);
+
 		Conductor.mapBPMChanges(SONG);
 		Conductor.bpm = SONG.bpm;
 
@@ -2259,7 +2261,8 @@ class PlayState extends MusicBeatState
 	var caseExecutionCount:Int = FlxG.random.int(-50, 50);
 	var currentModifier:Int = -1;
 	var stair:Int = 0;
-	public static function getNumberFromAnims(note:Int, mania:Int):Int {
+
+	public static inline function getNumberFromAnimsSmall(note:Int, mania:Int):Int {
 		var anims:Array<String> = Note.keysShit.get(mania).get("anims");
 		var animMap:Map<String, Int> = ["LEFT" => 0, "DOWN" => 1, "UP" => 2, "RIGHT" => 3];
 
@@ -2279,6 +2282,101 @@ class PlayState extends MusicBeatState
 		var anim = anims[note % anims.length];
 		return animMap.exists(anim) ? animMap.get(anim) : note % mania;
 	}
+
+	public static inline function getNumberFromAnims(note:Int, mania:Int):Int
+		{
+			var animMap:Map<String, Int> = new Map<String, Int>();
+			animMap.set("LEFT", 0);
+			animMap.set("DOWN", 1);
+			animMap.set("UP", 2);
+			animMap.set("RIGHT", 3);
+	
+			var anims:Array<String> = Note.keysShit.get(mania).get("anims");
+			var animKeys:Array<String> = [
+				for (key in animMap.keys())
+					if (key == "LEFT") "RIGHT" else if (key == "RIGHT") "LEFT" else key
+			];
+	
+			var result:Int;
+	
+			if (mania > 3)
+			{
+				var anim = animKeys[note];
+				var matchingIndices:Array<Int> = [];
+				if (note < animKeys.length)
+				{
+					for (i in 0...anims.length)
+					{
+						if (anims[i] == anim)
+						{
+							matchingIndices.push(i);
+						}
+					}
+					if (matchingIndices.length > 0)
+					{
+						var randomIndex = Std.int(Math.random() * matchingIndices.length);
+						result = matchingIndices[randomIndex];
+					}
+					else
+					{
+						var randomIndex = Std.int(Math.random() * mania);
+						result = randomIndex;
+					}
+				}
+				else
+				{
+					if (matchingIndices.length > 0)
+					{
+						var randomIndex = Std.int(Math.random() * matchingIndices.length);
+						result = matchingIndices[randomIndex];
+					}
+					else
+					{
+						var randomIndex = Std.int(Math.random() * mania);
+						result = randomIndex;
+					}
+				}
+			}
+			else
+			{ // mania == 3
+				var anim = anims[note];
+				if (note < anims.length)
+				{
+					if (animMap.exists(anim))
+					{
+						result = animMap.get(anim);
+					}
+					else
+					{
+						throw 'No matching animation found';
+					}
+				}
+				else
+				{
+					result = animMap.get(anim);
+				}
+			}
+	
+			// Ensure result is within bounds
+			if (result < 0 || result > mania)
+			{
+				trace("OOB NOtE: " + note + " MANIA: " + mania + " RESULT: " + result);
+				var foundValidAnimation = false;
+				while (!foundValidAnimation)
+				{
+					var randomIndex = Std.int(Math.random() * anims.length);
+					var randomAnim = anims[randomIndex];
+					if (animMap.exists(randomAnim))
+					{
+						result = animMap.get(randomAnim);
+						foundValidAnimation = true;
+					}
+				}
+			}
+	
+			return result;
+		}
+	
 
 	private function generateSong():Void
 	{
@@ -2400,7 +2498,7 @@ class PlayState extends MusicBeatState
 			{
 				final songNotes: Array<Dynamic> = section.sectionNotes[i];
 				var spawnTime:Float = songNotes[0];
-				var noteColumn:Int = Std.int(songNotes[1] % totalColumns);
+				var noteColumn:Int = Std.int(songNotes[1]);
 				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
 				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
@@ -2542,8 +2640,11 @@ class PlayState extends MusicBeatState
 					case "Pain":
 						noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
 					case "4K Only":
-						noteColumn = getNumberFromAnims(noteColumn, 3);
+						trace("4K Only: " + noteColumn);
+						noteColumn = getNumberFromAnimsSmall(noteColumn, 3);
+						trace("Note: " + noteColumn + " Mania: " + mania + "GottaHit: " + gottaHitNote);
 					case "ManiaConverter":
+						trace("ManiaConverter: " + noteColumn);
 						noteColumn = getNumberFromAnims(noteColumn, mania);
 						trace("Note: " + noteColumn + " Mania: " + mania + "GottaHit: " + gottaHitNote);
 					case "Stairs":
@@ -2854,7 +2955,7 @@ class PlayState extends MusicBeatState
 				if (swagNote.field != null)
 					swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
 
-				trace("Note: " + swagNote.noteData + " GottaHit: " + swagNote.mustPress + " Field: " + swagNote.fieldIndex + " NoteType: " + swagNote.noteType);
+				// trace("Note: " + swagNote.noteData + " GottaHit: " + swagNote.mustPress + " Field: " + swagNote.fieldIndex + " NoteType: " + swagNote.noteType);
 
 				var playfield:PlayField = playfields.members[swagNote.fieldIndex];
 				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience

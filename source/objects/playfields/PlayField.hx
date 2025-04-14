@@ -259,51 +259,51 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	// spawns a note
 	public function spawnNote(note:Note){
-		trace("Attempting to spawn note: " + note);
+		// trace("Attempting to spawn note: " + note);
 		if(note.spawned) {
-			trace("Note already spawned, skipping: " + note);
+			// trace("Note already spawned, skipping: " + note);
 			return;
 		}
 		
 		if (noteQueue[note.column] != null) {
-			trace("Removing note from queue for column: " + note.column);
+			// trace("Removing note from queue for column: " + note.column);
 			noteQueue[note.column].remove(note);
-			trace("Sorting note queue for column: " + note.column);
+			// trace("Sorting note queue for column: " + note.column);
 			noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 		}
 
 		if (spawnedByData[note.column] != null) {
-			trace("Adding note to spawnedByData for column: " + note.column);
+			// trace("Adding note to spawnedByData for column: " + note.column);
 			spawnedByData[note.column].push(note);
 		} else {
-			trace("spawnedByData for column " + note.column + " is null, aborting spawn.");
+			// trace("spawnedByData for column " + note.column + " is null, aborting spawn.");
 			return;
 		}
 
 		if(note.holdType == HEAD || note.holdType == TAP) {
-			trace("Note is of type HEAD or TAP: " + note);
+			// trace("Note is of type HEAD or TAP: " + note);
 			if(note.requiresTap) {
-				trace("Note requires tap.");
+				// trace("Note requires tap.");
 				if (tapsByData[note.column] != null) {
-					trace("Adding note to tapsByData for column: " + note.column);
+					// trace("Adding note to tapsByData for column: " + note.column);
 					tapsByData[note.column].push(note);
 				} else {
-					trace("tapsByData for column " + note.column + " is null.");
+					// trace("tapsByData for column " + note.column + " is null.");
 				}
 			} else {
-				trace("Note does not require tap.");
+				// trace("Note does not require tap.");
 				if (noTapsByData[note.column] != null) {
-					trace("Adding note to noTapsByData for column: " + note.column);
+					// trace("Adding note to noTapsByData for column: " + note.column);
 					noTapsByData[note.column].push(note);
 				} else {
-					trace("noTapsByData for column " + note.column + " is null.");
+					// trace("noTapsByData for column " + note.column + " is null.");
 				}
 			}
 		}
 
-		trace("Dispatching noteSpawned event for note: " + note);
+		// trace("Dispatching noteSpawned event for note: " + note);
 		noteSpawned.dispatch(note, this);
-		trace("Adding note to spawnedNotes.");
+		// trace("Adding note to spawnedNotes.");
 		spawnedNotes.push(note);
 		note.handleRendering = false;
 
@@ -311,12 +311,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			trace("APNote spawned: " + note);
 		}
 
-		trace("Marking note as spawned.");
+		// trace("Marking note as spawned.");
 		note.spawned = true;
 
-		trace("Inserting note into PlayField.");
+		// trace("Inserting note into PlayField.");
 		insert(0, note);
-		trace("Note successfully spawned: " + note);
+		// trace("Note successfully spawned: " + note);
 	}
 
 	// gets all notes in the playfield, spawned or otherwise.
