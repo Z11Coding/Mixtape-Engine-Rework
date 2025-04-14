@@ -2590,7 +2590,7 @@ class PlayState extends MusicBeatState
 					case "4K Only":
 						noteColumn = getNumberFromAnims(noteStartColumn, 3);
 					case "ManiaConverter":
-						noteColumn = getNumberFromAnims(noteStartColumn, mania);
+						noteColumn = getNumberFromAnims(noteStartColumn, SONG.startMania);
 					case "Stairs":
 						noteColumn = stair % Note.ammo[mania];
 						stair++;
