@@ -199,12 +199,12 @@ class APPlayState extends PlayState {
                 var originalShaders:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
-                    /*for (sprite in playerField.strumNotes) {
+                    for (sprite in playerField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
                     };
                     for (sprite in dadField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
-                    };*/
+                    };
                     for (daNote in unspawnNotes) {
                         if (daNote == null) continue;
                         if (daNote.strumTime >= Conductor.songPosition)
@@ -231,14 +231,14 @@ class APPlayState extends PlayState {
                         blurEffect.setStrength(2, 2);
                     else
                         blurEffect.setStrength(32, 32);
-                    /*for (sprite in playerField.strumNotes) {
+                    for (sprite in playerField.strumNotes) {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
                     };
                     for (sprite in dadField.strumNotes) {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
-                    };*/
+                    };
                     for (daNote in unspawnNotes) {
                         if (daNote == null) continue;
                         if (daNote.strumTime >= Conductor.songPosition) {
@@ -628,7 +628,6 @@ class APPlayState extends PlayState {
                 applyEffect(0, null, playSound, 1, noIcon);
             },
             'nostrum' => function() {
-                /*
                 var ttl:Float = 13;
                 var onEnd:(Void->Void) = function() {
                     for (i in 0...playerField.strumNotes.length)
@@ -641,7 +640,7 @@ class APPlayState extends PlayState {
                 for (i in 0...playerField.strumNotes.length)
                     playerField.strumNotes[i].visible = false;
 
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);*/
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
             'jackspam' => function() {
                 var noIcon:Bool = true;
@@ -661,7 +660,6 @@ class APPlayState extends PlayState {
                 }
             },
             'sever' => function() {
-                /*
                 var ttl:Float = 6;
                 var onEnd:(Void->Void) = function() {
                     playerField.strumNotes[picked].alpha = 1;
@@ -702,7 +700,7 @@ class APPlayState extends PlayState {
                 explosion.animation.play("boom", true);
                 add(explosion);
 
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);*/
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);
             },
             'shake' => function() {
                 var noIcon:Bool = false;
@@ -959,20 +957,20 @@ class APPlayState extends PlayState {
             'opponentPlay' => function() {
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
-                    /*opponentmode =  false;
+                    opponentmode =  false;
                     playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
                     playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
                     playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
                     dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
                     dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
                     dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
-                    health = MaxHP + health;*/
+                    health = MaxHP + health;
                 };
                 var playSound:String = "randomize";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = true;
 
-                /*opponentmode =  true;
+                opponentmode = true;
                 playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
                 playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
                 playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
@@ -984,7 +982,6 @@ class APPlayState extends PlayState {
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'opponentPlay');*/
             },
             'bothplay' => function() {
-                /*
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
                     bothMode = false;
@@ -1007,7 +1004,7 @@ class APPlayState extends PlayState {
                 dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
                 dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
 
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'bothplay');*/
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'bothplay');
             },
             'fakeheal' => function() {
                 var noIcon:Bool = true;
