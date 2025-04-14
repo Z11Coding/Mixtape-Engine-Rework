@@ -90,6 +90,24 @@ class APNote extends objects.Note {
         var randomIndices:Array<Int> = [];
         var availableNotes:Array<Int> = [];
 
+        if (flatNotes.length == 0) {
+            trace("No notes available to replace.");
+            trace(archipelago.APEntryState.apGame.info().LocationChecks(locations));
+            trace("Couldn't place any notes, so we're just sending the checks.");
+            return newNotes; // Return an empty array if there are no notes
+        }
+
+        if (flatNotes.length < locations.length) {
+            // Take the difference and pop some locations out of the array.
+            trace("Not enough notes available to replace. Reducing locations.");
+            for (i in 0...locations.length) {
+                if (locations[i] >= flatNotes.length) {
+                    locations.splice(i, 1); // Remove the location if it exceeds the available notes
+                    // i--;
+                }
+            }
+        }
+
         // Check for available notes based on the ignoreNonEmptyNoteType rule
         for (i in 0...flatNotes.length) {
             var note = flatNotes[i].note;
@@ -135,6 +153,7 @@ class APNote extends objects.Note {
                 notes[lane][index].rgbShader.b = 0xFFB4B4B4;
             }
         }
+        trace("Successfully generated [" + randomIndices.length + "] APNotes.");
         return newNotes; // Return the new notes
     }
 }
