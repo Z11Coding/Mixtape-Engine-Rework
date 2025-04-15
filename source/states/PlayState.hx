@@ -744,6 +744,8 @@ class PlayState extends MusicBeatState
 				new LimoRideErect(); // Week 4 Special
 			case 'mallXmasErect':
 				new MallXmasErect(); // Week 5 Special
+			case 'schoolErect'|'schoolPico': 
+				new SchoolErect();	
 			case 'tankmanBattlefieldErect':
 				new TankmanBattlefieldErect(); // Week 7 Special
 			case 'phillyStreetsErect':
@@ -916,6 +918,7 @@ class PlayState extends MusicBeatState
 			var ghostBFTween;
 			var ghostGFTween;
 
+			function onCreate() //Yep
 			function onCreatePost() loadGhost();
 			function onEvent(n,v1,v2) if (n == 'Change Character') loadGhost();
 

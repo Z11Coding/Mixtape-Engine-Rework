@@ -43,7 +43,8 @@ class APInfo {
 	 	'Satin Panties Erect', 'High Erect',
 	 	'Cocoa Erect', 'Eggnog Erect',
 	 	'Senpai Erect', 'Roses Erect', 'Thorns Erect',
-	 	'Ugh Erect'
+	 	'Ugh Erect',
+		'Darnell Erect' //it could go here, it could go with pico, but for the sake of consistancy imma put it here
 	];
 
 	public static final basePico:Array<String> = 
@@ -52,7 +53,8 @@ class APInfo {
 		'Bopeebo (Pico mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
 	 	'Spookeez (Pico mix)', 'South (Pico mix)',
 	 	'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
-	 	'Eggnog (Pico Mix)', 'Cocoa (Pico Mix)',
+	 	'Eggnog (Pico mix)', 'Cocoa (Pico mix)',
+		'Senpai (Pico mix)', 'Roses (Pico mix)',
 	 	'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico mix)'
 	];
 

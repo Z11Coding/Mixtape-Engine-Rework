@@ -8,7 +8,7 @@ import shaders.RainShader;
 import substates.PauseSubState;
 import flixel.FlxSubState;
 import stages.objects.*;
-
+import stages.PicoCapableStage;
 class PhillyStreetsErect extends BaseStage
 {
     var rainShader:RainShader;
@@ -33,6 +33,8 @@ class PhillyStreetsErect extends BaseStage
 
     override function create()
     {
+        if (!songName.toLowerCase().replace('-', ' ').contains('(bf mix)'))
+            new PicoCapableStage();
         buildMist();
         if (!ClientPrefs.data.lowQuality)
         {

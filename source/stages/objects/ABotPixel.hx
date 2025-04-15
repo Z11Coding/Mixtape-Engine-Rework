@@ -35,7 +35,7 @@ class ABotPixel extends FlxSpriteGroup
 	{
 		super(x, y);
 
-		bg = new FlxSprite(90, 20).loadGraphic(Paths.image('abot/pixel/aBotPixelBack'));
+		bg = new FlxSprite(90, 20).loadGraphic(Paths.image('abotPixel/aBotPixelBack'));
         bg.scale.set(6, 6);
 		bg.antialiasing = false;
 		bg.updateHitbox();
@@ -43,7 +43,7 @@ class ABotPixel extends FlxSpriteGroup
 
 		var vizX:Float = 0;
 		var vizY:Float = 0;
-		var vizFrames = Paths.getSparrowAtlas('abot/pixel/aBotVizPixel');
+		var vizFrames = Paths.getSparrowAtlas('abotPixel/aBotVizPixel');
 		for (i in 1...VIZ_MAX+1)
 		{
 			volumes.push(0.0);
@@ -63,7 +63,7 @@ class ABotPixel extends FlxSpriteGroup
 		}
 
 		eyes = new FlxSprite(-60, 80);
-        eyes.frames = Paths.getSparrowAtlas('abot/pixel/abotHead');
+        eyes.frames = Paths.getSparrowAtlas('abotPixel/abotHead');
         eyes.scale.set(6, 6);
 		eyes.animation.addByPrefix('lookleft', 'toleft', 24, false);
 		eyes.animation.addByPrefix('lookright', 'toright', 24, false);
@@ -76,7 +76,7 @@ class ABotPixel extends FlxSpriteGroup
 	}
 	function abotLol() {
 		var temp = new FlxSprite(-65, -10);
-        temp.frames = Paths.getSparrowAtlas('abot/pixel/aBotPixel');
+        temp.frames = Paths.getSparrowAtlas('abotPixel/aBotPixel');
 		temp.scale.set(6, 6);
 		temp.animation.addByPrefix("anim","idle",24,false);
 		temp.animation.play('anim', true);
