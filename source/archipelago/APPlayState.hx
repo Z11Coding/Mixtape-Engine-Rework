@@ -2013,6 +2013,9 @@ class APPlayState extends PlayState {
         if (ghostChat) 
             ghostChat = false;
 
+        if (((((((archipelago.APItem.activeItem != null))))))) // Why was this GONE???
+            archipelago.APItem.activeItem = null;
+
         trace("Sending checks for all checked notes...");
         for (note in checkedNotes) {
             trace("Sending check for note: " + note);

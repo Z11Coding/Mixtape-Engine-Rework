@@ -416,7 +416,15 @@ class APGameState {
         }
         if (_saveData.hasItem("activeItem")) {
             var activeItem = _saveData.getItem("activeItem");
-            APItem.activeItem = (activeItem != null && activeItem != "null") ? archipelago.APItem.createItemByName(activeItem) : null;
+            if (activeItem != null && activeItem != "null") {
+            var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
+            if (reg.match(activeItem)) {
+                var modifier = reg.matched(1);
+                archipelago.APItem.APChartModifier.restoreFromSave(modifier);
+            } else {
+                archipelago.APItem.createItemByName(activeItem);
+            }
+            }
         }
         if (_saveData.hasItem("waitingItems")) {
             var waitingItems:Array<String> = _saveData.getItem("waitingItems");

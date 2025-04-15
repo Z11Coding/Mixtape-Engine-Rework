@@ -101,7 +101,7 @@ class APItem {
     public static var allowedToTrigger(get, never):Bool;
 
     static function get_allowedToTrigger():Bool {
-        return activeItem == null || activeItem.isException || activeItem.name == "Tutorial Trap";
+        return true;
     }
     public static var activeItem:APItem;
     public static var shields:Int = 0;
@@ -245,10 +245,22 @@ class APItem {
                 throw "Unknown item name: " + name;
         }
     }
+    
     public function trigger():Void {
-        if (this != APItem.activeItem && !this.isException && this.triggered) {
+        if ((this != APItem.activeItem) || this.triggered ) {
             return; // Only the active item can trigger unless it's an exception
         }
+
+        // trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered);
+        // var index = allItems.getItems().indexOf(this);
+        // if (index != -1) {
+        //     // trace("Item is in allItems at index: " + index);
+        // }
+        // if (APItem.activeItem == this) {
+        //     // trace("Item is the activeItem.");
+        // }
+
+        // trace(APItem.activeItem?.name + " is the active item.");
 
         if (this.isException && (APItem.activeItem == null || APItem.activeItem.name != this.name)) {
             // Push the current active item back into the queue
@@ -257,7 +269,12 @@ class APItem {
             }
             // Swap out the active item for the exception
             APItem.activeItem = this;
+            allItems.remove(this);
         }
+
+        // Trace if it is allowed to trigger, and what conditions are considered, and what they are.
+        // trace("Allowed to trigger: " + APItem.allowedToTrigger);
+        // trace("Trigger components: " + (APItem.activeItem == null) + " " + (APItem.activeItem?.isException) + " " + (APItem.activeItem?.name == this.name));
 
         // Check conditions before triggering
         if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
@@ -269,10 +286,11 @@ class APItem {
                 }
             }
 
+            trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered);
+
             // Trigger the item without removing it from the queue
             this.onTrigger();
-            this.triggered = true; 
-        }
+            this.triggered = true;         }
     }
 
     public static function createItems():Void {
@@ -307,36 +325,26 @@ class APItem {
         allItems.checkAndTrigger();
     }
     public static function checkAndTrigger(items:Array<APItem>):Void {
-        var triggered:Bool = false;
+        // Put the next item into the activeItems, if it isn't already filled by something.
 
-        // Remove triggered items from the list.
-        allItems = new ActiveArray(allItems.getItems().filter(function(item:APItem) {
-            return !item.triggered;
-        }));
+        if (activeItem?.isException && activeItem?.triggered) {
+            // If the active item is an exception and has been triggered, remove it from the list
+            activeItem = null;
+        }
 
-        for (item in items) {
-            if (!APItem.allowedToTrigger && !item.isException) {
-                continue;
-            }
+        activeItem?.trigger();
 
-            if (item.condition.checkFn(item)) {
-                if (item.condition.extraConditions != null) {
-                    for (extraCondition in item.condition.extraConditions) {
-                        if (!extraCondition(item)) {
-                            continue; // Skip this item if any extra condition fails
-                        }
-                    }
-                }
-
-                if (!triggered || item.isException) {
+        if (activeItem == null) {
+            for (item in items) {
+                if (item != null) {
                     item.trigger();
-                    if (!item.isException) {
-                        triggered = true;
-                    }
                 }
             }
         }
-    }
+}
+
+
+
 }
 
 class APChartModifier extends APItem {
@@ -586,14 +594,14 @@ class APrilFools extends APItem {
         ];
     }
 
-    public override function trigger():Void {
-        if (triggered) {
-            return; // Prevent multiple triggers
-        }
-        triggered = true; // Set triggered to true to prevent multiple triggers
-        super.trigger();
-        //trace("April Fools item triggered.");
-    } 
+    // public override function trigger():Void {
+    //     if (triggered) {
+    //         return; // Prevent multiple triggers
+    //     }
+    //     triggered = true; // Set triggered to true to prevent multiple triggers
+    //     super.trigger();
+    //     //trace("April Fools item triggered.");
+    // } 
 
         public function new() {
             super("April Fools", ConditionHelper.Special(), function() {
