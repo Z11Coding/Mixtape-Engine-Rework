@@ -386,7 +386,7 @@ class APGameState {
         var message = FreeplayState.hintTable.get(hint);
         trace("Hint: " + hint + " - " + message);
         var hintSong = getSongAndMod(hint);
-        FreeplayState.curHinted.set(hintSong.song, hintSong.mod != null ? hintSong.mod : "");
+        FreeplayState.curHinted.push({song: hintSong.song, mod: hintSong.mod != null ? hintSong.mod : ""});
         trace(hintSong);
         }
     }
@@ -610,7 +610,7 @@ class APGameState {
     { var tickets = 0;
         var nonSongs:Map<String, Int> = [];
         var nonSongsNames:Array<String> = [];
-        states.FreeplayState.curMissing.clear();
+        states.FreeplayState.curMissing = [];
 
 
         for (songName in song)
@@ -630,45 +630,7 @@ class APGameState {
             .replace("<sOpen>", "[")
             .replace("<sClose>", "]");
 
-            var data = getSongAndMod(itemName);
-            // trace("Data: " + data.song + " - " + data.mod);
-
-            if (data.mod == null || data.mod == "") {
-                data.mod = "";
-            }
-
-            if (!states.FreeplayState.curUnlocked.exists(data.song))
-            {
-            if (data.song != "Unknown")
-            {
-                if (!isSync) ArchPopup.startPopupSong(data.song, 'archColor');
-                states.FreeplayState.curUnlocked.set(data.song, data.mod);
-                for (song in states.FreeplayState.curUnlocked.keys())
-                {
-                var parts = song.split("||");
-                var key = parts[0];
-                var value = parts.length > 1 ? parts[1] : states.FreeplayState.curUnlocked.get(song);
-                states.FreeplayState.curUnlocked.set(key, value);
-                }
-            }
-            }
-        }
-
-        // nonSongsNames.sort(function(a:String, b:String):Int {
-        //     a = a.toUpperCase();
-        //     b = b.toUpperCase();
             
-        //     if (a < b) {
-        //         return 1;
-        //     }
-        //     else if (a > b) {
-        //         return -1;
-        //     } else {
-        //         return 0;
-        //     }
-        // });
-
-
         for (item in nonSongsNames) {
             if (item == "Ticket") {
                 tickets++;
@@ -696,10 +658,80 @@ class APGameState {
                 archipelago.APItem.createItemByName(items);
             }
             archipelago.APItem.doCheck();
-
             trace("AP State Saving...");
             updateSaveData();
         }
+
+
+            var data = getSongAndMod(itemName);
+            trace("Data: " + data.song + " - " + data.mod);
+
+            if (data.mod == null || data.mod == "") {
+                data.mod = "";
+            }
+            if (states.FreeplayState.curUnlocked.indexOf(data) == -1)
+            {
+            if (data.song != "Unknown" && data.mod == "")
+            {
+                if (!isSync) ArchPopup.startPopupSong(data.song, 'archColor');
+                states.FreeplayState.curUnlocked.push({song: data.song, mod: data.mod});
+                for (song in states.FreeplayState.curUnlocked)
+                {
+                var parts = song.song.split("||");
+                var key = parts[0];
+                var value = parts.length > 1 ? parts[1] : song.mod;
+                states.FreeplayState.curUnlocked.push({song: key, mod: value});
+                }
+            }
+            }
+        }
+
+        // nonSongsNames.sort(function(a:String, b:String):Int {
+        //     a = a.toUpperCase();
+        //     b = b.toUpperCase();
+            
+        //     if (a < b) {
+        //         return 1;
+        //     }
+        //     else if (a > b) {
+        //         return -1;
+        //     } else {
+        //         return 0;
+        //     }
+        // });
+
+
+        // for (item in nonSongsNames) {
+        //     if (item == "Ticket") {
+        //         tickets++;
+        //         archipelago.APItem.createItemByName(item);
+        //     }
+        // }
+
+        // if (info().casualSync)
+        // if (APInfo.ticketCount != tickets) {
+        //     APInfo.ticketCount = tickets;
+        // }
+
+        // for (items in nonSongsNames)
+        // {
+        //     if (items == 'Ticket') continue;
+            
+        //     if (nonSongs.get(items) <= ItemIndex)
+        //     {
+        //         continue;
+        //     }
+        //     else
+        //     {
+        //         trace('triggering $items');
+        //         ItemIndex = nonSongs.get(items);
+        //         archipelago.APItem.createItemByName(items);
+        //     }
+        //     archipelago.APItem.doCheck();
+
+        //     trace("AP State Saving...");
+        //     updateSaveData();
+        // }
         isSync = false;
         info().casualSync = false;
         try {
@@ -786,7 +818,7 @@ class APGameState {
     }
 
     function checkIfLocked(song:String, mod:String):Bool {
-        return !(states.FreeplayState.curUnlocked.exists(song) && states.FreeplayState.curUnlocked.get(song) == mod);
+        return !(states.FreeplayState.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
     }
 
     function validateMods()
