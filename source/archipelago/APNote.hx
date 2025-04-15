@@ -154,6 +154,17 @@ class APNote extends objects.Note {
             }
         }
         trace("Successfully generated [" + randomIndices.length + "] APNotes.");
+
+        // Recolor other notes with the same note indexes as the new notes.
+        for (noteData in flatNotes)
+            for (note in newNotes)
+            if (noteData.note.noteIndex == note.noteIndex) {
+                notes[noteData.lane][noteData.index].rgbShader.r = 0xFF313131; // Reset the color of the original note
+                notes[noteData.lane][noteData.index].rgbShader.g = 0xFFFFFFFF;
+                notes[noteData.lane][noteData.index].rgbShader.b = 0xFFB4B4B4;
+            }
+
+
         return newNotes; // Return the new notes
     }
 }
