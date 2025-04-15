@@ -1,0 +1,31 @@
+{
+	"songs": [
+		[
+			"Darnell Erect",
+			"darnell",
+			[
+				65,
+				60,
+				174
+			]
+		]
+	],
+	"category": [
+		"erect",
+		"pico"
+	],
+	"hiddenUntilUnlocked": false,
+	"hideFreeplay": false,
+	"weekBackground": "phillystreets",
+	"difficulties": "Erect,Nightmare",
+	"weekCharacters": [
+		"darnell",
+		"pico-player",
+		"nene"
+	],
+	"storyName": "Weekend 1 but Darnell has an erection",
+	"weekName": "Weekend1 Erect",
+	"hideStoryMode": false,
+	"weekBefore": "tutorial",
+	"startUnlocked": true
+}

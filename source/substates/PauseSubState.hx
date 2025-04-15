@@ -11,6 +11,19 @@ import states.StoryMenuState;
 import states.FreeplayState;
 import options.OptionsState;
 
+enum PauseSpecialAction {
+	NOTHING;
+	RESTART;
+	SKIP;
+	RESUME;
+}
+
+enum PauseType{
+	VIDEO;
+	CUTSCENE;
+	DIALOGUE;
+}
+
 class PauseSubState extends MusicBeatSubstate
 {
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
@@ -29,7 +42,28 @@ class PauseSubState extends MusicBeatSubstate
 	var missingTextBG:FlxSprite;
 	var missingText:FlxText;
 
+	var inVid:Bool;
+	public var cutscene_allowSkipping = true;
+	public var cutscene_hardReset = true;
+	public var cutscene_type = true;
+	public var specialAction:PauseSpecialAction = PauseSpecialAction.NOTHING;
+
+	var cutscene_branding:String = 'lol';
+	var cutscene_resetTxt:String = 'lol';
+	var cutscene_skipTxt:String = 'lol';
+
 	public static var songName:String = null;
+	public function new(inCutscene:Bool = false,type:PauseType = PauseType.CUTSCENE) {
+		super();
+		cutscene_branding = switch(type){
+			case VIDEO: Language.getPhrase("pause_branding_video","Video");
+			case CUTSCENE: Language.getPhrase("pause_branding_cutscene","Cutscene");
+			case DIALOGUE: Language.getPhrase("pause_branding_dialogue","Dialogue");
+		};
+		cutscene_resetTxt = Language.getPhrase("pause_branding_restart",'Restart {1}',[cutscene_branding]);
+		cutscene_skipTxt = Language.getPhrase("pause_branding_skip",'Skip {1}',[cutscene_branding]);
+		this.inVid = inCutscene;
+	}
 
 	override function create()
 	{
@@ -94,7 +128,9 @@ class PauseSubState extends MusicBeatSubstate
 		levelDifficulty.updateHitbox();
 		add(levelDifficulty);
 
-		var blueballedTxt:FlxText = new FlxText(20, 15 + 64, 0, Language.getPhrase("blueballed", "Blueballed: {1}", [PlayState.deathCounter]), 32);
+		var ballsTxt = inVid ? Language.getPhrase("pause_branding",'{1} Paused',[cutscene_branding]) : 
+			Language.getPhrase("blueballed", "{1} Blue Balls", [PlayState.deathCounter]);
+		var blueballedTxt:FlxText = new FlxText(20, 15 + 64, 0, ballsTxt, 32);
 		blueballedTxt.scrollFactor.set();
 		blueballedTxt.setFormat(Paths.font('vcr.ttf'), 32);
 		blueballedTxt.updateHitbox();
