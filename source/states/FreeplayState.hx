@@ -489,28 +489,32 @@ class FreeplayState extends MusicBeatState
 				// trace("CurUnlocked: " + curUnlocked);
 				// trace("CurMissing: " + curMissing);
 
+				function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
+					if (array == null || array.length == 0) {
+						return null;
+					}
+					return array;
+				}
+
 				WeekData.setDirectoryFromWeek(leWeek);
 				for (song in leWeek.songs)
 				{
-					var categoryWhaat:flixel.util.typeLimit.OneOfTwo<String, Array<String>> = null;
-					if (leWeek.category is String)
-					{
-						categoryWhaat = leWeek.category.split(',').map(function(cat:String):String {
+					var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
+						(cast leWeek.category:String).split(',').map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						}) : Std.isOfType(leWeek.category, Array) ? 
+						(cast leWeek.category:Array<String>).map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						}) : 
+						[(cast leWeek.category:String)].map(function(cat:String):String {
 							return cat.trim().toLowerCase();
 						});
+
+					if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
+						categoryWhaat = [];
 					}
-					else if (leWeek.category is Array<String>)
-					{
-						categoryWhaat = leWeek.category.map(function(cat:String):String {
-							return cat.trim().toLowerCase();
-						});
-					}
-					else
-					{
-						categoryWhaat = [leWeek.category].map(function(cat:String):String {
-							return cat.trim().toLowerCase();
-						});
-					}
+
+					// trace("CategoryWhaat2: " + categoryWhaat);
 					var colors:Array<Int> = song[2];
 					if(colors == null || colors.length < 3)
 					{
@@ -520,7 +524,7 @@ class FreeplayState extends MusicBeatState
 					{
 						addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 					}
-					else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
+					else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
 					{
 						if (refresh)
 						{
@@ -582,7 +586,7 @@ class FreeplayState extends MusicBeatState
 								}
 
 							}
-							else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
+							else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
 							{
 								if (APEntryState.inArchipelagoMode)
 								{
@@ -635,7 +639,7 @@ class FreeplayState extends MusicBeatState
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
 								}
-								else if (categoryWhaat.toLowerCase() == CategoryState.loadWeekForce || (CategoryState.loadWeekForce == "mods" && categoryWhaat == null) || CategoryState.loadWeekForce == "all")
+								else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
 								{
 									if (APEntryState.inArchipelagoMode)
 									{

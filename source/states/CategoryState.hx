@@ -161,10 +161,24 @@ class CategoryState extends MusicBeatState
 
 			if (softCoded && catMode != 'Mods')
 		for (week in weeks) {
-			if (week.category != null && !existingCategories.contains(week.category.toLowerCase())) {
-				menuItems.push(week.category);
+			if (week.category != null) {
+				if (Std.is(week.category, String)) {
+					var category:String = cast week.category;
+					if (!existingCategories.contains(category.toLowerCase())) {
+						menuItems.push(category);
+					}
+				} else if (Std.is(week.category, Array)) {
+					var categories:Array<String> = cast week.category;
+					for (cat in categories) {
+						if (!existingCategories.contains(cat.toLowerCase())) {
+							menuItems.push(cat);
+						}
+					}
+				}
 			}
-		}
+				// menuItems.push(cast week.category);
+			}
+
 
 		// Remove duplicates from menuItems
 		var filteredItems:Array<String> = [];
