@@ -227,7 +227,7 @@ class RankingSubstate extends MusicBeatSubstate
 							{
 								var songPath = archipelago.APPlayState.currentMod.trim() != ""
 									? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-									: "assets/shared" + (song[0] + Difficulty.getFilePath());
+									: "assets/shared/" + (song[0] + Difficulty.getFilePath());
 								trace("Checking song path: " + songPath);
 								var songJson:SwagSong = null;
 								var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 

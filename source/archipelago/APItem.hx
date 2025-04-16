@@ -247,34 +247,14 @@ class APItem {
     }
     
     public function trigger():Void {
-        if ((this != APItem.activeItem) || this.triggered ) {
-            return; // Only the active item can trigger unless it's an exception
+        if (this.triggered) {
+            return; // Prevent multiple triggers
         }
 
-        // trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered);
-        // var index = allItems.getItems().indexOf(this);
-        // if (index != -1) {
-        //     // trace("Item is in allItems at index: " + index);
-        // }
-        // if (APItem.activeItem == this) {
-        //     // trace("Item is the activeItem.");
-        // }
-
-        // trace(APItem.activeItem?.name + " is the active item.");
-
-        if (this.isException && (APItem.activeItem == null || APItem.activeItem.name != this.name)) {
-            // Push the current active item back into the queue
-            if (APItem.activeItem != null) {
-                allItems.unshift(APItem.activeItem);
-            }
-            // Swap out the active item for the exception
-            APItem.activeItem = this;
-            allItems.remove(this);
+        // Ensure non-exception items wait until activeItem is null
+        if (!this.isException && APItem.activeItem != null) {
+            return; // Exit if activeItem is still in use
         }
-
-        // Trace if it is allowed to trigger, and what conditions are considered, and what they are.
-        // trace("Allowed to trigger: " + APItem.allowedToTrigger);
-        // trace("Trigger components: " + (APItem.activeItem == null) + " " + (APItem.activeItem?.isException) + " " + (APItem.activeItem?.name == this.name));
 
         // Check conditions before triggering
         if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
@@ -286,11 +266,16 @@ class APItem {
                 }
             }
 
-            trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered);
+            if (!this.isException)
+            activeItem = this;
+            allItems.remove(this); // Remove the item from the queue
+
+            // trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered);
 
             // Trigger the item without removing it from the queue
             this.onTrigger();
-            this.triggered = true;         }
+            this.triggered = true;
+        }
     }
 
     public static function createItems():Void {
@@ -331,6 +316,8 @@ class APItem {
             // If the active item is an exception and has been triggered, remove it from the list
             activeItem = null;
         }
+
+        // trace(activeItem?.name + " is the active item.");
 
         activeItem?.trigger();
 

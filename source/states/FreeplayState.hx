@@ -858,7 +858,7 @@ class FreeplayState extends MusicBeatState
 				trace("Checking song in secondary fallback logic: " + song[0]);
 				var songPath = archipelago.APPlayState.currentMod.trim() != ""
 					? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-					: "assets/shared" + (song[0] + Difficulty.getFilePath());
+					: "assets/shared/" + (song[0] + Difficulty.getFilePath());
 				trace("Constructed songPath: " + songPath);
 
 				var songJson:SwagSong = null;
