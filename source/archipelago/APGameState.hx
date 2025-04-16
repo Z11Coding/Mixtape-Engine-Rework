@@ -14,41 +14,82 @@ import haxe.ds.Option;
 import openfl.text.TextFormat;
 
 // Enums
-enum PrintJsonType {
-    ItemSend; ItemCheat; Hint; Join; Part; Chat; ServerChat; Tutorial; TagsChanged; CommandResult; AdminCommandResult; Goal; Release; Collect; Countdown;
+enum PrintJsonType
+{
+	ItemSend;
+	ItemCheat;
+	Hint;
+	Join;
+	Part;
+	Chat;
+	ServerChat;
+	Tutorial;
+	TagsChanged;
+	CommandResult;
+	AdminCommandResult;
+	Goal;
+	Release;
+	Collect;
+	Countdown;
 }
 
 // enum ClientStatus {
 //     CLIENT_UNKNOWN; CLIENT_CONNECTED; CLIENT_READY; CLIENT_PLAYING; CLIENT_GOAL;
 // }
 
-enum PacketProblemType {
-    cmd; arguments;
+enum PacketProblemType
+{
+	cmd;
+	arguments;
 }
 
-enum SetReplyPacketType {
-    key; value; original_value;
+enum SetReplyPacketType
+{
+	key;
+	value;
+	original_value;
 }
 
-enum ItemFlag {
-    None; // Nothing special about this item
-    LogicalAdvancement; // Indicates the item can unlock logical advancement
-    Important; // Indicates the item is especially useful
-    Trap; // Indicates the item is a trap
+enum ItemFlag
+{
+	None; // Nothing special about this item
+	LogicalAdvancement; // Indicates the item can unlock logical advancement
+	Important; // Indicates the item is especially useful
+	Trap; // Indicates the item is a trap
 }
 
-enum DataStorageOperationType {
-    replace; _default; add; mul; pow; mod; floor; ceil; max; min; and; or; xor; left_shift; right_shift; remove; pop; update;
+enum DataStorageOperationType
+{
+	replace;
+	_default;
+	add;
+	mul;
+	pow;
+	mod;
+	floor;
+	ceil;
+	max;
+	min;
+	and;
+	or;
+	xor;
+	left_shift;
+	right_shift;
+	remove;
+	pop;
+	update;
 }
 
-enum ClientState {
-    spectator; player; group;
+enum ClientState
+{
+	spectator;
+	player;
+	group;
 }
 
 // enum Permission {
 //     disabled; enabled; goal; auto; auto_enabled;
 // }
-
 // Types
 // typedef NetworkVersion = { major: Int, minor: Int, build: Int };
 // typedef NetworkPlayer = { team: Int, slot: Int, alias: String, name: String };
@@ -57,441 +98,681 @@ enum ClientState {
 // typedef Hint = { receiving_player: Int, finding_player: Int, location: Int, item: Int, found: Bool, entrance: String, item_flags: Int };
 // typedef GameData = { item_name_to_id: Map<String, Int>, location_name_to_id: Map<String, Int>, version: Int, checksum: String };
 // typedef NetworkSlot = { name: String, game: String, type: ClientState, group_members: Array<Int> };
-
 // Packet Structures
-typedef RoomInfoPacket = {
-    version: NetworkVersion,
-    generator_version: NetworkVersion,
-    tags: Array<String>,
-    password: Bool,
-    permissions: Map<String, Permission>,
-    hint_cost: Int,
-    location_check_points: Int,
-    games: Array<String>,
-    datapackage_versions: Map<String, Int>,
-    datapackage_checksums: Map<String, String>,
-    seed_name: String,
-    time: Float
+typedef RoomInfoPacket =
+{
+	version:NetworkVersion,
+	generator_version:NetworkVersion,
+	tags:Array<String>,
+	password:Bool,
+	permissions:Map<String, Permission>,
+	hint_cost:Int,
+	location_check_points:Int,
+	games:Array<String>,
+	datapackage_versions:Map<String, Int>,
+	datapackage_checksums:Map<String, String>,
+	seed_name:String,
+	time:Float
 };
 
-typedef ConnectionRefusedPacket = { errors: Option<Array<String>> };
-typedef ConnectedPacket = { team: Int, slot: Int, players: Array<NetworkPlayer>, missing_locations: Array<Int>, checked_locations: Array<Int>, slot_data: Map<String, Dynamic>, slot_info: Map<Int, NetworkSlot>, hint_points: Int };
-typedef ReceivedItemsPacket = { index: Int, items: Array<NetworkItem> };
-typedef LocationInfoPacket = { locations: Array<NetworkItem> };
-typedef RoomUpdatePacket = { players: Array<NetworkPlayer>, checked_locations: Array<Int>, missing_locations: Array<Int> };
-typedef PrintJSONPacket = { data: Array<JSONMessagePart>, type: Option<PrintJsonType>, receiving: Option<Int>, item: Option<NetworkItem>, found: Option<Bool>, team: Option<Int>, slot: Option<Int>, message: Option<String>, tags: Option<Array<String>>, countdown: Option<Int> };
-typedef DataPackagePacket = { data: Dynamic };
-typedef BouncedPacket = { games: Option<Array<String>>, slots: Option<Array<Int>>, tags: Option<Array<String>>, data: Option<Dynamic> };
-typedef RetrievedPacket = { keys: Map<String, Dynamic> };
-typedef SetReplyPacket = { key: String, value: Dynamic, original_value: Option<Dynamic> };
-typedef ConnectPacket = { password: String, game: String, name: String, uuid: String, version: NetworkVersion, items_handling: Int, tags: Array<String>, slot_data: Option<Bool> };
-typedef ConnectUpdatePacket = { items_handling: Int, tags: Array<String> };
-typedef SyncPacket = {};
-typedef LocationChecksPacket = { locations: Array<Int> };
-typedef LocationScoutsPacket = { locations: Array<Int>, create_as_hint: Int };
-typedef StatusUpdatePacket = { status: ClientStatus };
-typedef SayPacket = { text: String };
-typedef GetDataPackagePacket = { games: Option<Array<String>> };
-typedef BouncePacket = { games: Option<Array<String>>, slots: Option<Array<Int>>, tags: Option<Array<String>>, data: Option<Dynamic> };
-typedef GetPacket = { keys: Array<String> };
-typedef SetPacket = { key: String, _default: Dynamic, want_reply: Bool, operations: Array<DataStorageOperation> };
-typedef SetNotifyPacket = { keys: Array<String> };
+typedef ConnectionRefusedPacket =
+{
+	errors:Option<Array<String>>
+};
 
+typedef ConnectedPacket =
+{
+	team:Int,
+	slot:Int,
+	players:Array<NetworkPlayer>,
+	missing_locations:Array<Int>,
+	checked_locations:Array<Int>,
+	slot_data:Map<String, Dynamic>,
+	slot_info:Map<Int, NetworkSlot>,
+	hint_points:Int
+};
 
-class APGameState {
+typedef ReceivedItemsPacket =
+{
+	index:Int,
+	items:Array<NetworkItem>
+};
 
-    public static var instance:APGameState;
+typedef LocationInfoPacket =
+{
+	locations:Array<NetworkItem>
+};
 
-    private var _ap:Client;
-    private var _seed:String;
-    private var _disconnectSubstate:APDisconnectSubstate;
-    private var _saveData:yutautil.save.MixSaveWrapper;
-    public var connected(get, never):Bool;
+typedef RoomUpdatePacket =
+{
+	players:Array<NetworkPlayer>,
+	checked_locations:Array<Int>,
+	missing_locations:Array<Int>
+};
 
-    public var APLocations:Array<Int> = [];
-    public var APItems:Map<String, Int> = new Map<String, Int>();
-    public var ItemIndex:Int = -1;
+typedef PrintJSONPacket =
+{
+	data:Array<JSONMessagePart>,
+	type:Option<PrintJsonType>,
+	receiving:Option<Int>,
+	item:Option<NetworkItem>,
+	found:Option<Bool>,
+	team:Option<Int>,
+	slot:Option<Int>,
+	message:Option<String>,
+	tags:Option<Array<String>>,
+	countdown:Option<Int>
+};
 
-    public function locationData(songName:String, modName:String):Array<Int> {
-        try {
-            if (!APInfo.hasSongChecks) {
-                return [];
-            }
+typedef DataPackagePacket =
+{
+	data:Dynamic
+};
 
-            if (modName != null && modName != "") {
-                modName = modName.trim();
-            } else {
-                modName = "";
-            }
-            // trace("Starting locationData function with songName: " + songName + " and modName: " + modName);
-            var matchingLocations:Array<Int> = [];
-            var exactMatch:Int = -1;
-            var hasDashNumber:Bool = false;
-            var reg = new EReg("^" + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "(?:-\\d+)?$", "");
-            var apInfo = info();
+typedef BouncedPacket =
+{
+	games:Option<Array<String>>,
+	slots:Option<Array<Int>>,
+	tags:Option<Array<String>>,
+	data:Option<Dynamic>
+};
 
-            for (location in APLocations) {
-                var locationName = apInfo.get_location_name(location);
+typedef RetrievedPacket =
+{
+	keys:Map<String, Dynamic>
+};
 
-                if (locationName == songName + (modName != "" ? " (" + modName + ")" : "")) {
-                    exactMatch = location;
-                    break;
-                } else if (reg.match(locationName)) {
-                    matchingLocations.push(location);
-                    hasDashNumber = true;
-                }
-            }
+typedef SetReplyPacket =
+{
+	key:String,
+	value:Dynamic,
+	original_value:Option<Dynamic>
+};
 
-            if (!hasDashNumber && exactMatch != -1) {
-                return [exactMatch];
-            }
+typedef ConnectPacket =
+{
+	password:String,
+	game:String,
+	name:String,
+	uuid:String,
+	version:NetworkVersion,
+	items_handling:Int,
+	tags:Array<String>,
+	slot_data:Option<Bool>
+};
 
-            if (matchingLocations.length == 0) {
-                for (song in WeekData.getCurrentWeek().songs) {
-                    if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
-                        (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
-                        var fallbackReg = new EReg("^" + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "(?:-\\d+)?$", "");
-                        for (location in APLocations) {
-                            var locationName = apInfo.get_location_name(location);
-                            if (fallbackReg.match(locationName)) {
-                                trace("Fallback match found: " + locationName);
-                                matchingLocations.push(location);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
+typedef ConnectUpdatePacket =
+{
+	items_handling:Int,
+	tags:Array<String>
+};
 
-            return matchingLocations;
-        } catch (e:Dynamic) {
-            var errorMessage = "Error in locationData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
-            trace(errorMessage);
-            archipelago.APItem.popup(errorMessage, "Error: Locations", true);
-            return [];
-        }
-    }
+typedef SyncPacket =
+{
+};
 
-    public function noteData(songName:String, modName:String, ?week:String):Array<Int> {
-        try {
-            if (!APInfo.hasNoteChecks) {
-                return [];
-            }
+typedef LocationChecksPacket =
+{
+	locations:Array<Int>
+};
 
-            if (modName != null && modName != "") {
-                modName = modName.trim();
-            } else {
-                modName = "";
-            }
-            // trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
-            var matchingNotes:Array<Int> = [];
-            var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-            var apInfo = info();
-        
-            for (location in APLocations) {
-                var locationName = apInfo.get_location_name(location);
-                if (reg.match(locationName)) {
-                    matchingNotes.push(location);
-                }
-            }
-        
-            if (matchingNotes.length == 0) {
-                for (song in WeekData.getCurrentWeek().songs) {
-                    if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() ||
-                        (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
-                        var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-                        for (location in APLocations) {
-                            var locationName = apInfo.get_location_name(location);
-                            if (fallbackReg.match(locationName)) {
-                                trace("Fallback match found: " + locationName);
-                                matchingNotes.push(location);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        
-            if (matchingNotes.length == 0) {
-                for (song in WeekData.getCurrentWeek().songs) {
-                    var songPath = modName.trim() != ""
-                        ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-                        : "assets/shared/data/" + (song[0] + Difficulty.getFilePath());
-        
-                    var songJson:backend.Song.SwagSong = null;
-                    var jsonStuff:Array<String> = modName.trim() != "" 
-                        ? Paths.crawlDirectory("mods/" + modName + "/data", ".json") 
-                        : Paths.crawlDirectory("assets/shared/data", ".json");
-        
-                    for (json in jsonStuff) {
-                        if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
-                            songJson = backend.Song.parseJSON(File.getContent(json));
-                            if (songJson != null) {
-                                if (songJson.song.trim().toLowerCase().replace(" ", "-") == songName.toLowerCase().trim().replace(" ", "-")) {
-                                    var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-                                    for (location in APLocations) {
-                                        var locationName = apInfo.get_location_name(location);
-                                        if (fallbackReg.match(locationName)) {
-                                            trace("Secondary fallback match found: " + locationName);
-                                            matchingNotes.push(location);
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        
-            return matchingNotes;
-        } catch (e:Dynamic) {
-            var errorMessage = "Error in noteData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
-            trace(errorMessage);
-            archipelago.APItem.popup(errorMessage, "Error: Note Checks", true);
-            return [];
-        }
-    }
+typedef LocationScoutsPacket =
+{
+	locations:Array<Int>,
+	create_as_hint:Int
+};
 
-    public function getSongLocations(songName:String, modName:String):Array<Int> {
-        return locationData(songName, modName).concat(noteData(songName, modName));
-    }
+typedef StatusUpdatePacket =
+{
+	status:ClientStatus
+};
 
-    public function checkGoal(songName:String, modName:String):Bool {
-        var info = info();
-        var locations = locationData(songName, modName).concat(noteData(songName, modName));
-        for (location in locations) {
-            if (info.missingLocations.contains(location)) {
-                return false;
-            }
-        }
-        if (states.FreeplayState.isVictorySong(songName, modName)) {
-            setGoal();
-            return true;
-        }
-        return false;
-    }
+typedef SayPacket =
+{
+	text:String
+};
 
-    public function setGoal():Void {
-        info().set_goal();
-    }
+typedef GetDataPackagePacket =
+{
+	games:Option<Array<String>>
+};
 
-    public function excludeCheckedLocations(locations:Array<Int>):Array<Int> {
-        var checkedLocations:Array<Int> = info().checkedLocations;
-        var uncheckedLocations:Array<Int> = [];
+typedef BouncePacket =
+{
+	games:Option<Array<String>>,
+	slots:Option<Array<Int>>,
+	tags:Option<Array<String>>,
+	data:Option<Dynamic>
+};
 
-        for (location in locations) {
-            if (!checkedLocations.contains(location)) {
-                uncheckedLocations.push(location);
-            }
-        }
+typedef GetPacket =
+{
+	keys:Array<String>
+};
 
-        return uncheckedLocations;
-    }
+typedef SetPacket =
+{
+	key:String,
+	_default:Dynamic,
+	want_reply:Bool,
+	operations:Array<DataStorageOperation>
+};
 
-    public static var currentPackages:DynamicAccess<GameData> = new DynamicAccess<GameData>();
+typedef SetNotifyPacket =
+{
+	keys:Array<String>
+};
 
-    public var itemManager(get, set):Dynamic;    
-    function get_itemManager():Dynamic {
-        return null;
-    }
-    
-    function set_itemManager(itemManager:Dynamic):Dynamic {
-        return null;
-    }
-    
-    function get_connected():Bool {
-       return _ap.clientStatus == ClientStatus.PLAYING || _ap.clientStatus == ClientStatus.CONNECTED || _ap.clientStatus == ClientStatus.GOAL || _ap.clientStatus == ClientStatus.READY;
-    }
+class APGameState
+{
+	public static var instance:APGameState;
 
-    public function new(ap:Client, slotData:Dynamic)
-    {
-        _ap = ap;
+	private var _ap:Client;
+	private var _seed:String;
+	private var _disconnectSubstate:APDisconnectSubstate;
+	private var _saveData:yutautil.save.MixSaveWrapper;
 
-        _seed = _ap.seed;
+	public var connected(get, never):Bool;
 
-        archipelago.APPlayState.apGame = this;
-        archipelago.APInfo.apGame = this;
-        archipelago.APInfo.ap = _ap;
-        instance = this;
+	public var APLocations:Array<Int> = [];
+	public var APItems:Map<String, Int> = new Map<String, Int>();
+	public var ItemIndex:Int = -1;
 
-        _disconnectSubstate = new APDisconnectSubstate(_ap);
-        _disconnectSubstate.setSeed(_seed);
-        _disconnectSubstate.onCancel.add(onCancel);
-        _disconnectSubstate.onReconnect.add(onReconnect);
+	public function locationData(songName:String, modName:String):Array<Int>
+	{
+		try
+		{
+			if (!APInfo.hasSongChecks)
+			{
+				return [];
+			}
 
-        _ap.onSocketDisconnected.add(onSocketDisconnected);
-        _ap.onPrintJSON.add(sendMessage);
+			if (modName != null && modName != "")
+			{
+				modName = modName.trim();
+			}
+			else
+			{
+				modName = "";
+			}
+			// trace("Starting locationData function with songName: " + songName + " and modName: " + modName);
+			var matchingLocations:Array<Int> = [];
+			var exactMatch:Int = -1;
+			var hasDashNumber:Bool = false;
+			var reg = new EReg("^" + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "(?:-\\d+)?$", "");
+			var apInfo = info();
+
+			for (location in APLocations)
+			{
+				var locationName = apInfo.get_location_name(location);
+
+				if (locationName == songName + (modName != "" ? " (" + modName + ")" : ""))
+				{
+					exactMatch = location;
+					break;
+				}
+				else if (reg.match(locationName))
+				{
+					matchingLocations.push(location);
+					hasDashNumber = true;
+				}
+			}
+
+			if (!hasDashNumber && exactMatch != -1)
+			{
+				return [exactMatch];
+			}
+
+			if (matchingLocations.length == 0)
+			{
+				for (song in WeekData.getCurrentWeek().songs)
+				{
+					if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() || (cast song[0] : String).toLowerCase()
+						.trim()
+						.replace(" ", "-") == songName.toLowerCase()
+						.trim()
+						.replace(" ", "-"))
+					{
+						var fallbackReg = new EReg("^" + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "(?:-\\d+)?$", "");
+						for (location in APLocations)
+						{
+							var locationName = apInfo.get_location_name(location);
+							if (fallbackReg.match(locationName))
+							{
+								trace("Fallback match found: " + locationName);
+								matchingLocations.push(location);
+							}
+						}
+						break;
+					}
+				}
+			}
+
+			return matchingLocations;
+		}
+		catch (e:Dynamic)
+		{
+			var errorMessage = "Error in locationData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
+			trace(errorMessage);
+			archipelago.APItem.popup(errorMessage, "Error: Locations", true);
+			return [];
+		}
+	}
+
+	public function noteData(songName:String, modName:String, ?week:String):Array<Int>
+	{
+		try
+		{
+			if (!APInfo.hasNoteChecks)
+			{
+				return [];
+			}
+
+			if (modName != null && modName != "")
+			{
+				modName = modName.trim();
+			}
+			else
+			{
+				modName = "";
+			}
+			// trace("Starting noteData function with songName: " + songName + " and modName: " + modName);
+			var matchingNotes:Array<Int> = [];
+			var reg = new EReg("^Note \\d+: " + EReg.escape(songName + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+			var apInfo = info();
+
+			for (location in APLocations)
+			{
+				var locationName = apInfo.get_location_name(location);
+				if (reg.match(locationName))
+				{
+					matchingNotes.push(location);
+				}
+			}
+
+			if (matchingNotes.length == 0)
+			{
+				for (song in WeekData.getCurrentWeek().songs)
+				{
+					if ((cast song[0] : String).toLowerCase().trim() == songName.toLowerCase().trim() || (cast song[0] : String).toLowerCase()
+						.trim()
+						.replace(" ", "-") == songName.toLowerCase()
+						.trim()
+						.replace(" ", "-"))
+					{
+						var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+						for (location in APLocations)
+						{
+							var locationName = apInfo.get_location_name(location);
+							if (fallbackReg.match(locationName))
+							{
+								trace("Fallback match found: " + locationName);
+								matchingNotes.push(location);
+							}
+						}
+						break;
+					}
+				}
+			}
+
+			if (matchingNotes.length == 0)
+			{
+				for (song in WeekData.getCurrentWeek().songs)
+				{
+					var songPath = modName.trim() != "" ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-"
+						+ Difficulty.getString(PlayState.storyDifficulty) + ".json" : "assets/shared/data/"
+						+ (song[0] + Difficulty.getFilePath());
+
+					var songJson:backend.Song.SwagSong = null;
+					var jsonStuff:Array<String> = modName.trim() != "" ? Paths.crawlDirectory("mods/" + modName + "/data",
+						".json") : Paths.crawlDirectory("assets/shared/data", ".json");
+
+					for (json in jsonStuff)
+					{
+						if (json.trim()
+							.toLowerCase()
+							.replace(" ", "-") == songPath.trim()
+							.toLowerCase()
+							.replace(" ", "-"))
+						{
+							songJson = backend.Song.parseJSON(File.getContent(json));
+							if (songJson != null)
+							{
+								if (songJson.song.trim()
+									.toLowerCase()
+									.replace(" ", "-") == songName.toLowerCase()
+									.trim()
+									.replace(" ", "-"))
+								{
+									var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+									for (location in APLocations)
+									{
+										var locationName = apInfo.get_location_name(location);
+										if (fallbackReg.match(locationName))
+										{
+											trace("Secondary fallback match found: " + locationName);
+											matchingNotes.push(location);
+										}
+									}
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return matchingNotes;
+		}
+		catch (e:Dynamic)
+		{
+			var errorMessage = "Error in noteData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
+			trace(errorMessage);
+			archipelago.APItem.popup(errorMessage, "Error: Note Checks", true);
+			return [];
+		}
+	}
+
+	public function getSongLocations(songName:String, modName:String):Array<Int>
+	{
+		return locationData(songName, modName).concat(noteData(songName, modName));
+	}
+
+	public function checkGoal(songName:String, modName:String):Bool
+	{
+		var info = info();
+		var locations = locationData(songName, modName).concat(noteData(songName, modName));
+		for (location in locations)
+		{
+			if (info.missingLocations.contains(location))
+			{
+				return false;
+			}
+		}
+		if (states.FreeplayState.isVictorySong(songName, modName))
+		{
+			setGoal();
+			return true;
+		}
+		return false;
+	}
+
+	public function setGoal():Void
+	{
+		info().set_goal();
+	}
+
+	public function excludeCheckedLocations(locations:Array<Int>):Array<Int>
+	{
+		var checkedLocations:Array<Int> = info().checkedLocations;
+		var uncheckedLocations:Array<Int> = [];
+
+		for (location in locations)
+		{
+			if (!checkedLocations.contains(location))
+			{
+				uncheckedLocations.push(location);
+			}
+		}
+
+		return uncheckedLocations;
+	}
+
+	public static var currentPackages:DynamicAccess<GameData> = new DynamicAccess<GameData>();
+
+	public var itemManager(get, set):Dynamic;
+
+	function get_itemManager():Dynamic
+	{
+		return null;
+	}
+
+	function set_itemManager(itemManager:Dynamic):Dynamic
+	{
+		return null;
+	}
+
+	function get_connected():Bool
+	{
+		return _ap.clientStatus == ClientStatus.PLAYING
+			|| _ap.clientStatus == ClientStatus.CONNECTED
+			|| _ap.clientStatus == ClientStatus.GOAL
+			|| _ap.clientStatus == ClientStatus.READY;
+	}
+
+	public function new(ap:Client, slotData:Dynamic)
+	{
+		_ap = ap;
+
+		_seed = _ap.seed;
+
+		archipelago.APPlayState.apGame = this;
+		archipelago.APInfo.apGame = this;
+		archipelago.APInfo.ap = _ap;
+		instance = this;
+
+		_disconnectSubstate = new APDisconnectSubstate(_ap);
+		_disconnectSubstate.setSeed(_seed);
+		_disconnectSubstate.onCancel.add(onCancel);
+		_disconnectSubstate.onReconnect.add(onReconnect);
+
+		_ap.onSocketDisconnected.add(onSocketDisconnected);
+		_ap.onPrintJSON.add(sendMessage);
 		_ap.onPrint.add(sendMessageSimple);
 		_ap.onItemsReceived.add(addSongs);
-        _ap.onBounced.add(bouncy);
-        _ap.onCountdown.add(function(countdown:Int) {
-            if (CountdownPopup.instance == null) {
-            var popup = new archipelago.CountdownPopup("AP Countdown", "The AP is about to begin!", countdown);
-            popup.onFinish = function() {
-                // Start the AP!
-            };
-        } else {
-            CountdownPopup.instance.updateCountdown(countdown);
-        }
-        });
+		_ap.onBounced.add(bouncy);
+		_ap.onCountdown.add(function(countdown:Int)
+		{
+			if (CountdownPopup.instance == null)
+			{
+				var popup = new archipelago.CountdownPopup("AP Countdown", "The AP is about to begin!", countdown);
+				popup.onFinish = function()
+				{
+					// Start the AP!
+				};
+			}
+			else
+			{
+				CountdownPopup.instance.updateCountdown(countdown);
+			}
+		});
 
-        _ap.toggleDeathLink(ClientPrefs.data.deathlink);
+		_ap.toggleDeathLink(ClientPrefs.data.deathlink);
 
-        _ap.onRetrieved.add(handleRetrievedPacket);
+		_ap.onRetrieved.add(handleRetrievedPacket);
 
-
-        // _ap.onConnect.add(function() {
-        //     _ap.clientStatus = ClientStatus.CONNECTED;
-        // });
+		// _ap.onConnect.add(function() {
+		//     _ap.clientStatus = ClientStatus.CONNECTED;
+		// });
 
 		// _ap.onRoomInfo.add(onRoomInfo);
 		// _ap.onSlotRefused.add(onSlotRefused);
 		_ap.onSlotConnected.add(onSlotConnected);
-        APPlayState.deathByLink = false;
-    }
+		APPlayState.deathByLink = false;
+	}
 
-    function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void {
-        trace("Retrieved packet: " + retrievedPacket);
-        for (key in retrievedPacket.keys()) {
-        var value = retrievedPacket.get(key);
-        if (key.indexOf("_read_hints_") != -1) {
-            var hint:Hint = cast value;
-            if (!hint.found) {
-                // Grab the location name directly and get the game of the finding player.
-                var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
+	function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void
+	{
+		trace("Retrieved packet: " + retrievedPacket);
+		for (key in retrievedPacket.keys())
+		{
+			var value = retrievedPacket.get(key);
+			if (key.indexOf("_read_hints_") != -1)
+			{
+				var hint:Hint = cast value;
+				if (!hint.found)
+				{
+					// Grab the location name directly and get the game of the finding player.
+					var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
 
-                var findingPlayerName = _ap.get_player_alias(hint.finding_player);
-                var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
-                var itemName = _ap.get_item_name(hint.item, _ap.get_player_game(hint.finding_player));
+					var findingPlayerName = _ap.get_player_alias(hint.finding_player);
+					var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
+					var itemName = _ap.get_item_name(hint.item, _ap.get_player_game(hint.finding_player));
 
-                var message:String;
-                if (hint.receiving_player == _ap.slotnr) {
-                message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
-                } else if (hint.finding_player == _ap.slotnr) {
-                message = "This song has " + receivingPlayerName + "'s item: " + itemName;
-                } else {
-                message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
-                }
+					var message:String;
+					if (hint.receiving_player == _ap.slotnr)
+					{
+						message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
+					}
+					else if (hint.finding_player == _ap.slotnr)
+					{
+						message = "This song has " + receivingPlayerName + "'s item: " + itemName;
+					}
+					else
+					{
+						message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
+					}
 
-                if (FreeplayState.hintTable.exists(locationName)) {
-                FreeplayState.hintTable.set(locationName, FreeplayState.hintTable.get(locationName) + "\n" + message);
-                } else {
-                FreeplayState.hintTable.set(locationName, message);
-                }
-            }
-        }
-        }
-        for (hint in FreeplayState.hintTable.keys()) {
-        var message = FreeplayState.hintTable.get(hint);
-        trace("Hint: " + hint + " - " + message);
-        var hintSong = getSongAndMod(hint);
-        FreeplayState.curHinted.push({song: hintSong.song, mod: hintSong.mod != null ? hintSong.mod : ""});
-        trace(hintSong);
-        }
-    }
+					if (FreeplayState.hintTable.exists(locationName))
+					{
+						FreeplayState.hintTable.set(locationName, FreeplayState.hintTable.get(locationName) + "\n" + message);
+					}
+					else
+					{
+						FreeplayState.hintTable.set(locationName, message);
+					}
+				}
+			}
+		}
+		for (hint in FreeplayState.hintTable.keys())
+		{
+			var message = FreeplayState.hintTable.get(hint);
+			trace("Hint: " + hint + " - " + message);
+			var hintSong = getSongAndMod(hint);
+			FreeplayState.curHinted.push({song: hintSong.song, mod: hintSong.mod != null ? hintSong.mod : ""});
+			trace(hintSong);
+		}
+	}
 
+	public function initSaveData():Void
+	{
+		var combinedChecksum = haxe.crypto.Sha1.encode(haxe.Json.stringify(currentPackages));
+		var saveFileName = "save/ap_" + _ap.slot + "_" + _ap.seed + "_" + combinedChecksum + ".json";
+		_saveData = new yutautil.save.MixSaveWrapper(new yutautil.save.MixSave(), saveFileName, true);
 
-    public function initSaveData():Void {
-        var combinedChecksum = haxe.crypto.Sha1.encode(haxe.Json.stringify(currentPackages));
-        var saveFileName = "save/ap_" + _ap.slot + "_" + _ap.seed + "_" + combinedChecksum + ".json";
-        _saveData = new yutautil.save.MixSaveWrapper(new yutautil.save.MixSave(), saveFileName, true);
+		_saveData.addItem("slot", _ap.slot);
+		_saveData.fancyFormat = true;
+		_saveData.addItem("seed", _seed);
+		if (_saveData.hasItem("checksum"))
+		{
+			var savedChecksum = _saveData.getItem("checksum");
+			if (savedChecksum == combinedChecksum)
+			{
+				trace("Checksum matches the current combined checksum.");
+			}
+			else
+			{
+				trace("Checksum does not match the current combined checksum.");
+			}
+		}
+		else
+		{
+			_saveData.addItem("checksum", combinedChecksum);
+		}
+		if (_saveData.hasItem("itemIndex"))
+		{
+			ItemIndex = _saveData.getItem("itemIndex");
+		}
+		if (_saveData.hasItem("activeItem"))
+		{
+			var activeItem = _saveData.getItem("activeItem");
+			if (activeItem != null && activeItem != "null")
+			{
+				var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
+				if (reg.match(activeItem))
+				{
+					var modifier = reg.matched(1);
+					archipelago.APItem.APChartModifier.restoreFromSave(modifier);
+				}
+				else
+				{
+					archipelago.APItem.createItemByName(activeItem);
+				}
+			}
+		}
+		if (_saveData.hasItem("waitingItems"))
+		{
+			var waitingItems:Array<String> = _saveData.getItem("waitingItems");
+			var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
+			for (itemName in waitingItems)
+			{
+				if (reg.match(itemName))
+				{
+					var modifier = reg.matched(1);
+					archipelago.APItem.APChartModifier.restoreFromSave(modifier);
+				}
+				else
+				{
+					archipelago.APItem.createItemByName(itemName);
+				}
+			}
+		}
+		if (_saveData.hasItem("tickets"))
+		{
+			APInfo.ticketCount = _saveData.getItem("tickets");
+		}
+		if (_saveData.hasItem("shields"))
+		{
+			APItem.shields = _saveData.getItem("shields");
+		}
+		if (_saveData.hasItem("MaxHP"))
+		{
+			APItem.maxHPUp = _saveData.getItem("MaxHP");
+		}
+		_saveData.save();
+	}
 
-        _saveData.addItem("slot", _ap.slot);
-        _saveData.fancyFormat = true;
-        _saveData.addItem("seed", _seed);
-        if (_saveData.hasItem("checksum")) {
-            var savedChecksum = _saveData.getItem("checksum");
-            if (savedChecksum == combinedChecksum) {
-            trace("Checksum matches the current combined checksum.");
-            } else {
-            trace("Checksum does not match the current combined checksum.");
-            }
-            
-        } else {
-            _saveData.addItem("checksum", combinedChecksum);
-        }
-        if (_saveData.hasItem("itemIndex")) {
-            ItemIndex = _saveData.getItem("itemIndex");
-        }
-        if (_saveData.hasItem("activeItem")) {
-            var activeItem = _saveData.getItem("activeItem");
-            if (activeItem != null && activeItem != "null") {
-            var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
-            if (reg.match(activeItem)) {
-                var modifier = reg.matched(1);
-                archipelago.APItem.APChartModifier.restoreFromSave(modifier);
-            } else {
-                archipelago.APItem.createItemByName(activeItem);
-            }
-            }
-        }
-        if (_saveData.hasItem("waitingItems")) {
-            var waitingItems:Array<String> = _saveData.getItem("waitingItems");
-            var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
-            for (itemName in waitingItems) {
-            if (reg.match(itemName)) {
-                var modifier = reg.matched(1);
-                archipelago.APItem.APChartModifier.restoreFromSave(modifier);
-            } else {
-                archipelago.APItem.createItemByName(itemName);
-            }
-            }
-        }
-        if (_saveData.hasItem("tickets")) {
-            APInfo.ticketCount = _saveData.getItem("tickets");
-        }
-        if (_saveData.hasItem("shields")) {
-            APItem.shields = _saveData.getItem("shields");
-        }
-        if (_saveData.hasItem("MaxHP")) {
-            APItem.maxHPUp = _saveData.getItem("MaxHP");
-        }
-        _saveData.save();
-    }
+	public function updateSaveData():Void
+	{
+		if (_saveData == null)
+		{
+			trace("Save data is not ready yet...");
+			return;
+		}
+		_saveData.addItem("itemIndex", ItemIndex);
+		_saveData.addItem("activeItem", APItem.activeItem?.name);
+		_saveData.addItem("waitingItems",
+			APItem.getItems()
+				.map(item -> item.name)
+				.concat([if (APPlayState.ghostChat) "Ghost Chat" else null])
+				.filter(item -> item != null));
+		_saveData.addItem("tickets", APInfo.ticketCount);
+		_saveData.addItem("shields", APItem.shields);
+		_saveData.addItem("MaxHP", APItem.maxHPUp);
+		_saveData.save();
+		trace("Save data updated!");
+	}
 
-    public function updateSaveData():Void {
-        if (_saveData == null) {
-            trace("Save data is not ready yet...");
-            return;
-        }
-        _saveData.addItem("itemIndex", ItemIndex);
-        _saveData.addItem("activeItem", APItem.activeItem?.name);
-        _saveData.addItem("waitingItems", APItem.getItems().map(item -> item.name).concat([if (APPlayState.ghostChat) "Ghost Chat" else null]).filter(item -> item != null));
-        _saveData.addItem("tickets", APInfo.ticketCount);
-        _saveData.addItem("shields", APItem.shields);
-        _saveData.addItem("MaxHP", APItem.maxHPUp);
-        _saveData.save();
-        trace("Save data updated!");
-    }
+	public function info()
+	{
+		return _ap;
+	}
 
-    public function info()
-    {
-        return _ap;
-    }
+	function bouncy(data:Dynamic)
+	{
+		if ((Reflect.hasField(data, "cause") && Reflect.hasField(data, "source") && Reflect.hasField(data, "time"))
+			&& !APPlayState.deathByLink)
+		{
+			if (info().slot != data.source)
+			{
+				var dl:Dynamic = data;
+				if (!APPlayState.deathByLink)
+				{
+					APPlayState.deathLinkPacket = dl;
+					APPlayState.deathByLink = true;
+				}
+			}
+		}
+		// trace(data);
+	}
 
-    function bouncy(data:Dynamic)
-    {
-        if ((Reflect.hasField(data, "cause") && Reflect.hasField(data, "source") && Reflect.hasField(data, "time")) && !APPlayState.deathByLink)
-        {
-            if (info().slot != data.source) {
-                var dl:Dynamic = data;
-                if (!APPlayState.deathByLink){
-                    APPlayState.deathLinkPacket = dl;
-                    APPlayState.deathByLink = true;
-                }
-            }
-        } 
-        // trace(data);
-    }
+	function onSlotConnected(slotData:Dynamic)
+	{
+		if (APEntryState.deathLink)
+			_ap.tags.push("DeathLink");
+	}
 
-    function onSlotConnected(slotData:Dynamic)
-    {
-        if (APEntryState.deathLink)
-            _ap.tags.push("DeathLink");
-    }
-
-    function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
+	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
 	{
 		var theMessageFM:String = "";
 		for (message in data)
@@ -512,374 +793,415 @@ class APGameState {
 	}
 
 	function sendMessageSimple(text:Dynamic)
-        archipelago.console.MainTab.addMessage(text);
+		archipelago.console.MainTab.addMessage(text);
 
-    public function disconnectAP()
-    {
-        _ap.disconnect_socket();
-        _ap = null;
-        if (APEntryState.ap != null)
-        {
-            APEntryState.ap = null;
-        }
-    }
+	public function disconnectAP()
+	{
+		_ap.disconnect_socket();
+		_ap = null;
+		if (APEntryState.ap != null)
+		{
+			APEntryState.ap = null;
+		}
+	}
 
-    public function getSongAndMod(songName:String):{ song:String, ?mod:String }
-    {
-        var input = songName;
-        var modName = "";
-        var firstParenIndex = songName.indexOf("(");
-        var endParenIndex = songName.lastIndexOf(")");
-        while (firstParenIndex != -1) {
-            if (endParenIndex != -1) {
-                modName = songName.substring(firstParenIndex + 1, endParenIndex);
-                if (isModName(modName)) {
-                    songName = songName.substring(0, firstParenIndex).trim();
-                    break;
-                } else {
-                    firstParenIndex = songName.indexOf("(", firstParenIndex + 1);
-                }
-            } else {
-                break;
-            }
-        }
-        if (firstParenIndex == -1 || !isModName(modName)) {
-            modName = "";
-            songName = input;
-        }
-        return modName != null && modName != "" ? { song: songName, mod: modName } : { song: songName };
-    }
+	public function getSongAndMod(songName:String):{song:String, ?mod:String}
+	{
+		var input = songName;
+		var modName = "";
+		var firstParenIndex = songName.indexOf("(");
+		var endParenIndex = songName.lastIndexOf(")");
+		while (firstParenIndex != -1)
+		{
+			if (endParenIndex != -1)
+			{
+				modName = songName.substring(firstParenIndex + 1, endParenIndex);
+				if (isModName(modName))
+				{
+					songName = songName.substring(0, firstParenIndex).trim();
+					break;
+				}
+				else
+				{
+					firstParenIndex = songName.indexOf("(", firstParenIndex + 1);
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+		if (firstParenIndex == -1 || !isModName(modName))
+		{
+			modName = "";
+			songName = input;
+		}
+		return modName != null && modName != "" ? {song: songName, mod: modName} : {song: songName};
+	}
 
-    public function getSongAndModFromLocation(locationID:Int):{ song:String, ?mod:String }
-    {
-        var locationName = info().get_location_name(locationID);
-        var songAndMod:{ song:String, ?mod:String };
+	public function getSongAndModFromLocation(locationID:Int):{song:String, ?mod:String}
+	{
+		var locationName = info().get_location_name(locationID);
+		var songAndMod:{song:String, ?mod:String};
 
-        // Check if it's a note location
-        var noteReg = new EReg("^Note \\d+: (.+)$", "");
-        if (noteReg.match(locationName)) {
-            var noteName = noteReg.matched(1);
-            songAndMod = getSongAndMod(noteName);
-        } else {
-            // Check if it's a song location with a dash number
-            var songReg = new EReg("^(.+?)(?:-\\d+)?$", "");
-            if (songReg.match(locationName)) {
-                var songName = songReg.matched(1);
-                songAndMod = getSongAndMod(songName);
-            } else {
-                // Default fallback
-                songAndMod = getSongAndMod(locationName);
-            }
-        }
+		// Check if it's a note location
+		var noteReg = new EReg("^Note \\d+: (.+)$", "");
+		if (noteReg.match(locationName))
+		{
+			var noteName = noteReg.matched(1);
+			songAndMod = getSongAndMod(noteName);
+		}
+		else
+		{
+			// Check if it's a song location with a dash number
+			var songReg = new EReg("^(.+?)(?:-\\d+)?$", "");
+			if (songReg.match(locationName))
+			{
+				var songName = songReg.matched(1);
+				songAndMod = getSongAndMod(songName);
+			}
+			else
+			{
+				// Default fallback
+				songAndMod = getSongAndMod(locationName);
+			}
+		}
 
-        return songAndMod;
-    }
+		return songAndMod;
+	}
 
-    public function findSpecialItems():Map<String, Int> {
-        var specialItems:Map<String, Int> = new Map<String, Int>();
-        var apInfo = info();
+	public function findSpecialItems():Map<String, Int>
+	{
+		var specialItems:Map<String, Int> = new Map<String, Int>();
+		var apInfo = info();
 
-        // trace("FNF Package: " + currentPackages["Friday Night Funkin"]);
-        // trace("Item Name to ID: " + currentPackages["Friday Night Funkin"].item_name_to_id);
+		// trace("FNF Package: " + currentPackages["Friday Night Funkin"]);
+		// trace("Item Name to ID: " + currentPackages["Friday Night Funkin"].item_name_to_id);
 
-        for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys()) {
-            var itemName = item.replace("<cOpen>", "{")
-                .replace("<cClose>", "}")
-                .replace("<sOpen>", "[")
-                .replace("<sClose>", "]");
+		for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
+		{
+			var itemName = item.replace("<cOpen>", "{").replace("<cClose>", "}").replace("<sOpen>", "[").replace("<sClose>", "]");
+
+			var data = getSongAndMod(itemName); // I'm a fuckin' idiot.
+
+			// var itemsWhitelist:
+			var isSpecialItem = locationData(data.song, data.mod).concat(APEntryState.apGame.noteData(data.song, data.mod)).isEmpty();
+			if (isSpecialItem)
+			{
+				specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
+			}
+		}
+		trace("Special Items: " + specialItems);
+
+		return specialItems;
+	}
+
+	public static var isSync:Bool = false;
+	public static var haventranyet:Bool = true;
+
+	// var tickets:Int = 0;
+	function addSongs(song:Array<NetworkItem>)
+	{
+		var tickets = 0;
+		var nonSongs:Map<String, Int> = [];
+		var nonSongsNames:Array<String> = [];
+		states.FreeplayState.curMissing = [];
+
+		for (songName in song)
+		{
+			var itemName = info().get_item_name(songName.item);
+
+			if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
+			{
+				nonSongs.set(itemName, songName.index);
+				nonSongsNames.push(itemName);
+				continue;
+			}
+
+			// Convert special keywords back to actual brackets
+			itemName = itemName.replace("<cOpen>", "{").replace("<cClose>", "}").replace("<sOpen>", "[").replace("<sClose>", "]");
 
 
-                var data = getSongAndMod(itemName); // I'm a fuckin' idiot.
+			var data = getSongAndMod(itemName);
+			// trace("Data: " + data.song + " - " + data.mod);
 
-
-            //var itemsWhitelist:
-            var isSpecialItem = locationData(data.song, data.mod).concat(APEntryState.apGame.noteData(data.song, data.mod)).isEmpty();
-            if (isSpecialItem) {
-                specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
-            }
-        }
-        trace("Special Items: " + specialItems);
-
-        return specialItems;
-    }
-
-    public static var isSync:Bool = false;
-    public static var haventranyet:Bool = true;
-    // var tickets:Int = 0;
-    function addSongs(song:Array<NetworkItem>)
-    { var tickets = 0;
-        var nonSongs:Map<String, Int> = [];
-        var nonSongsNames:Array<String> = [];
-        states.FreeplayState.curMissing = [];
-
-
-        for (songName in song)
-        {
-            var itemName = info().get_item_name(songName.item);
-
-            if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
+			if (data.mod == null || data.mod == "")
+			{
+				data.mod = "";
+			}
+            var isUnlocked = false;
+            for (unlocked in states.FreeplayState.curUnlocked)
             {
-            nonSongs.set(itemName, songName.index);
-            nonSongsNames.push(itemName);
-            continue;
-            }
-
-            // Convert special keywords back to actual brackets
-            itemName = itemName.replace("<cOpen>", "{")
-            .replace("<cClose>", "}")
-            .replace("<sOpen>", "[")
-            .replace("<sClose>", "]");
-
-            
-        for (item in nonSongsNames) {
-            if (item == "Ticket") {
-                tickets++;
-                archipelago.APItem.createItemByName(item);
-            }
-        }
-
-        if (info().casualSync)
-        if (APInfo.ticketCount != tickets) {
-            APInfo.ticketCount = tickets;
-        }
-
-        for (items in nonSongsNames)
-        {
-            if (items == 'Ticket') continue;
-            
-            if (nonSongs.get(items) <= ItemIndex)
-            {
-                continue;
-            }
-            else
-            {
-                trace('triggering $items');
-                ItemIndex = nonSongs.get(items);
-                archipelago.APItem.createItemByName(items);
-            }
-            archipelago.APItem.doCheck();
-            trace("AP State Saving...");
-            updateSaveData();
-        }
-
-
-            var data = getSongAndMod(itemName);
-            trace("Data: " + data.song + " - " + data.mod);
-
-            if (data.mod == null || data.mod == "") {
-                data.mod = "";
-            }
-            if (states.FreeplayState.curUnlocked.indexOf(data) == -1)
-            {
-            if (data.song != "Unknown" && data.mod == "")
-            {
-                if (!isSync) ArchPopup.startPopupSong(data.song, 'archColor');
-                states.FreeplayState.curUnlocked.push({song: data.song, mod: data.mod});
-                for (song in states.FreeplayState.curUnlocked)
+                if (unlocked.song == data.song && unlocked.mod == data.mod)
                 {
-                var parts = song.song.split("||");
-                var key = parts[0];
-                var value = parts.length > 1 ? parts[1] : song.mod;
-                states.FreeplayState.curUnlocked.push({song: key, mod: value});
+                    isUnlocked = true;
+                    // break;
                 }
             }
-            }
-        }
 
-        // nonSongsNames.sort(function(a:String, b:String):Int {
-        //     a = a.toUpperCase();
-        //     b = b.toUpperCase();
-            
-        //     if (a < b) {
-        //         return 1;
-        //     }
-        //     else if (a > b) {
-        //         return -1;
-        //     } else {
-        //         return 0;
-        //     }
-        // });
+			if (!isUnlocked)
+			{
+				if (!(data.song == "Unknown" && data.mod == ""))
+				{
+					if (!isSync)
+						ArchPopup.startPopupSong(data.song, 'archColor');
+					states.FreeplayState.curUnlocked.push({song: data.song, mod: data.mod});
+				}
+			}
 
-
-        // for (item in nonSongsNames) {
-        //     if (item == "Ticket") {
-        //         tickets++;
-        //         archipelago.APItem.createItemByName(item);
-        //     }
-        // }
-
-        // if (info().casualSync)
-        // if (APInfo.ticketCount != tickets) {
-        //     APInfo.ticketCount = tickets;
-        // }
-
-        // for (items in nonSongsNames)
-        // {
-        //     if (items == 'Ticket') continue;
-            
-        //     if (nonSongs.get(items) <= ItemIndex)
-        //     {
-        //         continue;
-        //     }
-        //     else
-        //     {
-        //         trace('triggering $items');
-        //         ItemIndex = nonSongs.get(items);
-        //         archipelago.APItem.createItemByName(items);
-        //     }
-        //     archipelago.APItem.doCheck();
-
-        //     trace("AP State Saving...");
-        //     updateSaveData();
-        // }
-        isSync = false;
-        info().casualSync = false;
-        try {
-            if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
-        } catch (e:Dynamic) {
-            archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
-        }
+            // Check special items and remove any matching items with no mod
+            states.FreeplayState.curUnlocked = states.FreeplayState.curUnlocked.filter(unlocked -> 
+                !(APItems.exists(unlocked.song) && unlocked.mod.trim() == "")
+            );
+		}
 
 
-        // if (AprilFools.allowAF && FlxG.random.bool(50))
-            // new APItem.APrilFools(); // Not working as intended, for some reason. 
+
+		// trace("Current Unlocked Songs: " + states.FreeplayState.curUnlocked);
+
+		// nonSongsNames.sort(function(a:String, b:String):Int {
+		//     a = a.toUpperCase();
+		//     b = b.toUpperCase();
+
+		//     if (a < b) {
+		//         return 1;
+		//     }
+		//     else if (a > b) {
+		//         return -1;
+		//     } else {
+		//         return 0;
+		//     }
+		// });
+
+		// for (item in nonSongsNames) {
+		//     if (item == "Ticket") {
+		//         tickets++;
+		//         archipelago.APItem.createItemByName(item);
+		//     }
+		// }
+
+		// if (info().casualSync)
+		// if (APInfo.ticketCount != tickets) {
+		//     APInfo.ticketCount = tickets;
+		// }
+
+		// for (items in nonSongsNames)
+		// {
+		//     if (items == 'Ticket') continue;
+
+		//     if (nonSongs.get(items) <= ItemIndex)
+		//     {
+		//         continue;
+		//     }
+		//     else
+		//     {
+		//         trace('triggering $items');
+		//         ItemIndex = nonSongs.get(items);
+		//         archipelago.APItem.createItemByName(items);
+		//     }
+		//     archipelago.APItem.doCheck();
+
+		//     trace("AP State Saving...");
+		//     updateSaveData();
+		// }
 
 
-    }
+        for (item in nonSongsNames)
+			{
+				if (item == "Ticket")
+				{
+					tickets++;
+					archipelago.APItem.createItemByName(item);
+				}
+			}
 
-    // A bandage fix till we have enough brainpower to fix this properly
-    var trapList:Array<String> = [
-        "Blue Balls Curse",
-        "Fake Transition",
-        "SvC Effect",
-        "Ghost Chat",
-        "Tutorial Trap"
-    ];
+			if (info().casualSync)
+				if (APInfo.ticketCount != tickets)
+				{
+					APInfo.ticketCount = tickets;
+				}
 
-    public function isLocationMissing(location:String):Bool
-    {
-        for (missing in info().missingLocations)
-        {
-            if (info().get_location_name(missing) == location)
-            {
-                return true;
-            }
-        }
-        return false; 
-    }
+			for (items in nonSongsNames)
+			{
+				if (items == 'Ticket')
+					continue;
 
-    public function areLocationsMissing(locations:Array<Int>):Bool
-    {
-        for (location in locations)
-        {
-            if (isLocationMissing(info().get_location_name(location)))
-            {
-                return true;
-            }
-        }
-        return false; 
-    }
-
-    function isModName(name:String):Bool {
-        var mods = Mods.parseList().enabled;
-        // trace("Checking: " + mod);
-
-        if (mods != null && mods.length > 0) {
-            for (mod in mods) {
-                // trace("Looking for: " + name);
-                if (mod == name) {
-                    // trace("Found: " + mod);
-                    return true;
-                }
-            }
-        }
-        // trace("Not Found: " + name);
-        return false;
-    }
-
-    function validateModSong(song:String, mod:String):Bool {
-        // Iterate through the weeks in WeekData
-        for (i in 0...WeekData.weeksList.length) {
-            var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-            
-            // Check if the week folder matches the specified mod
-            if (leWeek.folder == mod) {
-                // Iterate through the songs in the week
-                for (songData in leWeek.songs) {
-                    var songName = (cast songData[0] : String).toLowerCase().replace(" ", "-");
-                    // Check if the song name matches the specified song
-                    if (songName == song.toLowerCase().replace(" ", "-")) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    function checkIfLocked(song:String, mod:String):Bool {
-        return !(states.FreeplayState.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
-    }
-
-    function validateMods()
-    {
-        var mods = Mods.parseList().enabled;
-        var APItems = [];
-        var validatedMods = [];
-        for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
-        {
-            if (item.indexOf("(") != -1)
-            {
-                var modName = item.substring(item.indexOf("((") + 1, item.indexOf("))"));
-                if (mods.contains(modName))
-                {
-                    APItems.push(item);
-                    validatedMods.push(modName);
-                }
-            }
-        }
-        if (mods != validatedMods)
-        {
-            throw "There seems to be missing mods. You can't access an APWorld without the mods that were used to generate it.";
-        }
-    }
-
-    // public function onRoomInfo(roomInfo:RoomInfoPacket)
-    // {
-    //     _ap.clientStatus = ClientStatus.CONNECTED;
-    // }
-
-    // public function onSlotConnected(connectedPacket:ConnectedPacket)
-    // {
-    //     _ap.clientStatus = ClientStatus.PLAYING;
-    // }
-
-    // public function onSlotRefused(refusedPacket:ConnectionRefusedPacket)
-    // {
-    //     _ap.clientStatus = ClientStatus.UNKNOWN;
-    // }
-
-    private function onSocketDisconnected():Void {
-        FlxG.switchState(_disconnectSubstate);
-    }
-
-    private function onCancel():Void {
-        _ap.clientStatus = ClientStatus.UNKNOWN;
-        _ap.onSocketDisconnected.remove(onSocketDisconnected);
-        _ap = null;
-        APEntryState.ap = null;
-        APEntryState.apGame = null;
-        APEntryState.inArchipelagoMode = false;
-        MusicBeatState.switchState(new APEntryState());
-    }
+				if (nonSongs.get(items) <= ItemIndex)
+				{
+					continue;
+				}
+				else
+				{
+					trace('triggering $items');
+					ItemIndex = nonSongs.get(items);
+					archipelago.APItem.createItemByName(items);
+				}
+				archipelago.APItem.doCheck();
+			}
 
 
-    private function onReconnect():Void {
-        MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
-    }
+		isSync = false;
+		info().casualSync = false;
+		try
+		{
+			if (states.FreeplayState.instance != null)
+				states.FreeplayState.instance.reloadSongs(true);
+		}
+		catch (e:Dynamic)
+		{
+			archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
+		}
 
-    // public function onRoomUpdate(roomUpdatePacket:RoomUpdatePacket)
-    // {
-    //     _ap.clientStatus = ClientStatus.PLAYING;
-    // }
+		// if (AprilFools.allowAF && FlxG.random.bool(50))
+		// new APItem.APrilFools(); // Not working as intended, for some reason.
+
+        trace("AP State Saving...");
+        updateSaveData();
+	}
+
+	// A bandage fix till we have enough brainpower to fix this properly
+	var trapList:Array<String> = [
+		"Blue Balls Curse",
+		"Fake Transition",
+		"SvC Effect",
+		"Ghost Chat",
+		"Tutorial Trap"
+	];
+
+	public function isLocationMissing(location:String):Bool
+	{
+		for (missing in info().missingLocations)
+		{
+			if (info().get_location_name(missing) == location)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function areLocationsMissing(locations:Array<Int>):Bool
+	{
+		for (location in locations)
+		{
+			if (isLocationMissing(info().get_location_name(location)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function isModName(name:String):Bool
+	{
+		var mods = Mods.parseList().enabled;
+		// trace("Checking: " + mod);
+
+		if (mods != null && mods.length > 0)
+		{
+			for (mod in mods)
+			{
+				// trace("Looking for: " + name);
+				if (mod == name)
+				{
+					// trace("Found: " + mod);
+					return true;
+				}
+			}
+		}
+		// trace("Not Found: " + name);
+		return false;
+	}
+
+	function validateModSong(song:String, mod:String):Bool
+	{
+		// Iterate through the weeks in WeekData
+		for (i in 0...WeekData.weeksList.length)
+		{
+			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+
+			// Check if the week folder matches the specified mod
+			if (leWeek.folder == mod)
+			{
+				// Iterate through the songs in the week
+				for (songData in leWeek.songs)
+				{
+					var songName = (cast songData[0] : String).toLowerCase().replace(" ", "-");
+					// Check if the song name matches the specified song
+					if (songName == song.toLowerCase().replace(" ", "-"))
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	function checkIfLocked(song:String, mod:String):Bool
+	{
+		return !(states.FreeplayState.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
+	}
+
+	function validateMods()
+	{
+		var mods = Mods.parseList().enabled;
+		var APItems = [];
+		var validatedMods = [];
+		for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
+		{
+			if (item.indexOf("(") != -1)
+			{
+				var modName = item.substring(item.indexOf("((") + 1, item.indexOf("))"));
+				if (mods.contains(modName))
+				{
+					APItems.push(item);
+					validatedMods.push(modName);
+				}
+			}
+		}
+		if (mods != validatedMods)
+		{
+			throw "There seems to be missing mods. You can't access an APWorld without the mods that were used to generate it.";
+		}
+	}
+
+	// public function onRoomInfo(roomInfo:RoomInfoPacket)
+	// {
+	//     _ap.clientStatus = ClientStatus.CONNECTED;
+	// }
+	// public function onSlotConnected(connectedPacket:ConnectedPacket)
+	// {
+	//     _ap.clientStatus = ClientStatus.PLAYING;
+	// }
+	// public function onSlotRefused(refusedPacket:ConnectionRefusedPacket)
+	// {
+	//     _ap.clientStatus = ClientStatus.UNKNOWN;
+	// }
+
+	private function onSocketDisconnected():Void
+	{
+		FlxG.switchState(_disconnectSubstate);
+	}
+
+	private function onCancel():Void
+	{
+		_ap.clientStatus = ClientStatus.UNKNOWN;
+		_ap.onSocketDisconnected.remove(onSocketDisconnected);
+		_ap = null;
+		APEntryState.ap = null;
+		APEntryState.apGame = null;
+		APEntryState.inArchipelagoMode = false;
+		MusicBeatState.switchState(new APEntryState());
+	}
+
+	private function onReconnect():Void
+	{
+		MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
+	}
+
+	// public function onRoomUpdate(roomUpdatePacket:RoomUpdatePacket)
+	// {
+	//     _ap.clientStatus = ClientStatus.PLAYING;
+	// }
 }
