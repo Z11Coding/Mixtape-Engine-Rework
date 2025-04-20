@@ -625,7 +625,7 @@ class PlayState extends MusicBeatState
 		else if (chartModifier == "ManiaConverter")
 			mania = convertMania;
 		else if (SONG.mania != null)
-			if (SONG.startMania != null) //Make sure it's even there
+			if (SONG.mania >= 3) //Make sure it's even there
 				mania = SONG.mania;
 			else {
 				switch (SONG.mania) { //Convert it to make sure the older versions still work

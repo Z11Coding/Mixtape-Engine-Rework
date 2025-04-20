@@ -55,16 +55,16 @@ class Note extends NoteObject
 
 	//EK Data
 	public static var ammo:Array<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
-	public static var scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39, 0.36, 0.32, 0.31, 0.31, 0.3, 0.26, 0.26, 0.6]; 
+	public static var scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39, 0.36, 0.32, 0.31, 0.31, 0.3, 0.26, 0.26, 0.22]; 
 	public static var lessX:Array<Int> = [0, 0, 0, 0, 0, 8, 7, 8, 8, 7, 6, 6, 8, 7, 6, 7, 6, 6];
 	public static var separator:Array<Int> = [-50, 99, 99, 1, 1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 7, 6, 5, 4];
 	public static var xtra:Array<Int> = [1, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-	public static var posRest:Array<Int> = [0, 0, 0, 0, 25, 32,46, 52, 60, 40, 45, 30, 30, 29,72, 37, 61, 16];
+	public static var posRest:Array<Int> = [0, 0, 0, 0, 25, 32,46, 52, 60, 40, 45, 30, 30, 29,72, 37, 61, 80];
 	public static var gridSizes:Array<Int> = [40, 40, 40, 40, 40, 40, 40, 40, 40, 35, 30, 25, 25, 20, 20, 20, 20, 15];
 	public static var xPosButBetter:Array<Float> = [2, 2, 2, 2, 1.5, 1.1, 1.1, 1, 1, 2, 2, 2, 2, 1.2, 2, 2, 2, 2];
 	public static var xPosButBetter2:Array<Float> = [1, 1, 1, 1, 1.1, 1.2, 1.3, 1.5, 1.7, 1, 1, 1, 1, 2.9, 1, 1, 1, 1];
 	public static var xPosButBetterOff:Array<Float> = [100, 100, 100, 100, 130, 250, 300, 300, 300, 100, 100, 100, 100, 250, 100, 100, 100, 100];
-	public static var offsets:Array<Dynamic> = [[20, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 20], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10],[10, 10],[10, 10], [20, 20]];
+	public static var offsets:Array<Dynamic> = [[20, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 20], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10],[10, 10],[10, 10], [10, 10]];
 	public static var noteSplashScales:Array<Float> = [1.3, 1.2, 1.1, 1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3, 0.2, 0.18, 0.18, 0.15];
 	public static var noteSplashOffsets:Map<Int, Array<Int>> = [0 => [20, 10], 9 => [10, 20]];
 
