@@ -287,7 +287,7 @@ class APGameState
 				return [];
 			}
 
-			if (modName != null && modName != "")
+			if (modName != null && (modName != ""))
 			{
 				modName = modName.trim();
 			}

@@ -139,7 +139,8 @@ class APPlayState extends PlayState {
 	}
 
     override public function create()
-    { if (ghostChat) triggerGhostChat();
+    { 
+        if (ghostChat) triggerGhostChat();
 
 
         instance = this; // For traps and items
@@ -1350,12 +1351,17 @@ class APPlayState extends PlayState {
     }
 
     public static var ghostChat:Bool = false;
+    var effectsRan:Int = -1;
+    var ghostChatCheck:Bool = false;
     // I feel bad for the poor soul that has this trigger on them multiple times
     public function triggerGhostChat()
     { 
         ghostChat = true;
-        randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer)
-        tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0))); doEffect(effectArray[curEffect]);
+        ghostChatCheck = true;
+        randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer) {
+            doEffect(effectArray[curEffect]);
+            tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0)); 
+        });
         trace("Ghost Chat Activated! L E T  T H E  C H A O S  B E G I N !");
     }
     
@@ -1395,6 +1401,8 @@ class APPlayState extends PlayState {
         // trace('im finna act up');
         if (!APEntryState.inArchipelagoMode)
         if (paused || endingSong) return;
+
+        effectsRan++;
         
         if (APEntryState.inArchipelagoMode && (paused || endingSong)) {
             new FlxTimer().start(0.1, function(tmr:FlxTimer) {
@@ -1962,6 +1970,15 @@ class APPlayState extends PlayState {
                 func.func();
             func.activated = true;
         }
+
+        if (ghostChat && effectsRan == 0 && ghostChatCheck && (randoTimer != null && randoTimer.timeLeft <= 0 || randoTimer == null)) {
+            ghostChatCheck = false;
+            randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer) {
+                doEffect(effectArray[curEffect]);
+                tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0)); 
+            });
+            trace("Ghost Chat Re-activated!");
+        }
         super.update(elapsed);
     }
 
@@ -2291,20 +2308,20 @@ class APPlayState extends PlayState {
 				songMisses++;
 				FlxG.sound.play(Paths.sound('streamervschat/freeze'));
 				frozenInput++;
-				/*for (sprite in playerField.strumNotes)
+				for (sprite in playerField.strumNotes)
 				{
 					sprite.color = 0x0073b5;
-				};*/
+				};
                 isFrozen = true;
 				new FlxTimer().start(2, function(timer)
 				{
 					frozenInput--;
 					if (frozenInput <= 0)
 					{
-						/*for (sprite in playerField.strumNotes)
+						for (sprite in playerField.strumNotes)
 						{
 							sprite.color = 0xffffff;
-						};*/
+						};
                         isFrozen = false;
                         boyfriend.stunned = false;
 					}

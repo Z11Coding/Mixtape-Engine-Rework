@@ -576,9 +576,9 @@ class FreeplayState extends MusicBeatState
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 
 								if (locationIds.isEmpty())
-									{
-										continue;
-									}
+								{
+									continue;
+								}
 								for (songObj in curHinted)
 								{
 									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)

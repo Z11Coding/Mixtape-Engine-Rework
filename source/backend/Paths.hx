@@ -194,6 +194,7 @@ class Paths
 			else cache.remove(key);
 		}
 		Paths.clearStoredMemory();
+		Paths.clearUnusedMemory();
 	}
 
 	// The "If All Else Fails" option 
@@ -202,6 +203,7 @@ class Paths
 		clearUnusedMemory();
 		clearStoredMemory();
 		currentTrackedSounds.clear();
+		@:privateAccess FlxG.bitmap._cache.clear();
 		backend.util.MemoryUtilBase.collect(true);
 	}
 

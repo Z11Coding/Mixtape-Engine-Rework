@@ -625,7 +625,14 @@ class PlayState extends MusicBeatState
 		else if (chartModifier == "ManiaConverter")
 			mania = convertMania;
 		else if (SONG.mania != null)
-			mania = SONG.mania;
+			if (SONG.startMania != null) //Make sure it's even there
+				mania = SONG.mania;
+			else {
+				switch (SONG.mania) { //Convert it to make sure the older versions still work
+					case 0: 3;
+					case 1: 4;
+				}
+			}
 		else mania = 3;
 
 		if (mania > Note.maxMania)
@@ -905,90 +912,224 @@ class PlayState extends MusicBeatState
 
 		if (ClientPrefs.data.doubleGhosts) {
 			trace("Running Double Ghost");
-			IntegratedScript.runNamelessHScript("
-			import objects.Character;
+			IntegratedScript.runNamelessLuaScript("
+			--[[
+			1st Table is supposed to be noteTypes that is gonna trigger to that character
+			2nd Table is basically some of the options
+				2.1 The side that is gonna be triggered
+					(true is when the player side got hit and false for the opp side, if it's not nil then it will get triggered on both sides) 
+						[that's why I left on gf or the extra characters as an empty string '']
+				2.2 The ghost is gonna be colored depending their healthColorArray 
+					(Is gonna be not colored if it's not using the Character class to be created that char and/or 2.6 is activated)
+				2.3 Moves ghost depeding the direction that was hit previously before it was getting created
+				2.4 Scale the ghost
+				2.5 Activate the ghost effect for that character
+				2.6 Solid color from the ghost  (It needs to be disabled 2.2)
 
-			var singAnims = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
+			Any doubts or explaination of how this works just contact me
+			Aldo Idk alias flain
+			]]--
 
-			var ghostBF:Character;
-			var ghostGF:Character;
-			var ghostDad:Character;
+			local cancelFade = true --Self explanatory
+			local instantFrame = false --Stuns the ghost on the first frame
+			local notesColors = false --The ghost is gonna have the color of the note
+			local moveGhost = 300 --The ghost is gonna move depending x pixels on the direction that was hit
+			local scaleGhost = 1.1 --The ghost is gonna scale depending the value that was set
+			local ghostCreated = 0 --Is just the id for the ghosts it doesn't matter to change to whatever else that is an int
 
-			var ghostDadTween;
-			var ghostBFTween;
-			var ghostGFTween;
-
-			function onCreate() //Yep
-			function onCreatePost() loadGhost();
-			function onEvent(n,v1,v2) if (n == 'Change Character') loadGhost();
-
-			function onUpdate(e) { // yes
-				if (ghostBF != null) ghostBF.holdTimer = 0;
-				if (ghostGF != null) ghostGF.holdTimer = 0;
-				if (ghostDad != null) ghostDad.holdTimer = 0;
+			local tableChars = {
+				['boyfriend'] = {{'','GF sings too','Extra sings too','P1'},{true,true,false,false,true,false}},
+				['dad'] = {{'','GF sings too','Extra sings too','P2'},{false,true,false,false,true,false}},
+				['gf'] = {{'GF Sing','GF sings too'},{'',true,false,false,true,false}},
+				['extra'] = {{'3rd Player','No Animation','Extra sings too'},{'',true,false,false,true,false}},
 			}
 
-			var noteLST = 0;
-			var notePN = 0;
-			function goodNoteHit(n) {
-				if (!n.isSustainNote) {
-					if (noteLST == n.strumTime) {
-						notePN += 1;
-						ghostBF.alpha = 0.85;
-						ghostBF.playAnim(singAnims[n.noteData], true);
-						ghostBFTween = FlxTween.tween(ghostBF, {alpha: 0}, 0.65, {
-							onComplete: function(gbfT:FlxTween) {
-								ghostBFTween = null;
-							}
-						});
-					} else {
-						noteLST = n.strumTime;
-						notePN = 1;
-					}
-				}
-			}
+			function goodNoteHit(i,d,t,s)
+				handleNoteHit(i, d, t, s, true)
+			end
 
-			var noteLSTAlt = 0;
-			var notePNAlt = 0;
-			function opponentNoteHit(n) {
-				if (!n.isSustainNote) {
-					if (noteLSTAlt == n.strumTime) {
-						notePNAlt += 1;
-						ghostDad.alpha = 0.85;
-						ghostDad.playAnim(singAnims[n.noteData], true);
-						ghostDadTween = FlxTween.tween(ghostDad, {alpha: 0}, 0.65, {
-							onComplete: function(gdadT:FlxTween) {
-								ghostDadTween = null;
-							}
-						});
-					} else {
-						noteLSTAlt = n.strumTime;
-						notePNAlt = 1;
-					}
-				}
-			}
+			function opponentNoteHit(i,d,t,s)
+				handleNoteHit(i, d, t, s, false)
+			end
+				
+			function handleNoteHit(i, dir, type, s, mt)
+				local validChars = {}
+				for charName, charData in pairs(tableChars) do
+					local isGFNote = getPropertyFromGroup('notes', i, 'gfNote')
+					local shouldProcess = (charData[2][1] == mt or charData[2][1] == '')
+					local finalType = type
+					for _, gType in ipairs(charData[1]) do
+						if shouldProcess and (finalType == gType and not isGFNote or isGFNote and charName == 'gf') then
+							table.insert(validChars, {charName = charName, charData = charData})
+							break
+						end
+					end
+				end
 
-			function loadGhost() {
-				if (ghostBF != null) game.remove(ghostBF);
-				if (ghostGF != null) game.remove(ghostGF);
-				if (ghostDad != null) game.remove(ghostDad);
+				for _, char in ipairs(validChars) do
+					if validChars == nil then
+						break
+					end
+					local charName = char.charName
+					local charData = char.charData
+					local shouldMakeGhost = (charData[3] == getPropertyFromGroup('notes', i, 'strumTime'))
+					local finalType = type
+					for _, gType in ipairs(charData[1]) do
+						if not s then 
+							if (finalType == gType and not getPropertyFromGroup('notes', i, 'gfNote') or getPropertyFromGroup('notes', i, 'gfNote') and charName == 'gf') then
+								charData[8] = false
+								if shouldMakeGhost then
+									createGhost(charName, charData[4], charData[5])
+									charData[7] = getProperty(charName..'.animation.name')
+									charData[8] = true
+								end
+								charData[3] = getPropertyFromGroup('notes', i, 'strumTime')
+								charData[4] = dir
+								charData[5] = getProperty(charName .. '.animation.name')
+							end
+						else
+							if getProperty(charName..'.animation.name') and charData[5] and charData[8] and (finalType == gType and not getPropertyFromGroup('notes', i, 'gfNote') or getPropertyFromGroup('notes', i, 'gfNote') and charName == 'gf') and charData[2][5] then
+								playAnim(charName, charData[7], true)
+								if cancelFade and charData[9] ~= nil then
+									for _, ghosts in pairs(charData[9]) do
+										if getProperty(ghosts..'.alpha') > (getProperty(charName..'.alpha') * 0.52) or getProperty(ghosts..'.colorTransform.alphaMultiplier') > 0.52 then
+											cancelTween(ghosts)
+											if not instantFrame then
+												playAnim(ghosts, getProperty(ghosts..'.animation.name'), true)
+												setProperty(ghosts..'.holdTimer', 0)
+											end
+											if charData[2][6] then
+												setProperty(ghosts..'.colorTransform.alphaMultiplier', getProperty(charName..'.colorTransform.alphaMultiplier') * 0.8)
+												startTween(ghosts, ghosts..'.colorTransform', {alphaMultiplier = 0}, 0.4, {ease = 'linear', onComplete = 'onTweenCompleted'})
+											else
+												setProperty(ghosts..'.alpha', getProperty(charName..'.alpha') * 0.8)
+												doTweenAlpha(ghosts, ghosts, 0, 0.4, 'linear')
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
 
-				var bfPos = [game.boyfriend.x, game.boyfriend.y];
-				var dadPos = [game.dad.x, game.dad.y];
-				var gfPos = [game.gf.x, game.gf.y];
+			function createGhost(char,d,anim)
+				if not tableChars[char][2][5] or lowQuality or not getProperty(char..'.visible') or getProperty(char..'.alpha') < 0.1 then
+					return
+				end
+				local tag = 'animGhost'..ghostCreated..char
+				local xpos = getProperty(char..'.x')
+				local ypos = getProperty(char..'.y')
+				local curChar = getProperty(char..'.curCharacter')
+				local flip = getProperty(char..'.isPlayer')
+				createInstance(tag, 'objects.Character', {xpos,ypos,curChar,flip})
+				addInstance(tag)
+				playAnim(tag,anim,true)
+				if instantFrame then
+					setProperty(tag..'.animation.curAnim.paused', true)
+					setProperty(tag..'.animation.curAnim.curFrame', 0)
+				end
+				setProperty(tag..'.antialiasing',getProperty(char..'.antialiasing'))
+				setProperty(tag..'.scale.x', getProperty(char..'.scale.x'))
+				setProperty(tag..'.scale.y', getProperty(char..'.scale.y'))
+				setProperty(tag..'.flipX', getProperty(char..'.flipX'))
+				setProperty(tag..'.flipY', getProperty(char..'.flipY'))
+				if tableChars[char][2][6] and not tableChars[char][2][2] then
+					for i,v in ipairs({'red','green','blue'}) do
+						setProperty(tag..'.colorTransform.'..v..'Multiplier', 0)
+						setProperty(tag..'.colorTransform.'..v..'Offset', getProperty(char..'.healthColorArray['..(i - 1)..']'))
+					end
+					setProperty(tag..'.colorTransform.alphaMultiplier', getProperty(char..'.colorTransform.alphaMultiplier') * 0.8)
+					startTween(tag, tag..'.colorTransform',{alphaMultiplier = 0},0.4,{ease = 'linear', onComplete = 'onTweenCompleted'})
+				else 
+					setProperty(tag..'.alpha', getProperty(char..'.alpha') * 0.8)
+					doTweenAlpha(tag, tag, 0, 0.4, 'linear')
+				end
+				if tableChars[char][2][2] and not tableChars[char][2][6] then
+					setProperty(tag..'.color', getIconColor(char))
+				end
+				local behind = char
+				for _,v in ipairs ({'boyfriend','dad','gf'}) do
+					if char == v then
+						behind = behind..'Group'
+						break
+					end
+				end
+				if tableChars[char][2][3] then
+					if d == 0 then
+						doTweenX(tag..'move', tag, getProperty(char..'.x') + (-moveGhost), 0.4,'expoOut')
+					elseif d == 1 then
+						doTweenY(tag..'move', tag, getProperty(char..'.y') + moveGhost, 0.4,'expoOut')
+					elseif d == 2 then
+						doTweenY(tag..'move', tag, getProperty(char..'.y') + (-moveGhost), 0.4,'expoOut')
+					elseif d == 3 then
+						doTweenX(tag..'move', tag, getProperty(char..'.x') + (moveGhost), 0.4,'expoOut')
+					end
+				end
+				if tableChars[char][2][4] then
+					doTweenX(tag..'scaleGhostX',tag..'.scale',getProperty(char..'.scale.x') * scaleGhost,0.4,'expoOut')
+					doTweenY(tag..'scaleGhostY',tag..'.scale',getProperty(char..'.scale.y') * scaleGhost,0.4,'expoOut')
+				end
+				setObjectOrder(tag, getObjectOrder(behind)-1)
+				if cancelFade then
+					if tableChars[char][9] == nil then
+						tableChars[char][9] = {}
+					end
+					table.insert(tableChars[char][9],tag)
+				end
+				ghostCreated = ghostCreated + 1
+			end
 
-				ghostBF = new Character(bfPos[0], bfPos[1], game.boyfriend.curCharacter, true);
-				ghostBF.alpha = .01;
-				game.addBehindBF(ghostBF);
+			function onTweenCompleted(t)
+				if t:find('animGhost') ~= nil then
+					if cancelFade then
+						local char = t:match('animGhost%d+(%a+)')
+						if char and tableChars[char] and tableChars[char][9] then
+							for i, ghostTag in ipairs(tableChars[char][9]) do
+								if ghostTag == t then
+									table.remove(tableChars[char][9], i)
+									break
+								end
+							end
+						end
+					end
+					callMethod(t..'.kill',{''})
+					callMethod(t..'.destroy',{''})
+					callMethod('remove', {instanceArg(t)})
+					callMethod('variables.remove', {t})
+				end
+			end
+			--I could use stringformat and unpack but...idk if on versions below from 0.7 exists :(
+			function getIconColor(chr)
+				return getColorFromHex(rgbToHex(getProperty(chr .. '.healthColorArray')))
+			end
+				
+			function rgbToHex(array)
+				return string.format('%.2x%.2x%.2x', array[1], array[2], array[3])
+			end
 
-				ghostGF = new Character(gfPos[0], gfPos[1], game.gf.curCharacter);
-				ghostGF.alpha = .01;
-				game.addBehindGF(ghostGF);
-
-				ghostDad = new Character(dadPos[0], dadPos[1], game.dad.curCharacter);
-				ghostDad.alpha = .01;
-				game.addBehindDad(ghostDad);
-			}
+			function onEvent(n,v1,v2)
+				if n == 'Change Scale Ghost' then
+					scaleGhost = v1
+				elseif n == 'Change Move Ghost' then
+					moveGhost = v1
+				elseif n == 'Color Ghost' then
+					tableChars[tostring(v1)][2][2] = not tableChars[tostring(v1)][2][2]
+				elseif n == 'Solid Color Ghost' then
+					tableChars[tostring(v1)][2][6] = not tableChars[tostring(v1)][2][6]          
+				elseif n == 'Move Ghost' then
+					tableChars[tostring(v1)][2][3] = not tableChars[tostring(v1)][2][3]
+				elseif n == 'Scale Ghost' then
+					tableChars[tostring(v1)][2][4] = not tableChars[tostring(v1)][2][4]
+				elseif n == 'Toggle Ghost For One' then
+					tableChars[tostring(v1)][2][5] = not tableChars[tostring(v1)][2][5]
+				elseif n == 'Toggle Ghost For All' then
+					for charName, charData in pairs(tableChars) do
+						tableChars[charName][2][5] = not tableChars[charName][2][5]
+					end
+				end
+			end
 			");
 		}
 
@@ -1030,7 +1171,6 @@ class PlayState extends MusicBeatState
 		playerField = playfields.members[0];
 		if (playerField != null) {
 			playerField.noteField.isEditor = false;
-			playerField.characters = [for(ch in boyfriendMap) ch];
 			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
 			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || playAsGF;
 			playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
@@ -1526,8 +1666,6 @@ class PlayState extends MusicBeatState
 					boyfriendGroup2.add(newBoyfriend);
 					startCharacterPos(newBoyfriend);
 					newBoyfriend.alpha = 0.00001;
-					if (playerField != null)
-						playerField.characters.push(newBoyfriend);
 					startCharacterScripts(newBoyfriend.curCharacter);
 				}
 		}
@@ -2478,20 +2616,16 @@ class PlayState extends MusicBeatState
 				//var apLoc = APNotes.filter(function(apNoteData) return apNoteData.index == i)[0]?.loc;
 				if (Math.isNaN(holdLength)) holdLength = 0.0;
 
-				if (chartModifier != "4K Only" && chartModifier != "ManiaConverter") {
-					noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-				}
-				else {
-					noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-				}
+				var gottaHitNote:Bool;
+				noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
+				gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
 
-				var gottaHitNote:Bool = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
 				//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
 
 				if (i != 0) {
 					// CLEAR ANY POSSIBLE GHOST NOTES
 					for (evilNote in allNotes) {
-						var matches: Bool = (noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
+						var matches:Bool = (noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
 						if (matches && Math.abs(spawnTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
 							var playfield:PlayField = playfields.members[evilNote.fieldIndex];
 							if (evilNote.tail.length > 0)
@@ -2605,13 +2739,13 @@ class PlayState extends MusicBeatState
 					case "Pain":
 						noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
 					case "4K Only":
-						trace("4K Only: " + noteColumn);
+						//trace("4K Only: " + noteColumn);
 						noteColumn = getNumberFromAnimsSmall(noteColumn, 3);
-						trace("Note: " + noteColumn + " Mania: " + mania + "GottaHit: " + gottaHitNote);
+						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
 					case "ManiaConverter":
-						trace("ManiaConverter: " + noteColumn);
+						//trace("ManiaConverter: " + noteColumn);
 						noteColumn = getNumberFromAnims(noteColumn, mania);
-						trace("Note: " + noteColumn + " Mania: " + mania + "GottaHit: " + gottaHitNote);
+						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
 					case "Stairs":
 						noteColumn = stair % Note.ammo[mania];
 						stair++;
@@ -2879,6 +3013,8 @@ class PlayState extends MusicBeatState
 						}
 				}
 
+				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
+				holdLength = Math.round(songNotes[2] / curStepCrochet) - 1;
 				if (allNotes.length > 0)
 					oldNote = allNotes[Std.int(allNotes.length - 1)];
 				else
@@ -2899,7 +3035,7 @@ class PlayState extends MusicBeatState
 				var isAlt: Bool = section.altAnim && !gottaHitNote;
 				swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
 				swagNote.animSuffix = isAlt ? "-alt" : "";
-				swagNote.sustainLength = songNotes[2];
+				swagNote.sustainLength = songNotes[2] <= curStepCrochet ? songNotes[2] : (holdLength + 1) * curStepCrochet; // +1 because hold end
 				swagNote.noteType = noteType;
 				swagNote.ID = allNotes.length;
 				swagNote.holdType = swagNote.sustainLength > 0 ? HEAD : TAP;
@@ -2914,15 +3050,20 @@ class PlayState extends MusicBeatState
 
 				callOnScripts("onGeneratedNote", [swagNote, section]);
 			
-				if (swagNote.fieldIndex == -1 && swagNote.field == null)
-					swagNote.field = swagNote.mustPress ? playerField : dadField;
+				var playfield:PlayField = swagNote.field;
 
-				if (swagNote.field != null)
-					swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
+				if (playfield == null && playfields.length > 0) {
+					if (swagNote.fieldIndex == -1)
+						swagNote.fieldIndex = swagNote.mustPress ? 0 : 1;
 
-				// trace("Note: " + swagNote.noteData + " GottaHit: " + swagNote.mustPress + " Field: " + swagNote.fieldIndex + " NoteType: " + swagNote.noteType);
+					if (playfields.members[swagNote.fieldIndex] != null) {
+						playfield = playfields.members[swagNote.fieldIndex];
+						swagNote.field = playfield;
+					}
+				}
 
-				var playfield:PlayField = playfields.members[swagNote.fieldIndex];
+				playfield = swagNote.field;
+				swagNote.fieldIndex = playfield.modNumber;
 				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
 
 				if (playfield != null)
@@ -2930,14 +3071,8 @@ class PlayState extends MusicBeatState
 					playfield.queue(swagNote); // queues the note to be spawned
 					allNotes.push(swagNote); // just for the sake of convenience
 				}
-				else
-				{
-					swagNote.destroy();
-					continue;
-				}
 
 				var spot = 0;
-				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
 				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet) -1;
 				if (roundSus > 0)
 				{
@@ -2963,6 +3098,7 @@ class PlayState extends MusicBeatState
 						sustainNote.holdType = roundSus > 0 ? PART : END;
 						sustainNote.parent = swagNote;
 						sustainNote.fieldIndex = swagNote.fieldIndex;
+						sustainNote.field = swagNote.field;
 						swagNote.tail.push(sustainNote);
 						swagNote.unhitTail.push(sustainNote);
 						playfield.queue(sustainNote);
@@ -3087,8 +3223,7 @@ class PlayState extends MusicBeatState
 
 	public function changeMania(newValue:Int, skipStrumFadeOut:Bool = false)
 	{
-		if (chartModifier == '4K Only' || chartModifier == 'maniaConverter')
-			return;
+		callOnScripts('preChangeMania', [mania, newValue, skipStrumFadeOut]);
 		var daOldMania = mania;
 
 		mania = newValue;
@@ -3116,21 +3251,20 @@ class PlayState extends MusicBeatState
 		for (field in playfields.members)
 		{
 			field.keyCount = Note.ammo[mania];
-			for (note in allNotes)
-			{
-				field.unqueue(note);
-				field.queue(note);
-			}
 			field.generateStrums();
 		}
 
 		callOnScripts('postReceptorGeneration'); // deprecated
 		callOnScripts('onReceptorGenerationPost');
 
+		callOnScripts('onChangeMania', [mania, newValue, skipStrumFadeOut]);
+
 		for (field in playfields.members)
 			field.fadeIn(skipStrumFadeOut); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
 
 		singAnimations = Note.keysShit.get(mania).get('singAnims');
+
+		callOnScripts('postChangeMania', [mania, newValue, skipStrumFadeOut]);
 	}
 
 	// called only once per different event (Used for precaching)
@@ -3518,14 +3652,14 @@ class PlayState extends MusicBeatState
 
 		FlxG.sound.music.play();
 		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
-		Conductor.songPosition = FlxG.sound.music.time + Conductor.offset;
+		Conductor.songPosition = FlxG.sound.music.time + Conductor.offset + delayOffset;
 
 		var checkVocals = [vocals, opponentVocals, gfVocals];
 		for (voc in checkVocals)
 		{
 			if (FlxG.sound.music.time < vocals.length)
 			{
-				voc.time = FlxG.sound.music.time;
+				voc.time = FlxG.sound.music.time - (delayOffset * 1.5);
 				#if FLX_PITCH voc.pitch = playbackRate; #end
 				voc.play();
 			}
@@ -3670,6 +3804,8 @@ class PlayState extends MusicBeatState
 		}
 
 		super.update(elapsed);
+		vocals.volume *= vocalVolumeMultiplier;
+		FlxG.sound.music.volume *= instVolumeMultiplier;
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
 
@@ -5500,7 +5636,7 @@ class PlayState extends MusicBeatState
 	private function popUpScore(note:Note = null):Void
 	{
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
-		vocals.volume = 1;
+		vocals.volume = 1 * vocalVolumeMultiplier;
 
 		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0)
 		{
@@ -6366,7 +6502,7 @@ class PlayState extends MusicBeatState
 				gf.specialAnim = true;
 			}
 		}
-		vocals.volume = 0;
+		vocals.volume = 0 * vocalVolumeMultiplier;
 	}
 
 	function opponentNoteHit(note:Note, field:PlayField):Void
@@ -6445,7 +6581,7 @@ class PlayState extends MusicBeatState
 			health -= 0.03;
 		}
 
-		if(opponentVocals.length <= 0) vocals.volume = 1;
+		if(opponentVocals.length <= 0) vocals.volume = 1 * vocalVolumeMultiplier;
 		strumPlayAnim(field, note.column % field.keyCount, Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
 		note.hitByOpponent = true;
 		
@@ -6534,7 +6670,7 @@ class PlayState extends MusicBeatState
 				if(spr != null) spr.playAnim('confirm', true);
 			}
 			else strumPlayAnim(field, note.column % field.keyCount, Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
-			vocals.volume = 1;
+			vocals.volume = 1 * vocalVolumeMultiplier;
 
 			if (!note.isSustainNote)
 			{
