@@ -109,6 +109,38 @@ class SyncUtils
 		return response != "" ? response : null;
 	}
 
+	// If possible, here's a version of an HTTP Request that allows direct access to variables, via JSON...
+
+	public static inline function syncHttpRequestJson(url:String, ?post:Bool = false, ?data:Dynamic = null):Dynamic
+	{
+		var http = new Http(url);
+		var response:Dynamic = null;
+		var completed:Bool = false;
+
+		http.onData = function(data:String)
+		{
+			response = haxe.Json.parse(data);
+			completed = true;
+		};
+
+		http.onError = function(error:String)
+		{
+			trace("HTTP request to " + url + " failed: " + error);
+			completed = true;
+		};
+
+		if (post && data != null)
+		{
+			http.setPostData(data);
+		}
+
+		http.request(post);
+
+		wait(() -> completed, "Waiting for HTTP request to complete... (" + url + ")");
+		trace("(HTTP request completed.)");
+		return (response != null && Std.string(response).length > 0) ? response : null;
+	}
+
 	// Example of a synchronous version of an async function (e.g., tween)
 	// public static function syncTween(start: Float, end: Float, duration: Int): Void {
 	//     trace("Starting tween from " + start + " to " + end);

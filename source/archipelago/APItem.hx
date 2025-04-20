@@ -342,9 +342,6 @@ class APChartModifier extends APItem {
         if (yutautil.AprilFools.allowAF) {
             modifiers.push("SpeedRando");
         }
-        do { // Until ManiaConverter is fixed, reroll if selected.
-            this.chartModifier = modifiers[Std.random(modifiers.length)];
-        } while (this.chartModifier == "ManiaConverter"); // Reroll if ManiaConverter is selected
 
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
