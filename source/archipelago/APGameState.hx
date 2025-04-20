@@ -750,9 +750,16 @@ class APGameState
 
 	function bouncy(data:Dynamic)
 	{
-		if ((Reflect.hasField(data, "cause") && Reflect.hasField(data, "source") && Reflect.hasField(data, "time"))
+		trace("Bounce packet received: " + haxe.Json.stringify(data));
+		
+		if ((Reflect.hasField(data, "source") && Reflect.hasField(data, "time"))
 			&& !APPlayState.deathByLink)
 		{
+			if (!Reflect.hasField(data, "cause") || data.cause == null)
+			{
+				data.cause = data.source + " died like an idiot in " + info().get_player_game(data.source) + ".";
+			}
+
 			if (info().slot != data.source)
 			{
 				var dl:Dynamic = data;
@@ -763,7 +770,6 @@ class APGameState
 				}
 			}
 		}
-		// trace(data);
 	}
 
 	function onSlotConnected(slotData:Dynamic)
