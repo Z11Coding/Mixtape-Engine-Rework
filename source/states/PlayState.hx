@@ -620,7 +620,9 @@ class PlayState extends MusicBeatState
 
 		convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
 
-		if (chartModifier == "4K Only")
+		if (mania > Note.maxMania)
+			mania = Note.defaultMania;
+		else if (chartModifier == "4K Only")
 			mania = 3;
 		else if (chartModifier == "ManiaConverter")
 			mania = convertMania;
@@ -634,9 +636,6 @@ class PlayState extends MusicBeatState
 				}
 			}
 		else mania = 3;
-
-		if (mania > Note.maxMania)
-			mania = Note.defaultMania;
 
 		trace("Mania set: " + mania);
 
