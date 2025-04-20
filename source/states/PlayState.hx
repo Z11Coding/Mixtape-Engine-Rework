@@ -2365,12 +2365,27 @@ class PlayState extends MusicBeatState
 	var currentModifier:Int = -1;
 	var stair:Int = 0;
 
-	public static inline function getNumberFromAnimsSmall(note:Int, mania:Int):Int {
+
+	public static function getNumberFromAnimsSmall(note:Int, mania:Int):Int {
 		var anims:Array<String> = Note.keysShit.get(mania).get("anims");
 		var animMap:Map<String, Int> = ["LEFT" => 0, "DOWN" => 1, "UP" => 2, "RIGHT" => 3];
 
-		// Handle cases where mania > 4
-		if (mania > 4) {
+		if (mania == 0) {
+			// Only one key, everything maps to the same key
+			return 0;
+		} else if (mania == 1) {
+			// Two keys: LEFT and RIGHT
+			var anim = anims[note % anims.length];
+			if (anim == "DOWN" || anim == "LEFT") return 0; // Map to LEFT
+			if (anim == "UP" || anim == "RIGHT") return 1;  // Map to RIGHT
+		} else if (mania == 1) {
+			// Three keys: LEFT, UP, and RIGHT
+			var anim = anims[note % anims.length];
+			if (anim == "LEFT") return 0;
+			if (anim == "DOWN" || anim == "UP") return 1; // Map DOWN and UP to the middle key
+			if (anim == "RIGHT") return 2;
+		} else if (mania > 3) {
+			// Handle cases where mania > 4
 			var anim = anims[note % anims.length];
 			var matchingIndices = [];
 			for (i in 0...anims.length) {
@@ -2381,7 +2396,7 @@ class PlayState extends MusicBeatState
 			return matchingIndices.length > 0 ? matchingIndices[Std.int(Math.random() * matchingIndices.length)] : note % mania;
 		}
 
-		// Handle cases where mania <= 4
+		// Default case for mania <= 4
 		var anim = anims[note % anims.length];
 		return animMap.exists(anim) ? animMap.get(anim) : note % mania;
 	}
@@ -2744,7 +2759,7 @@ class PlayState extends MusicBeatState
 						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
 					case "ManiaConverter":
 						//trace("ManiaConverter: " + noteColumn);
-						noteColumn = getNumberFromAnims(noteColumn, mania);
+						noteColumn = getNumberFromAnimsSmall(noteColumn, mania);
 						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
 					case "Stairs":
 						noteColumn = stair % Note.ammo[mania];
