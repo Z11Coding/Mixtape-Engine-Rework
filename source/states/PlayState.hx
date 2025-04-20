@@ -628,9 +628,10 @@ class PlayState extends MusicBeatState
 			if (SONG.startMania != null) //Make sure it's even there
 				mania = SONG.mania;
 			else {
-				switch (SONG.mania) { //Convert it to make sure the older versions still work
+				mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
 					case 0: 3;
 					case 1: 4;
+					default: SONG.mania;
 				}
 			}
 		else mania = 3;
