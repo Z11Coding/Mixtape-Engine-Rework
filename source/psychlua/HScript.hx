@@ -1,11 +1,12 @@
 package psychlua;
 
-import flixel.addons.ui.U;
 import flixel.FlxBasic;
 import objects.Character;
 import psychlua.LuaUtils;
 import psychlua.CustomSubstate;
 import backend.modchart.SubModifier;
+import objects.VideoSprite;
+import flixel.addons.display.FlxRuntimeShader;
 
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
@@ -16,10 +17,8 @@ import crowplexus.iris.Iris;
 import crowplexus.iris.IrisConfig;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
-import objects.VideoSprite;
 
 import haxe.ValueException;
-import flixel.addons.display.FlxRuntimeShader;
 
 typedef HScriptInfos = {
 	> haxe.PosInfos,
@@ -188,7 +187,6 @@ class HScript extends Iris
 		#if flxanimate
 		set('FlxAnimate', FlxAnimate);
 		#end
-		set('Song', backend.Song);
 
 		// Functions & Variables
 		set('setVar', function(name:String, value:Dynamic) {
@@ -359,6 +357,7 @@ class HScript extends Iris
 		set('Function_StopHScript', LuaUtils.Function_StopHScript);
 		set('Function_StopAll', LuaUtils.Function_StopAll);
 
+		
 		//Troll Engine Hscript Functions
 		set("NoteObject", objects.NoteObject);
 		set("PlayField", objects.playfields.PlayField);

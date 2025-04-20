@@ -213,10 +213,10 @@ class FunkinLua {
 		// build target (windows, mac, linux, etc.)
 		set('buildTarget', LuaUtils.getBuildTarget());
 
-		//set('mania', PlayState.mania);
-		//set('trueMania', Note.ammo[PlayState.mania]);
+		set('mania', PlayState.mania);
+		set('trueMania', Note.ammo[PlayState.mania]);
 
-		/*//Fun cursor things for lua
+		//Fun cursor things for lua
 		Lua_helper.add_callback(lua, "getCursorMode", function()
 		{
 			return Cursor.cursorMode;
@@ -225,7 +225,7 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "setCursorMode", function(mode:String)
 		{
 			Cursor.cursorMode = LuaUtils.interpCurseMode(mode);
-		});*/
+		});
 	
 		// mod manager
 
