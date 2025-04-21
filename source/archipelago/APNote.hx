@@ -36,49 +36,57 @@ class APNote extends objects.Note {
         this.checkInfo = {note: this, loc: location}; // Set the checkInfo for the new note
     }
 
-        // Replace notes with a certain amount of locations.
-        public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) { // This needs to stay, since this will be useful for regular engines.
-            var newNotes:Array<APNote> = [];
-            var randomIndices:Array<Int> = [];
-    
-            // Generate a list of random unique indices
-            while (randomIndices.length < Math.min(locations.length, notes.length)) {
-                var randomIndex = Std.random(notes.length);
-                var note = notes[randomIndex];
-    
-                var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
-                if (shouldIgnore || randomIndices.contains(randomIndex)) continue; // Skip if the note should be ignored or already selected
-    
-                randomIndices.push(randomIndex);
+    // Replace notes with a certain amount of locations.
+    public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) { // This needs to stay, since this will be useful for regular engines.
+        var newNotes:Array<APNote> = [];
+        var randomIndices:Array<Int> = [];
+        var isAprilFools:Bool = yutautil.AprilFools.allowAF;
+
+        // Generate a list of random unique indices
+        while (randomIndices.length < Math.min(locations.length, notes.length)) {
+            var randomIndex = Std.random(notes.length);
+            var note = notes[randomIndex];
+
+            var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
+
+            if (isAprilFools) {
+                // On April Fools, allow sustainNotes and rarely ignoreNotes or non-empty noteTypes
+                if (note.isSustainNote && Std.random(100) < 20) shouldIgnore = false; // 20% chance to allow sustainNotes
+                if (note.ignoreNote && Std.random(100) < 10) shouldIgnore = false; // 10% chance to allow ignoreNotes
+                if (!note.noteType.isEmpty() && Std.random(100) < 10) shouldIgnore = false; // 10% chance to allow non-empty noteTypes
             }
-    
-            for (i in 0...randomIndices.length) {
-                var note:objects.Note = notes[randomIndices[i]];
-                var location:Int = locations[i % locations.length];
-                var apNote = new APNote(note, location, null); // Create a new APNote with the location
-                // apNote.noteIndex = note.noteIndex;
-                newNotes.push(apNote);
-    
-                // Replace the original note with the APNote
-                notes[randomIndices[i]].rgbShader.r = 0x3380CC; 
-                notes[randomIndices[i]].rgbShader.g = 0x3380CC; 
-                notes[randomIndices[i]].rgbShader.b = 0x3380CC; 
-                notes[randomIndices[i]] = apNote;
-    
-                apNote.index = i; // Set the index for the new note
-    
-    
-                // Set the checkInfo for the new note
-                apNote.checkInfo = {note: apNote, loc: location};
-            }
-            return newNotes; // Return the new notes
+
+            if (shouldIgnore || randomIndices.contains(randomIndex)) continue; // Skip if the note should be ignored or already selected
+
+            randomIndices.push(randomIndex);
         }
-    
+
+        for (i in 0...randomIndices.length) {
+            var note:objects.Note = notes[randomIndices[i]];
+            var location:Int = locations[i % locations.length];
+            var apNote = new APNote(note, location, null); // Create a new APNote with the location
+            // apNote.noteIndex = note.noteIndex;
+            newNotes.push(apNote);
+
+            // Replace the original note with the APNote
+            notes[randomIndices[i]].rgbShader.r = 0x3380CC; 
+            notes[randomIndices[i]].rgbShader.g = 0x3380CC; 
+            notes[randomIndices[i]].rgbShader.b = 0x3380CC; 
+            notes[randomIndices[i]] = apNote;
+
+            apNote.index = i; // Set the index for the new note
+
+            // Set the checkInfo for the new note
+            apNote.checkInfo = {note: apNote, loc: location};
+        }
+        return newNotes; // Return the new notes
+    }
 
     public static function replaceInQueue(notes:Array<Array<objects.Note>>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
         var newNotes:Array<APNote> = [];
         var flatNotes:Array<{lane:Int, index:Int, note:objects.Note}> = [];
-        
+        var isAprilFools:Bool = yutautil.AprilFools.allowAF;
+
         // Flatten the notes array into a single array with lane and index information
         for (lane in 0...notes.length) {
             for (index in 0...notes[lane].length) {
@@ -112,6 +120,14 @@ class APNote extends objects.Note {
         for (i in 0...flatNotes.length) {
             var note = flatNotes[i].note;
             var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
+
+            if (isAprilFools) {
+                // On April Fools, allow sustainNotes and rarely ignoreNotes or non-empty noteTypes
+                if (note.isSustainNote && Std.random(100) < 20) shouldIgnore = false; // 20% chance to allow sustainNotes
+                if (note.ignoreNote && Std.random(100) < 10) shouldIgnore = false; // 10% chance to allow ignoreNotes
+                if (!note.noteType.isEmpty() && Std.random(100) < 10) shouldIgnore = false; // 10% chance to allow non-empty noteTypes
+            }
+
             if (!shouldIgnore) {
                 availableNotes.push(i);
             }
@@ -130,6 +146,14 @@ class APNote extends objects.Note {
             var note = noteData.note;
 
             var shouldIgnore:Bool = (note.ignoreNote || note.hitCausesMiss || note.isSustainNote || (ignoreNonEmptyNoteType && !note.noteType.isEmpty()) || !note.mustPress);
+
+            if (isAprilFools) {
+                // On April Fools, allow sustainNotes and rarely ignoreNotes or non-empty noteTypes
+                if (note.isSustainNote && Std.random(100) < 20) shouldIgnore = false; // 20% chance to allow sustainNotes
+                if (note.ignoreNote && Std.random(100) < 10) shouldIgnore = false; // 10% chance to allow ignoreNotes
+                if (!note.noteType.isEmpty() && Std.random(100) < 10) shouldIgnore = false; // 10% chance to allow non-empty noteTypes
+            }
+
             if (shouldIgnore || randomIndices.contains(randomIndex)) continue; // Skip if the note should be ignored or already selected
 
             randomIndices.push(randomIndex);
@@ -163,7 +187,6 @@ class APNote extends objects.Note {
                 notes[noteData.lane][noteData.index].rgbShader.g = 0xFFFFFFFF;
                 notes[noteData.lane][noteData.index].rgbShader.b = 0xFFB4B4B4;
             }
-
 
         return newNotes; // Return the new notes
     }
