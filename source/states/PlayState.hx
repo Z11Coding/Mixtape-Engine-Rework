@@ -6881,8 +6881,7 @@ class PlayState extends MusicBeatState
 		instance = null;
 		super.destroy();
 		endingSong = true;
-
-		yutautil.MemoryHelper.clearMemoryStored();
+		Paths.clearStoredWithoutStickers();
 
 	}
 
