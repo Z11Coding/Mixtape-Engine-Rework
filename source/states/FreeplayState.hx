@@ -1012,6 +1012,17 @@ class FreeplayState extends MusicBeatState
 			MusicBeatState.resetState();
 		}
 
+		if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !searchBar.hasFocus) {
+			try {
+				var SongInfo = APEntryState.apGame.getSongAndMod(songs[curSelected].songName + (songs[curSelected].folder != "" ? " (" + songs[curSelected].folder + ")" : ""));
+				if (APEntryState.ap != null) {
+					APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+					archipelago.console.SideUI.instance.active = true;
+				}
+			} catch (e:Dynamic) {
+				trace("You can't hint nothing, silly!");
+			}
+		}
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));
 		lerpRating = FlxMath.lerp(intendedRating, lerpRating, Math.exp(-elapsed * 12));
 
@@ -1473,7 +1484,15 @@ class FreeplayState extends MusicBeatState
 		updateTexts(elapsed);
 		super.update(elapsed);
 
-		if (ticketCounter != null) ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\nTickets Needed: ${APInfo.ticketWinCount}\nTickets Left: ${Std.int(APInfo.ticketWinCount - APInfo.ticketCount)}';
+		if (ticketCounter != null) {
+			ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\n' +
+				'Tickets Needed: ${APInfo.ticketWinCount}\n' +
+				'Tickets Left: ${Std.int(APInfo.ticketWinCount - APInfo.ticketCount)}\n' +
+				'Hint Points Available: ${APInfo.hintPoints}\n' +
+				'Hint Cost: ${APInfo.hintCost}\n' +
+				'(L) to release song\n' +
+				'(H) to hint song';
+		}
 
 		grpLocks.forEach(function(lock:FlxSprite)
 		{

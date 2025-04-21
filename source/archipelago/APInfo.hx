@@ -14,6 +14,18 @@ class APInfo {
 
 	public static var hasSongChecks(get, never):Bool;
 
+	public static var hintPoints(get, never):Int;
+	public static var hintCost(get, never):Int;
+
+	public static function get_hintPoints():Int {
+		return APInfo.apGame.info().hintPoints;
+	}
+
+	public static function get_hintCost():Int {
+		return APInfo.apGame.info().hintCostPoints;
+	}
+
+
 	public static function get_hasNoteChecks():Bool {
 		return unlockMethod == "Note Checks" || unlockMethod == "Both";
 	}
