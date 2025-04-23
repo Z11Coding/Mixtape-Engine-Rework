@@ -48,9 +48,9 @@ class ArchPopup extends openfl.display.Sprite {
 		var hasAntialias:Bool = ClientPrefs.data.antialiasing;
 		var image:String = 'globalIcons/$image';
 
-		graphic = Paths.image(image);
+		graphic = Paths.image(image, null, false);
 
-		if(graphic == null) graphic = Paths.image('globalIcons/unknownMod');
+		if(graphic == null) graphic = Paths.image('globalIcons/unknownMod', null, false);
 
 		var sizeX = 100;
 		var sizeY = 100;
