@@ -81,7 +81,7 @@ class APPlayState extends PlayState {
 	public var effectArray:Array<String> = [
 		'colorblind', 'blur', 'lag', 'mine', 'warning', 'heal', 'spin', 'songslower', 'songfaster', 'scrollswitch', 'scrollfaster', 'scrollslower', 'rainbow',
 		'cover', 'ghost', 'flashbang', 'nostrum', 'jackspam', 'spam', 'sever', 'shake', 'poison', 'dizzy', 'noise', 'flip', 'invuln',
-		'desync', 'mute', 'ice', 'randomize', 'randomizeAlt', 'opponentPlay', 'bothplay', 'fakeheal', 'spell', 'terminate', 'lowpass', #if windows 'notif' #end
+		'desync', 'mute', 'ice', 'opponentPlay', 'bothplay', 'fakeheal', 'spell', 'terminate', 'lowpass', #if windows 'notif' #end
 	];
 	var notifs:Array<String> = [
 		"You're crazy...",
@@ -2219,7 +2219,6 @@ class APPlayState extends PlayState {
 
             if (daNote.specialNote)
 			{
-				specialNoteHit(daNote, field);
 				return;
 			}
             super.noteMiss(daNote, field);
@@ -2378,38 +2377,6 @@ class APPlayState extends PlayState {
 			popUpScore(note);
 		}
 	}
-
-    override function beatHit()
-    {
-        switch (terminateStep)
-		{
-			case 3:
-				var terminate = new TerminateTimestamp(Math.floor(Conductor.songPosition / Conductor.crochet) * Conductor.crochet + Conductor.crochet * 3);
-				add(terminate);
-				terminateTimestamps.push(terminate);
-				terminateStep--;
-                COD.setPresetCOD('custom');
-                COD.custom = 'You were Terminated.';
-			case 2 | 1 | 0:
-				terminateMessage.loadGraphic(Paths.image("streamervschat/terminate" + terminateStep));
-				terminateMessage.screenCenter(XY);
-				terminateMessage.cameras = [camOther];
-				terminateMessage.visible = true;
-				if (terminateStep > 0)
-				{
-					terminateSound.volume = 0.6;
-					terminateSound.play(true);
-				}
-				else if (terminateStep == 0)
-				{
-					FlxG.sound.play(Paths.sound('streamervschat/beep2'), 0.85);
-				}
-				terminateStep--;
-			case -1:
-				terminateMessage.visible = false;
-		}
-        super.beatHit();
-    }
 
     override function closeSubState()
     {

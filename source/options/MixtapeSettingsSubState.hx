@@ -123,6 +123,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
+		var option:Option = new Option('Check the Archipelago World',
+			"If checked, the engine will check the current version of the Friday Night Funkin Archipelago World at launch.",
+			'checkAPWorld',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Allow Username Detection',
 			"Uncheck this to prevent the game from leaking your computer name. Usually a good idea for streamers.",
 			'username',
