@@ -145,8 +145,8 @@ class FreeplayState extends MusicBeatState
 
 		// Check if the Victory Song is cleared.	
 		{
-			var victorySong = APEntryState.apGame.getSongAndMod(APEntryState.victorySong);
-			if (APEntryState.apGame.checkGoal(victorySong.song, victorySong.mod))
+			var victorySong = APEntryState.apGame?.getSongAndMod(APEntryState.victorySong);
+			if (APEntryState.apGame?.checkGoal(victorySong.song, victorySong.mod))
 				trace("Victory song is cleared!");
 		}
 
