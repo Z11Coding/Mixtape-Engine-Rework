@@ -479,7 +479,7 @@ class APGameState
 	}
 
 	public function checkGoal(songName:String, modName:String):Bool
-	{
+	{ modName = (modName != null && modName != "") ? modName.trim() : "";
 		var info = info();
 		var locations = locationData(songName, modName).concat(noteData(songName, modName));
 		for (location in locations)
