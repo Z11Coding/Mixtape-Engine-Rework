@@ -184,15 +184,15 @@ class APPlayState extends PlayState {
             'colorblind' => function() {
                 var ttl:Float = 16;
                 var onEnd:(Void->Void) = function() {
-                    camHUDfilters.remove(filterMap.get("Grayscale").filter);
-                    camGamefilters.remove(filterMap.get("Grayscale").filter);
+                    camHUD.filters.remove(filterMap.get("Grayscale").filter);
+                    camGame.filters.remove(filterMap.get("Grayscale").filter);
                 };
                 var playSound:String = "colorblind";
                 var playSoundVol:Float = 0.8;
                 var noIcon:Bool = false;
 
-                camHUDfilters.push(filterMap.get("Grayscale").filter);
-                camGamefilters.push(filterMap.get("Grayscale").filter);
+                camGame.filters.push(filterMap.get("Grayscale").filter);
+                camGame.filters.push(filterMap.get("Grayscale").filter);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'colorblind');
             },
@@ -304,12 +304,12 @@ class APPlayState extends PlayState {
             'spin' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    modManager.setValue('roll', 0);
+                    modManager.setValue('twirl', 0);
                 };
                 var playSound:String = "spin";
                 var playSoundVol:Float = 1;
                 var noIcon:Bool = false;
-                modManager.setValue('roll', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
+                modManager.setValue('twirl', 1);
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'spin');
             },
             'songslower' => function() {
@@ -1982,6 +1982,7 @@ class APPlayState extends PlayState {
         super.update(elapsed);
     }
 
+    var alreadySent:Bool = false;
     override function doDeathCheck(?skipHealthCheck:Bool = false):Bool
     {
         if (activeItems[0] <= 0)
@@ -1996,8 +1997,10 @@ class APPlayState extends PlayState {
                 noiseSound.pause();
             }
         }
-        if (health <= 0 && bfkilledcheck && !deathByLink) 
+        if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) { 
+            alreadySent = true; // because indie cross likes to spam this every frame for some reason
             APEntryState.apGame.info().sendDeathLink(COD.COD);
+        }
         super.doDeathCheck();
         return true;
     }

@@ -3820,7 +3820,7 @@ class PlayState extends MusicBeatState
 
 		super.update(elapsed);
 		vocals.volume *= vocalVolumeMultiplier;
-		FlxG.sound.music.volume *= instVolumeMultiplier;
+		FlxG.sound.music.volume = 1 * instVolumeMultiplier;
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
 
@@ -4232,7 +4232,7 @@ class PlayState extends MusicBeatState
 				case SINGLE:
 					iconP1.animation.curAnim.curFrame = 0;
 				case WINNING:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 1 : 0));
+					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 0 : (healthBar.percent < 20 ? 2 : 0));
 				default:
 					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 1 : 0);
 			}
@@ -5676,7 +5676,7 @@ class PlayState extends MusicBeatState
 	public var totalPlayed:Int = 0;
 	public var totalNotesHit:Float = 0.0;
 
-	public var showCombo:Bool = false;
+	public var showCombo:Bool = true;
 	public var showComboNum:Bool = true;
 	public var showRating:Bool = true;
 
@@ -5831,7 +5831,7 @@ class PlayState extends MusicBeatState
 			if(showComboNum)
 				comboGroup.add(numScore);
 
-			FlxTween.tween(numScore, {alpha: 0}, 0.2 / playbackRate, {
+			FlxTween.tween(numScore, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 				onComplete: function(tween:FlxTween)
 				{
 					numScore.destroy();
@@ -5843,11 +5843,11 @@ class PlayState extends MusicBeatState
 			if(numScore.x > xThing) xThing = numScore.x;
 		}
 		comboSpr.x = xThing + 50;
-		FlxTween.tween(rating, {alpha: 0}, 0.2 / playbackRate, {
+		FlxTween.tween(rating, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 			startDelay: Conductor.crochet * 0.001 / playbackRate
 		});
 
-		FlxTween.tween(comboSpr, {alpha: 0}, 0.2 / playbackRate, {
+		FlxTween.tween(comboSpr, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 			onComplete: function(tween:FlxTween)
 			{
 				comboSpr.destroy();
