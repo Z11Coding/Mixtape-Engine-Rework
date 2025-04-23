@@ -1,7 +1,6 @@
 package backend;
 
 import openfl.utils.Assets;
-
 import haxe.Json;
 
 typedef ModsList = {
@@ -32,8 +31,6 @@ class Mods
 	];
 
 	private static var globalMods:Array<String> = [];
-	private static var internetModSources:Array<String> = [];
-	private static var githubModSources:Array<String> = [];
 
 	inline public static function getGlobalMods()
 		return globalMods;
@@ -96,13 +93,15 @@ class Mods
 	inline public static function directoriesWithFile(path:String, fileToFind:String, mods:Bool = true)
 	{
 		var foldersToCheck:Array<String> = [];
+		//Main folder
 		if(FileSystem.exists(path + fileToFind))
 			foldersToCheck.push(path + fileToFind);
 
+		// Week folder
 		if(Paths.currentLevel != null && Paths.currentLevel != path)
 		{
 			var pth:String = Paths.getFolderPath(fileToFind, Paths.currentLevel);
-			if(FileSystem.exists(pth))
+			if(!foldersToCheck.contains(pth) && FileSystem.exists(pth))
 				foldersToCheck.push(pth);
 		}
 
@@ -212,40 +211,6 @@ class Mods
 			}
 		}
 
-			// // Add internet mod sources
-			// for (url in internetModSources) {
-			// 	try {
-			// 		var modContent:String = downloadModFromUrl(url);
-			// 		if (modContent != null) {
-			// 			var modFolder:String = extractMod(modContent);
-			// 			if (modFolder != null && !added.contains(modFolder)) {
-			// 				added.push(modFolder);
-			// 				list.push([modFolder, true]);
-			// 			}
-			// 		}
-			// 	} catch (e:Dynamic) {
-			// 		trace('Failed to download mod from URL: ' + url);
-			// 		trace(e);
-			// 	}
-			// }
-
-			// // Add GitHub mod sources
-			// for (repoUrl in githubModSources) {
-			// 	try {
-			// 		var modContent:String = downloadModFromGithub(repoUrl);
-			// 		if (modContent != null) {
-			// 			var modFolder:String = extractMod(modContent);
-			// 			if (modFolder != null && !added.contains(modFolder)) {
-			// 				added.push(modFolder);
-			// 				list.push([modFolder, true]);
-			// 			}
-			// 		}
-			// 	} catch (e:Dynamic) {
-			// 		trace('Failed to download mod from GitHub: ' + repoUrl);
-			// 		trace(e);
-			// 	}
-			// }
-
 		// Now save file
 		var fileStr:String = '';
 		for (values in list)
@@ -270,32 +235,4 @@ class Mods
 			Mods.currentModDirectory = list[0];
 		#end
 	}
-
-	// public static function addInternetModSource(url:String):Void {
-	// 	if (!internetModSources.contains(url)) {
-	// 		internetModSources.push(url);
-	// 		updateModList();
-	// 	}
-	// }
-
-	// public static function removeInternetModSource(url:String):Void {
-	// 	if (internetModSources.contains(url)) {
-	// 		internetModSources.remove(url);
-	// 		updateModList();
-	// 	}
-	// }
-
-	// public static function addGithubModSource(repoUrl:String):Void {
-	// 	if (!githubModSources.contains(repoUrl)) {
-	// 		githubModSources.push(repoUrl);
-	// 		updateModList();
-	// 	}
-	// }
-
-	// public static function removeGithubModSource(repoUrl:String):Void {
-	// 	if (githubModSources.contains(repoUrl)) {
-	// 		githubModSources.remove(repoUrl);
-	// 		updateModList();
-	// 	}
-	// }
 }
