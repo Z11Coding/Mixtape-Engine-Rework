@@ -143,6 +143,14 @@ class FreeplayState extends MusicBeatState
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 
+		// Check if the Victory Song is cleared.
+
+		{
+			var victorySong = APEntryState.apGame.getSongAndMod(APEntryState.victorySong);
+			if (APEntryState.apGame.checkGoal(victorySong.song, victorySong.mod))
+				trace("Victory song is cleared!");
+		}
+
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			var checker = archipelago.APGameState.instance?.info();
 			checker.poll();
