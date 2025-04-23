@@ -768,6 +768,19 @@ class FreeplayState extends MusicBeatState
 
 				callVictory = isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
 
+				if (callVictory) {
+					trace("Apparently, the victory song has been cleared, so... Goaling!");
+					APEntryState.apGame.checkGoal(songName, modName);
+				}
+
+				// // Potential Emergency For Later.
+
+				// if (callVictory && !APEntryState.apGame.info().clientStatus != archipelago.PacketTypes.ClientStatus.GOAL)
+				// {
+				// 	trace("Apparently, AP didn't get the memo. Forcing goal...");
+				// 	APEntryState.apGame.setGoal();
+				// }
+
 				songText.scaleX = Math.min(1, 980 / songText.width);
 				songText.snapToPosition();
 

@@ -684,6 +684,8 @@ class APEntryState extends MusicBeatState
 		FlxG.save.data.songPos = null;
 		FlxG.save.flush();
 		FlxG.switchState(new archipelago.APCategoryState(apGame, ap));
+		backend.ClientPrefs.data.gameplaySettings.set("chartModifier", "Normal");
+		backend.ClientPrefs.data.gameplaySettings.set("convertMania", 3);
 	}
 
 	var e:Int = 0;
