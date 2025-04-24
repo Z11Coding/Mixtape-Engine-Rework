@@ -403,6 +403,9 @@ class PlayState extends MusicBeatState
 	var charterTxt:FlxText;
 	var modTxt:FlxText;
 
+	//FNF Weekly
+	public var whosTurn:String = '';
+
 	// AI things. You wouldn't get it.
 	var AIMode:Bool = false;
 	var AIDifficulty:String = 'Average FNF Player';
@@ -2633,7 +2636,7 @@ class PlayState extends MusicBeatState
 
 				var gottaHitNote:Bool;
 				noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-				gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
+				gottaHitNote = (songNotes[1] < Note.ammo[mania]);
 
 				//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
 
@@ -5391,7 +5394,9 @@ class PlayState extends MusicBeatState
 		if (gf != null && SONG.notes[sec].gfSection)
 		{
 			moveCameraToGirlfriend();
+			whosTurn = 'gf';
 			callOnScripts('onMoveCamera', ['gf']);
+			setOnScripts('whosTurn', whosTurn);
 			return;
 		}
 
@@ -5457,6 +5462,7 @@ class PlayState extends MusicBeatState
 			camFollow.x += dad.cameraPosition[0] + opponentCameraOffset[0];
 			camFollow.y += dad.cameraPosition[1] + opponentCameraOffset[1];
 			tweenCamIn();
+			whosTurn = 'dad';
 		}
 		else
 		{
@@ -5474,7 +5480,9 @@ class PlayState extends MusicBeatState
 					}
 				});
 			}
+			whosTurn = 'dad';
 		}
+		setOnScripts('whosTurn', whosTurn);
 	}
 
 	public function tweenCamIn() {

@@ -4,6 +4,7 @@ import yutautil.AprilFools;
 import archipelago.APEntryState;
 import yutautil.modules.SyncUtils;
 import flixel.input.keyboard.FlxKey;
+import backend.AudioSwitchFix;
 class FirstCheckState extends MusicBeatState
 {
 	public static var muteKeys:Array<FlxKey> = [FlxKey.ZERO];
@@ -38,7 +39,12 @@ class FirstCheckState extends MusicBeatState
 	override public function create()
 	{ 
 		//backend.window.Priority.setPriority(0);
-		if (!relaunch) COD.initCOD();
+		if (!relaunch) {
+			COD.initCOD();
+			ClientPrefs.loadPrefs();
+			Language.reloadPhrases();
+			AudioSwitchFix.init();
+		}
 
 		super.create();
 
