@@ -405,6 +405,12 @@ class PlayState extends MusicBeatState
 
 	//FNF Weekly
 	public var whosTurn:String = '';
+	public var ghostsAllowed:Bool = ClientPrefs.data.doubleGhosts;
+	public var dadGhostTween:FlxTween = null;
+	public var bfGhostTween:FlxTween = null;
+	public var dadGhost:FlxSprite = null;
+	public var bfGhost:FlxSprite = null;
+	var noteRows:Array<Array<Array<Note>>> = [[],[]];
 
 	// AI things. You wouldn't get it.
 	var AIMode:Bool = false;
@@ -720,51 +726,6 @@ class PlayState extends MusicBeatState
 		dadGroup2 = new FlxSpriteGroup(DAD2_X, DAD2_Y);
 		gfGroup = new FlxSpriteGroup(GF_X, GF_Y);
 
-		switch (curStage)
-		{
-			case 'stage':
-				new StageWeek1(); // Week 1
-			case 'spooky':
-				new Spooky(); // Week 2
-			case 'philly':
-				new Philly(); // Week 3
-			case 'limo':
-				new Limo(); // Week 4
-			case 'mall':
-				new Mall(); // Week 5 - Cocoa, Eggnog
-			case 'mallEvil':
-				new MallEvil(); // Week 5 - Winter Horrorland
-			case 'school':
-				new School(); // Week 6 - Senpai, Roses
-			case 'schoolEvil':
-				new SchoolEvil(); // Week 6 - Thorns
-			case 'tank':
-				new Tank(); // Week 7 - Ugh, Guns, Stress
-			case 'phillyStreets':
-				new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
-			case 'phillyBlazin':
-				new PhillyBlazin(); // Weekend 1 - Blazin
-			case 'mainStageErect':
-				new MainStageErect(); // Week 1 Special
-			case 'spookyMansionErect':
-				new SpookyMansionErect(); // Week 2 Special
-			case 'phillyTrainErect':
-				new PhillyTrainErect(); // Week 3 Special
-			case 'limoRideErect':
-				new LimoRideErect(); // Week 4 Special
-			case 'mallXmasErect':
-				new MallXmasErect(); // Week 5 Special
-			case 'schoolErect'|'schoolPico': 
-				new SchoolErect();	
-			case 'tankmanBattlefieldErect':
-				new TankmanBattlefieldErect(); // Week 7 Special
-			case 'phillyStreetsErect':
-				new PhillyStreetsErect(); // Weekend 1 Special
-			#if windows 
-			case 'desktop':
-				new Desktop(); // Literally your desktop as a stage lmao
-			#end
-		}
 		if (isPixelStage) introSoundsSuffix = '-pixel';
 
 		var zoomOut = 1 / defaultCamZoom;
@@ -838,20 +799,84 @@ class PlayState extends MusicBeatState
 		}
 		else bf2 = null;
 		
-		if(stageData.objects != null && stageData.objects.length > 0)
-		{
-			var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, dadGroup2, boyfriendGroup2, this);
-			for (key => spr in list)
-				if(!StageData.reservedNames.contains(key))
-					variables.set(key, spr);
-		}
-		else
-		{
-			add(gfGroup);
-			add(dadGroup2);
-			add(boyfriendGroup2);
-			add(dadGroup);
-			add(boyfriendGroup);
+		dadGhost = new FlxSprite();
+		dadGhost.visible = false;
+		dadGhost.antialiasing = true;
+		dadGhost.alpha = 0.6;
+		dadGhost.scale.copyFrom(dad.scale);
+		dadGhost.updateHitbox();
+		setOnScripts('dadGhost', dadGroup);
+
+		bfGhost = new FlxSprite();
+		bfGhost.visible = false;
+		bfGhost.antialiasing = true;
+		bfGhost.alpha = 0.6;
+		bfGhost.scale.copyFrom(boyfriend.scale);
+		bfGhost.updateHitbox();
+		setOnScripts('bfGhost', bfGhost);
+
+		if (callOnScripts("onAddSpriteGroups", []) != LuaUtils.Function_Stop) {
+			if(stageData.objects != null && stageData.objects.length > 0)
+			{
+				var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, dadGroup2, boyfriendGroup2, this);
+				for (key => spr in list)
+					if(!StageData.reservedNames.contains(key))
+						variables.set(key, spr);
+			}
+			else
+			{
+				switch (curStage)
+				{
+					case 'stage':
+						new StageWeek1(); // Week 1
+					case 'spooky':
+						new Spooky(); // Week 2
+					case 'philly':
+						new Philly(); // Week 3
+					case 'limo':
+						new Limo(); // Week 4
+					case 'mall':
+						new Mall(); // Week 5 - Cocoa, Eggnog
+					case 'mallEvil':
+						new MallEvil(); // Week 5 - Winter Horrorland
+					case 'school':
+						new School(); // Week 6 - Senpai, Roses
+					case 'schoolEvil':
+						new SchoolEvil(); // Week 6 - Thorns
+					case 'tank':
+						new Tank(); // Week 7 - Ugh, Guns, Stress
+					case 'phillyStreets':
+						new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
+					case 'phillyBlazin':
+						new PhillyBlazin(); // Weekend 1 - Blazin
+					case 'mainStageErect':
+						new MainStageErect(); // Week 1 Special
+					case 'spookyMansionErect':
+						new SpookyMansionErect(); // Week 2 Special
+					case 'phillyTrainErect':
+						new PhillyTrainErect(); // Week 3 Special
+					case 'limoRideErect':
+						new LimoRideErect(); // Week 4 Special
+					case 'mallXmasErect':
+						new MallXmasErect(); // Week 5 Special
+					case 'schoolErect'|'schoolPico': 
+						new SchoolErect();	
+					case 'tankmanBattlefieldErect':
+						new TankmanBattlefieldErect(); // Week 7 Special
+					case 'phillyStreetsErect':
+						new PhillyStreetsErect(); // Weekend 1 Special
+					#if windows 
+					case 'desktop':
+						new Desktop(); // Literally your desktop as a stage lmao
+					#end
+				}
+
+				add(gfGroup);
+				add(dadGroup2);
+				add(boyfriendGroup2);
+				add(dadGroup);
+				add(boyfriendGroup);
+			}
 		}
 		
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -912,229 +937,6 @@ class PlayState extends MusicBeatState
 		add(comboGroup);
 		add(uiGroup);
 		add(noteGroup);
-
-		if (ClientPrefs.data.doubleGhosts) {
-			trace("Running Double Ghost");
-			IntegratedScript.runNamelessLuaScript("
-			--[[
-			1st Table is supposed to be noteTypes that is gonna trigger to that character
-			2nd Table is basically some of the options
-				2.1 The side that is gonna be triggered
-					(true is when the player side got hit and false for the opp side, if it's not nil then it will get triggered on both sides) 
-						[that's why I left on gf or the extra characters as an empty string '']
-				2.2 The ghost is gonna be colored depending their healthColorArray 
-					(Is gonna be not colored if it's not using the Character class to be created that char and/or 2.6 is activated)
-				2.3 Moves ghost depeding the direction that was hit previously before it was getting created
-				2.4 Scale the ghost
-				2.5 Activate the ghost effect for that character
-				2.6 Solid color from the ghost  (It needs to be disabled 2.2)
-
-			Any doubts or explaination of how this works just contact me
-			Aldo Idk alias flain
-			]]--
-
-			local cancelFade = true --Self explanatory
-			local instantFrame = false --Stuns the ghost on the first frame
-			local notesColors = false --The ghost is gonna have the color of the note
-			local moveGhost = 300 --The ghost is gonna move depending x pixels on the direction that was hit
-			local scaleGhost = 1.1 --The ghost is gonna scale depending the value that was set
-			local ghostCreated = 0 --Is just the id for the ghosts it doesn't matter to change to whatever else that is an int
-
-			local tableChars = {
-				['boyfriend'] = {{'','GF sings too','Extra sings too','P1'},{true,true,false,false,true,false}},
-				['dad'] = {{'','GF sings too','Extra sings too','P2'},{false,true,false,false,true,false}},
-				['gf'] = {{'GF Sing','GF sings too'},{'',true,false,false,true,false}},
-				['extra'] = {{'3rd Player','No Animation','Extra sings too'},{'',true,false,false,true,false}},
-			}
-
-			function goodNoteHit(i,d,t,s)
-				handleNoteHit(i, d, t, s, true)
-			end
-
-			function opponentNoteHit(i,d,t,s)
-				handleNoteHit(i, d, t, s, false)
-			end
-				
-			function handleNoteHit(i, dir, type, s, mt)
-				local validChars = {}
-				for charName, charData in pairs(tableChars) do
-					local isGFNote = getPropertyFromGroup('notes', i, 'gfNote')
-					local shouldProcess = (charData[2][1] == mt or charData[2][1] == '')
-					local finalType = type
-					for _, gType in ipairs(charData[1]) do
-						if shouldProcess and (finalType == gType and not isGFNote or isGFNote and charName == 'gf') then
-							table.insert(validChars, {charName = charName, charData = charData})
-							break
-						end
-					end
-				end
-
-				for _, char in ipairs(validChars) do
-					if validChars == nil then
-						break
-					end
-					local charName = char.charName
-					local charData = char.charData
-					local shouldMakeGhost = (charData[3] == getPropertyFromGroup('notes', i, 'strumTime'))
-					local finalType = type
-					for _, gType in ipairs(charData[1]) do
-						if not s then 
-							if (finalType == gType and not getPropertyFromGroup('notes', i, 'gfNote') or getPropertyFromGroup('notes', i, 'gfNote') and charName == 'gf') then
-								charData[8] = false
-								if shouldMakeGhost then
-									createGhost(charName, charData[4], charData[5])
-									charData[7] = getProperty(charName..'.animation.name')
-									charData[8] = true
-								end
-								charData[3] = getPropertyFromGroup('notes', i, 'strumTime')
-								charData[4] = dir
-								charData[5] = getProperty(charName .. '.animation.name')
-							end
-						else
-							if getProperty(charName..'.animation.name') and charData[5] and charData[8] and (finalType == gType and not getPropertyFromGroup('notes', i, 'gfNote') or getPropertyFromGroup('notes', i, 'gfNote') and charName == 'gf') and charData[2][5] then
-								playAnim(charName, charData[7], true)
-								if cancelFade and charData[9] ~= nil then
-									for _, ghosts in pairs(charData[9]) do
-										if getProperty(ghosts..'.alpha') > (getProperty(charName..'.alpha') * 0.52) or getProperty(ghosts..'.colorTransform.alphaMultiplier') > 0.52 then
-											cancelTween(ghosts)
-											if not instantFrame then
-												playAnim(ghosts, getProperty(ghosts..'.animation.name'), true)
-												setProperty(ghosts..'.holdTimer', 0)
-											end
-											if charData[2][6] then
-												setProperty(ghosts..'.colorTransform.alphaMultiplier', getProperty(charName..'.colorTransform.alphaMultiplier') * 0.8)
-												startTween(ghosts, ghosts..'.colorTransform', {alphaMultiplier = 0}, 0.4, {ease = 'linear', onComplete = 'onTweenCompleted'})
-											else
-												setProperty(ghosts..'.alpha', getProperty(charName..'.alpha') * 0.8)
-												doTweenAlpha(ghosts, ghosts, 0, 0.4, 'linear')
-											end
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-
-			function createGhost(char,d,anim)
-				if not tableChars[char][2][5] or lowQuality or not getProperty(char..'.visible') or getProperty(char..'.alpha') < 0.1 then
-					return
-				end
-				local tag = 'animGhost'..ghostCreated..char
-				local xpos = getProperty(char..'.x')
-				local ypos = getProperty(char..'.y')
-				local curChar = getProperty(char..'.curCharacter')
-				local flip = getProperty(char..'.isPlayer')
-				createInstance(tag, 'objects.Character', {xpos,ypos,curChar,flip})
-				addInstance(tag)
-				playAnim(tag,anim,true)
-				if instantFrame then
-					setProperty(tag..'.animation.curAnim.paused', true)
-					setProperty(tag..'.animation.curAnim.curFrame', 0)
-				end
-				setProperty(tag..'.antialiasing',getProperty(char..'.antialiasing'))
-				setProperty(tag..'.scale.x', getProperty(char..'.scale.x'))
-				setProperty(tag..'.scale.y', getProperty(char..'.scale.y'))
-				setProperty(tag..'.flipX', getProperty(char..'.flipX'))
-				setProperty(tag..'.flipY', getProperty(char..'.flipY'))
-				if tableChars[char][2][6] and not tableChars[char][2][2] then
-					for i,v in ipairs({'red','green','blue'}) do
-						setProperty(tag..'.colorTransform.'..v..'Multiplier', 0)
-						setProperty(tag..'.colorTransform.'..v..'Offset', getProperty(char..'.healthColorArray['..(i - 1)..']'))
-					end
-					setProperty(tag..'.colorTransform.alphaMultiplier', getProperty(char..'.colorTransform.alphaMultiplier') * 0.8)
-					startTween(tag, tag..'.colorTransform',{alphaMultiplier = 0},0.4,{ease = 'linear', onComplete = 'onTweenCompleted'})
-				else 
-					setProperty(tag..'.alpha', getProperty(char..'.alpha') * 0.8)
-					doTweenAlpha(tag, tag, 0, 0.4, 'linear')
-				end
-				if tableChars[char][2][2] and not tableChars[char][2][6] then
-					setProperty(tag..'.color', getIconColor(char))
-				end
-				local behind = char
-				for _,v in ipairs ({'boyfriend','dad','gf'}) do
-					if char == v then
-						behind = behind..'Group'
-						break
-					end
-				end
-				if tableChars[char][2][3] then
-					if d == 0 then
-						doTweenX(tag..'move', tag, getProperty(char..'.x') + (-moveGhost), 0.4,'expoOut')
-					elseif d == 1 then
-						doTweenY(tag..'move', tag, getProperty(char..'.y') + moveGhost, 0.4,'expoOut')
-					elseif d == 2 then
-						doTweenY(tag..'move', tag, getProperty(char..'.y') + (-moveGhost), 0.4,'expoOut')
-					elseif d == 3 then
-						doTweenX(tag..'move', tag, getProperty(char..'.x') + (moveGhost), 0.4,'expoOut')
-					end
-				end
-				if tableChars[char][2][4] then
-					doTweenX(tag..'scaleGhostX',tag..'.scale',getProperty(char..'.scale.x') * scaleGhost,0.4,'expoOut')
-					doTweenY(tag..'scaleGhostY',tag..'.scale',getProperty(char..'.scale.y') * scaleGhost,0.4,'expoOut')
-				end
-				setObjectOrder(tag, getObjectOrder(behind)-1)
-				if cancelFade then
-					if tableChars[char][9] == nil then
-						tableChars[char][9] = {}
-					end
-					table.insert(tableChars[char][9],tag)
-				end
-				ghostCreated = ghostCreated + 1
-			end
-
-			function onTweenCompleted(t)
-				if t:find('animGhost') ~= nil then
-					if cancelFade then
-						local char = t:match('animGhost%d+(%a+)')
-						if char and tableChars[char] and tableChars[char][9] then
-							for i, ghostTag in ipairs(tableChars[char][9]) do
-								if ghostTag == t then
-									table.remove(tableChars[char][9], i)
-									break
-								end
-							end
-						end
-					end
-					callMethod(t..'.kill',{''})
-					callMethod(t..'.destroy',{''})
-					callMethod('remove', {instanceArg(t)})
-					callMethod('variables.remove', {t})
-				end
-			end
-			--I could use stringformat and unpack but...idk if on versions below from 0.7 exists :(
-			function getIconColor(chr)
-				return getColorFromHex(rgbToHex(getProperty(chr .. '.healthColorArray')))
-			end
-				
-			function rgbToHex(array)
-				return string.format('%.2x%.2x%.2x', array[1], array[2], array[3])
-			end
-
-			function onEvent(n,v1,v2)
-				if n == 'Change Scale Ghost' then
-					scaleGhost = v1
-				elseif n == 'Change Move Ghost' then
-					moveGhost = v1
-				elseif n == 'Color Ghost' then
-					tableChars[tostring(v1)][2][2] = not tableChars[tostring(v1)][2][2]
-				elseif n == 'Solid Color Ghost' then
-					tableChars[tostring(v1)][2][6] = not tableChars[tostring(v1)][2][6]          
-				elseif n == 'Move Ghost' then
-					tableChars[tostring(v1)][2][3] = not tableChars[tostring(v1)][2][3]
-				elseif n == 'Scale Ghost' then
-					tableChars[tostring(v1)][2][4] = not tableChars[tostring(v1)][2][4]
-				elseif n == 'Toggle Ghost For One' then
-					tableChars[tostring(v1)][2][5] = not tableChars[tostring(v1)][2][5]
-				elseif n == 'Toggle Ghost For All' then
-					for charName, charData in pairs(tableChars) do
-						tableChars[charName][2][5] = not tableChars[charName][2][5]
-					end
-				end
-			end
-			");
-		}
 
 		Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
 		var showTime:Bool = (ClientPrefs.data.timeBarType != 'Disabled');
@@ -2636,7 +2438,7 @@ class PlayState extends MusicBeatState
 
 				var gottaHitNote:Bool;
 				noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-				gottaHitNote = (songNotes[1] < Note.ammo[mania]);
+				gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
 
 				//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
 
@@ -3041,6 +2843,12 @@ class PlayState extends MusicBeatState
 				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
+
+				swagNote.row = Conductor.secsToRow(spawnTime);
+				var rowArray = noteRows[gottaHitNote?0:1];
+				if(rowArray[swagNote.row]==null)
+					rowArray[swagNote.row]=[];
+				rowArray[swagNote.row].push(swagNote);
 				if (!swagNote.mustPress)
 				{
 					if (AIPlayMap != null && AIPlayMap.length != 0 && [sectionsData.indexOf(section)] != null)
@@ -5724,7 +5532,7 @@ class PlayState extends MusicBeatState
 		}
 
 		var placement:Float = FlxG.width * 0.35;
-		var rating:FunkinSprite = new FunkinSprite();
+		var rating:FlxSprite = new FlxSprite();
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
@@ -5775,7 +5583,7 @@ class PlayState extends MusicBeatState
 		}
 		rating.antialiasing = antialias;
 
-		var comboSpr:FunkinSprite = new FunkinSprite();
+		var comboSpr:FlxSprite = new FlxSprite();
 		comboSpr.loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
 		comboSpr.screenCenter();
 		comboSpr.x = placement;
@@ -5811,7 +5619,7 @@ class PlayState extends MusicBeatState
 		var separatedScore:String = Std.string(combo).lpad('0', 3);
 		for (i in 0...separatedScore.length)
 		{
-			var numScore:FunkinSprite = new FunkinSprite();
+			var numScore:FlxSprite = new FlxSprite();
 			numScore.loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
 			numScore.screenCenter();
 			numScore.x = placement + (43 * daLoop) - 90;
@@ -5842,7 +5650,7 @@ class PlayState extends MusicBeatState
 			FlxTween.tween(numScore, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 				onComplete: function(tween:FlxTween)
 				{
-					numScore.destroy();
+					if (numScore != null) numScore.destroy();
 				},
 				startDelay: Conductor.crochet * 0.002 / playbackRate
 			});
@@ -5858,8 +5666,8 @@ class PlayState extends MusicBeatState
 		FlxTween.tween(comboSpr, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 			onComplete: function(tween:FlxTween)
 			{
-				comboSpr.destroy();
-				rating.destroy();
+				if (comboSpr != null) comboSpr.destroy();
+				if (rating != null) rating.destroy();
 			},
 			startDelay: Conductor.crochet * 0.002 / playbackRate
 		});
@@ -6644,7 +6452,7 @@ class PlayState extends MusicBeatState
 					if(char.getAnimationName() == holdAnim || char.getAnimationName() == holdAnim + '-loop') canPlay = false;
 				}
 
-				if(canPlay) char.playAnim(animToPlay, true);
+				if(canPlay) playAnim(note, char, animToPlay, true);
 				char.holdTimer = 0;
 			}
 		}
@@ -6723,7 +6531,7 @@ class PlayState extends MusicBeatState
 						if(char.getAnimationName() == holdAnim || char.getAnimationName() == holdAnim + '-loop') canPlay = false;
 					}
 	
-					if(canPlay) char.playAnim(animToPlay, true);
+					if(canPlay) playAnim(note, char, animToPlay, true);
 					char.holdTimer = 0;
 
 					if(note.noteType == 'Hey!')
@@ -6828,6 +6636,41 @@ class PlayState extends MusicBeatState
 		note.kill();
 		notes.remove(note, true);
 		note.destroy();
+	}
+
+	function playAnim(note:Note, char:Character, animToPlay:String, ?forceAnim:Bool = false) {
+		if(char != null)
+		{
+			char.holdTimer = 0;
+			if (!note.isSustainNote
+				&& noteRows[note.mustPress ? 0 : 1][note.row] != null
+				&& noteRows[note.mustPress ? 0 : 1][note.row].length > 1
+				&& note.noteType != "Ghost Note" && ghostsAllowed) {
+				// potentially have jump anims?
+				var chord = noteRows[note.mustPress ? 0 : 1][note.row];
+				var animNote = chord[0];
+				var realAnim = singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
+				if (char.mostRecentRow != note.row)
+					char.playAnim(realAnim, true);
+
+				if(note.nextNote != null && note.prevNote != null){
+					if (note != animNote && !note.nextNote.isSustainNote /* && !note.prevNote.isSustainNote */ && callOnScripts('onGhostAnim', [animToPlay, note]) != LuaUtils.Function_Stop) {
+						char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+					}else if(note.nextNote.isSustainNote){
+						char.playAnim(realAnim, true);
+						char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+
+					}
+				}
+				char.mostRecentRow = note.row;
+			}
+			else{
+				if(note.noteType != "Ghost Note")
+					char.playAnim(animToPlay, true);
+				else
+					char.playGhostAnim(note.noteData, animToPlay, true);
+			}
+		}
 	}
 
 	override function destroy() {

@@ -27,7 +27,7 @@ class APDisconnectSubstate extends FlxSubState
 
 		// AP.disconnect_socket();
 		states.ExitState.addExitCallback(function() {
-			var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
+			//var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
 			
 		});
 		FlxG.switchState(new states.ExitState());

@@ -58,9 +58,6 @@ class MusicBeatState extends FlxState
 
 		// if (backend.window.CppAPI.getWindowOpacity()!=1)
 		#if windows
-		if (emergencyOpacityFix) {
-			CppAPI.setWindowOppacity(1);
-		}
 
 		if (firstRun) {
 			FlxTween.num(0, 1, 0.5, {
@@ -137,6 +134,11 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		if (emergencyOpacityFix) {
+			CppAPI.setWindowOppacity(1);
+			emergencyOpacityFix = false;
+		}
+
 		if (Main.audioDisconnected && getState() == PlayState.instance)
 		{
 			//Save your progress and THEN reset it (I knew there was a common use for this)

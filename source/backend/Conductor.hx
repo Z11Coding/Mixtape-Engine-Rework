@@ -29,6 +29,8 @@ class Conductor
 	@:noCompletion static function get_jackLimit()
 		return (jackLimit < 0) ? (jackLimit = Conductor.stepCrochet / _internalJackLimit) : jackLimit;
 
+	public static var ROWS_PER_BEAT = 48; // from Stepmania
+
 	public static function judgeNote(arr:Array<Rating>, diff:Float=0):Rating // die
 	{
 		var data:Array<Rating> = arr;
@@ -43,6 +45,9 @@ class Conductor
 		var lastChange = getBPMFromSeconds(time);
 		return lastChange.stepCrochet*4;
 	}
+
+	public inline static function secsToRow(sex:Float):Int
+		return Math.round(getBeat(sex) * ROWS_PER_BEAT);
 
 	public static function getBPMFromSeconds(time:Float){
 		var lastChange:BPMChangeEvent = {

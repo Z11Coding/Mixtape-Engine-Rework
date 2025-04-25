@@ -267,7 +267,9 @@ class Note extends NoteObject
 		'No Animation'
 	];
 	public var strumTime:Float = 0;
-
+	
+	public var row:Int = 0;
+	
 	public var mustPress:Bool = false;
 	public var canBeHit:Bool = false;
 	public var tooLate:Bool = false;
