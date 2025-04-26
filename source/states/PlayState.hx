@@ -3596,7 +3596,7 @@ class PlayState extends MusicBeatState
 		});
 
 		field.noteSpawned.add((dunceNote:Note, field:PlayField) -> {
-			callOnScripts('onSpawnNote', [dunceNote]);
+			callOnScripts('onSpawnNote', [dunceNote.noteReflection]);
 			#if LUA_ALLOWED
 			callOnLuas('onSpawnNote', [
 				allNotes.indexOf(dunceNote),
@@ -3611,7 +3611,7 @@ class PlayState extends MusicBeatState
 			var index:Int = unspawnNotes.indexOf(dunceNote);
 			unspawnNotes.splice(index, 1);
 
-			callOnScripts('onSpawnNotePost', [dunceNote]);
+			callOnScripts('onSpawnNotePost', [dunceNote.noteReflection]);
 		});
 
 
@@ -3823,6 +3823,8 @@ class PlayState extends MusicBeatState
 		FlxG.sound.music.volume *= instVolumeMultiplier;
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
+
+		modchartSync(true);
 
 		// TODO: Figure this out
 		/*for (note in 0...playerStrums.members.length) {
@@ -7301,6 +7303,88 @@ class PlayState extends MusicBeatState
 		setOnScripts('totalPlayed', totalPlayed);
 		setOnScripts('totalNotesHit', totalNotesHit);
 		updateScore(badHit, scoreBop); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce
+	}
+	// Simplified version of applyModchartTransform, which will be used on update functions to find and sync the strumLineNotes
+	// with the Modchart System.
+	public function modchartSync(directChange:Bool = false):Void {
+		for (strumNote in strumLineNotes.members) {
+			if (strumNote != null) {
+				for (field in playfields.members) {
+					if (field.strumNotes.contains(strumNote)) {
+						var i = field.strumNotes.indexOf(strumNote);
+						if (i != -1) {
+							if (directChange) {
+								// Directly change the x, y, angle, and alpha of the strumNote in the field
+								strumNote.x = field.baseXPositions[i];
+								strumNote.y = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+								strumNote.angle = modManager.getValue('localRotate${i}', field.playerId);
+								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
+							} else {
+								// Sync X position
+								var offsetX = strumNote.x - field.baseXPositions[i];
+								modManager.setValue('transform${i}X', offsetX, field.playerId);
+								strumNote.x = strumNote.x;
+
+								// Sync Y position
+								var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+								var offsetY = strumNote.y - baseY;
+								modManager.setValue('transform${i}Y', offsetY, field.playerId);
+								strumNote.y = strumNote.y;
+
+								// Sync angle
+								modManager.setValue('localRotate${i}', strumNote.angle, field.playerId);
+								strumNote.angle = strumNote.angle;
+
+								// // Sync alpha
+								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
+								// strumNote.alpha = strumNote.alpha;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	public function applyModchartTransform(property:String, value:Float, noteData:Int, player:Int, field:PlayField):Void {
+		// Calculate offsets based on property
+		switch (property.toLowerCase()) {
+			case "x":
+				var baseX:Float = field.baseXPositions[noteData];
+				var offsetX = value - baseX;
+				
+				// Apply the transform while preserving any alternate (-a) transforms
+				var currentAltValue = modManager.getValue('transform${noteData}X-a', player);
+				modManager.setValue('transform${noteData}X', offsetX - currentAltValue, player);
+				
+				trace('Legacy Script -> Modchart: Strum ${noteData} X changed: base=${baseX}, new=${value}, transform=${offsetX - currentAltValue}');
+				
+			case "y":
+				var baseY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+				var offsetY = value - baseY;
+				
+				var currentAltValue = modManager.getValue('transform${noteData}Y-a', player);
+				modManager.setValue('transform${noteData}Y', offsetY - currentAltValue, player);
+				
+				trace('Legacy Script -> Modchart: Strum ${noteData} Y changed: base=${baseY}, new=${value}, transform=${offsetY - currentAltValue}');
+				
+			case "angle":
+				// For angles, we can use the builtin localRotate modifier
+				modManager.setValue('localRotate${noteData}', value, player);
+				
+				trace('Legacy Script -> Modchart: Strum ${noteData} angle changed: new=${value}');
+				
+			case "alpha":
+				// For alpha, use the alpha modifier while preserving alternate values
+				var currentAltValue = modManager.getValue('alpha${noteData}-a', player);
+				modManager.setValue('alpha${noteData}', value - currentAltValue, player);
+				
+				trace('Legacy Script -> Modchart: Strum ${noteData} alpha changed: new=${value}');
+				
+			default:
+				trace('Unsupported property for modchart propagation: ${property}');
+		}
 	}
 
 	#if ACHIEVEMENTS_ALLOWED
