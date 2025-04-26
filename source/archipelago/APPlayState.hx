@@ -81,7 +81,7 @@ class APPlayState extends PlayState {
 	public var effectArray:Array<String> = [
 		'colorblind', 'blur', 'lag', 'mine', 'warning', 'heal', 'spin', 'songslower', 'songfaster', 'scrollswitch', 'scrollfaster', 'scrollslower', 'rainbow',
 		'cover', 'ghost', 'flashbang', 'nostrum', 'jackspam', 'spam', 'sever', 'shake', 'poison', 'dizzy', 'noise', 'flip', 'invuln',
-		'desync', 'mute', 'ice', 'randomize', 'randomizeAlt', 'opponentPlay', 'bothplay', 'fakeheal', 'spell', 'terminate', 'lowpass', #if windows 'notif' #end
+		'desync', 'mute', 'ice', 'fakeheal', 'spell', 'terminate', 'lowpass', #if windows 'notif' #end
 	];
 	var notifs:Array<String> = [
 		"You're crazy...",
@@ -184,15 +184,15 @@ class APPlayState extends PlayState {
             'colorblind' => function() {
                 var ttl:Float = 16;
                 var onEnd:(Void->Void) = function() {
-                    camHUDfilters.remove(filterMap.get("Grayscale").filter);
-                    camGamefilters.remove(filterMap.get("Grayscale").filter);
+                    camHUD.filters.remove(filterMap.get("Grayscale").filter);
+                    camGame.filters.remove(filterMap.get("Grayscale").filter);
                 };
                 var playSound:String = "colorblind";
                 var playSoundVol:Float = 0.8;
                 var noIcon:Bool = false;
 
-                camHUDfilters.push(filterMap.get("Grayscale").filter);
-                camGamefilters.push(filterMap.get("Grayscale").filter);
+                camGame.filters.push(filterMap.get("Grayscale").filter);
+                camGame.filters.push(filterMap.get("Grayscale").filter);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'colorblind');
             },
@@ -304,12 +304,12 @@ class APPlayState extends PlayState {
             'spin' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    modManager.setValue('roll', 0);
+                    modManager.setValue('orient', 0);
                 };
                 var playSound:String = "spin";
                 var playSoundVol:Float = 1;
                 var noIcon:Bool = false;
-                modManager.setValue('roll', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
+                modManager.setValue('orient', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'spin');
             },
             'songslower' => function() {
@@ -691,9 +691,8 @@ class APPlayState extends PlayState {
                 explosion.animation.add("boom", okayden, 60, false);
                 explosion.animation.finishCallback = function(name) {
                     explosion.visible = false;
-                    explosion.kill();
                     remove(explosion);
-                    FlxDestroyUtil.destroy(explosion);
+                    explosion.kill();
                 };
                 explosion.cameras = [camHUD];
                 explosion.x = playerField.strumNotes[picked].x + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
@@ -843,6 +842,7 @@ class APPlayState extends PlayState {
                 var onEnd:(Void->Void) = function() {
                     FlxG.sound.music.time += delayOffset;
                     delayOffset = 0;
+                    resyncVocals();
                 };
                 var playSound:String = "delay";
                 var playSoundVol:Float = 1;
@@ -1027,8 +1027,8 @@ class APPlayState extends PlayState {
                 var ttl:Float = 10;
                 var onEnd:(Void->Void) = function() {
                     blurEffect.setStrength(0, 0);
-                    camHUDfilters.remove(filterMap.get("BlurLittle").filter);
-                    camGamefilters.remove(filterMap.get("BlurLittle").filter);
+                    camHUD.filters.remove(filterMap.get("BlurLittle").filter);
+                    camGame.filters.remove(filterMap.get("BlurLittle").filter);
                     lowFilterAmount = 1;
                     vocalLowFilterAmount = 1;
                 };
@@ -1038,12 +1038,12 @@ class APPlayState extends PlayState {
 
                 if (FlxG.random.bool(40)) {
                     lowFilterAmount = .0134;
-                    camGamefilters.push(filterMap.get("BlurLittle").filter);
+                    camGame.filters.push(filterMap.get("BlurLittle").filter);
                     blurEffect.setStrength(32, 32);
                 } else {
                     vocalLowFilterAmount = .0134;
-                    camHUDfilters.push(filterMap.get("BlurLittle").filter);
-                    camGamefilters.push(filterMap.get("BlurLittle").filter);
+                    camHUD.filters.push(filterMap.get("BlurLittle").filter);
+                    camGame.filters.push(filterMap.get("BlurLittle").filter);
                     blurEffect.setStrength(32, 32);
                 }
 
@@ -1854,12 +1854,6 @@ class APPlayState extends PlayState {
 					note.blockHit = true;
 				else
 					note.blockHit = false;
-
-                if (note is archipelago.APNote) {
-                    note.rgbShader.r = 0xFF313131;
-                    note.rgbShader.g = 0xFFFFFFFF;
-                    note.rgbShader.b = 0xFFB4B4B4;
-                }
 			});
 		}
 
@@ -1982,6 +1976,7 @@ class APPlayState extends PlayState {
         super.update(elapsed);
     }
 
+    var alreadySent:Bool = false;
     override function doDeathCheck(?skipHealthCheck:Bool = false):Bool
     {
         if (activeItems[0] <= 0)
@@ -1996,8 +1991,10 @@ class APPlayState extends PlayState {
                 noiseSound.pause();
             }
         }
-        if (health <= 0 && bfkilledcheck && !deathByLink) 
+        if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) { 
+            alreadySent = true; // because indie cross likes to spam this every frame for some reason
             APEntryState.apGame.info().sendDeathLink(COD.COD);
+        }
         super.doDeathCheck();
         return true;
     }
@@ -2219,7 +2216,6 @@ class APPlayState extends PlayState {
 
             if (daNote.specialNote)
 			{
-				specialNoteHit(daNote, field);
 				return;
 			}
             super.noteMiss(daNote, field);
@@ -2378,38 +2374,6 @@ class APPlayState extends PlayState {
 			popUpScore(note);
 		}
 	}
-
-    override function beatHit()
-    {
-        switch (terminateStep)
-		{
-			case 3:
-				var terminate = new TerminateTimestamp(Math.floor(Conductor.songPosition / Conductor.crochet) * Conductor.crochet + Conductor.crochet * 3);
-				add(terminate);
-				terminateTimestamps.push(terminate);
-				terminateStep--;
-                COD.setPresetCOD('custom');
-                COD.custom = 'You were Terminated.';
-			case 2 | 1 | 0:
-				terminateMessage.loadGraphic(Paths.image("streamervschat/terminate" + terminateStep));
-				terminateMessage.screenCenter(XY);
-				terminateMessage.cameras = [camOther];
-				terminateMessage.visible = true;
-				if (terminateStep > 0)
-				{
-					terminateSound.volume = 0.6;
-					terminateSound.play(true);
-				}
-				else if (terminateStep == 0)
-				{
-					FlxG.sound.play(Paths.sound('streamervschat/beep2'), 0.85);
-				}
-				terminateStep--;
-			case -1:
-				terminateMessage.visible = false;
-		}
-        super.beatHit();
-    }
 
     override function closeSubState()
     {

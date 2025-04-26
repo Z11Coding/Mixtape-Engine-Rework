@@ -39,7 +39,6 @@ class WeekData {
 	public var hideFreeplay:Bool;
 	public var difficulties:String;
 	public var category:flixel.util.typeLimit.OneOfTwo<String, Array<String>>;
-
 	public var fileName:String;
 
 	public static function createWeekFile():WeekFile {
@@ -181,14 +180,14 @@ class WeekData {
 		return null;
 	}
 
-	//   FUNCTIONS YOU WILL PROBABLY NEVER NEED TO USE
+	// FUNCTIONS YOU WILL PROBABLY NEVER NEED TO USE
 
-	//To use on PlayState.hx or Highscore stuff
+	// To use on PlayState.hx or Highscore stuff
 	public static function getWeekFileName():String {
 		return weeksList[PlayState.storyWeek];
 	}
 
-	//Used on LoadingState, nothing really too relevant
+	// Used on LoadingState, nothing really too relevant
 	public static function getCurrentWeek():WeekData {
 		return weeksLoaded.get(weeksList[PlayState.storyWeek]);
 	}

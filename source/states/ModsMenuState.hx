@@ -115,6 +115,7 @@ class ModsMenuState extends MusicBeatState
 
 		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, Language.getPhrase('enable_all_button', 'ENABLE ALL'), function() {
 			buttonEnableAll.ignoreCheck = false;
+			buttonEnableAll.visible = false;
 			for (mod in modsGroup.members)
 			{
 				if(modsList.disabled.contains(mod.folder))
@@ -135,6 +136,7 @@ class ModsMenuState extends MusicBeatState
 
 		buttonDisableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, Language.getPhrase('disable_all_button', 'DISABLE ALL'), function() {
 			buttonDisableAll.ignoreCheck = false;
+			buttonDisableAll.visible = false;
 			for (mod in modsGroup.members)
 			{
 				if(modsList.enabled.contains(mod.folder))

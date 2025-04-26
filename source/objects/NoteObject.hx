@@ -14,7 +14,7 @@ enum abstract ObjectType(#if cpp cpp.UInt8 #else Int #end)
 	var SPLASH;
 }
 
-class NoteObject extends FunkinSprite {
+class NoteObject extends FlxSprite {
 	public var zIndex:Float = 0;
 	public var objType:ObjectType = UNKNOWN;
 

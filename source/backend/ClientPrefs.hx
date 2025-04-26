@@ -165,6 +165,7 @@ import states.TitleState;
 	public var aprilFools:Bool = true;
 	public var freeplayMenu:String = 'Mixtape';
 	public var showMods:Bool = false;
+	public var checkAPWorld:Bool = true;
 }
 
 class ClientPrefs {

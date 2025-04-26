@@ -431,7 +431,7 @@ class FunkinSprite extends FlxSprite
     frames = null;
     // Cancel all tweens so they don't continue to run on a destroyed sprite.
     // This prevents crashes.
-    FlxTween.cancelTweensOf(this);
+    //FlxTween.cancelTweensOf(this);
     super.destroy();
   }
 }

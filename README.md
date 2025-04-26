@@ -1,4 +1,3 @@
-
 # Archipelago Randomizer Configuration / Setup Guide
 
 Archipelago is a Multiworld Randomizer, meaning it randomizes a bunch of games into one randomizer pool, and it challenges you to conplete all of the games.
@@ -21,8 +20,8 @@ When updating the Engine, make sure to use the Update/Install APWorld Button to 
 ### Need help?
 Join our [Test Discord Server](https://discord.gg/KJXvEVUfZX) to get assistance with issues, or to submit a bug report.
 
-# Friday Night Funkin' - Psych Engine
-Engine originally used on [Mind Games Mod](https://gamebanana.com/mods/301107), intended to be a fix for the vanilla version's many issues while keeping the casual play aspect of it. Also aiming to be an easier alternative to newbie coders.
+# Mixtape Engine
+Mixtape is a fork of [Psych Engine](https://gamebanana.com/mods/309789) (another one, oh the horror!), with the goal of being the most compatible engine ever. Eventually, we want to be able to have *every* mod from *every* engine compatible all in one *right here*.
 
 ## Installation:
 

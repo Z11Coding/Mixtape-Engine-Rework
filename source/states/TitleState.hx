@@ -15,7 +15,6 @@ import openfl.display.BitmapData;
 
 import shaders.ColorSwap;
 
-import backend.AudioSwitchFix;
 import states.StoryMenuState;
 import states.MainMenuState;
 
@@ -73,13 +72,6 @@ class TitleState extends MusicBeatState
 	{
 		Paths.clearStoredWithoutStickers();
 		super.create();
-
-		if(!initialized)
-		{
-			ClientPrefs.loadPrefs();
-			Language.reloadPhrases();
-			AudioSwitchFix.init();
-		}
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 

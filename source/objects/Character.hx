@@ -45,7 +45,7 @@ enum CharType {
 	OTHER;
 }
 
-class Character extends FunkinSprite
+class Character extends FlxSprite
 {
 	/**
 	 * In case a character is missing, it will use this on its place
@@ -91,12 +91,27 @@ class Character extends FunkinSprite
 	public var invuln:Bool = false;
 	public var controlled:Bool = false;
 
+	public var doubleGhosts:Array<FunkinSprite> = [];
+	public var ghostID:Int = 0;
+	public var ghostAnim:String = '';
+	public var ghostTweenGRP:Array<FlxTween> = [];
+
+	public var mostRecentRow:Int = 0; // for ghost anims n shit
+
 	// This is literally only for the dropshadow shader
 	public var charType:CharType = OTHER; 
 
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?chType:CharType = OTHER)
 	{
 		super(x, y);
+
+		for(i in 0...4){
+			var ghost = new FunkinSprite();
+			ghost.visible = false;
+			ghost.antialiasing = true;
+			ghost.alpha = 0.6;
+			doubleGhosts.push(ghost);
+		}
 
 		animation = new PsychAnimationController(this);
 
@@ -118,6 +133,7 @@ class Character extends FunkinSprite
 
 	public function changeCharacter(character:String)
 	{
+
 		animationsArray = [];
 		animOffsets = [];
 		curCharacter = character;
@@ -256,6 +272,8 @@ class Character extends FunkinSprite
 
 		if(debugMode || (!isAnimateAtlas && animation.curAnim == null) || (isAnimateAtlas && (atlas.anim.curInstance == null || atlas.anim.curSymbol == null)))
 		{
+			for (ghost in doubleGhosts)
+				ghost.update(elapsed);
 			super.update(elapsed);
 			return;
 		}
@@ -365,9 +383,8 @@ class Character extends FunkinSprite
 
 		return value;
 	}
-
+	
 	public var danced:Bool = false;
-
 	/**
 	 * FOR GF DANCING SHIT
 	 */
@@ -477,6 +494,64 @@ class Character extends FunkinSprite
 		animation.addByPrefix(name, anim, 24, false);
 	}
 
+	public function playGhostAnim(ghostID = 0, AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0) {
+		try {
+		var ghost:FlxSprite = doubleGhosts[ghostID];
+		ghost.scale.copyFrom(scale);
+		ghost.frames = frames;
+		ghost.animation.copyFrom(animation);
+		// ghost.shader = shader;
+		ghost.x = x;
+		ghost.y = y;
+		ghost.flipX = flipX;
+		ghost.flipY = flipY;
+		ghost.alpha = alpha * 0.6;
+		ghost.visible = true;
+		ghost.color = FlxColor.fromRGB(healthColorArray[0], healthColorArray[1], healthColorArray[2]);
+		ghost.animation.play(AnimName, Force, Reversed, Frame);
+		if (ghostTweenGRP[ghostID] != null)
+			ghostTweenGRP[ghostID].cancel();
+
+		var direction:String = AnimName.substring(4);
+
+		var directionMap:Map<String, Array<Float>> = [
+			'UP' => [0, -45],
+			'DOWN' => [0, 45],
+			'RIGHT' => [45, 0],
+			'LEFT' => [-45, 0],
+			'UP-alt' => [0, -45],
+			'DOWN-alt' => [0, 45],
+			'RIGHT-alt' => [45, 0],
+			'LEFT-alt' => [-45, 0],
+		];
+		//had to add alt cuz it kept crashing on room code LOL
+
+		var moveDirections:Array<Float> = [
+			x + (directionMap.get(direction)[0]),
+			y + (directionMap.get(direction)[1])
+		];
+
+		ghostTweenGRP[ghostID] = FlxTween.tween(ghost, {alpha: 0, x: moveDirections[0], y: moveDirections[1]}, 0.75, {
+			ease: FlxEase.linear,
+			onComplete: function(twn:FlxTween)
+			{
+				ghost.visible = false;
+				ghostTweenGRP[ghostID].destroy(); // maybe?
+				ghostTweenGRP[ghostID] = null;
+			}
+		});
+
+		var daOffset = animOffsets.get(AnimName);
+		if (animOffsets.exists(AnimName))
+			ghost.offset.set(daOffset[0], daOffset[1]);
+		else
+			ghost.offset.set(0, 0);
+		}
+		catch(e) {
+			trace('ERROR: $e');
+		}
+	}
+
 	// Atlas support
 	// special thanks ne_eo for the references, you're the goat!!
 	@:allow(states.editors.CharacterEditorState)
@@ -485,6 +560,11 @@ class Character extends FunkinSprite
 	public var atlas:FlxAnimate;
 	public override function draw()
 	{
+		for(ghost in doubleGhosts){
+			if(ghost.visible)
+				ghost.draw();
+		}
+		
 		var lastAlpha:Float = alpha;
 		var lastColor:FlxColor = color;
 		if(missingCharacter)
