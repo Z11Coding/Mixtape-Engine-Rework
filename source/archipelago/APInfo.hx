@@ -1,8 +1,8 @@
 package archipelago;
 
 class APInfo {
-    public static var ap:Client;
-    public static var apGame:APGameState;
+	public static var ap:Client;
+	public static var apGame:APGameState;
 
 	public static var ticketCount:Int = 0;
 	public static var ticketWinCount:Int = 1;
@@ -23,21 +23,23 @@ class APInfo {
 		"<cClose>" => "}",
 		"<sOpen>" => "[",
 		"<sClose>" => "]",
-		"<colon>" => ":",
 		"<comma>" => ",",
-		"<dash>" => "-",
 		"<hash>" => "#",
-		"<amp>" => "&",
-		"<asterisk>" => "*",
-		"<question>" => "?",
-		"<pipe>" => "|",
-		"<greater>" => ">",
-		"<less>" => "<",
-		"<percent>" => "%",
-		"<at>" => "@",
+		// "<question>" => "?",
 		"<backtick>" => "`",
 		"<singleQuote>" => "'",
 		"<doubleQuote>" => "\""
+	];
+
+	// Escape map for characters that only affect strings at the beginning.
+	public static var YAMLStartEscapeMap:Map<String, String> = [
+		"<pipe>" => "|",
+		"<amp>" => "&",
+		"<exclamation>" => "!",
+		"<asterisk>" => "*",
+		"<percent>" => "%",
+		"<at>" => "@",
+		"<asterisk>" => "*",
 	];
 
 	public static function get_hintPoints():Int {
@@ -47,7 +49,6 @@ class APInfo {
 	public static function get_hintCost():Int {
 		return APInfo.apGame.info().hintCostPoints;
 	}
-
 
 	public static function get_hasNoteChecks():Bool {
 		return unlockMethod == "Note Checks" || unlockMethod == "Both";
@@ -73,24 +74,24 @@ class APInfo {
 	public static final baseErect:Array<String> = 
 	[
 		'Bopeebo Erect', 'Fresh Erect', 'Dad Battle Erect',
-	 	'Spookeez Erect', 'South Erect',
-	 	'Pico Erect', 'Philly Nice Erect', 'Blammed Erect',
-	 	'Satin Panties Erect', 'High Erect',
-	 	'Cocoa Erect', 'Eggnog Erect',
-	 	'Senpai Erect', 'Roses Erect', 'Thorns Erect',
-	 	'Ugh Erect',
-		'Darnell Erect' //it could go here, it could go with pico, but for the sake of consistancy imma put it here
+		'Spookeez Erect', 'South Erect',
+		'Pico Erect', 'Philly Nice Erect', 'Blammed Erect',
+		'Satin Panties Erect', 'High Erect',
+		'Cocoa Erect', 'Eggnog Erect',
+		'Senpai Erect', 'Roses Erect', 'Thorns Erect',
+		'Ugh Erect',
+		'Darnell Erect'
 	];
 
 	public static final basePico:Array<String> = 
 	[
 		'Darnell', 'Lit Up', '2Hot', 'Blazin',
 		'Bopeebo (Pico mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
-	 	'Spookeez (Pico mix)', 'South (Pico mix)',
-	 	'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
-	 	'Eggnog (Pico mix)', 'Cocoa (Pico mix)',
+		'Spookeez (Pico mix)', 'South (Pico mix)',
+		'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
+		'Eggnog (Pico mix)', 'Cocoa (Pico mix)',
 		'Senpai (Pico mix)', 'Roses (Pico mix)',
-	 	'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico mix)'
+		'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico mix)'
 	];
 
 	public static final secrets:Array<String> = [
@@ -99,17 +100,27 @@ class APInfo {
 		'Beat Battle 2'
 	];
 
-
 	// Function to reverse conversions of YAML keywords.
 	public static function realName(input:String):String {
 		for (key in YAMLEscapeMap.keys()) {
 			input = input.replace(key, YAMLEscapeMap.get(key));
+		}
+		for (key in YAMLStartEscapeMap.keys()) {
+			input = input.replace(key, YAMLStartEscapeMap.get(key));
 		}
 		return input;
 	}
 
 	// Function to convert special characters into YAML-safe keywords.
 	public static function toYAMLSafe(input:String):String {
+		// Handle start-specific replacements
+		for (key in YAMLStartEscapeMap.keys()) {
+			var value = YAMLStartEscapeMap.get(key);
+			if (input.startsWith(value)) {
+				input = input.replace(value, key);
+			}
+		}
+		// Handle general replacements
 		for (key in YAMLEscapeMap.keys()) {
 			input = input.replace(YAMLEscapeMap.get(key), key);
 		}
