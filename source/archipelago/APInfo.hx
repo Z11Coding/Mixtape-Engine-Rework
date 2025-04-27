@@ -115,7 +115,4 @@ class APInfo {
 		}
 		return input;
 	}
-
-	// Call the initializer to populate the escape map.
-	initializeEscapeMap();
 }
