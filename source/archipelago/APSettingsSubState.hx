@@ -48,10 +48,9 @@ class APSettingsSubState extends MusicBeatSubstate {
                 
                 if (Mods.parseList().enabled.contains(leWeek.folder))
                 for (song in leWeek.songs) {
-                    var songName = (cast song[0] : String);
+                    var songName = APInfo.toYAMLSafe(Std.string(song[0]));
                     var folderName = StringTools.trim(leWeek.folder);
-                    if (folderName.indexOf("{") != -1 || folderName.indexOf("}") != -1 || folderName.indexOf("[") != -1 || folderName.indexOf("]") != -1) {
-                        folderName = folderName.replace("{", "<cOpen>").replace("}", "<cClose>").replace("[", "<sOpen>").replace("]", "<sClose>");
+                    folderName = APInfo.toYAMLSafe(folderName);
                     }
                     tempSongList.set(songName + (folderName != "" ? " (" + folderName + ")" : ""), true);
                 }

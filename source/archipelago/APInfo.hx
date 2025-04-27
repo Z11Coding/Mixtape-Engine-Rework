@@ -17,6 +17,29 @@ class APInfo {
 	public static var hintPoints(get, never):Int;
 	public static var hintCost(get, never):Int;
 
+	// All things to escape when making song names.
+	public static var YAMLEscapeMap:Map<String, String>  = [
+		"<cOpen>" => "{",
+		"<cClose>" => "}",
+		"<sOpen>" => "[",
+		"<sClose>" => "]",
+		"<colon>" => ":",
+		"<comma>" => ",",
+		"<dash>" => "-",
+		"<hash>" => "#",
+		"<amp>" => "&",
+		"<asterisk>" => "*",
+		"<question>" => "?",
+		"<pipe>" => "|",
+		"<greater>" => ">",
+		"<less>" => "<",
+		"<percent>" => "%",
+		"<at>" => "@",
+		"<backtick>" => "`",
+		"<singleQuote>" => "'",
+		"<doubleQuote>" => "\""
+	];
+
 	public static function get_hintPoints():Int {
 		return APInfo.apGame.info().hintPoints;
 	}
@@ -75,4 +98,24 @@ class APInfo {
 		'Beat Battle', 
 		'Beat Battle 2'
 	];
+
+
+	// Function to reverse conversions of YAML keywords.
+	public static function realName(input:String):String {
+		for (key in YAMLEscapeMap.keys()) {
+			input = input.replace(key, YAMLEscapeMap.get(key));
+		}
+		return input;
+	}
+
+	// Function to convert special characters into YAML-safe keywords.
+	public static function toYAMLSafe(input:String):String {
+		for (key in YAMLEscapeMap.keys()) {
+			input = input.replace(YAMLEscapeMap.get(key), key);
+		}
+		return input;
+	}
+
+	// Call the initializer to populate the escape map.
+	initializeEscapeMap();
 }

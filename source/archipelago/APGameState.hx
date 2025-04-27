@@ -924,8 +924,8 @@ class APGameState
 				continue;
 			}
 
-			// Convert special keywords back to actual brackets
-			itemName = itemName.replace("<cOpen>", "{").replace("<cClose>", "}").replace("<sOpen>", "[").replace("<sClose>", "]");
+			// Use the realName function to convert special keywords back to actual brackets
+			itemName = APInfo.realName(itemName);
 
 
 			var data = getSongAndMod(itemName);
