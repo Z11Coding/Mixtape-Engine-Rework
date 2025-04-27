@@ -51,11 +51,11 @@ class APSettingsSubState extends MusicBeatSubstate {
                     var songName = APInfo.toYAMLSafe(Std.string(song[0]));
                     var folderName = StringTools.trim(leWeek.folder);
                     folderName = APInfo.toYAMLSafe(folderName);
-                    }
                     tempSongList.set(songName + (folderName != "" ? " (" + folderName + ")" : ""), true);
                 }
             }
         }
+
     
         for (song in globalSongList) {
             tempSongList.set(song, false);
