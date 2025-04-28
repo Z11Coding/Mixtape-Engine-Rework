@@ -199,7 +199,7 @@ class NoteField extends FieldBase
 				continue;
 
 			if (tryForceHoldsBehind)
-				object.zIndex -= 2; // so that way strums are always behind no matter what
+				object.zIndex -= 4; // so that way strums are always behind no matter what
 
 			lookupMap.set(obj, object);
 			drawQueue.push(object);
