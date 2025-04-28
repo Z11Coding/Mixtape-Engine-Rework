@@ -26,6 +26,23 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 		};
 		addOption(option);
 
+		var flip:Option = new Option('Flip Screen',
+			"if checked, the screen will be flipped upside down.\nWARNING: THIS MAY CAUSE ISSUES WITH THE GAME.", 
+			'flipScreen',
+			BOOL);
+		flip.onChange = function()
+		{
+			if (archipelago.APEntryState.inArchipelagoMode)
+			{
+				var targetAngle = flip.getValue() ? 180 : 0;
+				FlxTween.tween(FlxG.camera, {angle: targetAngle}, 0.5, {
+					ease: FlxEase.quadOut
+				});
+				backend.MusicBeatState.APFlip = flip.getValue();
+			}
+		};
+		addOption(flip);
+
 		super();
 	}
 
