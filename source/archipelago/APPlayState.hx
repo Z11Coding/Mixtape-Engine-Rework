@@ -2210,7 +2210,7 @@ class APPlayState extends PlayState {
             {
                 // If the note is meant to be ignored for some reason, check it.
                 // This is used for the check notes that are not meant to be hit.
-                checkedNotes.push(cast(daNote, archipelago.APNote));
+                checkedNotes.push(daNote);
                 ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
             }
 
@@ -2253,7 +2253,7 @@ class APPlayState extends PlayState {
         @:privateAccess 
         if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
             ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
-            checkedNotes.push(cast(note, archipelago.APNote));
+            checkedNotes.push(note);
         }
 
         super.goodNoteHit(note, field);

@@ -113,7 +113,7 @@ class MusicBeatState extends FlxState
 			playErrorSound = false;
 			FlxG.sound.play(Paths.sound('error'), 1, false);
 		}
-		if (APFlip || (yutautil.AprilFools.allowAF && FlxG.random.bool()))
+		if (APFlip || (yutautil.AprilFools.allowAF && FlxG.random.bool(25)))
 		{
 			FlxTween.tween(FlxG.camera, {angle: 180}, 0.5, {
 				ease: FlxEase.quadOut,
