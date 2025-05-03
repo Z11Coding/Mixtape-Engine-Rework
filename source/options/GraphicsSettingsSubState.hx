@@ -40,7 +40,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('GPU Caching', //Name
-			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have a shitty Graphics Card.\n(WARNING: CURRENTLY IN A BUGGY STATE. NOT RECOMMENDED.)", //Description
+			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have a shitty Graphics Card.\n	(WARNING: CURRENTLY IN A BUGGY STATE. NOT RECOMMENDED.)", //Description
 			'cacheOnGPU',
 			BOOL);
 		addOption(option);
