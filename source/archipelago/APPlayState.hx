@@ -2030,15 +2030,7 @@ class APPlayState extends PlayState {
         if (((((((archipelago.APItem.activeItem != null))))))) // Why was this GONE???
             archipelago.APItem.activeItem = null;
 
-        trace("Sending checks for all checked notes...");
-        for (note in checkedNotes) {
-            trace("Sending check for note: " + note);
-            @:privateAccess{ 
-                trace("Sending location: " + note.checkInfo.loc);
-                apGame.info().LocationChecks([note.checkInfo.loc]);
-            }
-        }
-        trace("All checks sent.");
+
 
 		ClientPrefs.data.downScroll = ogScroll;
 
@@ -2068,6 +2060,18 @@ class APPlayState extends PlayState {
 
 
         super.endSong();
+
+        trace("Sending checks for all checked notes...");
+        for (note in checkedNotes) {
+            trace("Sending check for note: " + note);
+            @:privateAccess{ 
+                trace("Sending location: " + note.checkInfo.loc);
+                apGame.info().LocationChecks([note.checkInfo.loc]);
+            }
+        }
+        trace("All checks sent.");
+
+        
         paused = true;
         states.FreeplayState.callVictory = states.FreeplayState.isVictorySong(PlayState.SONG.song, currentMod);
         openSubState(new substates.RankingSubstate());

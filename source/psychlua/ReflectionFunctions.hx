@@ -281,7 +281,64 @@ class ReflectionFunctions
 			if(className != null) retStr += '::$className';
 			return retStr;
 		});
+
+		// Lua_helper.add_callback(lua, "getPointer", function(variable:String) {
+		// 	var split:Array<String> = variable.split('.');
+		// 	var obj:Dynamic;
+		// 	if(split.length > 1)
+		// 		obj = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split, true), split[split.length-1]);
+		// 	else
+		// 		obj = LuaUtils.getVarInArray(LuaUtils.getTargetInstance(), variable);
+		// 	cpp.Pointer.addressOf(obj);
+		// 	#if cpp
+		// 	return cpp.RawPointer.addressOf(obj); 
+		// 	#else
+		// 	return obj;
+		// 	#end
+		// });
+		// Lua_helper.add_callback(lua, "getPointerRef", function(pointer:Dynamic) {
+		// 	if(pointer == null) return null;
+		// 	#if cpp
+		// 	return cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(pointer)).ref; 
+		// 	#else
+		// 	return pointer;
+		// 	#end
+		// });
+		// Lua_helper.add_callback(lua, "getRefromPointer", function(pointer:Dynamic) {
+		// 	if(pointer == null) return null;
+		// 	#if cpp
+		// 	return cpp.Pointer.fromRaw((pointer)).ref; 
+		// 	#else
+		// 	return pointer;
+		// 	#end
+		// });
+
+		Lua_helper.add_callback(lua, "newInstance", function(className:String, ?args:Array<Dynamic>) {
+			if (!Std.isOfType(args, Array)) args = [];
+			var myType:Dynamic = Type.resolveClass(className);
+	
+			if(myType == null)
+			{
+				FunkinLua.luaTrace('newInstance: Class $className not found', false, false, FlxColor.RED);
+				return null;
+			}
+	
+			var obj:Dynamic = null;
+			try {
+				obj = Type.createInstance(myType, parseInstances(args));
+			} catch (e:Dynamic) {
+				FunkinLua.luaTrace('newInstance: Error creating instance of $className - $e', false, false, FlxColor.RED);
+			}
+			if(obj != null)
+				return instArray[instArray.push(obj) - 1];
+			else
+				FunkinLua.luaTrace('newInstance: Failed to create instance of $className, arguments are possibly wrong.', false, false, FlxColor.RED);
+	
+			return null;
+		});
 	}
+
+	public static var instArray:Array<Dynamic> = [];
 
 	static function parseInstanceArray(arg:Array<Dynamic>) {
 		var newArray:Array<Dynamic> = [];
