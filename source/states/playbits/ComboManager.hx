@@ -37,12 +37,10 @@ class ComboManager {
 	];
 
     //AI Stuff
-    @:allow(states.PlayState)
-    private var AIScore:Int = 0;
-    private var AIMisses:Int = 0;
-    private var AITotalNotesHit:Float = 0;
-    private var AITotalPlayed:Int = 0;
-
+    public var AIScore:Int = 0;
+    public var AIMisses:Int = 0;
+    public var AITotalNotesHit:Float = 0;
+    public var AITotalPlayed:Int = 0;
     public var ratingNameAI:String = '?';
 	public var ratingPercentAI:Float;
 	public var ratingFCAI:String;
@@ -146,5 +144,28 @@ class ComboManager {
 		PlayState.instance?.setOnScripts('totalPlayed', totalPlayed);
 		PlayState.instance?.setOnScripts('totalNotesHit', totalNotesHit);
 		PlayState.instance?.updateScore(badHit, scoreBop); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce
+	}
+
+    
+	public function RecalculateRatingAI(badHit:Bool = false)
+	{
+		if (AITotalPlayed != 0) // Prevent divide by 0
+        {
+            // Rating Percent
+            ratingPercentAI = Math.min(1, Math.max(0, AITotalNotesHit / AITotalPlayed));
+            // trace((totalNotesHit / totalPlayed) + ', Total: ' + totalPlayed + ', notes hit: ' + totalNotesHit);
+
+            // Rating Name
+            ratingNameAI = ratingStuff[ratingStuff.length - 1][0]; // Uses last string
+            if (ratingPercentAI < 1)
+                for (i in 0...ratingStuff.length - 1)
+                    if (ratingPercentAI < ratingStuff[i][1])
+                    {
+                        ratingNameAI = ratingStuff[i][0];
+                        break;
+                    }
+        }
+        fullComboFunctionAI();
+		PlayState.instance.updateScoreAI(badHit); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce -Ghost
 	}
 }
