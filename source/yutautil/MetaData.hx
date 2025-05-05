@@ -6,6 +6,8 @@ import haxe.Timer;
 // import haxe.macro.Context;
 // import haxe.macro.Expr;
 
+using yutautil.PointerTools;
+
 class MetaData {
     private static var metaMap:WeakMap<Dynamic, Dynamic> = new WeakMap();
     private static var cleanupTimer:Timer = new Timer(60000); // Cleanup every 60 seconds
@@ -56,18 +58,24 @@ class MetaData {
 
         switch (Type.typeof(variable)) {
             case TClass(c): // Maybe not recommended on giant classes or states...
-                for (field in Type.getInstanceFields(c)) {
-                    if (Reflect.isObject(Reflect.field(c, field))) {
-                        for (stuff in Reflect.fields(Reflect.field(c, field))) {
-                            metadata(Reflect.field(Reflect.field(c, field), stuff));
-                        }
-                    } 
-                    else {
-                        metadata(Reflect.field(c, field));
-                    }
-                }
+                // for (field in Type.getInstanceFields(c)) {
+                //     if (Reflect.isObject(Reflect.field(c, field))) {
+                //         for (stuff in Reflect.fields(Reflect.field(c, field))) {
+                //             metadata(Reflect.field(Reflect.field(c, field), stuff));
+                //         }
+                //     } 
+                //     else {
+                //         metadata(Reflect.field(c, field));
+                //     }
+                // }
                 Reflect.setField(meta, "class", Type.getClassName(c));
-                Reflect.setField(meta, "super", Type.getClassName(Type.getSuperClass(c)));
+                var super_tree = [];
+                var currentSuper = Type.getSuperClass(c);
+                while (currentSuper != null) {
+                    super_tree.push(Type.getClassName(currentSuper));
+                    currentSuper = Type.getSuperClass(currentSuper);
+                }
+                Reflect.setField(meta, "super_tree", super_tree);
             case TInt:
                 // Reflect.setField(meta, "e", Std.int(variable));
 
@@ -103,6 +111,9 @@ class MetaData {
                     }
                 }
         }
+        add("type", Type.getClassName(Type.getClass(variable)));
+        add("pointer", PointerTools.pointer(variable));
+
     }
 
     private static function cleanup():Void {

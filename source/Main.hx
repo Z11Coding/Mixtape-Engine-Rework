@@ -145,6 +145,10 @@ class Main extends Sprite
 		WindowUtils.init();
 
 		var commandPrompt = new CommandPrompt();
+
+		trace(commandPrompt.metadata());
+		trace(game.metadata());
+
 		yutautil.Threader.runInThread(commandPrompt.start());
 		#if HSCRIPT_ALLOWED
 		Iris.warn = function(x, ?pos:haxe.PosInfos) {
