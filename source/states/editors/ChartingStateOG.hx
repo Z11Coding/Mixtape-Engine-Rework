@@ -454,7 +454,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		waveformSprite = new FlxSprite(GRID_SIZE, 0).makeGraphic(FlxG.width, FlxG.height, 0x00FFFFFF);
 		add(waveformSprite);
 
-		var eventIcon:FlxSprite = new FlxSprite(-GRID_SIZE - 5, -90).loadGraphic(Paths.image('editors/eventArrow'));
+		var eventIcon:FlxSprite = new FlxSprite(-GRID_SIZE - 5, -90).loadGraphic(Paths.image('editors/eventIcon'));
 		leftIcon = new HealthIcon('bf');
 		rightIcon = new HealthIcon('dad');
 		eventIcon.scrollFactor.set(1, 1);

@@ -238,8 +238,7 @@ class TransitionState {
 
             case "stickers":
                 //trace("Opening sticker substate...");
-                MusicBeatState.reopen = true;
-                FlxG.state.openSubState(new substates.StickerSubState(null,  (sticker) -> Type.createInstance(targetState, args != null ? args : [])));
+                FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> Type.createInstance(targetState, args != null ? args : [])));
             case "melt":
                 var screenCopy = new BitmapData(FlxG.width, FlxG.height);
                 screenCopy.draw(FlxG.camera.buffer);

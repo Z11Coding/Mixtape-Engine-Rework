@@ -350,8 +350,8 @@ class ChartingNote extends FlxSprite
 
 	public function defaultRGB()
 	{
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData];
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[noteData];
+		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[noteData];
 
 		if (arr != null && noteData > -1 && noteData <= arr.length)
 		{
@@ -441,7 +441,7 @@ class ChartingNote extends FlxSprite
 			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) rgbShader.enabled = false;
 			texture = '';
 
-			x += swagWidth * (noteData);
+			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
 				animToPlay = Note.keysShit.get(mania).get('letters')[noteData];

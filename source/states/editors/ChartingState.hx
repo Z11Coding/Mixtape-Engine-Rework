@@ -275,9 +275,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var waveformEnabled:Bool = false;
 	var waveformTarget:WaveformTarget = INST;
 
-	//var lilStage:FlxSprite;
-	var lilbf:Character;
-	var lilopp:Character;
+	var lilBuddiesOn:Bool = false;
+	var lilStage:FlxSprite;
+	var lilBf:FlxSprite;
+	var lilOpp:FlxSprite;
+	var lilPlayer:Character;
+	var lilOpponent:Character;
+	var lilGf:Character;
+	var gfSpeed:Int = 1;
 	var singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 
 	var _heldNotes:Array<MetaNote> = [];
@@ -315,61 +320,57 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		bg.scrollFactor.set();
 		add(bg);
 
-		lilbfGroup = new FlxSpriteGroup(100, 405);
-		liloppGroup = new FlxSpriteGroup(50, 556);
-		try {
-			lilbf = new Character(0, 0, PlayState.SONG.player1 != null ? PlayState.SONG.player1 : "bf", false);
-			if (lilbf?.frames == null) throw "No bitmap data";
-			lilbf.scrollFactor.set();
-			lilbf.setGraphicSize(Std.int(lilbf.width * 0.5));
-			lilbfMap.set(lilbf.curCharacter, lilbf);
-			lilbfGroup.add(lilbf);
-		} catch (e:Dynamic) {
-			trace("Failed to load character for player1, resetting to default 'bf'.");
-			lilbf = new Character(0, 0, "bf", false);
-			lilbf.scrollFactor.set();
-			lilbf.setGraphicSize(Std.int(lilbf.width * 0.5));
-			lilbfMap.set(lilbf.curCharacter, lilbf);
-			lilbfGroup.add(lilbf);
+		//lil buddies from fps plus
+		lilStage = new FlxSprite(32, 332).loadGraphic(Paths.image("editors/lilStage"));
+		lilStage.scrollFactor.set();
+		lilStage.antialiasing = true;
+		add(lilStage);
+
+		lilBf = new FlxSprite(32, 332).loadGraphic(Paths.image("editors/lilBf"), true, 300, 256);
+		lilBf.animation.add("idle", [0, 1], 12, true);
+		lilBf.animation.add("0", [3, 4, 5], 12, false);
+		lilBf.animation.add("1", [6, 7, 8], 12, false);
+		lilBf.animation.add("2", [9, 10, 11], 12, false);
+		lilBf.animation.add("3", [12, 13, 14], 12, false);
+		lilBf.animation.add("yeah", [17, 20, 23], 12, false);
+		lilBf.animation.play("idle");
+		lilBf.animation.finishCallback = function(name:String){
+			lilBf.animation.play(name, true, false, lilBf.animation.getByName(name).numFrames - 2);
 		}
+		lilBf.scrollFactor.set();
+		lilBf.antialiasing = true;
+		add(lilBf);
 
-		lilbf.flipX = !lilbf.flipX;
-
-		try {
-			lilopp = new Character(0, 0, PlayState.SONG.player2 != null ? PlayState.SONG.player2 : "bf-pixel-opponent", false);
-			if (lilopp?.frames == null) throw "No bitmap data";
-			lilopp.scrollFactor.set();
-			// lilopp.y = lilbf.y;
-			// lilopp.x = lilbf.x + lilbf.width + 10;
-			lilopp.setGraphicSize(Std.int(lilopp.width * 0.5));
-			liloppMap.set(lilopp.curCharacter, lilopp);
-			liloppGroup.add(lilopp);
-		} catch (e:Dynamic) {
-			trace("Failed to load character for player2, resetting to default 'bf-pixel-opponent'.");
-			lilopp = new Character(0, 0, "bf-pixel-opponent", false);
-			lilopp.scrollFactor.set();
-			lilopp.setGraphicSize(Std.int(lilopp.width * 0.5));
-			liloppMap.set(lilopp.curCharacter, lilopp);
-			liloppGroup.add(lilopp);
+		lilOpp = new FlxSprite(32, 332).loadGraphic(Paths.image("editors/lilOpp"), true, 300, 256);
+		lilOpp.animation.add("idle", [0, 1], 12, true);
+		lilOpp.animation.add("0", [3, 4, 5], 12, false);
+		lilOpp.animation.add("1", [6, 7, 8], 12, false);
+		lilOpp.animation.add("2", [9, 10, 11], 12, false);
+		lilOpp.animation.add("3", [12, 13, 14], 12, false);
+		lilOpp.animation.play("idle");
+		lilOpp.animation.finishCallback = function(name:String){
+			lilOpp.animation.play(name, true, false, lilOpp.animation.getByName(name).numFrames - 2);
 		}
-		
-		for (key in lilbf.animOffsets.keys()) {
-            lilbf.animOffsets[key][0] *= lilbf.scale.x;
-            lilbf.animOffsets[key][1] *= lilbf.scale.y;
-        }
-        for (keyt in lilopp.animOffsets.keys()) {
-            lilopp.animOffsets[keyt][0] *= lilopp.scale.x;
-            lilopp.animOffsets[keyt][1] *= lilopp.scale.y;
-        }
+		lilOpp.scrollFactor.set();
+		lilOpp.antialiasing = true;
+		add(lilOpp);
 
-		add(lilbfGroup);
-		add(liloppGroup);
-		lilbfGroup.scrollFactor.set();
-		liloppGroup.scrollFactor.set();
+		//remember to add the new function
+		createLilGirlfriend();
+		createLilPlayer();
+		createLilOpponent();
 
 		if(chartEditorSave.data.autoSave != null) autoSaveCap = chartEditorSave.data.autoSave;
 		if(chartEditorSave.data.backupLimit != null) backupLimit = chartEditorSave.data.backupLimit;
 		if(chartEditorSave.data.vortex != null) vortexEnabled = chartEditorSave.data.vortex;
+		if(chartEditorSave.data.lilBuddiesBox != null) lilBuddiesOn = chartEditorSave.data.lilBuddiesBox;
+		lilStage.visible = lilBf.visible = lilOpp.visible = lilStage.active = lilBf.active = lilOpp.active = lilBuddiesOn;
+
+		if (lilBuddiesOn) {
+			remove(lilPlayer);
+			remove(lilOpponent);
+			remove(lilGf);
+		}
 
 		if(chartEditorSave.data.customBgColor == null) chartEditorSave.data.customBgColor = '303030';
 		if(chartEditorSave.data.customGridColors == null || chartEditorSave.data.customGridColors.length < 2)
@@ -721,6 +722,75 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 	}
 
+	function createLilPlayer(name:String = 'bf')
+	{
+		//customFunctions
+		//shows actual characters (From Moon's Modded Psych Engine)
+		if(name != null)
+		lilPlayer = new Character(0, 0, name, false);
+		lilPlayer.scrollFactor.set();
+		lilPlayer.screenCenter();
+		lilPlayer.x += lilPlayerDP[0];
+		lilPlayer.y += lilPlayerDP[1];
+		lilPlayer.setGraphicSize(Std.int(lilPlayer.width * 0.4));
+		add(lilPlayer);
+		lilPlayer.flipX = !lilPlayer.flipX;
+		for (key in lilPlayer.animOffsets.keys()) {
+			lilPlayer.animOffsets[key][0] *= lilPlayer.scale.x;
+			lilPlayer.animOffsets[key][1] *= lilPlayer.scale.y;
+		}
+	}
+
+	function createLilOpponent(name:String = 'bf-opponent')
+	{
+		if(name != null)
+		lilOpponent = new Character(0, 0, name, false);
+		lilOpponent.scrollFactor.set();
+		lilOpponent.screenCenter();
+		lilOpponent.x += lilOpponentDP[0];
+		lilOpponent.y += lilOpponentDP[1];
+		lilOpponent.setGraphicSize(Std.int(lilOpponent.width * 0.4));
+		add(lilOpponent);
+		for (keyt in lilOpponent.animOffsets.keys()) {
+			lilOpponent.animOffsets[keyt][0] *= lilOpponent.scale.x;
+			lilOpponent.animOffsets[keyt][1] *= lilOpponent.scale.y;
+		}
+	}
+
+	function createLilGirlfriend(name:String = 'gf')
+	{
+		if (name != null)
+		lilGf = new Character(0, 0, name, false); //50, 335
+		lilGf.scrollFactor.set();
+		lilGf.screenCenter();
+		lilGf.x += lilGfDP[0];
+		lilGf.y += lilGfDP[1];
+		lilGf.danceEveryNumBeats = 4;
+		lilGf.setGraphicSize(Std.int(lilGf.width * 0.4));
+		add(lilGf);
+		for (keyt in lilGf.animOffsets.keys()) {
+			lilGf.animOffsets[keyt][0] *= lilGf.scale.x;
+			lilGf.animOffsets[keyt][1] *= lilGf.scale.y;
+		}
+	}
+
+	function reloadLilBuddies(id:Int = 4) //id 1 is for the player, id 2 is for the opponent, id 3 is for Girlfriend (or middle), id 4 is for all
+	{
+		var character1 = PlayState.SONG.player1;
+		var character2 = PlayState.SONG.player2;
+		var character3 = PlayState.SONG.gfVersion;
+
+		if(id == 1 || id == 4)//Reload The Player
+			remove(lilPlayer);
+			createLilPlayer(character1);
+		if(id == 2 || id == 4)//Reload The Opponent
+			remove(lilOpponent);
+			createLilOpponent(character2);
+		if(id == 3 || id == 4) //Reload The Girlfriend
+			remove(lilGf);
+			createLilGirlfriend(character3);
+	}
+
 	function reloadBG() {
 		if (theme == SKYDECAY){
 			bg.loadGraphic(Paths.image('editors/chartSD'));
@@ -803,6 +873,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		noteTextureInputText.text = PlayState.SONG.arrowSkin;
 		noteSplashesInputText.text = PlayState.SONG.splashSkin;
+		reloadLilBuddies();
 	}
 	
 	var noteSelectionSine:Float = 0;
@@ -817,6 +888,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var autoSaveTime:Float = 0;
 	var autoSaveCap:Int = 2; //in minutes
 	var backupLimit:Int = 10;
+
+	var lilBfResetAnim:Float = 0;
+	var lilOppResetAnim:Float = 0;
+	
+	var lilPlayerDP:Array<Float> = [-300, 110];
+	var lilOpponentDP:Array<Float> = [-530, 90];
+	var lilGfDP:Array<Float> = [-400, 10];
+
+	private var playerHoldTime:Float = 0;
+	private var opponentHoldTime:Float = 0;
+	private var gfHoldTime:Float = 0;
 
 	var lastBeatHit:Int = 0;
 	override function update(elapsed:Float)
@@ -1043,6 +1125,24 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 			if(!songFinished) Conductor.songPosition = FlxMath.bound(FlxG.sound.music.time + Conductor.offset, 0, FlxG.sound.music.length - 1);
 			updateScrollY();
+		}
+
+		if(lilOppResetAnim > 0) {
+			lilOppResetAnim -= elapsed;
+			if(lilOppResetAnim <= 0) {
+				lilOpp.animation.play('idle');
+				lilOpp.color = FlxColor.WHITE;
+				lilOppResetAnim = 0;
+			}
+		}
+		
+		if(lilBfResetAnim > 0) {
+			lilBfResetAnim -= elapsed;
+			if(lilBfResetAnim <= 0) {
+				lilBf.animation.play('idle');
+				lilBf.color = FlxColor.WHITE;
+				lilBfResetAnim = 0;
+			}
 		}
 
 		super.update(elapsed);
@@ -1559,12 +1659,15 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 			lastBeatHit = curBeat;
 
-			if (curBeat % lilbf.danceEveryNumBeats == 0 && !lilbf.getAnimationName().startsWith('sing')) {
-				lilbf.dance();
+			if (curBeat % lilPlayer.danceEveryNumBeats == 0 && !lilPlayer.getAnimationName().startsWith('sing')) {
+				lilPlayer.dance();
 			}
-			if (curBeat % lilopp.danceEveryNumBeats == 0 && !lilopp.getAnimationName().startsWith('sing')) {
-				lilopp.dance();
+			if (curBeat % lilOpponent.danceEveryNumBeats == 0 && !lilOpponent.getAnimationName().startsWith('sing')) {
+				lilOpponent.dance();
 			}
+
+			if (lilGf != null && curBeat % Math.round(gfSpeed * lilGf.danceEveryNumBeats) == 0 && !lilGf.getAnimationName().startsWith('sing'))
+				lilGf.dance();
 		}
 
 		if(selectedNotes.length > 0)
@@ -1613,16 +1716,63 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function hitNote(note:MetaNote) {
 		var vortexPlaying:Bool = (vortexEnabled && FlxG.sound.music != null && FlxG.sound.music.playing);
+		var lilBuddiesSing:Bool = (lilBuddiesOn && FlxG.sound.music != null && FlxG.sound.music.playing);
 		var canPlayHitSound:Bool = (FlxG.sound.music != null && FlxG.sound.music.playing);
 		var hitSoundPlayer:Bool = (hitsoundPlayerStepper.value > 0);
 		var hitSoundOpp:Bool = (hitsoundOpponentStepper.value > 0);
+		var data:Int = note.noteData % Note.ammo[PlayState.mania]; // this isn't used but keep it just incase (lilBuddies)
+		var gfShouldSing:Bool = false; // this will only define if gf has to sing, if you want to avoid the other characters singing you should make another variable replicating this one
+		var playerShouldSing:Bool = false;
+		var opponentShouldSing:Bool = false;
 
-		if(note.mustPress) {
-			lilbf.playAnim(singAnimations[note.noteData], true); 
-			lilbf.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
-		} else if(!note.mustPress) {
-			lilopp.playAnim(singAnimations[note.noteData], true); 
-			lilopp.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
+		var sec = getCurChartSection(); //this is to detect the sections
+		if(sec != null) sec.gfSection = gfSectionCheckBox.checked;
+
+		if(note.gfNote) { // literally if it's GF notes use them
+			gfShouldSing = true;
+		} 
+		else if(sec != null && sec.gfSection) { // if you're using GF section, this allows it to work on GF SECTION ONLY!!
+			var isGfSide = false;
+
+			if(sec.mustHitSection) { // determine which side belongs to GF in this section.
+				isGfSide = note.mustPress;
+			} else { // or other section.
+				isGfSide = !note.mustPress;
+			}
+			
+			if(isGfSide) { // simple enough
+				gfShouldSing = true;
+			} else {
+				if(sec.mustHitSection) {
+					opponentShouldSing = !note.mustPress;
+				} else {
+					playerShouldSing = note.mustPress;
+				}
+			}
+		}
+		else {
+			// if it's regular notes then use them
+			if(note.mustPress) {
+				playerShouldSing = true;
+			} else {
+				opponentShouldSing = true;
+			}
+		}
+
+		if(playerShouldSing) {
+			lilPlayer.playAnim(singAnimations[note.noteData], true);
+			lilPlayer.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
+			playerHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate; // now it holds on long notes yay
+		} else if(opponentShouldSing) {
+			lilOpponent.playAnim(singAnimations[note.noteData], true);
+			lilOpponent.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
+			opponentHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate;
+		}
+
+		if(gfShouldSing) {
+			lilGf.playAnim(singAnimations[note.noteData], true);
+			lilGf.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
+			gfHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate;
 		}
 
 		if (canPlayHitSound) {
@@ -1635,6 +1785,26 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 		}
 
+		data = note.noteData; // this isn't used but keep it incase
+		if(lilBuddiesSing)
+		{
+			data += Note.ammo[PlayState.mania];
+			if (!note.noAnimation) {
+				if (note.mustPress)
+				{
+					lilBf.animation.play("" + (note.noteData % Note.ammo[PlayState.mania]), true);
+					lilBf.color = note.rgbShader.r;
+					lilBfResetAnim = ((Conductor.stepCrochet * PlayState.mania) + note.sustainLength) / 1000 / playbackRate; // for lil buddies to reset after hitting notes. It doesn't stop at sections anymore.
+				}
+				else
+				{
+					lilOpp.animation.play("" + (note.noteData % Note.ammo[PlayState.mania]), true);
+					lilOpp.color = note.rgbShader.r;
+					lilOppResetAnim = ((Conductor.stepCrochet * PlayState.mania) + note.sustainLength) / 1000 / playbackRate;
+				}
+			}		
+		}
+
 		if (vortexPlaying) {
 			var strumNote:ChartingStrumNote = strumLineNotes.members[note.songData[1]];
 			if (strumNote != null) {
@@ -1642,6 +1812,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				strumNote.resetAnim = Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
 			}
 		}
+	}
+
+	function resetBuddies() // lil buddies
+	{
+		lilBf.animation.play("idle");
+		lilOpp.animation.play("idle");
+		lilBf.color = lilOpp.color = FlxColor.WHITE;
 	}
 
 	function moveSelectedNotes(noteData:Int = 0, lastY:Float) //This turns selected notes into moving notes
@@ -3408,6 +3585,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		playerDropDown = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, character:String)
 		{
 			PlayState.SONG.player1 = character;
+			remove(lilPlayer);
+			createLilPlayer(character);
 			updateJsonData();
 			updateHeads(true);
 			loadMusic();
@@ -3424,6 +3603,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		opponentDropDown = new PsychUIDropDownMenu(objX, objY + 40, [''], function(id:Int, character:String)
 		{
 			PlayState.SONG.player2 = character;
+			remove(lilOpponent);
+			createLilOpponent(character);
 			updateJsonData();
 			updateHeads(true);
 			loadMusic();
@@ -3434,6 +3615,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		girlfriendDropDown = new PsychUIDropDownMenu(objX, objY + 80, [''], function(id:Int, character:String)
 		{
 			PlayState.SONG.gfVersion = character;
+			remove(lilGf);
+			createLilGirlfriend(character);
 			trace('selected $character');
 		});
 		
@@ -4343,6 +4526,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var showNextGridButton:PsychUIButton;
 	var noteTypeLabelsButton:PsychUIButton;
 	var vortexEditorButton:PsychUIButton;
+	var lilBuddiesBoxButton:PsychUIButton;
+	var reverseScrollEditorButton:PsychUIButton;
 	function addViewTab()
 	{
 		var tab = upperBox.getTab('View');
@@ -4405,6 +4590,20 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}, btnWid);
 		vortexEditorButton.text.alignment = LEFT;
 		tab_group.add(vortexEditorButton);
+
+		btnY++;
+		btnY += 20;
+		lilBuddiesBoxButton = new PsychUIButton(btnX, btnY, lilBuddiesOn ? '  Lil Buddies ON' : '  Lil Buddies OFF', function()
+		{
+			lilBuddiesOn = !lilBuddiesOn;
+			chartEditorSave.data.lilBuddiesBox = lilBuddiesOn;
+			lilStage.visible = lilBf.visible = lilOpp.visible = lilStage.active = lilBf.active = lilOpp.active = lilBuddiesOn;
+			lilBuddiesBoxButton.text.text = lilBuddiesOn ? '  Lil Buddies ON' : '  Lil Buddies OFF';
+			if (!lilBuddiesOn) reloadLilBuddies();
+			else lilPlayer.visible = lilOpponent.visible = lilGf.visible = false;
+		}, btnWid);
+		lilBuddiesBoxButton.text.alignment = LEFT;
+		tab_group.add(lilBuddiesBoxButton);
 		
 		btnY++;
 		btnY += 20;
@@ -4575,6 +4774,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					state.add(btn);
 
 					var btnY = 320;
+
+					var btn:PsychUIButton = new PsychUIButton(0, btnY, 'SkyDecay', changeTheme.bind(SKYDECAY));
+					btn.screenCenter(X);
+					btn.x -= 240;
+					btn.cameras = state.cameras;
+					state.add(btn);
+
 					var btn:PsychUIButton = new PsychUIButton(0, btnY, 'Light', changeTheme.bind(LIGHT));
 					btn.screenCenter(X);
 					btn.x -= 180;
@@ -5673,70 +5879,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		#end
 	}
 
-	public var lilbfMap:Map<String, Character> = new Map<String, Character>();
-	public var liloppMap:Map<String, Character> = new Map<String, Character>();
-	public var lilbfGroup:FlxSpriteGroup;
-	public var liloppGroup:FlxSpriteGroup;
-	function switchCharacters(charName:String, isOpp:Bool)
-	{
-		if (isOpp) {
-			if(lilopp.curCharacter != charName) {
-				if(!liloppMap.exists(charName)) {
-					addCharacterToList(charName, 1);
-				}
-
-				var lastAlpha:Float = lilopp.alpha;
-				lilopp.alpha = 0.00001;
-				lilopp = liloppMap.get(charName);
-				lilopp.alpha = lastAlpha;
-				lilopp.setGraphicSize(Std.int(lilopp.width * 0.5));
-				for (keyt in lilopp.animOffsets.keys()) {
-					lilopp.animOffsets[keyt][0] *= lilopp.scale.x;
-					lilopp.animOffsets[keyt][1] *= lilopp.scale.y;
-				}
-			}
-		}
-		else {
-			if(lilbf.curCharacter != charName) {
-				if(!lilbfMap.exists(charName)) {
-					addCharacterToList(charName, 0);
-				}
-
-				var lastAlpha:Float = lilbf.alpha;
-				lilbf.alpha = 0.00001;
-				lilbf = lilbfMap.get(charName);
-				lilbf.alpha = lastAlpha;
-				lilbf.setGraphicSize(Std.int(lilbf.width * 0.5));
-				for (key in lilbf.animOffsets.keys()) {
-					lilbf.animOffsets[key][0] *= lilbf.scale.x;
-					lilbf.animOffsets[key][1] *= lilbf.scale.y;
-				}
-			}
-		}
-	}
-
-	public function addCharacterToList(newCharacter:String, type:Int) {
-		switch(type) {
-			case 0:
-				if(!lilbfMap.exists(newCharacter)) {
-					var newlilbf:Character = new Character(-100, -100, newCharacter, true);
-					lilbfMap.set(newCharacter, newlilbf);
-					lilbfGroup.add(newlilbf);
-					//newlilbf.alpha = 0.00001;
-					startCharacterScripts(newlilbf.curCharacter);
-				}
-
-			case 1:
-				if(!liloppMap.exists(newCharacter)) {
-					var newlilopp:Character = new Character(0, -200, newCharacter);
-					liloppMap.set(newCharacter, newlilopp);
-					liloppGroup.add(newlilopp);
-					//newlilopp.alpha = 0.00001;
-					startCharacterScripts(newlilopp.curCharacter);
-				}
-		}
-	}
-
+	
 	function startCharacterScripts(name:String)
 	{
 		// Lua
