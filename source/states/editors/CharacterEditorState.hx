@@ -1261,10 +1261,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	// save
 	// This should be better now
-	var fileDialog:FileDialogHandler = new FileDialogHandler();
-	function saveCharacter() {
-		if(!fileDialog.completed) return;
-
+	static var fileDialog:FileDialogHandler = new FileDialogHandler();
+	var filePath:String = null;
+	function saveCharacter(?canQuickSave:Bool = false) {
 		var json:Dynamic = {
 			"animations": character.animationsArray,
 			"image": character.imageFile,
@@ -1283,14 +1282,20 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		};
 
 		var data:String = PsychJsonPrinter.print(json, ['offsets', 'position', 'healthbar_colors', 'camera_position', 'indices']);
+		if(canQuickSave && filePath != null) {
+			File.saveContent(filePath, data);
+			showOutput('Chart saved successfully to: ${filePath}');
+		} else {
+			if(!fileDialog.completed) return;
 
-		if (data.length > 0)
-		{
-			fileDialog.save('$_char.json', data,
-			function()
+			if (data.length > 0)
 			{
-				showOutput('Character saved successfully!');
-			}, null, function() showOutput('Error saving character!', true));
+				fileDialog.save('$_char.json', data,
+				function()
+				{
+					showOutput('Character saved successfully!');
+				}, null, function() showOutput('Error saving character!', true));
+			}
 		}
 	}
 

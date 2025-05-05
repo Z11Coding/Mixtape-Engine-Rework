@@ -13,9 +13,7 @@ import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;
 import flixel.util.FlxSave;
 import flixel.input.keyboard.FlxKey;
-import flixel.animation.FlxAnimationController;
 import lime.utils.Assets;
-import openfl.utils.Assets as OpenFlAssets;
 import openfl.events.KeyboardEvent;
 import openfl.filters.BitmapFilter;
 import haxe.Json;
@@ -29,10 +27,6 @@ import states.editors.CharacterEditorState;
 import substates.PauseSubState;
 import substates.GameOverSubstate;
 
-#if !flash
-import openfl.filters.ShaderFilter;
-#end
-
 import shaders.ErrorHandledShader;
 
 import objects.VideoSprite;
@@ -40,14 +34,12 @@ import objects.Note.EventNote;
 import objects.NoteObject;
 import objects.*;
 import stages.*;
-import stages.objects.*;
 
 import metadata.STMetaFile.MetadataFile;
 
 import backend.modchart.Modifier;
 import backend.modchart.ModManager;
 import objects.playfields.*;
-import objects.playfields.PlayField.NoteCallback;
 import objects.Note.SustainPart;
 
 import backend.AIPlayer;
@@ -68,6 +60,7 @@ import crowplexus.hscript.Printer;
 #end
 
 import yutautil.AprilFools;
+import states.playbits.*; //All the bits
 
 /**
  * This is where all the Gameplay stuff happens and is managed
@@ -117,19 +110,6 @@ class PlayState extends MusicBeatState
 {
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
-
-	public static var ratingStuff:Array<Dynamic> = [
-		['You Suck!', 0.2], //From 0% to 19%
-		['Shit', 0.4], //From 20% to 39%
-		['Bad', 0.5], //From 40% to 49%
-		['Bruh', 0.6], //From 50% to 59%
-		['Meh', 0.69], //From 60% to 68%
-		['Nice', 0.7], //69%
-		['Good', 0.8], //From 70% to 79%
-		['Great', 0.9], //From 80% to 89%
-		['Sick!', 1], //From 90% to 99%
-		['Perfect!!', 1] //The value on this one isn't used actually, since Perfect is always "1"
-	];
 
 	//event variables
 	public var isCameraOnForcedPos:Bool = false;
@@ -249,14 +229,10 @@ class PlayState extends MusicBeatState
 	public var MaxHP:Float = 2;
 	public var extraHealth:Float = 0;
 	public var noHeal:Bool = false;
-	public var combo:Int = 0;
-	public var comboOpp:Int = 0;
 
 	public var healthBar:Bar;
 	public var timeBar:Bar;
 	var songPercent:Float = 0;
-
-	public var ratingsData:Array<Rating> = Rating.loadDefault();
 
 	private var generatedMusic:Bool = false;
 	public var endingSong:Bool = false;
@@ -304,9 +280,6 @@ class PlayState extends MusicBeatState
 	public var camCOD:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
-	public var songScore:Int = 0;
-	public var songHits:Int = 0;
-	public var songMisses:Int = 0;
 	public var scoreTxt:FlxText;
 	var timeTxt:FlxText;
 	var scoreTxtTween:FlxTween;
@@ -386,6 +359,7 @@ class PlayState extends MusicBeatState
 	public var lyrics:FlxText;
 	public var rainIntensity:Float = 0;
 	public var skipTxt:FlxText;
+	var allowSkip:Bool = false;
 	var lastUpdateTime:Float = 0.0;
 	var endingTimeLimit:Int = 20;
 	var metadata:MetadataFile;
@@ -402,6 +376,9 @@ class PlayState extends MusicBeatState
 	var artistTxt:FlxText;
 	var charterTxt:FlxText;
 	var modTxt:FlxText;
+
+	//THE MANAGERS
+	public var comboManager:ComboManager;
 
 	//FNF Weekly
 	public var whosTurn:String = '';
@@ -429,10 +406,6 @@ class PlayState extends MusicBeatState
 	var gfScared:Bool = false;
 
 	// Troll Engine
-	private var AIScore:Int = 0;
-	private var AIMisses:Int = 0;
-	private var AITotalNotesHit:Float = 0;
-	private var AITotalPlayed:Int = 0;
 	public var zoomEveryBeat:Int = 1;
 	public var modManager:ModManager;
 	public var notefields = new NotefieldRenderer();
@@ -443,9 +416,6 @@ class PlayState extends MusicBeatState
 	public var holdsGiveHP:Bool = false;
 	public var playerScoreTxt:FlxText;
 	public var opponentScoreTxt:FlxText;
-	public var ratingNameAI:String = '?';
-	public var ratingPercentAI:Float;
-	public var ratingFCAI:String;
 	public var currentSV:SpeedEvent = {position: 0, startTime: 0, speed: 1 #if EASED_SVs , startSpeed: 1 #end};
 	var speedChanges:Array<SpeedEvent> = [];
 	var aiText:String;
@@ -474,6 +444,11 @@ class PlayState extends MusicBeatState
 	public var instVolumeMultiplier:Float = 1;
 	public var vocalVolumeMultiplier:Float = 1;
 	var inArchipelagoMode:Bool = false;
+
+	//Various things from other engines
+	var visual:AudioDisplay;
+	var vocalvisual:AudioDisplay = null;
+	var oppvisual:AudioDisplay = null;
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -504,8 +479,16 @@ class PlayState extends MusicBeatState
 		setOnScripts("newPlayField", newPlayfield);
 		setOnScripts("initPlayfield", initPlayfield);
 
-		// for lua
+		switch(ClientPrefs.data.skipWhen) {
+			case "Freeplay": allowSkip = !isStoryMode;
+			case "Story": allowSkip = isStoryMode;
+			case "Freeplay & Story": allowSkip = true;
+			case "None": allowSkip = false;
+		}
+
+		// This is the part where I initialize everything
 		instance = this;
+		comboManager = new ComboManager();
 
 		PauseSubState.songName = null; //Reset to default
 		playbackRate = ClientPrefs.getGameplaySetting('songspeed');
@@ -1038,7 +1021,7 @@ class PlayState extends MusicBeatState
 		healthBar.scrollFactor.set();
 		healthBar.visible = !ClientPrefs.data.hideHud;
 		healthBar.alpha = ClientPrefs.data.healthBarAlpha;
-		reloadHealthBarColors();
+		reloadHealthBarColors(); 
 		uiGroup.add(healthBar);
 		
 		if (opponentmode) healthBar.leftToRight = true;
@@ -1213,7 +1196,7 @@ class PlayState extends MusicBeatState
 		}
 
 		startCallback();
-		RecalculateRating(false, false);
+		comboManager.RecalculateRating(false, false);
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
@@ -1943,11 +1926,11 @@ class PlayState extends MusicBeatState
 
 	public dynamic function updateScoreText()
 	{
-		var str:String = Language.getPhrase('rating_$ratingName', ratingName);
-		if(totalPlayed != 0)
+		var str:String = Language.getPhrase('rating_${comboManager.ratingName}', comboManager.ratingName);
+		if(comboManager.totalPlayed != 0)
 		{
-			var percent:Float = CoolUtil.floorDecimal(ratingPercent * 100, 2);
-			str += ' (${percent}%) - ' + Language.getPhrase(ratingFC);
+			var percent:Float = CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2);
+			str += ' (${percent}%) - ' + Language.getPhrase(comboManager.ratingFC);
 		}
 
 		if (health <= 0.0475 && (ClientPrefs.data.healthMode == "Mixtape" || ClientPrefs.data.healthMode == "Tabi"))
@@ -1957,40 +1940,10 @@ class PlayState extends MusicBeatState
 		}
 		else {
 			var tempScore:String;
-			if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [songScore, songMisses, str]);
-			else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [songScore, str]);
+			if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [comboManager.songScore, comboManager.songMisses, str]);
+			else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [comboManager.songScore, str]);
 			scoreTxt.text = '${tempScore} | Health: ${CoolUtil.floorDecimal((health / 2) * 100, 2)}%' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : '');
 			scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
-		}
-	}
-
-	public dynamic function fullComboFunction()
-	{
-		ratingFC = "";
-
-		var marvs:Int = ratingsData[0].hits;
-		var sicks:Int = ratingsData[1].hits;
-		var goods:Int = ratingsData[2].hits;
-		var bads:Int = ratingsData[3].hits;
-		var shits:Int = ratingsData[4].hits;
-
-		if (songMisses == 0)
-		{
-			if (bads > 0 || shits > 0)
-				ratingFC = '[Full Combo]';
-			else if (goods > 0)
-				ratingFC = '[Good Full Combo]';
-			else if (sicks > 0)
-				ratingFC = '[Sick Full Combo]';
-			else if (marvs > 0)
-				ratingFC = '[Marvioulus Full Combo]';
-		}
-		else
-		{
-			if (songMisses < 10)
-				ratingFC = '[Single Digit Combo Break]';
-			else
-				ratingFC = '[Ok I guess...]';
 		}
 	}
 
@@ -2067,6 +2020,30 @@ class PlayState extends MusicBeatState
 		vocals.play();
 		opponentVocals.play();
 		gfVocals.play();
+
+		if (ClientPrefs.data.allowVis && ClientPrefs.data.healthVis) {
+			visual = new AudioDisplay(FlxG.sound.music, healthBar.x, healthBar.y + 20, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.WHITE); 
+			visual.scrollFactor.set(0, 0);  
+			add(visual); 
+			visual.cameras = [camHUD];
+			visual.alpha = 0.7;
+
+			vocalvisual = new AudioDisplay(vocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])); 
+			vocalvisual.scrollFactor.set(0, 0); 
+			vocalvisual.flipY = true;
+			add(vocalvisual); 
+			vocalvisual.cameras = [camHUD];
+			vocalvisual.alpha = 0.7;
+
+			if (opponentVocals != null && opponentVocals.length > 1) {
+				oppvisual = new AudioDisplay(opponentVocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2])); 
+				oppvisual.scrollFactor.set(0, 0);
+				oppvisual.flipY = true;  
+				add(oppvisual); 
+				oppvisual.cameras = [camHUD];
+				oppvisual.alpha = 0.7;
+			}
+		}
 
 		setSongTime(Math.max(0, startOnTime - 500) + Conductor.offset);
 		startOnTime = 0;
@@ -3586,6 +3563,30 @@ class PlayState extends MusicBeatState
 		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
 	}
 
+	function updateVisPos() { //Literaly so it doesn't look weird in the update function
+		if (visual != null) {
+			visual.x = healthBar.x;
+			visual.y = healthBar.y;
+			visual.alpha = ClientPrefs.data.visOpacity;
+		}
+
+		if (vocalvisual != null) {
+			vocalvisual.x = healthBar.x;
+			vocalvisual.y = healthBar.y + healthBar.height;
+			vocalvisual.alpha = ClientPrefs.data.visOpacity;
+			for (line in vocalvisual.members)
+				line.color = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
+		}
+
+		if (oppvisual != null) {
+			oppvisual.x = healthBar.x;
+			oppvisual.y = healthBar.y + healthBar.height;
+			oppvisual.alpha = ClientPrefs.data.visOpacity;
+			for (line in vocalvisual.members)
+				line.color = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
+		}
+	}
+
 	public var initY:Float;
 	var lastHealth:Float = -1;
 	override public function update(elapsed:Float)
@@ -3614,6 +3615,8 @@ class PlayState extends MusicBeatState
 			lastHealth = health;
 		}
 		callOnScripts('onUpdate', [elapsed]);
+
+		updateVisPos();
 
 		//Just to make sure
 		if (maniaMode) {
@@ -3664,19 +3667,36 @@ class PlayState extends MusicBeatState
 			}
 		}	
 
-		if (!isStoryMode)
+		if (allowSkip)
 		{
-			var daNote:Note = allNotes[0];
-			if (daNote != null && daNote.strumTime > 100)
-			{
-				needSkip = true;
-				skipTo = daNote.strumTime - 500;
+			if (ClientPrefs.data.skipMode == 'First Note') {
+				var daNote:Note = allNotes[0];
+				if (daNote != null && daNote.strumTime > 100)
+				{
+					needSkip = true;
+					skipTo = daNote.strumTime - 500;
+				}
+				else
+				{
+					needSkip = false;
+				}
 			}
-			else
-			{
-				needSkip = false;
+			else if (ClientPrefs.data.skipMode == 'First BF Note') {
+				if (allNotes.length > 0) {
+					for (note in allNotes) {
+						if (note != null && note.mustPress && note.strumTime > 100)
+						{
+							needSkip = true;
+							skipTo = note.strumTime - 500;
+							break;
+						}
+						else
+						{
+							needSkip = false;
+						}
+					}
+				}
 			}
-			
 		}
 
 		for (field in playfields)
@@ -3832,7 +3852,7 @@ class PlayState extends MusicBeatState
 			if (FlxG.sound.music.length - Conductor.songPosition <= endingTimeLimit)
 			{
 				songAboutToLoop = true;
-				if (AIScore >= songScore && AIMode)
+				if (comboManager.AIScore >= comboManager.songScore && AIMode)
 				{
 					if (FlxG.sound.music.time < 0 || Conductor.songPosition < 0)
 					{
@@ -4045,9 +4065,9 @@ class PlayState extends MusicBeatState
 				case SINGLE:
 					iconP1.animation.curAnim.curFrame = 0;
 				case WINNING:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 0 : (healthBar.percent < 20 ? 2 : 0));
+					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 0 : 1));
 				default:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 1 : 0);
+					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 0 : 1);
 			}
 
 			switch (iconP2.type)
@@ -4189,17 +4209,17 @@ class PlayState extends MusicBeatState
 		var AIPlayMap = [];
 		if (AIPlayer.active)
 		{
-			songScore = 0;
-			songMisses = 0;
-			songHits = 0;
-			combo = 0;
-			ratingPercent = 0;
-			ratingName = "";
-			ratingFC = "";
-			RecalculateRating();
+			comboManager.songScore = 0;
+			comboManager.songMisses = 0;
+			comboManager.songHits = 0;
+			comboManager.combo = 0;
+			comboManager.ratingPercent = 0;
+			comboManager.ratingName = "";
+			comboManager.ratingFC = "";
+			comboManager.RecalculateRating();
 
 			AIPlayMap = AIPlayer.GeneratePlayMap(SONG, AIPlayer.diff);
-			comboOpp = 0;
+			comboManager.comboOpp = 0;
 			/*
 			AIScore = 0;
 			AIMisses = 0;
@@ -4275,7 +4295,7 @@ class PlayState extends MusicBeatState
 
 				if (loopMode || loopModeChallenge/* || curSong == "Small Argument" && !inArchipelagoMode*/)
 				{
-					Highscore.saveEndlessScore(SONG.song.toLowerCase() + saveMod, songScore);
+					Highscore.saveEndlessScore(SONG.song.toLowerCase() + saveMod, comboManager.songScore);
 				}
 
 				paused = true;
@@ -4625,6 +4645,7 @@ class PlayState extends MusicBeatState
 
 							var lastAlpha:Float = boyfriend.alpha;
 							boyfriend.alpha = 0.00001;
+							boyfriend.shader = null;
 							boyfriend = boyfriendMap.get(value2);
 							boyfriend.alpha = lastAlpha;
 							iconP1.changeIcon(boyfriend.healthIcon);
@@ -4640,6 +4661,7 @@ class PlayState extends MusicBeatState
 							var wasGf:Bool = dad.curCharacter.startsWith('gf-') || dad.curCharacter == 'gf';
 							var lastAlpha:Float = dad.alpha;
 							dad.alpha = 0.00001;
+							dad.shader = null;
 							dad = dadMap.get(value2);
 							if(!dad.curCharacter.startsWith('gf-') && dad.curCharacter != 'gf') {
 								if(wasGf && gf != null) {
@@ -4664,6 +4686,7 @@ class PlayState extends MusicBeatState
 
 								var lastAlpha:Float = gf.alpha;
 								gf.alpha = 0.00001;
+								gf.shader = null;
 								gf = gfMap.get(value2);
 								gf.alpha = lastAlpha;
 							}
@@ -4682,6 +4705,7 @@ class PlayState extends MusicBeatState
 								var wasGf:Bool = dad2.curCharacter.startsWith('gf');
 								var lastAlpha:Float = dad2.alpha;
 								dad2.alpha = 0.00001;
+								dad2.shader = null;
 								dad2 = dadMap2.get(value2);
 								if (!dad2.curCharacter.startsWith('gf'))
 								{
@@ -4711,6 +4735,7 @@ class PlayState extends MusicBeatState
 
 								var lastAlpha:Float = bf2.alpha;
 								bf2.alpha = 0.00001;
+								bf2.shader = null;
 								bf2 = boyfriendMap2.get(value2);
 								bf2.alpha = lastAlpha;
 								iconP12.changeIcon(bf2.healthIcon);
@@ -5393,9 +5418,9 @@ class PlayState extends MusicBeatState
 		if(ret != LuaUtils.Function_Stop && !transitioning)
 		{
 			#if !switch
-			var percent:Float = ratingPercent;
+			var percent:Float = comboManager.ratingPercent;
 			if(Math.isNaN(percent)) percent = 0;
-			Highscore.saveScore(Song.loadedSongName, songScore, storyDifficulty, percent, songMisses, deathCounter);
+			Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 			#end
 			deathCounter = 0; // set it to 0 AFTER it's been saved
 			playbackRate = 1;
@@ -5409,8 +5434,8 @@ class PlayState extends MusicBeatState
 
 			if (isStoryMode)
 			{
-				campaignScore += songScore;
-				campaignMisses += songMisses;
+				campaignScore += comboManager.songScore;
+				campaignMisses += comboManager.songMisses;
 
 				storyPlaylist.remove(storyPlaylist[0]);
 
@@ -5491,9 +5516,6 @@ class PlayState extends MusicBeatState
 		eventNotes = [];
 	}
 
-	public var totalPlayed:Int = 0;
-	public var totalNotesHit:Float = 0.0;
-
 	public var showCombo:Bool = true;
 	public var showComboNum:Bool = true;
 	public var showRating:Bool = true;
@@ -5511,7 +5533,7 @@ class PlayState extends MusicBeatState
 		if (stageUI != "normal")
 			uiFolder = uiPrefix + "UI/";
 
-		for (rating in ratingsData)
+		for (rating in comboManager.ratingsData)
 			Paths.image(uiFolder + rating.image + uiPostfix);
 		for (i in 0...10)
 			Paths.image(uiFolder + 'num' + i + uiPostfix);
@@ -5538,9 +5560,9 @@ class PlayState extends MusicBeatState
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
-		var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
+		var daRating:Rating = Conductor.judgeNote(comboManager.ratingsData, noteDiff / playbackRate);
 
-		totalNotesHit += daRating.ratingMod;
+		comboManager.totalNotesHit += daRating.ratingMod;
 		note.ratingMod = daRating.ratingMod;
 		if(!note.ratingDisabled) daRating.hits++;
 		note.rating = daRating.name;
@@ -5550,12 +5572,12 @@ class PlayState extends MusicBeatState
 			note.field.spawnNoteSplashOnNote(note);
 
 		if(!cpuControlled) {
-			songScore += score;
+			comboManager.songScore += score;
 			if(!note.ratingDisabled)
 			{
-				songHits++;
-				totalPlayed++;
-				RecalculateRating(false);
+				comboManager.songHits++;
+				comboManager.totalPlayed++;
+				comboManager.RecalculateRating(false);
 			}
 		}
 
@@ -5618,7 +5640,7 @@ class PlayState extends MusicBeatState
 		if (showCombo)
 			comboGroup.add(comboSpr);
 
-		var separatedScore:String = Std.string(combo).lpad('0', 3);
+		var separatedScore:String = Std.string(comboManager.combo).lpad('0', 3);
 		for (i in 0...separatedScore.length)
 		{
 			var numScore:FlxSprite = new FlxSprite();
@@ -5694,9 +5716,9 @@ class PlayState extends MusicBeatState
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
-		var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
+		var daRating:Rating = Conductor.judgeNote(comboManager.ratingsData, noteDiff / playbackRate);
 
-		totalNotesHit += daRating.ratingMod;
+		comboManager.totalNotesHit += daRating.ratingMod;
 		note.ratingMod = daRating.ratingMod;
 		if(!note.ratingDisabled) daRating.hits++;
 		note.rating = daRating.name;
@@ -5706,12 +5728,12 @@ class PlayState extends MusicBeatState
 			note.field.spawnNoteSplashOnNote(note);
 
 		if(!cpuControlled) {
-			songScore += score;
+			comboManager.songScore += score;
 			if(!note.ratingDisabled)
 			{
-				songHits++;
-				totalPlayed++;
-				RecalculateRating(false);
+				comboManager.songHits++;
+				comboManager.totalPlayed++;
+				comboManager.RecalculateRating(false);
 			}
 		}
 
@@ -5768,7 +5790,7 @@ class PlayState extends MusicBeatState
 		if (showCombo)
 			comboGroup.add(comboSpr);
 
-		var separatedScore:String = Std.string(combo).lpad('0', 3);
+		var separatedScore:String = Std.string(comboManager.combo).lpad('0', 3);
 		for (i in 0...separatedScore.length)
 		{
 			var numScore:FunkinSprite = new FunkinSprite();
@@ -6332,8 +6354,8 @@ class PlayState extends MusicBeatState
 
 		bfkilledcheck = true;
 		
-		var lastCombo:Int = combo;
-		combo = 0;
+		var lastCombo:Int = comboManager.combo;
+		comboManager.combo = 0;
 
 		switch (ClientPrefs.data.healthMode) {
 			case "Kade":
@@ -6357,10 +6379,10 @@ class PlayState extends MusicBeatState
 			case "Mixtape" | "OG":
 				health -= subtract * healthLoss;
 		}
-		songScore -= 10;
-		if(!endingSong) songMisses++;
-		totalPlayed++;
-		RecalculateRating(true);
+		comboManager.songScore -= 10;
+		if(!endingSong) comboManager.songMisses++;
+		comboManager.totalPlayed++;
+		comboManager.RecalculateRating(true);
 
 		// play character anims
 		var char:Character = boyfriend;
@@ -6410,7 +6432,7 @@ class PlayState extends MusicBeatState
 
 		if (AIPlayer.active && !note.isSustainNote)
 		{
-			comboOpp += 1;
+			comboManager.comboOpp += 1;
 			popUpScoreOpp(note);
 			// if(combo > 9999) combo = 9999;
 		}
@@ -6558,8 +6580,7 @@ class PlayState extends MusicBeatState
 
 			if (!note.isSustainNote)
 			{
-				combo++;
-				if(combo > 9999) combo = 9999;
+				comboManager.combo++;
 				popUpScore(note);
 			}
 
@@ -6580,7 +6601,7 @@ class PlayState extends MusicBeatState
 				switch (ClientPrefs.data.healthMode) {
 					case "Kade":
 						var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
-						var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
+						var daRating:Rating = Conductor.judgeNote(comboManager.ratingsData, noteDiff / playbackRate);
 						switch (daRating.name)
 						{
 							case 'shit':
@@ -7116,45 +7137,6 @@ class PlayState extends MusicBeatState
 			spr.resetAnim = time;
 		}
 	}
-
-	public var ratingName:String = '?';
-	public var ratingPercent:Float;
-	public var ratingFC:String;
-	public function RecalculateRating(badHit:Bool = false, scoreBop:Bool = true) {
-		setOnScripts('score', songScore);
-		setOnScripts('misses', songMisses);
-		setOnScripts('hits', songHits);
-		setOnScripts('combo', combo);
-
-		var ret:Dynamic = callOnScripts('onRecalculateRating', null, true);
-		if(ret != LuaUtils.Function_Stop)
-		{
-			ratingName = '?';
-			if(totalPlayed != 0) //Prevent divide by 0
-			{
-				// Rating Percent
-				ratingPercent = Math.min(1, Math.max(0, totalNotesHit / totalPlayed));
-				//trace((totalNotesHit / totalPlayed) + ', Total: ' + totalPlayed + ', notes hit: ' + totalNotesHit);
-
-				// Rating Name
-				ratingName = ratingStuff[ratingStuff.length-1][0]; //Uses last string
-				if(ratingPercent < 1)
-					for (i in 0...ratingStuff.length-1)
-						if(ratingPercent < ratingStuff[i][1])
-						{
-							ratingName = ratingStuff[i][0];
-							break;
-						}
-			}
-			fullComboFunction();
-		}
-		setOnScripts('rating', ratingPercent);
-		setOnScripts('ratingName', ratingName);
-		setOnScripts('ratingFC', ratingFC);
-		setOnScripts('totalPlayed', totalPlayed);
-		setOnScripts('totalNotesHit', totalNotesHit);
-		updateScore(badHit, scoreBop); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce
-	}
 	// Simplified version of applyModchartTransform, which will be used on update functions to find and sync the strumLineNotes
 	// with the Modchart System.
 	public function modchartSync(directChange:Bool = false):Void {
@@ -7255,10 +7237,10 @@ class PlayState extends MusicBeatState
 				switch(name)
 				{
 					case 'ur_bad':
-						unlock = (ratingPercent < 0.2 && !practiceMode);
+						unlock = (comboManager.ratingPercent < 0.2 && !practiceMode);
 
 					case 'ur_good':
-						unlock = (ratingPercent >= 1 && !usedPractice);
+						unlock = (comboManager.ratingPercent >= 1 && !usedPractice);
 
 					case 'oversinging':
 						unlock = (boyfriend.holdTimer >= 10 && !usedPractice);
@@ -7278,7 +7260,7 @@ class PlayState extends MusicBeatState
 			}
 			else // any FC achievements, name should be "weekFileName_nomiss", e.g: "week3_nomiss";
 			{
-				if(isStoryMode && campaignMisses + songMisses < 1 && Difficulty.getString().toUpperCase() == 'HARD'
+				if(isStoryMode && campaignMisses + comboManager.songMisses < 1 && Difficulty.getString().toUpperCase() == 'HARD'
 					&& storyPlaylist.length <= 1 && !changedDifficulty && !usedPractice)
 					unlock = true;
 			}

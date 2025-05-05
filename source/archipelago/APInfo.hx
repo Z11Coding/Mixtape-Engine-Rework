@@ -39,7 +39,6 @@ class APInfo {
 		"<asterisk>" => "*",
 		"<percent>" => "%",
 		"<at>" => "@",
-		"<asterisk>" => "*",
 	];
 
 	public static function get_hintPoints():Int {

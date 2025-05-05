@@ -166,6 +166,13 @@ import states.TitleState;
 	public var freeplayMenu:String = 'Mixtape';
 	public var showMods:Bool = false;
 	public var checkAPWorld:Bool = true;
+	public var skipMode:String = 'First Note';
+	public var skipWhen:String = 'Freeplay';
+	public var audioDisplayQuality:Int = 1;
+	public var audioDisplayUpdate:Int = 50;
+	public var allowVis:Bool = true;
+	public var healthVis:Bool = true;
+	public var visOpacity:Float = 0.7;
 }
 
 class ClientPrefs {

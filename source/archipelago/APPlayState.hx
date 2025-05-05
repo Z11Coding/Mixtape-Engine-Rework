@@ -2265,7 +2265,7 @@ class APPlayState extends PlayState {
 		{
 			if (note.isMine || note.isFakeHeal)
 			{
-				songMisses++;
+				comboManager.songMisses++;
 				health -= FlxG.random.float(0.2, 1) * dmgMultiplier;
 				if (note.isMine)
 					FlxG.sound.play(Paths.sound('streamervschat/mine'));
@@ -2301,7 +2301,7 @@ class APPlayState extends PlayState {
 			}
 			else if (note.isFreeze)
 			{
-				songMisses++;
+				comboManager.songMisses++;
 				FlxG.sound.play(Paths.sound('streamervschat/freeze'));
 				frozenInput++;
 				for (sprite in playerField.strumNotes)

@@ -146,6 +146,9 @@ class FirstCheckState extends MusicBeatState
 								new FlxTimer().start(2, function(tmr:FlxTimer) {
 									trace("Ew, no internet!");
 									FlxG.switchState(new states.SplashScreen());
+									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+									FlxTween.globalManager.clear();
+									backend.MusicBeatState.emergencyOpacityFix = true;
 								});
 								return;
 							}
@@ -163,12 +166,18 @@ class FirstCheckState extends MusicBeatState
 								{
 									trace('versions arent matching!');
 									MusicBeatState.switchState(new states.OutdatedState());
+									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+									FlxTween.globalManager.clear();
+									backend.MusicBeatState.emergencyOpacityFix = true;
 								}
 								else {
 									if (ClientPrefs.data.checkAPWorld)
 										FlxG.switchState(new APCheckState());
 									else
 										FlxG.switchState(new states.SplashScreen());
+									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+									FlxTween.globalManager.clear();
+									backend.MusicBeatState.emergencyOpacityFix = true;
 								}
 							}
 			
@@ -182,6 +191,9 @@ class FirstCheckState extends MusicBeatState
 								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								new FlxTimer().start(2, function(tmr:FlxTimer) {
 									FlxG.switchState(new states.SplashScreen());
+									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+									FlxTween.globalManager.clear();
+									backend.MusicBeatState.emergencyOpacityFix = true;
 								});
 							}
 			
@@ -248,6 +260,9 @@ class FirstCheckState extends MusicBeatState
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
 						trace("Ew, no internet!");
 						FlxG.switchState(new states.SplashScreen());
+						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+						FlxTween.globalManager.clear();
+						backend.MusicBeatState.emergencyOpacityFix = true;
 					});
 					return;
 				}
@@ -265,12 +280,18 @@ class FirstCheckState extends MusicBeatState
 					{
 						trace('versions arent matching!');
 						MusicBeatState.switchState(new states.OutdatedState());
+						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+						FlxTween.globalManager.clear();
+						backend.MusicBeatState.emergencyOpacityFix = true;
 					}
 					else {
 						if (ClientPrefs.data.checkAPWorld)
 							FlxG.switchState(new APCheckState());
 						else
 							FlxG.switchState(new states.SplashScreen());
+						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+						FlxTween.globalManager.clear();
+						backend.MusicBeatState.emergencyOpacityFix = true;
 					}
 				}
 
@@ -284,6 +305,9 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
 						FlxG.switchState(new states.SplashScreen());
+						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+						FlxTween.globalManager.clear();
+						backend.MusicBeatState.emergencyOpacityFix = true;
 					});
 				}
 
@@ -297,6 +321,9 @@ class FirstCheckState extends MusicBeatState
 		else if (allowProgression)
 		{
 			FlxG.switchState(new TitleState());
+			//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
+			FlxTween.globalManager.clear();
+			backend.MusicBeatState.emergencyOpacityFix = true;
 		}
 	}
 }

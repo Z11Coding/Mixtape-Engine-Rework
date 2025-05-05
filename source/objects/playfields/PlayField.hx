@@ -421,6 +421,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 				case 'BEAT! Engine':
 					var noteList = getNotesWithEnd(data, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.isSustainNote && note.requiresTap);
+					
+					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); // so lowPriority actually works (even though i hate it lol!)
+
 					// more accurate hit time for the ratings?
 					var lastTime:Float = Conductor.songPosition;
 					Conductor.songPosition = FlxG.sound.music.time;
@@ -432,27 +435,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					// var notesDatas:Array<Int> = [];
 					var notesStopped:Bool = false;
 
-					var sortedNotesList:Array<Note> = [];
-					for (daNote in noteList)
-					{
-						if (daNote.canBeHit && daNote.mustPress && !daNote.tooLate && !daNote.wasGoodHit && !daNote.isSustainNote)
-						{
-							if (daNote.noteData == data)
-							{
-								sortedNotesList.push(daNote);
-								// notesDatas.push(daNote.noteData);
-							}
-							if (!ClientPrefs.data.noAntimash)
-							{ // shut up
-								canMiss = true;
-							}
-						}
+					if (!ClientPrefs.data.noAntimash)
+					{ // shut up
+						canMiss = true;
 					}
-					sortedNotesList.sort((a, b) -> Std.int(a.strumTime - b.strumTime));
-
-					if (sortedNotesList.length > 0)
+					
+					if (noteList.length > 0)
 					{
-						for (epicNote in sortedNotesList)
+						for (epicNote in noteList)
 						{
 							for (doubleNote in pressNotes)
 							{
@@ -468,7 +458,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							if (!notesStopped)
 							{
 								pressNotes.push(epicNote);
-								var note:Note = sortedNotesList.pop();
+								var note:Note = noteList.pop();
 								noteHitCallback(note, this);
 								return note;
 							}

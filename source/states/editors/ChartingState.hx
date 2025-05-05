@@ -74,6 +74,7 @@ enum abstract ChartingTheme(String)
 	var DARK = 'dark';
 	var DEFAULT = 'default';
 	var VSLICE = 'vslice';
+	var SKYDECAY = 'skydecay';
 	var CUSTOM = 'custom';
 }
 
@@ -681,6 +682,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				bg.color = 0xFF673AB7;
 				gridColors = [0xFFD0D0D0, 0xFFAFAFAF];
 				gridColorsOther = [0xFF595959, 0xFF464646];
+			case SKYDECAY:
+				bg.color = 0xFFFFFFFF;
+				gridColors = [0xFF04A0FA, 0xFF178BEB];
+				gridColorsOther = [0xFF0D4381, 0xFF103780]; // gotta find out how to switch sections (or just use the event i added)
 			case CUSTOM:
 				bg.color = CoolUtil.colorFromString(chartEditorSave.data.customBgColor);
 				gridColors = [CoolUtil.colorFromString(chartEditorSave.data.customGridColors[0]), CoolUtil.colorFromString(chartEditorSave.data.customGridColors[1])];
@@ -690,6 +695,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				gridColors = [0xFFDFDFDF, 0xFFBFBFBF];
 				gridColorsOther = [0xFF5F5F5F, 0xFF4A4A4A];
 		}
+
+		reloadBG();
 
 		if(theme != oldTheme || theme == CUSTOM)
 		{
@@ -711,6 +718,18 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				nextGridBg.vortexLineEnabled = vortexEnabled;
 				nextGridBg.vortexLineSpace = GRID_SIZE * 4 * curZoom;
 			}
+		}
+	}
+
+	function reloadBG() {
+		if (theme == SKYDECAY){
+			bg.loadGraphic(Paths.image('editors/chartSD'));
+			bg.antialiasing = ClientPrefs.data.antialiasing;
+			bg.scrollFactor.set();
+		} else {
+			bg.loadGraphic(Paths.image('menuDesat'));
+			bg.antialiasing = ClientPrefs.data.antialiasing;
+			bg.scrollFactor.set();
 		}
 	}
 

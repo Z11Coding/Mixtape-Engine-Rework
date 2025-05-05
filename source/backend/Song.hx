@@ -26,6 +26,8 @@ typedef SwagSong =
 	var mania:Null<Int>;
 	var startMania:Null<Int>;
 
+	@:optional var extraTracks:Null<Array<String>>;
+
 	@:optional var gameOverChar:String;
 	@:optional var gameOverSound:String;
 	@:optional var gameOverLoop:String;

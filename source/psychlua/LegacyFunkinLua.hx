@@ -1396,37 +1396,37 @@ class LegacyFunkinLua {
 
 		//stupid bietch ass functions
 		Lua_helper.add_callback(lua, "addScore", function(value:Int = 0) {
-			PlayState.instance.songScore += value;
-			PlayState.instance.RecalculateRating();
+			PlayState.instance.comboManager.songScore += value;
+			PlayState.instance.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "addMisses", function(value:Int = 0) {
-			PlayState.instance.songMisses += value;
-			PlayState.instance.RecalculateRating();
+			PlayState.instance.comboManager.songMisses += value;
+			PlayState.instance.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "addHits", function(value:Int = 0) {
-			PlayState.instance.songHits += value;
-			PlayState.instance.RecalculateRating();
+			PlayState.instance.comboManager.songHits += value;
+			PlayState.instance.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setScore", function(value:Int = 0) {
-			PlayState.instance.songScore = value;
-			PlayState.instance.RecalculateRating();
+			PlayState.instance.comboManager.songScore = value;
+			PlayState.instance.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setMisses", function(value:Int = 0) {
-			PlayState.instance.songMisses = value;
-			PlayState.instance.RecalculateRating();
+			PlayState.instance.comboManager.songMisses = value;
+			PlayState.instance.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setHits", function(value:Int = 0) {
-			PlayState.instance.songHits = value;
-			PlayState.instance.RecalculateRating();
+			PlayState.instance.comboManager.songHits = value;
+			PlayState.instance.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "getScore", function() {
-			return PlayState.instance.songScore;
+			return PlayState.instance.comboManager.songScore;
 		});
 		Lua_helper.add_callback(lua, "getMisses", function() {
-			return PlayState.instance.songMisses;
+			return PlayState.instance.comboManager.songMisses;
 		});
 		Lua_helper.add_callback(lua, "getHits", function() {
-			return PlayState.instance.songHits;
+			return PlayState.instance.comboManager.songHits;
 		});
 
 		Lua_helper.add_callback(lua, "setHealth", function(value:Float = 0) {
@@ -1681,13 +1681,13 @@ class LegacyFunkinLua {
 			cameraFromString(camera).fade(colorNum, duration,false,null,forced);
 		});
 		Lua_helper.add_callback(lua, "setRatingPercent", function(value:Float) {
-			PlayState.instance.ratingPercent = value;
+			PlayState.instance.comboManager.ratingPercent = value;
 		});
 		Lua_helper.add_callback(lua, "setRatingName", function(value:String) {
-			PlayState.instance.ratingName = value;
+			PlayState.instance.comboManager.ratingName = value;
 		});
 		Lua_helper.add_callback(lua, "setRatingFC", function(value:String) {
-			PlayState.instance.ratingFC = value;
+			PlayState.instance.comboManager.ratingFC = value;
 		});
 		Lua_helper.add_callback(lua, "getMouseX", function(camera:String) {
 			var cam:FlxCamera = cameraFromString(camera);

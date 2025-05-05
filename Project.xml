@@ -128,6 +128,9 @@
 	<haxelib name="haxeui-flixel" /> <!-- Integrate HaxeUI with Flixel -->
 	<haxelib name="flixel-text-input" /> <!-- Improved text field rendering for HaxeUI -->
 	<haxelib name="flixel-ui" />
+	
+	<!--Uncomment if you want to use moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
+    <haxelib name="moonchart" version="git" if="native"/>
 
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
@@ -206,10 +209,20 @@
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />
 	
 	<!--Used for Izzy Engine's crash handler-->
-	<haxedef name="HXCPP_CHECK_POINTER" if="CRASH_HANDLER" />
-	<haxedef name="HXCPP_STACK_LINE" if="CRASH_HANDLER" />
-	<haxedef name="HXCPP_STACK_TRACE" if="CRASH_HANDLER" />
-	<haxedef name="openfl-enable-handle-error" />
+	<section if="cpp">
+		<haxedef name="HXCPP_CHECK_POINTER" />
+		<haxedef name="HXCPP_STACK_LINE" />
+		<haxedef name="HXCPP_STACK_TRACE" />
+		<haxedef name="HXCPP_CATCH_SEGV" />
+		<haxedef name="HXCPP_GC_DISABLE" />
+	</section>
+	
+	<section if="desktop">
+		<!--Enable Handle Error-->
+		<haxedef name="openfl_enable_handle_error" if="${openfl &ge; 9.4.0}" />
+		<!--Undefinitions-->
+		<undefine name="openfl-disable-handle-error" if="debug" unless="${openfl &ge; 9.4.0}" />
+	</section>
 	
 	<!--Allow working memory greater than 1 Gig-->
 	<haxedef name="HXCPP_GC_BIG_BLOCKS"/>

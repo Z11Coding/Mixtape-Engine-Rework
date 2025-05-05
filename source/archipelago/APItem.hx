@@ -241,6 +241,9 @@ class APItem {
                 }, true, false);
             case "Chart Modifier Trap":
                 return new APChartModifier();
+            case "Nothing":
+                popup('...For now...', "APItem: Nothing");
+                return null;
             default:
                 throw "Unknown item name: " + name;
         }
@@ -287,7 +290,8 @@ class APItem {
             "Ghost Chat",
             "Shield",
             "Max HP Up",
-            "Tutorial Trap"
+            "Tutorial Trap",
+            "Nothing"
         ];
         for (name in itemNames) {
             createItemByName(name);

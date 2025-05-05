@@ -90,6 +90,7 @@ class FunkinLua {
 		set('luaDebugMode', false);
 		set('luaDeprecatedWarnings', true);
 		set('version', MainMenuState.psychEngineVersion.trim());
+		set('mixtapeVersion', MainMenuState.mixtapeEngineVersion.trim());
 		set('modFolder', this.modFolder);
 
 		// Song/Week shit
@@ -134,17 +135,17 @@ class FunkinLua {
 			set('curDecBeat', game.curDecBeat);
 			set('curDecStep', game.curDecStep);
 	
-			set('score', game.songScore);
-			set('misses', game.songMisses);
-			set('hits', game.songHits);
-			set('combo', game.combo);
+			set('score', game.comboManager.songScore);
+			set('misses', game.comboManager.songMisses);
+			set('hits', game.comboManager.songHits);
+			set('combo', game.comboManager.combo);
 			set('deaths', PlayState.deathCounter);
 	
-			set('rating', game.ratingPercent);
-			set('ratingName', game.ratingName);
-			set('ratingFC', game.ratingFC);
-			set('totalPlayed', game.totalPlayed);
-			set('totalNotesHit', game.totalNotesHit);
+			set('rating', game.comboManager.ratingPercent);
+			set('ratingName', game.comboManager.ratingName);
+			set('ratingFC', game.comboManager.ratingFC);
+			set('totalPlayed', game.comboManager.totalPlayed);
+			set('totalNotesHit', game.comboManager.totalNotesHit);
 
 			set('inGameOver', GameOverSubstate.instance != null);
 			set('mustHitSection', curSection != null ? (curSection.mustHitSection == true) : false);
@@ -763,28 +764,28 @@ class FunkinLua {
 
 		//stupid bietch ass functions
 		Lua_helper.add_callback(lua, "addScore", function(value:Int = 0) {
-			game.songScore += value;
-			game.RecalculateRating();
+			game.comboManager.songScore += value;
+			game.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "addMisses", function(value:Int = 0) {
-			game.songMisses += value;
-			game.RecalculateRating();
+			game.comboManager.songMisses += value;
+			game.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "addHits", function(value:Int = 0) {
-			game.songHits += value;
-			game.RecalculateRating();
+			game.comboManager.songHits += value;
+			game.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setScore", function(value:Int = 0) {
-			game.songScore = value;
-			game.RecalculateRating();
+			game.comboManager.songScore = value;
+			game.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setMisses", function(value:Int = 0) {
-			game.songMisses = value;
-			game.RecalculateRating();
+			game.comboManager.songMisses = value;
+			game.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setHits", function(value:Int = 0) {
-			game.songHits = value;
-			game.RecalculateRating();
+			game.comboManager.songHits = value;
+			game.comboManager.RecalculateRating();
 		});
 		Lua_helper.add_callback(lua, "setHealth", function(value:Float = 1) game.health = value);
 		Lua_helper.add_callback(lua, "addHealth", function(value:Float = 0) game.health += value);
@@ -938,16 +939,16 @@ class FunkinLua {
 			LuaUtils.cameraFromString(camera).fade(CoolUtil.colorFromString(color), duration, fadeOut, null, forced);
 		});
 		Lua_helper.add_callback(lua, "setRatingPercent", function(value:Float) {
-			game.ratingPercent = value;
-			game.setOnScripts('rating', game.ratingPercent);
+			game.comboManager.ratingPercent = value;
+			game.setOnScripts('rating', game.comboManager.ratingPercent);
 		});
 		Lua_helper.add_callback(lua, "setRatingName", function(value:String) {
-			game.ratingName = value;
-			game.setOnScripts('ratingName', game.ratingName);
+			game.comboManager.ratingName = value;
+			game.setOnScripts('ratingName', game.comboManager.ratingName);
 		});
 		Lua_helper.add_callback(lua, "setRatingFC", function(value:String) {
-			game.ratingFC = value;
-			game.setOnScripts('ratingFC', game.ratingFC);
+			game.comboManager.ratingFC = value;
+			game.setOnScripts('ratingFC', game.comboManager.ratingFC);
 		});
 		Lua_helper.add_callback(lua, "updateScoreText", function() game.updateScoreText());
 		Lua_helper.add_callback(lua, "getMouseX", function(?camera:String = 'game') {
