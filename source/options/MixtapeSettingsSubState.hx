@@ -51,13 +51,37 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"Native", 
 			"Native-old", 
 			"Andromeda (legacy)",
-			//"BEAT! Engine", 
+			"BEAT! Engine", 
 			//"Kade Engine", 
 			//"ZoroForce EK", 
 			//"Mic'ed Up Engine",
 			//"YoshiEngine",
 			//"Kade Engine Community",
 			//"Rhythm"
+		]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('Intro Skip When', 
+		"Choose when the intro can be skipped.", 
+		'skipWhen',
+		STRING,
+		[
+			"Freeplay",
+			"Story",
+			"Freeplay & Story",
+			"None"
+		]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+		
+		var option:Option = new Option('Intro Skip To', 
+		"The note skipped to when the intro is skipped.", 
+		'skipMode', 
+		STRING,
+		[
+			"First Note", 
+			"First BF Note"
 		]);
 		addOption(option);
 		option.displayFormat = '< %v >';
@@ -121,6 +145,48 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"",
 			'',
 			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Allow Visualizers',
+			"If unchecked, the visualizers will be turned off.",
+			'allowVis',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Allow Visualizers on health bar',
+			"If unchecked, the visualizers on the health bar will be turned off.",
+			'healthVis',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Visualizer Opacity',
+			"The opacity the visualizer. (THIS AFFECTS ALL VISUALIZERS!)",
+			'visOpacity',
+			FLOAT);
+		option.scrollSpeed = 20;
+		option.minValue = 0;
+		option.maxValue = 1;
+		option.decimals = 1;
+		option.changeValue = 0.1;
+		addOption(option);
+
+		var option:Option = new Option('Audio Display Quality',
+			"The analytical quality of music data for the visualizer.",
+			'audioDisplayQuality',
+			INT);
+		option.scrollSpeed = 20;
+		option.minValue = 1;
+		option.maxValue = 4;
+		addOption(option);
+
+		var option:Option = new Option('Audio Display Update',
+			"The reaction interval of the music analyzer for the visualizer.",
+			'audioDisplayUpdate',
+			INT);
+		option.displayFormat = '%vMS';
+		option.scrollSpeed = 20;
+		option.minValue = 0;
+		option.maxValue = 200;
 		addOption(option);
 
 		var option:Option = new Option('Check the Archipelago World',

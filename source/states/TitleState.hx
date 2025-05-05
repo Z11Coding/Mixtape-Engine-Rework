@@ -119,6 +119,9 @@ class TitleState extends MusicBeatState
 			APBug = true;
 			FlxG.switchState(new archipelago.APEntryState());
 		}
+
+		if (initialized && (FlxG.sound.music == null || !FlxG.sound.music.playing))
+			Constants.playMenuMusic(0.5);
 	}
 
 	var logoBl:FlxSprite;

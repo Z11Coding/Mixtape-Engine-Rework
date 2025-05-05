@@ -94,6 +94,11 @@ class MainMenuState extends MusicBeatState
 		magenta.color = 0xFFfd719b;
 		add(magenta);
 
+		var test:AudioDisplay = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+		test.scrollFactor.set(0, 0);
+		add(test);
+		test.alpha = ClientPrefs.data.visOpacity;
+
 		menuItems = new FlxTypedGroup<FlxSprite>();
 		add(menuItems);
 

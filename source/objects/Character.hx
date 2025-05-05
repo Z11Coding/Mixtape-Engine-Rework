@@ -266,6 +266,53 @@ class Character extends FlxSprite
 		//trace('Loaded file to character ' + curCharacter);
 	}
 
+	public static function grabCharInfo(character:String):Map<String, Dynamic> {
+		var infoArray:Map<String, Dynamic> = [];
+		
+		var characterPath:String = 'characters/$character.json';
+		var path:String = Paths.getPath(characterPath, TEXT);
+		#if MODS_ALLOWED
+		if (!FileSystem.exists(path))
+		#else
+		if (!Assets.exists(path))
+		#end
+		{
+			path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+		}
+
+		var json:Dynamic = null;
+		try
+		{
+			#if MODS_ALLOWED
+			json = Json.parse(File.getContent(path));
+			#else
+			json = Json.parse(Assets.getText(path));
+			#end
+		}
+		catch(e:Dynamic)
+		{
+			trace('Error loading character file of "$character": $e');
+		}
+
+		infoArray.set("Image", json.image);
+		infoArray.set("Scale", json.scale);
+		// positioning
+		infoArray.set("Position", json.position);
+		infoArray.set("Camera Position", json.camera_position);
+		// data
+		infoArray.set("Health Icon", json.healthicon);
+		infoArray.set("Sing Duration", json.sing_duration);
+		infoArray.set("Flip X", json.flip_x);
+		infoArray.set("Health Colors", (json.healthbar_colors != null && json.healthbar_colors.length > 2) ? json.healthbar_colors : [161, 161, 161]);
+		infoArray.set("Vocal File", json.vocals_file != null ? json.vocals_file : '');
+		infoArray.set("Original Flip X", (json.flip_x == true));
+		// antialiasing
+		infoArray.set("No Antialiasing", (json.no_antialiasing == true));
+		// animations
+		infoArray.set("Animations", json.animations);
+		return infoArray; 
+	}
+
 	override function update(elapsed:Float)
 	{
 		if(isAnimateAtlas) atlas.update(elapsed);

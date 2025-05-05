@@ -85,6 +85,15 @@ class APInfo {
 			return input;
 		}
 
+	// Escape map for characters that only affect strings at the beginning.
+	public static var YAMLStartEscapeMap:Map<String, String> = [
+		"<pipe>" => "|",
+		"<amp>" => "&",
+		"<exclamation>" => "!",
+		"<asterisk>" => "*",
+		"<percent>" => "%",
+		"<at>" => "@",
+	];
 
 	public static function get_hintPoints():Int {
 		return APInfo.apGame.info().hintPoints;

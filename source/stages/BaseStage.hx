@@ -8,6 +8,8 @@ import flixel.group.FlxGroup;
 import objects.Note;
 import objects.Character;
 
+import states.playbits.ComboManager;
+
 enum Countdown
 {
 	THREE;
@@ -38,6 +40,7 @@ enum NeneState
 class BaseStage extends FlxBasic
 {
 	private var game(get, never):PlayState;
+	private var comboManager(get, never):ComboManager;
 	public var onPlayState(get, never):Bool;
 
 	// some variables for convenience
@@ -171,6 +174,7 @@ class BaseStage extends FlxBasic
 	inline private function get_members() return game.members;
 
 	inline private function get_game() return cast FlxG.state;
+	inline private function get_comboManager() return cast PlayState.instance?.comboManager;
 	inline private function get_onPlayState() return (Std.isOfType(FlxG.state, states.PlayState));
 
 	inline private function get_boyfriend():Character return game.boyfriend;

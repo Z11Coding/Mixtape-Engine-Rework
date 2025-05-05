@@ -783,10 +783,10 @@ class PhillyStreets extends BaseStage
 		// 10% chance of playing combo50/combo100 animations for Nene
 		if(FlxG.random.bool(10))
 		{
-			switch(game.combo)
+			switch(comboManager.combo)
 			{
 				case 50, 100:
-					var animToPlay:String = 'combo${game.combo}';
+					var animToPlay:String = 'combo${comboManager.combo}';
 					if(gf.animation.exists(animToPlay))
 					{
 						gf.playAnim(animToPlay);

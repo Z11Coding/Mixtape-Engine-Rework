@@ -417,6 +417,18 @@ class Paths
 		return ipPattern.match(ip);
 	}
 
+	static public function getLibraryPath(file:String, library = "shared")
+	{
+		return if (library == "shared") getSharedPath(file); else getLibraryPathForce(file, library);
+	}
+
+	inline static function getLibraryPathForce(file:String, library:String, ?level:String)
+	{
+		if (level == null)
+			level = library;
+		var returnPath = '$library:assets/$level/$file';
+		return returnPath;
+	}
 
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
 	{
@@ -484,6 +496,9 @@ class Paths
 
 	inline static public function inst(song:String, ?modsAllowed:Bool = true):Sound
 		return returnSound('${formatToSongPath(song)}/Inst', 'songs', modsAllowed);
+	
+	inline static public function track(song:String, track:String, ?modsAllowed:Bool = true):Any
+		return returnSound('${formatToSongPath(song)}/$track', 'songs', modsAllowed);
 
 	inline static public function voices(song:String, postfix:String = null, ?modsAllowed:Bool = true):Sound
 	{

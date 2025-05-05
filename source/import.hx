@@ -39,6 +39,7 @@ import backend.util.MemoryUtil;
 import backend.Cursor;
 import backend.Constants;
 import objects.FunkinSprite;
+import objects.AudioDisplay;
 
 import stages.BaseStage;
 
@@ -59,6 +60,13 @@ import states.LoadingState;
 import flxanimate.*;
 import flxanimate.PsychFlxAnimate as FlxAnimate;
 #end
+
+// Moonchart my belovid
+import moonchart.formats.fnf.legacy.*;
+import moonchart.formats.fnf.*;
+import moonchart.formats.*;
+import moonchart.parsers.*;
+import moonchart.Moonchart;
 
 //Flixel
 import flixel.sound.FlxSound;

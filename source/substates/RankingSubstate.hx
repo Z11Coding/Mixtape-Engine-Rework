@@ -117,7 +117,7 @@ class RankingSubstate extends MusicBeatSubstate
 		} else {
 			trace("in AP");
 			if (accRankSetLimit != 0 || comboRankSetLimit != 0) {
-				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.ratingPercent * 100, 4);
+				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 4);
 				if (accRankLimit > accRankSetLimit) hint.text = 'Accuracy Rank not high enough! (${accuracyNeeded - percent}% off.)';
 				if (comboRankLimit > comboRankSetLimit) hint.text += '\nCombo Rank not high enough! (${comboRankLimit - comboRankSetLimit} ranks off.)';
 				hint.text += '\n(Better luck next time!)';
@@ -319,21 +319,21 @@ class RankingSubstate extends MusicBeatSubstate
 
 	function generateRanking():String
 	{
-		if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits == 0 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits == 0 && PlayState.instance.ratingsData[0].hits == 0 && ClientPrefs.data.useMarvs) // Marvelous Full Combo
+		if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits == 0 && PlayState.instance.comboManager.ratingsData[0].hits == 0) // Marvelous Full Combo
 			{ comboRank = "MFC"; comboRankLimit = 1; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits == 0 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits == 0) // Sick Full Combo
+		else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits == 0) // Sick Full Combo
 			{ comboRank = "SFC"; comboRankLimit = 2; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits == 0 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits >= 1) // Good Full Combo (Nothing but Goods & Sicks)
+		else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 1) // Good Full Combo (Nothing but Goods & Sicks)
 			{ comboRank = "GFC"; comboRankLimit = 3; }
-		else if (PlayState.instance.songMisses == 0 && PlayState.instance.ratingsData[2].hits >= 1 && PlayState.instance.ratingsData[3].hits == 0 && PlayState.instance.ratingsData[1].hits >= 0) // Alright Full Combo (Bads, Goods and Sicks)
+		else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits >= 1 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 0) // Alright Full Combo (Bads, Goods and Sicks)
 			{ comboRank = "AFC"; comboRankLimit = 4; }
-		else if (PlayState.instance.songMisses == 0) // Regular FC
+		else if (PlayState.instance.comboManager.songMisses == 0) // Regular Full Combo
 			{ comboRank = "FC"; comboRankLimit = 5; }
-		else if (PlayState.instance.songMisses < 10) // Single Digit Combo Breaks
+		else if (PlayState.instance.comboManager.songMisses < 10) // Single Digit Combo Breaks
 			{ comboRank = "SDCB"; comboRankLimit = 6; }
-		else { comboRank = "Clear"; comboRankLimit = 7; }
+		else { comboRank = "Clear"; comboRankLimit = 7; } // Good enough
 
-		var acc = CoolUtil.floorDecimal(PlayState.instance.ratingPercent * 100, 2);
+		var acc = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 2);
 
 		// WIFE TIME :)))) (based on Wife3)
 		var wifeConditions:Array<Bool> = [

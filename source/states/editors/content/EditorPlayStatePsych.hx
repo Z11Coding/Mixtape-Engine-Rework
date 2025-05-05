@@ -283,15 +283,21 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		@:privateAccess inst.loadEmbedded(FlxG.sound.music._sound);
 		inst.looped = false;
 		inst.onComplete = finishSong;
-		inst.volume = vocals.volume = opponentVocals.volume = 1;
+		inst.volume = 1;
+		if (vocals != null) vocals.volume = 1;
+		if (opponentVocals != null) opponentVocals.volume = 1;
 		FlxG.sound.list.add(inst);
 
 		FlxG.sound.music.pause();
 		inst.play();
-		vocals.play();
-		opponentVocals.play();
-		inst.time = vocals.time = opponentVocals.time = startPos - Conductor.offset;
-
+		if (vocals != null) {
+			vocals.play();
+			vocals.time = startPos - Conductor.offset;
+		}
+		if (opponentVocals != null) {
+			opponentVocals.play();
+			opponentVocals.time = startPos - Conductor.offset;
+		}
 		// Song duration in a float, useful for the time left feature
 		songLength = inst.length;
 	}
@@ -314,7 +320,9 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		var songData = PlayState.SONG;
 		Conductor.bpm = songData.bpm;
 
-		inst.volume = vocals.volume = opponentVocals.volume = 0;
+		inst.volume = 0;
+		if (vocals != null) vocals.volume = 0;
+		if (opponentVocals != null) opponentVocals.volume = 0;
 
 		notes = new FlxTypedGroup<ChartingNote>();
 		add(notes);
@@ -498,13 +506,15 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			if(note != null) invalidateNote(note);
 
 		inst.pause();
-		vocals.pause();
-		opponentVocals.pause();
+		if (vocals != null) vocals.pause();
+		if (opponentVocals != null) opponentVocals.pause();
 
 		if(finishTimer != null)
 			finishTimer.destroy();
 
-		Conductor.songPosition = FlxG.sound.music.time = vocals.time = opponentVocals.time = startPos - Conductor.offset;
+		Conductor.songPosition = FlxG.sound.music.time = startPos - Conductor.offset;
+		if (vocals != null) vocals.time = startPos - Conductor.offset;
+		if (opponentVocals != null) opponentVocals.time = startPos - Conductor.offset;
 		Cursor.show();
 		close();
 	}
