@@ -424,9 +424,15 @@ class ClientPrefs {
 		FlxG.switchState(Type.createInstance(ClientPrefs.ChartEditorClass(), []));
 	}
 
-	public static inline function ChartEditorClass():Class<Dynamic>
+	public static function ChartEditorClass():Class<Dynamic>
 	{
-		return ClientPrefs.data.chartEditorStyle == 'New' ? states.editors.ChartingState : states.editors.ChartingStateOG;
+		switch (ClientPrefs.data.chartEditorStyle) {
+			case "New":
+				return states.editors.ChartingState;
+			case "Old":
+				return states.editors.ChartingStateOG;
+		}
+		return states.editors.ChartingState;
 	}
 
 	public static function resetKeys(controller:Null<Bool> = null) //Null = both, False = Keyboard, True = Controller
