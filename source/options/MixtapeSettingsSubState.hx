@@ -228,6 +228,16 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 			addOption(option);
 
+		var option:Option = new Option('Chart Editor Style',
+			"Choose the style of the chart editor.",
+			'chartEditorStyle',
+			STRING,
+			[
+				'New',
+				'Old'
+			]);
+		addOption(option);
+
 		super();
 	}
 

@@ -173,6 +173,7 @@ import states.TitleState;
 	public var allowVis:Bool = true;
 	public var healthVis:Bool = true;
 	public var visOpacity:Float = 0.7;
+	public var chartEditorStyle:String = 'New';
 }
 
 class ClientPrefs {
@@ -417,6 +418,16 @@ class ClientPrefs {
 	];
 	public static var defaultKeys:Map<String, Array<FlxKey>> = null;
 	public static var defaultButtons:Map<String, Array<FlxGamepadInputID>> = null;
+
+	public static inline function openChartEditor()
+	{
+		FlxG.switchState(Type.createInstance(ClientPrefs.ChartEditorClass(), []));
+	}
+
+	public static inline function ChartEditorClass():Class<Dynamic>
+	{
+		return ClientPrefs.data.chartEditorStyle == 'New' ? states.editors.ChartingState : states.editors.ChartingStateOG;
+	}
 
 	public static function resetKeys(controller:Null<Bool> = null) //Null = both, False = Keyboard, True = Controller
 	{

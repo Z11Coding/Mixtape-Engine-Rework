@@ -1501,7 +1501,7 @@ class FreeplayState extends MusicBeatState
 					}
 				
 					if (FlxG.keys.pressed.SHIFT){
-						TransitionState.transitionState(ChartingStateOG, {transitionType: "stickers"});
+						TransitionState.transitionState(ClientPrefs.ChartEditorClass().toInstance(), {transitionType: "stickers"});
 					} else{
 						if (!alreadyClicked)
 						{

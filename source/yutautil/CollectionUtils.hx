@@ -515,6 +515,11 @@ class CollectionUtils
 		return func(Type.createEmptyInstance(CLASS));
 	}
 
+	public static inline function toInstance<T>(CLASS:Class<T>, ?args:Array<Dynamic>):T
+	{
+			return Type.createInstance(CLASS, args != null ? args : []);
+	}
+
 	public static inline function callOn<T>(item:T, func:T->Dynamic):Dynamic
 	{
 		return func(item);
