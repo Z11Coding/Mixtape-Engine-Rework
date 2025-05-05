@@ -134,6 +134,7 @@ class MusicBeatState extends FlxState
 				}
 			});
 		}
+		emergencyOpacityFix = true;
 	}
 
 	public static var firstRun:Bool = true;
