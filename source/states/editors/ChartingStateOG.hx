@@ -3844,7 +3844,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		}
 		else
 		{ // Event note
-			note.loadGraphic(Paths.image('editors/eventArrow'));
+			note.loadGraphic(Paths.image('editors/eventIcon'));
 			note.eventName = getEventName(i[1]);
 			note.eventLength = i[1].length;
 			if (i[1].length < 2)

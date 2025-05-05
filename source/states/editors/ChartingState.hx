@@ -765,7 +765,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		lilGf.screenCenter();
 		lilGf.x += lilGfDP[0];
 		lilGf.y += lilGfDP[1];
-		lilGf.danceEveryNumBeats = 4;
 		lilGf.setGraphicSize(Std.int(lilGf.width * 0.4));
 		add(lilGf);
 		for (keyt in lilGf.animOffsets.keys()) {
@@ -1652,22 +1651,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					hitNote(note);
 			}
 			forceDataUpdate = false;
-			
+
 			// moved from beatHit()
-			if(metronomeStepper.value > 0 && lastBeatHit != curBeat)
-				FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
+			if(lastBeatHit != curBeat) {
+				if(metronomeStepper.value > 0 && lastBeatHit != curBeat) FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
+				callBeatHit(curBeat); // for lil players
+			}
 
 			lastBeatHit = curBeat;
-
-			if (curBeat % lilPlayer.danceEveryNumBeats == 0 && !lilPlayer.getAnimationName().startsWith('sing')) {
-				lilPlayer.dance();
-			}
-			if (curBeat % lilOpponent.danceEveryNumBeats == 0 && !lilOpponent.getAnimationName().startsWith('sing')) {
-				lilOpponent.dance();
-			}
-
-			if (lilGf != null && curBeat % Math.round(gfSpeed * lilGf.danceEveryNumBeats) == 0 && !lilGf.getAnimationName().startsWith('sing'))
-				lilGf.dance();
 		}
 
 		if(selectedNotes.length > 0)
@@ -1712,6 +1703,21 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		outputTxt.visible = (outputAlpha > 0);
 		FlxG.camera.scroll.y = scrollY;
 		lastFocus = PsychUIInputText.focusOn;
+	}
+
+	function callBeatHit(curBeat) 
+	{
+		if (curBeat % lilPlayer.danceEveryNumBeats == 0 && !lilPlayer.getAnimationName().startsWith('sing')) {
+			lilPlayer.dance();
+		}
+ 
+		if (curBeat % lilOpponent.danceEveryNumBeats == 0 && !lilOpponent.getAnimationName().startsWith('sing')) {
+			lilOpponent.dance();
+		}
+ 
+		if (curBeat % Math.round(gfSpeed * lilGf.danceEveryNumBeats) == 0 && !lilGf.getAnimationName().startsWith('sing')) {
+			lilGf.dance();
+		}
 	}
 
 	function hitNote(note:MetaNote) {
