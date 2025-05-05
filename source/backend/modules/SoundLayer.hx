@@ -10,7 +10,7 @@ class SoundLayer {
 
 	public function new(id:String, soundPath:String) {
 		this.id = id;
-		this.sound = new FlxSound();
+		this.sound = new FunkinSound();
 		this.sound.loadEmbedded(soundPath, true);
 	}
 

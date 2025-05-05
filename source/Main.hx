@@ -871,6 +871,15 @@ class CommandPrompt
 						case "aprilFools":
 							yutautil.AprilFools.debug = true;
 							print("April Fools debug mode enabled.");
+						case "flip":
+							{
+								var flip = !backend.MusicBeatState.APFlip;
+								var targetAngle = flip ? 180 : 0;
+								FlxTween.tween(FlxG.camera, {angle: targetAngle}, 0.5, {
+									ease: FlxEase.quadOut
+								});
+								backend.MusicBeatState.APFlip = flip;
+							}
 						default:
 							print("Error: Unknown debug argument.");
 					}

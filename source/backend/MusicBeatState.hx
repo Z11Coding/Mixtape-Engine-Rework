@@ -13,6 +13,8 @@ class MusicBeatState extends FlxState
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
 
+	public static var APFlip:Bool = false;
+
 	private var curDecStep:Float = 0;
 	private var curDecBeat:Float = 0;
 
@@ -110,6 +112,27 @@ class MusicBeatState extends FlxState
 		{
 			playErrorSound = false;
 			FlxG.sound.play(Paths.sound('error'), 1, false);
+		}
+		if (APFlip || (yutautil.AprilFools.allowAF && FlxG.random.bool(25)))
+		{
+			FlxTween.tween(FlxG.camera, {angle: 180}, 0.5, {
+				ease: FlxEase.quadOut,
+				onComplete: function(tween:FlxTween)
+				{
+					if (this is PlayState)
+					{
+						FlxTween.tween(PlayState.instance.camHUD, {angle: -180}, 0.5, {
+							ease: FlxEase.quadOut,
+							onComplete: function(tween:FlxTween)
+							{
+								FlxTween.tween(PlayState.instance.camOther, {angle: 180}, 0.5, {
+									ease: FlxEase.quadOut
+								});
+							}
+						});
+					}
+				}
+			});
 		}
 	}
 
