@@ -174,6 +174,7 @@ import states.TitleState;
 	public var healthVis:Bool = true;
 	public var visOpacity:Float = 0.7;
 	public var chartEditorStyle:String = 'New';
+	public var silentVol:Bool = false;
 }
 
 class ClientPrefs {

@@ -189,6 +189,92 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.maxValue = 200;
 		addOption(option);
 
+		var option:Option = new Option(
+			'Silent Volume Noise', 
+			"If checked, The volume wont make noise when you turn up/down the volume", 
+			'silentVol', 
+			'bool'
+		);
+		addOption(option);
+
+		var option:Option = new Option(
+			'Raise Volume Sound', 
+			"The sound that plays when you change the volume.", 
+			'volUp', 
+			STRING, 
+			[
+			"beep",
+			"bfBeep",
+			"cancelMenu",
+			"clickText",
+			"confirmMenu",
+			"dialogue",
+			"dialogueClose",
+			"GF_4",
+			"hitsound",
+			"Metronome_Tick",
+			"pixelText",
+			"scrollMenu",
+			"snd_hurt1",
+			"txtSans",
+			"Volup"]
+		);
+		addOption(option);
+		option.onChange = onChangeSoundUp;
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option(
+			'Lower Volume Sound', 
+			"The sound that plays when you change the volume.", 
+			'volDown', 
+			STRING, 
+			[
+			"beep",
+			"bfBeep",
+			"cancelMenu",
+			"clickText",
+			"confirmMenu",
+			"dialogue",
+			"dialogueClose",
+			"GF_4",
+			"hitsound",
+			"Metronome_Tick",
+			"pixelText",
+			"scrollMenu",
+			"snd_hurt1",
+			"txtSans",
+			"Voldown"]
+		);
+		addOption(option);
+		option.onChange = onChangeSoundDown;
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option(
+			'Max Volume Sound', 
+			"The sound that plays when you reach max volume.", 
+			'volMax', 
+			STRING, 
+			[
+			"beep",
+			"bfBeep",
+			"cancelMenu",
+			"clickText",
+			"confirmMenu",
+			"dialogue",
+			"dialogueClose",
+			"GF_4",
+			"hitsound",
+			"Metronome_Tick",
+			"pixelText",
+			"scrollMenu",
+			"snd_hurt1",
+			"txtSans",
+			"VolMAX"]
+		);
+		addOption(option);
+		option.onChange = onChangeSoundMax;
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('Check the Archipelago World',
 			"If checked, the engine will check the current version of the Friday Night Funkin Archipelago World at launch.",
 			'checkAPWorld',
@@ -283,6 +369,21 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 	}
 
 	function onChangeMenuMusic() Constants.playMenuMusic(1);
+
+	function onChangeSoundDown()
+	{
+		if (!ClientPrefs.data.silentVol) FlxG.sound.play(Paths.sound('soundtray/'+ClientPrefs.data.volDown), 1);
+	}
+
+	function onChangeSoundUp()
+	{
+		if (!ClientPrefs.data.silentVol) FlxG.sound.play(Paths.sound('soundtray/'+ClientPrefs.data.volUp), 1);
+	}
+
+	function onChangeSoundMax()
+	{
+		if (!ClientPrefs.data.silentVol) FlxG.sound.play(Paths.sound('soundtray/'+ClientPrefs.data.volMax), 1);
+	}
 
 	override function update(e:Float)
 	{

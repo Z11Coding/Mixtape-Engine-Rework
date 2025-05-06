@@ -324,6 +324,32 @@ class CoolUtil
 
 	inline public static function snap(f:Float, snap:Float):Float
 		return backend.math.CoolMath.snap(f, snap);
+
+	/**
+	 * Perform linear interpolation between the base and the target, based on the current framerate.
+	 * @param base The starting value, when `progress <= 0`.
+	 * @param target The ending value, when `progress >= 1`.
+	 * @param ratio Value used to interpolate between `base` and `target`.
+	 *
+	 * @return The interpolated value.
+	 */
+	 @:deprecated('Use smoothLerp instead')
+	 public static function coolLerp(base:Float, target:Float, ratio:Float):Float
+	 {
+		 return base + cameraLerp(ratio) * (target - base);
+	 }
+
+	 /**
+	 * Perform linear interpolation based on the current framerate.
+	 * @param lerp Value used to interpolate between `base` and `target`.
+	 *
+	 * @return The interpolated value.
+	 */
+	@:deprecated('Use smoothLerp instead')
+	public static function cameraLerp(lerp:Float):Float
+	{
+		return lerp * (FlxG.elapsed / (1 / 60));
+	}
 }
 
 typedef LogData = {
