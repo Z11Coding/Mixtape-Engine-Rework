@@ -739,6 +739,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilPlayer.animOffsets[key][0] *= lilPlayer.scale.x;
 			lilPlayer.animOffsets[key][1] *= lilPlayer.scale.y;
 		}
+		lilPlayer.dance();
 	}
 
 	function createLilOpponent(name:String = 'bf-opponent')
@@ -755,6 +756,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilOpponent.animOffsets[keyt][0] *= lilOpponent.scale.x;
 			lilOpponent.animOffsets[keyt][1] *= lilOpponent.scale.y;
 		}
+		lilOpponent.dance();
 	}
 
 	function createLilGirlfriend(name:String = 'gf')
@@ -771,6 +773,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilGf.animOffsets[keyt][0] *= lilGf.scale.x;
 			lilGf.animOffsets[keyt][1] *= lilGf.scale.y;
 		}
+		lilGf.dance();
 	}
 
 	function reloadLilBuddies(id:Int = 4) //id 1 is for the player, id 2 is for the opponent, id 3 is for Girlfriend (or middle), id 4 is for all

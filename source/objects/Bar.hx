@@ -4,9 +4,9 @@ import flixel.math.FlxRect;
 
 class Bar extends FlxSpriteGroup
 {
-	public var leftBar:FunkinSprite;
-	public var rightBar:FunkinSprite;
-	public var bg:FunkinSprite;
+	public var leftBar:FlxSprite;
+	public var rightBar:FlxSprite;
+	public var bg:FlxSprite;
 	public var valueFunction:Void->Float = null;
 	public var percent(default, set):Float = 0;
 	public var bounds:Dynamic = {min: 0, max: 1};
@@ -25,18 +25,18 @@ class Bar extends FlxSpriteGroup
 		this.valueFunction = valueFunction;
 		setBounds(boundX, boundY);
 		
-		bg = new FunkinSprite();
+		bg = new FlxSprite();
 		bg.loadGraphic(Paths.image(image));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		barWidth = Std.int(bg.width - 6);
 		barHeight = Std.int(bg.height - 6);
 
-		leftBar = new FunkinSprite();
+		leftBar = new FlxSprite();
 		leftBar.makeGraphic(Std.int(bg.width), Std.int(bg.height), FlxColor.WHITE);
 		//leftBar.color = FlxColor.WHITE;
 		leftBar.antialiasing = antialiasing = ClientPrefs.data.antialiasing;
 
-		rightBar = new FunkinSprite();
+		rightBar = new FlxSprite();
 		rightBar.makeGraphic(Std.int(bg.width), Std.int(bg.height), FlxColor.WHITE);
 		rightBar.color = FlxColor.BLACK;
 		rightBar.antialiasing = ClientPrefs.data.antialiasing;

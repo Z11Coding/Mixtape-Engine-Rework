@@ -193,8 +193,6 @@ class Paths
 			) Paths.currentTrackedAssets.set(key,val);
 			else cache.remove(key);
 		}
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
 	}
 
 	// The "If All Else Fails" option 

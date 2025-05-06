@@ -15,7 +15,7 @@ class VideoSprite extends FlxSpriteGroup {
 	public var holdingTime:Float = 0;
 	public var videoSprite:FlxVideoSprite;
 	public var skipSprite:FlxPieDial;
-	public var cover:FunkinSprite;
+	public var cover:FlxSprite;
 	public var canSkip(default, set):Bool = false;
 
 	private var videoName:String;
@@ -32,8 +32,8 @@ class VideoSprite extends FlxSpriteGroup {
 		waiting = isWaiting;
 		if(!waiting)
 		{
-			cover = new FunkinSprite();
-			cover.makeSolidColor(1, 1, FlxColor.BLACK);
+			cover = new FlxSprite();
+			cover.makeGraphic(1, 1, FlxColor.BLACK);
 			cover.scale.set(FlxG.width + 100, FlxG.height + 100);
 			cover.screenCenter();
 			cover.scrollFactor.set();

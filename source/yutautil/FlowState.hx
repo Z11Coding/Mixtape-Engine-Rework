@@ -100,7 +100,7 @@ class BaseFlowState {
     }
 }
 
-class FlowSprite extends FunkinSprite {
+class FlowSprite extends FlxSprite {
     public var enterTweens:Array<FlxTween>;
     public var exitTweens:Array<FlxTween>;
 

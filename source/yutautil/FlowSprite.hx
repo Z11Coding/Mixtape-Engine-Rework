@@ -2,7 +2,7 @@ package yutautil;
 
 import flixel.FlxSprite;
 
-class FlowSprite extends objects.FunkinSprite {
+class FlowSprite extends FlxSprite {
 	private var enterAnimations:Array<FlowAnimation>;
 	private var exitAnimations:Array<FlowAnimation>;
 

@@ -90,8 +90,6 @@ class LoadingState extends MusicBeatState
 	override function create()
 	{
 		Paths.clearStoredWithoutStickers();
-		FunkinSprite.preparePurgeCache();
-        FunkinSprite.purgeCache();
 		persistentUpdate = true;
 		barGroup = new FlxSpriteGroup();
 		add(barGroup);

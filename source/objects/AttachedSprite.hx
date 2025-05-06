@@ -1,6 +1,6 @@
 package objects;
 
-class AttachedSprite extends FunkinSprite
+class AttachedSprite extends FlxSprite
 {
 	public var sprTracker:FlxSprite;
 	public var xAdd:Float = 0;

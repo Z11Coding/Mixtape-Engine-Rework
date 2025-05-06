@@ -16,9 +16,11 @@ import openfl.geom.Matrix;
 import openfl.display.Sprite;
 import openfl.display.Bitmap;
 import flixel.FlxState;
+import objects.FunkinSprite;
 
 using Lambda;
 using StringTools;
+
 
 class StickerSubState extends MusicBeatSubstate
 {
@@ -134,7 +136,8 @@ class StickerSubState extends MusicBeatSubstate
       new FlxTimer().start(sticker.timing, _ -> {
         sticker.visible = false;
         var daSound:String = FlxG.random.getObject(sounds);
-        new FlxSound().loadEmbedded(Paths.sound(daSound)).play();
+        if (!ClientPrefs.data.audioBreak) FlxG.sound.play(Paths.sound(daSound));
+        else FlxG.sound.play(Paths.sound('broken/${funny[FlxG.random.int(0,1)]}'));
 
         if (grpStickers == null || ind == grpStickers.members.length - 1)
         {
@@ -146,6 +149,7 @@ class StickerSubState extends MusicBeatSubstate
     }
   }
 
+  var funny = ['AB1', 'AB2'];
   function regenStickers():Void
   {
     if (grpStickers.members.length > 0)
@@ -298,15 +302,16 @@ class StickerSubState extends MusicBeatSubstate
               dipshit.addChild(bitmap);
               // FlxG.addChildBelowMouse(dipshit);
              */
-            FunkinSprite.preparePurgeCache();
-            FunkinSprite.purgeCache();
-            MusicBeatState.emptyStickers = new StickerSubState(grpStickers.members);
-            MusicBeatState.reopen = true;
-            //trace("reopen: " + MusicBeatState.reopen);
-            //FlxG.state.openSubState(emptyStickers);
-            TransitionState.currenttransition = null;
-            FlxG.switchState(targetState(this)
-            );
+             FlxG.switchState(() -> {
+              FunkinSprite.preparePurgeCache();
+              FunkinSprite.purgeCache();
+              MusicBeatState.emptyStickers = new StickerSubState(grpStickers.members);
+              MusicBeatState.reopen = true;
+              //trace("reopen: " + MusicBeatState.reopen);
+              //FlxG.state.openSubState(emptyStickers);
+              TransitionState.currenttransition = null;
+              return targetState(this);
+            });
           }
         });
       });

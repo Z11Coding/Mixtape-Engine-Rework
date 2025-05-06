@@ -609,7 +609,7 @@ class DynamicAlphabet extends Alphabet
 	{
 		?anim:Null<String>, ?offsets:Array<Float>, ?offsetsBold:Array<Float>
 	}
-	class AlphaCharacter extends FunkinSprite
+	class AlphaCharacter extends FlxSprite
 	{
 		// public static var alphabet:String = "abcdefghijklmnopqrstuvwxyz";
 		// public static var numbers:String = "1234567890";

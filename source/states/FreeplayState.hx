@@ -223,22 +223,24 @@ class FreeplayState extends MusicBeatState
 		bg.screenCenter();
 
 		if (ClientPrefs.data.allowVis) {
-			visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-			visual.scrollFactor.set(0, 0);
-			add(visual);
-			visual.alpha = ClientPrefs.data.visOpacity;
+			if (FlxG.sound.music != null) {
+				visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				visual.scrollFactor.set(0, 0);
+				add(visual);
+				visual.alpha = ClientPrefs.data.visOpacity;
 
-			vocalvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-			vocalvisual.scrollFactor.set(0, 0); 
-			vocalvisual.flipY = true; 
-			add(vocalvisual); 
-			vocalvisual.alpha = ClientPrefs.data.visOpacity; 
+				vocalvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				vocalvisual.scrollFactor.set(0, 0); 
+				vocalvisual.flipY = true; 
+				add(vocalvisual); 
+				vocalvisual.alpha = ClientPrefs.data.visOpacity; 
 
-			oppvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-			oppvisual.scrollFactor.set(0, 0);
-			oppvisual.flipY = true;
-			add(oppvisual);
-			oppvisual.alpha = ClientPrefs.data.visOpacity;
+				oppvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				oppvisual.scrollFactor.set(0, 0);
+				oppvisual.flipY = true;
+				add(oppvisual);
+				oppvisual.alpha = ClientPrefs.data.visOpacity;
+			}
 		}
 
 		switchVisualizer();
@@ -488,136 +490,190 @@ class FreeplayState extends MusicBeatState
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
 	}
 
+	//TODO: Find a way to safely thread this
+	//or at least make it handle a larger amount of songs without taking forever to load
 	public function reloadSongs(?refresh:Bool = false)
 	{
-		sys.thread.Thread.create(() -> {
-			if (instance != null)
+		if (instance != null)
+		{
+			grpSongs.clear();
+			songs = [];
+			iconArray = [];
+			iconList.clear();
+			grpLocks.clear();
+			
+			for (i in 0...iconArray.length)
 			{
-				grpSongs.clear();
-				songs = [];
-				iconArray = [];
-				iconList.clear();
-				grpLocks.clear();
-				
-				for (i in 0...iconArray.length)
+				iconArray.pop();
+			}
+
+			// trace (curUnlocked);
+
+			for (i in 0...WeekData.weeksList.length) {
+				if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
+
+				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+				var leSongs:Array<String> = [];
+				var leChars:Array<String> = [];
+
+				for (j in 0...leWeek.songs.length)
 				{
-					iconArray.pop();
+					leSongs.push(leWeek.songs[j][0]);
+					leChars.push(leWeek.songs[j][1]);
 				}
 
-				// trace (curUnlocked);
+				// trace("CurUnlocked: " + curUnlocked);
+				// trace("CurMissing: " + curMissing);
 
-				for (i in 0...WeekData.weeksList.length) {
-					if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
+				function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
+					if (array == null || array.length == 0) {
+						return null;
+					}
+					return array;
+				}
 
-					var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-					var leSongs:Array<String> = [];
-					var leChars:Array<String> = [];
+				WeekData.setDirectoryFromWeek(leWeek);
+				for (song in leWeek.songs)
+				{
+					var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
+						(cast leWeek.category:String).split(',').map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						}) : Std.isOfType(leWeek.category, Array) ? 
+						(cast leWeek.category:Array<String>).map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						}) : 
+						[(cast leWeek.category:String)].map(function(cat:String):String {
+							return cat.trim().toLowerCase();
+						});
 
-					for (j in 0...leWeek.songs.length)
-					{
-						leSongs.push(leWeek.songs[j][0]);
-						leChars.push(leWeek.songs[j][1]);
+					if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
+						categoryWhaat = [];
 					}
 
-					// trace("CurUnlocked: " + curUnlocked);
-					// trace("CurMissing: " + curMissing);
-
-					function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
-						if (array == null || array.length == 0) {
-							return null;
-						}
-						return array;
-					}
-
-					WeekData.setDirectoryFromWeek(leWeek);
-					for (song in leWeek.songs)
+					// trace("CategoryWhaat2: " + categoryWhaat);
+					var colors:Array<Int> = song[2];
+					if(colors == null || colors.length < 3)
 					{
-						var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
-							(cast leWeek.category:String).split(',').map(function(cat:String):String {
-								return cat.trim().toLowerCase();
-							}) : Std.isOfType(leWeek.category, Array) ? 
-							(cast leWeek.category:Array<String>).map(function(cat:String):String {
-								return cat.trim().toLowerCase();
-							}) : 
-							[(cast leWeek.category:String)].map(function(cat:String):String {
-								return cat.trim().toLowerCase();
-							});
+						colors = [146, 113, 253];
+					}
+					if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (leWeek.folder != '' || leWeek.folder != null) && !APEntryState.inArchipelagoMode))
+					{
+						addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+					}
+					else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
+					{
+						if (refresh)
+						{
+							var colors:Array<Int> = song[2];
+							if(colors == null || colors.length < 3)
+							{
+								colors = [146, 113, 253];
+							}
+							if (CategoryState.loadWeekForce == "unplayed")
+							{
+								var songNameThing:String = song[0];
+								var modName:String = leWeek.folder;
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 
-						if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
-							categoryWhaat = [];
-						}
+								if (locationIds.isEmpty())
+								{
+									continue;
+								}
 
-						// trace("CategoryWhaat2: " + categoryWhaat);
-						var colors:Array<Int> = song[2];
-						if(colors == null || colors.length < 3)
-						{
-							colors = [146, 113, 253];
+								for (songObj in curUnlocked)
+								{
+									if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod && isMissing)
+										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								}
+							} 
+							else if (CategoryState.loadWeekForce == "unlocked")
+							{
+								var songNameThing:String = song[0];
+								var modName:String = leWeek.folder;
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
+
+								if (locationIds.isEmpty())
+									{
+										continue;
+									}
+								for (songObj in curUnlocked)
+								{
+									if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod)
+										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								}
+							}
+							else if (CategoryState.loadWeekForce == 'hinted')
+							{
+								var songNameThing:String = song[0];
+								var modName:String = leWeek.folder;
+								var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
+								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
+
+								if (locationIds.isEmpty())
+								{
+									continue;
+								}
+								for (songObj in curHinted)
+								{
+									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
+										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								}
+
+							}
+							else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
+							{
+								if (APEntryState.inArchipelagoMode)
+								{
+									var songNameThing:String = song[0];
+									var modName:String = leWeek.folder;
+									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
+
+									if (locationIds.isEmpty())
+										{
+											continue;
+										}
+									if (locationIds != null && locationIds.isNotEmpty())
+										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+								}
+								else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
+							}
+								
 						}
-						if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (leWeek.folder != '' || leWeek.folder != null) && !APEntryState.inArchipelagoMode))
-						{
-							addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-						}
-						else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || (CategoryState.loadWeekForce == "all" || APEntryState.inArchipelagoMode))
-						{
-							if (refresh)
+						else
+						{	
+							if (Std.string(song[0]).toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()))
 							{
 								var colors:Array<Int> = song[2];
 								if(colors == null || colors.length < 3)
 								{
 									colors = [146, 113, 253];
 								}
+
 								if (CategoryState.loadWeekForce == "unplayed")
 								{
 									var songNameThing:String = song[0];
 									var modName:String = leWeek.folder;
 									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
-
-									if (locationIds.isEmpty())
-									{
-										continue;
-									}
-
+									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);	
 									for (songObj in curUnlocked)
 									{
-										if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod && isMissing)
+										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
-								} 
+								}
 								else if (CategoryState.loadWeekForce == "unlocked")
 								{
 									var songNameThing:String = song[0];
 									var modName:String = leWeek.folder;
 									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
-
-									if (locationIds.isEmpty())
-										{
-											continue;
-										}
 									for (songObj in curUnlocked)
 									{
-										if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod)
+										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && !isMissing)
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
-								}
-								else if (CategoryState.loadWeekForce == 'hinted')
-								{
-									var songNameThing:String = song[0];
-									var modName:String = leWeek.folder;
-									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
-
-									if (locationIds.isEmpty())
-									{
-										continue;
-									}
-									for (songObj in curHinted)
-									{
-										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
-											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-									}
-
 								}
 								else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
 								{
@@ -626,228 +682,174 @@ class FreeplayState extends MusicBeatState
 										var songNameThing:String = song[0];
 										var modName:String = leWeek.folder;
 										var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-
-										if (locationIds.isEmpty())
-											{
-												continue;
-											}
 										if (locationIds != null && locationIds.isNotEmpty())
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 									}
 									else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 								}
-									
-							}
-							else
-							{	
-								if (Std.string(song[0]).toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()))
-								{
-									var colors:Array<Int> = song[2];
-									if(colors == null || colors.length < 3)
-									{
-										colors = [146, 113, 253];
-									}
-
-									if (CategoryState.loadWeekForce == "unplayed")
-									{
-										var songNameThing:String = song[0];
-										var modName:String = leWeek.folder;
-										var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-										var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);	
-										for (songObj in curUnlocked)
-										{
-											if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
-												addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-										}
-									}
-									else if (CategoryState.loadWeekForce == "unlocked")
-									{
-										var songNameThing:String = song[0];
-										var modName:String = leWeek.folder;
-										var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-										var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
-										for (songObj in curUnlocked)
-										{
-											if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && !isMissing)
-												addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-										}
-									}
-									else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
-									{
-										if (APEntryState.inArchipelagoMode)
-										{
-											var songNameThing:String = song[0];
-											var modName:String = leWeek.folder;
-											var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-											if (locationIds != null && locationIds.isNotEmpty())
-												addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-										}
-										else addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-									}
-								}
 							}
 						}
 					}
 				}
+			}
 
-				if (APEntryState.inArchipelagoMode)
+			if (APEntryState.inArchipelagoMode)
+			{
+				if (refresh)
 				{
-					if (refresh)
-					{
-						if (CategoryState.loadWeekForce == "all"){
-							//Add them to Wekk 7 so they're below that week
-							addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
-							addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-							addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-						}
-						else {
-							for (songObj in curUnlocked) {
-								if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
-									addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
-								if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
-									addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-								if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
-									addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-							}	
-						}
+					if (CategoryState.loadWeekForce == "all"){
+						//Add them to Wekk 7 so they're below that week
+						addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
+						addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
+						addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
 					}
-					else
-					{
+					else {
 						for (songObj in curUnlocked) {
-							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Small Argument').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 								addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
-							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 								addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle 2').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 								addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-						}
+						}	
 					}
 				}
 				else
 				{
-					if (refresh)
-					{
-						if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+					for (songObj in curUnlocked) {
+						if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Small Argument').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
 							addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
-						if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
 							addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-						if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
-							addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-					}
-					else
-					{
-						if (Std.string('Small Argument').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
-							addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
-						if (Std.string('Beat Battle').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
-							addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
-						if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle 2').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
 							addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
 					}
 				}
-				
-				for (i in 0...songs.length)
-				{
-					var songName:String = '';
-					var modName:String = '';
-					var locationId:Array<Int> = [];
-					var isMissing:Bool = false;
-					var color:FlxColor = 0xFFFFFFFF;
-					var someLocationsNotMissing:Bool = false;
-
-					if (APEntryState.inArchipelagoMode) {
-						songName = songs[i].songName;
-						modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
-						locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-						isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-						color = isMissing ? FlxColor.RED : FlxColor.GREEN;
-
-						
-						someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
-
-						for (songObj in curUnlocked)
-						{
-							if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
-								color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-								unplayedList.push(songName);
-							}
-						}
-
-						if (!unplayedList.contains(songName) && isMissing) {
-							trueMissing.push(songName);
-						}
-					}
-					var songText:Alphabet = null;
-					// for (locId in locationId) {
-					// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));
-					// }
-					// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
-
-					if (APEntryState.inArchipelagoMode) {
-						var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
-						var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-						songText = isVictorySong(songName, modName) ? 
-							(isMissing ? 
-								(someLocationsNotMissing ? 
-									new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
-									: new VictorySong(90, 320, songName, color, true)) 
-								: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
-							: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
-					} else {
-						songText = new DynamicAlphabet(90, 320, songs[i].songName, true, true);
-					}
-					songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
-					songText.targetY = i;
-					grpSongs.add(songText);
-
-					callVictory = isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
-
-					if (callVictory) {
-						trace("Apparently, the victory song has been cleared, so... Goaling!");
-						APEntryState.apGame.checkGoal(songName, modName);
-					}
-
-					// // Potential Emergency For Later.
-
-					// if (callVictory && !APEntryState.apGame.info().clientStatus != archipelago.PacketTypes.ClientStatus.GOAL)
-					// {
-					// 	trace("Apparently, AP didn't get the memo. Forcing goal...");
-					// 	APEntryState.apGame.setGoal();
-					// }
-
-					songText.scaleX = Math.min(1, 980 / songText.width);
-					songText.snapToPosition();
-
-					Mods.currentModDirectory = songs[i].folder;
-					
-					// too laggy with a lot of songs, so i had to recode the logic for it
-					songText.visible = songText.active = songText.isMenuItem = false;
-					
-					var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !unplayedList.contains(songName);
-					var icon:HealthIcon = new HealthIcon(isLock ? "lock" : songs[i].songCharacter);
-					icon.sprTracker = songText;
-					icon.visible = icon.active = false;
-					// using a FlxGroup is too much fuss!
-					// but over on mixtape engine we do arrays better
-					iconArray.push(icon);
-					iconList.add(icon);
-					// }
-
-					// songText.x += 40;
-					// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-					// songText.screenCenter(X);
-				}
-				WeekData.setDirectoryFromWeek();
-				if (songs.length == -1 || songs.length == 0)
-				{
-					addSong('SONG NOT FOUND', -999, 'face', FlxColor.fromRGB(255, 255, 255));
-
-				}
-				changeSelection();
-				updateTexts();
-				changeDiff();
-				if (PlayState.SONG != null) Conductor.bpm = PlayState.SONG.bpm;
 			}
-		});
+			else
+			{
+				if (refresh)
+				{
+					if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
+					if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
+					if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
+				}
+				else
+				{
+					if (Std.string('Small Argument').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
+					if (Std.string('Beat Battle').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						addSong('Beat Battle', 7, "gf", FlxColor.fromRGB(165, 0, 77));
+					if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+						addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
+				}
+			}
+			
+			for (i in 0...songs.length)
+			{
+				var songName:String = '';
+				var modName:String = '';
+				var locationId:Array<Int> = [];
+				var isMissing:Bool = false;
+				var color:FlxColor = 0xFFFFFFFF;
+				var someLocationsNotMissing:Bool = false;
+
+				if (APEntryState.inArchipelagoMode) {
+					songName = songs[i].songName;
+					modName = WeekData.weeksLoaded.get(WeekData.weeksList[songs[i].week]).folder;
+					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+
+					
+					someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+
+					for (songObj in curUnlocked)
+					{
+						if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
+							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+							unplayedList.push(songName);
+						}
+					}
+
+					if (!unplayedList.contains(songName) && isMissing) {
+						trueMissing.push(songName);
+					}
+				}
+				var songText:Alphabet = null;
+				// for (locId in locationId) {
+				// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));
+				// }
+				// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
+
+				if (APEntryState.inArchipelagoMode) {
+					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
+					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+					songText = isVictorySong(songName, modName) ? 
+						(isMissing ? 
+							(someLocationsNotMissing ? 
+								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
+								: new VictorySong(90, 320, songName, color, true)) 
+							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
+						: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
+				} else {
+					songText = new DynamicAlphabet(90, 320, songs[i].songName, true, true);
+				}
+				songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
+				songText.targetY = i;
+				grpSongs.add(songText);
+
+				callVictory = isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
+
+				if (callVictory) {
+					trace("Apparently, the victory song has been cleared, so... Goaling!");
+					APEntryState.apGame.checkGoal(songName, modName);
+				}
+
+				// // Potential Emergency For Later.
+
+				// if (callVictory && !APEntryState.apGame.info().clientStatus != archipelago.PacketTypes.ClientStatus.GOAL)
+				// {
+				// 	trace("Apparently, AP didn't get the memo. Forcing goal...");
+				// 	APEntryState.apGame.setGoal();
+				// }
+
+				songText.scaleX = Math.min(1, 980 / songText.width);
+				songText.snapToPosition();
+
+				Mods.currentModDirectory = songs[i].folder;
+				
+				// too laggy with a lot of songs, so i had to recode the logic for it
+				songText.visible = songText.active = songText.isMenuItem = false;
+				
+				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !unplayedList.contains(songName);
+				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : songs[i].songCharacter);
+				icon.sprTracker = songText;
+				icon.visible = icon.active = false;
+				// using a FlxGroup is too much fuss!
+				// but over on mixtape engine we do arrays better
+				iconArray.push(icon);
+				iconList.add(icon);
+				// }
+
+				// songText.x += 40;
+				// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
+				// songText.screenCenter(X);
+			}
+			WeekData.setDirectoryFromWeek();
+			if (songs.length == -1 || songs.length == 0)
+			{
+				addSong('SONG NOT FOUND', -999, 'face', FlxColor.fromRGB(255, 255, 255));
+
+			}
+		}
+		changeSelection();
+		updateTexts();
+		changeDiff();
+		if (PlayState.SONG != null) Conductor.bpm = PlayState.SONG.bpm;
 	} 
 
 	public static function isVictorySong(songName:String, modName:String):Bool {

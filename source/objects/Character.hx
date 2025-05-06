@@ -91,7 +91,7 @@ class Character extends FlxSprite
 	public var invuln:Bool = false;
 	public var controlled:Bool = false;
 
-	public var doubleGhosts:Array<FunkinSprite> = [];
+	public var doubleGhosts:Array<FlxSprite> = [];
 	public var ghostID:Int = 0;
 	public var ghostAnim:String = '';
 	public var ghostTweenGRP:Array<FlxTween> = [];
@@ -106,7 +106,7 @@ class Character extends FlxSprite
 		super(x, y);
 
 		for(i in 0...4){
-			var ghost = new FunkinSprite();
+			var ghost = new FlxSprite();
 			ghost.visible = false;
 			ghost.antialiasing = true;
 			ghost.alpha = 0.6;

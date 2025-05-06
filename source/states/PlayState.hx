@@ -132,7 +132,7 @@ class PlayState extends MusicBeatState
 	public var modchartSounds:Map<String, FlxSound> = new Map<String, FlxSound>();
 	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
 	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
-	public var modchartObjects:Map<String, FunkinSprite> = new Map<String, FunkinSprite>();
+	public var modchartObjects:Map<String, FlxSprite> = new Map<String, FlxSprite>();
 	#end
 
 	public var comboOffsetCustom:Null<Array<Int>> = null;
@@ -166,7 +166,7 @@ class PlayState extends MusicBeatState
 	public static var uiPrefix:String = "";
 	public static var uiPostfix:String = "";
 	public static var isPixelStage(get, never):Bool;
-	var raveLight:FunkinSprite;
+	var raveLight:FlxSprite;
 	var raveLightsColors:Array<Int>;
 	var ravemode:Bool;
 
@@ -350,7 +350,7 @@ class PlayState extends MusicBeatState
 	public static var playAsGF:Bool = false;
 	private var specialOverlays:FlxTypedGroup<FlxSprite>;
 	private var timerExtensions:Array<Float>;
-	public var introStageBar:FunkinSprite;
+	public var introStageBar:FlxSprite;
 	public var introStageText:FlxTypedGroup<FlxText>;
 	public var introStageStuff:FlxTypedGroup<Dynamic>;
 	public var mashViolations:Int = 0;
@@ -366,12 +366,12 @@ class PlayState extends MusicBeatState
 	var metadata:MetadataFile;
 	var hasMetadataFile:Bool = false;
 	var Text:Array<String> = [];
-	var whiteBG:FunkinSprite;
+	var whiteBG:FlxSprite;
 	var needSkip:Bool = false;
 	var skipActive:Bool = false;
 	var skipTo:Float;
-	var blackOverlay:FunkinSprite;
-	var blackUnderlay:FunkinSprite;
+	var blackOverlay:FlxSprite;
+	var blackUnderlay:FlxSprite;
 	var credText:Array<String> = [];
 	var songTxt:FlxText;
 	var artistTxt:FlxText;
@@ -399,10 +399,10 @@ class PlayState extends MusicBeatState
 	public var freezeNotes:Bool = false;
 	public var localFreezeNotes:Bool = false;
 	var justmissed:Bool = false;
-	var middlecircle:FunkinSprite;
+	var middlecircle:FlxSprite;
 	var hasGlow:Bool = false;
 	var strumFocus:Bool = false;
-	var daStatic:FunkinSprite;
+	var daStatic:FlxSprite;
 	var thunderON:Bool = false;
 	var gfScared:Bool = false;
 
@@ -716,21 +716,21 @@ class PlayState extends MusicBeatState
 		var screenWidth = Std.int(FlxG.width * zoomOut * 2);
 		var screenHeight = Std.int(FlxG.height * zoomOut * 2);
 
-		whiteBG = new FunkinSprite(-480, -480);
+		whiteBG = new FlxSprite(-480, -480);
 		whiteBG.makeGraphic(screenWidth, screenHeight, FlxColor.WHITE);
 		whiteBG.updateHitbox();
 		whiteBG.antialiasing = true;
 		whiteBG.scrollFactor.set(0, 0);
 		whiteBG.active = false;
 		whiteBG.alpha = 0.0;
-		blackOverlay = new FunkinSprite(0, 0);
+		blackOverlay = new FlxSprite(0, 0);
 		blackOverlay.makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
 		blackOverlay.updateHitbox();
 		blackOverlay.screenCenter();
 		blackOverlay.antialiasing = true;
 		blackOverlay.scrollFactor.set(0, 0);
 		blackOverlay.alpha = maniaMode ? 1 : 0;
-		blackUnderlay = new FunkinSprite(0, 0);
+		blackUnderlay = new FlxSprite(0, 0);
 		blackUnderlay.makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
 		blackUnderlay.updateHitbox();
 		blackUnderlay.screenCenter();
@@ -1130,8 +1130,8 @@ class PlayState extends MusicBeatState
 			if (Text[i] != null && Text[i].length > 0)
 			{
 				// Dont ask
-				introStageBar = new FunkinSprite(daText[i].x, if (i == 2) daText[i].y else daText[i].y - 25);
-				introStageBar.loadTexture('invisabar');
+				introStageBar = new FlxSprite(daText[i].x, if (i == 2) daText[i].y else daText[i].y - 25);
+				introStageBar.loadGraphic('invisabar');
 				introStageBar.scale.x = 2;
 				introStageBar.scale.y = 3;
 				introStageBar.scrollFactor.set();
@@ -1223,7 +1223,7 @@ class PlayState extends MusicBeatState
 
 		add(blackOverlay);
 		
-		daStatic = new FunkinSprite(0, 0);
+		daStatic = new FlxSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
 		daStatic.animation.addByPrefix('static', 'lestatic', 24, true);
 		daStatic.animation.play('static');
@@ -1233,8 +1233,8 @@ class PlayState extends MusicBeatState
 		daStatic.alpha = 0;
 		add(daStatic);
 
-		raveLight = new FunkinSprite(0, 0);
-		raveLight.makeSolidColor(screenWidth, screenHeight, FlxColor.BLACK);
+		raveLight = new FlxSprite(0, 0);
+		raveLight.makeGraphic(screenWidth, screenHeight, FlxColor.BLACK);
 		raveLight.cameras = [camHUD];
 		raveLight.antialiasing = true;
 		raveLight.scrollFactor.set(0, 0);
@@ -1244,7 +1244,7 @@ class PlayState extends MusicBeatState
 		raveLight.alpha = 0;
 		raveLight.visible = false;
 
-		daStatic = new FunkinSprite(0, 0);
+		daStatic = new FlxSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
 		daStatic.animation.addByPrefix('static', 'lestatic', 24, true);
 		daStatic.animation.play('static');
@@ -1656,9 +1656,9 @@ class PlayState extends MusicBeatState
 	var finishTimer:FlxTimer = null;
 
 	// For being able to mess with the sprites on Lua
-	public var countdownReady:FunkinSprite;
-	public var countdownSet:FunkinSprite;
-	public var countdownGo:FunkinSprite;
+	public var countdownReady:FlxSprite;
+	public var countdownSet:FlxSprite;
+	public var countdownGo:FlxSprite;
 	public static var startOnTime:Float = 0;
 
 	function cacheCountdown()
@@ -1833,10 +1833,10 @@ class PlayState extends MusicBeatState
 		return true;
 	}
 
-	inline private function createCountdownSprite(image:String, antialias:Bool):FunkinSprite
+	inline private function createCountdownSprite(image:String, antialias:Bool):FlxSprite
 	{
-		var spr:FunkinSprite = new FunkinSprite();
-		spr.loadTexture(image);
+		var spr:FlxSprite = new FlxSprite();
+		spr.loadGraphic(image);
 		spr.cameras = [camHUD];
 		spr.scrollFactor.set();
 		spr.updateHitbox();
@@ -2023,26 +2023,33 @@ class PlayState extends MusicBeatState
 		gfVocals.play();
 
 		if (ClientPrefs.data.allowVis && ClientPrefs.data.healthVis) {
-			visual = new AudioDisplay(FlxG.sound.music, healthBar.x, healthBar.y + 20, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.WHITE); 
+			visual = new AudioDisplay(FlxG.sound.music, healthBar.x, healthBar.y + 20, Std.int(healthBar.width), Std.int(FlxG.height / 6), 50, 2, FlxColor.WHITE); 
 			visual.scrollFactor.set(0, 0);  
 			add(visual); 
 			visual.cameras = [camHUD];
 			visual.alpha = 0.7;
 
-			vocalvisual = new AudioDisplay(vocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])); 
-			vocalvisual.scrollFactor.set(0, 0); 
-			vocalvisual.flipY = true;
-			add(vocalvisual); 
-			vocalvisual.cameras = [camHUD];
-			vocalvisual.alpha = 0.7;
+			var generalVocals = Paths.voices(SONG.song);
+			var playerVocals = Paths.voices(SONG.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
 
-			if (opponentVocals != null && opponentVocals.length > 1) {
-				oppvisual = new AudioDisplay(opponentVocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2])); 
-				oppvisual.scrollFactor.set(0, 0);
-				oppvisual.flipY = true;  
-				add(oppvisual); 
-				oppvisual.cameras = [camHUD];
-				oppvisual.alpha = 0.7;
+			if (SONG.needsVoices) {
+				if ((generalVocals != null && generalVocals.length > 1) || (playerVocals != null && playerVocals.length > 1)) {
+					vocalvisual = new AudioDisplay(vocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 2), 50, 2, FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])); 
+					vocalvisual.scrollFactor.set(0, 0); 
+					vocalvisual.flipY = true;
+					add(vocalvisual); 
+					vocalvisual.cameras = [camHUD];
+					vocalvisual.alpha = 0.7;
+				}
+
+				if (opponentVocals != null && opponentVocals.length > 1) {
+					oppvisual = new AudioDisplay(opponentVocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 2), 50, 2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2])); 
+					oppvisual.scrollFactor.set(0, 0);
+					oppvisual.flipY = true;  
+					add(oppvisual); 
+					oppvisual.cameras = [camHUD];
+					oppvisual.alpha = 0.7;
+				}
 			}
 		}
 
@@ -4640,7 +4647,7 @@ class PlayState extends MusicBeatState
 				case WINNING:
 					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 0 : 1));
 				default:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 0 : 1);
+					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 1 : 0);
 			}
 
 			switch (iconP2.type)
@@ -6283,7 +6290,7 @@ class PlayState extends MusicBeatState
 		}
 
 		var placement:Float = FlxG.width * 0.35;
-		var rating:FunkinSprite = new FunkinSprite();
+		var rating:FlxSprite = new FlxSprite();
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
@@ -6328,7 +6335,7 @@ class PlayState extends MusicBeatState
 		rating.y -= ClientPrefs.data.comboOffset[1];
 		rating.antialiasing = antialias;
 
-		var comboSpr:FunkinSprite = new FunkinSprite();
+		var comboSpr:FlxSprite = new FlxSprite();
 		comboSpr.loadGraphic(Paths.image(uiFolder + 'combo' + uiPostfix));
 		comboSpr.screenCenter();
 		comboSpr.x = placement;
@@ -6364,7 +6371,7 @@ class PlayState extends MusicBeatState
 		var separatedScore:String = Std.string(comboManager.combo).lpad('0', 3);
 		for (i in 0...separatedScore.length)
 		{
-			var numScore:FunkinSprite = new FunkinSprite();
+			var numScore:FlxSprite = new FlxSprite();
 			numScore.loadGraphic(Paths.image(uiFolder + 'num' + Std.parseInt(separatedScore.charAt(i)) + uiPostfix));
 			numScore.screenCenter();
 			numScore.x = placement + (43 * daLoop) - 90 + ClientPrefs.data.comboOffset[2];
@@ -7359,8 +7366,8 @@ class PlayState extends MusicBeatState
 				var startPos = FlxG.random.float(0, FlxG.height);
 				var endPos = FlxG.random.float(0, FlxG.height);
 
-				var line:FunkinSprite = new FunkinSprite();
-				line.loadTexture("effects/staticline");
+				var line:FlxSprite = new FlxSprite();
+				line.loadGraphic("effects/staticline");
 				line.y = startPos;
 				line.updateHitbox();
 				line.cameras = [camHUD];

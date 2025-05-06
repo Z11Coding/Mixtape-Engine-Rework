@@ -28,7 +28,7 @@ typedef NoteSplashConfig = {
 	rgb:Array<Null<RGB>>
 }
 
-class NoteSplash extends FunkinSprite
+class NoteSplash extends FlxSprite
 {
 	public var rgbShader:PixelSplashShaderRef;
 	public var texture:String;
