@@ -427,11 +427,14 @@ class ClientPrefs {
 
 	public static function ChartEditorClass():Class<Dynamic>
 	{
-		switch (ClientPrefs.data.chartEditorStyle) {
+		return switch (ClientPrefs.data.chartEditorStyle) {
 			case "New":
-				return states.editors.ChartingState;
+				states.editors.ChartingState;
 			case "Old":
-				return states.editors.ChartingStateOG;
+				states.editors.ChartingStateOG;
+			default:
+				FlxG.log.error("Invalid Chart Editor Style: " + ClientPrefs.data.chartEditorStyle);
+				states.editors.ChartingState;
 		}
 		return states.editors.ChartingState;
 	}
