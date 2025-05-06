@@ -82,6 +82,15 @@ class FunkinLua {
 		#end
 
 		// Lua shit
+		// set('print', function(...args:Array<Dynamic>) {
+		// 	var str:String = '';
+		// 	for (arg in args) {
+		// 		str += arg.toString() + ' ';
+		// 	}
+		// 	luaTrace(str, false, false, FlxColor.WHITE);
+		// });
+
+		set('playState', PlayState.instance);
 		set('Function_StopLua', LuaUtils.Function_StopLua);
 		set('Function_StopHScript', LuaUtils.Function_StopHScript);
 		set('Function_StopAll', LuaUtils.Function_StopAll);
