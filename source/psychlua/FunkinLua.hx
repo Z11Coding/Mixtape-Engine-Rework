@@ -1061,6 +1061,17 @@ class FunkinLua {
 			MusicBeatState.getVariables().set(tag, leSprite);
 		});
 
+		// Lua_helper.add_callback(lua, "makeVideoLuaSprite", function(tag:String, video:String, ?x:Float = 0, ?y:Float = 0) {
+		// 	tag = tag.replace('.', '');
+		// 	LuaUtils.destroyObject(tag);
+		// 	var leSprite:objects.FNFWeeklyVideoSprite = new objects.FNFWeeklyVideoSprite(x, y, video, waiting, skippable, looping);
+		// 	if(video != null && video.length > 0)
+		// 	{
+		// 		leSprite.loadGraphic(Paths.video(video));
+		// 	}
+		// 	MusicBeatState.getVariables().set(tag, leSprite);
+		// });
+
 		Lua_helper.add_callback(lua, "makeGraphic", function(obj:String, width:Int = 256, height:Int = 256, color:String = 'FFFFFF') {
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(obj);
 			if(spr != null) spr.makeGraphic(width, height, CoolUtil.colorFromString(color));
