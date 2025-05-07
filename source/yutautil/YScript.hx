@@ -50,7 +50,7 @@ typedef YBaseClass = {
         isPrivate:Bool,
         isInternal:Bool,
     },
-    extending: Array<YClass>,
+    extending: Array<YClass<T>>,
     implementing: Array<YInterface>,
     constructors: Array<YFunction>,
     destructors: Array<YFunction>,
@@ -66,7 +66,7 @@ typedef YTypedClass<T> = {
         isPrivate:Bool,
         isInternal:Bool,
     },
-    extending: Array<YClass>,
+    extending: Array<YClass<T>>,
     implementing: Array<YInterface>,
     constructors: Array<YFunction>,
     destructors: Array<YFunction>,
@@ -200,6 +200,63 @@ typedef YHaskellExpr = {
 typedef YHaskellCall = {
     func: YHaskellExpr,
     arg: YHaskellExpr
+};
+
+typedef HaxeBlock = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef HaxeCall = {
+    func: HaxeBlock,
+    arg: HaxeBlock
+};
+typedef HaxeExpr = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef LuaBlock = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef LuaCall = {
+    func: LuaBlock,
+    arg: LuaBlock
+};
+typedef LuaExpr = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef CBlock = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef CCall = {
+    func: CBlock,
+    arg: CBlock
+};
+typedef CExpr = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef CPlusPlusBlock = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef CPlusPlusCall = {
+    func: CPlusPlusBlock,
+    arg: CPlusPlusBlock
+};
+typedef CPlusPlusExpr = {
+    name: String,
+    param: String,
+    body: YFunction
 };
 
 
