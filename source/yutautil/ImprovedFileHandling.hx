@@ -27,15 +27,24 @@ class ImprovedFileHandling {
         if (filter != null) {
             filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
         }
-        return FilePopup.save(title, filter, preserve_cwd);
+        var filePath = FilePopup.save(title, filter, preserve_cwd);
+        if (filePath != null && filter != null) {
+            var ext = "." + filter.ext;
+            if (!filePath.endsWith(ext)) {
+                if (filePath.endsWith(".")) {
+                    filePath += filter.ext;
+                } else {
+                    filePath += ext;
+                }
+            }
+        }
+        return filePath;
     }
 
     public static function selectFolder(title:String, ?preserve_cwd:Bool=true):String {
         return FilePopup.folder(title, preserve_cwd);
     }
 
-    // Functions for automatically handling these functions.
-    // For loading a file, add a function that will take that file and load it into a variable, using the dialogs.
     public static function loadFile(title:String, ?filters:Array<FileFilter>, readType:ReadType, ?operation:Dynamic->Dynamic, ?preserve_cwd:Bool=true):Dynamic {
         if (filters != null) {
             for (filter in filters) {
@@ -56,7 +65,15 @@ class ImprovedFileHandling {
             filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
         }
         var filePath = saveFile(title, filter, preserve_cwd);
-        if (filePath != null || filePath != "") {
+        if (filePath != null && filePath != "" && filter != null) {
+            var ext = "." + filter.ext;
+            if (!filePath.endsWith(ext)) {
+                if (filePath.endsWith(".")) {
+                    filePath += filter.ext;
+                } else {
+                    filePath += ext;
+                }
+            }
             writeType == ReadType.Bytes 
             ? File.saveBytes(filePath, data) 
             : File.saveContent(filePath, data);
