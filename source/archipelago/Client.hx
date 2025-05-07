@@ -1446,7 +1446,7 @@ class Client {
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
 						APGameState.instance.initSaveData();
 						try {
-							if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
+							FreeplayManager.reloadFreeplay(true);
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
 						}
@@ -1500,7 +1500,7 @@ class Client {
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
 						APGameState.instance.initSaveData();
 						try {
-							if (states.FreeplayState.instance != null) states.FreeplayState.instance.reloadSongs(true);
+							FreeplayManager.reloadFreeplay(true);
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
 						}
@@ -1509,8 +1509,7 @@ class Client {
 
 					yutautil.Threader.runInThread(dataNew(), "DataPackageFetcher"); // Hopefully more optimal.
 
-				// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
-					//
+					// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 
 				trace("Data: " + slot_data);
 

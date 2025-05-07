@@ -246,7 +246,7 @@ class ExtendedDate extends FlxBasic {
             case Either.Left(date):
                 date.month == todayMonth && date.day == todayDay;
             case Either.Right(date):
-                (Type.enumIndex(date.month)) == todayMonth && date.day == todayDay;
+                (Type.enumIndex(date.month)+2) == todayMonth && date.day == todayDay;
         }
     }
 

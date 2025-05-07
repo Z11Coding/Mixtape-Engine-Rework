@@ -8,7 +8,6 @@ import backend.Song;
 import flixel.util.FlxStringUtil;
 
 import states.StoryMenuState;
-import states.FreeplayState;
 import options.OptionsState;
 
 enum PauseSpecialAction {
@@ -369,7 +368,7 @@ class PauseSubState extends MusicBeatSubstate
 					if(PlayState.isStoryMode)
 						MusicBeatState.switchState(new StoryMenuState());
 					else 
-						MusicBeatState.switchState(new FreeplayState());
+						FreeplayManager.openFreeplay();
 
 					Constants.playMenuMusic();
 					PlayState.changedDifficulty = false;

@@ -2073,7 +2073,7 @@ class APPlayState extends PlayState {
 
         
         paused = true;
-        states.FreeplayState.callVictory = states.FreeplayState.isVictorySong(PlayState.SONG.song, currentMod);
+        FreeplayManager.callVictory = FreeplayManager.isVictorySong(PlayState.SONG.song, currentMod);
         openSubState(new substates.RankingSubstate());
         return true; //why does endsong need this?????
     }

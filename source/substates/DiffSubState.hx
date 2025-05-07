@@ -156,7 +156,7 @@ class DiffSubState extends MusicBeatSubstate
 		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
 		FlxTween.tween(rank, {alpha: 1}, 0.5, {ease: FlxEase.quartInOut});
 
-		states.FreeplayState.doChange = true;
+		states.freeplay.FreeplayState.doChange = true;
 
 		changeSelection();
 	}

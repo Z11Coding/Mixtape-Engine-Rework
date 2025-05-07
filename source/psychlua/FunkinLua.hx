@@ -26,7 +26,6 @@ import objects.Character;
 
 import states.MainMenuState;
 import states.StoryMenuState;
-import states.FreeplayState;
 
 import substates.PauseSubState;
 import substates.GameOverSubstate;
@@ -475,7 +474,7 @@ class FunkinLua {
 			if(APEntryState.inArchipelagoMode)
 			{
 				luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
-				states.FreeplayState.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
+				FreeplayManager.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
 			}
 
 			if(name == null || name.length < 1)
@@ -857,7 +856,7 @@ class FunkinLua {
 			if(PlayState.isStoryMode)
 				MusicBeatState.switchState(new StoryMenuState());
 			else
-				MusicBeatState.switchState(new FreeplayState());
+				FreeplayManager.openFreeplay();
 
 			#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 

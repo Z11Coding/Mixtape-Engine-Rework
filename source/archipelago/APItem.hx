@@ -26,7 +26,7 @@ class ConditionHelper {
 
     public static inline function Special():Condition { 
         return ConditionHelper.create(function(item:APItem):Bool { 
-            if (Std.is(FlxG.state, states.FreeplayState)) {
+            if (Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
                 return true; // Acts like Everywhere in Freeplay
             } else if (Std.is(FlxG.state, states.PlayState)) {
                 return PlayState().checkFn(item);
@@ -42,7 +42,7 @@ class ConditionHelper {
         return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong && backend.TransitionState.currenttransition == null)); }, ConditionType.PlayState); 
     }
     public static inline function Freeplay():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.FreeplayState); }, ConditionType.Freeplay); 
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, FreeplayManager.getFreeplay()); }, ConditionType.Freeplay); 
     }
 }
 
@@ -401,8 +401,8 @@ class APrilFools extends APItem {
             },
             4 => function() {
                 APItem.createCustomItem("April Fools - Random Song", ConditionHelper.Freeplay(), function() {
-                    if (Std.is(FlxG.state, states.FreeplayState)) {
-                        var freeplayState:states.FreeplayState = cast FlxG.state;
+                    if (Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
+                        var freeplayState = cast FlxG.state;
                         var songList = freeplayState.songList;
                         if (songList.length == 0) {
                             archipelago.APItem.popup("No songs available to switch!", "April Fools!");

@@ -36,7 +36,7 @@ class CategoryState extends MusicBeatState
 
 	private var hhhhhh:Bool = true;
 
-	public static var loadWeekForce:String = 'All';
+	public static var loadWeekForce:String = null;
 	public var catMode:String = ClientPrefs.data.showMods ? "Mods" : "Categories";
 
 	public var showModsAsCategories:Bool = ClientPrefs.data.showMods;
@@ -425,7 +425,7 @@ class CategoryState extends MusicBeatState
 				}
 				else
 				{
-					TransitionState.transitionState(FreeplayState, {transitionType: "instant"});
+					FreeplayManager.openFreeplay();
 				}
 			}
 		}
