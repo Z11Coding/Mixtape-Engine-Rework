@@ -52,7 +52,7 @@ class ImprovedFileHandling {
             }
         }
         var filePath = openFile(title, filters, preserve_cwd);
-        if (filePath != null) {
+        if (filePath != null && filePath.trim() != "") {
             return operation != null 
                 ? operation(readType == ReadType.Bytes ? File.getBytes(filePath) : File.getContent(filePath)) 
                 : (readType == ReadType.Bytes ? File.getBytes(filePath) : File.getContent(filePath));
@@ -65,7 +65,7 @@ class ImprovedFileHandling {
             filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
         }
         var filePath = saveFile(title, filter, preserve_cwd);
-        if (filePath != null && filePath != "" && filter != null) {
+        if (filePath != null && filePath.trim() != "" && filter != null) {
             var ext = "." + filter.ext;
             if (!filePath.endsWith(ext)) {
                 if (filePath.endsWith(".")) {
