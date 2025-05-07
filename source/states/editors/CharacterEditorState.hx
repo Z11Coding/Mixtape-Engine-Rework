@@ -16,7 +16,6 @@ import objects.Bar;
 
 import states.editors.content.Prompt;
 import states.editors.content.PsychJsonPrinter;
-import states.editors.content.FileDialogHandler;
 
 class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
@@ -1261,7 +1260,6 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	// save
 	// This should be better now
-	static var fileDialog:FileDialogHandler = new FileDialogHandler();
 	var filePath:String = null;
 	function saveCharacter(?canQuickSave:Bool = false) {
 		var json:Dynamic = {
@@ -1286,15 +1284,12 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			File.saveContent(filePath, data);
 			showOutput('Chart saved successfully to: ${filePath}');
 		} else {
-			if(!fileDialog.completed) return;
-
 			if (data.length > 0)
 			{
-				fileDialog.save('$_char.json', data,
-				function()
-				{
+				if (ImprovedFileHandling.saveOperation('$_char.json', {ext: "json", desc: "JSON File"}, Text, data))
 					showOutput('Character saved successfully!');
-				}, null, function() showOutput('Error saving character!', true));
+				else
+					showOutput('Character couldn\'t be saved!');
 			}
 		}
 	}

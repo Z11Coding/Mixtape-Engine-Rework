@@ -76,7 +76,7 @@ class CustomPathModifier extends NoteModifier {
 	}
 
 
-	 override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
+	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
 	{
 		var value:Float = getValue(player);
 		if (value == 0) return pos;

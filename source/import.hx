@@ -84,6 +84,8 @@ import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.addons.transition.FlxTransitionableState;
 
+import yutautil.ImprovedFileHandling;
+
 using StringTools;
 using yutautil.CollectionUtils;
 using yutautil.MetaData;
