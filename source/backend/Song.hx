@@ -4,6 +4,7 @@ import haxe.Json;
 import lime.utils.Assets;
 
 import objects.Note;
+import backend.Conductor;
 
 typedef SwagSong =
 {
@@ -11,6 +12,7 @@ typedef SwagSong =
 	var notes:Array<SwagSection>;
 	var events:Array<Dynamic>;
 	var bpm:Float;
+	@:optional var bpmT:Conductor.BPMTween;
 	var needsVoices:Bool;
 	var speed:Float;
 	var offset:Float;
@@ -48,7 +50,10 @@ typedef SwagSection =
 	@:optional var gfSection:Bool;
 	@:optional var exSection:Bool;
 	@:optional var bpm:Float;
+	@:optional var bpmT:Bool;
 	@:optional var changeBPM:Bool;
+	@:optional var startBPM:Float;
+	@:optional var endBPM:Float;
 }
 
 class Song

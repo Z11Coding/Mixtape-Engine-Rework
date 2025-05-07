@@ -446,7 +446,7 @@ class Main extends Sprite
 								if (PlayState.isStoryMode) {
 									FlxG.switchState(new states.StoryMenuState());
 								} else {
-									FlxG.switchState(new states.FreeplayState());
+									FreeplayManager.openFreeplay();
 								}
 								PlayState.Crashed = false;
 							}

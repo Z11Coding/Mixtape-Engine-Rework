@@ -1,4 +1,4 @@
-package states;
+package states.freeplay;
 
 import substates.Prompt;
 import backend.WeekData;
@@ -109,16 +109,9 @@ class FreeplayState extends MusicBeatState
 	var listChoices:Array<String> = [];
 	var multiSongs:Array<String> = [];
 
-	public static var curUnlocked:Array<{song:String, mod:String}> = [];
-	public static var curMissing:Array<{song:String, mod:String}> = [];
-	public static var curHinted:Array<{song:String, mod:String}> = [];
-	public static var hintTable:Map<String, String> = new Map<String, String>();
-	public static var trueMissing:Array<String> = [];
-	public static var unplayedList:Array<String> = [];
 	public static var doChange:Bool = false;
 	public static var multisong:Bool = false;
-	public static var callVictory:Bool = false;
-	// private static var spawnedVictorySong:ColoredAlphabet;
+	
 	var h:String;
 	var mismatched:String = "";
 	var rankTable:Array<String> = [
@@ -173,10 +166,10 @@ class FreeplayState extends MusicBeatState
 				return "";
 			}
 
-			if (curUnlocked.contains(APEntryState.apGame.getSongAndMod(APEntryState.victorySong)) && callVictory)
+			if (FreeplayManager.curUnlocked.contains(APEntryState.apGame.getSongAndMod(APEntryState.victorySong)) && FreeplayManager.callVictory)
 			{
 				trace("GOAL COMPLETE");
-				callVictory = false;
+				FreeplayManager.callVictory = false;
 				APEntryState.apGame.info().clientStatus = ClientStatus.GOAL;
 				openSubState(new Prompt("Congradulations! You Win!", 0, 
 				function()
@@ -581,7 +574,7 @@ class FreeplayState extends MusicBeatState
 									continue;
 								}
 
-								for (songObj in curUnlocked)
+								for (songObj in FreeplayManager.curUnlocked)
 								{
 									if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod && isMissing)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -595,10 +588,10 @@ class FreeplayState extends MusicBeatState
 								var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
 
 								if (locationIds.isEmpty())
-									{
-										continue;
-									}
-								for (songObj in curUnlocked)
+								{
+									continue;
+								}
+								for (songObj in FreeplayManager.curUnlocked)
 								{
 									if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -615,7 +608,7 @@ class FreeplayState extends MusicBeatState
 								{
 									continue;
 								}
-								for (songObj in curHinted)
+								for (songObj in FreeplayManager.curHinted)
 								{
 									if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
 										addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -657,7 +650,7 @@ class FreeplayState extends MusicBeatState
 									var modName:String = leWeek.folder;
 									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);	
-									for (songObj in curUnlocked)
+									for (songObj in FreeplayManager.curUnlocked)
 									{
 										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -669,7 +662,7 @@ class FreeplayState extends MusicBeatState
 									var modName:String = leWeek.folder;
 									var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
 									var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
-									for (songObj in curUnlocked)
+									for (songObj in FreeplayManager.curUnlocked)
 									{
 										if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && !isMissing)
 											addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
@@ -704,7 +697,7 @@ class FreeplayState extends MusicBeatState
 						addSong('Beat Battle 2', 7, "gf", FlxColor.fromRGB(165, 0, 77));
 					}
 					else {
-						for (songObj in curUnlocked) {
+						for (songObj in FreeplayManager.curUnlocked) {
 							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 								addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
 							if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
@@ -716,7 +709,7 @@ class FreeplayState extends MusicBeatState
 				}
 				else
 				{
-					for (songObj in curUnlocked) {
+					for (songObj in FreeplayManager.curUnlocked) {
 						if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Small Argument').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
 							addSong('Small Argument', 7, "gfchibi", FlxColor.fromRGB(235, 100, 161));
 						if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle').toLowerCase().trim().contains(searchBar.text.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
@@ -767,16 +760,16 @@ class FreeplayState extends MusicBeatState
 					
 					someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 
-					for (songObj in curUnlocked)
+					for (songObj in FreeplayManager.curUnlocked)
 					{
 						if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
 							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-							unplayedList.push(songName);
+							FreeplayManager.unplayedList.push(songName);
 						}
 					}
 
-					if (!unplayedList.contains(songName) && isMissing) {
-						trueMissing.push(songName);
+					if (!FreeplayManager.unplayedList.contains(songName) && isMissing) {
+						FreeplayManager.trueMissing.push(songName);
 					}
 				}
 				var songText:Alphabet = null;
@@ -788,7 +781,7 @@ class FreeplayState extends MusicBeatState
 				if (APEntryState.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-					songText = isVictorySong(songName, modName) ? 
+					songText = FreeplayManager.isVictorySong(songName, modName) ? 
 						(isMissing ? 
 							(someLocationsNotMissing ? 
 								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
@@ -802,9 +795,9 @@ class FreeplayState extends MusicBeatState
 				songText.targetY = i;
 				grpSongs.add(songText);
 
-				callVictory = isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
+				FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
 
-				if (callVictory) {
+				if (FreeplayManager.callVictory) {
 					trace("Apparently, the victory song has been cleared, so... Goaling!");
 					APEntryState.apGame.checkGoal(songName, modName);
 				}
@@ -825,7 +818,7 @@ class FreeplayState extends MusicBeatState
 				// too laggy with a lot of songs, so i had to recode the logic for it
 				songText.visible = songText.active = songText.isMenuItem = false;
 				
-				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !unplayedList.contains(songName);
+				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : songs[i].songCharacter);
 				icon.sprTracker = songText;
 				icon.visible = icon.active = false;
@@ -851,13 +844,6 @@ class FreeplayState extends MusicBeatState
 		changeDiff();
 		if (PlayState.SONG != null) Conductor.bpm = PlayState.SONG.bpm;
 	} 
-
-	public static function isVictorySong(songName:String, modName:String):Bool {
-		if (modName == null) modName = "";
-		var locationId = songName;
-		locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
-		return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');
-	}
 
 	function switchVisualizer(?hasVocals:Bool = false, ?vocalSND:FlxSound = null, ?oppSND:FlxSound = null) {
 		if (visual != null) remove(visual);
@@ -895,123 +881,8 @@ class FreeplayState extends MusicBeatState
 
 	var instPlaying:Int = -1;
 	var trackPlaying:String = null;
-	public static var vocals:FlxSound = null;
-	public static var opponentVocals:FlxSound = null;
-	public static var gfVocals:FlxSound = null;
 	var holdTime:Float = 0;
 	var stopMusicPlay:Bool = false;
-
-	// public static function addHint(song:String, item)
-	public static function forceUnlockCheck(songName:String, modName:String):Void {
-		trace("Starting forceUnlockCheck...");
-		trace("Input songName: " + songName);
-		trace("Input modName: " + modName);
-
-		var locationId = songName;
-		trace("Initial locationId: " + locationId);
-
-		// if (modName.trim() != "") {
-		// 	locationId += " (" + modName + ")";
-		// 	trace("Updated locationId with modName: " + locationId);
-		// }
-
-		trace("Final locationId after trimming: " + locationId.trim());
-		var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), modName.trim()).concat(APEntryState.apGame.noteData(songName.trim(), modName.trim()));
-		trace("Location IDs retrieved: " + locationIdInts);
-
-		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
-			trace("Location IDs are null, empty, or contain 0. Attempting fallback logic...");
-			for (song in WeekData.getCurrentWeek().songs) {
-				trace("Checking song in current week: " + song[0]);
-				if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
-					trace("Match found for song: " + song[0]);
-					locationId = song[0];
-					trace("Updated locationId in fallback logic: " + locationId);
-					locationIdInts = APEntryState.apGame.locationData(locationId.trim(), modName);
-					trace("Location IDs retrieved in fallback logic: " + locationIdInts);
-					break;
-				}
-			}
-		}
-
-		if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
-			trace("Location IDs are still null, empty, or contain 0. Attempting secondary fallback logic...");
-			for (song in WeekData.getCurrentWeek().songs) {
-				trace("Checking song in secondary fallback logic: " + song[0]);
-				var songPath = archipelago.APPlayState.currentMod.trim() != ""
-					? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-					: "assets/shared/" + (song[0] + Difficulty.getFilePath());
-				trace("Constructed songPath: " + songPath);
-
-				var songJson:SwagSong = null;
-				var jsonStuff:Array<String> = Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json");
-				trace("Retrieved JSON files: " + jsonStuff);
-
-				for (json in jsonStuff) {
-					trace("Checking JSON file: " + json);
-					if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-")) {
-						trace("Match found for JSON file: " + json);
-						songJson = Song.parseJSON(File.getContent(json));
-						if (songJson != null) {
-							trace("Parsed song JSON successfully. Checking song name...");
-							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
-								trace("Match found for song in JSON: " + songJson.song);
-								locationId = song[0];
-								trace("Updated locationId in secondary fallback logic: " + locationId);
-								locationIdInts = APEntryState.apGame.locationData(locationId.trim(), modName);
-								trace("Location IDs retrieved in secondary fallback logic: " + locationIdInts);
-								break;
-							}
-						}
-					} 
-				}
-			}
-		}
-		
-		trace("Final locationIdInts: " + locationIdInts);
-		for (locationIdInt in locationIdInts) {
-			trace("Checking locationIdInt: " + locationIdInt);
-			trace("Location check result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
-			trace("Location name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
-		}
-		trace("Current song in PlayState: " + PlayState.SONG.song);
-
-		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
-			trace("Popup triggered for sending location to Archipelago.");
-			FlxG.sound.playMusic(Paths.sound('secret'));
-		});
-
-		for (locationIdInt in locationIdInts) {
-			trace("Processing locationIdInt for victory song check: " + locationIdInt);
-			if (locationIdInt != 0 && states.FreeplayState.isVictorySong(songName, modName)) {
-				trace("Victory song condition met. Triggering victory popup...");
-				archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-					trace("Popup triggered for completing goal.");
-					FlxG.sound.playMusic(Paths.sound('secret'));
-				});
-				APEntryState.apGame.info().set_goal();
-				trace("Goal set in Archipelago.");
-			}
-		}
-
-		if (instance != null) {
-			trace("Reloading songs in FreeplayState instance...");
-			instance.reloadSongs(true);
-		}
-		trace("forceUnlockCheck completed.");
-
-		trace("Checking if the song is a victory song...");
-
-		if (archipelago.APEntryState.apGame.checkGoal(songName, modName)) {
-			archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
-				trace("Goal achievement popup triggered.");
-				FlxG.sound.playMusic(Paths.sound('victory'));
-			});
-		}
-	}
-
-
 
 	override function update(elapsed:Float)
 	{
@@ -1088,7 +959,7 @@ class FreeplayState extends MusicBeatState
 				trace('Error loading song: ' + e);
 			}
 			try {
-				forceUnlockCheck(songs[curSelected].songName, WeekData.getCurrentWeek().folder);
+				FreeplayManager.forceUnlockCheck(songs[curSelected].songName, WeekData.getCurrentWeek().folder);
 			} catch (e:Dynamic) {
 				trace("You can't check nothing, silly!");
 			}
@@ -1213,7 +1084,7 @@ class FreeplayState extends MusicBeatState
 				if (player.playingMusic)
 				{
 					FlxG.sound.music.stop();
-					destroyFreeplayVocals();
+					FreeplayManager.destroyFreeplayVocals();
 					FlxG.sound.music.volume = 0;
 					instPlaying = -1;
 
@@ -1263,88 +1134,20 @@ class FreeplayState extends MusicBeatState
 					}
 
 					searchBar.hasFocus = false;
-					destroyFreeplayVocals();
+					FreeplayManager.destroyFreeplayVocals();
 					FlxG.sound.music.volume = 0;
 	
 					Mods.currentModDirectory = songs[curSelected].folder;
 					var poop:String = Highscore.formatSong(songs[curSelected].songName.toLowerCase(), curDifficulty);
 					Song.loadFromJson(poop, songs[curSelected].songName.toLowerCase());
-					if (PlayState.SONG.needsVoices)
-					{
-						vocals = new FlxSound();
-						try
-						{
-							var playerVocals:String = getVocalFromCharacter(PlayState.SONG.player1);
-							var loadedVocals = Paths.voices(PlayState.SONG.song, (playerVocals != null && playerVocals.length > 0) ? playerVocals : 'Player');
-							if(loadedVocals == null) loadedVocals = Paths.voices(PlayState.SONG.song);
-							
-							if(loadedVocals != null)
-							{
-								vocals.loadEmbedded(loadedVocals);
-								FlxG.sound.list.add(vocals);
-								vocals.persist = vocals.looped = true;
-								vocals.volume = 0.8;
-								vocals.play();
-								vocals.pause();
-							}
-							else vocals = FlxDestroyUtil.destroy(vocals);
-						}
-						catch(e:Dynamic)
-						{
-							vocals = FlxDestroyUtil.destroy(vocals);
-						}
-						
-						opponentVocals = new FlxSound();
-						gfVocals = new FlxSound();
-						try
-						{
-							//trace('please work...');
-							var oppVocals:String = getVocalFromCharacter(PlayState.SONG.player2);
-							var loadedVocals = Paths.voices(PlayState.SONG.song, (oppVocals != null && oppVocals.length > 0) ? oppVocals : 'Opponent');
-							var loadedgfVocals = Paths.voices(PlayState.SONG.song, 'gf');
-							
-							if(loadedVocals != null)
-							{
-								opponentVocals.loadEmbedded(loadedVocals);
-								FlxG.sound.list.add(opponentVocals);
-								opponentVocals.persist = opponentVocals.looped = true;
-								opponentVocals.volume = 0.8;
-								opponentVocals.play();
-								opponentVocals.pause();
-								//trace('yaaay!!');
-							}
-							else opponentVocals = FlxDestroyUtil.destroy(opponentVocals);
-
-							if(loadedgfVocals != null)
-							{
-								gfVocals.loadEmbedded(loadedgfVocals);
-								FlxG.sound.list.add(gfVocals);
-								gfVocals.persist = gfVocals.looped = true;
-								gfVocals.volume = 0.8;
-								gfVocals.play();
-								gfVocals.pause();
-								//trace('yaaay!!');
-							}
-							else gfVocals = FlxDestroyUtil.destroy(gfVocals);
-						}
-						catch(e:Dynamic)
-						{
-							//trace('FUUUCK');
-							opponentVocals = FlxDestroyUtil.destroy(opponentVocals);
-							gfVocals = FlxDestroyUtil.destroy(gfVocals);
-						}
-					}
-	
-					FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 0.8);
-					FlxG.sound.music.pause();
-					Conductor.bpm = PlayState.SONG.bpm;
+					FreeplayManager.previewSong(PlayState.SONG.needsVoices);
 					instPlaying = curSelected;
 					trackPlaying = poop;
 					player.playingMusic = true;
 					player.curTime = 0;
 					player.switchPlayMusic();
 					player.pauseOrResume(true);
-					switchVisualizer(true, vocals, opponentVocals);
+					switchVisualizer(true, FreeplayManager.vocals, FreeplayManager.opponentVocals);
 				}
 				else if (instPlaying == curSelected && player.playingMusic)
 				{
@@ -1363,10 +1166,10 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 
-				var vicCheck:Bool = isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
+				var vicCheck:Bool = FreeplayManager.isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
-				if (isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && !vicCheck) {
+				if (FreeplayManager.isVictorySong(songs[curSelected].songName, songs[curSelected].folder) && !vicCheck) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)
@@ -1381,7 +1184,7 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 				
-				if (trueMissing.contains(songs[curSelected].songName) && !unplayedList.contains(songs[curSelected].songName)) {
+				if (FreeplayManager.trueMissing.contains(songs[curSelected].songName) && !FreeplayManager.unplayedList.contains(songs[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)
@@ -1524,7 +1327,7 @@ class FreeplayState extends MusicBeatState
 
 				FlxG.sound.music.volume = 0;
 						
-				destroyFreeplayVocals();
+				FreeplayManager.destroyFreeplayVocals();
 				#if (MODS_ALLOWED && DISCORD_ALLOWED)
 				DiscordClient.loadModRPC();
 				#end
@@ -1588,21 +1391,6 @@ class FreeplayState extends MusicBeatState
 	}
 
 	var alreadyClicked:Bool = false;
-	function getVocalFromCharacter(char:String)
-	{
-		try
-		{
-			var path:String = Paths.getPath('characters/$char.json', TEXT);
-			#if MODS_ALLOWED
-			var character:Dynamic = Json.parse(File.getContent(path));
-			#else
-			var character:Dynamic = Json.parse(Assets.getText(path));
-			#end
-			return character.vocals_file;
-		}
-		catch (e:Dynamic) {}
-		return null;
-	}
 
 	public function playFreakyMusic(?musName:String, ?bpm:Float = 145) {
 		if (trackPlaying == musName)
@@ -1623,15 +1411,7 @@ class FreeplayState extends MusicBeatState
 			instPlaying = -1;
 			trackPlaying = musName;
 		}
-		destroyFreeplayVocals();
-	}
-
-	public static function destroyFreeplayVocals() {
-		if(vocals != null) vocals.stop();
-		vocals = FlxDestroyUtil.destroy(vocals);
-
-		if(opponentVocals != null) opponentVocals.stop();
-		opponentVocals = FlxDestroyUtil.destroy(opponentVocals);
+		FreeplayManager.destroyFreeplayVocals();
 	}
 
 	function changeDiff(change:Int = 0)

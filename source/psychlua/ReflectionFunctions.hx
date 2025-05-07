@@ -230,6 +230,7 @@ class ReflectionFunctions
 			}
 			return Reflect.callMethod(null, parent, parseInstances(args));
 		});
+		
 		Lua_helper.add_callback(lua, "callMethodFromClass", function(className:String, funcToRun:String, ?args:Array<Dynamic>) {
 			return callMethodFromObject(Type.resolveClass(className), funcToRun, parseInstances(args));
 		});

@@ -184,11 +184,11 @@ class RankingSubstate extends MusicBeatSubstate
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
 					Constants.playMenuMusic();
-					TransitionState.transitionState(states.FreeplayState, {transitionType: "stickers"});
+					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
 					Constants.playMenuMusic();
-					TransitionState.transitionState(states.FreeplayState, {transitionType: "stickers"});
+					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					var locationId = (PlayState.SONG.song);
 					trace('Combo Gotten:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
 					trace('Accuracy Gotten:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);

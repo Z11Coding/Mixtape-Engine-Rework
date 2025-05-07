@@ -4,12 +4,12 @@ import flixel.group.FlxGroup;
 import flixel.ui.FlxBar;
 import flixel.util.FlxStringUtil;
 
-import states.FreeplayState;
+import states.freeplay.FreeplayState;
 
 /**
  * Music player used for Freeplay
  */
-@:access(states.FreeplayState)
+@:access(states.freeplay.FreeplayState)
 class MusicPlayer extends FlxGroup 
 {
 	public var instance:FreeplayState;
@@ -193,13 +193,13 @@ class MusicPlayer extends FlxGroup
 
 		if (playing)
 		{
-			if(FreeplayState.vocals != null)
-				FreeplayState.vocals.volume = (FreeplayState.vocals.length > FlxG.sound.music.time) ? 0.8 : 0;
-			if(FreeplayState.opponentVocals != null)
-				FreeplayState.opponentVocals.volume = (FreeplayState.opponentVocals.length > FlxG.sound.music.time) ? 0.8 : 0;
+			if(FreeplayManager.vocals != null)
+				FreeplayManager.vocals.volume = (FreeplayManager.vocals.length > FlxG.sound.music.time) ? 0.8 : 0;
+			if(FreeplayManager.opponentVocals != null)
+				FreeplayManager.opponentVocals.volume = (FreeplayManager.opponentVocals.length > FlxG.sound.music.time) ? 0.8 : 0;
 
-			if((FreeplayState.vocals != null && FreeplayState.vocals.length > FlxG.sound.music.time && Math.abs(FlxG.sound.music.time - FreeplayState.vocals.time) >= 25) ||
-			(FreeplayState.opponentVocals != null && FreeplayState.opponentVocals.length > FlxG.sound.music.time && Math.abs(FlxG.sound.music.time - FreeplayState.opponentVocals.time) >= 25))
+			if((FreeplayManager.vocals != null && FreeplayManager.vocals.length > FlxG.sound.music.time && Math.abs(FlxG.sound.music.time - FreeplayManager.vocals.time) >= 25) ||
+			(FreeplayManager.opponentVocals != null && FreeplayManager.opponentVocals.length > FlxG.sound.music.time && Math.abs(FlxG.sound.music.time - FreeplayManager.opponentVocals.time) >= 25))
 			{
 				pauseOrResume();
 				setVocalsTime(FlxG.sound.music.time);
@@ -214,20 +214,20 @@ class MusicPlayer extends FlxGroup
 
 	function setVocalsTime(time:Float)
 	{
-		if (FreeplayState.vocals != null && FreeplayState.vocals.length > time)
-			FreeplayState.vocals.time = time;
-		if (FreeplayState.opponentVocals != null && FreeplayState.opponentVocals.length > time)
-			FreeplayState.opponentVocals.time = time;
+		if (FreeplayManager.vocals != null && FreeplayManager.vocals.length > time)
+			FreeplayManager.vocals.time = time;
+		if (FreeplayManager.opponentVocals != null && FreeplayManager.opponentVocals.length > time)
+			FreeplayManager.opponentVocals.time = time;
 	}
 
 	var curMuteState:Bool = false;
 	function muteVocals()
 	{
 		curMuteState =! curMuteState;
-		if (FreeplayState.vocals != null && FreeplayState.vocals.playing)
-			FreeplayState.vocals.volume = curMuteState ? 0 : 0.8;
-		if (FreeplayState.opponentVocals != null && FreeplayState.opponentVocals.playing)
-			FreeplayState.opponentVocals.time = curMuteState ? 0 : 0.8;
+		if (FreeplayManager.vocals != null && FreeplayManager.vocals.playing)
+			FreeplayManager.vocals.volume = curMuteState ? 0 : 0.8;
+		if (FreeplayManager.opponentVocals != null && FreeplayManager.opponentVocals.playing)
+			FreeplayManager.opponentVocals.time = curMuteState ? 0 : 0.8;
 	}
 
 	public function pauseOrResume(resume:Bool = false) 
@@ -237,19 +237,19 @@ class MusicPlayer extends FlxGroup
 			if(!FlxG.sound.music.playing)
 				FlxG.sound.music.resume();
 
-			if (FreeplayState.vocals != null && FreeplayState.vocals.length > FlxG.sound.music.time && !FreeplayState.vocals.playing)
-				FreeplayState.vocals.resume();
-			if (FreeplayState.opponentVocals != null && FreeplayState.opponentVocals.length > FlxG.sound.music.time && !FreeplayState.opponentVocals.playing)
-				FreeplayState.opponentVocals.resume();
+			if (FreeplayManager.vocals != null && FreeplayManager.vocals.length > FlxG.sound.music.time && !FreeplayManager.vocals.playing)
+				FreeplayManager.vocals.resume();
+			if (FreeplayManager.opponentVocals != null && FreeplayManager.opponentVocals.length > FlxG.sound.music.time && !FreeplayManager.opponentVocals.playing)
+				FreeplayManager.opponentVocals.resume();
 		}
 		else 
 		{
 			FlxG.sound.music.pause();
 
-			if (FreeplayState.vocals != null)
-				FreeplayState.vocals.pause();
-			if (FreeplayState.opponentVocals != null)
-				FreeplayState.opponentVocals.pause();
+			if (FreeplayManager.vocals != null)
+				FreeplayManager.vocals.pause();
+			if (FreeplayManager.opponentVocals != null)
+				FreeplayManager.opponentVocals.pause();
 		}
 	}
 
@@ -362,10 +362,10 @@ class MusicPlayer extends FlxGroup
 	function setPlaybackRate() 
 	{
 		FlxG.sound.music.pitch = playbackRate;
-		if (FreeplayState.vocals != null)
-			FreeplayState.vocals.pitch = playbackRate;
-		if (FreeplayState.opponentVocals != null)
-			FreeplayState.opponentVocals.pitch = playbackRate;
+		if (FreeplayManager.vocals != null)
+			FreeplayManager.vocals.pitch = playbackRate;
+		if (FreeplayManager.opponentVocals != null)
+			FreeplayManager.opponentVocals.pitch = playbackRate;
 	}
 
 	function get_playing():Bool 

@@ -5,7 +5,6 @@ import funkin.util.flixel.sound.FlxPartialSound;
 import haxe.exceptions.NotImplementedException;
 import openfl.media.SoundMixer;
 import flixel.system.FlxAssets.FlxSoundAsset;
-import states.FreeplayState;
 
 class FunkinSound extends FlxSound
 {
@@ -97,16 +96,11 @@ class FunkinSound extends FlxSound
 					return false;
 				}
 				future.future.onComplete(function(sound:Sound)
-					{
-						@:privateAccess{
-							if(!Std.isOfType(FlxG.state.subState,FreeplayState)) return;
-							var fp = cast (FlxG.state.subState,FreeplayState);
-						}
-						
-						trace("Playing preview!");
-						FlxG.sound.playMusic(sound,0);
-						params.onLoad();
-					});
+				{	
+					trace("Playing preview!");
+					FlxG.sound.playMusic(sound,0);
+					params.onLoad();
+				});
 				return true;
 			}
 			catch (x){

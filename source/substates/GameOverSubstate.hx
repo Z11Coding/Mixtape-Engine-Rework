@@ -10,7 +10,6 @@ import flixel.FlxSubState;
 import flixel.math.FlxPoint;
 
 import states.StoryMenuState;
-import states.FreeplayState;
 
 //It has its own folder cuz it was made for something much bigger. 
 //im just too lazy to move it.
@@ -221,7 +220,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				if (PlayState.isStoryMode)
 					MusicBeatState.switchState(new StoryMenuState());
 				else
-					MusicBeatState.switchState(new FreeplayState());
+					FreeplayManager.openFreeplay();
 	
 				Constants.playMenuMusic();
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
@@ -303,7 +302,7 @@ class GameOverSubstate extends MusicBeatSubstate
 							PlayState.chartingMode = false;
 
 							Mods.loadTopMod();
-							MusicBeatState.switchState(new FreeplayState());
+							FreeplayManager.openFreeplay();
 							Constants.playMenuMusic();
 						}
 						else

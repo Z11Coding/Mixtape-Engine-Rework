@@ -2,7 +2,6 @@ package archipelago;
 
 import yutautil.AprilFools;
 import haxe.DynamicAccess;
-import states.FreeplayState;
 import yutautil.MemoryHelper;
 import flixel.FlxState;
 import archipelago.Client;
@@ -489,7 +488,7 @@ class APGameState
 				return false;
 			}
 		}
-		if (states.FreeplayState.isVictorySong(songName, modName))
+		if (FreeplayManager.isVictorySong(songName, modName))
 		{
 			setGoal();
 			return true;
@@ -623,23 +622,23 @@ class APGameState
 						message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
 					}
 
-					if (FreeplayState.hintTable.exists(locationName))
+					if (FreeplayManager.hintTable.exists(locationName))
 					{
-						FreeplayState.hintTable.set(locationName, FreeplayState.hintTable.get(locationName) + "\n" + message);
+						FreeplayManager.hintTable.set(locationName, FreeplayManager.hintTable.get(locationName) + "\n" + message);
 					}
 					else
 					{
-						FreeplayState.hintTable.set(locationName, message);
+						FreeplayManager.hintTable.set(locationName, message);
 					}
 				}
 			}
 		}
-		for (hint in FreeplayState.hintTable.keys())
+		for (hint in FreeplayManager.hintTable.keys())
 		{
-			var message = FreeplayState.hintTable.get(hint);
+			var message = FreeplayManager.hintTable.get(hint);
 			trace("Hint: " + hint + " - " + message);
 			var hintSong = getSongAndMod(hint);
-			FreeplayState.curHinted.push({song: hintSong.song, mod: hintSong.mod != null ? hintSong.mod : ""});
+			FreeplayManager.curHinted.push({song: hintSong.song, mod: hintSong.mod != null ? hintSong.mod : ""});
 			trace(hintSong);
 		}
 	}
@@ -911,7 +910,7 @@ class APGameState
 		var tickets = 0;
 		var nonSongs:Map<String, Int> = [];
 		var nonSongsNames:Array<String> = [];
-		states.FreeplayState.curMissing = [];
+		FreeplayManager.curMissing = [];
 
 		for (songName in song)
 		{
@@ -936,7 +935,7 @@ class APGameState
 				data.mod = "";
 			}
             var isUnlocked = false;
-            for (unlocked in states.FreeplayState.curUnlocked)
+            for (unlocked in FreeplayManager.curUnlocked)
             {
                 if (unlocked.song == data.song && unlocked.mod == data.mod)
                 {
@@ -951,12 +950,12 @@ class APGameState
 				{
 					if (!isSync)
 						ArchPopup.startPopupSong(data.song, 'archColor');
-					states.FreeplayState.curUnlocked.push({song: data.song, mod: data.mod});
+					FreeplayManager.curUnlocked.push({song: data.song, mod: data.mod});
 				}
 			}
 
             // Check special items and remove any matching items with no mod
-            states.FreeplayState.curUnlocked = states.FreeplayState.curUnlocked.filter(unlocked -> 
+            FreeplayManager.curUnlocked = FreeplayManager.curUnlocked.filter(unlocked -> 
                 !(APItems.exists(unlocked.song) && unlocked.mod.trim() == "")
             );
 		}
@@ -1050,8 +1049,7 @@ class APGameState
 		info().casualSync = false;
 		try
 		{
-			if (states.FreeplayState.instance != null)
-				states.FreeplayState.instance.reloadSongs(true);
+			FreeplayManager.reloadFreeplay(true);
 		}
 		catch (e:Dynamic)
 		{
@@ -1146,7 +1144,7 @@ class APGameState
 
 	function checkIfLocked(song:String, mod:String):Bool
 	{
-		return !(states.FreeplayState.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
+		return !(FreeplayManager.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
 	}
 
 	function validateMods()
