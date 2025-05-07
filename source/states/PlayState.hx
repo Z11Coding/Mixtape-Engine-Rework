@@ -2034,7 +2034,7 @@ class PlayState extends MusicBeatState
 
 			if (SONG.needsVoices) {
 				if ((generalVocals != null && generalVocals.length > 1) || (playerVocals != null && playerVocals.length > 1)) {
-					vocalvisual = new AudioDisplay(vocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 2), 50, 2, FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])); 
+					vocalvisual = new AudioDisplay(vocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])); 
 					vocalvisual.scrollFactor.set(0, 0); 
 					vocalvisual.flipY = true;
 					add(vocalvisual); 
@@ -2043,7 +2043,7 @@ class PlayState extends MusicBeatState
 				}
 
 				if (opponentVocals != null && opponentVocals.length > 1) {
-					oppvisual = new AudioDisplay(opponentVocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 2), 50, 2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2])); 
+					oppvisual = new AudioDisplay(opponentVocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2])); 
 					oppvisual.scrollFactor.set(0, 0);
 					oppvisual.flipY = true;  
 					add(oppvisual); 
