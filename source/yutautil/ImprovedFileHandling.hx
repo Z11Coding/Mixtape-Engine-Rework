@@ -17,7 +17,7 @@ class ImprovedFileHandling {
     public static function openFile(title:String, ?filters:Array<FileFilter>, ?preserve_cwd:Bool=true):String {
         if (filters != null) {
             for (filter in filters) {
-                filter.desc = filter.desc != null ? filter.desc : filter.ext + " File";
+                filter.desc = filter.desc != null ? filter.desc : filter.ext.toUpperCase() + " File";
             }
         }
         return FilePopup.open(title, filters, preserve_cwd);
@@ -25,7 +25,7 @@ class ImprovedFileHandling {
 
     public static function saveFile(title:String, ?filter:FileFilter, ?preserve_cwd:Bool=true):String {
         if (filter != null) {
-            filter.desc = filter.desc != null ? filter.desc : "${filter.ext} File";
+            filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
         }
         return FilePopup.save(title, filter, preserve_cwd);
     }
@@ -39,7 +39,7 @@ class ImprovedFileHandling {
     public static function loadFile(title:String, ?filters:Array<FileFilter>, readType:ReadType, ?operation:Dynamic->Dynamic, ?preserve_cwd:Bool=true):Dynamic {
         if (filters != null) {
             for (filter in filters) {
-                filter.desc = filter.desc != null ? filter.desc : "${filter.ext} File";
+                filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
             }
         }
         var filePath = openFile(title, filters, preserve_cwd);
@@ -53,7 +53,7 @@ class ImprovedFileHandling {
 
     public static function saveOperation(title:String, ?filter:FileFilter, writeType:ReadType, data:Dynamic, ?preserve_cwd:Bool=true):Bool {
         if (filter != null) {
-            filter.desc = filter.desc != null ? filter.desc : "${filter.ext} File";
+            filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
         }
         var filePath = saveFile(title, filter, preserve_cwd);
         if (filePath != null || filePath != "") {

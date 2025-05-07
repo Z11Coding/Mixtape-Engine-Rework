@@ -41,7 +41,7 @@ typedef YInterface = {
         isInternal:Bool,
     },
 };
-typedef YClass = {
+typedef YBaseClass = {
     name: String,
     fields: Array<YVar>,
     methods: Array<YFunction>,
@@ -55,6 +55,25 @@ typedef YClass = {
     constructors: Array<YFunction>,
     destructors: Array<YFunction>,
 };
+
+typedef YTypedClass<T> = {
+    name: String,
+    fields: Array<YVar>,
+    methods: Array<YFunction>,
+    type:Dynamic,
+    access:{
+        isPublic:Bool,
+        isPrivate:Bool,
+        isInternal:Bool,
+    },
+    extending: Array<YClass>,
+    implementing: Array<YInterface>,
+    constructors: Array<YFunction>,
+    destructors: Array<YFunction>,
+};
+
+typedef YClass<T> = flixel.util.typeLimit.OneOfTwo<YBaseClass, YTypedClass<T>>;
+
 typedef YFunction = {
     name: String,
     returnType:Dynamic,
@@ -184,9 +203,98 @@ typedef YHaskellCall = {
 };
 
 
+class YScriptError extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+class YscriptException extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+class YScriptParseError extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+class YScriptRuntimeError extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+class YScriptTypeError extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+class YScriptSyntaxError extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+class YScriptSemanticError extends haxe.Exception {
+    public function new(message:String) {
+        super(message, null, null);
+    }
+}
+
+typedef YSyntaxAST = Array<Dynamic>;
+
+class YScriptSyntaxTree {
+
+    var tree:YSyntaxAST;
+    var currentNode:Dynamic;
+    var currentIndex:Int;
+    var currentLine:Int;
+    var currentColumn:Int;
 
 
+    public function new() {
+        tree = [];
+        currentNode = null;
+        currentIndex = 0;
+        currentLine = 0;
+        currentColumn = 0;
+    }
 
+    public function addNode(node:Dynamic):Void {
+        tree.push(node);
+        currentNode = node;
+        currentIndex++;
+    }
+    public function getNode(index:Int):Dynamic {
+        if (index < 0 || index >= tree.length) throw "Index out of bounds: " + index;
+        return tree[index];
+    }
+    public function getCurrentNode():Dynamic {
+        return currentNode;
+    }
+    public function getCurrentIndex():Int {
+        return currentIndex;
+    }
+
+    // More builders.
+    public function buildFunction(name:String, parameters:Array<YVar>, body:YSyntaxAST):YSyntaxAST {
+        var funcNode = { type: "function", name: name, parameters: parameters, body: body };
+        addNode(funcNode);
+        return [funcNode];
+    }
+    
+    
+
+}
+
+// A Scripting Language which has a lot of control over the game, and is used to create mods for the game. 
+// It also has native control over types, and can be used to create new types, and modify existing ones.
+
+// It is planned to also have compatibility with Lua, and Haxe, and be able to run Lua scripts, and Haxe scripts, as well as be able to run C++ code and C code directly in the future.
 class YScript {
     private var keywords:Map<String, String>;
 
