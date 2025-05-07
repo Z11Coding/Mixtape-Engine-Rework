@@ -2,8 +2,197 @@ package yutautil;
 
 import haxe.ds.StringMap;
 
+typedef YVar = {
+    name: String,
+    type: Dynamic,
+    ?value: Dynamic,
+    pointer:{haxePointer:cpp.RawPointer<Dynamic>, ?virtualPointer:Int}
+};
+typedef YStruct = {
+    name: String,
+    fields: Array<YVar>
+};
+
+typedef YEnum = {
+    name: String,
+    values: Array<String>,
+    access:{
+        isPublic:Bool,
+        isPrivate:Bool,
+        isInternal:Bool,
+    },
+};
+typedef YEnumValue = {
+    name: String,
+    value: Int,
+    access:{
+        isPublic:Bool,
+        isPrivate:Bool,
+        isInternal:Bool,
+    },
+};
+typedef YInterface = {
+    name: String,
+    fields: Array<YVar>,
+    methods: Array<YFunction>,
+    access:{
+        isPublic:Bool,
+        isPrivate:Bool,
+        isInternal:Bool,
+    },
+};
+typedef YClass = {
+    name: String,
+    fields: Array<YVar>,
+    methods: Array<YFunction>,
+    access:{
+        isPublic:Bool,
+        isPrivate:Bool,
+        isInternal:Bool,
+    },
+    extending: Array<YClass>,
+    implementing: Array<YInterface>,
+    constructors: Array<YFunction>,
+    destructors: Array<YFunction>,
+};
+typedef YFunction = {
+    name: String,
+    returnType:Dynamic,
+    parameters: Array<YVar>,
+    body: String,
+    type:{ // Private and Protected are reversed from how Java does it, as it makes sense when interfacing with Haxe.
+        isLambda:Bool,
+        isClosure:Bool,
+        isMethod:Bool,
+        isStatic:Bool,
+        isConstructor:Bool,
+        isDestructor:Bool,
+        isVirtual:Bool,
+        isAbstract:Bool,
+        isOverride:Bool,
+        isFinal:Bool,
+        isNative:Bool,
+        isLua:Bool,
+        isHaxe:Bool,
+        isC:Bool,
+        isCPlusPlus:Bool,
+        isForLoop:Bool,
+        isWhileLoop:Bool,
+    },
+    access:{
+        isPublic:Bool,
+        isPrivate:Bool,
+        isProtected:Bool,
+        isInternal:Bool,
+        isDynamic:Bool
+    },
+    attachment:Array<Dynamic> // Attachment shows what this function is a part of, class, variable, struct, etc.
+};
+typedef YUse = {
+    name: String,
+    ?alias: String
+};
+
+typedef YFor = {
+    body: YFunction,
+    condition: YVar,
+    iterator: Dynamic,
+}
+typedef YWhile = {
+    body: YFunction,
+    condition: YVar,
+}
+typedef YIf = {
+    body: YFunction,
+    condition: YVar,
+    elseBody: YFunction
+};
+typedef YSwitch = {
+    body: YFunction,
+    condition: YVar,
+    cases: Array<YCase>
+};
+typedef YCase = {
+    condition: YVar,
+    body: YFunction
+};
+typedef YReturn = {
+    value: Dynamic
+};
+typedef YBreak = {
+    value: Dynamic
+};
+
+typedef YContinue = {
+    value: Dynamic
+};
+typedef YImport = {
+    name: String,
+    alias: String
+};
+typedef YClosure = {
+    name: String,
+    parameters: Array<YVar>,
+    body: YFunction
+};
+typedef YLambda = {
+    name: String,
+    parameters: Array<YVar>,
+    body: YFunction
+};
+typedef YLambdaExpr = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef YLambdaCall = {
+    func: YLambdaExpr,
+    arg: YLambdaExpr
+};
+typedef YLambdaReduce = {
+    func: YLambdaExpr,
+    arg: YLambdaExpr
+};
+typedef YLambdaToString = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef YLambdaTokenize = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef YLuaTable = {
+    name: String,
+    fields: Array<YVar>
+};
+typedef YLuaImport = { // Treated like a class, uses a Lua script as a class
+    name: String,
+    alias: String,
+    script: llua.State
+};
+
+typedef YHaskellExpr = {
+    name: String,
+    param: String,
+    body: YFunction
+};
+typedef YHaskellCall = {
+    func: YHaskellExpr,
+    arg: YHaskellExpr
+};
+
+
+
+
+
 class YScript {
     private var keywords:Map<String, String>;
+
+    public var varTable:Map<String, YVar>;
+    public var structTable:Map<String, YStruct>;
+    public var classTable:Map<String, YClass>;
 
     public function new() {
         keywords = new StringMap<String>();

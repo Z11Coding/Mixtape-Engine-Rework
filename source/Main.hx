@@ -292,6 +292,10 @@ class Main extends Sprite
 		backend.modules.EvacuateDebugPlugin.initialize();
 		backend.modules.ForceCrashPlugin.initialize();
 		backend.modules.MemoryGCPlugin.initialize();
+		
+
+		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));
+		// trace("Game Dialog Test 2: " + dialogs.Dialogs.save('Test for Save', {ext:'txt', desc:'Text files'}));
 
 		// var dummyDate = Date.now();
 		// var eDate = yutautil.ExtendedDate.fromDate(dummyDate);

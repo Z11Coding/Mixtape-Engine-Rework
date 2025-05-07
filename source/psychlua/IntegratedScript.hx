@@ -41,7 +41,7 @@ class IntegratedLuaScript {
         file.close();
 
         // Run the script through FunkinLua
-        new FunkinLua(tempFilePath).call("onCreate", []);
+        new FunkinLua(tempFilePath).call("onCreatePost", []);
         // trace("Internal Lua script loaded successfully: " + name);
 
         // Delete the temporary file
@@ -106,7 +106,7 @@ class IntegratedHScript {
         file.writeString(scriptText);
         file.close();
 
-        new HScript(null, tempFilePath).call("onCreate", []);
+        new HScript(null, tempFilePath).call("onCreatePost", []);
         // trace("Internal HScript loaded successfully: " + name);
 
         // Delete the temporary file
