@@ -84,6 +84,7 @@ class Note extends NoteObject
 			mustPress: this.mustPress,
 			canBeHit: this.canBeHit,
 			tooLate: this.tooLate,
+			botNote: this.botNote,
 			wasGoodHit: this.wasGoodHit,
 			missed: this.missed,
 			ignoreNote: this.ignoreNote,
@@ -457,6 +458,8 @@ class Note extends NoteObject
 		],
 	];
 
+	public var botNote:Bool = false;
+
 	public static var pixelScales:Array<Float> = [
         1.2, //1k
         1.15, //2k
@@ -488,7 +491,8 @@ class Note extends NoteObject
 		'Hey!',
 		'Hurt Note',
 		'GF Sing',
-		'No Animation'
+		'No Animation',
+		'Botplay Note'
 	];
 	public var strumTime:Float = 0;
 	
@@ -762,6 +766,9 @@ class Note extends NoteObject
 					noMissAnimation = true;
 				case 'GF Sing':
 					gfNote = true;
+				case 'Botplay Note':
+					botNote = true;
+					hitsoundChartEditor = false;
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof

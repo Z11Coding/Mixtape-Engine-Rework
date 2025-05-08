@@ -311,6 +311,38 @@ class MusicBeatState extends FlxState
 		}
 	}
 
+	var preloadFunction:()->Void = null;
+
+	public function preloadState(switchState:Bool = false):Void
+	{
+		var preloader = function()
+		{
+			if (preloadFunction != null)
+			{
+				preloadFunction();
+				preloadFunction = null;
+			}
+			if (switchState)
+				return MusicBeatState.switchState(this);
+		 }
+
+		 yutautil.Threader.runInThread(preloader(), 1, 'State Preloader - ${Type.getClassName(Type.getClass(this))}');
+		}	
+
+
+	public static function preloadAndSwitchState(state:MusicBeatState)
+	{
+		if (state == null)
+			state = cast(FlxG.state, MusicBeatState);
+		if (state == FlxG.state)
+		{
+			resetState();
+			return;
+		}
+
+		state.preloadState(true);
+	}
+
 	public static function switchState(nextState:FlxState = null)
 	{
 		if (nextState == null)

@@ -64,8 +64,10 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		}
 	}
 
-	public static var noteTypeList:Array<String> = // Used for backwards compatibility with 0.1 - 0.3.2 charts, though, you should add your hardcoded custom note types here too.
-		[
+	public static var noteTypeList:Array<String> = getNoteTypeList();
+
+	private static function getNoteTypeList():Array<String> {
+		var notes = [
 			'',
 			'Alt Animation',
 			'Hey!',
@@ -78,6 +80,8 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			'Both Note',
 			'Both Alt Note'
 		];
+		return notes.concat(Note.defaultNoteTypes.filter(type -> !notes.contains(type)));
+	}
 
 	private var didAThing = false;
 
