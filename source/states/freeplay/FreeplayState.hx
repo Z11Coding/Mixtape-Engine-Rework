@@ -1091,7 +1091,7 @@ class FreeplayState extends MusicBeatState
 					player.playingMusic = false;
 					player.switchPlayMusic();
 
-					Constants.playMenuMusic(0);
+					MusicManager.playMenuMusic(0);
 					FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
 					switchVisualizer();
 				}
@@ -1397,7 +1397,7 @@ class FreeplayState extends MusicBeatState
 			return;
 
 		if (musName == null) {
-			if (trackPlaying != 'menu') Constants.playMenuMusic(0);
+			if (trackPlaying != 'menu') MusicManager.playMenuMusic(0);
 			trackPlaying = 'menu';
 			if (musName == null)
 				return;
@@ -1702,7 +1702,7 @@ class FreeplayState extends MusicBeatState
 		instance = null;
 		FlxG.autoPause = ClientPrefs.data.autoPause;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
-			Constants.playMenuMusic(0);
+			MusicManager.playMenuMusic(0);
 	}	
 
 	// public static function addInternetModSource(url:String):Void {

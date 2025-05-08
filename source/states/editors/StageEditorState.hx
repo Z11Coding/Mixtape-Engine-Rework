@@ -114,6 +114,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		FlxG.mouse.visible = true;
 		animationEditor = new StageEditorAnimationSubstate();
 
+		MusicManager.playEditorMusic(1);
+
 		super.create();
 	}
 
@@ -1388,7 +1390,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			if(!unsavedProgress)
 			{
 				MusicBeatState.switchState(new states.editors.MasterEditorMenu());
-				Constants.playMenuMusic();
+				MusicManager.playMenuMusic();
 			}
 			else openSubState(new ExitConfirmationPrompt());
 			return;
@@ -1673,81 +1675,23 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 	function saveData()
 	{
-		if(_file != null) return;
-
 		saveObjectsToJson();
 		var data = haxe.Json.stringify(stageJson, '\t');
 		if (data.length > 0)
-		{
-			_file = new FileReference();
-			_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onSaveComplete);
-			_file.addEventListener(Event.CANCEL, onSaveCancel);
-			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-			_file.save(data, '$lastLoadedStage.json');
-		}
-	}
-
-	var _file:FileReference;
-	function onSaveComplete(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.notice('Successfully saved file.');
-	}
-
-	/**
-		* Called when the save file dialog is cancelled.
-		*/
-	function onSaveCancel(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-	}
-
-	/**
-		* Called if there is an error while saving the gameplay recording.
-		*/
-	function onSaveError(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.error('Problem saving file');
+			ImprovedFileHandling.saveOperation('$lastLoadedStage.json', {ext: "json", desc: "JSON File"}, Text, data);
 	}
 
 	var _makeNewSprite = null;
 	public function loadImage(onNewSprite:String = null) {
-		if(_file != null) return;
-
 		_makeNewSprite = onNewSprite;
-		_file = new FileReference();
-		_file.addEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.addEventListener(Event.CANCEL, onLoadCancel);
-		_file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-
-		final filters = [new FileFilter('PNG (Image)', '*.png'), new FileFilter('XML (Sparrow)', '*.xml'), new FileFilter('JSON (Aseprite)', '*.json'), new FileFilter('TXT (Packer)', '*.txt')];
-		_file.browse(#if !mac filters #else [] #end);
-	}
-	
-	private function onLoadComplete(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.removeEventListener(Event.CANCEL, onLoadCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-
+		
+		final filters = [{ext: "png", desc: "PNG (Image)"}, {ext: "xml", desc: "XML (Sparrow)"}, {ext: "json", desc: "JSON (Aseprite)"}, {ext: "txt", desc: "TXT (Packer)"}];
+		var jsonFile = ImprovedFileHandling.openFile("", filters);
+		var jsonPath = ImprovedFileHandling.lastPath;
 		#if sys
 		var fullPath:String = null;
 		@:privateAccess
-		if(_file.__path != null) fullPath = _file.__path;
+		if(jsonPath != null) fullPath = jsonPath;
 
 		function loadSprite(imageToLoad:String)
 		{
@@ -1758,7 +1702,6 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				{
 					showOutput('No Animation file found with the same name of the image!', true);
 					_makeNewSprite = null;
-					_file = null;
 					return;
 				}
 				insertMeta(new StageEditorMetaSprite({type: _makeNewSprite, name: findUnoccupiedName()}, new ModchartSprite()));
@@ -1775,7 +1718,6 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			}
 			_makeNewSprite = null;
 		}
-		_file = null;
 
 		if(fullPath != null)
 		{
@@ -1845,10 +1787,10 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 			showOutput('ERROR! File cannot be used, move it to "assets" and recompile.', true);
 			#end
 		}
-		_file = null;
 		#else
 		trace('File couldn\'t be loaded! You aren\'t on Desktop, are you?');
 		#end
+		
 	}
 
 	function tryLoadImage(spr:StageEditorMetaSprite, imgPath:String)
@@ -1857,44 +1799,6 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 		spr.image = imgPath;
 		updateSelectedUI();
-	}
-
-	/**
-		* Called when the save file dialog is cancelled.
-		*/
-	private function onLoadCancel(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.removeEventListener(Event.CANCEL, onLoadCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file = null;
-		
-		if(_makeNewSprite != null)
-		{
-			createPopup.visible = createPopup.active = false;
-			_makeNewSprite = null;
-		}
-		trace('Cancelled file loading.');
-	}
-
-	/**
-		* Called if there is an error while saving the gameplay recording.
-		*/
-	private function onLoadError(_):Void
-	{
-		if(_file == null) return;
-		_file.removeEventListener(#if desktop Event.SELECT #else Event.COMPLETE #end, onLoadComplete);
-		_file.removeEventListener(Event.CANCEL, onLoadCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-		_file = null;
-
-		if(_makeNewSprite != null)
-		{
-			createPopup.visible = createPopup.active = false;
-			_makeNewSprite = null;
-		}
-		trace('Problem loading file');
 	}
 
 	override function destroy()

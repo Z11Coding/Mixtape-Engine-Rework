@@ -11,7 +11,7 @@ class ExitConfirmationPrompt extends Prompt
 		{
 			FlxG.mouse.visible = false;
 			MusicBeatState.switchState(new states.editors.MasterEditorMenu());
-			Constants.playMenuMusic();
+			MusicManager.playMenuMusic();
 			if(finishCallback != null) finishCallback();
 		}, 'Exit');
 	}

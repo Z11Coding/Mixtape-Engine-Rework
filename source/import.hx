@@ -54,7 +54,7 @@ import objects.BGSprite;
 
 import states.PlayState;
 import states.LoadingState;
-import states.freeplay.FreeplayManager;
+import managers.*;
 
 #if flxanimate
 import flxanimate.*;

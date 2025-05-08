@@ -33,6 +33,18 @@ class XMLEditorState extends MusicBeatState
         // Initialize the edit group
         editGroup = new FlxGroup();
         add(editGroup);
+
+        MusicManager.playEditorMusic(1);
+    }
+
+    override function update(elapsed:Float) {
+        super.update(elapsed);
+        if(controls.BACK){
+                    
+            MusicManager.playMenuMusic(1);
+            FlxG.mouse.visible = false;
+            MusicBeatState.startTransition(new MasterEditorMenu());
+        }
     }
 
     // Sets up the UI components (buttons, text fields, etc.)
@@ -55,27 +67,10 @@ class XMLEditorState extends MusicBeatState
     // Function for loading an XML file using OpenFL's FileReference
     private function onLoadXML():Void
     {
-        var fileRef:FileReference = new FileReference();
-        fileRef.addEventListener(Event.SELECT, onFileSelected);
-        fileRef.addEventListener(IOErrorEvent.IO_ERROR, onFileLoadError);
-        fileRef.browse();
-    }
-
-    // When a file is selected from the file dialog
-    private function onFileSelected(event:Event):Void
-    {
-        var fileRef:FileReference = cast(event.currentTarget, FileReference);
-        fileRef.addEventListener(Event.COMPLETE, onFileLoadComplete);
-        fileRef.load();
-    }
-
-    // When the file is loaded successfully
-    private function onFileLoadComplete(event:Event):Void
-    {
-        var fileRef:FileReference = cast(event.currentTarget, FileReference);
+        var fileRef = ImprovedFileHandling.loadFile("", [{ext: "json", desc: "JSON File"}], Text);
         try
         {
-            var fileContent:String = fileRef.data.toString();
+            var fileContent:String = fileRef.toString();
             xmlData = Parser.parse(fileContent);
 
             // Update UI with loaded XML data
@@ -92,20 +87,11 @@ class XMLEditorState extends MusicBeatState
         }
     }
 
-    // Handle file load errors
-    private function onFileLoadError(event:IOErrorEvent):Void
-    {
-        trace("Error loading file: " + event.text);
-    }
-
     // Save the modified XML back to disk
     private function onSaveXML():Void
     {
         if (xmlData != null)
-        {
-            var fileRef:FileReference = new FileReference();
-            fileRef.save(xmlData.toString(), "modified_file.xml");
-        }
+            ImprovedFileHandling.saveOperation("modified_file.xml", {ext: "xml", desc: "XML File"}, Text, xmlData.toString());
     }
 
     // Build the XML tree view and display nodes/attributes

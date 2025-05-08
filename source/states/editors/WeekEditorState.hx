@@ -16,7 +16,6 @@ import objects.MenuItem;
 
 import states.editors.MasterEditorMenu;
 import states.editors.content.Prompt;
-import states.editors.content.FileDialogHandler;
 import haxe.Exception;
 
 class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
@@ -28,7 +27,6 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	var grpWeekCharacters:FlxTypedGroup<MenuCharacter>;
 	var weekThing:MenuItem;
 	var missingFileText:FlxText;
-
 	public static var unsavedProgress:Bool = false;
 
 	var weekFile:WeekFile = null;
@@ -100,6 +98,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		reloadAllShit();
 
 		FlxG.mouse.visible = true;
+
+		MusicManager.playEditorMusic();
 
 		super.create();
 	}
@@ -417,7 +417,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 				if(!unsavedProgress)
 				{
 					MusicBeatState.switchState(new MasterEditorMenu());
-					Constants.playMenuMusic();
+					MusicManager.playMenuMusic();
 				}
 				else openSubState(new ExitConfirmationPrompt(function() unsavedProgress = false));
 			}
@@ -435,15 +435,13 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		lock.x = weekThing.width + 10 + weekThing.x;
 	}
 
-	static var fileDialog:FileDialogHandler = new FileDialogHandler();
 	public static function loadWeek() {
-		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
-		fileDialog.open([jsonFilter], function()
+		function doJsonStuff(fileDialog:String)
 		{
 			try
 			{
 				#if sys
-				loadedWeek = cast Json.parse(fileDialog.data);
+				loadedWeek = cast Json.parse(File.getContent(fileDialog));
 				if(loadedWeek.weekCharacters != null && loadedWeek.weekName != null) //Make sure it's really a week
 				{
 					trace("Successfully loaded file!");
@@ -463,7 +461,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 			{
 				trace(e.stack);
 			}
-		});
+		}
+		doJsonStuff(ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]));
 	}
 	
 	public static var loadedWeek:WeekFile = null;
@@ -473,11 +472,11 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		var data:String = haxe.Json.stringify(weekFile, "\t");
 		if (data.length > 0)
 		{
-			fileDialog.save('$weekFileName.json', data,
-			function()
-			{
+			if (ImprovedFileHandling.saveOperation('$weekFileName.json', {ext: "json", desc: "JSON File"}, Text, data)) {
 				trace('Week saved successfully!');
-			}, null, function() trace('Error saving character!'));
+			}
+			else
+				trace('Error saving character!');
 		}
 	}
 }
@@ -701,7 +700,7 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 				if(!WeekEditorState.unsavedProgress)
 				{
 					MusicBeatState.switchState(new MasterEditorMenu());
-					Constants.playMenuMusic();
+					MusicManager.playMenuMusic();
 				}
 				else openSubState(new ExitConfirmationPrompt());
 			}

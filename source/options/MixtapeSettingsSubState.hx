@@ -126,7 +126,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"What song do you prefer for the Main Menu?\n(And like 90% of every other menu as well)",
 			'menuSong',
 			STRING,
-			['None', 'Panix Press', 'TitleMania', 'Base Game', 'Pause Menu']);
+			['None', 'Pause Menu', 'Panix Press', 'TitleMania', 'Base Game']);
 		addOption(option);
 		option.displayFormat = '< %v >';
 		option.onChange = onChangeMenuMusic;
@@ -139,6 +139,44 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 		option.onChange = onChangePauseMusic;
+
+		var option:Option = new Option('Editor Music:',
+			"What song do you prefer for the Editors?",
+			'editorMusic',
+			STRING,
+			[
+				'None', 
+				'Pause Menu',
+				'Menu Menu',
+				'DSI Shop', 
+				'Artistic Expression',
+				'Mii Theme', 
+				'Wii Shop', 
+				'Sneaky Adventure', 
+				'SkyDecay 5', 
+				'Ice Flow', 
+				'Monkeys Spinning Monkeys', 
+				'Quirky Dog', 
+				'Carefree', 
+				'Scheming Weasel', 
+				'Local Forecast', 
+				'Sneaky Snitch', 
+				'Fluffing a Duck'
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+		option.onChange = onChangeEditorMusic;
+
+		var option:Option = new Option('Editor Music Volume:',
+			"How loud do you want the music to be?",
+			'editorMusVol',
+			FLOAT);
+		option.scrollSpeed = 20;
+		option.minValue = 0;
+		option.maxValue = 5; // Because 1 just isn't enough sometimes
+		option.decimals = 1;
+		option.changeValue = 0.1;
+		addOption(option);
 
 		var option:Option = new Option('---MISC.---',
 			"",
@@ -365,7 +403,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		ClientPrefs.data.pauseBPM = curBPMList[indeed];
 	}
 
-	function onChangeMenuMusic() Constants.playMenuMusic(1);
+	function onChangeMenuMusic() {MusicManager.playMenuMusic(1); changedMusic = true;}
+	function onChangeEditorMusic() {MusicManager.playEditorMusic(1); changedMusic = true;}
 
 	function onChangeSoundDown()
 	{
@@ -401,7 +440,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 	}
 
 	override function destroy() {
-		if (changedMusic) Constants.playMenuMusic(1);
+		if (changedMusic) MusicManager.playMenuMusic(1);
 		super.destroy();
 	}
 }

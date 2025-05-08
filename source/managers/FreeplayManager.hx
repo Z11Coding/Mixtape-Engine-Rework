@@ -1,9 +1,10 @@
-package states.freeplay;
+package managers;
 
 import flixel.util.FlxDestroyUtil;
 import backend.WeekData;
 import haxe.Json;
 import backend.Song;
+import states.CategoryState;
 
 #if ARCHIPELAGO_ALLOWED
 import archipelago.*;
