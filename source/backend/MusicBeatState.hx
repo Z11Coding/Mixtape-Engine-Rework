@@ -1,5 +1,6 @@
 package backend;
 
+import haxe.ds.HashMap;
 import backend.window.CppAPI;
 import flixel.FlxState;
 import backend.PsychCamera;
@@ -309,6 +310,63 @@ class MusicBeatState extends FlxState
 				FlxG.switchState(new PlayState());
 
 		}
+	}
+	var preloadFunctions:Map<String, (FlxState)->Void> = [
+		"PlayState" => function(state:FlxState) {
+			if (state is PlayState) {
+				@:privateAccess
+				(cast state:PlayState).generateSong();
+			}
+		}
+	];
+
+	public function hashCode():Int
+	{
+		return Type.getClassName(Type.getClass(this)).hashcode();
+	}
+
+	public function preloadState(switchState:Bool = false, state:FlxState, ?proceedOnError:Bool = true)
+	{
+		var stateClassName = Type.getClassName(Type.getClass(state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(state)).split(".")) - 1];
+		var preloadFunction = preloadFunctions.get(stateClassName);
+		var errored = false;
+		if (preloadFunction == null)
+		{
+			trace('No preload function for state: ' + stateClassName);
+		}
+		var preloader = function()
+		{
+			if (preloadFunction != null)
+			{
+				trace('Preloading state: ' + stateClassName);
+				try {
+					preloadFunction(state);
+				} catch (e:Dynamic) {
+					trace('Error during state preloading: ' + e);
+				}
+				preloadFunction = null;
+			}
+			if (switchState && (!errored || proceedOnError))
+				return MusicBeatState.switchState(this);
+		};
+
+		var stateName = Type.getClassName(Type.getClass(state));
+
+		yutautil.Threader.runInThread(preloader(), 1, 'State Preloader');
+	}
+
+
+	public static function preloadAndSwitchState(state:MusicBeatState)
+	{
+		if (state == null)
+			state = cast(FlxG.state, MusicBeatState);
+		if (state == FlxG.state)
+		{
+			resetState();
+			return;
+		}
+
+		state.preloadState(true, state);
 	}
 
 	public static function switchState(nextState:FlxState = null)

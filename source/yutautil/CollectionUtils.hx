@@ -520,6 +520,35 @@ class CollectionUtils
 			return Type.createInstance(CLASS, args != null ? args : []);
 	}
 
+	public static inline function hashcode(input:Dynamic):Int
+	{
+		if (Std.is(input, String))
+		{
+			var hash = 0;
+			for (i in 0...input.length) {
+				var char = input.charCodeAt(i);
+				hash = (hash * 31 + char) & 0xffffffff;
+			}
+			return hash;
+		}
+		else if (Std.is(input, Int) || Std.is(input, Float))
+		{
+			return Std.int(input);
+		}
+		else if (Std.is(input, Array))
+		{
+			return input.hashCode();
+		}
+		else if (Std.is(input, IMap))
+		{
+			return input.hashCode();
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
 	public static inline function callOn<T>(item:T, func:T->Dynamic):Dynamic
 	{
 		return func(item);

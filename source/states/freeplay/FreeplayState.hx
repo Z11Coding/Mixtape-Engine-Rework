@@ -1015,7 +1015,7 @@ class FreeplayState extends MusicBeatState
 							alreadyClicked = true;
 							MusicBeatState.reopen = false; //Fix a sticker bug
 							LoadingState.prepareToSong();
-							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+							MusicBeatState.preloadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
 						}
 						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 						stopMusicPlay = true;

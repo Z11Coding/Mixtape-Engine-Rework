@@ -1,4 +1,3 @@
-// YScriptParser.hx
 package yutautil;
 
 import haxe.Json;
@@ -168,7 +167,7 @@ class YScriptParser {
 
     private function readWord():String {
         var start = pos;
-        while (pos < input.length && (isAlpha(input.charAt(pos)) || isDigit(input.charAt(pos))) {
+        while (pos < input.length && (isAlpha(input.charAt(pos)) || isDigit(input.charAt(pos)))) {
             pos++;
         }
         return input.substr(start, pos - start);
@@ -223,6 +222,17 @@ class YScriptParser {
             "return", "break", "continue", "new", "super", "this",
             "true", "false", "null", "use", "as"
         ].contains(word);
+    }
+
+    private function parseExpression(t:Token):Dynamic {
+        // Placeholder implementation for parsing an expression
+        switch t {
+            case TNumberLiteral(n): return n;
+            case TStringLiteral(s): return s;
+            case TIdentifier(name): return { type: "identifier", name: name };
+            case TOperator(op): return { type: "operator", operator: op };
+            default: throw 'Unsupported token in expression: $t';
+        }
     }
 
     private function parseVariable(tokens:Array<Token>):YVar {
@@ -439,6 +449,10 @@ class YScriptParser {
         return null;
     }
 
+    private function getCurrentToken():Token {
+        return currentToken;
+    }
+
     private function parseClass(tokens:Array<Token>):YClass<Dynamic> {
         expect(TKeyword("class"), tokens);
         var className = expectIdentifier(tokens);
@@ -504,6 +518,7 @@ class YScriptParser {
         var output = [];
         
         for (cls in program.classes) {
+            var cls:Dynamic = cls;
             output.push('// YScript class: ${cls.name}');
             if (cls.extending.length > 0) {
                 var ext = cls.extending.map(e -> e.name).join(", ");

@@ -938,7 +938,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				if(daNote.holdingTime < daNote.sustainLength && inControl && !daNote.blockHit){
 					if(!daNote.tooLate && daNote.wasGoodHit){
 						trace("hitting tail hold");
-						var isHeld:Bool = autoPlayed || keysPressed[daNote.column];
+						var isHeld:Bool = autoPlayed || keysPressed[daNote.column] || daNote.botNote;
                         var wasHeld:Bool = daNote.isHeld;
                         daNote.isHeld = isHeld;
                         isHolding[daNote.column] = true;
@@ -1068,6 +1068,19 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 			}
 		}else{
+
+			// Check for Bot Notes.
+			for(i in 0...keyCount){
+				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss && note.botNote)){
+					var hitDiff = Conductor.songPosition - daNote.strumTime;
+					if (!daNote.isSustainNote && hitDiff >= 0 || daNote.isSustainNote && hitDiff + 80 >= 0){
+						noteHitCallback(daNote, this);
+					}
+				}
+			}
+
+
+
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
 					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> (note.isSustainNote || note.istail) && (note.prevNote != null || note.unhitTail.length > -1));
