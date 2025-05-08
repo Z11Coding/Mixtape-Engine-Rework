@@ -42,6 +42,7 @@ class StickerTest extends MusicBeatState {
         addTouchPad('NONE','B');
         #end
         super.create();
+        MusicManager.playEditorMusic(1);
     }
 
     var UI_box:PsychUIBox;
@@ -85,9 +86,9 @@ class StickerTest extends MusicBeatState {
                 b_tapped = touchPad.buttonB.justPressed;
                 #end
 
-                if(FlxG.keys.justPressed.ESCAPE || b_tapped){
+                if(controls.BACK || b_tapped){
                     
-                    FlxG.sound.playMusic(Paths.music('freakyMenu'));
+                    MusicManager.playMenuMusic(1);
                     FlxG.mouse.visible = false;
                     MusicBeatState.startTransition(new MasterEditorMenu());
                 }

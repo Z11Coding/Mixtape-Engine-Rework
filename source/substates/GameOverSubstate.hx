@@ -222,7 +222,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				else
 					FreeplayManager.openFreeplay();
 	
-				Constants.playMenuMusic();
+				MusicManager.playMenuMusic();
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop)
@@ -303,7 +303,7 @@ class GameOverSubstate extends MusicBeatSubstate
 
 							Mods.loadTopMod();
 							FreeplayManager.openFreeplay();
-							Constants.playMenuMusic();
+							MusicManager.playMenuMusic();
 						}
 						else
 						{

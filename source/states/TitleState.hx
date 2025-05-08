@@ -110,7 +110,7 @@ class TitleState extends MusicBeatState
 		if (Main.cmdArgs.indexOf("GameJoltBug") != -1 && !GJBug)
 		{
 			GJBug = true;
-			Constants.playMenuMusic(0);
+			MusicManager.playMenuMusic(0);
 			FlxG.switchState(new options.OptionsState());
 		}
 
@@ -121,7 +121,7 @@ class TitleState extends MusicBeatState
 		}
 
 		if (initialized && (FlxG.sound.music == null || !FlxG.sound.music.playing))
-			Constants.playMenuMusic(0.5);
+			MusicManager.playMenuMusic(0.5);
 	}
 
 	var logoBl:FlxSprite;
@@ -134,7 +134,7 @@ class TitleState extends MusicBeatState
 	{
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
-			Constants.setMenuMusic(ClientPrefs.data.menuSong, null, 0, true);
+			MusicManager.setMenuMusic(ClientPrefs.data.menuSong, null, 0, true);
 
 		loadJsonData();
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
@@ -548,7 +548,7 @@ class TitleState extends MusicBeatState
 			{
 				case 1:
 					//FlxG.sound.music.stop();
-					Constants.playMenuMusic(0);
+					MusicManager.playMenuMusic(0);
 					FlxG.sound.music.fadeIn(4, 0, 0.7);
 				case 2:
 					createCoolText(['Mixtape Engine by'], 40);

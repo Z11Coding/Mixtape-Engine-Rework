@@ -735,72 +735,20 @@ class NoteSplashEditorState extends MusicBeatState
             config.rgb.push(null);
     }
 
-    var _file:FileReference;
-    function onSaveComplete(_):Void
-    {
-        _file.removeEventListener(Event.COMPLETE, onSaveComplete);
-        _file.removeEventListener(Event.CANCEL, onSaveCancel);
-        _file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-        _file = null;
-        FlxG.log.notice("Successfully saved file.");
-    }
-
-    /**
-     * Called when the save file dialog is cancelled.
-     */
-    function onSaveCancel(_):Void
-    {
-        _file.removeEventListener(Event.COMPLETE, onSaveComplete);
-        _file.removeEventListener(Event.CANCEL, onSaveCancel);
-        _file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-        _file = null;
-    }
-
-    /**
-     * Called if there is an error while saving the gameplay recording.
-     */
-    function onSaveError(_):Void
-    {
-        _file.removeEventListener(Event.COMPLETE, onSaveComplete);
-        _file.removeEventListener(Event.CANCEL, onSaveCancel);
-        _file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-        _file = null;
-        FlxG.log.error("Problem saving file");
-    }
-
     function saveSplash()
     {
         imageSkin = imageInputText.text;
         var data:String = Json.stringify(config, "\t");
         if (data.length > 0)
-        {
-            _file = new FileReference();
-            _file.addEventListener(Event.COMPLETE, onSaveComplete);
-            _file.addEventListener(Event.CANCEL, onSaveCancel);
-            _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-            _file.save(data, imageSkin + ".json");
-        }
+            ImprovedFileHandling.saveOperation(imageSkin + ".json", {ext: "json", desc: "JSON File"}, Text, data);
     }
 
     public function loadTxt()
     {
-        var jsonFilter:FileFilter = new FileFilter('Select a note splash TXT', '*.txt');
-        _file = new FileReference();
-        _file.addEventListener(Event.SELECT, onLoadComplete);
-        _file.addEventListener(Event.CANCEL, onLoadCancel);
-        _file.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-        _file.browse([#if !mac jsonFilter #end]);
-    }
-
-    function onLoadComplete(_):Void
-    {
-        _file.removeEventListener(Event.SELECT, onLoadComplete);
-        _file.removeEventListener(Event.CANCEL, onLoadCancel);
-        _file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-
+        var jsonFile = ImprovedFileHandling.openFile("Select a note splash TXT", [{ext: "txt", desc: "Select a note splash TXT"}]);
         try 
         {
-            var txtLoaded:Dynamic = Json.parse(Json.stringify(_file));
+            var txtLoaded:Dynamic = Json.parse(Json.stringify(jsonFile));
             var txt:String = null;
             var file:String = "config.json";
             #if MODS_ALLOWED
@@ -812,41 +760,13 @@ class NoteSplashEditorState extends MusicBeatState
             }
 
             var conf = parseTxt(txt);
-            _file = new FileReference();
-            _file.addEventListener(Event.COMPLETE, onSaveComplete);
-            _file.addEventListener(Event.CANCEL, onSaveCancel);
-            _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-            _file.save(Json.stringify(conf, "\t"), file);
+            ImprovedFileHandling.saveOperation(file, {ext: "json", desc: "JSON File"}, Text, Json.stringify(conf, "\t"));
             #end
         }
         catch (e)
         {
             trace(e.stack);
         }
-    }
-
-    /**
-     * Called when the save file dialog is cancelled.
-     */
-    function onLoadCancel(_):Void
-    {
-        _file.removeEventListener(Event.SELECT, onLoadComplete);
-        _file.removeEventListener(Event.CANCEL, onLoadCancel);
-        _file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-        _file = null;
-        trace("Cancelled file loading.");
-    }
-
-    /**
-     * Called if there is an error while saving the gameplay recording.
-     */
-    function onLoadError(_):Void
-    {
-        _file.removeEventListener(Event.SELECT, onLoadComplete);
-        _file.removeEventListener(Event.CANCEL, onLoadCancel);
-        _file.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
-        _file = null;
-        trace("Problem loading file");
     }
 
     override function destroy()

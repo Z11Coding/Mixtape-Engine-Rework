@@ -1,4 +1,4 @@
-package states.playbits;
+package managers;
 
 import backend.Rating;
 #if LUA_ALLOWED

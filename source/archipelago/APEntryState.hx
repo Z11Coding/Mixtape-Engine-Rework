@@ -163,8 +163,8 @@ class APEntryState extends MusicBeatState
 
 	override function create()
 	{
-		if (!FlxG.sound.music.playing)
-			Constants.playMenuMusic();
+		if (!FlxG.sound.music.playing || FlxG.sound.music == null)
+			MusicManager.playMenuMusic();
 
 		Cursor.show();
 		Cursor.cursorMode = Default;

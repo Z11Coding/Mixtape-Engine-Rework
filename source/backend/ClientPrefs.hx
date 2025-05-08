@@ -81,6 +81,7 @@ import states.TitleState;
 	public var healthBarAlpha:Float = 1;
 	public var hitsoundVolume:Float = 0;
 	public var pauseMusic:String = 'Tea Time';
+	public var editorMusic:String = 'None';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
 	public var gameplaySettings:Map<String, Dynamic> = [
@@ -175,6 +176,7 @@ import states.TitleState;
 	public var visOpacity:Float = 0.7;
 	public var chartEditorStyle:String = 'New';
 	public var silentVol:Bool = false;
+	public var editorMusVol:Float = 0.7;
 }
 
 class ClientPrefs {

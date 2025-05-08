@@ -276,7 +276,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	override function destroy()
 	{
-		if(changedMusic && !OptionsState.onPlayState) Constants.playMenuMusic();
+		if(changedMusic && !OptionsState.onPlayState) MusicManager.playMenuMusic();
 		Note.globalRgbShaders = [];
 		super.destroy();
 	}

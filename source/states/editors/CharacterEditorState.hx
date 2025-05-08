@@ -74,6 +74,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		Paths.clearStoredWithoutStickers();
 
 		FlxG.sound.music.stop();
+		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
 		camEditor = initPsychCamera();
 
 		camHUD = new FlxCamera();
@@ -1066,7 +1067,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 				if(!unsavedProgress)
 				{
 					MusicBeatState.switchState(new states.editors.MasterEditorMenu());
-					Constants.playMenuMusic();
+					MusicManager.playMenuMusic();
 				}
 				else openSubState(new ExitConfirmationPrompt());
 			}

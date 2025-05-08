@@ -8,7 +8,7 @@ import flixel.group.FlxGroup;
 import objects.Note;
 import objects.Character;
 
-import states.playbits.ComboManager;
+import managers.ComboManager;
 
 enum Countdown
 {

@@ -14,6 +14,7 @@ enum ReadType {
 }
 
 class ImprovedFileHandling {
+    public static var lastPath:String = "";
     public static function openFile(title:String, ?filters:Array<FileFilter>, ?preserve_cwd:Bool=true):String {
         if (filters != null) {
             for (filter in filters) {
@@ -37,6 +38,7 @@ class ImprovedFileHandling {
                     filePath += ext;
                 }
             }
+            lastPath = filePath;
         }
         return filePath;
     }
@@ -53,6 +55,7 @@ class ImprovedFileHandling {
         }
         var filePath = openFile(title, filters, preserve_cwd);
         if (filePath != null && filePath.trim() != "") {
+            lastPath = filePath;
             return operation != null 
                 ? operation(readType == ReadType.Bytes ? File.getBytes(filePath) : File.getContent(filePath)) 
                 : (readType == ReadType.Bytes ? File.getBytes(filePath) : File.getContent(filePath));
@@ -77,6 +80,7 @@ class ImprovedFileHandling {
             writeType == ReadType.Bytes 
             ? File.saveBytes(filePath, data) 
             : File.saveContent(filePath, data);
+            lastPath = filePath;
         }
         return filePath != null && filePath != "" && FileSystem.exists(filePath); // Return if not cancelled, and saved.
     }

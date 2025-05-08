@@ -370,7 +370,7 @@ class PauseSubState extends MusicBeatSubstate
 					else 
 						FreeplayManager.openFreeplay();
 
-					Constants.playMenuMusic();
+					MusicManager.playMenuMusic();
 					PlayState.changedDifficulty = false;
 					PlayState.chartingMode = false;
 					FlxG.camera.followLerp = 0;
