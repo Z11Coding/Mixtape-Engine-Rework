@@ -197,6 +197,7 @@ class Song
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
 		_lastPath = Paths.json('$formattedFolder/$formattedSong');
 
+		trace(_lastPath);
 		#if MODS_ALLOWED
 		if(FileSystem.exists(_lastPath))
 			rawData = File.getContent(_lastPath);

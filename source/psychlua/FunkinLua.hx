@@ -988,6 +988,16 @@ class FunkinLua {
 
 			return 0;
 		});
+		Lua_helper.add_callback(lua, "getMid", function(variable:String) {
+			var split:Array<String> = variable.split('.');
+			var obj:FlxObject = LuaUtils.getObjectDirectly(split[0]);
+			if(split.length > 1) {
+				obj = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length-1]);
+			}
+			if(obj != null) return obj.getMidpoint();
+
+			return null;
+		});
 		Lua_helper.add_callback(lua, "getGraphicMidpointX", function(variable:String) {
 			var split:Array<String> = variable.split('.');
 			var obj:FlxSprite = LuaUtils.getObjectDirectly(split[0]);

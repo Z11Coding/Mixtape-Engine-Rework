@@ -287,6 +287,8 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		if (vocals != null) vocals.volume = 1;
 		if (opponentVocals != null) opponentVocals.volume = 1;
 		FlxG.sound.list.add(inst);
+		inst.time = startPos - Conductor.offset;
+		Conductor.songPosition = startPos - Conductor.offset;
 
 		FlxG.sound.music.pause();
 		inst.play();

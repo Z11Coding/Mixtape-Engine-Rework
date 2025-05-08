@@ -67,7 +67,7 @@ class XMLEditorState extends MusicBeatState
     // Function for loading an XML file using OpenFL's FileReference
     private function onLoadXML():Void
     {
-        var fileRef = ImprovedFileHandling.loadFile("", [{ext: "json", desc: "JSON File"}], Text);
+        var fileRef = ImprovedFileHandling.loadFile("", [{ext: "xml", desc: "XML File"}], Text);
         try
         {
             var fileContent:String = fileRef.toString();

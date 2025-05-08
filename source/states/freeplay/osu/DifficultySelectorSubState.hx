@@ -6,13 +6,16 @@ import states.freeplay.OsuFreeplayState;
 
 import backend.Highscore;
 import backend.Song;
+import backend.WeekData;
 
 class DifficultySelectorSubState extends MusicBeatSubstate
 {
-    private static var listLength:Int = Difficulty.list.length;
+    private var listLength:Int = Difficulty.list.length;
 
     var sprite:FlxSprite;
     private static var difficulty:Int = 0;
+
+    var currentDifficultyId:String = 'normal';
 
     var missingTextBG:FlxSprite;
 	var missingText:FlxText;
@@ -31,9 +34,14 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         background.alpha = 0.85;
         add(background);
 
+        difficultySprites = new Map<String, FlxSprite>();
+
         sprite = new FlxSprite().loadGraphic(Paths.image('menudifficulties/${Difficulty.list[difficulty].toLowerCase()}'));
         sprite.screenCenter();
         add(sprite);
+
+        buildDifficultySprite('normal');
+        buildDifficultySprite();
 
         missingTextBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		missingTextBG.alpha = 0.6;
@@ -49,6 +57,12 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         new FlxTimer().start(0.2, function(tmr:FlxTimer) {
             canDo = true;
         });
+
+        Mods.currentModDirectory = song.folder;
+        PlayState.storyWeek = song.week;
+        Difficulty.loadFromWeek();
+        listLength = Difficulty.list.length;
+        WeekData.setDirectoryFromWeek();
     }
 
     override public function update(elapsed:Float)
@@ -68,9 +82,11 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                     persistentUpdate = false;
                     var songLowercase:String = Paths.formatToSongPath(song.songName);
     				var poop:String = Highscore.formatSong(songLowercase, difficulty);
+                    Mods.currentModDirectory = song.folder;
                     Song.loadFromJson(poop, songLowercase);
                     PlayState.isStoryMode = false;
                     PlayState.storyDifficulty = difficulty;
+                    trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
                 }
                 catch(e:Dynamic)
                 {
@@ -107,11 +123,35 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         if(difficulty < 0)
             difficulty = listLength - 1;
 
-        sprite.loadGraphic(Paths.image('menudifficulties/${Difficulty.list[difficulty].toLowerCase()}'));
+        buildDifficultySprite(Difficulty.list[difficulty].toLowerCase());
         sprite.screenCenter();
     }
 
-    override function destroy() {
-		OsuFreeplayState.inSub = false;
-	}
+    var difficultySprites:Map<String, FlxSprite>;
+    function buildDifficultySprite(?diff:String):Void
+    {
+        if (diff == null) diff = currentDifficultyId;
+        remove(sprite);
+        sprite = difficultySprites.get(diff);
+        if (sprite == null)
+        {
+            sprite = new FlxSprite(0, 0);
+        
+            if (Paths.exists(Paths.file('images/menudifficulties/${diff}.xml')))
+            {
+                sprite.frames = Paths.getSparrowAtlas('menudifficulties/${diff}');
+                sprite.animation.addByPrefix('idle', 'idle0', 24, true);
+                if (ClientPrefs.data.flashing) sprite.animation.play('idle');
+            }
+            else
+            {
+                sprite.loadGraphic(Paths.image('menudifficulties/${diff}'));
+            }
+        
+            difficultySprites.set(diff, sprite);
+        }    
+        sprite.updateHitbox();
+        sprite.screenCenter();
+        add(sprite);
+    }
 }

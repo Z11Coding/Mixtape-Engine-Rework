@@ -144,7 +144,7 @@ class MusicManager {
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/empty')), volume);
             case "Pause Menu":
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')), volume);
-            case "Menu Menu":
+            case "Menu Music" | "Menu Menu":
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}')), volume);
             default:
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('editorMusic/${ClientPrefs.data.editorMusic}')), volume);

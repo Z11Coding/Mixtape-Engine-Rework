@@ -20,11 +20,11 @@ import states.freeplay.osu.SongBox;
 import sys.FileSystem;
 import sys.io.File;
 
+import haxe.Json;
+
 class OsuFreeplayState extends MusicBeatState
 {
 	public static var instance:OsuFreeplayState;
-
-	var songs:Array<SongShit> = [];
 
 	var back:FlxSprite;
 	var backHitbox:FlxSprite;
@@ -32,6 +32,7 @@ class OsuFreeplayState extends MusicBeatState
 
 	var searchTypeText:FlxText;
 	var searchTypeTextHitbox:FlxSprite;
+	var albumPhoto:FlxSprite;
 
 	var isTyping:Bool = false;
 
@@ -46,7 +47,9 @@ class OsuFreeplayState extends MusicBeatState
 	private static var curSelected:Int = 0;
 	private static var maxSelected:Int = 0;
 
-	public static var inSub:Bool = false;
+	var inSub:Bool = false;
+
+	var staleBg:FlxSprite;
 
 	override function create()
 	{
@@ -65,7 +68,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		FlxG.mouse.visible = true;
 
-		var staleBg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xff646464);
+		staleBg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xff646464);
 		add(staleBg);
 
 		songBox = new FlxTypedGroup<SongBox>();
@@ -77,7 +80,7 @@ class OsuFreeplayState extends MusicBeatState
 		iconGrp = new FlxTypedGroup<HealthIcon>();
 		add(iconGrp);
 
-		loadSongArray(false);
+		FreeplayManager.reloadFreeplay(true);
 
 		var topBar:FlxSprite = new FlxSprite(0, -87).loadGraphic(Paths.image('OSUState/barTop'));
 		topBar.setGraphicSize(1280, 152);
@@ -89,12 +92,12 @@ class OsuFreeplayState extends MusicBeatState
 		botBar.screenCenter(X);
 		add(botBar);
 		
-		var logo:FlxSprite = new FlxSprite(0, 460).loadGraphic(Paths.image('OSUState/logo'));
+		var logo:FlxSprite = new FlxSprite(0, 460).loadGraphic(Paths.image('logo'));
 		logo.setGraphicSize(200, 100);
 		logo.screenCenter(X);
 		add(logo);
 		
-		fakeLogo = new FlxSprite(0, 460).loadGraphic(Paths.image('OSUState/logo'));
+		fakeLogo = new FlxSprite(0, 460).loadGraphic(Paths.image('logo'));
 		fakeLogo.setGraphicSize(200, 100);
 		fakeLogo.screenCenter(X);
 		fakeLogo.alpha = 0;
@@ -122,6 +125,14 @@ class OsuFreeplayState extends MusicBeatState
 		searchTypeTextHitbox = new FlxSprite(550, 51).makeGraphic(290, 18, 0xffffffff);
 		searchTypeTextHitbox.alpha = 0.0001;
 		add(searchTypeTextHitbox);
+
+		albumPhoto = new FlxSprite(130, 0).loadGraphic(Paths.image('albums/NoCover'));
+		albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+		albumPhoto.screenCenter(Y);
+		albumPhoto.y += 20;
+		add(albumPhoto);
+
+		WeekData.setDirectoryFromWeek();
 
 		// logoTween();
 
@@ -215,10 +226,7 @@ class OsuFreeplayState extends MusicBeatState
 			if(controls.ACCEPT)
 			{
 				inSub = true;
-				Mods.currentModDirectory = songs[curSelected].folder;
-				PlayState.storyWeek = songs[curSelected].week;
-				Difficulty.loadFromWeek();
-				openSubState(new DifficultySelectorSubState(songs[curSelected]));
+				openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
 			}
 
 			if(FlxG.keys.justPressed.TAB)
@@ -227,6 +235,7 @@ class OsuFreeplayState extends MusicBeatState
 				openSubState(new GameplayChangersSubstate());
 			}
 		}
+
 		if(isTyping)
 		{
 			if(!FlxG.mouse.overlaps(searchTypeTextHitbox) && FlxG.mouse.justPressed)
@@ -267,6 +276,11 @@ class OsuFreeplayState extends MusicBeatState
 		super.update(elapsed);
 	}
 
+	override function closeSubState() {
+		inSub = false;
+		super.closeSubState();
+	}
+
 	function logoTween()
 	{
 		fakeLogo.alpha = 1;
@@ -275,6 +289,7 @@ class OsuFreeplayState extends MusicBeatState
 		FlxTween.tween(fakeLogo.scale, {x: 0.33, y: 0.33}, 0.6);
 	}
 
+	var metadata:Dynamic = null;
 	function changeSong(change:Int = 0)
 	{
 		curSelected += change;
@@ -288,11 +303,19 @@ class OsuFreeplayState extends MusicBeatState
 		for(item in songBox)
 			item.posY = i++ - curSelected;
 
-		if (songs[curSelected] != null)
+		if (FreeplayManager.songList[curSelected] != null)
 		{
-			Mods.currentModDirectory = songs[curSelected].folder;
-			PlayState.storyWeek = songs[curSelected].week;
+			WeekData.setDirectoryFromWeek();
+			Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
+			PlayState.storyWeek = FreeplayManager.songList[curSelected].week;
 			try {Difficulty.loadFromWeek();} catch(e:Dynamic) {}
+			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[curSelected].songName.toLowerCase());}
+			catch(e) {metadata = null;}
+
+			if (metadata != null) {
+				staleBg.loadGraphic(Paths.image(metadata.freeplay.bg));
+				staleBg.screenCenter();
+			}
 		}
 	}
 
@@ -314,8 +337,6 @@ class OsuFreeplayState extends MusicBeatState
 	{
 		if(reset)
 			curSelected = 0;
-
-		songs = [];
 
 		//run this 100 times cause running once only removes half of the items in the group!!??
 		for(i in 0...100)
@@ -343,52 +364,27 @@ class OsuFreeplayState extends MusicBeatState
 			}
 		}
 
-		for (i in 0...WeekData.weeksList.length) {
-
-			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-			var leSongs:Array<String> = [];
-
-			if(leWeek.hideFreeplay) continue;
-
-			for (song in leWeek.songs)
-			{
-				var colors:Array<Int> = song[2];
-				if(colors == null || colors.length < 3)
-					colors = [146, 113, 253];
-
-				var musician:String = 'unknown';
-				if (FileSystem.exists(Paths.json(song[0].toLowerCase() + "/credits")))
-					musician = File.getContent((Paths.json(song[0].toLowerCase() + "/credits")));
-
-				if(searching)
-				{
-					var songSearch:String = song[0].toLowerCase();
-
-					if(songSearch.contains(searchQuery.toLowerCase()))
-						songs.push(new SongShit(song[0], song[1], musician, [colors], i));
-				}
-				else
-					songs.push(new SongShit(song[0], song[1], musician, [colors], i));
-			}
-		}
-
-		for (i in 0...songs.length)
+		for (i in 0...FreeplayManager.songList.length)
 		{
+
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
-			songBox.setColorTransform(-1, -1, -1, 1, songs[i].color[0][0], songs[i].color[0][1], songs[i].color[0][2], 1);
+			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
 			songBox.ID = i;
 			this.songBox.add(songBox);
 
-			var icon:HealthIcon = new HealthIcon(songs[i].healthIcon, false);
+			var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
 			icon.setPosition(320, 100);
 			icon.ID = i;
 			icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
 			this.iconGrp.add(icon);
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			text.text = songs[i].songName + "\n" + songs[i].credits;
+			if (metadata != null)
+				text.text = FreeplayManager.songList[i].songName + '\nBy ${metadata.song.artist}';
+			else
+				text.text = FreeplayManager.songList[i].songName + '\nBy Unknown';
 			text.alignment = 'left';
 			text.ID = i;
 			this.textGrp.add(text);
@@ -397,26 +393,5 @@ class OsuFreeplayState extends MusicBeatState
 		maxSelected = songBox.length;
 
 		changeSong();
-	}
-}
-
-class SongShit 
-{
-	public var songName:String = '';
-	public var healthIcon:String = '';
-	public var credits:String = '';
-	public var color:Array<Array<Int>> = [];
-	public var folder:String = "";
-	public var week:Int = 0;
-
-	public function new(songName:String, healthIcon:String, credits:String, color:Array<Array<Int>>, week:Int)
-	{
-		this.songName = songName;
-		this.healthIcon = healthIcon;
-		this.credits = credits;
-		this.color = color;
-		this.week = week;
-		this.folder = Mods.currentModDirectory;
-		if(this.folder == null) this.folder = '';
 	}
 }

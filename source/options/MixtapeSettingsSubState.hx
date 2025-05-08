@@ -147,9 +147,9 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			[
 				'None', 
 				'Pause Menu',
-				'Menu Menu',
-				'DSI Shop', 
+				FlxG.random.bool(0.3) ? 'Menu Menu' : "Menu Music",
 				'Artistic Expression',
+				'DSI Shop', 
 				'Mii Theme', 
 				'Wii Shop', 
 				'Sneaky Adventure', 

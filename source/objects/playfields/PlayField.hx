@@ -1037,7 +1037,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		for(note in garbage)removeNote(note);
 		
 
-		if (AIPlayer)
+		if (inControl && AIPlayer)
 		{
 			for(i in 0...Note.ammo[PlayState.mania]){
 				for (daNote in getNotes(i, (note:Note) -> !note.ignoreNote && !note.hitCausesMiss)){

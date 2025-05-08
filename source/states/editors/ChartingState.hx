@@ -5496,7 +5496,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 		setSongPlaying(false);
 		chartEditorSave.flush(); //just in case a random crash happens before loading
-
+		Conductor.songPosition = FlxG.sound.music.time;
 		openSubState(new EditorPlayStatePsych(cast notes, [vocals, opponentVocals]));
 		upperBox.isMinimized = true;
 		upperBox.visible = mainBox.visible = infoBox.visible = false;
