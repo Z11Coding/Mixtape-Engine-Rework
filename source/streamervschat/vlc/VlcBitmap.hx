@@ -380,7 +380,7 @@ class VlcBitmap extends Bitmap
 						// BitmapData
 						// libvlc.getPixelData() sometimes is null and the exe hangs ...
 						if (libvlc.getPixelData() != null)
-							this.bitmapData.setPixels(frameRect, Bytes.ofData(bufferMem));
+							this.bitmapData.setPixels(frameRect, haxe.io.Bytes.ofData(bufferMem));
 
 						// (Stage3D)
 						// texture.uploadFromByteArray( Bytes.ofData(cast(bufferMem)), 0 );

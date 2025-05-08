@@ -884,7 +884,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var outputAlpha:Float = 0;
 	var songFinished:Bool = false;
 
-	var fileDialog:FileDialogHandler = new FileDialogHandler();
 	var lastFocus:PsychUIInputText;
 
 	var autoSaveTime:Float = 0;
@@ -906,11 +905,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	override function update(elapsed:Float)
 	{
 		vortexInput = false;
-		if(!fileDialog.completed)
-		{
-			lastFocus = PsychUIInputText.focusOn;
-			return;
-		}
 
 		/*
 		for (num => key in keysArray)
@@ -3674,26 +3668,25 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Open Chart...', function()
 		{
-			if(!fileDialog.completed) return;
 			upperBox.isMinimized = true;
 			upperBox.bg.visible = false;
-
-			fileDialog.open(function()
+			function doJsonStuff(fileDialog:String):Dynamic
 			{
 				try
 				{
-					var filePath:String = fileDialog.path.replace('\\', '/');
-					var loadedChart:SwagSong = Song.parseJSON(fileDialog.data, filePath.substr(filePath.lastIndexOf('/')));
+					var filePath:String = fileDialog.replace('\\', '/');
+					var jsonFile:Dynamic = Json.parse(File.getContent(filePath));
+					var loadedChart:SwagSong = Song.parseJSON(jsonFile, filePath.substr(filePath.lastIndexOf('/')));
 					if(loadedChart == null || !Reflect.hasField(loadedChart, 'song')) //Check if chart is ACTUALLY a chart and valid
 					{
 						showOutput('Error: File loaded is not a Psych Engine/FNF 0.2.x.x chart.', true);
-						return;
+						return false;
 					}
 
 					var func:Void->Void = function()
 					{
 						loadChart(loadedChart);
-						Song.chartPath = fileDialog.path;
+						Song.chartPath = fileDialog;
 						reloadNotesDropdowns();
 						prepareReload();
 						showOutput('Opened chart "${Song.chartPath}" successfully!');
@@ -3701,13 +3694,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					
 					if(!ignoreProgressCheckBox.checked) openSubState(new Prompt('Warning: Any unsaved progress\nwill be lost.', func));
 					else func();
+					return true;
 				}
 				catch(e:Exception)
 				{
 					showOutput('Error: ${e.message}', true);
 					trace(e.stack);
 				}
-			});
+				return false;
+			}
+			doJsonStuff(ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]));
 		}, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
@@ -3715,7 +3711,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Open Autosave...', function()
 		{
-			if(!fileDialog.completed) return;
 			upperBox.isMinimized = true;
 			upperBox.bg.visible = false;
 
@@ -3807,11 +3802,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			btnY += 20;
 			var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Open Events...', function()
 			{
-				if(!fileDialog.completed) return;
 				upperBox.isMinimized = true;
 				upperBox.bg.visible = false;
 	
-				fileDialog.open(function()
+				function doJsonStuff(fileDialog:String):Dynamic
 				{
 					try
 					{
@@ -3820,14 +3814,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						if(eventsFile == null || Reflect.hasField(eventsFile, 'scrollSpeed') || eventsFile.events == null)
 						{
 							showOutput('Error: File loaded is not a Psych Engine chart/events file.', true);
-							return;
+							return false;
 						}
 	
 						var loadedEvents:Array<Dynamic> = eventsFile.events;
 						if(loadedEvents.length < 1)
 						{
 							showOutput('Events file loaded is empty.', true);
-							return;
+							return false;
 						}
 	
 						openSubState(new BasePrompt('Events Found! Choose an action.',
@@ -3853,6 +3847,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 									softReloadNotes();
 									state.close();
 									showOutput('Events loaded successfully!');
+									return true;
 								});
 								btn.normalStyle.bgColor = FlxColor.RED;
 								btn.normalStyle.textColor = FlxColor.WHITE;
@@ -3869,6 +3864,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 									softReloadNotes();
 									state.close();
 									showOutput('Events added successfully!');
+									return true;
 								});
 								btn.screenCenter(X);
 								btn.cameras = state.cameras;
@@ -3881,13 +3877,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 								state.add(btn);
 							}
 						));
+						return true;
 					}
 					catch(e:Exception)
 					{
 						showOutput('Error: ${e.message}', true);
 						trace(e.stack);
+						return false;
 					}
-				});
+					return false;
+				}
+				doJsonStuff(ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]));
 			}, btnWid);
 			btn.text.alignment = LEFT;
 			tab_group.add(btn);
@@ -3897,7 +3897,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Save', function()
 		{
-			if(!fileDialog.completed) return;
 			upperBox.isMinimized = true;
 			upperBox.bg.visible = false;
 
@@ -3909,7 +3908,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Save as...', function()
 		{
-			if(!fileDialog.completed) return;
 			upperBox.isMinimized = true;
 			upperBox.bg.visible = false;
 
@@ -3923,13 +3921,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			btnY += 20;
 			var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Save Events...', function()
 			{
-				if(!fileDialog.completed) return;
 				upperBox.isMinimized = true;
 	
 				updateChartData();
-				fileDialog.save('events.json', PsychJsonPrinter.print({events: PlayState.SONG.events, format: 'psych_v1'}, ['events']),
-					function() showOutput('Events saved successfully to: ${fileDialog.path}'), null,
-					function() showOutput('Error on saving events!', true));
+
+				if (ImprovedFileHandling.saveOperation('events.json', {ext: "json", desc: "JSON File"}, Text, PsychJsonPrinter.print({events: PlayState.SONG.events, format: 'psych_v1'}, ['events'])))
+					showOutput('Events saved successfully to: ${fileDialog.path}');
+				else
+					showOutput('Error on saving events!', true);
 			}, btnWid);
 			btn.text.alignment = LEFT;
 			tab_group.add(btn);
