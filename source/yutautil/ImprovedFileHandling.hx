@@ -65,7 +65,7 @@ class ImprovedFileHandling {
             filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
         }
         var filePath = saveFile(title, filter, preserve_cwd);
-        if (filePath != null && filePath.trim() != "" && filter != null) {
+        if (filePath != null && filePath.trim() != "") {
             var ext = "." + filter.ext;
             if (!filePath.endsWith(ext)) {
                 if (filePath.endsWith(".")) {
