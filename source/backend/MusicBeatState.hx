@@ -1,5 +1,6 @@
 package backend;
 
+import haxe.ds.HashMap;
 import backend.window.CppAPI;
 import flixel.FlxState;
 import backend.PsychCamera;
@@ -310,24 +311,49 @@ class MusicBeatState extends FlxState
 
 		}
 	}
+	var preloadFunctions:Map<String, (FlxState)->Void> = [
+		"PlayState" => function(state:FlxState) {
+			if (state is PlayState) {
+				@:privateAccess
+				(cast state:PlayState).generateSong();
+			}
+		}
+	];
 
-	var preloadFunction:()->Void = null;
-
-	public function preloadState(switchState:Bool = false):Void
+	public function hashCode():Int
 	{
+		return Type.getClassName(Type.getClass(this)).hashcode();
+	}
+
+	public function preloadState(switchState:Bool = false, state:FlxState, ?proceedOnError:Bool = true)
+	{
+		var stateClassName = Type.getClassName(Type.getClass(state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(state)).split(".")) - 1];
+		var preloadFunction = preloadFunctions.get(stateClassName);
+		var errored = false;
+		if (preloadFunction == null)
+		{
+			trace('No preload function for state: ' + stateClassName);
+		}
 		var preloader = function()
 		{
 			if (preloadFunction != null)
 			{
-				preloadFunction();
+				trace('Preloading state: ' + stateClassName);
+				try {
+					preloadFunction(state);
+				} catch (e:Dynamic) {
+					trace('Error during state preloading: ' + e);
+				}
 				preloadFunction = null;
 			}
-			if (switchState)
+			if (switchState && (!errored || proceedOnError))
 				return MusicBeatState.switchState(this);
-		 }
+		};
 
-		 yutautil.Threader.runInThread(preloader(), 1, 'State Preloader - ${Type.getClassName(Type.getClass(this))}');
-		}	
+		var stateName = Type.getClassName(Type.getClass(state));
+
+		yutautil.Threader.runInThread(preloader(), 1, 'State Preloader');
+	}
 
 
 	public static function preloadAndSwitchState(state:MusicBeatState)
@@ -340,7 +366,7 @@ class MusicBeatState extends FlxState
 			return;
 		}
 
-		state.preloadState(true);
+		state.preloadState(true, state);
 	}
 
 	public static function switchState(nextState:FlxState = null)

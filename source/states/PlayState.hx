@@ -137,6 +137,10 @@ class PlayState extends MusicBeatState
 
 	public var comboOffsetCustom:Null<Array<Int>> = null;
 
+	// override function preloadFunction():Void {
+	// 	generateSong();
+	// }
+
 	public var BF_X:Float = 770;
 	public var BF_Y:Float = 100;
 	public var BF2_X:Float = 770;
@@ -456,6 +460,12 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+
+		// if (SONG != null)
+		// {
+		// 	preloadFunction = generateSong;
+		// }
+
 		if (SONG == null) {
 			var songLowercase:String = Paths.formatToSongPath('tutorial');
 			var poop:String = Highscore.formatSong(songLowercase, storyDifficulty);	
@@ -2288,6 +2298,7 @@ class PlayState extends MusicBeatState
 
 	private function generateSong():Void
 	{
+		trace('Generating Song: ${SONG.song}');
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
