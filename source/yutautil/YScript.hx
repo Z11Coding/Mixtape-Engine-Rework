@@ -479,10 +479,7 @@ class YScript
 {
     private var keywords:Map<String, EReg> = [
         // ———————— Type & Block Definitions ————————
-        "class"     => ~/\bclass\s+\w+
-                   (?:\s+extends\s+[\w\.]+)?
-                   (?:\s+implements\s+[\w\.]+(?:\s*,\s*[\w\.]+)*)?
-                   \s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
+		"class"     => ~/\bclass\s+\w+(?:\s+extends\s+[\w\.]+)?(?:\s+implements\s+[\w\.]+(?:\s*,\s*[\w\.]+)*)?\s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
         // Matches a class definition, optionally with 'extends' and/or 'implements' clauses, and its body.
 
         "enum"      => ~/\benum\s+\w+\s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
@@ -500,8 +497,7 @@ class YScript
         "var"       => ~/\bvar\s+\w+\s*:\s*[\w\.<>\[\]]+\s*=\s*[\s\S]*?;/s,
         // Matches a variable definition with a type and an initializer.
 
-        "function"  => ~/\bfunction\s+\w+\s*\([^)]*\)\s*:\s*[\w\.<>\[\]]+
-                   \s*(?:haxe|lua)?\s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
+		"function"  => ~/\bfunction\s+\w+\s*\([^)]*\)\s*:\s*[\w\.<>\[\]]+\s*(?:haxe|lua)?\s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
         // Matches a function definition with parameters, return type, and body.
 
         "if"        => ~/\bif\s*\([\s\S]*?\)\s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
