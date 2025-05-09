@@ -41,7 +41,7 @@ class FreeplayManager {
 		return songs;
 	}
 
-    public static var metadata:Map<String, MetadataFile>;
+    public static var metadata:Map<String, MetadataFile> = new Map<String, MetadataFile>();
     static var metadataFile:MetadataFile;
 	var hasMetadataFile:Bool = false;
 
@@ -156,9 +156,7 @@ class FreeplayManager {
 
                 try
                 {
-                    metadata.set(song[0].toLowerCase(), metadataFile);
-                    trace(Assets.getText(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));
-                    trace(metadata.get(song[0].toLowerCase()));
+                    metadata.set(song[0].toLowerCase(), cast metadataFile);
                     trace("Found metadata for " + song[0].toLowerCase());
                 }
                 catch (e)
@@ -363,6 +361,31 @@ class FreeplayManager {
                     addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
                 if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
                     addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            }
+        }
+
+        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument"]) {
+            try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
+            catch(e) {
+                trace("can't.");
+                metadataFile = null;
+            }
+
+            try
+            {
+                metadata.set(song.toLowerCase(), cast metadataFile);
+                trace("Found metadata for " + song.toLowerCase());
+            }
+            catch (e)
+            {
+                try
+                {
+                    trace("No metadata for " + song.toLowerCase());
+                }
+                catch (e)
+                {
+                    trace("No metadata found. No song either apparently.");
+                }
             }
         }
 

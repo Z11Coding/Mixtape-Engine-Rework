@@ -1799,6 +1799,11 @@ class PlayState extends MusicBeatState
 				{
 					case 0:
 						FlxG.sound.play(Paths.sound('intro3' + introSoundsSuffix), 0.6);
+						introStageStuff.visible = true;
+						FlxTween.tween(songTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
+						FlxTween.tween(artistTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
+						FlxTween.tween(charterTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
+						FlxTween.tween(modTxt, {alpha: 1}, 1, {ease: FlxEase.circOut});
 						tick = THREE;
 					case 1:
 						countdownReady = createCountdownSprite(introAlts[0], antialias);

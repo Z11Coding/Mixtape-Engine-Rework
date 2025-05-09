@@ -312,9 +312,39 @@ class OsuFreeplayState extends MusicBeatState
 			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[curSelected].songName.toLowerCase());}
 			catch(e) {metadata = null;}
 
-			if (metadata != null) {
-				staleBg.loadGraphic(Paths.image(metadata.freeplay.bg));
+			if (metadata != null && metadata.freeplay != null) {
+				if (metadata.freeplay.bg != null || metadata.freeplay.bg != '') {
+					staleBg.loadGraphic(Paths.image(metadata.freeplay.bg));
+					staleBg.screenCenter();
+				} else {
+					staleBg.makeGraphic(FlxG.width, FlxG.height, 0xff646464);
+					staleBg.screenCenter();
+				}
+
+				if (albumPhoto != null) {
+					if (metadata.freeplay.album != null || metadata.freeplay.album != '') {
+						albumPhoto.loadGraphic(Paths.image('albums/${Std.string(metadata.freeplay.album)}'));
+						albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+						albumPhoto.screenCenter(Y);
+						albumPhoto.x = 130;
+						albumPhoto.y += 20;
+					} else {
+						albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
+						albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+						albumPhoto.screenCenter(Y);
+						albumPhoto.x = 130;
+						albumPhoto.y += 20;
+					}
+				}
+			} else { // Return to default
+				staleBg.makeGraphic(FlxG.width, FlxG.height, 0xff646464);
 				staleBg.screenCenter();
+
+				albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
+				albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+				albumPhoto.screenCenter(Y);
+				albumPhoto.x = 130;
+				albumPhoto.y += 20;
 			}
 		}
 	}
@@ -379,6 +409,9 @@ class OsuFreeplayState extends MusicBeatState
 			icon.ID = i;
 			icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
 			this.iconGrp.add(icon);
+
+			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
+			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
 			if (metadata != null)
