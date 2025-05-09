@@ -398,27 +398,16 @@ class OsuFreeplayState extends MusicBeatState
 		if(reset)
 			curSelected = 0;
 
-		//run this 100 times cause running once only removes half of the items in the group!!??
 		songBox.clear();
 		iconGrp.clear();
 		textGrp.clear();
 
 		var trueInt:Int = 0;
 
+		FreeplayManager.checkSongStatus();
+
 		for (i in 0...FreeplayManager.songList.length)
 		{
-			
-
-			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
-
-			var difficulties:Array<String> = Difficulty.loadFromWeek(week);
-
-			for (j in 0...difficulties.length)
-			{
-				trueInt++;
-				
-
-
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
@@ -436,12 +425,44 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-				text.text = FreeplayManager.songList[i].songName + '\n' + difficulties[j];
+			if (metadata != null)
+				text.text = FreeplayManager.songList[i].songName + '\nBy ${metadata.song.artist}';
+			else
+				text.text = FreeplayManager.songList[i].songName + '\nBy Unknown';
 			text.alignment = 'left';
 			text.ID = trueInt;
 			this.textGrp.add(text);
+
+			/*var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
+			Difficulty.loadFromWeek(week);
+
+			for (j in 0...Difficulty.list.length)
+			{
+				trueInt++;
+				
+				var songBox:SongBox = new SongBox(320, 100);
+				songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+				songBox.setGraphicSize(650, 100);
+				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
+				songBox.ID = trueInt;
+				songBoxParent.add(songBox);
+
+				var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
+				icon.setPosition(320, 100);
+				icon.ID = trueInt;
+				icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
+				this.iconGrp.add(icon);
+
+				try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
+				catch(e) {metadata = null;}
+
+				var text:FlxText = new FlxText(0, 0, 500, '', 20);
+				text.text = FreeplayManager.songList[i].songName + '\n' + Difficulty.list[j];
+				text.alignment = 'left';
+				text.ID = trueInt;
+				this.textGrp.add(text);
+			}*/
 		}
-	}
 		
 		maxSelected = songBox.length;
 

@@ -440,25 +440,27 @@ class FreeplayState extends MusicBeatState
 			}
 
 			// trace (curUnlocked);
-
+			FreeplayManager.checkSongStatus();
 			for (i in 0...WeekData.weeksList.length) {
+				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+            	WeekData.setDirectoryFromWeek(leWeek);
 				for (i in 0...FreeplayManager.songList.length)
 				{
 					var songName:String = '';
             		var modName:String = '';
 					var isMissing:Bool = false;
+					var locationId:Array<Int> = [];
 					var color:FlxColor = 0xFFFFFFFF;
 					var someLocationsNotMissing:Bool = false;
 					
-					songName = songList[i].songName;
-                	modName = WeekData.weeksLoaded.get(WeekData.weeksList[songList[i].week]).folder;
+					songName = FreeplayManager.songList[i].songName;
+                	modName = leWeek.folder;
+					if (APEntryState.inArchipelagoMode) locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+                    color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+
 					
 					var songText:Alphabet = null;
-					// for (locId in locationId) {
-					// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));
-					// }
-					// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
-
 					if (APEntryState.inArchipelagoMode) {
 						var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 						var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
@@ -483,37 +485,20 @@ class FreeplayState extends MusicBeatState
 						APEntryState.apGame.checkGoal(songName, modName);
 					}
 
-					// // Potential Emergency For Later.
-
-					// if (callVictory && !APEntryState.apGame.info().clientStatus != archipelago.PacketTypes.ClientStatus.GOAL)
-					// {
-					// 	trace("Apparently, AP didn't get the memo. Forcing goal...");
-					// 	APEntryState.apGame.setGoal();
-					// }
-
 					songText.scaleX = Math.min(1, 980 / songText.width);
 					songText.snapToPosition();
 
 					Mods.currentModDirectory = FreeplayManager.songList[i].folder;
 					
-					// too laggy with a lot of songs, so i had to recode the logic for it
 					songText.visible = songText.active = songText.isMenuItem = false;
 					
 					var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 					var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter);
 					icon.sprTracker = songText;
 					icon.visible = icon.active = false;
-					// using a FlxGroup is too much fuss!
-					// but over on mixtape engine we do arrays better
 					iconArray.push(icon);
 					iconList.add(icon);
-					// }
-
-					// songText.x += 40;
-					// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-					// songText.screenCenter(X);
 				}
-				WeekData.setDirectoryFromWeek();
 			}
 			if (FreeplayManager.songList.length == -1 || FreeplayManager.songList.length == 0)
 				FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
@@ -1187,17 +1172,15 @@ class FreeplayState extends MusicBeatState
 
 		var bullShit:Int = 0;
 
-		try {
-			for (i in 0...iconArray.length)
+		for (i in 0...iconArray.length)
+		{
+			if (iconArray[i] != null && iconArray[i].animation != null && iconArray[i].animation.curAnim != null)
 			{
-				if (iconArray[i] != null && iconArray[i].animation != null)
-				{
-					iconArray[i].alpha = 0.4;
-					switch (iconArray[i].type) {
-						case SINGLE: iconArray[i].animation.curAnim.curFrame = 0;
-						case WINNING: iconArray[i].animation.curAnim.curFrame = 0;
-						default: iconArray[i].animation.curAnim.curFrame = 0;
-					}
+				iconArray[i].alpha = 0.4;
+				switch (iconArray[i].type) {
+					case SINGLE: iconArray[i].animation.curAnim.curFrame = 0;
+					case WINNING: iconArray[i].animation.curAnim.curFrame = 2;
+					default: iconArray[i].animation.curAnim.curFrame = 1;
 				}
 			}
 
@@ -1210,10 +1193,6 @@ class FreeplayState extends MusicBeatState
 					default: iconArray[curSelected].animation.curAnim.curFrame = 0;
 				}
 			}
-		}
-		catch(e)
-		{
-			trace("Your icon broke! Skipping...");
 		}
 
 		for (item in grpSongs.members)
