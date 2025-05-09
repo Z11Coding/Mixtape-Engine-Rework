@@ -2298,7 +2298,7 @@ class PlayState extends MusicBeatState
 
 	private function generateSong():Void
 	{
-		trace('Generating Song: ${SONG.song}');
+		// trace('Generating Song: ${SONG.song}');
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
@@ -7159,7 +7159,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
+			if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && !note.botNote)
 			{
 				var spr = field.strumNotes[note.column];
 				if(spr != null) spr.playAnim('confirm', true);
