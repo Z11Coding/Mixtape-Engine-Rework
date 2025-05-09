@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Guns",
+        "artist":"Kawai Sprite",
+        "charter":"MtH",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume2",
+        "ratings":{ "easy": 3, "normal": 4, "hard": 5 }
+    }
+}

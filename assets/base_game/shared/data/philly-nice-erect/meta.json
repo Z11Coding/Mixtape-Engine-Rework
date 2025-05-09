@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Philly Nice Erect",
+        "artist":"Kawai Sprite (feat. Saruky)",
+        "charter":"Spazkid + fabs",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 8, "nightmare": 9 }
+    }
+}

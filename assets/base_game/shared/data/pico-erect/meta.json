@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Pico Erect",
+        "artist":"Kawai Sprite (feat. Saruky)",
+        "charter":"fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 9, "nightmare": 10 }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"2Hot",
+        "artist":"Kawai Sprite",
+        "charter":"Jenny Crowe + Spazkid + ninjamuffin99",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"NoCover",
+        "ratings":{ "easy": 3, "normal": 4, "hard": 5 }
+    }
+}

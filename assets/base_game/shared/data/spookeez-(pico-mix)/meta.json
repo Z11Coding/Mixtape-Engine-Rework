@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Spookeez (Pico Mix)",
+        "artist":"Six Impala (feat. Saster)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "easy": 1, "normal": 2, "hard": 3 }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Ugh Erect",
+        "artist":"Kawai Sprite",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "erect": 8, "nightmare": 9 }
+    }
+}

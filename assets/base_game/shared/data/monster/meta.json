@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Monster",
+        "artist":"BassetFilms",
+        "charter":"ChaoticGamerCG + MtH + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume1",
+        "ratings":{ "easy": 1, "normal": 2, "hard": 2 }
+    }
+}

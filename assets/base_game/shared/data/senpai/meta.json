@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Senpai",
+        "artist":"Kawai Sprite",
+        "charter":"ninjamuffin99 + MtH",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume2",
+        "ratings":{ "erect": 11, "nightmare": 12 }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Eggnog Erect",
+        "artist":"Saruky",
+        "charter":"fabs + SpazKid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"expansion1",
+        "ratings":{ "erect": 6, "nightmare": 7 }
+    }
+}

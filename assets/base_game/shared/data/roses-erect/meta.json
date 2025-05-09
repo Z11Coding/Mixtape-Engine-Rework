@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Roses Erect",
+        "artist":"Jenny + Fabs + SpazKid",
+        "charter":"Kawai Sprite",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 8, "nightmare": 9 }
+    }
+}

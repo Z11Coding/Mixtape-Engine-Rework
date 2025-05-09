@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"DadBattle (Pico Mix)",
+        "artist":"TeraVex (ft. Saruky)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "easy": 3, "normal": 4, "hard": 5 }
+    }
+}

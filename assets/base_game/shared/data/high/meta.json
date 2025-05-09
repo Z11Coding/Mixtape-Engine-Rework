@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"High",
+        "artist":"Kawai Sprite",
+        "charter":"ninjamuffin99 + MtH",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume1",
+        "ratings":{ "easy": 1, "normal": 2, "hard": 3 }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Fresh Erect",
+        "artist":"Kohta Takahashi (feat. Saruky)",
+        "charter":"fabs",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 6, "nightmare": 7 }
+    }
+}

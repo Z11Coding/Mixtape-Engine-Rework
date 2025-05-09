@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Senpai Erect",
+        "artist":"Kawai Sprite",
+        "charter":"Jenny Crowe + Fabs",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 6, "nightmare": 7 }
+    }
+}

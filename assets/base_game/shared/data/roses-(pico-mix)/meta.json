@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Roses (Pico Mix)",
+        "artist":"Xploshi (ft. Saruky)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"expansion2",
+        "ratings":{ "easy": 2, "normal": 3, "hard": 4 }
+    }
+}

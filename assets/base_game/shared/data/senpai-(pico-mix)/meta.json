@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Senpai (Pico Mix)",
+        "artist":"Tee Lopes (Feat. Saruky)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"expansion2",
+        "ratings":{ "easy": 1, "normal": 2, "hard": 3 }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Darnell Erect",
+        "artist":"Kawai Sprite",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"expansion2",
+        "ratings":{ "erect": 8, "nightmare": 9 }
+    }
+}

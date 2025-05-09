@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Bopeebo Erect",
+        "artist":"Kawai Sprite (feat. Saruky)",
+        "charter":"Jenny Crowe + fabs",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 7, "nightmare": 8 }
+    }
+}

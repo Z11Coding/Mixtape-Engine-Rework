@@ -4,5 +4,11 @@
         "artist":"Z11Gaming",
         "charter":"Z11Gaming",
         "mod":"Mixtape Madness"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"NoCover",
+        "ratings":{}
     }
 }

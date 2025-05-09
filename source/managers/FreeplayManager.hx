@@ -42,6 +42,7 @@ class FreeplayManager {
 	}
 
     public static var metadata:Map<String, MetadataFile>;
+    static var metadataFile:MetadataFile;
 	var hasMetadataFile:Bool = false;
 
     #if ARCHIPELAGO_ALLOWED
@@ -146,9 +147,16 @@ class FreeplayManager {
                 if (FileSystem.exists(Paths.json(song[0].toLowerCase() + "/credits")))
                 musician = File.getContent((Paths.json(song[0].toLowerCase() + "/credits")));
 
+
+                try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
+                catch(e) {
+                    trace("can't.");
+                    metadataFile = null;
+                }
+
                 try
                 {
-                    metadata.set(song[0].toLowerCase(), cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta'))));
+                    metadata.set(song[0].toLowerCase(), metadataFile);
                     trace(Assets.getText(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));
                     trace(metadata.get(song[0].toLowerCase()));
                     trace("Found metadata for " + song[0].toLowerCase());

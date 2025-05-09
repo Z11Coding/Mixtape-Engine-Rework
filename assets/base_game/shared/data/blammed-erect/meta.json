@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Blammed Erect",
+        "artist":"Metaroom (feat. Saruky)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "easy": 3, "normal": 4, "hard": 5 }
+    }
+}

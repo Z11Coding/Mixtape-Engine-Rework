@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Bopeebo (Pico Mix)",
+        "artist":"ThatAndyGuy (feat. Saruky)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "easy": 1, "normal": 2, "hard": 3 }
+    }
+}

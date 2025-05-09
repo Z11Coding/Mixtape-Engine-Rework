@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Ugh",
+        "artist":"Kawai Sprite",
+        "charter":"???",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume2",
+        "ratings":{ "easy": 2, "normal": 3, "hard": 4 }
+    }
+}

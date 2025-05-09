@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Stress",
+        "artist":"Kawai Sprite",
+        "charter":"MtH + SpazKid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume2",
+        "ratings":{ "easy": 3, "normal": 4, "hard": 5 }
+    }
+}

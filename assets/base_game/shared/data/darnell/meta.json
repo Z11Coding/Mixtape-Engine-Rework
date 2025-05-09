@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Darnell",
+        "artist":"Kawai Sprite",
+        "charter":"fabs",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "easy": 2, "normal": 3, "hard": 4 }
+    }
+}

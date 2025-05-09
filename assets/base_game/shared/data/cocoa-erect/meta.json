@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Cocoa Erect",
+        "artist":"Saster",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "erect": 7, "nightmare": 8 }
+    }
+}

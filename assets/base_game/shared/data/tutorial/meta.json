@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Tutorial",
+        "artist":"Kawai Sprite",
+        "charter":"ninjamuffin99 + MtH",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume1",
+        "ratings":{ "erect": 9, "nightmare": 10 }
+    }
+}

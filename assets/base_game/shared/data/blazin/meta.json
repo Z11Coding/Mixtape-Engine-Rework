@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Blazin'",
+        "artist":"Kawai Sprite",
+        "charter":"fabs + PhantomArcade",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "easy": 3, "normal": 4, "hard": 5 }
+    }
+}

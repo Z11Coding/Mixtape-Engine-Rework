@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Stress (Pico Mix)",
+        "artist":"Saruky",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"expansion2",
+        "ratings":{ "easy": 4, "normal": 5, "hard": 6 }
+    }
+}

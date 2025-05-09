@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"South (Pico Mix)",
+        "artist":"Six Impala (feat. Saster)",
+        "charter":"Fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume4",
+        "ratings":{ "easy": 2, "normal": 3, "hard": 4 }
+    }
+}

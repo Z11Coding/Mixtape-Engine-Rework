@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"High Erect",
+        "artist":"Kohta Takahashi (feat. Kawai Sprite)",
+        "charter":"PhantomArcade + fabs + Spazkid",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 8, "nightmare": 9 }
+    }
+}

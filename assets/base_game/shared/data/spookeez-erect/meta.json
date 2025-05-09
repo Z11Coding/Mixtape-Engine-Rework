@@ -1,0 +1,14 @@
+{
+    "song": {
+        "name":"Spookeez Erect",
+        "artist":"Kawai Sprite (feat. Saruky)",
+        "charter":"Spazkid + fabs",
+        "mod":"Friday Night Funkin"
+    },
+
+    "freeplay": {
+        "bg":"menuBGBlue",
+        "album":"volume3",
+        "ratings":{ "erect": 11, "nightmare": 12 }
+    }
+}
