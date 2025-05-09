@@ -427,16 +427,24 @@ class OsuFreeplayState extends MusicBeatState
 		for (i in 0...FreeplayManager.songList.length)
 		{
 
+			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
+
+			var difficulties:Array<String> = Difficulty.loadFromWeek(week);
+
+			for (j in 0...difficulties.length)
+			{
+
+
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
-			songBox.ID = i;
+			songBox.ID = i + j;
 			this.songBox.add(songBox);
 
 			var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
 			icon.setPosition(320, 100);
-			icon.ID = i;
+			icon.ID = i + j;
 			icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
 			this.iconGrp.add(icon);
 
@@ -444,14 +452,12 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			if (metadata != null)
-				text.text = FreeplayManager.songList[i].songName + '\nBy ${metadata.song.artist}';
-			else
-				text.text = FreeplayManager.songList[i].songName + '\nBy Unknown';
+				text.text = FreeplayManager.songList[i].songName + '\n' + difficulties[j];
 			text.alignment = 'left';
-			text.ID = i;
+			text.ID = i + j;
 			this.textGrp.add(text);
 		}
+	}
 		
 		maxSelected = songBox.length;
 
