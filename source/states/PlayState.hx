@@ -2426,8 +2426,12 @@ class PlayState extends MusicBeatState
 
 
 
+
+
 		notes = new FlxTypedGroup<Note>();
 		noteGroup.add(notes);
+
+		
 
 		
 

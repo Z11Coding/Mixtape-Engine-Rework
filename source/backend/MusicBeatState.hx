@@ -315,7 +315,7 @@ class MusicBeatState extends FlxState
 		"PlayState" => function(state:FlxState) {
 			if (state is PlayState) {
 				@:privateAccess
-				(cast state:PlayState).generateSong();
+				(cast state:PlayState).preGenerateNotes();
 			}
 		},
 		"FreeplayState" => function(state:FlxState) {

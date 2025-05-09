@@ -225,17 +225,20 @@ class FunkinLua {
 		set('mania', PlayState.mania);
 		set('trueMania', Note.ammo[PlayState.mania]);
 
-		function addProtectedCallback(lua:State, name:String, func:Dynamic) {
-			Lua_helper.add_callback(lua, name, function(...args:Array<Dynamic>) {
-				try {
-					func.apply(this, args);
-				}
-				catch (e:Dynamic) {
-					luaTrace('Error in Lua callback "' + name + '": ' + e, false, false, FlxColor.RED);
-				}
-			});
-		}
-		
+		// function addProtectedCallback(lua:State, name:String, func:Dynamic) {
+		// 	Lua_helper.add_callback(lua, name, function() {
+		// 		try {
+		// 			var args:Array<Dynamic> = [];
+		// 			for (i in 1...Lua.gettop(lua) + 1) {
+		// 				args.push(Convert.fromLua(lua, i));
+		// 			}
+		// 			func.apply(null, args);
+		// 		}
+		// 		catch (e:Dynamic) {
+		// 			luaTrace('Error in Lua callback "' + name + '": ' + e, false, false, FlxColor.RED);
+		// 		}
+		// 	});
+		// }
 
 		//Fun cursor things for lua
 		Lua_helper.add_callback(lua, "getCursorMode", function()
