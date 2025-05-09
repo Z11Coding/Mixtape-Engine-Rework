@@ -89,7 +89,7 @@ class FlxAtlasSprite extends FlxAnimate
       FlxG.log.error('FlxAtlasSprite does not have its main symbol!');
       return [];
     }
-    return mainSymbol.getFrameLabels().map(keyFrame -> keyFrame.name).filterNull();
+    return mainSymbol.getFrameLabels().map(keyFrame -> keyFrame.name);
   }
 
   /**

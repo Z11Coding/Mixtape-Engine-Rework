@@ -983,6 +983,11 @@ class Paths
 		//trace(animationJson);
 		spr.loadAtlasEx(folderOrImg, spriteJson, animationJson);
 	}
+
+	public static function animateAtlas(path:String, ?library:String):String
+	{
+		return getLibraryPath('images/$path', library);
+	}
 	#end
 
 	public static function file(file:String, type:AssetType = TEXT, ?library:String):String {

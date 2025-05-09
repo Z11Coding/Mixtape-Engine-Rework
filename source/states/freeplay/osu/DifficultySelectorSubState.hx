@@ -3,6 +3,9 @@ package states.freeplay.osu;
 // import flixel.FlxSprite;
 import flixel.input.keyboard.FlxKey;
 import states.freeplay.OsuFreeplayState;
+import states.freeplay.backend.DifficultyStars;
+import haxe.Json;
+import lime.utils.Assets;
 
 import backend.Highscore;
 import backend.Song;
@@ -23,6 +26,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
     var song:Dynamic;
 
     var canDo:Bool = false;
+    var difficultyStars:DifficultyStars;
 
     public function new(song:Dynamic)
     {
@@ -39,6 +43,14 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         sprite = new FlxSprite().loadGraphic(Paths.image('menudifficulties/${Difficulty.list[difficulty].toLowerCase()}'));
         sprite.screenCenter();
         add(sprite);
+        
+        difficultyStars = new DifficultyStars(0, 0);
+		difficultyStars.visible = true;
+        difficultyStars.scrollFactor.set();
+        difficultyStars.screenCenter();
+        difficultyStars.y += 30;
+        difficultyStars.x += 25;
+		add(difficultyStars);
 
         buildDifficultySprite('normal');
         buildDifficultySprite();
@@ -63,7 +75,23 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         Difficulty.loadFromWeek();
         listLength = Difficulty.list.length;
         WeekData.setDirectoryFromWeek();
+        changeDiff();
     }
+
+    public function setDifficultyStars(?difficulty:Int):Void
+	{
+		if (difficulty == null) return;
+		difficultyStars.setNumber(difficulty);
+        showStars();
+	}
+	
+	/**
+	 * Make the album stars visible.
+	 */
+	public function showStars():Void
+	{
+		difficultyStars.visible = true; // true;
+	}
 
     override public function update(elapsed:Float)
     {
@@ -125,6 +153,30 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 
         buildDifficultySprite(Difficulty.list[difficulty].toLowerCase());
         sprite.screenCenter();
+
+        // I really don't wanna talk about it
+        // I hate this so much but it works but I still hate it
+        try {
+            var jsonMeta = Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.songName.toLowerCase()) + '/meta')));
+            var ratingValue:String = Std.string(jsonMeta.freeplay.ratings).trim().replace('[', '').replace(']', '').replace(' ', '');
+            var ratearr1:Array<String> = ratingValue.split(',');
+            var actualRating:Map<String, Int> = new Map<String, Int>();
+
+            for (item in ratearr1) {
+                var thing:Array<String> = item.split('=>');
+                actualRating.set(thing[0], Std.parseInt(thing[1]));
+            }
+
+            if (actualRating != null) {
+                var curDiff:String = Difficulty.list[difficulty].toLowerCase();
+                setDifficultyStars(actualRating.get(curDiff));
+            } else {
+                difficultyStars.visible = false;
+            }
+        } catch(e) {
+            difficultyStars.visible = false;
+            trace("No Metadata Found!");
+        }
     }
 
     var difficultySprites:Map<String, FlxSprite>;

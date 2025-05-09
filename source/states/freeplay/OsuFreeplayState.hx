@@ -141,6 +141,7 @@ class OsuFreeplayState extends MusicBeatState
 		super.create();
 	}
 
+	var holdTime:Float = 0;
 	override public function update(elapsed:Float)
 	{
 		FlxG.watch.addQuick('Search Text', searchTypeText.text);
@@ -187,6 +188,9 @@ class OsuFreeplayState extends MusicBeatState
 
 		if(!isTyping && !inSub)
 		{
+			var shiftMult:Int = 1;
+			if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
+
 			if(FlxG.mouse.overlaps(backHitbox))
 				back.setColorTransform(-1, -1, -1, 1, 246, 190, 0);
 			if(!FlxG.mouse.overlaps(backHitbox))
@@ -205,19 +209,42 @@ class OsuFreeplayState extends MusicBeatState
 						searchTypeText.text = '';
 				}
 			}
+
+			if(FlxG.mouse.wheel != 0)
+			{
+				FlxG.sound.play(Paths.sound('scrollMenu'), 0.2);
+				changeSong(-shiftMult * FlxG.mouse.wheel, false);
+			}
+
+			if (controls.UI_UP_P)
+			{
+				changeSong(-shiftMult);
+				holdTime = 0;
+			}
+			if (controls.UI_DOWN_P)
+			{
+				changeSong(shiftMult);
+				holdTime = 0;
+			}
 			
-			if(controls.UI_UP_P || controls.UI_DOWN_P)
-				changeSong(controls.UI_UP_P? -1 : 1);
+			if(controls.UI_UP || controls.UI_DOWN) {
+				var checkLastHold:Int = Math.floor((holdTime - 0.5) * 10);
+				holdTime += elapsed;
+				var checkNewHold:Int = Math.floor((holdTime - 0.5) * 10);
+
+				if(holdTime > 0.5 && checkNewHold - checkLastHold > 0)
+					changeSong((checkNewHold - checkLastHold) * (controls.UI_UP ? -shiftMult : shiftMult));
+			}
 			else if(FlxG.keys.justPressed.HOME)
 			{
 				curSelected = 0;
-
+				holdTime = 0;
 				changeSong();
 			}
 			else if(FlxG.keys.justPressed.END)
 			{
 				curSelected = maxSelected - 1;
-
+				holdTime = 0;
 				changeSong();
 			}
 			else if(FlxG.keys.justPressed.PAGEUP || FlxG.keys.justPressed.PAGEDOWN)
@@ -289,8 +316,8 @@ class OsuFreeplayState extends MusicBeatState
 		FlxTween.tween(fakeLogo.scale, {x: 0.33, y: 0.33}, 0.6);
 	}
 
-	var metadata:Dynamic = null;
-	function changeSong(change:Int = 0)
+	public static var metadata:Dynamic = null;
+	function changeSong(change:Int = 0, playSound:Bool = true)
 	{
 		curSelected += change;
 
@@ -313,7 +340,7 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			if (metadata != null && metadata.freeplay != null) {
-				if (metadata.freeplay.bg != null || metadata.freeplay.bg != '') {
+				if (metadata.freeplay.bg != null && metadata.freeplay.bg != '') {
 					staleBg.loadGraphic(Paths.image(metadata.freeplay.bg));
 					staleBg.screenCenter();
 				} else {
@@ -322,7 +349,7 @@ class OsuFreeplayState extends MusicBeatState
 				}
 
 				if (albumPhoto != null) {
-					if (metadata.freeplay.album != null || metadata.freeplay.album != '') {
+					if (metadata.freeplay.album != null && metadata.freeplay.album != '') {
 						albumPhoto.loadGraphic(Paths.image('albums/${Std.string(metadata.freeplay.album)}'));
 						albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
 						albumPhoto.screenCenter(Y);
@@ -340,13 +367,16 @@ class OsuFreeplayState extends MusicBeatState
 				staleBg.makeGraphic(FlxG.width, FlxG.height, 0xff646464);
 				staleBg.screenCenter();
 
-				albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
-				albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
-				albumPhoto.screenCenter(Y);
-				albumPhoto.x = 130;
-				albumPhoto.y += 20;
+				if (albumPhoto != null) {
+					albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
+					albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+					albumPhoto.screenCenter(Y);
+					albumPhoto.x = 130;
+					albumPhoto.y += 20;
+				}
 			}
 		}
+		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 	}
 
 	public static var vocals:FlxSound = null;

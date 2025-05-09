@@ -7303,6 +7303,7 @@ class PlayState extends MusicBeatState
 			lua.call('onDestroy', []);
 			lua.stop();
 		}
+		
 		for (lua in legacyLuaArray)
 		{
 			lua.call('onDestroy', []);
