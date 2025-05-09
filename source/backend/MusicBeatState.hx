@@ -366,7 +366,7 @@ class MusicBeatState extends FlxState
 			return;
 		}
 
-		//state.preloadState(true, state);
+		state.preloadState(true, state);
 	}
 
 	public static function switchState(nextState:FlxState = null)
