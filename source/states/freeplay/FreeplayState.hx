@@ -441,102 +441,100 @@ class FreeplayState extends MusicBeatState
 
 			// trace (curUnlocked);
 
-			sys.thread.Thread.create(() -> {
-				for (i in 0...WeekData.weeksList.length) {
-					for (i in 0...FreeplayManager.songList.length)
-					{
-						var songName:String = '';
-						var modName:String = '';
-						var locationId:Array<Int> = [];
-						var isMissing:Bool = false;
-						var color:FlxColor = 0xFFFFFFFF;
-						var someLocationsNotMissing:Bool = false;
+			for (i in 0...WeekData.weeksList.length) {
+				for (i in 0...FreeplayManager.songList.length)
+				{
+					var songName:String = '';
+					var modName:String = '';
+					var locationId:Array<Int> = [];
+					var isMissing:Bool = false;
+					var color:FlxColor = 0xFFFFFFFF;
+					var someLocationsNotMissing:Bool = false;
 
-						if (APEntryState.inArchipelagoMode) {
-							songName = FreeplayManager.songList[i].songName;
-							modName = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]).folder;
-							locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-							isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-							color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+					if (APEntryState.inArchipelagoMode) {
+						songName = FreeplayManager.songList[i].songName;
+						modName = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]).folder;
+						locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+						isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+						color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
-							
-							someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+						
+						someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 
-							for (songObj in FreeplayManager.curUnlocked)
-							{
-								if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
-									color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-									FreeplayManager.unplayedList.push(songName);
-								}
-							}
-
-							if (!FreeplayManager.unplayedList.contains(songName) && isMissing) {
-								FreeplayManager.trueMissing.push(songName);
+						for (songObj in FreeplayManager.curUnlocked)
+						{
+							if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
+								color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+								FreeplayManager.unplayedList.push(songName);
 							}
 						}
-						var songText:Alphabet = null;
-						// for (locId in locationId) {
-						// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));
-						// }
-						// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
 
-						if (APEntryState.inArchipelagoMode) {
-							var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
-							var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-							songText = FreeplayManager.isVictorySong(songName, modName) ? 
-								(isMissing ? 
-									(someLocationsNotMissing ? 
-										new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
-										: new VictorySong(90, 320, songName, color, true)) 
-									: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
-								: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
-						} else {
-							songText = new DynamicAlphabet(90, 320, FreeplayManager.songList[i].songName, true, true);
+						if (!FreeplayManager.unplayedList.contains(songName) && isMissing) {
+							FreeplayManager.trueMissing.push(songName);
 						}
-						songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
-						songText.targetY = i;
-						grpSongs.add(songText);
-
-						FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
-
-						if (FreeplayManager.callVictory) {
-							trace("Apparently, the victory song has been cleared, so... Goaling!");
-							APEntryState.apGame.checkGoal(songName, modName);
-						}
-
-						// // Potential Emergency For Later.
-
-						// if (callVictory && !APEntryState.apGame.info().clientStatus != archipelago.PacketTypes.ClientStatus.GOAL)
-						// {
-						// 	trace("Apparently, AP didn't get the memo. Forcing goal...");
-						// 	APEntryState.apGame.setGoal();
-						// }
-
-						songText.scaleX = Math.min(1, 980 / songText.width);
-						songText.snapToPosition();
-
-						Mods.currentModDirectory = FreeplayManager.songList[i].folder;
-						
-						// too laggy with a lot of songs, so i had to recode the logic for it
-						songText.visible = songText.active = songText.isMenuItem = false;
-						
-						var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
-						var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter);
-						icon.sprTracker = songText;
-						icon.visible = icon.active = false;
-						// using a FlxGroup is too much fuss!
-						// but over on mixtape engine we do arrays better
-						iconArray.push(icon);
-						iconList.add(icon);
-						// }
-
-						// songText.x += 40;
-						// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-						// songText.screenCenter(X);
 					}
-					WeekData.setDirectoryFromWeek();
+					var songText:Alphabet = null;
+					// for (locId in locationId) {
+					// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));
+					// }
+					// trace("Song Name: " + songName + " Mod Name: " + modName + " Missing: " + isMissing);
+
+					if (APEntryState.inArchipelagoMode) {
+						var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
+						var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+						songText = FreeplayManager.isVictorySong(songName, modName) ? 
+							(isMissing ? 
+								(someLocationsNotMissing ? 
+									new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
+									: new VictorySong(90, 320, songName, color, true)) 
+								: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
+							: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
+					} else {
+						songText = new DynamicAlphabet(90, 320, FreeplayManager.songList[i].songName, true, true);
+					}
+					songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
+					songText.targetY = i;
+					grpSongs.add(songText);
+
+					FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
+
+					if (FreeplayManager.callVictory) {
+						trace("Apparently, the victory song has been cleared, so... Goaling!");
+						APEntryState.apGame.checkGoal(songName, modName);
+					}
+
+					// // Potential Emergency For Later.
+
+					// if (callVictory && !APEntryState.apGame.info().clientStatus != archipelago.PacketTypes.ClientStatus.GOAL)
+					// {
+					// 	trace("Apparently, AP didn't get the memo. Forcing goal...");
+					// 	APEntryState.apGame.setGoal();
+					// }
+
+					songText.scaleX = Math.min(1, 980 / songText.width);
+					songText.snapToPosition();
+
+					Mods.currentModDirectory = FreeplayManager.songList[i].folder;
+					
+					// too laggy with a lot of songs, so i had to recode the logic for it
+					songText.visible = songText.active = songText.isMenuItem = false;
+					
+					var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
+					var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter);
+					icon.sprTracker = songText;
+					icon.visible = icon.active = false;
+					// using a FlxGroup is too much fuss!
+					// but over on mixtape engine we do arrays better
+					iconArray.push(icon);
+					iconList.add(icon);
+					// }
+
+					// songText.x += 40;
+					// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
+					// songText.screenCenter(X);
 				}
-			});
+				WeekData.setDirectoryFromWeek();
+			}
 			if (FreeplayManager.songList.length == -1 || FreeplayManager.songList.length == 0)
 				FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 
@@ -654,6 +652,7 @@ class FreeplayState extends MusicBeatState
 			try {
 				var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[curSelected].songName);
 				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
+				Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
 				Song.loadFromJson(poop, songLowercase);
 				PlayState.isStoryMode = false;
 				PlayState.storyDifficulty = curDifficulty;
@@ -1015,7 +1014,7 @@ class FreeplayState extends MusicBeatState
 							alreadyClicked = true;
 							MusicBeatState.reopen = false; //Fix a sticker bug
 							LoadingState.prepareToSong();
-							MusicBeatState.preloadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
 						}
 						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 						stopMusicPlay = true;
