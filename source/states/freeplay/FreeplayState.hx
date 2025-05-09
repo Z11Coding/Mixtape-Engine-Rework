@@ -445,34 +445,14 @@ class FreeplayState extends MusicBeatState
 				for (i in 0...FreeplayManager.songList.length)
 				{
 					var songName:String = '';
-					var modName:String = '';
-					var locationId:Array<Int> = [];
+            		var modName:String = '';
 					var isMissing:Bool = false;
 					var color:FlxColor = 0xFFFFFFFF;
 					var someLocationsNotMissing:Bool = false;
-
-					if (APEntryState.inArchipelagoMode) {
-						songName = FreeplayManager.songList[i].songName;
-						modName = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]).folder;
-						locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-						isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-						color = isMissing ? FlxColor.RED : FlxColor.GREEN;
-
-						
-						someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
-
-						for (songObj in FreeplayManager.curUnlocked)
-						{
-							if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
-								color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-								FreeplayManager.unplayedList.push(songName);
-							}
-						}
-
-						if (!FreeplayManager.unplayedList.contains(songName) && isMissing) {
-							FreeplayManager.trueMissing.push(songName);
-						}
-					}
+					
+					songName = songList[i].songName;
+                	modName = WeekData.weeksLoaded.get(WeekData.weeksList[songList[i].week]).folder;
+					
 					var songText:Alphabet = null;
 					// for (locId in locationId) {
 					// 	// trace("Location ID: " + locId + " Location Name -> " + APEntryState.apGame.info().get_location_name(locId));

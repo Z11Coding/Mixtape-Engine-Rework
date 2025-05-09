@@ -293,10 +293,10 @@ class OsuFreeplayState extends MusicBeatState
 				isTyping = false;
 				if(searchTypeText.text == '') {
 					searchTypeText.text = 'Type Here To Search!';
-					loadSongArray(true, false);
+					FreeplayManager.reloadFreeplay(true);
 				}
 				else
-					loadSongArray(true, true, searchTypeText.text);
+					FreeplayManager.reloadFreeplay(false, searchTypeText.text);
 			}
 		}
 
@@ -399,30 +399,9 @@ class OsuFreeplayState extends MusicBeatState
 			curSelected = 0;
 
 		//run this 100 times cause running once only removes half of the items in the group!!??
-		for(i in 0...100)
-		{
-			if(songBox.length != 0)
-			{
-				songBox.forEach(function(box:SongBox)
-				{
-					songBox.remove(box, true);
-					box.kill();
-					box.destroy();
-				});
-
-				for(icon in iconGrp) {
-					iconGrp.remove(icon, true);
-					icon.kill();
-					icon.destroy();
-				}
-
-				for(text in textGrp) {
-					textGrp.remove(text, true);
-					text.kill();
-					text.destroy();
-				}
-			}
-		}
+		songBox.clear();
+		iconGrp.clear();
+		textGrp.clear();
 
 		for (i in 0...FreeplayManager.songList.length)
 		{

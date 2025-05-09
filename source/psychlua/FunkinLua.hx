@@ -235,7 +235,7 @@ class FunkinLua {
 				}
 			});
 		}
-		}
+		
 
 		//Fun cursor things for lua
 		Lua_helper.add_callback(lua, "getCursorMode", function()

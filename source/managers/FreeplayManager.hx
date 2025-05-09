@@ -8,6 +8,7 @@ import states.CategoryState;
 import states.StoryMenuState;
 import lime.utils.Assets;
 import metadata.STMetaFile.MetadataFile;
+import yutautil.AprilFools;
 
 #if ARCHIPELAGO_ALLOWED
 import archipelago.*;
@@ -620,7 +621,7 @@ class FreeplayManager {
 
 		for (locationIdInt in locationIdInts) {
 			trace("Processing locationIdInt for victory song check: " + locationIdInt);
-			if (locationIdInt != 0 && FreeplayManager.isVictorySong(songName, modName)) {
+			if (locationIdInt != 0 && isVictorySong(songName, modName)) {
 				trace("Victory song condition met. Triggering victory popup...");
 				archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
 					trace("Popup triggered for completing goal.");
@@ -642,6 +643,48 @@ class FreeplayManager {
 			});
 		}
 	}
+
+    public static function checkSongStatus() {
+        for (i in 0...songList.length)
+        {
+            var songName:String = '';
+            var modName:String = '';
+            var locationId:Array<Int> = [];
+            var isMissing:Bool = false;
+            var color:FlxColor = 0xFFFFFFFF;
+            var someLocationsNotMissing:Bool = false;
+
+            if (APEntryState.inArchipelagoMode) {
+                songName = songList[i].songName;
+                modName = WeekData.weeksLoaded.get(WeekData.weeksList[songList[i].week]).folder;
+                locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+                isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+                color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+
+                
+                someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+
+                for (songObj in curUnlocked)
+                {
+                    if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
+                        color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+                        unplayedList.push(songName);
+                    }
+                }
+
+                if (!unplayedList.contains(songName) && isMissing) {
+                    trueMissing.push(songName);
+                }
+            }
+
+            FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
+
+            if (FreeplayManager.callVictory) {
+                trace("Apparently, the victory song has been cleared, so... Goaling!");
+                APEntryState.apGame.checkGoal(songName, modName);
+            }
+        }
+    }
 
     public static function checkVictory() {
         // Check if the Victory Song is cleared.
@@ -717,5 +760,23 @@ class GlobalSongMetadata
 		this.color = color;
 		this.folder = Mods.currentModDirectory;
 		if(this.folder == null) this.folder = '';
+	}
+}
+
+class VictorySong extends DynamicColoredAlphabet
+{
+
+	public function new(x:Float, y:Float, text:String, color:Int, preserve:Bool)
+	{
+		super(x, y, text, color, preserve);
+	}
+
+	var e:Int = 0;
+
+	override function update(elapsed:Float)
+	{
+		e++;
+		super.update(elapsed);
+		this.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
 	}
 }

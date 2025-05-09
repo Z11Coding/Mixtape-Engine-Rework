@@ -19,5 +19,10 @@ class CategoriesSubstate extends LightBaseOptionsMenu
 
         super();
     }
+
+    override function destroy() {
+        ClientPrefs.saveSettings();
+        super.destroy();
+    }
 }
     
