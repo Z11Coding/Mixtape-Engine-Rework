@@ -403,8 +403,11 @@ class OsuFreeplayState extends MusicBeatState
 		iconGrp.clear();
 		textGrp.clear();
 
+		var trueInt:Int = 0;
+
 		for (i in 0...FreeplayManager.songList.length)
 		{
+			
 
 			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
 
@@ -412,18 +415,20 @@ class OsuFreeplayState extends MusicBeatState
 
 			for (j in 0...difficulties.length)
 			{
+				trueInt++;
+				
 
 
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
-			songBox.ID = i + j;
+			songBox.ID = trueInt;
 			this.songBox.add(songBox);
 
 			var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
 			icon.setPosition(320, 100);
-			icon.ID = i + j;
+			icon.ID = trueInt;
 			icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
 			this.iconGrp.add(icon);
 
@@ -433,7 +438,7 @@ class OsuFreeplayState extends MusicBeatState
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
 				text.text = FreeplayManager.songList[i].songName + '\n' + difficulties[j];
 			text.alignment = 'left';
-			text.ID = i + j;
+			text.ID = trueInt;
 			this.textGrp.add(text);
 		}
 	}
