@@ -311,7 +311,7 @@ class FreeplayState extends MusicBeatState
 
 		trace(hh);
 
-		FreeplayManager.reloadFreeplay(true);
+		FreeplayManager.reloadFreeplay(false);
 		changeSelection();
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {

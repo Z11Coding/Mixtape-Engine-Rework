@@ -317,6 +317,14 @@ class MusicBeatState extends FlxState
 				@:privateAccess
 				(cast state:PlayState).generateSong();
 			}
+		},
+		"FreeplayState" => function(state:FlxState) {
+
+				FreeplayManager.reloadFreeplay();
+
+		},
+		"OsuFreeplayState" => function(state:FlxState) {
+				FreeplayManager.reloadFreeplay();
 		}
 	];
 

@@ -2299,6 +2299,51 @@ class PlayState extends MusicBeatState
 	
 			return result;
 		}
+
+				private var preGen:Array<Dynamic> = [];
+
+		private function preGenerateNotes():Void {
+		preGen = []; // Clear the array before generating
+	
+		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
+		var daBpm:Float = Conductor.bpm;
+	
+		for (section in sectionsData) {
+			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm) {
+				daBpm = section.bpm;
+			}
+	
+			for (i in 0...section.sectionNotes.length) {
+				final songNotes: Array<Dynamic> = section.sectionNotes[i];
+				var spawnTime:Float = songNotes[0];
+				var noteColumn:Int = Std.int(songNotes[1]);
+				var holdLength:Float = songNotes[2];
+				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
+	
+				if (Math.isNaN(holdLength)) holdLength = 0.0;
+
+	
+				var gottaHitNote:Bool = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
+	
+				// Push the anonymous object into the preGen array
+				preGen.push({
+					spawnTime: spawnTime,
+					noteColumn: noteColumn,
+					holdLength: holdLength,
+					noteType: noteType,
+					gottaHitNote: gottaHitNote,
+					section: section,
+					isSustainNote: false
+				});
+				if (holdLength > 0)
+				{
+					
+				}
+			}
+		}
+	
+		trace('Pre-generated ${preGen.length} notes.');
+	}
 	
 
 	private function generateSong():Void
@@ -2379,8 +2424,12 @@ class PlayState extends MusicBeatState
 		catch (e:Dynamic) {}
 		FlxG.sound.list.add(inst);
 
+
+
 		notes = new FlxTypedGroup<Note>();
 		noteGroup.add(notes);
+
+		
 
 		try
 		{
