@@ -441,64 +441,62 @@ class FreeplayState extends MusicBeatState
 
 			// trace (curUnlocked);
 			FreeplayManager.checkSongStatus();
-			for (i in 0...WeekData.weeksList.length) {
-				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-            	WeekData.setDirectoryFromWeek(leWeek);
-				for (i in 0...FreeplayManager.songList.length)
-				{
-					var songName:String = '';
-            		var modName:String = '';
-					var isMissing:Bool = false;
-					var locationId:Array<Int> = [];
-					var color:FlxColor = 0xFFFFFFFF;
-					var someLocationsNotMissing:Bool = false;
-					
+			for (i in 0...FreeplayManager.songList.length)
+			{
+				var songName:String = '';
+				var modName:String = '';
+				var isMissing:Bool = false;
+				var locationId:Array<Int> = [];
+				var color:FlxColor = 0xFFFFFFFF;
+				var someLocationsNotMissing:Bool = false;
+				
+				if (APEntryState.inArchipelagoMode) {
 					songName = FreeplayManager.songList[i].songName;
-                	modName = leWeek.folder;
-					if (APEntryState.inArchipelagoMode) locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					modName = FreeplayManager.songList[i].folder;
+					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
 					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-                    color = isMissing ? FlxColor.RED : FlxColor.GREEN;
-
-					
-					var songText:Alphabet = null;
-					if (APEntryState.inArchipelagoMode) {
-						var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
-						var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-						songText = FreeplayManager.isVictorySong(songName, modName) ? 
-							(isMissing ? 
-								(someLocationsNotMissing ? 
-									new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
-									: new VictorySong(90, 320, songName, color, true)) 
-								: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
-							: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
-					} else {
-						songText = new DynamicAlphabet(90, 320, FreeplayManager.songList[i].songName, true, true);
-					}
-					songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
-					songText.targetY = i;
-					grpSongs.add(songText);
-
-					FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
-
-					if (FreeplayManager.callVictory) {
-						trace("Apparently, the victory song has been cleared, so... Goaling!");
-						APEntryState.apGame.checkGoal(songName, modName);
-					}
-
-					songText.scaleX = Math.min(1, 980 / songText.width);
-					songText.snapToPosition();
-
-					Mods.currentModDirectory = FreeplayManager.songList[i].folder;
-					
-					songText.visible = songText.active = songText.isMenuItem = false;
-					
-					var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
-					var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter);
-					icon.sprTracker = songText;
-					icon.visible = icon.active = false;
-					iconArray.push(icon);
-					iconList.add(icon);
+					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 				}
+
+				
+				var songText:Alphabet = null;
+				if (APEntryState.inArchipelagoMode) {
+					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
+					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+					songText = FreeplayManager.isVictorySong(songName, modName) ? 
+						(isMissing ? 
+							(someLocationsNotMissing ? 
+								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
+								: new VictorySong(90, 320, songName, color, true)) 
+							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
+						: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
+				} else {
+					songText = new DynamicAlphabet(90, 320, FreeplayManager.songList[i].songName, true, true);
+				}
+				songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
+				songText.targetY = i;
+				grpSongs.add(songText);
+
+				FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
+
+				if (FreeplayManager.callVictory) {
+					trace("Apparently, the victory song has been cleared, so... Goaling!");
+					APEntryState.apGame.checkGoal(songName, modName);
+				}
+
+				songText.scaleX = Math.min(1, 980 / songText.width);
+				songText.snapToPosition();
+
+				Mods.currentModDirectory = FreeplayManager.songList[i].folder;
+				
+				songText.visible = songText.active = songText.isMenuItem = false;
+				
+				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
+				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter);
+				icon.sprTracker = songText;
+				icon.visible = icon.active = false;
+				iconArray.push(icon);
+				iconList.add(icon);
 			}
 			if (FreeplayManager.songList.length == -1 || FreeplayManager.songList.length == 0)
 				FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
@@ -1180,17 +1178,17 @@ class FreeplayState extends MusicBeatState
 				switch (iconArray[i].type) {
 					case SINGLE: iconArray[i].animation.curAnim.curFrame = 0;
 					case WINNING: iconArray[i].animation.curAnim.curFrame = 2;
-					default: iconArray[i].animation.curAnim.curFrame = 1;
+					default: iconArray[i].animation.curAnim.curFrame = 0;
 				}
 			}
 
-			if (iconArray[curSelected] != null)
+			if (iconArray[curSelected] != null && iconArray[curSelected].animation != null && iconArray[curSelected].animation.curAnim != null)
 			{
 				iconArray[curSelected].alpha = 1;
 				switch (iconArray[curSelected].type) {
 					case SINGLE: iconArray[curSelected].animation.curAnim.curFrame = 0;
 					case WINNING: iconArray[curSelected].animation.curAnim.curFrame = 1;
-					default: iconArray[curSelected].animation.curAnim.curFrame = 0;
+					default: iconArray[curSelected].animation.curAnim.curFrame = 1;
 				}
 			}
 		}
