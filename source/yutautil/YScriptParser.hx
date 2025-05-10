@@ -590,7 +590,7 @@ class YScriptParser {
 // -------------------------
 // PROGRAM STRUCTURE
 // -------------------------
-    
+
 typedef YScriptProgram = {
     classes:Array<YClass<Dynamic>>,
     functions:Array<YFunction>,
