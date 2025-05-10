@@ -53,10 +53,18 @@ class OsuFreeplayState extends MusicBeatState
 	var inSub:Bool = false;
 
 	var staleBg:FlxSprite;
-	var ticketCounter:FlxText = null;
+	var ticketCounterTop:FlxText = null;
+	var ticketCounterBottom:FlxText = null;
 	override function create()
 	{
+		#if windows
+		backend.window.CppAPI.resetAffixes();
+		backend.window.CppAPI.resetTitle();
+		#end
+
 		instance = this; // For Archipelago
+
+		Paths.clearStoredWithoutStickers();
 		
 		Cursor.cursorMode = Default;
 
@@ -142,11 +150,15 @@ class OsuFreeplayState extends MusicBeatState
 		changeSong();
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
-			ticketCounter = new FlxText(0, FlxG.height - 630, 0, "0/0", 32);
-			ticketCounter.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			ticketCounter.scrollFactor.set();
-			ticketCounter.screenCenter(X);
-			add(ticketCounter);
+			ticketCounterTop = new FlxText(albumPhoto.x - 130, albumPhoto.y - 230, 0, "0/0", 32);
+			ticketCounterTop.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			ticketCounterTop.scrollFactor.set();
+			add(ticketCounterTop);
+
+			ticketCounterBottom = new FlxText(backHitbox.x + 100, backHitbox.y, 0, "0/0", 32);
+			ticketCounterBottom.setFormat(Paths.font("fnf1.ttf"), 28, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			ticketCounterBottom.scrollFactor.set();
+			add(ticketCounterBottom);
 			new FlxTimer().start(1, function(tmr:FlxTimer) {
 				archipelago.APGameState.haventranyet = false;
 			});
@@ -156,6 +168,13 @@ class OsuFreeplayState extends MusicBeatState
 			archipelago.APItem.activeItem = null;
 
 		super.create();
+
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("In the Menus", null);
+		#end
+
+		Mods.loadTopMod();
 	}
 
 	var holdTime:Float = 0;
@@ -164,8 +183,21 @@ class OsuFreeplayState extends MusicBeatState
 	var e:Int = 0;
 	override public function update(elapsed:Float)
 	{
+		if(WeekData.weeksList.length < 1)
+		{
+			FlxTransitionableState.skipNextTransIn = true;
+			persistentUpdate = false;
+			MusicBeatState.switchState(new states.ErrorState("NO WEEKS ADDED FOR FREEPLAY\n\nPress ACCEPT to go to the Week Editor Menu.\nPress BACK to return to Main Menu.",
+				function() MusicBeatState.switchState(new states.editors.WeekEditorState()),
+				function() MusicBeatState.switchState(new states.MainMenuState())));
+			return;
+		}
+
 		e++;
 		FlxG.watch.addQuick('Search Text', searchTypeText.text);
+
+		if (FlxG.sound.music.volume < 0.8)
+			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
 
 		for(item in songBox)
 		{
@@ -180,8 +212,50 @@ class OsuFreeplayState extends MusicBeatState
 		}
 
 		#if ARCHIPELAGO_ALLOWED
-		victoryColor = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
+		if (APEntryState.inArchipelagoMode) {
+			victoryColor = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
+
+			for (i in 0...FreeplayManager.songList.length) {
+				if (FreeplayManager.isVictorySong(FreeplayManager.songList[i].songName, FreeplayManager.songList[i].folder)) {
+					songBox.members[i].color = victoryColor;
+				}
+			}
+
+			if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !isTyping)  {
+				try { //Because this menu has no actual difficulty select, just assume it's the first difficulty
+					var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[curSelected].songName);
+					var poop:String = Highscore.formatSong(songLowercase, 0);
+					Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
+					Song.loadFromJson(poop, songLowercase);
+					PlayState.isStoryMode = false;
+					PlayState.storyDifficulty = 0;
+				} catch (e:Dynamic) {
+					trace('Error loading song: ' + e);
+				}
+				try {
+					FreeplayManager.forceUnlockCheck(FreeplayManager.songList[curSelected].songName, WeekData.getCurrentWeek().folder);
+				} catch (e:Dynamic) {
+					trace("You can't check nothing, silly!");
+				}
+				MusicBeatState.resetState();
+			}
+
+			if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !isTyping) {
+				try {
+					var SongInfo = APEntryState.apGame.getSongAndMod(FreeplayManager.songList[curSelected].songName + (FreeplayManager.songList[curSelected].folder != "" ? " (" + FreeplayManager.songList[curSelected].folder + ")" : ""));
+					if (APEntryState.ap != null) {
+						APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+						archipelago.console.SideUI.instance.active = true;
+					}
+				} catch (e:Dynamic) {
+					trace("You can't hint nothing, silly!");
+				}
+			}
+		}
 		#end
+
+		persistentUpdate = true;
+		PlayState.isStoryMode = false;
 
 		for(icon in iconGrp)
 		{
@@ -283,24 +357,27 @@ class OsuFreeplayState extends MusicBeatState
 				if (FreeplayManager.isVictorySong(FreeplayManager.songList[curSelected].songName, FreeplayManager.songList[curSelected].folder) && !vicCheck) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
+					var ogColor = songBox.members[curSelected].color;
 					songBox.forEach(function(item:FlxSprite)
 					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
 					});
-					FlxTween.color(ticketCounter, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					FlxTween.color(ticketCounterTop, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
 					return;
 				}
 				
 				if (FreeplayManager.trueMissing.contains(FreeplayManager.songList[curSelected].songName) && !FreeplayManager.unplayedList.contains(FreeplayManager.songList[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
+					var ogColor = songBox.members[curSelected].color;
 					songBox.forEach(function(item:FlxSprite)
 					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
 					});
 					return;
 				}
 				
+				//loadDiffs(FreeplayManager.songList[curSelected]);
 				inSub = true;
 				openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
 			}
@@ -351,14 +428,14 @@ class OsuFreeplayState extends MusicBeatState
 
 		super.update(elapsed);
 
-		if (ticketCounter != null) {
-			ticketCounter.text = 'Current ticket amount: ${APInfo.ticketCount}\n' +
+		if (ticketCounterTop != null && ticketCounterBottom != null) {
+			ticketCounterTop.text = 'Current ticket amount: ${APInfo.ticketCount}\n' +
 				'Tickets Needed: ${APInfo.ticketWinCount}\n' +
-				'Tickets Left: ${Std.int(APInfo.ticketWinCount - APInfo.ticketCount)}\n' +
-				'Hint Points Available: ${APInfo.hintPoints}\n' +
-				'Hint Cost: ${APInfo.hintCost}\n' +
-				'(L) to release song\n' +
-				'(H) to hint song';
+				'Tickets Left: ${Std.int(APInfo.ticketWinCount - APInfo.ticketCount)}\n';
+			ticketCounterBottom.text = 'Hint Points Available: ${APInfo.hintPoints}' +
+				'   Hint Cost: ${APInfo.hintCost}' +
+				'   (L) to release song' +
+				'   (H) to hint song';
 		}
 	}
 
@@ -445,7 +522,8 @@ class OsuFreeplayState extends MusicBeatState
 				}
 			}
 		}
-		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+		if(playSound) 
+			FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 	}
 
 	public static var vocals:FlxSound = null;
@@ -463,7 +541,32 @@ class OsuFreeplayState extends MusicBeatState
 		FlxG.mouse.visible = false;
 		instance = null;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
-			MusicManager.playMenuMusic(0);
+			MusicManager.playMenuMusic(1);
+	}
+
+	function loadDiffs(song:Dynamic) {
+		var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[curSelected].week]);
+		Difficulty.loadFromWeek(week);
+
+		var diffInt:Int = 0;
+		for (j in 0...Difficulty.list.length)
+		{			
+			var songBox:SongBox = new SongBox(320, 100);
+			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+			songBox.setGraphicSize(650, 50);
+			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[curSelected].color[0][0], FreeplayManager.songList[curSelected].color[0][1], FreeplayManager.songList[curSelected].color[0][2], 1);
+			songBox.ID = song.ID + diffInt;
+			this.songBox.add(songBox);
+
+			//try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
+			//catch(e) {metadata = null;}
+
+			var text:FlxText = new FlxText(0, 0, 500, '', 20);
+			text.text = Difficulty.list[j];
+			text.alignment = 'left';
+			text.ID = song.ID + diffInt;
+			this.textGrp.add(text);
+		}
 	}
 
 	function loadSongArray(reset:Bool, searching:Bool = false, searchQuery:String = '')
@@ -536,36 +639,6 @@ class OsuFreeplayState extends MusicBeatState
 			text.alignment = 'left';
 			text.ID = i;
 			textGrp.add(text);
-
-			/*var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
-			Difficulty.loadFromWeek(week);
-
-			for (j in 0...Difficulty.list.length)
-			{
-				trueInt++;
-				
-				var songBox:SongBox = new SongBox(320, 100);
-				songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
-				songBox.setGraphicSize(650, 100);
-				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
-				songBox.ID = trueInt;
-				songBoxParent.add(songBox);
-
-				var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
-				icon.setPosition(320, 100);
-				icon.ID = trueInt;
-				icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
-				this.iconGrp.add(icon);
-
-				try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
-				catch(e) {metadata = null;}
-
-				var text:FlxText = new FlxText(0, 0, 500, '', 20);
-				text.text = FreeplayManager.songList[i].songName + '\n' + Difficulty.list[j];
-				text.alignment = 'left';
-				text.ID = trueInt;
-				this.textGrp.add(text);
-			}*/
 		}
 		
 		maxSelected = songBox.length;

@@ -1160,6 +1160,11 @@ class Note extends NoteObject
 			if (alpha > 0.3)
 				alpha = 0.3;
 		}
+
+		if (!inEditor) {
+			if (field != null && alpha > field.strumNotes[column].alpha)
+				alpha = field.strumNotes[column].alpha;
+		}
 	}
 
 	override public function destroy()

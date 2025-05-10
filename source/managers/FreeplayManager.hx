@@ -140,25 +140,25 @@ class FreeplayManager {
 
                 try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
                 catch(e) {
-                    trace("can't.");
+                    //trace("can't.");
                     metadataFile = null;
                 }
 
                 try
                 {
                     metadata.set(song[0].toLowerCase(), cast metadataFile);
-                    trace("Found metadata for " + song[0].toLowerCase());
+                    //trace("Found metadata for " + song[0].toLowerCase());
                 }
                 catch (e)
                 {
-                    try
+                    /*try
                     {
                         trace("No metadata for " + song[0].toLowerCase());
                     }
                     catch (e)
                     {
                         trace("No metadata found. No song either apparently.");
-                    }
+                    }*/
                 }
 
                 if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (leWeek.folder != '' || leWeek.folder != null) && !APEntryState.inArchipelagoMode))
@@ -634,6 +634,8 @@ class FreeplayManager {
 	}
 
     public static function checkSongStatus() {
+        trueMissing = [];
+        unplayedList = [];
         for (i in 0...WeekData.weeksList.length) {
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
             WeekData.setDirectoryFromWeek(leWeek);
@@ -647,7 +649,7 @@ class FreeplayManager {
                 var someLocationsNotMissing:Bool = false;
 
                 if (APEntryState.inArchipelagoMode) {
-                    songName = song;
+                    songName = song[0];
                     modName = leWeek.folder;
                     locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
                     isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;

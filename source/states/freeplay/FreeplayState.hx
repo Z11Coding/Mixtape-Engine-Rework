@@ -199,10 +199,7 @@ class FreeplayState extends MusicBeatState
 		grpLocks = new FlxTypedGroup<FlxSprite>();
 		add(grpLocks);
 
-		// if (!ClientPrefs.data.disableFreeplayAlphabet)
 		randomText = new Alphabet(90, 320, "RANDOM", true);
-		// else
-		// 	randomText = new online.objects.AlphaLikeText(90, 320, "RANDOM");
 		randomText.scaleX = Math.min(1, 980 / randomText.width);
 		randomText.targetY = -1;
 		randomText.snapToPosition();
@@ -423,8 +420,8 @@ class FreeplayState extends MusicBeatState
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
 	}
 
-	//TODO: Find a way to safely thread this
-	//or at least make it handle a larger amount of songs without taking forever to load
+	// TODO: Find a way to safely thread this
+	// or at least make it handle a larger amount of songs without taking forever to load
 	public function reloadSongs(?refresh:Bool = false)
 	{
 		if (instance != null)
