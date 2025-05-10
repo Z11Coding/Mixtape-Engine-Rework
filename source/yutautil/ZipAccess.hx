@@ -6,6 +6,13 @@ import sys.io.File;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
+    enum ZipAction {
+        ListFiles;
+        ExtractFile(fileName:String, outputPath:String);
+        GetFileContent(fileName:String);
+        ExtractAll(outputDir:String);
+    }
+
 class ZipAccess {
     private var zipReader:Reader;
     private var entries:Map<String, Bytes>;
@@ -19,12 +26,7 @@ class ZipAccess {
         }
     }
 
-    enum ZipAction {
-        ListFiles;
-        ExtractFile(fileName:String, outputPath:String);
-        GetFileContent(fileName:String);
-        ExtractAll(outputDir:String);
-    }
+
 
     public static function doTask(zipFilePath:String, action:ZipAction):Dynamic {
         var zipAccess = new ZipAccess(zipFilePath);
