@@ -142,9 +142,10 @@ class OsuFreeplayState extends MusicBeatState
 		changeSong();
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
-			ticketCounter = new FlxText(FlxG.width - 470, FlxG.height - 630, 0, "0/0", 32);
+			ticketCounter = new FlxText(0, FlxG.height - 630, 0, "0/0", 32);
 			ticketCounter.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			ticketCounter.scrollFactor.set();
+			ticketCounter.screenCenter(X);
 			add(ticketCounter);
 			new FlxTimer().start(1, function(tmr:FlxTimer) {
 				archipelago.APGameState.haventranyet = false;
@@ -393,7 +394,17 @@ class OsuFreeplayState extends MusicBeatState
 			WeekData.setDirectoryFromWeek();
 			Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
 			PlayState.storyWeek = FreeplayManager.songList[curSelected].week;
-			try {Difficulty.loadFromWeek();} catch(e:Dynamic) {}
+			try {
+				switch (FreeplayManager.songList[curSelected].songName)
+				{
+					case 'Small Argument' | 'Beat Battle 2':
+						Difficulty.list = ['Hard'];
+					case "Beat Battle":
+						Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+					default:
+						Difficulty.loadFromWeek();
+				}
+			} catch(e:Dynamic) {}
 			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[curSelected].songName.toLowerCase());}
 			catch(e) {metadata = null;}
 

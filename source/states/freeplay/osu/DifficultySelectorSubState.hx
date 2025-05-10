@@ -27,7 +27,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 
     var canDo:Bool = false;
     var difficultyStars:DifficultyStars;
-
+    var diffTextnecausetherewasnoimage:FlxText;
     public function new(song:Dynamic)
     {
         super();
@@ -48,12 +48,9 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 		difficultyStars.visible = true;
         difficultyStars.scrollFactor.set();
         difficultyStars.screenCenter();
-        difficultyStars.y += 30;
+        difficultyStars.y += 15;
         difficultyStars.x += 25;
 		add(difficultyStars);
-
-        buildDifficultySprite('normal');
-        buildDifficultySprite();
 
         missingTextBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		missingTextBG.alpha = 0.6;
@@ -66,13 +63,27 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 		missingText.visible = false;
 		add(missingText);
 
+        diffTextnecausetherewasnoimage = new FlxText(50, 0, FlxG.width - 100, '', 24);
+        diffTextnecausetherewasnoimage.setFormat(Paths.font("difficulty.ttf"), 80, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        diffTextnecausetherewasnoimage.scrollFactor.set();
+        diffTextnecausetherewasnoimage.visible = false;
+        add(diffTextnecausetherewasnoimage);
+
         new FlxTimer().start(0.2, function(tmr:FlxTimer) {
             canDo = true;
         });
 
         Mods.currentModDirectory = song.folder;
         PlayState.storyWeek = song.week;
-        Difficulty.loadFromWeek();
+        switch (song.songName)
+        {
+            case 'Small Argument' | 'Beat Battle 2':
+                Difficulty.list = ['Hard'];
+            case "Beat Battle":
+                Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+            default:
+                Difficulty.loadFromWeek();
+        }
         listLength = Difficulty.list.length;
         WeekData.setDirectoryFromWeek();
         changeDiff();
@@ -152,7 +163,6 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             difficulty = listLength - 1;
 
         buildDifficultySprite(Difficulty.list[difficulty].toLowerCase());
-        sprite.screenCenter();
 
         // I really don't wanna talk about it
         // I hate this so much but it works but I still hate it
@@ -167,15 +177,22 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                 actualRating.set(thing[0], Std.parseInt(thing[1]));
             }
 
+            var curDiff:String = Difficulty.list[difficulty].toLowerCase();
             if (actualRating != null) {
-                var curDiff:String = Difficulty.list[difficulty].toLowerCase();
                 setDifficultyStars(actualRating.get(curDiff));
-            } else {
-                difficultyStars.visible = false;
             }
         } catch(e) {
             difficultyStars.visible = false;
             trace("No Metadata Found!");
+        }
+    }
+
+    function setDifficultyText(?diff:String) {
+        if (diffTextnecausetherewasnoimage != null) {
+            diffTextnecausetherewasnoimage.text = diff.toUpperCase();
+            diffTextnecausetherewasnoimage.screenCenter();
+            diffTextnecausetherewasnoimage.y += 2;
+            diffTextnecausetherewasnoimage.visible = true;
         }
     }
 
@@ -201,7 +218,12 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             }
         
             difficultySprites.set(diff, sprite);
-        }    
+        }
+
+        if (!Paths.exists(Paths.file('images/menudifficulties/${diff}.png'))) {
+            sprite.visible = false;
+            setDifficultyText(diff);
+        } else if (diffTextnecausetherewasnoimage != null) diffTextnecausetherewasnoimage.visible = false;
         sprite.updateHitbox();
         sprite.screenCenter();
         add(sprite);

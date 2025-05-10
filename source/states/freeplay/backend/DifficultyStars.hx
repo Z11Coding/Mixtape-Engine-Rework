@@ -36,7 +36,7 @@ class DifficultyStars extends FlxSpriteGroup
 			prevRandomFpsStart = randomFpsStart;
 			prevRandomFpsLoop = randomFpsLoop;
 			
-			var flame = new FlxSprite((starPositionOffset.x * i) + flamePositionOffset.x, (starPositionOffset.y * i) + flamePositionOffset.y);
+			var flame = new FlxSprite((starPositionOffset.x * i) + flamePositionOffset.x, (starPositionOffset.y) + flamePositionOffset.y);
 			flame.frames = Paths.getSparrowAtlas("freeplay/freeplayFlame");
 			flame.animation.addByIndices("start", "fire loop full instance 1", [0, 1], "", randomFpsStart, false);
 			flame.animation.addByIndices("loop", "fire loop full instance 1", [2, 3, 4, 5, 6, 7, 8, 9], "", randomFpsLoop, true);

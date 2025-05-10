@@ -9,6 +9,6 @@
     "freeplay": {
         "bg":"menuBGBlue",
         "album":"NoCover",
-        "ratings":{}
+        "ratings":{ "normal": 5, "reasonable": 7, "unreasonable": 10, "semi-impossible": 15,  "impossible": 20}
     }
 }
