@@ -855,7 +855,7 @@ class OsuFreeplayState extends MusicBeatState
 			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
 			Difficulty.loadFromWeek(week);
 
-			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[curSelected].songName) {
+			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName)
 				trace(songName);
 				trueInt = i+1;
 				for (j in 0...Difficulty.list.length)
