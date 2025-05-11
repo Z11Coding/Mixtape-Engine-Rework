@@ -11,3 +11,9 @@ class SongBox extends FlxSprite
     }
 
 }
+
+class DiffBox extends SongBox
+{
+    public var difID:Int = 0;
+    public var difName:String = '';
+}
