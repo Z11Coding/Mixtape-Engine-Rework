@@ -38,7 +38,9 @@ import backend.ui.*; //Psych-UI
 import backend.util.MemoryUtil;
 import backend.Cursor;
 import backend.Constants;
+
 import objects.AudioDisplay;
+import objects.FlxAtlasSprite;
 
 import stages.BaseStage;
 

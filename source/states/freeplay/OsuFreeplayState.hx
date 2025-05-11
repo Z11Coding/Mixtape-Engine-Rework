@@ -103,12 +103,12 @@ class OsuFreeplayState extends MusicBeatState
 		botBar.screenCenter(X);
 		add(botBar);
 		
-		var logo:FlxSprite = new FlxSprite(0, 460).loadGraphic(Paths.image('logo'));
+		var logo:FlxSprite = new FlxSprite(0, 460).loadGraphic(Paths.image('logobutsmaller'));
 		logo.setGraphicSize(200, 100);
 		logo.screenCenter(X);
 		add(logo);
 		
-		fakeLogo = new FlxSprite(0, 460).loadGraphic(Paths.image('logo'));
+		fakeLogo = new FlxSprite(0, 460).loadGraphic(Paths.image('logobutsmaller'));
 		fakeLogo.setGraphicSize(200, 100);
 		fakeLogo.screenCenter(X);
 		fakeLogo.alpha = 0;
@@ -377,12 +377,12 @@ class OsuFreeplayState extends MusicBeatState
 					return;
 				}
 				
-				reloadSongArray();
-				//inSub = true;
-				//openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
+				//reloadSongArray();
+				inSub = true;
+				openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
 			}
 
-			if(FlxG.keys.justPressed.TAB)
+			if(FlxG.keys.justPressed.TAB || FlxG.keys.justPressed.CONTROL) //adding control for consistancy sake
 			{
 				inSub = true;
 				openSubState(new GameplayChangersSubstate());

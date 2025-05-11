@@ -471,7 +471,8 @@ class PhillyStreetsErect extends BaseStage
         function driveCarBack(sprite:FlxSprite):Void
         {
             car2Interruptable = false;
-            FlxTween.cancelTweensOf(sprite);
+            try{FlxTween.cancelTweensOf(sprite);}
+            catch(e) {trace("There was nothing to cancel!");}
             var variant:Int = FlxG.random.int(1, 4);
             sprite.animation.play('car' + variant);
     

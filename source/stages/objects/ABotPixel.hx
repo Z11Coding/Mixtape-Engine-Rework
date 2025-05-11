@@ -4,6 +4,8 @@ package stages.objects;
 import funkin.vis.dsp.SpectralAnalyzer;
 #end
 
+import backend.util.ModsHelper;
+
 class ABotPixel extends FlxSpriteGroup
 {
 	final VIZ_MAX = 7; //ranges from viz1 to viz7
@@ -14,6 +16,7 @@ class ABotPixel extends FlxSpriteGroup
 	public var vizSprites:Array<FlxSprite> = [];
 	public var eyeBg:FlxSprite;
 	public var eyes:FlxSprite;
+	public var speakerTop:FlxSprite;
 	public var speaker:FlxSprite;
 
 	#if funkin.vis
@@ -35,7 +38,17 @@ class ABotPixel extends FlxSpriteGroup
 	{
 		super(x, y);
 
-		bg = new FlxSprite(90, 20).loadGraphic(Paths.image('abotPixel/aBotPixelBack'));
+		speakerTop = new FlxSprite(-65, -10);
+		speakerTop.frames = Paths.getSparrowAtlas('abot/pixel/aBotPixelSpeaker');
+		speakerTop.scale.set(6, 6);
+		speakerTop.animation.addByPrefix("anim","bop",24,false);
+		speakerTop.animation.play('anim', true);
+		speakerTop.animation.frameIndex = speakerTop.animation.curAnim.numFrames - 1;
+		speakerTop.antialiasing = false;
+		speakerTop.updateHitbox();
+		add(speakerTop);
+
+		bg = new FlxSprite(90, 20).loadGraphic(Paths.image('abot/pixel/aBotPixelBack'));
         bg.scale.set(6, 6);
 		bg.antialiasing = false;
 		bg.updateHitbox();
@@ -43,7 +56,7 @@ class ABotPixel extends FlxSpriteGroup
 
 		var vizX:Float = 0;
 		var vizY:Float = 0;
-		var vizFrames = Paths.getSparrowAtlas('abotPixel/aBotVizPixel');
+		var vizFrames = Paths.getSparrowAtlas('abot/pixel/aBotVizPixel');
 		for (i in 1...VIZ_MAX+1)
 		{
 			volumes.push(0.0);
@@ -63,7 +76,7 @@ class ABotPixel extends FlxSpriteGroup
 		}
 
 		eyes = new FlxSprite(-60, 80);
-        eyes.frames = Paths.getSparrowAtlas('abotPixel/abotHead');
+        eyes.frames = Paths.getSparrowAtlas('abot/pixel/abotHead');
         eyes.scale.set(6, 6);
 		eyes.animation.addByPrefix('lookleft', 'toleft', 24, false);
 		eyes.animation.addByPrefix('lookright', 'toright', 24, false);
@@ -74,11 +87,12 @@ class ABotPixel extends FlxSpriteGroup
 
 		speaker = abotLol();
 	}
+
 	function abotLol() {
-		var temp = new FlxSprite(-65, -10);
-        temp.frames = Paths.getSparrowAtlas('abotPixel/aBotPixel');
+		var temp = new FlxSprite(65, -10);
+        temp.frames = Paths.getSparrowAtlas('abot/pixel/aBotPixelBody');
 		temp.scale.set(6, 6);
-		temp.animation.addByPrefix("anim","idle",24,false);
+		temp.animation.addByPrefix("anim","bop",24,false);
 		temp.animation.play('anim', true);
 		temp.animation.frameIndex = temp.animation.curAnim.numFrames - 1;
 		temp.antialiasing = false;
@@ -86,6 +100,7 @@ class ABotPixel extends FlxSpriteGroup
 		add(temp);
 		return temp;
 	}
+
 	#if funkin.vis
 	var levels:Array<Bar>;
 	var levelMax:Int = 0;
@@ -117,14 +132,14 @@ class ABotPixel extends FlxSpriteGroup
 
 	public function beatHit()
 	{
-		speaker.animation.play('anim', true);
+		speakerTop.animation.play('anim', true);
 	}
 
 	#if funkin.vis
 	public function initAnalyzer()
 	{
 		@:privateAccess
-		analyzer = new SpectralAnalyzer(snd._channel.__audioSource, 7, 0.1, 40);
+		analyzer = new SpectralAnalyzer(ModsHelper.getSoundChannel(snd), 7, 0.1, 40);
 	
 		#if !web
 		// On native it uses FFT stuff that isn't as optimized as the direct browser stuff we use on HTML5

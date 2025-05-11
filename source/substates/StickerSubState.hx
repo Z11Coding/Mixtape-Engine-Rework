@@ -303,8 +303,6 @@ class StickerSubState extends MusicBeatSubstate
               // FlxG.addChildBelowMouse(dipshit);
              */
              FlxG.switchState(() -> {
-              FunkinSprite.preparePurgeCache();
-              FunkinSprite.purgeCache();
               MusicBeatState.emptyStickers = new StickerSubState(grpStickers.members);
               MusicBeatState.reopen = true;
               //trace("reopen: " + MusicBeatState.reopen);

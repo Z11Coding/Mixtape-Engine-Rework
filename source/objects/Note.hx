@@ -1162,7 +1162,7 @@ class Note extends NoteObject
 		}
 
 		if (!inEditor) {
-			if (field != null && alpha > field.strumNotes[column].alpha)
+			if (field != null && alpha > field.strumNotes[column].alpha && strumTime > 1000) //Since the first couple of notes tend to just dissapear here's a hopeful fix for that
 				alpha = field.strumNotes[column].alpha;
 		}
 	}
