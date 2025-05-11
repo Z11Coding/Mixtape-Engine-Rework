@@ -44,6 +44,7 @@ class OsuFreeplayState extends MusicBeatState
 	var background:FlxSprite;
 
 	private var songBoxGrp:FlxTypedGroup<SongBox>;
+	var songBoxGrpOG:FlxTypedGroup<SongBox>;
 	private var iconGrp:FlxTypedGroup<HealthIcon>;
 	private var textGrp:FlxTypedGroup<FlxText>;
 
@@ -100,6 +101,7 @@ class OsuFreeplayState extends MusicBeatState
 		add(staleBg);
 
 		songBoxGrp = new FlxTypedGroup<SongBox>();
+		songBoxGrpOG = new FlxTypedGroup<SongBox>();
 		add(songBoxGrp);
 		
 		textGrp = new FlxTypedGroup<FlxText>();
@@ -756,6 +758,7 @@ class OsuFreeplayState extends MusicBeatState
 			}
 			songBox.ID = i;
 			this.songBoxGrp.add(songBox);
+			this.songBoxGrpOG.add(songBox);
 
 			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter, false);
@@ -831,6 +834,7 @@ class OsuFreeplayState extends MusicBeatState
 				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
 			}
 			songBox.ID = i + trueInt;
+			songBox.songID = i;
 			this.songBoxGrp.add(songBox);
 
 			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
@@ -855,8 +859,7 @@ class OsuFreeplayState extends MusicBeatState
 			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
 			Difficulty.loadFromWeek(week);
 
-			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName)
-				trace(songName);
+			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[songBoxGrpOG.members[curSelected].songID].songName) {
 				trueInt = i+1;
 				for (j in 0...Difficulty.list.length)
 				{
