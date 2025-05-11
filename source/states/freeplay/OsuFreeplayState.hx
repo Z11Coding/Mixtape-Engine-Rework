@@ -855,13 +855,15 @@ class OsuFreeplayState extends MusicBeatState
 			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
 			Difficulty.loadFromWeek(week);
 
-			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName) {
+			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[curSelected].songName) {
 				trace(songName);
 				trueInt = i+1;
 				for (j in 0...Difficulty.list.length)
 				{
 					
-					var songBox:SongBox = new SongBox(320, 100);
+					var songBox:DiffBox = new DiffBox(320, 100);
+					songBox.difID = j;
+					songBox.difName = Difficulty.list[j];
 					songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 					songBox.setGraphicSize(650, 100);
 					songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
