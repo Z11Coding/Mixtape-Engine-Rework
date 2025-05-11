@@ -524,7 +524,7 @@ class OsuFreeplayState extends MusicBeatState
 					}
 				}
 				else {
-					loadDiffs(FreeplayManager.songList[songBoxGrp.members[curSelected].songID]);
+					reloadSongArray();
 				}
 			}
 				
@@ -702,34 +702,6 @@ class OsuFreeplayState extends MusicBeatState
 		instance = null;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
 			MusicManager.playMenuMusic(1);
-	}
-
-	function loadDiffs(song:Dynamic) {
-		var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[songBoxGrp.members[curSelected].songID].week]);
-		Difficulty.loadFromWeek(week);
-
-		var diffInt:Int = 0;
-		for (j in 0...Difficulty.list.length)
-		{			
-			var songBox:DiffBox = new DiffBox(320, 100);
-
-			songBox.difID = j;
-			songBox.difName = Difficulty.list[j];
-			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
-			songBox.setGraphicSize(650, 50);
-			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[songBoxGrp.members[curSelected].songID].color[0][0], FreeplayManager.songList[songBoxGrp.members[curSelected].songID].color[0][1], FreeplayManager.songList[songBoxGrp.members[curSelected].songID].color[0][2], 1);
-			songBox.ID = song.ID + diffInt;
-			this.songBoxGrp.add(songBox);
-
-			//try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
-			//catch(e) {metadata = null;}
-
-			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			text.text = Difficulty.list[j];
-			text.alignment = 'left';
-			text.ID = song.ID + diffInt;
-			this.textGrp.add(text);
-		}
 	}
 
 	public function loadSongArray(reset:Bool, searching:Bool = false, searchQuery:String = '')
