@@ -377,9 +377,9 @@ class OsuFreeplayState extends MusicBeatState
 					return;
 				}
 				
-				//loadDiffs(FreeplayManager.songList[curSelected]);
-				inSub = true;
-				openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
+				reloadSongArray();
+				//inSub = true;
+				//openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
 			}
 
 			if(FlxG.keys.justPressed.TAB)
@@ -639,6 +639,120 @@ class OsuFreeplayState extends MusicBeatState
 			text.alignment = 'left';
 			text.ID = i;
 			textGrp.add(text);
+		}
+		
+		maxSelected = songBox.length;
+
+		changeSong();
+	}
+
+	var trueInt:Int = 0;
+	function reloadSongArray()
+	{
+		songBox.clear();
+		iconGrp.clear();
+		textGrp.clear();
+
+		trueInt = 0;
+
+		if (APEntryState.inArchipelagoMode) 
+			FreeplayManager.checkSongStatus();
+
+		for (i in 0...FreeplayManager.songList.length)
+		{
+			var songName:String = '';
+			var modName:String = '';
+			var isMissing:Bool = false;
+			var locationId:Array<Int> = [];
+			var color:FlxColor = 0xFFFFFFFF;
+			var someLocationsNotMissing:Bool = false;
+
+			if (APEntryState.inArchipelagoMode) {
+				songName = FreeplayManager.songList[i].songName;
+				modName = FreeplayManager.songList[i].folder;
+				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+				color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+			}
+
+			Mods.currentModDirectory = FreeplayManager.songList[i].folder;
+
+			var songBox:SongBox = new SongBox(320, 100);
+			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+			songBox.setGraphicSize(650, 100);
+			
+			if (APEntryState.inArchipelagoMode) {
+				var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
+				var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+				songBox.color = FreeplayManager.isVictorySong(songName, modName) ? 
+					(isMissing ? 
+						(someLocationsNotMissing ? 
+							songBox.color = bronzeOrOrangeColor 
+							: songBox.color = victoryColor) 
+						: songBox.color = 0xFFFFD700) 
+					: songBox.color = color;
+			} else {
+				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
+			}
+			songBox.ID = i + trueInt;
+			this.songBox.add(songBox);
+
+			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
+			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter, false);
+			icon.setPosition(320, 100);
+			icon.ID = i + trueInt;
+			icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
+			iconGrp.add(icon);
+
+			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
+			catch(e) {metadata = null;}
+
+			var text:FlxText = new FlxText(0, 0, 500, '', 20);
+			if (metadata != null)
+				text.text = FreeplayManager.songList[i].songName + '\nBy ${metadata.song.artist}';
+			else
+				text.text = FreeplayManager.songList[i].songName + '\nBy Unknown';
+			text.alignment = 'left';
+			text.ID = i + trueInt;
+			textGrp.add(text);
+
+			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
+			Difficulty.loadFromWeek(week);
+
+			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[curSelected].songName) {
+				trace(songName);
+				trueInt = i+1;
+				for (j in 0...Difficulty.list.length)
+				{
+					
+					var songBox:SongBox = new SongBox(320, 100);
+					songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+					songBox.setGraphicSize(650, 100);
+					songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
+					songBox.ID = trueInt;
+					this.songBox.add(songBox);
+
+					var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
+					icon.setPosition(320, 100);
+					icon.ID = trueInt;
+					icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
+					this.iconGrp.add(icon);
+
+					try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
+					catch(e) {metadata = null;}
+
+					var text:FlxText = new FlxText(0, 0, 500, '', 20);
+					text.text = FreeplayManager.songList[i].songName + '\n' + Difficulty.list[j];
+					text.alignment = 'left';
+					text.ID = trueInt;
+					this.textGrp.add(text);
+
+					trueInt++;
+				}
+			} else {
+				//trace(FreeplayManager.songList[i].songName);
+				//trace(FreeplayManager.songList[curSelected].songName);
+			}
 		}
 		
 		maxSelected = songBox.length;

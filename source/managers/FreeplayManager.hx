@@ -386,7 +386,7 @@ class FreeplayManager {
             case "Osu":
                 @:privateAccess
                 if (states.freeplay.OsuFreeplayState.instance != null)
-                    states.freeplay.OsuFreeplayState.instance.loadSongArray(true);
+                    states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)
