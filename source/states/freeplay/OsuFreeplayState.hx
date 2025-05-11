@@ -15,7 +15,7 @@ import options.GameplayChangersSubstate;
 import substates.ResetScoreSubState;
 import states.freeplay.osu.DifficultySelectorSubState;
 import states.freeplay.osu.SongBox;
-
+import yutautil.ChanceSelector.Chance;
 import sys.FileSystem;
 import sys.io.File;
 
@@ -43,7 +43,7 @@ class OsuFreeplayState extends MusicBeatState
 
 	var background:FlxSprite;
 
-	private var songBox:FlxTypedGroup<SongBox>;
+	private var songBoxGrp:FlxTypedGroup<SongBox>;
 	private var iconGrp:FlxTypedGroup<HealthIcon>;
 	private var textGrp:FlxTypedGroup<FlxText>;
 
@@ -57,6 +57,21 @@ class OsuFreeplayState extends MusicBeatState
 	var staleBg:FlxSprite;
 	var ticketCounterTop:FlxText = null;
 	var ticketCounterBottom:FlxText = null;
+
+	var hh:Array<Chance> = [
+		{item: "normal error", chance: 95}, // 95% chance to got the normal error screen
+		{item: "small argument", chance: FlxG.save.data.gotsmallargument || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
+		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
+		{item: "beat battle 2", chance: FlxG.save.data.gotbeatbattle2 || APEntryState.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+	];
+
+	var songChoices:Array<String> = [];
+	var listChoices:Array<String> = [];
+	var multiSongs:Array<String> = [];
+	var multisong:Bool = false;
+
+	var missingTextBG:FlxSprite;
+	var missingText:FlxText;
 	override function create()
 	{
 		#if windows
@@ -84,8 +99,8 @@ class OsuFreeplayState extends MusicBeatState
 		staleBg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xff646464);
 		add(staleBg);
 
-		songBox = new FlxTypedGroup<SongBox>();
-		add(songBox);
+		songBoxGrp = new FlxTypedGroup<SongBox>();
+		add(songBoxGrp);
 		
 		textGrp = new FlxTypedGroup<FlxText>();
 		add(textGrp);
@@ -166,8 +181,21 @@ class OsuFreeplayState extends MusicBeatState
 			});
 		}
 
-		if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
-			archipelago.APItem.activeItem = null;
+		missingTextBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		missingTextBG.alpha = 0.6;
+		missingTextBG.visible = false;
+		add(missingTextBG);
+		
+		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
+		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		missingText.scrollFactor.set();
+		missingText.visible = false;
+		add(missingText);
+
+		if (APEntryState.inArchipelagoMode) {
+			if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
+				archipelago.APItem.activeItem = null;
+		}
 
 		super.create();
 
@@ -201,7 +229,7 @@ class OsuFreeplayState extends MusicBeatState
 		if (FlxG.sound.music.volume < 0.8)
 			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
 
-		for(item in songBox)
+		for(item in songBoxGrp)
 		{
 			var coolEffect:Int = 0;
 
@@ -219,15 +247,15 @@ class OsuFreeplayState extends MusicBeatState
 
 			for (i in 0...FreeplayManager.songList.length) {
 				if (FreeplayManager.isVictorySong(FreeplayManager.songList[i].songName, FreeplayManager.songList[i].folder)) {
-					songBox.members[i].color = victoryColor;
+					songBoxGrp.members[i].color = victoryColor;
 				}
 			}
 
 			if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !isTyping)  {
 				try { //Because this menu has no actual difficulty select, just assume it's the first difficulty
-					var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[songBox.members[curSelected].songID].songName);
+					var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName);
 					var poop:String = Highscore.formatSong(songLowercase, 0);
-					Mods.currentModDirectory = FreeplayManager.songList[songBox.members[curSelected].songID].folder;
+					Mods.currentModDirectory = FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder;
 					Song.loadFromJson(poop, songLowercase);
 					PlayState.isStoryMode = false;
 					PlayState.storyDifficulty = 0;
@@ -235,7 +263,7 @@ class OsuFreeplayState extends MusicBeatState
 					trace('Error loading song: ' + e);
 				}
 				try {
-					FreeplayManager.forceUnlockCheck(FreeplayManager.songList[songBox.members[curSelected].songID].songName, WeekData.getCurrentWeek().folder);
+					FreeplayManager.forceUnlockCheck(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName, WeekData.getCurrentWeek().folder);
 				} catch (e:Dynamic) {
 					trace("You can't check nothing, silly!");
 				}
@@ -244,7 +272,7 @@ class OsuFreeplayState extends MusicBeatState
 
 			if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !isTyping) {
 				try {
-					var SongInfo = APEntryState.apGame.getSongAndMod(FreeplayManager.songList[songBox.members[curSelected].songID].songName + (FreeplayManager.songList[songBox.members[curSelected].songID].folder != "" ? " (" + FreeplayManager.songList[songBox.members[curSelected].songID].folder + ")" : ""));
+					var SongInfo = APEntryState.apGame.getSongAndMod(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName + (FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder != "" ? " (" + FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder + ")" : ""));
 					if (APEntryState.ap != null) {
 						APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
 						archipelago.console.SideUI.instance.active = true;
@@ -263,7 +291,7 @@ class OsuFreeplayState extends MusicBeatState
 		{
 			var theY:Float = 0;
 			var theX:Float = 0;
-			for(item in songBox)
+			for(item in songBoxGrp)
 				if(item.ID == icon.ID) {
 					theY = item.y;
 					theX = item.x;
@@ -277,7 +305,7 @@ class OsuFreeplayState extends MusicBeatState
 		{
 			var theY:Float = 0;
 			var theX:Float = 0;
-			for(item in songBox)
+			for(item in songBoxGrp)
 				if(item.ID == text.ID) {
 					theY = item.y;
 					theX = item.x;
@@ -353,14 +381,14 @@ class OsuFreeplayState extends MusicBeatState
 			
 			if(controls.ACCEPT)
 			{
-				var vicCheck:Bool = FreeplayManager.isVictorySong(FreeplayManager.songList[songBox.members[curSelected].songID].songName, FreeplayManager.songList[songBox.members[curSelected].songID].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
+				var vicCheck:Bool = FreeplayManager.isVictorySong(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName, FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
-				if (FreeplayManager.isVictorySong(FreeplayManager.songList[songBox.members[curSelected].songID].songName, FreeplayManager.songList[songBox.members[curSelected].songID].folder) && !vicCheck) {
+				if (FreeplayManager.isVictorySong(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName, FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder) && !vicCheck) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					var ogColor = songBox.members[curSelected].color;
-					songBox.forEach(function(item:FlxSprite)
+					var ogColor = songBoxGrp.members[curSelected].color;
+					songBoxGrp.forEach(function(item:FlxSprite)
 					{
 						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
 					});
@@ -368,140 +396,138 @@ class OsuFreeplayState extends MusicBeatState
 					return;
 				}
 				
-				if (FreeplayManager.trueMissing.contains(FreeplayManager.songList[songBox.members[curSelected].songID].songName) && !FreeplayManager.unplayedList.contains(FreeplayManager.songList[songBox.members[curSelected].songID].songName)) {
+				if (FreeplayManager.trueMissing.contains(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName) && !FreeplayManager.unplayedList.contains(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					var ogColor = songBox.members[curSelected].color;
-					songBox.forEach(function(item:FlxSprite)
+					var ogColor = songBoxGrp.members[curSelected].color;
+					songBoxGrp.forEach(function(item:FlxSprite)
 					{
 						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
 					});
 					return;
 				}
 
-				if (songBox.members[curSelected] is DiffBox) {
+				if (songBoxGrp.members[curSelected] is DiffBox) {
 					// Get the song, and the difficulty, and play it.
-					var missingText:FlxText = new FlxText(0, 0, FlxG.width, '', 20);
-					var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[songBox.members[curSelected].songID].songName);
+					var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName);
 					var poop:String = Highscore.formatSong(songLowercase, curDiff);
-									trace(poop);
+					trace(poop);
+					if (!multisong)
 					{
-					// selected = true;
-					var mismatched:String = "";
-					//I'll make it look pretty later
-					if(ClientPrefs.getGameplaySetting('bothMode', false) && (ClientPrefs.getGameplaySetting('opponentplay', false) || ClientPrefs.getGameplaySetting('gfMode', false)))
-						mismatched = "you can't have \"Play Both Sides\" and \"GF Mode\" or \"Opponent Mode\" on at the same time!";
-					else mismatched = "";
-					if(ClientPrefs.getGameplaySetting('opponentplay', false) && ClientPrefs.getGameplaySetting('gfMode', false))
-						mismatched = "you can't have \"GF Mode\" and \"Opponent Mode\" on at the same time!";
-					else mismatched = "";
-					if(ClientPrefs.getGameplaySetting('loopMode', false) && ClientPrefs.getGameplaySetting('loopModeC', false))
-						mismatched = "you can't have \"Loop Mode\" and \"Loop Challenge Mode\" on at the same time!";
-					else mismatched = "";
-					try
-					{
-						if (songLowercase == "song-not-found")
+						// selected = true;
+						var mismatched:String = "";
+						//I'll make it look pretty later
+						if(ClientPrefs.getGameplaySetting('bothMode', false) && (ClientPrefs.getGameplaySetting('opponentplay', false) || ClientPrefs.getGameplaySetting('gfMode', false)))
+							mismatched = "you can't have \"Play Both Sides\" and \"GF Mode\" or \"Opponent Mode\" on at the same time!";
+						else mismatched = "";
+						if(ClientPrefs.getGameplaySetting('opponentplay', false) && ClientPrefs.getGameplaySetting('gfMode', false))
+							mismatched = "you can't have \"GF Mode\" and \"Opponent Mode\" on at the same time!";
+						else mismatched = "";
+						if(ClientPrefs.getGameplaySetting('loopMode', false) && ClientPrefs.getGameplaySetting('loopModeC', false))
+							mismatched = "you can't have \"Loop Mode\" and \"Loop Challenge Mode\" on at the same time!";
+						else mismatched = "";
+						try
 						{
-							var h = yutautil.ChanceSelector.selectOption(hh, false, true, true);
-							if (APEntryState.inArchipelagoMode) {
-								h = "normal error";
-							}
-							switch (h)
+							if (songLowercase == "song-not-found")
 							{
-								case "small argument":
-									Song.loadFromJson('small-argument-hard', 'small-argument');
-									FlxG.save.data.gotIntoAnArgument = true;
-									FlxG.save.flush();
-								case "beat battle":
-									Song.loadFromJson('beat-battle-reasonable', 'beat-battle');
-									FlxG.save.data.gotbeatbattle = true;
-									FlxG.save.flush();
-								case "beat battle 2":
-									Song.loadFromJson('beat-battle-2-hard', 'beat-battle-2');
-									FlxG.save.data.gotbeatbattle2 = true;
-									FlxG.save.flush();
-								case "normal error":
-									trace('ERROR! NO SONGS FOUND!');
+								var h = yutautil.ChanceSelector.selectOption(hh, false, true, true);
+								if (APEntryState.inArchipelagoMode) {
+									h = "normal error";
+								}
+								switch (h)
+								{
+									case "small argument":
+										Song.loadFromJson('small-argument-hard', 'small-argument');
+										FlxG.save.data.gotIntoAnArgument = true;
+										FlxG.save.flush();
+									case "beat battle":
+										Song.loadFromJson('beat-battle-reasonable', 'beat-battle');
+										FlxG.save.data.gotbeatbattle = true;
+										FlxG.save.flush();
+									case "beat battle 2":
+										Song.loadFromJson('beat-battle-2-hard', 'beat-battle-2');
+										FlxG.save.data.gotbeatbattle2 = true;
+										FlxG.save.flush();
+									case "normal error":
+										trace('ERROR! NO SONGS FOUND!');
 
-									missingText.text = 'ERROR! NO SONGS FOUND!';
-									missingText.screenCenter(Y);
-									missingText.visible = true;
-									missingTextBG.visible = true;
-									FlxG.sound.play(Paths.sound('cancelMenu'));
+										missingText.text = 'ERROR! NO SONGS FOUND!';
+										missingText.screenCenter(Y);
+										missingText.visible = true;
+										missingTextBG.visible = true;
+										FlxG.sound.play(Paths.sound('cancelMenu'));
 
-									// updateTexts(elapsed);
-									super.update(elapsed);
-									return;
+										// updateTexts(elapsed);
+										super.update(elapsed);
+										return;
+								}
+								PlayState.isStoryMode = false;
+								PlayState.storyDifficulty = curDiff;
 							}
-							PlayState.isStoryMode = false;
-							PlayState.storyDifficulty = curDiff;
-						}
-						else if (mismatched != "")
-						{
-							trace('ERROR! Modifiers are on that shouldn\'t be!');
+							else if (mismatched != "")
+							{
+								trace('ERROR! Modifiers are on that shouldn\'t be!');
 
-							missingText.text = 'ERROR! '+mismatched.toUpperCase();
+								missingText.text = 'ERROR! '+mismatched.toUpperCase();
+								missingText.screenCenter(Y);
+								missingText.visible = true;
+								missingTextBG.visible = true;
+								FlxG.sound.play(Paths.sound('cancelMenu'));
+
+								super.update(elapsed);
+								return;
+							}
+							else
+							{
+
+								Song.loadFromJson(poop, songLowercase);
+								PlayState.isStoryMode = false;
+								PlayState.storyDifficulty = curDiff;
+
+								trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
+							}
+						}
+						catch(e:Dynamic)
+						{
+							trace('ERROR! $e');
+
+							var errorStr:String = e.toString();
+							if(errorStr.startsWith('[file_contents,assets/data/')) errorStr = 'Missing file: ' + errorStr.substring(34, errorStr.length-1); //Missing chart
+							missingText.text = 'ERROR WHILE LOADING CHART:\n$errorStr';
 							missingText.screenCenter(Y);
 							missingText.visible = true;
 							missingTextBG.visible = true;
 							FlxG.sound.play(Paths.sound('cancelMenu'));
 
-							updateTexts(elapsed);
 							super.update(elapsed);
 							return;
 						}
-						else
-						{
-
-							Song.loadFromJson(poop, songLowercase);
-							PlayState.isStoryMode = false;
-							PlayState.storyDifficulty = curDiff;
-
-							trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
+					
+						if (FlxG.keys.pressed.SHIFT){
+							ClientPrefs.openChartEditor();
+						} else{
+							if (!alreadyClicked)
+							{
+								alreadyClicked = true;
+								MusicBeatState.reopen = false; //Fix a sticker bug
+								LoadingState.prepareToSong();
+								LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+							}
+							#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
+							stopMusicPlay = true;
 						}
 					}
-					catch(e:Dynamic)
-					{
-						trace('ERROR! $e');
-
-						var errorStr:String = e.toString();
-						if(errorStr.startsWith('[file_contents,assets/data/')) errorStr = 'Missing file: ' + errorStr.substring(34, errorStr.length-1); //Missing chart
-						missingText.text = 'ERROR WHILE LOADING CHART:\n$errorStr';
-						missingText.screenCenter(Y);
-						missingText.visible = true;
-						missingTextBG.visible = true;
-						FlxG.sound.play(Paths.sound('cancelMenu'));
-
-						updateTexts(elapsed);
-						super.update(elapsed);
-						return;
+					else {
+						substates.DiffSubState.songChoices = songChoices;
+						substates.DiffSubState.listChoices = listChoices;
+						openSubState(new substates.DiffSubState());
 					}
-				
-					if (FlxG.keys.pressed.SHIFT){
-						ClientPrefs.openChartEditor();
-					} else{
-						if (!alreadyClicked)
-						{
-							alreadyClicked = true;
-							MusicBeatState.reopen = false; //Fix a sticker bug
-							LoadingState.prepareToSong();
-							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
-						}
-						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
-						stopMusicPlay = true;
-					}
+				}
 				else {
-					substates.DiffSubState.songChoices = songChoices;
-					substates.DiffSubState.listChoices = listChoices;
-					openSubState(new substates.DiffSubState());
+					loadDiffs(FreeplayManager.songList[songBoxGrp.members[curSelected].songID]);
 				}
 			}
-		}
 				
-				//reloadSongArray();
-				inSub = true;
-				openSubState(new DifficultySelectorSubState(FreeplayManager.songList[curSelected]));
-			}
 
 			if(FlxG.keys.justPressed.TAB || FlxG.keys.justPressed.CONTROL) //adding control for consistancy sake
 			{
@@ -560,6 +586,8 @@ class OsuFreeplayState extends MusicBeatState
 		}
 	}
 
+	var alreadyClicked:Bool = false;
+
 	override function closeSubState() {
 		inSub = false;
 		super.closeSubState();
@@ -577,13 +605,14 @@ class OsuFreeplayState extends MusicBeatState
 	function changeSong(change:Int = 0, playSound:Bool = true)
 	{
 		curSelected += change;
+		var diffBox:DiffBox = cast songBoxGrp.members[curSelected];
 		try {
-			curDiff = cast(songBox.members[curSelected]:DiffBox).difID;
+			curDiff = diffBox.difID;
 		} catch (e:Dynamic) {
 			curDiff = -1;
 		}
 		try {
-			curDiffName = cast(songBox.members[curSelected]:DiffBox).difName;
+			curDiffName = diffBox.difName;
 		} catch (e:Dynamic) {
 			curDiffName = 'None';
 		}
@@ -594,16 +623,16 @@ class OsuFreeplayState extends MusicBeatState
 			curSelected = maxSelected - 1;
 
 		var i:Int = 0;
-		for(item in songBox)
+		for(item in songBoxGrp)
 			item.posY = i++ - curSelected;
 
-		if (FreeplayManager.songList[songBox.members[curSelected].songID] != null)
+		if (FreeplayManager.songList[songBoxGrp.members[curSelected].songID] != null)
 		{
 			WeekData.setDirectoryFromWeek();
-			Mods.currentModDirectory = FreeplayManager.songList[songBox.members[curSelected].songID].folder;
-			PlayState.storyWeek = FreeplayManager.songList[songBox.members[curSelected].songID].week;
+			Mods.currentModDirectory = FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder;
+			PlayState.storyWeek = FreeplayManager.songList[songBoxGrp.members[curSelected].songID].week;
 			try {
-				switch (FreeplayManager.songList[songBox.members[curSelected].songID].songName)
+				switch (FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName)
 				{
 					case 'Small Argument' | 'Beat Battle 2':
 						Difficulty.list = ['Hard'];
@@ -613,7 +642,7 @@ class OsuFreeplayState extends MusicBeatState
 						Difficulty.loadFromWeek();
 				}
 			} catch(e:Dynamic) {}
-			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[songBox.members[curSelected].songID].songName.toLowerCase());}
+			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName.toLowerCase());}
 			catch(e) {metadata = null;}
 
 			if (metadata != null && metadata.freeplay != null) {
@@ -676,7 +705,7 @@ class OsuFreeplayState extends MusicBeatState
 	}
 
 	function loadDiffs(song:Dynamic) {
-		var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[songBox.members[curSelected].songID].week]);
+		var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[songBoxGrp.members[curSelected].songID].week]);
 		Difficulty.loadFromWeek(week);
 
 		var diffInt:Int = 0;
@@ -688,9 +717,9 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.difName = Difficulty.list[j];
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 50);
-			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[songBox.members[curSelected].songID].color[0][0], FreeplayManager.songList[songBox.members[curSelected].songID].color[0][1], FreeplayManager.songList[songBox.members[curSelected].songID].color[0][2], 1);
+			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[songBoxGrp.members[curSelected].songID].color[0][0], FreeplayManager.songList[songBoxGrp.members[curSelected].songID].color[0][1], FreeplayManager.songList[songBoxGrp.members[curSelected].songID].color[0][2], 1);
 			songBox.ID = song.ID + diffInt;
-			this.songBox.add(songBox);
+			this.songBoxGrp.add(songBox);
 
 			//try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[i].songName.toLowerCase());}
 			//catch(e) {metadata = null;}
@@ -703,12 +732,12 @@ class OsuFreeplayState extends MusicBeatState
 		}
 	}
 
-	function loadSongArray(reset:Bool, searching:Bool = false, searchQuery:String = '')
+	public function loadSongArray(reset:Bool, searching:Bool = false, searchQuery:String = '')
 	{
 		if(reset)
 			curSelected = 0;
 
-		songBox.clear();
+		songBoxGrp.clear();
 		iconGrp.clear();
 		textGrp.clear();
 
@@ -754,7 +783,7 @@ class OsuFreeplayState extends MusicBeatState
 				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
 			}
 			songBox.ID = i;
-			this.songBox.add(songBox);
+			this.songBoxGrp.add(songBox);
 
 			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter, false);
@@ -776,7 +805,7 @@ class OsuFreeplayState extends MusicBeatState
 			textGrp.add(text);
 		}
 		
-		maxSelected = songBox.length;
+		maxSelected = songBoxGrp.length;
 
 		changeSong();
 	}
@@ -784,7 +813,7 @@ class OsuFreeplayState extends MusicBeatState
 	var trueInt:Int = 0;
 	function reloadSongArray()
 	{
-		songBox.clear();
+		songBoxGrp.clear();
 		iconGrp.clear();
 		textGrp.clear();
 
@@ -830,7 +859,7 @@ class OsuFreeplayState extends MusicBeatState
 				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
 			}
 			songBox.ID = i + trueInt;
-			this.songBox.add(songBox);
+			this.songBoxGrp.add(songBox);
 
 			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter, false);
@@ -854,7 +883,7 @@ class OsuFreeplayState extends MusicBeatState
 			var week:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[FreeplayManager.songList[i].week]);
 			Difficulty.loadFromWeek(week);
 
-			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[songBox.members[curSelected].songID].songName) {
+			if (FreeplayManager.songList[i].songName == FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName) {
 				trace(songName);
 				trueInt = i+1;
 				for (j in 0...Difficulty.list.length)
@@ -866,7 +895,7 @@ class OsuFreeplayState extends MusicBeatState
 					songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
 					songBox.ID = trueInt;
 					songBox.songID = i;
-					this.songBox.add(songBox);
+					this.songBoxGrp.add(songBox);
 
 					var icon:HealthIcon = new HealthIcon(FreeplayManager.songList[i].songCharacter, false);
 					icon.setPosition(320, 100);
@@ -891,7 +920,7 @@ class OsuFreeplayState extends MusicBeatState
 			}
 		}
 		
-		maxSelected = songBox.length;
+		maxSelected = songBoxGrp.length;
 
 		changeSong();
 	}
