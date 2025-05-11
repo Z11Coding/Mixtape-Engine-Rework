@@ -420,6 +420,9 @@ class FreeplayManager {
             MusicBeatState.preloadAndSwitchState(Type.createInstance(getFreeplay(), []));
         else //You cant play a song without picking a category first!
             FlxG.switchState(new states.CategoryState());
+
+        if (FlxG.sound.music == null || !FlxG.sound.music.playing)
+            MusicManager.playMenuMusic();
 	}
 
     //Actual freeplay stuff

@@ -1,7 +1,7 @@
 #if LUA_ALLOWED
 package psychlua;
-import archipelago.APEntryState;
 
+import archipelago.APEntryState;
 import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
@@ -26,6 +26,7 @@ import objects.Character;
 
 import states.MainMenuState;
 import states.StoryMenuState;
+import states.freeplay.FreeplayState;
 
 import substates.PauseSubState;
 import substates.GameOverSubstate;
@@ -42,10 +43,6 @@ import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
 import haxe.Json;
-
-import backend.modchart.SubModifier;
-import objects.playfields.PlayField;
-import objects.VideoSprite;
 
 class FunkinLua {
 	public var lua:State = null;
@@ -81,15 +78,6 @@ class FunkinLua {
 		#end
 
 		// Lua shit
-		// set('print', function(...args:Array<Dynamic>) {
-		// 	var str:String = '';
-		// 	for (arg in args) {
-		// 		str += arg.toString() + ' ';
-		// 	}
-		// 	luaTrace(str, false, false, FlxColor.WHITE);
-		// });
-
-		set('playState', PlayState.instance);
 		set('Function_StopLua', LuaUtils.Function_StopLua);
 		set('Function_StopHScript', LuaUtils.Function_StopHScript);
 		set('Function_StopAll', LuaUtils.Function_StopAll);
@@ -143,17 +131,17 @@ class FunkinLua {
 			set('curDecBeat', game.curDecBeat);
 			set('curDecStep', game.curDecStep);
 	
-			set('score', game.comboManager.songScore);
-			set('misses', game.comboManager.songMisses);
-			set('hits', game.comboManager.songHits);
-			set('combo', game.comboManager.combo);
+			set('score', game.comboManager?.songScore);
+			set('misses', game.comboManager?.songMisses);
+			set('hits', game.comboManager?.songHits);
+			set('combo', game.comboManager?.combo);
 			set('deaths', PlayState.deathCounter);
 	
-			set('rating', game.comboManager.ratingPercent);
-			set('ratingName', game.comboManager.ratingName);
-			set('ratingFC', game.comboManager.ratingFC);
-			set('totalPlayed', game.comboManager.totalPlayed);
-			set('totalNotesHit', game.comboManager.totalNotesHit);
+			set('rating', game.comboManager?.ratingPercent);
+			set('ratingName', game.comboManager?.ratingName);
+			set('ratingFC', game.comboManager?.ratingFC);
+			set('totalPlayed', game.comboManager?.totalPlayed);
+			set('totalNotesHit', game.comboManager?.totalNotesHit);
 
 			set('inGameOver', GameOverSubstate.instance != null);
 			set('mustHitSection', curSection != null ? (curSection.mustHitSection == true) : false);
@@ -225,99 +213,12 @@ class FunkinLua {
 		set('mania', PlayState.mania);
 		set('trueMania', Note.ammo[PlayState.mania]);
 
-		// function addProtectedCallback(lua:State, name:String, func:Dynamic) {
-		// 	Lua_helper.add_callback(lua, name, function() {
-		// 		try {
-		// 			var args:Array<Dynamic> = [];
-		// 			for (i in 1...Lua.gettop(lua) + 1) {
-		// 				args.push(Convert.fromLua(lua, i));
-		// 			}
-		// 			func.apply(null, args);
-		// 		}
-		// 		catch (e:Dynamic) {
-		// 			luaTrace('Error in Lua callback "' + name + '": ' + e, false, false, FlxColor.RED);
-		// 		}
-		// 	});
-		// }
-
-		//Fun cursor things for lua
-		Lua_helper.add_callback(lua, "getCursorMode", function()
-		{
-			return Cursor.cursorMode;
-		});
-		
-		Lua_helper.add_callback(lua, "setCursorMode", function(mode:String)
-		{
-			Cursor.cursorMode = LuaUtils.interpCurseMode(mode);
-		});
-	
-		// mod manager
-
-
 		Lua_helper.add_callback(lua, "runInLegacyMode", function() {
 			this.closed = true;
 			PlayState.instance.luaArray.remove(this);
 			new LegacyFunkinLua(scriptName);
 			trace('A script has been converted to Legacy mode: ' + scriptName);
 		});
-
-		
-		Lua_helper.add_callback(lua, "newPlayField", function()
-		{
-			PlayState.instance.newPlayfield();
-		});
-
-		Lua_helper.add_callback(lua, "initPlayfield", function(field:PlayField)
-		{
-			PlayState.instance.initPlayfield(field);
-		});
-		
-		//// mod manager
-		Lua_helper.add_callback(lua, "setPercent", function(modName:String, val:Float, player:Int = -1)
-			PlayState.instance.modManager.setPercent(modName, val, player)
-		);
-
-		Lua_helper.add_callback(lua, "addBlankMod", function(modName:String, defaultVal:Float = 0, player:Int = -1) {
-			PlayState.instance.modManager.registerBlankMod(modName, defaultVal, player);
-		});
-
-		Lua_helper.add_callback(lua, "setValue", function(modName:String, val:Float, player:Int = -1)
-			PlayState.instance.modManager.setValue(modName, val, player)
-		);
-
-		Lua_helper.add_callback(lua, "getPercent", function(modName:String, player:Int)
-			return PlayState.instance.modManager.getPercent(modName, player)
-		);
-
-		Lua_helper.add_callback(lua, "getValue", function(modName:String, player:Int)
-			return PlayState.instance.modManager.getValue(modName, player)
-		);
-
-		Lua_helper.add_callback(lua, "setCurrentValue", function(modName:String, val:Float, player:Int){
-			return PlayState.instance.modManager.setCurrentValue(modName, val, player);
-		});
-		
-		Lua_helper.add_callback(lua, "getTargetValue", function(modName:String, player:Int){
-			return PlayState.instance.modManager.getTargetValue(modName, player);
-		});
-
-		Lua_helper.add_callback(lua, "queueSet", function(step:Float, modName:String, target:Float, player:Int = -1)
-			PlayState.instance.modManager.queueSet(step, modName, target, player)
-		);
-
-		Lua_helper.add_callback(lua, "queueSetP", function(step:Float, modName:String, perc:Float, player:Int = -1)
-			PlayState.instance.modManager.queueSetP(step, modName, perc, player)
-		);
-		
-		Lua_helper.add_callback(lua, "queueEase",
-			function(step:Float, endStep:Float, modName:String, percent:Float, style:String = 'linear', player:Int = -1, ?startVal:Float)
-				PlayState.instance.modManager.queueEase(step, endStep, modName, percent, style, player, startVal)
-		);
-
-		Lua_helper.add_callback(lua, "queueEaseP",
-			function(step:Float, endStep:Float, modName:String, percent:Float, style:String = 'linear', player:Int = -1, ?startVal:Float)
-				PlayState.instance.modManager.queueEaseP(step, endStep, modName, percent, style, player, startVal)
-		);
 
 		//
 		Lua_helper.add_callback(lua, "getRunningScripts", function() {
@@ -1003,16 +904,6 @@ class FunkinLua {
 
 			return 0;
 		});
-		Lua_helper.add_callback(lua, "getMid", function(variable:String) {
-			var split:Array<String> = variable.split('.');
-			var obj:FlxObject = LuaUtils.getObjectDirectly(split[0]);
-			if(split.length > 1) {
-				obj = LuaUtils.getVarInArray(LuaUtils.getPropertyLoop(split), split[split.length-1]);
-			}
-			if(obj != null) return obj.getMidpoint();
-
-			return null;
-		});
 		Lua_helper.add_callback(lua, "getGraphicMidpointX", function(variable:String) {
 			var split:Array<String> = variable.split('.');
 			var obj:FlxSprite = LuaUtils.getObjectDirectly(split[0]);
@@ -1072,7 +963,6 @@ class FunkinLua {
 			MusicBeatState.getVariables().set(tag, leSprite);
 			leSprite.active = true;
 		});
-
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?spriteType:String = 'auto') {
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
@@ -1084,17 +974,6 @@ class FunkinLua {
 			}
 			MusicBeatState.getVariables().set(tag, leSprite);
 		});
-
-		// Lua_helper.add_callback(lua, "makeVideoLuaSprite", function(tag:String, video:String, ?x:Float = 0, ?y:Float = 0) {
-		// 	tag = tag.replace('.', '');
-		// 	LuaUtils.destroyObject(tag);
-		// 	var leSprite:objects.FNFWeeklyVideoSprite = new objects.FNFWeeklyVideoSprite(x, y, video, waiting, skippable, looping);
-		// 	if(video != null && video.length > 0)
-		// 	{
-		// 		leSprite.loadGraphic(Paths.video(video));
-		// 	}
-		// 	MusicBeatState.getVariables().set(tag, leSprite);
-		// });
 
 		Lua_helper.add_callback(lua, "makeGraphic", function(obj:String, width:Int = 256, height:Int = 256, color:String = 'FFFFFF') {
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(obj);
@@ -1389,7 +1268,7 @@ class FunkinLua {
 			if(!Assets.exists(path, TEXT))
 			#end
 			#end
-			path = Paths.getPath('data/$songPath/$dialogueFile.json', TEXT);
+				path = Paths.getPath('data/$songPath/$dialogueFile.json', TEXT);
 
 			luaTrace('startDialogue: Trying to load dialogue: ' + path);
 
@@ -1427,9 +1306,7 @@ class FunkinLua {
 					game.remove(game.videoCutscene);
 					game.videoCutscene.destroy();
 				}
-				game.paused = true;
 				game.videoCutscene = game.startVideo(videoFile, forMidSong, canSkip, shouldLoop, playOnLoad);
-				game.paused = false;
 				return true;
 			}
 			else
@@ -1696,6 +1573,7 @@ class FunkinLua {
 			return closed;
 		});
 
+		// Turns out, there IS a reason this block of code exists
 		#if DISCORD_ALLOWED DiscordClient.addLuaCallbacks(lua); #end
 		#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 		#if TRANSLATIONS_ALLOWED Language.addLuaCallbacks(lua); #end
@@ -1707,83 +1585,9 @@ class FunkinLua {
 		CustomSubstate.implement(this);
 		ShaderFunctions.implement(this);
 		DeprecatedFunctions.implement(this);
-
-		Lua_helper.add_callback(lua, "setGameOverVideo", function(name:String = null) {
-			if (name != null) GameOverSubstate.instance.setGameOverVideo(name);
-			else trace('No argument for game over video!');
-		});
-
-		Lua_helper.add_callback(lua, 'makeVideoSprite', function(tag:String, videoFile:String, ?x:Float, ?y:Float, ?camera:String = 'game', ?shouldLoop:Bool = false, ?playOnLoad:Bool = true, ?isCutscene:Bool = false, addBehind:String = 'none') {	
-			if (MusicBeatState.getVariables().exists(tag + '_video') || MusicBeatState.getVariables().exists(tag))
-			{
-				PlayState.instance.addTextToDebug('makeVideoSprite: This tag is not available! Use a different tag.', FlxColor.RED);
-				return;
-			}
-			
-			if (!FileSystem.exists(Paths.video(videoFile)))
-			{
-				PlayState.instance.addTextToDebug('makeVideoSprite: The video file "' + videoFile + '" cannot be found!', FlxColor.RED);
-				return;
-			}
-			
-			var videoCutscene:VideoSprite = null;
-			#if VIDEOS_ALLOWED
-			PlayState.instance.inCutscene = isCutscene;
-			PlayState.instance.canPause = !isCutscene;
-
-			var foundFile:Bool = false;
-			var fileName:String = Paths.video(videoFile);
-
-			#if sys
-			if (FileSystem.exists(fileName))
-			#else
-			if (OpenFlAssets.exists(fileName))
-			#end
-			foundFile = true;
-
-			if (foundFile)
-			{
-				videoCutscene = new VideoSprite(fileName, !isCutscene, false, shouldLoop);
-				if(!isCutscene) videoCutscene.videoSprite.bitmap.rate = PlayState.instance.playbackRate;
-
-				// Finish callback
-				if (isCutscene)
-				{
-					function onVideoEnd()
-					{
-						videoCutscene = null;
-						PlayState.instance.canPause = true;
-						PlayState.instance.inCutscene = false;
-					}
-					videoCutscene.finishCallback = onVideoEnd;
-					videoCutscene.onSkip = onVideoEnd;
-				}
-				videoCutscene.camera = LuaUtils.cameraFromString(camera); 
-				videoCutscene.x = x;
-				videoCutscene.y = y;
-				if (substates.GameOverSubstate.instance != null && PlayState.instance.isDead) substates.GameOverSubstate.instance.add(videoCutscene);
-				else {
-					switch(addBehind.toLowerCase()){
-						case "bf" | "boyfriend": PlayState.instance.addBehindBF(videoCutscene);
-						case "gf" | "girlfriend": PlayState.instance.addBehindGF(videoCutscene);
-						case "dad" | "opponent": PlayState.instance.addBehindDad(videoCutscene);
-						default: PlayState.instance.add(videoCutscene);
-					}
-				}
-
-				if (playOnLoad) videoCutscene.play();
-			}
-			#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-			else PlayState.instance.addTextToDebug("Video not found: " + fileName, FlxColor.RED);
-			#else
-			else FlxG.log.error("Video not found: " + fileName);
-			#end
-			#else
-			FlxG.log.warn('Platform not supported!');
-			#end
-			MusicBeatState.getVariables().set(tag + '_video', videoCutscene);
-			MusicBeatState.getVariables().set(tag, videoCutscene);
-		});
+		CursorFunctions.implement(this);
+		VideoFunctions.implement(this);
+		PlayFieldFunctions.implement(this);
 
 		for (name => func in customFunctions)
 		{
@@ -2017,7 +1821,7 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, name, null); //just so that it gets called
 	}
 
-	#if (MODS_ALLOWED && !flash && sys)
+	#if (!flash && sys)
 	public var runtimeShaders:Map<String, Array<String>> = new Map<String, Array<String>>();
 	#end
 
@@ -2025,7 +1829,7 @@ class FunkinLua {
 	{
 		if(!ClientPrefs.data.shaders) return false;
 
-		#if (MODS_ALLOWED && !flash && sys)
+		#if (!flash && sys)
 		if(runtimeShaders.exists(name))
 		{
 			var shaderData:Array<String> = runtimeShaders.get(name);
@@ -2036,12 +1840,15 @@ class FunkinLua {
 			}
 		}
 
-		var foldersToCheck:Array<String> = [Paths.mods('shaders/')];
+		var foldersToCheck:Array<String> = [Paths.getSharedPath('shaders/')];
+		#if MODS_ALLOWED
+		foldersToCheck.push(Paths.mods('shaders/'));
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
 			foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/shaders/'));
 
 		for(mod in Mods.getGlobalMods())
 			foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
+		#end
 
 		for (folder in foldersToCheck)
 		{
