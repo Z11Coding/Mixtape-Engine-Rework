@@ -262,10 +262,12 @@ class APEntryState extends MusicBeatState
 				save.addItem("apLocation", currentAPLocation);
 				Application.current.window.alert("Archipelago location changed to: " + currentAPLocation, "Archipelago Location Changed");
 				save.save();
+				FlxG.resetState();
 			}
 			else {
 				Application.current.window.alert("Archipelago location not changed.", "Archipelago Location Not Changed");
 				currentAPLocation = before;
+				FlxG.resetState();
 			}
 		});
 		changeAPLocationButton.x = (FlxG.width / 2) - 10 - changeAPLocationButton.width;
@@ -606,7 +608,7 @@ class APEntryState extends MusicBeatState
 		{
 			trace("Archipelago was not found. Please install Archipelago to install the .apworld file.");
 			Application.current.window.alert("Archipelago was not found. Please install Archipelago to install the .apworld file.
-			\nNote: If your Archipelago Installation is not in the C Drive, it is currently not supported to be installed to other drives... yet.", "APWorld Installation");
+			\nNote: If your Archipelago Installation is not in the default location, use the \"Change AP Location\" button.", "APWorld Installation");
 		}
 		#end
 	}
