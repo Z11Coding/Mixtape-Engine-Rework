@@ -87,7 +87,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		changeText();
 		super.create();
 
-		MusicManager.playEditorMusic(1);
+		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
 	}
 
 	var UI_box:PsychUIBox;

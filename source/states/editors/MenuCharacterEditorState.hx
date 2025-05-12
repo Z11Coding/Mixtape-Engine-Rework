@@ -64,7 +64,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 		FlxG.mouse.visible = true;
 		updateCharacters();
 
-		MusicManager.playEditorMusic();
+		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
 
 		super.create();
 	}

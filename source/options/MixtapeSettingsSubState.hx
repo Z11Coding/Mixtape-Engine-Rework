@@ -51,7 +51,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"Native", 
 			"Native-old", 
 			"Andromeda (legacy)",
-			"BEAT! Engine", 
+			//"BEAT! Engine", 
 			//"Kade Engine", 
 			//"ZoroForce EK", 
 			//"Mic'ed Up Engine",
@@ -115,7 +115,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Freeplay Menu:',
-			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nDOES NOTHING FOR NOW!",
+			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBASE GAME DOES NOTHING FOR NOW!",
 			'freeplayMenu',
 			STRING,
 			['Mixtape', 'Osu', 'Base Game']);

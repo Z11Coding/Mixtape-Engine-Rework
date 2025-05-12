@@ -99,7 +99,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 		FlxG.mouse.visible = true;
 
-		MusicManager.playEditorMusic();
+		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
 
 		super.create();
 	}

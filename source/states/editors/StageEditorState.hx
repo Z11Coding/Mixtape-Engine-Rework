@@ -114,7 +114,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		FlxG.mouse.visible = true;
 		animationEditor = new StageEditorAnimationSubstate();
 
-		MusicManager.playEditorMusic(1);
+		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
 
 		super.create();
 	}

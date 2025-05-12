@@ -38,11 +38,8 @@ class StickerTest extends MusicBeatState {
         BG.updateHitbox();
         add(BG);
         addEditorBox();
-        #if TOUCH_CONTROLS_ALLOWED
-        addTouchPad('NONE','B');
-        #end
         super.create();
-        MusicManager.playEditorMusic(1);
+        MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
     }
 
     var UI_box:PsychUIBox;

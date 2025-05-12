@@ -2379,6 +2379,38 @@ class APPlayState extends PlayState {
 		}
 	}
 
+    override function beatHit()
+    {
+        switch (terminateStep)
+		{
+			case 3:
+				var terminate = new TerminateTimestamp(Math.floor(Conductor.songPosition / Conductor.crochet) * Conductor.crochet + Conductor.crochet * 3);
+				add(terminate);
+				terminateTimestamps.push(terminate);
+				terminateStep--;
+                COD.setPresetCOD('custom');
+                COD.custom = 'You were Terminated.';
+			case 2 | 1 | 0:
+				terminateMessage.loadGraphic(Paths.image("streamervschat/terminate" + terminateStep));
+				terminateMessage.screenCenter(XY);
+				terminateMessage.cameras = [camOther];
+				terminateMessage.visible = true;
+				if (terminateStep > 0)
+				{
+					terminateSound.volume = 0.6;
+					terminateSound.play(true);
+				}
+				else if (terminateStep == 0)
+				{
+					FlxG.sound.play(Paths.sound('streamervschat/beep2'), 0.85);
+				}
+				terminateStep--;
+			case -1:
+				terminateMessage.visible = false;
+		}
+        super.beatHit();
+    }
+
     override function closeSubState()
     {
         setBoyfriendInvuln(1 / 60);

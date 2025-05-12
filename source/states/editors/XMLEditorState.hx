@@ -34,7 +34,7 @@ class XMLEditorState extends MusicBeatState
         editGroup = new FlxGroup();
         add(editGroup);
 
-        MusicManager.playEditorMusic(1);
+        MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
     }
 
     override function update(elapsed:Float) {

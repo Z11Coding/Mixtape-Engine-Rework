@@ -117,6 +117,8 @@ class NoteSplashEditorState extends MusicBeatState
         curText.x += 5;
         add(curText);
 
+        MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
+
         super.create();
     }
 

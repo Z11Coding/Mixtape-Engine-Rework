@@ -144,7 +144,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		addTouchPadCamera();
 		#end
 
-		MusicManager.playEditorMusic(1);
+		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
 
 		super.create();
 	}
