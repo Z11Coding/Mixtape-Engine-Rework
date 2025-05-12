@@ -8,11 +8,17 @@ class VideoCutscene {
                 #if VIDEOS_ALLOWED
                 game.startVideo(videoName);
                 #if !LEGACY_PSYCH
-                game.videoCutscene.finishCallback = game.videoCutscene.onSkip = function()
-                {
-                    game.videoCutscene = null;
+                try {
+                    game.videoCutscene.finishCallback = game.videoCutscene.onSkip = function()
+                    {
+                        game.videoCutscene = null;
+                        onEnd();
+                    };
+                } catch (e:Dynamic) {
+                    trace("Error setting video cutscene callbacks: " + e);
+                    trace("It is likely that the video wasn't able to be loaded.");
                     onEnd();
-                };
+                }
                 #else
                 @:privateAccess
                 game.video.bitmap.onEndReached.add(function()
