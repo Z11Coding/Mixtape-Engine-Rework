@@ -69,16 +69,19 @@ class OptionsState extends MusicBeatState
 
 		for (num => option in options)
 		{
-			var optionText:Alphabet = new Alphabet(0, 0, Language.getPhrase('options_$option', option), true);
-			optionText.screenCenter();
-			optionText.y += (92 * (num - (options.length / 2))) + 45;
+			var optionText:Alphabet = new Alphabet(-300, 350, Language.getPhrase('options_$option', option), true);
+			optionText.isMenuItem = true;
+			optionText.targetY = num;
+			optionText.ID = num;
+			//optionText.y += (92 * (num - (options.length / 2))) + 45;
 			grpOptions.add(optionText);
 		}
 
 		selectorLeft = new Alphabet(0, 0, '>', true);
 		//add(selectorLeft);
 		selectorRight = new Alphabet(0, 0, '<', true);
-		add(selectorRight);
+		//selectorRight.scrollFactor.set();
+		//add(selectorRight);
 
 		changeSelection();
 		ClientPrefs.saveSettings();
@@ -118,6 +121,18 @@ class OptionsState extends MusicBeatState
 			else MusicBeatState.switchState(new MainMenuState());
 		}
 		else if (controls.ACCEPT) openSelectedSubstate(options[curSelected]);
+
+		for(item in grpOptions.members)
+		{
+			var coolEffect:Int = 0;
+
+			if(item.ID < curSelected)
+				coolEffect = ((item.ID - curSelected) * 90);
+			else if (item.ID > curSelected)
+				coolEffect = -((item.ID - curSelected) * 90);
+
+			item.x = FlxMath.lerp(item.ID == curSelected? 380 : -2010 + coolEffect, item.x, CoolUtil.boundTo(1 - (elapsed * 9), 0, 1));
+		}
 	}
 
 	override function beatHit()
@@ -142,10 +157,6 @@ class OptionsState extends MusicBeatState
 			if (item.targetY == 0)
 			{
 				item.alpha = 1;
-				selectorLeft.x = item.x - 63;
-				selectorLeft.y = item.y;
-				selectorRight.x = item.x + item.width + 15;
-				selectorRight.y = item.y;
 			}
 		}
 		FlxG.sound.play(Paths.sound('scrollMenu'));
