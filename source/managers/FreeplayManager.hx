@@ -147,7 +147,7 @@ class FreeplayManager {
                 try
                 {
                     metadata.set(song[0].toLowerCase(), cast metadataFile);
-                    //trace("Found metadata for " + song[0].toLowerCase());
+                    trace("Found metadata for " + song[0].toLowerCase());
                 }
                 catch (e)
                 {
