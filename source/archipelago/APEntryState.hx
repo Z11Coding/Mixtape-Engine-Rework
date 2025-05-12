@@ -258,7 +258,8 @@ class APEntryState extends MusicBeatState
 			var before = currentAPLocation;
 			currentAPLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
 			if (currentAPLocation != null && currentAPLocation.trim() != "") {
-				var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).setItem("apLocation", currentAPLocation);
+				var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true);
+				save.addItem("apLocation", currentAPLocation);
 				Application.current.window.alert("Archipelago location changed to: " + currentAPLocation, "Archipelago Location Changed");
 				save.save();
 			}
@@ -277,12 +278,12 @@ class APEntryState extends MusicBeatState
 		apWorldButton.y = FlxG.height - apWorldButton.height - 50;
 
 		if (!FileSystem.exists(currentAPLocation)) {
-			apWorldButton.normalStyle.bgColor = FlxColor.DARK_GRAY;
-			apWorldButton.normalStyle.textColor = FlxColor.LIGHT_GRAY;
-			apWorldButton.hoverStyle.bgColor = FlxColor.DARK_GRAY;
-			apWorldButton.hoverStyle.textColor = FlxColor.LIGHT_GRAY;
-			apWorldButton.clickStyle.bgColor = FlxColor.DARK_GRAY;
-			apWorldButton.clickStyle.textColor = FlxColor.LIGHT_GRAY;
+			apWorldButton.normalStyle.bgColor = 0xFF444444;
+			apWorldButton.normalStyle.textColor = 0xFF888888;
+			apWorldButton.hoverStyle.bgColor = 0xFF444444;
+			apWorldButton.hoverStyle.textColor = 0xFF888888;
+			apWorldButton.clickStyle.bgColor = 0xFF444444;
+			apWorldButton.clickStyle.textColor = 0xFF888888;
 			apWorldButton.onClick = function() {
 				Application.current.window.alert("Archipelago not found.\nPlease install Archipelago to use this feature.", "APWorld Installation");
 			};

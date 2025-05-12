@@ -61,6 +61,7 @@ class MixSaveWrapper {
     }
 
     public function editItem(key:String, value:Dynamic):Void {
+        if (mixSave.content.exists(key))
         mixSave.content.set(key, value);
     }
 
