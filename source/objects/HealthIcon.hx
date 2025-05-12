@@ -46,7 +46,7 @@ class HealthIcon extends FlxSprite
 			if(!Paths.fileExists('images/' + name + '.png', IMAGE)) name = 'icons/icon-face'; //Prevents crash from missing icon
 			var file:Dynamic = Paths.image(name);
 
-			var jsonPath:String = name;
+			var jsonPath:String = haxe.io.Path.directory(Paths.file('images/icons/icons/'));
 			var jsonData:Dynamic = null;
 
 			// Try to load JSON file
@@ -74,7 +74,7 @@ class HealthIcon extends FlxSprite
 				loadGraphic(file); // Load to guess size
 				type = (width < 200 ? SINGLE : ((width > 199 && width < 301) ? DEFAULT : WINNING));
 
-				trace('No JSON file found, guessing type based on size: ' + type + ' (' + width + 'px)');
+				//trace('No JSON file found, guessing type based on size: ' + type + ' (' + width + 'px)');
 
 				// Create or update JSON file with guessed type
 				jsonData = { type: switch (type) {
@@ -83,11 +83,13 @@ class HealthIcon extends FlxSprite
 					case WINNING: 'WINNING';
 				}};
 				if (!sys.FileSystem.exists(jsonPath)) {
-					var file = sys.io.File.write(jsonPath, true); // ???
-					file.close();
+					try {
+						var file = sys.io.File.write(jsonPath, true); // ???
+						file.close();
+					} catch(e) {trace("Failed to write JSON for " + char);}
 				}
 				sys.io.File.saveContent(jsonPath, haxe.Json.stringify(jsonData, null, '\t'));
-				trace('Remembering this type for future use: ' + jsonPath);
+				//trace('Remembering this type for future use: ' + jsonPath);
 			}
 
 			loadGraphic(file, true, Math.floor(width / (type+1)), Math.floor(height));
