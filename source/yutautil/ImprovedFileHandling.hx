@@ -44,7 +44,7 @@ class ImprovedFileHandling {
     }
 
     public static function selectFolder(title:String, ?preserve_cwd:Bool=true):String {
-        return FilePopup.folder(title, preserve_cwd);
+        return FilePopup.folder(title, preserve_cwd).trim();
     }
 
     public static function loadFile(title:String, ?filters:Array<FileFilter>, readType:ReadType, ?operation:Dynamic->Dynamic, ?preserve_cwd:Bool=true):Dynamic {

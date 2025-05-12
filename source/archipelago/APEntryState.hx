@@ -102,6 +102,10 @@ class APEntryState extends MusicBeatState
 	static final wsCheck = ~/^wss?:\/\//;
 
 	static final APWorld:String = "apworld/fridaynightfunkin.apworld";
+	static var currentAPLocation:String = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") != null 
+		? new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") 
+		: "C:/ProgramData/Archipelago";
+
 	// #if embed
 	// @:embed(APWorld) static var apWorldBytes:ByteArray;
 	// #end
@@ -248,11 +252,41 @@ class APEntryState extends MusicBeatState
 
 		super.create();
 
+
 		#if sys
-		var apWorldButtonText = FileSystem.exists("C:/ProgramData/Archipelago/custom_worlds/fridaynightfunkin.apworld") ? "Update APWorld" : "Install APWorld";
+		var changeAPLocationButton = new PsychUIButton(0, 0, "Change AP Location", function() {
+			var before = currentAPLocation;
+			currentAPLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
+			if (currentAPLocation != null && currentAPLocation.trim() != "") {
+				var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).setItem("apLocation", currentAPLocation);
+				Application.current.window.alert("Archipelago location changed to: " + currentAPLocation, "Archipelago Location Changed");
+				save.save();
+			}
+			else {
+				Application.current.window.alert("Archipelago location not changed.", "Archipelago Location Not Changed");
+				currentAPLocation = before;
+			}
+		});
+		changeAPLocationButton.x = (FlxG.width / 2) - 10 - changeAPLocationButton.width;
+		changeAPLocationButton.y = FlxG.height - changeAPLocationButton.height - 100;
+		add(changeAPLocationButton);
+
+		var apWorldButtonText = FileSystem.exists(currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld") ? "Update APWorld" : "Install APWorld";
 		var apWorldButton = new PsychUIButton(0, 0, apWorldButtonText, installAPWorld);
 		apWorldButton.x = (FlxG.width / 2) - 10 - apWorldButton.width;
 		apWorldButton.y = FlxG.height - apWorldButton.height - 50;
+
+		if (!FileSystem.exists(currentAPLocation)) {
+			apWorldButton.normalStyle.bgColor = FlxColor.DARK_GRAY;
+			apWorldButton.normalStyle.textColor = FlxColor.LIGHT_GRAY;
+			apWorldButton.hoverStyle.bgColor = FlxColor.DARK_GRAY;
+			apWorldButton.hoverStyle.textColor = FlxColor.LIGHT_GRAY;
+			apWorldButton.clickStyle.bgColor = FlxColor.DARK_GRAY;
+			apWorldButton.clickStyle.textColor = FlxColor.LIGHT_GRAY;
+			apWorldButton.onClick = function() {
+				Application.current.window.alert("Archipelago not found.\nPlease install Archipelago to use this feature.", "APWorld Installation");
+			};
+		}
 		add(apWorldButton);
 		#end
 
@@ -467,7 +501,7 @@ class APEntryState extends MusicBeatState
 	public static function checkAPWorld():{status:String, message:String}
 	{
 		#if sys
-		var programDataPath = "C:/ProgramData/Archipelago/";
+		var programDataPath = currentAPLocation + "/";
 		var customWorldsPath = programDataPath + "custom_worlds/";
 		var apWorldFile = customWorldsPath + "fridaynightfunkin.apworld";
 
@@ -524,7 +558,7 @@ class APEntryState extends MusicBeatState
 	public static function installAPWorld():Void
 	{
 		#if sys
-		var programDataPath = "C:/ProgramData/Archipelago/";
+		var programDataPath = currentAPLocation + "/";
 		var launcherPath = programDataPath + "ArchipelagoLauncher.exe";
 		var customWorldsPath = programDataPath + "custom_worlds/";
 		var apWorldFile = customWorldsPath + "fridaynightfunkin.apworld";
