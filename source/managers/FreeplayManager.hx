@@ -357,24 +357,24 @@ class FreeplayManager {
         for (song in ["Beat Battle", "Beat Battle 2", "Small Argument"]) {
             try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
             catch(e) {
-                trace("can't.");
+                //trace("can't.");
                 metadataFile = null;
             }
 
             try
             {
                 metadata.set(song.toLowerCase(), cast metadataFile);
-                trace("Found metadata for " + song.toLowerCase());
+                //trace("Found metadata for " + song.toLowerCase());
             }
             catch (e)
             {
                 try
                 {
-                    trace("No metadata for " + song.toLowerCase());
+                    //trace("No metadata for " + song.toLowerCase());
                 }
                 catch (e)
                 {
-                    trace("No metadata found. No song either apparently.");
+                    //trace("No metadata found. No song either apparently.");
                 }
             }
         }

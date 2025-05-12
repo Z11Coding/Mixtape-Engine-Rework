@@ -74,7 +74,7 @@ class HealthIcon extends FlxSprite
 				loadGraphic(file); // Load to guess size
 				type = (width < 200 ? SINGLE : ((width > 199 && width < 301) ? DEFAULT : WINNING));
 
-				trace('No JSON file found, guessing type based on size: ' + type + ' (' + width + 'px)');
+				//trace('No JSON file found, guessing type based on size: ' + type + ' (' + width + 'px)');
 
 				// Create or update JSON file with guessed type
 				jsonData = { type: switch (type) {
@@ -89,7 +89,7 @@ class HealthIcon extends FlxSprite
 					} catch(e) {trace("Failed to write JSON for " + char);}
 				}
 				sys.io.File.saveContent(jsonPath, haxe.Json.stringify(jsonData, null, '\t'));
-				trace('Remembering this type for future use: ' + jsonPath);
+				//trace('Remembering this type for future use: ' + jsonPath);
 			}
 
 			loadGraphic(file, true, Math.floor(width / (type+1)), Math.floor(height));
