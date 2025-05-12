@@ -161,7 +161,7 @@ class FreeplayManager {
                     }*/
                 }
 
-                if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (leWeek.folder != '' || leWeek.folder != null) && !APEntryState.inArchipelagoMode))
+                if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (searchText == null || searchText == '') && (leWeek.folder != '' || leWeek.folder != null) && !APEntryState.inArchipelagoMode))
                 {
                     addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
                 }
