@@ -46,7 +46,7 @@ class HealthIcon extends FlxSprite
 			if(!Paths.fileExists('images/' + name + '.png', IMAGE)) name = 'icons/icon-face'; //Prevents crash from missing icon
 			var file:Dynamic = Paths.image(name);
 
-			var jsonPath:String = name;
+			var jsonPath:String = haxe.io.Path.directory(Paths.file('images/icons/icons/'));
 			var jsonData:Dynamic = null;
 
 			// Try to load JSON file
@@ -83,8 +83,10 @@ class HealthIcon extends FlxSprite
 					case WINNING: 'WINNING';
 				}};
 				if (!sys.FileSystem.exists(jsonPath)) {
-					var file = sys.io.File.write(jsonPath, true); // ???
-					file.close();
+					try {
+						var file = sys.io.File.write(jsonPath, true); // ???
+						file.close();
+					} catch(e) {trace("Failed to write JSON for " + char);}
 				}
 				sys.io.File.saveContent(jsonPath, haxe.Json.stringify(jsonData, null, '\t'));
 				trace('Remembering this type for future use: ' + jsonPath);
