@@ -420,6 +420,7 @@ class OsuFreeplayState extends MusicBeatState
 				if(searchTypeText.text == '') {
 					searchTypeText.text = 'Type Here To Search!';
 					FreeplayManager.reloadFreeplay(true);
+					trace("Regual Refr");
 				}
 				else
 					FreeplayManager.reloadFreeplay(false, searchTypeText.text);
