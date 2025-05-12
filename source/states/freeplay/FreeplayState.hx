@@ -168,7 +168,7 @@ class FreeplayState extends MusicBeatState
 		bg.screenCenter();
 
 		if (ClientPrefs.data.allowVis) {
-			if (FlxG.sound.music != null) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
 				visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
 				visual.scrollFactor.set(0, 0);
 				add(visual);
@@ -506,35 +506,39 @@ class FreeplayState extends MusicBeatState
 	} 
 
 	function switchVisualizer(?hasVocals:Bool = false, ?vocalSND:FlxSound = null, ?oppSND:FlxSound = null) {
-		if (visual != null) remove(visual);
-		visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-		visual.scrollFactor.set(0, 0);
-		add(visual);
-		visual.alpha = 0.7;
+		if (ClientPrefs.data.allowVis) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
+				if (visual != null) remove(visual);
+				visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				visual.scrollFactor.set(0, 0);
+				add(visual);
+				visual.alpha = 0.7;
 
-		if (hasVocals) {
-			if (vocalSND != null) {
-				if (vocalvisual != null) remove(vocalvisual);
-				var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player1).get("Health Colors");
-				vocalvisual = new AudioDisplay(vocalSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, color != null ? FlxColor.fromRGB(color[0], color[1], color[2]) : FlxColor.WHITE);
-				vocalvisual.scrollFactor.set(0, 0);
-				vocalvisual.flipY = true;
-				add(vocalvisual);
-				vocalvisual.alpha = 0.7;
-			}
+				if (hasVocals) {
+					if (vocalSND != null) {
+						if (vocalvisual != null) remove(vocalvisual);
+						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player1).get("Health Colors");
+						vocalvisual = new AudioDisplay(vocalSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, color != null ? FlxColor.fromRGB(color[0], color[1], color[2]) : FlxColor.WHITE);
+						vocalvisual.scrollFactor.set(0, 0);
+						vocalvisual.flipY = true;
+						add(vocalvisual);
+						vocalvisual.alpha = 0.7;
+					}
 
-			if (oppSND != null) {
-				if (oppvisual != null) remove(oppvisual);
-				var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player2).get("Health Colors");
-				oppvisual = new AudioDisplay(oppSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.fromRGB(color[0], color[1], color[2]));
-				oppvisual.scrollFactor.set(0, 0);
-				oppvisual.flipY = true;
-				add(oppvisual);
-				oppvisual.alpha = 0.7;
+					if (oppSND != null) {
+						if (oppvisual != null) remove(oppvisual);
+						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player2).get("Health Colors");
+						oppvisual = new AudioDisplay(oppSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.fromRGB(color[0], color[1], color[2]));
+						oppvisual.scrollFactor.set(0, 0);
+						oppvisual.flipY = true;
+						add(oppvisual);
+						oppvisual.alpha = 0.7;
+					}
+				} else {
+					if (vocalvisual != null) remove(vocalvisual);
+					if (oppvisual != null) remove(oppvisual);
+				}
 			}
-		} else {
-			if (vocalvisual != null) remove(vocalvisual);
-			if (oppvisual != null) remove(oppvisual);
 		}
 	}
 
