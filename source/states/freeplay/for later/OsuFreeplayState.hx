@@ -703,7 +703,7 @@ class OsuFreeplayState extends MusicBeatState
 		FlxG.mouse.visible = false;
 		instance = null;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
-			MusicManager.playMenuMusic(1);
+			MusicManager.playMenuMusic();
 	}
 
 	public function loadSongArray(reset:Bool, searching:Bool = false, searchQuery:String = '')

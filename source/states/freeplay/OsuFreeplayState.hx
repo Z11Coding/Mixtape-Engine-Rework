@@ -183,6 +183,9 @@ class OsuFreeplayState extends MusicBeatState
 	var e:Int = 0;
 	override public function update(elapsed:Float)
 	{
+		if (FlxG.sound.music.volume < 0.8)
+			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
+
 		if(WeekData.weeksList.length < 1)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
@@ -541,8 +544,6 @@ class OsuFreeplayState extends MusicBeatState
 		super.destroy();
 		FlxG.mouse.visible = false;
 		instance = null;
-		if (!FlxG.sound.music.playing && !stopMusicPlay)
-			MusicManager.playMenuMusic(1);
 	}
 
 	function loadDiffs(song:Dynamic) {

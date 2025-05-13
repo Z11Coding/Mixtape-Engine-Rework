@@ -1,10 +1,40 @@
 {
 	"events": [
 		[
+			9600,
+			[
+				[
+					"Zoom Camera",
+					"32,1.05",
+					"expoOut"
+				]
+			]
+		],
+		[
+			10971.4285714286,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			16457.1428571429,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
 			18000,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.95",
 					"expoOut"
 				]
@@ -14,8 +44,38 @@
 			19200,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
+					"expoOut"
+				]
+			]
+		],
+		[
+			21942.8571428571,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			27428.5714285714,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			28971,
+			[
+				[
+					"Zoom Camera",
+					"32,0.95",
 					"expoOut"
 				]
 			]
@@ -24,7 +84,7 @@
 			30171,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -34,7 +94,7 @@
 			31542,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.95",
 					"expoOut"
 				]
@@ -44,9 +104,19 @@
 			32957,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.9",
 					"expoOut"
+				]
+			]
+		],
+		[
+			38400,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -54,7 +124,7 @@
 			38442,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -64,7 +134,7 @@
 			39771,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
 				]
@@ -74,7 +144,7 @@
 			41142,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -84,9 +154,19 @@
 			42514,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			43885.7142857143,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -94,7 +174,27 @@
 			43928,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
+					"32,1",
+					"expoOut"
+				]
+			]
+		],
+		[
+			49371.4285714286,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			49414,
+			[
+				[
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -104,7 +204,7 @@
 			50742,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
 				]
@@ -114,7 +214,7 @@
 			52114,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -124,9 +224,19 @@
 			53485,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			54857.1428571429,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -134,9 +244,29 @@
 			54899,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			60342.8571428571,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			65828,
+			[
+				[
+					"Target Camera",
+					2,
+					"0,100,32,expoOut"
 				]
 			]
 		],
@@ -144,7 +274,7 @@
 			65871,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.9",
 					"expoOut"
 				]
@@ -154,9 +284,19 @@
 			68571,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.95",
 					"expoOut"
+				]
+			]
+		],
+		[
+			71314.2857142857,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -164,7 +304,7 @@
 			71357,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -174,9 +314,19 @@
 			75428,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			76800,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -184,9 +334,19 @@
 			76842,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			82285.7142857143,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -194,18 +354,8 @@
 			83828,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.95",
-					"expoOut"
-				]
-			]
-		],
-		[
-			85028,
-			[
-				[
-					"ZoomCamera",
-					"32,1",
 					"expoOut"
 				]
 			]
@@ -214,9 +364,19 @@
 			86399,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.95",
 					"expoOut"
+				]
+			]
+		],
+		[
+			87771,
+			[
+				[
+					"Target Camera",
+					2,
+					"0,100,32,expoOut"
 				]
 			]
 		],
@@ -224,9 +384,19 @@
 			87814,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.9",
 					"expoOut"
+				]
+			]
+		],
+		[
+			93257,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -234,7 +404,7 @@
 			93299,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -244,7 +414,7 @@
 			94628,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
 				]
@@ -254,7 +424,7 @@
 			95657,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -264,7 +434,7 @@
 			97371,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
 				]
@@ -274,9 +444,19 @@
 			98400,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			98742.8571428571,
+			[
+				[
+					"Target Camera",
+					0,
+					"80,20,25,expoOut"
 				]
 			]
 		],
@@ -284,7 +464,7 @@
 			101485.571428571,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"12,1.05",
 					"expoOut"
 				]
@@ -294,7 +474,7 @@
 			104228.571428571,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"12,1.1",
 					"expoOut"
 				]
@@ -304,7 +484,7 @@
 			106971.571428571,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"12,1.15",
 					"expoOut"
 				]
@@ -314,29 +494,29 @@
 			109542.857142857,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1",
 					"expoOut"
 				]
 			]
 		],
 		[
-			49414,
+			85028,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
 			]
 		],
 		[
-			28971,
+			32914,
 			[
 				[
-					"ZoomCamera",
-					"32,0.95",
-					"expoOut"
+					"Target Camera",
+					2,
+					"0,100,32,expoOut"
 				]
 			]
 		],
@@ -344,19 +524,29 @@
 			11014,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
 			]
 		],
 		[
-			9600,
+			5485.71428571429,
 			[
 				[
-					"ZoomCamera",
-					"32,1.05",
-					"expoOut"
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			0,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
 				]
 			]
 		]

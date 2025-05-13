@@ -1,10 +1,80 @@
 {
 	"events": [
 		[
+			0,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			44,
+			[
+				[
+					"Zoom Camera",
+					"32,0.9",
+					"expoOut"
+				]
+			]
+		],
+		[
+			88.3614457831318,
+			[
+				[
+					"Set Camera Bopping",
+					2,
+					0.6
+				]
+			]
+		],
+		[
+			2823.52941176471,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			5647.05882352941,
+			[
+				[
+					"Target Camera",
+					"1",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			8470.58823529412,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			10764.7058823529,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
 			11029.4117647059,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"4,1",
 					"elasticInOut"
 				]
@@ -14,9 +84,29 @@
 			11205.3614457831,
 			[
 				[
-					"SetCameraBop",
+					"Set Camera Bopping",
 					4,
 					1
+				]
+			]
+		],
+		[
+			16941.1764705882,
+			[
+				[
+					"Target Camera",
+					"0",
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			19764,
+			[
+				[
+					"Zoom Camera",
+					"32,1.1",
+					"expoOut"
 				]
 			]
 		],
@@ -24,7 +114,7 @@
 			20470,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -34,9 +124,19 @@
 			21176,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			22764.7058823529,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -44,9 +144,19 @@
 			22808,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			28235.8235294118,
+			[
+				[
+					"Target Camera",
+					0,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -54,7 +164,7 @@
 			29647,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
 				]
@@ -64,7 +174,7 @@
 			31058,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -74,9 +184,19 @@
 			33794.3614457831,
 			[
 				[
-					"SetCameraBop",
+					"Set Camera Bopping",
 					2,
 					1.1
+				]
+			]
+		],
+		[
+			34058.8823529412,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -84,9 +204,19 @@
 			34102,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.9",
 					"expoOut"
+				]
+			]
+		],
+		[
+			39529.1764705882,
+			[
+				[
+					"Target Camera",
+					0,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -94,8 +224,18 @@
 			40941,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
+					"expoOut"
+				]
+			]
+		],
+		[
+			42529,
+			[
+				[
+					"Zoom Camera",
+					"32,0.9",
 					"expoOut"
 				]
 			]
@@ -104,7 +244,7 @@
 			44911.4117647059,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"4,1",
 					"elasticInOut"
 				]
@@ -114,9 +254,34 @@
 			45088.3614457831,
 			[
 				[
-					"SetCameraBop",
+					"Set Camera Bopping",
 					2,
 					1.6
+				]
+			]
+		],
+		[
+			45176.4705882353,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			45176.6341463415,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -124,8 +289,33 @@
 			45882,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.05",
+					"expoOut"
+				]
+			]
+		],
+		[
+			45882,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			46235,
+			[
+				[
+					"Zoom Camera",
+					"8,1",
 					"expoOut"
 				]
 			]
@@ -134,8 +324,33 @@
 			46235,
 			[
 				[
-					"ZoomCamera",
-					"8,1",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			46588.2352941176,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			46941,
+			[
+				[
+					"Zoom Camera",
+					"8,1.05",
 					"expoOut"
 				]
 			]
@@ -144,8 +359,23 @@
 			46941,
 			[
 				[
-					"ZoomCamera",
-					"8,1.05",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			47294,
+			[
+				[
+					"Zoom Camera",
+					"8,1.1",
 					"expoOut"
 				]
 			]
@@ -154,8 +384,23 @@
 			47294,
 			[
 				[
-					"ZoomCamera",
-					"8,1.1",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			48000,
+			[
+				[
+					"Zoom Camera",
+					"8,1.15",
 					"expoOut"
 				]
 			]
@@ -164,8 +409,28 @@
 			48000,
 			[
 				[
-					"ZoomCamera",
-					"8,1.15",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				],
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			48529,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -174,8 +439,23 @@
 			48529,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			48705,
+			[
+				[
+					"Zoom Camera",
+					"8,1.15",
 					"expoOut"
 				]
 			]
@@ -184,8 +464,23 @@
 			48705,
 			[
 				[
-					"ZoomCamera",
-					"8,1.15",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			49058,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -194,8 +489,33 @@
 			49058,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			49411.7647058823,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			49764,
+			[
+				[
+					"Zoom Camera",
+					"8,1.25",
 					"expoOut"
 				]
 			]
@@ -204,8 +524,23 @@
 			49764,
 			[
 				[
-					"ZoomCamera",
-					"8,1.25",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			50117,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -214,8 +549,43 @@
 			50117,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			50823.5294117647,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			50823.6341463415,
+			[
+				[
+					"Target Camera",
+					0,
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			50867,
+			[
+				[
+					"Zoom Camera",
+					"8,1",
 					"expoOut"
 				]
 			]
@@ -224,9 +594,14 @@
 			50867,
 			[
 				[
-					"ZoomCamera",
-					"8,1",
-					"expoOut"
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
 				]
 			]
 		],
@@ -234,7 +609,22 @@
 			51529,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			51529,
+			[
+				[
+					"Zoom Camera",
 					"8,1.05",
 					"expoOut"
 				]
@@ -244,9 +634,34 @@
 			51882,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			51882,
+			[
+				[
+					"Zoom Camera",
 					"8,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			52235.294117647,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
 				]
 			]
 		],
@@ -254,7 +669,22 @@
 			52588,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			52588,
+			[
+				[
+					"Zoom Camera",
 					"8,1.05",
 					"expoOut"
 				]
@@ -264,7 +694,22 @@
 			52941,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			52941,
+			[
+				[
+					"Zoom Camera",
 					"8,1.1",
 					"expoOut"
 				]
@@ -274,9 +719,34 @@
 			53647,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.15",
 					"expoOut"
+				]
+			]
+		],
+		[
+			53647,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			53647.0588235294,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
 				]
 			]
 		],
@@ -284,7 +754,22 @@
 			54176,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			54176,
+			[
+				[
+					"Zoom Camera",
 					"8,1.2",
 					"expoOut"
 				]
@@ -294,9 +779,34 @@
 			54352,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.15",
 					"expoOut"
+				]
+			]
+		],
+		[
+			54352,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			54529,
+			[
+				[
+					"Set Property",
+					"cameraSpeed",
+					"2"
 				]
 			]
 		],
@@ -304,9 +814,49 @@
 			54705,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				],
+				[
+					"Camera Follow Pos",
+					"570",
+					"520"
+				]
+			]
+		],
+		[
+			54705,
+			[
+				[
+					"Zoom Camera",
 					"8,1.2",
 					"expoOut"
+				]
+			]
+		],
+		[
+			55058,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			55058.8235294117,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
 				]
 			]
 		],
@@ -314,8 +864,43 @@
 			55411,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			55411,
+			[
+				[
+					"Zoom Camera",
 					"8,1.25",
+					"expoOut"
+				]
+			]
+		],
+		[
+			55588,
+			[
+				[
+					"Camera Follow Pos",
+					"530",
+					"520"
+				]
+			]
+		],
+		[
+			55764,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -324,8 +909,73 @@
 			55764,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			56117,
+			[
+				[
+					"Camera Follow Pos",
+					"630",
+					"520"
+				]
+			]
+		],
+		[
+			56382,
+			[
+				[
+					"Philly Glow",
+					"2",
+					""
+				],
+				[
+					"Camera Follow Pos",
+					"",
+					""
+				],
+				[
+					"Set Property",
+					"cameraSpeed",
+					"1"
+				]
+			]
+		],
+		[
+			56470.5882352941,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			56470.6341463415,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			56514,
+			[
+				[
+					"Zoom Camera",
+					"8,1",
 					"expoOut"
 				]
 			]
@@ -334,8 +984,23 @@
 			56514,
 			[
 				[
-					"ZoomCamera",
-					"8,1",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			57176,
+			[
+				[
+					"Zoom Camera",
+					"8,1.05",
 					"expoOut"
 				]
 			]
@@ -344,8 +1009,23 @@
 			57176,
 			[
 				[
-					"ZoomCamera",
-					"8,1.05",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			57529,
+			[
+				[
+					"Zoom Camera",
+					"8,1",
 					"expoOut"
 				]
 			]
@@ -354,8 +1034,48 @@
 			57529,
 			[
 				[
-					"ZoomCamera",
-					"8,1",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			57882.3529411764,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			58235,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			58235,
+			[
+				[
+					"Zoom Camera",
+					"8,1.05",
 					"expoOut"
 				]
 			]
@@ -364,8 +1084,33 @@
 			58588,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.1",
+					"expoOut"
+				]
+			]
+		],
+		[
+			58588,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			59294,
+			[
+				[
+					"Zoom Camera",
+					"8,1.15",
 					"expoOut"
 				]
 			]
@@ -374,9 +1119,24 @@
 			59294,
 			[
 				[
-					"ZoomCamera",
-					"8,1.15",
-					"expoOut"
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			59294.1176470588,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
 				]
 			]
 		],
@@ -384,7 +1144,22 @@
 			59823,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			59823,
+			[
+				[
+					"Zoom Camera",
 					"8,1.2",
 					"expoOut"
 				]
@@ -394,8 +1169,33 @@
 			59999,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.15",
+					"expoOut"
+				]
+			]
+		],
+		[
+			59999,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			60352,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -404,8 +1204,33 @@
 			60352,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			60705.8823529411,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			61058,
+			[
+				[
+					"Zoom Camera",
+					"8,1.25",
 					"expoOut"
 				]
 			]
@@ -414,8 +1239,23 @@
 			61058,
 			[
 				[
-					"ZoomCamera",
-					"8,1.25",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			61411,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -424,8 +1264,43 @@
 			61411,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			62117.6341463415,
+			[
+				[
+					"Target Camera",
+					0,
+					"0,0,4,CLASSIC"
+				]
+			]
+		],
+		[
+			62117.6470588235,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			62161,
+			[
+				[
+					"Zoom Camera",
+					"8,1",
 					"expoOut"
 				]
 			]
@@ -434,9 +1309,14 @@
 			62161,
 			[
 				[
-					"ZoomCamera",
-					"8,1",
-					"expoOut"
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
 				]
 			]
 		],
@@ -444,7 +1324,22 @@
 			62823,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			62823,
+			[
+				[
+					"Zoom Camera",
 					"8,1.05",
 					"expoOut"
 				]
@@ -454,8 +1349,43 @@
 			63176,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			63176,
+			[
+				[
+					"Zoom Camera",
 					"8,1",
+					"expoOut"
+				]
+			]
+		],
+		[
+			63529.4117647058,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			63882,
+			[
+				[
+					"Zoom Camera",
+					"8,1.05",
 					"expoOut"
 				]
 			]
@@ -464,8 +1394,23 @@
 			63882,
 			[
 				[
-					"ZoomCamera",
-					"8,1.05",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			64235,
+			[
+				[
+					"Zoom Camera",
+					"8,1.1",
 					"expoOut"
 				]
 			]
@@ -474,8 +1419,23 @@
 			64235,
 			[
 				[
-					"ZoomCamera",
-					"8,1.1",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			64941,
+			[
+				[
+					"Zoom Camera",
+					"8,1.15",
 					"expoOut"
 				]
 			]
@@ -484,9 +1444,24 @@
 			64941,
 			[
 				[
-					"ZoomCamera",
-					"8,1.15",
-					"expoOut"
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			64941.1764705882,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
 				]
 			]
 		],
@@ -494,7 +1469,22 @@
 			65470,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			65470,
+			[
+				[
+					"Zoom Camera",
 					"8,1.2",
 					"expoOut"
 				]
@@ -504,9 +1494,24 @@
 			65646,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.15",
 					"expoOut"
+				]
+			]
+		],
+		[
+			65646,
+			[
+				[
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
 				]
 			]
 		],
@@ -514,8 +1519,43 @@
 			65999,
 			[
 				[
-					"ZoomCamera",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			65999,
+			[
+				[
+					"Zoom Camera",
 					"8,1.2",
+					"expoOut"
+				]
+			]
+		],
+		[
+			66352.9411764705,
+			[
+				[
+					"Philly Glow",
+					"1",
+					""
+				]
+			]
+		],
+		[
+			66705,
+			[
+				[
+					"Zoom Camera",
+					"8,1.25",
 					"expoOut"
 				]
 			]
@@ -524,8 +1564,23 @@
 			66705,
 			[
 				[
-					"ZoomCamera",
-					"8,1.25",
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			67058,
+			[
+				[
+					"Zoom Camera",
+					"8,1.2",
 					"expoOut"
 				]
 			]
@@ -534,9 +1589,24 @@
 			67058,
 			[
 				[
-					"ZoomCamera",
-					"8,1.2",
-					"expoOut"
+					"Add Camera Zoom",
+					"",
+					""
+				],
+				[
+					"Philly Glow",
+					"2",
+					""
+				]
+			]
+		],
+		[
+			67676.3614457831,
+			[
+				[
+					"Set Camera Bopping",
+					2,
+					1.1
 				]
 			]
 		],
@@ -545,8 +1615,28 @@
 			[
 				[
 					"SetCameraBop",
-					2,
-					1.1
+					"2",
+					"1.1"
+				]
+			]
+		],
+		[
+			67764.7058823529,
+			[
+				[
+					"Philly Glow",
+					"0",
+					""
+				]
+			]
+		],
+		[
+			67941.6341463415,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -554,9 +1644,19 @@
 			67985,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			73411.6341463415,
+			[
+				[
+					"Target Camera",
+					0,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -564,7 +1664,7 @@
 			74823,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
 				]
@@ -574,7 +1674,7 @@
 			76411,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -584,9 +1684,19 @@
 			77647,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1.1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			79235.6341463415,
+			[
+				[
+					"Target Camera",
+					1,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -594,9 +1704,19 @@
 			79279,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
+				]
+			]
+		],
+		[
+			84705.6341463415,
+			[
+				[
+					"Target Camera",
+					0,
+					"0,0,4,CLASSIC"
 				]
 			]
 		],
@@ -604,7 +1724,7 @@
 			84750,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,1",
 					"expoOut"
 				]
@@ -614,7 +1734,7 @@
 			86117,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.05",
 					"expoOut"
 				]
@@ -624,7 +1744,7 @@
 			87529,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.1",
 					"expoOut"
 				]
@@ -634,7 +1754,7 @@
 			88941,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"8,1.15",
 					"expoOut"
 				]
@@ -644,7 +1764,7 @@
 			90264.3614457831,
 			[
 				[
-					"SetCameraBop",
+					"Set Camera Bopping",
 					2,
 					0.6
 				]
@@ -654,7 +1774,7 @@
 			90352,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"32,0.9",
 					"expoOut"
 				]
@@ -664,7 +1784,7 @@
 			101294.361445783,
 			[
 				[
-					"SetCameraBop",
+					"Set Camera Bopping",
 					4,
 					0
 				]
@@ -674,7 +1794,7 @@
 			101382.411764706,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"4,1",
 					"elasticInOut"
 				]
@@ -684,59 +1804,9 @@
 			101823,
 			[
 				[
-					"ZoomCamera",
+					"Zoom Camera",
 					"64,0.9",
 					"sineInOut"
-				]
-			]
-		],
-		[
-			58235,
-			[
-				[
-					"ZoomCamera",
-					"8,1.05",
-					"expoOut"
-				]
-			]
-		],
-		[
-			42529,
-			[
-				[
-					"ZoomCamera",
-					"32,0.9",
-					"expoOut"
-				]
-			]
-		],
-		[
-			19764,
-			[
-				[
-					"ZoomCamera",
-					"32,1.1",
-					"expoOut"
-				]
-			]
-		],
-		[
-			88.3614457831318,
-			[
-				[
-					"SetCameraBop",
-					2,
-					0.6
-				]
-			]
-		],
-		[
-			44,
-			[
-				[
-					"ZoomCamera",
-					"32,0.9",
-					"expoOut"
 				]
 			]
 		]

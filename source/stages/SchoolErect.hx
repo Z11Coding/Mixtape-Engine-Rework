@@ -123,33 +123,19 @@ class SchoolErect extends BaseStage
 	override function createPost(){
 		var _song = PlayState.SONG;
 		if(PicoCapableStage.PIXEL_LIST.contains(gf.curCharacter)){
-			#if LEGACY_PSYCH
-			GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel-pico';
-			GameOverSubstate.loopSoundName = 'gameOver-pixel-pico';
-			GameOverSubstate.endSoundName = 'gameOverEnd-pixel-pico';
-			GameOverSubstate.characterName = 'pico-pixel';
-			#else
 			if(_song.gameOverSound == null || _song.gameOverSound.trim().length < 1) GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel-pico';
 			if(_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1) GameOverSubstate.loopSoundName = 'gameOver-pixel-pico';
 			if(_song.gameOverEnd == null || _song.gameOverEnd.trim().length < 1) GameOverSubstate.endSoundName = 'gameOverEnd-pixel-pico';
 			if(_song.gameOverChar == null || _song.gameOverChar.trim().length < 1) GameOverSubstate.characterName = 'pico-pixel';
-			#end
 		}
 		else{
-			#if LEGACY_PSYCH
-			GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel';
-			GameOverSubstate.loopSoundName = 'gameOver-pixel';
-			GameOverSubstate.endSoundName = 'gameOverEnd-pixel';
-			GameOverSubstate.characterName = 'pico-pixel-dead';
-			#else
 			if(_song.gameOverSound == null || _song.gameOverSound.trim().length < 1) GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel';
 			if(_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1) GameOverSubstate.loopSoundName = 'gameOver-pixel';
 			if(_song.gameOverEnd == null || _song.gameOverEnd.trim().length < 1) GameOverSubstate.endSoundName = 'gameOverEnd-pixel';
 			if(_song.gameOverChar == null || _song.gameOverChar.trim().length < 1) GameOverSubstate.characterName = 'bf-pixel-dead';
-			#end
 		}
 
-		if(ClientPrefs.data.lowQuality) {
+		if(!ClientPrefs.data.lowQuality) {
 			applyShader(boyfriend,boyfriend.curCharacter);
 			applyShader(gf,gf.curCharacter);
 			applyShader(dad,dad.curCharacter);
@@ -175,103 +161,108 @@ class SchoolErect extends BaseStage
 		switch (char_name)
 		{
 			case "bf-pixel":
+			{
+				rim.angle = 90;
+				sprite.shader = rim;
+
+				// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
+				rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask").bitmap;
+				rim.maskThreshold = 1;
+				rim.useAltMask = true;
+
+				sprite.animation.callback = function(anim, frame, index)
 				{
-					rim.angle = 90;
-					sprite.shader = rim;
-
-					// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
-					rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask").bitmap;
-					rim.maskThreshold = 1;
-					rim.useAltMask = true;
-
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
+			
 			case "pico-pixel":
+			{
+				rim.angle = 90;
+				sprite.shader = rim;
+
+				// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
+				rim.altMaskImage = Paths.image("weeb/erect/masks/picoPixel_mask").bitmap;
+				rim.maskThreshold = 1;
+				rim.useAltMask = true;
+
+				sprite.animation.callback = function(anim, frame, index)
 				{
-					rim.angle = 90;
-					sprite.shader = rim;
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
 
-					// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
-					rim.altMaskImage = Paths.image("weeb/erect/masks/picoPixel_mask").bitmap;
-					rim.maskThreshold = 1;
-					rim.useAltMask = true;
-
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
 			case "gf-pixel":
-				{
-					rim.setAdjustColor(-42, -10, 5, -25);
-					rim.angle = 90;
-					sprite.shader = rim;
-					rim.distance = 3;
-					rim.threshold = 0.3;
-					rim.altMaskImage = Paths.image("weeb/erect/masks/gfPixel_mask").bitmap;
-					rim.maskThreshold = 1;
-					rim.useAltMask = true;
+			{
+				rim.setAdjustColor(-42, -10, 5, -25);
+				rim.angle = 90;
+				sprite.shader = rim;
+				rim.distance = 3;
+				rim.threshold = 0.3;
+				rim.altMaskImage = Paths.image("weeb/erect/masks/gfPixel_mask").bitmap;
+				rim.maskThreshold = 1;
+				rim.useAltMask = true;
 
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
-			case "nene-pixel":
+				sprite.animation.callback = function(anim, frame, index)
 				{
-					rim.setAdjustColor(-42, -10, 5, -25);
-					rim.angle = 90;
-					sprite.shader = rim;
-					rim.distance = 3;
-					rim.threshold = 0.3;
-					rim.altMaskImage = Paths.image("weeb/erect/masks/nenePixel_mask").bitmap;
-					rim.maskThreshold = 1;
-					rim.useAltMask = true;
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
+
+			case "nene-pixel":
+			{
+				rim.setAdjustColor(-42, -10, 5, -25);
+				rim.angle = 90;
+				sprite.shader = rim;
+				rim.distance = 3;
+				rim.threshold = 0.3;
+				rim.altMaskImage = Paths.image("weeb/erect/masks/nenePixel_mask").bitmap;
+				rim.maskThreshold = 1;
+				rim.useAltMask = true;
+				sprite.animation.callback = function(anim, frame, index)
+				{
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
 
 			case "senpai" | "senpai-angry":
-				{
-					rim.angle = 90;
-					sprite.shader = rim;
-					rim.altMaskImage = Paths.image("weeb/erect/masks/senpai_mask").bitmap;
-					rim.maskThreshold = 1;
-					rim.useAltMask = true;
+			{
+				rim.angle = 90;
+				sprite.shader = rim;
+				rim.altMaskImage = Paths.image("weeb/erect/masks/senpai_mask").bitmap;
+				rim.maskThreshold = 1;
+				rim.useAltMask = true;
 
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
+				sprite.animation.callback = function(anim, frame, index)
+				{
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
+
 			case "speakerTop":
-				{
-					rim.angle = 90;
-					sprite.shader = rim;
-					rim.altMaskImage = Paths.image("weeb/erect/masks/senpai_mask").bitmap;
-					rim.maskThreshold = 1;
-					rim.useAltMask = true;
+			{
+				rim.angle = 90;
+				sprite.shader = rim;
+				rim.altMaskImage = Paths.image("weeb/erect/masks/senpai_mask").bitmap;
+				rim.maskThreshold = 1;
+				rim.useAltMask = true;
 
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
-			default:
+				sprite.animation.callback = function(anim, frame, index)
 				{
-					rim.angle = 90;
-					rim.threshold = 0.1;
-					sprite.shader = rim;
-					sprite.animation.callback = function(anim, frame, index)
-					{
-						rim.updateFrameInfo(sprite.frame);
-					};
-				}
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
+			
+			default:
+			{
+				rim.angle = 90;
+				rim.threshold = 0.1;
+				sprite.shader = rim;
+				sprite.animation.callback = function(anim, frame, index)
+				{
+					rim.updateFrameInfo(sprite.frame);
+				};
+			}
 		}
 	}
 }

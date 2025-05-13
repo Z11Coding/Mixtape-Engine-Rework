@@ -601,11 +601,11 @@ class PlayState extends MusicBeatState
 		
 		try
 		{
-			metadata = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(SONG.song.toLowerCase()) + '/meta')));
-			trace(Assets.getText(Paths.json(Paths.formatToSongPath(SONG.song.toLowerCase()) + '/meta')));
+			metadata = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(SONG.song.toLowerCase()) + '/meta')));
+			trace(File.getContent(Paths.json(Paths.formatToSongPath(SONG.song.toLowerCase()) + '/meta')));
 			trace(metadata);
 			hasMetadataFile = true;
-			trace("Found metadata for " + SONG.song.toLowerCase());
+			trace("Found metadata for " + SONG.song.toLowerCase()); 
 		}
 		catch (e)
 		{
@@ -819,52 +819,7 @@ class PlayState extends MusicBeatState
 			}
 			else
 			{
-				switch (curStage)
-				{
-					case 'stage':
-						new StageWeek1(); // Week 1
-					case 'spooky':
-						new Spooky(); // Week 2
-					case 'philly':
-						new Philly(); // Week 3
-					case 'limo':
-						new Limo(); // Week 4
-					case 'mall':
-						new Mall(); // Week 5 - Cocoa, Eggnog
-					case 'mallEvil':
-						new MallEvil(); // Week 5 - Winter Horrorland
-					case 'school':
-						new School(); // Week 6 - Senpai, Roses
-					case 'schoolEvil':
-						new SchoolEvil(); // Week 6 - Thorns
-					case 'tank':
-						new Tank(); // Week 7 - Ugh, Guns, Stress
-					case 'phillyStreets':
-						new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
-					case 'phillyBlazin':
-						new PhillyBlazin(); // Weekend 1 - Blazin
-					case 'mainStageErect':
-						new MainStageErect(); // Week 1 Special
-					case 'spookyMansionErect':
-						new SpookyMansionErect(); // Week 2 Special
-					case 'phillyTrainErect':
-						new PhillyTrainErect(); // Week 3 Special
-					case 'limoRideErect':
-						new LimoRideErect(); // Week 4 Special
-					case 'mallXmasErect':
-						new MallXmasErect(); // Week 5 Special
-					case 'schoolErect'|'schoolPico': 
-						new SchoolErect();	
-					case 'tankmanBattlefieldErect':
-						new TankmanBattlefieldErect(); // Week 7 Special
-					case 'phillyStreetsErect':
-						new PhillyStreetsErect(); // Weekend 1 Special
-					#if windows 
-					case 'desktop':
-						new Desktop(); // Literally your desktop as a stage lmao
-					#end
-				}
-
+				VSliceLoader.addstage(curStage);
 				add(gfGroup);
 				add(dadGroup2);
 				add(boyfriendGroup2);
@@ -2017,12 +1972,15 @@ class PlayState extends MusicBeatState
 	}
 
 	public function startNextDialogue() {
-		dialogueCount++;
+		@:privateAccess
+		dialogueCount = psychDialogue.currentText;
 		callOnScripts('onNextDialogue', [dialogueCount]);
+		stagesFunc(function(stage:BaseStage) stage.startNextDialogue(dialogueCount));
 	}
 
 	public function skipDialogue() {
 		callOnScripts('onSkipDialogue', [dialogueCount]);
+		stagesFunc(function(stage:BaseStage) stage.onSkipDialogue(dialogueCount));
 	}
 
 	function startSong():Void
@@ -5403,24 +5361,6 @@ class PlayState extends MusicBeatState
 						songSpeed = newValue;
 					else
 						songSpeedTween = FlxTween.tween(this, {songSpeed: newValue}, flValue2 / playbackRate, {ease: FlxEase.linear, onComplete:
-							function (twn:FlxTween)
-							{
-								songSpeedTween = null;
-							}
-						});
-				}
-
-			case 'Vslice Scroll Speed':
-				if (songSpeedType != "constant")
-				{
-					if(flValue1 == null) flValue1 = 1;
-					if(flValue2 == null) flValue2 = 0;
-
-					var newValue:Float = ClientPrefs.getGameplaySetting('scrollspeed') * flValue1;
-					if(flValue2 <= 0)
-						songSpeed = newValue;
-					else
-						songSpeedTween = FlxTween.tween(this, {songSpeed: newValue}, flValue2 / playbackRate, {ease: FlxEase.quadInOut, onComplete:
 							function (twn:FlxTween)
 							{
 								songSpeedTween = null;

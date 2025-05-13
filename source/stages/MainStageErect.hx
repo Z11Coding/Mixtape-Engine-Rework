@@ -1,22 +1,18 @@
 package stages;
 
+import stages.PicoCapableStage;
 import openfl.display.BlendMode;
 import shaders.AdjustColorShader;
-import stages.PicoCapableStage;
-import stages.gimmicks.Week1Gimmick;
+import stages.objects.StageSpotlight;
 import objects.Character;
-import stages.objects.*;
 import objects.Note;
 
-class MainStageErect extends PicoCapableStage {
-    var dadbattleBlack:BGSprite;
-	var dadbattleLight:BGSprite;
-    var dadbattleFog:DadBattleFog;
+class MainStageErect extends BaseStage {
+   
 	var peeps:BGSprite;
-    var crowdPleaser:Week1Gimmick;
-    var allowCrowdOpinion:Bool = ClientPrefs.data.gimmicksAllowed && ClientPrefs.data.stageGimmick;
 	override function create()
 	{
+        new StageSpotlight(200,-50);
 		var bg:BGSprite = new BGSprite('erect/backDark', 729, -170);
 		add(bg);
 
@@ -66,126 +62,10 @@ class MainStageErect extends PicoCapableStage {
             gf.shader = makeCoolShader(-9,0,-30,-4);
             dad.shader = makeCoolShader(-32,0,-33,-23);
             boyfriend.shader = makeCoolShader(12,0,-23,7);
-        }
-
-        if(allowCrowdOpinion) {
-			crowdPleaser = new Week1Gimmick();
-			crowdPleaser.cameras = [camHUD];
-			add(crowdPleaser);
-		
-        
-            switch(songName.toLowerCase().replace('-', ' '))
-            {
-                case 'bopeebo erect':
-                    crowdPleaser.crowdAttentionLoss = 0.04;
-                case 'fresh erect':
-                    crowdPleaser.crowdAttentionLoss = 0.03;
-                case 'dad battle erect':
-                    crowdPleaser.crowdAttentionLoss = 0.04;
-            }
+            PicoCapableStage.instance?.applyABotShader(makeCoolShader(-9,0,-30,-4));
         }
     }
 
-    override function startSong()
-    if (crowdPleaser != null && allowCrowdOpinion)
-		crowdPleaser.startGimmick();
-
-    override function endSong() {
-        if (crowdPleaser != null && allowCrowdOpinion)
-		crowdPleaser.stopGimmick();
-        return true;
-    }
-
-	override function goodNoteHit(note:Note/*, field:PlayField*/) {
-        if (crowdPleaser != null && allowCrowdOpinion)
-		crowdPleaser.crowdAppeasment += 1;
-		super.goodNoteHit(note/*, field*/);
-	}
-	
-	override function noteMiss(note:Note/*, field:PlayField*/) {
-        if (crowdPleaser != null && allowCrowdOpinion)
-		crowdPleaser.crowdAppeasment -= 5;
-		super.noteMiss(note/*, field*/);
-    }
-
-    override function startCountdown():Bool {
-        return super.startCountdown();
-    }
-
-    override function beatHit() {
-        super.beatHit();
-        if (crowdPleaser != null && allowCrowdOpinion)
-        crowdPleaser.doClap(curBeat);
-    }
-
-    override function eventPushed(event:objects.Note.EventNote)
-	{
-		switch(event.event)
-		{
-			case "Dadbattle Spotlight":
-				dadbattleBlack = new BGSprite(null, -800, -400, 0, 0);
-				dadbattleBlack.makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.BLACK);
-				dadbattleBlack.alpha = 0.25;
-				dadbattleBlack.visible = false;
-				add(dadbattleBlack);
-
-				dadbattleLight = new BGSprite('spotlight', 400, -400);
-				dadbattleLight.alpha = 0.375;
-				dadbattleLight.blend = ADD;
-				dadbattleLight.visible = false;
-				add(dadbattleLight);
-
-				dadbattleFog = new DadBattleFog();
-				dadbattleFog.visible = false;
-				add(dadbattleFog);
-		}
-	}
-
-	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
-	{
-		switch(eventName)
-		{
-            case "Change Character":
-                if(ClientPrefs.data.shaders){
-                    gf.shader = makeCoolShader(-9,0,-30,-4);
-                    dad.shader = makeCoolShader(-32,0,-33,-23);
-                    boyfriend.shader = makeCoolShader(12,0,-23,7);
-                }
-
-			case "Dadbattle Spotlight":
-				if(flValue1 == null) flValue1 = 0;
-				var val:Int = Math.round(flValue1);
-
-				switch(val)
-				{
-					case 1, 2, 3: //enable and target dad
-						if(val == 1) //enable
-						{
-							dadbattleBlack.visible = true;
-							dadbattleLight.visible = true;
-							dadbattleFog.visible = true;
-							defaultCamZoom += 0.12;
-						}
-
-						var who:Character = dad;
-						if(val > 2) who = boyfriend;
-						//2 only targets dad
-						dadbattleLight.alpha = 0;
-						new FlxTimer().start(0.12, function(tmr:FlxTimer) {
-							dadbattleLight.alpha = 0.375;
-						});
-						dadbattleLight.setPosition(who.getGraphicMidpoint().x - dadbattleLight.width / 2, who.y + who.height - dadbattleLight.height + 50);
-						FlxTween.tween(dadbattleFog, {alpha: 0.7}, 1.5, {ease: FlxEase.quadInOut});
-
-					default:
-						dadbattleBlack.visible = false;
-						dadbattleLight.visible = false;
-						defaultCamZoom -= 0.12;
-						FlxTween.tween(dadbattleFog, {alpha: 0}, 0.7, {onComplete: function(twn:FlxTween) dadbattleFog.visible = false});
-				}
-		}
-	}
-    
     function makeCoolShader(hue:Float,sat:Float,bright:Float,contrast:Float) {
         var coolShader = new AdjustColorShader();
         coolShader.hue = hue;

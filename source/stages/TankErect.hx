@@ -10,7 +10,7 @@ import substates.GameOverSubstate;
 import substates.StickerSubState;
 import stages.cutscenes.VideoCutscene;
 
-class TankmanBattlefieldErect extends BaseStage {
+class TankErect extends BaseStage {
 	var sniper:FlxSprite;
 	var guy:FlxSprite;
 	var tankmanRim:DropShadowShader;

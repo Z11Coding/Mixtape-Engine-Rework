@@ -1,32 +1,30 @@
 package stages;
 
+import stages.PicoCapableStage;
+import flixel.FlxSubState;
+import stages.objects.PhillyLights;
+import stages.objects.PhillyTrain;
+import stages.objects.PicoDopplegangerSprite;
 import shaders.AdjustColorShader;
 import flxanimate.motion.AdjustColor;
-import stages.PicoCapableStage;
-import stages.objects.*;
 import cutscenes.CutsceneHandler;
 import objects.Character;
-import flixel.FlxSubState;
 
-class PhillyTrainErect extends PicoCapableStage
+class PhillyTrainErect extends BaseStage
 {
 	var phillyLightsColors:Array<FlxColor>;
 	var phillyWindow:BGSprite;
 	var phillyStreet:BGSprite;
 	var phillyTrain:PhillyTrain;
 	var curLight:Int = -1;
-	var colorShader:AdjustColorShader;
 
-	//For Philly Glow events
-	var blammedLightsBlack:FlxSprite;
-	var phillyGlowGradient:PhillyGlowGradient;
-	var phillyGlowParticles:FlxTypedGroup<PhillyGlowParticle>;
-	var phillyWindowEvent:BGSprite;
 	var curLightEvent:Int = -1;
+	var colorShader:AdjustColorShader;
 
 	override function create()
 	{
-		if(!ClientPrefs.data.lowQuality) {
+		if (!ClientPrefs.data.lowQuality)
+		{
 			var bg:BGSprite = new BGSprite('philly/erect/sky', -100, 0, 0.1, 0.1);
 			add(bg);
 		}
@@ -36,15 +34,16 @@ class PhillyTrainErect extends PicoCapableStage
 		city.updateHitbox();
 		add(city);
 
-		phillyLightsColors = [0x502d64,0x2663ac,0x932c28,0x329a6d,0xb66f43];
+		phillyLightsColors = [0x502d64, 0x2663ac, 0x932c28, 0x329a6d, 0xb66f43];
 		phillyWindow = new BGSprite('philly/window', city.x, city.y, 0.3, 0.3);
 		phillyWindow.setGraphicSize(Std.int(phillyWindow.width * 0.85));
 		phillyWindow.updateHitbox();
 		add(phillyWindow);
 		phillyWindow.alpha = 0;
 
-		if(!ClientPrefs.data.lowQuality) {
-			var streetBehind:BGSprite = new BGSprite('philly/behindTrain', -40, 50);
+		if (!ClientPrefs.data.lowQuality)
+		{
+			var streetBehind:BGSprite = new BGSprite('philly/erect/behindTrain', -40, 50);
 			add(streetBehind);
 		}
 
@@ -53,56 +52,50 @@ class PhillyTrainErect extends PicoCapableStage
 
 		phillyStreet = new BGSprite('philly/erect/street', -40, 50);
 		add(phillyStreet);
+		
 
 		if(!seenCutscene 
 			&& PlayState.SONG.player1 == "pico-playable" 
 			&& PlayState.SONG.player2 == "pico") setStartCallback(ughIntro);
+		
+		new PhillyLights(phillyStreet,phillyWindow.x,phillyWindow.y,phillyLightsColors);
 	}
 
-	override function createPost() {
+	override function createPost()
+	{
 		super.createPost();
-		if(ClientPrefs.data.shaders){
+
+		if (ClientPrefs.data.shaders)
+		{
 			colorShader = new AdjustColorShader();
 			colorShader.hue = -26;
 			colorShader.saturation = -16;
 			colorShader.contrast = 0;
 			colorShader.brightness = -5;
 
-			if (boyfriend != null) boyfriend.shader = colorShader;
-			if (dad != null) dad.shader = colorShader;
-			if (gf != null) gf.shader = colorShader;
+			boyfriend.shader = colorShader;
+			dad.shader = colorShader;
+			gf.shader = colorShader;
 			phillyTrain.shader = colorShader;
+			PicoCapableStage.instance?.applyABotShader(colorShader);
+		}
+	}
+	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
+		if(eventName == "Change Character" && ClientPrefs.data.shaders){
+			switch(value1.toLowerCase().trim()) {
+				case 'gf' | 'girlfriend' | '2':
+					gf.shader = colorShader;
+				case 'dad' | 'opponent' | '1':
+					dad.shader = colorShader;
+				default:
+					boyfriend.shader = colorShader;
+			}
 		}
 	}
 
-	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
-        if (eventName == "Change Character")
-        {
-            if(ClientPrefs.data.shaders){
-                var colorShader = new AdjustColorShader();
-				colorShader.hue = -26;
-				colorShader.saturation = -16;
-				colorShader.contrast = 0;
-				colorShader.brightness = -5;
-
-				if (boyfriend != null) boyfriend.shader = colorShader;
-				if (dad != null) dad.shader = colorShader;
-				if (gf != null) gf.shader = colorShader;
-            }   
-        }
-    }
-
 	override function update(elapsed:Float)
 	{
-		phillyWindow.alpha -= (Conductor.crochet / 1000) * FlxG.elapsed * 1.5;
-		if(phillyGlowParticles != null)
-		{
-			phillyGlowParticles.forEachAlive(function(particle:PhillyGlowParticle)
-			{
-				if(particle.alpha <= 0)
-					particle.kill();
-			});
-		}
+		phillyWindow.alpha -= (Conductor.crochet / 1000) * FlxG.elapsed * 1.9;
 		super.update(elapsed);
 	}
 
@@ -126,11 +119,11 @@ class PhillyTrainErect extends PicoCapableStage
 		}
 		super.openSubState(SubState);
 	}
-
 	function doFlash()
 	{
 		var color:FlxColor = FlxColor.WHITE;
-		if(!ClientPrefs.data.flashing) color.alphaFloat = 0.5;
+		if (!ClientPrefs.data.flashing)
+			color.alphaFloat = 0.5;
 
 		FlxG.camera.flash(color, 0.15, null, true);
 	}
@@ -176,7 +169,7 @@ class PhillyTrainErect extends PicoCapableStage
 
 		cutsceneHandler.finishCallback = function()
 		{
-			PlayState.seenCutscene = true;
+			seenCutscene = true;
 			//Restore camera
 			var timeForStuff:Float = Conductor.crochet / 1000 * 4.5;
 			FlxG.sound.music.fadeOut(timeForStuff);
@@ -184,10 +177,10 @@ class PhillyTrainErect extends PicoCapableStage
 
 			//Show still alive chars
 			if (explode)
-			{
-				if (playerShoots) boyfriend.visible = true;
-				else dad.visible = true;
-			}
+				{
+					if (playerShoots) boyfriend.visible = true;
+					else dad.visible = true;
+				}
 			else boyfriend.visible = dad.visible = true;
 			
 			camHUD.visible = true;
@@ -229,7 +222,7 @@ class PhillyTrainErect extends PicoCapableStage
 				if(seenOutcome && playerShoots){
 					game.camZooming = true;
 					game.opponentVocals = new FlxSound();
-					for (note in game.allNotes){
+					for (note in game.unspawnNotes){
 						if (!note.mustPress && note.eventName == "")
 						{
 							note.ignoreNote = true;
@@ -250,7 +243,8 @@ class PhillyTrainErect extends PicoCapableStage
 			FlxG.camera.zoom = defaultCamZoom;
 			if(!explode || playerShoots) startCountdown();
 		};
-		cutsceneHandler.skipCallback = function() {
+		cutsceneHandler.skipCallback = function()
+		{
 			cutsceneHandler.finishCallback();
 		};
 		camFollow_set(dad.x + 280, dad.y + 170);
@@ -352,7 +346,7 @@ class PhillyTrainErect extends PicoCapableStage
 
 		cutsceneHandler.timer(11.2, () ->
 		{
-			if (explode == true)	
+			if (explode == true)
 			{
 				bloodPool.visible = true;
 				bloodPool.anim.play("bloodPool", true);

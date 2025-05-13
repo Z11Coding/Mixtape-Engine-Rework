@@ -1,0 +1,59 @@
+package stages;
+
+import substates.StickerSubState;
+import stages.*;
+import haxe.ds.List;
+#if LUA_ALLOWED
+import psychlua.FunkinLua;
+#end
+
+class VSliceLoader extends BaseStage {
+    #if LUA_ALLOWED
+    public static function implement(funk:FunkinLua)
+    {
+        var lua:State = funk.lua;
+        Lua_helper.add_callback(lua, "markAsPicoCapable", function(force:Bool = false) {
+            new PicoCapableStage(force);
+        });
+        Lua_helper.add_callback(lua, "changeTransStickers", function(stickerSet:String = null,stickerPack:String = null) {
+            if(stickerSet != null && stickerSet != "") StickerSubState.STICKER_SET = stickerSet;
+            if(stickerPack != null && stickerPack != "") StickerSubState.STICKER_PACK = stickerPack;
+        });
+    }
+    #end
+    public static function addstage(name:String) {
+        var addNene = true;
+        new VSliceEvents();
+        switch (name)
+		{
+			case 'stage': new StageWeek1(); 						//Week 1
+			case 'spooky': new Spooky();							//Week 2
+			case 'philly': new Philly();							//Week 3
+			case 'limo': new Limo();								//Week 4
+			case 'mall': new Mall();								//Week 5 - Cocoa, Eggnog
+			case 'mallEvil': new MallEvil();						//Week 5 - Winter Horrorland
+			case 'school': new School();							//Week 6 - Senpai, Roses
+			case 'schoolEvil': new SchoolEvil();					//Week 6 - Thorns
+			case 'tank': new Tank();								//Week 7 - Ugh, Guns, Stress
+            case 'phillyStreets': new PhillyStreets(); 				//Weekend 1 - Darnell, Lit Up, 2Hot
+			case 'phillyBlazin': new PhillyBlazin();				//Weekend 1 - Blazin
+            case 'mainStageErect': new MainStageErect();			//Week 1 Special 
+			case 'spookyMansionErect': new SpookyMansionErect();	//Week 2 Special 
+			case 'phillyTrainErect': new PhillyTrainErect();  		//Week 3 Special 
+			case 'limoRideErect': new LimoRideErect();  			//Week 4 Special 
+			case 'mallXmasErect': new MallXmasErect(); 				//Week 5 Special 
+			case 'schoolErect': new SchoolErect();					//Week 6 Special - Erect Mode
+			case 'schoolPico': new SchoolErect();					//Week 6 Special - Pico
+			case 'schoolEvilErect': new SchoolEvilErect();			//Week 6 Special - Thorns
+			case 'tankmanBattlefieldErect': new TankErect();		//Week 7 Special
+			case 'phillyStreetsErect': new PhillyStreetsErect(); 	//Weekend 1 Special 
+            default: addNene = false;
+		}
+        if(addNene && PicoCapableStage.instance == null) {
+            var pico = new PicoCapableStage();
+            var game = PlayState.instance;
+            game.stages.remove(pico);
+            game.stages.insert(game.stages.length-2, pico);
+        }
+    } 
+}
