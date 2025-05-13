@@ -416,8 +416,11 @@ class FreeplayManager {
 
     public static inline function openFreeplay()
 	{
-        if (CategoryState.loadWeekForce != null)
+        if (CategoryState.loadWeekForce != null && !states.PlayState.Crashed) {
             MusicBeatState.preloadAndSwitchState(Type.createInstance(getFreeplay(), []));
+    } else if (CategoryState.loadWeekForce != null && states.PlayState.Crashed) {
+            FlxG.switchState(Type.createInstance(getFreeplay(), []));
+    }
         else //You cant play a song without picking a category first!
             FlxG.switchState(new states.CategoryState());
 

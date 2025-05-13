@@ -114,6 +114,47 @@ class MetaData {
         add("type", Type.getClassName(Type.getClass(variable)));
         add("pointer", PointerTools.pointer(variable));
 
+        // Special function which will take 2 objects, one a bunch of fields for a start value, and one for an end value. 
+            // This will create a tween for the object, and also automatically null-check itself, so nothing breaks.
+        // add("tween", function(start:Dynamic, end:Dynamic, duration:Float, ?ease:FlxEase):Void {
+        //     if (variable != null) {
+        //     FlxTween.num(start, start, end, duration, {
+        //         ease: ease,
+        //         onUpdate: function(progress:Float):Void {
+        //         if (variable != null) {  
+        //             for (key in Reflect.fields(variable)) {
+        //             var value = Reflect.field(variable, key);
+        //             if (value != null) {
+        //                 if (Std.is(value, Float) || Std.is(value, Int)) {
+        //                 var startValue = Reflect.field(start, key);
+        //                 var endValue = Reflect.field(end, key);
+        //                 if (startValue != null && endValue != null) {
+        //                     var interpolated = startValue + (endValue - startValue) * progress;
+        //                     if (Std.is(value, Int)) {
+        //                     Reflect.setField(variable, key, Std.int(interpolated));
+        //                     } else {
+        //                     Reflect.setField(variable, key, interpolated);
+        //                     }
+        //                 }
+        //                 }
+        //             }
+        //             }
+        //         }
+        //         },
+        //         onComplete: function(tween:FlxTween):Void {
+        //         if (variable != null) {
+        //             for (key in Reflect.fields(variable)) {
+        //             var value = Reflect.field(variable, key);
+        //             if (value != null) {
+        //                 metadata(value);
+        //             }
+        //             }
+        //         }
+        //         }
+        //     });
+        //     }
+        // });
+
     }
 
     private static function cleanup():Void {
