@@ -149,6 +149,14 @@ class Main extends Sprite
 		trace(commandPrompt.metadata());
 		trace(game.metadata());
 
+		trace("gamedddifsdsf".realSizeOf());
+
+		var testArray = new yutautil.CollectionUtils.KeyIndexedArray();
+		testArray.set("test", 1);
+		trace(testArray.get("test"));
+		trace(testArray.get("test2"));
+		trace(testArray["test"]);
+
 		yutautil.Threader.runInThread(commandPrompt.start());
 		#if HSCRIPT_ALLOWED
 		Iris.warn = function(x, ?pos:haxe.PosInfos) {

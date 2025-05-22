@@ -1288,6 +1288,8 @@ class PlayState extends MusicBeatState
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
 		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
+
+		// trace(this.realSizeOf());
 	}
 
 	function doStaticSign(lestatic:Int = 0)
