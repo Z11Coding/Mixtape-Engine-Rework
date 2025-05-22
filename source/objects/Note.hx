@@ -1161,10 +1161,12 @@ class Note extends NoteObject
 				alpha = 0.3;
 		}
 
-		if (!inEditor) {
-			if (field != null && alpha > field.strumNotes[column].alpha && strumTime > 1000) //Since the first couple of notes tend to just dissapear here's a hopeful fix for that
-				alpha = field.strumNotes[column].alpha;
-		}
+		try {
+			if (!inEditor) {
+				if (field != null && alpha > field.strumNotes[column].alpha && strumTime > 1500) //Since the first couple of notes tend to just dissapear here's a hopeful fix for that
+					alpha = field.strumNotes[column].alpha;
+			}
+		} catch(e) {}
 	}
 
 	override public function destroy()

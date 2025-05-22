@@ -1,0 +1,17 @@
+{
+	"events": [
+		[
+			18800,
+			[
+				["Play Animation", "yeah", "bf"]
+			]
+		],
+		[
+			44400,
+			[
+				["Play Animation", "yeah", "bf"]
+			]
+		]
+	],
+	"format": "psych_v1"
+}

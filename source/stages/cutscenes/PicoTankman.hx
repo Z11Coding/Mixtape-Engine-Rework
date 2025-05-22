@@ -2,12 +2,12 @@ package stages.cutscenes;
 
 import openfl.filters.ShaderFilter;
 import shaders.DropShadowScreenspace;
-import stages.TankmanBattlefieldErect;
+import stages.TankErect;
 import cutscenes.CutsceneHandler;
 import objects.FunkinSprite;
 
 class PicoTankman {
-    public function new(stage:TankmanBattlefieldErect) {
+    public function new(stage:TankErect) {
         this.stage = stage;
     }
     public function preloadCutscene() {
@@ -28,7 +28,7 @@ class PicoTankman {
 		PlayState.instance.add(bgSprite);
 	}
 	var cutscene:CutsceneHandler;
-	var stage:TankmanBattlefieldErect;
+	var stage:TankErect;
 	var shaderCamera:ShaderFilter;
 	var tankmanEnding:FlxAtlasSprite;
 	var cutsceneSounds:FlxSound;
@@ -63,12 +63,11 @@ class PicoTankman {
 			FlxTween.tween(game.camFollow,{ x:tankmanPos[0] + 320, y:tankmanPos[1] - 370}, 2, { ease:FlxEase.quadInOut});
       		FlxTween.tween(bgSprite, {alpha: 1}, 2, null);
 		});
-
 		var rimlightCamera = new FlxCamera();
-    	rimlightCamera.bgColor = 0x00FFFFFF; // Show the game scene behind the camera.		
+    	rimlightCamera.bgColor = 0x00FFFFFF; // Show the game scene behind the camera.
+		
 		rimlightCamera.filters = [shaderCamera];
     	FlxG.cameras.list.insert(FlxG.cameras.list.indexOf(game.camHUD), rimlightCamera);
-
 		@:privateAccess{
 			stage.applyAbotShader(tankmanEnding);
 			game.canPause = false;

@@ -38,6 +38,7 @@ class PhillyStreets extends BaseStage
 
 	override function create()
 	{
+		new PicoCapableStage();
 		if (!ClientPrefs.data.lowQuality)
 		{
 			var skyImage = Paths.image('phillyStreets/phillySkybox');

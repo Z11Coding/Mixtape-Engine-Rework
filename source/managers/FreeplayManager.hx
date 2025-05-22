@@ -138,7 +138,7 @@ class FreeplayManager {
                 musician = File.getContent((Paths.json(song[0].toLowerCase() + "/credits")));
 
 
-                try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
+                try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
                 catch(e) {
                     //trace("can't.");
                     metadataFile = null;
@@ -147,7 +147,7 @@ class FreeplayManager {
                 try
                 {
                     metadata.set(song[0].toLowerCase(), cast metadataFile);
-                    trace("Found metadata for " + song[0].toLowerCase());
+                    //trace("Found metadata for " + song[0].toLowerCase());
                 }
                 catch (e)
                 {

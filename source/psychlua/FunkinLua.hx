@@ -1577,8 +1577,8 @@ class FunkinLua {
 		#if DISCORD_ALLOWED DiscordClient.addLuaCallbacks(lua); #end
 		#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 		#if TRANSLATIONS_ALLOWED Language.addLuaCallbacks(lua); #end
-		HScript.implement(this);
 		#if flxanimate FlxAnimateFunctions.implement(this); #end
+		HScript.implement(this);
 		ReflectionFunctions.implement(this);
 		TextFunctions.implement(this);
 		ExtraFunctions.implement(this);
@@ -1588,6 +1588,7 @@ class FunkinLua {
 		CursorFunctions.implement(this);
 		VideoFunctions.implement(this);
 		PlayFieldFunctions.implement(this);
+		stages.VSliceLoader.implement(this);
 
 		for (name => func in customFunctions)
 		{
