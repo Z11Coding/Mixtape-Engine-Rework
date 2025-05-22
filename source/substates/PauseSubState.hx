@@ -192,7 +192,6 @@ class PauseSubState extends MusicBeatSubstate
 		var formattedSongName:String = (songName != null ? Paths.formatToSongPath(songName) : '');
 		var formattedPauseMusic:String = Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}');
 		if(formattedSongName == 'none' || (formattedSongName != 'none' && formattedPauseMusic == 'none')) return null;
-
 		return (formattedSongName != '') ? formattedSongName : formattedPauseMusic;
 	}
 

@@ -325,84 +325,6 @@ class FreeplayState extends MusicBeatState
 			archipelago.APItem.activeItem = null;
 	}
 
-	function isModName(name:String):Bool {
-        var mods = Mods.parseList().enabled;
-        // trace("Checking: " + mod);
-
-        if (mods != null && mods.length > 0) {
-            for (mod in mods) {
-                // trace("Looking for: " + name);
-                if (mod == name) {
-                    // trace("Found: " + mod);
-                    return true;
-                }
-            }
-        }
-        // trace("Not Found: " + name);
-        return false;
-    }
-
-	public function checkStringCombinations(input:String, target:String):Bool {
-		var combinations:Array<String> = [];
-		var chars:Array<String> = input.split('');
-		
-		// Generate all combinations of capital letters
-		for (i in 0...Std.int(Math.pow(2, chars.length))) {
-			var combination:String = '';
-			for (j in 0...chars.length) {
-				if ((i >> j) & 1 == 1) {
-					combination += chars[j].toUpperCase();
-				} else {
-					combination += chars[j].toLowerCase();
-				}
-			}
-			combinations.push(combination);
-		}
-
-		// Generate combinations with dashes and spaces
-		var finalCombinations:Array<String> = [];
-		for (comb in combinations) {
-			finalCombinations.push(comb);
-			finalCombinations.push(comb.replace('-', ' '));
-			finalCombinations.push(comb.replace(' ', '-'));
-		}
-
-		// Check if target matches any combination
-		for (comb in finalCombinations) {
-			if (comb == target) {
-				return true;
-			}
-		}
-		return false;
-	}
-	public function getAllStringCombinations(input:String):Array<String> {
-		var combinations:Array<String> = [];
-		var chars:Array<String> = input.split('');
-		
-		// Generate all combinations of capital letters
-		for (i in 0...Std.int(Math.pow(2, chars.length))) {
-			var combination:String = '';
-			for (j in 0...chars.length) {
-				if ((i >> j) & 1 == 1) {
-					combination += chars[j].toUpperCase();
-				} else {
-					combination += chars[j].toLowerCase();
-				}
-			}
-			combinations.push(combination);
-		}
-
-		// Generate combinations with dashes and spaces
-		var finalCombinations:Array<String> = [];
-		for (comb in combinations) {
-			finalCombinations.push(comb);
-			finalCombinations.push(comb.replace('-', ' '));
-			finalCombinations.push(comb.replace(' ', '-'));
-		}
-
-		return finalCombinations;
-	}
-
 	override function closeSubState() {
 		if (doChange) 
 		{
@@ -413,11 +335,6 @@ class FreeplayState extends MusicBeatState
 		}
 		persistentUpdate = true;
 		super.closeSubState();
-	}
-
-	function weekIsLocked(name:String):Bool {
-		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
-		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
 	}
 
 	// TODO: Find a way to safely thread this

@@ -1848,6 +1848,10 @@ class PlayState extends MusicBeatState
 	{
 		insert(members.indexOf(dadGroup2), obj);
 	}
+	public function addBehindHUD(obj:FlxBasic)
+	{
+		insert(members.indexOf(uiGroup), obj);
+	}
 
 	public function clearNotesBefore(time:Float)
 	{
@@ -1998,19 +2002,18 @@ class PlayState extends MusicBeatState
 		if (ClientPrefs.data.allowVis && ClientPrefs.data.healthVis) {
 			visual = new AudioDisplay(FlxG.sound.music, healthBar.x, healthBar.y + 20, Std.int(healthBar.width), Std.int(FlxG.height / 6), 50, 2, FlxColor.WHITE); 
 			visual.scrollFactor.set(0, 0);  
-			add(visual); 
+			addBehindHUD(visual);
 			visual.cameras = [camHUD];
 			visual.alpha = 0.7;
 
 			var generalVocals = Paths.voices(SONG.song);
 			var playerVocals = Paths.voices(SONG.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-
 			if (SONG.needsVoices) {
 				if ((generalVocals != null && generalVocals.length > 1) || (playerVocals != null && playerVocals.length > 1)) {
 					vocalvisual = new AudioDisplay(vocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])); 
 					vocalvisual.scrollFactor.set(0, 0); 
 					vocalvisual.flipY = true;
-					add(vocalvisual); 
+					addBehindHUD(vocalvisual); 
 					vocalvisual.cameras = [camHUD];
 					vocalvisual.alpha = 0.7;
 				}
@@ -2019,7 +2022,7 @@ class PlayState extends MusicBeatState
 					oppvisual = new AudioDisplay(opponentVocals, healthBar.x, healthBar.y + 30, Std.int(healthBar.width), Std.int(FlxG.height / 12), 50, 2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2])); 
 					oppvisual.scrollFactor.set(0, 0);
 					oppvisual.flipY = true;  
-					add(oppvisual); 
+					addBehindHUD(oppvisual); 
 					oppvisual.cameras = [camHUD];
 					oppvisual.alpha = 0.7;
 				}

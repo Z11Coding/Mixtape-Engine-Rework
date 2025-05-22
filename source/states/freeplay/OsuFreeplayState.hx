@@ -21,6 +21,8 @@ import sys.io.File;
 
 import haxe.Json;
 
+import metadata.STMetaFile.MetadataFile;
+
 #if ARCHIPELAGO_ALLOWED
 import archipelago.*;
 #end
@@ -93,12 +95,12 @@ class OsuFreeplayState extends MusicBeatState
 
 		FreeplayManager.reloadFreeplay(true);
 
-		var topBar:FlxSprite = new FlxSprite(0, -87).loadGraphic(Paths.image('OSUState/barTop'));
+		var topBar:FlxSprite = new FlxSprite(0, -87).loadGraphic(Paths.image('freeplay/OSUState/barTop'));
 		topBar.setGraphicSize(1280, 152);
 		topBar.screenCenter(X);
 		add(topBar);
 
-		var botBar:FlxSprite = new FlxSprite(0, 537).loadGraphic(Paths.image('OSUState/barbot'));
+		var botBar:FlxSprite = new FlxSprite(0, 537).loadGraphic(Paths.image('freeplay/OSUState/barbot'));
 		botBar.setGraphicSize(1280, 119);
 		botBar.screenCenter(X);
 		add(botBar);
@@ -117,7 +119,7 @@ class OsuFreeplayState extends MusicBeatState
 		var black:FlxSprite = new FlxSprite(0, 670).makeGraphic(70, 40, 0xff000000);
 		add(black);
 
-		back = new FlxSprite(-350, 565).loadGraphic(Paths.image('OSUState/back'));
+		back = new FlxSprite(-350, 565).loadGraphic(Paths.image('freeplay/OSUState/back'));
 		back.setGraphicSize(300, 89);
 		add(back);
 
@@ -125,7 +127,7 @@ class OsuFreeplayState extends MusicBeatState
 		backHitbox.alpha = 0.0001;
 		add(backHitbox);
 
-		var yelSearch:FlxSprite = new FlxSprite(450, 45).loadGraphic(Paths.image('OSUState/search'));
+		var yelSearch:FlxSprite = new FlxSprite(450, 45).loadGraphic(Paths.image('freeplay/OSUState/search'));
 		yelSearch.setGraphicSize(70, 16);
 		add(yelSearch);
 
@@ -178,7 +180,6 @@ class OsuFreeplayState extends MusicBeatState
 	}
 
 	var holdTime:Float = 0;
-	var stopMusicPlay:Bool = false;
 	var victoryColor:FlxColor;
 	var e:Int = 0;
 	override public function update(elapsed:Float)
@@ -198,10 +199,6 @@ class OsuFreeplayState extends MusicBeatState
 
 		e++;
 		FlxG.watch.addQuick('Search Text', searchTypeText.text);
-
-		if (FlxG.sound.music.volume < 0.8)
-			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
-
 		for(item in songBox)
 		{
 			var coolEffect:Int = 0;
@@ -456,7 +453,7 @@ class OsuFreeplayState extends MusicBeatState
 		FlxTween.tween(fakeLogo.scale, {x: 0.33, y: 0.33}, 0.6);
 	}
 
-	public static var metadata:Dynamic = null;
+	public static var metadata:MetadataFile = null;
 	function changeSong(change:Int = 0, playSound:Bool = true)
 	{
 		curSelected += change;
@@ -554,7 +551,7 @@ class OsuFreeplayState extends MusicBeatState
 		for (j in 0...Difficulty.list.length)
 		{			
 			var songBox:SongBox = new SongBox(320, 100);
-			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 50);
 			songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[curSelected].color[0][0], FreeplayManager.songList[curSelected].color[0][1], FreeplayManager.songList[curSelected].color[0][2], 1);
 			songBox.ID = song.ID + diffInt;
@@ -604,7 +601,7 @@ class OsuFreeplayState extends MusicBeatState
 			Mods.currentModDirectory = FreeplayManager.songList[i].folder;
 
 			var songBox:SongBox = new SongBox(320, 100);
-			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 			
 			if (APEntryState.inArchipelagoMode) {
@@ -680,7 +677,7 @@ class OsuFreeplayState extends MusicBeatState
 			Mods.currentModDirectory = FreeplayManager.songList[i].folder;
 
 			var songBox:SongBox = new SongBox(320, 100);
-			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 			
 			if (APEntryState.inArchipelagoMode) {
@@ -728,7 +725,7 @@ class OsuFreeplayState extends MusicBeatState
 				{
 					
 					var songBox:SongBox = new SongBox(320, 100);
-					songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
+					songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 					songBox.setGraphicSize(650, 100);
 					songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
 					songBox.ID = trueInt;

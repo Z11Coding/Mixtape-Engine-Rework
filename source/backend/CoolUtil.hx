@@ -350,6 +350,68 @@ class CoolUtil
 	{
 		return lerp * (FlxG.elapsed / (1 / 60));
 	}
+
+	public static function checkStringCombinations(input:String, target:String):Bool {
+		var combinations:Array<String> = [];
+		var chars:Array<String> = input.split('');
+		
+		// Generate all combinations of capital letters
+		for (i in 0...Std.int(Math.pow(2, chars.length))) {
+			var combination:String = '';
+			for (j in 0...chars.length) {
+				if ((i >> j) & 1 == 1) {
+					combination += chars[j].toUpperCase();
+				} else {
+					combination += chars[j].toLowerCase();
+				}
+			}
+			combinations.push(combination);
+		}
+
+		// Generate combinations with dashes and spaces
+		var finalCombinations:Array<String> = [];
+		for (comb in combinations) {
+			finalCombinations.push(comb);
+			finalCombinations.push(comb.replace('-', ' '));
+			finalCombinations.push(comb.replace(' ', '-'));
+		}
+
+		// Check if target matches any combination
+		for (comb in finalCombinations) {
+			if (comb == target) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static function getAllStringCombinations(input:String):Array<String> {
+		var combinations:Array<String> = [];
+		var chars:Array<String> = input.split('');
+		
+		// Generate all combinations of capital letters
+		for (i in 0...Std.int(Math.pow(2, chars.length))) {
+			var combination:String = '';
+			for (j in 0...chars.length) {
+				if ((i >> j) & 1 == 1) {
+					combination += chars[j].toUpperCase();
+				} else {
+					combination += chars[j].toLowerCase();
+				}
+			}
+			combinations.push(combination);
+		}
+
+		// Generate combinations with dashes and spaces
+		var finalCombinations:Array<String> = [];
+		for (comb in combinations) {
+			finalCombinations.push(comb);
+			finalCombinations.push(comb.replace('-', ' '));
+			finalCombinations.push(comb.replace(' ', '-'));
+		}
+
+		return finalCombinations;
+	}
 }
 
 typedef LogData = {

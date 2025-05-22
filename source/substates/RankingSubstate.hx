@@ -183,8 +183,8 @@ class RankingSubstate extends MusicBeatSubstate
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
-					MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
+					MusicManager.playMenuMusic();
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
 					MusicManager.playMenuMusic();

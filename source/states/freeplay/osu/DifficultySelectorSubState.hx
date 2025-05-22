@@ -1,5 +1,5 @@
 package states.freeplay.osu;
-
+    
 // import flixel.FlxSprite;
 import flixel.input.keyboard.FlxKey;
 import states.freeplay.OsuFreeplayState;

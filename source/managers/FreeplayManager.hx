@@ -428,6 +428,23 @@ class FreeplayManager {
             MusicManager.playMenuMusic();
 	}
 
+    public static function isModName(name:String):Bool {
+        var mods = Mods.parseList().enabled;
+        // trace("Checking: " + mod);
+
+        if (mods != null && mods.length > 0) {
+            for (mod in mods) {
+                // trace("Looking for: " + name);
+                if (mod == name) {
+                    // trace("Found: " + mod);
+                    return true;
+                }
+            }
+        }
+        // trace("Not Found: " + name);
+        return false;
+    }
+
     //Actual freeplay stuff
     public static function previewSong(needVoices) {
         if (needVoices)
