@@ -449,7 +449,7 @@ class Character extends FlxSprite
 					playAnim('danceLeft' + idleSuffix);
 			}
 			else if(hasAnimation('idle' + idleSuffix))
-				playAnim('idle' + idleSuffix);
+				playAnim((hasAnimation('blink') && FlxG.random.float(0, 1) < 0.025) ? 'blink' : 'idle' + idleSuffix);
 		}
 	}
 

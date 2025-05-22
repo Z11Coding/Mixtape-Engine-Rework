@@ -61,6 +61,551 @@ typedef LuaScript = flixel.util.typeLimit.OneOfTwo<psychlua.FunkinLua, psychlua.
 //     }
 // }
 
+class KeyArray<K, V>
+{
+	// An array with keys, similar to a dictionary, allowing for use of keys with arrayaccess.
+	public var keys:Array<K>;
+	public var values:Array<V>;
+	private var referenceMap:Array<{key:K, value:V, index:Int}>;
+
+	public function new(keys:Array<K> = null, values:Array<V> = null)
+	{
+		this.keys = keys != null ? keys.copy() : [];
+		this.values = values != null ? values.copy() : [];
+		this.referenceMap = [];
+		updateReferenceMap();
+	}
+
+	private function syncReferenceMap():Void
+	{
+		if (keys.length != values.length || keys.length != referenceMap.length)
+		{
+			desyncPanic("Length mismatch: keys=" + keys.length + ", values=" + values.length + ", referenceMap=" + referenceMap.length);
+			return;
+		}
+		for (i in 0...keys.length)
+		{
+			var ref = referenceMap[i];
+			if (ref == null || ref.key != keys[i] || ref.value != values[i] || ref.index != i)
+			{
+				desyncPanic("ReferenceMap desync at index " + i);
+				return;
+			}
+		}
+	}
+
+	private function updateReferenceMap():Void
+	{
+		referenceMap = [];
+		for (i in 0...keys.length)
+		{
+			referenceMap.push({key: keys[i], value: values[i], index: i});
+		}
+	}
+
+	private function desyncPanic(msg:String):Void
+	{
+		trace("[KeyArray] Desync detected: " + msg);
+		keys = null;
+		values = null;
+		referenceMap = null;
+		throw new haxe.Exception("[KeyArray] CRASH PANIC: Internal data desync. All data nullified. Reason: " + msg);
+	}
+
+	public function get(key:K):V
+	{
+		syncReferenceMap();
+		var index = keys.indexOf(key);
+		if (index != -1)
+		{
+			return values[index];
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	public function set(key:K, value:V):Void
+	{
+		syncReferenceMap();
+		var index = keys.indexOf(key);
+		if (index != -1)
+		{
+			values[index] = value;
+			referenceMap[index] = {key: key, value: value, index: index};
+		}
+		else
+		{
+			keys.push(key);
+			values.push(value);
+			referenceMap.push({key: key, value: value, index: keys.length - 1});
+		}
+	}
+
+	public function exists(key:K):Bool
+	{
+		syncReferenceMap();
+		return keys.indexOf(key) != -1;
+	}
+
+	public function remove(key:K):Bool
+	{
+		syncReferenceMap();
+		var idx = keys.indexOf(key);
+		if (idx != -1)
+		{
+			keys.splice(idx, 1);
+			values.splice(idx, 1);
+			referenceMap.splice(idx, 1);
+			updateReferenceMap();
+			return true;
+		}
+		return false;
+	}
+
+	public function pop():{key:K, value:V}
+	{
+		syncReferenceMap();
+		if (keys.length > 0 && values.length > 0)
+		{
+			var key = keys.pop();
+			var value = values.pop();
+			referenceMap.pop();
+			updateReferenceMap();
+			return {key: key, value: value};
+		}
+		return null;
+	}
+
+	public function push(key:K, value:V):Int
+	{
+		syncReferenceMap();
+		keys.push(key);
+		values.push(value);
+		referenceMap.push({key: key, value: value, index: keys.length - 1});
+		return keys.length;
+	}
+
+	public function clear():Void
+	{
+		keys = [];
+		values = [];
+		referenceMap = [];
+	}
+
+	public function length():Int
+	{
+		syncReferenceMap();
+		return keys.length;
+	}
+
+	public function getAll():Array<{key:K, value:V}>
+	{
+		syncReferenceMap();
+		var result = [];
+		for (i in 0...keys.length)
+		{
+			result.push({key: keys[i], value: values[i]});
+		}
+		return result;
+	}
+
+	public function keysArray():Array<K>
+	{
+		syncReferenceMap();
+		return keys.copy();
+	}
+
+	public function valuesArray():Array<V>
+	{
+		syncReferenceMap();
+		return values.copy();
+	}
+
+	public function iterator():Iterator<{key:K, value:V}>
+	{
+		syncReferenceMap();
+		var arr = [];
+		for (i in 0...keys.length)
+		{
+			arr.push({key: keys[i], value: values[i]});
+		}
+		return arr.iterator();
+	}
+}
+
+
+/**
+ * An abstract type that allows for key-based access to a KeyIndexedArray.
+ * This is a specialized array that allows for key-based access.
+ * It provides array access support for getting and setting values using keys.
+ */
+ @:forward
+abstract KeyIndexedArray<K, V>(KeyArray<K, V>)
+{
+
+			@:privateAccess
+	public function new(keys:Array<K> = null, values:Array<V> = null)
+	{
+		this = new KeyArray<K, V>(keys, values);
+	}
+
+	@:arrayAccess
+	public inline function get(key:K):V
+	{
+		return this.get(key);
+	}
+
+	@:arrayAccess
+	public inline function set(key:K, value:V):Void
+	{
+		this.set(key, value);
+	}
+
+	public inline function exists(key:K):Bool
+	{
+		return this.exists(key);
+	}
+
+	public inline function remove(key:K):Bool
+	{
+		return this.remove(key);
+	}
+
+	public inline function pop():{key:K, value:V}
+	{
+		return this.pop();
+	}
+
+	public inline function push(key:K, value:V):Int
+	{
+		return this.push(key, value);
+	}
+
+	public inline function clear():Void
+	{
+		this.clear();
+	}
+
+	public inline function length():Int
+	{
+		return this.length();
+	}
+
+	public inline function getAll():Array<{key:K, value:V}>
+	{
+		return this.getAll();
+	}
+
+	public inline function keysArray():Array<K>
+	{
+		return this.keysArray();
+	}
+
+	public inline function valuesArray():Array<V>
+	{
+		return this.valuesArray();
+	}
+
+	public inline function iterator():Iterator<{key:K, value:V}>
+	{
+		return this.iterator();
+	}
+
+	public inline function toArray():Array<{key:K, value:V}>
+	{
+		return this.getAll();
+	}
+
+	public inline function toString():String
+	{
+		return "KeyIndexedArray: " + this.getAll().toString();
+	}
+
+	public inline function toDynamic():Dynamic
+	{
+		var result = {};
+		for (i in 0...this.keys.length)
+		{
+			Reflect.setField(result, Std.string(this.keys[i]), this.values[i]);
+		}
+		return result;
+	}
+
+	public inline function toMap():Map<Dynamic, Dynamic>
+	{
+		var keys = this.keysArray();
+		var values = this.valuesArray();
+		// If there are no keys, just return a normal Map
+		if (keys.length == 0) return new Map<Dynamic, Dynamic>();
+
+		// Check if the first key is a class (not an instance)
+		for (k in keys)
+			if (Std.is(k, Class)) {
+				// If the key is a class, we cannot use it as a key in a Map
+				// because classes are not hashable in Haxe.
+				// We can throw an error or handle it differently if needed.
+			throw "Cannot use classes as keys in a Map.";
+		}
+
+		// If the key is an object (not a primitive or string), use HashMap
+		var useHashMap = false;
+		for (k in keys) {
+			var t = Type.typeof(k);
+			if (t == TObject || (Std.is(k, Class) && !Std.is(k, String))) {
+				useHashMap = true;
+				break;
+			}
+		}
+
+		var result:Dynamic;
+		if (useHashMap) {
+			result = new haxe.ds.HashMap<Dynamic, V>();
+		} else {
+			result = new Map<Dynamic, V>();
+		}
+
+		for (i in 0...keys.length) {
+			result.set(keys[i], values[i]);
+		}
+		return result;
+	}
+}
+
+
+// /**
+//  * A specialized array that allows for key-based access.
+//  * This is a subclass of KeyArray, which provides the basic functionality.
+//  * It adds array access support for getting and setting values using keys.
+//  */
+// class KeyIndexedArray<K, V> extends KeyArray<K, V>
+// {
+// 	public function new(?keys:Array<K>, ?values:Array<V>)
+// 	{
+// 		super(keys, values);
+// 	}
+
+// 	@:arrayAccess
+// 	public override function get(key:K):V
+// 	{
+// 		return super.get(key);
+// 	}
+
+// 	@:arrayAccess
+// 	public override function set(key:K, value:V):Void
+// 	{
+// 		super.set(key, value);
+// 	}
+// }
+
+class DynamicMap<K, V>
+{
+	private var keys:Array<K>;
+	private var values:Array<V>;
+	private var referenceMap:Array<{key:K, value:V, index:Int}>;
+
+	public function new()
+	{
+		keys = [];
+		values = [];
+		referenceMap = [];
+	}
+
+	// Encodes the key for faster lookup, especially for primitive types.
+	private function encodeKey(key:K):Dynamic
+	{
+		var t = Type.typeof(key);
+		switch (t) {
+			case TNull: return "null";
+			case TInt: return "i:" + key;
+			case TFloat: return "f:" + key;
+			case TBool: return "b:" + (cast(key, Bool) ? "1" : "0");
+			default:
+				if (Std.is(key, String)) {
+					return "s:" + key;
+				}
+				return key;
+		}
+	}
+
+	// Finds the index of the key using encoded keys for speed.
+	private function indexOfKey(key:K):Int
+	{
+		syncReferenceMap();
+		var encoded = encodeKey(key);
+		for (i in 0...keys.length)
+		{
+			if (encodeKey(keys[i]) == encoded)
+				return i;
+		}
+		return -1;
+	}
+
+	private function syncReferenceMap():Void
+	{
+		// Check for desync
+		if (keys.length != values.length || keys.length != referenceMap.length)
+		{
+			desyncPanic("Length mismatch: keys=" + keys.length + ", values=" + values.length + ", referenceMap=" + referenceMap.length);
+			return;
+		}
+		for (i in 0...keys.length)
+		{
+			var ref = referenceMap[i];
+			if (ref == null || ref.key != keys[i] || ref.value != values[i] || ref.index != i)
+			{
+				desyncPanic("ReferenceMap desync at index " + i);
+				return;
+			}
+		}
+		// If referenceMap is not up to date, rebuild it
+		if (referenceMap.length != keys.length)
+		{
+			referenceMap = [];
+			for (i in 0...keys.length)
+			{
+				referenceMap.push({key: keys[i], value: values[i], index: i});
+			}
+		}
+	}
+
+	private function updateReferenceMap():Void
+	{
+		referenceMap = [];
+		for (i in 0...keys.length)
+		{
+			referenceMap.push({key: keys[i], value: values[i], index: i});
+		}
+	}
+
+	private function desyncPanic(msg:String):Void
+	{
+		trace("[DynamicMap] Desync detected: " + msg);
+		keys = null;
+		values = null;
+		referenceMap = null;
+		throw new haxe.Exception("[DynamicMap] CRASH PANIC: Internal data desync. All data nullified. Reason: " + msg);
+	}
+
+	public function get(key:K):V
+	{
+		syncReferenceMap();
+		var idx = indexOfKey(key);
+		return idx != -1 ? values[idx] : null;
+	}
+
+	public function set(key:K, value:V):Void
+	{
+		syncReferenceMap();
+		var idx = indexOfKey(key);
+		if (idx != -1)
+		{
+			values[idx] = value;
+			referenceMap[idx] = {key: key, value: value, index: idx};
+		}
+		else {
+			keys.push(key);
+			values.push(value);
+			referenceMap.push({key: key, value: value, index: keys.length - 1});
+		}
+	}
+
+	public function exists(key:K):Bool
+	{
+		syncReferenceMap();
+		return indexOfKey(key) != -1;
+	}
+
+	public function remove(key:K):Bool
+	{
+		syncReferenceMap();
+		var idx = indexOfKey(key);
+		if (idx != -1)
+		{
+			keys.splice(idx, 1);
+			values.splice(idx, 1);
+			referenceMap.splice(idx, 1);
+			updateReferenceMap();
+			return true;
+		}
+		return false;
+	}
+
+	public function keysArray():Array<K>
+	{
+		syncReferenceMap();
+		return keys.copy();
+	}
+
+	public function valuesArray():Array<V>
+	{
+		syncReferenceMap();
+		return values.copy();
+	}
+
+	public function iterator():Iterator<V>
+	{
+		syncReferenceMap();
+		return values.iterator();
+	}
+
+	private function clean():Void
+	{
+		keys = [];
+		values = [];
+		referenceMap = [];
+	}
+
+	public function clear():Void
+	{
+		clean();
+	}
+
+	public function length():Int
+	{
+		syncReferenceMap();
+		return keys.length;
+	}
+
+	public function pop():V
+	{
+		syncReferenceMap();
+		if (values.length > 0)
+		{
+			var value = values.pop();
+			keys.pop();
+			referenceMap.pop();
+			updateReferenceMap();
+			return value;
+		}
+		return null;
+	}
+
+	public function setAll(newKeys:Array<K>, newValues:Array<V>):Void
+	{
+		if (newKeys.length != newValues.length)
+		{
+			desyncPanic("setAll: newKeys and newValues length mismatch");
+			return;
+		}
+		keys = newKeys.copy();
+		values = newValues.copy();
+		updateReferenceMap();
+	}
+
+	public function getAll():Array<{key:K, value:V}>
+	{
+		syncReferenceMap();
+		var result = [];
+		for (i in 0...keys.length)
+		{
+			result.push({key: keys[i], value: values[i]});
+		}
+		return result;
+	}
+}
+
 class CollectionUtils
 {
 	public static inline function isIterable<T>(input:Dynamic):Bool
@@ -81,6 +626,180 @@ class CollectionUtils
 			|| (Std.is(input, IMap) && (input : Map<Dynamic, T>).keys().hasNext())
 			|| (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")));
 	}
+
+	public static inline function objectDynamic<T>(input:Dynamic):Dynamic
+	{
+		if (Std.is(input, Array))
+		{
+			var result = {};
+			for (i in 0...(input : Array<T>).length)
+			{
+				Reflect.setField(result, Std.string(i), input[i]);
+			}
+			return result;
+		}
+		else if (Std.is(input, IMap))
+		{
+			var result = {};
+			for (key in (input : Map<Dynamic, T>).keys())
+			{
+				Reflect.setField(result, key, input.get(key));
+			}
+			return result;
+		}
+		else
+		{
+			return input;
+		}
+	}
+
+	/**
+	 * Estimates the memory size of an object in bytes.
+	 * @param input The object to estimate.
+	 * @param mode Display mode: "bytes", "kb", "mb", or "auto" (default: "auto").
+	 * @return The estimated size as a String with units, or Int if mode is "bytes".
+	 */
+	public static function objectSize<T>(input:Dynamic, ?mode:String = "auto"):Dynamic
+	{
+		var seen = new Map<Dynamic, Bool>();
+		function sizeof(obj:Dynamic):Int
+		{
+			if (obj == null) return 0;
+			if (seen.exists(obj)) return 0;
+			seen.set(obj, true);
+
+			if (Std.is(obj, String)) {
+				return (obj : String).length * 2;
+			}
+
+			switch (Type.typeof(obj))
+			{
+				case TNull: return 0;
+				case TInt: return 4;
+				case TFloat: return 8;
+				case TBool: return 1;
+				case TObject:
+					var size = 0;
+					for (field in Reflect.fields(obj))
+					{
+						size += sizeof(Reflect.field(obj, field));
+					}
+					return size;
+				case TClass(_):
+					if (Std.is(obj, Array))
+					{
+						var arr:Array<Dynamic> = cast obj;
+						var size = 0;
+						for (item in arr) size += sizeof(item);
+						return size + 8 * arr.length;
+					}
+					else if (Std.is(obj, List))
+					{
+						var size = 0;
+						for (item in (obj : List<Dynamic>)) size += sizeof(item);
+						return size;
+					}
+					else if (Std.is(obj, IMap))
+					{
+						var size = 0;
+						for (key in (obj : IMap<Dynamic, Dynamic>).keys())
+						{
+							size += sizeof(key) + sizeof(obj.get(key));
+						}
+						return size;
+					}
+					else
+					{
+						// Fallback for other class instances
+						var size = 0;
+						for (field in Reflect.fields(obj))
+						{
+							size += sizeof(Reflect.field(obj, field));
+						}
+						return size;
+					}
+				default: return 0;
+			}
+		}
+
+		var bytes = sizeof(input);
+
+		function format(size:Int):String
+		{
+			function to2dp(f:Float):String
+				return StringTools.replace(Std.string(Math.round(f * 100) / 100), ".", ",").replace(",", ".");
+
+			if (mode == "bytes") return size + " bytes";
+			if (mode == "kb") return to2dp(size / 1024) + " KB";
+			if (mode == "mb") return to2dp(size / (1024 * 1024)) + " MB";
+			// auto
+			if (size < 1024) return size + " bytes";
+			if (size < 1024 * 1024) return to2dp(size / 1024) + " KB";
+			return to2dp(size / (1024 * 1024)) + " MB";
+		}
+
+		return mode == "bytes" ? bytes : format(bytes);
+	}
+
+	#if cpp
+	/**
+	 * Attempts to get the real memory size of an object in C++.
+	 * For primitive types, this works as expected.
+	 * For class instances, this will sum up the sizes of all fields recursively.
+	 * For structs, it gives the full struct size.
+	 * This uses C++ reflection to walk fields and sum their sizes.
+	 */
+	public static function realSizeOf<T>(input:T):Int
+	{
+		// For null, return 0
+		if (input == null) return 0;
+
+		// For primitive types, use sizeof directly
+		switch (Type.typeof(input)) {
+			case TNull: return 0;
+			case TInt: return untyped __cpp__('sizeof({0})', input);
+			case TFloat: return untyped __cpp__('sizeof({0})', input);
+			case TBool: return untyped __cpp__('sizeof({0})', input);
+			case TObject, TClass(_):
+				// For arrays, sum up all elements
+				if (Std.is(input, Array)) {
+					var arr:Array<Dynamic> = cast input;
+					var size = untyped __cpp__('sizeof({0})', input); // pointer to array
+					for (item in arr) size += realSizeOf(item);
+					return size;
+				}
+				// For strings
+				if (Std.is(input, String)) {
+					var str:cpp.ConstCharStar = cpp.ConstCharStar.fromString(cast input);
+					var trueString = cpp.Pointer.fromRaw(cast str.toPointer()).ref;
+					return untyped __cpp__('sizeof({0})', trueString) + untyped __cpp__('sizeof({0})', str); // pointer to string
+				}
+				// For maps
+				if (Std.is(input, haxe.ds.StringMap)) {
+					var map:haxe.ds.StringMap<Dynamic> = cast input;
+					var mapPtr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(map));
+					var trueMap = mapPtr.ref;
+					var size = untyped __cpp__('sizeof({0})', mapPtr) + untyped __cpp__('sizeof({0})', trueMap); // pointer to map
+					for (k in map.keys()) {
+						size += realSizeOf(k) + realSizeOf(map.get(k));
+					}
+					return size;
+				}
+				// For class instances, sum up all fields recursively
+				var size = untyped __cpp__('sizeof(void*)'); // pointer to object
+				var ptr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(input));
+				var trueObj = ptr.ref;
+				size += untyped __cpp__('sizeof({0})', trueObj);
+				size += untyped __cpp__('sizeof({0})', ptr); // pointer to object
+				for (field in Reflect.fields(input)) {
+					size += realSizeOf(Reflect.field(input, field));
+				}
+				return size;
+			default:
+				return untyped __cpp__('sizeof(void*)'); // pointer to object
+		}
+	}
+	#end
 
 	private static function list<T>(l:List<T>):List<T>
 	{
@@ -186,6 +905,59 @@ class CollectionUtils
 	// 		throw "Unsupported type for valTween";
 	// 	}
 	// }
+
+	public static inline function arrayProperties<T>(a:Array<T>):{length:Int, first:T, last:T}
+	{
+		return {length: a.length, first: a[0], last: a[a.length - 1]};
+	}
+
+	// public static inline function propertiesFromObject<T>(o:Dynamic):{length:Int, first:T, last:T}
+	// {
+	// 	var keys = Reflect.fields(o);
+	// 	var length = keys.length;
+	// 	var first = length > 0 ? o[keys[0]] : null;
+	// 	var last = length > 0 ? o[keys[length - 1]] : null;
+	// 	return {length: length, first: first, last: last};
+	// }
+
+	public static inline function pluck<T, R>(input:Iterable<T>, property:String):Array<R>
+	{
+		var result = [];
+		for (item in input)
+		{
+			result.push(Reflect.field(item, property));
+		}
+		return result;
+	}
+
+	// Maps to dictionaries, arrays, and other iterable types.
+	public static inline function keyPairs<K, V>(input:Dynamic):Array<{key:Dynamic, value:Dynamic}>
+	{
+		var result:Array<{key:Dynamic, value:Dynamic}> = [];
+
+		if (Std.is(input, Array))
+		{
+			for (i in 0...(input : Array<Dynamic>).length)
+			{
+				result.push({key: i, value: input[i]});
+			}
+		}
+		else if (Std.is(input, IMap))
+		{
+			for (key in (input : Map<Dynamic, Dynamic>).keys())
+			{
+				result.push({key: key, value: input.get(key)});
+			}
+		}
+		// else if (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")))
+		// {
+		// 	for (item in (input : Iterable<K>))
+		// 	{
+		// 		result.push({key: item.key, value: item.value});
+		// 	}
+		// }
+		return result;
+	}
 
 	public static inline extern overload function getFromList<T>(list:List<T>, index:Int):T
 	{
