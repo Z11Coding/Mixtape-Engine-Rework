@@ -56,7 +56,10 @@ import objects.BGSprite;
 
 import states.PlayState;
 import states.LoadingState;
+
 import managers.*;
+
+import shaders.*;
 
 #if flxanimate
 import flxanimate.*;
@@ -69,6 +72,9 @@ import moonchart.formats.fnf.*;
 import moonchart.formats.*;
 import moonchart.parsers.*;
 import moonchart.Moonchart;
+
+//Mechanics Mod
+import mechanics.*;
 
 //Flixel
 import flixel.sound.FlxSound;
