@@ -3,6 +3,7 @@ package options;
 class MixtapeSettingsSubState extends BaseOptionsMenu
 {
 	public static var curBPMList:Array<Int> =  [0, 160, 105, 130, 100, 160, 180, 100, 125, 150, 140];
+	var perfOpt:Option;
 	public function new()
 	{
 		title = 'Mixtape Settings.';
@@ -337,6 +338,67 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		addOption(option);
 
+		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,
+			['hide', 'fps', 'fps-mem', 'fps-mem-peak']);
+		addOption(option);
+		option.onChange = function()
+		{
+			onChangePerformanceCounter();
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					{
+						option.text = 'Hide FPS';
+					}
+				case 'fps':
+					{
+						option.text = 'FPS Only';
+					}
+				case 'fps-mem':
+					{
+						option.text = 'FPS With Memory';
+						@:privateAccess
+						{
+							for (i in 0...option.text.length)
+							{
+								if (option.child.members[i] != null)
+								{
+									if (i >= 7)
+									{
+										option.child.members[i].y += 40;
+										option.child.members[i].x -= 280;
+									}
+									else
+										option.child.members[i].y -= 15;
+								}
+							}
+						}
+					}
+				case 'fps-mem-peak':
+					{
+						option.text = 'FPS With Memory Peak';
+						@:privateAccess
+						{
+							for (i in 0...option.text.length)
+							{
+								if (option.child.members[i] != null)
+								{
+									if (i >= 7)
+									{
+										option.child.members[i].y += 40;
+										option.child.members[i].x -= 360;
+									}
+									else
+										option.child.members[i].y -= 15;
+								}
+							}
+						}
+					}
+			}
+		};
+
+		perfOpt = option;
+
 		var option:Option = new Option('Ignore Tween Errors',
 			"Disables the error message that appears when a tween is called on a non-existent object.",
 			'ignoreTweenErrors',
@@ -362,6 +424,20 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		super();
+	}
+
+	function onChangePerformanceCounter()
+	{
+		if (Main.fpsVar != null)
+		{
+			Main.fpsVar.visible = true;
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					Main.fpsVar.visible = false;
+			}
+			Main.fpsVar.forceUpdateText = true;
+		}
 	}
 
 	var changedMusic:Bool = false;
@@ -426,6 +502,9 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		super.update(e);
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
+
+		if (perfOpt != null)
+			perfOpt.onChange();
 	}
 
 	override function beatHit()

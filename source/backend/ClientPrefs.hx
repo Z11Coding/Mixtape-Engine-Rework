@@ -177,6 +177,7 @@ import states.TitleState;
 	public var chartEditorStyle:String = 'New';
 	public var silentVol:Bool = false;
 	public var editorMusVol:Float = 0.7;
+	public var performanceCounter:String = 'fps-mem-peak';
 }
 
 class ClientPrefs {
