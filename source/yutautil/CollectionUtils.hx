@@ -883,6 +883,8 @@ class CollectionUtils
 			}
 		}
 
+		var erroredObjects:Array<Dynamic> = [];
+		var errorCount = 0;
 		while (stack.length > 0)
 		{
 			var current = stack.pop();
@@ -892,54 +894,86 @@ class CollectionUtils
 
 			printStatus();
 
-			switch (Type.typeof(current))
-			{
-				case TNull:
-					// nothing
-				case TInt, TFloat, TBool:
-					totalSize += untyped __cpp__('sizeof({0})', current);
-				case TObject, TClass(_):
-					if (Std.is(current, Array))
-					{
-						var arr:Array<Dynamic> = cast current;
+			try {
+				switch (Type.typeof(current))
+				{
+					case TNull:
+						// nothing
+					case TInt, TFloat, TBool:
 						totalSize += untyped __cpp__('sizeof({0})', current);
-						for (item in arr) stack.push(item);
-					}
-					else if (Std.is(current, String))
-					{
-						var str:cpp.ConstCharStar = cpp.ConstCharStar.fromString(cast current);
-						var trueString = cpp.Pointer.fromRaw(cast str.toPointer()).ref;
-						totalSize += untyped __cpp__('sizeof({0})', trueString) + untyped __cpp__('sizeof({0})', str);
-					}
-					else if (Std.is(current, haxe.ds.StringMap))
-					{
-						var map:haxe.ds.StringMap<Dynamic> = cast current;
-						var mapPtr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(map));
-						var trueMap = mapPtr.ref;
-						totalSize += untyped __cpp__('sizeof({0})', mapPtr) + untyped __cpp__('sizeof({0})', trueMap);
-						for (k in map.keys())
+					case TObject, TClass(_):
+						if (Std.is(current, Array))
 						{
-							stack.push(k);
-							stack.push(map.get(k));
+							var arr:Array<Dynamic> = cast current;
+							totalSize += untyped __cpp__('sizeof({0})', current);
+							for (item in arr) stack.push(item);
 						}
-					}
-					else
-					{
-						var size = untyped __cpp__('sizeof(void*)');
-						var ptr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(current));
-						var trueObj = ptr.ref;
-						size += untyped __cpp__('sizeof({0})', trueObj);
-						size += untyped __cpp__('sizeof({0})', ptr);
-						totalSize += size;
-						for (field in Reflect.fields(current))
+						else if (Std.is(current, String))
 						{
-							stack.push(Reflect.field(current, field));
+							var str:cpp.ConstCharStar = cpp.ConstCharStar.fromString(cast current);
+							var trueString = cpp.Pointer.fromRaw(cast str.toPointer()).ref;
+							totalSize += untyped __cpp__('sizeof({0})', trueString) + untyped __cpp__('sizeof({0})', str);
 						}
-					}
-				default:
-					totalSize += untyped __cpp__('sizeof(void*)');
+						else if (Std.is(current, haxe.ds.StringMap))
+						{
+							var map:haxe.ds.StringMap<Dynamic> = cast current;
+							var mapPtr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(map));
+							var trueMap = mapPtr.ref;
+							totalSize += untyped __cpp__('sizeof({0})', mapPtr) + untyped __cpp__('sizeof({0})', trueMap);
+							for (k in map.keys())
+							{
+								stack.push(k);
+								stack.push(map.get(k));
+							}
+						}
+						else
+						{
+							var size = untyped __cpp__('sizeof(void*)');
+							var ptr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(current));
+							var trueObj = ptr.ref;
+							size += untyped __cpp__('sizeof({0})', trueObj);
+							size += untyped __cpp__('sizeof({0})', ptr);
+							totalSize += size;
+							for (field in Reflect.fields(current))
+							{
+								stack.push(Reflect.field(current, field));
+							}
+						}
+					default:
+						totalSize += untyped __cpp__('sizeof(void*)');
+				}
+			} catch (e:Dynamic) {
+				errorCount++;
+				erroredObjects.push(current);
 			}
 		}
+
+		// Print a newline at the end to finish the line
+		if (opts.verbose || (opts.showStack != null && showStackObj.size > 0) || opts.showObjects) {
+			Sys.println("");
+		}
+
+		if (errorCount > 0) {
+			var report = "Errored Objects: " + errorCount + "\n";
+			for (obj in erroredObjects) {
+				try {
+					report += "Object: " + Std.string(obj) + " | Type: " + (Type.getClassName(Type.getClass(obj))) + "\n";
+				} catch (e:Dynamic) {
+					report += "Object: [unstringifiable]\n";
+				}
+			}
+			// Write report to crash folder
+			var crashDir = "crash";
+			if (!sys.FileSystem.exists(crashDir)) sys.FileSystem.createDirectory(crashDir);
+			var fileName = crashDir + "/realSizeOf_error_report_" + Date.now().getTime() + ".txt";
+			sys.io.File.saveContent(fileName, "Total Size: " + totalSize + "\n" + report);
+
+			trace("Errored Objects: " + errorCount);
+
+			lime.app.Application.current.window.alert("Error(s) occurred during realSizeOf:\n" + report, "realSizeOf Error Report");
+
+		}
+		return totalSize;
 		// Print a newline at the end to finish the line
 		if (opts.verbose || (opts.showStack != null && showStackObj.size > 0) || opts.showObjects) {
 			Sys.println("");
