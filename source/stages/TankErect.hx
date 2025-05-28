@@ -24,7 +24,6 @@ class TankErect extends BaseStage {
 	}
 
     override function create() {
-		new PicoCapableStage();
         super.create();
 
         var bg:BGSprite = new BGSprite('erect/bg', -985, -805, 1,1);

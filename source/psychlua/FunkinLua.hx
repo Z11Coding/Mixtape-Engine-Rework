@@ -136,12 +136,17 @@ class FunkinLua {
 			set('hits', game.comboManager?.songHits);
 			set('combo', game.comboManager?.combo);
 			set('deaths', PlayState.deathCounter);
-	
+			
 			set('rating', game.comboManager?.ratingPercent);
 			set('ratingName', game.comboManager?.ratingName);
 			set('ratingFC', game.comboManager?.ratingFC);
 			set('totalPlayed', game.comboManager?.totalPlayed);
 			set('totalNotesHit', game.comboManager?.totalNotesHit);
+
+			//Backwards compat
+			set('songScore', game.comboManager?.songScore);
+			set('songMisses', game.comboManager?.songMisses);
+			set('ratingPercent', game.comboManager?.ratingPercent);
 
 			set('inGameOver', GameOverSubstate.instance != null);
 			set('mustHitSection', curSection != null ? (curSection.mustHitSection == true) : false);

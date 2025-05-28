@@ -7,6 +7,7 @@ import stages.PicoCapableStage;
 
 class MallXmasErect extends PicoCapableStage
 {
+	var snowSprites:Array<MallSnow> = [];
 	var upperBoppers:BGSprite;
 	var bottomBoppers:MallCrowd;
 	var santa:BGSprite;
@@ -30,6 +31,17 @@ class MallXmasErect extends PicoCapableStage
 			bgEscalator.setGraphicSize(Std.int(bgEscalator.width * 0.9));
 			bgEscalator.updateHitbox();
 			add(bgEscalator);
+
+			var snowSprite = new MallSnow({
+				x: -900,
+				y: -1200,
+				width: 2400,
+				height: 400
+			});
+			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
+			snowSprites.push(snowSprite);
+			add(snowSprite);
 		}
 
 		var tree:BGSprite = new BGSprite('christmas/erect/christmasTree', 370, -250, 0.40, 0.40);
@@ -49,6 +61,19 @@ class MallXmasErect extends PicoCapableStage
 		add(santa);
 		setDefaultGF('gf-christmas');
 
+		if (!ClientPrefs.data.lowQuality) {
+			var snowSprite = new MallSnow({
+				x: -900,
+				y: -1200,
+				width: 2400,
+				height: 400
+			});
+			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
+			snowSprites.push(snowSprite);
+			add(snowSprite);
+		}
+
 		if(isStoryMode && !seenCutscene)
 			setEndCallback(eggnogEndCutscene);
 	}
@@ -67,11 +92,33 @@ class MallXmasErect extends PicoCapableStage
 		
 		@:privateAccess
 		if(PicoCapableStage.NENE_LIST.contains(PlayState.SONG.gfVersion)) GameOverSubstate.characterName = 'pico-christmas-dead';
+
+		if (!ClientPrefs.data.lowQuality) {
+			var snowSprite = new MallSnow({
+				x: -900,
+				y: -1200,
+				width: 2400,
+				height: 400
+			});
+			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
+			snowSprites.push(snowSprite);
+			add(snowSprite);
+		}
 	}
 	override function countdownTick(count:Countdown, num:Int) everyoneDance();
 	override function beatHit() {
 		super.beatHit();
 		everyoneDance();
+		if (curBeat % 2 == 0)
+		{
+			for (snowSprite in snowSprites)
+			{
+				var spawnMin = FlxG.random.int(3, 12);
+				var spawnMax = spawnMin + FlxG.random.int(12, 16);
+				snowSprite.spawnGroup(spawnMin, spawnMax, 0.8, 1.4, 120, 360);
+			}
+		}
 	}
 
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)

@@ -4,6 +4,7 @@ import stages.objects.*;
 
 class Mall extends BaseStage
 {
+	var snowSprites:Array<MallSnow> = [];
 	var upperBoppers:BGSprite;
 	var bottomBoppers:MallCrowd;
 	var santa:BGSprite;
@@ -25,6 +26,17 @@ class Mall extends BaseStage
 			bgEscalator.setGraphicSize(Std.int(bgEscalator.width * 0.9));
 			bgEscalator.updateHitbox();
 			add(bgEscalator);
+
+			var snowSprite = new MallSnow({
+				x: -900,
+				y: -1200,
+				width: 2400,
+				height: 400
+			});
+			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
+			snowSprites.push(snowSprite);
+			add(snowSprite);
 		}
 
 		var tree:BGSprite = new BGSprite('christmas/christmasTree', 370, -250, 0.40, 0.40);
@@ -41,8 +53,37 @@ class Mall extends BaseStage
 		Paths.sound('Lights_Shut_off');
 		setDefaultGF('gf-christmas');
 
+		if (!ClientPrefs.data.lowQuality) {
+			var snowSprite = new MallSnow({
+				x: -900,
+				y: -1200,
+				width: 2400,
+				height: 400
+			});
+			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
+			snowSprites.push(snowSprite);
+			add(snowSprite);
+		}
+
 		if(isStoryMode && !seenCutscene)
 			setEndCallback(eggnogEndCutscene);
+	}
+
+	override function createPost() {
+		super.createPost();
+		if (!ClientPrefs.data.lowQuality) {
+			var snowSprite = new MallSnow({
+				x: -900,
+				y: -1200,
+				width: 2400,
+				height: 400
+			});
+			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
+			snowSprites.push(snowSprite);
+			add(snowSprite);
+		}
 	}
 
 	override function countdownTick(count:Countdown, num:Int) everyoneDance();
@@ -69,6 +110,16 @@ class Mall extends BaseStage
 
 		bottomBoppers.dance(true);
 		santa.dance(true);
+
+		if (curBeat % 2 == 0)
+		{
+			for (snowSprite in snowSprites)
+			{
+				var spawnMin = FlxG.random.int(3, 12);
+				var spawnMax = spawnMin + FlxG.random.int(12, 16);
+				snowSprite.spawnGroup(spawnMin, spawnMax, 0.8, 1.4, 120, 360);
+			}
+		}
 	}
 
 	function eggnogEndCutscene()

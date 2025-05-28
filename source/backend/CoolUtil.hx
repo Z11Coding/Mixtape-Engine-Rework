@@ -412,6 +412,81 @@ class CoolUtil
 
 		return finalCombinations;
 	}
+
+	public static function formatMemory(num:UInt):String
+	{
+		var size:Float = num;
+		var data = 0;
+		var dataTexts = ["B", "KB", "MB", "GB"];
+		while (size > 1024 && data < dataTexts.length - 1)
+		{
+			data++;
+			size = size / 1024;
+		}
+
+		size = Math.round(size * 100) / 100;
+		var formatSize:String = formatAccuracy(size);
+		return formatSize + " " + dataTexts[data];
+	}
+
+	public static function flattenNumber(num:Float):String
+	{
+		var sizeList:Array<{value:Float, suffix:String}> = [{value: 1000, suffix: 'K'}, {value: 1000000, suffix: 'M'}];
+
+		if (num < 1000)
+			return '' + num;
+		else
+		{
+			sizeList.push({value: FlxMath.MAX_VALUE_FLOAT, suffix: null});
+
+			for (i in 0...sizeList.length)
+			{
+				if (num > sizeList[i].value && (sizeList[i + 1] != null && (num < sizeList[i + 1].value)))
+					return '' + floorDecimal(num / sizeList[i].value, 2) + sizeList[i].suffix;
+			}
+		}
+
+		return '';
+	}
+
+	public static function formatAccuracy(value:Float)
+	{
+		var conversion:Map<String, String> = [
+			'0' => '0.00',
+			'0.0' => '0.00',
+			'0.00' => '0.00',
+			'00' => '00.00',
+			'00.0' => '00.00',
+			'00.00' => '00.00', // gotta do these as well because lazy
+			'000' => '000.00'
+		]; // these are to ensure you're getting the right values, instead of using complex if statements depending on string length
+
+		var stringVal:String = Std.string(value);
+		var converVal:String = '';
+		for (i in 0...stringVal.length)
+		{
+			if (stringVal.charAt(i) == '.')
+				converVal += '.';
+			else
+				converVal += '0';
+		}
+
+		var wantedConversion:String = conversion.get(converVal);
+		var convertedValue:String = '';
+
+		for (i in 0...wantedConversion.length)
+		{
+			if (stringVal.charAt(i) == '')
+				convertedValue += wantedConversion.charAt(i);
+			else
+				convertedValue += stringVal.charAt(i);
+		}
+
+		if (convertedValue.length == 0)
+			return '$value';
+
+		return convertedValue;
+	}
 }
 
 typedef LogData = {
