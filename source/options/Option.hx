@@ -142,3 +142,33 @@ class Option
 		return null;
 	}
 }
+
+class EnumOption<T:EnumValue> extends Option {
+    public var enumType:Enum<T>;
+    public function new<T:EnumValue>(name:String, description:String = '', variable:String, enumType:Enum<T>, ?translation:String = null) {
+        var enumValues = Type.getEnumConstructs(enumType);
+        super(name, description, variable, OptionType.STRING, enumValues, translation);
+        this.enumType = cast enumType;
+        // Set default value to the first enum value if not set
+        if (defaultValue == null && enumValues.length > 0)
+            defaultValue = enumValues[0];
+        // If the current value is not a string, convert it
+        var val = getValue();
+        // if (val != null && !Std.isOfType(val, String))
+            // setValue(Type.enumConstructor(val));
+    }
+
+    override public function getValue():Dynamic {
+        var strVal:String = cast Reflect.getProperty(ClientPrefs.data, variable);
+        return Type.createEnum(enumType, strVal);
+    }
+
+    override public function setValue(value:Dynamic) {
+		trace('Setting value for enum option: $variable to $value');
+        return setByString(Type.enumConstructor(value));
+    }
+
+    public function setByString(str:String) {
+        setValue(Type.createEnum(enumType, str));
+    }
+}

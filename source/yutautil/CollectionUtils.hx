@@ -606,6 +606,18 @@ class DynamicMap<K, V>
 	}
 }
 
+enum Size
+{
+	Bytes;
+	KB;
+	MB;
+	Auto;
+}
+
+/**
+ * A utility class for working with collections, providing various methods
+ * to check types, estimate sizes, and convert between different collection types.
+ */
 class CollectionUtils
 {
 	public static inline function isIterable<T>(input:Dynamic):Bool
@@ -741,63 +753,198 @@ class CollectionUtils
 		return mode == "bytes" ? bytes : format(bytes);
 	}
 
+	public static inline function enumToArray<T:EnumValue>(enumType:Enum<T>):Array<Dynamic>
+	{
+		// Converts an Enum to an Array of its values.
+		return Type.getEnumConstructs(enumType);
+	}
+
+	public static inline function sizeIn(input:Dynamic, ?accuracy:Size, ?verbosity:{?verbose:Bool, ?showStack:Dynamic, ?showCurrent:Bool, ?showObjects:Bool}):Dynamic
+	{
+		// Returns the size of the object in the specified accuracy.
+		// If accuracy is not provided, it defaults to "auto".
+		if (accuracy == null) accuracy = Size.Auto;
+
+		var size = realSizeOf(input, verbosity);
+
+		return switch (accuracy)
+		{
+			case Size.Bytes: size;
+			case Size.KB: Math.round(size / 1024 * 100) / 100; // Round to 2 decimal places
+			case Size.MB: Math.round(size / (1024 * 1024) * 100) / 100; // Round to 2 decimal places
+			case Size.Auto:
+				if (size < 1024) size + " bytes";
+				else if (size < 1024 * 1024) Math.round(size / 1024 * 100) / 100 + " KB"; // Round to 2 decimal places
+				else Math.round(size / (1024 * 1024) * 100) / 100 + " MB"; // Round to 2 decimal places
+		}
+	}
+
 	#if cpp
 	/**
 	 * Attempts to get the real memory size of an object in C++.
-	 * For primitive types, this works as expected.
-	 * For class instances, this will sum up the sizes of all fields recursively.
-	 * For structs, it gives the full struct size.
-	 * This uses C++ reflection to walk fields and sum their sizes.
+	 * Uses an explicit stack to avoid recursion/stack overflow for large objects.
 	 */
-	public static function realSizeOf<T>(input:T):Int
+	public static function realSizeOf<T>(input:T, ?options:{?verbose:Bool, ?showStack:Dynamic, ?showCurrent:Bool, ?showObjects:Bool}):Int
 	{
-		// For null, return 0
+		#if !cpp
+		throw "realSizeOf is only available on cpp targets.";
+		#end
+
 		if (input == null) return 0;
 
-		// For primitive types, use sizeof directly
-		switch (Type.typeof(input)) {
-			case TNull: return 0;
-			case TInt: return untyped __cpp__('sizeof({0})', input);
-			case TFloat: return untyped __cpp__('sizeof({0})', input);
-			case TBool: return untyped __cpp__('sizeof({0})', input);
-			case TObject, TClass(_):
-				// For arrays, sum up all elements
-				if (Std.is(input, Array)) {
-					var arr:Array<Dynamic> = cast input;
-					var size = untyped __cpp__('sizeof({0})', input); // pointer to array
-					for (item in arr) size += realSizeOf(item);
-					return size;
-				}
-				// For strings
-				if (Std.is(input, String)) {
-					var str:cpp.ConstCharStar = cpp.ConstCharStar.fromString(cast input);
-					var trueString = cpp.Pointer.fromRaw(cast str.toPointer()).ref;
-					return untyped __cpp__('sizeof({0})', trueString) + untyped __cpp__('sizeof({0})', str); // pointer to string
-				}
-				// For maps
-				if (Std.is(input, haxe.ds.StringMap)) {
-					var map:haxe.ds.StringMap<Dynamic> = cast input;
-					var mapPtr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(map));
-					var trueMap = mapPtr.ref;
-					var size = untyped __cpp__('sizeof({0})', mapPtr) + untyped __cpp__('sizeof({0})', trueMap); // pointer to map
-					for (k in map.keys()) {
-						size += realSizeOf(k) + realSizeOf(map.get(k));
-					}
-					return size;
-				}
-				// For class instances, sum up all fields recursively
-				var size = untyped __cpp__('sizeof(void*)'); // pointer to object
-				var ptr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(input));
-				var trueObj = ptr.ref;
-				size += untyped __cpp__('sizeof({0})', trueObj);
-				size += untyped __cpp__('sizeof({0})', ptr); // pointer to object
-				for (field in Reflect.fields(input)) {
-					size += realSizeOf(Reflect.field(input, field));
-				}
-				return size;
-			default:
-				return untyped __cpp__('sizeof(void*)'); // pointer to object
+		var seen = new Map<Dynamic, Bool>();
+		var stack:Array<Dynamic> = [input];
+		var totalSize = 0;
+		var opts = options != null ? options : {};
+
+		// Handle showStack as object with .size property (default 3 or 5)
+		var showStackObj:Null<{size:Int}> = null;
+		if (opts.showStack != null) {
+			if (Std.is(opts.showStack, Bool)) {
+				showStackObj = { size: opts.showStack ? 3 : 0 };
+			} else if (Reflect.isObject(opts.showStack) && Reflect.hasField(opts.showStack, "size")) {
+				showStackObj = { size: opts.showStack.size };
+			} else if (Std.is(opts.showStack, Int)) {
+				showStackObj = { size: opts.showStack };
+			}
 		}
+		if (showStackObj == null) showStackObj = { size: 5 };
+
+		function safeToString(obj:Dynamic):String {
+			try {
+				return Std.string(obj);
+			} catch (e) {
+				return "[error: " + Std.string(e) + "]";
+			}
+		}
+
+		function classDisplay(obj:Dynamic):String {
+			try {
+				var cl = Type.getClass(obj);
+				if (cl != null) {
+					var className = Type.getClassName(cl);
+					var str = safeToString(obj);
+					if (str != null && str != "") {
+						return className + " | \"" + str + "\"";
+					} else {
+						return className;
+					}
+				} else {
+					return safeToString(obj);
+				}
+			} catch (e) {
+				return "[error: " + Std.string(e) + "]";
+			}
+		}
+
+		// Compose a single-line status string
+		inline function statusString():String {
+			var stackCount = stack.length + 1;
+			var currentObj = stack.length > 0 ? stack[stack.length - 1] : null;
+			var currentStr = "";
+			if (opts.showCurrent && currentObj != null) {
+				try {
+					if (Type.getClass(currentObj) != null) {
+						currentStr = " | Current: " + classDisplay(currentObj);
+					} else {
+						currentStr = " | Current: " + safeToString(currentObj);
+					}
+				} catch (e:Dynamic) {
+					currentStr = " | Current: [error displaying object: " + Std.string(e) + "]";
+				}
+			}
+			var stackStr = "";
+			if ((opts.showStack != null && showStackObj.size > 0) || opts.showObjects) {
+				var items = [];
+				var start = stack.length - showStackObj.size;
+				if (start < 0) start = 0;
+				for (i in start...stack.length) {
+					var item = stack[i];
+					try {
+						if (Type.getClass(item) != null) {
+							items.push(classDisplay(item));
+						} else {
+							items.push(safeToString(item));
+						}
+					} catch (e:Dynamic) {
+						items.push("[error displaying object: " + Std.string(e) + "]");
+					}
+				}
+				stackStr = " | Stack(last " + showStackObj.size + "): [" + items.join(", ") + "]";
+			}
+			var result = "[realSizeOf] Stack size: " + stackCount + " | Total size: " + totalSize + currentStr + stackStr;
+			return StringTools.replace(result, "\n", " ");
+		}
+
+		// Use Sys.print to update the same line
+		inline function printStatus() {
+			if (opts.verbose || (opts.showStack != null && showStackObj.size > 0) || opts.showObjects) {
+				Sys.print("\r" + statusString());
+			}
+		}
+
+		while (stack.length > 0)
+		{
+			var current = stack.pop();
+			if (current == null) continue;
+			if (seen.exists(current)) continue;
+			seen.set(current, true);
+
+			printStatus();
+
+			switch (Type.typeof(current))
+			{
+				case TNull:
+					// nothing
+				case TInt, TFloat, TBool:
+					totalSize += untyped __cpp__('sizeof({0})', current);
+				case TObject, TClass(_):
+					if (Std.is(current, Array))
+					{
+						var arr:Array<Dynamic> = cast current;
+						totalSize += untyped __cpp__('sizeof({0})', current);
+						for (item in arr) stack.push(item);
+					}
+					else if (Std.is(current, String))
+					{
+						var str:cpp.ConstCharStar = cpp.ConstCharStar.fromString(cast current);
+						var trueString = cpp.Pointer.fromRaw(cast str.toPointer()).ref;
+						totalSize += untyped __cpp__('sizeof({0})', trueString) + untyped __cpp__('sizeof({0})', str);
+					}
+					else if (Std.is(current, haxe.ds.StringMap))
+					{
+						var map:haxe.ds.StringMap<Dynamic> = cast current;
+						var mapPtr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(map));
+						var trueMap = mapPtr.ref;
+						totalSize += untyped __cpp__('sizeof({0})', mapPtr) + untyped __cpp__('sizeof({0})', trueMap);
+						for (k in map.keys())
+						{
+							stack.push(k);
+							stack.push(map.get(k));
+						}
+					}
+					else
+					{
+						var size = untyped __cpp__('sizeof(void*)');
+						var ptr = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(current));
+						var trueObj = ptr.ref;
+						size += untyped __cpp__('sizeof({0})', trueObj);
+						size += untyped __cpp__('sizeof({0})', ptr);
+						totalSize += size;
+						for (field in Reflect.fields(current))
+						{
+							stack.push(Reflect.field(current, field));
+						}
+					}
+				default:
+					totalSize += untyped __cpp__('sizeof(void*)');
+			}
+		}
+		// Print a newline at the end to finish the line
+		if (opts.verbose || (opts.showStack != null && showStackObj.size > 0) || opts.showObjects) {
+			Sys.println("");
+		}
+		return totalSize;
 	}
 	#end
 

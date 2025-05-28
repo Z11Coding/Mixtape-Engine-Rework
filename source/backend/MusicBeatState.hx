@@ -136,6 +136,12 @@ class MusicBeatState extends FlxState
 			});
 		}
 		emergencyOpacityFix = true;
+
+		if (ClientPrefs.data.showInitialMemoryUsage && Sys.args().indexOf('-livereload') != -1)
+		{
+			debug.FPSCounter.initMemory = this.sizeIn(yutautil.CollectionUtils.Size.Bytes, {verbose: ClientPrefs.data.showProgressInCMD, showObjects: false, showStack: false, showCurrent: false});
+			trace('Initial memory usage: ' + debug.FPSCounter.initMemory);
+		}
 	}
 
 	public static var firstRun:Bool = true;

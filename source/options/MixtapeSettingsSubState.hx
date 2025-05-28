@@ -361,6 +361,33 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			]);
 		addOption(option);
 
+		if (Sys.args().indexOf('-livereload') != -1)
+		{
+
+			var option:Option = new Option('---Compiler Options---', '', '', LABEL);
+			addOption(option);
+
+			var option:Option = new Option('Assess Initial Memory',
+				"Checks the initial memory usage of the game.",
+				'showInitialMemoryUsage',
+				BOOL);
+			addOption(option);
+
+			var option:Option = new Option('Show CMD Progress',
+				"Shows the progress of the memory usage in the command line.",
+				'showProgressInCMD',
+				BOOL);
+			addOption(option);
+
+			var option:Option.EnumOption<yutautil.CollectionUtils.Size> = new Option.EnumOption<yutautil.CollectionUtils.Size>('Size Accuracy',
+				"Sets the accuracy of the size measurement.",
+				'SizeAccuracy',
+				yutautil.CollectionUtils.Size
+			);
+			addOption(option);
+
+		}
+
 		super();
 	}
 

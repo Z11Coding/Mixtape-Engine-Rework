@@ -1244,6 +1244,7 @@ class PlayState extends MusicBeatState
 		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
 		initY = healthBar.y;
 
+		// trace size with verbose settings.
 		// trace(this.realSizeOf());
 	}
 

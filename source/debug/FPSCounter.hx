@@ -21,6 +21,8 @@ class FPSCounter extends TextField
 	**/
 	public var memoryMegas(get, never):Float;
 
+	public static var initMemory:Dynamic;
+
 	@:noCompletion private var times:Array<Float>;
 
 	public function new(x:Float = 10, y:Float = 10, color:Int = 0x000000)
@@ -29,6 +31,8 @@ class FPSCounter extends TextField
 
 		this.x = x;
 		this.y = y;
+
+		initMemory = this.sizeIn(yutautil.CollectionUtils.Size.Bytes);
 
 		currentFPS = 0;
 		selectable = false;
@@ -63,6 +67,10 @@ class FPSCounter extends TextField
 	public dynamic function updateText():Void { // so people can override it in hscript
 		text = 'FPS: ${currentFPS}'
 		+ '\nMemory: ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}';
+
+		if (ClientPrefs.data.showInitialMemoryUsage && initMemory != null && Sys.args().indexOf('-livereload') != -1)
+			text += '\nInitial Memory: ${flixel.util.FlxStringUtil.formatBytes(initMemory)}';
+
 
 		textColor = 0xFFFFFFFF;
 		if (currentFPS < FlxG.drawFramerate * 0.5)
