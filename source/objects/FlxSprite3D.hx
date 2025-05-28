@@ -150,8 +150,10 @@ class FlxSprite3D extends FlxSprite {
 			}
 
 
-			#if FLX_DEBUG
-			FlxBasic.visibleCount++;
+			#if !debug
+				#if FLX_DEBUG
+				FlxBasic.visibleCount++;
+				#end
 			#end
 		}
 		bandaidOrigin.putWeak();
