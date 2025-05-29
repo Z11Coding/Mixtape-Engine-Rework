@@ -53,6 +53,7 @@ import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
 #end
 
+import metadata.STMetaFile.MetadataFile;
 using DateTools;
 
 typedef UndoStruct = {
@@ -238,6 +239,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var selectionBox:FlxSprite;
 
 	var _shouldReset:Bool = true;
+
+	var metadata:MetadataFile;
 	public function new(?shouldReset:Bool = true)
 	{
 		this._shouldReset = shouldReset;
@@ -569,6 +572,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		////// for main box
 		addChartingTab();
 		addDataTab();
+		addMetadataTab();
 		addEventsTab();
 		addNoteTab();
 		addSectionTab();
@@ -2221,6 +2225,15 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		PlayState.SONG = song;
 		StageData.loadDirectory(PlayState.SONG);
 		Conductor.bpm = PlayState.SONG.bpm;
+		loadMetadata();
+	}
+
+	function loadMetadata() {
+		try {metadata = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(PlayState.SONG.song.toLowerCase()) + '/meta')));}
+		catch(e) {
+			//trace("can't.");
+			metadata = null;
+		}
 	}
 
 	function loadMusic(?killAudio:Bool = false)
@@ -3129,6 +3142,83 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(noteSplashesInputText);
 
 		tab_group.add(gameOverCharDropDown); //lowest priority to display properly
+	}
+
+	var songNameMetaInputText:PsychUIInputText;
+	var artistInputText:PsychUIInputText;
+	var charterInputText:PsychUIInputText;
+	var modInputText:PsychUIInputText;
+	var bgInputText:PsychUIInputText;
+	var albumInputText:PsychUIInputText;
+	var ratingsStepper:PsychUINumericStepper;
+	function addMetadataTab()
+	{
+		var tab_group = mainBox.getTab('Metadata').menu;
+		var objX = 10;
+		var objY = 25;
+		tab_group.add(new FlxText(objX, objY, 120, 'Song:'));
+		tab_group.add(new FlxText(objX + 250, objY, 120, 'Freeplay:'));
+		objY += 40;
+		songNameMetaInputText = new PsychUIInputText(objX, objY, 120, '', 8);
+		songNameMetaInputText.onChange = function(old:String, cur:String)
+		{
+			metadata.song.name = cur;
+		}
+		objY += 40;
+		artistInputText = new PsychUIInputText(objX, objY, 120, '', 8);
+		artistInputText.onChange = function(old:String, cur:String)
+		{
+			metadata.song.artist = cur;
+		}
+		objY += 40;
+		charterInputText = new PsychUIInputText(objX, objY, 120, '', 8);
+		charterInputText.onChange = function(old:String, cur:String)
+		{
+			metadata.song.charter = cur;
+		}
+		objY += 40;
+		modInputText = new PsychUIInputText(objX, objY, 120, '', 8);
+		modInputText.onChange = function(old:String, cur:String)
+		{
+			metadata.song.mod = cur;
+		}
+
+		objX += 140;
+		objY -= 80;
+		bgInputText = new PsychUIInputText(objX, objY, 120, '', 8);
+		bgInputText.onChange = function(old:String, cur:String)
+		{
+			metadata.freeplay.bg = cur;
+		}
+		
+		objY += 40;
+		albumInputText = new PsychUIInputText(objX, objY, 120, '');
+		albumInputText.onChange = function(old:String, cur:String)
+		{
+			metadata.freeplay.album = cur;
+		}
+
+		ratingsStepper = new PsychUINumericStepper(objX, objY, 1, 0, 0, 20, 0);
+		ratingsStepper.onValueChange = function()
+		{
+			metadata.freeplay.ratings.set(Difficulty.list[PlayState.storyDifficulty], Std.int(ratingsStepper.value));
+		}
+	
+		tab_group.add(new FlxText(songNameMetaInputText.x, songNameMetaInputText.y - 15, 120, 'Song Name:'));
+		tab_group.add(new FlxText(artistInputText.x, artistInputText.y - 15, 180, 'Artists:'));
+		tab_group.add(new FlxText(charterInputText.x, charterInputText.y - 15, 180, 'Charters:'));
+		tab_group.add(new FlxText(modInputText.x, modInputText.y - 15, 180, 'Mod Name:'));
+		tab_group.add(songNameMetaInputText);
+		tab_group.add(artistInputText);
+		tab_group.add(charterInputText);
+		tab_group.add(modInputText);
+		
+		tab_group.add(new FlxText(bgInputText.x, bgInputText.y - 15, 120, 'Background:'));
+		tab_group.add(new FlxText(albumInputText.x, albumInputText.y - 15, 180, 'Album (albums/):'));
+		tab_group.add(new FlxText(ratingsStepper.x, ratingsStepper.y - 15, 180, 'Difficulty Rating:'));
+		tab_group.add(bgInputText);
+		tab_group.add(albumInputText);
+		tab_group.add(ratingsStepper);
 	}
 
 	var eventDropDown:PsychUIDropDownMenu;
@@ -4210,6 +4300,20 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			upperBox.bg.visible = false;
 
 			saveChart(false);
+		},btnWid);
+		btn.text.alignment = LEFT;
+		tab_group.add(btn);
+
+		btnY += 20;
+		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Save Metadata as...', function()
+		{
+			upperBox.isMinimized = true;
+			upperBox.bg.visible = false;
+
+			if (ImprovedFileHandling.saveOperation('meta.json', {ext: "json", desc: "JSON File"}, Text, PsychJsonPrinter.print(metadata)))
+				showOutput('Metadata saved successfully!');
+			else
+				showOutput('Error on saving metadata!', true);
 		},btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);

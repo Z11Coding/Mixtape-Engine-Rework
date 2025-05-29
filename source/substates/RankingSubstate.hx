@@ -43,11 +43,26 @@ class RankingSubstate extends MusicBeatSubstate
 			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
 	}
 
+	function getPauseSong()
+	{
+		var formattedSongName:String = (PauseSubState.songName != null ? Paths.formatToSongPath(PauseSubState.songName) : '');
+		var formattedPauseMusic:String = Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}');
+		if(formattedSongName == 'none' || (formattedSongName != 'none' && formattedPauseMusic == 'none')) return null;
+		return (formattedSongName != '') ? formattedSongName : formattedPauseMusic;
+	}
+
 	override function create()
 	{
-		pauseMusic = new FlxSound().loadEmbedded(Paths.formatToSongPath(ClientPrefs.data.pauseMusic), true, true);
+		pauseMusic = new FlxSound();
+		try
+		{
+			var pauseSong:String = getPauseSong();
+			if(pauseSong != null) pauseMusic.loadEmbedded(Paths.music(pauseSong), true, true);
+		}
+		catch(e:Dynamic) {}
 		pauseMusic.volume = 0;
 		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length / 2)));
+
 		FlxG.sound.list.add(pauseMusic);
 
 		// PlayState.instance.canPause = false;
