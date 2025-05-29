@@ -168,15 +168,19 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         // I hate this so much but it works but I still hate it
         try {
             var jsonMeta:Dynamic = Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song.songName.toLowerCase()) + '/meta')));
-            var ratingValue:String = Std.string(jsonMeta.freeplay.ratings).trim().replace('[', '').replace(']', '').replace(' ', '');
-            var ratearr1:Array<String> = ratingValue.split(',');
+            var ratingValue:Dynamic = jsonMeta.freeplay.ratings;
             var actualRating:Map<String, Int> = new Map<String, Int>();
+
+            for (item in Reflect.fields(ratingValue)) {
+                if (item == 'normal' || item == 'easy' || item == 'hard') {
+                    actualRating.set(item, Reflect.field(ratingValue, item));
+                } else {
+                    actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
+                }
+            }
+
             trace(actualRating);
 
-            for (item in ratearr1) {
-                var thing:Array<String> = item.split('=>');
-                actualRating.set(thing[0], Std.parseInt(thing[1]));
-            }
 
             var curDiff:String = Difficulty.list[difficulty].toLowerCase();
             if (actualRating != null) {
