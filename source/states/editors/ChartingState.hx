@@ -138,6 +138,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	public static var GRID_SIZE = 40;
 	final BACKUP_EXT = '.bkp';
 
+		public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
+		trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
+	}, 30);
+
 	public var quantizations:Array<Int> = [
 		4,
 		8,

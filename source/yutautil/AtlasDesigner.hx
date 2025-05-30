@@ -72,4 +72,49 @@ class AtlasDesigner {
         xml += '</TextureAtlas>';
         File.saveContent(path, xml);
     }
+
+    public static function convertFolderToSpritesheet(folder:String, outputPath:String):Void {
+        var designer = new AtlasDesigner();
+        designer.loadImagesFromFolder(folder);
+        designer.packImages();
+        designer.saveSpritesheet(outputPath + ".png");
+        designer.saveXML(outputPath + ".xml");
+    }
+
+    public function buildAtlas(folder:String, outputPath:String):Void {
+        loadImagesFromFolder(folder);
+        packImages();
+        saveSpritesheet(outputPath + ".png");
+        saveXML(outputPath + ".xml");
+    }
+
+    // Turns the completed Atlas in the Designer into a FlxSprite
+    public function toFlxSprite():flixel.FlxSprite {
+        var sheet = createSpritesheet();
+        // Convert lime.graphics.Image to flixel.graphics.frames.FlxAtlasFrames
+        var bitmapData = sheet.toBitmapData();
+        var frames = flixel.graphics.frames.FlxAtlasFrames.fromTexturePackerXml(bitmapData, saveXMLToString());
+        return new flixel.FlxSprite().loadGraphic(frames);
+    }
+
+    // Helper to get XML as string (without saving to file)
+    private function saveXMLToString():String {
+        var xml = '<TextureAtlas imagePath="spritesheet.png">';
+        for (img in images) {
+            xml += '<SubTexture name="' + img.name + '" x="' + img.x + '" y="' + img.y + '" width="' + img.width + '" height="' + img.height + '"/>';
+        }
+        xml += '</TextureAtlas>';
+        return xml;
+    }
+
+    // Static function: does all steps and returns a FlxSprite, no files saved
+    public static function buildFlxSpriteFromFolder(folder:String):flixel.FlxSprite {
+        var designer = new AtlasDesigner();
+        designer.loadImagesFromFolder(folder);
+        designer.packImages();
+        var sheet = designer.createSpritesheet();
+        var bitmapData = sheet.toBitmapData();
+        var frames = flixel.graphics.frames.FlxAtlasFrames.fromTexturePackerXml(bitmapData, designer.saveXMLToString());
+        return new flixel.FlxSprite().loadGraphic(frames);
+    }
 }

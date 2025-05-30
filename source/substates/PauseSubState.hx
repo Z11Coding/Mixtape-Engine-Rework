@@ -41,6 +41,10 @@ class PauseSubState extends MusicBeatSubstate
 	var missingTextBG:FlxSprite;
 	var missingText:FlxText;
 
+		public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
+		trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
+	}, 30);
+
 	var inVid:Bool;
 	public var cutscene_allowSkipping = true;
 	public var cutscene_hardReset = true;
