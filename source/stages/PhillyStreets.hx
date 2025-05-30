@@ -447,7 +447,8 @@ class PhillyStreets extends BaseStage
 	function driveCarLights(sprite:BGSprite):Void
 	{
 		carInterruptable = false;
-		FlxTween.cancelTweensOf(sprite);
+		try{FlxTween.cancelTweensOf(sprite);}
+		catch(e){trace("* But Nobody Came.");}
 		var variant:Int = FlxG.random.int(1, 4);
 		sprite.animation.play('car' + variant);
 		var extraOffset = [0, 0];
@@ -492,7 +493,8 @@ class PhillyStreets extends BaseStage
 	function driveCar(sprite:BGSprite):Void
 	{
 		carInterruptable = false;
-		FlxTween.cancelTweensOf(sprite);
+		try{FlxTween.cancelTweensOf(sprite);}
+		catch(e){trace("* But Nobody Came.");}
 		var variant:Int = FlxG.random.int(1, 4);
 		sprite.animation.play('car' + variant);
 
@@ -530,7 +532,8 @@ class PhillyStreets extends BaseStage
 	function driveCarBack(sprite:FlxSprite):Void
 	{
 		car2Interruptable = false;
-		FlxTween.cancelTweensOf(sprite);
+		try{FlxTween.cancelTweensOf(sprite);}
+		catch(e){trace("* But Nobody Came.");}
 		var variant:Int = FlxG.random.int(1, 4);
 		sprite.animation.play('car' + variant);
 
@@ -760,8 +763,9 @@ class PhillyStreets extends BaseStage
 		picoFade.updateHitbox();
 		picoFade.visible = true;
 
-		FlxTween.cancelTweensOf(picoFade.scale);
-		FlxTween.cancelTweensOf(picoFade);
+		try{FlxTween.cancelTweensOf(picoFade.scale);
+		FlxTween.cancelTweensOf(picoFade);}
+		catch(e){trace("* But Nobody Came.");}
 		FlxTween.tween(picoFade.scale, {x: 1.3, y: 1.3}, 0.4);
 		FlxTween.tween(picoFade, {alpha: 0}, 0.4, {onComplete: (_) -> (picoFade.visible = false)});
 	}
