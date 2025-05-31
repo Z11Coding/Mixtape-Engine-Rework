@@ -7,19 +7,30 @@ import lime.graphics.Image;
 import lime.graphics.ImageBuffer;
 import lime.utils.Bytes;
 import haxe.xml.Printer;
-
+import yutautil.AtlasSchema;
 
 // WIP// A simple atlas designer for packing images into a single spritesheet
 class AtlasDesigner {
     public var images:Array<{name:String, image:Image, x:Int, y:Int, width:Int, height:Int}> = [];
     public var sheetWidth:Int;
     public var sheetHeight:Int;
+    public var schema:AtlasSchema = null;
 
-    public function new() {}
+    public function new(?schema:AtlasSchema) {
+        this.schema = schema;
+    }
 
     public function loadImagesFromFolder(folder:String):Void {
         images = [];
         var files = FileSystem.readDirectory(folder);
+        if (schema != null) {
+            if (!schema.validate(folder, files)) {
+                throw 'Folder does not match schema requirements.';
+            }
+            if (schema != null) {
+                files = schema.filterFiles(files);
+            }
+        }
         for (file in files) {
             var ext = Path.extension(file).toLowerCase();
             if (ext == "png" || ext == "jpg" || ext == "jpeg") {
@@ -73,8 +84,8 @@ class AtlasDesigner {
         File.saveContent(path, xml);
     }
 
-    public static function convertFolderToSpritesheet(folder:String, outputPath:String):Void {
-        var designer = new AtlasDesigner();
+    public static function convertFolderToSpritesheet(folder:String, outputPath:String, ?schema:AtlasSchema):Void {
+        var designer = new AtlasDesigner(schema);
         designer.loadImagesFromFolder(folder);
         designer.packImages();
         designer.saveSpritesheet(outputPath + ".png");
@@ -108,8 +119,8 @@ class AtlasDesigner {
     }
 
     // Static function: does all steps and returns a FlxSprite, no files saved
-    public static function buildFlxSpriteFromFolder(folder:String):flixel.FlxSprite {
-        var designer = new AtlasDesigner();
+    public static function buildFlxSpriteFromFolder(folder:String, ?schema:AtlasSchema):flixel.FlxSprite {
+        var designer = new AtlasDesigner(schema);
         designer.loadImagesFromFolder(folder);
         designer.packImages();
         var sheet = designer.createSpritesheet();

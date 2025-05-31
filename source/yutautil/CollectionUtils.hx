@@ -759,6 +759,93 @@ class CollectionUtils
 		return Type.getEnumConstructs(enumType);
 	}
 
+	public static inline function nullify<T>(input:T, nullifyElements:Bool = true):Null<T>
+	{
+		// Nullifies the input object or its elements if it's an iterable.
+		if (input == null) return null;
+
+		try {
+			// Array
+			if (Std.is(input, Array)) {
+				var arr:Array<Dynamic> = cast input;
+				if (nullifyElements) {
+					for (i in 0...arr.length) arr[i] = null;
+				}
+				untyped input = null;
+				return null;
+			}
+			// List
+			else if (Std.is(input, List)) {
+				var list:List<Dynamic> = cast input;
+				if (nullifyElements) {
+					var arr = [];
+					for (item in list) arr.push(item);
+					list.clear();
+					for (_ in arr) list.add(null);
+				}
+				untyped input = null;
+				return null;
+			}
+			// Map/IMap
+			else if (Std.is(input, IMap)) {
+				var map:IMap<Dynamic, Dynamic> = cast input;
+				if (nullifyElements) {
+					for (key in map.keys()) {
+						map.set(key, null);
+					}
+				}
+				untyped input = null;
+				return null;
+			}
+			// Iterable/Iterator
+			else if (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next"))) {
+				if (nullifyElements) {
+					for (item in input.toIterable()) {
+						nullify(item, true);
+					}
+				}
+				untyped input = null;
+				return null;
+			}
+			// Object or Class instance
+			else if (Type.typeof(input) == TObject || Type.getClass(input) != null) {
+				if (nullifyElements) {
+					// Nullify all fields (including instance fields for classes)
+					var fields = Reflect.fields(input);
+					for (field in fields) {
+						try {
+							Reflect.setField(input, field, null);
+						} catch (e:Dynamic) {
+							trace('Error nullifying field "$field" on object: ' + e);
+						}
+					}
+					// If it's a class, also nullify instance fields
+					var cl = Type.getClass(input);
+					if (cl != null) {
+						var instanceFields = Type.getInstanceFields(cl);
+						for (field in instanceFields) {
+							try {
+								Reflect.setField(input, field, null);
+							} catch (e:Dynamic) {
+								trace('Error nullifying instance field "$field" on class ${Type.getClassName(cl)}: ' + e);
+							}
+						}
+					}
+				}
+				untyped input = null;
+				return null;
+			}
+		} catch (e:Dynamic) {
+			trace('Error in nullify: ' + e);
+			// Fallback: just nullify input
+			untyped input = null;
+			return null;
+		}
+		// Fallback: just nullify input
+		untyped input = null;
+		return null;
+	}
+
 	public static inline function sizeIn(input:Dynamic, ?accuracy:Size, ?verbosity:{?verbose:Bool, ?showStack:Dynamic, ?showCurrent:Bool, ?showObjects:Bool}):Dynamic
 	{
 		// Returns the size of the object in the specified accuracy.

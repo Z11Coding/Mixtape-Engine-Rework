@@ -74,6 +74,7 @@ class TitleState extends MusicBeatState
 
 	override public function create():Void
 	{
+		trace(ticker.metadata());
 		Paths.clearStoredWithoutStickers();
 		super.create();
 
