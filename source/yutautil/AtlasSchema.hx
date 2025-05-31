@@ -11,18 +11,37 @@ typedef AtlasSchemaFileRule = {
     required:Bool // if true, must be present
 };
 
+// Custom EReg-based rule for schema
+// Allows matching file names using a regular expression
+typedef AtlasCustomEregRule = {
+    name:String,
+    ereg:EReg, // regular expression to match file names
+    required:Bool
+};
+
+// Custom function-based rule for schema
+typedef AtlasCustomFuncRule = {
+    name:String,
+    func:(files:Array<String>, file:String) -> Bool, // custom validation function
+    required:Bool
+};
+
 // Defines a schema for atlas folders (required files, patterns, etc)
 class AtlasSchema {
     public var fileRules:Array<AtlasSchemaFileRule>;
     public var allowedExtensions:Array<String>;
     public var filePattern:EReg;
     public var strict:Bool;
+    public var customEregRules:Array<AtlasCustomEregRule>;
+    public var customFuncRules:Array<AtlasCustomFuncRule>;
 
-    public function new(?fileRules:Array<AtlasSchemaFileRule>, ?allowedExtensions:Array<String>, ?filePattern:EReg, ?strict:Bool) {
+    public function new(?fileRules:Array<AtlasSchemaFileRule>, ?allowedExtensions:Array<String>, ?filePattern:EReg, ?strict:Bool, ?customEregRules:Array<AtlasCustomEregRule>, ?customFuncRules:Array<AtlasCustomFuncRule>) {
         this.fileRules = fileRules != null ? fileRules : [];
         this.allowedExtensions = allowedExtensions != null ? allowedExtensions : ["png", "jpg", "jpeg"];
         this.filePattern = filePattern;
         this.strict = strict == true;
+        this.customEregRules = customEregRules != null ? customEregRules : [];
+        this.customFuncRules = customFuncRules != null ? customFuncRules : [];
     }
 
     public static function fromJson(json:String):AtlasSchema {
@@ -103,6 +122,23 @@ class AtlasSchema {
                 if (!matched) return false;
             }
         }
+        // Custom EReg rules
+        for (rule in customEregRules) {
+            var found = false;
+            for (file in files) {
+                var base = file.indexOf(".") > -1 ? file.substr(0, file.lastIndexOf(".")) : file;
+                if (rule.ereg.match(base)) found = true;
+            }
+            if (rule.required && !found) return false;
+        }
+        // Custom func rules
+        for (rule in customFuncRules) {
+            var found = false;
+            for (file in files) {
+                if (rule.func(files, file)) found = true;
+            }
+            if (rule.required && !found) return false;
+        }
         return true;
     }
 
@@ -123,12 +159,31 @@ class AtlasSchema {
             var ext = file.substr(file.lastIndexOf(".") + 1).toLowerCase();
             if (allowedExtensions.indexOf(ext) != -1) {
                 if (filePattern == null || filePattern.match(file)) {
+                    var added = false;
                     if (fileRules.length == 0) {
                         filtered.push(file);
-                    } else {
-                        var base = file.indexOf(".") > -1 ? file.substr(0, file.lastIndexOf(".")) : file;
-                        for (rule in fileRules) {
-                            if (matchesRule(base, rule)) {
+                        continue;
+                    }
+                    var base = file.indexOf(".") > -1 ? file.substr(0, file.lastIndexOf(".")) : file;
+                    for (rule in fileRules) {
+                        if (matchesRule(base, rule)) {
+                            filtered.push(file);
+                            added = true;
+                            break;
+                        }
+                    }
+                    if (!added) {
+                        for (rule in customEregRules) {
+                            if (rule.ereg.match(base)) {
+                                filtered.push(file);
+                                added = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!added) {
+                        for (rule in customFuncRules) {
+                            if (rule.func(files, file)) {
                                 filtered.push(file);
                                 break;
                             }
