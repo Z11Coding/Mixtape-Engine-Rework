@@ -7741,6 +7741,10 @@ class PlayState extends MusicBeatState
 			spr.resetAnim = time;
 		}
 	}
+
+	public var altNoteMove:Bool = false; //because there's more than one way to do it
+	public var strumOffsetbcauseitsstupid:Float = 0;
+	public var strumOffsetspacebcauseitsstupid:Float = 0;
 	// Simplified version of applyModchartTransform, which will be used on update functions to find and sync the strumLineNotes
 	// with the Modchart System.
 	public function modchartSync(directChange:Bool = false):Void {
@@ -7759,13 +7763,13 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X', strumNote.x, field.playerId);
+								modManager.setValue('transform${i}X', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position
 								var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
 								var offsetY = strumNote.y - baseY;
-								modManager.setValue('transform${i}Y', strumNote.y, field.playerId);
+								modManager.setValue('transform${i}Y', altNoteMove ? strumNote.y : offsetY, field.playerId);
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
