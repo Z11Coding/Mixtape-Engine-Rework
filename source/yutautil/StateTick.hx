@@ -1,33 +1,56 @@
 package yutautil;
 
-import flixel.FlxState;
 import flixel.FlxG;
+import openfl.events.Event;
 
-class StateTick extends flixel.FlxBasic {
+class StateTick {
     public var tickInterval:Float;
     private var lastTick:Float;
     private var onTick:Void->Void;
+    private var running:Bool = false;
 
     public static var current:StateTick;
 
-    public function new(onTick:Void->Void, tickInterval:Float = 2000.0) {
+    public function new(onTick:Void->Void, tickInterval:Float = 2.0, ?start:Bool = true) {
+        if (current != null) {
+            current.stop();
+            current.destroy();
+        }
         this.onTick = onTick;
         this.tickInterval = tickInterval;
         this.lastTick = FlxG.game.ticks / FlxG.updateFramerate;
-        super();
-        trace("StateTick created with interval: " + tickInterval);
         current = this;
-
+        if (start) {
+            this.start();
+        }
+        trace("StateTick created with interval: " + tickInterval);
     }
 
-    public override function update(elapsed:Float):Void {
-        trace("StateTick updating, elapsed: " + elapsed);
-        super.update(elapsed);
+    private function onEnterFrame(event:Event):Void {
         var currentTime = FlxG.game.ticks / FlxG.updateFramerate;
         if (currentTime - lastTick >= tickInterval) {
             lastTick = currentTime;
             if (onTick != null) onTick();
         }
-        trace("StateTick updated, current time: " + currentTime + ", last tick: " + lastTick);
+    }
+
+    public function start():Void {
+        if (!running && FlxG.stage != null) {
+            FlxG.stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+            running = true;
+        }
+    }
+
+    public function stop():Void {
+        if (running && FlxG.stage != null) {
+            FlxG.stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+            running = false;
+        }
+    }
+
+    public function destroy():Void {
+        stop();
+        onTick = null;
+        current = null;
     }
 }

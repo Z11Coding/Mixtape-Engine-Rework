@@ -74,10 +74,14 @@ class TitleState extends MusicBeatState
 
 	override public function create():Void
 	{
+		// ticker.update(0);
 		trace(ticker.metadata());
 		Paths.clearStoredWithoutStickers();
 		super.create();
-
+		trace(this.metadata());
+		for (classthing in this.metadata().super_tree.toIterable())
+			trace("Ultimate Super Tree for " + classthing + ": " + classthing.metadata().super_tree);
+		
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		if(!initialized)
