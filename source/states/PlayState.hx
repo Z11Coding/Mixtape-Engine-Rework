@@ -7745,6 +7745,7 @@ class PlayState extends MusicBeatState
 	public var altNoteMove:Bool = false; //because there's more than one way to do it
 	public var strumOffsetbcauseitsstupid:Float = 0;
 	public var strumOffsetspacebcauseitsstupid:Float = 0;
+	public var updateScrollDirection :Bool = false; // if true, the strum notes will update their scroll direction based on the current scroll direction of the playfield
 	// Simplified version of applyModchartTransform, which will be used on update functions to find and sync the strumLineNotes
 	// with the Modchart System.
 	public function modchartSync(directChange:Bool = false):Void {
@@ -7778,6 +7779,7 @@ class PlayState extends MusicBeatState
 								//strumNote.angle = strumNote.angle;
 
 								// Downscroll.
+								if (updateScrollDirection)
 								modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
 								// Direction.
 								modManager.setValue('localrotate${i}Z', strumNote.direction , field.playerId);
