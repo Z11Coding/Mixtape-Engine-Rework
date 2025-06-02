@@ -26,6 +26,21 @@ typedef AtlasCustomFuncRule = {
     required:Bool
 };
 
+typedef AtlasSchemaFileRuleArray = Array<AtlasSchemaFileRule>;
+
+typedef AtlasRule = AtlasSchemaFileRule | AtlasCustomEregRule | AtlasCustomFuncRule;
+
+typedef AtlasSchemaRuleArray = Array<AtlasRule>;
+
+typedef AtlasRuleSet = {
+    fileRules:AtlasSchemaFileRuleArray, // rules for specific files
+    allowedExtensions:Array<String>, // allowed file extensions
+    filePattern:EReg, // pattern to match file names
+    strict:Bool, // if true, only files matching rules are allowed
+    customEregRules:Array<AtlasCustomEregRule>, // custom EReg rules
+    customFuncRules:Array<AtlasCustomFuncRule> // custom function rules
+};
+
 // Defines a schema for atlas folders (required files, patterns, etc)
 class AtlasSchema {
     public var fileRules:Array<AtlasSchemaFileRule>;

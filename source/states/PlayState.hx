@@ -7782,6 +7782,14 @@ class PlayState extends MusicBeatState
 								// strumNote.alpha = strumNote.alpha;
 							}
 						}
+						// Downscroll.
+						if (strumNote.downScroll) {
+							modManager.setValue('reverse${i}', 1, field.playerId);
+						} else {
+							modManager.setValue('reverse${i}', 0, field.playerId);
+						}
+						// Direction.
+						modManager.setValue('localrotate${i}Z', strumNote.direction, field.playerId);
 					}
 				}
 			}
