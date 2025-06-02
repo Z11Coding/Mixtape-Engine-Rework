@@ -540,7 +540,6 @@ class ModManager {
 
 		var baseX:Float = spaceX + (spaceWidth - (Note.swagWidthAlt * Note.scales[receptorAmount]) * receptorAmount) * 0.5;
 		var x:Float = baseX + (Note.swagWidthAlt * Note.scales[receptorAmount]) * direction;
-
 		return x;
 	}
 
@@ -586,7 +585,7 @@ class ModManager {
 		diff += getValue("centeredPath", player) * Note.swagWidth; // Each 100% moves the path by receptor size
 		
 		pos.setTo(
-			Note.halfWidth + getBaseX(data, player, field.field.keyCount),
+			Note.halfWidth + field.field.getBaseX(data),
 			Note.halfWidth + 50 + diff,
 			0
 		);

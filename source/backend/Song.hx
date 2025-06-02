@@ -128,6 +128,12 @@ class Song
 			if(Reflect.hasField(songJson, 'player3')) Reflect.deleteField(songJson, 'player3');
 		}
 
+		if (songJson.mania == null)
+		{
+			songJson.mania = Note.defaultMania;
+			trace("Song mania value is NULL, set to " + Note.defaultMania);
+		}
+
 		if(songJson.events == null)
 		{
 			songJson.events = [];
@@ -166,8 +172,8 @@ class Song
 
 			for (note in section.sectionNotes)
 			{
-				var gottaHitNote:Bool = (note[1] < 4) ? section.mustHitSection : !section.mustHitSection;
-				note[1] = (note[1] % 4) + (gottaHitNote ? 0 : 4);
+				var gottaHitNote:Bool = (note[1] < Note.ammo[songJson.mania]) ? section.mustHitSection : !section.mustHitSection;
+				note[1] = (note[1] % Note.ammo[songJson.mania]) + (gottaHitNote ? 0 : Note.ammo[songJson.mania]);
 
 				if(!Std.isOfType(note[3], String))
 					note[3] = Note.defaultNoteTypes[note[3]]; //compatibility with Week 7 and 0.1-0.3 psych charts

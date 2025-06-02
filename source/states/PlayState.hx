@@ -4251,7 +4251,17 @@ class PlayState extends MusicBeatState
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
 
-		modchartSync(true);
+		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
+		if (!startingSong)
+			modchartSync(false);
+		else {
+			for (field in playfields.members) {
+				for (strum in field.strumNotes) {
+					strum.x = 0; 
+					strum.y = 0;
+				}
+			}
+		}
 
 		// TODO: Figure this out
 		/*for (note in 0...playerStrums.members.length) {
@@ -7749,18 +7759,19 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X', offsetX, field.playerId);
-								strumNote.x = strumNote.x;
+								modManager.setValue('transform${i}X', strumNote.x, field.playerId);
+								//strumNote.x = strumNote.x;
 
 								// Sync Y position
 								var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
 								var offsetY = strumNote.y - baseY;
-								modManager.setValue('transform${i}Y', offsetY, field.playerId);
-								strumNote.y = strumNote.y;
+								modManager.setValue('transform${i}Y', strumNote.y, field.playerId);
+								//strumNote.y = strumNote.y;
 
 								// Sync angle
 								modManager.setValue('localRotate${i}', strumNote.angle, field.playerId);
-								strumNote.angle = strumNote.angle;
+								modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
+								//strumNote.angle = strumNote.angle;
 
 								// // Sync alpha
 								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
