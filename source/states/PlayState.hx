@@ -7763,13 +7763,13 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
+								modManager.setValue('transform${i}X', (altNoteMove ? offsetX : strumNote.x) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position
 								var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
 								var offsetY = strumNote.y - baseY;
-								modManager.setValue('transform${i}Y', altNoteMove ? strumNote.y : offsetY, field.playerId);
+								modManager.setValue('transform${i}Y', altNoteMove ? offsetY : strumNote.y, field.playerId);
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
@@ -7777,15 +7777,16 @@ class PlayState extends MusicBeatState
 								modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
 								//strumNote.angle = strumNote.angle;
 
+								// Downscroll.
+								modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
+								// Direction.
+								modManager.setValue('localrotate${i}Z', strumNote.direction , field.playerId);
+
 								// // Sync alpha
 								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
 								// strumNote.alpha = strumNote.alpha;
 							}
 						}
-						// Downscroll.
-						modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
-						// Direction.
-						modManager.setValue('localrotate${i}Z', strumNote.direction, field.playerId);
 					}
 				}
 			}
