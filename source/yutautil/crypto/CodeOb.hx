@@ -5,7 +5,7 @@ import haxe.macro.Context;
 import haxe.crypto.Base64;
 
 class CodeOb {
-    public static function encode(input:String):Expr {
+    public static macro function encode(input:String):Expr {
         // Step 1: Generate metadata from the input string
         var metadata = {
             length: input.length,
