@@ -90,7 +90,6 @@ class ModManager {
 			ConfusionModifier, 
 			OpponentModifier, 
 			TransformModifier, 
-			//PsychTransformModifier,
 			InfinitePathModifier,
 			PathModifier,
 			AccelModifier,
@@ -100,7 +99,8 @@ class ModManager {
 			SnapModifier,
 			SpiralModifier,
 			SchmovinDrunkModifier, 
-			FlaccidModifier 
+			FlaccidModifier,
+			ReverseDirectionModifier
 		];
 		for (mod in quickRegs)
 			quickRegister(Type.createInstance(mod, [this]));

@@ -4258,7 +4258,7 @@ class PlayState extends MusicBeatState
 			for (field in playfields.members) {
 				for (strum in field.strumNotes) {
 					strum.x = 0; 
-					strum.y = 0;
+					strum.y = 15;
 				}
 			}
 		}
@@ -7774,16 +7774,12 @@ class PlayState extends MusicBeatState
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
-								modManager.setValue('localRotate${i}', strumNote.angle, field.playerId);
 								modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
 								//strumNote.angle = strumNote.angle;
 
 								// Downscroll.
 								if (updateScrollDirection)
-								modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
-								// Direction.
-								modManager.setValue('localrotate${i}Z', strumNote.direction , field.playerId);
-
+									modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
 								// // Sync alpha
 								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
 								// strumNote.alpha = strumNote.alpha;

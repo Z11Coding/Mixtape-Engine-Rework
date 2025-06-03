@@ -11,7 +11,6 @@ import objects.playfields.PlayField;
 
 class StrumNote extends NoteObject
 {
-
 	public var rgbShader:RGBShaderReference;
 
 	public var z:Float = 0;

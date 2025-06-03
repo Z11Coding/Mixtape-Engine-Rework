@@ -63,6 +63,42 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('No Antimash',
+			"If checked, Antimash will be disabled. (Does nothing...for now...)\n(dont worry there is no antimashing...yet...)", 'noAntimash', BOOL);
+		addOption(option);
+
+		var option:Option = new Option(
+			'Optimized Holds', 
+			"If checked, smooth holds will have fewer calls to the modchart system for position info.\nBest to leave this on, unless you have a high-end PC and require the highest accuracy rendering for, some reason.", 
+			'optimizeHolds', 
+			BOOL
+		);
+		addOption(option);
+		
+		var option:Option = new Option('Hold Subdivisons',
+			"How many divisions are in a hold note with smooth holds.\nMore means smoother holds, but more of a performance hit.", 
+			'holdSubdivs', 
+			INT
+		);
+		option.displayFormat = '%v';
+		option.changeValue = 1;
+		option.minValue = 1;
+		option.maxValue = 8;
+		option.scrollSpeed = 20;
+		addOption(option);
+
+		var option:Option = new Option('Draw Dist. Mult',
+			"A multiplier to note's draw distance. Higher number means notes can be seen from further away, less means closer.\nNote that with higher numbers, draw distance is still capped by the spawn distance (which is only modifiable by modcharts) so it's only recommended to lower this value for low-end PCs.\nKEEP IN MIND, ANYTHING PAST X2 IS UNTESTED AND WILL MOST LIKELY BREAK SOMETHING!\nYOU HAVE BEEN WARNED!!!", 
+			'drawDistanceModifier', 
+			FLOAT);
+		option.displayFormat = 'x%v';
+		option.decimals = 1;
+		option.changeValue = 0.1;
+		option.minValue = 0.8;
+		option.maxValue = 10;
+		option.scrollSpeed = 20;
+		addOption(option);	
+
 		var option:Option = new Option('Intro Skip When', 
 		"Choose when the intro can be skipped.", 
 		'skipWhen',
@@ -86,6 +122,31 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		]);
 		addOption(option);
 		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('Ghost Effect', 
+			"If checked, does the ever-so-popular double/triple/quadrouple ghost effect.", 
+			'doubleGhosts', 
+			BOOL
+		);
+		addOption(option);
+
+		var option:Option = new Option('Show Keybinds on Start Song',
+			"If checked, your keybinds will be shown on the strum that they correspond to when you start a song.",
+			'showKeybindsOnStart',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('In-Game Rating',
+			"If checked, the ratings will be in-game instead of on the hud.",
+			'inGameRatings',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Start Hidden',
+			"If checked, the hud will be invisible during the countdown.",
+			'starHidden',
+			BOOL);
+		addOption(option);
 
 		var option:Option = new Option('Mix-Up Mode',
 			"Have you ever hear of Funky Friday/Friday Night Bloxin'?\nWell is essentially that, except it's single player.",
@@ -231,7 +292,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			'Silent Volume Noise', 
 			"If checked, The volume wont make noise when you turn up/down the volume", 
 			'silentVol', 
-			'bool'
+			BOOL
 		);
 		addOption(option);
 
@@ -330,6 +391,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			'audioBreak',
 			BOOL);
 		addOption(option);
+
+		var option:Option = new Option('Enable Artemis', // even tho only one person asked, it here
+			"Got An RGB Keyboard Like A Razer Cynosa Chroma Gaming Keyboard?\n
+			Turn This Bad Boy On To Get Your Keyboard In The Action Too!\n
+			(YOU MUST HAVE ARTEMIS INSTALLED AND THE PROFILE SET TO MIXTAPE FOR IT TO WORK!)\n
+			(YOU WILL BE SENT TO THE TITLE SCREEN WHEN YOU LEAVE IF THIS IS ON!)", 'enableArtemis', BOOL);
+		//addOption(option); maybe one day
 
 		var option:Option = new Option('---DEBUG---',
 			"",

@@ -865,7 +865,6 @@ class Note extends NoteObject
 			istail = true;
 
 			//offsetY += height / 2;
-			copyAngle = false;
 
 			var animToPlay:String = '';
 			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
