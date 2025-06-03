@@ -876,6 +876,8 @@ class Note extends NoteObject
 
 			updateHitbox();
 
+			scale.y = 1;
+
 			//offsetY += height / 2;
 
 			//if (PlayState.isPixelStage)

@@ -4257,8 +4257,10 @@ class PlayState extends MusicBeatState
 		else {
 			for (field in playfields.members) {
 				for (strum in field.strumNotes) {
-					strum.x = 0; 
-					strum.y = 15;
+					if (altNoteMove) {
+						strum.x = 0; 
+						strum.y = 25;
+					}
 				}
 			}
 		}
@@ -7777,7 +7779,7 @@ class PlayState extends MusicBeatState
 								//strumNote.angle = strumNote.angle;
 
 								// Downscroll.
-								if (ModchartScrollType = 1) {
+								if (ModchartScrollType == 1) {
 									modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
 								} else if (ModchartScrollType == 2 && curDownscroll != ClientPrefs.data.downScroll) {
 									// Invert the direction of strumNote by adding 180 degrees to its current direction

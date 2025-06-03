@@ -585,7 +585,7 @@ class ModManager {
 		diff += getValue("centeredPath", player) * Note.swagWidth; // Each 100% moves the path by receptor size
 		
 		pos.setTo(
-			Note.halfWidth + field.field.getBaseX(data),
+			Note.halfWidth + getBaseX(data, field.field.playerId, field.field.keyCount),
 			Note.halfWidth + 50 + diff,
 			0
 		);
