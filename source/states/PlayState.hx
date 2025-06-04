@@ -7786,8 +7786,9 @@ class PlayState extends MusicBeatState
 									modManager.setValue('localrotate${i}Z', (strumNote.direction + 180) % 360, field.playerId);
 									curDownscroll = ClientPrefs.data.downScroll;
 								} else {
-								// Nothing.
+									// Nothing.
 								}
+								
 								// Direction.
 								modManager.setValue('localrotate${i}Z', strumNote.direction , field.playerId);
 

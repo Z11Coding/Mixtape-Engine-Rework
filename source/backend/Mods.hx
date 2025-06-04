@@ -42,7 +42,7 @@ class Mods
 		for(mod in parseList().enabled)
 		{
 			var pack:Dynamic = getPack(mod);
-			if(pack != null && pack.runsGlobally) globalMods.push(mod);
+			if(pack != null && (pack.runsGlobally != null && pack.runsGlobally)) globalMods.push(mod);
 		}
 		return globalMods;
 	}
