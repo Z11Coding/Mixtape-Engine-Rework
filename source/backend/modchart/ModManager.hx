@@ -99,8 +99,7 @@ class ModManager {
 			SnapModifier,
 			SpiralModifier,
 			SchmovinDrunkModifier, 
-			FlaccidModifier,
-			ReverseDirectionModifier
+			FlaccidModifier
 		];
 		for (mod in quickRegs)
 			quickRegister(Type.createInstance(mod, [this]));
@@ -585,7 +584,7 @@ class ModManager {
 		diff += getValue("centeredPath", player) * Note.swagWidth; // Each 100% moves the path by receptor size
 		
 		pos.setTo(
-			Note.halfWidth + getBaseX(data, field.field.playerId, field.field.keyCount),
+			Note.halfWidth + getBaseX(data, player, field.field.keyCount),
 			Note.halfWidth + 50 + diff,
 			0
 		);
