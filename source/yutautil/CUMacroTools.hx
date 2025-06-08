@@ -130,5 +130,4 @@ class CUMacroTools
         return GoToTag(tag);
 }
 
-
-
+}
