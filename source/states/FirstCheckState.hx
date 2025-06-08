@@ -325,6 +325,8 @@ class FirstCheckState extends MusicBeatState
 			FlxTween.globalManager.clear();
 			backend.MusicBeatState.emergencyOpacityFix = true;
 		}
+
+		Achievements.unlock('start_fnf');
 	}
 }
 

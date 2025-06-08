@@ -6008,7 +6008,8 @@ class PlayState extends MusicBeatState
 
 		#if ACHIEVEMENTS_ALLOWED
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
-		checkForAchievement([weekNoMiss, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'debugger']);
+		var week:String = WeekData.getWeekFileName();
+		checkForAchievement([weekNoMiss, week, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'debugger', 'play_fnf', 'pico_mixed', 'pico_stressed', 'l', 'a_freaky', 'true_funker', 'nice', 'mfc', 'sfc', 'gfc', 'afc', 'fc', 'sdcb', 'clear', 'erect', 'nightmare']);
 		#end
 
 		var ret:Dynamic = callOnScripts('onEndSong', null, true);
@@ -7849,6 +7850,7 @@ class PlayState extends MusicBeatState
 			var unlock:Bool = false;
 			if (name != WeekData.getWeekFileName() + '_nomiss') // common achievements
 			{
+
 				switch(name)
 				{
 					case 'ur_bad':
@@ -7867,11 +7869,66 @@ class PlayState extends MusicBeatState
 						unlock = (!usedPractice && keysPressed.length <= 2);
 
 					case 'toastie':
-						unlock = (!ClientPrefs.data.cacheOnGPU && !ClientPrefs.data.shaders && ClientPrefs.data.lowQuality && !ClientPrefs.data.antialiasing);
+						unlock = (!ClientPrefs.data.shaders && ClientPrefs.data.lowQuality && !ClientPrefs.data.antialiasing);
 
 					case 'debugger':
 						unlock = (songName == 'test' && !usedPractice);
+
+					case 'play_fnf':
+						unlock = !usedPractice;
+
+					case 'pico_mixed':
+						unlock = (!usedPractice && songName.contains("(pico-mix)"));
+
+					case 'pico_stressed':
+						unlock = (!usedPractice && songName == "stress-(pico-mix)");
+
+					case 'l':
+						unlock = (!usedPractice && (deathCounter >= 30 || CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) == 0));
+
+					case 'a_freaky':
+						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 96.50);
+
+					case 'freaky':
+						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 99.70);
+
+					case 'true_funker':
+						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 99.9935);
+
+					case 'nice':
+						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 69);
+
+					case 'mfc':
+						unlock = (!usedPractice && ratingFC == "[Marvioulus Full Combo]");
+
+					case 'sfc':
+						unlock = (!usedPractice && ratingFC == "[Sick Full Combo]");
+
+					case 'gfc':
+						unlock = (!usedPractice && ratingFC == "[Good Full Combo]");
+
+					case 'afc':
+						unlock = (!usedPractice && ratingFC == "[Accurate Full Combo]");
+					
+					case 'fc':
+						unlock = (!usedPractice && ratingFC == "[Full Combo]");
+
+					case 'sdcb':
+						unlock = (!usedPractice && ratingFC == "[Single Digit Combo Break]");
+
+					case 'clear':
+						unlock = (!usedPractice && ratingFC == "[Ok I guess...]");
+
+					case 'erect':
+						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'erect');
+
+					case 'nightmare':
+						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'nightmare');
 				}
+			}
+			else if (name == WeekData.getWeekFileName()) {
+				if(isStoryMode && storyPlaylist.length <= 1 && !changedDifficulty && !usedPractice)
+					unlock = true;
 			}
 			else // any FC achievements, name should be "weekFileName_nomiss", e.g: "week3_nomiss";
 			{

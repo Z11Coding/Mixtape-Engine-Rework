@@ -366,6 +366,7 @@ class RankingSubstate extends MusicBeatSubstate
 			acc >= 85, // A-
 			acc >= 80, // B
 			acc >= 70, // C
+			acc >= 69, // Nice
 			acc >= 60, // D
 			acc < 60 // E
 		];
@@ -385,6 +386,7 @@ class RankingSubstate extends MusicBeatSubstate
 			85, // A-
 			80, // B
 			70, // C
+			69, // Nice
 			60, // D
 			60 // E
 		];
@@ -443,6 +445,9 @@ class RankingSubstate extends MusicBeatSubstate
 						ranking = "D";
 						accRankLimit = 14;
 					case 15:
+						ranking = "D";
+						accRankLimit = 14;
+					case 16:
 						ranking = "E";
 						accRankLimit = 15;
 				}

@@ -94,6 +94,8 @@ class ComboManager {
         {
             if (bads > 0 || shits > 0)
                 ratingFC = '[Full Combo]';
+            else if (goods > 1)
+                ratingFC = '[Accurate Full Combo]';
             else if (goods > 0)
                 ratingFC = '[Good Full Combo]';
             else if (sicks > 0)
