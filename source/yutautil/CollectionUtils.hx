@@ -61,6 +61,8 @@ typedef LuaScript = flixel.util.typeLimit.OneOfTwo<psychlua.FunkinLua, psychlua.
 //     }
 // }
 
+
+
 class KeyArray<K, V>
 {
 	// An array with keys, similar to a dictionary, allowing for use of keys with arrayaccess.
@@ -1327,6 +1329,15 @@ class CollectionUtils
 			catchFunc(e);
 		}
 	}
+
+	public static inline function catchWithVoid(tryFunc:Void->Void, catchFunc:Dynamic->Void):Void {
+		try {
+			tryFunc();
+		} catch (e:Dynamic) {
+			catchFunc(e);
+		}
+	}
+
 
 
 

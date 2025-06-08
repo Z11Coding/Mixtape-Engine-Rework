@@ -285,6 +285,39 @@ class Main extends Sprite
 		FlxG.signals.gameResized.add((w, h) -> resetSpriteCaches());
 		FlxG.signals.focusGained.add(resetSpriteCaches);
 
+
+		// Artificial loop using GoToTag as a label and GoTo as a goto
+		var counter = 0;
+		yutautil.CUMacroTools.GoToTag("loopStart");
+			trace('goto test: $counter');
+			counter++;
+			if (counter >= 5) {
+				yutautil.CUMacroTools.GoTo("loopEnd");
+			} else {
+				yutautil.CUMacroTools.GoTo("loopStart");
+			}
+
+		yutautil.CUMacroTools.GoToTag("loopEnd");
+		// This is just a test to see if the GoToTag and GoTo macros work correctly.
+
+		// Second test using 'using' import for string extension
+		// (Assumes: import using yutautil.CUMacroTools;)
+		var counter2 = 0;
+		"loopStart2".GoToTag();
+			trace('goto test 2: $counter2');
+			counter2++;
+			if (counter2 >= 5) {
+				"loopEnd2".GoTo();
+			} else {
+				"loopStart2".GoTo();
+			}
+		"loopEnd2".GoToTag();
+		// This is a test to see if the GoToTag and GoTo string extensions work correctly.
+
+
+		// trace("E tag woooooorks!!!");
+
+
 		#if android
 		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
 		#end
