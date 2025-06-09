@@ -32,10 +32,12 @@ enum abstract AchievementOp(String)
 class Achievements {
 	public static function init()
 	{
+		// The achievements that are so easy to get that they're basically nothing more than filler
 		createAchievement('start_fnf',				{name: "I Said Funkin'!", description: "Start the game for the first time."});
 		createAchievement('play_fnf',				{name: "Just like the game!", description: "Get freaky on a Friday."});
 		createAchievement('friday_night_play',		{name: "Freaky on a Friday Night", description: "Play on a Friday... Night.", hidden: true});
 
+		// The "Beat the week!" achievements
 		createAchievement('tutorial',				{name: "That's How You Do It!", description: "Beat Tutorial in Story Mode (on any difficulty)."});
 		createAchievement('week1',					{name: "More Like Daddy Queerest", description: "Beat Week 1 in Story Mode (on any difficulty)."});
 		createAchievement('week2',					{name: "IT IS THE SPOOKY MONTH", description: "Beat Week 2 in Story Mode (on any difficulty)."});
@@ -46,15 +48,18 @@ class Achievements {
 		createAchievement('week7',					{name: "I <3 JohnnyUtah", description: "Beat Week 7 in Story Mode (on any difficulty)."});
 		createAchievement('weekend1',				{name: "Yo, Really Think So?", description: "Beat Weekend 1 in Story Mode (on any difficulty)."});
 
+		// Pico-exclusive achievements
 		createAchievement('pico_mixed',				{name: "A Challenger Appears", description: "Beat any Pico remix in Freeplay (on any difficulty)."});
 		createAchievement('pico_stressed',			{name: "De-Stressing", description: "Beat Stress (Pico Mix) in Freeplay (on Normal difficulty or higher)."});
-		
+
+		// Rating achievements
 		createAchievement('l',						{name: "L", description: "Earn a F rating on any song (on any difficulty)."});
 		createAchievement('a_freaky',				{name: "Almost Freaky", description: "Earn a S Rank or higher on any song"});
 		createAchievement('freaky',					{name: "Getting Freaky", description: "Earn a SS Rank or higher on any song"});
 		createAchievement('true_funker',			{name: "You Should Drink More Water", description: "Earn a P Rank on any song on Hard difficulty or higher."});
 		createAchievement('nice',					{name: "Nice", description: "Earn a rating of EXACTLY 69% (good luck)."});
 
+		// Combo achievements
 		createAchievement('mfc',					{name: "Literal Perfection!", description: "Earn a Combo Rating of MFC."});
 		createAchievement('sfc',					{name: "Almost Perfection", description: "Earn a Combo Rating of SFC."});
 		createAchievement('gfc',					{name: "Good Enough", description: "Earn a Combo Rating of GFC."});
@@ -63,9 +68,11 @@ class Achievements {
 		createAchievement('sdcb',					{name: "Off by One", description: "Earn a Combo Rating SDCB."});
 		createAchievement('clear',					{name: "In the clear", description: "Earn a Combo Rating Clear."});
 
+		// Difficulty achievements
 		createAchievement('erect',					{name: "Harder Than Hard", description: "Beat any Erect remix in Freeplay on Erect or Nightmare difficulty."});
 		createAchievement('nightmare',				{name: "The Rap God", description: "Earn a P Rank on any song on Nightmare difficulty."});
 
+		// The "Beat the week without missing!" achievements
 		createAchievement('week1_nomiss',			{name: "She Calls Me Daddy Too", description: "Beat Week 1 on Hard with no Misses."});
 		createAchievement('week2_nomiss',			{name: "No More Tricks", description: "Beat Week 2 on Hard with no Misses."});
 		createAchievement('week3_nomiss',			{name: "Call Me The Hitman", description: "Beat Week 3 on Hard with no Misses."});
@@ -75,6 +82,7 @@ class Achievements {
 		createAchievement('week7_nomiss',			{name: "God Effing Damn It!", description: "Beat Week 7 on Hard with no Misses."});
 		createAchievement('weekend1_nomiss',		{name: "Just a Friendly Sparring", description: "Beat Weekend 1 on Hard with no Misses."});
 		
+		// extra achievements
 		createAchievement('ur_bad',					{name: "What a Funkin' Disaster!", description: "Complete a Song with a rating lower than 20%."});
 		createAchievement('ur_good',				{name: "Perfectionist", description: "Complete a Song with a rating of 100%."});
 		createAchievement('roadkill_enthusiast',	{name: "Roadkill Enthusiast", description: "Watch the Henchmen die 50 times.", maxScore: 50, maxDecimals: 0});
@@ -83,6 +91,8 @@ class Achievements {
 		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
 		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
 		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
+		
+		// Secret achievements
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		
 		//dont delete this thing below

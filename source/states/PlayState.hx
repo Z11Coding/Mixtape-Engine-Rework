@@ -7896,28 +7896,28 @@ class PlayState extends MusicBeatState
 						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 99.9935);
 
 					case 'nice':
-						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 69);
+						unlock = (!usedPractice && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) == 69);
 
 					case 'mfc':
-						unlock = (!usedPractice && ratingFC == "[Marvioulus Full Combo]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Marvioulus Full Combo]");
 
 					case 'sfc':
-						unlock = (!usedPractice && ratingFC == "[Sick Full Combo]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Sick Full Combo]");
 
 					case 'gfc':
-						unlock = (!usedPractice && ratingFC == "[Good Full Combo]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Good Full Combo]");
 
 					case 'afc':
-						unlock = (!usedPractice && ratingFC == "[Accurate Full Combo]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Accurate Full Combo]");
 					
 					case 'fc':
-						unlock = (!usedPractice && ratingFC == "[Full Combo]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Full Combo]");
 
 					case 'sdcb':
-						unlock = (!usedPractice && ratingFC == "[Single Digit Combo Break]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Single Digit Combo Break]");
 
 					case 'clear':
-						unlock = (!usedPractice && ratingFC == "[Ok I guess...]");
+						unlock = (!usedPractice && comboManager.ratingFC == "[Ok I guess...]");
 
 					case 'erect':
 						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'erect');
