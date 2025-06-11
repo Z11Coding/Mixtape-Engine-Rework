@@ -113,18 +113,6 @@ class APSettingsSubState extends MusicBeatSubstate {
         accessibility.list = ['full', 'minimal'];
         unlockType.list = ["Per Song", "Per Week"];
         unlockMethod.list = ["Note Checks", "Song Completion", "Both"];
-        
-        var songList:Array<String> = [];
-        WeekData.reloadWeekFiles(false);
-        for (i in 0...WeekData.weeksList.length) {
-			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-			
-			for (song in leWeek.songs)
-			{
-				songList.push(song[0]);
-			}
-		}
-        songList.sort((a:String, b:String) -> (a.toUpperCase() < b.toUpperCase()) ? -1 : 1); //Sort alphabetically descending
 
         gradeRequirement.list =
         [
@@ -157,8 +145,31 @@ class APSettingsSubState extends MusicBeatSubstate {
             "D",
             "E",
         ];
+
+        setDefaults();
         
         super.create();
+    }
+
+    function setDefaults() {
+        progression_balancing.selectedLabel = APEntryState.gameSettings.FNF.progression_balancing;
+        accessibility.selectedLabel = APEntryState.gameSettings.FNF.accessibility;
+        unlockType.selectedLabel = APEntryState.gameSettings.FNF.unlock_type;
+        unlockMethod.selectedLabel = APEntryState.gameSettings.FNF.unlock_method;
+        deathlink.checked = APEntryState.gameSettings.FNF.deathlink;
+        ticketPercent.value = APEntryState.gameSettings.FNF.ticket_percentage;
+        ticketWinPercent.value = APEntryState.gameSettings.FNF.ticket_win_percentage;
+        allowMods.checked = false;
+        gradeRequirement.selectedLabel = APEntryState.gameSettings.FNF.graderequirement;
+        accRequirement.selectedLabel = APEntryState.gameSettings.FNF.accrequirement;
+        trapAmount.value = APEntryState.gameSettings.FNF.trapAmount;
+        bbcWeight.value = APEntryState.gameSettings.FNF.bbcWeight;
+        ghostChatWeight.value = APEntryState.gameSettings.FNF.ghostChatWeight;
+        tutorialWeight.value = APEntryState.gameSettings.FNF.svcWeight;
+        svcWeight.value = APEntryState.gameSettings.FNF.tutorialWeight;
+        chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
+        shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
+        MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
     }
     
     function addMainSettings()
@@ -171,44 +182,37 @@ class APSettingsSubState extends MusicBeatSubstate {
         {
             APEntryState.gameSettings.FNF.progression_balancing = prog;
         });
-        progression_balancing.selectedLabel = APEntryState.gameSettings.FNF.progression_balancing;
 
         accessibility = new PsychUIDropDownMenu(objX + 150, objY, [''], function(id:Int, acc:String)
         {
             APEntryState.gameSettings.FNF.accessibility = acc;
         });
-        accessibility.selectedLabel = APEntryState.gameSettings.FNF.accessibility;
 
         objY += 50;
         unlockType = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, unlock:String)
         {
             APEntryState.gameSettings.FNF.unlock_type = unlock;
         });
-        unlockType.selectedLabel = APEntryState.gameSettings.FNF.unlock_type;
 
         unlockMethod = new PsychUIDropDownMenu(objX + 150, objY, [''], function(id:Int, unlock:String)
         {
             APEntryState.gameSettings.FNF.unlock_method = unlock;
         });
-        unlockMethod.selectedLabel = APEntryState.gameSettings.FNF.unlock_method;
 
         objY += 70;
         deathlink = new PsychUICheckBox(objX, objY, 'DeathLink', 100, function() APEntryState.gameSettings.FNF.deathlink = deathlink.checked);
-        deathlink.checked = APEntryState.gameSettings.FNF.deathlink;
         
         objY += 50;
         ticketPercent = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ticket_percentage = Std.int(v));
         ticketPercent.decimals = 0;
         ticketPercent.min = 10;
         ticketPercent.max = 50;
-        ticketPercent.value = APEntryState.gameSettings.FNF.ticket_percentage;
 
         objY += 50;
         ticketWinPercent = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ticket_win_percentage = Std.int(v));
         ticketWinPercent.decimals = 0;
         ticketWinPercent.min = 50;
         ticketWinPercent.max = 100;
-        ticketWinPercent.value = APEntryState.gameSettings.FNF.ticket_win_percentage;
 
         tab_group.add(new FlxText(progression_balancing.x, progression_balancing.y - 15, 120, 'Progression Balancing:'));
         tab_group.add(new FlxText(accessibility.x, accessibility.y - 15, 120, 'Accessibility:'));
@@ -237,7 +241,6 @@ class APSettingsSubState extends MusicBeatSubstate {
             APEntryState.gameSettings.FNF.mods_enabled = allowMods.checked;
             generateSongList();
         });
-        allowMods.checked = false;
 
         objY += 50;
         gradeRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, grade:String)
@@ -245,7 +248,6 @@ class APSettingsSubState extends MusicBeatSubstate {
             APEntryState.gameSettings.FNF.graderequirement = grade;
             trace(id); 
         });
-        gradeRequirement.selectedLabel = APEntryState.gameSettings.FNF.graderequirement;
 
         objX += 150;
         accRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, accuracy:String)
@@ -253,7 +255,6 @@ class APSettingsSubState extends MusicBeatSubstate {
             APEntryState.gameSettings.FNF.accrequirement = accuracy;
             trace(id); 
         });
-        accRequirement.selectedLabel = APEntryState.gameSettings.FNF.accrequirement;
 
         tab_group.add(new FlxText(gradeRequirement.x, gradeRequirement.y - 15, 120, 'Grade Requirement:'));
         tab_group.add(new FlxText(accRequirement.x, accRequirement.y - 15, 120, 'Accuracy Requirement:'));
@@ -272,35 +273,30 @@ class APSettingsSubState extends MusicBeatSubstate {
         trapAmount.min = 0;
         trapAmount.max = 60;
         trapAmount.decimals = 0;
-        trapAmount.value = APEntryState.gameSettings.FNF.trapAmount;
 
         objY += 40;
         bbcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.bbcWeight = Std.int(v));
         bbcWeight.min = 0;
         bbcWeight.max = 10;
         bbcWeight.decimals = 0;
-        bbcWeight.value = APEntryState.gameSettings.FNF.bbcWeight;
 
         objY += 40;
         ghostChatWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ghostChatWeight = Std.int(v));
         ghostChatWeight.min = 0;
         ghostChatWeight.max = 10;
         ghostChatWeight.decimals = 0;
-        ghostChatWeight.value = APEntryState.gameSettings.FNF.ghostChatWeight;
 
         objY += 40;
         tutorialWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.svcWeight = Std.int(v));
         tutorialWeight.min = 0;
         tutorialWeight.max = 10;
         tutorialWeight.decimals = 0;
-        tutorialWeight.value = APEntryState.gameSettings.FNF.svcWeight;
 
         objY += 40;
         svcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.tutorialWeight = Std.int(v));
         svcWeight.min = 0;
         svcWeight.max = 10;
         svcWeight.decimals = 0;
-        svcWeight.value = APEntryState.gameSettings.FNF.tutorialWeight;
 
         objY += 40;
         fakeTransWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.fakeTransWeight = Std.int(v));
@@ -314,21 +310,18 @@ class APSettingsSubState extends MusicBeatSubstate {
         chartmodifierchance.min = 0;
         chartmodifierchance.max = 10;
         chartmodifierchance.decimals = 0;
-        chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
 
         objY += 40;
         shieldWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.shieldWeight = Std.int(v));
         shieldWeight.min = 0;
         shieldWeight.max = 10;
         shieldWeight.decimals = 0;
-        shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
 
         objY += 40;
         MHPWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.MHPWeight = Std.int(v));
         MHPWeight.min = 0;
         MHPWeight.max = 10;
         MHPWeight.decimals = 0;
-        MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
 
         tab_group.add(new FlxText(chartmodifierchance.x, chartmodifierchance.y - 15, 300, 'Chart Modifier Chance:'));
         tab_group.add(new FlxText(trapAmount.x, trapAmount.y - 15, 300, 'Trap Amount:'));

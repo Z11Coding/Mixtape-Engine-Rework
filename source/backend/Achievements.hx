@@ -73,6 +73,7 @@ class Achievements {
 		createAchievement('nightmare',				{name: "The Rap God", description: "Earn a P Rank on any song on Nightmare difficulty."});
 
 		// The "Beat the week without missing!" achievements
+		createAchievement('tutorial_nomiss',		{name: "Tutorial Extraordinaire", description: "Beat Tutorial (Week) on Hard with no Misses."});
 		createAchievement('week1_nomiss',			{name: "She Calls Me Daddy Too", description: "Beat Week 1 on Hard with no Misses."});
 		createAchievement('week2_nomiss',			{name: "No More Tricks", description: "Beat Week 2 on Hard with no Misses."});
 		createAchievement('week3_nomiss',			{name: "Call Me The Hitman", description: "Beat Week 3 on Hard with no Misses."});

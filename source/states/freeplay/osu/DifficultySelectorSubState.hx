@@ -165,7 +165,6 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         buildDifficultySprite(Difficulty.list[difficulty].toLowerCase());
 
         // I really don't wanna talk about it
-        // I hate this so much but it works but I still hate it
         try {
             var jsonMeta:Dynamic = Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song.songName.toLowerCase()) + '/meta')));
             var ratingValue:Dynamic = jsonMeta.freeplay.ratings;
@@ -179,13 +178,8 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                 }
             }
 
-            trace(actualRating);
-
-
             var curDiff:String = Difficulty.list[difficulty].toLowerCase();
-            if (actualRating != null) {
-                setDifficultyStars(actualRating.get(curDiff));
-            }
+            setDifficultyStars(actualRating.get(curDiff));
         } catch(e) {
             difficultyStars.visible = false;
             trace("No Metadata Found!");

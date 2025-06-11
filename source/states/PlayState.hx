@@ -61,6 +61,8 @@ import crowplexus.hscript.Printer;
 
 import yutautil.AprilFools;
 import states.playbits.*; //All the bits
+import yutautil.ChanceSelector;
+import yutautil.ChanceSelector.Chance;
 
 /**
  * This is where all the Gameplay stuff happens and is managed
@@ -236,6 +238,7 @@ class PlayState extends MusicBeatState
 	public var noHeal:Bool = false;
 
 	public var healthBar:Bar;
+	public var healthBarOverflow:Bar;
 	public var timeBar:Bar;
 	var songPercent:Float = 0;
 
@@ -364,6 +367,7 @@ class PlayState extends MusicBeatState
 	public var lyrics:FlxText;
 	public var rainIntensity:Float = 0;
 	public var skipTxt:FlxText;
+	public var curHealthMode:String = "Mixtape";
 	var allowSkip:Bool = false;
 	var lastUpdateTime:Float = 0.0;
 	var endingTimeLimit:Int = 20;
@@ -381,6 +385,19 @@ class PlayState extends MusicBeatState
 	var artistTxt:FlxText;
 	var charterTxt:FlxText;
 	var modTxt:FlxText;
+	var healthmoderandomizer:Array<Chance> = [
+		{item: "OG", chance: 14.28},
+		{item: "Mixtape", chance: 14.28},
+		{item: "Kade", chance: 14.28},
+		{item: "Tabi", chance: 14.28},
+		{item: "Double", chance: 14.28},
+		{item: "Lives", chance: 14.28},
+		{item: "Lives + HealthBar", chance: 14.28},
+	];
+
+	// Thank you mic'ed up engine, for making my life SO much easier lol
+	public var hearts:FlxTypedGroup<FlxSprite>;
+	var lives:Int = 1;
 
 	//THE MANAGERS
 	public var comboManager:ComboManager;
@@ -465,6 +482,10 @@ class PlayState extends MusicBeatState
 		// {
 		// 	preloadFunction = generateSong;
 		// }
+
+		if (ClientPrefs.data.healthMode == "Random") {
+			curHealthMode = ChanceSelector.selectOption(healthmoderandomizer, false, true, true);
+		} else curHealthMode = ClientPrefs.data.healthMode;
 
 		if (SONG == null) {
 			var songLowercase:String = Paths.formatToSongPath('tutorial');
@@ -598,6 +619,10 @@ class PlayState extends MusicBeatState
 		FlxG.cameras.add(camCredit, false);
 		FlxG.cameras.add(camOther, false);
 		FlxG.cameras.add(camCOD, false);
+
+		if (ClientPrefs.data.startHidden)
+			camHUD.alpha = 0;
+
 		
 		try
 		{
@@ -883,9 +908,18 @@ class PlayState extends MusicBeatState
 		uiGroup = new FlxSpriteGroup();
 		comboGroup = new FlxSpriteGroup();
 		noteGroup = new FlxTypedGroup<FlxBasic>();
+		hearts = new FlxTypedGroup<FlxSprite>();
 		add(comboGroup);
 		add(uiGroup);
+		add(hearts);
 		add(noteGroup);
+
+		if (curHealthMode == "Lives" || curHealthMode == "Lives + HealthBar")
+			hearts.visible = true;
+		else
+			hearts.visible = false;
+
+		comboGroup.cameras = [if (ClientPrefs.data.inGameRatings) camGame else camHUD];
 
 		Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
 		var showTime:Bool = (ClientPrefs.data.timeBarType != 'Disabled');
@@ -981,22 +1015,41 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
+		if (curHealthMode == 'Lives') lives = 10;
+		else if (curHealthMode == 'Lives + HealthBar') lives = 3;
+
 		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
 		healthBar.screenCenter(X);
 		healthBar.leftToRight = false;
 		healthBar.scrollFactor.set();
 		healthBar.visible = !ClientPrefs.data.hideHud;
 		healthBar.alpha = ClientPrefs.data.healthBarAlpha;
-		reloadHealthBarColors(); 
+		if (curHealthMode == "Double") healthBar.bg.visible = false;
 		uiGroup.add(healthBar);
+		healthBar.visible = (curHealthMode != "Lives");
+		
+		if (curHealthMode == "Double") {
+			healthBarOverflow = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 2, 4);
+			healthBarOverflow.screenCenter(X);
+			healthBarOverflow.leftToRight = false;
+			healthBarOverflow.scrollFactor.set();
+			healthBarOverflow.visible = !ClientPrefs.data.hideHud;
+			healthBarOverflow.alpha = ClientPrefs.data.healthBarAlpha;
+			healthBarOverflow.leftBar.visible = false;
+			uiGroup.add(healthBarOverflow);
+		}
+		reloadHealthBarColors(); 
 		
 		if (opponentmode) healthBar.leftToRight = true;
+
+		
 
 		iconP1 = new HealthIcon(boyfriend.healthIcon, true);
 		iconP1.y = healthBar.y - 75;
 		iconP1.visible = !ClientPrefs.data.hideHud;
 		iconP1.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP1);
+		iconP1.visible = (curHealthMode != "Lives");
 
 		if (bf2 != null)
 		{
@@ -1004,6 +1057,7 @@ class PlayState extends MusicBeatState
 			iconP12.y = healthBar.y - 115;
 			iconP12.alpha = ClientPrefs.data.healthBarAlpha;
 			uiGroup.add(iconP12);
+			iconP12.visible = (curHealthMode != "Lives");
 		}
 		else iconP12 = null;
 
@@ -1012,6 +1066,7 @@ class PlayState extends MusicBeatState
 		iconP2.visible = !ClientPrefs.data.hideHud;
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP2);
+		iconP2.visible = (curHealthMode != "Lives");
 
 		if (dad2 != null)
 		{
@@ -1019,6 +1074,7 @@ class PlayState extends MusicBeatState
 			iconP22.y = healthBar.y - 115;
 			iconP22.alpha = ClientPrefs.data.healthBarAlpha;
 			uiGroup.add(iconP22);
+			iconP22.visible = (curHealthMode != "Lives");
 		} else iconP22 = null;
 
 		scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
@@ -1112,6 +1168,7 @@ class PlayState extends MusicBeatState
 
 		introStageStuff.cameras = [camCredit];
 		uiGroup.cameras = [camHUD];
+		hearts.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
 		comboGroup.cameras = [camHUD];
 
@@ -1228,12 +1285,28 @@ class PlayState extends MusicBeatState
 		lyrics.text = '';
 		add(lyrics);
 
+		for (i in 0...lives)
+		{
+			var heartSprite:FlxSprite = new FlxSprite(healthBar.x + 5 + (40 * i), 20);
+			heartSprite.frames = Paths.getSparrowAtlas('mechanics/general/heartUI');
+			heartSprite.antialiasing = false;
+			heartSprite.updateHitbox();
+			heartSprite.y = healthBar.y + healthBar.height + 10;
+			heartSprite.scrollFactor.set();
+			heartSprite.animation.addByPrefix('Idle', "Hearts", 24, true);
+			heartSprite.ID = i;
+			if (ClientPrefs.data.downScroll)
+				heartSprite.y = healthBar.y - heartSprite.height - 10;
+			heartSprite.animation.play('Idle');
+			hearts.add(heartSprite);
+		}
+
 		cacheCountdown();
 		cachePopUpScore();
 
 		if(eventNotes.length < 1) checkEventNote();
 
-		switch(ClientPrefs.data.healthMode) {
+		switch(curHealthMode) {
 			case "Kade":
 				pressMissDamage = 0.20; //nah that's cruel
 			default:
@@ -1241,7 +1314,15 @@ class PlayState extends MusicBeatState
 		}
 
 		raveLightsColors = [0xFF31A2FD, 0xFF31FD8C, 0xFFFB33F5, 0xFFFD4531, 0xFFFBA633];
-		if (!inArchipelagoMode) MaxHP = 2 + (ClientPrefs.data.healthMode == "Tabi" ? 2 : 0);
+		if (!inArchipelagoMode)
+		{
+			switch (curHealthMode) {
+				case "Tabi" | "Double":
+					MaxHP = 4;
+				default:
+					MaxHP = 2;
+			}
+		}
 		initY = healthBar.y;
 
 		// trace size with verbose settings.
@@ -1363,6 +1444,9 @@ class PlayState extends MusicBeatState
 	public function reloadHealthBarColors() {
 		healthBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
 			FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
+
+		if (curHealthMode == "Double")
+			healthBarOverflow.setColors(FlxColor.TRANSPARENT, FlxColor.fromRGB(0, 255, 0));
 
 			//for later
 		var dCol = if (dad2 != null) FlxColor.fromRGB(dad2.healthColorArray[0], dad2.healthColorArray[1],
@@ -1774,6 +1858,8 @@ class PlayState extends MusicBeatState
 					case 3:
 						countdownGo = createCountdownSprite(introAlts[2], antialias);
 						FlxG.sound.play(Paths.sound('introGo' + introSoundsSuffix), 0.6);
+						if (ClientPrefs.data.startHidden)
+							FlxTween.tween(camHUD, {alpha: 1}, 5, {ease: FlxEase.circOut});
 						tick = GO;
 					case 4:
 						new FlxTimer().start(2, function(tmr:FlxTimer)
@@ -1911,7 +1997,7 @@ class PlayState extends MusicBeatState
 			str += ' (${percent}%) - ' + Language.getPhrase(comboManager.ratingFC);
 		}
 
-		if (health <= 0.0475 && (ClientPrefs.data.healthMode == "Mixtape" || ClientPrefs.data.healthMode == "Tabi"))
+		if (health <= 0.0475 && (curHealthMode == "Mixtape" || curHealthMode == "Tabi" || curHealthMode == "Double"))
 		{
 			scoreTxt.text = "DON'T MISS!";
 			scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
@@ -4169,12 +4255,14 @@ class PlayState extends MusicBeatState
 		return event;
 	}
 
-	public function die():Void
+	public function die(?trueKill:Bool = false):Void
 	{
 		bfkilledcheck = true;
-		doDeathCheck(true);
 		health = 0;
+		if (trueKill) lives = 0;
+		else lives -= 1;
 		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
+		doDeathCheck(true);
 	}
 
 	function updateVisPos() { //Literaly so it doesn't look weird in the update function
@@ -4239,7 +4327,7 @@ class PlayState extends MusicBeatState
 			camGame.visible = false;
 		}
 
-		if (ClientPrefs.data.healthMode == "Tabi")
+		if (curHealthMode == "Tabi")
 		{
 			if (health > 0)
 			{
@@ -4349,6 +4437,25 @@ class PlayState extends MusicBeatState
 		updateIconsScale(elapsed);
 		updateIconsPosition();
 
+		hearts.forEachAlive(function(heart:FlxSprite)
+		{
+			heart.angle = FlxMath.lerp(heart.angle, 30, cameraSpeed * 2 / (240 / 60));
+			if (curHealthMode == "Lives")
+			{
+				heart.y = healthBar.y;
+				heart.x = (healthBar.x*1.3) + (40 * heart.ID);
+			}
+			else
+			{
+				heart.y = healthBar.y + healthBar.height + 10;
+				heart.x = healthBar.x + 50 + (40 * heart.ID);
+			}
+			if (heart.ID > (lives-1))
+				heart.visible = false;
+			else
+				heart.visible = true;
+		});
+
 		if (startedCountdown && !paused)
 		{
 			Conductor.songPosition += elapsed * 1000 * playbackRate;
@@ -4403,6 +4510,7 @@ class PlayState extends MusicBeatState
 		{
 			archipelago.APPlayState.deathByLink = true; //To prevent self-made deaths (People would hate you for this)
 			health = 0;
+			lives = 0;
 			die();
 			COD.setPresetCOD('r');
 			trace("RESET = True");
@@ -4422,7 +4530,7 @@ class PlayState extends MusicBeatState
 		if (health < 0) health = 0;
 		if (health > MaxHP) health = MaxHP;
 
-		if (!inArchipelagoMode && ClientPrefs.data.healthMode == "Tabi") {
+		if (!inArchipelagoMode && curHealthMode == "Tabi") {
 			healthBar.x = FlxG.width / 2 - healthBar.width / 2;
 			healthBar.y = initY; 
 			if (health >= 2) {
@@ -4595,7 +4703,7 @@ class PlayState extends MusicBeatState
 	{
 		var iconOffset:Int = 26;
 		var healthRatio:Float = health / MaxHP;
-		switch (ClientPrefs.data.healthMode) {
+		switch (curHealthMode) {
 			default:
 				if (!noHeal) {
 					iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
@@ -4863,7 +4971,7 @@ class PlayState extends MusicBeatState
 	public var gameOverTimer:FlxTimer;
 	var killPlayer:Bool;
 	function doDeathCheck(?skipHealthCheck:Bool = false) {
-		switch (ClientPrefs.data.healthMode) {
+		switch (curHealthMode) {
 			case "OG":
 				killPlayer = health <= 0 
 				&& !practiceMode 
@@ -4889,6 +4997,38 @@ class PlayState extends MusicBeatState
 				&& !isDead 
 				&& bfkilledcheck
 				&& gameOverTimer == null;
+
+			case "Double":
+				killPlayer = health <= 0 
+				&& !practiceMode 
+				&& !isDead 
+				&& gameOverTimer == null;
+
+			case "Lives":
+				killPlayer = lives == 0
+				&& !practiceMode 
+				&& !isDead 
+				&& gameOverTimer == null;
+
+			case "Lives + HealthBar":
+				if (lives == 0
+				&& !practiceMode 
+				&& !isDead 
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				else if (lives > 0 && health <= 0 )
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				} 
 
 			default:
 				killPlayer = health <= 0 
@@ -6955,7 +7095,7 @@ class PlayState extends MusicBeatState
 		var lastCombo:Int = comboManager.combo;
 		comboManager.combo = 0;
 
-		switch (ClientPrefs.data.healthMode) {
+		switch (curHealthMode) {
 			case "Kade":
 				if (note.isParent) {
 					health -= 0.15; // give a health punishment for failing a LN
@@ -6974,7 +7114,7 @@ class PlayState extends MusicBeatState
 				health -= 0.04;
 				health -= 0.08;
 
-			case "Mixtape" | "OG":
+			default:
 				health -= subtract * healthLoss;
 		}
 		comboManager.songScore -= 10;
@@ -7009,6 +7149,21 @@ class PlayState extends MusicBeatState
 			}
 		}
 		vocals.volume = 0 * vocalVolumeMultiplier;
+
+		if (curHealthMode == "Lives" && lives > 0)
+		{
+			lives -= 1;
+			if (ClientPrefs.data.flashing)
+			{
+				FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+			}
+			new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+			{
+				gf.playAnim('sad', true);
+			});
+			FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+			health = 1 / lives * lives;
+		}
 	}
 
 	function opponentNoteHit(note:Note, field:PlayField):Void
@@ -7081,7 +7236,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (ClientPrefs.data.healthMode == "Tabi" && health > 0)
+		if (curHealthMode == "Tabi" && health > 0)
 		{
 			health -= 0.04;
 			health -= 0.03;
@@ -7198,7 +7353,7 @@ class PlayState extends MusicBeatState
 			var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
 			if (guitarHeroSustains && note.isSustainNote) gainHealth = false;
 			if (gainHealth){
-				switch (ClientPrefs.data.healthMode) {
+				switch (curHealthMode) {
 					case "Kade":
 						var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
 						var daRating:Rating = Conductor.judgeNote(comboManager.ratingsData, noteDiff / playbackRate);
@@ -7222,7 +7377,7 @@ class PlayState extends MusicBeatState
 							health += 0.004;
 						health += 0.05;
 						health += 0.05;
-					case "Mixtape" | "OG": 
+					default: 
 						health += note.hitHealth * healthGain;
 				}
 			} 
@@ -7926,14 +8081,16 @@ class PlayState extends MusicBeatState
 						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'nightmare');
 				}
 			}
-			else if (name == WeekData.getWeekFileName()) {
-				if(isStoryMode && storyPlaylist.length <= 1 && !changedDifficulty && !usedPractice)
-					unlock = true;
-			}
 			else // any FC achievements, name should be "weekFileName_nomiss", e.g: "week3_nomiss";
 			{
 				if(isStoryMode && campaignMisses + comboManager.songMisses < 1 && Difficulty.getString().toUpperCase() == 'HARD'
 					&& storyPlaylist.length <= 1 && !changedDifficulty && !usedPractice)
+					unlock = true;
+			}
+
+			// Beating the week achievements
+			if (name == WeekData.getWeekFileName()) {
+				if(isStoryMode && storyPlaylist.length <= 1 && !changedDifficulty && !usedPractice)
 					unlock = true;
 			}
 

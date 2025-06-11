@@ -146,7 +146,7 @@ class APEntryState extends MusicBeatState
 			accessibility: "full",
 			mods_enabled: false,
 			deathlink: false,
-			unlock_type: 'Songs',
+			unlock_type: 'Per Song',
 			unlock_method: 'Song Completion',
 			graderequirement: "Any",
 			accrequirement: "Any",

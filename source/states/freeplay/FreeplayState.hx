@@ -11,8 +11,10 @@ import objects.MusicPlayer;
 import archipelago.*;
 import states.editors.ChartingStateOG;
 import states.editors.ChartingState;
+import metadata.STMetaFile.MetadataFile;
 
 import flixel.addons.ui.FlxUIInputText;
+import states.freeplay.backend.DifficultyStars;
 
 import options.GameplayChangersSubstate;
 import substates.ResetScoreSubState;
@@ -123,6 +125,9 @@ class FreeplayState extends MusicBeatState
 	var visual:AudioDisplay;
 	var vocalvisual:AudioDisplay = null;
 	var oppvisual:AudioDisplay = null;
+
+	var albumPhoto:FlxSprite;
+	var difficultyStars:DifficultyStars;
 	override function create()
 	{
 		#if windows
@@ -209,6 +214,18 @@ class FreeplayState extends MusicBeatState
 		randomIcon.sprTracker = cast randomText;
 		randomIcon.scrollFactor.set(1, 1);
 		add(randomIcon);
+
+		albumPhoto = new FlxSprite(930, 0).loadGraphic(Paths.image('albums/NoCover'));
+		albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+		albumPhoto.screenCenter(Y);
+		albumPhoto.y += 20;
+		add(albumPhoto);
+		albumPhoto.alpha = 0.6;
+
+		difficultyStars = new DifficultyStars(albumPhoto.x, albumPhoto.y - 130);
+		difficultyStars.visible = true;
+        difficultyStars.scrollFactor.set();
+        add(difficultyStars);
 
 		
 		WeekData.setDirectoryFromWeek();
@@ -323,6 +340,23 @@ class FreeplayState extends MusicBeatState
 
 		if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
 			archipelago.APItem.activeItem = null;
+	}
+
+	public function setDifficultyStars(?difficulty:Int):Void
+	{
+		if (difficulty == null) return;
+		difficultyStars.setNumber(difficulty);
+		showStars();
+	}
+
+	/**
+	 * Make the album stars visible.
+	 * I thought this was pointless.
+	 * Turns out, this DOES have a reason to exist
+	 */
+	public function showStars():Void
+	{
+		difficultyStars.visible = true; // true;
 	}
 
 	override function closeSubState() {
@@ -1023,6 +1057,26 @@ class FreeplayState extends MusicBeatState
 		rank.x = -200 + FlxG.width - 50;
 		#end
 
+		// I really don't wanna talk about it
+        try {
+            var ratingValue:Dynamic = metadata.freeplay.ratings;
+            var actualRating:Map<String, Int> = new Map<String, Int>();
+
+            for (item in Reflect.fields(ratingValue)) {
+                if (item == 'normal' || item == 'easy' || item == 'hard') {
+                    actualRating.set(item, Reflect.field(ratingValue, item));
+                } else {
+                    actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
+                }
+            }
+
+            var curDiff:String = Difficulty.list[curDifficulty].toLowerCase();
+			setDifficultyStars(actualRating.get(curDiff));
+        } catch(e) {
+            difficultyStars.visible = false;
+            trace("No Metadata Found!");
+        }
+
 		lastDifficultyName = Difficulty.getString(curDifficulty);
 		if (Difficulty.list.length > 1)
 			diffText.text = '< ' + lastDifficultyName.toUpperCase() + ' >';
@@ -1034,6 +1088,7 @@ class FreeplayState extends MusicBeatState
 		missingTextBG.visible = false;
 	}
 
+	public var metadata:MetadataFile = null;
 	function changeSelection(change:Int = 0, playSound:Bool = true)
 	{
 		if (player.playingMusic)
@@ -1125,9 +1180,12 @@ class FreeplayState extends MusicBeatState
 		
 		if (FreeplayManager.songList[curSelected] != null)
 		{
+			WeekData.setDirectoryFromWeek();
 			Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
 			PlayState.storyWeek = FreeplayManager.songList[curSelected].week;
 			try {Difficulty.loadFromWeek();} catch(e:Dynamic) {}
+			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[curSelected].songName.toLowerCase());}
+			catch(e) {metadata = null;}
 		}
 
 		if (curSelected == -1) 
@@ -1183,6 +1241,40 @@ class FreeplayState extends MusicBeatState
 			Difficulty.list = ['SONG NOT FOUND'];
 			curDifficulty = 0;
 			FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+		}
+
+		if (metadata != null && metadata.freeplay != null) {
+			if (metadata.freeplay.bg != null && metadata.freeplay.bg != '') {
+				bg.loadGraphic(Paths.image(metadata.freeplay.bg));
+				bg.screenCenter();
+			} else {
+				bg.loadGraphic(Paths.image('menuDesat'));
+				bg.screenCenter();
+			}
+
+			if (albumPhoto != null) {
+				if (metadata.freeplay.album != null && metadata.freeplay.album != '') {
+					albumPhoto.loadGraphic(Paths.image('albums/${Std.string(metadata.freeplay.album)}'));
+					albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+					albumPhoto.screenCenter(Y);
+					albumPhoto.y += 20;
+				} else {
+					albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
+					albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+					albumPhoto.screenCenter(Y);
+					albumPhoto.y += 20;
+				}
+			}
+		} else { // Return to default
+			bg.loadGraphic(Paths.image('menuDesat'));
+			bg.screenCenter();
+
+			if (albumPhoto != null) {
+				albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
+				albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+				albumPhoto.screenCenter(Y);
+				albumPhoto.y += 20;
+			}
 		}
 
 		changeDiff();

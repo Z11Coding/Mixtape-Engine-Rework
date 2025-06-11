@@ -4,6 +4,7 @@ import flixel.input.keyboard.FlxKey;
 import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
+import objects.Character;
 
 import lime.utils.Assets;
 import openfl.utils.Assets as OpenFlAssets;
@@ -57,6 +58,10 @@ class OsuFreeplayState extends MusicBeatState
 	var staleBg:FlxSprite;
 	var ticketCounterTop:FlxText = null;
 	var ticketCounterBottom:FlxText = null;
+
+	var visual:AudioDisplay;
+	var vocalvisual:AudioDisplay = null;
+	var oppvisual:AudioDisplay = null;
 	override function create()
 	{
 		#if windows
@@ -66,20 +71,44 @@ class OsuFreeplayState extends MusicBeatState
 
 		instance = this; // For Archipelago
 
+		// Check if the Victory Song is cleared.	
+		{
+			FreeplayManager.checkVictory();
+		}
+		FreeplayManager.updateArchFreeplay();
+		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
 		
 		Cursor.cursorMode = Default;
-
-		#if windows
-		backend.window.CppAPI.resetAffixes();
-		backend.window.CppAPI.resetTitle();
-		#end
 
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
 
 		FlxG.mouse.visible = true;
+
+		if (ClientPrefs.data.allowVis) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
+				visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				visual.scrollFactor.set(0, 0);
+				add(visual);
+				visual.alpha = ClientPrefs.data.visOpacity;
+
+				vocalvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				vocalvisual.scrollFactor.set(0, 0); 
+				vocalvisual.flipY = true; 
+				add(vocalvisual); 
+				vocalvisual.alpha = ClientPrefs.data.visOpacity; 
+
+				oppvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				oppvisual.scrollFactor.set(0, 0);
+				oppvisual.flipY = true;
+				add(oppvisual);
+				oppvisual.alpha = ClientPrefs.data.visOpacity;
+			}
+		}
+
+		switchVisualizer();
 
 		staleBg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xff646464);
 		add(staleBg);
@@ -94,6 +123,16 @@ class OsuFreeplayState extends MusicBeatState
 		add(iconGrp);
 
 		FreeplayManager.reloadFreeplay(true);
+
+		if(WeekData.weeksList.length < 1)
+		{
+			FlxTransitionableState.skipNextTransIn = true;
+			persistentUpdate = false;
+			MusicBeatState.switchState(new states.ErrorState("NO WEEKS ADDED FOR FREEPLAY\n\nPress ACCEPT to go to the Week Editor Menu.\nPress BACK to return to Main Menu.",
+				function() MusicBeatState.switchState(new states.editors.WeekEditorState()),
+				function() MusicBeatState.switchState(new states.MainMenuState())));
+			return;
+		}
 
 		var topBar:FlxSprite = new FlxSprite(0, -87).loadGraphic(Paths.image('freeplay/OSUState/barTop'));
 		topBar.setGraphicSize(1280, 152);
@@ -177,6 +216,43 @@ class OsuFreeplayState extends MusicBeatState
 		#end
 
 		Mods.loadTopMod();
+	}
+
+	function switchVisualizer(?hasVocals:Bool = false, ?vocalSND:FlxSound = null, ?oppSND:FlxSound = null) {
+		if (ClientPrefs.data.allowVis) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
+				if (visual != null) remove(visual);
+				visual = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				visual.scrollFactor.set(0, 0);
+				add(visual);
+				visual.alpha = 0.7;
+
+				if (hasVocals) {
+					if (vocalSND != null) {
+						if (vocalvisual != null) remove(vocalvisual);
+						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player1).get("Health Colors");
+						vocalvisual = new AudioDisplay(vocalSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, color != null ? FlxColor.fromRGB(color[0], color[1], color[2]) : FlxColor.WHITE);
+						vocalvisual.scrollFactor.set(0, 0);
+						vocalvisual.flipY = true;
+						add(vocalvisual);
+						vocalvisual.alpha = 0.7;
+					}
+
+					if (oppSND != null) {
+						if (oppvisual != null) remove(oppvisual);
+						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player2).get("Health Colors");
+						oppvisual = new AudioDisplay(oppSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.fromRGB(color[0], color[1], color[2]));
+						oppvisual.scrollFactor.set(0, 0);
+						oppvisual.flipY = true;
+						add(oppvisual);
+						oppvisual.alpha = 0.7;
+					}
+				} else {
+					if (vocalvisual != null) remove(vocalvisual);
+					if (oppvisual != null) remove(oppvisual);
+				}
+			}
+		}
 	}
 
 	var holdTime:Float = 0;
@@ -442,6 +518,12 @@ class OsuFreeplayState extends MusicBeatState
 
 	override function closeSubState() {
 		inSub = false;
+		if (FreeplayState.doChange) 
+		{
+			changeSong(0, false);
+			FreeplayState.doChange = false;
+			Highscore.reloadModifiers();
+		}
 		super.closeSubState();
 	}
 

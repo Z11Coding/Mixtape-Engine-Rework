@@ -178,6 +178,9 @@ import states.TitleState;
 	public var silentVol:Bool = false;
 	public var editorMusVol:Float = 0.7;
 	public var performanceCounter:String = 'fps-mem-peak';
+	public var inGameRatings:Bool = false;
+	public var startHidden:Bool = false;
+
 	// Compiler Settings.
 	public var showInitialMemoryUsage:Bool = true;
 	public var SizeAccuracy:yutautil.CollectionUtils.Size = yutautil.CollectionUtils.Size.Auto;

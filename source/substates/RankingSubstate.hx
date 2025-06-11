@@ -89,7 +89,7 @@ class RankingSubstate extends MusicBeatSubstate
 		combo.antialiasing = true;
 		combo.setGraphicSize(0, 130);
 
-		var press:FlxText = new FlxText(20, 15, 0, "Press ANY to continue.", 32);
+		var press:FlxText = new FlxText(20, 15, 0, "Press SPACE to continue.", 32);
 		press.scrollFactor.set();
 		press.setFormat(Paths.font("vcr.ttf"), 32);
 		press.setBorderStyle(OUTLINE, 0xFF000000, 5, 1);
@@ -188,7 +188,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 		super.update(elapsed);
 
-		if (FlxG.keys.justPressed.ANY || PlayState.instance.practiceMode)
+		if (FlxG.keys.justPressed.SPACE || PlayState.instance.practiceMode)
 		{
 			PlayState.instance.paused = false;
 			switch (PlayState.gameplayArea)

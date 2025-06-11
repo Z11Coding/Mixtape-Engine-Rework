@@ -36,10 +36,10 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 				"Mixtape", 
 				"Kade",
 				"Tabi", 
-				"Double (NA)", 
-				"Lives (NA)", 
-				"Lives + HealthBar (NA)", 
-				"Random (NA)",
+				"Double", 
+				"Lives", 
+				"Lives + HealthBar", 
+				"Random",
 			]);
 		addOption(option);
 		option.displayFormat = '< %v >';
@@ -144,7 +144,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		var option:Option = new Option('Start Hidden',
 			"If checked, the hud will be invisible during the countdown.",
-			'starHidden',
+			'startHidden',
 			BOOL);
 		addOption(option);
 
