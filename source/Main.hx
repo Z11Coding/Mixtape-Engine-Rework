@@ -157,6 +157,12 @@ class Main extends Sprite
 		trace(testArray.get("test2"));
 		trace(testArray["test"]);
 
+		// 'You can\'t put variable expressions in COMMENTS, silly!'.NativeComment(true);
+		// 	trace('testArray: $testArray');
+		// 'testArray = $testArray'.NativeTrace(true, false);
+		// "NativeTrace works with double quotes too!".NativeTrace(true);
+		// testArray.NativeTrace(true, false);
+
 		yutautil.Threader.runInThread(commandPrompt.start());
 		#if HSCRIPT_ALLOWED
 		Iris.warn = function(x, ?pos:haxe.PosInfos) {
@@ -315,9 +321,6 @@ class Main extends Sprite
 		// This is a test to see if the GoToTag and GoTo string extensions work correctly.
 
 
-		// trace("E tag woooooorks!!!");
-
-
 		#if android
 		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
 		#end
@@ -409,6 +412,7 @@ class Main extends Sprite
 	#if CRASH_HANDLER
 	public static function onCrash(e:UncaughtErrorEvent):Void
 	{
+		"Crash Handler Code for Mixtape Engine Rework.".NativeComment();
 		// Prevent further propagation of the error to avoid crashing the application
 		e.preventDefault();
 		var errMsg:String = "";
