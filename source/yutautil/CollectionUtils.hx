@@ -667,6 +667,7 @@ class CollectionUtils
 		}
 	}
 
+
 	/**
 	 * Estimates the memory size of an object in bytes.
 	 * @param input The object to estimate.

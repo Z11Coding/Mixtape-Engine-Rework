@@ -174,6 +174,13 @@ class PlayState extends MusicBeatState
 	var raveLightsColors:Array<Int>;
 	var ravemode:Bool;
 
+	// 	public static function testSpeedEvent(input:Dynamic):Null<SpeedEvent>
+	// {
+	// 	// Checks if the input is a LuaScript instance.
+	// 	return yutautil.CUMacroTools.createNullStruct();
+	// }
+
+
 	@:noCompletion
 	static function set_stageUI(value:String):String
 	{
