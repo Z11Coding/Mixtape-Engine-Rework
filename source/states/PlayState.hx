@@ -400,6 +400,7 @@ class PlayState extends MusicBeatState
 		{item: "Double", chance: 14.28},
 		{item: "Lives", chance: 14.28},
 		{item: "Lives + HealthBar", chance: 14.28},
+		{item: "Amalgam", chance: 2.5}, /// ooo secret mode ooo
 	];
 
 	// Thank you mic'ed up engine, for making my life SO much easier lol
@@ -490,9 +491,17 @@ class PlayState extends MusicBeatState
 		// 	preloadFunction = generateSong;
 		// }
 
-		if (ClientPrefs.data.healthMode == "Random") {
-			curHealthMode = ChanceSelector.selectOption(healthmoderandomizer, false, true, true);
-		} else curHealthMode = ClientPrefs.data.healthMode;
+		{
+			if (ClientPrefs.data.healthMode == "Random") {
+				curHealthMode = ChanceSelector.selectOption(healthmoderandomizer, false, true, true);
+			} else curHealthMode = ClientPrefs.data.healthMode;
+
+			if (curHealthMode == "Amalgam")
+				Achievements.unlock("freaky_bar");
+
+			setOnScripts("healthMode", curHealthMode);
+			callOnScripts("onSetHealthMode", [curHealthMode]);
+		}
 
 		if (SONG == null) {
 			var songLowercase:String = Paths.formatToSongPath('tutorial');
@@ -921,7 +930,7 @@ class PlayState extends MusicBeatState
 		add(hearts);
 		add(noteGroup);
 
-		if (curHealthMode == "Lives" || curHealthMode == "Lives + HealthBar")
+		if (curHealthMode == "Lives" || curHealthMode == "Lives + HealthBar" || curHealthMode == "Amalgam")
 			hearts.visible = true;
 		else
 			hearts.visible = false;
@@ -980,6 +989,8 @@ class PlayState extends MusicBeatState
 			dadField.AIPlayer = AIMode;
 			dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
 		}
+
+		PlayField.initExtras();
 		
 		#if ALLOW_DEPRECATION
 		callOnScripts("postPlayfieldCreation"); // backwards compat
@@ -989,6 +1000,7 @@ class PlayState extends MusicBeatState
 		trace("Adding Playfields!");
 		add(playfields);
 		add(notefields);
+		add(PlayField.extraStuff);
 		trace("Playfields Created!");
 		////
 
@@ -1022,7 +1034,7 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
-		if (curHealthMode == 'Lives') lives = 10;
+		if (curHealthMode == 'Lives' || curHealthMode == "Amalgam") lives = 10;
 		else if (curHealthMode == 'Lives + HealthBar') lives = 3;
 
 		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
@@ -1031,11 +1043,11 @@ class PlayState extends MusicBeatState
 		healthBar.scrollFactor.set();
 		healthBar.visible = !ClientPrefs.data.hideHud;
 		healthBar.alpha = ClientPrefs.data.healthBarAlpha;
-		if (curHealthMode == "Double") healthBar.bg.visible = false;
+		if (curHealthMode == "Double" || curHealthMode == "Amalgam") healthBar.bg.visible = false;
 		uiGroup.add(healthBar);
 		healthBar.visible = (curHealthMode != "Lives");
 		
-		if (curHealthMode == "Double") {
+		if (curHealthMode == "Double" || curHealthMode == "Amalgam") {
 			healthBarOverflow = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 2, 4);
 			healthBarOverflow.screenCenter(X);
 			healthBarOverflow.leftToRight = false;
@@ -1294,7 +1306,7 @@ class PlayState extends MusicBeatState
 
 		for (i in 0...lives)
 		{
-			var heartSprite:FlxSprite = new FlxSprite(healthBar.x + 5 + (40 * i), 20);
+			var heartSprite:FlxSprite = new FlxSprite(healthBar.width + 5 + (40 * i), 20);
 			heartSprite.frames = Paths.getSparrowAtlas('mechanics/general/heartUI');
 			heartSprite.antialiasing = false;
 			heartSprite.updateHitbox();
@@ -1316,6 +1328,8 @@ class PlayState extends MusicBeatState
 		switch(curHealthMode) {
 			case "Kade":
 				pressMissDamage = 0.20; //nah that's cruel
+			case "Amalgam":
+				pressMissDamage = 0.25; //but I can do worse >:)
 			default:
 				pressMissDamage = 0.05;
 		}
@@ -1326,6 +1340,8 @@ class PlayState extends MusicBeatState
 			switch (curHealthMode) {
 				case "Tabi" | "Double":
 					MaxHP = 4;
+				case "Amalgam":
+					MaxHP = 8;
 				default:
 					MaxHP = 2;
 			}
@@ -1452,7 +1468,7 @@ class PlayState extends MusicBeatState
 		healthBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
 			FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
 
-		if (curHealthMode == "Double")
+		if (curHealthMode == "Double" || curHealthMode == "Amalgam")
 			healthBarOverflow.setColors(FlxColor.TRANSPARENT, FlxColor.fromRGB(0, 255, 0));
 
 			//for later
@@ -2004,7 +2020,7 @@ class PlayState extends MusicBeatState
 			str += ' (${percent}%) - ' + Language.getPhrase(comboManager.ratingFC);
 		}
 
-		if (health <= 0.0475 && (curHealthMode == "Mixtape" || curHealthMode == "Tabi" || curHealthMode == "Double"))
+		if (health <= 0.0475 && (curHealthMode == "Mixtape" || curHealthMode == "Tabi" || curHealthMode == "Double" || curHealthMode == "Amalgam"))
 		{
 			scoreTxt.text = "DON'T MISS!";
 			scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
@@ -4334,7 +4350,7 @@ class PlayState extends MusicBeatState
 			camGame.visible = false;
 		}
 
-		if (curHealthMode == "Tabi")
+		if (curHealthMode == "Tabi" || curHealthMode == "Amalgam")
 		{
 			if (health > 0)
 			{
@@ -4454,8 +4470,8 @@ class PlayState extends MusicBeatState
 			}
 			else
 			{
-				heart.y = healthBar.y + healthBar.height + 10;
-				heart.x = healthBar.x + 50 + (40 * heart.ID);
+				heart.y = healthBar.y - healthBar.height + 10;
+				heart.x = (healthBar.x*2.6) + 60 + (40 * heart.ID);
 			}
 			if (heart.ID > (lives-1))
 				heart.visible = false;
@@ -4542,6 +4558,25 @@ class PlayState extends MusicBeatState
 			healthBar.y = initY; 
 			if (health >= 2) {
 				var amount = (health - 2) * 100;
+				var rX = FlxG.random.float(-2, 2);
+				var rY = FlxG.random.float(-2, 2);
+		
+				for (spr in [healthBar, iconP1, iconP2]) {
+					spr.x -= amount;
+					spr.x += rX;
+					spr.y += rY;
+				}
+			}
+
+			for (icon in [iconP1, iconP2])
+				icon.y = healthBar.y - (icon.height / 2);
+		}
+
+		if (!inArchipelagoMode && curHealthMode == "Amalgam") {
+			healthBar.x = FlxG.width / 2 - healthBar.width / 2;
+			healthBar.y = initY; 
+			if (health >= 4) {
+				var amount = (health - 4) * 100;
 				var rX = FlxG.random.float(-2, 2);
 				var rY = FlxG.random.float(-2, 2);
 		
@@ -5017,7 +5052,7 @@ class PlayState extends MusicBeatState
 				&& !isDead 
 				&& gameOverTimer == null;
 
-			case "Lives + HealthBar":
+			case "Lives + HealthBar" | "Amalgam":
 				if (lives == 0
 				&& !practiceMode 
 				&& !isDead 
@@ -7166,7 +7201,7 @@ class PlayState extends MusicBeatState
 			}
 			new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
 			{
-				gf.playAnim('sad', true);
+				if (gf != null) gf.playAnim('sad', true);
 			});
 			FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
 			health = 1 / lives * lives;
@@ -7243,7 +7278,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (curHealthMode == "Tabi" && health > 0)
+		if ((curHealthMode == "Tabi" || curHealthMode == "Amalgam") && health > 0)
 		{
 			health -= 0.04;
 			health -= 0.03;
@@ -7384,6 +7419,26 @@ class PlayState extends MusicBeatState
 							health += 0.004;
 						health += 0.05;
 						health += 0.05;
+
+					case "Amalgam":
+						var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
+						var daRating:Rating = Conductor.judgeNote(comboManager.ratingsData, noteDiff / playbackRate);
+						switch (daRating.name)
+						{
+							case 'shit':
+								health -= 0.1;
+							case 'bad':
+								health -= 0.06;
+							case 'sick':
+								health += note.hitHealth * healthGain;
+							case 'marv':
+								if (note.noteData >= 0)
+									health += 0.023;
+								else
+									health += 0.004;
+								health += 0.05;
+								health += 0.05;
+						}
 					default: 
 						health += note.hitHealth * healthGain;
 				}

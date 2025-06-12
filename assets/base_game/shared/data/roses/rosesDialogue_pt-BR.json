@@ -1,0 +1,29 @@
+{
+	"style": "pixel",
+	"dialogue": [
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "senpai-pixel",
+			"boxState": "normal",
+			"expression": "angry",
+			"text": "Nada mal para um verme como você."
+		},				
+		{
+			"sound": "pixelText",
+			"speed": 0.05,
+			"portrait": "senpai-pixel",
+			"boxState": "normal",
+			"expression": "angry",
+			"text": "Só que dessa vez, eu vou arrancar suas bolas assim que sua namorada engolir as minhas."
+		},
+		{
+			"sound": "",
+			"speed": 0.05,
+			"portrait": "bf-pixel",
+			"boxState": "normal",
+			"expression": "idle",
+			"text": "Bop beep be be skdoo bep"
+		}
+	]
+}

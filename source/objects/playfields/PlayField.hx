@@ -130,6 +130,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		
 		return autoPlayed = aP;
 	}
+
+	public static var extraStuff:FlxTypedGroup<FlxBasic>; // things that get added above the receptors.
+
 	public var noteHitCallback:NoteCallback; // function that gets called when the note is hit. goodNoteHit and opponentNoteHit in playstate for eg
 	public var holdPressCallback:NoteCallback; // function that gets called when a hold is stepped on. Only really used for calling script events. Return 'false' to not do hold logic
     public var holdReleaseCallback:NoteCallback; // function that gets called when a hold is released. Only really used for calling script events.
@@ -197,6 +200,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		@:privateAccess
 		lilguy.draw();
 		add(lilguy);
+	}
+
+	// Anything that is static/used by both strums but cant be double-initialized can be placed here
+	// Keep in mind, this runs AFTER the strums are made.
+	public static function initExtras()  {
+		extraStuff = new FlxTypedGroup<FlxBasic>();
 	}
 
 	// queues a note to be spawned
@@ -810,8 +819,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return null;
 	}
 
-	public var ogStrumPosX:Array<Null<Float>> = [];
-	public var ogStrumPosY:Array<Null<Float>> = [];
 	// generates the receptors
 	public function generateStrums(){
 		var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
@@ -827,12 +834,42 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			babyArrow.cameras = cameras;
 			strumNotes.push(babyArrow);
 			babyArrow.playerPosition();
-			ogStrumPosX.push(babyArrow.x);
-			ogStrumPosY.push(babyArrow.y);
+			if (ClientPrefs.data.showKeybindsOnStart && this.isPlayer)
+			{
+				for (j in 0...PlayState.keysArray[PlayState.mania][i].length)
+				{
+					var keysArray = PlayState.keysArray;
+					var daKeyTxt:FlxText = new FlxText(babyArrow.x, babyArrow.y - 10, 0, backend.InputFormatter.getKeyName(keysArray[PlayState.mania][i][j]), 32);
+					daKeyTxt.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+					daKeyTxt.borderSize = 1.25;
+					daKeyTxt.alpha = 0;
+					daKeyTxt.size = 32 - PlayState.mania; // essentially if i ever add 0k!?!?
+					daKeyTxt.screenCenter();
+					daKeyTxt.x += ((babyArrow.x*0.1) * (2 - i));// + (babyArrow.width / 2);
+					//daKeyTxt.x -= daKeyTxt.width / 2;
+					add(daKeyTxt);
+					daKeyTxt.cameras = cameras;
+					var textY:Float = (j == 0 ? babyArrow.y - 32 : ((babyArrow.y - 32) + babyArrow.height) - daKeyTxt.height);
+					// daKeyTxt.y = -daKeyTxt.height;
+					trace(daKeyTxt.x);
+					
+
+					FlxTween.tween(daKeyTxt, {y: textY, alpha: 1, angle: 360}, 5, {
+						ease: FlxEase.circOut,
+						onComplete: function(t) {
+							new FlxTimer().start(4, function(_) {
+								FlxTween.tween(daKeyTxt, {y: daKeyTxt.y + 32, alpha: 0, angle: 720}, 1, {
+									ease: FlxEase.circIn,
+									onComplete: function(t) {
+										remove(daKeyTxt);
+									}
+								});
+							});
+						}
+					});
+				}
+			}
 		}
-		// Testing Something
-		StrumNote.ogStrumPosX = ogStrumPosX;
-		StrumNote.ogStrumPosY = ogStrumPosY;
 	}
 
 	// does the introduction thing for the receptors. story mode usually sets skip to true. OYT uses this when mario comes in

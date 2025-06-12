@@ -66,7 +66,7 @@ class Mall extends BaseStage
 			add(snowSprite);
 		}
 
-		if(isStoryMode && !seenCutscene)
+		if(isStoryMode)
 			setEndCallback(eggnogEndCutscene);
 	}
 

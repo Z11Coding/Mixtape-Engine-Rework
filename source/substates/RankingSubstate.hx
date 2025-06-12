@@ -194,15 +194,15 @@ class RankingSubstate extends MusicBeatSubstate
 			switch (PlayState.gameplayArea)
 			{
 				case "Story":
-					MusicManager.playMenuMusic();
+					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
-					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
+					//TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					MusicManager.playMenuMusic();
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
-					MusicManager.playMenuMusic();
+					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					var locationId = (PlayState.SONG.song);
 					trace('Combo Gotten:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);

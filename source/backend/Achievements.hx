@@ -95,6 +95,7 @@ class Achievements {
 		
 		// Secret achievements
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
+		createAchievement('freaky_bar',				{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
 		
 		//dont delete this thing below
 		_originalLength = _sortID + 1;

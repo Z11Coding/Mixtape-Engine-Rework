@@ -438,7 +438,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 	}
 
 	function loadDialogue() {
-		var jsonFile = ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]);
+		var jsonFile = ImprovedFileHandling.openFile("Select the dialogue you wish to edit:", [{ext: "json", desc: "JSON File"}]);
 		var jsonPath = ImprovedFileHandling.lastPath;
 		#if sys
 		var fullPath:String = null;

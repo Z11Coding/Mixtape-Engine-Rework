@@ -28,7 +28,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Health System Mode',
-			"Switch how the health bar works\n(NA stands for Not Added)", 
+			"Switch how the health bar works", 
 			'healthMode',
 			STRING,
 			[

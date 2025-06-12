@@ -1072,6 +1072,7 @@ class FreeplayState extends MusicBeatState
 
             var curDiff:String = Difficulty.list[curDifficulty].toLowerCase();
 			setDifficultyStars(actualRating.get(curDiff));
+			setDifficultyStars(actualRating.get(curDiff));
         } catch(e) {
             difficultyStars.visible = false;
             trace("No Metadata Found!");
