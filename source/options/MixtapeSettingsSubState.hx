@@ -75,7 +75,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		);
 		addOption(option);
 		
-		var option:Option = new Option('Hold Subdivisons',
+		var option:Option = new Option('Hold Subdivisions',
 			"How many divisions are in a hold note with smooth holds.\nMore means smoother holds, but more of a performance hit.", 
 			'holdSubdivs', 
 			INT
