@@ -1,0 +1,32 @@
+
+{
+  "metadata_version": 1,
+  "name": "Mixtape Engine",
+  "version": "4.8.0",
+  "description": "It's about time we mix things a bit!\nAn engine that aims to be a one-stop shop for all mods, while keeping the simplicity of Psych Engine.\n\nA Work-in-Progress, but we'll get there!\n\nAlso supports Archipelago!",
+  "logo_position": "middle",
+  "contributors": [
+    {
+      "group": "Mixtape Team",
+      "members": [
+        {
+          "name": "Z11Gaming",
+          "icon": "icons/z11.webp",
+          "role": "Main Creater of the engine"
+        },
+        {
+          "name": "Yutamon",
+          "icon": "icons/yuta.webp",
+          "role": "Co-Creater of the engine"
+        }
+      ]
+    }
+  ],
+  "engine": {
+    "engine_type": "psych",
+    "engine_name": "Mixtape Engine",
+    "engine_icon": "",
+    "mods_folder": true,
+    "mods_folder_path": "mods"
+  }
+}
