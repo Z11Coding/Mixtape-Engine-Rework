@@ -1793,6 +1793,9 @@ class PlayState extends MusicBeatState
 				modManager.registerDefaultModifiers();
 
 				if (ClientPrefs.data.middleScroll) {
+					altNoteMove = true;
+					//strumOffsetspacebcauseitsstupid = 0;
+					//strumOffsetbcauseitsstupid = 0;
 					var off:Float = Math.min(FlxG.width, 1280) / 4;
 					var opp:Int = opponentmode ? 0 : 1;
 					
@@ -4314,7 +4317,7 @@ class PlayState extends MusicBeatState
 
 	public var initY:Float;
 	var lastHealth:Float = -1;
-	public var manualDisable:Bool = false; // for modcharts that need the variables otherwise lol
+	public var enableBaseMovement:Bool = false; // for modcharts that need the variables otherwise lol
 	override public function update(elapsed:Float)
 	{
 		if(!inCutscene && !paused && !freezeCamera) {
@@ -4365,7 +4368,7 @@ class PlayState extends MusicBeatState
 		modManager.update(elapsed, curDecBeat, curDecStep);
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong && !manualDisable)
+		if (!startingSong && enableBaseMovement)
 			modchartSync(false);
 
 		// TODO: Figure this out
@@ -7977,7 +7980,7 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X', (altNoteMove ? offsetX : strumNote.x) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
+								modManager.setValue('transform${i}X-a', (altNoteMove ? offsetX : strumNote.x) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position
