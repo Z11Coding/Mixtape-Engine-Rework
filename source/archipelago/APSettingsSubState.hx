@@ -39,13 +39,21 @@ class APSettingsSubState extends MusicBeatSubstate {
     var dim:FlxSprite;
     public static function generateSongList() {
         globalSongList = APInfo.baseGame.concat(APInfo.baseErect).concat(APInfo.basePico).concat(APInfo.secrets);
+
+
     
         var tempSongList:Map<String, Bool> = new Map();
-    
+                    // trace("Mods present: " + Mods.parseList().enabled);
+                    // trace("Weeks present: " + WeekData.weeksList);
+                    // trace("Mods enabled: " + APEntryState.gameSettings.FNF.mods_enabled);
+
+        WeekData.reloadWeekFiles(false);
+
+
         if (APEntryState.gameSettings.FNF.mods_enabled) {
             for (i in 0...WeekData.weeksList.length) {
                 var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-                
+                trace("Week: " + leWeek.folder + " - " + leWeek);
                 if (Mods.parseList().enabled.contains(leWeek.folder))
                 for (song in leWeek.songs) {
                     var songName = APInfo.toYAMLSafe(Std.string(song[0]));
@@ -84,6 +92,7 @@ class APSettingsSubState extends MusicBeatSubstate {
                 globalSongList.push(formattedName);
             }
         }
+        trace('Generated song list: ' + globalSongList);
     }
 
     override function create() {

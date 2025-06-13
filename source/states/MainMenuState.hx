@@ -24,7 +24,7 @@ class MainMenuState extends MusicBeatState
 	var allowMouse:Bool = true; //Turn this off to block mouse movement in menus
 
 		public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
-		trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
+		// trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
 	}, 30);
 
 	var menuItems:FlxTypedGroup<FlxSprite>;

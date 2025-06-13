@@ -47,7 +47,7 @@ class TitleState extends MusicBeatState
 	private static var APBug:Bool = false;
 
 	public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
-		trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
+		// trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
 	}, 30);
 
 

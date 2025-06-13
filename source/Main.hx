@@ -673,6 +673,8 @@ class CommandPrompt
 	{
 		print("Commands activated.");
 		print("Warning: Will not accept commands from regular PowerShell. Use Command Prompt, Terminal Command Prompt, or the VSCode terminal.");
+		print("When using the runCode command, you can use the 'this' keyword to access certain aspects of the game engine.");
+		print("Run the code 'this.help()' to see what you can do with it.");
 
 		while (true)
 		{
@@ -786,6 +788,74 @@ class CommandPrompt
 		// You can proceed with using finalArgs as needed
 		switch (command)
 		{
+			case "multi-command":
+				if (args.length > 0)
+				{
+					var commands = args.join(" ").split(";");
+					for (cmd in commands)
+					{
+						if (cmd.trim() != "")
+						{
+							this.executeCommand(cmd.trim());
+						}
+					}
+				}
+				else
+				{
+					print("Error: multi-command requires at least one command.");
+				}
+
+			case "runCode":
+				if (args.length > 0)
+				{
+					print("Running code internally...");
+					try {
+						var value = yutautil.save.FuncEmbed.runFunctionFromString(args.join(" "), {
+							cmds: this,
+							vars: this.variables,
+							executeCommand: this.executeCommand,
+							print: print,
+							FlxG: FlxG,
+							FlxState: FlxState,
+							currentState: FlxG.state,
+							help: function():Void {
+								print("By using the keyword 'this' in the code, you can access certain aspects of the game engine:");
+								print(" - 'cmds': Access to the CommandPrompt instance, allowing you to call commands.");
+								print(" - 'vars': Access to the variables map, allowing you to get/set variables.");
+								print(" - 'executeCommand': A function to execute cmd commands from within the code.");
+								print(" - 'print': A function to print messages to the console.");
+								print(" - 'FlxG': Access to the FlxG instance, allowing you to use its methods and properties.");
+								print(" - 'FlxState': Access to the FlxState class, allowing you to use its methods and properties.");
+								print(" - 'currentState': Access to the current game state, allowing you to interact with it.");
+								print(" - 'help': A function that prints this help message.");
+								print("You can use these to interact with the game engine and perform various actions.");
+								print("If you have any questions, ask the developer \"Yutamon\" for more information.");
+							}
+						}, false, "this");
+						print("Code executed. Result: " + value);
+					} catch (e:Dynamic) {
+						print("Critical Error while executing or parsing code: " + e);
+						if (e != null) {
+							print("Type: " + Type.getClassName(Type.getClass(e)));
+							if (Reflect.hasField(e, "message")) {
+								print("Message: " + Reflect.field(e, "message"));
+							}
+							if (Reflect.hasField(e, "stack")) {
+								print("Stack: " + Reflect.field(e, "stack"));
+							} else if (e.stack != null) {
+								print("Stack: " + e.stack);
+							}
+							if (Reflect.hasField(e, "toString")) {
+								print("toString: " + e.toString());
+							}
+						}
+						print("Full exception: " + Std.string(e));
+					}
+				}
+				else
+				{
+					print("Error: runCode requires at least one argument.");
+				}
 			case "switchState":
 				if (args.length == 1)
 				{
@@ -848,6 +918,42 @@ class CommandPrompt
 				else
 				{
 					print("Error: debugMenu does not accept any arguments.");
+				}
+			case "sizeState":
+				{
+					print("Checking State Memory Usage... Warning: This may take a while, or crash the game if the state is too large.");
+					var stateClassName = Type.getClassName(Type.getClass(FlxG.state));
+					var stateClass:Class<Dynamic> = Type.getClass(FlxG.state);
+					var size:Dynamic;
+					if (args.length == 0)
+					{
+						size = FlxG.state.realSizeOf();
+						print("State size (bytes): " + size);
+					}
+					else if (args.length == 1)
+					{
+						var arg = args[0].toLowerCase();
+						var sizeEnum = switch (arg) {
+							case "bytes": yutautil.CollectionUtils.Size.Bytes;
+							case "kb": yutautil.CollectionUtils.Size.KB;
+							case "mb": yutautil.CollectionUtils.Size.MB;
+							case "auto": yutautil.CollectionUtils.Size.Auto;
+							default: null;
+						}
+						if (sizeEnum == null)
+						{
+							print("Error: Invalid argument for sizeState. Use one of: bytes, kb, mb, auto.");
+						}
+						else
+						{
+							size = FlxG.state.sizeIn(sizeEnum);
+							print("State size (" + arg + "): " + size);
+						}
+					}
+					else
+					{
+						print("Error: sizeState accepts at most one argument.");
+					}
 				}
 
 			case "playSong":

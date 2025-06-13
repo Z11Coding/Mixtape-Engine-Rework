@@ -14,7 +14,7 @@ class APCategoryState extends states.CategoryState {
         menuItems = [];
         super(['All', 'Hinted', 'Unlocked', 'Unplayed', 'Options', 'Quit'], false, false, true, false, false);
         menuLocks = [false, false, false, false, false, false];
-        specialOptions = [null, null, null, null];
+        specialOptions = [];
 
         var opFunc = function() {
             MusicBeatState.switchState(new options.OptionsState());
@@ -38,7 +38,7 @@ class APCategoryState extends states.CategoryState {
             }
         }
 
-        this.specialOptions.pushMulti([opFunc, quitFunc]);
+        // this.specialOptions.pushMulti([opFunc, quitFunc]);
 
         states.ExitState.addExitCallback(function() {
             if (AP != null){
