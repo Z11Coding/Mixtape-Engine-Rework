@@ -78,6 +78,26 @@ class MainMenuState extends MusicBeatState
 
 		var yScroll:Float = 0.25;
 		var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuBG'));
+		// Simple rainbow effect for Pride Month
+		
+		if (yutautil.ExtendedDate.global().isPrideMonth())
+		{
+			trace("Happy Pride Month!");
+			var oldBGColor = bg.color;
+			var updateRainbowBG:Void->Void;
+			updateRainbowBG = function() {
+				var now = Date.now();
+				var t = now.getSeconds() + (now.getTime() % 1000) / 1000;
+				bg.color = FlxColor.fromHSB((t * 60) % 360, 1, 1);
+				if (!yutautil.ExtendedDate.instance.isPrideMonth())
+				{
+					bg.color = oldBGColor; // Reset to original color if not Pride Month
+					FlxG.signals.postUpdate.remove(updateRainbowBG);
+				}
+			};
+			bg.color = FlxColor.fromHSB((Date.now().getSeconds() * 6) % 360, 1, 1);
+			FlxG.signals.postUpdate.add(updateRainbowBG);
+		}
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.scrollFactor.set(0, yScroll);
 		bg.setGraphicSize(Std.int(bg.width * 1.175));

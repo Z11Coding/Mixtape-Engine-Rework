@@ -55,10 +55,67 @@ abstract DefinedField<T>(TypedField<T>) from TypedField<T> to T {
 
 class GenericObject {
     private var fields:DynamicAccess<Dynamic>;
-    public var onFieldSet:FieldCallback = null;
-    public var onFieldGet:(field:String) -> Void = null;
-    public var onFieldRemove:(field:String) -> Void = null;
-    public var onFieldCreate:FieldCallback = null;
+    // Private backing fields
+    private var _onFieldSet:FieldCallback = null;
+    private var _onFieldGet:(field:String) -> Void = null;
+    private var _onFieldRemove:(field:String) -> Void = null;
+    private var _onFieldCreate:FieldCallback = null;
+
+    // Property for onFieldSet
+    public var onFieldSet(get, set):FieldCallback;
+    function get_onFieldSet():FieldCallback return _onFieldSet;
+    function set_onFieldSet(cb:FieldCallback):FieldCallback {
+        if (cb == null) {
+            _onFieldSet = null;
+        } else {
+            _onFieldSet = function(field:String, value:Dynamic) {
+                try cb(field, value) catch (e:Dynamic) {};
+            }
+        }
+        return cb;
+    }
+
+    // Property for onFieldGet
+    public var onFieldGet(get, set):(field:String) -> Void;
+    function get_onFieldGet() return _onFieldGet;
+    function set_onFieldGet(cb:(field:String) -> Void):(field:String) -> Void {
+        if (cb == null) {
+            _onFieldGet = null;
+        } else {
+            _onFieldGet = function(field:String) {
+                try cb(field) catch (e:Dynamic) {};
+            }
+        }
+        return cb;
+    }
+
+    // Property for onFieldRemove
+    public var onFieldRemove(get, set):(field:String) -> Void;
+    function get_onFieldRemove() return _onFieldRemove;
+    function set_onFieldRemove(cb:(field:String) -> Void):(field:String) -> Void {
+        if (cb == null) {
+            _onFieldRemove = null;
+        } else {
+            _onFieldRemove = function(field:String) {
+                try cb(field) catch (e:Dynamic) {};
+            }
+        }
+        return cb;
+    }
+
+    // Property for onFieldCreate
+    public var onFieldCreate(get, set):FieldCallback;
+    function get_onFieldCreate():FieldCallback return _onFieldCreate;
+    function set_onFieldCreate(cb:FieldCallback):FieldCallback {
+        if (cb == null) {
+            _onFieldCreate = null;
+        } else {
+            _onFieldCreate = function(field:String, value:Dynamic) {
+                try cb(field, value) catch (e:Dynamic) {};
+            }
+        }
+        return cb;
+    }
     public var autoRemoveNull:Bool = false;
     public var giveNullOnUndefined:Bool = true;
     public var allowNullAccess:Bool = true;

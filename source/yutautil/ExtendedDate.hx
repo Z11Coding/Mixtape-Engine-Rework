@@ -239,6 +239,11 @@ class ExtendedDate extends FlxBasic {
         return this.getMonth() == 10 && this.getDay() == 4 && this.getWeekOfMonth() == 4;
     }
 
+    public function isPrideMonth():Bool {
+        // Pride Month is June
+        return this.getMonth() == 5;
+    }
+
     public function isBirthday(birthInfo:BirthInfo):Bool {
         var todayMonth = this.getMonth();
         var todayDay = this.getDate();
