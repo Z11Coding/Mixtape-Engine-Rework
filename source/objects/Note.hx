@@ -874,11 +874,11 @@ class Note extends NoteObject
 			}
 			animation.play(animToPlay);
 
+			//scale.y = 0.7;
 			updateHitbox();
+            centerOffsets();
 
-			scale.y = 1;
-
-			//offsetY += height / 2;
+			//offsetY += height;
 
 			//if (PlayState.isPixelStage)
 				//offsetX += 30;
@@ -901,6 +901,7 @@ class Note extends NoteObject
 					prevNote.scale.y *= (6 / height); //Auto adjust note size
 				}
 				prevNote.updateHitbox();
+				prevNote.centerOffsets();
 
 				// offsetY += height / 2;
 				// prevNote.setGraphicSize();
@@ -910,6 +911,7 @@ class Note extends NoteObject
 			{
 				scale.y *= PlayState.daPixelZoom;
 				updateHitbox();
+				centerOffsets();
 			}
 			earlyHitMult = 0;
 		}
@@ -917,6 +919,7 @@ class Note extends NoteObject
 		{
 			centerOffsets();
 			centerOrigin();
+			centerOffsets();
 		}
 		//x += offsetX;
 	}

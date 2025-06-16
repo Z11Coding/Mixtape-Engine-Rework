@@ -45,7 +45,7 @@ class NoteSplashEditorState extends MusicBeatState
         DiscordClient.changePresence('Note Splash Editor');
         #end
 
-        var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+        var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
         bg.scrollFactor.set();
         bg.color = 0xFF505050;
         add(bg);      

@@ -145,7 +145,12 @@ class FirstCheckState extends MusicBeatState
 								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								new FlxTimer().start(2, function(tmr:FlxTimer) {
 									trace("Ew, no internet!");
-									FlxG.switchState(new states.SplashScreen());
+									switch (FlxG.random.bool(99)) {
+										case true:
+											FlxG.switchState(new states.SplashScreen());
+										case false:
+											FlxG.switchState(new states.What());
+									}
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
@@ -174,7 +179,12 @@ class FirstCheckState extends MusicBeatState
 									if (ClientPrefs.data.checkAPWorld)
 										FlxG.switchState(new APCheckState());
 									else
-										FlxG.switchState(new states.SplashScreen());
+										switch (FlxG.random.bool(99)) {
+											case true:
+												FlxG.switchState(new states.SplashScreen());
+											case false:
+												FlxG.switchState(new states.What());
+										}
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
@@ -190,7 +200,12 @@ class FirstCheckState extends MusicBeatState
 								FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								new FlxTimer().start(2, function(tmr:FlxTimer) {
-									FlxG.switchState(new states.SplashScreen());
+									switch (FlxG.random.bool(99)) {
+										case true:
+											FlxG.switchState(new states.SplashScreen());
+										case false:
+											FlxG.switchState(new states.What());
+									}
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
@@ -259,7 +274,12 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
 						trace("Ew, no internet!");
-						FlxG.switchState(new states.SplashScreen());
+						switch (FlxG.random.bool(99)) {
+							case true:
+								FlxG.switchState(new states.SplashScreen());
+							case false:
+								FlxG.switchState(new states.What());
+						}
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -288,7 +308,12 @@ class FirstCheckState extends MusicBeatState
 						if (ClientPrefs.data.checkAPWorld)
 							FlxG.switchState(new APCheckState());
 						else
-							FlxG.switchState(new states.SplashScreen());
+							switch (FlxG.random.bool(99)) {
+								case true:
+									FlxG.switchState(new states.SplashScreen());
+								case false:
+									FlxG.switchState(new states.What());
+							}
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -304,7 +329,12 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
-						FlxG.switchState(new states.SplashScreen());
+						switch (FlxG.random.bool(99)) {
+							case true:
+								FlxG.switchState(new states.SplashScreen());
+							case false:
+								FlxG.switchState(new states.What());
+						}
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -347,16 +377,31 @@ class APCheckState extends MusicBeatState
 				if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 				{
 					archipelago.APEntryState.installAPWorld();
-					FlxG.switchState(new states.SplashScreen());
+					switch (FlxG.random.bool(99)) {
+						case true:
+							FlxG.switchState(new states.SplashScreen());
+						case false:
+							FlxG.switchState(new states.What());
+					}
 				}
 				else
 				{
-					FlxG.switchState(new states.SplashScreen());
+					switch (FlxG.random.bool(99)) {
+						case true:
+							FlxG.switchState(new states.SplashScreen());
+						case false:
+							FlxG.switchState(new states.What());
+					}
 				}
 			};
 			
 			update.show();
 		}
-		else FlxG.switchState(new states.SplashScreen());
+		else switch (FlxG.random.bool(99)) {
+			case true:
+				FlxG.switchState(new states.SplashScreen());
+			case false:
+				FlxG.switchState(new states.What());
+		}
 	}
 }

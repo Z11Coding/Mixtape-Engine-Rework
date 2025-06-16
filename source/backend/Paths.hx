@@ -81,7 +81,10 @@ class Paths
 			dumpExclusions.push(key);
 	}
 
-	public static var dumpExclusions:Array<String> = ['assets/shared/music/freakyMenu.$SOUND_EXT'];
+	public static var dumpExclusions:Array<String> = [
+		'assets/shared/music/menuMusic/titlemania.$SOUND_EXT',
+		'assets/shared/images/mechanics/general/toplight.$IMAGE_EXT'
+	];
 	// haya I love you for the base cache dump I took to the max
 	public static function clearUnusedMemory()
 	{
@@ -189,7 +192,8 @@ class Paths
 		for (key => val in cache){
 			if(	key.toLowerCase().contains("transitionswag") || 
 				key.contains("bg_graphic_") ||
-				key == "images/justBf.png"
+				key == "images/justBf.png" ||
+				!dumpExclusions.contains(key)
 			) Paths.currentTrackedAssets.set(key,val);
 			else cache.remove(key);
 		}

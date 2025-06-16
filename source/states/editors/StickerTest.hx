@@ -33,7 +33,7 @@ class StickerTest extends MusicBeatState {
 		else Paths.clearStoredMemory();
         
 
-        var BG = new FlxSprite(0,0,Paths.image("editors/freeplayBGdad"));
+        var BG = new FlxSprite(0,0,Paths.image(ClientPrefs.getBGImage()));
         BG.setGraphicSize(FlxG.width,FlxG.height);
         BG.updateHitbox();
         add(BG);

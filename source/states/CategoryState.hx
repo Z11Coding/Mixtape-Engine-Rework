@@ -217,7 +217,7 @@ class CategoryState extends MusicBeatState
 		];
 		
 		Cursor.cursorMode = Cross;
-		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.color = FlxColor.PURPLE;
 		bg.scrollFactor.set();
 		add(bg);

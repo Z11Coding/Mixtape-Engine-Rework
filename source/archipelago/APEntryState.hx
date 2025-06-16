@@ -187,7 +187,7 @@ class APEntryState extends MusicBeatState
 			};
 		FNF.destroy();
 
-		var bg = new FlxSprite().loadGraphic(Paths.image("menuBG"));
+		var bg = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage(true)));
 		bg.screenCenter();
 		add(bg);
 

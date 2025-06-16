@@ -79,7 +79,7 @@ class UpdateState extends MusicBeatState
 
 		FlxG.sound.music.fadeIn(4, 0, 0.7);
 
-		bg = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
+		bg = new FlxSprite(-80).loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.scrollFactor.set(0, 0);
 		bg.setGraphicSize(Std.int(bg.width * 1.175));
 		bg.color = 0xff270138;

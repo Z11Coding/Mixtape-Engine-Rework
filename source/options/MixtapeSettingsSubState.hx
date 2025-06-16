@@ -41,6 +41,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 				"Lives + HealthBar", 
 				"Random",
 			]);
+		if (Achievements.isUnlocked('freaky_bar'))
+			option.options.insert(7, "Amalgam");
 		addOption(option);
 		option.displayFormat = '< %v >';
 
@@ -239,7 +241,15 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.decimals = 1;
 		option.changeValue = 0.1;
 		addOption(option);
-
+		
+		var option:Option = new Option('Menu Theme',
+			"Select the theme you want to use\n(Has not effect on the chart editor theme)",
+			'menuTheme',
+			STRING, 
+			["Light", "Dark"]);
+		option.displayFormat = '< %v >';
+		addOption(option);
+		
 		var option:Option = new Option('---MISC.---',
 			"",
 			'',
@@ -389,6 +399,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Break The Sticker Audio',
 			"Literally just locks the sound to a funny bug I found.",
 			'audioBreak',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Enable Time-Specific Events',
+			"If checked, things that are day/month related (Pride Month, Christmas, etc.) will be turned off.\n(ANY SONGS THAT ARE SPECIFIC TO AN EVENT/HOLIDAY WILL ALWAYS BE ABLE AVAILABLE IF THIS IS TURNED OFF!).",
+			'allowEvents',
 			BOOL);
 		addOption(option);
 

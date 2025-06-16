@@ -56,7 +56,7 @@ class OptionsState extends MusicBeatState
 		if (archipelago.APEntryState.inArchipelagoMode) options.push('Archipelago');
 
 
-		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.color = 0xFFea71fd;
 		bg.updateHitbox();

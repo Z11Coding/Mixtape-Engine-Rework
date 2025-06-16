@@ -77,10 +77,12 @@ class MainMenuState extends MusicBeatState
 		persistentUpdate = persistentDraw = true;
 
 		var yScroll:Float = 0.25;
-		var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image('menuBG'));
+		var bg:FlxSprite = new FlxSprite(-80).loadGraphic(Paths.image(ClientPrefs.getBGImage(true)));
+		if (ClientPrefs.data.menuTheme == "Dark")
+			bg.color = 0xFFFDE871;
 		// Simple rainbow effect for Pride Month
 		
-		if (yutautil.ExtendedDate.global().isPrideMonth())
+		if (yutautil.ExtendedDate.global().isPrideMonth() && ClientPrefs.data.allowEvents)
 		{
 			trace("Happy Pride Month!");
 			var oldBGColor = bg.color;
@@ -89,7 +91,7 @@ class MainMenuState extends MusicBeatState
 				var now = Date.now();
 				var t = now.getSeconds() + (now.getTime() % 1000) / 1000;
 				bg.color = FlxColor.fromHSB((t * 60) % 360, 1, 1);
-				if (!yutautil.ExtendedDate.instance.isPrideMonth())
+				if (!yutautil.ExtendedDate.instance.isPrideMonth() && ClientPrefs.data.allowEvents)
 				{
 					bg.color = oldBGColor; // Reset to original color if not Pride Month
 					FlxG.signals.postUpdate.remove(updateRainbowBG);
@@ -108,7 +110,7 @@ class MainMenuState extends MusicBeatState
 		camFollow = new FlxObject(0, 0, 1, 1);
 		add(camFollow);
 
-		magenta = new FlxSprite(-80).loadGraphic(Paths.image('menuDesat'));
+		magenta = new FlxSprite(-80).loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		magenta.antialiasing = ClientPrefs.data.antialiasing;
 		magenta.scrollFactor.set(0, yScroll);
 		magenta.setGraphicSize(Std.int(magenta.width * 1.175));
@@ -182,7 +184,7 @@ class MainMenuState extends MusicBeatState
 	function createMenuItem(name:String, x:Float, y:Float):FlxSprite
 	{
 		var menuItem:FlxSprite = new FlxSprite(x, y);
-		menuItem.frames = Paths.getSparrowAtlas('mainmenu/menu_$name');
+		menuItem.frames = Paths.getSparrowAtlas('mainmenu/menu_$name' + (ClientPrefs.data.menuTheme == "Dark" ? '_dark' : ''));
 		menuItem.animation.addByPrefix('idle', '$name idle', 24, true);
 		menuItem.animation.addByPrefix('selected', '$name selected', 24, true);
 		menuItem.animation.play('idle');
@@ -197,7 +199,7 @@ class MainMenuState extends MusicBeatState
 	function createMenuItemArch(name:String, x:Float, y:Float):FlxSprite
 	{
 		var menuItem:FlxSprite = new FlxSprite(x, y);
-		menuItem.frames = Paths.getSparrowAtlas('mainmenu/$name');
+		menuItem.frames = Paths.getSparrowAtlas('mainmenu/$name' + (ClientPrefs.data.menuTheme == "Dark" ? '_dark' : ''));
 		menuItem.animation.addByPrefix('idle', 'archipellego logi0000', 24, true);
 		menuItem.animation.addByPrefix('selected', 'selected', 15, false);
 		menuItem.animation.play('idle');

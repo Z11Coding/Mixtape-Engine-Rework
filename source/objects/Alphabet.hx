@@ -731,7 +731,7 @@ class DynamicAlphabet extends Alphabet
 
 		public static function loadAlphabetData(request:String = 'alphabet')
 		{
-			var path:String = Paths.getPath('images/$request.json');
+			var path:String = Paths.getPath('images/$request' + (ClientPrefs.data.menuTheme == "Dark" ? '_dark' : '') + '.json');
 			#if MODS_ALLOWED
 			if (!FileSystem.exists(path))
 			#else
@@ -795,7 +795,7 @@ class DynamicAlphabet extends Alphabet
 		public function new()
 		{
 			super(x, y);
-			image = 'alphabet';
+			image = 'alphabet' + (ClientPrefs.data.menuTheme == "Dark" ? '_dark' : '');
 			antialiasing = ClientPrefs.data.antialiasing;
 		}
 

@@ -167,7 +167,7 @@ class FreeplayState extends MusicBeatState
 
 		Mods.loadTopMod();
 
-		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
@@ -1249,7 +1249,7 @@ class FreeplayState extends MusicBeatState
 				bg.loadGraphic(Paths.image(metadata.freeplay.bg));
 				bg.screenCenter();
 			} else {
-				bg.loadGraphic(Paths.image('menuDesat'));
+				bg.loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 				bg.screenCenter();
 			}
 
@@ -1267,7 +1267,7 @@ class FreeplayState extends MusicBeatState
 				}
 			}
 		} else { // Return to default
-			bg.loadGraphic(Paths.image('menuDesat'));
+			bg.loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 			bg.screenCenter();
 
 			if (albumPhoto != null) {

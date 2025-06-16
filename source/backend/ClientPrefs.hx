@@ -181,6 +181,8 @@ import states.TitleState;
 	public var inGameRatings:Bool = false;
 	public var startHidden:Bool = false;
 	public var showKeybindsOnStart:Bool = false;
+	public var allowEvents:Bool = true;
+	public var menuTheme:String = 'Light';
 
 	// Compiler Settings.
 	public var showInitialMemoryUsage:Bool = true;
@@ -448,6 +450,20 @@ class ClientPrefs {
 				states.editors.ChartingState;
 		}
 		return states.editors.ChartingState;
+	}
+
+	public static function getBGImage(?yellow:Bool = false, ?blue:Bool = false):String
+	{
+		return switch (ClientPrefs.data.menuTheme) {
+			case "Light":
+				yellow ? 'menuBG' : blue ? 'menuBGBlue' : 'menuDesat';
+			case "Dark":
+				'menuDark';
+			default:
+				FlxG.log.error("Invalid Menu Theme: " + ClientPrefs.data.menuTheme);
+				yellow ? 'menuBG' : 'menuDesat';
+		}
+		return yellow ? 'menuBG' : 'menuDesat';
 	}
 
 	public static function resetKeys(controller:Null<Bool> = null) //Null = both, False = Keyboard, True = Controller

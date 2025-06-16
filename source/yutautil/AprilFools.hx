@@ -3,9 +3,6 @@ package yutautil;
 import yutautil.ExtendedDate;
 
 // Simply manage if it's allowed.
-
-// TODO: Adjust this class to work with every holiday
-
 class AprilFools {
     private var _allowAF:Bool = false;
 
@@ -13,7 +10,7 @@ class AprilFools {
     public static var debug:Bool = false;
 
     private static function get_allowAF():Bool {
-        return ClientPrefs.data.aprilFools && (ExtendedDate.global().isAprilFools() || debug);
+        return  ClientPrefs.data.allowEvents && (ExtendedDate.global().isAprilFools() || debug);
     }
 
     public static function randomModchartEffect(){

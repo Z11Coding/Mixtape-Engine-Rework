@@ -127,23 +127,6 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		if (yutautil.ExtendedDate.global().isAprilFools())
-		{
-			var option:Option = new Option('April Fools',
-				'If checked, the game will be in April Fools mode.',
-				'aprilFools',
-				BOOL);
-			addOption(option);
-			option.onChange = function() {
-				// Nothing special.
-
-				if (option.getValue())
-				{
-					// Add a sound based on true or false... later.
-				}
-			}
-		}
-
 		super();
 	}
 

@@ -1804,9 +1804,9 @@ class PlayState extends MusicBeatState
 						modManager.setValue('alpha${halfKeys + 1}', 1.0, opp);
 					
 					for (i in 0...halfKeys)
-						modManager.setValue('transform${i}X', -off, opp);
+						modManager.setValue('transform${i}X-a', -off, opp);
 					for (i in Note.ammo[mania]-halfKeys...Note.ammo[mania])
-						modManager.setValue('transform${i}X', off, opp);
+						modManager.setValue('transform${i}X-a', off, opp);
 		
 					modManager.setValue("alpha", 0.6, opp);
 					modManager.setValue("opponentSwap", 0.5);
@@ -4578,12 +4578,14 @@ class PlayState extends MusicBeatState
 		if (!inArchipelagoMode && curHealthMode == "Amalgam") {
 			healthBar.x = FlxG.width / 2 - healthBar.width / 2;
 			healthBar.y = initY; 
+			healthBarOverflow.x = FlxG.width / 2 - healthBarOverflow.width / 2;
+			healthBarOverflow.y = initY; 
 			if (health >= 4) {
 				var amount = (health - 4) * 100;
 				var rX = FlxG.random.float(-2, 2);
 				var rY = FlxG.random.float(-2, 2);
 		
-				for (spr in [healthBar, iconP1, iconP2]) {
+				for (spr in [healthBar, healthBarOverflow, iconP1, iconP2]) {
 					spr.x -= amount;
 					spr.x += rX;
 					spr.y += rY;
@@ -5055,10 +5057,10 @@ class PlayState extends MusicBeatState
 				&& !isDead 
 				&& gameOverTimer == null;
 
-			case "Lives + HealthBar" | "Amalgam":
+			case "Lives + HealthBar":
 				if (lives == 0
 				&& !practiceMode 
-				&& !isDead 
+				&& !isDead
 				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
 				else if (lives > 0 && health <= 0 )
 				{
@@ -5073,7 +5075,28 @@ class PlayState extends MusicBeatState
 					});
 					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
 					health = 1 / lives * lives;
-				} 
+				}
+				
+			case "Amalgam":
+				if (lives == 0
+				&& !practiceMode 
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				else if (lives > 0 && health <= 0 && bfkilledcheck)
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
 
 			default:
 				killPlayer = health <= 0 
@@ -7159,6 +7182,24 @@ class PlayState extends MusicBeatState
 				health -= 0.04;
 				health -= 0.08;
 
+			case "Amalgam":
+				//Basically, don't miss lol
+				if (note.isParent) {
+					health -= 0.15; // give a health punishment for failing a LN
+					trace("hold fell over at the start");
+				}
+				else {
+					if (!note.wasGoodHit && !note.isSustainNote)
+					{
+						health -= 0.15;
+					}
+				}
+				if (!note.isSustainNote) health -= 0.1;
+				health -= 0.0475;
+				health -= 0.04;
+				health -= 0.08;
+				health -= subtract * healthLoss;
+
 			default:
 				health -= subtract * healthLoss;
 		}
@@ -7980,7 +8021,7 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X-a', (altNoteMove ? offsetX : strumNote.x) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
+								modManager.setValue('transform${i}X', (altNoteMove ? offsetX : strumNote.x) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position

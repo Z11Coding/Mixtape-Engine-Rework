@@ -92,6 +92,7 @@ class Main extends Sprite
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());
+		Lib.current.addChild(new objects.Nightlight());
 	}
 
 	@:dox(hide)
@@ -239,6 +240,8 @@ class Main extends Sprite
 			fpsVar.visible = ClientPrefs.data.showFPS;
 		}
 		#end
+
+		Paths.excludeAsset('assets/shared/images/mechanics/general/toplight.png');
 
 		#if (linux || mac) // fix the app icon not showing up on the Linux Panel / Mac Dock
 		var icon = Image.fromFile("icon.png");
