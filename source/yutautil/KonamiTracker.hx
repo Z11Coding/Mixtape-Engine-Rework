@@ -19,16 +19,18 @@ class KonamiTracker extends FlxBasic {
         UP, UP, DOWN, DOWN, LEFT, RIGHT, LEFT, RIGHT, B, A, ENTER
     ];
 
+    public static var KONAMI_CODE:Array<FlxKey> = KONAMI_CODE_1;
+
     var cheats:Array<Cheat>;
     var inputBuffer:Array<FlxKey> = [];
     var maxLength:Int = 0;
 
-    public function new(?cheatTable:KeyIndexedArray<Array<FlxKey>, CheatCallback>, ?KonamiCallback:CheatCallback) {
+    public function new(?cheatTable:KeyIndexedArray<Array<FlxKey>, CheatCallback>, ?KonamiCallback:CheatCallback, ?useAltKonami:Bool = false) {
         super();
         cheats = [];
         if (KonamiCallback != null) {
-            addCheat(KONAMI_CODE_1, KonamiCallback);
-            addCheat(KONAMI_CODE_2, KonamiCallback);
+            KONAMI_CODE = useAltKonami ? KONAMI_CODE_2 : KONAMI_CODE_1;
+            addCheat(KONAMI_CODE, KonamiCallback);
         }
         if (cheatTable != null) {
             for (entry in cheatTable) {
