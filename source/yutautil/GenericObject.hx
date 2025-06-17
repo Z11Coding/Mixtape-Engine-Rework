@@ -38,7 +38,7 @@ class TypedField<T> {
     }
 }
 
-abstract DefinedField<T>(TypedField<T>) from TypedField<T> to T {
+abstract DefinedField<T>(TypedField<T>) from TypedField<T> to Dynamic {
     public function new(value:T) {
         this = new TypedField<T>(value);
     }
@@ -175,7 +175,7 @@ class GenericObject {
     }
 
     public function keys():Iterator<String> {
-        return fields.keys();
+        return fields.keys().iterator();
     }
 
     public function values():Iterator<Dynamic> {
@@ -274,8 +274,8 @@ class GenericObject {
 }
 
 enum HxObjType {
-    Safe,
-    Unsafe
+    Safe;
+    Unsafe;
 }
 
 abstract HxObject(GenericObject) from GenericObject to Dynamic {

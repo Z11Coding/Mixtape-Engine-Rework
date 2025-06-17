@@ -4,7 +4,7 @@ import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
 import flixel.FlxBasic;
 
-typedef CheatCallback = Void->Void;
+typedef CheatCallback = Cheat->Void;
 
 typedef Cheat = {
     var code:Array<FlxKey>;
@@ -23,11 +23,13 @@ class KonamiTracker extends FlxBasic {
     var inputBuffer:Array<FlxKey> = [];
     var maxLength:Int = 0;
 
-    public function new(?cheatTable:KeyIndexedArray<Array<FlxKey>, CheatCallback>) {
+    public function new(?cheatTable:KeyIndexedArray<Array<FlxKey>, CheatCallback>, ?KonamiCallback:CheatCallback) {
         super();
         cheats = [];
-        addCheat(KONAMI_CODE_1, function() {});
-        addCheat(KONAMI_CODE_2, function() {});
+        if (KonamiCallback != null) {
+            addCheat(KONAMI_CODE_1, KonamiCallback);
+            addCheat(KONAMI_CODE_2, KonamiCallback);
+        }
         if (cheatTable != null) {
             for (entry in cheatTable) {
                 addCheat(entry.key, entry.value);
@@ -42,7 +44,7 @@ class KonamiTracker extends FlxBasic {
 
     override public function update(elapsed:Float):Void {
         super.update(elapsed);
-        var pressed:FlxKey = getPressedKey();
+        var pressed:Null<FlxKey> = getPressedKey();
         if (pressed != null) {
             inputBuffer.push(pressed);
             if (inputBuffer.length > maxLength)
@@ -55,7 +57,7 @@ class KonamiTracker extends FlxBasic {
         var matched = false;
         for (cheat in cheats) {
             if (matches(cheat.code)) {
-                cheat.callback();
+                cheat.callback(cheat);
                 inputBuffer = [];
                 matched = true;
                 break;
@@ -91,17 +93,21 @@ class KonamiTracker extends FlxBasic {
         return true;
     }
 
-    public var allowAllKeys:Bool = false;
+    public var allowAllKeys:Bool = true;
 
     function getPressedKey():Null<FlxKey> {
-        if (allowAllKeys) {
-            // Check all keys if allowed
-            for (key in FlxKey.createAll()) {
-                if (FlxG.keys.justPressed.check(key)) return key;
-            }
-        } else {
-            for (key in [FlxKey.UP, FlxKey.DOWN, FlxKey.LEFT, FlxKey.RIGHT, FlxKey.A, FlxKey.B, FlxKey.C, FlxKey.X, FlxKey.Y, FlxKey.Z, FlxKey.ENTER, FlxKey.SPACE]) {
-                if (FlxG.keys.justPressed.check(key)) return key;
+        var keys = allowAllKeys
+            ? [for (key in FlxKey.toStringMap.keys()) key]
+            : [
+                FlxKey.UP, FlxKey.DOWN, FlxKey.LEFT, FlxKey.RIGHT,
+                FlxKey.A, FlxKey.B, FlxKey.C, FlxKey.X, FlxKey.Y,
+                FlxKey.Z, FlxKey.ENTER, FlxKey.SPACE
+            ];
+        for (key in keys) {
+            // Use Reflect to access the justPressed property dynamically
+            var justPressed = Reflect.field(FlxG.keys, "justPressed");
+            if (justPressed != null && Reflect.callMethod(FlxG.keys, justPressed, [key])) {
+                return key;
             }
         }
         return null;

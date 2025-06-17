@@ -1557,6 +1557,57 @@ class CollectionUtils
 		return null;
 	}
 
+	public static inline function fields<T>(input:Dynamic):Array<Dynamic>
+	{
+		if (Std.is(input, Array))
+		{
+			var arr:Array<Dynamic> = cast input;
+			var result = [];
+			for (i in 0...arr.length)
+				result.push(i);
+			return result;
+		}
+		else if (Std.is(input, IMap))
+		{
+			var keys = [];
+			for (key in (input : IMap<Dynamic, Dynamic>).keys())
+				keys.push(key);
+			return keys;
+		}
+		else if (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")))
+		{
+			// For iterables, try to enumerate indices
+			var result = [];
+			var idx = 0;
+			for (_ in (input : Iterable<Dynamic>))
+			{
+				result.push(idx);
+				idx++;
+			}
+			return result;
+		}
+		else
+		{
+			var fields = Reflect.fields(input);
+			if (fields.length > 0)
+				return fields;
+			var cl = Type.getClass(input);
+			if (cl != null)
+				return Type.getInstanceFields(cl);
+			return [];
+		}
+	}
+
+	public static inline function pressedKeys():Array<flixel.input.keyboard.FlxKey>
+	{
+		var keys = [];
+		for (key in FlxG.keys.pressed.fields())
+		{
+			keys.push(key);
+		}
+		return keys;
+	}
+
 	public static inline function callOnGeneric<T>(CLASS:Class<T>, func:T->Dynamic):Dynamic
 	{
 		return func(Type.createEmptyInstance(CLASS));

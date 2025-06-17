@@ -575,4 +575,73 @@ class CUMacroTools
             return macro untyped __cpp__($v{"std::cout << "}, msgExpr, $v{" << std::endl;"});
         }
     }
+
+    // Easy way to check multiple keys with FlxKey.
+
+    /**
+     * Generates a function that checks if any of the specified keys match the given FlxKey status.
+     * Example usage:
+     *   CUMacroTools.generateKeyCheckFunction(["A", "B"], "justPressed")
+     *   // Generates: function():Bool { if (FlxG.keys.justPressed.A || FlxG.keys.justPressed.B) return true; return false; }
+     */
+    public static macro function generateKeyCheckFunction(keys:Array<String>, status:String):Expr {
+        // Validate input
+        if (keys == null || keys.length == 0) {
+            Context.error("CUMacroTools.generateKeyCheckFunction: Keys cannot be null or empty.", Context.currentPos());
+        }
+        if (status == null || StringTools.trim(status) == "") {
+            Context.error("CUMacroTools.generateKeyCheckFunction: Status cannot be null or empty.", Context.currentPos());
+        }
+
+        // List of valid statuses (add more if needed)
+        var validStatuses = [
+            "justPressed", "pressed", "anyJustPressed", "released", "justReleased",
+            "anyJustReleased", "anyPressed"
+        ];
+        if (validStatuses.indexOf(status) == -1) {
+            Context.warning('CUMacroTools.generateKeyCheckFunction: Status "' + status + '" is not a standard FlxKey status. Proceeding anyway.', Context.currentPos());
+        }
+
+        // Build the check expression: FlxG.keys.<status>[FlxKey.toString(KEY)]
+        var checks = [];
+        for (key in keys) {
+            // Convert key to FlxKey if not already a string
+            checks.push(macro Reflect.field(Reflect.field(FlxG.keys, $v{status}), FlxKey.toString($v{key})));
+        }
+        // Combine all checks with ||
+        var expr:Expr = checks.shift();
+        for (c in checks) expr = macro $expr || $c;
+
+        // Return a function that checks and returns true if any key matches
+        return macro function():Bool {
+            if ($expr) return true;
+            return false;
+        }
+    }
+
+    /**
+     * Helper macros for common FlxKey checks.
+     * Usage: CUMacroTools.checkKeysJustPressed(["A", "B"])
+     */
+    public static macro function checkKeysJustPressed(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "justPressed")();
+    }
+    public static macro function checkKeysPressed(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "pressed")();
+    }
+    public static macro function checkKeysAnyJustPressed(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "anyJustPressed")();
+    }
+    public static macro function checkKeysReleased(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "released")();
+    }
+    public static macro function checkKeysJustReleased(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "justReleased")();
+    }
+    public static macro function checkKeysAnyJustReleased(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "anyJustReleased")();
+    }
+    public static macro function checkKeysAnyPressed(keys:Array<Dynamic>):Expr {
+        return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "anyPressed")();
+    }
 }

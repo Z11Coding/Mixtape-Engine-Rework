@@ -76,6 +76,7 @@ class APYaml {
         return settings.mods_enabled;
     }
 
+    
     // Add more methods to access other settings as needed.
 }
 
