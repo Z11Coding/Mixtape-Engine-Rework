@@ -166,6 +166,7 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		#if windows
 		if (emergencyOpacityFix) {
 			CppAPI.setWindowOppacity(1);
 			emergencyOpacityFix = false;
@@ -179,6 +180,7 @@ class MusicBeatState extends FlxState
 			FlxG.resetState();
 		}
 		else if (Main.audioDisconnected) FlxG.resetState();
+		#end
 		
 		// everyStep();
 		var oldStep:Int = curStep;
