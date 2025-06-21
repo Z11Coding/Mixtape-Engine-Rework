@@ -116,9 +116,9 @@ class FreeplayState extends MusicBeatState
 
 	var hh:Array<Chance> = [
 		{item: "normal error", chance: 95}, // 95% chance to got the normal error screen
-		{item: "small argument", chance: FlxG.save.data.gotsmallargument || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
-		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
-		{item: "beat battle 2", chance: FlxG.save.data.gotbeatbattle2 || APEntryState.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotsmallargument && !APEntryState.inArchipelagoMode) {item: "small argument", chance: 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode) {item: "beat battle", chance: 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode) {item: "beat battle 2", chance: 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
 	];
 
 	var ticketCounter:FlxText = null;
@@ -856,14 +856,17 @@ class FreeplayState extends MusicBeatState
 									Song.loadFromJson('small-argument-hard', 'small-argument');
 									FlxG.save.data.gotIntoAnArgument = true;
 									FlxG.save.flush();
+									Achievements.addScore("search_songs");
 								case "beat battle":
 									Song.loadFromJson('beat-battle-reasonable', 'beat-battle');
 									FlxG.save.data.gotbeatbattle = true;
 									FlxG.save.flush();
+									Achievements.addScore("search_songs");
 								case "beat battle 2":
 									Song.loadFromJson('beat-battle-2-hard', 'beat-battle-2');
 									FlxG.save.data.gotbeatbattle2 = true;
 									FlxG.save.flush();
+									Achievements.addScore("search_songs");
 								case "normal error":
 									trace('ERROR! NO SONGS FOUND!');
 
