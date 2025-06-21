@@ -218,9 +218,7 @@ class Paths
 
 			return new FlxRuntimeShader(
 				fragFile==null ? null : File.getContent(fragPath), 
-				vertFile==null ? null : File.getContent(vertPath),
-				//version
-			);
+				vertFile==null ? null : File.getContent(vertPath));
 		}catch(e:Dynamic){
 			trace("Shader compilation error:" + e.message);
 		}

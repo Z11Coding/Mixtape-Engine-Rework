@@ -499,7 +499,8 @@ class TransitionState {
                     CppAPI.setWindowOppacity(num);
                 });
                 #end
-            case 'transparent close': var psPause = states.PlayState.instance?.paused;
+            case 'transparent close': 
+                var psPause = states.PlayState.instance?.paused;
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
                     try {
