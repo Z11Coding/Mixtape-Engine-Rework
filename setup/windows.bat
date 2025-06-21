@@ -23,6 +23,7 @@ haxelib install hscript 2.5.0
 haxelib install noisehx
 haxelib set lime 8.1.2
 haxelib set openfl 9.3.3
+haxelib git linc_dialogs https://github.com/snowkit/linc_dialogs.git
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7
 haxelib git funkin.vis https://github.com/beihu235/funkVis-FrequencyFixed
