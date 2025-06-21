@@ -1,7 +1,9 @@
 package backend;
 
 import haxe.ds.HashMap;
+#if windows
 import backend.window.CppAPI;
+#end
 import flixel.FlxState;
 import backend.PsychCamera;
 import archipelago.APEntryState;
