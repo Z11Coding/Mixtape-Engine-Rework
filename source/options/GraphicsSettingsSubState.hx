@@ -53,11 +53,18 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		final refreshRate:Int = FlxG.stage.application.window.displayMode.refreshRate;
-		option.minValue = 60;
-		option.maxValue = 240;
+		option.minValue = 1;
+		option.maxValue = 999;
 		option.defaultValue = Std.int(FlxMath.bound(refreshRate, option.minValue, option.maxValue));
 		option.displayFormat = '%v FPS';
 		option.onChange = onChangeFramerate;
+
+		var option:Option = new Option('Max FPS', //Name
+			"If checked, the FPS limit will be set to 1000.\nThis setting makes the input timing more accurate, but in cost of minor graphical issues.", //Description
+			'unlockFramerate',
+			BOOL);
+		option.onChange = onChangeFramerate;
+		addOption(option);
 		#end
 
 		super();

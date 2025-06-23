@@ -92,10 +92,13 @@ class Achievements {
 		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
 		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
 		createAchievement('potato',					{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
-		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
 		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 3 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 3, maxDecimals: 0});
 		
 		// Secret achievements
+		createAchievement('fps',					{name: "1 FPS Gaming", description: "Slideshow Incarnate,", hidden: true});
+		createAchievement('lag',					{name: "man this engine SUCKS", description: "Lag.", hidden: true});
+		createAchievement('much_better',			{name: "Much Better", description: "Can someone please turn the lights off, please?", hidden: true});
+		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		createAchievement('freaky_bar',				{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
 		
@@ -211,6 +214,49 @@ class Achievements {
 
 		if(autoStartPopup) startPopup(name);
 		return name;
+	}
+
+	public static function relock(name:String):String {
+		if(!achievements.exists(name))
+		{
+			FlxG.log.error('Achievement "$name" does not exists!');
+			throw new Exception('Achievement "$name" does not exists!');
+			return null;
+		}
+
+		if(!Achievements.isUnlocked(name)) return null;
+
+		trace('reset achievement "$name"');
+		achievementsUnlocked.remove(name);
+
+		// earrape prevention
+		var time:Int = openfl.Lib.getTimer();
+		if(Math.abs(time - _lastUnlock) >= 100) //If last unlocked happened in less than 100 ms (0.1s) ago, then don't play sound
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
+			_lastUnlock = time;
+		}
+
+		Achievements.save();
+		FlxG.save.flush();
+
+		return name;
+	}
+
+	public static function reset() {
+		trace('reset all achievements');
+		achievementsUnlocked = [];
+
+		// earrape prevention
+		var time:Int = openfl.Lib.getTimer();
+		if(Math.abs(time - _lastUnlock) >= 100) //If last unlocked happened in less than 100 ms (0.1s) ago, then don't play sound
+		{
+			FlxG.sound.play(Paths.sound('fnf_loss_sfx'), 0.5);
+			_lastUnlock = time;
+		}
+
+		Achievements.save();
+		FlxG.save.flush();
 	}
 
 	inline public static function isUnlocked(name:String)

@@ -6217,7 +6217,7 @@ class PlayState extends MusicBeatState
 		#if ACHIEVEMENTS_ALLOWED
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
 		var week:String = WeekData.getWeekFileName();
-		checkForAchievement([weekNoMiss, week, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'potato', 'debugger', 'play_fnf', 'pico_mixed', 'pico_stressed', 'l', 'a_freaky', 'true_funker', 'nice', 'mfc', 'sfc', 'gfc', 'afc', 'fc', 'sdcb', 'clear', 'erect', 'nightmare']);
+		checkForAchievement([weekNoMiss, week, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'potato', 'debugger', 'play_fnf', 'pico_mixed', 'pico_stressed', 'l', 'a_freaky', 'freaky', 'true_funker', 'nice', 'mfc', 'sfc', 'gfc', 'afc', 'fc', 'sdcb', 'clear', 'erect', 'nightmare']);
 		#end
 
 		var ret:Dynamic = callOnScripts('onEndSong', null, true);
@@ -8130,7 +8130,7 @@ class PlayState extends MusicBeatState
 						unlock = (!usedPractice && keysPressed.length <= 2);
 
 					case 'toastie':
-						unlock = (!ClientPrefs.data.shaders && ClientPrefs.data.lowQuality && !ClientPrefs.data.antialiasing);
+						unlock = (!ClientPrefs.data.shaders && ClientPrefs.data.lowQuality && !ClientPrefs.data.antialiasing && ClientPrefs.data.framerate == 30);
 
 						// The ultimate potato gamer
 					case 'potato':
@@ -8138,8 +8138,9 @@ class PlayState extends MusicBeatState
 							&& ClientPrefs.data.lowQuality 
 							&& !ClientPrefs.data.antialiasing 
 							&& ClientPrefs.data.framerate <= 30
+							&& !ClientPrefs.data.unlockFramerate
 							&& !ClientPrefs.data.comboStacking
-							&& !ClientPrefs.data.opponentNotes
+							&& !ClientPrefs.data.opponentStrums
 							&& !ClientPrefs.data.gimmicksAllowed
 							&& !ClientPrefs.data.modcharts
 							&& ClientPrefs.data.hitsoundVolume == 0
@@ -8200,10 +8201,10 @@ class PlayState extends MusicBeatState
 						unlock = (!usedPractice && comboManager.ratingFC == "[Ok I guess...]");
 
 					case 'erect':
-						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'erect');
+						unlock = (!usedPractice && (Difficulty.getString(storyDifficulty).toLowerCase() == 'erect' || Difficulty.getString(storyDifficulty).toLowerCase() == 'nightmare'));
 
 					case 'nightmare':
-						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'nightmare');
+						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'nightmare' && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 100);
 				}
 			}
 			else // any FC achievements, name should be "weekFileName_nomiss", e.g: "week3_nomiss";

@@ -54,6 +54,7 @@ class MusicBeatState extends FlxState
 	
 	override function create()
 	{
+		justgothere = true;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
 
@@ -165,13 +166,25 @@ class MusicBeatState extends FlxState
 	public static var emptyStickers:substates.StickerSubState = null;
 	public static var reopen:Bool = false;
 	public static var timePassedOnState:Float = 0;
-
+	var allowLagAcheve:Bool = false;
+	var justgothere:Bool = true;
 	override function update(elapsed:Float)
 	{
+		if (justgothere) {
+			justgothere = false;
+			new FlxTimer().start(5, function(e)
+			{
+				allowLagAcheve = true;
+			});
+		}
 		#if windows
 		if (emergencyOpacityFix) {
 			CppAPI.setWindowOppacity(1);
 			emergencyOpacityFix = false;
+		}
+
+		if (allowLagAcheve && Main.fpsVar.lagging && !Achievements.isUnlocked('lag')) {
+			Achievements.unlock('lag');
 		}
 
 		if (Main.audioDisconnected && getState() == PlayState.instance)

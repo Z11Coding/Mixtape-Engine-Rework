@@ -22,6 +22,7 @@ import states.TitleState;
 	public var shaders:Bool = true;
 	public var cacheOnGPU:Bool = false; // GPU Caching made by Raltyro // its buggy lol
 	public var framerate:Int = 60;
+	public var unlockFramerate:Bool = false;
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
 	public var noteOffset:Int = 0;
@@ -528,6 +529,17 @@ class ClientPrefs {
 		if(FlxG.save.data.framerate == null) {
 			final refreshRate:Int = FlxG.stage.application.window.displayMode.refreshRate;
 			data.framerate = Std.int(FlxMath.bound(refreshRate, 60, 240));
+		}
+
+		if (ClientPrefs.data.unlockFramerate) {
+			FlxG.updateFramerate = 1000;
+			FlxG.drawFramerate = 1000;
+		} else if(data.framerate > FlxG.drawFramerate) {
+			FlxG.updateFramerate = data.framerate;
+			FlxG.drawFramerate = data.framerate;
+		} else {
+			FlxG.drawFramerate = data.framerate;
+			FlxG.updateFramerate = data.framerate;
 		}
 		#end
 

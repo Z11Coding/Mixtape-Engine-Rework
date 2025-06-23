@@ -222,6 +222,12 @@ class MainMenuState extends MusicBeatState
 		if (!FlxG.sound.music.playing)
 			MusicManager.playMenuMusic();
 
+		if (FlxG.keys.justPressed.DELETE) {
+			FlxG.save.data.gotIntoAnArgument = false;
+			FlxG.save.data.gotbeatbattle = false;
+			FlxG.save.data.gotbeatbattle2 = false;
+		}
+
 		if (!selectedSomethin)
 		{
 			if (controls.UI_UP_P && curColumn != RIGHT)

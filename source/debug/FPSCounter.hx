@@ -135,10 +135,9 @@ class FPSCounter extends TextField
 			realAlpha = CoolUtil.boundTo(realAlpha + (deltaTime / 1000), 0.3, 1);
 
 		var currentCount = times.length;
-		currentFPS = (currentCount + cacheCount) / 2;
-
-		if (currentFPS > ClientPrefs.data.framerate)
-			currentFPS = ClientPrefs.data.framerate;
+		currentFPS = Math.round((currentCount + cacheCount) / 2);
+		var optionFramerate = ClientPrefs.data.unlockFramerate ? 1000 : ClientPrefs.data.framerate;
+		if (currentFPS > optionFramerate) currentFPS = optionFramerate;
 
 		_updateMemTimer += FlxG.elapsed / 1000;
 
@@ -213,7 +212,7 @@ class FPSCounter extends TextField
 
 	function obtainMemory():Dynamic
 	{
-		return System.totalMemory;
+		return Math.abs(FlxMath.roundDecimal(System.totalMemory / 1000000, 1));
 	}
 	// #end
 

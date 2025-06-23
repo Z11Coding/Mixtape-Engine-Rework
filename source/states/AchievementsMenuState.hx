@@ -198,8 +198,14 @@ class AchievementsMenuState extends MusicBeatState
 				}
 			}
 			
-			if(controls.RESET && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
+			if(FlxG.keys.pressed.SHIFT && controls.RESET && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
 			{
+				ResetAchievementSubstate.resetall = true;
+				openSubState(new ResetAchievementSubstate());
+			}
+			else if(controls.RESET && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
+			{
+				ResetAchievementSubstate.resetall = false;
 				openSubState(new ResetAchievementSubstate());
 			}
 		}
@@ -256,24 +262,24 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 	var onYes:Bool = false;
 	var yesText:Alphabet;
 	var noText:Alphabet;
+	public static var resetall:Bool = false;
 
 	public function new()
 	{
 		super();
-
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0;
 		bg.scrollFactor.set();
 		add(bg);
 		FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
 
-		var text:Alphabet = new Alphabet(0, 180, Language.getPhrase('reset_achievement', 'Reset Achievement:'), true);
+		var text:Alphabet = new Alphabet(0, 180, resetall ? 'Reset ALL Achievements?' : Language.getPhrase('reset_achievement', 'Reset Achievement:'), true);
 		text.screenCenter(X);
 		text.scrollFactor.set();
 		add(text);
 		
 		var state:AchievementsMenuState = cast FlxG.state;
-		var text:FlxText = new FlxText(50, text.y + 90, FlxG.width - 100, state.options[state.curSelected].displayName, 40);
+		var text:FlxText = new FlxText(50, text.y + 90, FlxG.width - 100, resetall ? 'This can\'t be undone!' : state.options[state.curSelected].displayName, 40);
 		text.setFormat(Paths.font("vcr.ttf"), 40, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		text.scrollFactor.set();
 		text.borderSize = 2;
@@ -313,30 +319,45 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 		{
 			if(onYes)
 			{
-				var state:AchievementsMenuState = cast FlxG.state;
-				var option:Dynamic = state.options[state.curSelected];
+				if (resetall) {
+					Achievements.reset();
+					FlxG.resetGame();
+					FlxG.save.data.gotIntoAnArgument = false;
+					FlxG.save.data.gotbeatbattle = false;
+					FlxG.save.data.gotbeatbattle2 = false;
+				} else {
+					var state:AchievementsMenuState = cast FlxG.state;
+					var option:Dynamic = state.options[state.curSelected];
 
-				Achievements.variables.remove(option.name);
-				Achievements.achievementsUnlocked.remove(option.name);
-				option.unlocked = false;
-				option.curProgress = 0;
-				option.name = state.nameText.text = '???';
-				if(option.maxProgress > 0) state.progressTxt.text = '0 / ' + option.maxProgress;
-				state.grpOptions.members[state.curSelected].loadGraphic(Paths.image('achievements/lockedachievement'));
-				state.grpOptions.members[state.curSelected].antialiasing = ClientPrefs.data.antialiasing;
+					trace(option.name);
+					if (option.name == "search_songs") {
+						FlxG.save.data.gotIntoAnArgument = false;
+						FlxG.save.data.gotbeatbattle = false;
+						FlxG.save.data.gotbeatbattle2 = false;
+					}
 
-				if(state.progressBar.visible)
-				{
-					if(state.barTween != null) state.barTween.cancel();
-					state.barTween = FlxTween.tween(state.progressBar, {percent: 0}, 0.5, {ease: FlxEase.quadOut,
-						onComplete: function(twn:FlxTween) state.progressBar.updateBar(),
-						onUpdate: function(twn:FlxTween) state.progressBar.updateBar()
-					});
+					Achievements.variables.remove(option.name);
+					Achievements.achievementsUnlocked.remove(option.name);
+					option.unlocked = false;
+					option.curProgress = 0;
+					option.name = state.nameText.text = '???';
+					if(option.maxProgress > 0) state.progressTxt.text = '0 / ' + option.maxProgress;
+					state.grpOptions.members[state.curSelected].loadGraphic(Paths.image('achievements/lockedachievement'));
+					state.grpOptions.members[state.curSelected].antialiasing = ClientPrefs.data.antialiasing;
+
+					if(state.progressBar.visible)
+					{
+						if(state.barTween != null) state.barTween.cancel();
+						state.barTween = FlxTween.tween(state.progressBar, {percent: 0}, 0.5, {ease: FlxEase.quadOut,
+							onComplete: function(twn:FlxTween) state.progressBar.updateBar(),
+							onUpdate: function(twn:FlxTween) state.progressBar.updateBar()
+						});
+					}
+					Achievements.save();
+					FlxG.save.flush();
+
+					FlxG.sound.play(Paths.sound('cancelMenu'));
 				}
-				Achievements.save();
-				FlxG.save.flush();
-
-				FlxG.sound.play(Paths.sound('cancelMenu'));
 			}
 			close();
 			return;

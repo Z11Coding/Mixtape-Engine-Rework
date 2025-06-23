@@ -180,6 +180,7 @@ class ArchPopup extends openfl.display.Sprite {
 	public static function get_showingPopups()
 		return _popups.length > 0;
 
+	static var _lastUnlock:Int = -999;
 	public static function startPopupSong(daSong:String, image:String, ?endFunc:Void->Void = null) {
 		for (popup in _popups)
 		{
@@ -190,7 +191,13 @@ class ArchPopup extends openfl.display.Sprite {
 		{
 			var newPop:ArchPopup = new ArchPopup('You Got A Song: ' + if (daSong != 'null') daSong else 'Nothing lol', 'Go Check Freeplay!', daSong, image, endFunc);
 			_popups.push(newPop);
-			FlxG.sound.play(Paths.sound('streamervschat/invuln'));
+
+			var time:Int = openfl.Lib.getTimer();
+			if(Math.abs(time - _lastUnlock) >= 100) //If last unlocked happened in less than 100 ms (0.1s) ago, then don't play sound
+			{
+				FlxG.sound.play(Paths.sound('streamervschat/invuln'), 0.5);
+				_lastUnlock = time;
+			}
 		}
 		//trace('Giving achievement ' + achieve);
 	}
@@ -204,6 +211,13 @@ class ArchPopup extends openfl.display.Sprite {
 
 		var newPop:ArchPopup = new ArchPopup(massage, desc, null, image, endFunc);
 		_popups.push(newPop);
+
+		var time:Int = openfl.Lib.getTimer();
+		if(Math.abs(time - _lastUnlock) >= 100) //If last unlocked happened in less than 100 ms (0.1s) ago, then don't play sound
+		{
+			FlxG.sound.play(Paths.sound('streamervschat/invuln'), 0.5);
+			_lastUnlock = time;
+		}
 		//trace('Giving achievement ' + achieve);
 	}
 }

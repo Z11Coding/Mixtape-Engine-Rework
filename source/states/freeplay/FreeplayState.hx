@@ -115,10 +115,7 @@ class FreeplayState extends MusicBeatState
 	var rank:FlxSprite = new FlxSprite(0).loadGraphic(Paths.image('rankings/NA'));
 
 	var hh:Array<Chance> = [
-		{item: "normal error", chance: 95}, // 95% chance to got the normal error screen
-		if (!FlxG.save.data.gotsmallargument && !APEntryState.inArchipelagoMode) {item: "small argument", chance: 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode) {item: "beat battle", chance: 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode) {item: "beat battle 2", chance: 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+		{item: "normal error", chance: 95} // 95% chance to got the normal error screen
 	];
 
 	var ticketCounter:FlxText = null;
@@ -327,6 +324,13 @@ class FreeplayState extends MusicBeatState
 
 		FreeplayManager.reloadFreeplay(true);
 		changeSelection();
+
+		if (!FlxG.save.data.gotIntoAnArgument && !APEntryState.inArchipelagoMode) 
+			hh.push({item: "small argument", chance: 5}); // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode) 
+			hh.push({item: "beat battle", chance: 5}); // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode) 
+			hh.push({item: "beat battle 2", chance: 5}); // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			ticketCounter = new FlxText(FlxG.width - 470, FlxG.height - 630, 0, "0/0", 32);
@@ -1038,12 +1042,7 @@ class FreeplayState extends MusicBeatState
 		if (player.playingMusic)
 			return;
 
-		curDifficulty += change;
-
-		if (curDifficulty < -1)
-			curDifficulty = Difficulty.list.length-1;
-		if (curDifficulty >= Difficulty.list.length)
-			curDifficulty = 0;
+		curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
 
 		if (FreeplayManager.songList[curSelected] == null)
 			return;
@@ -1081,11 +1080,12 @@ class FreeplayState extends MusicBeatState
             trace("No Metadata Found!");
         }
 
-		lastDifficultyName = Difficulty.getString(curDifficulty);
+		lastDifficultyName = Difficulty.getString(curDifficulty, false);
+		var displayDiff:String = Difficulty.getString(curDifficulty);
 		if (Difficulty.list.length > 1)
-			diffText.text = '< ' + lastDifficultyName.toUpperCase() + ' >';
+			diffText.text = '< ' + displayDiff.toUpperCase() + ' >';
 		else
-			diffText.text = lastDifficultyName.toUpperCase();
+			diffText.text = displayDiff.toUpperCase();
 
 		positionHighscore();
 		missingText.visible = false;
