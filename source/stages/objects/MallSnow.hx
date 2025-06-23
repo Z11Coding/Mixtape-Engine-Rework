@@ -13,6 +13,7 @@ class MallSnow extends FlxTypedGroup<SnowSprite>
 	public var scrollFactor:FlxPoint = FlxPoint.get(1, 1);
     public var scaleFactor:Float = 0;
 	public var antialiasing:Bool = true;
+	public var color:FlxColor = FlxColor.WHITE;
 
 	public override function new(spawnPos:SpawnPosition)
 	{
@@ -71,6 +72,7 @@ class MallSnow extends FlxTypedGroup<SnowSprite>
 				snowSprite.scale.set(snowSprite.startScale, snowSprite.startScale);
 				snowSprite.x = FlxG.random.float(spawnPosition.x, spawnPosition.x + spawnPosition.width);
 				snowSprite.y = FlxG.random.float(spawnPosition.y, spawnPosition.y + spawnPosition.height);
+				snowSprite.color = color;
 				add(snowSprite);
 			}
 		}

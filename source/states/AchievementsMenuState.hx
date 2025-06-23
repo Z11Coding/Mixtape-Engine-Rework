@@ -326,6 +326,9 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 					FlxG.save.data.gotIntoAnArgument = false;
 					FlxG.save.data.gotbeatbattle = false;
 					FlxG.save.data.gotbeatbattle2 = false;
+					if (FlxG.save.data.healthMode == "Amalgam")
+						FlxG.save.data.healthMode = 'Random'; // Otherwise you'd immediently get the achievement again lol
+
 				} else {
 					var state:AchievementsMenuState = cast FlxG.state;
 					var option:Dynamic = state.options[state.curSelected];
@@ -335,6 +338,11 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 						FlxG.save.data.gotIntoAnArgument = false;
 						FlxG.save.data.gotbeatbattle = false;
 						FlxG.save.data.gotbeatbattle2 = false;
+					}
+
+					if (option.name == "freaky_bar") {
+						if (FlxG.save.data.healthMode == "Amalgam")
+							FlxG.save.data.healthMode = 'Random'; // Otherwise you'd immediently get the achievement again lol
 					}
 
 					Achievements.variables.remove(option.name);

@@ -101,6 +101,7 @@ class Achievements {
 		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		createAchievement('freaky_bar',				{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
+		createAchievement('much_better',			{name: "Much Better", description: "Join the dark side.", hidden: true});
 		
 		//dont delete this thing below
 		_originalLength = _sortID + 1;

@@ -131,6 +131,8 @@ class RankingSubstate extends MusicBeatSubstate
 			}
 		} else {
 			trace("in AP");
+			// have to regrab it cuz memnory clearing's a bastard
+			RankingManager.grabLimits(FlxG.save.data.gradesandacc[0], FlxG.save.data.gradesandacc[1]);
 			if (accRankSetLimit != 0 || comboRankSetLimit != 0) {
 				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 4);
 				if (accRankLimit > accRankSetLimit) hint.text = 'Accuracy Rank not high enough! (${accuracyNeeded - percent}% off.)';
@@ -204,121 +206,136 @@ class RankingSubstate extends MusicBeatSubstate
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
-					var locationId = (PlayState.SONG.song);
-					trace('Combo Gotten:' + comboRankLimit + " Combo Required: " + comboRankSetLimit);
-					trace('Accuracy Gotten:' + accRankLimit + " Accuracy Required: " + accRankSetLimit);
-					if (APInfo.unlockMethod != "Note Checks") {
-						trace(archipelago.APPlayState.currentMod);
-						// if (archipelago.APPlayState.currentMod.trim() != "")
-						// {
-						// 	locationId += " (" + archipelago.APPlayState.currentMod + ")";
-						// }
-						trace("Starting location ID processing for: " + locationId.trim());
-						var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
-						trace('Initial Location IDs: ' + locationIdInts);
-
-						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-						{
-							trace("Location ID not found or invalid, attempting to match song in current week...");
-							for (song in WeekData.getCurrentWeek().songs)
-							{
-								trace("Checking song: " + song[0]);
-								if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-									(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-								{
-									trace("Match found for song: " + song[0]);
-									locationId = song[0];
-									locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
-									trace("Updated Location IDs: " + locationIdInts);
-									break;
-								}
+					
+					if (comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+						trace("Sending checks for all checked notes...");
+						for (note in APPlayState.instance.checkedNotes) {
+							trace("Sending check for note: " + note);
+							@:privateAccess{ 
+								trace("Sending location: " + note.checkInfo.loc);
+								APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
 							}
 						}
+						trace("All checks sent.");
 
-						if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
-						{
-							trace("Location ID still not found, attempting to parse song JSON...");
-							for (song in WeekData.getCurrentWeek().songs)
+
+
+						var locationId = (PlayState.SONG.song);
+						trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
+						trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
+						if (APInfo.unlockMethod != "Note Checks") {
+							trace(archipelago.APPlayState.currentMod);
+							// if (archipelago.APPlayState.currentMod.trim() != "")
+							// {
+							// 	locationId += " (" + archipelago.APPlayState.currentMod + ")";
+							// }
+							trace("Starting location ID processing for: " + locationId.trim());
+							var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+							trace('Initial Location IDs: ' + locationIdInts);
+
+							if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
 							{
-								var songPath = archipelago.APPlayState.currentMod.trim() != ""
-									? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
-									: "assets/shared/" + (song[0] + Difficulty.getFilePath());
-								trace("Checking song path: " + songPath);
-								var songJson:SwagSong = null;
-								var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
-									? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
-									: Paths.crawlDirectoryOG("assets/shared/data", ".json");
+								trace("Location ID not found or invalid, attempting to match song in current week...");
+								for (song in WeekData.getCurrentWeek().songs)
+								{
+									trace("Checking song: " + song[0]);
+									if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
+										(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+									{
+										trace("Match found for song: " + song[0]);
+										locationId = song[0];
+										locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+										trace("Updated Location IDs: " + locationIdInts);
+										break;
+									}
+								}
+							}
 
-																for (json in jsonStuff)
-																{
-																	trace("Comparing JSON file: " + json);
-																	if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
+							if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
+							{
+								trace("Location ID still not found, attempting to parse song JSON...");
+								for (song in WeekData.getCurrentWeek().songs)
+								{
+									var songPath = archipelago.APPlayState.currentMod.trim() != ""
+										? "mods/" + archipelago.APPlayState.currentMod + "/data/" + song[0] + "/" + song[0] + "-" + Difficulty.getString(PlayState.storyDifficulty) + ".json"
+										: "assets/shared/" + (song[0] + Difficulty.getFilePath());
+									trace("Checking song path: " + songPath);
+									var songJson:SwagSong = null;
+									var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
+										? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
+										: Paths.crawlDirectoryOG("assets/shared/data", ".json");
+
+																	for (json in jsonStuff)
 																	{
-																		trace("Match found for JSON file: " + json);
-																		songJson = Song.parseJSON(File.getContent(json));
-																		if (songJson != null)
+																		trace("Comparing JSON file: " + json);
+																		if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
 																		{
-																			trace("Parsed JSON successfully for song: " + songJson.song);
-																			trace("Checking against current song: " + PlayState.SONG.song + " vs " + songJson.song);
-																			if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+																			trace("Match found for JSON file: " + json);
+																			songJson = Song.parseJSON(File.getContent(json));
+																			if (songJson != null)
 																			{
-																				trace("Song JSON matches current song: " + songJson.song);
-																				locationId = song[0];
-																				locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
-																				trace("Updated Location IDs from JSON: " + locationIdInts);
-																				break;
-																			} 													else
-																			{
-																				trace("Location IDs still invalid, attempting to use name from JSON...");
-																				if (songJson != null && songJson.song != null)
+																				trace("Parsed JSON successfully for song: " + songJson.song);
+																				trace("Checking against current song: " + PlayState.SONG.song + " vs " + songJson.song);
+																				if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
 																				{
-																					locationId = songJson.song;
+																					trace("Song JSON matches current song: " + songJson.song);
+																					locationId = song[0];
 																					locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
-																					trace("Updated Location IDs using JSON name: " + locationIdInts);
+																					trace("Updated Location IDs from JSON: " + locationIdInts);
+																					break;
+																				} 													else
+																				{
+																					trace("Location IDs still invalid, attempting to use name from JSON...");
+																					if (songJson != null && songJson.song != null)
+																					{
+																						locationId = songJson.song;
+																						locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+																						trace("Updated Location IDs using JSON name: " + locationIdInts);
+																					}
 																				}
 																			}
-																		}
-																	} 
+																		} 
+																	}
 																}
 															}
-														}
 
-													
 														
-						trace("Final Location IDs: " + locationIdInts);
-						for (locationIdInt in locationIdInts)
-						{
-							trace("Processing Location ID: " + locationIdInt);
-							trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
-							trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
+															
+							trace("Final Location IDs: " + locationIdInts);
+							for (locationIdInt in locationIdInts)
+							{
+								trace("Processing Location ID: " + locationIdInt);
+								trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
+								trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
+							}
+							trace("Current Song: " + PlayState.SONG.song);
+
+							archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
+								trace("Popup triggered for sending location to Archipelago.");
+								FlxG.sound.playMusic(Paths.sound('secret'));
+							});
+
+							// for (locationIdInt in locationIdInts)
+							// {
+							// 	trace("Checking victory condition for Location ID: " + locationIdInt);
+							// 	if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
+							// 	{
+							// 		trace("Victory condition met for song: " + PlayState.SONG.song);
+							// 		archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
+							// 			trace("Victory popup triggered.");
+							// 			FlxG.sound.playMusic(Paths.sound('secret'));
+							// 		});
+							// 		// APEntryState.apGame.info().set_goal();
+							// 	}
+							// }
 						}
-						trace("Current Song: " + PlayState.SONG.song);
-
-						archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
-							trace("Popup triggered for sending location to Archipelago.");
-							FlxG.sound.playMusic(Paths.sound('secret'));
-						});
-
-						// for (locationIdInt in locationIdInts)
-						// {
-						// 	trace("Checking victory condition for Location ID: " + locationIdInt);
-						// 	if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
-						// 	{
-						// 		trace("Victory condition met for song: " + PlayState.SONG.song);
-						// 		archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
-						// 			trace("Victory popup triggered.");
-						// 			FlxG.sound.playMusic(Paths.sound('secret'));
-						// 		});
-						// 		// APEntryState.apGame.info().set_goal();
-						// 	}
-						// }
-					}
-					
-					if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
-						archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
-							trace("Goal achievement popup triggered.");
-							FlxG.sound.playMusic(Paths.sound('victory'));
-						});
+						
+						if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+							archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
+								trace("Goal achievement popup triggered.");
+								FlxG.sound.playMusic(Paths.sound('victory'));
+							});
+						}
 					}
 					Mods.loadTopMod();
 			}

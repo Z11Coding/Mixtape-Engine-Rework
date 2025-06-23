@@ -101,5 +101,5 @@ using yutautil.PointerTools;
 using yutautil.CUMacroTools; // Careful. Using C++ Lables in Haxe may act strangely.
 using yutautil.KonamiTracker;
 using yutautil.GenericObject;
-using yutautil.PyScript;
+//using yutautil.PyScript;
 #end
