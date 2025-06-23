@@ -91,7 +91,9 @@ class Achievements {
 		createAchievement('hype',					{name: "Hyperactive", description: "Finish a Song without going back to Idle."});
 		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
 		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
+		createAchievement('potato',					{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
 		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
+		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 3 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 3, maxDecimals: 0});
 		
 		// Secret achievements
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
@@ -132,7 +134,7 @@ class Achievements {
 			_firstLoad = false;
 		}
 	}
-
+	
 	public static function save():Void
 	{
 		FlxG.save.data.achievementsUnlocked = achievementsUnlocked;

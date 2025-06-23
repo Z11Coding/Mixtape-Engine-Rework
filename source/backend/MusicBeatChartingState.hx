@@ -1,7 +1,9 @@
 package backend;
 
 import flixel.addons.ui.FlxUIState;
+#if windows
 import backend.window.CppAPI;
+#end
 import flixel.FlxState;
 import backend.PsychCamera;
 import archipelago.APEntryState;
@@ -135,10 +137,12 @@ class MusicBeatChartingState extends FlxUIState
 
 	override function update(elapsed:Float)
 	{
+		#if windows
 		if (emergencyOpacityFix) {
 			CppAPI.setWindowOppacity(1);
 			emergencyOpacityFix = false;
 		}
+		#end
 
 		if (Main.audioDisconnected && getState() == PlayState.instance)
 		{
