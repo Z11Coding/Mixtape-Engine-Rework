@@ -322,6 +322,7 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 				if (resetall) {
 					Achievements.reset();
 					FlxG.resetGame();
+					FirstCheckState.relaunch = true;
 					FlxG.save.data.gotIntoAnArgument = false;
 					FlxG.save.data.gotbeatbattle = false;
 					FlxG.save.data.gotbeatbattle2 = false;
