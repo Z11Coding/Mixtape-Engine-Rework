@@ -105,6 +105,24 @@ class Main extends Sprite
 		backend.window.Native.fixScaling();
 		#end
 
+		// var a:yutautil.Inf.Num = new yutautil.Inf.InfNum(1.0);
+		// var b:yutautil.Inf.Num = new yutautil.Inf.InfNum(2.0);
+		// var c:yutautil.Inf.Num = a + b;
+		// trace("InfNum Test: " + c);
+		// trace(c.value);
+		// trace(c.floatPoint);
+		// trace(c.isNegative);
+
+		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0));
+		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).toFloat());
+		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).toString());
+		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).value);
+		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).floatPoint);
+		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).isNegative);
+
+		// var h:Float = c;
+		// trace("InfNum Test: " + h);
+
 		// Credits to MAJigsaw77 (he's the og author for this code)
 		#if android
 		Sys.setCwd(Path.addTrailingSlash(Context.getExternalFilesDir()));

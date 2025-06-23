@@ -41,7 +41,8 @@ class CPPMemory {
 
     public static function getPointer(value:Dynamic):String {
         #if cpp
-        return cpp.Lib.toString(cpp.Pointer.addressOf(value));
+        var ptr = cpp.Pointer.addressOf(value);
+        return Std.string(ptr);
         #else
         throw "This function is only available for C++ targets.";
         #end

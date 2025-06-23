@@ -4,7 +4,7 @@ package yutautil;
 
 class PointerTools {
     public function new() {
-        // Constructor for the PointerTools class
+        "This doesn't even need to be instantiated, it's just a static utility class. However, this is here, just in case...".NativeComment();
     }
 
     // public function getPointerAddress<T>(pointer:cpp.RawConstPointer<T>):Int {

@@ -30,7 +30,7 @@ class WelcomeToPain extends MusicBeatState
 	public var save:FlxSave = new FlxSave();
 	private var originalState:FlxState;
 	private var originalStateArgs:Array<Dynamic>;
-	public function new(originalState:FlxState = null, ?args:Array<Dynamic>) 
+	public function new(originalState:FlxState = null, ?args:Array<Dynamic>, ?dialogue) 
 	{
 		if (originalState == null)
 			originalState = new states.TitleState();

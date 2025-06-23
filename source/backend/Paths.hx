@@ -24,6 +24,22 @@ import haxe.Json;
 import backend.Mods;
 #end
 
+enum PathType
+{
+	SHARED;
+	MODS;
+	SONGS;
+	MUSIC;
+	SOUNDS;
+	IMAGES;
+	VIDEOS;
+	SHADERS;
+	DATA;
+	TEXT;
+	LUA;
+	HSCRIPT;
+}
+
 @:access(openfl.display.BitmapData)
 class Paths
 {
@@ -561,6 +577,87 @@ class Paths
 
 	inline public static function imageExists(key:String):Bool
 		return Paths.exists(imagePath(key));
+
+	// Similar to all functions, but instead this returns if it can find a modded file, or an asset file, as an object.
+	// Example: Paths.assetLocation('images/character.png') will return the modded file if it exists, or the asset file if it doesn't.
+	// Will return: {location: 'assets/images/character.png', modded: false} if the asset file exists, or {location: 'mods/character.png', modded: true} if the modded file exists.
+	public static function assetLocation(key:String, ?parentFolder:String = null, ?pathType:PathType = IMAGES, ?allowNull:Bool = false):Null<{location:String, modded:Bool}>
+	{
+		var ext = switch (pathType) {
+			case IMAGES: IMAGE_EXT;
+			case SOUNDS: SOUND_EXT;
+			case MUSIC: SOUND_EXT;
+			case VIDEOS: VIDEO_EXT;
+			case SHADERS: "frag";
+			case DATA | TEXT: "txt";
+			case LUA: "lua";
+			case HSCRIPT: "hx";
+			default: IMAGE_EXT;
+		};
+
+		var folder = switch (pathType) {
+			case IMAGES: "images";
+			case SOUNDS: "sounds";
+			case MUSIC: "music";
+			case VIDEOS: "videos";
+			case SHADERS: "shaders";
+			case DATA: "data";
+			case TEXT: "data";
+			case LUA: "scripts";
+			case HSCRIPT: "scripts";
+			default: "images";
+		};
+
+		var type = switch (pathType) {
+			case IMAGES: IMAGE;
+			case SOUNDS: SOUND;
+			case MUSIC: SOUND;
+			case VIDEOS: BINARY;
+			case SHADERS: AssetType.TEXT;
+			case DATA: AssetType.TEXT;
+			case TEXT: AssetType.TEXT;
+			case LUA: AssetType.TEXT;
+			case HSCRIPT: AssetType.TEXT;
+			default: IMAGE;
+		};
+
+		var filePath = folder != "" ? '$folder/$key.$ext' : '$key.$ext';
+
+		#if MODS_ALLOWED
+		// Check enabled mods first
+		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0) {
+			var modPath = 'mods/${Mods.currentModDirectory}/$filePath';
+			if (FileSystem.exists(modPath)) {
+				return {location: modPath, modded: true};
+			}
+		}
+		for (mod in Mods.parseList().enabled) {
+			var modPath = 'mods/$mod/$filePath';
+			if (FileSystem.exists(modPath)) {
+				return {location: modPath, modded: true};
+			}
+		}
+		for (mod in Mods.getGlobalMods()) {
+			var modPath = 'mods/$mod/$filePath';
+			if (FileSystem.exists(modPath)) {
+				return {location: modPath, modded: true};
+			}
+		}
+		// Check base mods folder (for loose files)
+		var looseModPath = 'mods/$filePath';
+		if (FileSystem.exists(looseModPath)) {
+			return {location: looseModPath, modded: true};
+		}
+		#end
+
+		// Fallback to shared assets
+		var assetPath = getSharedPath(filePath);
+		if (FileSystem.exists(assetPath)) {
+			return {location: assetPath, modded: false};
+		}
+
+		return allowNull ? {location: null, modded: false} : null;
+	}
 
 	static public function image(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxGraphic
 	{

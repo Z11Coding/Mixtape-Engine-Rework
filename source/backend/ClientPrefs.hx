@@ -454,16 +454,19 @@ class ClientPrefs {
 
 	public static function getBGImage(?yellow:Bool = false, ?blue:Bool = false):String
 	{
-		return switch (ClientPrefs.data.menuTheme) {
+		var result = switch (ClientPrefs.data.menuTheme) {
 			case "Light":
 				yellow ? 'menuBG' : blue ? 'menuBGBlue' : 'menuDesat';
 			case "Dark":
-				'menuDark';
+				Paths.assetLocation('menuDark').modded ? 'menuDark'
+				: Paths.assetLocation('menuBG').modded ? (yellow ? 'menuBG' : blue ? 'menuBGBlue' : 'menuDesat')
+				: 'menuDark';
 			default:
 				FlxG.log.error("Invalid Menu Theme: " + ClientPrefs.data.menuTheme);
 				yellow ? 'menuBG' : 'menuDesat';
 		}
-		return yellow ? 'menuBG' : 'menuDesat';
+		trace('getBGImage will return: ' + result);
+		return result;
 	}
 
 	public static function resetKeys(controller:Null<Bool> = null) //Null = both, False = Keyboard, True = Controller

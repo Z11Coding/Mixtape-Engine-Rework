@@ -55,6 +55,8 @@ class FunkinLua {
 	public var hscript:HScript = null;
 	#end
 
+	public var legacyHScript:LegacyFunkinLua.HScriptLegacy = null;
+
 	public var callbacks:Map<String, Dynamic> = new Map<String, Dynamic>();
 	public static var customFunctions:Map<String, Dynamic> = new Map<String, Dynamic>();
 
@@ -224,6 +226,31 @@ class FunkinLua {
 			PlayState.instance.luaArray.remove(this);
 			new LegacyFunkinLua(scriptName);
 			trace('A script has been converted to Legacy mode: ' + scriptName);
+		});
+
+		Lua_helper.add_callback(lua, "runLegacyHScript", function(code:String) {
+		var retVal:Dynamic = null;
+
+			#if HScriptLegacy
+			if (this.legacyHScript == null) {
+				this.legacyHScript = new LegacyFunkinLua.HScriptLegacy();
+			}
+
+			var hscript:LegacyFunkinLua.HScriptLegacy = this.legacyHScript;
+			var codeToRun:String = code;
+			try {
+				retVal = hscript.execute(codeToRun);
+			}
+			catch (e:Dynamic) {
+				luaTrace("Legacy HScript Error: " + scriptName + ":" + lastCalledFunction + " - " + e, false, false, FlxColor.RED);
+			}
+			#else
+			luaTrace("RunLegacyHScript: Legacy HScript isn't supported on this platform!", false, false, FlxColor.RED);
+			#end
+
+			if(retVal != null && !LegacyFunkinLua.isOfTypes(retVal, [Bool, Int, Float, String, Array])) retVal = null;
+			if(retVal == null) Lua.pushnil(lua);
+			return retVal;
 		});
 
 		//

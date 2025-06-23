@@ -19,7 +19,7 @@ class KonamiTracker extends FlxBasic {
         UP, UP, DOWN, DOWN, LEFT, RIGHT, LEFT, RIGHT, B, A, ENTER
     ];
 
-    public static var KONAMI_CODE:Array<FlxKey> = KONAMI_CODE_1;
+    private var KONAMI_CODE:Array<FlxKey> = KONAMI_CODE_1;
 
     var cheats:Array<Cheat>;
     var inputBuffer:Array<FlxKey> = [];
