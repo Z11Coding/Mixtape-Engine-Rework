@@ -459,8 +459,8 @@ class ClientPrefs {
 			case "Light":
 				yellow ? 'menuBG' : blue ? 'menuBGBlue' : 'menuDesat';
 			case "Dark":
-				Paths.assetLocation('menuDark').modded ? 'menuDark'
-				: Paths.assetLocation('menuBG').modded ? (yellow ? 'menuBG' : blue ? 'menuBGBlue' : 'menuDesat')
+				Paths.assetLocation('menuDark', null, null, null, true).modded ? 'menuDark'
+				: Paths.assetLocation('menuBG', null, null, null, true).modded ? (yellow ? 'menuBG' : blue ? 'menuBGBlue' : 'menuDesat')
 				: 'menuDark';
 			default:
 				FlxG.log.error("Invalid Menu Theme: " + ClientPrefs.data.menuTheme);

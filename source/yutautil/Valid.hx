@@ -2,6 +2,8 @@ package yutautil;
 
 // Abstract for a "Valid" type that can be used as a boolean or as a conditional tree
 
+
+typedef ComplexBool = Valid;
 private class ValidImpl {
     public var expr: () -> Bool;
     public var ifTree: ValidIfTree;

@@ -579,7 +579,7 @@ class Paths
 	// Similar to all functions, but instead this returns if it can find a modded file, or an asset file, as an object.
 	// Example: Paths.assetLocation('images/character.png') will return the modded file if it exists, or the asset file if it doesn't.
 	// Will return: {location: 'assets/images/character.png', modded: false} if the asset file exists, or {location: 'mods/character.png', modded: true} if the modded file exists.
-	public static function assetLocation(key:String, ?parentFolder:String = null, ?pathType:PathType = IMAGES, ?allowNull:Bool = false):Null<{location:String, modded:Bool}>
+	public static function assetLocation(key:String, ?parentFolder:String = null, ?pathType:PathType = IMAGES, ?allowNull:Bool = false, ?topModOnly:Bool = false):Null<{location:String, modded:Bool}>
 	{
 		var ext = switch (pathType) {
 			case IMAGES: IMAGE_EXT;
@@ -629,22 +629,24 @@ class Paths
 				return {location: modPath, modded: true};
 			}
 		}
-		for (mod in Mods.parseList().enabled) {
-			var modPath = 'mods/$mod/$filePath';
-			if (FileSystem.exists(modPath)) {
-				return {location: modPath, modded: true};
+		if (!topModOnly) {
+			for (mod in Mods.parseList().enabled) {
+				var modPath = 'mods/$mod/$filePath';
+				if (FileSystem.exists(modPath)) {
+					return {location: modPath, modded: true};
+				}
 			}
-		}
-		for (mod in Mods.getGlobalMods()) {
-			var modPath = 'mods/$mod/$filePath';
-			if (FileSystem.exists(modPath)) {
-				return {location: modPath, modded: true};
+			for (mod in Mods.getGlobalMods()) {
+				var modPath = 'mods/$mod/$filePath';
+				if (FileSystem.exists(modPath)) {
+					return {location: modPath, modded: true};
+				}
 			}
-		}
-		// Check base mods folder (for loose files)
-		var looseModPath = 'mods/$filePath';
-		if (FileSystem.exists(looseModPath)) {
-			return {location: looseModPath, modded: true};
+			// Check base mods folder (for loose files)
+			var looseModPath = 'mods/$filePath';
+			if (FileSystem.exists(looseModPath)) {
+				return {location: looseModPath, modded: true};
+			}
 		}
 		#end
 
