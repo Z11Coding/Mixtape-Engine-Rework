@@ -148,7 +148,7 @@ class APSettingsSubState extends MusicBeatSubstate {
             "S-",
             "A+",
             "A",
-            "A=",
+            "A-",
             "B",
             "C",
             "D",

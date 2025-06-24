@@ -472,8 +472,8 @@ class APEntryState extends MusicBeatState
 		fullSongCount = slotData.fullSongCount;
 		APInfo.ticketWinCount = slotData.ticketWinCount;
 		APInfo.ticketCount = 0;
-		RankingSubstate.comboRankSetLimit = slotData.gradeNeeded;
-		RankingSubstate.accRankSetLimit = slotData.accuracyNeeded;
+		FlxG.save.data.gradesandacc = [slotData.gradeNeeded, slotData.accuracyNeeded];
+		FlxG.save.flush();
 		APInfo.unlockMethod = slotData.locationType;
 		//APInfo.unlockType = slotData.locationMethod;
 		trace(APInfo.unlockMethod);

@@ -248,7 +248,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			STRING, 
 			["Light", "Dark"]);
 		option.displayFormat = '< %v >';
-		option.onChange = function() Achievements.unlock('much_better');
+		option.onChange = function() {if (ClientPrefs.data.menuTheme == "Dark") Achievements.unlock('much_better');};
 		addOption(option);
 		
 		var option:Option = new Option('---MISC.---',

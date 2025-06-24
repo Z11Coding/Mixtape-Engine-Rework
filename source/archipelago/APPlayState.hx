@@ -2061,16 +2061,6 @@ class APPlayState extends PlayState {
 
         super.endSong();
 
-        trace("Sending checks for all checked notes...");
-        for (note in checkedNotes) {
-            trace("Sending check for note: " + note);
-            @:privateAccess{ 
-                trace("Sending location: " + note.checkInfo.loc);
-                apGame.info().LocationChecks([note.checkInfo.loc]);
-            }
-        }
-        trace("All checks sent.");
-
         
         paused = true;
         FreeplayManager.callVictory = FreeplayManager.isVictorySong(PlayState.SONG.song, currentMod);

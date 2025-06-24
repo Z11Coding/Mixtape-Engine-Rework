@@ -402,6 +402,7 @@ class PlayState extends MusicBeatState
 		{item: "Lives + HealthBar", chance: 14.28},
 		{item: "Amalgam", chance: 2.5}, /// ooo secret mode ooo
 	];
+	var rank:RankingManager;
 
 	// Thank you mic'ed up engine, for making my life SO much easier lol
 	public var hearts:FlxTypedGroup<FlxSprite>;
@@ -501,6 +502,9 @@ class PlayState extends MusicBeatState
 
 			setOnScripts("healthMode", curHealthMode);
 			callOnScripts("onSetHealthMode", [curHealthMode]);
+
+			if (archipelago.APEntryState.inArchipelagoMode)
+				curHealthMode = "Mixtape";
 		}
 
 		if (SONG == null) {
@@ -1348,6 +1352,13 @@ class PlayState extends MusicBeatState
 		}
 		initY = healthBar.y;
 
+		rank = new RankingManager('small');
+		rank.updateHitbox();
+		rank.screenCenter(XY);
+		rank.y = 640 - rank.height;
+		rank.x = FlxG.width/2 - 590;
+		uiGroup.add(rank);
+
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
 	}
@@ -1892,6 +1903,7 @@ class PlayState extends MusicBeatState
 						{
 							FlxTween.tween(camCredit, {alpha: 0, y: 1000}, 1, {ease: FlxEase.circInOut});
 						});
+						rank.doTween('in');
 						tick = START;
 				}
 
@@ -2021,6 +2033,7 @@ class PlayState extends MusicBeatState
 		{
 			var percent:Float = CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2);
 			str += ' (${percent}%) - ' + Language.getPhrase(comboManager.ratingFC);
+			rank.updateRank();
 		}
 
 		if (health <= 0.0475 && (curHealthMode == "Mixtape" || curHealthMode == "Tabi" || curHealthMode == "Double" || curHealthMode == "Amalgam"))
