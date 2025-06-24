@@ -107,14 +107,19 @@ class StrumNote extends NoteObject
 
 	public function reloadNote()
 	{
-		var skin:String = texture;
+		var postfix:String = Note.getNoteSkinPostfix();
+		var skin:String = texture + postfix;
 		if(texture.length < 1)
 		{
 			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
-			if ((skin == null || skin.length < 1) && PlayState.isPixelStage)
-				skin = "noteSkins/NOTE_assets";
-			else if ((skin == null || skin.length < 1) && !PlayState.isPixelStage)
-				skin = "noteSkins/strums";
+			if (skin == null || skin.length < 1) {
+				if (postfix == null || postfix.length < 1)
+					skin = "noteSkins/strums";
+				else
+					skin = "noteSkins/NOTE_assets" + postfix;
+			}
+			if (PlayState.isPixelStage)
+				rgbShader.enabled = false;
 		}
 
 		var lastAnim:String = null;

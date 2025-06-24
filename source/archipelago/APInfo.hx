@@ -129,12 +129,12 @@ class APInfo {
 	public static final basePico:Array<String> = 
 	[
 		'Darnell', 'Lit Up', '2Hot', 'Blazin',
-		'Bopeebo (Pico mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
+		'Bopeebo (Pico Mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
 		'Spookeez (Pico mix)', 'South (Pico mix)',
 		'Pico (Pico mix)', 'Philly Nice (Pico mix)', 'Blammed (Pico mix)',
-		'Eggnog (Pico mix)', 'Cocoa (Pico mix)',
+		'Eggnog (Pico Mix)', 'Cocoa (Pico Mix)',
 		'Senpai (Pico mix)', 'Roses (Pico mix)',
-		'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico mix)'
+		'Ugh (Pico mix)', 'Guns (Pico mix)', 'Stress (Pico Mix)'
 	];
 
 	public static final secrets:Array<String> = [

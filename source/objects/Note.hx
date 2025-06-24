@@ -970,9 +970,9 @@ class Note extends NoteObject
 			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
 			if (skin == null || skin.length < 1)
 				skin = "noteSkins/NOTE_assets" + postfix;
-			if (PlayState.isPixelStage) rgbShader.enabled = false;
+			if (PlayState.isPixelStage)
+				rgbShader.enabled = false;
 		}
-		else rgbShader.enabled = false;
 
 		var animName:String = null;
 		if(animation.curAnim != null) {
