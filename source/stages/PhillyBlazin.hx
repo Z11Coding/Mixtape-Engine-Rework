@@ -27,6 +27,7 @@ class PhillyBlazin extends BaseStage
 
 	override function create()
 	{
+		StickerSubState.STICKER_PACK = "weekend";
 		FlxTransitionableState.skipNextTransOut = true; //skip the original transition fade
 		function setupScale(spr:BGSprite)
 		{
@@ -74,21 +75,13 @@ class PhillyBlazin extends BaseStage
 			additionalLighten.visible = false;
 			add(additionalLighten);
 		}
-
-		abot = new ABotSpeaker(gfGroup.x, gfGroup.y + 550);
-		add(abot);
 		
 		if(ClientPrefs.data.shaders)
 			setupRainShader();
 
-		var _song = PlayState.SONG;
-		if(_song.gameOverSound == null || _song.gameOverSound.trim().length < 1) GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pico-gutpunch';
-		if(_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1) GameOverSubstate.loopSoundName = 'gameOver-pico';
-		if(_song.gameOverEnd == null || _song.gameOverEnd.trim().length < 1) GameOverSubstate.endSoundName = 'gameOverEnd-pico';
-		if(_song.gameOverChar == null || _song.gameOverChar.trim().length < 1) GameOverSubstate.characterName = 'pico-blazin';
-		GameOverSubstate.deathDelay = 0.15;
-
 		setDefaultGF('nene');
+		gfGroup.y += 200;
+		gfGroup.x += 50;
 		precache();
 		
 		if (isStoryMode)
@@ -113,6 +106,15 @@ class PhillyBlazin extends BaseStage
 	
 	override function createPost()
 	{
+		super.createPost();
+
+		var _song = PlayState.SONG;
+		if(_song.gameOverSound == null || _song.gameOverSound.trim().length < 1) GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pico-gutpunch';
+		if(_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1) GameOverSubstate.loopSoundName = 'gameOver-pico';
+		if(_song.gameOverEnd == null || _song.gameOverEnd.trim().length < 1) GameOverSubstate.endSoundName = 'gameOverEnd-pico';
+		if(_song.gameOverChar == null || _song.gameOverChar.trim().length < 1) GameOverSubstate.characterName = 'pico-blazin';
+		GameOverSubstate.deathDelay = 0.15;
+
 		FlxG.camera.focusOn(camFollow.getPosition());
 		FlxG.camera.fade(FlxColor.BLACK, 1.5, true, null, true);
 
@@ -131,7 +133,7 @@ class PhillyBlazin extends BaseStage
 			if(character == null) continue;
 			character.color = 0xFF888888;
 		}
-		abot.color = 0xFF888888;
+		PicoCapableStage.instance.abot.color = 0xFF888888;
 
 		var unspawnNotes:Array<Note> = cast game.unspawnNotes;
 		for (note in unspawnNotes)
