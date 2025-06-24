@@ -26,6 +26,12 @@ using yutautil.CollectionUtils;
  */
 @:generic typedef Predicate<T> = T->Bool;
 
+enum FuncAndReturnItem<T>
+{
+	Item;
+	TransformedItem(func:T->Dynamic, ?extraArgs:Array<Dynamic>);
+}
+
 typedef LuaScript = flixel.util.typeLimit.OneOfTwo<psychlua.FunkinLua, psychlua.LegacyFunkinLua>;
 
 // abstract Collection<T>(Dynamic) from Array<T> to Array<T> {
@@ -1262,11 +1268,151 @@ class CollectionUtils
 		return a;
 	}
 
-	public static inline function funcAndReturn<T>(func:T->Void, item:T):T
+	/**
+	 * Calls the provided function `func` with `item` as its argument, then returns `item`.
+	 *
+	 * @param item The value to be passed to `func` and returned.
+	 * @param func A function that takes `item` as its argument and returns void.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function funcAndReturn<T>(item:T, func:T->Void):T
 	{
 		func(item);
 		return item;
 	}
+
+	/**
+	 * Calls the provided function `func` with arguments determined by `item`, `a`, and `itemIsArg`, then returns `item`.
+	 *
+	 * @param item The value to be used as an argument or context for `func`, and returned.
+	 * @param func The function to be called. Can be any function or method.
+	 * @param a Optional array of additional arguments to pass to `func`.
+	 * @param itemIsArg If true, `item` is prepended to the argument list for `func`. If false, only `a` is used as arguments.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function funcAndReturn<T>(item:T, func:haxe.Constraints.Function, ?a:Array<Dynamic>, ?itemIsArg:Bool):T
+	{
+		// Helper to resolve FuncAndReturnItem, recursively for extraArgs
+		function resolveArg(arg:Dynamic):Dynamic {
+			if (Std.is(arg, FuncAndReturnItem)) {
+				return switch (cast arg : FuncAndReturnItem<T>) {
+					case Item:
+						item;
+					case TransformedItem(f, extraArgs):
+						var resolvedExtraArgs = extraArgs != null ? extraArgs.map(resolveArg) : null;
+						if (resolvedExtraArgs != null)
+							Reflect.callMethod(item, f, [item].concat(resolvedExtraArgs));
+						else
+							f(item);
+				}
+			}
+			return arg;
+		}
+
+		var args:Array<Dynamic> = [];
+		if (itemIsArg) {
+			args = [item];
+			if (a != null) args = args.concat(a);
+		} else if (a != null) {
+			args = a.copy();
+		}
+
+		// Replace any FuncAndReturnItem in args, recursively
+		for (i in 0...args.length) {
+			args[i] = resolveArg(args[i]);
+		}
+
+		if (args.length > 0)
+			Reflect.callMethod(item, func, args);
+		else
+			func(item);
+
+		return item;
+	}
+
+	/**
+	 * Calls the provided function `func` with `item` as its argument, then returns `item`.
+	 * This version takes `func` as the first argument and `item` as the second.
+	 *
+	 * @param func A function that takes `item` as its argument and returns void.
+	 * @param item The value to be passed to `func` and returned.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function funcAndReturn<T>(func:T->Void, item:T):T
+	{
+		return item.funcAndReturn(func);
+	}
+
+	/**
+	 * Calls the provided function `func` with arguments determined by `item`, `a`, and `itemIsArg`, then returns `item`.
+	 * This version takes `func` as the first argument and `item` as the second.
+	 *
+	 * @param func The function to be called. Can be any function or method.
+	 * @param item The value to be used as an argument or context for `func`, and returned.
+	 * @param a Optional array of additional arguments to pass to `func`.
+	 * @param itemIsArg If true, `item` is prepended to the argument list for `func`. If false, only `a` is used as arguments.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function funcAndReturn<T>(func:haxe.Constraints.Function, item:T, ?a:Array<Dynamic>, ?itemIsArg:Bool):T
+	{
+		return item.funcAndReturn(func, a, itemIsArg);
+	}
+
+	/**
+	 * Shorthand for funcAndReturn. Calls the provided function `func` with `item` as its argument, then returns `item`.
+	 *
+	 * @param item The value to be passed to `func` and returned.
+	 * @param func A function that takes `item` as its argument and returns void.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function fnr<T>(item:T, func:T->Void):T
+	{
+		return item.funcAndReturn(func);
+	}
+
+	/**
+	 * Shorthand for funcAndReturn. Calls the provided function `func` with arguments determined by `item`, `a`, and `itemIsArg`, then returns `item`.
+	 *
+	 * @param item The value to be used as an argument or context for `func`, and returned.
+	 * @param func The function to be called. Can be any function or method.
+	 * @param a Optional array of additional arguments to pass to `func`.
+	 * @param itemIsArg If true, `item` is prepended to the argument list for `func`. If false, only `a` is used as arguments.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function fnr<T>(item:T, func:haxe.Constraints.Function, ?a:Array<Dynamic>, ?itemIsArg:Bool):T
+	{
+		return item.funcAndReturn(func, a, itemIsArg);
+	}
+
+	/**
+	 * Shorthand for funcAndReturn. Calls the provided function `func` with `item` as its argument, then returns `item`.
+	 * This version takes `func` as the first argument and `item` as the second.
+	 *
+	 * @param func A function that takes `item` as its argument and returns void.
+	 * @param item The value to be passed to `func` and returned.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function fnr<T>(func:T->Void, item:T):T
+	{
+		return item.funcAndReturn(func);
+	}
+
+	/**
+	 * Shorthand for funcAndReturn. Calls the provided function `func` with arguments determined by `item`, `a`, and `itemIsArg`, then returns `item`.
+	 * This version takes `func` as the first argument and `item` as the second.
+	 *
+	 * @param func The function to be called. Can be any function or method.
+	 * @param item The value to be used as an argument or context for `func`, and returned.
+	 * @param a Optional array of additional arguments to pass to `func`.
+	 * @param itemIsArg If true, `item` is prepended to the argument list for `func`. If false, only `a` is used as arguments.
+	 * @return The original `item`.
+	 */
+	public static extern overload inline function fnr<T>(func:haxe.Constraints.Function, item:T, ?a:Array<Dynamic>, ?itemIsArg:Bool):T
+	{
+		return item.funcAndReturn(func, a, itemIsArg);
+	}
+
+
 
 	public static inline function toList<T>(input:Dynamic):List<Any>
 	{
@@ -1308,6 +1454,57 @@ class CollectionUtils
 		return pattern.match(input);
 	}
 
+	/**
+	 * Sums a list of numbers provided as a `OneOrMore<FlexibleNum>`.
+	 * 
+	 * @param numbers A collection containing one or more numbers of type `FlexibleNum`.
+	 * @return The sum of all numbers as a `Float`.
+	 */
+
+	// Sums a list of numbers (OneOrMore<FlexibleNum>), Array<Float>, or Array<Int>
+	public static extern overload inline function sum(numbers:OneOrMore<FlexibleNum>):Float {
+		var sum:Float = 0;
+		var arr:Array<Float> = cast numbers;
+		for (num in arr) {
+			sum += num;
+		}
+		return sum;
+	}
+	/**
+	 * Sums all elements in an array of `Float` values.
+	 * 
+	 * @param numbers An array of `Float` numbers to sum.
+	 * @return The sum of all elements as a `Float`.
+	 */
+	public static extern overload inline function sum(numbers:Array<Float>):Float {
+		return (function() {
+			var sum:Float = 0;
+			for (n in numbers) {
+				sum += n;
+			}
+			return sum;
+		})();
+	}
+	/**
+	 * Sums all elements in an array of `Int` values.
+	 * 
+	 * @param numbers An array of `Int` numbers to sum.
+	 * @return The sum of all elements as a `Float`.
+	 */
+	public static extern overload inline function sum(numbers:Array<Int>):Float {
+		var arr:Array<Float> = [];
+		for (n in numbers) arr.push(n);
+		return sum(arr);
+	}
+
+	public static extern overload inline function sum(number:Float):Float {
+		return number;
+	}
+
+	public static extern overload inline function sum(number:Int):Float {
+		return cast number;
+	}
+
 	public static inline function exists(input:Dynamic, ?checkUninitialized:Bool = false):Dynamic {
 		if (checkUninitialized) {
 			try {
@@ -1344,32 +1541,77 @@ class CollectionUtils
 
 	public static inline function toArray<T>(input:Dynamic, ?type):Array<Any>
 	{
+		var arr:Array<Any>;
 		if (Std.is(input, Array))
 		{
-			return input;
+			arr = input;
 		}
 		else if (Std.is(input, IMap))
 		{
-			var result = [];
+			arr = [];
 			for (key in (input : Map<Dynamic, T>).keys())
 			{
-				result.push({key: key, value: input.get(key)});
+				arr.push({key: key, value: input.get(key)});
 			}
-			return result;
 		}
 		else if (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")))
 		{
-			var result = [];
+			arr = [];
 			for (item in (input : Iterable<T>))
 			{
-				result.push(item);
+				arr.push(item);
 			}
-			return result;
 		}
 		else
 		{
-			return [input];
+			arr = [input];
 		}
+		// If type is provided, cast to Array<type>
+		return type != null ? cast arr : arr;
+	}
+
+	/**
+	 * Casts an `Int` to a `Float`.
+	 * Only useful for casting Ints to Floats in Abstracts, as the implicit casting is disabled in these cases.
+	 */
+	public static extern overload inline function asFloat(input:Int):Float
+	{
+		"Imagine having to do this just because of Abstracts not allowing implicit casting...".NativeComment();
+		return cast input;
+	}
+
+	/**
+	 * Casts a `Float` to a `Float`.
+	 * This is just a placeholder to allow for overload resolution in Abstracts where implicit casting is disabled.
+	 */
+	public static extern overload inline function asFloat(input:Float):Float
+	{
+		"This doesn't even make sense. Why would you do this?".NativeComment();
+		return input;
+	}
+
+	/**
+	 * Casts an `Array<Int>` to an `Array<Float>`.
+	 * This is useful for Abstracts where implicit casting is disabled.
+	 */
+	public static extern overload inline function asFloat(input:Array<Int>):Array<Float>
+	{
+		"This is just a workaround for Abstracts not allowing implicit casting...".NativeComment();
+		var arr:Array<Float> = [];
+		for (n in input) {
+			arr.push(cast n);
+		}
+		return arr;
+	}
+
+	/**
+	 * Casts an `Array<Float>` to an `Array<Float>`.
+	 * This is just a placeholder to allow for overload resolution in Abstracts where implicit casting is disabled.
+	 */
+	public static extern overload inline function asFloat(input:Array<Float>):Array<Float>
+	{
+		"This doesn't even make sense. Why would you do this?".NativeComment();
+		return input;
 	}
 
 	public static function getInfinity(t:Dynamic, positive:Bool = true):Dynamic {

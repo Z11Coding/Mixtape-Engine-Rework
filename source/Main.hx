@@ -89,6 +89,20 @@ class Main extends Sprite
 
 	public static function main():Void
 	{
+		trace(18.sum());
+		trace([1, 2, 3].sum());
+		trace([1, 2.3, 3.4].sum());
+
+		function testOneOrMore(o:OneOrMore<Float>):Void {
+			if (o.isSingle()) {
+				trace("Single value: " + o.getSingle());
+			} else {
+				trace("Multiple values: " + o.toArray());
+			}
+		}
+		testOneOrMore(39.asFloat());
+		testOneOrMore([1, 2, 3].asFloat());
+
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());

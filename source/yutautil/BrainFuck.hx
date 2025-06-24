@@ -57,4 +57,41 @@ class BrainFuck {
 
         return output;
     }
+
+    public static function run(code:String, input:String = "", native:Bool = false):String {
+        try {
+            return interpret(code, input, native);
+        } catch (e:Dynamic) {
+            return "Error: " + e;
+        }
+    }
+
+    public static function runFile(filePath:String, input:String = "", native:Bool = false):String {
+        var code:String = haxe.io.File.getContent(filePath);
+        return run(code, input, native);
+    }
+
+    // Generates a Brainfuck program that sets the memory to match the given array.
+    // If native is true, checks that all values are in 0...255.
+    public static function mimicArray(arr:Array<Int>, native:Bool = false):String {
+        var code = "";
+        var last = 0;
+        var memorySize = native ? 256 : 30000;
+
+        // Check validity if native
+        if (native) {
+            for (v in arr) {
+                if (v < 0 || v > 255) throw "All values must be in 0...255 for native mode";
+            }
+        }
+
+        for (i in 0...arr.length) {
+            code += ">";
+            var diff = arr[i] - last;
+            if (diff > 0) code += StringTools.rpad("", "+", diff);
+            else if (diff < 0) code += StringTools.rpad("", "-", -diff);
+            last = arr[i];
+        }
+        return code;
+    }
 }

@@ -659,6 +659,12 @@ class Paths
 		return allowNull ? {location: null, modded: false} : null;
 	}
 
+	public static inline function assetInTopMod(key:String, ?parentFolder:String = null, ?pathType:PathType = IMAGES):Bool
+	{
+		var assetLocation = assetLocation(key, parentFolder, pathType, true, true);
+		return assetLocation != null && assetLocation.modded;
+	}
+
 	static public function image(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxGraphic
 	{
 		key = Language.getFileTranslation('images/$key') + '.png';

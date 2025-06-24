@@ -645,3 +645,67 @@ class CUMacroTools
         return macro CUMacroTools.generateKeyCheckFunction($a{[for (k in keys) macro $v{k}]}, "anyPressed")();
     }
 }
+
+// Macro + Abstract for strongly-typed, size-limited function argument arrays
+
+@:forward
+abstract FuncArgsArray<T>(Array<Null<T>>) from Array<Null<T>> to Array<Null<T>> {
+    // Only allow creation via macro
+    @:from
+    static macro function fromExprs(exprs:Array<Expr>):Expr {
+        var pos = Context.currentPos();
+        // The macro must be called as FuncArgsArray.make(functionType, [args...])
+        Context.error("FuncArgsArray can only be created via FuncArgsArray.make(functionType, [args...])", pos);
+        return macro null;
+    }
+
+    // Helper to get argument types from a function type
+    public static function getArgTypes(funcType:Type):Array<Type> {
+        switch (funcType) {
+            case TFun(args, _):
+                return [for (a in args) a.t];
+            default:
+                throw "Not a function type";
+        }
+    }
+
+    // Macro to create a FuncArgsArray for a given function type and argument expressions
+    public static macro function make(funcType:Expr, args:Array<Expr>):Expr {
+        var pos = Context.currentPos();
+        var t = Context.typeof(funcType);
+        var argTypes:Array<Type> = [];
+        switch (t) {
+            case TFun(params, _):
+                argTypes = [for (a in params) a.t];
+            default:
+                Context.error("FuncArgsArray.make: funcType must be a function type", pos);
+        }
+        if (args.length > argTypes.length) {
+            Context.error('Too many arguments: expected ${argTypes.length}, got ${args.length}', pos);
+        }
+        // Fill missing args with null
+        var filledArgs = [];
+        for (i in 0...argTypes.length) {
+            if (i < args.length) {
+                filledArgs.push(args[i]);
+            } else {
+                filledArgs.push(macro null);
+            }
+        }
+        // Wrap in abstract
+        return macro new FuncArgsArray<Dynamic>([$a{filledArgs}]);
+    }
+
+    // Get argument at index (null if not provided)
+    public inline function get(i:Int):Null<T> return this[i];
+
+    // Length is fixed to the function's arity
+    public var length(get, never):Int;
+    inline function get_length() return this.length;
+}
+
+// Usage example (not part of the macro/abstract):
+// var args = FuncArgsArray.make(macro myFunc, [macro 1, macro "test"]);
+// args.get(0); // 1
+// args.get(1); // "test"
+// args.get(2); // null (if myFunc has 3 args)

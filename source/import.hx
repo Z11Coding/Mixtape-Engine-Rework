@@ -98,8 +98,11 @@ using StringTools;
 using yutautil.CollectionUtils;
 using yutautil.MetaData;
 using yutautil.PointerTools;
-using yutautil.CUMacroTools; // Careful. Using C++ Lables in Haxe may act strangely.
+using yutautil.CUMacroTools; 
 using yutautil.KonamiTracker;
 using yutautil.GenericObject;
 using yutautil.PyScript;
+using yutautil.FieldMap;
+using yutautil.Tracked;
+using yutautil.OneOrMany;
 #end
