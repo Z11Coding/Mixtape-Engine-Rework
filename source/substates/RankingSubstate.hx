@@ -159,7 +159,7 @@ class RankingSubstate extends MusicBeatSubstate
 				if (PlayState.instance.cpuControlled)
 				{
 					hint.y -= 35;
-					hint.text = 'If you wanna gather that rank, disable botplay.' + FlxG.random.bool(3) ?? '\n(Dirty cheater...)';
+					hint.text = 'Nice try, but Botplay doesn\'t count.\n(And neither does Showcase Mode, either)';
 				}
 
 				if (PlayState.deathCounter >= 30)
@@ -207,7 +207,7 @@ class RankingSubstate extends MusicBeatSubstate
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					
-					if (comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+					if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && (comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit)) {
 						trace("Sending checks for all checked notes...");
 						for (note in APPlayState.instance.checkedNotes) {
 							trace("Sending check for note: " + note);
