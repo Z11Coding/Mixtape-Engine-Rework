@@ -1614,6 +1614,95 @@ class CollectionUtils
 		return input;
 	}
 
+	public static inline function forceCast<T>(input:Dynamic, ?type:Suggestion<Class<T>>, ?catchError:Bool = false):T
+	{
+		try {
+			if (type == null || Std.is(input, type))
+			{
+				return cast input;
+			}
+			else
+			{
+				"If you get here, this will 100% throw an error.".NativeComment();
+				throw "Cannot force cast " + Std.string(input) + " (type: " + (Type.getClass(input) != null ? Type.getClassName(Type.getClass(input)) : Std.string(Type.typeof(input))) + ") to " + (type != null ? Type.getClassName(type) : "unknown type");
+			}
+		} catch (e:Dynamic) {
+			if (catchError) {
+				"Because this is an inline function, this will only appear in this C++ file if you actually have enabled the `catchError` parameter.".NativeComment();
+				trace('[forceCast] Error caught: ' + Std.string(e) + '. Hope you can handle a null value now.');
+				return null;
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	// // Version of forceCast which checks basic types like Int, Float, String, etc.
+	// public static extern overload inline function forceCast<T>(input:BasicTypes, ?type:Suggestion<Type.ValueType>, ?catchError:Bool = false):T
+	// {
+	// 	try {
+	// 		if (type == null || Type.typeof(input) == type)
+	// 		{
+	// 			return switch (type) {
+	// 				case _ if (type == Type.ValueType.TUnknown):
+	// 					// If type is not specified or unknown, try a basic cast
+	// 					try {
+	// 						cast input;
+	// 					} catch (e:Dynamic) {
+	// 						throw "forceCast: Could not cast input to requested type (unknown/null type): " + Std.string(e);
+	// 					}
+	// 				case Type.ValueType.TInt:
+	// 					if (Std.is(input, Int)) cast input;
+	// 					var parsed = Std.parseInt(Std.string(input));
+	// 					if (parsed == null) throw "forceCast: Cannot cast input to Int: " + Std.string(input);
+	// 					cast parsed;
+	// 				case Type.ValueType.TFloat:
+	// 					if (Std.is(input, Float)) cast input;
+	// 					var parsed = Std.parseFloat(Std.string(input));
+	// 					if (Math.isNaN(parsed)) throw "forceCast: Cannot cast input to Float: " + Std.string(input);
+	// 					cast parsed;
+	// 				case Type.ValueType.TBool:
+	// 					if (Std.is(input, Bool)) cast input;
+	// 					var str = Std.string(input).toLowerCase();
+	// 					if (str == "true" || str == "1") true;
+	// 					if (str == "false" || str == "0") false;
+	// 					throw "forceCast: Cannot cast input to Bool: " + Std.string(input);
+	// 				case Type.ValueType.TNull:
+	// 					null;
+	// 				case Type.ValueType.TObject:
+	// 					if (Std.is(input, Dynamic)) input;
+	// 					try {
+	// 						cast input;
+	// 					} catch (e:Dynamic) {
+	// 						throw "forceCast: Cannot cast input to TObject: " + Std.string(e);
+	// 					}
+	// 				case Type.ValueType.TFunction:
+	// 					if (Std.is(input, haxe.Constraints.Function)) return cast input;
+	// 					throw "forceCast: Cannot cast input to Function: " + Std.string(input);
+	// 				case Type.ValueType.TClass(c):
+	// 					if (Std.is(input, c)) cast input;
+	// 					throw "forceCast: Cannot cast input to Class: " + Std.string(input);
+	// 				case Type.ValueType.TEnum(e):
+	// 					if (Std.is(input, e)) cast input;
+	// 					throw "forceCast: Cannot cast input to Enum: " + Std.string(input);
+	// 				default:
+	// 					cast input.forceCast(); // This will throw an error if the type is not handled
+	// 			}
+	// 		}
+	// 		else
+	// 		{
+	// 			throw "Cannot force cast " + Std.string(input) + " (type: " + (Type.getClass(input) != null ? Type.getClassName(Type.getClass(input)) : Std.string(Type.typeof(input))) + ") to " + (type != null ? Type.getClassName(type) : "unknown type");
+	// 		}
+	// 	} catch (e:Dynamic) {
+	// 		if (catchError) {
+	// 			trace('[forceCastBasic] Error caught: ' + Std.string(e) + '. Returning null.');
+	// 			return null;
+	// 		} else {
+	// 			throw e;
+	// 		}
+	// 	}
+	// }
+
 	public static function getInfinity(t:Dynamic, positive:Bool = true):Dynamic {
 		if (Std.isOfType(t, Float)) {
 			return positive ? Math.POSITIVE_INFINITY : Math.NEGATIVE_INFINITY;
