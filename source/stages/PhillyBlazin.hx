@@ -7,6 +7,7 @@ import flixel.addons.transition.FlxTransitionableState;
 import flixel.addons.display.FlxTiledSprite;
 
 import substates.GameOverSubstate;
+import substates.StickerSubState;
 import stages.objects.*;
 import objects.Note;
 
@@ -161,16 +162,6 @@ class PhillyBlazin extends BaseStage
 
 		PlayState.instance.modManager.setValue("alpha", 1, opp);
 		PlayState.instance.modManager.setValue("opponentSwap", 0.5);
-	}
-
-	override function beatHit()
-	{
-		//if(curBeat % 2 == 0) abot.beatHit();
-	}
-	
-	override function startSong()
-	{
-		abot.snd = FlxG.sound.music;
 	}
 
 	function setupRainShader()

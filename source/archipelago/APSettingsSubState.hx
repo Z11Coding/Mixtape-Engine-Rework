@@ -35,6 +35,7 @@ class APSettingsSubState extends MusicBeatSubstate {
     var fakeTransWeight:PsychUISlider;
     var shieldWeight:PsychUISlider;
     var MHPWeight:PsychUISlider;
+    var songLimit:PsychUISlider;
     var gradientBar:FlxSprite;
     var dim:FlxSprite;
     public static function generateSongList() {
@@ -123,37 +124,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         unlockType.list = ["Per Song", "Per Week"];
         unlockMethod.list = ["Note Checks", "Song Completion", "Both"];
 
-        gradeRequirement.list =
-        [
-            'Any',
-            "MFC",
-            "SFC",
-            "GFC",
-            "AFC",
-            "FC",
-            "SDCB"
-        ];
-
-        accRequirement.list =
-        [
-            "Any",
-            "P",
-            "X",
-            "X-",
-            "SS+",
-            "SS",
-            "SS-",
-            "S+",
-            "S",
-            "S-",
-            "A+",
-            "A",
-            "A-",
-            "B",
-            "C",
-            "D",
-            "E",
-        ];
+        gradeRequirement.list = APInfo.gradeList;
+        accRequirement.list = APInfo.accuracyList;
 
         setDefaults();
         
@@ -179,6 +151,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
         shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
         MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
+        songLimit.value = APEntryState.gameSettings.FNF.song_limit;
     }
     
     function addMainSettings()
@@ -249,6 +222,9 @@ class APSettingsSubState extends MusicBeatSubstate {
         {
             APEntryState.gameSettings.FNF.mods_enabled = allowMods.checked;
             generateSongList();
+            songLimit.max = globalSongList.length;
+            if (songLimit.value > songLimit.max)
+                songLimit.value = songLimit.max;
         });
 
         objY += 50;
@@ -265,9 +241,18 @@ class APSettingsSubState extends MusicBeatSubstate {
             trace(id); 
         });
 
+        objX -= 150;
+        objY += 50;
+        songLimit = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.song_limit = Std.int(v));
+        songLimit.decimals = 0;
+        songLimit.min = 5;
+        songLimit.max = globalSongList.length;
+
         tab_group.add(new FlxText(gradeRequirement.x, gradeRequirement.y - 15, 120, 'Grade Requirement:'));
         tab_group.add(new FlxText(accRequirement.x, accRequirement.y - 15, 120, 'Accuracy Requirement:'));
+        tab_group.add(new FlxText(songLimit.x, songLimit.y - 15, 120, 'Song Limit:'));
         tab_group.add(allowMods);
+        tab_group.add(songLimit);
         tab_group.add(accRequirement);
         tab_group.add(gradeRequirement);
     }
@@ -373,6 +358,9 @@ class APSettingsSubState extends MusicBeatSubstate {
                 APEntryState.gameSettings.FNF.songList = globalSongList;
             }
         }
+
+        // for that true random type beat
+        FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
 
 
         var mainSettings = {name: APEntryState.yamlName, description: APEntryState.gameSettings.description, game: APEntryState.gameSettings.game};

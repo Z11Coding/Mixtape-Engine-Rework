@@ -52,7 +52,7 @@ class CustomFreeplayState extends MusicBeatState {
         if (scriptEnv != null && Reflect.hasField(scriptEnv, "create")) {
             Reflect.callMethod(scriptEnv, Reflect.field(scriptEnv, "create"), []);
         }
-        this.scriptInterp = iris;
+        //this.scriptInterp = iris;
     }
 
     override public function update(elapsed:Float):Void {

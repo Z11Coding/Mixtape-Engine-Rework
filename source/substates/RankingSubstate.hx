@@ -29,8 +29,8 @@ class RankingSubstate extends MusicBeatSubstate
 	var comboRankLimit:Int = 0;
 	var accRankLimit:Int = 0;
 
-	public static var comboRankSetLimit:Int = 0;
-	public static var accRankSetLimit:Int = 0;
+	public static var comboRankSetLimit:Int = APInfo.comboRankSetLimit;
+	public static var accRankSetLimit:Int = APInfo.accRankSetLimit;
 	public function new()
 	{
 		super();
@@ -131,8 +131,11 @@ class RankingSubstate extends MusicBeatSubstate
 			}
 		} else {
 			trace("in AP");
+
 			// have to regrab it cuz memnory clearing's a bastard
-			RankingManager.grabLimits(FlxG.save.data.gradesandacc[0], FlxG.save.data.gradesandacc[1]);
+			try{APInfo.grabLimits(FlxG.save.data.gradesandacc[0], FlxG.save.data.gradesandacc[1]);}
+			catch(e) {trace("FAILED TO GRAB LIMITS!!");}
+
 			if (accRankSetLimit != 0 || comboRankSetLimit != 0) {
 				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 4);
 				if (accRankLimit > accRankSetLimit) hint.text = 'Accuracy Rank not high enough! (${accuracyNeeded - percent}% off.)';
@@ -207,7 +210,7 @@ class RankingSubstate extends MusicBeatSubstate
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					
-					if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && (comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit)) {
+					if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
 						trace("Sending checks for all checked notes...");
 						for (note in APPlayState.instance.checkedNotes) {
 							trace("Sending check for note: " + note);

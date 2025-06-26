@@ -66,8 +66,12 @@ class FreeplayManager {
             case "Osu":
                 states.freeplay.OsuFreeplayState;
             default:
-                FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
-                states.freeplay.FreeplayState;
+                if (ClientPrefs.data.freeplayMenu == "Base Game") {
+                    FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
+                    return states.freeplay.FreeplayState;
+                }
+                new states.freeplay.CustomFreeplayState(Paths.mods(ClientPrefs.data.freeplayMenu));
+                states.freeplay.CustomFreeplayState;
         }
         return states.freeplay.FreeplayState;
     }
@@ -80,8 +84,11 @@ class FreeplayManager {
             case "Osu":
                 states.freeplay.OsuFreeplayState;
             default:
-                FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
-                states.freeplay.FreeplayState;
+                if (ClientPrefs.data.freeplayMenu == "Base Game") {
+                    FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
+                    return states.freeplay.FreeplayState;
+                }
+                states.freeplay.CustomFreeplayState;
         }
         return states.freeplay.FreeplayState;
     }
@@ -303,22 +310,14 @@ class FreeplayManager {
         {
             if (refresh)
             {
-                if (CategoryState.loadWeekForce == "all"){
-                    //Add them to Wekk 7 so they're below that week
-                    addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-                    addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-                    addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-                }
-                else {
-                    for (songObj in FreeplayManager.curUnlocked) {
-                        if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
-                            addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-                        if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
-                            addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-                        if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
-                            addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-                    }	
-                }
+                for (songObj in FreeplayManager.curUnlocked) {
+                    if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
+                        addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
+                    if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
+                        addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                    if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
+                        addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                }	
             }
             else
             {
@@ -688,6 +687,7 @@ class FreeplayManager {
                 }
 
                 if (!unplayedList.contains(songName) && isMissing) {
+                    color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
                     trueMissing.push(songName);
                 }
             }

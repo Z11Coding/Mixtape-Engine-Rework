@@ -20,6 +20,11 @@ class APConnectingSubState extends FlxSubState
 
 	override function create()
 	{
+		var bg = new FlxSprite();
+		bg.makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		bg.screenCenter();
+
+
 		var connectingText = new FlxText(0, 0, 0, "Connecting...", 20);
 		connectingText.color = FlxColor.WHITE;
 
@@ -39,6 +44,8 @@ class APConnectingSubState extends FlxSubState
 
 		connectingText.y = backdrop.y + 5;
 		cancelButton.y = connectingText.y + connectingText.height + 5;
+		
+		add(bg);
 
 		for (item in [backdrop, connectingText, cancelButton])
 		{

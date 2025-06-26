@@ -64,6 +64,7 @@ typedef APOptions =
     var	fakeTransWeight:Int;
     var	shieldWeight:Int;
     var	MHPWeight:Int;
+	var	song_limit:Int;
 }
 
 enum ComboRank {
@@ -161,7 +162,8 @@ class APEntryState extends MusicBeatState
 			tutorialWeight: 15,
 			fakeTransWeight: 15,
 			shieldWeight: 15,
-			MHPWeight: 15 
+			MHPWeight: 15,
+			song_limit: 320,
 		}
 	};
 
@@ -311,7 +313,7 @@ class APEntryState extends MusicBeatState
 		{
 			if(!fileDialog.completed) return;
 			lowFilterAmount = 0.0134;
-			fileDialog.open(_slotInput.text, [new FileFilter('YAML', 'yaml')], function()
+			/*fileDialog.open(_slotInput.text, [new FileFilter('YAML', 'yaml')], function()
 			{
 				FlxTween.num(0.0134, 1, 1, {ease: FlxEase.sineInOut}, function(t) {
 					APEntryState.lowFilterAmount = t;
@@ -345,12 +347,13 @@ class APEntryState extends MusicBeatState
 					gameSettings.FNF.MHPWeight = Std.parseInt(fnfData.get('MHPWeight'));
 					gameSettings.FNF.accrequirement = fnfData.get('accrequirement');
 					gameSettings.FNF.graderequirement = fnfData.get('graderequirement');
+				    gameSettings.FNF.song_limit = fnfData.get('song_limit');
 				}
 				catch(e:Exception)
 				{
 					trace(e.stack);
 				}
-			});
+			});*/
 		});
 		yamlImport.x = (FlxG.width / 2) + 10 + yamlImport.width;
 		yamlImport.y = yamlGen.y - 50;
@@ -472,10 +475,10 @@ class APEntryState extends MusicBeatState
 		fullSongCount = slotData.fullSongCount;
 		APInfo.ticketWinCount = slotData.ticketWinCount;
 		APInfo.ticketCount = 0;
-		FlxG.save.data.gradesandacc = [slotData.gradeNeeded, slotData.accuracyNeeded];
-		FlxG.save.flush();
+		APInfo.grabLimits(slotData.gradeNeeded, slotData.accuracyNeeded);
 		APInfo.unlockMethod = slotData.locationType;
 		//APInfo.unlockType = slotData.locationMethod;
+		FlxG.save.flush();
 		trace(APInfo.unlockMethod);
 		closeSubState();
 		inArchipelagoMode = true;
@@ -788,7 +791,9 @@ class APEntryState extends MusicBeatState
 				+ "\nShield Weight: "
 				+ gameSettings.FNF.shieldWeight
 				+ "\nMax HP Weight: "
-				+ gameSettings.FNF.MHPWeight;
+				+ gameSettings.FNF.MHPWeight
+				+ "\nSong Limit: "
+				+ gameSettings.FNF.song_limit;
 		} catch (e:Dynamic) {
 			trace("Error updating bpmTxt: " + e);
 		}

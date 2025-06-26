@@ -21,10 +21,10 @@ class APCategoryState extends states.CategoryState {
         };
 
         var quitFunc = function() {
-            AP.disconnect_socket();
+            try{AP.disconnect_socket();}
+            catch(e){}
             states.ExitState.addExitCallback(function() {
                 var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
-                
             });
             FlxG.switchState(new states.ExitState());
         };

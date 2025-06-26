@@ -65,63 +65,6 @@ class RankingManager extends FlxSprite {
         el = elapsed;
     }
 
-    // TODO: Make this better lol
-    public static function grabLimits(grade:String, accuracy:String) {
-        switch (grade) {
-            case 'Any':
-                RankingSubstate.comboRankSetLimit = 0;
-            case "MFC":
-                RankingSubstate.comboRankSetLimit = 1;
-            case "SFC":
-                RankingSubstate.comboRankSetLimit = 2;
-            case "GFC":
-                RankingSubstate.comboRankSetLimit = 3;
-            case "AFC":
-                RankingSubstate.comboRankSetLimit = 4;
-            case "FC":
-                RankingSubstate.comboRankSetLimit = 5;
-            case "SDCB":
-                RankingSubstate.comboRankSetLimit = 6;
-        }
-
-        switch (accuracy) {
-            case "Any":
-                RankingSubstate.accRankSetLimit = 0;
-            case "P":
-                RankingSubstate.accRankSetLimit = 1;
-            case "X":
-                RankingSubstate.accRankSetLimit = 2;
-            case "X-":
-                RankingSubstate.accRankSetLimit = 3;
-            case "SS+":
-                RankingSubstate.accRankSetLimit = 4;
-            case "SS":
-                RankingSubstate.accRankSetLimit = 5;
-            case "SS-":
-                RankingSubstate.accRankSetLimit = 6;
-            case "S+":
-                RankingSubstate.accRankSetLimit = 7;
-            case "S":
-                RankingSubstate.accRankSetLimit = 8;
-            case "S-":
-                RankingSubstate.accRankSetLimit = 9;
-            case "A+":
-                RankingSubstate.accRankSetLimit = 10;
-            case "A":
-                RankingSubstate.accRankSetLimit = 11;
-            case "A-":
-                RankingSubstate.accRankSetLimit = 12;
-            case "B":
-                RankingSubstate.accRankSetLimit = 13;
-            case "C":
-                RankingSubstate.accRankSetLimit = 14;
-            case "D":
-                RankingSubstate.accRankSetLimit = 15;
-            case "E":
-                RankingSubstate.accRankSetLimit = 16;
-        }
-    }
-
     var intendedRating:Int = 0;
     var lerpRating:Int = 0;
     var el:Float = 0;

@@ -185,7 +185,7 @@ class FPSCounter extends TextField
 
 		if (ClientPrefs.data.performanceCounter.contains('mem'))
 		{
-			curMemory = _updateMemTimer >= 100.0 ? curMemory : obtainMemory();
+			curMemory = _updateMemTimer >= 100.0 ? curMemory : MemoryUtil.currentMemUsage();
 			if (curMemory >= maxMemory)
 				maxMemory = curMemory;
 			text += 'MEM: ${CoolUtil.formatMemory(Std.int(curMemory))}';
@@ -212,7 +212,7 @@ class FPSCounter extends TextField
 
 	function obtainMemory():Dynamic
 	{
-		return Math.abs(FlxMath.roundDecimal(System.totalMemory / 1000000, 1));
+		return System.totalMemory;
 	}
 	// #end
 

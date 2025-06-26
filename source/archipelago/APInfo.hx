@@ -1,5 +1,6 @@
 package archipelago;
 
+import substates.RankingSubstate;
 class APInfo {
 	public static var ap:Client;
 	public static var apGame:APGameState;
@@ -10,12 +11,45 @@ class APInfo {
 	public static var unlockMethod:String = "Song Completion";
 	public static var unlockType:String = "Per Song";
 
+	public static var accRankSetLimit:Int = 0;
+	public static var comboRankSetLimit:Int = 0;
+
 	public static var hasNoteChecks(get, never):Bool;
-
 	public static var hasSongChecks(get, never):Bool;
-
 	public static var hintPoints(get, never):Int;
 	public static var hintCost(get, never):Int;
+
+	public static var gradeList:Array<String> = 
+	[
+		'Any',
+		"MFC",
+		"SFC",
+		"GFC",
+		"AFC",
+		"FC",
+		"SDCB"
+	];
+
+	public static var accuracyList:Array<String> = 
+	[
+		"Any",
+		"P",
+		"X",
+		"X-",
+		"SS+",
+		"SS",
+		"SS-",
+		"S+",
+		"S",
+		"S-",
+		"A+",
+		"A",
+		"A-",
+		"B",
+		"C",
+		"D",
+		"E",
+	];
 
 	// All things to escape when making song names.
 	public static var YAMLEscapeMap:Map<String, String>  = [
@@ -142,6 +176,63 @@ class APInfo {
 		'Beat Battle', 
 		'Beat Battle 2'
 	];
+
+	// TODO: Make this better lol
+    public static function grabLimits(grade:String, accuracy:String) {
+        switch (grade) {
+            case 'Any':
+                comboRankSetLimit = 0;
+            case "MFC":
+                comboRankSetLimit = 1;
+            case "SFC":
+                comboRankSetLimit = 2;
+            case "GFC":
+                comboRankSetLimit = 3;
+            case "AFC":
+                comboRankSetLimit = 4;
+            case "FC":
+                comboRankSetLimit = 5;
+            case "SDCB":
+                comboRankSetLimit = 6;
+        }
+
+        switch (accuracy) {
+            case "Any":
+                accRankSetLimit = 0;
+            case "P":
+                accRankSetLimit = 1;
+            case "X":
+                accRankSetLimit = 2;
+            case "X-":
+                accRankSetLimit = 3;
+            case "SS+":
+                accRankSetLimit = 4;
+            case "SS":
+                accRankSetLimit = 5;
+            case "SS-":
+                accRankSetLimit = 6;
+            case "S+":
+                accRankSetLimit = 7;
+            case "S":
+                accRankSetLimit = 8;
+            case "S-":
+                accRankSetLimit = 9;
+            case "A+":
+                accRankSetLimit = 10;
+            case "A":
+                accRankSetLimit = 11;
+            case "A-":
+                accRankSetLimit = 12;
+            case "B":
+                accRankSetLimit = 13;
+            case "C":
+                accRankSetLimit = 14;
+            case "D":
+                accRankSetLimit = 15;
+            case "E":
+                accRankSetLimit = 16;
+        }
+    }
 
 
 }

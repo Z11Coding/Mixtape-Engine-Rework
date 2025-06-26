@@ -220,14 +220,14 @@ class APPlayState extends PlayState {
                     dad.shader = originalShaders.get(dad);
                     if (gf != null) gf.shader = originalShaders.get(gf);
                     blurEffect.setStrength(0, 0);
-                    camGamefilters.remove(filterMap.get("BlurLittle").filter);
+                    camGame.filters.remove(filterMap.get("BlurLittle").filter);
                 };
                 var playSound:String = "blur";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = false;
 
                 if (effectsActive["blur"] == null || effectsActive["blur"] <= 0) {
-                    camGamefilters.push(filterMap.get("BlurLittle").filter);
+                    camGame.filters.push(filterMap.get("BlurLittle").filter);
                     if (PlayState.curStage.startsWith('school'))
                         blurEffect.setStrength(2, 2);
                     else
@@ -1047,7 +1047,7 @@ class APPlayState extends PlayState {
                     blurEffect.setStrength(32, 32);
                 }
 
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'lowpass');
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, true, 'lowpass');
             },
             'songSwitch' => function() {
                 // var haltTween:NumTween = new NumTween(null, null);

@@ -106,7 +106,7 @@ class Main extends Sprite
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());
-		Lib.current.addChild(new objects.Nightlight());
+		//Lib.current.addChild(new objects.Nightlight());
 	}
 
 	@:dox(hide)
