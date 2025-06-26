@@ -535,4 +535,214 @@ class ExtendedDate extends FlxBasic {
         var year = this.getFullYear();
         return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
     }
+
+    #if LUA_ALLOWED
+	public static function addLuaCallbacks(lua:State)
+	{
+		Lua_helper.add_callback(lua, "getFullYear", function():Int
+		{
+			return instance.getFullYear();
+		});
+
+		Lua_helper.add_callback(lua, "getMonth", function():Int
+		{
+			return instance.getMonth();
+		});
+
+        Lua_helper.add_callback(lua, "getDate", function():Int
+		{
+			return instance.getDate();
+		});
+
+        Lua_helper.add_callback(lua, "getDay", function():Int
+		{
+			return instance.getDay();
+		});
+
+        Lua_helper.add_callback(lua, "getHours", function():Int
+		{
+			return instance.getHours();
+		});
+
+        Lua_helper.add_callback(lua, "getMinutes", function():Int
+		{
+			return instance.getMinutes();
+		});
+
+        Lua_helper.add_callback(lua, "getSeconds", function():Int
+		{
+			return instance.getSeconds();
+		});
+
+        Lua_helper.add_callback(lua, "getTime", function():Float
+		{
+			return instance.getTime();
+		});
+
+        Lua_helper.add_callback(lua, "isWeekend", function():Bool
+		{
+			return instance.isWeekend();
+		});
+
+        Lua_helper.add_callback(lua, "isWeekday", function():Bool
+		{
+			return instance.isWeekday();
+		});
+
+        Lua_helper.add_callback(lua, "isAprilFools", function():Bool
+		{
+			return instance.isAprilFools();
+		});
+
+        Lua_helper.add_callback(lua, "isNewYearsDay", function():Bool
+		{
+			return instance.isNewYearsDay();
+		});
+
+        Lua_helper.add_callback(lua, "isValentinesDay", function():Bool
+		{
+			return instance.isValentinesDay();
+		});
+
+        Lua_helper.add_callback(lua, "isIndependenceDay", function():Bool
+		{
+			return instance.isIndependenceDay();
+		});
+
+        Lua_helper.add_callback(lua, "isLaborDay", function():Bool
+		{
+			return instance.isLaborDay();
+		});
+
+        Lua_helper.add_callback(lua, "isEaster", function():Bool
+		{
+			return instance.isEaster();
+		});
+
+        Lua_helper.add_callback(lua, "isHatsuneMikuDay", function():Bool
+		{
+			return instance.isHatsuneMikuDay();
+		});
+
+        Lua_helper.add_callback(lua, "isHatsuneMikuBirthday", function():Bool
+		{
+			return instance.isHatsuneMikuBirthday();
+		});
+
+        Lua_helper.add_callback(lua, "isNewYearsEve", function():Bool
+		{
+			return instance.isNewYearsEve();
+		});
+
+        Lua_helper.add_callback(lua, "isEasterSeason", function():Bool
+		{
+			return instance.isEasterSeason();
+		});
+
+        Lua_helper.add_callback(lua, "isHalloween", function():Bool
+		{
+			return instance.isHalloween();
+		});
+
+        Lua_helper.add_callback(lua, "isHalloweenSeason", function():Bool
+		{
+			return instance.isHalloweenSeason();
+		});
+
+        Lua_helper.add_callback(lua, "isChristmas", function():Bool
+		{
+			return instance.isChristmas();
+		});
+
+        Lua_helper.add_callback(lua, "isChristmasSeason", function():Bool
+		{
+			return instance.isChristmasSeason();
+		});
+
+        Lua_helper.add_callback(lua, "isThanksgiving", function():Bool
+		{
+			return instance.isThanksgiving();
+		});
+
+        Lua_helper.add_callback(lua, "isPrideMonth", function():Bool
+		{
+			return instance.isPrideMonth();
+		});
+
+        Lua_helper.add_callback(lua, "dateAsString", function():String
+		{
+			return instance.asString();
+		});
+
+        Lua_helper.add_callback(lua, "getDaysInMonth", function():Int
+		{
+			return instance.getDaysInMonth();
+		});
+
+        Lua_helper.add_callback(lua, "getDaysInYear", function():Int
+		{
+			return instance.getDaysInYear();
+		});
+
+        Lua_helper.add_callback(lua, "getDaysLeftInMonth", function():Int
+		{
+			return instance.getDaysLeftInMonth();
+		});
+
+        Lua_helper.add_callback(lua, "getDaysLeftInYear", function():Int
+		{
+			return instance.getDaysLeftInYear();
+		});
+
+        Lua_helper.add_callback(lua, "getDayOfYear", function():Int
+		{
+			return instance.getDayOfYear();
+		});
+
+        Lua_helper.add_callback(lua, "getWeekOfYear", function():Int
+		{
+			return instance.getWeekOfYear();
+		});
+
+        Lua_helper.add_callback(lua, "getWeekOfMonth", function():Int
+		{
+			return instance.getWeekOfMonth();
+		});
+
+        Lua_helper.add_callback(lua, "getWeeksLeftInYear", function():Int
+		{
+			return instance.getWeeksLeftInYear();
+		});
+
+        Lua_helper.add_callback(lua, "getWeeksLeftInMonth", function():Int
+		{
+			return instance.getWeeksLeftInMonth();
+		});
+
+        Lua_helper.add_callback(lua, "getWeeksLeftInMonth", function():Int
+		{
+			return instance.getWeeksLeftInMonth();
+		});
+
+        Lua_helper.add_callback(lua, "time", function():String
+		{
+			return instance.time();
+		});
+
+        Lua_helper.add_callback(lua, "exactTimeNow", function():String
+		{
+			return exactTimeNow();
+		});
+
+        Lua_helper.add_callback(lua, "formatDate", function(format:String):String
+		{
+			return instance.formatDate(format);
+		});
+
+        Lua_helper.add_callback(lua, "isLeapYear", function():Bool
+		{
+			return instance.isLeapYear();
+		});
+	}
+	#end
 }

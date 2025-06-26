@@ -131,11 +131,6 @@ class RankingSubstate extends MusicBeatSubstate
 			}
 		} else {
 			trace("in AP");
-
-			// have to regrab it cuz memnory clearing's a bastard
-			try{APInfo.grabLimits(FlxG.save.data.gradesandacc[0], FlxG.save.data.gradesandacc[1]);}
-			catch(e) {trace("FAILED TO GRAB LIMITS!!");}
-
 			if (accRankSetLimit != 0 || comboRankSetLimit != 0) {
 				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 4);
 				if (accRankLimit > accRankSetLimit) hint.text = 'Accuracy Rank not high enough! (${accuracyNeeded - percent}% off.)';

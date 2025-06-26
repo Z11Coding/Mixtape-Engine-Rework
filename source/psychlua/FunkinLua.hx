@@ -1611,6 +1611,7 @@ class FunkinLua {
 		#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 		#if TRANSLATIONS_ALLOWED Language.addLuaCallbacks(lua); #end
 		#if flxanimate FlxAnimateFunctions.implement(this); #end
+		yutautil.ExtendedDate.addLuaCallbacks(lua);
 		HScript.implement(this);
 		ReflectionFunctions.implement(this);
 		TextFunctions.implement(this);

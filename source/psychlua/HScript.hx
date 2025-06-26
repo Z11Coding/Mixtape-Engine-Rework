@@ -533,6 +533,8 @@ class HScript extends Iris
 		set('resumeVideo', function(tag:String) {	
 			if (MusicBeatState.getVariables().exists(tag)) MusicBeatState.getVariables().get(tag).resume();
 		});
+
+		set('Date', yutautil.ExtendedDate);
 	}
 
 	#if LUA_ALLOWED
