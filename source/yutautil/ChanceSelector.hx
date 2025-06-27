@@ -8,7 +8,49 @@ typedef ChanceFunction = {
     func: Void -> Dynamic, // Function to execute
     chance: Float // Chance of execution, assumed to be between 0 and 100
 }
-  class ChanceSelector {
+
+
+/**
+ * Random<T> is an abstract type that allows you to create a random item from an array of items.
+ * It provides methods to get a random item, set a new array of items, and convert between Random<T> and T.
+ */
+abstract Random<T>(OneOrMore<T>) {
+    public inline function new(values:OneOrMore<T>) this = values;
+
+    // Returns a random item from the array
+    @:to public inline function get():T {
+        if (this == null || this.isEmpty()) throw "Random: No items to select from";
+        return ChanceExtensions.chanceArray(this);
+    }
+
+    // Sets the array to a new set of items and returns a random item from the new array
+    @:from
+    static public inline function set<T>(values:Array<T>):Random<T> {
+        return new Random<T>((values));
+    }
+
+    @:to public inline function fromArray<T>():T {
+        return ChanceExtensions.chanceArray(this);
+    }
+    @:to  public inline function fromArrayOrNull<T>():T {
+        if (this == null || this.isEmpty()) return null;
+        return ChanceExtensions.chanceArray(this);
+    }
+
+    @:to public inline function toArray():Array<T> {
+        return new OneOrMore<T>(this).toArray();
+    }
+
+    @:to public inline function oneOrMore():OneOrMore<T> {
+        return new OneOrMore<T>(this).toArray();
+    }
+
+    @:from public static inline function fromOneOrMore<T>(values:OneOrMore<T>):Random<T> {
+        "This is just a constructor for Random<T> from OneOrMore<T>".NativeComment();
+        return new Random<T>(values);
+    }
+}
+class ChanceSelector {
     public static function selectOption(options:Array<Chance>, strict:Bool = false, downsize:Bool = true, allowNull:Bool = false):Dynamic {
         //trace("Entering selectOption function");
         //trace("Input options: " + options);

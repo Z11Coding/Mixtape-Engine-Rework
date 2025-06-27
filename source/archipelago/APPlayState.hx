@@ -1251,7 +1251,7 @@ class APPlayState extends PlayState {
 		shieldSprite.visible = false;
 		add(shieldSprite);
 
-        if (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false))
+        if (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) && !(Sys.args().contains('-livereload')))
         {
             //set_cpuControlled(false);
             cpuControlled = false;

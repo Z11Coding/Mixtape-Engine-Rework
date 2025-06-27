@@ -70,6 +70,7 @@ extern "C" HRESULT WINAPI SetCurrentProcessExplicitAppUserModelID(PCWSTR AppID);
 ')
 #end
 // // // // // // // // //
+@:autoBuild(yutautil.StatePick.addToDatabase(Main))
 class Main extends Sprite
 {
 	public static final game = {
@@ -99,6 +100,85 @@ class Main extends Sprite
 			trace("Error: " + e);
 		}
 		trace("Finished testing forceCast.");
+
+		var r:Random<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+		trace("Random Test: " + r);
+
+		trace("Random Test 2: " + new Random<Int>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+
+		var r2:Random<Int> = [for (i in 1...11) i];
+		trace("Random Test 3: " + r2);
+
+
+		var temp:Temp<Int> = 23932;
+
+		trace("Temp Test 2: " + temp);
+
+		var temp2:Temp<{value:Int, otherValue:Int}> = {
+			value: 123,
+			otherValue: 456
+		};
+
+		var nonTemp:{value:Int, otherValue:Int} = {
+			value: 123,
+			otherValue: 456
+		};
+
+		var temp2Address = cpp.Native.addressOf(game);
+		trace("Star test 1: " + temp2Address);
+		var randofdsde:Temp<Int> = 123;
+		trace("Temp Test 3: " + randofdsde);
+
+
+
+		var eeee:Int = 123;
+
+		var p = cpp.Pointer.addressOf(eeee)[0];
+		trace("Pointer Test: " + p);
+
+		var funnyDouble = new HaxePointer<Dynamic>(game);
+		trace("Funny Double Test: " + funnyDouble);
+		trace("Funny Double Test: " + new HaxePointer<Dynamic>(game));
+
+		(new Fields(temp2).printFields());
+		(new Fields(nonTemp).printFields());
+
+		trace("TestAcc: " + new FieldAccTest({}).eeeee);
+		trace("TestAcc2: " );
+		var testAcc2 = new FieldAccTest({eeeee: 123}).eeeee = 456;
+
+		var collaped:Collapsed<Int> = [[1], [2], [3], [4], [5]];
+
+		trace("Collaped Test: " + collaped);
+
+		var gaming:GlobalPointer<Dynamic> = game;
+
+		// gaming.startFullscreen = true;
+
+		// Pointer of a pointer test (HaxePointer of HaxePointer, stacked 5 times)
+		var arr:Array<Int> = [1, 2, 3, 4, 5];
+
+		// var ptr1 = new HaxePointer<Array<Int>>(arr);
+		// var ptr2 = new HaxePointer<HaxePointer<Array<Int>>>(ptr1);
+		// var ptr3 = new HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>(ptr2);
+		// var ptr4 = new HaxePointer<HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>>(ptr3);
+		// var ptr5 = new HaxePointer<HaxePointer<HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>>>(ptr4);
+
+		// // Now resolve the pointer all the way down to the array
+		// var ptr = ptr5;
+		// var resolvedArr:Array<Int> = ptr;
+
+
+		// trace("Resolved stacked HaxePointer array: " + resolvedArr);
+
+		// // Let's also put the pointer in another array and resolve it
+		// var pointerArray:Array<Dynamic> = [ptr];
+		// var resolvedFromArray:Array<Int> = pointerArray[0];
+		// trace("Resolved from pointerArray: " + resolvedFromArray);
+
+
+		trace("TypeTools ptrMap: " + TypeTools.ptrMap);
+
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());

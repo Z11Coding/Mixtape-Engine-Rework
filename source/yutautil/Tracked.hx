@@ -236,16 +236,16 @@ abstract Tracked<T>(TrackedValueImpl<T>) from TrackedValueImpl<T> to TrackedValu
     @:forward
     @:arrayAccess
     @:op(a.b)
-    private function __getField(field:String):Dynamic {
-        return untyped cast Reflect.field(this.get(), field);
+    private inline function __getField(field:String):Dynamic {
+        return cast new OneOrMore<Dynamic>(Reflect.field(this.get(), field).forceCast().toArray());
     }
 
     @:noCompletion
     @:arrayAccess
     @:op(a.b)
-    private function __setField(field:String, value:Dynamic):Dynamic {
+    private inline function __setField(field:String, value:Dynamic):Dynamic {
         this.updateField(field, value);
-        return untyped cast value;
+        return this;
     }
 
     @:noCompletion

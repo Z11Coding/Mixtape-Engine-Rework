@@ -1454,6 +1454,8 @@ class CollectionUtils
 		return pattern.match(input);
 	}
 
+	
+
 	/**
 	 * Sums a list of numbers provided as a `OneOrMore<FlexibleNum>`.
 	 * 

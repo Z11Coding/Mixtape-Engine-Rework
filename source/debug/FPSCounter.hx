@@ -207,7 +207,8 @@ class FPSCounter extends TextField
 		#end
 
 				if (ClientPrefs.data.showInitialMemoryUsage && initMemory != null && Sys.args().indexOf('-livereload') != -1)
-			text += '\nInitial Memory: ${flixel.util.FlxStringUtil.formatBytes(initMemory)}';
+			text += '\nInitial Memory: ${flixel.util.FlxStringUtil.formatBytes(initMemory)}' + '\n' +
+				'Current State Address: ${new HaxeAddress(FlxG.state)}';
 	}
 
 	function obtainMemory():Dynamic

@@ -7627,7 +7627,7 @@ class PlayState extends MusicBeatState
 
 		NoteSplash.configs.clear();
 		mania = 3;
-		instance = null;
+		// instance = null;
 		super.destroy();
 		endingSong = true;
 		Paths.clearStoredWithoutStickers();

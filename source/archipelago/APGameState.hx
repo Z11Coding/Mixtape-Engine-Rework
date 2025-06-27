@@ -472,12 +472,12 @@ class APGameState
 		}
 	}
 
-	public function getSongLocations(songName:String, modName:String):Array<Int>
+	public function getSongLocations(songName:String, ?modName:String):Array<Int>
 	{
 		return locationData(songName, modName).concat(noteData(songName, modName));
 	}
 
-	public function checkGoal(songName:String, modName:String):Bool
+	public function checkGoal(songName:String, ?modName:String):Bool
 	{ modName = (modName != null && modName != "") ? modName.trim() : "";
 		var info = info();
 		var locations = locationData(songName, modName).concat(noteData(songName, modName));
@@ -494,6 +494,13 @@ class APGameState
 			return true;
 		}
 		return false;
+	}
+
+	public function songInMultiworld(songName:String, ?modName:String):Bool
+	{
+		modName = (modName != null && modName != "") ? modName.trim() : "";
+		return locationData(songName, modName).length > 0
+			|| noteData(songName, modName).length > 0;
 	}
 
 	public function setGoal():Void

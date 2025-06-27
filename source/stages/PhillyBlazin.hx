@@ -28,7 +28,7 @@ class PhillyBlazin extends BaseStage
 
 	override function create()
 	{
-		StickerSubState.STICKER_PACK = "weekend";
+		substates.StickerSubState.STICKER_PACK = "weekend";
 		FlxTransitionableState.skipNextTransOut = true; //skip the original transition fade
 		function setupScale(spr:BGSprite)
 		{

@@ -8,6 +8,7 @@ import flixel.FlxState;
 import backend.PsychCamera;
 import archipelago.APEntryState;
 
+@:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
 class MusicBeatState extends FlxState
 {
 	private var curSection:Int = 0;
@@ -62,6 +63,10 @@ class MusicBeatState extends FlxState
 			initPsychCamera();
 
 		super.create();
+
+		// if (!(this is PlayState) && PlayState.instance != null)
+		// 	yutautil.MemoryHelper.freeMemory(PlayState.instance);
+
 
 		// if (backend.window.CppAPI.getWindowOpacity()!=1)
 		#if windows

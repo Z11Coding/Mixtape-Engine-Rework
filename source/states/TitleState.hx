@@ -80,8 +80,15 @@ class TitleState extends MusicBeatState
 		super.create();
 		trace(this.metadata());
 		for (classthing in this.metadata().super_tree.toIterable())
-			trace("Ultimate Super Tree for " + classthing + ": " + classthing.metadata().super_tree);
-		
+			try {
+			trace("Ultimate Super Tree for " + classthing + ": " + Type.createEmptyInstance(Type.resolveClass(classthing)).metadata().super_tree);
+			} catch (e:haxe.Exception) {
+				trace("Error retrieving super tree for " + classthing + ": " + e.message);
+				trace("Details: " + e.details());
+				trace("Stack: " + e.stack);
+				trace("Type: " + Type.getClassName(Type.resolveClass(classthing)));
+			}
+
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		if(!initialized)

@@ -94,6 +94,8 @@ import flixel.addons.transition.FlxTransitionableState;
 
 import yutautil.ImprovedFileHandling;
 
+import yutautil.ChanceSelector;
+
 using StringTools;
 using yutautil.CollectionUtils;
 using yutautil.MetaData;
@@ -104,5 +106,7 @@ using yutautil.GenericObject;
 using yutautil.PyScript;
 using yutautil.FieldMap;
 using yutautil.Tracked;
-using yutautil.OneOrMany;
+using yutautil.TypeUtils;
+using yutautil.MacroTypeUtils;
+using yutautil.RuntimeTypedef;
 #end

@@ -33,6 +33,15 @@ class MemoryHelper {
         trace('Finished clearClassObject for state: ' + Type.getClassName(state));
     }
 
+    public static inline function freeMemory<T>(o:HaxePointer<T>):Void {
+        cpp.Native.free(o);
+        var killed = o;
+        if (killed != null) {
+            o = null;
+            killed = null;
+        }
+    }
+
     // Clear data from a specific object
     public inline function clearObject(object:Dynamic):Void {
         for (field in Reflect.fields(object)) {
