@@ -60,7 +60,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		Cursor.show();
 		
 		onPixel = PlayState.isPixelStage;
-		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		var bg:FlxSprite = new FlxSprite().loadGraphic(ClientPrefs.getBGImage());
 		bg.color = 0xFFEA71FD;
 		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.data.antialiasing;
@@ -655,7 +655,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		for (i in 0...Note.colArray.length)
 		{
 			if(!onPixel) bigNote.animation.addByPrefix('note$i', Note.colArray[i] + '0', 24, true);
-			else bigNote.animation.add('note$i', [i + 4], 24, true);
+			else bigNote.animation.add('note$i', [i + 5], 24, true);
 		}
 		insert(members.indexOf(myNotes) + 1, bigNote);
 		_storedColor = getShaderColor();

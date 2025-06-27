@@ -279,7 +279,7 @@ class ControlsSubState extends MusicBeatSubstate
 		options.push([true]);
 		options.push([true, defaultKey]);
 
-		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg = new FlxSprite().loadGraphic(ClientPrefs.getBGImage());
 		bg.color = keyboardColor;
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.screenCenter();
@@ -298,7 +298,7 @@ class ControlsSubState extends MusicBeatSubstate
 		grpBlacks = new FlxTypedGroup<AttachedSprite>();
 		add(grpBlacks);
 		selectSpr = new AttachedSprite();
-		selectSpr.makeGraphic(250, 78, FlxColor.WHITE);
+		selectSpr.makeGraphic(250, 78, ClientPrefs.data.menuTheme == "Dark" ? FlxColor.BLACK : FlxColor.WHITE);
 		selectSpr.copyAlpha = false;
 		selectSpr.alpha = 0.75;
 		add(selectSpr);

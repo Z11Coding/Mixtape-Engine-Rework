@@ -138,8 +138,11 @@ class ChartingStrumNote extends FlxSprite
 		}
 		else
 		{
+			var ogSkin:String = texture;
+			if (texture == 'noteSkins/NOTE_assets')
+				texture = 'noteSkins/' + (PlayState.isPixelStage ? ogSkin : 'strums');
+			
 			frames = Paths.getSparrowAtlas(texture);
-
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
 			animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
