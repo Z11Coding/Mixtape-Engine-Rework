@@ -1257,11 +1257,9 @@ class APPlayState extends PlayState {
             cpuControlled = false;
             ClientPrefs.data.gameplaySettings.set('botplay', false);
             ClientPrefs.data.gameplaySettings.set('showcase', false);
-            hadBotplayOn = true;
         }
     }
 
-    public var hadBotplayOn:Bool = false;
     public function addEffect(e:String)
         effectArray.push(e);
 

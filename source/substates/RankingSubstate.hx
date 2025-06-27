@@ -154,12 +154,6 @@ class RankingSubstate extends MusicBeatSubstate
 						hint.text = "Nice. Try not missing at all for FC.";
 				}
 
-				if (APPlayState.instance.hadBotplayOn)
-				{
-					hint.y -= 35;
-					hint.text = 'Nice try, but Botplay doesn\'t count.\n(And neither does Showcase Mode, either)';
-				}
-
 				if (PlayState.deathCounter >= 30)
 				{
 					hint.text = "...how are you this bad...";
