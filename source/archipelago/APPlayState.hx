@@ -1251,13 +1251,17 @@ class APPlayState extends PlayState {
 		shieldSprite.visible = false;
 		add(shieldSprite);
 
-        if (cpuControlled)
+        if (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false))
         {
             //set_cpuControlled(false);
             cpuControlled = false;
+            ClientPrefs.data.gameplaySettings.set('botplay', false);
+            ClientPrefs.data.gameplaySettings.set('showcase', false);
+            hadBotplayOn = true;
         }
     }
 
+    public var hadBotplayOn:Bool = false;
     public function addEffect(e:String)
         effectArray.push(e);
 
