@@ -346,7 +346,7 @@ class MusicBeatState extends FlxState
 				@:privateAccess
 				(cast state:PlayState).preGenerateNotes();
 			}
-		},
+		}/*,
 		"FreeplayState" => function(state:FlxState) {
 
 				FreeplayManager.reloadFreeplay();
@@ -354,7 +354,7 @@ class MusicBeatState extends FlxState
 		},
 		"OsuFreeplayState" => function(state:FlxState) {
 				FreeplayManager.reloadFreeplay();
-		}
+		}*/
 	];
 
 	public function hashCode():Int
