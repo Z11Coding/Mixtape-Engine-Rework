@@ -6,6 +6,8 @@ import flixel.effects.FlxFlicker;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
 import options.OptionsState;
+import flixel.addons.display.FlxBackdrop;
+import flixel.util.FlxGradient;
 
 enum MainMenuColumn {
 	LEFT;
@@ -16,14 +18,14 @@ enum MainMenuColumn {
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '1.0.3'; // This is also used for Discord RPC
+	public static var psychEngineVersion:String = '1.0.4'; // This is also used for Discord RPC
 	public static var mixtapeEngineVersion:String = '4.8.2'; // this is used for Discord RPC
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 	private var archButton:PsychUIButton;
 	var allowMouse:Bool = true; //Turn this off to block mouse movement in menus
 
-		public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
+	public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
 		// trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
 	}, 30);
 
@@ -32,7 +34,8 @@ class MainMenuState extends MusicBeatState
 	var rightItem:FlxSprite;
 	var archipelagoItem:FlxSprite;
 
-	var checker:flixel.addons.display.FlxBackdrop;
+	var checker:FlxBackdrop;
+	var gradientBar:FlxSprite;
 
 	//Centered/Text options
 	var optionShit:Array<String> = [
@@ -46,15 +49,17 @@ class MainMenuState extends MusicBeatState
 	var rightOption:String = 'options';
 	var archipelagoOption:String = #if ARCHIPELAGO_ALLOWED 'archipelago' #else null #end;
 
+	var logoBl:FlxSprite;
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 
 	static var showOutdatedWarning:Bool = true;
+	var usingDefaultLogo:Bool = false;
 	override function create()
 	{
 
 		Cursor.cursorMode = Default;
-		checker = new flixel.addons.display.FlxBackdrop(Paths.image('mainmenu/Main_Checker'), XY, Std.int(0.2), Std.int(0.2));
+		checker = new FlxBackdrop(Paths.image('mainmenu/Main_Checker'), XY, Std.int(0.2), Std.int(0.2));
 		
 		super.create();
 
@@ -110,6 +115,17 @@ class MainMenuState extends MusicBeatState
 		camFollow = new FlxObject(0, 0, 1, 1);
 		add(camFollow);
 
+		if (!ClientPrefs.data.lowQuality)
+		{
+			gradientBar = FlxGradient.createGradientFlxSprite(Math.round(FlxG.width), 512, [0x00ff0000, 0x55AE59E4, 0xAAFFA319], 1, 90, true);
+			gradientBar.y = FlxG.height - gradientBar.height;
+			add(gradientBar);
+			gradientBar.scrollFactor.set(0, 0);
+
+			add(checker);
+			checker.scrollFactor.set(0, 0.07);
+		}
+
 		magenta = new FlxSprite(-80).loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		magenta.antialiasing = ClientPrefs.data.antialiasing;
 		magenta.scrollFactor.set(0, yScroll);
@@ -153,6 +169,41 @@ class MainMenuState extends MusicBeatState
 			archipelagoItem.x -= archipelagoItem.width;
 		}
 
+		logoBl = new FlxSprite(-100, -100);
+		try {
+			logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+		} catch (e:haxe.Exception) {
+			trace('[ERROR] Failed to load logoBumpin atlas: ' + e.details());
+			logoBl.frames = null;
+		}
+		if (logoBl.frames == null) { 
+			logoBl.frames = Paths.getSparrowAtlas('bump');
+			usingDefaultLogo = true;
+		}
+		logoBl.antialiasing = ClientPrefs.data.antialiasing;
+
+		if (usingDefaultLogo) logoBl.animation.addByPrefix('bump', 'bump', 24, false);
+		else logoBl.animation.addByPrefix('bump', 'logo bumpin', 24, false);
+		logoBl.animation.play('bump');
+		if (usingDefaultLogo) logoBl.setGraphicSize(Std.int(logoBl.width * 0.4));
+		logoBl.updateHitbox();
+		
+		logoBl.scrollFactor.set();
+		logoBl.antialiasing = ClientPrefs.data.antialiasing;
+		logoBl.setGraphicSize(Std.int(logoBl.width * 0.6));
+		logoBl.alpha = 0;
+		logoBl.angle = -4;
+		logoBl.updateHitbox();
+		if (optionShit.length < 3) add(logoBl);
+
+
+		FlxTween.tween(logoBl, {
+			y: logoBl.y + 10,
+			x: logoBl.x + 480,
+			angle: -4,
+			alpha: 1
+		}, 1.4, {ease: FlxEase.expoInOut});
+
 		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
 		psychVer.scrollFactor.set();
 		psychVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -165,7 +216,27 @@ class MainMenuState extends MusicBeatState
 		mixVer.scrollFactor.set();
 		mixVer.setFormat(Paths.font("comboFont.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(mixVer);
+		var funnytext:FlxText = new FlxText(mixVer.x, FlxG.height - 44, 0, "", 12);
+		funnytext.scrollFactor.set();
+		funnytext.setFormat(Paths.font("comboFont.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(funnytext);
 		changeItem();
+
+		#if !debug
+		mixVer.text = "Mixtape Engine v" + mixtapeEngineVersion;
+		#else
+		mixVer.text = "Mixtape Engine v" + mixtapeEngineVersion + ' (debug)';
+		#end
+
+		if (ClientPrefs.data.username)
+		{
+			#if windows
+				funnytext.text = "HI " + Sys.environment()["USERNAME"] + " :)";
+			#elseif mac
+				funnytext.text = "HI " + Sys.environment()["USER"] + " :)";
+			#end
+		}
+		else funnytext.text = "You're safe, for now...";
 
 		#if ACHIEVEMENTS_ALLOWED
 		// Unlocks "Freaky on a Friday Night" achievement if it's a Friday and between 18:00 PM and 23:59 PM
@@ -228,6 +299,9 @@ class MainMenuState extends MusicBeatState
 			FlxG.save.data.gotbeatbattle2 = false;
 		}
 
+		checker.x -= 0.45 / (ClientPrefs.data.framerate / 60);
+		checker.y -= 0.16 / (ClientPrefs.data.framerate / 60);
+
 		if (!selectedSomethin)
 		{
 			if (controls.UI_UP_P && curColumn != RIGHT)
@@ -240,7 +314,7 @@ class MainMenuState extends MusicBeatState
 			if (allowMouse && ((FlxG.mouse.deltaScreenX != 0 && FlxG.mouse.deltaScreenY != 0) || FlxG.mouse.justPressed)) //FlxG.mouse.deltaScreenX/Y checks is more accurate than FlxG.mouse.justMoved
 			{
 				allowMouse = false;
-				FlxG.mouse.visible = true;
+				Cursor.show();
 				timeNotMoving = 0;
 
 				var selectedItem:FlxSprite;
@@ -258,6 +332,7 @@ class MainMenuState extends MusicBeatState
 
 				if(leftItem != null && FlxG.mouse.overlaps(leftItem))
 				{
+					Cursor.cursorMode = Pointer;
 					allowMouse = true;
 					if(selectedItem != leftItem)
 					{
@@ -267,6 +342,7 @@ class MainMenuState extends MusicBeatState
 				}
 				else if(rightItem != null && FlxG.mouse.overlaps(rightItem))
 				{
+					Cursor.cursorMode = Pointer;
 					allowMouse = true;
 					if(selectedItem != rightItem)
 					{
@@ -276,6 +352,7 @@ class MainMenuState extends MusicBeatState
 				}
 				else if(archipelagoItem != null && FlxG.mouse.overlaps(archipelagoItem))
 				{
+					Cursor.cursorMode = Pointer;
 					allowMouse = true;
 					if(selectedItem != archipelagoItem)
 					{
@@ -292,6 +369,7 @@ class MainMenuState extends MusicBeatState
 						var memb:FlxSprite = menuItems.members[i];
 						if(FlxG.mouse.overlaps(memb))
 						{
+							Cursor.cursorMode = Pointer;
 							var distance:Float = Math.sqrt(Math.pow(memb.getGraphicMidpoint().x - FlxG.mouse.screenX, 2) + Math.pow(memb.getGraphicMidpoint().y - FlxG.mouse.screenY, 2));
 							if (dist < 0 || distance < dist)
 							{
@@ -299,7 +377,7 @@ class MainMenuState extends MusicBeatState
 								distItem = i;
 								allowMouse = true;
 							}
-						}
+						} else Cursor.cursorMode = Default;
 					}
 
 					if(distItem != -1 && selectedItem != menuItems.members[distItem])
@@ -313,7 +391,7 @@ class MainMenuState extends MusicBeatState
 			else
 			{
 				timeNotMoving += elapsed;
-				if(timeNotMoving > 2) FlxG.mouse.visible = false;
+				if(timeNotMoving > 2) Cursor.hide();
 			}
 
 			switch(curColumn)
@@ -367,7 +445,7 @@ class MainMenuState extends MusicBeatState
 			if (controls.BACK)
 			{
 				selectedSomethin = true;
-				FlxG.mouse.visible = false;
+				Cursor.hide();
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				MusicBeatState.switchState(new TitleState());
 			}
@@ -376,10 +454,20 @@ class MainMenuState extends MusicBeatState
 			{
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				selectedSomethin = true;
-				FlxG.mouse.visible = false;
+				Cursor.hide();
 
 				if (ClientPrefs.data.flashing)
 					FlxFlicker.flicker(magenta, 1.1, 0.15, false);
+
+				FlxTween.tween(FlxG.camera, {zoom: 5}, 2, {ease: FlxEase.expoIn, onComplete: function(twn:FlxTween)
+				{
+					FlxG.camera.zoom = 1;
+				}});
+				
+				new FlxTimer().start(0.2, function(tmr:FlxTimer)
+				{
+					hideit(1);
+				});
 
 				var item:FlxSprite;
 				var option:String;
@@ -493,6 +581,19 @@ class MainMenuState extends MusicBeatState
 		selectedItem.animation.play('selected');
 		selectedItem.centerOffsets();
 		camFollow.y = selectedItem.getGraphicMidpoint().y;
+	}
+
+	function hideit(time:Float)
+	{
+		menuItems.forEach(function(spr:FlxSprite)
+		{
+			FlxTween.tween(spr, {alpha: 0.0}, time, {ease: FlxEase.quadOut});
+		});
+		if (!ClientPrefs.data.lowQuality)
+		{
+			FlxTween.tween(checker, {alpha: 0}, time, {ease: FlxEase.expoIn});
+			FlxTween.tween(gradientBar, {alpha: 0}, time, {ease: FlxEase.expoIn});
+		}
 	}
 
 	override function beatHit()

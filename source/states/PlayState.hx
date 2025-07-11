@@ -3030,9 +3030,6 @@ class PlayState extends MusicBeatState
 						swagNote.field = playfield;
 					}
 				}
-
-				playfield = swagNote.field;
-				swagNote.fieldIndex = playfield.modNumber;
 				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
 
 				if (playfield != null)
