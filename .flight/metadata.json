@@ -11,12 +11,12 @@
       "members": [
         {
           "name": "Z11Gaming",
-          "icon": "icons/z11.webp",
+          "icon": "icons/z11.png",
           "role": "Main Creater of the engine"
         },
         {
           "name": "Yutamon",
-          "icon": "icons/yuta.webp",
+          "icon": "icons/yuta.png",
           "role": "Co-Creater of the engine"
         }
       ]

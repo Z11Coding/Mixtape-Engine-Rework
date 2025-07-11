@@ -24,11 +24,15 @@ typedef TitleData =
 	var titley:Float;
 	var startx:Float;
 	var starty:Float;
+	var gfChar:Null<Bool>;
 	var gfx:Float;
 	var gfy:Float;
 	var backgroundSprite:String;
 	var bpm:Float;
 	
+	@:optional var gfSprite:String;
+	@:optional var gfAnimArray:Array<String>;
+	@:optional var gfAnimIndices:Array<Array<Int>>;
 	@:optional var animation:String;
 	@:optional var dance_left:Array<Int>;
 	@:optional var dance_right:Array<Int>;
@@ -72,6 +76,7 @@ class TitleState extends MusicBeatState
 	var easterEggKeysBuffer:String = '';
 	#end
 
+	var candance:Bool = true;
 	override public function create():Void
 	{
 		// ticker.update(0);
@@ -138,6 +143,9 @@ class TitleState extends MusicBeatState
 
 		if (initialized && (FlxG.sound.music == null || !FlxG.sound.music.playing))
 			MusicManager.playMenuMusic(0.5);
+
+		if (!candance)
+			candance = true;
 	}
 
 	var logoBl:FlxSprite;
@@ -183,18 +191,37 @@ class TitleState extends MusicBeatState
 			gfDance.shader = swagShader.shader;
 			logoBl.shader = swagShader.shader;
 		}
-		
-		gfDance.frames = Paths.getSparrowAtlas(characterImage);
-		if(!useIdle)
+
+		//Custom GF Title sprite
+		if (gfSprite != null && gfSprite.length > 0 && gfSprite != "none")
 		{
-			gfDance.animation.addByIndices('danceLeft', animationName, danceLeftFrames, "", 24, false);
-			gfDance.animation.addByIndices('danceRight', animationName, danceRightFrames, "", 24, false);
-			gfDance.animation.play('danceRight');
+			gfDance.frames = Paths.getSparrowAtlas(gfSprite);
+			if (gfAnimArray != null && gfAnimArray.length > 0)
+			{
+				gfDance.animation.addByIndices('danceLeft', gfAnimArray[0], [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
+				gfDance.animation.addByIndices('danceRight', gfAnimArray[1].length > 0 ? gfAnimArray[1] : gfAnimArray[0], [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
+				gfDance.animation.addByPrefix('Hey', gfAnimArray[2].length > 0 ? gfAnimArray[2] : 'GF Cheer', 24, false);
+			}
 		}
-		else
+		else //Default gfs
 		{
-			gfDance.animation.addByPrefix('idle', animationName, 24, false);
-			gfDance.animation.play('idle');
+			if (gfChar != null && gfChar)
+				gfDance.frames = Paths.getSparrowAtlas('characters/GF_assets');
+			else if (gfChar != null && !gfChar)
+				gfDance.frames = Paths.getSparrowAtlas(characterImage);
+			if (gfChar) animationName = 'GF Dancing Beat';
+			if(!useIdle)
+			{
+				gfDance.animation.addByIndices('danceLeft', animationName, danceLeftFrames, "", 24, false);
+				gfDance.animation.addByIndices('danceRight', animationName, danceRightFrames, "", 24, false);
+				gfDance.animation.play('danceRight');
+			}
+			else
+			{
+				gfDance.animation.addByPrefix('idle', animationName, 24, false);
+				gfDance.animation.play('idle');
+			}
+			if (gfChar != null && gfChar) gfDance.animation.addByPrefix('Hey', 'GF Cheer', 24, false);
 		}
 
 
@@ -257,7 +284,11 @@ class TitleState extends MusicBeatState
 	var gfPosition:FlxPoint = FlxPoint.get(512, 40);
 	var logoPosition:FlxPoint = FlxPoint.get(-150, -100);
 	var enterPosition:FlxPoint = FlxPoint.get(100, 576);
-	
+	var gfChar:Null<Bool> = false;
+	var gfSprite:String = 'none';
+	var gfAnimArray:Array<String>;
+	var gfAnimIndices:Array<Array<Int>>;
+
 	var useIdle:Bool = false;
 	var musicBPM:Float = 102;
 	var danceLeftFrames:Array<Int> = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
@@ -276,6 +307,13 @@ class TitleState extends MusicBeatState
 					gfPosition.set(titleJSON.gfx, titleJSON.gfy);
 					logoPosition.set(titleJSON.titlex, titleJSON.titley);
 					enterPosition.set(titleJSON.startx, titleJSON.starty);
+					if (titleJSON.gfChar != null) gfChar = titleJSON.gfChar;
+
+					if (titleJSON.gfSprite != null && titleJSON.gfSprite.length > 0 && titleJSON.gfSprite != "none")
+						gfSprite = titleJSON.gfSprite;
+					if (titleJSON.gfAnimArray != null && titleJSON.gfAnimArray.length > 0)
+						gfAnimArray = titleJSON.gfAnimArray;
+					
 					musicBPM = titleJSON.bpm;
 					globalBPM = titleJSON.bpm;
 					
@@ -423,6 +461,9 @@ class TitleState extends MusicBeatState
 				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 
 				transitioning = true;
+				if (gfDance.animation.exists("Hey")) 
+					gfDance.animation.play('Hey');
+				candance = false;
 				// FlxG.sound.music.stop();
 
 				new FlxTimer().start(1, function(tmr:FlxTimer)
@@ -544,7 +585,7 @@ class TitleState extends MusicBeatState
 		if(logoBl != null)
 			logoBl.animation.play('bump', true);
 
-		if(gfDance != null)
+		if(gfDance != null && candance)
 		{
 			danceLeft = !danceLeft;
 			if(!useIdle)

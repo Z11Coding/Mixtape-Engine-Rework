@@ -125,13 +125,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
-		var option:Option = new Option('Ghost Effect', 
-			"If checked, does the ever-so-popular double/triple/quadrouple ghost effect.", 
-			'doubleGhosts', 
-			BOOL
-		);
-		addOption(option);
-
 		var option:Option = new Option('Show Keybinds on Start Song',
 			"If checked, your keybinds will be shown on the strum that they correspond to when you start a song.",
 			'showKeybindsOnStart',
@@ -178,13 +171,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
-		// var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game'];
-		// for (theme in Mods.mergeAllTextsNamed('menus/'))
+		var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game'];
+		//for (theme in Mods.mergeAllTextsNamed('menus/'))
 		var option:Option = new Option('Freeplay Menu:',
 			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBASE GAME DOES NOTHING FOR NOW!",
 			'freeplayMenu',
 			STRING,
-			['Mixtape', 'Osu', 'Base Game']);
+			freemenus);
 		addOption(option);
 		option.displayFormat = '< %v >';
 

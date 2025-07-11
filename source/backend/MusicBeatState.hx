@@ -346,15 +346,15 @@ class MusicBeatState extends FlxState
 				@:privateAccess
 				(cast state:PlayState).preGenerateNotes();
 			}
-		}
-		// "FreeplayState" => function(state:FlxState) {
+		}/*,
+		"FreeplayState" => function(state:FlxState) {
 
-		// 		FreeplayManager.reloadFreeplay();
+				FreeplayManager.reloadFreeplay();
 
-		// },
-		// "OsuFreeplayState" => function(state:FlxState) {
-		// 		FreeplayManager.reloadFreeplay();
-		// }
+		},
+		"OsuFreeplayState" => function(state:FlxState) {
+				FreeplayManager.reloadFreeplay();
+		}*/
 	];
 
 	public function hashCode():Int

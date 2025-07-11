@@ -47,6 +47,7 @@ import sys.io.Process;
 import haxe.io.BytesOutput;
 #end
 
+import backend.modules.*;
 import backend.Highscore;
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
@@ -446,9 +447,10 @@ class Main extends Sprite
 			handleStateBasedClosing();
 		}
 
-		backend.modules.EvacuateDebugPlugin.initialize();
-		backend.modules.ForceCrashPlugin.initialize();
-		backend.modules.MemoryGCPlugin.initialize();
+		EvacuateDebugPlugin.initialize();
+		ForceCrashPlugin.initialize();
+		MemoryGCPlugin.initialize();
+		FullScreenPlugin.initialize();
 		
 
 		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));

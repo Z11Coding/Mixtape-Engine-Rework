@@ -5,6 +5,8 @@ import archipelago.APEntryState;
 import yutautil.modules.SyncUtils;
 import flixel.input.keyboard.FlxKey;
 import backend.AudioSwitchFix;
+import backend.util.NativeAPI;
+
 class FirstCheckState extends MusicBeatState
 {
 	public static var muteKeys:Array<FlxKey> = [FlxKey.ZERO];
@@ -44,6 +46,10 @@ class FirstCheckState extends MusicBeatState
 			ClientPrefs.loadPrefs();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
+			if (!Paths.exists(Paths.imagePath('fred'))) {
+				NativeAPI.showMessageBox('WHERE IS HE!?!?', "WHERE'S FRED???\nYOU CAN'T COME HERE WITHOUT FRED!", MSG_ERROR);
+				Sys.exit(1);
+			}
 		}
 
 		super.create();

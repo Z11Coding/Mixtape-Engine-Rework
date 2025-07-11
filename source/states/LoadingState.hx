@@ -182,7 +182,7 @@ class LoadingState extends MusicBeatState
 
 		if (stateChangeDelay <= 0 && checkLoaded())
 		{
-			dontUpdate = true;
+			//dontUpdate = true;
 			onLoad();
 		}
 	}
@@ -477,7 +477,7 @@ class LoadingState extends MusicBeatState
 			{
 				var path:String = Paths.json('$folder/preload');
 				var json:Dynamic = null;
-
+				
 				#if MODS_ALLOWED
 				var moddyFile:String = Paths.modsJson('$folder/preload');
 				if (FileSystem.exists(moddyFile)) json = Json.parse(File.getContent(moddyFile));
@@ -507,9 +507,32 @@ class LoadingState extends MusicBeatState
 						}
 					}
 					prepare(imgs, snds, mscs);
+				} else { // if it is null then just grab everything
+					trace('NO PRELOAD JSON FOUND! LOADING EVERYTHING THAT CAN BE FOUND INSTEAD!');
+					var curDirct:String = Mods.currentModDirectory == '' ? 'assets/${Paths.currentLevel}' : 'mods/${Mods.currentModDirectory}';
+					var moddedImages:Array<String> = Paths.crawlDirectory('$curDirct/images', 'png');
+					var moddedSounds:Array<String> = Paths.crawlDirectory('$curDirct/sounds', 'png');
+					var moddedMusic:Array<String> = Paths.crawlDirectory('$curDirct/music', 'png');
+					prepare(moddedImages, moddedSounds, moddedMusic);
+					trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
 				}
 			}
-			catch(e:Dynamic) {}
+			catch(e:Dynamic) {
+				trace('SOMETHING WENT WRONG! LOADING EVERYTHING THAT CAN BE FOUND INSTEAD!');
+				//This annoys me to no end
+				var curDirct:String = Mods.currentModDirectory == '' ? 'assets/${Paths.currentLevel}' : 'mods/${Mods.currentModDirectory}';
+				var moddedImages:Array<String> = [];
+				var moddedSounds:Array<String> = [];
+				var moddedMusic:Array<String> = [];
+				for (thing in Paths.crawlDirectory('$curDirct/images', 'png')) 
+					moddedImages.push(thing.replace('$curDirct/images/', '').replace('.png', ''));
+				for (thing in Paths.crawlDirectory('$curDirct/sounds', 'ogg')) 
+					moddedSounds.push(thing.replace('$curDirct/sounds/', '').replace('.ogg', ''));
+				for (thing in Paths.crawlDirectory('$curDirct/music', 'ogg')) 
+					moddedMusic.push(thing.replace('$curDirct/music/', '').replace('.ogg', ''));
+				prepare(moddedImages, moddedSounds, moddedMusic);
+				//trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
+			}
 			return true;
 		}, isIntrusive)
 		.then((_) -> new Future<Bool>(() -> {
@@ -676,7 +699,7 @@ class LoadingState extends MusicBeatState
 		for (song in songsToPrepare) initThread(() -> preloadSound(song, 'songs', true, false), 'song $song');
 
 		// for images, they get to have their own thread
-		for (image in imagesToPrepare) initThread(() -> preloadGraphic(image), 'image $image');
+		for (image in imagesToPrepare) preloadGraphic(image); //initThread(() -> preloadGraphic(image), 'image $image');
 	}
 
 	static function initThread(func:Void->Dynamic, traceData:String)
@@ -818,11 +841,12 @@ class LoadingState extends MusicBeatState
 					requestedBitmaps.set(file, bitmap);
 					originalBitmapKeys.set(file, requestKey);
 					mutex.release();
+					loaded++;
 					return bitmap;
 				}
 				else trace('no such image $key exists');
 			}
-
+			loaded++;
 			return Paths.currentTrackedAssets.get(requestKey).bitmap;
 		}
 		catch(e:haxe.Exception)
