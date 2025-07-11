@@ -7,8 +7,22 @@ package yutautil;
  */
 typedef OneOrMore<T> = OneOrMany<T>;
 
+    /**
+     * PointerAccess is an enum that specifies how to access the pointer:
+     * - Direct: returns the value of the pointer (ptr.ref)
+     * - Method(name, args): calls a method on the pointer's value with the given name and arguments
+     * - Raw: returns the cpp.Pointer<T> itself
+     */
+    enum PointerAccess {
+        Direct;
+        Method(name:String, args:OneOrMore<Dynamic>);
+        Call(args:OneOrMore<Dynamic>);
+        Raw;
+    }
+
 class TypeTools {
     public static final ptrMap:Map<PtrAddress, GlobalPointer<Dynamic>> = new Map<PtrAddress, GlobalPointer<Dynamic>>();
+    public static final runtimeClassMap:Map<String, Dynamic> = new Map<String, Dynamic>();
 
     /**
      * getGlobalPointer retrieves a GlobalPointer for the given PtrAddress.
@@ -28,6 +42,322 @@ class TypeTools {
         return result;
     }
 }
+
+
+/**
+ * RadioBool acts like a radio button group.
+ * The value is the number of buttons, and only one can be true at a time (the "pressed" one).
+ * By default, the first button (index 0) is pressed (true), others are false.
+ * You can set the pressed index via the constructor or setPressed().
+ */
+abstract RadioBool(Array<Bool>) to Array<Bool> {
+    public function new(count:Int, ?pressed:Int = 0) {
+        if (count <= 0) throw 'RadioBool: count must be > 0';
+        var arr = [for (i in 0...count) i == pressed];
+        this = arr;
+    }
+
+    @:from
+    public static inline function fromCount(count:Int):RadioBool {
+        return new RadioBool(count);
+    }
+
+    @:from
+    public static inline function fromTuple(tuple:{count:Int, pressed:Int}):RadioBool {
+        return new RadioBool(tuple.count, tuple.pressed);
+    }
+
+    @:to
+    public inline function toArray():Array<Bool> {
+        return this;
+    }
+
+    @:to
+    public inline function toTuple():{count:Int, pressed:Int} {
+        return { count: this.length, pressed: getPressed() };
+    }
+
+    @:to
+    public inline function toPressed():Int {
+        return getPressed();
+    }
+
+    /**
+     * Returns the index of the pressed (true) button, or -1 if none.
+     */
+    public function getPressed():Int {
+        for (i in 0...this.length)
+            if (this[i]) return i;
+        return -1;
+    }
+
+    /**
+     * Sets which button is pressed (true), all others become false.
+     */
+    public inline function setPressed(idx:Int):Void {
+        if (idx < 0 || idx >= this.length) throw 'RadioBool: pressed index out of bounds';
+        for (i in 0...this.length)
+            this[i] = (i == idx);
+    }
+
+    /**
+     * Returns the number of buttons.
+     */
+    public inline function count():Int {
+        return this.length;
+    }
+}
+
+/**
+ * QuantomBool is a boolean that you don't know the value of until it is observed.
+ * (Schrödinger's Bool)
+ */
+abstract QuantomBool(Bool) from Bool to Bool {
+    public inline function new(value:Null<Bool>) {
+        this = value;
+    }
+
+    @:to
+    public inline function toBool():Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:from
+    public static inline function fromBool(value:Bool):QuantomBool {
+        return new QuantomBool(value);
+    }
+}
+
+// /**
+//  * Generator<T> simulates a Python-like generator in Haxe.
+//  * It takes an iterable (Array, Iterator, Iterable, or function) and yields the next value on each call to next().
+//  * When exhausted, next() returns null.
+//  */
+// abstract Generator<T>(Dynamic) {
+//     public function new(value:Dynamic) {
+//         var _iterator:Iterator<T> = null;
+//         var _current:T = null;
+//         if (Reflect.hasField(value, "hasNext") && Reflect.hasField(value, "next")) {
+//             _iterator = value;
+//         } else if (Std.is(value, Array)) {
+//             _iterator = (cast value:Array<T>).iterator();
+//         } else if (Std.isOfType(value, Iterable)) {
+//             _iterator = (cast value:Iterable<T>).iterator();
+//         } else if (Std.isOfType(value, Function)) {
+//             var fn = value;
+//             var exhausted = false;
+//             _iterator = {
+//                 next: function() {
+//                     if (exhausted) return null;
+//                     var result = fn();
+//                     if (result == null) exhausted = true;
+//                     return result;
+//                 },
+//                 hasNext: function() return !exhausted
+//             };
+//         } else {
+//             throw 'Generator: value must be Array, Iterator, Iterable, or Function';
+//         }
+//         this = {
+//             _iterator: _iterator,
+//             _current: _current
+//         };
+//     }    /**
+//      * Returns the next value, or null if exhausted.
+//      */
+//     public function next():Null<T> {
+//         var it = this._iterator;
+//         if (it != null && it.hasNext()) {
+//             return it.next();
+//         }
+//         return null;
+//     }
+
+//     /**
+//      * Returns true if there are more values to generate.
+//      */
+//     public function hasNext():Bool {
+//         var it = this._iterator;
+//         return it != null && it.hasNext();
+//     }
+
+//     @:to
+//     public inline function toValue():T {
+//         return this.next();
+//     }
+
+//     @:from
+//     public static inline function fromValue<T>(value:T):Generator<T> {
+//         return new Generator(value);
+//     }
+
+//     public static inline function fromIterable<T>(iterable:Iterable<T>):Generator<T> {
+//         return new Generator(iterable);
+//     }
+
+//     public static inline function fromArray<T>(arr:Array<T>):Generator<T> {
+//         return new Generator(arr);
+//     }
+
+//     public static inline function fromIterator<T>(it:Iterator<T>):Generator<T> {
+//         return new Generator(it);
+//     }
+
+//     public static inline function fromFunction<T>(fn:Void->T):Generator<T> {
+//         return new Generator(fn);
+//     }
+
+//     /**
+//      * Returns an iterator for the generator.
+//      * This allows using the generator in a for loop or with other iterator functions.
+//      */
+//     public inline function iterator():Iterator<T> {
+//         return {
+//             next: function() return this.next(),
+//             hasNext: function() return this.hasNext()
+//         };
+
+//         return this;
+//     }
+
+
+//     public static inline function yield<T>(value:T):Generator<T> {
+//         return new Generator(function() return value);
+//     }
+// }
+
+// abstract Truthy(Dynamic) from Dynamic to Bool {
+//     public inline function new(value:Dynamic) {
+//         this = value;
+//     }
+
+//     @:to
+//     public inline function toBool():Bool {
+//         var v = this;
+//         // Python's truthy logic:
+//         if (v == null) return false;
+//         if (Std.isOfType(v, Bool)) return v;
+//         if (Std.isOfType(v, Int)) return v != 0;
+//         if (Std.isOfType(v, Float)) return v != 0.0;
+//         if (Std.isOfType(v, String)) return v != "" && v != "0" && v != "false";
+//         if (Std.isOfType(v, Array)) return (cast v:Array<Dynamic>).length > 0;
+//         if (Reflect.isObject(v)) {
+//             // Empty anonymous object is falsy, otherwise truthy
+//             return Reflect.fields(v).length > 0;
+//         }
+//         return true;
+//     }
+
+//     @:from
+//     public static inline function fromDynamic(value:Dynamic):Truthy {
+//         return new Truthy(value);
+//     }
+// }
+
+	// abstract Traced<T>(T)
+	// {
+	// 	public inline function new(value:T) {
+	// 		this = value;
+	// 		trace("Traced: new value = " + Std.string(value));
+	// 	}
+
+	// 	@:op(A.B)
+	// 	public inline function get():T {
+	// 		trace("Traced: get value = " + Std.string(this));
+	// 		return this;
+	// 	}
+
+	// 	@:op(A.B)
+	// 	public inline function set(value:T):T {
+	// 		trace("Traced: set value = " + Std.string(value));
+	// 		this = value;
+	// 		return this;
+	// 	}
+
+	// 	@:to
+	// 	public inline function toValue():T {
+	// 		trace("Traced: toValue = " + Std.string(this));
+	// 		return this;
+	// 	}
+
+	// 	@:from
+	// 	public static inline function fromValue<T>(value:T):Traced<T> {
+	// 		trace("Traced: fromValue = " + Std.string(value));
+	// 		return new Traced<T>(value);
+	// 	}
+
+	// 	public inline function toString():String {
+	// 		trace("Traced: toString = " + Std.string(this));
+	// 		return Std.string(this);
+	// 	}
+
+	// 	// Overload operators for common interactions
+	// 	@:op(A + B)
+	// 	public inline function add(b:T):Traced<T> {
+	// 		trace("Traced: add " + Std.string(this) + " + " + Std.string(b));
+	// 		return new Traced<T>(cast (cast this + b));
+	// 	}
+
+	// 	@:op(A - B)
+	// 	public inline function sub(b:T):Traced<T> {
+	// 		trace("Traced: sub " + Std.string(this) + " - " + Std.string(b));
+	// 		return new Traced<T>(cast (cast this - b));
+	// 	}
+
+	// 	@:op(A * B)
+	// 	public inline function mul(b:T):Traced<T> {
+	// 		trace("Traced: mul " + Std.string(this) + " * " + Std.string(b));
+	// 		return new Traced<T>(cast (cast this * b));
+	// 	}
+
+	// 	@:op(A / B)
+	// 	public inline function div(b:T):Traced<T> {
+	// 		trace("Traced: div " + Std.string(this) + " / " + Std.string(b));
+	// 		return new Traced<T>(cast (cast this / b));
+	// 	}
+
+	// 	@:op(A == B)
+	// 	public inline function eq(b:T):Bool {
+	// 		trace("Traced: eq " + Std.string(this) + " == " + Std.string(b));
+	// 		return this == b;
+	// 	}
+
+	// 	@:op(A != B)
+	// 	public inline function neq(b:T):Bool {
+	// 		trace("Traced: neq " + Std.string(this) + " != " + Std.string(b));
+	// 		return this != b;
+	// 	}
+
+	// 	@:op(A > B)
+	// 	public inline function gt(b:T):Bool {
+	// 		trace("Traced: gt " + Std.string(this) + " > " + Std.string(b));
+	// 		return this > b;
+	// 	}
+
+	// 	@:op(A < B)
+	// 	public inline function lt(b:T):Bool {
+	// 		trace("Traced: lt " + Std.string(this) + " < " + Std.string(b));
+	// 		return this < b;
+	// 	}
+
+	// 	@:op(A >= B)
+	// 	public inline function gte(b:T):Bool {
+	// 		trace("Traced: gte " + Std.string(this) + " >= " + Std.string(b));
+	// 		return this >= b;
+	// 	}
+
+	// 	@:op(A <= B)
+	// 	public inline function lte(b:T):Bool {
+	// 		trace("Traced: lte " + Std.string(this) + " <= " + Std.string(b));
+	// 		return this <= b;
+	// 	}
+	// }
+
+
+
+
+
+
 abstract FlexibleNum(Float) from Int from Float to Float {
     public inline function new(value:Float) {
         this = value;
@@ -933,10 +1263,17 @@ abstract HaxeAddress(String) {
 //     }
 // }
 
-/* * HaxePointer is an abstract type that wraps a cpp.Pointer<T>.
- * It provides methods to convert from/to cpp.Pointer<T> and to handle field access.
- * It is useful for cases where you want to work with pointers in Haxe, especially when interfacing with C++ code.
- * !! DO NOT STACK THIS TYPE !!
+
+
+
+
+/**
+ * HaxePointer is an abstract type that wraps a cpp.RawPointer<T>.
+ * It provides methods to convert from/to cpp.Pointer<T>, cpp.RawPointer<T>, and Dynamic,
+ * as well as to handle field access and pointer operations.
+ * This is useful for working with pointers in Haxe, especially when interfacing with C++ code.
+ * 
+ * Note: Do not stack this type (do not wrap a HaxePointer inside another HaxePointer).
  */
 abstract HaxePointer<T>(cpp.RawPointer<T>) {
     public inline function new(value:Dynamic) {
@@ -1014,6 +1351,66 @@ abstract HaxePointer<T>(cpp.RawPointer<T>) {
     //     return value;
     // }
 
+
+
+    /**
+     * Special pointer access function.
+     * Usage:
+     *   ptr.pointerAccess(PointerAccess.Direct) // returns ptr.ref
+     *   ptr.pointerAccess(PointerAccess.Method("foo", [1,2])) // calls ptr.ref.foo(1,2)
+     *   ptr.pointerAccess(PointerAccess.Raw) // returns cpp.Pointer<T>
+     */
+    @:op(a())
+    public inline function pointerAccess(access:PointerAccess):Dynamic {
+        var ptr:cpp.Pointer<T> = cast this;
+        if (ptr == null) {
+            trace('HaxePointer: pointerAccess - ptr is null');
+            throw 'HaxePointer: Cannot access null pointer';
+        }
+        switch (access) {
+            case Direct:
+                if (ptr.ref == null) {
+                    trace('HaxePointer: pointerAccess - ptr.ref is null');
+                    throw 'HaxePointer: Cannot access null pointer value';
+                }
+                return ptr.ref;
+            case Method(name, args):
+                if (ptr.ref == null) {
+                    trace('HaxePointer: pointerAccess - ptr.ref is null');
+                    throw 'HaxePointer: Cannot call method on null pointer value';
+                }
+                var fn = Reflect.getProperty(ptr.ref, name);
+                if (fn == null) {
+                    trace('HaxePointer: pointerAccess - method ' + name + ' not found');
+                    throw 'HaxePointer: Method not found: ' + name;
+                }
+                try {
+                    return Reflect.callMethod(ptr.ref, fn, args);
+                } catch (e:Dynamic) {
+                    trace('HaxePointer: pointerAccess - exception occurred: ' + Std.string(e));
+                    return null;
+                }
+            case Call(args):
+                if (ptr.ref == null) {
+                    trace('HaxePointer: pointerAccess - ptr.ref is null');
+                    throw 'HaxePointer: Cannot call method on null pointer value';
+                }
+                var fn = ptr.ref;
+                if (!Reflect.isFunction(fn)) {
+                    trace('HaxePointer: pointerAccess - value is not a function');
+                    throw 'HaxePointer: Value is not a function';
+                }
+                try {
+                    return Reflect.callMethod(null, cast fn, args);
+                } catch (e:Dynamic) {
+                    trace('HaxePointer: pointerAccess - exception occurred: ' + Std.string(e));
+                    return null;
+                }
+            case Raw:
+                return ptr;
+        }
+    }
+
     @:from
     public static inline function fromPointer<T>(value:cpp.Pointer<T>):HaxePointer<T> {
         return new HaxePointer(value);
@@ -1054,6 +1451,213 @@ abstract HaxePointer<T>(cpp.RawPointer<T>) {
         return value;
     }
 }
+
+abstract Assertion(() -> Bool) {
+    public inline function new(value:() -> Bool) {
+        if (value == null) {
+            throw 'Assertion cannot be constructed with null value';
+        }
+        this = value;
+    }
+
+    @:to
+    public inline function toValue():Dynamic -> Bool {
+        return cast this;
+    }
+
+    @:from
+    public static inline function fromLambda(value:() -> Bool):Assertion {
+        return new Assertion(value);
+    }
+
+    @:to
+    public inline function toDynamic():Dynamic {
+        return cast this;
+    }
+
+    @:from
+    public static inline function fromBool(value:Bool):Assertion {
+        return new Assertion(function():Bool {
+            return cast cpp.Pointer.fromRaw(new HaxePointer<Bool>(value)).ref;
+        });
+    }
+
+    @:op(a())
+    public inline function opCall():Bool {
+        return cast this();
+    }
+}
+
+// abstract Result<T>({ fn:haxe.Constraints.Function, args:Array<Dynamic> }) {
+//     public inline function new(value:Dynamic) {
+//         // Accepts:
+//         // - { fn:Function, args:Array<Dynamic> }
+//         // - Function (with no args)
+//         // - { fn:Function, args:haxe.extern.Rest<Dynamic> }
+//         // - Tuple: [Function, Array<Dynamic>]
+//         // - Anything that has both 'fn' and 'args' fields
+//         if (value == null) throw 'Result cannot be constructed with null value';
+
+//         var fn:Dynamic = null;
+//         var args:Array<Dynamic> = [];
+
+//         if (Reflect.isFunction(value)) {
+//             fn = value;
+//         } else if (Std.isOfType(value, Array) && value.length == 2 && Reflect.isFunction(value[0])) {
+//             fn = value[0];
+//             args = value[1];
+//         } else if (Reflect.hasField(value, "fn") && Reflect.isFunction(Reflect.field(value, "fn"))) {
+//             fn = Reflect.field(value, "fn");
+//             if (Reflect.hasField(value, "args")) {
+//                 args = Reflect.field(value, "args");
+//             }
+//         } else if (Reflect.hasField(value, "function") && Reflect.isFunction(Reflect.field(value, "function"))) {
+//             fn = Reflect.field(value, "function");
+//             if (Reflect.hasField(value, "arguments")) {
+//                 args = Reflect.field(value, "arguments");
+//             }
+//         } else {
+//             throw 'Result: value must be a function, or an object/array with function and arguments';
+//         }
+
+//         this = { fn: fn, args: args };
+//     }
+
+//     // Whenever this is accessed, run the function with the arguments
+//     @:to
+//     public inline function toValue():T {
+//         var fn = Reflect.field(this, "fn");
+//         var args = Reflect.field(this, "args");
+//         return Reflect.callMethod(null, fn, args);
+//     }
+
+//     @:from
+//     public static inline function fromValue<T>(value:T):Result<T> {
+//         return new Result(value);
+//     }
+
+//     @:to
+//     public inline function toDynamic():Dynamic {
+//         return this;
+//     }
+
+//     // Field access triggers function call
+//     @:op(a.b)
+//     public inline function opFieldAccessGet(field:String):Dynamic {
+//         return this.fn();
+//     }
+
+//     // Array access triggers function call
+//     @:arrayAccess
+//     public inline function arrayRead(idx:Dynamic):Dynamic {
+//         return this.fn();
+//     }
+
+//     // Call operator triggers function call (with optional override args)
+//     @:op(a())
+//     public inline function opCall(args:haxe.extern.Rest<Dynamic>):Dynamic {
+//         var fn = Reflect.field(this, "fn");
+//         var origArgs = Reflect.field(this, "args");
+//         var callArgs = (args.length > 0) ? args : origArgs;
+//         return Reflect.callMethod(null, fn, callArgs);
+//     }
+// }
+
+abstract Immutable<T>(Dynamic) {
+    public inline function new(value:Dynamic) {
+        if (value == null) {
+            throw 'Immutable cannot be constructed with null value';
+        }
+        this = value;
+    }
+
+    @:to
+    public inline function toValue():T {
+        return cast this;
+    }
+
+    @:from
+    public static inline function fromValue<T>(value:T):Immutable<T> {
+        return new Immutable(value);
+    }
+
+    @:to
+    public inline function toDynamic():Dynamic {
+        return cast this;
+    }
+
+    // Allow field read, but not write
+    @:op(a.b) public inline function opFieldAccessGet(field:String):Dynamic {
+        return Reflect.field(this, field);
+    }
+
+    @:op(a.b) public inline function opFieldAccessSet(field:String, value:Dynamic):Dynamic {
+        throw 'Immutable: Cannot write to field "' + field + '"';
+    }
+
+    // Prevent array write, allow array read
+    @:arrayAccess
+    public inline function arrayRead(idx:Dynamic):Dynamic {
+        return this[idx];
+    }
+
+    @:arrayAccess
+    public inline function arrayWrite(idx:Dynamic, value:Dynamic):Dynamic {
+        throw 'Immutable: Cannot write to array index ' + idx;
+    }
+}
+#if cpp
+// abstract Mutable<T>(cpp.Pointer<T>) {
+//     public inline function new(value:Dynamic) {
+//         if (value == null) {
+//             throw 'Mutable cannot be constructed with null value';
+//         }
+//         // If value is already a cpp.Pointer, use it; otherwise, create a new pointer
+//         if (Std.isOfType(value, cpp.Pointer)) {
+//             this = value;
+//         } else {
+//             this = cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(cast value));
+//         }
+//     }
+
+//     @:to
+//     public inline function toValue():T {
+//         return (cast this : cpp.Pointer<T>).ref;
+//     }
+
+//     @:from
+//     public static inline function fromValue<T>(value:T):Mutable<T> {
+//         return new Mutable(value);
+//     }
+
+//     @:to
+//     public inline function toDynamic():Dynamic {
+//         return (cast this : cpp.Pointer<T>).ref;
+//     }
+
+//     // Allow field read and write on the referenced value
+//     @:op(a.b) public inline function opFieldAccessGet(field:String):Dynamic {
+//         return Reflect.field((cast this : cpp.Pointer<T>).ref, field);
+//     }
+
+//     @:op(a.b) public inline function opFieldAccessSet(field:String, value:Dynamic):Dynamic {
+//         Reflect.setField((cast this : cpp.Pointer<T>).ref, field, value);
+//         return value;
+//     }
+
+//     // Allow array read and write on the referenced value
+//     @:arrayAccess
+//     public inline function arrayRead(idx:Dynamic):Dynamic {
+//         return (cast this : cpp.Pointer<T>).ref[idx];
+//     }
+
+//     @:arrayAccess
+//     public inline function arrayWrite(idx:Dynamic, value:Dynamic):Dynamic {
+//         (cast this : cpp.Pointer<T>).ref[idx] = value;
+//         return value;
+//     }
+// }
+#end
 
 /**
  * GlobalPointer is an abstract type that wraps a HaxePointer<T> and provides methods to convert between
@@ -1111,6 +1715,297 @@ abstract GlobalPointer<T>(HaxePointer<T>) {
 
 class PointerString {}
 
+abstract Corrupted<T>(Dynamic) {
+    public inline function new(value:Dynamic) {
+        if (value == null) {
+            throw 'Corrupted cannot be constructed with null value';
+        }
+        this = corruptValue(value);
+    }
+
+    @:to
+    public inline function toValue():T {
+        return cast this;
+    }
+
+    @:from
+    public static inline function fromValue<T>(value:T):Corrupted<T> {
+        return new Corrupted(value);
+    }
+
+    static function corruptValue(value:Dynamic):Dynamic {
+        try {
+            if (Std.isOfType(value, String)) {
+                return corruptString(value);
+            } else if (Std.isOfType(value, Int) || Std.isOfType(value, Float)) {
+                return corruptNumber(value);
+            } else if (Std.isOfType(value, Bool)) {
+                return corruptBool(value);
+            } else if (Std.isOfType(value, Array)) {
+                return corruptArray(value);
+            } else if (Reflect.isObject(value) && Type.getClass(value) != null) {
+                return corruptObject(value);
+            } else if (Reflect.isObject(value)) {
+                return corruptAnon(value);
+            }
+        } catch (e:Dynamic) {
+            trace("Corrupted: Exception during corruption: " + Std.string(e));
+        }
+        // Fallback: just wrap in a string with weird chars
+        return "¤" + Std.string(value) + "§";
+    }
+
+    static function corruptString(str:String):String {
+        var weirds = ["¤", "§", "¿", "¡", "ø", "ß", "µ", "þ", "ƒ", "∑", "Ω", "≈", "ç", "√", "∫"];
+        var arr = str.split("");
+        for (i in 0...arr.length) {
+            if (i % 2 == 0 && arr[i] != " ") arr[i] = weirds[Std.random(weirds.length)] + arr[i];
+            if (Std.random(10) == 0) arr[i] += weirds[Std.random(weirds.length)];
+        }
+        if (Std.random(2) == 0) arr.reverse();
+        if (Std.random(2) == 0) arr.unshift(weirds[Std.random(weirds.length)]);
+        if (Std.random(2) == 0) arr.push(weirds[Std.random(weirds.length)]);
+        return arr.join("");
+    }
+
+    static function corruptNumber(n:Dynamic):Dynamic {
+        var weird = [1, -1, 0, 42, 666, 1337, 9001, 123456, -9999];
+        var op = Std.random(5);
+        switch (op) {
+            case 0: return n + weird[Std.random(weird.length)];
+            case 1: return n - weird[Std.random(weird.length)];
+            case 2: return n * (Std.random(3) + 1);
+            case 3: return n / (Std.random(5) + 1);
+            case 4: return -n;
+            default: return n;
+        }
+    }
+
+    static function corruptBool(b:Bool):Bool {
+        // Sometimes flip, sometimes always true, sometimes always false
+        var op = Std.random(4);
+        switch (op) {
+            case 0: return !b;
+            case 1: return true;
+            case 2: return false;
+            default: return b;
+        }
+    }
+
+    static function corruptArray(arr:Array<Dynamic>):Array<Dynamic> {
+        var out = [];
+        for (item in arr) {
+            if (Std.random(3) == 0) out.push("¤" + Std.string(item) + "§");
+            else out.push(corruptValue(item));
+            if (Std.random(5) == 0) out.push("∑" + Std.string(Std.random(1000)));
+        }
+        if (Std.random(2) == 0) out.reverse();
+        if (Std.random(3) == 0) out.unshift("Ω");
+        return out;
+    }
+
+    static function corruptAnon(obj:Dynamic):Dynamic {
+        var fields = Reflect.fields(obj);
+        var out = {};
+        for (f in fields) {
+            try {
+                var v = Reflect.field(obj, f);
+                if (Std.random(2) == 0) Reflect.setField(out, f + "¤", corruptValue(v));
+                else Reflect.setField(out, f, corruptValue(v));
+            } catch (e:Dynamic) {
+                trace("Corrupted: Exception corrupting anon field " + f + ": " + Std.string(e));
+            }
+        }
+        if (Std.random(2) == 0) Reflect.setField(out, "weird" + Std.random(100), "§" + Std.string(Std.random(9999)));
+        return out;
+    }
+
+    static function corruptObject(obj:Dynamic):Dynamic {
+        var cls = Type.getClass(obj);
+        var fields = Type.getInstanceFields(cls);
+        for (f in fields) {
+            try {
+                var v = Reflect.field(obj, f);
+                if (Std.random(2) == 0) Reflect.setField(obj, f, corruptValue(v));
+                else if (Std.random(3) == 0) Reflect.setField(obj, f + "§", corruptValue(v));
+            } catch (e:Dynamic) {
+                trace("Corrupted: Exception corrupting object field " + f + ": " + Std.string(e));
+            }
+        }
+        if (Std.random(2) == 0) Reflect.setField(obj, "corrupt" + Std.random(100), "¤" + Std.string(Std.random(9999)));
+        return obj;
+    }
+
+    // Operator overloads: make them act weird
+    @:op(a + b)
+    public inline function opAdd(b:Dynamic):Dynamic {
+        try {
+            if (Std.isOfType(this, String) || Std.isOfType(b, String))
+                return corruptString(Std.string(this) + Std.string(b));
+            if (Std.isOfType(this, Int) || Std.isOfType(this, Float))
+                return corruptNumber(this) + corruptNumber(b);
+        } catch (e:Dynamic) {
+            trace("Corrupted: Exception in opAdd: " + Std.string(e));
+        }
+        return "¤" + Std.string(this) + " + " + Std.string(b) + "§";
+    }
+
+    @:op(a - b)
+    public inline function opSub(b:Dynamic):Dynamic {
+        try {
+            if (Std.isOfType(this, Int) || Std.isOfType(this, Float))
+                return corruptNumber(this) - corruptNumber(b);
+        } catch (e:Dynamic) {
+            trace("Corrupted: Exception in opSub: " + Std.string(e));
+        }
+        return "§" + Std.string(this) + " - " + Std.string(b) + "¤";
+    }
+
+    @:op(a == b)
+    public inline function opEq(b:Dynamic):Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:op(a != b)
+    public inline function opNeq(b:Dynamic):Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:op(a < b)
+    public inline function opLt(b:Dynamic):Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:op(a > b)
+    public inline function opGt(b:Dynamic):Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:op(a <= b)
+    public inline function opLte(b:Dynamic):Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:op(a >= b)
+    public inline function opGte(b:Dynamic):Bool {
+        return Std.random(2) == 0;
+    }
+
+    @:op(a.b)
+    public inline function opFieldAccessGet(field:String):Dynamic {
+        try {
+            var v = Reflect.field(this, field);
+            return corruptValue(v);
+        } catch (e:Dynamic) {
+            trace("Corrupted: Exception in opFieldAccessGet: " + Std.string(e));
+            return "¤" + field + "§";
+        }
+    }
+
+    @:op(a.b)
+    public inline function opFieldAccessSet(field:String, value:Dynamic):Dynamic {
+        try {
+            Reflect.setField(this, field, corruptValue(value));
+            return corruptValue(value);
+        } catch (e:Dynamic) {
+            trace("Corrupted: Exception in opFieldAccessSet: " + Std.string(e));
+            return "§" + field + "¤";
+        }
+    }
+}
+
+abstract CorruptedPointer<T>(HaxePointer<T>) {
+    public inline function new(value:Dynamic) {
+        if (value == null) {
+            throw 'CorruptedPointer cannot be constructed with null value';
+        }
+        this = value;
+    }
+
+    @:to
+    public inline function toHaxePointer():HaxePointer<T> {
+        return cast this;
+    }
+
+    @:from
+    public static inline function fromHaxePointer<T>(value:HaxePointer<T>):CorruptedPointer<T> {
+        // Actually corrupt the referenced value
+        try {
+            var ptr:cpp.Pointer<T> = cast value;
+            if (ptr != null && ptr.ref != null) {
+                var corrupted = Corrupted.fromValue(ptr.ref);
+                ptr.ref = corrupted;
+            }
+        } catch (e:Dynamic) {
+            trace("CorruptedPointer: Exception corrupting pointer: " + Std.string(e));
+        }
+        return new CorruptedPointer(value);
+    }
+}
+
+abstract Classable(Dynamic) {
+    public inline function new(value:Dynamic) {
+        // Since RuntimeClass is an abstract, check for a field that only it would have (e.g., className)
+        if ((Reflect.hasField(value, "className") && Reflect.hasField(value, "CLASS")) || Std.isOfType(value, Class)) {
+            this = value;
+        } else {
+            throw 'Classable: value must be a RuntimeClass-like object or a Class';
+        }
+    }
+}
+
+enum RuntimeClassFieldVisibility {
+    Public;
+    Private;
+    Static;
+}
+
+// /**
+//  * RuntimeClass is an abstract that simulates a class-like structure at runtime.
+//  * It supports inheritance (from another RuntimeClass or a native class), generic typing, static fields/methods,
+//  * instance fields/methods, and can be used to build dynamic "classes" with similar abilities as native classes.
+//  * The underlying type is a Dynamic object with specific fields for encapsulation.
+//  */
+// abstract RuntimeClass({
+//     className:String,
+//     CLASS:{
+//         fields:Array<{
+//             name:String,
+//             type:Dynamic,
+//             visibility:RuntimeClassFieldVisibility // :Public, :Private, :Static
+//         }>,
+//         methods:Array<{
+//             name:String,
+//             fn:haxe.Constraints.Function
+//         }>,
+//         typeName:String,
+//         genericType:Dynamic
+//     },
+//     parent:Dynamic
+// }) {
+//     public inline function new(template:RuntimeClassTemplate<Dynamic>, ?parent:Dynamic) {
+//         this.className = template.typeName;
+//         this.CLASS = {
+//             fields: {
+//                 __public__: template.instanceFields ?: {},
+//                 __private__: template.privateFields ?: {},
+//                 __static__: template.staticFields ?: {}
+//             },
+//             methods: template.methods ?: {},
+//             typeName: template.typeName,
+//             genericType: template.genericType
+//         };
+//         this.parent = parent;
+//     }
+
+//     @:from
+//     public static inline function fromTemplate(template:RuntimeClassTemplate<Dynamic>, ?parent:Dynamic):RuntimeClass {
+//         return new RuntimeClass(template, parent)
+// }
+
+
+
+
 abstract JSON({JSONData:Dynamic, pointer:HaxePointer<Dynamic>, stringified:String}) {
     public inline function new(value:Dynamic) {
         this = toJsonValue(value);
@@ -1134,7 +2029,7 @@ abstract JSON({JSONData:Dynamic, pointer:HaxePointer<Dynamic>, stringified:Strin
 
     @:to
     public inline function toString():String {
-        return haxe.Json.stringify(this);
+        return haxe.Json.stringify(this, null, '\t');
     }
 
     static function toJsonValue(value:Dynamic):Dynamic {
@@ -1155,269 +2050,214 @@ abstract JSON({JSONData:Dynamic, pointer:HaxePointer<Dynamic>, stringified:Strin
             try stringified = Std.string(value) catch (_:Dynamic) stringified = "<null_string>";
         }
 
-        var result:Dynamic = null;
-
-        if (value == null) {
-            result = {};
-        } else if (Reflect.isObject(value) && !Std.isOfType(value, Array) && !Std.isOfType(value, String) && Type.getClass(value) == null) {
-            // Anonymous object
-            var obj = {};
-            for (field in Reflect.fields(value)) {
-                Reflect.setField(obj, field, toJsonValue(Reflect.field(value, field)));
-            }
-            result = obj;
-        } else if (Type.getClass(value) != null) {
-            // Class instance
-            var cls = Type.getClass(value);
-            var fields = Type.getInstanceFields(cls).concat(Reflect.fields(value));
-            var obj = {};
-            for (field in fields) {
-                if (Reflect.hasField(value, field)) {
-                    Reflect.setField(obj, field, toJsonValue(Reflect.field(value, field)));
-                }
-            }
-            result = obj;
-        } else if (Std.isOfType(value, String)) {
-            // String, try parse as JSON
-            try {
-                var parsed = haxe.Json.parse(value);
-                result = toJsonValue(parsed);
-            } catch (_:Dynamic) {
-                result = { failedString: value };
-            }
-        } else if (Std.isOfType(value, Array)) {
-            // Array
-            var arr:Array<Dynamic> = cast value;
-            result = [for (v in arr) toJsonValue(v)];
-        } else if (Std.isOfType(value, haxe.ds.StringMap)) {
-            // StringMap
-            var map:haxe.ds.StringMap<Dynamic> = cast value;
-            var obj = {};
-            for (k in map.keys()) {
-                Reflect.setField(obj, k, toJsonValue(map.get(k)));
-            }
-            result = obj;
-        } else if (value.isMap()) {
-            // Map
-            var map:Map<Dynamic, Dynamic> = cast value;
-            var obj = {};
-            for (k in map.keys()) {
-                Reflect.setField(obj, Std.string(k), toJsonValue(map.get(k)));
-            }
-            result = obj;
-        } else {
-            // Other types (numbers, bool, etc)
-            result = value;
-        }
-
         return {
-            JSONData: result,
+            JSONData: new Fields(value),
             pointer: pointerValue,
             stringified: stringified
         };
     }
 }
 
-// /**
-//  * File is an abstract type that represents a file in the system.
-//  * It provides methods to convert between FilePath and File, as well as to handle field access.
-//  * It is useful for cases where you want to work with files in Haxe, especially when interfacing with the file system.
-//  */
-// abstract File({filePath:FilePath, fileData:Dynamic}) {
-//     public inline function new(value:FilePath) {
-//         this = {filePath: value, fileData: sys.io.File.readBytes(value)};
-//     }
+/**
+ * File is an abstract type that represents a file in the system.
+ * It provides methods to convert between FilePath and File, as well as to handle field access.
+ * It is useful for cases where you want to work with files in Haxe, especially when interfacing with the file system.
+ */
+abstract File({filePath:FilePath, fileData:Dynamic}) {
+    public inline function new(value:FilePath) {
+        this = {filePath: value, fileData: sys.io.File.getBytes(value)};
+    }
 
-//     @:to
-//     public inline function toString():String {
-//         return sys.io.File.getContent(this.filePath);
-//     }
+    @:to
+    public inline function toString():String {
+        return sys.io.File.getContent(this.filePath);
+    }
 
-//     @:to
-//     public inline function toFilePath():FilePath {
-//         return this.filePath;
-//     }
+    @:to
+    public inline function toFilePath():FilePath {
+        return this.filePath;
+    }
 
-//     @:to
-//     public inline function toJSON():JSON
-//     {
-//         return new JSON(this.fileData);
-//     }
+    @:to
+    public inline function toJSON():JSON
+    {
+        return new JSON(this.fileData);
+    }
 
-//     @:from
-//     public static inline function fromValue(value:Dynamic):File {
-//         return new File(value);
-//     }
-// }
+    @:from
+    public static inline function fromValue(value:Dynamic):File {
+        return new File(value);
+    }
+}
 
-// abstract Folder({folderPath:FilePath, folderData:Dynamic}) {
-//     public inline function new(value:FilePath) {
-//         this = {folderPath: value, folderData: sys.io.File.readDirectory(value)};
-//     }
+abstract Folder({folderPath:FilePath, folderData:Dynamic}) {
+    public inline function new(value:FilePath) {
+        this = {folderPath: value, folderData: sys.FileSystem.readDirectory(value)};
+    }
 
-//     @:to
-//     public inline function toValue():Dynamic {
-//         return cast this;
-//     }
+    @:to
+    public inline function toValue():Dynamic {
+        return cast this;
+    }
 
-//     @:to
-//     public inline function toString():String {
-//         return sys.io.File.getContent(this.folderPath);
-//     }
+    @:to
+    public inline function toString():String {
+        return sys.io.File.getContent(this.folderPath);
+    }
 
-//     @:to
-//     public inline function toFilePath():FilePath {
-//         return this.folderPath;
-//     }
+    @:to
+    public inline function toFilePath():FilePath {
+        return this.folderPath;
+    }
 
-//     @:to
-//     public inline function toJSON():JSON
-//     {
-//         return new JSON(this.folderData);
-//     }
+    @:to
+    public inline function toJSON():JSON
+    {
+        return new JSON(this.folderData);
+    }
 
-//     @:from
-//     public static inline function fromValue(value:Dynamic):Folder {
-//         return new Folder(value);
-//     }
-// }
+    @:from
+    public static inline function fromValue(value:Dynamic):Folder {
+        return new Folder(value);
+    }
+}
 
-// abstract FolderPath(Path) {
-//     public inline function new(value:String) {
-//         if (value == null) throw 'FolderPath cannot be constructed with null value';
-//         var str = Std.string(value);
-//         if (!sys.FileSystem.exists(str)) throw 'FolderPath: Path does not exist: ' + str;
-//         if (!sys.FileSystem.isDirectory(str)) throw 'FolderPath: Path is not a directory: ' + str;
-//         this = str;
-//     }
+abstract FolderPath(Path) {
+    public inline function new(value:String) {
+        if (value == null) throw 'FolderPath cannot be constructed with null value';
+        var str = Std.string(value);
+        if (!sys.FileSystem.exists(str)) throw 'FolderPath: Path does not exist: ' + str;
+        if (!sys.FileSystem.isDirectory(str)) throw 'FolderPath: Path is not a directory: ' + str;
+        this = str;
+    }
 
-//     @:to
-//     public inline function toValue():String {
-//         return cast this;
-//     }
+    @:to
+    public inline function toValue():String {
+        return cast this;
+    }
 
-//     @:from
-//     public static inline function fromValue(value:String):FolderPath {
-//         return new FolderPath(value);
-//     }
-// }
+    @:from
+    public static inline function fromValue(value:String):FolderPath {
+        return new FolderPath(value);
+    }
+}
 
 
 
-// abstract FolderTree(Dynamic) {
-//     public inline function new(value:Dynamic) {
-//         this = buildTree(value);
-//     }
+abstract FolderTree(Dynamic) {
+    public inline function new(value:Dynamic) {
+        this = buildTree(value);
+    }
 
-//     @:to
-//     public inline function toValue():Dynamic {
-//         return cast this;
-//     }
+    @:to
+    public inline function toValue():Dynamic {
+        return cast this;
+    }
 
-//     @:from
-//     public static inline function fromValue(value:Dynamic):FolderTree {
-//         return new FolderTree(value);
-//     }
+    @:from
+    public static inline function fromValue(value:Dynamic):FolderTree {
+        return new FolderTree(value);
+    }
 
-//     @:to
-//     public inline function toJSON():JSON {
-//         return new JSON(this);
-//     }
+    @:to
+    public inline function toJSON():JSON {
+        return new JSON(this);
+    }
 
-//     @:to
-//     public inline function toString():String {
-//         return treeToString(this, "", true);
-//     }
+    @:to
+    public inline function toString():String {
+        return treeToString(this, "", true);
+    }
 
-//     static function buildTree(path:Dynamic):Dynamic {
-//         var strPath:String = Std.string(path);
-//         if (!FileSystem.exists(strPath)) throw 'FolderTree: Path does not exist: ' + strPath;
-//         if (!FileSystem.isDirectory(strPath)) throw 'FolderTree: Path is not a directory: ' + strPath;
+    static function buildTree(path:Dynamic):Dynamic {
+        var strPath:String = Std.string(path);
+        if (!FileSystem.exists(strPath)) throw 'FolderTree: Path does not exist: ' + strPath;
+        if (!FileSystem.isDirectory(strPath)) throw 'FolderTree: Path is not a directory: ' + strPath;
 
-//         var obj = {};
-//         for (entry in FileSystem.readDirectory(strPath)) {
-//             var fullPath = strPath + "/" + entry;
-//             if (FileSystem.isDirectory(fullPath)) {
-//                 Reflect.setField(obj, entry, buildTree(fullPath));
-//             } else {
-//                 Reflect.setField(obj, entry, null);
-//             }
-//         }
-//         return obj;
-//     }
+        var obj = {};
+        for (entry in FileSystem.readDirectory(strPath)) {
+            var fullPath = strPath + "/" + entry;
+            if (FileSystem.isDirectory(fullPath)) {
+                Reflect.setField(obj, entry, buildTree(fullPath));
+            } else {
+                Reflect.setField(obj, entry, null);
+            }
+        }
+        return obj;
+    }
 
-//     static function treeToString(tree:Dynamic, prefix:String, isRoot:Bool):String {
-//         var lines = [];
-//         var keys = Reflect.fields(tree);
-//         keys.sort(function(a, b) return a < b ? -1 : 1);
-//         for (i in 0...keys.length) {
-//             var key = keys[i];
-//             var isLast = (i == keys.length - 1);
-//             var value = Reflect.field(tree, key);
-//             var connector = isRoot ? "" : (isLast ? "└── " : "├── ");
-//             lines.push(prefix + connector + key);
-//             if (value != null) {
-//                 var newPrefix = prefix + (isRoot ? "" : (isLast ? "    " : "│   "));
-//                 lines.push(treeToString(value, newPrefix, false));
-//             }
-//         }
-//         return lines.join("\n");
-//     }
-// }
+    static function treeToString(tree:Dynamic, prefix:String, isRoot:Bool):String {
+        var lines = [];
+        var keys = Reflect.fields(tree);
+        keys.sort(function(a, b) return a < b ? -1 : 1);
+        for (i in 0...keys.length) {
+            var key = keys[i];
+            var isLast = (i == keys.length - 1);
+            var value = Reflect.field(tree, key);
+            var connector = isRoot ? "" : (isLast ? "└── " : "├── ");
+            lines.push(prefix + connector + key);
+            if (value != null) {
+                var newPrefix = prefix + (isRoot ? "" : (isLast ? "    " : "│   "));
+                lines.push(treeToString(value, newPrefix, false));
+            }
+        }
+        return lines.join("\n");
+    }
+}
 
-// abstract Path(String) {
-//     public inline function new(value:String) {
-//         if (value == null) throw 'Path cannot be constructed with null value';
-//         var str = Std.string(value);
-//         if (!sys.FileSystem.exists(str)) throw 'Path: Path does not exist: ' + str;
-//         this = str;
-//     }
+abstract Path(String) {
+    public inline function new(value:String) {
+        if (value == null) throw 'Path cannot be constructed with null value';
+        var str = Std.string(value);
+        if (!sys.FileSystem.exists(str)) throw 'Path: Path does not exist: ' + str;
+        this = str;
+    }
 
-//     @:to
-//     public inline function toValue():String {
-//         return cast this;
-//     }
+    @:to
+    public inline function toValue():String {
+        return cast this;
+    }
 
-//     @:from
-//     public static inline function fromValue(value:String):Path {
-//         return new Path(value);
-//     }
-// }
+    @:from
+    public static inline function fromValue(value:String):Path {
+        return new Path(value);
+    }
+}
 
-// /**
-//  * FilePath is an abstract type that represents a file path in the system.
-//  * It provides methods to check if the path exists and to convert between String and FilePath.
-//  * It is useful for cases where you want to work with file paths in Haxe, especially when interfacing with the file system.
-//  */
-// abstract FilePath(String) {
-//     public inline function new(value:String) {
-//         if (value == null) throw 'FilePath cannot be constructed with null value';
-//         var str = Std.string(value);
-//         if (!FilePath.exists(str)) throw 'FilePath: Path does not exist: ' + str;
-//         this = str;
-//     }
+/**
+ * FilePath is an abstract type that represents a file path in the system.
+ * It provides methods to check if the path exists and to convert between String and FilePath.
+ * It is useful for cases where you want to work with file paths in Haxe, especially when interfacing with the file system.
+ */
+abstract FilePath(String) {
+    public inline function new(value:String) {
+        if (value == null) throw 'FilePath cannot be constructed with null value';
+        var str = Std.string(value);
+        if (!FilePath.exists(str)) throw 'FilePath: Path does not exist: ' + str;
+        this = str;
+    }
 
-//     @:to
-//     public inline function toValue():String {
-//         return cast this;
-//     }
+    @:to
+    public inline function toValue():String {
+        return cast this;
+    }
 
-//     @:from
-//     public static inline function fromValue(value:String):FilePath {
-//         return new FilePath(value);
-//     }
+    @:from
+    public static inline function fromValue(value:String):FilePath {
+        return new FilePath(value);
+    }
 
-//     @:from
-//     public static inline function fromArray(value:Array<String>):FilePath {
-//         if (value.length == 0) throw 'FilePath: Cannot create from empty array';
-//         var path = value.join("/");
-//         return new FilePath(path);
-//     }
+    @:from
+    public static inline function fromArray(value:Array<String>):FilePath {
+        if (value.length == 0) throw 'FilePath: Cannot create from empty array';
+        var path = value.join("/");
+        return new FilePath(path);
+    }
 
-//     public static function exists(path:String):Bool {
-//         return sys.FileSystem.exists(path);
-//     }
-// }
+    public static function exists(path:String):Bool {
+        return sys.FileSystem.exists(path);
+    }
+}
 
 /**
  * Collapsed<T> is an abstract that recursively flattens nested arrays or maps into a single array or map.

@@ -352,8 +352,8 @@ class APGameState
 		catch (e:Dynamic)
 		{
 			var errorMessage = "Error in locationData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
-			trace(errorMessage);
-			archipelago.APItem.popup(errorMessage, "Error: Locations", true);
+			// trace(errorMessage);
+			// archipelago.APItem.popup(errorMessage, "Error: Locations", true);
 			return [];
 		}
 	}
@@ -465,9 +465,9 @@ class APGameState
 		}
 		catch (e:Dynamic)
 		{
-			var errorMessage = "Error in noteData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
-			trace(errorMessage);
-			archipelago.APItem.popup(errorMessage, "Error: Note Checks", true);
+			// var errorMessage = "Error in noteData function for song: " + songName + " and mod: " + modName + ". Reason: " + Std.string(e);
+			// trace(errorMessage);
+			// archipelago.APItem.popup(errorMessage, "Error: Note Checks", true);
 			return [];
 		}
 	}
@@ -780,7 +780,7 @@ class APGameState
 
 	function onSlotConnected(slotData:Dynamic)
 	{
-		if (APEntryState.deathLink)
+		if (backend.ClientPrefs.data.deathlink)
 			_ap.tags.push("DeathLink");
 	}
 

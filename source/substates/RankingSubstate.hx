@@ -199,7 +199,7 @@ class RankingSubstate extends MusicBeatSubstate
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					
-					if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
 						trace("Sending checks for all checked notes...");
 						for (note in APPlayState.instance.checkedNotes) {
 							trace("Sending check for note: " + note);

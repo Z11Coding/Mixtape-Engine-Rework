@@ -158,6 +158,7 @@ class Main extends Sprite
 		// Pointer of a pointer test (HaxePointer of HaxePointer, stacked 5 times)
 		var arr:Array<Int> = [1, 2, 3, 4, 5];
 
+		
 		// var ptr1 = new HaxePointer<Array<Int>>(arr);
 		// var ptr2 = new HaxePointer<HaxePointer<Array<Int>>>(ptr1);
 		// var ptr3 = new HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>(ptr2);
@@ -271,6 +272,7 @@ class Main extends Sprite
 		// 'testArray = $testArray'.NativeTrace(true, false);
 		// "NativeTrace works with double quotes too!".NativeTrace(true);
 		// testArray.NativeTrace(true, false);
+
 
 		yutautil.Threader.runInThread(commandPrompt.start());
 		#if HSCRIPT_ALLOWED
@@ -1065,6 +1067,23 @@ class CommandPrompt
 					{
 						print("Error: sizeState accepts at most one argument.");
 					}
+				}
+
+			case "stateInfo":
+				if (args.length == 0)
+				{
+					var stateRep:FieldMap = new Fields(FlxG.state);
+					print("State Information:");
+					print("--------------------------------");
+					print("State as object: " + stateRep.getFields());
+					print("Current State: " + Type.getClassName(Type.getClass(FlxG.state)));
+					print("State Size (bytes): " + FlxG.state.realSizeOf());
+					print("State Size (KB): " + FlxG.state.sizeIn(yutautil.CollectionUtils.Size.KB));
+					print("State Size (MB): " + FlxG.state.sizeIn(yutautil.CollectionUtils.Size.MB));
+				}
+				else
+				{
+					print("Error: stateInfo does not accept any arguments.");
 				}
 
 			case "playSong":

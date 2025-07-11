@@ -85,17 +85,23 @@ class FieldMap {
         return privFields;
     }
 
-    public function getFields():Array<FieldAccess> {
+    public function getFields():Array<{ type:String, name:String, value:Dynamic }> {
         trace('[FieldMap] getFields() called');
         if (ref == null) {
             trace('[FieldMap] getFields: ref is null, returning DeadFields');
             // All fields become DeadField
-            return [for (f in fields) new DeadField(f.name, f.value)];
+            return [for (f in fields) {
+                type: Type.getClassName(Type.getClass(f)),
+                name: f.name,
+                value: f.value
+            }];
         }
-        // Rebuild fields to stay up-to-date
-        this.fields = buildFields();
         trace('[FieldMap] getFields: returning ${fields.length} fields');
-        return fields;
+        return [for (f in fields) {
+            type: Type.getClassName(Type.getClass(f)),
+            name: f.name,
+            value: f.value
+        }];
     }
 
     public function getRef():Dynamic {

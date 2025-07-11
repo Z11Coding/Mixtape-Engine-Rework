@@ -43,7 +43,7 @@ class ValidIfTree {
     }
 }
 
-abstract Valid(ValidImpl) from Bool to Bool to Dynamic {
+abstract Valid(ValidImpl) {
     // public var expr:() -> Bool;
 
     public inline function new(expr:() -> Bool, ?ifFunc:ValidIfTree) {
@@ -51,8 +51,8 @@ abstract Valid(ValidImpl) from Bool to Bool to Dynamic {
     }
 
     @:from
-    public static inline function fromBool(b:Bool):Valid {
-        return new ValidImpl(() -> b);
+    public static inline function fromPointedBool(b:HaxePointer<Bool>):Valid {
+        return new Valid(() -> b);
     }
 
     // Allow using as Bool (always evaluates the expression)
@@ -64,15 +64,15 @@ abstract Valid(ValidImpl) from Bool to Bool to Dynamic {
     // Allow chaining if-else logic (if tree)
     @:to
     public inline function ifElse<T>():T {
-        return if (this.ifFunc != null) {
-            this.ifFunc(this.expr(), this, null);
+        return if (this.ifTree != null) {
+            this.ifTree.run();
         } else {
-            this.expr() ? this : null;
+            cast this.expr();
         }
     }
 
     // Static helper for building from an expression
     public static inline function fromExpr(expr:() -> Bool):Valid {
-        return new ValidImpl(expr);
+        return new Valid(expr);
     }
 }

@@ -109,4 +109,5 @@ using yutautil.Tracked;
 using yutautil.TypeUtils;
 using yutautil.MacroTypeUtils;
 using yutautil.RuntimeTypedef;
+using yutautil.Valid;
 #end

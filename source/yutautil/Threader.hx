@@ -87,9 +87,9 @@ class Threader {
             trace("All threads are generated: " + generatedThreads);
             // remove threads from array that have finished
             for (thread in generatedThreads) {
-                if (generatedThreads.indexOf(thread) == -1) {
-                quietThreads.remove(thread);
-                trace("Finished generation of " + thread);
+                if (generatedThreads.contains(thread)) {
+                    quietThreads.remove(thread);
+                    trace("Finished generation of " + thread);
                 }
             }
             });

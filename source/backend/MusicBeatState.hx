@@ -187,7 +187,7 @@ class MusicBeatState extends FlxState
 			CppAPI.setWindowOppacity(1);
 			emergencyOpacityFix = false;
 		}
-
+		// TODO: Implement check to see if the window is focused, so that lag achievement doesn't trigger when the window is not focused
 		if (allowLagAcheve && Main.fpsVar.lagging && !Achievements.isUnlocked('lag')) {
 			Achievements.unlock('lag');
 		}
@@ -346,15 +346,15 @@ class MusicBeatState extends FlxState
 				@:privateAccess
 				(cast state:PlayState).preGenerateNotes();
 			}
-		},
-		"FreeplayState" => function(state:FlxState) {
-
-				FreeplayManager.reloadFreeplay();
-
-		},
-		"OsuFreeplayState" => function(state:FlxState) {
-				FreeplayManager.reloadFreeplay();
 		}
+		// "FreeplayState" => function(state:FlxState) {
+
+		// 		FreeplayManager.reloadFreeplay();
+
+		// },
+		// "OsuFreeplayState" => function(state:FlxState) {
+		// 		FreeplayManager.reloadFreeplay();
+		// }
 	];
 
 	public function hashCode():Int

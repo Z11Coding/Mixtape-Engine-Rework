@@ -20,7 +20,7 @@ import archipelago.PacketTypes.ClientStatus;
 /*
     Ok im gonna try to explain what this is in the best way I can
 
-    his is where any hardcoded freeplay menus you want to use will be called from (actually getting to the menu)
+    This is where any hardcoded freeplay menus you want to use will be called from (actually getting to the menu)
     Scripting support will eventually be added through this as well
     Speaking of, scripted freeplays will also be ran through this (unless a better system for them is made)
     For now, this is what this Freeplay Manager does:

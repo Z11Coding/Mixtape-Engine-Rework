@@ -642,9 +642,11 @@ class CollectionUtils
 
 	public static inline function isIterableOfType<T>(input:Dynamic, type:Class<T>):Bool
 	{
-		return (Std.is(input, Array) && (input : Array<T>).length > 0)
+		return ((Std.is(input, Array) && (input : Array<T>).length > 0)
 			|| (Std.is(input, IMap) && (input : Map<Dynamic, T>).keys().hasNext())
-			|| (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")));
+			|| (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")))) && (function checkType(item:Dynamic):Bool {
+				return Std.is(item, type);
+			})(input);
 	}
 
 	public static inline function objectDynamic<T>(input:Dynamic):Dynamic
@@ -672,6 +674,43 @@ class CollectionUtils
 			return input;
 		}
 	}
+
+
+	public static inline function truthy(input:Dynamic):Bool
+	{
+		// Evaluates "truthiness" similar to Python: null/empty/false/0 are false, everything else is true.
+		if (input == null) return false;
+		if (Std.is(input, Bool)) return input;
+		if (Std.is(input, Int) || Std.is(input, Float)) return input != 0;
+		if (Std.is(input, String)) return StringTools.trim(input).length > 0;
+		if (Std.is(input, Array)) return (input : Array<Dynamic>).length > 0;
+		if (Std.is(input, IMap)) return (input : IMap<Dynamic, Dynamic>).keys().hasNext();
+		// If it's an expression (like 2 == "2"), evaluate it
+		try {
+			if (Reflect.isFunction(input)) {
+				var result = input();
+				return truthy(result);
+			}
+		} catch (e:Dynamic) {}
+		// For objects, check if they have a length or are empty
+		if (Reflect.hasField(input, "length")) {
+			var len = Reflect.field(input, "length");
+			if (Std.is(len, Int)) return len > 0;
+		}
+		// For iterables, check if they have any elements
+		if (Reflect.hasField(input, "iterator")) {
+			try {
+				return (input : Iterable<Dynamic>).iterator().hasNext();
+			} catch (e:Dynamic) {}
+		}
+		// Fallback: treat as true
+		return true;
+	}
+
+	// public static inline function truthy2<T>(input:Truthy):Bool
+	// {
+	// 	return input;
+	// }
 
 
 	/**
@@ -1638,6 +1677,8 @@ class CollectionUtils
 			}
 		}
 	}
+
+
 
 	// // Version of forceCast which checks basic types like Int, Float, String, etc.
 	// public static extern overload inline function forceCast<T>(input:BasicTypes, ?type:Suggestion<Type.ValueType>, ?catchError:Bool = false):T

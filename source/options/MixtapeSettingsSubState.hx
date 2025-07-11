@@ -178,8 +178,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
-		var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game'];
-		for (theme in Mods.mergeAllTextsNamed('menus/'))
+		// var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game'];
+		// for (theme in Mods.mergeAllTextsNamed('menus/'))
 		var option:Option = new Option('Freeplay Menu:',
 			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBASE GAME DOES NOTHING FOR NOW!",
 			'freeplayMenu',
