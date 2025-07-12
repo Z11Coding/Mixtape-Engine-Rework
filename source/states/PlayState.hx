@@ -3099,6 +3099,8 @@ class PlayState extends MusicBeatState
 			curChart.push(fuck);
 		}
 
+		// curChart = cast (curChart:objects.NotePool.NoteArray);
+
 		for (field in playfields.members)
 			field.clearStackedNotes();
 		generatedMusic = true;
@@ -7624,7 +7626,8 @@ class PlayState extends MusicBeatState
 
 		NoteSplash.configs.clear();
 		mania = 3;
-		// instance = null;
+		// yutautil.MemoryHelper.freeMemory(this);
+		instance = null;
 		super.destroy();
 		endingSong = true;
 		Paths.clearStoredWithoutStickers();

@@ -111,6 +111,10 @@ class Paths
 			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
 			{
 				destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
+				trace('Cleared unused asset: $key');
+				// var p:cpp.Pointer<FlxGraphic> = new HaxePointer(currentTrackedAssets.get(key));
+				// if (p.ref != null)
+				// p.destroy(); // destroy the pointer
 				currentTrackedAssets.remove(key); // and remove the key from local cache map
 			}
 		}
@@ -265,7 +269,13 @@ class Paths
 		// free some gpu memory
 		if (graphic != null && graphic.bitmap != null && graphic.bitmap.__texture != null)
 			graphic.bitmap.__texture.dispose();
+			graphic.bitmap.dispose();
+			// graphic.destroy();
 		FlxG.bitmap.remove(graphic);
+		if (graphic != null)
+		{
+			graphic = null;
+		}
 	}
 
 	static public var currentLevel:String;

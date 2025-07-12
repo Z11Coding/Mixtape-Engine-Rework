@@ -1,0 +1,89 @@
+// YScript Example - Demonstrates the new functional syntax
+
+// Variable declarations
+var message: String = "Hello, YScript!";
+var count: Int = 42;
+const PI: Float = 3.14159;
+
+// Function definition
+function greet(name: String): String {
+    return "Hello, " + name + "!";
+}
+
+// Class definition
+class Player {
+    var name: String;
+    var health: Int;
+    var score: Float;
+    
+    function new(playerName: String) {
+        name = playerName;
+        health = 100;
+        score = 0.0;
+    }
+    
+    function takeDamage(damage: Int): Void {
+        health = health - damage;
+        if (health <= 0) {
+            health = 0;
+        }
+    }
+    
+    function addScore(points: Float): Void {
+        score = score + points;
+    }
+    
+    function getStatus(): String {
+        return name + " - Health: " + health + " Score: " + score;
+    }
+}
+
+// Enum definition
+enum GameState {
+    MENU,
+    PLAYING,
+    PAUSED,
+    GAME_OVER
+}
+
+// Control flow example
+function gameLoop(state: GameState): Void {
+    if (state == GameState.PLAYING) {
+        // Game logic here
+        var player = new Player("TestPlayer");
+        player.addScore(100.0);
+        player.takeDamage(25);
+        
+        // Print player status
+        trace(player.getStatus());
+    } else if (state == GameState.PAUSED) {
+        trace("Game is paused");
+    } else {
+        trace("Game is not running");
+    }
+}
+
+// Haxe integration example
+haxe {
+    // This block contains native Haxe code that can be executed
+    import flixel.FlxSprite;
+    
+    var sprite = new FlxSprite(0, 0);
+    sprite.makeGraphic(64, 64, 0xFFFFFFFF);
+}
+
+// Function with loops
+function countDown(start: Int): Void {
+    for (i = start; i > 0; i = i - 1) {
+        trace("Countdown: " + i);
+    }
+    trace("Blast off!");
+}
+
+// Entry point
+function main(): Void {
+    trace(message);
+    trace(greet("World"));
+    gameLoop(GameState.PLAYING);
+    countDown(5);
+}

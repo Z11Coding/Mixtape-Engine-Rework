@@ -4,7 +4,37 @@ import cpp.Star;
 import haxe.Constraints.Function;
 import haxe.ds.StringMap;
 
-typedef YVar =
+abstract YVar(YVarData) from YVarData to YVarData {
+	public var name(get, never):String;
+	public var type(get, never):Dynamic;
+	public var value(get, set):Dynamic;
+	public var haxePointer(get, never):cpp.RawPointer<Dynamic>;
+	
+	public function new(name:String, type:Dynamic, ?value:Dynamic) {
+		this = {
+			name: name,
+			type: type,
+			value: value,
+			pointer: { haxePointer: value != null ? cpp.RawPointer.addressOf(value) : null, virtualPointer: null }
+		};
+	}
+	
+	inline function get_name():String return this.name;
+	inline function get_type():Dynamic return this.type;
+	inline function get_value():Dynamic return this.value;
+	inline function set_value(v:Dynamic):Dynamic return this.value = v;
+	inline function get_haxePointer():cpp.RawPointer<Dynamic> return this.pointer.haxePointer;
+	
+	@:op(A == B) public function equals(other:YVar):Bool {
+		return this.name == other.name && this.type == other.type;
+	}
+	
+	@:to public function toString():String {
+		return 'YVar(${this.name}:${this.type} = ${this.value})';
+	}
+}
+
+typedef YVarData =
 {
 	name:String,
 	type:Dynamic,
@@ -103,7 +133,56 @@ typedef YClassInstance<T> =
 	?haxeClassInstance:Dynamic, // Haxe class instance, if this is a YClass extending a Haxe class.
 };
 
-typedef YFunction =
+abstract YFunction(YFunctionData) from YFunctionData to YFunctionData {
+	public var name(get, never):String;
+	public var returnType(get, never):Dynamic;
+	public var parameters(get, never):Array<YVar>;
+	public var body(get, set):String;
+	public var isHaxe(get, never):Bool;
+	public var isLua(get, never):Bool;
+	public var isPublic(get, never):Bool;
+	
+	public function new(name:String, returnType:Dynamic, parameters:Array<YVar>, body:String) {
+		this = {
+			name: name,
+			returnType: returnType,
+			parameters: parameters,
+			body: body,
+			parseBody: null,
+			functionData: null,
+			type: {
+				isLambda: false, isClosure: false, isMethod: false, isStatic: false, 
+				isConstructor: false, isDestructor: false, isVirtual: false, isAbstract: false, 
+				isOverride: false, isFinal: false, isNative: false, isLua: false, isHaxe: false, 
+				isC: false, isCPlusPlus: false, isForLoop: false, isWhileLoop: false
+			},
+			access: {
+				isPublic: true, isPrivate: false, isProtected: false, isInternal: false, isDynamic: false
+			},
+			attachment: []
+		};
+	}
+	
+	inline function get_name():String return this.name;
+	inline function get_returnType():Dynamic return this.returnType;
+	inline function get_parameters():Array<YVar> return this.parameters;
+	inline function get_body():String return this.body;
+	inline function set_body(v:String):String return this.body = v;
+	inline function get_isHaxe():Bool return this.type.isHaxe;
+	inline function get_isLua():Bool return this.type.isLua;
+	inline function get_isPublic():Bool return this.access.isPublic;
+	
+	public function call(args:Array<Dynamic>):Dynamic {
+		// Implementation for calling the function
+		return null;
+	}
+	
+	@:to public function toString():String {
+		return 'YFunction(${this.name}(${this.parameters.map(p -> p.toString()).join(", ")}):${this.returnType})';
+	}
+}
+
+typedef YFunctionData =
 {
 	name:String,
 	returnType:Dynamic,
@@ -415,7 +494,66 @@ class YScriptSemanticError extends haxe.Exception
 	}
 }
 
-typedef YSyntaxAST = Array<Dynamic>;
+// Enhanced AST node types
+enum YASTNode {
+	// Program structure
+	Program(statements:Array<YASTNode>);
+	
+	// Declarations
+	ClassDecl(name:String, superClass:Null<String>, interfaces:Array<String>, body:Array<YASTNode>);
+	FunctionDecl(name:String, params:Array<YVar>, returnType:Dynamic, body:YASTNode);
+	VariableDecl(name:String, type:Dynamic, init:Null<YASTNode>);
+	EnumDecl(name:String, values:Array<String>);
+	
+	// Statements
+	Block(statements:Array<YASTNode>);
+	If(condition:YASTNode, thenStmt:YASTNode, elseStmt:Null<YASTNode>);
+	While(condition:YASTNode, body:YASTNode);
+	For(init:Null<YASTNode>, condition:Null<YASTNode>, increment:Null<YASTNode>, body:YASTNode);
+	Return(value:Null<YASTNode>);
+	Break;
+	Continue;
+	Expression(expr:YASTNode);
+	
+	// Expressions
+	Identifier(name:String);
+	Literal(value:Dynamic);
+	BinaryOp(left:YASTNode, op:String, right:YASTNode);
+	UnaryOp(op:String, operand:YASTNode);
+	FunctionCall(func:YASTNode, args:Array<YASTNode>);
+	MemberAccess(object:YASTNode, member:String);
+	ArrayAccess(array:YASTNode, index:YASTNode);
+	Assignment(left:YASTNode, right:YASTNode);
+	
+	// Language blocks
+	HaxeBlock(code:String);
+	LuaBlock(code:String);
+}
+
+// AST visitor pattern
+interface YASTVisitor<T> {
+	function visitProgram(statements:Array<YASTNode>):T;
+	function visitClassDecl(name:String, superClass:Null<String>, interfaces:Array<String>, body:Array<YASTNode>):T;
+	function visitFunctionDecl(name:String, params:Array<YVar>, returnType:Dynamic, body:YASTNode):T;
+	function visitVariableDecl(name:String, type:Dynamic, init:Null<YASTNode>):T;
+	function visitBlock(statements:Array<YASTNode>):T;
+	function visitIf(condition:YASTNode, thenStmt:YASTNode, elseStmt:Null<YASTNode>):T;
+	function visitWhile(condition:YASTNode, body:YASTNode):T;
+	function visitFor(init:Null<YASTNode>, condition:Null<YASTNode>, increment:Null<YASTNode>, body:YASTNode):T;
+	function visitReturn(value:Null<YASTNode>):T;
+	function visitExpression(expr:YASTNode):T;
+	function visitIdentifier(name:String):T;
+	function visitLiteral(value:Dynamic):T;
+	function visitBinaryOp(left:YASTNode, op:String, right:YASTNode):T;
+	function visitUnaryOp(op:String, operand:YASTNode):T;
+	function visitFunctionCall(func:YASTNode, args:Array<YASTNode>):T;
+	function visitMemberAccess(object:YASTNode, member:String):T;
+	function visitAssignment(left:YASTNode, right:YASTNode):T;
+	function visitHaxeBlock(code:String):T;
+	function visitLuaBlock(code:String):T;
+}
+
+typedef YSyntaxAST = YASTNode;
 
 class YScriptSyntaxTree
 {
@@ -477,6 +615,8 @@ class YScriptSyntaxTree
 // It is planned to also have compatibility with Lua, and Haxe, and be able to run Lua scripts, and Haxe scripts, as well as be able to run C++ code and C code directly in the future.
 class YScript
 {
+    private var runtime:YScriptRuntime;
+    
     private var keywords:Map<String, EReg> = [
         // ———————— Type & Block Definitions ————————
 		"class"     => ~/\bclass\s+\w+(?:\s+extends\s+[\w\.]+)?(?:\s+implements\s+[\w\.]+(?:\s*,\s*[\w\.]+)*)?\s*\{(?:[^{}]|\{[^{}]*\})*\}/s,
@@ -554,7 +694,48 @@ class YScript
 
     public function new()
     {
-        // Initialization logic if needed
+        runtime = new YScriptRuntime();
+        
+        // Initialize tables for backward compatibility
+        varTable = new Map();
+        structTable = new Map();
+        classTable = new Map();
+        enumTable = new Map();
+        functionTable = new Map();
+        useTable = new Map();
+        importTable = new Map();
+        luaTable = new Map();
+    }
+    
+    public function execute(source:String):Dynamic {
+        return runtime.execute(source);
+    }
+    
+    public function setVariable(name:String, value:Dynamic, ?type:Dynamic):Void {
+        if (type == null) type = Dynamic;
+        var variable = new YVar(name, type, value);
+        runtime.globalScope.variables.set(name, variable);
+        varTable.set(name, variable);
+    }
+    
+    public function getVariable(name:String):Dynamic {
+        if (runtime.globalScope.variables.exists(name)) {
+            return runtime.globalScope.variables.get(name).value;
+        }
+        return null;
+    }
+    
+    public function defineFunction(name:String, func:YFunction):Void {
+        runtime.globalScope.functions.set(name, func);
+        functionTable.set(name, func);
+    }
+    
+    public function callFunction(name:String, args:Array<Dynamic>):Dynamic {
+        if (runtime.globalScope.functions.exists(name)) {
+            var func = runtime.globalScope.functions.get(name);
+            return runtime.callFunction(func, args, runtime.globalScope);
+        }
+        throw new YScriptRuntimeError('Function not found: $name');
     }
 
 	public function parse(script:String):Void
@@ -642,8 +823,8 @@ class YScript
 			var field:YVar = {
 				name: stuff,
 				type: Type.getClassName(Type.getClass(Reflect.field(haxeClass, stuff))),
-				value: Reflect.field(haxeClass, stuff),
-				pointer: { haxePointer: cpp.RawPointer.addressOf(Reflect.field(haxeClass, stuff)), virtualPointer: null }
+				value: Reflect.getProperty(haxeClass, stuff),
+				pointer: { haxePointer: cpp.RawPointer.addressOf(Reflect.getProperty(haxeClass, stuff)), virtualPointer: null }
 			};
 			yClass.fields.push(field);
 		}
@@ -722,4 +903,325 @@ private function parseUse(line:String):Void
 {
 	// Implement use parsing logic
 }
+}
+}
+
+// YScript Runtime and Interpreter
+class YScriptRuntime {
+    public var globalScope:YScriptScope;
+    public var currentScope:YScriptScope;
+    public var parser:YScriptParser;
+    
+    public function new() {
+        globalScope = {
+            variables: new Map(),
+            functions: new Map(),
+            classes: new Map(),
+            enums: new Map(),
+            imports: new Map(),
+            parent: null
+        };
+        currentScope = globalScope;
+        parser = new YScriptParser();
+    }
+    
+    public function execute(source:String):Dynamic {
+        var program = parser.parse(source);
+        return evaluateAST(program.ast, program.scope);
+    }
+    
+    public function evaluateAST(node:YASTNode, scope:YScriptScope):Dynamic {
+        return switch node {
+            case YASTNode.Program(statements):
+                var result:Dynamic = null;
+                for (stmt in statements) {
+                    result = evaluateAST(stmt, scope);
+                }
+                result;
+                
+            case YASTNode.Block(statements):
+                var blockScope = createChildScope(scope);
+                var result:Dynamic = null;
+                for (stmt in statements) {
+                    result = evaluateAST(stmt, blockScope);
+                }
+                result;
+                
+            case YASTNode.VariableDecl(name, type, init):
+                var value = init != null ? evaluateAST(init, scope) : null;
+                var variable = new YVar(name, type, value);
+                scope.variables.set(name, variable);
+                value;
+                
+            case YASTNode.FunctionDecl(name, params, returnType, body):
+                var func = new YFunction(name, returnType, params, "");
+                // Store the parsed body for later execution
+                func.parseBody = body;
+                scope.functions.set(name, func);
+                func;
+                
+            case YASTNode.ClassDecl(name, superClass, interfaces, body):
+                var cls:YBaseClass = {
+                    name: name,
+                    fields: [],
+                    methods: [],
+                    access: {isPublic: true, isPrivate: false, isInternal: false},
+                    extending: [],
+                    implementing: [],
+                    constructors: [],
+                    destructors: []
+                };
+                
+                // Create class scope
+                var classScope = createChildScope(scope);
+                
+                // Process class body
+                for (stmt in body) {
+                    switch stmt {
+                        case YASTNode.VariableDecl(fieldName, fieldType, fieldInit):
+                            var field = new YVar(fieldName, fieldType, fieldInit != null ? evaluateAST(fieldInit, classScope) : null);
+                            cls.fields.push(field);
+                        case YASTNode.FunctionDecl(methodName, methodParams, methodReturnType, methodBody):
+                            var method = new YFunction(methodName, methodReturnType, methodParams, "");
+                            method.parseBody = methodBody;
+                            if (methodName == "new") {
+                                cls.constructors.push(method);
+                            } else if (methodName == "destroy") {
+                                cls.destructors.push(method);
+                            } else {
+                                cls.methods.push(method);
+                            }
+                        default:
+                    }
+                }
+                
+                scope.classes.set(name, cls);
+                cls;
+                
+            case YASTNode.If(condition, thenStmt, elseStmt):
+                var conditionValue = evaluateAST(condition, scope);
+                if (isTruthy(conditionValue)) {
+                    evaluateAST(thenStmt, scope);
+                } else if (elseStmt != null) {
+                    evaluateAST(elseStmt, scope);
+                } else {
+                    null;
+                }
+                
+            case YASTNode.While(condition, body):
+                var result:Dynamic = null;
+                while (isTruthy(evaluateAST(condition, scope))) {
+                    result = evaluateAST(body, scope);
+                }
+                result;
+                
+            case YASTNode.For(init, condition, increment, body):
+                var forScope = createChildScope(scope);
+                if (init != null) evaluateAST(init, forScope);
+                
+                var result:Dynamic = null;
+                while (condition == null || isTruthy(evaluateAST(condition, forScope))) {
+                    result = evaluateAST(body, forScope);
+                    if (increment != null) evaluateAST(increment, forScope);
+                }
+                result;
+                
+            case YASTNode.Return(value):
+                throw new YScriptReturnException(value != null ? evaluateAST(value, scope) : null);
+                
+            case YASTNode.Break:
+                throw new YScriptBreakException();
+                
+            case YASTNode.Continue:
+                throw new YScriptContinueException();
+                
+            case YASTNode.Expression(expr):
+                evaluateAST(expr, scope);
+                
+            case YASTNode.Identifier(name):
+                getVariable(name, scope);
+                
+            case YASTNode.Literal(value):
+                value;
+                
+            case YASTNode.BinaryOp(left, op, right):
+                var leftValue = evaluateAST(left, scope);
+                var rightValue = evaluateAST(right, scope);
+                evaluateBinaryOp(leftValue, op, rightValue);
+                
+            case YASTNode.UnaryOp(op, operand):
+                var operandValue = evaluateAST(operand, scope);
+                evaluateUnaryOp(op, operandValue);
+                
+            case YASTNode.Assignment(left, right):
+                var rightValue = evaluateAST(right, scope);
+                switch left {
+                    case YASTNode.Identifier(name):
+                        setVariable(name, rightValue, scope);
+                    case YASTNode.MemberAccess(object, member):
+                        // Handle member assignment
+                        var objValue = evaluateAST(object, scope);
+                        Reflect.setField(objValue, member, rightValue);
+                    default:
+                        throw new YScriptRuntimeError("Invalid assignment target");
+                }
+                rightValue;
+                
+            case YASTNode.FunctionCall(func, args):
+                var funcValue = evaluateAST(func, scope);
+                var argValues = [for (arg in args) evaluateAST(arg, scope)];
+                callFunction(funcValue, argValues, scope);
+                
+            case YASTNode.MemberAccess(object, member):
+                var objValue = evaluateAST(object, scope);
+                Reflect.field(objValue, member);
+                
+            case YASTNode.ArrayAccess(array, index):
+                var arrayValue = evaluateAST(array, scope);
+                var indexValue = evaluateAST(index, scope);
+                Reflect.field(arrayValue, Std.string(indexValue));
+                
+            case YASTNode.HaxeBlock(code):
+                executeHaxeCode(code, scope);
+                
+            case YASTNode.LuaBlock(code):
+                executeLuaCode(code, scope);
+                
+            case YASTNode.EnumDecl(name, values):
+                var enumData:YEnum = {
+                    name: name,
+                    values: values,
+                    access: {isPublic: true, isPrivate: false, isInternal: false}
+                };
+                scope.enums.set(name, enumData);
+                enumData;
+        };
+    }
+    
+    private function createChildScope(parent:YScriptScope):YScriptScope {
+        return {
+            variables: new Map(),
+            functions: new Map(),
+            classes: new Map(),
+            enums: new Map(),
+            imports: new Map(),
+            parent: parent
+        };
+    }
+    
+    private function getVariable(name:String, scope:YScriptScope):Dynamic {
+        if (scope.variables.exists(name)) {
+            return scope.variables.get(name).value;
+        } else if (scope.parent != null) {
+            return getVariable(name, scope.parent);
+        } else {
+            throw new YScriptRuntimeError('Undefined variable: $name');
+        }
+    }
+    
+    private function setVariable(name:String, value:Dynamic, scope:YScriptScope):Void {
+        if (scope.variables.exists(name)) {
+            scope.variables.get(name).value = value;
+        } else if (scope.parent != null) {
+            setVariable(name, value, scope.parent);
+        } else {
+            throw new YScriptRuntimeError('Undefined variable: $name');
+        }
+    }
+    
+    private function isTruthy(value:Dynamic):Bool {
+        if (value == null) return false;
+        if (Std.is(value, Bool)) return value;
+        if (Std.is(value, Int)) return value != 0;
+        if (Std.is(value, Float)) return value != 0.0;
+        if (Std.is(value, String)) return value != "";
+        return true;
+    }
+    
+    private function evaluateBinaryOp(left:Dynamic, op:String, right:Dynamic):Dynamic {
+        return switch op {
+            case "+": left + right;
+            case "-": left - right;
+            case "*": left * right;
+            case "/": left / right;
+            case "%": left % right;
+            case "==": left == right;
+            case "!=": left != right;
+            case "<": left < right;
+            case "<=": left <= right;
+            case ">": left > right;
+            case ">=": left >= right;
+            case "&&": isTruthy(left) && isTruthy(right);
+            case "||": isTruthy(left) || isTruthy(right);
+            default: throw new YScriptRuntimeError('Unknown binary operator: $op');
+        };
+    }
+    
+    private function evaluateUnaryOp(op:String, operand:Dynamic):Dynamic {
+        return switch op {
+            case "!": !isTruthy(operand);
+            case "-": -operand;
+            case "+": +operand;
+            default: throw new YScriptRuntimeError('Unknown unary operator: $op');
+        };
+    }
+    
+    private function callFunction(func:Dynamic, args:Array<Dynamic>, scope:YScriptScope):Dynamic {
+        if (Std.is(func, YFunction)) {
+            var yfunc:YFunction = func;
+            var funcScope = createChildScope(scope);
+            
+            // Bind parameters
+            for (i in 0...yfunc.parameters.length) {
+                if (i < args.length) {
+                    var param = yfunc.parameters[i];
+                    funcScope.variables.set(param.name, new YVar(param.name, param.type, args[i]));
+                }
+            }
+            
+            try {
+                return evaluateAST(yfunc.parseBody, funcScope);
+            } catch (e:YScriptReturnException) {
+                return e.value;
+            }
+        } else if (Reflect.isFunction(func)) {
+            return Reflect.callMethod(null, func, args);
+        } else {
+            throw new YScriptRuntimeError('Cannot call non-function value');
+        }
+    }
+    
+    private function executeHaxeCode(code:String, scope:YScriptScope):Dynamic {
+        // For now, just return null - would need proper Haxe integration
+        trace('Executing Haxe code: $code');
+        return null;
+    }
+    
+    private function executeLuaCode(code:String, scope:YScriptScope):Dynamic {
+        // For now, just return null - would need proper Lua integration
+        trace('Executing Lua code: $code');
+        return null;
+    }
+}
+
+// Control flow exceptions
+class YScriptReturnException extends haxe.Exception {
+    public var value:Dynamic;
+    
+    public function new(value:Dynamic) {
+        super("Return");
+        this.value = value;
+    }
+}
+
+class YScriptBreakException extends haxe.Exception {
+    public function new() {
+        super("Break");
+    }
+}
+
+class YScriptContinueException extends haxe.Exception {
+    public function new() {
+        super("Continue");
+    }
 }

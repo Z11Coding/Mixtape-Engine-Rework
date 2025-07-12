@@ -33,8 +33,13 @@ class MemoryHelper {
         trace('Finished clearClassObject for state: ' + Type.getClassName(state));
     }
 
-    public static inline function freeMemory<T>(o:HaxePointer<T>):Void {
-        cpp.Native.free(o);
+    public static extern inline function freeMemory<T>(o:HaxePointer<T>):Void {
+        var toDelete:cpp.Star<T> = o;
+
+        if (toDelete == null) {
+            return;
+        }
+        untyped __cpp__('{{ delete {0};}}', toDelete);
         var killed = o;
         if (killed != null) {
             o = null;

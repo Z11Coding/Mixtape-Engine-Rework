@@ -15,8 +15,10 @@ typedef OneOrMore<T> = OneOrMany<T>;
      */
     enum PointerAccess {
         Direct;
+        PointerHandle; // Access to cpp.Pointer<T>, rather than the raw pointer.
         Method(name:String, args:OneOrMore<Dynamic>);
         Call(args:OneOrMore<Dynamic>);
+        Mem; Memory; // Memory access, equivalent to a HaxeAddress.
         Raw;
     }
 
@@ -1408,6 +1410,15 @@ abstract HaxePointer<T>(cpp.RawPointer<T>) {
                 }
             case Raw:
                 return ptr;
+            case Mem | Memory:
+                if (ptr.ref == null) {
+                    trace('HaxePointer: pointerAccess - ptr.ref is null');
+                    throw 'HaxePointer: Cannot access memory of null pointer value';
+                }
+                // Return a new HaxePointer wrapping the raw pointer
+                return new HaxeAddress((ptr));
+            case PointerHandle:
+                return ptr; // Return the pointer itself
         }
     }
 
@@ -1475,12 +1486,12 @@ abstract Assertion(() -> Bool) {
         return cast this;
     }
 
-    @:from
-    public static inline function fromBool(value:Bool):Assertion {
-        return new Assertion(function():Bool {
-            return cast cpp.Pointer.fromRaw(new HaxePointer<Bool>(value)).ref;
-        });
-    }
+    // @:from
+    // public static inline function fromBool(value:Bool):Assertion {
+    //     return new Assertion(function():Bool {
+    //         return cast cpp.Pointer.fromRaw(new HaxePointer<Bool>(value)).ref;
+    //     });
+    // }
 
     @:op(a())
     public inline function opCall():Bool {
