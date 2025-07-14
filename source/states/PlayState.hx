@@ -457,6 +457,9 @@ class PlayState extends MusicBeatState
 	public var camOtherfilters:Array<BitmapFilter> = [];
 	public var camDialoguefilters:Array<BitmapFilter> = [];
 	public var delayOffset:Float = 0; // for the delay effect
+
+	var ch = 2 / 1000;
+	public var shaderUpdates:Array<Float->Void> = [];
 	
 	public var chartModifier:String = 'Normal';
 	public var convertMania:Int = ClientPrefs.getGameplaySetting('convertMania', 3);
@@ -1240,7 +1243,7 @@ class PlayState extends MusicBeatState
 			for (event in eventNotes) event.strumTime -= eventEarlyTrigger(event);
 			eventNotes.sort(sortByTime);
 		}
-
+		
 		startCallback();
 		comboManager.RecalculateRating(false, false);
 
@@ -4706,6 +4709,11 @@ class PlayState extends MusicBeatState
 		}
 		//#end
 
+		for (i in shaderUpdates)
+		{
+			i(elapsed);
+		}
+
 		setOnScripts('botPlay', cpuControlled);
 		callOnScripts('onUpdatePost', [elapsed]);
 	}
@@ -6362,7 +6370,7 @@ class PlayState extends MusicBeatState
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
 		vocals.volume = 1 * vocalVolumeMultiplier;
 
-		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0)
+		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0 || comboGroup.members.length > 50)
 		{
 			for (spr in comboGroup)
 			{
@@ -6371,6 +6379,7 @@ class PlayState extends MusicBeatState
 				comboGroup.remove(spr);
 				spr.destroy();
 			}
+			if (comboGroup.members.length > 200) comboGroup.clear();
 		}
 
 		var placement:Float = FlxG.width * 0.35;
@@ -6492,7 +6501,10 @@ class PlayState extends MusicBeatState
 			FlxTween.tween(numScore, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 				onComplete: function(tween:FlxTween)
 				{
-					if (numScore != null) numScore.destroy();
+					if (numScore != null) {
+						//comboGroup.remove(numScore);
+						numScore.destroy();
+					}
 				},
 				startDelay: Conductor.crochet * 0.002 / playbackRate
 			});
@@ -6502,14 +6514,23 @@ class PlayState extends MusicBeatState
 		}
 		comboSpr.x = xThing + 50;
 		FlxTween.tween(rating, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
+			onComplete: function(tween:FlxTween)
+			{
+				if (rating != null) {
+					comboGroup.remove(rating);
+					rating.destroy();
+				}
+			},
 			startDelay: Conductor.crochet * 0.001 / playbackRate
 		});
 
 		FlxTween.tween(comboSpr, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 			onComplete: function(tween:FlxTween)
 			{
-				if (comboSpr != null) comboSpr.destroy();
-				if (rating != null) rating.destroy();
+				if (comboSpr != null) {
+					comboGroup.remove(comboSpr);
+					comboSpr.destroy();
+				}
 			},
 			startDelay: Conductor.crochet * 0.002 / playbackRate
 		});
