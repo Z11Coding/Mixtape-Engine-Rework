@@ -31,7 +31,7 @@ class Rating
 		var ratingsData:Array<Rating> = [new Rating('marv')]; //highest rating goes first
 		
 		var rating:Rating = new Rating('sick');
-		rating.ratingMod = 1;
+		rating.ratingMod = 0.88;
 		rating.score = 350;
 		rating.noteSplash = true;
 		ratingsData.push(rating);

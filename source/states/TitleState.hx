@@ -18,6 +18,9 @@ import shaders.ColorSwap;
 import states.StoryMenuState;
 import states.MainMenuState;
 
+import undertale.UnderTextParser;
+import openfl.filters.BitmapFilter;
+
 typedef TitleData =
 {
 	var titlex:Float;
@@ -70,7 +73,7 @@ class TitleState extends MusicBeatState
 
 	#if TITLE_SCREEN_EASTER_EGG
 	final easterEggKeys:Array<String> = [
-		'SHADOW', 'RIVEREN', 'BBPANZU', 'PESSY'
+		'GASTER'
 	];
 	final allowedKeys:String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	var easterEggKeysBuffer:String = '';
@@ -404,7 +407,7 @@ class TitleState extends MusicBeatState
 			Conductor.songPosition = FlxG.sound.music.time;
 		// FlxG.watch.addQuick('amp', FlxG.sound.music.amplitude);
 
-		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || controls.ACCEPT;
+		var pressedEnter:Bool = (FlxG.keys.justPressed.ENTER || controls.ACCEPT) && !inGasterEgg;
 
 		#if mobile
 		for (touch in FlxG.touches.list)
@@ -507,13 +510,18 @@ class TitleState extends MusicBeatState
 								function(twn:FlxTween) {
 									FlxTransitionableState.skipNextTransIn = true;
 									FlxTransitionableState.skipNextTransOut = true;
-									MusicBeatState.switchState(new TitleState());
+									switch (word) {
+										case "GASTER":
+											doGasterEgg();
+										default:
+											MusicBeatState.switchState(new TitleState());
+									}
 								}
 							});
 							FlxG.sound.music.fadeOut();
-							if(FreeplayState.vocals != null)
+							if(FreeplayManager.vocals != null)
 							{
-								FreeplayState.vocals.fadeOut();
+								FreeplayManager.vocals.fadeOut();
 							}
 							closedState = true;
 							transitioning = true;
@@ -536,6 +544,46 @@ class TitleState extends MusicBeatState
 		{
 			if(controls.UI_LEFT) swagShader.hue -= elapsed * 0.1;
 			if(controls.UI_RIGHT) swagShader.hue += elapsed * 0.1;
+		}
+
+		if (inGasterEgg) {
+			if (box != null && boxB != null) {
+				var toW:Float = targetW;
+				var toH:Float = targetH;
+
+				boxW = boxW + ((toW - boxW) / (10 / (elapsed * 60)));
+				boxH = boxH + ((toH - boxH) / (10 / (elapsed * 60)));
+
+				if (Math.ceil(boxW) == toW || Math.floor(boxW) == toW) boxW = toW;
+				if (Math.ceil(boxH) == toH || Math.floor(boxH) == toH) boxH = toH;
+
+				box.scale.x = boxW / 100;
+				box.scale.y = boxH / 100;
+
+				boxB.scale.x = (boxW + 16) / 100;
+				boxB.scale.y = (boxH + 16) / 100;
+
+				box.x = boxX;
+				box.y = boxY;
+				boxB.x = boxX;
+				boxB.y = boxY;
+
+				box.alpha = boxA;
+				boxB.alpha = boxA;
+			}
+
+			if (curDial <= gasterSpeech.length && (FlxG.keys.justPressed.ENTER || controls.ACCEPT)) {
+				typeFunc(gasterSpeech[curDial]);
+				curDial++;
+			} else if (curDial > gasterSpeech.length) {
+				typeFunc(true);
+				remove(daStatic);
+				FlxG.sound.music.stop();
+				new FlxTimer().start(1, function(tmr:FlxTimer)
+				{
+					Main.closeGame();
+				});
+			}
 		}
 
 		super.update(elapsed);
@@ -647,64 +695,7 @@ class TitleState extends MusicBeatState
 	{
 		if (!skippedIntro)
 		{
-			#if TITLE_SCREEN_EASTER_EGG
-			if (playJingle) //Ignore deez
-			{
-				playJingle = false;
-				var easteregg:String = FlxG.save.data.psychDevsEasterEgg;
-				if (easteregg == null) easteregg = '';
-				easteregg = easteregg.toUpperCase();
-
-				var sound:FlxSound = null;
-				switch(easteregg)
-				{
-					case 'RIVEREN':
-						sound = FlxG.sound.play(Paths.sound('JingleRiver'));
-					case 'SHADOW':
-						FlxG.sound.play(Paths.sound('JingleShadow'));
-					case 'BBPANZU':
-						sound = FlxG.sound.play(Paths.sound('JingleBB'));
-					case 'PESSY':
-						sound = FlxG.sound.play(Paths.sound('JinglePessy'));
-
-					default: //Go back to normal ugly ass boring GF
-						remove(ngSpr);
-						remove(credGroup);
-						FlxG.camera.flash(FlxColor.WHITE, 2);
-						skippedIntro = true;
-
-						FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 0);
-						FlxG.sound.music.fadeIn(4, 0, 0.7);
-						return;
-				}
-
-				transitioning = true;
-				if(easteregg == 'SHADOW')
-				{
-					new FlxTimer().start(3.2, function(tmr:FlxTimer)
-					{
-						remove(ngSpr);
-						remove(credGroup);
-						FlxG.camera.flash(FlxColor.WHITE, 0.6);
-						transitioning = false;
-					});
-				}
-				else
-				{
-					remove(ngSpr);
-					remove(credGroup);
-					FlxG.camera.flash(FlxColor.WHITE, 3);
-					sound.onComplete = function() {
-						FlxG.sound.playMusic(Paths.music(Constants.menuMusic), 0);
-						FlxG.sound.music.fadeIn(4, 0, 0.7);
-						transitioning = false;
-						#if ACHIEVEMENTS_ALLOWED
-						if(easteregg == 'PESSY') Achievements.unlock('pessy_easter_egg');
-						#end
-					};
-				}
-			}
-			else #end //Default! Edit this one!!
+			//Default! Edit this one!!
 			{
 				remove(ngSpr);
 				remove(credGroup);
@@ -713,18 +704,98 @@ class TitleState extends MusicBeatState
 				var easteregg:String = FlxG.save.data.psychDevsEasterEgg;
 				if (easteregg == null) easteregg = '';
 				easteregg = easteregg.toUpperCase();
-				#if TITLE_SCREEN_EASTER_EGG
-				if(easteregg == 'SHADOW')
-				{
-					FlxG.sound.music.fadeOut();
-					if(FreeplayState.vocals != null)
-					{
-						FreeplayState.vocals.fadeOut();
-					}
-				}
-				#end
 			}
 			skippedIntro = true;
 		}
 	}
+
+	var box:FlxSprite;
+    var boxB:FlxSprite;
+	var underText:UnderTextParser;
+	var daStatic:FlxSprite;
+	//Box Stuff
+    public var targetW:Float = 810;
+    public var targetH:Float = 200;
+    public var boxX:Float = (1280 / 2) - 25;
+    public var boxY:Float = (720 / 2) + 75;
+    var boxW:Float = 0;
+    var boxH:Float = 0;
+    public var boxA:Float = 1;
+	var curDial:Int = 0;
+
+	var inGasterEgg:Bool = false;
+	var camfilters:Array<BitmapFilter> = [];
+	var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+	var gasterSpeech:Array<String> = [
+		"[set:0.2]THE DARKNESS GROWS COLD.",
+		"IT'S NEVER-ENDING NIGHT THAT EXPANDS ACROSS AN ENDLESS OCEAN",
+		"I CAN REACH PLACES I'VE NEVER KNOWN BEFORE",
+		"AND I HAVE LOST THE ABILITY TO TELL WHERE I AM",
+		"BUT, DISPITE THIS...",
+		"THE REAL QUESTION IS",
+		"WHAT ARE YOU DOING HERE?",
+		"YOU SHOULDN'T BE HERE YOU KNOW",
+		"THE DARKNESS DOESN'T CARE FOR PEOPLE LIKE YOU"
+	];
+	
+	function doGasterEgg() {
+		curDial = 0;
+		FlxG.sound.playMusic(Paths.music("hello"), 1);
+		daStatic = new FlxSprite(0, 0);
+		daStatic.frames = Paths.getSparrowAtlas('effects/static');
+		daStatic.setGraphicSize(FlxG.width, FlxG.height);
+		daStatic.screenCenter();
+		daStatic.animation.addByPrefix('static','lestatic',24, true);
+		daStatic.animation.play('static', true);
+		add(daStatic);
+
+		boxB = new FlxSprite().loadGraphic(Paths.image('ut/boxBorder'));
+        box = new FlxSprite().loadGraphic(Paths.image('ut/box'));
+		boxB.screenCenter();
+        box.screenCenter();
+		add(boxB);
+        add(box);
+
+		underText = new UnderTextParser(300, 400, Std.int(FlxG.width * 0.6), '', 32);
+        underText.font = Paths.font("undertale-wingdings.ttf");
+        underText.color = 0xFFFFFFFF;
+        underText.prefix = '* '; 
+        add(underText);
+		for (letter in alphabet) {
+			underText.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+			underText.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+		}
+        //underText.alpha = 0;
+		inGasterEgg = true;
+		FlxG.camera.setFilters(camfilters);
+		FlxG.camera.filtersEnabled = true;	
+		camfilters.push(shaders.ShadersHandler.chromaticAberration);
+	}
+
+	var daSpeed:Float = 0.015;
+    function typeFunc(?text:String = '', ?sound:String = 'uifont', ?speed:Float = 0.2, ?delayBetweenPause:Float = 1, hide:Bool = false)
+    {
+        var splitName:Array<String> = text.split("\n");
+        var trueText:String = splitName[0];
+        for (i in 0...splitName.length)
+        {
+            if (i > 0) trueText += '\n* ' + splitName[i];
+        }
+    
+        if (hide)
+        {
+            underText.alpha = 0;
+            underText.resetText('');
+			box.visible = false;
+			boxB.visible = false;
+        }
+        else
+        {
+            underText.alpha = 1;
+            underText.resetText(trueText);
+            underText.start(speed, true);
+			box.visible = true;
+			boxB.visible = true;
+        }
+    }
 }

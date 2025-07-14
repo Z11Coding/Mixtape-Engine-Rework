@@ -1537,7 +1537,7 @@ class FlxSprite extends FlxObject
 		{
 			_angleChanged = true;
 			try {animation.update(0);}
-			catch(e) {trace("ERROR CHANGING ANGLE!");}
+			catch(e) {/*trace("ERROR CHANGING ANGLE!");*/}
 		}
 		return ret;
 	}
