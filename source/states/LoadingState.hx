@@ -220,6 +220,13 @@ class LoadingState extends MusicBeatState
 
 			bar.scale.x = barWidth * curPercent;
 			bar.updateHitbox();
+
+			if (curPercent > 90 && timePassed > 6000) {
+				var yourtakingtoolong:FlxText = new FlxText(520, 400, 400, 'IF YOU\'RE READING THIS, IT\'S STUCK!\nPRESS F4 TO ESCAPE TO THE MAIN MENU!', 32);
+				yourtakingtoolong.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
+				yourtakingtoolong.borderSize = 2;
+				addBehindBar(yourtakingtoolong);
+			}
 		}
 		
 		#if HSCRIPT_ALLOWED

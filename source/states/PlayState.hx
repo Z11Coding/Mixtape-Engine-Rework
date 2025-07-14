@@ -6370,7 +6370,7 @@ class PlayState extends MusicBeatState
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
 		vocals.volume = 1 * vocalVolumeMultiplier;
 
-		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0 || comboGroup.members.length > 50)
+		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0 || comboGroup.members.length > 1000)
 		{
 			for (spr in comboGroup)
 			{
@@ -6379,8 +6379,8 @@ class PlayState extends MusicBeatState
 				comboGroup.remove(spr);
 				spr.destroy();
 			}
-			if (comboGroup.members.length > 200) comboGroup.clear();
 		}
+		if (comboGroup.members.length > 200) comboGroup.clear();
 
 		var placement:Float = FlxG.width * 0.35;
 		var rating:FlxSprite = new FlxSprite();

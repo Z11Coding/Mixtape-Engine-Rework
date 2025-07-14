@@ -83,7 +83,7 @@ class PsychDialogueStyle extends DialogueStyle {
 	public function makeDialogueBox():FlxSprite{
 		box = new FlxSprite(70, 370);
 		box.antialiasing = ClientPrefs.data.antialiasing;
-		box.frames = Paths.getSparrowAtlas('dialogue/boxes/speech_bubble' + ClientPrefs.data.menuTheme == "Dark" ? '_dark' : '');
+		box.frames = Paths.getSparrowAtlas('dialogue/boxes/speech_bubble' + (ClientPrefs.data.menuTheme == "Dark" ? '_dark' : ''));
 		box.scrollFactor.set();
 		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
 		box.animation.addByPrefix('angry', 'AHH speech bubble', 24);		
