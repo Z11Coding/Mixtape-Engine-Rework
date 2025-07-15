@@ -980,7 +980,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		modInputText.text = metadata.song.mod;
 		bgInputText.text = metadata.freeplay.bg;
 		albumInputText.text = metadata.freeplay.album;
-		ratingsStepper.value = metadata.freeplay.ratings.get(Difficulty.list[PlayState.storyDifficulty].toLowerCase());
+		try{ratingsStepper.value = metadata.freeplay.ratings.get(Difficulty.list[PlayState.storyDifficulty].toLowerCase());}
+		catch(e) {ratingsStepper.value = 0;}
 		reloadLilBuddies();
 	}
 	
@@ -2255,7 +2256,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					artist: "???"
 				},
 				freeplay: {
-					ratings: [], 
+					ratings: ['easy' => 0, 'normal' => 0, 'hard' => 0, 'erect' => 0, 'nightmare' => 0], 
 					bg: "menuDesat", 
 					album: "NoCover"
 				},

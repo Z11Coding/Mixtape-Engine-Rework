@@ -1,14 +1,15 @@
 {
-    "song": {
-        "name":"Geostar",
-        "artist":"Z11Gaming",
-        "charter":"Z11Gaming",
-        "mod":"Mixtape Mashup"
-    },
-
-    "freeplay": {
-        "bg":"menuBGBlue",
-        "album":"NoCover",
-        "ratings":{ "hard": 8 }
-    }
+	"freeplay": {
+		"ratings": {
+			"hard": 8
+		},
+		"album": "NoCover",
+		"bg": "menuBGBlue"
+	},
+	"song": {
+		"mod": "Mixtape Mashup",
+		"charter": "Z11Gaming",
+		"artist": "Z11Gaming",
+		"name": "GeoStar"
+	}
 }
