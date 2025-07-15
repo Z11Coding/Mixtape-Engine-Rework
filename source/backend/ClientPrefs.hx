@@ -123,7 +123,7 @@ import states.TitleState;
 
 	// public var inputSystem:String = 'Native';
 
-	public var comboOffset:Array<Int> = [0, 0, 0, 0];
+	public var comboOffset:Array<Int> = [0, 0, 0, 0, 0, 0];
 	public var ratingOffset:Int = 0;
 	public var marvWindow:Int = 22;
 	public var sickWindow:Int = 45;

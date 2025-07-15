@@ -96,16 +96,17 @@ import yutautil.ChanceSelector.Chance;
 
 	EDIT: not EXACTLY how it works but its a good enough summary
 */
-typedef SpeedEvent =
+@:structInit
+class SpeedEvent
 {
-	position:Float, // the y position where the change happens (modManager.getVisPos(songTime))
-	startTime:Float, // the song position (conductor.songTime) where the change starts
+	public var position:Float; // the y position where the change happens (modManager.getVisPos(songTime))
+	public var startTime:Float; // the song position (conductor.songTime) where the change starts
 	#if EASED_SVs
-	startSpeed:Float, // the previous event's speed
-	?endTime:Float, // the song position (conductor.songTime) when the change ends
-	?easeFunc:EaseFunction,
+	public var startSpeed:Float; // the previous event's speed
+	public var endTime:Null<Float> = null; // the song position (conductor.songTime) when the change ends
+	public var easeFunc:EaseFunction = FlxEase.linear;
 	#end
-	speed:Float // speed mult after the change
+	public var speed:Float; // speed mult after the change
 }
 @:noScripting
 class PlayState extends MusicBeatState
@@ -560,6 +561,10 @@ class PlayState extends MusicBeatState
 			#end
 		});
 
+		#if EASED_SVs
+		resetSVDeltas();
+		#end
+
 		// Because some things do actually use these lol
 		opponentStrums = new FlxTypedGroup<StrumNote>();
 		playerStrums = new FlxTypedGroup<StrumNote>();
@@ -887,8 +892,9 @@ class PlayState extends MusicBeatState
 				#end
 
 				#if HSCRIPT_ALLOWED
-				if(file.toLowerCase().endsWith('.hx'))
-					initHScript(folder + file);
+				for (ext in Paths.HSCRIPT_EXTENSIONS)
+					if(file.toLowerCase().endsWith('.$ext'))
+						initHScript(folder + file);
 				#end
 			
 		#end
@@ -2471,6 +2477,13 @@ class PlayState extends MusicBeatState
 					if (generalVocals != null && generalVocals.length > 0)
 					{
 						vocals.loadEmbedded(generalVocals);
+							
+						// Check for the other vocals as well
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
 					}
 					else
 					{
@@ -3845,7 +3858,7 @@ class PlayState extends MusicBeatState
 				}
 				#if EASED_SVs
 				var endTime:Null<Float> = null;
-				var easeFunc:Null<EaseFunction> = null;
+				var easeFunc:EaseFunction = FlxEase.linear;
 
 				var tweenOptions = event.value2.split("/");
 				if(tweenOptions.length >= 1){
@@ -4262,7 +4275,7 @@ class PlayState extends MusicBeatState
 
 	public function getTimeFromSV(time:Float, event:SpeedEvent):Float {
 		#if EASED_SVs
-		var func:EaseFunction = event.easeFunc == null ? FlxEase.linear : event.easeFunc;
+		var func:EaseFunction = event.easeFunc;
 		if (event.endTime != null) {
 			var timeElapsed:Float = FlxMath.remapToRange(time, event.startTime, event.endTime, 0, 1);
 			if(timeElapsed > 1)timeElapsed = 1;
@@ -4857,7 +4870,7 @@ class PlayState extends MusicBeatState
 				case SINGLE:
 					iconP1.animation.curAnim.curFrame = 0;
 				case WINNING:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 0 : 1));
+					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 1 : 0));
 				default:
 					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 1 : 0);
 			}
@@ -6441,12 +6454,19 @@ class PlayState extends MusicBeatState
 		comboSpr.acceleration.y = FlxG.random.int(200, 300) * playbackRate * playbackRate;
 		comboSpr.velocity.y -= FlxG.random.int(140, 160) * playbackRate;
 		comboSpr.visible = (!ClientPrefs.data.hideHud && showCombo);
-		comboSpr.x += ClientPrefs.data.comboOffset[0];
-		comboSpr.y -= ClientPrefs.data.comboOffset[1];
 		comboSpr.antialiasing = antialias;
 		comboSpr.y += 60;
 		comboSpr.velocity.x += FlxG.random.int(1, 10) * playbackRate;
 		comboGroup.add(rating);
+
+		if (comboOffsetCustom != null) {
+			comboSpr.x = comboOffsetCustom[4];
+			comboSpr.y = comboOffsetCustom[5];
+		}
+		else {
+			comboSpr.x += ClientPrefs.data.comboOffset[4];
+			comboSpr.y -= ClientPrefs.data.comboOffset[5];
+		}
 
 		if (!PlayState.isPixelStage)
 		{
@@ -6502,7 +6522,7 @@ class PlayState extends MusicBeatState
 				onComplete: function(tween:FlxTween)
 				{
 					if (numScore != null) {
-						//comboGroup.remove(numScore);
+						comboGroup.remove(numScore);
 						numScore.destroy();
 					}
 				},
@@ -6512,7 +6532,7 @@ class PlayState extends MusicBeatState
 			daLoop++;
 			if(numScore.x > xThing) xThing = numScore.x;
 		}
-		comboSpr.x = xThing + 50;
+		//comboSpr.x = xThing + 50;
 		FlxTween.tween(rating, {alpha: 0, angle: FlxG.random.int(-25, 25)}, 0.2 / playbackRate, {
 			onComplete: function(tween:FlxTween)
 			{

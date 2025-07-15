@@ -1,0 +1,95 @@
+{
+	"animations": [
+		{
+			"loop": true,
+			"offsets": [0, 0],
+			"anim": "idle-alt",
+			"fps": 24,
+			"name": "Angry captain alt Idle instance 1",
+			"indices": []
+		},
+		{
+			"loop": true,
+			"offsets": [0, 0],
+			"anim": "singRIGHT-alt",
+			"fps": 24,
+			"name": "Angry captain alt RIGHT NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": true,
+			"offsets": [0, 0],
+			"anim": "singLEFT-alt",
+			"fps": 24,
+			"name": "Angry captain alt LEFT NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": true,
+			"offsets": [0, 0],
+			"anim": "singUP-alt",
+			"fps": 24,
+			"name": "Angry captain alt UP NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": true,
+			"offsets": [0, 0],
+			"anim": "singDOWN-alt",
+			"fps": 24,
+			"name": "Angry captain alt DOWN NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [0, 0],
+			"anim": "idle",
+			"fps": 24,
+			"name": "captain Idle instance 1",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [40, 0],
+			"anim": "singLEFT",
+			"fps": 24,
+			"name": "captain LEFT NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [6, 37],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "captain UP NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [0, 0],
+			"anim": "singRIGHT",
+			"fps": 24,
+			"name": "captain RIGHT NOTE instance 1",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [14, 0],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "captain DOWN NOTE instance 1",
+			"indices": []
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": true,
+	"image": "characters/captain-new",
+	"position": [150, 40],
+	"healthicon": "ElCaption",
+	"flip_x": false,
+	"healthbar_colors": [255, 255, 255],
+	"camera_position": [-270, -250],
+	"sing_duration": 4,
+	"scale": 6,
+	"_editor_isPlayer": false
+}

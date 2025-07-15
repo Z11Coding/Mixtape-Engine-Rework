@@ -6,6 +6,7 @@ import android.content.Context;
 
 import debug.FPSCounter;
 
+import backend.modules.SSPlugin as ScreenShotPlugin;
 import flixel.graphics.FlxGraphic;
 import flixel.FlxGame;
 import flixel.FlxState;
@@ -352,7 +353,11 @@ class Main extends Sprite
 		}
 		#end
 
-		Paths.excludeAsset('assets/shared/images/mechanics/general/toplight.png');
+		#if (!web && flixel < "5.5.0")
+		FlxG.plugins.add(new ScreenShotPlugin());
+		#elseif (flixel >= "5.6.0")
+		FlxG.plugins.addIfUniqueType(new ScreenShotPlugin());
+		#end
 
 		#if (linux || mac) // fix the app icon not showing up on the Linux Panel / Mac Dock
 		var icon = Image.fromFile("icon.png");

@@ -19,6 +19,7 @@ class NoteOffsetState extends MusicBeatState
 
 	var coolText:FlxText;
 	var rating:FlxSprite;
+	var combo:FlxSprite;
 	var comboNums:FlxSpriteGroup;
 	var dumbTexts:FlxTypedGroup<FlxText>;
 
@@ -106,6 +107,13 @@ class NoteOffsetState extends MusicBeatState
 			comboNums.add(numScore);
 			daLoop++;
 		}
+
+		combo = new FlxSprite().loadGraphic(Paths.image('combo'));
+		combo.cameras = [camHUD];
+		combo.antialiasing = ClientPrefs.data.antialiasing;
+		combo.setGraphicSize(Std.int(combo.width * 0.7));
+		combo.updateHitbox();
+		add(combo);
 
 		dumbTexts = new FlxTypedGroup<FlxText>();
 		dumbTexts.cameras = [camHUD];
@@ -227,7 +235,12 @@ class NoteOffsetState extends MusicBeatState
 						FlxG.keys.justPressed.A,
 						FlxG.keys.justPressed.D,
 						FlxG.keys.justPressed.W,
-						FlxG.keys.justPressed.S
+						FlxG.keys.justPressed.S,
+
+						FlxG.keys.justPressed.J,
+						FlxG.keys.justPressed.K,
+						FlxG.keys.justPressed.I,
+						FlxG.keys.justPressed.L
 					];
 				}
 				else
@@ -241,7 +254,12 @@ class NoteOffsetState extends MusicBeatState
 						FlxG.gamepads.anyJustPressed(RIGHT_STICK_DIGITAL_LEFT),
 						FlxG.gamepads.anyJustPressed(RIGHT_STICK_DIGITAL_RIGHT),
 						FlxG.gamepads.anyJustPressed(RIGHT_STICK_DIGITAL_UP),
-						FlxG.gamepads.anyJustPressed(RIGHT_STICK_DIGITAL_DOWN)
+						FlxG.gamepads.anyJustPressed(RIGHT_STICK_DIGITAL_DOWN),
+
+						FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_LEFT),
+						FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_RIGHT),
+						FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_UP),
+						FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_DOWN)
 					];
 				}
 
@@ -269,6 +287,14 @@ class NoteOffsetState extends MusicBeatState
 									ClientPrefs.data.comboOffset[3] += addNum;
 								case 7:
 									ClientPrefs.data.comboOffset[3] -= addNum;
+								case 8:
+									ClientPrefs.data.comboOffset[4] -= addNum;
+								case 9:
+									ClientPrefs.data.comboOffset[4] += addNum;
+								case 10:
+									ClientPrefs.data.comboOffset[5] += addNum;
+								case 11:
+									ClientPrefs.data.comboOffset[5] -= addNum;
 							}
 						}
 					}
@@ -321,6 +347,14 @@ class NoteOffsetState extends MusicBeatState
 					holdingObjectType = false;
 					startComboOffset.x = ClientPrefs.data.comboOffset[0];
 					startComboOffset.y = ClientPrefs.data.comboOffset[1];
+					//trace('heya');
+				}
+				else if (startMousePos.x - combo.x >= 0 && startMousePos.x - combo.x <= combo.width &&
+						 startMousePos.y - combo.y >= 0 && startMousePos.y - combo.y <= combo.height)
+				{
+					holdingObjectType = false;
+					startComboOffset.x = ClientPrefs.data.comboOffset[4];
+					startComboOffset.y = ClientPrefs.data.comboOffset[5];
 					//trace('heya');
 				}
 			}
@@ -469,6 +503,10 @@ class NoteOffsetState extends MusicBeatState
 		rating.x = coolText.x - 40 + ClientPrefs.data.comboOffset[0];
 		rating.y -= 60 + ClientPrefs.data.comboOffset[1];
 
+		combo.screenCenter();
+		combo.x = coolText.x - 40 + ClientPrefs.data.comboOffset[4];
+		combo.y -= 60 + ClientPrefs.data.comboOffset[5];
+
 		comboNums.screenCenter();
 		comboNums.x = coolText.x - 90 + ClientPrefs.data.comboOffset[2];
 		comboNums.y += 80 - ClientPrefs.data.comboOffset[3];
@@ -477,7 +515,7 @@ class NoteOffsetState extends MusicBeatState
 
 	function createTexts()
 	{
-		for (i in 0...4)
+		for (i in 0...6)
 		{
 			var text:FlxText = new FlxText(10, 48 + (i * 30), 0, '', 24);
 			text.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -503,6 +541,8 @@ class NoteOffsetState extends MusicBeatState
 				case 1: dumbTexts.members[i].text = '[' + ClientPrefs.data.comboOffset[0] + ', ' + ClientPrefs.data.comboOffset[1] + ']';
 				case 2: dumbTexts.members[i].text = Language.getPhrase('combo_numbers_offset', 'Numbers Offset:');
 				case 3: dumbTexts.members[i].text = '[' + ClientPrefs.data.comboOffset[2] + ', ' + ClientPrefs.data.comboOffset[3] + ']';
+				case 4: dumbTexts.members[i].text = Language.getPhrase('combo_combo_offset', 'Combo Offset:');
+				case 5: dumbTexts.members[i].text = '[' + ClientPrefs.data.comboOffset[4] + ', ' + ClientPrefs.data.comboOffset[5] + ']';
 			}
 		}
 	}
@@ -517,6 +557,7 @@ class NoteOffsetState extends MusicBeatState
 	{
 		rating.visible = onComboMenu;
 		comboNums.visible = onComboMenu;
+		combo.visible = onComboMenu;
 		dumbTexts.visible = onComboMenu;
 		
 		timeBar.visible = !onComboMenu;

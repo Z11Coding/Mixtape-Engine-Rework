@@ -571,6 +571,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 
 		updateJsonData();
+		loadMetadata();
 		
 		// TABS
 		////// for main box
@@ -970,6 +971,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		noteTextureInputText.text = PlayState.SONG.arrowSkin;
 		noteSplashesInputText.text = PlayState.SONG.splashSkin;
+
+		//METADATA TAB
+		loadMetadata();
+		songNameMetaInputText.text = metadata.song.name;
+		artistInputText.text = metadata.song.artist;
+		charterInputText.text = metadata.song.charter;
+		modInputText.text = metadata.song.mod;
+		bgInputText.text = metadata.freeplay.bg;
+		albumInputText.text = metadata.freeplay.album;
+		ratingsStepper.value = metadata.freeplay.ratings.get(Difficulty.list[PlayState.storyDifficulty].toLowerCase());
 		reloadLilBuddies();
 	}
 	
@@ -2235,8 +2246,20 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function loadMetadata() {
 		try {metadata = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(PlayState.SONG.song.toLowerCase()) + '/meta')));}
 		catch(e) {
-			//trace("can't.");
-			metadata = null;
+			trace("can't.\nLoading default instead.");
+			metadata = {
+				song: {
+					name: "???", 
+					mod: "???", 
+					charter: "???", 
+					artist: "???"
+				},
+				freeplay: {
+					ratings: [], 
+					bg: "menuDesat", 
+					album: "NoCover"
+				},
+			};
 		}
 	}
 
@@ -3161,7 +3184,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var objX = 10;
 		var objY = 25;
 		tab_group.add(new FlxText(objX, objY, 120, 'Song:'));
-		tab_group.add(new FlxText(objX + 250, objY, 120, 'Freeplay:'));
+		tab_group.add(new FlxText(objX + 140, objY, 120, 'Freeplay:'));
 		objY += 40;
 		songNameMetaInputText = new PsychUIInputText(objX, objY, 120, '', 8);
 		songNameMetaInputText.onChange = function(old:String, cur:String)
@@ -3188,7 +3211,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 
 		objX += 140;
-		objY -= 80;
+		objY -= 100;
 		bgInputText = new PsychUIInputText(objX, objY, 120, '', 8);
 		bgInputText.onChange = function(old:String, cur:String)
 		{
@@ -3202,10 +3225,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			metadata.freeplay.album = cur;
 		}
 
+		objY += 40;
 		ratingsStepper = new PsychUINumericStepper(objX, objY, 1, 0, 0, 20, 0);
 		ratingsStepper.onValueChange = function()
 		{
-			metadata.freeplay.ratings.set(Difficulty.list[PlayState.storyDifficulty], Std.int(ratingsStepper.value));
+			metadata.freeplay.ratings.set(Difficulty.list[PlayState.storyDifficulty].toLowerCase(), Std.int(ratingsStepper.value));
 		}
 	
 		tab_group.add(new FlxText(songNameMetaInputText.x, songNameMetaInputText.y - 15, 120, 'Song Name:'));
@@ -4061,13 +4085,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			upperBox.isMinimized = true;
 			upperBox.bg.visible = false;
-			function doJsonStuff(fileDialog:String):Dynamic
+			function doJsonStuff(fileDialog:Dynamic):Dynamic
 			{
 				try
 				{
-					var filePath:String = fileDialog.replace('\\', '/');
-					var jsonFile:Dynamic = Json.parse(File.getContent(filePath));
-					var loadedChart:SwagSong = Song.parseJSON(jsonFile, filePath.substr(filePath.lastIndexOf('/')));
+					var filePath:String = ImprovedFileHandling.lastPath.replace('\\', '/');
+					var jsonFile:Dynamic = Json.parse(fileDialog);
+					var loadedChart:SwagSong = Song.parseJSON(fileDialog, filePath.substr(filePath.lastIndexOf('/')));
 					if(loadedChart == null || !Reflect.hasField(loadedChart, 'song')) //Check if chart is ACTUALLY a chart and valid
 					{
 						showOutput('Error: File loaded is not a Psych Engine/FNF 0.2.x.x chart.', true);
@@ -4077,7 +4101,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					var func:Void->Void = function()
 					{
 						loadChart(loadedChart);
-						Song.chartPath = fileDialog;
+						Song.chartPath = filePath;
 						reloadNotesDropdowns();
 						prepareReload();
 						showOutput('Opened chart "${Song.chartPath}" successfully!');
@@ -4094,7 +4118,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				}
 				return false;
 			}
-			doJsonStuff(ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]));
+			doJsonStuff(ImprovedFileHandling.loadFile("Select the chart to load", [{ext: "json", desc: "JSON File"}], Text));
 		}, btnWid);
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);

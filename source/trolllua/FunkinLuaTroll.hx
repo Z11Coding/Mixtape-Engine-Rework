@@ -38,7 +38,7 @@ import llua.State;
 private typedef State = Dynamic;
 #end
 
-class FunkinLua extends FunkinScript
+class FunkinLuaTroll extends FunkinScript
 {
 	public static final defaultVars:Map<String, Dynamic> = new Map<String, Dynamic>();
 	
@@ -47,7 +47,7 @@ class FunkinLua extends FunkinScript
 	#if LUA_ALLOWED
 	public var lua:State = null;
 
-	public static function fromFile(path:String, ?name:String, ?ignoreCreateCall:Bool, ?vars:Map<String, Dynamic>):FunkinLua {
+	public static function fromFile(path:String, ?name:String, ?ignoreCreateCall:Bool, ?vars:Map<String, Dynamic>):FunkinLuaTroll {
 		trace('loading lua file: $path');
 
 		var lua:State = LuaL.newstate();
@@ -81,7 +81,7 @@ class FunkinLua extends FunkinScript
 		}
 
 		if (name == null) name = path;
-		return new FunkinLua(lua, name, ignoreCreateCall, vars);
+		return new FunkinLuaTroll(lua, name, ignoreCreateCall, vars);
 	}
 
 	inline private function addCallback(name:String, func:Function):Void
