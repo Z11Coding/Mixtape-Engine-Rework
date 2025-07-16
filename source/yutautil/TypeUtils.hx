@@ -1083,6 +1083,106 @@ class HXPointerCheck<T> {
     }
 }
 
+typedef ExceptionDetails = {
+    errorCode:String,
+    message:String,
+    details:String,
+    stackTrace:String,
+    pos:Null<haxe.PosInfos>
+};
+
+abstract DetailedException(ExceptionDetails) from String from haxe.Exception to haxe.Exception to String {
+    public inline function new(value:Dynamic, ?pos:haxe.PosInfos) {
+        this = DetailedException.buildDetailsObject(value, pos);
+    }
+
+    public var errorCode(get, never):String;
+    inline function get_errorCode():String return this.errorCode;
+
+    public var message(get, never):String;
+    inline function get_message():String return this.message;
+
+    public var details(get, never):String;
+    inline function get_details():String return this.details;
+
+    public var stackTrace(get, never):String;
+    inline function get_stackTrace():String return this.stackTrace;
+
+    public var pos(get, never):Null<haxe.PosInfos>;
+    inline function get_pos():Null<haxe.PosInfos> return this.pos;
+
+    @:from
+    public static inline function fromString(value:String):DetailedException {
+        return new DetailedException(value);
+    }
+
+    @:from
+    public static inline function fromException(e:haxe.Exception):DetailedException {
+        return new DetailedException(e);
+    }
+
+    @:to
+    public inline function toException():haxe.Exception {
+        return new haxe.Exception(this.details, this.pos);
+    }
+
+    @:to
+    public inline function toString():String {
+        return this.details;
+    }
+
+    @:to
+    public inline function toExceptionDetails():ExceptionDetails {
+        return this;
+    }
+
+    static function extractMessage(value:Dynamic):String {
+        if (Std.isOfType(value, haxe.Exception)) {
+            return cast(value, haxe.Exception).message;
+        }
+        if (Std.isOfType(value, String)) return value;
+        try return Std.string(value) catch (_:Dynamic) return "<unknown>";
+    }
+
+    static function generateErrorCode(message:String, pos:Null<haxe.PosInfos>):String {
+        var base = message + (pos != null ? pos.fileName + pos.lineNumber : "");
+        var hash = 0;
+        for (i in 0...base.length) hash = (hash * 31 + base.charCodeAt(i)) & 0x7FFFFFFF;
+        return "E" + StringTools.hex(hash, 8).toUpperCase();
+    }
+
+    static function getStackTrace():String {
+        var stack = haxe.CallStack.exceptionStack();
+        return stack != null ? haxe.CallStack.toString(stack) : "";
+    }
+
+    static function buildDetailsObject(value:Dynamic, ?pos:haxe.PosInfos):ExceptionDetails {
+        var message = extractMessage(value);
+        var code = generateErrorCode(message, pos);
+        var stack = getStackTrace();
+        var sb = [];
+        sb.push("DetailedException:");
+        sb.push("  ErrorCode: " + code);
+        sb.push("  Message: " + message);
+        if (pos != null) {
+            sb.push('  Position: ${pos.fileName}:${pos.lineNumber} (${pos.className}.${pos.methodName})');
+        }
+        if (value != null && !Std.isOfType(value, String) && !Std.isOfType(value, haxe.Exception)) {
+            try sb.push("  Value: " + haxe.Json.stringify(value)) catch (_:Dynamic) {};
+        }
+        if (stack != "") {
+            sb.push("  StackTrace:\n" + stack);
+        }
+        return {
+            errorCode: code,
+            message: message,
+            details: sb.join("\n"),
+            stackTrace: stack,
+            pos: pos
+        };
+    }
+}
+
 abstract ForceCasted<T>(Dynamic) {
     public inline function new(value:Dynamic) {
         this = value;
@@ -1953,69 +2053,6 @@ abstract CorruptedPointer<T>(HaxePointer<T>) {
         return new CorruptedPointer(value);
     }
 }
-
-abstract Classable(Dynamic) {
-    public inline function new(value:Dynamic) {
-        // Since RuntimeClass is an abstract, check for a field that only it would have (e.g., className)
-        if ((Reflect.hasField(value, "className") && Reflect.hasField(value, "CLASS")) || Std.isOfType(value, Class)) {
-            this = value;
-        } else {
-            throw 'Classable: value must be a RuntimeClass-like object or a Class';
-        }
-    }
-}
-
-enum RuntimeClassFieldVisibility {
-    Public;
-    Private;
-    Static;
-}
-
-// /**
-//  * RuntimeClass is an abstract that simulates a class-like structure at runtime.
-//  * It supports inheritance (from another RuntimeClass or a native class), generic typing, static fields/methods,
-//  * instance fields/methods, and can be used to build dynamic "classes" with similar abilities as native classes.
-//  * The underlying type is a Dynamic object with specific fields for encapsulation.
-//  */
-// abstract RuntimeClass({
-//     className:String,
-//     CLASS:{
-//         fields:Array<{
-//             name:String,
-//             type:Dynamic,
-//             visibility:RuntimeClassFieldVisibility // :Public, :Private, :Static
-//         }>,
-//         methods:Array<{
-//             name:String,
-//             fn:haxe.Constraints.Function
-//         }>,
-//         typeName:String,
-//         genericType:Dynamic
-//     },
-//     parent:Dynamic
-// }) {
-//     public inline function new(template:RuntimeClassTemplate<Dynamic>, ?parent:Dynamic) {
-//         this.className = template.typeName;
-//         this.CLASS = {
-//             fields: {
-//                 __public__: template.instanceFields ?: {},
-//                 __private__: template.privateFields ?: {},
-//                 __static__: template.staticFields ?: {}
-//             },
-//             methods: template.methods ?: {},
-//             typeName: template.typeName,
-//             genericType: template.genericType
-//         };
-//         this.parent = parent;
-//     }
-
-//     @:from
-//     public static inline function fromTemplate(template:RuntimeClassTemplate<Dynamic>, ?parent:Dynamic):RuntimeClass {
-//         return new RuntimeClass(template, parent)
-// }
-
-
-
 
 abstract JSON({JSONData:Dynamic, pointer:HaxePointer<Dynamic>, stringified:String}) {
     public inline function new(value:Dynamic) {

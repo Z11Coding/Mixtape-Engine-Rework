@@ -269,6 +269,7 @@ class Main extends Sprite
 		trace(testArray.get("test2"));
 		trace(testArray["test"]);
 
+
 		// 'You can\'t put variable expressions in COMMENTS, silly!'.NativeComment(true);
 		// 	trace('testArray: $testArray');
 		// 'testArray = $testArray'.NativeTrace(true, false);
