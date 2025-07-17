@@ -1091,7 +1091,7 @@ typedef ExceptionDetails = {
     pos:Null<haxe.PosInfos>
 };
 
-abstract DetailedException(ExceptionDetails) from String from haxe.Exception to haxe.Exception to String {
+abstract DetailedException(ExceptionDetails) {
     public inline function new(value:Dynamic, ?pos:haxe.PosInfos) {
         this = DetailedException.buildDetailsObject(value, pos);
     }
@@ -1147,7 +1147,7 @@ abstract DetailedException(ExceptionDetails) from String from haxe.Exception to 
     static function generateErrorCode(message:String, pos:Null<haxe.PosInfos>):String {
         var base = message + (pos != null ? pos.fileName + pos.lineNumber : "");
         var hash = 0;
-        for (i in 0...base.length) hash = (hash * 31 + base.charCodeAt(i)) & 0x7FFFFFFF;
+        for (i in 0...base.length) hash = (hash * 31 + base.charCodeAt(i)) % 0x7FFFFFFF;
         return "E" + StringTools.hex(hash, 8).toUpperCase();
     }
 

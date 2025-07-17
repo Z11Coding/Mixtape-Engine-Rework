@@ -62,6 +62,7 @@ enum abstract MessageBoxReturnValue(Int) from Int to Int {
 #include "combaseapi.h"
 #include <iostream>
 #include <Windows.h>
+#include <psapi.h>
 #include <cstdio>
 #include <tchar.h>
 #include <dwmapi.h>
@@ -235,7 +236,19 @@ class Windows {
 		MessageBox(GetActiveWindow(), message, caption, icon | MB_SETFOREGROUND);
 	')
 	public static function showMessageBox(caption:String, message:String, icon:MessageBoxIcon = MSG_WARNING) {
+	}
 
+
+	@:functionCode('
+		ULONGLONG totalRAM_MB;
+		GetPhysicallyInstalledSystemMemory(&totalRAM_MB);
+
+		double ram = mb ? (double)totalRAM_MB : (double)totalRAM_MB / 1024.0;
+		ram = round(ram * 100.0) / 100.0;
+		return ram;
+	')
+	public static function getPhysicallyInstalledSystemMemory(mb:Bool):Float {
+		return 0; // Not supported on other platforms... yet.
 	}
 
 	@:functionCode('

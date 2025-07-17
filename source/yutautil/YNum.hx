@@ -71,7 +71,8 @@ class YNumber {
 
     private function carryOverflow() {
         // Handle float part carry
-        for (i in floatPart.length - 1...0) {
+        var i = floatPart.length - 1;
+        while (i >= 0) {
             if (floatPart[i] >= 10) {
                 var carry = Math.floor(floatPart[i] / 10);
                 floatPart[i] %= 10;
@@ -83,10 +84,12 @@ class YNumber {
                     floatPart[i - 1] += carry;
                 }
             }
+            i--;
         }
         
         // Handle integer part carry
-        for (i in intPart.length - 1...0) {
+        i = intPart.length - 1;
+        while (i >= 0) {
             if (intPart[i] >= 10) {
                 var carry = Math.floor(intPart[i] / 10);
                 intPart[i] %= 10;
@@ -94,10 +97,13 @@ class YNumber {
                 if (i == 0) {
                     // Add new digit at the beginning
                     intPart.unshift(carry);
+                    // Break to avoid infinite loop after unshift
+                    break;
                 } else {
                     intPart[i - 1] += carry;
                 }
             }
+            i--;
         }
     }
 

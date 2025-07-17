@@ -101,6 +101,16 @@ class NativeAPI {
 		#end
 	}
 
+	public static function getPhysicallyInstalledSystemMemory(mb:Bool = false):Float {
+		#if windows
+		return mb 
+			? Std.parseFloat(Std.string(Windows.getPhysicallyInstalledSystemMemory(mb)))
+			: Std.parseFloat(Std.string(Windows.getPhysicallyInstalledSystemMemory(mb)).substr(0, 2) + "." + Std.string(Windows.getPhysicallyInstalledSystemMemory(mb)).substr(2));
+		#else
+		return 0; // Not supported on other platforms... yet.
+		#end
+	}
+
 	/**
 	 * Sets the console colors
 	 */

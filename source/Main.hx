@@ -103,57 +103,57 @@ class Main extends Sprite
 		}
 		trace("Finished testing forceCast.");
 
-		var r:Random<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-		trace("Random Test: " + r);
+		// var r:Random<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+		// trace("Random Test: " + r);
 
-		trace("Random Test 2: " + new Random<Int>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+		// trace("Random Test 2: " + new Random<Int>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
 
-		var r2:Random<Int> = [for (i in 1...11) i];
-		trace("Random Test 3: " + r2);
-
-
-		var temp:Temp<Int> = 23932;
-
-		trace("Temp Test 2: " + temp);
-
-		var temp2:Temp<{value:Int, otherValue:Int}> = {
-			value: 123,
-			otherValue: 456
-		};
-
-		var nonTemp:{value:Int, otherValue:Int} = {
-			value: 123,
-			otherValue: 456
-		};
-
-		var temp2Address = cpp.Native.addressOf(game);
-		trace("Star test 1: " + temp2Address);
-		var randofdsde:Temp<Int> = 123;
-		trace("Temp Test 3: " + randofdsde);
+		// var r2:Random<Int> = [for (i in 1...11) i];
+		// trace("Random Test 3: " + r2);
 
 
+		// var temp:Temp<Int> = 23932;
 
-		var eeee:Int = 123;
+		// trace("Temp Test 2: " + temp);
 
-		var p = cpp.Pointer.addressOf(eeee)[0];
-		trace("Pointer Test: " + p);
+		// var temp2:Temp<{value:Int, otherValue:Int}> = {
+		// 	value: 123,
+		// 	otherValue: 456
+		// };
 
-		var funnyDouble = new HaxePointer<Dynamic>(game);
-		trace("Funny Double Test: " + funnyDouble);
-		trace("Funny Double Test: " + new HaxePointer<Dynamic>(game));
+		// var nonTemp:{value:Int, otherValue:Int} = {
+		// 	value: 123,
+		// 	otherValue: 456
+		// };
 
-		(new Fields(temp2).printFields());
-		(new Fields(nonTemp).printFields());
+		// var temp2Address = cpp.Native.addressOf(game);
+		// trace("Star test 1: " + temp2Address);
+		// var randofdsde:Temp<Int> = 123;
+		// trace("Temp Test 3: " + randofdsde);
 
-		trace("TestAcc: " + new FieldAccTest({}).eeeee);
-		trace("TestAcc2: " );
-		var testAcc2 = new FieldAccTest({eeeee: 123}).eeeee = 456;
 
-		var collaped:Collapsed<Int> = [[1], [2], [3], [4], [5]];
 
-		trace("Collaped Test: " + collaped);
+		// var eeee:Int = 123;
 
-		var gaming:GlobalPointer<Dynamic> = game;
+		// var p = cpp.Pointer.addressOf(eeee)[0];
+		// trace("Pointer Test: " + p);
+
+		// var funnyDouble = new HaxePointer<Dynamic>(game);
+		// trace("Funny Double Test: " + funnyDouble);
+		// trace("Funny Double Test: " + new HaxePointer<Dynamic>(game));
+
+		// (new Fields(temp2).printFields());
+		// (new Fields(nonTemp).printFields());
+
+		// trace("TestAcc: " + new FieldAccTest({}).eeeee);
+		// trace("TestAcc2: " );
+		// var testAcc2 = new FieldAccTest({eeeee: 123}).eeeee = 456;
+
+		// var collaped:Collapsed<Int> = [[1], [2], [3], [4], [5]];
+
+		// trace("Collaped Test: " + collaped);
+
+		// var gaming:GlobalPointer<Dynamic> = game;
 
 		// gaming.startFullscreen = true;
 
@@ -263,11 +263,13 @@ class Main extends Sprite
 
 		trace("gamedddifsdsf".realSizeOf());
 
-		var testArray = new yutautil.CollectionUtils.KeyIndexedArray();
-		testArray.set("test", 1);
-		trace(testArray.get("test"));
-		trace(testArray.get("test2"));
-		trace(testArray["test"]);
+		// var testArray = new yutautil.CollectionUtils.KeyIndexedArray();
+		// testArray.set("test", 1);
+		// trace(testArray.get("test"));
+		// trace(testArray.get("test2"));
+		// trace(testArray["test"]);
+
+		trace("PC System Memory: " + backend.util.NativeAPI.getPhysicallyInstalledSystemMemory() + " GB");
 
 
 		// 'You can\'t put variable expressions in COMMENTS, silly!'.NativeComment(true);

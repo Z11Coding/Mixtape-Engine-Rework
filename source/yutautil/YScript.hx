@@ -18,7 +18,10 @@ abstract YVar(YVarData) from YVarData to YVarData
 			name: name,
 			type: type,
 			value: value,
-			pointer: {haxePointer: value != null ? cpp.RawPointer.addressOf(value) : null, virtualPointer: null}
+			pointer: {
+				haxePointer: cpp.RawPointer.addressOf(this),
+				virtualPointer: null
+			}
 		};
 	}
 
@@ -964,6 +967,7 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 	public var enums(get, never):Map<String, YEnum>;
 	public var imports(get, never):Map<String, YUse>;
 	public var parent(get, never):Null<YScriptScope>;
+
 	public function new()
 	{
 		this = {
@@ -975,29 +979,149 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 			parent: null
 		};
 	}
+
 	inline function get_variables():Map<String, YVar>
 		return this.variables;
+
 	inline function get_functions():Map<String, YFunction>
 		return this.functions;
+
 	inline function get_classes():Map<String, YClass<Dynamic>>
 		return this.classes;
+
 	inline function get_enums():Map<String, YEnum>
 		return this.enums;
+
 	inline function get_imports():Map<String, YUse>
 		return this.imports;
+
 	inline function get_parent():Null<YScriptScope>
 		return this.parent;
+
 	inline function set_parent(scope:Null<YScriptScope>):Null<YScriptScope>
 	{
 		this.parent = scope;
 		return this.parent;
 	}
+
 	inline function createChildScope():YScriptScope
 	{
 		var childScope = new YScriptScope();
 		childScope.parent = this;
 		return childScope;
 	}
+
+	// Returns a map of all variables in scope, with higher scopes overwriting lower ones.
+	public inline function getAllInScopeVars():Map<String, YVar>
+	{
+		var scopes:Array<YScriptScope> = [];
+		var scope:Null<YScriptScope> = this;
+		while (scope != null)
+		{
+			scopes.push(scope);
+			scope = scope.parent;
+		}
+		// Reverse so we start from the root scope.
+		scopes.reverse();
+		var result:Map<String, YVar> = new Map();
+		for (scope in scopes)
+		{
+			for (k in scope.variables.keys())
+			{
+				result.set(k, scope.variables.get(k));
+			}
+		}
+		return result;
+	}
+
+	// Returns a map of all functions in scope, with higher scopes overwriting lower ones.
+	public inline function getAllInScopeFunctions():Map<String, YFunction>
+	{
+		var scopes:Array<YScriptScope> = [];
+		var scope:Null<YScriptScope> = this;
+		while (scope != null)
+		{
+			scopes.push(scope);
+			scope = scope.parent;
+		}
+		scopes.reverse();
+		var result:Map<String, YFunction> = new Map();
+		for (scope in scopes)
+		{
+			for (k in scope.functions.keys())
+			{
+				result.set(k, scope.functions.get(k));
+			}
+		}
+		return result;
+	}
+
+	// Returns a map of all classes in scope, with higher scopes overwriting lower ones.
+	public inline function getAllInScopeClasses():Map<String, YClass<Dynamic>>
+	{
+		var scopes:Array<YScriptScope> = [];
+		var scope:Null<YScriptScope> = this;
+		while (scope != null)
+		{
+			scopes.push(scope);
+			scope = scope.parent;
+		}
+		scopes.reverse();
+		var result:Map<String, YClass<Dynamic>> = new Map();
+		for (scope in scopes)
+		{
+			for (k in scope.classes.keys())
+			{
+				result.set(k, scope.classes.get(k));
+			}
+		}
+		return result;
+	}
+
+	// Returns a map of all enums in scope, with higher scopes overwriting lower ones.
+	public inline function getAllInScopeEnums():Map<String, YEnum>
+	{
+		var scopes:Array<YScriptScope> = [];
+		var scope:Null<YScriptScope> = this;
+		while (scope != null)
+		{
+			scopes.push(scope);
+			scope = scope.parent;
+		}
+		scopes.reverse();
+		var result:Map<String, YEnum> = new Map();
+		for (scope in scopes)
+		{
+			for (k in scope.enums.keys())
+			{
+				result.set(k, scope.enums.get(k));
+			}
+		}
+		return result;
+	}
+
+	// Returns a map of all imports in scope, with higher scopes overwriting lower ones.
+	public inline function getAllInScopeImports():Map<String, YUse>
+	{
+		var scopes:Array<YScriptScope> = [];
+		var scope:Null<YScriptScope> = this;
+		while (scope != null)
+		{
+			scopes.push(scope);
+			scope = scope.parent;
+		}
+		scopes.reverse();
+		var result:Map<String, YUse> = new Map();
+		for (scope in scopes)
+		{
+			for (k in scope.imports.keys())
+			{
+				result.set(k, scope.imports.get(k));
+			}
+		}
+		return result;
+	}
+
 	inline function getVariable(name:String):Null<YVar>
 	{
 		if (this.variables.exists(name))
@@ -1007,10 +1131,12 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setVariable(name:String, variable:YVar):Void
 	{
 		this.variables.set(name, variable);
 	}
+
 	inline function getFunction(name:String):Null<YFunction>
 	{
 		if (this.functions.exists(name))
@@ -1020,10 +1146,12 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setFunction(name:String, func:YFunction):Void
 	{
 		this.functions.set(name, func);
 	}
+
 	inline function getClass(name:String):Null<YClass<Dynamic>>
 	{
 		if (this.classes.exists(name))
@@ -1033,10 +1161,12 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setClass(name:String, yClass:YClass<Dynamic>):Void
 	{
 		this.classes.set(name, yClass);
 	}
+
 	inline function getEnum(name:String):Null<YEnum>
 	{
 		if (this.enums.exists(name))
@@ -1046,10 +1176,12 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setEnum(name:String, yEnum:YEnum):Void
 	{
 		this.enums.set(name, yEnum);
 	}
+
 	inline function getImport(name:String):Null<YUse>
 	{
 		if (this.imports.exists(name))
@@ -1059,10 +1191,12 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setImport(name:String, use:YUse):Void
 	{
 		this.imports.set(name, use);
 	}
+
 	inline function getUse(name:String):Null<YUse>
 	{
 		if (this.imports.exists(name))
@@ -1072,10 +1206,12 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setUse(name:String, use:YUse):Void
 	{
 		this.imports.set(name, use);
 	}
+
 	inline function getImportAlias(alias:String):Null<YUse>
 	{
 		for (use in this.imports)
@@ -1088,6 +1224,7 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setImportAlias(alias:String, use:YUse):Void
 	{
 		for (useEntry in this.imports)
@@ -1100,6 +1237,7 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		}
 		this.imports.set(alias, use);
 	}
+
 	inline function getImportByName(name:String):Null<YUse>
 	{
 		for (use in this.imports)
@@ -1112,6 +1250,7 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setImportByName(name:String, use:YUse):Void
 	{
 		for (useEntry in this.imports)
@@ -1124,6 +1263,7 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		}
 		this.imports.set(name, use);
 	}
+
 	inline function getImportByAlias(alias:String):Null<YUse>
 	{
 		for (use in this.imports)
@@ -1136,6 +1276,7 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 		else
 			return null;
 	}
+
 	inline function setImportByAlias(alias:String, use:YUse):Void
 	{
 		for (useEntry in this.imports)
@@ -1147,19 +1288,6 @@ abstract YScriptScope(YScriptScopeData) from YScriptScopeData to YScriptScopeDat
 			}
 		}
 		this.imports.set(alias, use);
-	}
-
-	public inline function getAllInScope(name:String):Array<YVar>
-	{
-		var result:Array<YVar> = [];
-		var scope:Null<YScriptScope> = this;
-		while (scope != null)
-		{
-			if (scope.variables.exists(name))
-				result.push(scope.variables.get(name));
-			scope = scope.parent;
-		}
-		return result;
 	}
 }
 
@@ -1514,11 +1642,10 @@ class YScriptRuntime
 			throw new YScriptRuntimeError('Failed to parse Haxe code');
 		}
 		var interpreter:Dynamic = new hscript.Interp();
-		for (var varName
-		in scope.variables.keys()
-	)
+		var haxeScope = scope.getAllInScopeVars();
+		for (var varName in haxeScope.keys())
 		{
-			interpreter.variables.set(varName, scope.variables.get(varName).value);
+			interpreter.variables.set(varName, haxeScope.get(varName).value);
 		}
 		return try
 		{

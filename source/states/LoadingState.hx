@@ -520,7 +520,7 @@ class LoadingState extends MusicBeatState
 					var moddedImages:Array<String> = Paths.crawlDirectory('$curDirct/images', 'png');
 					var moddedSounds:Array<String> = Paths.crawlDirectory('$curDirct/sounds', 'png');
 					var moddedMusic:Array<String> = Paths.crawlDirectory('$curDirct/music', 'png');
-					prepare(moddedImages, moddedSounds, moddedMusic);
+					// prepare(moddedImages, moddedSounds, moddedMusic);
 					trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
 				}
 			}

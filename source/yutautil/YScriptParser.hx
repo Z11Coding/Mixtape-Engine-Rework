@@ -927,57 +927,57 @@ typedef YScriptScope = {
     parent:Null<YScriptScope>
 };
 
-private function parseClass(tokens:Array<Token>):YClass<Dynamic> {
-        expect(TKeyword("class"), tokens);
-        var className = expectIdentifier(tokens);
-        var cls:YBaseClass = {
-            name: className,
-            fields: [],
-            methods: [],
-            access: parseAccessModifiers(tokens),
-            extending: [],
-            implementing: [],
-            constructors: [],
-            destructors: []
-        };
+// private function parseClass(tokens:Array<Token>):YClass<Dynamic> {
+//         expect(TKeyword("class"), tokens);
+//         var className = expectIdentifier(tokens);
+//         var cls:YBaseClass = {
+//             name: className,
+//             fields: [],
+//             methods: [],
+//             access: parseAccessModifiers(tokens),
+//             extending: [],
+//             implementing: [],
+//             constructors: [],
+//             destructors: []
+//         };
         
-        // Handle inheritance
-        while (match(TKeyword("extends"), tokens) || match(TKeyword("implements"), tokens)) {
-            var keyword = getCurrentToken();
-            advance(tokens);
-            var typeName = parseTypeReference(tokens);
+//         // Handle inheritance
+//         while (match(TKeyword("extends"), tokens) || match(TKeyword("implements"), tokens)) {
+//             var keyword = getCurrentToken();
+//             advance(tokens);
+//             var typeName = parseTypeReference(tokens);
             
-            switch keyword {
-                case TKeyword("extends"):
-                    if (isHaxeType(Std.string(typeName))) {
-                        // Handle Haxe class extension
-                        cls.extending.push(cast typeName);
-                    } else {
-                        // Handle YScript class extension
-                        cls.extending.push(cast typeName);
-                    }
-                case TKeyword("implements"):
-                    cls.implementing.push({name: Std.string(typeName), fields: [], methods: [], access: {isPublic: true, isPrivate: false, isInternal: false}});
-                default:
-            }
-        }
+//             switch keyword {
+//                 case TKeyword("extends"):
+//                     if (isHaxeType(Std.string(typeName))) {
+//                         // Handle Haxe class extension
+//                         cls.extending.push(cast typeName);
+//                     } else {
+//                         // Handle YScript class extension
+//                         cls.extending.push(cast typeName);
+//                     }
+//                 case TKeyword("implements"):
+//                     cls.implementing.push({name: Std.string(typeName), fields: [], methods: [], access: {isPublic: true, isPrivate: false, isInternal: false}});
+//                 default:
+//             }
+//         }
         
-        expect(TLBrace, tokens);
+//         expect(TLBrace, tokens);
         
-        while (!match(TRBrace, tokens)) {
-            switch currentToken {
-                case TKeyword("var"):
-                    cls.fields.push(parseVariable(tokens));
-                case TKeyword("function"):
-                    var func = parseFunction(tokens);
-                    if (func.name == "new") cls.constructors.push(func);
-                    else if (func.name == "destroy") cls.destructors.push(func);
-                    else cls.methods.push(func);
-                default:
-                    advance(tokens); // Skip unknown tokens
-            }
-        }
+//         while (!match(TRBrace, tokens)) {
+//             switch currentToken {
+//                 case TKeyword("var"):
+//                     cls.fields.push(parseVariable(tokens));
+//                 case TKeyword("function"):
+//                     var func = parseFunction(tokens);
+//                     if (func.name == "new") cls.constructors.push(func);
+//                     else if (func.name == "destroy") cls.destructors.push(func);
+//                     else cls.methods.push(func);
+//                 default:
+//                     advance(tokens); // Skip unknown tokens
+//             }
+//         }
         
-        expect(TRBrace, tokens);
-        return cls;
-    }
+//         expect(TRBrace, tokens);
+//         return cls;
+//     }

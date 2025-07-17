@@ -268,8 +268,8 @@ abstract RuntimeClass(RuntimeClassStructure) {
         // Haxe does not expose the constructor directly, but we can create a wrapper.
         var constructor:Null<haxe.Constraints.Function> = switch (Type.getClassFields(cls).indexOf("new") != -1) {
             case true:
-            // Get new directly, so that the arguments apply to the class constructor.
-            cls.new;
+            // Use Reflect to get the constructor function dynamically.
+            cast Reflect.field(cls, "new");
             case false:
             null;
         };
