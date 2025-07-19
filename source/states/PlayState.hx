@@ -1202,7 +1202,6 @@ class PlayState extends MusicBeatState
 		uiGroup.cameras = [camHUD];
 		hearts.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
-		comboGroup.cameras = [camHUD];
 
 		startingSong = true;
 
@@ -1790,15 +1789,6 @@ class PlayState extends MusicBeatState
 
 			trace("Starting Countdown!");
 			canPause = true;
-			for (i in 0...playerStrums.length) {
-				setOnScripts('defaultPlayerStrumX' + i, playerField.baseXPositions[i]);
-				setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
-			}
-			for (i in 0...opponentStrums.length) {
-				setOnScripts('defaultOpponentStrumX' + i, dadField.baseXPositions[i]);
-				setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
-				//if(ClientPrefs.data.middleScroll) opponentStrums.members[i].visible = false;
-			}
 
 			if (skipCountdown || startOnTime > 0)
 				skipArrowStartTween = true;
@@ -1837,6 +1827,16 @@ class PlayState extends MusicBeatState
 			for (i in 0...Note.ammo[mania]) {
 				playerField.baseXPositions[i] = playerField.strumNotes[i].x;
 				dadField.baseXPositions[i] = dadField.strumNotes[i].x;
+			}
+
+			for (i in 0...playerStrums.length) {
+				setOnScripts('defaultPlayerStrumX' + i, playerField.baseXPositions[i]);
+				setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
+			}
+			for (i in 0...opponentStrums.length) {
+				setOnScripts('defaultOpponentStrumX' + i, dadField.baseXPositions[i]);
+				setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
+				//if(ClientPrefs.data.middleScroll) opponentStrums.members[i].visible = false;
 			}
 
 			startedCountdown = true;

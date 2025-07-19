@@ -226,8 +226,12 @@ class Paths
 		clearUnusedMemory();
 		clearStoredMemory();
 		currentTrackedSounds.clear();
-		@:privateAccess FlxG.bitmap._cache.clear();
-		backend.util.MemoryUtilBase.collect(true);
+		@:privateAccess {
+			for (key => asset in FlxG.bitmap._cache)
+				asset.destroy();
+		}
+		MemoryUtilBase.compact();
+		MemoryUtilBase.collect(true);
 	}
 
 	/** returns a FlxRuntimeShader but with file names lol **/ 

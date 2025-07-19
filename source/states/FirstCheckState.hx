@@ -52,6 +52,8 @@ class FirstCheckState extends MusicBeatState
 			}
 		}
 
+		MemoryUtilBase.enable();
+
 		super.create();
 
 		// // Colored Text Test

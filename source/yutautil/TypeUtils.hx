@@ -1234,7 +1234,7 @@ abstract HxVector<T>(haxe.ds.Vector<T>) {
         var len = this.length;
         return {
             hasNext: function() return i < len,
-            next: function() return this[i++];
+            next: function() return this[i++]
         };
     }
 }

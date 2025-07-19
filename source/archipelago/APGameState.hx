@@ -586,7 +586,7 @@ class APGameState
 			}
 		});
 
-		_ap.toggleDeathLink(slotData != null && Reflect.hasField(slotData, "deathLink") ? slotData?.deathLink? : ClientPrefs.data.deathlink);
+		_ap.toggleDeathLink(slotData != null && Reflect.hasField(slotData, "deathLink") ? slotData?.deathLink : ClientPrefs.data.deathlink);
 
 		_ap.onRetrieved.add(handleRetrievedPacket);
 
