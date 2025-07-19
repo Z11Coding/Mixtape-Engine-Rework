@@ -423,7 +423,7 @@ class FunkinLua {
 			if(APEntryState.inArchipelagoMode)
 			{
 				luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
-				FreeplayManager.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
+				APFreeplayManager.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
 			}
 
 			if(name == null || name.length < 1)

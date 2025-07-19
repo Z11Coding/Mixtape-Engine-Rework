@@ -125,6 +125,8 @@ class FreeplayState extends MusicBeatState
 
 	var albumPhoto:FlxSprite;
 	var difficultyStars:DifficultyStars;
+
+	public var fpManager:FreeplayManager;
 	override function create()
 	{
 		#if windows
@@ -134,12 +136,14 @@ class FreeplayState extends MusicBeatState
 		Cursor.cursorMode = Default;
 		instance = this; // For Archipelago
 
+		fpManager = FreeplayManager.loadFPManager();
+
 		// Check if the Victory Song is cleared.	
-		{
-			FreeplayManager.checkVictory();
+		if (APEntryState.inArchipelagoMode) {
+			APFreeplayManager.checkVictory();
+			APFreeplayManager.updateArchFreeplay();
 		}
 
-		FreeplayManager.updateArchFreeplay();
 		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
 
@@ -283,7 +287,7 @@ class FreeplayState extends MusicBeatState
 
 		// if(curSelected >= songs.length) curSelected = -1;
 		try {
-			bg.color = FreeplayManager.songList[curSelected].color[1][0];
+			bg.color = fpManager.songList[curSelected].color[1][0];
 			intendedColor = bg.color;
 		}
 		catch(e)
@@ -322,7 +326,7 @@ class FreeplayState extends MusicBeatState
 
 		trace(hh);
 
-		FreeplayManager.reloadFreeplay(true);
+		fpManager.reloadFreeplay(true);
 		changeSelection();
 
 		if (!FlxG.save.data.gotIntoAnArgument && !APEntryState.inArchipelagoMode) 
@@ -392,8 +396,8 @@ class FreeplayState extends MusicBeatState
 			}
 
 			// trace (curUnlocked);
-			FreeplayManager.checkSongStatus();
-			for (i in 0...FreeplayManager.songList.length)
+			if (APEntryState.inArchipelagoMode) APFreeplayManager.checkSongStatus();
+			for (i in 0...fpManager.songList.length)
 			{
 				var songName:String = '';
 				var modName:String = '';
@@ -403,8 +407,8 @@ class FreeplayState extends MusicBeatState
 				var someLocationsNotMissing:Bool = false;
 				
 				if (APEntryState.inArchipelagoMode) {
-					songName = FreeplayManager.songList[i].songName;
-					modName = FreeplayManager.songList[i].folder;
+					songName = fpManager.songList[i].songName;
+					modName = fpManager.songList[i].folder;
 					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
 					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
@@ -415,7 +419,7 @@ class FreeplayState extends MusicBeatState
 				if (APEntryState.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-					songText = FreeplayManager.isVictorySong(songName, modName) ? 
+					songText = APFreeplayManager.isVictorySong(songName, modName) ? 
 						(isMissing ? 
 							(someLocationsNotMissing ? 
 								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
@@ -423,35 +427,37 @@ class FreeplayState extends MusicBeatState
 							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
 						: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
 				} else {
-					songText = new DynamicAlphabet(90, 320, FreeplayManager.songList[i].songName, true, true);
+					songText = new DynamicAlphabet(90, 320, fpManager.songList[i].songName, true, true);
 				}
 				songText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
 				songText.targetY = i;
 				grpSongs.add(songText);
 
-				FreeplayManager.callVictory = FreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
+				if (APEntryState.inArchipelagoMode) {
+					APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
 
-				if (FreeplayManager.callVictory) {
-					trace("Apparently, the victory song has been cleared, so... Goaling!");
-					APEntryState.apGame.checkGoal(songName, modName);
+					if (APFreeplayManager.callVictory) {
+						trace("Apparently, the victory song has been cleared, so... Goaling!");
+						APEntryState.apGame.checkGoal(songName, modName);
+					}
 				}
 
 				songText.scaleX = Math.min(1, 980 / songText.width);
 				songText.snapToPosition();
 
-				Mods.currentModDirectory = FreeplayManager.songList[i].folder;
+				Mods.currentModDirectory = fpManager.songList[i].folder;
 				
 				songText.visible = songText.active = songText.isMenuItem = false;
 				
-				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
-				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter);
+				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
+				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : fpManager.songList[i].songCharacter);
 				icon.sprTracker = songText;
 				icon.visible = icon.active = false;
 				iconArray.push(icon);
 				iconList.add(icon);
 			}
-			if (FreeplayManager.songList.length == -1 || FreeplayManager.songList.length == 0)
-				FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+			if (fpManager.songList.length == -1 || fpManager.songList.length == 0)
+				fpManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 
 			changeSelection();
 			updateTexts();
@@ -505,9 +511,9 @@ class FreeplayState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		if (FreeplayManager.songList[curSelected] != null) 
+		if (fpManager.songList[curSelected] != null) 
 		{
-			switch(Paths.formatToSongPath(FreeplayManager.songList[curSelected].songName))
+			switch(Paths.formatToSongPath(fpManager.songList[curSelected].songName))
 			{
 				default:
 					diffText.visible = true;
@@ -542,7 +548,7 @@ class FreeplayState extends MusicBeatState
 		if (searchBar.text == 'CLICK TO SEARCH FREEPLAY!' && searchBar.hasFocus)
 		{
 			searchBar.text = '';
-			FreeplayManager.reloadFreeplay(true);
+			fpManager.reloadFreeplay(true);
 			searchBar.updateHitbox();
 		}
 		if (!searchBar.hasFocus)
@@ -569,9 +575,9 @@ class FreeplayState extends MusicBeatState
 
 		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !searchBar.hasFocus)  {
 			try {
-				var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[curSelected].songName);
+				var songLowercase:String = Paths.formatToSongPath(fpManager.songList[curSelected].songName);
 				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
-				Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
+				Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 				Song.loadFromJson(poop, songLowercase);
 				PlayState.isStoryMode = false;
 				PlayState.storyDifficulty = curDifficulty;
@@ -579,7 +585,7 @@ class FreeplayState extends MusicBeatState
 				trace('Error loading song: ' + e);
 			}
 			try {
-				FreeplayManager.forceUnlockCheck(FreeplayManager.songList[curSelected].songName, WeekData.getCurrentWeek().folder);
+				APFreeplayManager.forceUnlockCheck(fpManager.songList[curSelected].songName, WeekData.getCurrentWeek().folder);
 			} catch (e:Dynamic) {
 				trace("You can't check nothing, silly!");
 			}
@@ -588,7 +594,7 @@ class FreeplayState extends MusicBeatState
 
 		if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !searchBar.hasFocus) {
 			try {
-				var SongInfo = APEntryState.apGame.getSongAndMod(FreeplayManager.songList[curSelected].songName + (FreeplayManager.songList[curSelected].folder != "" ? " (" + FreeplayManager.songList[curSelected].folder + ")" : ""));
+				var SongInfo = APEntryState.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
 				if (APEntryState.ap != null) {
 					APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
 					archipelago.console.SideUI.instance.active = true;
@@ -625,7 +631,7 @@ class FreeplayState extends MusicBeatState
 				scoreText.text = Language.getPhrase('personal_best', 'PERSONAL BEST: {1} ({2}%)', [lerpScore, ratingSplit.join('.')]);
 			positionHighscore();
 			
-			if(FreeplayManager.songList.length > 1)
+			if(fpManager.songList.length > 1)
 			{
 				if(FlxG.keys.justPressed.HOME)
 				{
@@ -636,7 +642,7 @@ class FreeplayState extends MusicBeatState
 				}
 				else if(FlxG.keys.justPressed.END)
 				{
-					curSelected = FreeplayManager.songList.length - 1;
+					curSelected = fpManager.songList.length - 1;
 					changeSelection();
 					holdTime = 0;	
 					searchBar.hasFocus = false;
@@ -694,7 +700,7 @@ class FreeplayState extends MusicBeatState
 		{
 			searchBar.hasFocus = false;
 		}
-		if (FlxG.keys.justPressed.ANY && searchBar.hasFocus) FreeplayManager.reloadFreeplay(false, searchBar.text);
+		if (FlxG.keys.justPressed.ANY && searchBar.hasFocus) fpManager.reloadFreeplay(false, searchBar.text);
 
 		if (searchBar.hasFocus == false || searchBar.text == null)
 		{
@@ -704,7 +710,7 @@ class FreeplayState extends MusicBeatState
 				if (player.playingMusic)
 				{
 					FlxG.sound.music.stop();
-					FreeplayManager.destroyFreeplayVocals();
+					fpManager.destroyFreeplayVocals();
 					FlxG.sound.music.volume = 0;
 					instPlaying = -1;
 
@@ -745,7 +751,7 @@ class FreeplayState extends MusicBeatState
 				if(instPlaying != curSelected && !player.playingMusic)
 				{
 					if (curSelected == -1) {
-						var newSel = FlxG.random.int(0, FreeplayManager.songList.length - 1);
+						var newSel = FlxG.random.int(0, fpManager.songList.length - 1);
 						if (newSel == -1)
 							newSel = 0;
 						curSelected = newSel;
@@ -755,13 +761,13 @@ class FreeplayState extends MusicBeatState
 					}
 
 					searchBar.hasFocus = false;
-					FreeplayManager.destroyFreeplayVocals();
+					fpManager.destroyFreeplayVocals();
 					FlxG.sound.music.volume = 0;
 	
-					Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
-					var poop:String = Highscore.formatSong(FreeplayManager.songList[curSelected].songName.toLowerCase(), curDifficulty);
-					Song.loadFromJson(poop, FreeplayManager.songList[curSelected].songName.toLowerCase());
-					FreeplayManager.previewSong(PlayState.SONG.needsVoices);
+					Mods.currentModDirectory = fpManager.songList[curSelected].folder;
+					var poop:String = Highscore.formatSong(fpManager.songList[curSelected].songName.toLowerCase(), curDifficulty);
+					Song.loadFromJson(poop, fpManager.songList[curSelected].songName.toLowerCase());
+					fpManager.previewSong(PlayState.SONG.needsVoices);
 					instPlaying = curSelected;
 					trackPlaying = poop;
 					player.playingMusic = true;
@@ -778,7 +784,7 @@ class FreeplayState extends MusicBeatState
 			else if (controls.ACCEPT && !player.playingMusic && !searchBar.hasFocus)
 			{
 				if (curSelected == -1) {
-					var newSel = FlxG.random.int(0, FreeplayManager.songList.length - 1);
+					var newSel = FlxG.random.int(0, fpManager.songList.length - 1);
 					if (newSel == -1)
 						newSel = 0;
 					curSelected = newSel;
@@ -787,10 +793,10 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 
-				var vicCheck:Bool = FreeplayManager.isVictorySong(FreeplayManager.songList[curSelected].songName, FreeplayManager.songList[curSelected].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
+				var vicCheck:Bool = APFreeplayManager.isVictorySong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
-				if (FreeplayManager.isVictorySong(FreeplayManager.songList[curSelected].songName, FreeplayManager.songList[curSelected].folder) && !vicCheck) {
+				if (APFreeplayManager.isVictorySong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder) && !vicCheck) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)
@@ -805,7 +811,7 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 				
-				if (FreeplayManager.trueMissing.contains(FreeplayManager.songList[curSelected].songName) && !FreeplayManager.unplayedList.contains(FreeplayManager.songList[curSelected].songName)) {
+				if (APFreeplayManager.trueMissing.contains(fpManager.songList[curSelected].songName) && !APFreeplayManager.unplayedList.contains(fpManager.songList[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					grpSongs.forEach(function(item:FlxSprite)
@@ -821,7 +827,7 @@ class FreeplayState extends MusicBeatState
 
 				searchBar.hasFocus = false;
 				persistentUpdate = false;
-				var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[curSelected].songName);
+				var songLowercase:String = Paths.formatToSongPath(fpManager.songList[curSelected].songName);
 				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);
 				trace(poop);
 				//ill softcode this eventually
@@ -951,7 +957,7 @@ class FreeplayState extends MusicBeatState
 
 				FlxG.sound.music.volume = 0;
 						
-				FreeplayManager.destroyFreeplayVocals();
+				fpManager.destroyFreeplayVocals();
 				#if (MODS_ALLOWED && DISCORD_ALLOWED)
 				DiscordClient.loadModRPC();
 				#end
@@ -960,7 +966,7 @@ class FreeplayState extends MusicBeatState
 			{
 				searchBar.hasFocus = false;
 				persistentUpdate = false;
-				openSubState(new ResetScoreSubState(FreeplayManager.songList[curSelected].songName, curDifficulty, FreeplayManager.songList[curSelected].songCharacter));
+				openSubState(new ResetScoreSubState(fpManager.songList[curSelected].songName, curDifficulty, fpManager.songList[curSelected].songCharacter));
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 			}
 		}
@@ -1035,7 +1041,7 @@ class FreeplayState extends MusicBeatState
 			instPlaying = -1;
 			trackPlaying = musName;
 		}
-		FreeplayManager.destroyFreeplayVocals();
+		fpManager.destroyFreeplayVocals();
 	}
 
 	function changeDiff(change:Int = 0)
@@ -1045,13 +1051,13 @@ class FreeplayState extends MusicBeatState
 
 		curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
 
-		if (FreeplayManager.songList[curSelected] == null)
+		if (fpManager.songList[curSelected] == null)
 			return;
 
 		#if !switch
-		intendedScore = Highscore.getScore(FreeplayManager.songList[curSelected].songName, curDifficulty);
-		intendedRating = Highscore.getRating(FreeplayManager.songList[curSelected].songName, curDifficulty);
-		rank.loadGraphic(Paths.image('rankings/' + rankTable[Highscore.getRank(FreeplayManager.songList[curSelected].songName, curDifficulty)]));
+		intendedScore = Highscore.getScore(fpManager.songList[curSelected].songName, curDifficulty);
+		intendedRating = Highscore.getRating(fpManager.songList[curSelected].songName, curDifficulty);
+		rank.loadGraphic(Paths.image('rankings/' + rankTable[Highscore.getRank(fpManager.songList[curSelected].songName, curDifficulty)]));
 		rank.scale.x = rank.scale.y = 140 / rank.height;
 		rank.updateHitbox();
 		rank.antialiasing = true;
@@ -1105,12 +1111,12 @@ class FreeplayState extends MusicBeatState
 		curSelected += change;
 
 		if (curSelected < -1)
-			curSelected = FreeplayManager.songList.length - 1;
-		if (FreeplayManager.songList.length > 0 && curSelected >= FreeplayManager.songList.length)
+			curSelected = fpManager.songList.length - 1;
+		if (fpManager.songList.length > 0 && curSelected >= fpManager.songList.length)
 			if (change > 0)
 				curSelected = -1;
 			else
-			curSelected = FreeplayManager.songList.length - 1;
+			curSelected = fpManager.songList.length - 1;
 
 		if (curSelected == -1)
 			playFreakyMusic('menuMusic/freeplayRandom');
@@ -1118,14 +1124,14 @@ class FreeplayState extends MusicBeatState
 			playFreakyMusic();
 		
 		try {
-			if (FreeplayManager.songList.length >= 0)
+			if (fpManager.songList.length >= 0)
 			{
 				if (curSelected < -1)
-					curSelected = FreeplayManager.songList.length - 1;
-				if (curSelected >= FreeplayManager.songList.length)
+					curSelected = fpManager.songList.length - 1;
+				if (curSelected >= fpManager.songList.length)
 					curSelected = -1;
 
-				var newColor:Int = curSelected != -1 ? FreeplayManager.songList[curSelected].color[1][0] : FlxColor.fromString('#FD719B');
+				var newColor:Int = curSelected != -1 ? fpManager.songList[curSelected].color[1][0] : FlxColor.fromString('#FD719B');
 				if(newColor != intendedColor) {
 					if(colorTween != null) {
 						colorTween.cancel();
@@ -1183,13 +1189,13 @@ class FreeplayState extends MusicBeatState
 			}
 		}
 		
-		if (FreeplayManager.songList[curSelected] != null)
+		if (fpManager.songList[curSelected] != null)
 		{
 			WeekData.setDirectoryFromWeek();
-			Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
-			PlayState.storyWeek = FreeplayManager.songList[curSelected].week;
+			Mods.currentModDirectory = fpManager.songList[curSelected].folder;
+			PlayState.storyWeek = fpManager.songList[curSelected].week;
 			try {Difficulty.loadFromWeek();} catch(e:Dynamic) {}
-			try {metadata = FreeplayManager.metadata.get(FreeplayManager.songList[curSelected].songName.toLowerCase());}
+			try {metadata = fpManager.metadata.get(fpManager.songList[curSelected].songName.toLowerCase());}
 			catch(e) {metadata = null;}
 		}
 
@@ -1199,15 +1205,15 @@ class FreeplayState extends MusicBeatState
 			diffText.visible = true;
 
 		try {
-			if (FreeplayManager.songList[curSelected] == null)
+			if (fpManager.songList[curSelected] == null)
 				return;
 
-			if (FreeplayManager.songList[curSelected].songName != 'SONG NOT FOUND') 
+			if (fpManager.songList[curSelected].songName != 'SONG NOT FOUND') 
 			{
-				Mods.currentModDirectory = FreeplayManager.songList[curSelected].folder;
-				PlayState.storyWeek = FreeplayManager.songList[curSelected].week;
+				Mods.currentModDirectory = fpManager.songList[curSelected].folder;
+				PlayState.storyWeek = fpManager.songList[curSelected].week;
 
-				switch (FreeplayManager.songList[curSelected].songName)
+				switch (fpManager.songList[curSelected].songName)
 				{
 					case 'Small Argument' | 'Beat Battle 2':
 						Difficulty.list = ['Hard'];
@@ -1216,9 +1222,9 @@ class FreeplayState extends MusicBeatState
 					default:
 						Difficulty.loadFromWeek();
 				}
-				var savedDiff:String = FreeplayManager.songList[curSelected].lastDifficulty;
+				var savedDiff:String = fpManager.songList[curSelected].lastDifficulty;
 				var lastDiff:Int = Difficulty.list.indexOf(lastDifficultyName);
-				if(FreeplayManager.songList[curSelected].songName != 'SONG NOT FOUND') savedDiff = WeekData.getCurrentWeek().difficulties.trim(); //Fuck you HTML5
+				if(fpManager.songList[curSelected].songName != 'SONG NOT FOUND') savedDiff = WeekData.getCurrentWeek().difficulties.trim(); //Fuck you HTML5
 				else savedDiff = 'SONG NOT FOUND!'; //and you too search bar
 				if(savedDiff != null && !lastList.contains(savedDiff) && Difficulty.list.contains(savedDiff))
 					curDifficulty = Math.round(Math.max(0, Difficulty.list.indexOf(savedDiff)));
@@ -1235,7 +1241,7 @@ class FreeplayState extends MusicBeatState
 			{
 				Difficulty.list = ['SONG NOT FOUND'];
 				curDifficulty = 0;
-				FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+				fpManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 				changeDiff();
 				_updateSongLastDifficulty();
 			}
@@ -1245,7 +1251,7 @@ class FreeplayState extends MusicBeatState
 			trace("songs couldn't be found, even though there are songs??? adding SONG NOT FOUND just in case.");
 			Difficulty.list = ['SONG NOT FOUND'];
 			curDifficulty = 0;
-			FreeplayManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+			fpManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 		}
 
 		if (metadata != null && metadata.freeplay != null) {
@@ -1289,7 +1295,7 @@ class FreeplayState extends MusicBeatState
 
 	inline private function _updateSongLastDifficulty()
 	{
-		if (FreeplayManager.songList[curSelected] != null) FreeplayManager.songList[curSelected].lastDifficulty = Difficulty.getString(curDifficulty);
+		if (fpManager.songList[curSelected] != null) fpManager.songList[curSelected].lastDifficulty = Difficulty.getString(curDifficulty);
 	}
 
 	private function positionHighscore() {
@@ -1328,8 +1334,8 @@ class FreeplayState extends MusicBeatState
 			randomText.alpha = 1;
 		randomIcon.alpha = randomText.alpha;
 
-		var min:Int = Math.round(Math.max(0, Math.min(FreeplayManager.songList.length, lerpSelected - _drawDistance)));
-		var max:Int = Math.round(Math.max(0, Math.min(FreeplayManager.songList.length, lerpSelected + _drawDistance)));
+		var min:Int = Math.round(Math.max(0, Math.min(fpManager.songList.length, lerpSelected - _drawDistance)));
+		var max:Int = Math.round(Math.max(0, Math.min(fpManager.songList.length, lerpSelected + _drawDistance)));
 		for (i in min...max)
 		{
 			if (grpSongs.members[i] != null)

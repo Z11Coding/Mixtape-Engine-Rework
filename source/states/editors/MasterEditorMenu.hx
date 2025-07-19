@@ -1,10 +1,9 @@
 package states.editors;
 
 import backend.WeekData;
-
 import objects.Character;
-
 import states.MainMenuState;
+import states.freeplay.FreeplayState;
 
 class MasterEditorMenu extends MusicBeatState
 {
@@ -128,7 +127,7 @@ class MasterEditorMenu extends MusicBeatState
 					MusicBeatState.switchState(new XMLEditorState());
 			}
 			FlxG.sound.music.volume = 0;
-			FreeplayManager.destroyFreeplayVocals();
+			FreeplayState.instance.fpManager.destroyFreeplayVocals();
 		}
 		
 		for (num => item in grpTexts.members)

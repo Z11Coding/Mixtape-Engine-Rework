@@ -52,7 +52,7 @@ class FirstCheckState extends MusicBeatState
 			}
 		}
 
-		MemoryUtilBase.enable();
+		MemoryUtilBase.disable();
 
 		super.create();
 

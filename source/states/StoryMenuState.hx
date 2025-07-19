@@ -363,7 +363,7 @@ class StoryMenuState extends MusicBeatState
 			{
 				#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 				LoadingState.loadAndSwitchState(new PlayState(), true);
-				FreeplayManager.destroyFreeplayVocals();
+				states.freeplay.FreeplayState.instance.fpManager.destroyFreeplayVocals();
 			});
 			
 			#if (MODS_ALLOWED && DISCORD_ALLOWED)
