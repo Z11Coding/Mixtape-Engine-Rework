@@ -19,6 +19,11 @@ class APInfo {
 	public static var hintPoints(get, never):Int;
 	public static var hintCost(get, never):Int;
 
+	public static var slotData(get, never):Dynamic;
+	public static function get_slotData():Dynamic {
+		return apGame?._slotData;
+	}
+
 	public static var gradeList:Array<String> = 
 	[
 		'Any',

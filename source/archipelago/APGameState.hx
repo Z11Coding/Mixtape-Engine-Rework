@@ -546,9 +546,12 @@ class APGameState
 			|| _ap.clientStatus == ClientStatus.READY;
 	}
 
+	public var _slotData:Dynamic;
+
 	public function new(ap:Client, slotData:Dynamic)
 	{
 		_ap = ap;
+		_slotData = slotData;
 
 		_seed = _ap.seed;
 
@@ -583,7 +586,7 @@ class APGameState
 			}
 		});
 
-		_ap.toggleDeathLink(ClientPrefs.data.deathlink);
+		_ap.toggleDeathLink(slotData != null && Reflect.hasField(slotData, "deathLink") ? slotData.deathLink : ClientPrefs.data.deathlink);
 
 		_ap.onRetrieved.add(handleRetrievedPacket);
 
