@@ -1183,6 +1183,62 @@ abstract DetailedException(ExceptionDetails) {
     }
 }
 
+abstract HxVector<T>(haxe.ds.Vector<T>) {
+    public inline function new(value:Dynamic) {
+        if (value == null) throw 'HxVector cannot be constructed with null value';
+        if (Std.isOfType(value, Array)) {
+            var arr:Array<T> = cast value;
+            var vec = new haxe.ds.Vector<T>(arr.length);
+            for (i in 0...arr.length) vec[i] = arr[i];
+            this = vec;
+        } else {
+            this = cast value;
+        }
+    }
+
+    @:to
+    public inline function toVector():haxe.ds.Vector<T> {
+        return this;
+    }
+
+    @:to
+    public inline function toArray():Array<T> {
+        var arr = [];
+        for (i in 0...this.length) arr.push(this[i]);
+        return arr;
+    }
+
+    @:from
+    public static inline function fromVector<T>(value:haxe.ds.Vector<T>):HxVector<T> {
+        return new HxVector(value);
+    }
+
+    @:from
+    public static inline function fromArray<T>(value:Array<T>):HxVector<T> {
+        return new HxVector(value);
+    }
+
+    @:arrayAccess
+    public inline function arrayRead(idx:Int):T {
+        return this[idx];
+    }
+
+    @:arrayAccess
+    public inline function arrayWrite(idx:Int, value:T):T {
+        this[idx] = value;
+        return value;
+    }
+
+    public inline function iterator():Iterator<T> {
+        var i = 0;
+        var len = this.length;
+        return {
+            hasNext: function() return i < len,
+            next: function() return this[i++];
+        };
+    }
+}
+
 abstract ForceCasted<T>(Dynamic) {
     public inline function new(value:Dynamic) {
         this = value;

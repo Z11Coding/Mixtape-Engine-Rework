@@ -12,32 +12,32 @@ abstract Container<T>(Dynamic) {
     public function new() {
         this = [];
     }
-
+    @:from
     public function newFromArray(array:Array<T>):Container<T> {
         this = array;
         return this;
     }
-
+    @:from
     public function newFromMap(map:Map<String, T>):Container<T> {
         this = map;
         return this;
     }
-
+    @:from
     public function newFromDTable(table:DTable<T>):Container<T> {
         this = table;
         return this;
     }
-
+    @:from
     public function newFromHTable(table:HTable<T>):Container<T> {
         this = table;
         return this;
     }
-
+    @:from
     public function newFromFlxGroup(group:FlxGroup):Container<T> {
         this = group;
         return this;
     }
-
+    @:from
     public function newFromFlxTypedGroup(group:FlxTypedGroup<T>):Container<T> {
         this = group;
         return this;
@@ -72,7 +72,7 @@ abstract Container<T>(Dynamic) {
                 throw "Unsupported container type";
         }
     }
-
+    @:arrayAccess
     public function get(index:Int):T {
         switch (this) {
             case a:Array<T>:
