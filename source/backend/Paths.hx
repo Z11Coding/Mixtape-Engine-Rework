@@ -221,6 +221,7 @@ class Paths
 
 	// The "If All Else Fails" option 
 	public static function nukeMemory(){
+		clearStoredWithoutStickers();
 		freeGraphicsFromMemory();
 		clearUnusedMemory();
 		clearStoredMemory();

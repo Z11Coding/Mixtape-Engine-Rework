@@ -750,6 +750,7 @@ class FreeplayState extends MusicBeatState
 							newSel = 0;
 						curSelected = newSel;
 						changeSelection();
+						updateTexts();
 						return;
 					}
 
@@ -782,7 +783,7 @@ class FreeplayState extends MusicBeatState
 						newSel = 0;
 					curSelected = newSel;
 					changeSelection();
-					lerpSelected = curSelected;
+					updateTexts();
 					return;
 				}
 

@@ -1813,10 +1813,7 @@ class PlayState extends MusicBeatState
 				modManager.registerDefaultModifiers();
 
 				if (ClientPrefs.data.middleScroll) {
-					altNoteMove = true;
-					//strumOffsetspacebcauseitsstupid = 0;
-					//strumOffsetbcauseitsstupid = 0;
-					var off:Float = Math.min(FlxG.width, 1280) / 4;
+					var off:Float = Math.min(FlxG.width, 1280) / Note.ammo[mania];
 					var opp:Int = opponentmode ? 0 : 1;
 					
 					var halfKeys:Int = Math.floor(Note.ammo[mania] / 2);
@@ -1824,9 +1821,9 @@ class PlayState extends MusicBeatState
 						modManager.setValue('alpha${halfKeys + 1}', 1.0, opp);
 					
 					for (i in 0...halfKeys)
-						modManager.setValue('transform${i}X-a', -off, opp);
+						modManager.setValue('transform${i}X', -off, opp);
 					for (i in Note.ammo[mania]-halfKeys...Note.ammo[mania])
-						modManager.setValue('transform${i}X-a', off, opp);
+						modManager.setValue('transform${i}X', off, opp);
 		
 					modManager.setValue("alpha", 0.6, opp);
 					modManager.setValue("opponentSwap", 0.5);
@@ -1836,6 +1833,11 @@ class PlayState extends MusicBeatState
 			callOnScripts('postModifierRegister'); // deprecated
 			#end
 			callOnScripts('onModifierRegisterPost');
+
+			for (i in 0...Note.ammo[mania]) {
+				playerField.baseXPositions[i] = playerField.strumNotes[i].x;
+				dadField.baseXPositions[i] = dadField.strumNotes[i].x;
+			}
 
 			startedCountdown = true;
 			Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
@@ -4396,18 +4398,8 @@ class PlayState extends MusicBeatState
 		modManager.update(elapsed, curDecBeat, curDecStep);
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong && enableBaseMovement)
+		if (!startingSong)
 			modchartSync(false);
-
-		// TODO: Figure this out
-		/*for (note in 0...playerStrums.members.length) {
-			modManager.setValue('psychTransform${note}X', playerStrums.members[note].x, 1);
-			modManager.setValue('psychTransform${note}Y', playerStrums.members[note].y, 1); 
-		}
-		for (note in 0...opponentStrums.members.length) {
-			modManager.setValue('psychTransform${note}X', opponentStrums.members[note].x, 0);
-			modManager.setValue('psychTransform${note}Y', opponentStrums.members[note].y, 0);
-		}*/
 
 		setOnScripts('curDecStep', curDecStep);
 		setOnScripts('curDecBeat', curDecBeat);
@@ -8054,9 +8046,10 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	public var altNoteMove:Bool = false; //because there's more than one way to do it
-	public var strumOffsetbcauseitsstupid:Float = 695;
-	public var strumOffsetspacebcauseitsstupid:Float = 110;
+	// gonna keep these two just in case i still need em but i dont think i do anymore
+	public var strumOffsetbcauseitsstupid:Float = 0;
+	public var strumOffsetspacebcauseitsstupid:Float = 0;
+	
 	public var ModchartScrollType:Int = 0; // 0 = none, 1 = Downscroll, 3 = Rotate.
 	public var curDownscroll:Bool = ClientPrefs.data.downScroll; // Used to check if the downscroll has changed.
 	public function modchartSync(directChange:Bool = false):Void {
@@ -8075,13 +8068,13 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X', (altNoteMove ? offsetX : strumNote.x) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
+								modManager.setValue('transform${i}X', offsetX - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position
 								var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
 								var offsetY = strumNote.y - baseY;
-								modManager.setValue('transform${i}Y', (altNoteMove ? offsetY : strumNote.y) - ((strumNote.downScroll || (strumNote.direction % 360) >= 180) ? 520 : 0), field.playerId);
+								modManager.setValue('transform${i}Y', offsetY - ((strumNote.downScroll || (strumNote.direction % 360) >= 180) ? 520 : 0), field.playerId);
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
