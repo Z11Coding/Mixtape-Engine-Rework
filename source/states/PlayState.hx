@@ -4347,7 +4347,6 @@ class PlayState extends MusicBeatState
 
 	public var initY:Float;
 	var lastHealth:Float = -1;
-	public var enableBaseMovement:Bool = false; // for modcharts that need the variables otherwise lol
 	override public function update(elapsed:Float)
 	{
 		if(!inCutscene && !paused && !freezeCamera) {
