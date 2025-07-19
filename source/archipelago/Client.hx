@@ -1446,7 +1446,7 @@ class Client {
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
 						APGameState.instance.initSaveData();
 						try {
-							states.freeplay.FreeplayState.instance.fpManager.reloadFreeplay(true);
+							FreeplayManager.getInstance().fpManager.reloadFreeplay(true);
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
 						}
@@ -1500,7 +1500,7 @@ class Client {
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
 						APGameState.instance.initSaveData();
 						try {
-							states.freeplay.FreeplayState.instance.fpManager.reloadFreeplay(true);
+							FreeplayManager.getInstance().fpManager.reloadFreeplay(true);
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
 						}

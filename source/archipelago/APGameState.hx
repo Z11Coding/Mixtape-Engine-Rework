@@ -1059,7 +1059,7 @@ class APGameState
 		info().casualSync = false;
 		try
 		{
-			states.freeplay.FreeplayState.instance.fpManager.reloadFreeplay(true);
+			FreeplayManager.getInstance().fpManager.reloadFreeplay(true);
 		}
 		catch (e:Dynamic)
 		{

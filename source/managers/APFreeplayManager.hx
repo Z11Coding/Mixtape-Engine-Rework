@@ -133,7 +133,7 @@ class APFreeplayManager extends FreeplayManager {
 		}
 
 		trace("Reloading songs in FreeplayState instance...");
-		FreeplayState.instance.fpManager.reloadFreeplay(true);
+		FreeplayManager.getInstance().fpManager.reloadFreeplay(true);
 
 		trace("Checking if the song is a victory song...");
 		if (archipelago.APEntryState.apGame.checkGoal(songName, modName)) {
