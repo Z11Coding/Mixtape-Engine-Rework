@@ -228,7 +228,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	}
 
 	// destroys a note
-	public function removeNote(daNote:Note){
+	public function removeNote(daNote:Note, ?killTail:Bool = false){
 		daNote.active = false;
 		daNote.visible = false;
 		daNote.kill();
@@ -249,6 +249,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		if (noteQueue[daNote.column] != null)
 			noteQueue[daNote.column].remove(daNote);
 
+		if (killTail)
 		if (daNote.unhitTail.length > 0)
 			while (daNote.unhitTail.length > 0)
 				removeNote(daNote.unhitTail.shift());
