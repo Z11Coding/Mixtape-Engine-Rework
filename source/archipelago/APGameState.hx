@@ -939,24 +939,26 @@ class APGameState
 		var specialItems:Map<String, Int> = new Map<String, Int>();
 		var apInfo = info();
 
-		// // trace("FNF Package: " + currentPackages["Friday Night Funkin"]);
-		// // trace("Item Name to ID: " + currentPackages["Friday Night Funkin"].item_name_to_id);
+		// Get selectedSongs from slotData
+		var selectedSongs:Array<String> = [];
+		if (_slotData != null && Reflect.hasField(_slotData, "selectedSongs"))
+		{
+			selectedSongs = Reflect.field(_slotData, "selectedSongs");
+		}
 
 		for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
 		{
 			var itemName = item.replace("<cOpen>", "{").replace("<cClose>", "}").replace("<sOpen>", "[").replace("<sClose>", "]");
 
-			var data = getSongAndMod(itemName); // I'm a fuckin' idiot.
 
-			// var itemsWhitelist:
-			var isSpecialItem = locationData(data.song, data.mod).concat(APEntryState.apGame.noteData(data.song, data.mod)).isEmpty();
+			// Check if item is NOT in selectedSongs
+			var isSpecialItem = !selectedSongs.contains(itemName);
 			if (isSpecialItem)
 			{
 				specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
 			}
 		}
 		trace("Special Items: " + specialItems);
-		// trace("No more using this for now...");
 
 		return specialItems;
 	}
