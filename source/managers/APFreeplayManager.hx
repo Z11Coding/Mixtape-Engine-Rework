@@ -366,7 +366,7 @@ class APFreeplayManager extends FreeplayManager {
 
             WeekData.setDirectoryFromWeek(leWeek);
             var allowedSongs:Array<Dynamic> = [for (song in leWeek.songs) {
-                for (songData in curUnlocked) {
+                for (songData in apSongData) {
                     if (songData.song == song[0] && songData.mod == leWeek.folder) {
                         song;
                     }
