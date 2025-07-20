@@ -760,10 +760,21 @@ class APGameState
 		return _ap;
 	}
 
+	var trapLink:Dynamic = null;
+
 	function bouncy(data:Dynamic)
 	{
 		trace("Bounce packet received: " + haxe.Json.stringify(data));
-		
+
+		// Check for TrapLink packet first
+		if (Reflect.hasField(data, "trap_name"))
+		{
+			trapLink = data;
+			trace("TrapLink packet received: " + haxe.Json.stringify(trapLink));
+			// doTrapLink();
+			return;
+		}
+
 		if ((Reflect.hasField(data, "source") && Reflect.hasField(data, "time"))
 			&& !APPlayState.deathByLink)
 		{
@@ -783,6 +794,29 @@ class APGameState
 			}
 		}
 	}
+
+	// function doTrapLink()
+	// {
+	// 	if (trapLink == null)
+	// 	{
+	// 		trace("No trap link to process.");
+	// 		return;
+	// 	}
+
+	// 	var trapName = trapLink.trap_name;
+	// 	var trapData = APItem.getTrapData(trapName);
+	// 	if (trapData != null)
+	// 	{
+	// 		trace("Processing trap link: " + trapName);
+	// 		APItem.doTrapLink(trapData, trapLink);
+	// 		trapLink = null; // Clear the trap link after processing
+	// 	}
+	// 	else
+	// 	{
+	// 		trace("Trap data not found for: " + trapName);
+	// 		trapLink = null; // Clear the trap link if no data found
+	// 	}
+	// }
 
 	function onSlotConnected(slotData:Dynamic)
 	{
