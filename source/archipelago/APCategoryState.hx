@@ -10,7 +10,15 @@ class APCategoryState extends states.CategoryState {
 
     public function new(gameState:archipelago.APGameState, ?AP:archipelago.Client) {
         this.gameState = gameState;
-        this.AP = gameState.info();
+        while (true) {
+            try {
+            this.AP = gameState.info();
+            break;
+            } catch (e) {
+            // Optionally, add a small delay to avoid busy looping
+            Sys.sleep(0.1);
+            }
+        }
         menuItems = [];
         super(['All', 'Hinted', 'Unlocked', 'Unplayed', 'Options', 'Quit'], false, false, true, false, false);
         menuLocks = [false, false, false, false, false, false];
