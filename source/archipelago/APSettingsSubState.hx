@@ -425,6 +425,18 @@ class APSettingsSubState extends MusicBeatSubstate {
         comment += "# The amount of checks (currently) possible is " + ((APEntryState.gameSettings.FNF.songList.length * 5) - APEntryState.gameSettings.FNF.song_limit) + ".\n";
         comment += "# The amount of checks (currently) if just Song Completion is used is " + ((APEntryState.gameSettings.FNF.songList.length * 2) - APEntryState.gameSettings.FNF.song_limit) + ".\n";
         comment += "# The amount of checks (currently) if just Note Checks is used is " + ((APEntryState.gameSettings.FNF.songList.length * 3) - APEntryState.gameSettings.FNF.song_limit) + ".\n";
+        var songLimitChecks = 0;
+        switch (APEntryState.gameSettings.FNF.unlock_method) {
+            case "Song Completion":
+            songLimitChecks = APEntryState.gameSettings.FNF.song_limit * 2;
+            case "Note Checks":
+            songLimitChecks = APEntryState.gameSettings.FNF.song_limit * 3;
+            case "Both":
+            songLimitChecks = APEntryState.gameSettings.FNF.song_limit * 5;
+            default:
+            songLimitChecks = APEntryState.gameSettings.FNF.song_limit;
+        }
+        comment += "# From the song limit of " + APEntryState.gameSettings.FNF.song_limit + ", you will have exactly " + songLimitChecks + " checks.\n";
         comment += "\n";
 
         var yamlString = "Friday Night Funkin:\n";
