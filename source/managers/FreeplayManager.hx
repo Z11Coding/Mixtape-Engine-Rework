@@ -64,7 +64,7 @@ class FreeplayManager {
                     return instance = new APFreeplayManager();
                 }
             case false:
-                if (instance != null && Std.isOfType(instance, FreeplayManager)) {
+                if (instance != null && !Std.isOfType(instance, APFreeplayManager)) {
                     trace("Using existing FreeplayManager instance.");
                     return instance;
                 } else {
