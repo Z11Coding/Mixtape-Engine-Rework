@@ -7561,9 +7561,10 @@ class PlayState extends MusicBeatState
 	}
 
 	public function invalidateNote(note:Note):Void {
-		note.kill();
-		notes.remove(note, true);
-		note.destroy();
+		// note.kill();
+		// notes.remove(note, true);
+		// note.destroy();
+		note.field.removeNote(note);
 	}
 
 	function playAnim(note:Note, char:Character, animToPlay:String, ?forceAnim:Bool = false) {
