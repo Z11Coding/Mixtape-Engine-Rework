@@ -346,7 +346,7 @@ class APFreeplayManager extends FreeplayManager {
             var apSongData = archipelago.APInfo.apGame?.getSongsAndModsFromArray(archipelago.APInfo.slotData.selectedSongs);
 
             WeekData.setDirectoryFromWeek(leWeek);
-            var allowedSongs = [for (song in leWeek.songs) {
+            var allowedSongs:Array<Dynamic> = [for (song in leWeek.songs) {
                 for (songData in apSongData) {
                     if (songData.song == song[0] && songData.mod == leWeek.folder) {
                         song;
