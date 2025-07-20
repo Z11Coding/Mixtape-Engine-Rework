@@ -210,7 +210,8 @@ class RankingSubstate extends MusicBeatSubstate
 						}
 						trace("All checks sent.");
 
-
+						var attempts = 0;
+						
 
 						var locationId = (PlayState.SONG.song);
 						trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
@@ -283,6 +284,12 @@ class RankingSubstate extends MusicBeatSubstate
 																						locationId = songJson.song;
 																						locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 																						trace("Updated Location IDs using JSON name: " + locationIdInts);
+																						attempts++;
+																						if (attempts >= 200)
+																						{
+																							trace("Too many attempts to find valid location ID. It shouldn't even be allowed to be this high, but here we are.");
+																							break;
+																						}
 																					}
 																				}
 																			}
