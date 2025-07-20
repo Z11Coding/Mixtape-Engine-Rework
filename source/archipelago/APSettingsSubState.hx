@@ -437,6 +437,31 @@ class APSettingsSubState extends MusicBeatSubstate {
             songLimitChecks = APEntryState.gameSettings.FNF.song_limit;
         }
         comment += "# From the song limit of " + APEntryState.gameSettings.FNF.song_limit + ", you will have exactly " + songLimitChecks + " checks.\n";
+        comment += " # you have exactly " + Mods.parseList().enabled.length + " mods.\n";
+        var modCount = Mods.parseList().enabled.length;
+        var modComment = "";
+        if (modCount == 0) {
+            modComment = "No mods? Vanilla enjoyer detected!";
+        } else if (modCount == 1) {
+            modComment = "Just one mod? Testing the waters, huh?";
+        } else if (modCount <= 3) {
+            modComment = modCount + " mods. A modest modder!";
+        } else if (modCount <= 7) {
+            modComment = modCount + " mods. Getting spicy!";
+        } else if (modCount <= 15) {
+            modComment = modCount + " mods. Mod connoisseur!";
+        } else if (modCount <= 30) {
+            modComment = modCount + " mods. How do you even keep track?";
+        } else if (modCount <= 50) {
+            modComment = modCount + " mods. You must be insane...";
+        } else if (modCount <= 100) {
+            modComment = modCount + " mods. You are a madman! The Engine might not like this...";
+        } else if (modCount <= 200) {
+            modComment = modCount + " mods. Are you trying to break the game?!";
+        } else {
+            modComment = modCount + " mods. This is beyond all reason!";
+        }
+        comment += " # (" + modComment + ")\n";
         comment += "\n";
 
         var yamlString = "Friday Night Funkin:\n";
