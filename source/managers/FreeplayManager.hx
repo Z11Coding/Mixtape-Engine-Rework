@@ -52,15 +52,36 @@ class FreeplayManager {
     }
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
-
     public static function loadFPManager() {
+        #if ARCHIPELAGO_ALLOWED
         return switch (APEntryState.inArchipelagoMode) {
             case true:
-                new APFreeplayManager();
+                if (instance != null && Std.isOfType(instance, APFreeplayManager)) {
+                    trace("Using existing APFreeplayManager instance.");
+                    return instance;
+                } else {
+                    trace("Creating new APFreeplayManager instance.");
+                    return instance = new APFreeplayManager();
+                }
             case false:
-                new FreeplayManager();
-
+                if (instance != null && Std.isOfType(instance, FreeplayManager)) {
+                    trace("Using existing FreeplayManager instance.");
+                    return instance;
+                } else {
+                    trace("Creating new FreeplayManager instance.");
+                    return instance = new FreeplayManager();
+                }
         }
+        #else
+        return switch (instance != null && Std.isOfType(instance, FreeplayManager)) {
+            case true:
+                trace("Using existing FreeplayManager instance.");
+                instance;
+            case false:
+                trace("Creating new FreeplayManager instance.");
+                instance = new FreeplayManager();
+        }
+        #end
     }
 
     //Static things

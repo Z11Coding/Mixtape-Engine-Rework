@@ -905,8 +905,8 @@ class APGameState
 		var specialItems:Map<String, Int> = new Map<String, Int>();
 		var apInfo = info();
 
-		// trace("FNF Package: " + currentPackages["Friday Night Funkin"]);
-		// trace("Item Name to ID: " + currentPackages["Friday Night Funkin"].item_name_to_id);
+		// // trace("FNF Package: " + currentPackages["Friday Night Funkin"]);
+		// // trace("Item Name to ID: " + currentPackages["Friday Night Funkin"].item_name_to_id);
 
 		for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
 		{
@@ -922,6 +922,7 @@ class APGameState
 			}
 		}
 		trace("Special Items: " + specialItems);
+		// trace("No more using this for now...");
 
 		return specialItems;
 	}

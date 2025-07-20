@@ -63,6 +63,14 @@ class APFreeplayManager extends FreeplayManager {
 	public static var trueMissing:Array<String> = [];
 	public static var unplayedList:Array<String> = [];
     public static var callVictory:Bool = false;
+    var apSongData = archipelago.APInfo.apGame?.getSongsAndModsFromArray(archipelago.APInfo.slotData.selectedSongs).map(function(songData):{song:String, mod:String} {
+        return if (songData.mod == null) {
+            {song: songData.song, mod: ''}
+        } else {
+            {song: songData.song, mod: songData.mod}
+        };
+    });
+
     #end
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
@@ -336,27 +344,7 @@ class APFreeplayManager extends FreeplayManager {
             if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 
-            function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
-                if (array == null || array.length == 0) {
-                    return null;
-                }
-                return array;
-            }
-
-            var apSongData = archipelago.APInfo.apGame?.getSongsAndModsFromArray(archipelago.APInfo.slotData.selectedSongs);
-
-            WeekData.setDirectoryFromWeek(leWeek);
-            var allowedSongs:Array<Dynamic> = [for (song in leWeek.songs) {
-                for (songData in apSongData) {
-                    if (songData.song == song[0] && songData.mod == leWeek.folder) {
-                        song;
-                    }
-                }
-            }];
-
-            for (song in allowedSongs)
-            {
-                var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
+            var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
                     (cast leWeek.category:String).split(',').map(function(cat:String):String {
                         return cat.trim().toLowerCase();
                     }) : Std.isOfType(leWeek.category, Array) ? 
@@ -366,6 +354,27 @@ class APFreeplayManager extends FreeplayManager {
                     [(cast leWeek.category:String)].map(function(cat:String):String {
                         return cat.trim().toLowerCase();
                     });
+
+
+            function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
+                if (array == null || array.length == 0) {
+                    return null;
+                }
+                return array;
+            }
+
+
+            WeekData.setDirectoryFromWeek(leWeek);
+            var allowedSongs:Array<Dynamic> = [for (song in leWeek.songs) {
+                for (songData in curUnlocked) {
+                    if (songData.song == song[0] && songData.mod == leWeek.folder) {
+                        song;
+                    }
+                }
+            }];
+
+            for (song in allowedSongs)
+            {
 
                 if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
                     categoryWhaat = [];
