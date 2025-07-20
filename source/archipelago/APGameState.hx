@@ -546,12 +546,15 @@ class APGameState
 			|| _ap.clientStatus == ClientStatus.READY;
 	}
 
-	public var _slotData:Dynamic;
+	public var _slotData:APInfo.APSlotData;
 
 	public function new(ap:Client, slotData:Dynamic)
 	{
 		_ap = ap;
 		_slotData = slotData;
+
+		trace("slotData: " + Std.string(slotData));
+		trace("Retained slotData: " + Std.string(_slotData));
 
 		_seed = _ap.seed;
 
@@ -883,6 +886,18 @@ class APGameState
 		}
 
 		return songAndMod;
+	}
+
+	// Check for songs and mods from an array of song names
+	public function getSongsAndModsFromArray(songNames:Array<String>):Array<{song:String, ?mod:String}>
+	{
+		var songsAndMods:Array<{song:String, ?mod:String}> = [];
+		for (songName in songNames)
+		{
+			var songAndMod = getSongAndMod(songName);
+			songsAndMods.push(songAndMod);
+		}
+		return songsAndMods;
 	}
 
 	public function findSpecialItems():Map<String, Int>

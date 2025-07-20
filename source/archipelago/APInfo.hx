@@ -1,6 +1,82 @@
 package archipelago;
 
 import substates.RankingSubstate;
+
+typedef SongDetailData = {
+	id: Int,
+	modded: Bool,
+	playerOwner: String,
+	sharedWith: Array<String>,
+	songName: String
+}
+
+typedef APSlotDataType = {
+	deathLink: Bool,
+	fullSongCount: Int,
+	victoryLocation: String,
+	victoryID: Int,
+	ticketWinCount: Int,
+	gradeNeeded: String,
+	accuracyNeeded: String,
+	locationType: String,
+	locationMethod: String,
+	selectedSongs: Array<String>,
+	songData: Map<String, SongDetailData>
+}
+
+abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
+	public function new(?data:APSlotDataType) {
+		this = data != null ? data : {
+			deathLink: false,
+			fullSongCount: 0,
+			victoryLocation: "",
+			victoryID: 0,
+			ticketWinCount: 1,
+			gradeNeeded: "Any",
+			accuracyNeeded: "Any",
+			locationType: "Song Completion",
+			locationMethod: "Per Song",
+			selectedSongs: [],
+			songData: new Map<String, SongDetailData>()
+		};
+	}
+
+	public var deathLink(get, never):Bool;
+	public var fullSongCount(get, never):Int;
+	public var victoryLocation(get, never):String;
+	public var victoryID(get, never):Int;
+	public var ticketWinCount(get, never):Int;
+	public var gradeNeeded(get, never):String;
+	public var accuracyNeeded(get, never):String;
+	public var locationType(get, never):String;
+	public var locationMethod(get, never):String;
+	public var selectedSongs(get, never):Array<String>;
+	public var songData(get, never):Map<String, SongDetailData>;
+
+	private function get_deathLink():Bool return this.deathLink;
+	private function get_fullSongCount():Int return this.fullSongCount;
+	private function get_victoryLocation():String return this.victoryLocation;
+	private function get_victoryID():Int return this.victoryID;
+	private function get_ticketWinCount():Int return this.ticketWinCount;
+	private function get_gradeNeeded():String return this.gradeNeeded;
+	private function get_accuracyNeeded():String return this.accuracyNeeded;
+	private function get_locationType():String return this.locationType;
+	private function get_locationMethod():String return this.locationMethod;
+	private function get_selectedSongs():Array<String> return this.selectedSongs;
+	private function get_songData():Map<String, SongDetailData> return this.songData;
+
+	public function get(key:String):Dynamic {
+		return Reflect.field(this, key);
+	}
+
+	public function set(key:String, value:Dynamic):Void {
+		Reflect.setField(this, key, value);
+	}
+
+	public function hasKey(key:String):Bool {
+		return Reflect.hasField(this, key);
+	}
+}
 class APInfo {
 	public static var ap:Client;
 	public static var apGame:APGameState;
@@ -19,8 +95,8 @@ class APInfo {
 	public static var hintPoints(get, never):Int;
 	public static var hintCost(get, never):Int;
 
-	public static var slotData(get, never):Dynamic;
-	public static function get_slotData():Dynamic {
+	public static var slotData(get, never):APSlotData;
+	public static function get_slotData():APSlotData {
 		return apGame?._slotData;
 	}
 

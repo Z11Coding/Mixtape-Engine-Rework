@@ -17,6 +17,39 @@ import archipelago.PacketTypes.ClientStatus;
 /*
     
 */
+
+    // SongInfo structure as typedef
+    typedef SongInfo = {
+        var song:String;
+        var mod:String;
+        var unlocked:Bool;
+        var missing:Bool;
+        var hinted:Bool;
+        var otherData:Dynamic;
+    }
+
+abstract APSongData(SongInfo) {
+    // SongInfo holds all relevant data for a song
+    public static function create(song:String, mod:String, unlocked:Bool, missing:Bool, hinted:Bool, otherData:Dynamic):APSongData {
+        return new APSongData({song: song, mod: mod, unlocked: unlocked, missing: missing, hinted: hinted, otherData: otherData});
+    }
+
+    public var song(get, never):String;
+    public var mod(get, never):String;
+    public var unlocked(get, never):Bool;
+    public var missing(get, never):Bool;
+    public var hinted(get, never):Bool;
+    public var otherData(get, never):Dynamic;
+
+    inline function get_song():String return this.song;
+    inline function get_mod():String return this.mod;
+    inline function get_unlocked():Bool return this.unlocked;
+    inline function get_missing():Bool return this.missing;
+    inline function get_hinted():Bool return this.hinted;
+    inline function get_otherData():Dynamic return this.otherData;
+
+
+}
 class APFreeplayManager extends FreeplayManager {
     #if ARCHIPELAGO_ALLOWED
     public static var curUnlocked:Array<{song:String, mod:String}> = [];
@@ -132,8 +165,8 @@ class APFreeplayManager extends FreeplayManager {
 			}
 		}
 
-		trace("Reloading songs in FreeplayState instance...");
-		FreeplayManager.getInstance().fpManager.reloadFreeplay(true);
+		trace("Reloading songs in FreeplayManager instance...");
+		FreeplayManager.instance.reloadFreeplay(true);
 
 		trace("Checking if the song is a victory song...");
 		if (archipelago.APEntryState.apGame.checkGoal(songName, modName)) {
@@ -306,8 +339,18 @@ class APFreeplayManager extends FreeplayManager {
                 return array;
             }
 
+            var apSongData = archipelago.APInfo.apGame?.getSongAndModsFromArray(archipelago.APInfo.slotData.selectedSongs);
+
             WeekData.setDirectoryFromWeek(leWeek);
-            for (song in leWeek.songs)
+            var allowedSongs = [for (song in leWeek.songs) {
+                for (songData in apSongData) {
+                    if (songData.song == song[0] && songData.mod == leWeek.folder) {
+                        song;
+                    }
+                }
+            }];
+
+            for (song in allowedSongs)
             {
                 var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
                     (cast leWeek.category:String).split(',').map(function(cat:String):String {
