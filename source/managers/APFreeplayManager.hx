@@ -343,7 +343,7 @@ class APFreeplayManager extends FreeplayManager {
                 return array;
             }
 
-            var apSongData = archipelago.APInfo.apGame?.getSongAndModsFromArray(archipelago.APInfo.slotData.selectedSongs);
+            var apSongData = archipelago.APInfo.apGame?.getSongsAndModsFromArray(archipelago.APInfo.slotData.selectedSongs);
 
             WeekData.setDirectoryFromWeek(leWeek);
             var allowedSongs = [for (song in leWeek.songs) {
