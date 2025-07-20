@@ -34,6 +34,10 @@ abstract APSongData(SongInfo) {
         return new APSongData({song: song, mod: mod, unlocked: unlocked, missing: missing, hinted: hinted, otherData: otherData});
     }
 
+    public function new(data:SongInfo) {
+        this = data;
+    }
+
     public var song(get, never):String;
     public var mod(get, never):String;
     public var unlocked(get, never):Bool;
