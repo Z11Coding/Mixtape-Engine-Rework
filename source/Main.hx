@@ -186,6 +186,8 @@ class Main extends Sprite
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());
 		//Lib.current.addChild(new objects.Nightlight());
+
+		// trace("Words loaded: " + backend.MusicBeatState.words);
 	}
 
 	@:dox(hide)
@@ -1174,14 +1176,7 @@ class CommandPrompt
 							yutautil.AprilFools.debug = true;
 							print("April Fools debug mode enabled.");
 						case "flip":
-							{
-								var flip = !backend.MusicBeatState.APFlip;
-								var targetAngle = flip ? 180 : 0;
-								FlxTween.tween(FlxG.camera, {angle: targetAngle}, 0.5, {
-									ease: FlxEase.quadOut
-								});
-								backend.MusicBeatState.APFlip = flip;
-							}
+							backend.MusicBeatState.APFlip = !backend.MusicBeatState.APFlip;
 						default:
 							print("Error: Unknown debug argument.");
 					}

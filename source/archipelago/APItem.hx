@@ -99,6 +99,8 @@ class APItem {
     public var onTrigger:Void->Void;
     public var isException:Bool;
     public static var allowedToTrigger(get, never):Bool;
+    public var fromTrapLink:Bool = false; // Used for traps that are sent from TrapLink.
+    public var isTrap:Bool = false;
 
     static function get_allowedToTrigger():Bool {
         return true;
@@ -182,9 +184,15 @@ class APItem {
                             haxe.Timer.delay(checkCountdown, 100);
                         }
                     }, 100);
-                }, false, false);
+                }, false, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Fake Transition":
-                return new APItem(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false);
+                return new APItem(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     archipelago.APInfo.ticketCount++;
@@ -195,12 +203,18 @@ class APItem {
                 return new APItem(name, ConditionHelper.PlayState(), function() {
                     popup('Effect: ${APPlayState.instance.effectArray[APPlayState.instance.curEffect]}', "APItem: SvC Effect", true);
                     APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]);
-                }, true, false);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Ghost Chat":
                 return new APItem(name, ConditionHelper.PlayState(), function() {
                     popup('May the chat be merciful on you...', "APItem: Ghost Chat", true);
                     APPlayState.instance.triggerGhostChat();
-                }, true, false);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Shield":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     shields++;
@@ -238,9 +252,15 @@ class APItem {
                             haxe.Timer.delay(checkCountdown, 100);
                         }
                     }, 100);
-                }, true, false);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Chart Modifier Trap":
-                return new APChartModifier();
+                return new APChartModifier().funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Nothing":
                 popup('...For now...', "APItem: Nothing");
                 return null;
@@ -278,6 +298,20 @@ class APItem {
             // Trigger the item without removing it from the queue
             this.onTrigger();
             this.triggered = true;
+            if (!this.fromTrapLink && this.isTrap) {
+                this.sendTrapLink();
+            }
+        }
+    }
+
+    public function sendTrapLink():Void {
+        if (this.isTrap && !this.fromTrapLink) {
+            var trapName = this.name;
+            if (this is APChartModifier) {
+                trapName = "Chart Modifier Trap (" + cast (this, APChartModifier).chartModifier + ")";
+            }
+            // Send the trap link to the server
+            archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: trapName}, null, null, ["TrapLink"]);
         }
     }
 
@@ -360,8 +394,8 @@ class APChartModifier extends APItem {
         }, false, false);
     }
 
-    public static function restoreFromSave(modifier:String):Void {
-        new APChartModifier(modifier);
+    public static function restoreFromSave(modifier:String):APChartModifier {
+        return new APChartModifier(modifier);
     }
 }
 class APrilFools extends APItem {

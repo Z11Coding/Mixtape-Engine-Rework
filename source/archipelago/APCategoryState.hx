@@ -48,14 +48,18 @@ class APCategoryState extends states.CategoryState {
         }
 
         // this.specialOptions.pushMulti([opFunc, quitFunc]);
-
-        states.ExitState.addExitCallback(function() {
+        var cleanupFunc = function() {
             if (AP != null){
-                APGameState.instance?.updateSaveData();
-                trace("Properly disconnecting from server before exiting...");
-            AP.disconnect_socket();}
+            APGameState.instance?.updateSaveData();
+            trace("Properly disconnecting from server before exiting...");
+            AP.disconnect_socket();
+            }
             AP = null;
-        });
+        };
+
+        if (!states.ExitState.cleanupFunctions.contains(cleanupFunc)) {
+            states.ExitState.addExitCallback(cleanupFunc);
+        }
     }
 
     override function create()
