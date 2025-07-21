@@ -190,6 +190,8 @@ class LoadingState extends MusicBeatState
 			}
 		}
 		else {
+			loadNextDirectory();
+			
 			if (stopMusic && FlxG.sound.music != null)
 				FlxG.sound.music.stop();
 
