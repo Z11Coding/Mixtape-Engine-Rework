@@ -11,6 +11,8 @@ import archipelago.APCategoryState;
 import backend.WeekData;
 import haxe.ds.Option;
 import openfl.text.TextFormat;
+import lime.app.Future;
+import lime.app.Promise;
 
 // Enums
 enum PrintJsonType
@@ -260,6 +262,14 @@ typedef SetPacket =
 typedef SetNotifyPacket =
 {
 	keys:Array<String>
+};
+
+typedef ProcessedItemsResult = {
+	tickets: Int,
+	nonSongs: Map<String, Int>,
+	nonSongsNames: Array<String>,
+	unlockedSongs: Array<{song: String, mod: String}>,
+	itemsToTrigger: Array<String>
 };
 
 class APGameState
@@ -611,43 +621,80 @@ class APGameState
 			var value = retrievedPacket.get(key);
 			if (key.indexOf("_read_hints_") != -1)
 			{
-				var hint:Hint = cast value;
-				if (!hint.found)
+				// value.mapToObject() contains multiple hints indexed by keys
+				var hintsObj:Dynamic = value.mapToObject();
+				for (hintKey in Reflect.fields(hintsObj))
 				{
-					// Grab the location name directly and get the game of the finding player.
-					var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
+					var hintObj:Dynamic = Reflect.field(hintsObj, hintKey);
+					var hint:Hint = {
+						receiving_player: hintObj.receiving_player,
+						finding_player: hintObj.finding_player,
+						location: hintObj.location,
+						item: hintObj.item,
+						found: hintObj.found,
+						entrance: hintObj.entrance,
+						item_flags: hintObj.item_flags
+					};
+					trace("Hint: " + hint);
 
-					var findingPlayerName = _ap.get_player_alias(hint.finding_player);
-					var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
-					var itemName = _ap.get_item_name(hint.item, _ap.get_player_game(hint.finding_player));
+					function playerItemName(player:Int, item:Int):String
+					{
+						var playerName = _ap.get_player_alias(player);
+						var itemName = _ap.get_item_name(item, _ap.get_player_game(player));
+						// trace("Game: " + _ap.get_player_game(player) + ", Item: " + item + ", Name: " + itemName);
+						return if (itemName == "Unknown")
+						{
+							for (items in currentPackages[_ap.get_player_game(player)].item_name_to_id.keys())
+							{
+								if (currentPackages[_ap.get_player_game(player)].item_name_to_id.get(items) == item)
+								{
+								items;
+								}
+							}
+							itemName;
+						}
+						else
+						{
+						itemName;
+						}
+					}
 
-					var message:String;
-					if (hint.receiving_player == _ap.slotnr)
+					if (!hint.found)
 					{
-						message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
-					}
-					else if (hint.finding_player == _ap.slotnr)
-					{
-						message = "This song has " + receivingPlayerName + "'s item: " + itemName;
-					}
-					else
-					{
-						message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
-					}
+						var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
+						var findingPlayerName = _ap.get_player_alias(hint.finding_player);
+						var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
+						var itemName = playerItemName(hint.finding_player, hint.item);
 
-					if (APFreeplayManager.hintTable.exists(locationName))
-					{
-						APFreeplayManager.hintTable.set(locationName, APFreeplayManager.hintTable.get(locationName) + "\n" + message);
-					}
-					else
-					{
-						APFreeplayManager.hintTable.set(locationName, message);
+						var message:String;
+						if (hint.receiving_player == _ap.slotnr)
+						{
+							message = "This song is found in " + findingPlayerName + "'s World at " + locationName;
+						}
+						else if (hint.finding_player == _ap.slotnr)
+						{
+							message = "This song has " + receivingPlayerName + "'s item: " + itemName;
+						}
+						else
+						{
+							message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
+						}
+
+						if (APFreeplayManager.hintTable.exists(locationName))
+						{
+							APFreeplayManager.hintTable.set(locationName, APFreeplayManager.hintTable.get(locationName) + "\n" + message);
+						}
+						else
+						{
+							APFreeplayManager.hintTable.set(locationName, message);
+						}
 					}
 				}
 			}
 		}
 		for (hint in APFreeplayManager.hintTable.keys())
 		{
+			APFreeplayManager.curHinted = [];
 			var message = APFreeplayManager.hintTable.get(hint);
 			trace("Hint: " + hint + " - " + message);
 			var hintSong = getSongAndMod(hint);
@@ -969,12 +1016,60 @@ class APGameState
 	// var tickets:Int = 0;
 	function addSongs(song:Array<NetworkItem>)
 	{
+		// Use Future system to process all items asynchronously
+		var processingFuture = processItemsAsync(song);
+		processingFuture.onComplete(function(result) {
+			applyProcessedItems(result);
+		});
+		processingFuture.onError(function(error) {
+			trace("Error processing items: " + error);
+			archipelago.APItem.popup("Error", "Failed to process items: " + error, true);
+		});
+	}
+
+	/**
+	 * Alternative method with batch processing and progress feedback
+	 * Usage example:
+	 * 
+	 * addSongsWithBatching(songs, 5, function(processed, total) {
+	 *     trace('Processing: ${processed}/${total}');
+	 * }).onComplete(function(_) {
+	 *     trace("All items processed successfully!");
+	 * });
+	 */
+	// function addSongsAdvanced(songs:Array<NetworkItem>, ?batchSize:Int = 10, ?progressCallback:Int->Int->Void)
+	// {
+	// 	return addSongsWithBatching(songs, batchSize, progressCallback);
+	// }
+
+	function processItemsAsync(songs:Array<NetworkItem>):Future<ProcessedItemsResult>
+	{
+		var promise = new Promise<ProcessedItemsResult>();
+		
+		// Process items asynchronously
+		haxe.Timer.delay(function() {
+			try {
+				var result = processItemsSync(songs);
+				promise.complete(result);
+			} catch (error:Dynamic) {
+				promise.error(error);
+			}
+		}, 1);
+		
+		return promise.future;
+	}
+
+	function processItemsSync(songs:Array<NetworkItem>):ProcessedItemsResult
+	{
 		var tickets = 0;
 		var nonSongs:Map<String, Int> = [];
 		var nonSongsNames:Array<String> = [];
+		var unlockedSongs:Array<{song: String, mod: String}> = [];
+		var itemsToTrigger:Array<String> = [];
+		
 		APFreeplayManager.curMissing = [];
 
-		for (songName in song)
+		for (songName in songs)
 		{
 			var itemName = info().get_item_name(songName.item);
 
@@ -988,7 +1083,6 @@ class APGameState
 			// Use the realName function to convert special keywords back to actual brackets
 			itemName = APInfo.realName(itemName);
 
-
 			var data = getSongAndMod(itemName);
 			// trace("Data: " + data.song + " - " + data.mod);
 
@@ -996,119 +1090,90 @@ class APGameState
 			{
 				data.mod = "";
 			}
-            var isUnlocked = false;
-            for (unlocked in APFreeplayManager.curUnlocked)
-            {
-                if (unlocked.song == data.song && unlocked.mod == data.mod)
-                {
-                    isUnlocked = true;
-                    // break;
-                }
-            }
+			
+			var isUnlocked = false;
+			for (unlocked in APFreeplayManager.curUnlocked)
+			{
+				if (unlocked.song == data.song && unlocked.mod == data.mod)
+				{
+					isUnlocked = true;
+				}
+			}
 
 			if (!isUnlocked)
 			{
 				if (!(data.song == "Unknown" && data.mod == ""))
 				{
-					if (!isSync)
-						ArchPopup.startPopupSong(data.song, 'archColor');
-					APFreeplayManager.curUnlocked.push({song: data.song, mod: data.mod});
+					unlockedSongs.push({song: data.song, mod: data.mod});
 				}
 			}
-
-            // Check special items and remove any matching items with no mod
-            APFreeplayManager.curUnlocked = APFreeplayManager.curUnlocked.filter(unlocked -> 
-                !(APItems.exists(unlocked.song) && unlocked.mod.trim() == "")
-            );
 		}
 
-
-
-		// trace("Current Unlocked Songs: " + states.FreeplayState.curUnlocked);
-
-		// nonSongsNames.sort(function(a:String, b:String):Int {
-		//     a = a.toUpperCase();
-		//     b = b.toUpperCase();
-
-		//     if (a < b) {
-		//         return 1;
-		//     }
-		//     else if (a > b) {
-		//         return -1;
-		//     } else {
-		//         return 0;
-		//     }
-		// });
-
-		// for (item in nonSongsNames) {
-		//     if (item == "Ticket") {
-		//         tickets++;
-		//         archipelago.APItem.createItemByName(item);
-		//     }
-		// }
-
-		// if (info().casualSync)
-		// if (APInfo.ticketCount != tickets) {
-		//     APInfo.ticketCount = tickets;
-		// }
-
-		// for (items in nonSongsNames)
-		// {
-		//     if (items == 'Ticket') continue;
-
-		//     if (nonSongs.get(items) <= ItemIndex)
-		//     {
-		//         continue;
-		//     }
-		//     else
-		//     {
-		//         trace('triggering $items');
-		//         ItemIndex = nonSongs.get(items);
-		//         archipelago.APItem.createItemByName(items);
-		//     }
-		//     archipelago.APItem.doCheck();
-
-		//     trace("AP State Saving...");
-		//     updateSaveData();
-		// }
-
-
-        for (item in nonSongsNames)
+		// Process non-songs for items to trigger
+		for (items in nonSongsNames)
+		{
+			if (items == 'Ticket')
 			{
-				if (item == "Ticket")
-				{
-					tickets++;
-					archipelago.APItem.createItemByName(item);
-				}
+				tickets++;
+				continue;
 			}
 
-			if (info().casualSync)
-				if (APInfo.ticketCount != tickets)
-				{
-					APInfo.ticketCount = tickets;
-				}
-
-			for (items in nonSongsNames)
+			if (nonSongs.get(items) > ItemIndex)
 			{
-				if (items == 'Ticket')
-					continue;
-
-				if (nonSongs.get(items) <= ItemIndex)
-				{
-					continue;
-				}
-				else
-				{
-					trace('triggering $items');
-					ItemIndex = nonSongs.get(items);
-					archipelago.APItem.createItemByName(items);
-				}
-				archipelago.APItem.doCheck();
+				itemsToTrigger.push(items);
+				ItemIndex = nonSongs.get(items);
 			}
+		}
 
+		return {
+			tickets: tickets,
+			nonSongs: nonSongs,
+			nonSongsNames: nonSongsNames,
+			unlockedSongs: unlockedSongs,
+			itemsToTrigger: itemsToTrigger
+		};
+	}
+
+	function applyProcessedItems(result:ProcessedItemsResult)
+	{
+		// Apply all unlocked songs
+		for (song in result.unlockedSongs)
+		{
+			if (!isSync)
+				ArchPopup.startPopupSong(song.song, 'archColor');
+			APFreeplayManager.curUnlocked.push(song);
+		}
+
+		// Filter out special items
+		APFreeplayManager.curUnlocked = APFreeplayManager.curUnlocked.filter(unlocked -> 
+			!(APItems.exists(unlocked.song) && unlocked.mod.trim() == "")
+		);
+
+		// Apply tickets
+		for (i in 0...result.tickets)
+		{
+			archipelago.APItem.createItemByName("Ticket");
+		}
+
+		if (info().casualSync && APInfo.ticketCount != result.tickets)
+		{
+			APInfo.ticketCount = result.tickets;
+		}
+
+		// Apply items in order
+		for (items in result.itemsToTrigger)
+		{
+			trace('triggering $items');
+			archipelago.APItem.createItemByName(items);
+		}
+
+		// Do all checks at once
+		archipelago.APItem.doCheck();
 
 		isSync = false;
 		info().casualSync = false;
+		
+		// Reload freeplay after all processing is complete
 		try
 		{
 			FreeplayManager.instance.reloadFreeplay(true);
@@ -1118,12 +1183,132 @@ class APGameState
 			archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
 		}
 
-		// if (AprilFools.allowAF && FlxG.random.bool(50))
-		// new APItem.APrilFools(); // Not working as intended, for some reason.
-
-        trace("AP State Saving...");
-        updateSaveData();
+		// Save state after everything is applied
+		trace("AP State Saving...");
+		updateSaveData();
 	}
+
+	// // Advanced processing with batch support and progress feedback
+	// function addSongsWithBatching(songs:Array<NetworkItem>, ?batchSize:Int = 10, ?progressCallback:Int->Int->Void):Void
+	// {
+	// 	var promise = new Promise<() -> Void>();
+
+	// 	if (progressCallback != null)
+	// 		progressCallback(0, songs.length);
+
+	// 	var batches = createBatches(songs, batchSize);
+	// 	var processedResults:Array<ProcessedItemsResult> = [];
+		
+	// 	processBatchesRecursively(batches, 0, processedResults, progressCallback)
+	// 		.onComplete(function(_) {
+	// 			// Combine all results
+	// 			var combinedResult = combineProcessedResults(processedResults);
+	// 			applyProcessedItems(combinedResult);
+				
+	// 			if (progressCallback != null)
+	// 				progressCallback(songs.length, songs.length);
+				
+	// 			promise.complete(() -> {
+	// 				trace("All items processed successfully!");
+	// 			});
+	// 		})
+	// 		.onError(function(error) {
+	// 			promise.error(error);
+	// 		});
+		
+	// 	return promise.future.result();
+	// }
+
+	// function createBatches<T>(items:Array<T>, batchSize:Int):Array<Array<T>>
+	// {
+	// 	var batches:Array<Array<T>> = [];
+	// 	var currentBatch:Array<T> = [];
+		
+	// 	for (item in items)
+	// 	{
+	// 		currentBatch.push(item);
+	// 		if (currentBatch.length >= batchSize)
+	// 		{
+	// 			batches.push(currentBatch);
+	// 			currentBatch = [];
+	// 		}
+	// 	}
+		
+	// 	if (currentBatch.length > 0)
+	// 		batches.push(currentBatch);
+		
+	// 	return batches;
+	// }
+
+	// function processBatchesRecursively(batches:Array<Array<NetworkItem>>, index:Int, results:Array<ProcessedItemsResult>, ?progressCallback:Int->Int->Void):Future<Void>
+	// {
+	// 	var promise = new Promise<Void>();
+		
+	// 	if (index >= batches.length)
+	// 	{
+	// 		promise.complete();
+	// 		return promise.future;
+	// 	}
+		
+	// 	// Process current batch
+	// 	var batchFuture = processItemsAsync(batches[index]);
+	// 	batchFuture.onComplete(function(result) {
+	// 		results.push(result);
+			
+	// 		// Update progress
+	// 		var totalProcessed = 0;
+	// 		for (i in 0...index + 1)
+	// 			totalProcessed += batches[i].length;
+			
+	// 		if (progressCallback != null)
+	// 			progressCallback(totalProcessed, getTotalItemCount(batches));
+			
+	// 		// Process next batch
+	// 		processBatchesRecursively(batches, index + 1, results, progressCallback)
+	// 			.onComplete(function(_) promise.complete())
+	// 			.onError(function(error) promise.error(error));
+	// 	});
+	// 	batchFuture.onError(function(error) {
+	// 		promise.error(error);
+	// 	});
+		
+	// 	return promise.future;
+	// }
+
+	// function getTotalItemCount(batches:Array<Array<NetworkItem>>):Int
+	// {
+	// 	var total = 0;
+	// 	for (batch in batches)
+	// 		total += batch.length;
+	// 	return total;
+	// }
+
+	// function combineProcessedResults(results:Array<ProcessedItemsResult>):ProcessedItemsResult
+	// {
+	// 	var combined:ProcessedItemsResult = {
+	// 		tickets: 0,
+	// 		nonSongs: new Map<String, Int>(),
+	// 		nonSongsNames: [],
+	// 		unlockedSongs: [],
+	// 		itemsToTrigger: []
+	// 	};
+		
+	// 	for (result in results)
+	// 	{
+	// 		combined.tickets += result.tickets;
+			
+	// 		for (key in result.nonSongs.keys())
+	// 		{
+	// 			combined.nonSongs.set(key, result.nonSongs.get(key));
+	// 		}
+			
+	// 		combined.nonSongsNames = combined.nonSongsNames.concat(result.nonSongsNames);
+	// 		combined.unlockedSongs = combined.unlockedSongs.concat(result.unlockedSongs);
+	// 		combined.itemsToTrigger = combined.itemsToTrigger.concat(result.itemsToTrigger);
+	// 	}
+		
+	// 	return combined;
+	// }
 
 	// A bandage fix till we have enough brainpower to fix this properly
 	var trapList:Array<String> = [

@@ -2115,6 +2115,12 @@ abstract JSON({JSONData:Dynamic, pointer:HaxePointer<Dynamic>, stringified:Strin
         this = toJsonValue(value);
     }
 
+    public var json(get, never):Dynamic;
+    private function get_json():Dynamic {
+        return this.JSONData;
+    }
+
+
 
     @:from
     public static inline function fromValue(value:Dynamic):JSON {

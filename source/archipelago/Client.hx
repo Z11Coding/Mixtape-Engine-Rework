@@ -1500,6 +1500,7 @@ class Client {
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
 						APGameState.instance.initSaveData();
 						try {
+							if (FreeplayManager.instance != null)
 							FreeplayManager.instance.reloadFreeplay(true);
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
