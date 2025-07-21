@@ -31,7 +31,7 @@ class SpellPrompt extends FlxSprite
 		cameras = [PlayState.instance.camOther];
 		PlayState.instance.add(this);
 
-		word = FlxG.random.getObject(APPlayState.validWords);
+		word = FlxG.random.getObject((APPlayState.validWords != null && APPlayState.validWords.length > 0) ? APPlayState.validWords : backend.MusicBeatState.words);
 		for (i in 0...word.length)
 		{
 			wordSprite[i] = new FlxText();

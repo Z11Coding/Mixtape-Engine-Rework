@@ -264,12 +264,13 @@ typedef SetNotifyPacket =
 	keys:Array<String>
 };
 
-typedef ProcessedItemsResult = {
-	tickets: Int,
-	nonSongs: Map<String, Int>,
-	nonSongsNames: Array<String>,
-	unlockedSongs: Array<{song: String, mod: String}>,
-	itemsToTrigger: Array<String>
+typedef ProcessedItemsResult =
+{
+	tickets:Int,
+	nonSongs:Map<String, Int>,
+	nonSongsNames:Array<String>,
+	unlockedSongs:Array<{song:String, mod:String}>,
+	itemsToTrigger:Array<String>
 };
 
 class APGameState
@@ -488,7 +489,8 @@ class APGameState
 	}
 
 	public function checkGoal(songName:String, ?modName:String):Bool
-	{ modName = (modName != null && modName != "") ? modName.trim() : "";
+	{
+		modName = (modName != null && modName != "") ? modName.trim() : "";
 		var info = info();
 		var locations = locationData(songName, modName).concat(noteData(songName, modName));
 		for (location in locations)
@@ -509,8 +511,7 @@ class APGameState
 	public function songInMultiworld(songName:String, ?modName:String):Bool
 	{
 		modName = (modName != null && modName != "") ? modName.trim() : "";
-		return locationData(songName, modName).length > 0
-			|| noteData(songName, modName).length > 0;
+		return locationData(songName, modName).length > 0 || noteData(songName, modName).length > 0;
 	}
 
 	public function setGoal():Void
@@ -599,7 +600,8 @@ class APGameState
 			}
 		});
 
-		_ap.toggleDeathLink(slotData != null && Reflect.hasField(slotData, "deathLink") ? slotData?.deathLink : ClientPrefs.data.deathlink);
+		_ap.toggleDeathLink(slotData != null
+			&& Reflect.hasField(slotData, "deathLink") ? slotData?.deathLink : ClientPrefs.data.deathlink);
 
 		_ap.onRetrieved.add(handleRetrievedPacket);
 
@@ -621,6 +623,7 @@ class APGameState
 			var value = retrievedPacket.get(key);
 			if (key.indexOf("_read_hints_") != -1)
 			{
+				APFreeplayManager.hintTable = new Map<String, String>();
 				// value.mapToObject() contains multiple hints indexed by keys
 				var hintsObj:Dynamic = value.mapToObject();
 				for (hintKey in Reflect.fields(hintsObj))
@@ -637,25 +640,41 @@ class APGameState
 					};
 					trace("Hint: " + hint);
 
+					if (APItems.exists(_ap.get_item_name(hint.item, _ap.get_player_game(hint.receiving_player))))
+					{
+						trace("Hint is for an Item, or a song you don't have. Skipping.");
+						continue;
+					}
+
 					function playerItemName(player:Int, item:Int):String
 					{
 						var playerName = _ap.get_player_alias(player);
 						var itemName = _ap.get_item_name(item, _ap.get_player_game(player));
-						// trace("Game: " + _ap.get_player_game(player) + ", Item: " + item + ", Name: " + itemName);
-						return if (itemName == "Unknown")
+						@:privateAccess
+						if (itemName == "Unknown")
 						{
-							for (items in currentPackages[_ap.get_player_game(player)].item_name_to_id.keys())
+							var playerObj = null;
+							for (p in _ap._players)
 							{
-								if (currentPackages[_ap.get_player_game(player)].item_name_to_id.get(items) == item)
+								if (p.slot == player)
 								{
-								items;
+									playerObj = p;
+									break;
 								}
 							}
-							itemName;
+							var gameName = _ap.get_player_game(player);
+							for (items in currentPackages[gameName].item_name_to_id.keys())
+							{
+								if (currentPackages[gameName].item_name_to_id.get(items) == item)
+								{
+									return items;
+								}
+							}
+							return itemName;
 						}
 						else
 						{
-						itemName;
+							return itemName;
 						}
 					}
 
@@ -664,7 +683,9 @@ class APGameState
 						var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
 						var findingPlayerName = _ap.get_player_alias(hint.finding_player);
 						var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
-						var itemName = playerItemName(hint.finding_player, hint.item);
+						var itemName = playerItemName(hint.receiving_player, hint.item);
+
+						trace(itemName + " found in " + locationName + " by " + findingPlayerName + " for " + receivingPlayerName);
 
 						var message:String;
 						if (hint.receiving_player == _ap.slotnr)
@@ -689,6 +710,15 @@ class APGameState
 							APFreeplayManager.hintTable.set(locationName, message);
 						}
 					}
+					else
+						(trace("Hint already found: "
+							+ playerItemName(hint.receiving_player, hint.item)
+							+ " in "
+							+ _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player))
+							+ " by "
+							+ _ap.get_player_alias(hint.finding_player)
+							+ " for "
+							+ _ap.get_player_alias(hint.receiving_player)));
 				}
 			}
 		}
@@ -807,8 +837,6 @@ class APGameState
 		return _ap;
 	}
 
-	var trapLink:Dynamic = null;
-
 	function bouncy(data:Dynamic)
 	{
 		trace("Bounce packet received: " + haxe.Json.stringify(data));
@@ -816,14 +844,12 @@ class APGameState
 		// Check for TrapLink packet first
 		if (Reflect.hasField(data, "trap_name"))
 		{
-			trapLink = data;
-			trace("TrapLink packet received: " + haxe.Json.stringify(trapLink));
-			// doTrapLink();
+			trace("TrapLink packet detected: " + haxe.Json.stringify(data));
+			doTrapLink(data);
 			return;
 		}
 
-		if ((Reflect.hasField(data, "source") && Reflect.hasField(data, "time"))
-			&& !APPlayState.deathByLink)
+		if ((Reflect.hasField(data, "source") && Reflect.hasField(data, "time")) && !APPlayState.deathByLink)
 		{
 			if (!Reflect.hasField(data, "cause") || data.cause == null)
 			{
@@ -842,617 +868,663 @@ class APGameState
 		}
 	}
 
-	// function doTrapLink()
-	// {
-	// 	if (trapLink == null)
-	// 	{
-	// 		trace("No trap link to process.");
-	// 		return;
-	// 	}
-
-	// 	var trapName = trapLink.trap_name;
-	// 	var trapData = APItem.getTrapData(trapName);
-	// 	if (trapData != null)
-	// 	{
-	// 		trace("Processing trap link: " + trapName);
-	// 		APItem.doTrapLink(trapData, trapLink);
-	// 		trapLink = null; // Clear the trap link after processing
-	// 	}
-	// 	else
-	// 	{
-	// 		trace("Trap data not found for: " + trapName);
-	// 		trapLink = null; // Clear the trap link if no data found
-	// 	}
-	// }
-
-	function onSlotConnected(slotData:Dynamic)
+	function doTrapLink(trapLink:Dynamic)
 	{
-		if (backend.ClientPrefs.data.deathlink)
-			_ap.tags.push("DeathLink");
-	}
-
-	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
-	{
-		var theMessageFM:String = "";
-		for (message in data)
+		if (trapLink == null)
 		{
-			switch (message.type)
-			{
-				case "player_id":
-					theMessageFM += _ap.get_player_alias(Std.parseInt(message.text));
-				case "item_id":
-					theMessageFM += _ap.get_item_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
-				case "location_id":
-					theMessageFM += _ap.get_location_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
-				default:
-					theMessageFM += message.text;
-			}
-		}
-		archipelago.console.MainTab.addMessage(theMessageFM);
-	}
-
-	function sendMessageSimple(text:Dynamic)
-		archipelago.console.MainTab.addMessage(text);
-
-	public function disconnectAP()
-	{
-		_ap.disconnect_socket();
-		_ap = null;
-		if (APEntryState.ap != null)
-		{
-			APEntryState.ap = null;
-		}
-	}
-
-	public function getSongAndMod(songName:String):{song:String, ?mod:String}
-	{
-		var input = songName;
-		var modName = "";
-		var firstParenIndex = songName.indexOf("(");
-		var endParenIndex = songName.lastIndexOf(")");
-		while (firstParenIndex != -1)
-		{
-			if (endParenIndex != -1)
-			{
-				modName = songName.substring(firstParenIndex + 1, endParenIndex);
-				if (isModName(modName))
-				{
-					songName = songName.substring(0, firstParenIndex).trim();
-					break;
-				}
-				else
-				{
-					firstParenIndex = songName.indexOf("(", firstParenIndex + 1);
-				}
-			}
-			else
-			{
-				break;
-			}
-		}
-		if (firstParenIndex == -1 || !isModName(modName))
-		{
-			modName = "";
-			songName = input;
-		}
-		return modName != null && modName != "" ? {song: songName, mod: modName} : {song: songName};
-	}
-
-	public function getSongAndModFromLocation(locationID:Int):{song:String, ?mod:String}
-	{
-		var locationName = info().get_location_name(locationID);
-		var songAndMod:{song:String, ?mod:String};
-
-		// Check if it's a note location
-		var noteReg = new EReg("^Note \\d+: (.+)$", "");
-		if (noteReg.match(locationName))
-		{
-			var noteName = noteReg.matched(1);
-			songAndMod = getSongAndMod(noteName);
-		}
-		else
-		{
-			// Check if it's a song location with a dash number
-			var songReg = new EReg("^(.+?)(?:-\\d+)?$", "");
-			if (songReg.match(locationName))
-			{
-				var songName = songReg.matched(1);
-				songAndMod = getSongAndMod(songName);
-			}
-			else
-			{
-				// Default fallback
-				songAndMod = getSongAndMod(locationName);
-			}
+			trace("No trap link to process.");
+			return;
 		}
 
-		return songAndMod;
-	}
-
-	// Check for songs and mods from an array of song names
-	public function getSongsAndModsFromArray(songNames:Array<String>):Array<{song:String, ?mod:String}>
-	{
-		var songsAndMods:Array<{song:String, ?mod:String}> = [];
-		for (songName in songNames)
-		{
-			var songAndMod = getSongAndMod(songName);
-			songsAndMods.push(songAndMod);
-		}
-		return songsAndMods;
-	}
-
-	public function findSpecialItems():Map<String, Int>
-	{
-		var specialItems:Map<String, Int> = new Map<String, Int>();
-		var apInfo = info();
-
-		// Get selectedSongs from slotData
-		var selectedSongs:Array<String> = [];
-		if (_slotData != null && Reflect.hasField(_slotData, "selectedSongs"))
-		{
-			selectedSongs = Reflect.field(_slotData, "selectedSongs");
-		}
-
-		for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
-		{
-			var itemName = item.replace("<cOpen>", "{").replace("<cClose>", "}").replace("<sOpen>", "[").replace("<sClose>", "]");
-
-
-			// Check if item is NOT in selectedSongs
-			var isSpecialItem = !selectedSongs.contains(itemName);
-			if (isSpecialItem)
-			{
-				specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
-			}
-		}
-		trace("Special Items: " + specialItems);
-
-		return specialItems;
-	}
-
-	public static var isSync:Bool = false;
-	public static var haventranyet:Bool = true;
-
-	// var tickets:Int = 0;
-	function addSongs(song:Array<NetworkItem>)
-	{
-		// Use Future system to process all items asynchronously
-		var processingFuture = processItemsAsync(song);
-		processingFuture.onComplete(function(result) {
-			applyProcessedItems(result);
-		});
-		processingFuture.onError(function(error) {
-			trace("Error processing items: " + error);
-			archipelago.APItem.popup("Error", "Failed to process items: " + error, true);
-		});
-	}
-
-	/**
-	 * Alternative method with batch processing and progress feedback
-	 * Usage example:
-	 * 
-	 * addSongsWithBatching(songs, 5, function(processed, total) {
-	 *     trace('Processing: ${processed}/${total}');
-	 * }).onComplete(function(_) {
-	 *     trace("All items processed successfully!");
-	 * });
-	 */
-	// function addSongsAdvanced(songs:Array<NetworkItem>, ?batchSize:Int = 10, ?progressCallback:Int->Int->Void)
-	// {
-	// 	return addSongsWithBatching(songs, batchSize, progressCallback);
-	// }
-
-	function processItemsAsync(songs:Array<NetworkItem>):Future<ProcessedItemsResult>
-	{
-		var promise = new Promise<ProcessedItemsResult>();
-		
-		// Process items asynchronously
-		haxe.Timer.delay(function() {
-			try {
-				var result = processItemsSync(songs);
-				promise.complete(result);
-			} catch (error:Dynamic) {
-				promise.error(error);
-			}
-		}, 1);
-		
-		return promise.future;
-	}
-
-	function processItemsSync(songs:Array<NetworkItem>):ProcessedItemsResult
-	{
-		var tickets = 0;
-		var nonSongs:Map<String, Int> = [];
-		var nonSongsNames:Array<String> = [];
-		var unlockedSongs:Array<{song: String, mod: String}> = [];
-		var itemsToTrigger:Array<String> = [];
-		
-		APFreeplayManager.curMissing = [];
-
-		for (songName in songs)
-		{
-			var itemName = info().get_item_name(songName.item);
-
-			if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
-			{
-				nonSongs.set(itemName, songName.index);
-				nonSongsNames.push(itemName);
-				continue;
-			}
-
-			// Use the realName function to convert special keywords back to actual brackets
-			itemName = APInfo.realName(itemName);
-
-			var data = getSongAndMod(itemName);
-			// trace("Data: " + data.song + " - " + data.mod);
-
-			if (data.mod == null || data.mod == "")
-			{
-				data.mod = "";
-			}
-			
-			var isUnlocked = false;
-			for (unlocked in APFreeplayManager.curUnlocked)
-			{
-				if (unlocked.song == data.song && unlocked.mod == data.mod)
-				{
-					isUnlocked = true;
-				}
-			}
-
-			if (!isUnlocked)
-			{
-				if (!(data.song == "Unknown" && data.mod == ""))
-				{
-					unlockedSongs.push({song: data.song, mod: data.mod});
-				}
-			}
-		}
-
-		// Process non-songs for items to trigger
-		for (items in nonSongsNames)
-		{
-			if (items == 'Ticket')
-			{
-				tickets++;
-				continue;
-			}
-
-			if (nonSongs.get(items) > ItemIndex)
-			{
-				itemsToTrigger.push(items);
-				ItemIndex = nonSongs.get(items);
-			}
-		}
-
-		return {
-			tickets: tickets,
-			nonSongs: nonSongs,
-			nonSongsNames: nonSongsNames,
-			unlockedSongs: unlockedSongs,
-			itemsToTrigger: itemsToTrigger
-		};
-	}
-
-	function applyProcessedItems(result:ProcessedItemsResult)
-	{
-		// Apply all unlocked songs
-		for (song in result.unlockedSongs)
-		{
-			if (!isSync)
-				ArchPopup.startPopupSong(song.song, 'archColor');
-			APFreeplayManager.curUnlocked.push(song);
-		}
-
-		// Filter out special items
-		APFreeplayManager.curUnlocked = APFreeplayManager.curUnlocked.filter(unlocked -> 
-			!(APItems.exists(unlocked.song) && unlocked.mod.trim() == "")
-		);
-
-		// Apply tickets
-		for (i in 0...result.tickets)
-		{
-			archipelago.APItem.createItemByName("Ticket");
-		}
-
-		if (info().casualSync && APInfo.ticketCount != result.tickets)
-		{
-			APInfo.ticketCount = result.tickets;
-		}
-
-		// Apply items in order
-		for (items in result.itemsToTrigger)
-		{
-			trace('triggering $items');
-			archipelago.APItem.createItemByName(items);
-		}
-
-		// Do all checks at once
-		archipelago.APItem.doCheck();
-
-		isSync = false;
-		info().casualSync = false;
-		
-		// Reload freeplay after all processing is complete
+		var trapName = trapLink.trap_name;
 		try
 		{
-			FreeplayManager.instance.reloadFreeplay(true);
+			var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
+			if (reg.match(trapName))
+			{
+				var modifier = reg.matched(1);
+				archipelago.APItem.APChartModifier.restoreFromSave(modifier).fromTrapLink = true;
+			}
+			else
+			{
+				archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+			}
+			trace("TrapLink processed: " + trapName);
 		}
 		catch (e:Dynamic)
 		{
-			archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
-		}
-
-		// Save state after everything is applied
-		trace("AP State Saving...");
-		updateSaveData();
-	}
-
-	// // Advanced processing with batch support and progress feedback
-	// function addSongsWithBatching(songs:Array<NetworkItem>, ?batchSize:Int = 10, ?progressCallback:Int->Int->Void):Void
-	// {
-	// 	var promise = new Promise<() -> Void>();
-
-	// 	if (progressCallback != null)
-	// 		progressCallback(0, songs.length);
-
-	// 	var batches = createBatches(songs, batchSize);
-	// 	var processedResults:Array<ProcessedItemsResult> = [];
-		
-	// 	processBatchesRecursively(batches, 0, processedResults, progressCallback)
-	// 		.onComplete(function(_) {
-	// 			// Combine all results
-	// 			var combinedResult = combineProcessedResults(processedResults);
-	// 			applyProcessedItems(combinedResult);
-				
-	// 			if (progressCallback != null)
-	// 				progressCallback(songs.length, songs.length);
-				
-	// 			promise.complete(() -> {
-	// 				trace("All items processed successfully!");
-	// 			});
-	// 		})
-	// 		.onError(function(error) {
-	// 			promise.error(error);
-	// 		});
-		
-	// 	return promise.future.result();
-	// }
-
-	// function createBatches<T>(items:Array<T>, batchSize:Int):Array<Array<T>>
-	// {
-	// 	var batches:Array<Array<T>> = [];
-	// 	var currentBatch:Array<T> = [];
-		
-	// 	for (item in items)
-	// 	{
-	// 		currentBatch.push(item);
-	// 		if (currentBatch.length >= batchSize)
-	// 		{
-	// 			batches.push(currentBatch);
-	// 			currentBatch = [];
-	// 		}
-	// 	}
-		
-	// 	if (currentBatch.length > 0)
-	// 		batches.push(currentBatch);
-		
-	// 	return batches;
-	// }
-
-	// function processBatchesRecursively(batches:Array<Array<NetworkItem>>, index:Int, results:Array<ProcessedItemsResult>, ?progressCallback:Int->Int->Void):Future<Void>
-	// {
-	// 	var promise = new Promise<Void>();
-		
-	// 	if (index >= batches.length)
-	// 	{
-	// 		promise.complete();
-	// 		return promise.future;
-	// 	}
-		
-	// 	// Process current batch
-	// 	var batchFuture = processItemsAsync(batches[index]);
-	// 	batchFuture.onComplete(function(result) {
-	// 		results.push(result);
-			
-	// 		// Update progress
-	// 		var totalProcessed = 0;
-	// 		for (i in 0...index + 1)
-	// 			totalProcessed += batches[i].length;
-			
-	// 		if (progressCallback != null)
-	// 			progressCallback(totalProcessed, getTotalItemCount(batches));
-			
-	// 		// Process next batch
-	// 		processBatchesRecursively(batches, index + 1, results, progressCallback)
-	// 			.onComplete(function(_) promise.complete())
-	// 			.onError(function(error) promise.error(error));
-	// 	});
-	// 	batchFuture.onError(function(error) {
-	// 		promise.error(error);
-	// 	});
-		
-	// 	return promise.future;
-	// }
-
-	// function getTotalItemCount(batches:Array<Array<NetworkItem>>):Int
-	// {
-	// 	var total = 0;
-	// 	for (batch in batches)
-	// 		total += batch.length;
-	// 	return total;
-	// }
-
-	// function combineProcessedResults(results:Array<ProcessedItemsResult>):ProcessedItemsResult
-	// {
-	// 	var combined:ProcessedItemsResult = {
-	// 		tickets: 0,
-	// 		nonSongs: new Map<String, Int>(),
-	// 		nonSongsNames: [],
-	// 		unlockedSongs: [],
-	// 		itemsToTrigger: []
-	// 	};
-		
-	// 	for (result in results)
-	// 	{
-	// 		combined.tickets += result.tickets;
-			
-	// 		for (key in result.nonSongs.keys())
-	// 		{
-	// 			combined.nonSongs.set(key, result.nonSongs.get(key));
-	// 		}
-			
-	// 		combined.nonSongsNames = combined.nonSongsNames.concat(result.nonSongsNames);
-	// 		combined.unlockedSongs = combined.unlockedSongs.concat(result.unlockedSongs);
-	// 		combined.itemsToTrigger = combined.itemsToTrigger.concat(result.itemsToTrigger);
-	// 	}
-		
-	// 	return combined;
-	// }
-
-	// A bandage fix till we have enough brainpower to fix this properly
-	var trapList:Array<String> = [
-		"Blue Balls Curse",
-		"Fake Transition",
-		"SvC Effect",
-		"Ghost Chat",
-		"Tutorial Trap"
-	];
-
-	public function isLocationMissing(location:String):Bool
-	{
-		for (missing in info().missingLocations)
-		{
-			if (info().get_location_name(missing) == location)
+			// Not an FNF Item, so we shall try by cases.
+			switch (trapName)
 			{
-				return true;
+				case "Screen Flip Trap":
+					// This is a special case, we need to flip the screen.
+					backend.MusicBeatState.APFlip = true;
+					trace("Screen flipped due to Screen Flip Trap.");
+
+					// Set a timer to revert after 4 minutes (240,000 ms)
+					haxe.Timer.delay(function()
+					{
+						backend.MusicBeatState.APFlip = false;
+						trace("Screen flip reverted after 4 minutes.");
+					}, 240000);
+				case "Trivia Trap":
+					// Wait until PlayState.instance is not null and startedCountdown is true
+					var waitForPlayState:Void -> Void = null;
+					waitForPlayState = function()
+					{
+						if (PlayState.instance?.startedCountdown)
+						{
+							new streamervschat.SpellPrompt();
+							trace("Trivia Trap activated, showing spell prompt.");
+						}
+						else
+						{
+							haxe.Timer.delay(waitForPlayState, 50);
+						}
+					};
+					waitForPlayState();
+				case "Instant Death Trap":
+					archipelago.APItem.createItemByName("Blue Balls Curse").fromTrapLink = true;
+				default:
+					// If it's not a known trap, we can just log it.
+					trace("Unknown trap link received: " + trapName + ".");
 			}
 		}
-		return false;
 	}
 
-	public function areLocationsMissing(locations:Array<Int>):Bool
-	{
-		for (location in locations)
+		function onSlotConnected(slotData:Dynamic)
 		{
-			if (isLocationMissing(info().get_location_name(location)))
-			{
-				return true;
-			}
+			if (backend.ClientPrefs.data.deathlink)
+				_ap.tags.push("DeathLink");
 		}
-		return false;
-	}
 
-	function isModName(name:String):Bool
-	{
-		var mods = Mods.parseList().enabled;
-		// trace("Checking: " + mod);
-
-		if (mods != null && mods.length > 0)
+		function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
 		{
-			for (mod in mods)
+			var theMessageFM:String = "";
+			for (message in data)
 			{
-				// trace("Looking for: " + name);
-				if (mod == name)
+				switch (message.type)
 				{
-					// trace("Found: " + mod);
+					case "player_id":
+						theMessageFM += _ap.get_player_alias(Std.parseInt(message.text));
+					case "item_id":
+						theMessageFM += _ap.get_item_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
+					case "location_id":
+						theMessageFM += _ap.get_location_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
+					default:
+						theMessageFM += message.text;
+				}
+			}
+			archipelago.console.MainTab.addMessage(theMessageFM);
+		}
+
+		function sendMessageSimple(text:Dynamic)
+			archipelago.console.MainTab.addMessage(text);
+
+		public function disconnectAP()
+		{
+			_ap.disconnect_socket();
+			_ap = null;
+			if (APEntryState.ap != null)
+			{
+				APEntryState.ap = null;
+			}
+		}
+
+		public function getSongAndMod(songName:String):{song:String, ?mod:String}
+		{
+			var input = songName;
+			var modName = "";
+			var firstParenIndex = songName.indexOf("(");
+			var endParenIndex = songName.lastIndexOf(")");
+			while (firstParenIndex != -1)
+			{
+				if (endParenIndex != -1)
+				{
+					modName = songName.substring(firstParenIndex + 1, endParenIndex);
+					if (isModName(modName))
+					{
+						songName = songName.substring(0, firstParenIndex).trim();
+						break;
+					}
+					else
+					{
+						firstParenIndex = songName.indexOf("(", firstParenIndex + 1);
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (firstParenIndex == -1 || !isModName(modName))
+			{
+				modName = "";
+				songName = input;
+			}
+			return modName != null && modName != "" ? {song: songName, mod: modName} : {song: songName};
+		}
+
+		public function getSongAndModFromLocation(locationID:Int):{song:String, ?mod:String}
+		{
+			var locationName = info().get_location_name(locationID);
+			var songAndMod:{song:String, ?mod:String};
+
+			// Check if it's a note location
+			var noteReg = new EReg("^Note \\d+: (.+)$", "");
+			if (noteReg.match(locationName))
+			{
+				var noteName = noteReg.matched(1);
+				songAndMod = getSongAndMod(noteName);
+			}
+			else
+			{
+				// Check if it's a song location with a dash number
+				var songReg = new EReg("^(.+?)(?:-\\d+)?$", "");
+				if (songReg.match(locationName))
+				{
+					var songName = songReg.matched(1);
+					songAndMod = getSongAndMod(songName);
+				}
+				else
+				{
+					// Default fallback
+					songAndMod = getSongAndMod(locationName);
+				}
+			}
+
+			return songAndMod;
+		}
+
+		// Check for songs and mods from an array of song names
+		public function getSongsAndModsFromArray(songNames:Array<String>):Array<{song:String, ?mod:String}>
+		{
+			var songsAndMods:Array<{song:String, ?mod:String}> = [];
+			for (songName in songNames)
+			{
+				var songAndMod = getSongAndMod(songName);
+				songsAndMods.push(songAndMod);
+			}
+			return songsAndMods;
+		}
+
+		public function findSpecialItems():Map<String, Int>
+		{
+			var specialItems:Map<String, Int> = new Map<String, Int>();
+			var apInfo = info();
+
+			// Get selectedSongs from slotData
+			var selectedSongs:Array<String> = [];
+			if (_slotData != null && Reflect.hasField(_slotData, "selectedSongs"))
+			{
+				selectedSongs = Reflect.field(_slotData, "selectedSongs");
+			}
+
+			for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
+			{
+				var itemName = item.replace("<cOpen>", "{").replace("<cClose>", "}").replace("<sOpen>", "[").replace("<sClose>", "]");
+
+				// Check if item is NOT in selectedSongs
+				var isSpecialItem = !selectedSongs.contains(itemName);
+				if (isSpecialItem)
+				{
+					specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
+				}
+			}
+			trace("Special Items: " + specialItems);
+
+			return specialItems;
+		}
+
+		public static var isSync:Bool = false;
+		public static var haventranyet:Bool = true;
+
+		// var tickets:Int = 0;
+		function addSongs(song:Array<NetworkItem>)
+		{
+			// Use Future system to process all items asynchronously
+			var processingFuture = processItemsAsync(song);
+			processingFuture.onComplete(function(result)
+			{
+				applyProcessedItems(result);
+			});
+			processingFuture.onError(function(error)
+			{
+				trace("Error processing items: " + error);
+				archipelago.APItem.popup("Error", "Failed to process items: " + error, true);
+			});
+		}
+
+		/**
+		 * Alternative method with batch processing and progress feedback
+		 * Usage example:
+		 * 
+		 * addSongsWithBatching(songs, 5, function(processed, total) {
+		 *     trace('Processing: ${processed}/${total}');
+		 * }).onComplete(function(_) {
+		 *     trace("All items processed successfully!");
+		 * });
+		 */
+		// function addSongsAdvanced(songs:Array<NetworkItem>, ?batchSize:Int = 10, ?progressCallback:Int->Int->Void)
+		// {
+		// 	return addSongsWithBatching(songs, batchSize, progressCallback);
+		// }
+
+		function processItemsAsync(songs:Array<NetworkItem>):Future<ProcessedItemsResult>
+		{
+			var promise = new Promise<ProcessedItemsResult>();
+
+			// Process items asynchronously
+			haxe.Timer.delay(function()
+			{
+				try
+				{
+					var result = processItemsSync(songs);
+					promise.complete(result);
+				}
+				catch (error:Dynamic)
+				{
+					promise.error(error);
+				}
+			}, 1);
+
+			return promise.future;
+		}
+
+		function processItemsSync(songs:Array<NetworkItem>):ProcessedItemsResult
+		{
+			var tickets = 0;
+			var nonSongs:Map<String, Int> = [];
+			var nonSongsNames:Array<String> = [];
+			var unlockedSongs:Array<{song:String, mod:String}> = [];
+			var itemsToTrigger:Array<String> = [];
+
+			APFreeplayManager.curMissing = [];
+
+			for (songName in songs)
+			{
+				var itemName = info().get_item_name(songName.item);
+
+				if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
+				{
+					nonSongs.set(itemName, songName.index);
+					nonSongsNames.push(itemName);
+					continue;
+				}
+
+				// Use the realName function to convert special keywords back to actual brackets
+				itemName = APInfo.realName(itemName);
+
+				var data = getSongAndMod(itemName);
+				// trace("Data: " + data.song + " - " + data.mod);
+
+				if (data.mod == null || data.mod == "")
+				{
+					data.mod = "";
+				}
+
+				var isUnlocked = false;
+				for (unlocked in APFreeplayManager.curUnlocked)
+				{
+					if (unlocked.song == data.song && unlocked.mod == data.mod)
+					{
+						isUnlocked = true;
+					}
+				}
+
+				if (!isUnlocked)
+				{
+					if (!(data.song == "Unknown" && data.mod == ""))
+					{
+						unlockedSongs.push({song: data.song, mod: data.mod});
+					}
+				}
+			}
+
+			// Process non-songs for items to trigger
+			for (items in nonSongsNames)
+			{
+				if (items == 'Ticket')
+				{
+					tickets++;
+					continue;
+				}
+
+				if (nonSongs.get(items) > ItemIndex)
+				{
+					itemsToTrigger.push(items);
+					ItemIndex = nonSongs.get(items);
+				}
+			}
+
+			return {
+				tickets: tickets,
+				nonSongs: nonSongs,
+				nonSongsNames: nonSongsNames,
+				unlockedSongs: unlockedSongs,
+				itemsToTrigger: itemsToTrigger
+			};
+		}
+
+		function applyProcessedItems(result:ProcessedItemsResult)
+		{
+			var songCopy:Array<{song:String, mod:String}> = APFreeplayManager.curUnlocked.copy();
+			// Apply all unlocked songs
+			for (song in result.unlockedSongs)
+			{
+				if (!isSync)
+					ArchPopup.startPopupSong(song.song, 'archColor');
+				APFreeplayManager.curUnlocked.push(song);
+			}
+
+			// Filter out special items
+			APFreeplayManager.curUnlocked = APFreeplayManager.curUnlocked.filter(unlocked -> !(APItems.exists(unlocked.song) && unlocked.mod.trim() == ""));
+
+			// Apply tickets
+			for (i in 0...result.tickets)
+			{
+				archipelago.APItem.createItemByName("Ticket");
+			}
+
+			if (info().casualSync && APInfo.ticketCount != result.tickets)
+			{
+				APInfo.ticketCount = result.tickets;
+			}
+
+			// Apply items in order
+			for (items in result.itemsToTrigger)
+			{
+				trace('triggering $items');
+				archipelago.APItem.createItemByName(items);
+			}
+
+			// Do all checks at once
+			archipelago.APItem.doCheck();
+
+			isSync = false;
+			info().casualSync = false;
+
+			// Reload freeplay after all processing is complete
+			try
+			{
+				if (APFreeplayManager.curUnlocked.length != songCopy.length)
+					FreeplayManager.instance.reloadFreeplay(true);
+			}
+			catch (e:Dynamic)
+			{
+				archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
+			}
+
+			// Save state after everything is applied
+			trace("AP State Saving...");
+			updateSaveData();
+		}
+
+		// // Advanced processing with batch support and progress feedback
+		// function addSongsWithBatching(songs:Array<NetworkItem>, ?batchSize:Int = 10, ?progressCallback:Int->Int->Void):Void
+		// {
+		// 	var promise = new Promise<() -> Void>();
+
+		// 	if (progressCallback != null)
+		// 		progressCallback(0, songs.length);
+
+		// 	var batches = createBatches(songs, batchSize);
+		// 	var processedResults:Array<ProcessedItemsResult> = [];
+
+		// 	processBatchesRecursively(batches, 0, processedResults, progressCallback)
+		// 		.onComplete(function(_) {
+		// 			// Combine all results
+		// 			var combinedResult = combineProcessedResults(processedResults);
+		// 			applyProcessedItems(combinedResult);
+
+		// 			if (progressCallback != null)
+		// 				progressCallback(songs.length, songs.length);
+
+		// 			promise.complete(() -> {
+		// 				trace("All items processed successfully!");
+		// 			});
+		// 		})
+		// 		.onError(function(error) {
+		// 			promise.error(error);
+		// 		});
+
+		// 	return promise.future.result();
+		// }
+
+		// function createBatches<T>(items:Array<T>, batchSize:Int):Array<Array<T>>
+		// {
+		// 	var batches:Array<Array<T>> = [];
+		// 	var currentBatch:Array<T> = [];
+
+		// 	for (item in items)
+		// 	{
+		// 		currentBatch.push(item);
+		// 		if (currentBatch.length >= batchSize)
+		// 		{
+		// 			batches.push(currentBatch);
+		// 			currentBatch = [];
+		// 		}
+		// 	}
+
+		// 	if (currentBatch.length > 0)
+		// 		batches.push(currentBatch);
+
+		// 	return batches;
+		// }
+
+		// function processBatchesRecursively(batches:Array<Array<NetworkItem>>, index:Int, results:Array<ProcessedItemsResult>, ?progressCallback:Int->Int->Void):Future<Void>
+		// {
+		// 	var promise = new Promise<Void>();
+
+		// 	if (index >= batches.length)
+		// 	{
+		// 		promise.complete();
+		// 		return promise.future;
+		// 	}
+
+		// 	// Process current batch
+		// 	var batchFuture = processItemsAsync(batches[index]);
+		// 	batchFuture.onComplete(function(result) {
+		// 		results.push(result);
+
+		// 		// Update progress
+		// 		var totalProcessed = 0;
+		// 		for (i in 0...index + 1)
+		// 			totalProcessed += batches[i].length;
+
+		// 		if (progressCallback != null)
+		// 			progressCallback(totalProcessed, getTotalItemCount(batches));
+
+		// 		// Process next batch
+		// 		processBatchesRecursively(batches, index + 1, results, progressCallback)
+		// 			.onComplete(function(_) promise.complete())
+		// 			.onError(function(error) promise.error(error));
+		// 	});
+		// 	batchFuture.onError(function(error) {
+		// 		promise.error(error);
+		// 	});
+
+		// 	return promise.future;
+		// }
+
+		// function getTotalItemCount(batches:Array<Array<NetworkItem>>):Int
+		// {
+		// 	var total = 0;
+		// 	for (batch in batches)
+		// 		total += batch.length;
+		// 	return total;
+		// }
+
+		// function combineProcessedResults(results:Array<ProcessedItemsResult>):ProcessedItemsResult
+		// {
+		// 	var combined:ProcessedItemsResult = {
+		// 		tickets: 0,
+		// 		nonSongs: new Map<String, Int>(),
+		// 		nonSongsNames: [],
+		// 		unlockedSongs: [],
+		// 		itemsToTrigger: []
+		// 	};
+
+		// 	for (result in results)
+		// 	{
+		// 		combined.tickets += result.tickets;
+
+		// 		for (key in result.nonSongs.keys())
+		// 		{
+		// 			combined.nonSongs.set(key, result.nonSongs.get(key));
+		// 		}
+
+		// 		combined.nonSongsNames = combined.nonSongsNames.concat(result.nonSongsNames);
+		// 		combined.unlockedSongs = combined.unlockedSongs.concat(result.unlockedSongs);
+		// 		combined.itemsToTrigger = combined.itemsToTrigger.concat(result.itemsToTrigger);
+		// 	}
+
+		// 	return combined;
+		// }
+
+		// A bandage fix till we have enough brainpower to fix this properly
+		var trapList:Array<String> = [
+			"Blue Balls Curse",
+			"Fake Transition",
+			"SvC Effect",
+			"Ghost Chat",
+			"Tutorial Trap"
+		];
+
+		public function isLocationMissing(location:String):Bool
+		{
+			for (missing in info().missingLocations)
+			{
+				if (info().get_location_name(missing) == location)
+				{
 					return true;
 				}
 			}
+			return false;
 		}
-		// trace("Not Found: " + name);
-		return false;
-	}
 
-	function validateModSong(song:String, mod:String):Bool
-	{
-		// Iterate through the weeks in WeekData
-		for (i in 0...WeekData.weeksList.length)
+		public function areLocationsMissing(locations:Array<Int>):Bool
 		{
-			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-
-			// Check if the week folder matches the specified mod
-			if (leWeek.folder == mod)
+			for (location in locations)
 			{
-				// Iterate through the songs in the week
-				for (songData in leWeek.songs)
+				if (isLocationMissing(info().get_location_name(location)))
 				{
-					var songName = (cast songData[0] : String).toLowerCase().replace(" ", "-");
-					// Check if the song name matches the specified song
-					if (songName == song.toLowerCase().replace(" ", "-"))
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function isModName(name:String):Bool
+		{
+			var mods = Mods.parseList().enabled;
+			// trace("Checking: " + mod);
+
+			if (mods != null && mods.length > 0)
+			{
+				for (mod in mods)
+				{
+					// trace("Looking for: " + name);
+					if (mod == name)
 					{
+						// trace("Found: " + mod);
 						return true;
 					}
 				}
 			}
+			// trace("Not Found: " + name);
+			return false;
 		}
-		return false;
-	}
 
-	function checkIfLocked(song:String, mod:String):Bool
-	{
-		return !(APFreeplayManager.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
-	}
-
-	function validateMods()
-	{
-		var mods = Mods.parseList().enabled;
-		var APItems = [];
-		var validatedMods = [];
-		for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
+		function validateModSong(song:String, mod:String):Bool
 		{
-			if (item.indexOf("(") != -1)
+			// Iterate through the weeks in WeekData
+			for (i in 0...WeekData.weeksList.length)
 			{
-				var modName = item.substring(item.indexOf("((") + 1, item.indexOf("))"));
-				if (mods.contains(modName))
+				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+
+				// Check if the week folder matches the specified mod
+				if (leWeek.folder == mod)
 				{
-					APItems.push(item);
-					validatedMods.push(modName);
+					// Iterate through the songs in the week
+					for (songData in leWeek.songs)
+					{
+						var songName = (cast songData[0] : String).toLowerCase().replace(" ", "-");
+						// Check if the song name matches the specified song
+						if (songName == song.toLowerCase().replace(" ", "-"))
+						{
+							return true;
+						}
+					}
 				}
 			}
+			return false;
 		}
-		if (mods != validatedMods)
+
+		function checkIfLocked(song:String, mod:String):Bool
 		{
-			throw "There seems to be missing mods. You can't access an APWorld without the mods that were used to generate it.";
+			return !(APFreeplayManager.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
 		}
+
+		function validateMods()
+		{
+			var mods = Mods.parseList().enabled;
+			var APItems = [];
+			var validatedMods = [];
+			for (item in currentPackages["Friday Night Funkin"].item_name_to_id.keys())
+			{
+				if (item.indexOf("(") != -1)
+				{
+					var modName = item.substring(item.indexOf("((") + 1, item.indexOf("))"));
+					if (mods.contains(modName))
+					{
+						APItems.push(item);
+						validatedMods.push(modName);
+					}
+				}
+			}
+			if (mods != validatedMods)
+			{
+				throw "There seems to be missing mods. You can't access an APWorld without the mods that were used to generate it.";
+			}
+		}
+
+		// public function onRoomInfo(roomInfo:RoomInfoPacket)
+		// {
+		//     _ap.clientStatus = ClientStatus.CONNECTED;
+		// }
+		// public function onSlotConnected(connectedPacket:ConnectedPacket)
+		// {
+		//     _ap.clientStatus = ClientStatus.PLAYING;
+		// }
+		// public function onSlotRefused(refusedPacket:ConnectionRefusedPacket)
+		// {
+		//     _ap.clientStatus = ClientStatus.UNKNOWN;
+		// }
+
+		private function onSocketDisconnected():Void
+		{
+			FlxG.switchState(_disconnectSubstate);
+		}
+
+		private function onCancel():Void
+		{
+			_ap.clientStatus = ClientStatus.UNKNOWN;
+			_ap.onSocketDisconnected.remove(onSocketDisconnected);
+			_ap = null;
+			APEntryState.ap = null;
+			APEntryState.apGame = null;
+			APEntryState.inArchipelagoMode = false;
+			MusicBeatState.switchState(new APEntryState());
+		}
+
+		private function onReconnect():Void
+		{
+			MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
+		}
+
+		// public function onRoomUpdate(roomUpdatePacket:RoomUpdatePacket)
+		// {
+		//     _ap.clientStatus = ClientStatus.PLAYING;
+		// }
 	}
-
-	// public function onRoomInfo(roomInfo:RoomInfoPacket)
-	// {
-	//     _ap.clientStatus = ClientStatus.CONNECTED;
-	// }
-	// public function onSlotConnected(connectedPacket:ConnectedPacket)
-	// {
-	//     _ap.clientStatus = ClientStatus.PLAYING;
-	// }
-	// public function onSlotRefused(refusedPacket:ConnectionRefusedPacket)
-	// {
-	//     _ap.clientStatus = ClientStatus.UNKNOWN;
-	// }
-
-	private function onSocketDisconnected():Void
-	{
-		FlxG.switchState(_disconnectSubstate);
-	}
-
-	private function onCancel():Void
-	{
-		_ap.clientStatus = ClientStatus.UNKNOWN;
-		_ap.onSocketDisconnected.remove(onSocketDisconnected);
-		_ap = null;
-		APEntryState.ap = null;
-		APEntryState.apGame = null;
-		APEntryState.inArchipelagoMode = false;
-		MusicBeatState.switchState(new APEntryState());
-	}
-
-	private function onReconnect():Void
-	{
-		MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
-	}
-
-	// public function onRoomUpdate(roomUpdatePacket:RoomUpdatePacket)
-	// {
-	//     _ap.clientStatus = ClientStatus.PLAYING;
-	// }
-}

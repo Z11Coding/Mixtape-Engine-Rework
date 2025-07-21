@@ -10,12 +10,13 @@ class APCategoryState extends states.CategoryState {
 
     public function new(gameState:archipelago.APGameState, ?AP:archipelago.Client) {
         this.gameState = gameState;
-        while (true) {
+        var attempts = 0;
+        while (attempts < 20) {
             try {
             this.AP = gameState.info();
             break;
             } catch (e) {
-            // Optionally, add a small delay to avoid busy looping
+            attempts++;
             Sys.sleep(0.1);
             }
         }
@@ -47,14 +48,18 @@ class APCategoryState extends states.CategoryState {
         }
 
         // this.specialOptions.pushMulti([opFunc, quitFunc]);
-
-        states.ExitState.addExitCallback(function() {
+        var cleanupFunc = function() {
             if (AP != null){
-                APGameState.instance?.updateSaveData();
-                trace("Properly disconnecting from server before exiting...");
-            AP.disconnect_socket();}
+            APGameState.instance?.updateSaveData();
+            trace("Properly disconnecting from server before exiting...");
+            AP.disconnect_socket();
+            }
             AP = null;
-        });
+        };
+
+        if (!states.ExitState.cleanupFunctions.contains(cleanupFunc)) {
+            states.ExitState.addExitCallback(cleanupFunc);
+        }
     }
 
     override function create()

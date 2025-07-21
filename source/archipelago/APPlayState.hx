@@ -1137,6 +1137,11 @@ class APPlayState extends PlayState {
         wordList.push(PlayState.SONG?.song);
 		trace(wordList.length + " words loaded");
 		trace(wordList);
+        try {
+            wordList.concat(backend.MusicBeatState.words);
+        } catch (e:Dynamic) {
+            trace('Failed to concat backend.MusicBeatState.words: ' + e);
+        }
 		validWords.resize(0);
 		for (word in wordList)
 		{

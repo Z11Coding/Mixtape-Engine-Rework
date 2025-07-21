@@ -678,10 +678,17 @@ class Client {
 		@return The game attached to the given slot number, or a blank string if no such slot exists. For a slot number of 0, "Archipelago" is returned.
 	**/
 	public function get_player_game(player:Int):String {
-		if (player == 0)
+		trace('get_player_game called with player: ' + player);
+		if (player == 0) {
+			trace('Returning "Archipelago" for player 0');
 			return "Archipelago";
-		if (_slotInfo.exists(player))
+		}
+		if (_slotInfo.exists(player)) {
+			trace('Found slotInfo for player ' + player + ': ' + _slotInfo[player]);
+			trace('Returning game: ' + _slotInfo[player].game);
 			return _slotInfo[player].game;
+		}
+		trace('No slotInfo found for player ' + player + ', returning empty string');
 		return "";
 	}
 
@@ -1454,6 +1461,7 @@ class Client {
 					}
 
 					function dataNew():Void {
+						trace("dataNew: Start");
 						var uniqueGames:Set<String> = new Set<String>();
 						for (game in players.mapT(function(p) return get_player_game(p.slot)).toIterable()) {
 							uniqueGames.add(game);
@@ -1462,6 +1470,7 @@ class Client {
 						trace("Fetching data for games: " + gamesArray);
 
 						GetDataPackage(gamesArray);
+						trace("dataNew: Requested data package for gamesArray");
 						var remainingPackages:Int = gamesArray.length;
 						var gameData = new DynamicAccess<GameData>();
 
@@ -1471,41 +1480,49 @@ class Client {
 								// Wait for _dataPackage to change
 								Sys.sleep(0.1);
 							}
+							trace("dataNew: Data package changed");
 							for (game in gamesArray) {
 								if (_dataPackage.games.exists(game) && !gameData.exists(game)) {
 									gameData.set(game, _dataPackage.games[game]);
 									remainingPackages--;
+									trace('dataNew: Added game "' + game + '" to gameData');
 								}
 							}
 						}
 
 						APGameState.currentPackages = gameData;
-						// trace("Game Data: " + gameData);
+						trace("dataNew: Set APGameState.currentPackages");
 
 						var currentData = _dataPackage;
 
 						// Get the Friday Night Funkin' one again, for security.
 						GetDataPackage(["Friday Night Funkin"]);
+						trace("dataNew: Requested Friday Night Funkin data package");
 						while (_dataPackage == currentData) {
 							// Wait for _dataPackage to change
 							Sys.sleep(0.1);
 						}
+						trace("dataNew: Friday Night Funkin data package changed");
 						gameData.set("Friday Night Funkin", _dataPackage.games["Friday Night Funkin"]);
 
 						var data:DataPackageObject = {
 							games: gameData,
 						};
 						_dataPackage = data;
+						trace("dataNew: Set _dataPackage");
+
 						APGameState.instance.APLocations = missingLocations.concat(checkedLocations);
 						APGameState.instance.APItems = APGameState.instance.findSpecialItems();
 						APGameState.instance.initSaveData();
+						trace("dataNew: Refreshed APGameState.instance data");
 						try {
 							if (FreeplayManager.instance != null)
-							FreeplayManager.instance.reloadFreeplay(true);
+								FreeplayManager.instance.reloadFreeplay(true);
 						} catch (e:Dynamic) {
 							backend.MusicBeatState.resetState();
 						}
-						return ArchPopup.startPopupCustom("All Game Data has been fetched! Refreshing local info, just in case!", "Refresh", "archColor");
+						trace("dataNew: End");
+						// return ArchPopup.startPopupCustom("All Game Data has been fetched! Refreshing local info, just in case!", "Refresh", "archColor");
 					}
 
 					yutautil.Threader.runInThread(dataNew(), "DataPackageFetcher"); // Hopefully more optimal.
