@@ -10,12 +10,13 @@ class APCategoryState extends states.CategoryState {
 
     public function new(gameState:archipelago.APGameState, ?AP:archipelago.Client) {
         this.gameState = gameState;
-        while (true) {
+        var attempts = 0;
+        while (attempts < 20) {
             try {
             this.AP = gameState.info();
             break;
             } catch (e) {
-            // Optionally, add a small delay to avoid busy looping
+            attempts++;
             Sys.sleep(0.1);
             }
         }

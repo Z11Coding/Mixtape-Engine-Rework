@@ -621,6 +621,7 @@ class APGameState
 			var value = retrievedPacket.get(key);
 			if (key.indexOf("_read_hints_") != -1)
 			{
+				APFreeplayManager.hintTable = new Map<String, String>();
 				// value.mapToObject() contains multiple hints indexed by keys
 				var hintsObj:Dynamic = value.mapToObject();
 				for (hintKey in Reflect.fields(hintsObj))
@@ -637,25 +638,41 @@ class APGameState
 					};
 					trace("Hint: " + hint);
 
+					if (APItems.exists(_ap.get_item_name(hint.item, _ap.get_player_game(hint.receiving_player))))
+					{
+						trace("Hint is for an Item, or a song you don't have. Skipping.");
+						continue;
+					}
+
 					function playerItemName(player:Int, item:Int):String
 					{
 						var playerName = _ap.get_player_alias(player);
 						var itemName = _ap.get_item_name(item, _ap.get_player_game(player));
-						// trace("Game: " + _ap.get_player_game(player) + ", Item: " + item + ", Name: " + itemName);
-						return if (itemName == "Unknown")
+						@:privateAccess
+						if (itemName == "Unknown")
 						{
-							for (items in currentPackages[_ap.get_player_game(player)].item_name_to_id.keys())
+							var playerObj = null;
+							for (p in _ap._players)
 							{
-								if (currentPackages[_ap.get_player_game(player)].item_name_to_id.get(items) == item)
+								if (p.slot == player)
 								{
-								items;
+									playerObj = p;
+									break;
 								}
 							}
-							itemName;
+							var gameName = _ap.get_player_game(player);
+							for (items in currentPackages[gameName].item_name_to_id.keys())
+							{
+								if (currentPackages[gameName].item_name_to_id.get(items) == item)
+								{
+									return items;
+								}
+							}
+							return itemName;
 						}
 						else
 						{
-						itemName;
+							return itemName;
 						}
 					}
 
@@ -664,7 +681,9 @@ class APGameState
 						var locationName = _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player));
 						var findingPlayerName = _ap.get_player_alias(hint.finding_player);
 						var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
-						var itemName = playerItemName(hint.finding_player, hint.item);
+						var itemName = playerItemName(hint.receiving_player, hint.item);
+
+						trace(itemName + " found in " + locationName + " by " + findingPlayerName + " for " + receivingPlayerName);
 
 						var message:String;
 						if (hint.receiving_player == _ap.slotnr)
@@ -688,7 +707,9 @@ class APGameState
 						{
 							APFreeplayManager.hintTable.set(locationName, message);
 						}
-					}
+					} else (
+						trace("Hint already found: " + playerItemName(hint.receiving_player, hint.item) + " in " + _ap.get_location_name(hint.location, _ap.get_player_game(hint.finding_player))
+							+ " by " + _ap.get_player_alias(hint.finding_player) + " for " + _ap.get_player_alias(hint.receiving_player)));
 				}
 			}
 		}
@@ -1136,6 +1157,7 @@ class APGameState
 
 	function applyProcessedItems(result:ProcessedItemsResult)
 	{
+		var songCopy:Array<{song: String, mod: String}> = APFreeplayManager.curUnlocked.copy();
 		// Apply all unlocked songs
 		for (song in result.unlockedSongs)
 		{
@@ -1175,7 +1197,7 @@ class APGameState
 		
 		// Reload freeplay after all processing is complete
 		try
-		{
+		{	if (APFreeplayManager.curUnlocked.length != songCopy.length)
 			FreeplayManager.instance.reloadFreeplay(true);
 		}
 		catch (e:Dynamic)
