@@ -85,6 +85,7 @@ import states.TitleState;
 	public var editorMusic:String = 'None';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
+	public var loadingState:String = 'Song Only';
 	public var gameplaySettings:Map<String, Dynamic> = [
 		'scrollspeed' => 1.0,
 		'scrolltype' => 'multiplicative', 

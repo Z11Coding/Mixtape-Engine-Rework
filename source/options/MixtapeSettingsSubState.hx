@@ -404,6 +404,19 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option(
+			'Loading Preference: ', 
+			"When a song is loading, select how much to load.", 
+			'loadingState', 
+			STRING, 
+			[
+			"Nothing",
+			"Song Only",
+			"Everything"]
+		);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('Enable Artemis', // even tho only one person asked, it here
 			"Got An RGB Keyboard Like A Razer Cynosa Chroma Gaming Keyboard?\n
 			Turn This Bad Boy On To Get Your Keyboard In The Action Too!\n

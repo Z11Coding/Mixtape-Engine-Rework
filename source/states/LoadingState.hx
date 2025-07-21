@@ -182,10 +182,20 @@ class LoadingState extends MusicBeatState
 		#end
 		super.create();
 
-		if (stateChangeDelay <= 0 && checkLoaded())
-		{
-			//dontUpdate = true;
-			onLoad();
+		if (ClientPrefs.data.loadingState == 'Everything' || ClientPrefs.data.loadingState == 'Song Only') {
+			if (stateChangeDelay <= 0 && checkLoaded())
+			{
+				//dontUpdate = true;
+				onLoad();
+			}
+		}
+		else {
+			if (stopMusic && FlxG.sound.music != null)
+				FlxG.sound.music.stop();
+
+			MusicBeatState.switchState(target);
+			transitioning = true;
+			finishedLoading = true;
 		}
 	}
 
@@ -517,30 +527,34 @@ class LoadingState extends MusicBeatState
 					}
 					prepare(imgs, snds, mscs);
 				} else { // if it is null then just grab everything
-					trace('NO PRELOAD JSON FOUND! LOADING EVERYTHING THAT CAN BE FOUND INSTEAD!');
-					var curDirct:String = Mods.currentModDirectory == '' ? 'assets/${Paths.currentLevel}' : 'mods/${Mods.currentModDirectory}';
-					var moddedImages:Array<String> = Paths.crawlDirectory('$curDirct/images', 'png');
-					var moddedSounds:Array<String> = Paths.crawlDirectory('$curDirct/sounds', 'png');
-					var moddedMusic:Array<String> = Paths.crawlDirectory('$curDirct/music', 'png');
-					// prepare(moddedImages, moddedSounds, moddedMusic);
-					trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
+					if (ClientPrefs.data.loadingState == 'Everything') {
+						trace('NO PRELOAD JSON FOUND! LOADING EVERYTHING THAT CAN BE FOUND INSTEAD!');
+						var curDirct:String = Mods.currentModDirectory == '' ? 'assets/${Paths.currentLevel}' : 'mods/${Mods.currentModDirectory}';
+						var moddedImages:Array<String> = Paths.crawlDirectory('$curDirct/images', 'png');
+						var moddedSounds:Array<String> = Paths.crawlDirectory('$curDirct/sounds', 'png');
+						var moddedMusic:Array<String> = Paths.crawlDirectory('$curDirct/music', 'png');
+						prepare(moddedImages, moddedSounds, moddedMusic);
+						trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
+					}
 				}
 			}
 			catch(e:Dynamic) {
-				trace('SOMETHING WENT WRONG! LOADING EVERYTHING THAT CAN BE FOUND INSTEAD!');
-				//This annoys me to no end
-				var curDirct:String = Mods.currentModDirectory == '' ? 'assets/${Paths.currentLevel}' : 'mods/${Mods.currentModDirectory}';
-				var moddedImages:Array<String> = [];
-				var moddedSounds:Array<String> = [];
-				var moddedMusic:Array<String> = [];
-				for (thing in Paths.crawlDirectory('$curDirct/images', 'png')) 
-					moddedImages.push(thing.replace('$curDirct/images/', '').replace('.png', ''));
-				for (thing in Paths.crawlDirectory('$curDirct/sounds', 'ogg')) 
-					moddedSounds.push(thing.replace('$curDirct/sounds/', '').replace('.ogg', ''));
-				for (thing in Paths.crawlDirectory('$curDirct/music', 'ogg')) 
-					moddedMusic.push(thing.replace('$curDirct/music/', '').replace('.ogg', ''));
-				prepare(moddedImages, moddedSounds, moddedMusic);
-				//trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
+				if (ClientPrefs.data.loadingState == 'Everything') {
+					trace('SOMETHING WENT WRONG! LOADING EVERYTHING THAT CAN BE FOUND INSTEAD!');
+					//This annoys me to no end
+					var curDirct:String = Mods.currentModDirectory == '' ? 'assets/${Paths.currentLevel}' : 'mods/${Mods.currentModDirectory}';
+					var moddedImages:Array<String> = [];
+					var moddedSounds:Array<String> = [];
+					var moddedMusic:Array<String> = [];
+					for (thing in Paths.crawlDirectory('$curDirct/images', 'png')) 
+						moddedImages.push(thing.replace('$curDirct/images/', '').replace('.png', ''));
+					for (thing in Paths.crawlDirectory('$curDirct/sounds', 'ogg')) 
+						moddedSounds.push(thing.replace('$curDirct/sounds/', '').replace('.ogg', ''));
+					for (thing in Paths.crawlDirectory('$curDirct/music', 'ogg')) 
+						moddedMusic.push(thing.replace('$curDirct/music/', '').replace('.ogg', ''));
+					prepare(moddedImages, moddedSounds, moddedMusic);
+					//trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
+				}
 			}
 			return true;
 		}, isIntrusive)
