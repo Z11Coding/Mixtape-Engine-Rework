@@ -908,8 +908,21 @@ class APGameState
 						trace("Screen flip reverted after 4 minutes.");
 					}, 240000);
 				case "Trivia Trap":
-					new streamervschat.SpellPrompt();
-					trace("Trivia Trap activated, showing spell prompt.");
+					// Wait until PlayState.instance is not null and startedCountdown is true
+					var waitForPlayState:Void -> Void = null;
+					waitForPlayState = function()
+					{
+						if (PlayState.instance?.startedCountdown)
+						{
+							new streamervschat.SpellPrompt();
+							trace("Trivia Trap activated, showing spell prompt.");
+						}
+						else
+						{
+							haxe.Timer.delay(waitForPlayState, 50);
+						}
+					};
+					waitForPlayState();
 				case "Instant Death Trap":
 					archipelago.APItem.createItemByName("Blue Balls Curse").fromTrapLink = true;
 				default:
