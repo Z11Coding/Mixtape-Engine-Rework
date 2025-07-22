@@ -68,7 +68,7 @@ class MallXmasErect extends PicoCapableStage
 				width: 2400,
 				height: 400
 			});
-			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.scrollFactor.set(0.5, 0.5);
 			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
 			snowSprites.push(snowSprite);
 			add(snowSprite);
@@ -100,7 +100,7 @@ class MallXmasErect extends PicoCapableStage
 				width: 2400,
 				height: 400
 			});
-			snowSprite.scrollFactor.set(0.15, 0.15);
+			snowSprite.scrollFactor.set(0.9, 0.9);
 			snowSprite.antialiasing = ClientPrefs.data.antialiasing;
 			snowSprites.push(snowSprite);
 			add(snowSprite);

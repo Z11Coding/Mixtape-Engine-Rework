@@ -33,7 +33,8 @@
 	<define name="TITLE_SCREEN_EASTER_EGG"/>
 
 	<!-- so that the things that use this can have it-->
-	<define name="PE_MOD_COMPATIBILITY" if="LUA_ALLOWED" />
+	<define name="PE_MOD_COMPATIBILITY"/>
+	<define name="ALLOW_DEPRECATION"/>
 	<define name="MULTICORE_LOADING" if="desktop" />
 	<define name="loadBenchmark" if="MULTICORE_LOADING"/>
 

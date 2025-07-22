@@ -58,7 +58,7 @@ public var controls(get, never):Controls;
 
 private function get_controls()
 {
-	return if (!revokeControls) Controls.instance else null;
+	return Controls.instance;
 }
 
 var _psychCameraInitialized:Bool = false;
