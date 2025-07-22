@@ -2,7 +2,7 @@ package options;
 
 class MixtapeSettingsSubState extends BaseOptionsMenu
 {
-	public static var curBPMList:Array<Int> =  [0, 160, 105, 130, 100, 160, 180, 100, 125, 150, 140];
+	public static var curBPMList:Array<Int> =  [0, 160, 160, 88, 160, 90, 105, 130, 100, 160, 180, 100, 125, 170, 140];
 	var perfOpt:Option;
 	public function new()
 	{
@@ -194,7 +194,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"What song do you prefer for the Pause Screen?",
 			'pauseMusic',
 			STRING,
-			['None', 'Breakfast', 'Tea Time', 'Celebration', 'Drippy Genesis', 'Reglitch', 'False Memory', 'Funky Genesis', 'Late Night Cafe', 'Late Night Jersey', 'Silly Little Sample Song']);
+			['None', 'Breakfast', 'Breakfast (Pixel)', 'Breakfast (Pico)', 'girlfriendsRingtone', 'stayFunky', 'Tea Time', 'Celebration', 'Drippy Genesis', 'Reglitch', 'False Memory', 'Funky Genesis', 'Late Night Cafe', 'Late Night Jersey', 'Silly Little Sample Song']);
 		addOption(option);
 		option.displayFormat = '< %v >';
 		option.onChange = onChangePauseMusic;
@@ -564,30 +564,39 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 	var indeed:Int = 0;
 	function onChangePauseMusic()
 	{
+		//TODO: find a better way to do this lol
 		switch (ClientPrefs.data.pauseMusic)
 		{
 			case 'None':
 				indeed = 0;
 			case 'Breakfast':
 				indeed = 1;
-			case 'Tea Time':
+			case 'Breakfast (Pixel)':
 				indeed = 2;
-			case 'Celebration':
+			case 'Breakfast (Pico)':
 				indeed = 3;
-			case 'Drippy Genesis':
+			case 'girlfriendsRingtone':
 				indeed = 4;
-			case 'Reglitch':
+			case 'stayFunky':
 				indeed = 5;
-			case 'False Memory':
+			case 'Tea Time':
 				indeed = 6;
-			case 'Funky Genesis':
+			case 'Celebration':
 				indeed = 7;
-			case 'Late Night Cafe':
+			case 'Drippy Genesis':
 				indeed = 8;
-			case 'Late Night Jersey':
+			case 'Reglitch':
 				indeed = 9;
-			case 'Silly Little Sample Song':
+			case 'False Memory':
 				indeed = 10;
+			case 'Funky Genesis':
+				indeed = 11;
+			case 'Late Night Cafe':
+				indeed = 12;
+			case 'Late Night Jersey':
+				indeed = 13;
+			case 'Silly Little Sample Song':
+				indeed = 14;
 		}
 		if(ClientPrefs.data.pauseMusic == 'None')
 			FlxG.sound.music.volume = 0;

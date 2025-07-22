@@ -612,7 +612,7 @@ class APPlayState extends PlayState {
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
-            'flashbang' => function() {
+            'strongflashbang' => function() {
                 var noIcon:Bool = true;
                 var playSound:String = "bang";
                 if (flashbangTimer != null && flashbangTimer.active)
@@ -622,9 +622,9 @@ class APPlayState extends PlayState {
                 whiteScreen.cameras = [camOther];
                 add(whiteScreen);
                 flashbangTimer.start(0.4, function(timer) {
-                    camOther.flash(FlxColor.WHITE, 7, null, true);
+                    camOther.flash(FlxColor.WHITE, 15, null, true);
                     remove(whiteScreen);
-                    FlxG.sound.play(Paths.sound('streamervschat/ringing'), 0.4);
+                    FlxG.sound.play(Paths.sound('streamervschat/ringingex'), 0.4);
                 });
                 applyEffect(0, null, playSound, 1, noIcon);
             },
@@ -655,6 +655,14 @@ class APPlayState extends PlayState {
             'spam' => function() {
                 var noIcon:Bool = true;
                 var startingPoint = FlxG.random.int(5, 9);
+                var endingPoint = FlxG.random.int(startingPoint + 5, startingPoint + 10);
+                for (i in startingPoint...endingPoint) {
+                    addNoteSvCLegacy(0, i, i);
+                }
+            },
+            'insanespam' => function() {
+                var noIcon:Bool = true;
+                var startingPoint = FlxG.random.int(5, 39);
                 var endingPoint = FlxG.random.int(startingPoint + 5, startingPoint + 10);
                 for (i in startingPoint...endingPoint) {
                     addNoteSvCLegacy(0, i, i);
@@ -702,6 +710,48 @@ class APPlayState extends PlayState {
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);
             },
+            'permasever' => function() {
+                var ttl:Float = 6;
+                var playSound:String = "sever";
+                var playSoundVol:Float = 1;
+                var noIcon:Bool = false;
+                var alwaysEnd:Bool = false;
+                var onEnd:(Void->Void) = function() {
+                    trace("Nah, I don't feel like giving it back");
+                };
+
+                var chooseFrom:Array<Int> = [];
+                for (i in 0...severInputs.length) {
+                    if (!severInputs[i])
+                        chooseFrom.push(i);
+                }
+                if (chooseFrom.length <= 0)
+                    picked = FlxG.random.int(0, 3);
+                else
+                    picked = chooseFrom[FlxG.random.int(0, chooseFrom.length - 1)];
+                playerField.strumNotes[picked].alpha = 0;
+                severInputs[picked] = true;
+
+                var okayden:Array<Int> = [];
+                for (i in 0...64) {
+                    okayden.push(i);
+                }
+                var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+                var explosion = new FlxSprite().loadGraphic(Paths.image("streamervschat/explosion"), true, 256, 256);
+                explosion.animation.add("boom", okayden, 60, false);
+                explosion.animation.finishCallback = function(name) {
+                    explosion.visible = false;
+                    remove(explosion);
+                    explosion.kill();
+                };
+                explosion.cameras = [camHUD];
+                explosion.x = (playerField.strumNotes[picked].x - playerField.baseXPositions[picked]) + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
+                explosion.y = (playerField.strumNotes[picked].y - baseY) + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
+                explosion.animation.play("boom", true);
+                add(explosion);
+
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);
+            },
             'shake' => function() {
                 var noIcon:Bool = false;
                 var playSound:String = "shake";
@@ -719,6 +769,22 @@ class APPlayState extends PlayState {
                 var playSound:String = "poison";
                 var playSoundVol:Float = 0.6;
                 var noIcon:Bool = false;
+
+                drainHealth = true;
+                boyfriend.color = 0xf003fc;
+
+                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
+            },
+            'poisonbutworse' => function() {
+                var ttl:Float = 5;
+                var onEnd:(Void->Void) = function() {
+                    trace("Nah, you're still poisoned");
+                };
+                var playSound:String = "poison";
+                var playSoundVol:Float = 0.6;
+                var noIcon:Bool = false;
+
+                dmgMultiplier = 0.3;
 
                 drainHealth = true;
                 boyfriend.color = 0xf003fc;
@@ -880,6 +946,23 @@ class APPlayState extends PlayState {
                 addNoteSvCLegacy(4, startPoint, startPoint, -1);
                 addNoteSvCLegacy(4, nextPoint, nextPoint, -1);
                 addNoteSvCLegacy(4, lastPoint, lastPoint, -1);
+            },
+            'icebutmoreagressive' => function() {
+                var noIcon:Bool = true;
+                var lastPoint:Int = 0; 
+                var exList:Array<Int> = [];
+                for (note in 0...10) {
+                    var startPoint:Int = FlxG.random.int(5, 39, exList);
+                    if (lastPoint == 0) {
+                        addNoteSvCLegacy(4, startPoint, startPoint, -1);
+                        lastPoint = startPoint;
+                        exList.push(startPoint);
+                    }
+                    else {
+                        addNoteSvCLegacy(4, lastPoint + 2, startPoint + 6, -1);
+                        lastPoint = 0;
+                    }
+                }
             },
             'randomize' => function() {
                 var ttl:Float = 10;
@@ -1755,7 +1838,7 @@ class APPlayState extends PlayState {
 			field.clearStackedNotes();
 	}
 
-	var isFrozen:Bool = false;
+	public var isFrozen:Bool = false;
 	var doRandomize:Bool = false;
     override public function update(elapsed:Float)
     {
@@ -1983,9 +2066,13 @@ class APPlayState extends PlayState {
             });
             trace("Ghost Chat Re-activated!");
         }
+
+        if (bfAscend) boyfriendGroup.y += 0.001;
+
         super.update(elapsed);
     }
 
+    public var bfAscend:Bool = false;
     var alreadySent:Bool = false;
     override function doDeathCheck(?skipHealthCheck:Bool = false):Bool
     {

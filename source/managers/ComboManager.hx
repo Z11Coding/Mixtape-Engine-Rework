@@ -9,6 +9,13 @@ import psychlua.LuaUtils;
 import psychlua.HScript;
 #end
 
+/*
+    The very fun combo manager because yes!!!
+
+    as of right now it only handles the actual stats of a song
+    but i plan on also making handle the visual aspect as well 
+*/
+
 class ComboManager {
     public static var instance:ComboManager;
 

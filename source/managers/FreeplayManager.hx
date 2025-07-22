@@ -16,7 +16,7 @@ import archipelago.PacketTypes.ClientStatus;
 #end
 //Lets try this again
 
-/*
+/**
     Ok im gonna try to explain what this is in the best way I can
 
     This is where any hardcoded freeplay menus you want to use will be called from (actually getting to the menu)
@@ -24,12 +24,14 @@ import archipelago.PacketTypes.ClientStatus;
     Speaking of, scripted freeplays will also be ran through this (unless a better system for them is made)
     For now, this is what this Freeplay Manager does:
     
-    * Sends you to the proper freeplay that you select
-    
-    yeah that's literally it for now
+    ** Sends you to the proper freeplay that you select
+    ** Loads the list for freeplay
+    ** enables multiple diferent styled menus that can all act the same, as they would all be ran through this
+    ** enables the ability to have cutsom freeplays without the large chunks of "load the entire song list" code
+    ** does other things too
 
     TODO: Might make this extend of MusicBeatState so that freeplay can extend off it
-*/
+**/
 class FreeplayManager {
     public static var instance:FreeplayManager;
 

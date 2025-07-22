@@ -58,6 +58,10 @@ class DialogueBoxPsych extends FlxSpriteGroup
 	var staticDialList:Array<DialogueLine> = [];
 	//var charPositionList:Array<String> = ['left', 'center', 'right'];
 
+	public var autoScroller:Bool = false;
+	public var autoScrollerTimer:Float = 3;
+	var asCurTimer:Float = 0;
+
 	public function new(dialogueList:DialogueFile, ?song:String = null)
 	{
 		super();
@@ -172,7 +176,7 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		if(!dialogueEnded) {
 
 			var back:Bool = Controls.instance.BACK;
-			if((Controls.instance.ACCEPT || back) && box.visible) {
+			if((Controls.instance.ACCEPT || back) && box.visible && !autoScroller) {
 				if(!style.isLineFinished() && !back)
 				{
 					style.finishLine();
@@ -195,6 +199,14 @@ class DialogueBoxPsych extends FlxSpriteGroup
 					FlxG.sound.play(Paths.sound(closeSound), closeVolume);
 					style.advanceBoxLine(startNextDialog.bind(false));
 				}
+			} else if(style.isLineFinished() && autoScroller && currentText < dialogueList.dialogue.length && asCurTimer == 0) {
+				FlxG.sound.play(Paths.sound(closeSound), closeVolume);
+				asCurTimer = autoScrollerTimer;
+				style.advanceBoxLine(startNextDialog.bind(false));
+			} else if(style.isLineFinished() && autoScroller && currentText >= dialogueList.dialogue.length) {
+				skipDialogue(false);
+				asCurTimer = autoScrollerTimer;
+				FlxG.sound.play(Paths.sound(closeSound), closeVolume);
 			} else if(style.isLineFinished()) {
 				var char:DialogueCharacter = arrayCharacters[lastCharacter];
 				if(char != null && char.animation.curAnim != null && char.animationIsLoop() && char.animation.finished) {
@@ -292,10 +304,18 @@ class DialogueBoxPsych extends FlxSpriteGroup
 				kill();
 			}
 		}
+
+		if (asCurTimer > 0) 
+			asCurTimer -= 0.05;
+		else if (asCurTimer < 0) // to prevent an overflow
+			asCurTimer = 0;
+
+		//trace(asCurTimer);
+
 		super.update(elapsed_real);
 	}
 
-	function skipDialogue(){
+	function skipDialogue(?fadeMusic:Bool = false){
 		dialogueEnded = true;
 		style.playBoxAnim(style.last_position,CLOSE_FINISH,lastBoxType);
 		if(daText != null)
@@ -305,7 +325,7 @@ class DialogueBoxPsych extends FlxSpriteGroup
 			daText.destroy();
 		}
 		skipText.visible = false;
-		FlxG.sound.music.fadeOut(1, 0, (_) -> FlxG.sound.music.stop());
+		if (fadeMusic) FlxG.sound.music.fadeOut(1, 0, (_) -> FlxG.sound.music.stop());
 	}
 
 	var lastCharacter:Int = -1;

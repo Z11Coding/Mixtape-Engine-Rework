@@ -21,6 +21,7 @@ class MusicBeatState extends FlxState
 	public static var APFlip(get, set):Bool;
 
 	public static var words:Dynamic = yutautil.modules.SyncUtils.syncHttpRequestJson("https://random-word-api.herokuapp.com/all");
+	public static var revokeControls:Bool = false;
 
 	private static function get_APFlip():Bool
 		return _apFlip;
@@ -57,7 +58,7 @@ public var controls(get, never):Controls;
 
 private function get_controls()
 {
-	return Controls.instance;
+	return if (!revokeControls) Controls.instance else null;
 }
 
 var _psychCameraInitialized:Bool = false;

@@ -421,7 +421,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						{
 							note.tooLate = true;
 							note.wasGoodHit = false;
-							noteMissed.dispatch(note, this);
+							if (inControl) noteMissed.dispatch(note, this);
 							return note;
 						}
 					}
@@ -1056,7 +1056,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				if (daNote.tooLate && daNote.active && !daNote.causedMiss)
 				{
 					daNote.causedMiss = true;
-					if (!daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit))
+					if (!daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit) && inControl)
 						noteMissed.dispatch(daNote, this);
 				} 
 

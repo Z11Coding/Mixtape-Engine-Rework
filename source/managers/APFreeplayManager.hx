@@ -15,7 +15,8 @@ import archipelago.PacketTypes.ClientStatus;
 
 
 /*
-    
+    Basically FreeplayManager but specifically for AP
+    just a way to separate Archipelago from the main stuff so it doesn't get affected by AP's bull 
 */
 
     // SongInfo structure as typedef

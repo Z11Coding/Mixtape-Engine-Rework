@@ -2,6 +2,8 @@ package archipelago;
 
 import backend.window.PlatformUtil;
 import haxe.ds.StringMap;
+import cutscenes.DialogueBoxPsych;
+import flixel.util.FlxDestroyUtil;
 
 typedef Condition = {
     var checkFn:APItem->Bool;
@@ -152,6 +154,7 @@ class APItem {
         }
     }
 
+    static var frozenInput:Int = 0;
     public static function createItemByName(name:String):APItem {
         switch (name) {
             case "Blue Balls Curse":
@@ -261,9 +264,462 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
+
             case "Nothing":
                 popup('...For now...', "APItem: Nothing");
                 return null;
+
+            case "Ghost":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    states.PlayState.instance?.modManager.setValue('sudden', 1);
+                    popup('Suddenly, Notes.', "TrapLink: Ghost Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "My Turn! Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.bothMode = true;
+                    APPlayState.instance.playerField.isPlayer = APPlayState.instance.bothMode;
+                    APPlayState.instance.playerField.autoPlayed = false;
+                    APPlayState.instance.playerField.noteHitCallback = APPlayState.instance.goodNoteHit;
+                    APPlayState.instance.dadField.isPlayer = APPlayState.instance.bothMode;
+                    APPlayState.instance.dadField.autoPlayed = false;
+                    APPlayState.instance.dadField.noteHitCallback = APPlayState.instance.opponentNoteHit;
+                    popup('Now you have to play BOTH sides!', "TrapLink: My Turn! Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Paralyze Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    
+                    APPlayState.instance.boyfriend.stunned = true;
+                    new FlxTimer().start(FlxG.random.int(2, 5), function(tmr:FlxTimer)
+                    {
+                        APPlayState.instance.boyfriend.stunned = false;
+                    });
+                    popup('You\'ve been Paralyzed!', "TrapLink: Paralyze Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Phone Trap" | "Literature Trap":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    APPlayState.instance.inCutscene = true;
+                    APPlayState.instance.paused = true;
+                    backend.MusicBeatState.revokeControls = (name == 'Phone Trap');
+                    var psychDialogue:DialogueBoxPsych;
+                    psychDialogue = new DialogueBoxPsych(DialogueBoxPsych.parseDialogue(Paths.json('apthings/dialogue/' + FlxG.random.int(0, 10))));
+                    psychDialogue.scrollFactor.set();
+                    psychDialogue.autoScroller = (name == 'Phone Trap');
+                    psychDialogue.finishThing = function() {
+                        APPlayState.instance.paused = false;
+                        APPlayState.instance.inCutscene = false;
+                        backend.MusicBeatState.revokeControls = false;
+                        FlxG.state.remove(psychDialogue);
+                        psychDialogue = null;
+                    }
+                    psychDialogue.screenCenter();
+                    FlxG.state.add(psychDialogue);
+                    popup('You\'ve been Paralyzed!', 'TrapLink: $name');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Home Trap": //Literally just Tutorial Trap
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    // Wait for PlayState's startedCountdown to become active
+                    haxe.Timer.delay(function checkCountdown() {
+                        var playState:archipelago.APPlayState = cast states.PlayState.instance;
+                        if (playState != null && playState.startedCountdown) {
+                            popup('Go relearn the basics', "TrapLink: Home Trap");
+                            APPlayState.instance.doEffect('songSwitch');
+                            if (APItem.activeItem !=null) 
+                                allItems.push(APItem.activeItem);
+                            activeItem = new APItem("Tutorial Trap", ConditionHelper.PlayState(), function() {
+                                popup('Go relearn the basics', "TrapLink: Home Trap");
+                                APPlayState.instance.doEffect('songSwitch');
+                                APPlayState.instance.playfields.forEach(function(pf) {
+                                    pf.autoPlayed = true;
+                                    pf.inControl = false;
+                                });
+                            }, false, false, true);
+                        } else {
+                            // Retry after a short delay if countdown hasn't started
+                            haxe.Timer.delay(checkCountdown, 100);
+                        }
+                    }, 100);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case 'Ice Trap':
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Effect: Ice Notes', "TrapLink: Ice Trap", true);
+                    APPlayState.instance.doEffect('icebutmoreagressive');
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Freeze Trap" | "Frozen Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('You\'re Frozen Solid!', 'TrapLink: $name', true);
+                    FlxG.sound.play(Paths.sound('streamervschat/freeze'));
+                    frozenInput++;
+                    for (sprite in APPlayState.instance.playerField.strumNotes)
+                    {
+                        sprite.color = 0x0073b5;
+                    };
+                    APPlayState.instance.boyfriend.color = 0x0073b5;
+                    APPlayState.instance.isFrozen = true;
+                    new FlxTimer().start(2, function(timer)
+                    {
+                        frozenInput--;
+                        if (frozenInput <= 0)
+                        {
+                            for (sprite in APPlayState.instance.playerField.strumNotes)
+                            {
+                                sprite.color = 0xffffff;
+                            };
+                            APPlayState.instance.boyfriend.color = 0xffffff;
+                            APPlayState.instance.isFrozen = false;
+                            APPlayState.instance.boyfriend.stunned = false;
+                        }
+                        FlxDestroyUtil.destroy(timer);
+                    });
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+                //Spawns a huge amount of notes randomly
+            case "Army Trap" | "Police Trap" | "Buyon Trap" | "OmoTrap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.doEffect('insanespam');
+                    popup('WATCH OUT!', 'TrapLink: $name');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Damage Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    var okayden:Array<Int> = [];
+                    for (i in 0...64) {
+                        okayden.push(i);
+                    }
+
+                    var explosion = new FlxSprite().loadGraphic(Paths.image("streamervschat/explosion"), true, 256, 256);
+                    explosion.animation.add("boom", okayden, 60, false);
+                    explosion.animation.finishCallback = function(name) {
+                        explosion.visible = false;
+                        APPlayState.instance.remove(explosion);
+                        explosion.kill();
+                    };
+                    explosion.cameras = [APPlayState.instance.camHUD];
+                    explosion.animation.play("boom", true);
+                    explosion.x = APPlayState.instance.boyfriend.x + APPlayState.instance.boyfriend.width / 2 - explosion.width / 2;
+                    explosion.y = APPlayState.instance.boyfriend.y + APPlayState.instance.boyfriend.height / 2 - explosion.height / 2;
+                    APPlayState.instance.add(explosion);
+                    APPlayState.instance.boyfriend.animation.play('hurt', true);
+                    APPlayState.instance.boyfriend.specialAnim = true;
+                    popup('That looked like it hurt', "TrapLink: Damage Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Chaos Control Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.doEffect('freeze');
+                    popup('CHAOS! CONTROL!', "TrapLink: Chaos Control Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Confuse Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.doEffect('cover');
+                    popup('What\'s going on here?', "TrapLink: Confuse Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Eject Ability":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.doEffect('permasever');
+                    popup('Eh, you weren\'t using that strum anyways.', "TrapLink: Eject Ability");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Add the raymarching shader
+            case "Deisometric Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Can you tilt your screen? I can\'t see...', "TrapLink: Deisometric Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: add the car crash script stuff here
+            case "Push Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('You go bye bye now :)', "TrapLink: Push Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+                
+            case "Whoops! Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.bfAscend = true;
+                    popup('ooo whats this button do?', "TrapLink: Whoops! Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Grab the bushwack pumpkin mechanic
+            case "Input Sequence Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Imma hit you with a QTE just cause.', "TrapLink: Input Sequence Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Grab the Hypno's Lullaby Typing Mechanic
+            case "Pokemon Trivia Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('What is the following word:', "TrapLink: Pokemon Trivia Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Make the note hit bf after hitting it and stun him for 2 seconds
+            case "Thwimp Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Hey that note looks loose', "TrapLink: Thwimp Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Make the notes play in-game, and make BF and his notes tiny
+            case "Tiny Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Aww, he\'s so small', "TrapLink: Tiny Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Zoom Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('ZOOM!', "TrapLink: Zoom Trap");
+                    for (cam in FlxG.cameras.list) {
+                        cam.zoom += 5;
+                    }
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Make an image of a speaker fly and hit bf
+            case "Bonk Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('WATCH OUT!', "TrapLink: Bonk Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Make bf bald
+            case "Bald Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('BALD. BALD. BALD. BALD.', "TrapLink: Bald Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Grab the QT Mania Saws
+            case "Bomb" | "TNT Barrel Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('WATCH OUT!', 'TrapLink: $name');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Move the strums the direction the note is hit
+            case "Controller Drift Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Bro I think there\'s something wrong with your strums', 'TrapLink: Controller Drift Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: This converts into the Resistance Trap
+            case "Timer Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('YOU MUST RESIST IT', 'TrapLink: Timer Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: grab the Trampoline Script
+            case "Jump Trap" | "Spring Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Don\'t fall off...', 'TrapLink: $name');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Posession Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.opponentmode = true;
+                    APPlayState.instance.playerField.isPlayer = !APPlayState.instance.opponentmode;
+                    APPlayState.instance.playerField.autoPlayed = APPlayState.instance.opponentmode;
+                    APPlayState.instance.playerField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.opponentNoteHit : APPlayState.instance.goodNoteHit;
+                    APPlayState.instance.dadField.isPlayer = APPlayState.instance.opponentmode;
+                    APPlayState.instance.dadField.autoPlayed = !APPlayState.instance.opponentmode;
+                    APPlayState.instance.dadField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.goodNoteHit : APPlayState.instance.opponentNoteHit;
+                    popup('You\'re the opponent now!', 'TrapLink: Posession Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: converts into a less limited Song Switch Trap
+            case "Animal Bonus Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('We\'re gonna go someplace SPECIAL!', 'TrapLink: Animal Bonus Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: make the player randomly miss with a hiccup sound effect
+            case "Hiccup Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Someone\'s got a bad case of hiccups!', 'TrapLink: Hiccup Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: make the opponent stums use a different set of keybinds from the normal ones
+            case "Gooey Bag":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    APPlayState.instance.opponentmode = true;
+                    APPlayState.instance.playerField.isPlayer = !APPlayState.instance.opponentmode;
+                    APPlayState.instance.playerField.autoPlayed = APPlayState.instance.opponentmode;
+                    APPlayState.instance.playerField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.opponentNoteHit : APPlayState.instance.goodNoteHit;
+                    APPlayState.instance.dadField.isPlayer = APPlayState.instance.opponentmode;
+                    APPlayState.instance.dadField.autoPlayed = !APPlayState.instance.opponentmode;
+                    APPlayState.instance.dadField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.goodNoteHit : APPlayState.instance.opponentNoteHit;
+                    popup('Two-Player Mode Activated!', 'TrapLink: Gooey Bag');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: make the player dodge the TF2 Coconut or lose a chunk of HP
+            case "Nut Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Cocnut Attack!', 'TrapLink: Nut Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: Grab the "Find Luigi" script. No i'm not kidding
+            case "Pokemon Count Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('One Minute to Find Luigi!', 'TrapLink: Pokemon Count Trap');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Poison Trap" | "Poison Mushroom":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Food Poisoning my belovid', 'TrapLink: Poison Trap');
+                    APPlayState.instance.doEffect('poisonbutworse');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Confound Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('FLASHBACG OUT', 'TrapLink: Confound Trap');
+                    APPlayState.instance.doEffect('strongflashbang');
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            //TODO: "And then, we FUCKED" -Boyfriend Fnf
+            case "Exposition Trap":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    APPlayState.instance.inCutscene = true;
+                    APPlayState.instance.paused = true;
+                    backend.MusicBeatState.revokeControls = true;
+                    var psychDialogue:DialogueBoxPsych;
+                    psychDialogue = new DialogueBoxPsych(DialogueBoxPsych.parseDialogue(Paths.json('apthings/dialogue/bffunnymomments')));
+                    psychDialogue.scrollFactor.set();
+                    psychDialogue.autoScroller = true;
+                    psychDialogue.autoScrollerTimer = 30;
+                    psychDialogue.finishThing = function() {
+                        APPlayState.instance.paused = false;
+                        APPlayState.instance.inCutscene = false;
+                        backend.MusicBeatState.revokeControls = false;
+                        FlxG.state.remove(psychDialogue);
+                        psychDialogue = null;
+                    }
+                    psychDialogue.screenCenter();
+                    FlxG.state.add(psychDialogue);
+                    popup('And then what happened?', "TrapLink: Exposition Trap");
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Fast Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('GOTTA GO FAST!', 'TrapLink: Fast Trap');
+                    APPlayState.instance.lerpSongSpeed(FlxG.random.float(1.25, 4), 1);
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Slow Trap" | "Slowness Trap":
+                return new APItem(name, ConditionHelper.PlayState(), function() {
+                    popup('Slow down there, buddy', 'TrapLink: Slow Trap');
+                    APPlayState.instance.lerpSongSpeed(FlxG.random.float(0.25, 0.75), 1);
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
             default:
                 throw "Unknown item name: " + name;
         }

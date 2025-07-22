@@ -1,6 +1,7 @@
 package backend.modules;
 
 import flixel.FlxBasic;
+import cutscenes.DialogueBoxPsych;
 
 /**
  * A plugin which adds functionality to press `F4` to immediately transition to the main menu.
@@ -25,6 +26,26 @@ class EvacuateDebugPlugin extends FlxBasic
     if (!FlxG.keys.pressed.ALT && FlxG.keys.justPressed.F4)
     {
       FlxG.switchState(new states.MainMenuState());
+    }
+
+    if (FlxG.keys.justPressed.F5)
+    {
+      states.PlayState.instance.inCutscene = true;
+      states.PlayState.instance.paused = true;
+      backend.MusicBeatState.revokeControls = true;
+      var psychDialogue:DialogueBoxPsych;
+      psychDialogue = new DialogueBoxPsych(DialogueBoxPsych.parseDialogue(Paths.json('apthings/dialogue/0')));
+      psychDialogue.scrollFactor.set();
+      psychDialogue.autoScroller = true;
+      psychDialogue.finishThing = function() {
+        states.PlayState.instance.paused = false;
+        states.PlayState.instance.inCutscene = false;
+        backend.MusicBeatState.revokeControls = false;
+        FlxG.state.remove(psychDialogue);
+        psychDialogue = null;
+      }
+      //psychDialogue.screenCenter();
+      FlxG.state.add(psychDialogue);
     }
   }
 

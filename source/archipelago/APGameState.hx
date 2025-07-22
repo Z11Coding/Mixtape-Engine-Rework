@@ -925,6 +925,12 @@ class APGameState
 					waitForPlayState();
 				case "Instant Death Trap":
 					archipelago.APItem.createItemByName("Blue Balls Curse").fromTrapLink = true;
+				case "Ghost":
+					archipelago.APItem.createItemByName("Ghost").fromTrapLink = true;
+				case "My Turn! Trap":
+					archipelago.APItem.createItemByName("My Turn! Trap").fromTrapLink = true;
+				case "Paralyze Trap":
+					archipelago.APItem.createItemByName("Paralyze Trap").fromTrapLink = true;
 				default:
 					// If it's not a known trap, we can just log it.
 					trace("Unknown trap link received: " + trapName + ".");

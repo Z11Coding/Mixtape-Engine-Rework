@@ -7296,7 +7296,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function opponentNoteHit(note:Note, field:PlayField):Void
+	public function opponentNoteHit(note:Note, field:PlayField):Void
 	{
 		var result:Dynamic;
 		if (opponentmode)
