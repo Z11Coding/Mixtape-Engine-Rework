@@ -494,6 +494,58 @@ class LoadingState extends MusicBeatState
 			else noteSplash += NoteSplash.getSplashSkinPostfix();
 			imagesToPrepare.push(noteSplash);
 
+			var eventsToLoad:Array<objects.Note.EventNote> = [];
+			try
+			{
+			var eventsChart:SwagSong = Song.getChart('events', song.song);
+
+			if (eventsChart != null) {
+				var i = 0;
+				for (event in eventsChart.events)
+				{
+					var subEvent:EventNote = {
+						strumTime: event[0] + ClientPrefs.data.noteOffset,
+						event: event[1][i][0],
+						value1: event[1][i][1],
+						value2: event[1][i][2]
+					};
+					if (subEvent.event == 'Change Character')
+					{
+						var char = objects.Character.grabCharInfo(subEvent.value2);
+
+						imagesToPrepare.push(char['Health Icon']);
+						imagesToPrepare.push(char['Image']);
+					}
+					i++;
+
+				}
+			}
+		} catch(e:Dynamic) {
+			trace('Failed to load events chart: $e');
+		}
+
+		try {
+			// SONG EVENTS
+			if (song.events != null)
+			{
+				for (event in song.events)
+				{
+					if (event[0] == 'Change Character')
+					{
+						var char = objects.Character.grabCharInfo(event[1][0]);
+						if (char != null)
+						{
+							imagesToPrepare.push(char['Health Icon']);
+							imagesToPrepare.push(char['Image']);
+						}
+					}
+				}
+			}
+		} catch(e:Dynamic) {
+			trace('Failed to load song events: $e');
+		}
+
+
 			try
 			{
 				var path:String = Paths.json('$folder/preload');

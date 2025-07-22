@@ -110,6 +110,8 @@ class APItem {
     public static var activeItem:APItem;
     public static var shields:Int = 0;
     public static var maxHPUp:Int = 0;
+    public static var overloadHP:Int = 0; // Adds extra health which can go over the max HP.
+    public static var extaLives:Int = 0; // Used for the "Extralives" item.
 
     private var toSync:Bool = true;
     public var triggered:Bool = false;
@@ -511,7 +513,7 @@ class APItem {
             //TODO: Make the note hit bf after hitting it and stun him for 2 seconds
             case "Thwimp Trap":
                 return new APItem(name, ConditionHelper.PlayState(), function() {
-                    popup('Hey that note looks loose', "TrapLink: Thwimp Trap");
+                    // popup('Hey that note looks loose', "TrapLink: Thwimp Trap");
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -531,7 +533,13 @@ class APItem {
                     popup('ZOOM!', "TrapLink: Zoom Trap");
                     for (cam in FlxG.cameras.list) {
                         cam.zoom += 5;
-                    }
+                    } // 3 seconds.
+                    new FlxTimer().start(3, function(timer:FlxTimer) {
+                        for (cam in FlxG.cameras.list) {
+                            cam.zoom -= 5;
+                        }
+                        FlxDestroyUtil.destroy(timer);
+                    });
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -837,7 +845,11 @@ class APChartModifier extends APItem {
             modifiers.push("SpeedRando");
         }
 
-        this.chartModifier = modifiers[Std.random(modifiers.length)];
+        this.chartModifier = modifiers[Std.random(modifiers.length)];   
+        this.chartModifier = (this.chartModifier == "ManiaConverter" && 
+            ((states.PlayState.mania > 3) || 
+             (states.PlayState.SONG != null && states.PlayState.SONG.mania != null && states.PlayState.SONG.mania > 3)))
+            ? "4K Only" : this.chartModifier;
 
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);

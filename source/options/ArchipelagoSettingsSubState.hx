@@ -22,8 +22,23 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			if (archipelago.APEntryState.inArchipelagoMode)
 			{
 				archipelago.APEntryState.ap.toggleDeathLink(option.getValue());
+				ClientPrefs.data.traplink = option.getValue();
 			}
 		};
+		addOption(option);
+
+		var option:Option = new Option('Enable Trap Link',
+			"if checked, you will be affected by traps that other players activate.", 
+			'traplink',
+			BOOL);
+		option.onChange = function()
+		{
+			if (archipelago.APEntryState.inArchipelagoMode)
+			{
+				archipelago.APEntryState.ap.toggleTrapLink(option.getValue());
+				ClientPrefs.data.traplink = option.getValue();
+			}
+				};
 		addOption(option);
 
 		var flip:Option = new Option('Flip Screen',

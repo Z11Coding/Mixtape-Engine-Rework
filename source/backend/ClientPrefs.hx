@@ -161,6 +161,7 @@ import states.TitleState;
 	public var menuSong:String = 'TitleMania';
 	public var username:Bool = false;
 	public var deathlink:Bool = false;
+	public var traplink:Bool = false;
 	public var stageGimmick:Bool = false;
 	public var healthMode:String = 'Mixtape';
 	public var iconBounce:String = 'Mixtape';

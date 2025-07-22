@@ -11,6 +11,7 @@ import helder.Set;
 import hx.ws.Types.MessageType;
 import hx.ws.WebSocket;
 import haxe.Json as TJson;
+import backend.ClientPrefs;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -512,19 +513,18 @@ class Client {
 
 
 	public function toggleDeathLink(enable:Bool) {
-		if (enable) {
-			set_tags(['AP', 'Testing', 'DeathLink']);
-		} else {
-			set_tags(['AP', 'Testing']);
-		}
+		updateLinkTags(enable, ClientPrefs.data.traplink);
 	}
 
 	public function toggleTrapLink(enable:Bool) {
-		if (enable) {
-			set_tags(['AP', 'Testing', 'TrapLink']);
-		} else {
-			set_tags(['AP', 'Testing']);
-		}
+		updateLinkTags(ClientPrefs.data.deathlink, enable);
+	}
+
+	public function updateLinkTags(deathLink:Bool, trapLink:Bool) {
+		var tags = ['AP', 'Testing'];
+		if (deathLink) tags.push('DeathLink');
+		if (trapLink) tags.push('TrapLink');
+		set_tags(tags);
 	}
 
 	public function changeTags(tags:Array<String>) {

@@ -16,7 +16,7 @@ class APCategoryState extends states.CategoryState {
             this.AP = gameState.info();
             break;
             } catch (e) {
-            attempts++;
+                trace('Failed to connect to Archipelago server, retrying... Attempt: ' + (++attempts));
             Sys.sleep(0.1);
             }
         }

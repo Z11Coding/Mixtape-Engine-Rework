@@ -46,6 +46,7 @@ class Paths
 	inline public static var IMAGE_EXT = "png";
 	inline public static var SOUND_EXT = #if web "mp3" #else "ogg" #end;
 	inline public static var VIDEO_EXT = "mp4";
+	public static var prioritizeOnlineAssets:Bool = false; // If true, will prioritize online assets over local ones. This is useful for development purposes.
 
 	public static final HSCRIPT_EXTENSIONS:Array<String> = ["hscript", "hxs", "hx"];
 	public static final LUA_EXTENSIONS:Array<String> = ["lua"];
@@ -412,6 +413,23 @@ class Paths
 			trace('Error executing curl command: $e');
 			return null; // or handle as appropriate
 		}
+	}
+
+	public static function httpGet(url:String):String {
+		// Basic validation (consider more robust validation/sanitization)
+		if (!isValidUrl(url)) {
+			throw "Invalid URL";
+		}
+
+		var request = new haxe.Http(url);
+		request.onData = function(data:String) {
+			trace("HTTP GET response: " + data);
+		};
+		request.onError = function(error:String) {
+			trace("HTTP GET error: " + error);
+		};
+		request.request(false); // false for synchronous request
+		return request.responseData;
 	}
 
 	public static function connectWebSocket(url:String):hx.ws.WebSocket {
