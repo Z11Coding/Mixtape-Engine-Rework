@@ -943,6 +943,38 @@ class APGameState
 					archipelago.APItem.createItemByName("My Turn! Trap").fromTrapLink = true;
 				case "Paralyze Trap":
 					archipelago.APItem.createItemByName("Paralyze Trap").fromTrapLink = true;
+				case "Phone Trap" | "Literature Trap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Home Trap":
+					archipelago.APItem.createItemByName("Home Trap").fromTrapLink = true;
+				case "Ice Trap":
+					archipelago.APItem.createItemByName("Ice Trap").fromTrapLink = true;
+				case "Freeze Trap" | "Frozen Trap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Army Trap" | "Police Trap" | "Buyon Trap" | "OmoTrap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Damage Trap":
+					archipelago.APItem.createItemByName('Damage Trap').fromTrapLink = true;
+				case "Chaos Control Trap":
+					archipelago.APItem.createItemByName("Chaos Control Trap").fromTrapLink = true;
+				case "Confuse Trap":
+					archipelago.APItem.createItemByName("Confuse Trap").fromTrapLink = true;
+				case "Eject Ability":
+					archipelago.APItem.createItemByName("Eject Ability").fromTrapLink = true;
+				case "Whoops! Trap":
+					archipelago.APItem.createItemByName("Eject Ability").fromTrapLink = true;
+				case "Zoom Trap":
+					archipelago.APItem.createItemByName("Zoom Trap").fromTrapLink = true;
+				case "Posession Trap":
+					archipelago.APItem.createItemByName("Posession Trap").fromTrapLink = true;
+				case "Poison Trap" | "Poison Mushroom":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Confound Trap":
+					archipelago.APItem.createItemByName("Confound Trap").fromTrapLink = true;
+				case "Fast Trap":
+					archipelago.APItem.createItemByName("Fast Trap").fromTrapLink = true;
+				case "Slow Trap" | "Slowness Trap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
 				default:
 					// If it's not a known trap, we can just log it.
 					trace("Unknown trap link received: " + trapName + ".");
