@@ -205,7 +205,7 @@ class APItem {
                     t.isTrap = true;
                 });
             case "Ticket":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
                     archipelago.APInfo.ticketCount++;
                     if (!archipelago.APGameState.instance.info().casualSync)
                     popup(archipelago.APInfo.ticketCount > archipelago.APInfo.ticketWinCount ? "Not that you needed it..." : archipelago.APInfo.ticketCount == archipelago.APInfo.ticketWinCount ? "You have all you need!" : "One step closer...", "You got a ticket!");
@@ -227,7 +227,7 @@ class APItem {
                     t.isTrap = true;
                 });
             case "Shield":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
                     shields++;
                     trace("Shield acquired! Current shields: " + shields);
                     popup('Shields Left: $shields', "You got a shield!");
@@ -897,7 +897,7 @@ class APrilFools extends APItem {
             },
             1 => function() {
                 APItem.createCustomItem("April Fools - Random Item", ConditionHelper.Everywhere(), function() {
-                    var randomItem = ["Blue Balls Curse", "Fake Transition", "Ticket", "SvC Effect", "Ghost Chat", "Shield", "Max HP Up", "Tutorial Trap"];
+                    var randomItem = ["Blue Balls Curse", "Fake Transition", "SvC Effect", "Ghost Chat", "Shield", "Max HP Up", "Tutorial Trap"];
                     var chosenItem = randomItem[Std.random(randomItem.length)];
                     archipelago.APItem.createItemByName(chosenItem);
                 });
