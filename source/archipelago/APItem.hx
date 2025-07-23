@@ -129,6 +129,8 @@ class APItem {
         this.onTrigger = onTrigger;
         this.isException = isException;
         this.toSync = toSync;
+        // If trap, make it so.
+        this.isTrap = (this is APTrap);
 
         if (this.condition.type == Everywhere) {
             this.isException = true;
