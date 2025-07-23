@@ -596,7 +596,14 @@ class FreeplayState extends MusicBeatState
 			try {
 				var SongInfo = APEntryState.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
 				if (APEntryState.ap != null) {
-					APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+					// Check if this is the victory song and if it's already unlocked
+					if (APFreeplayManager.isVictorySong(SongInfo.song, SongInfo.mod) && APInfo.ticketCount >= APInfo.ticketWinCount && (APFreeplayManager.curUnlocked.filter(function(entry:{song:String, mod:String}) {
+						return entry.song == SongInfo.song && entry.mod == (SongInfo.mod != null ? SongInfo.mod : "");
+					}).length != 0)) {
+						APEntryState.ap.Say("!hint Ticket");
+					} else {
+						APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+					}
 					archipelago.console.SideUI.instance.active = true;
 				}
 			} catch (e:Dynamic) {
@@ -914,6 +921,8 @@ class FreeplayState extends MusicBeatState
 							Song.loadFromJson(poop, songLowercase);
 							PlayState.isStoryMode = false;
 							PlayState.storyDifficulty = curDifficulty;
+							Mods.currentModDirectory = FreeplayManager.instance.songList[curSelected].folder;
+
 
 							trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
 						}
@@ -1144,6 +1153,7 @@ class FreeplayState extends MusicBeatState
 					});
 				}
 			}
+			// Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 		}
 		catch(e)
 		{

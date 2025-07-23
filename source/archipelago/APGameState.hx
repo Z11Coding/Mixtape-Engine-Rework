@@ -687,6 +687,7 @@ class APGameState
 						var findingPlayerName = _ap.get_player_alias(hint.finding_player);
 						var receivingPlayerName = _ap.get_player_alias(hint.receiving_player);
 						var itemName = playerItemName(hint.receiving_player, hint.item);
+						var songName = getSongAndModFromLocation(hint.location);
 
 						trace(itemName + " found in " + locationName + " by " + findingPlayerName + " for " + receivingPlayerName);
 
@@ -704,13 +705,15 @@ class APGameState
 							message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
 						}
 
-						if (APFreeplayManager.hintTable.exists(locationName))
+						var songName = getFullNameFromSongAndMod(songName);
+
+						if (APFreeplayManager.hintTable.exists(songName))
 						{
-							APFreeplayManager.hintTable.set(locationName, APFreeplayManager.hintTable.get(locationName) + "\n" + message);
+							APFreeplayManager.hintTable.set(songName, APFreeplayManager.hintTable.get(songName) + "\n" + message);
 						}
 						else
 						{
-							APFreeplayManager.hintTable.set(locationName, message);
+							APFreeplayManager.hintTable.set(songName, message);
 						}
 					}
 					else
@@ -1061,6 +1064,18 @@ class APGameState
 				songsAndMods.push(songAndMod);
 			}
 			return songsAndMods;
+		}
+
+		public function getFullNameFromSongAndMod(snm:{song:String, ?mod:String}):String
+		{
+			if (snm.mod != null && snm.mod != "")
+			{
+				return snm.song + " (" + snm.mod + ")";
+			}
+			else
+			{
+				return snm.song;
+			}
 		}
 
 		public function findSpecialItems():Map<String, Int>

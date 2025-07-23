@@ -278,7 +278,12 @@ class APItem {
                 return null;
 
             case "Ghost":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     states.PlayState.instance?.modManager.setValue('sudden', 1);
                     popup('Suddenly, Notes.', "TrapLink: Ghost Trap");
                 }, true, true).funcAndReturn(function(t:APItem) {
@@ -302,8 +307,13 @@ class APItem {
                 });
 
             case "Paralyze Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+
                     APPlayState.instance.boyfriend.stunned = true;
                     new FlxTimer().start(FlxG.random.int(2, 5), function(tmr:FlxTimer)
                     {
@@ -368,7 +378,12 @@ class APItem {
                 });
 
             case 'Ice Trap':
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     popup('Effect: Ice Notes', "TrapLink: Ice Trap", true);
                     APPlayState.instance.doEffect('icebutmoreagressive');
                 }, true, false).funcAndReturn(function(t:APItem) {
@@ -377,7 +392,12 @@ class APItem {
                 });
 
             case "Freeze Trap" | "Frozen Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     popup('You\'re Frozen Solid!', 'TrapLink: $name', true);
                     FlxG.sound.play(Paths.sound('streamervschat/freeze'));
                     frozenInput++;
@@ -409,7 +429,12 @@ class APItem {
 
                 //Spawns a huge amount of notes randomly
             case "Army Trap" | "Police Trap" | "Buyon Trap" | "OmoTrap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     APPlayState.instance.doEffect('insanespam');
                     popup('WATCH OUT!', 'TrapLink: $name');
                 }, true, true).funcAndReturn(function(t:APItem) {
@@ -673,8 +698,13 @@ class APItem {
                 });
 
             case "Poison Trap" | "Poison Mushroom":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    popup('Food Poisoning my belovid', 'TrapLink: Poison Trap');
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    popup('Food Poisoning my beloved', 'TrapLink: Poison Trap');
                     APPlayState.instance.doEffect('poisonbutworse');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -717,7 +747,12 @@ class APItem {
                 });
 
             case "Fast Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     popup('GOTTA GO FAST!', 'TrapLink: Fast Trap');
                     APPlayState.instance.lerpSongSpeed(FlxG.random.float(1.25, 4), 1);
                 }, true, true).funcAndReturn(function(t:APItem) {
@@ -726,7 +761,12 @@ class APItem {
                 });
 
             case "Slow Trap" | "Slowness Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     popup('Slow down there, buddy', 'TrapLink: Slow Trap');
                     APPlayState.instance.lerpSongSpeed(FlxG.random.float(0.25, 0.75), 1);
                 }, true, true).funcAndReturn(function(t:APItem) {

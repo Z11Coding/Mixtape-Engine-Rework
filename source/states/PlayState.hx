@@ -2125,6 +2125,7 @@ class PlayState extends MusicBeatState
 		callOnScripts('onSkipDialogue', [dialogueCount]);
 		stagesFunc(function(stage:BaseStage) stage.onSkipDialogue(dialogueCount));
 	}
+	public var startedSong:Bool = false;
 
 	function startSong():Void
 	{
@@ -2259,7 +2260,9 @@ class PlayState extends MusicBeatState
 
 			}
 		}
+		startedSong = true;
 	}
+	
 
 	private var noteTypes:Array<String> = [];
 	private var eventsPushed:Array<String> = [];
@@ -2468,6 +2471,7 @@ class PlayState extends MusicBeatState
 		vocals = new FlxSound();
 		opponentVocals = new FlxSound();
 		gfVocals = new FlxSound();
+		var usable = Paths.isAssetInMod;
 		try
 		{
 			if (songData.needsVoices)

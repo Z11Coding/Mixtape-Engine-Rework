@@ -692,6 +692,30 @@ class Paths
 		return allowNull ? {location: null, modded: false} : null;
 	}
 
+	public static inline function isAssetInCurrentMod(key:String)
+	{
+		var assetLoc = assetLocation(key, null, IMAGES, true, true);
+		#if MODS_ALLOWED
+		if (assetLoc != null && assetLoc.modded) {
+			var modDir = Mods.currentModDirectory;
+			if (modDir == null || modDir == "") return false;
+			// Check if the asset path contains the current mod directory as its direct folder
+			return assetLoc.location.indexOf('mods/' + modDir + '/') == 0;
+		}
+		#end
+		return false;
+	}
+
+	public static inline function isAssetInMod(key:String, mod:String)
+	{
+		var assetLoc = assetLocation(key, null, IMAGES, true, true);
+		if (assetLoc != null && assetLoc.modded) {
+			// Check if the asset path contains the specified mod directory as its direct folder
+			return assetLoc.location.indexOf('mods/' + mod + '/') == 0;
+		}
+		return false;
+	}
+
 	public static inline function assetInTopMod(key:String, ?parentFolder:String = null, ?pathType:PathType = IMAGES):Bool
 	{
 		var assetLocation = assetLocation(key, parentFolder, pathType, true, true);
