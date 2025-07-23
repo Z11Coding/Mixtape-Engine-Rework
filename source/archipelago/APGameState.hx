@@ -641,10 +641,11 @@ class APGameState
 						item_flags: hintObj.item_flags
 					};
 					trace("Hint: " + hint);
-
+					var FNFHint = true;
 					if (APItems.exists(_ap.get_item_name(hint.item, _ap.get_player_game(hint.receiving_player))))
 					{
 						trace("Hint is for an Item, or a song you don't have. Skipping.");
+						FNFHint = false;
 						continue;
 					}
 
