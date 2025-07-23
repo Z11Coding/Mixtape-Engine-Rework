@@ -879,6 +879,12 @@ class APGameState
 			return;
 		}
 
+		if (info().slot == trapLink.source)
+		{
+			trace("Trap link received from self, ignoring.");
+			return;
+		}
+
 		var trapName = trapLink.trap_name;
 		try
 		{
