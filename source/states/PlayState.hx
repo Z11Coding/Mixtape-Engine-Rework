@@ -548,7 +548,8 @@ class PlayState extends MusicBeatState
 
 		PauseSubState.songName = null; //Reset to default
 		playbackRate = ClientPrefs.getGameplaySetting('songspeed');
-		keysArray = backend.Keybinds.fill();
+		if (keysArray == null)
+			keysArray = backend.Keybinds.fill();
 
 		controlArray = ['NOTE_LEFT', 'NOTE_DOWN', 'NOTE_UP', 'NOTE_RIGHT'];
 
@@ -1827,16 +1828,10 @@ class PlayState extends MusicBeatState
 			for (i in 0...Note.ammo[mania]) {
 				playerField.baseXPositions[i] = playerField.strumNotes[i].x;
 				dadField.baseXPositions[i] = dadField.strumNotes[i].x;
-			}
-
-			for (i in 0...playerStrums.length) {
-				setOnScripts('defaultPlayerStrumX' + i, playerField.baseXPositions[i]);
-				setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
-			}
-			for (i in 0...opponentStrums.length) {
-				setOnScripts('defaultOpponentStrumX' + i, dadField.baseXPositions[i]);
-				setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
-				//if(ClientPrefs.data.middleScroll) opponentStrums.members[i].visible = false;
+				setOnScripts('defaultPlayerStrumX' + i, playerField.strumNotes[i].x);
+				setOnScripts('defaultPlayerStrumY' + i, playerField.strumNotes[i].y);
+				setOnScripts('defaultOpponentStrumX' + i, dadField.strumNotes[i].x);
+				setOnScripts('defaultOpponentStrumY' + i, dadField.strumNotes[i].y);
 			}
 
 			startedCountdown = true;
@@ -4326,27 +4321,29 @@ class PlayState extends MusicBeatState
 	}
 
 	function updateVisPos() { //Literaly so it doesn't look weird in the update function
-		if (visual != null) {
-			visual.x = healthBar.x;
-			visual.y = healthBar.y;
-			visual.alpha = ClientPrefs.data.visOpacity;
-		}
+		try {
+			if (visual != null) {
+				visual.x = healthBar.x;
+				visual.y = healthBar.y;
+				visual.alpha = ClientPrefs.data.visOpacity;
+			}
 
-		if (vocalvisual != null) {
-			vocalvisual.x = healthBar.x;
-			vocalvisual.y = healthBar.y + healthBar.height;
-			vocalvisual.alpha = ClientPrefs.data.visOpacity;
-			for (line in vocalvisual.members)
-				line.color = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
-		}
+			if (vocalvisual != null) {
+				vocalvisual.x = healthBar.x;
+				vocalvisual.y = healthBar.y + healthBar.height;
+				vocalvisual.alpha = ClientPrefs.data.visOpacity;
+				for (line in vocalvisual.members)
+					line.color = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
+			}
 
-		if (oppvisual != null) {
-			oppvisual.x = healthBar.x;
-			oppvisual.y = healthBar.y + healthBar.height;
-			oppvisual.alpha = ClientPrefs.data.visOpacity;
-			for (line in vocalvisual.members)
-				line.color = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
-		}
+			if (oppvisual != null) {
+				oppvisual.x = healthBar.x;
+				oppvisual.y = healthBar.y + healthBar.height;
+				oppvisual.alpha = ClientPrefs.data.visOpacity;
+				for (line in vocalvisual.members)
+					line.color = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
+			}
+		} catch(e){}
 	}
 
 	public var initY:Float;
@@ -4401,7 +4398,7 @@ class PlayState extends MusicBeatState
 		modManager.update(elapsed, curDecBeat, curDecStep);
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong)
+		if (!startingSong && ClientPrefs.data.modcharts)
 			modchartSync(false);
 
 		setOnScripts('curDecStep', curDecStep);
@@ -7665,6 +7662,8 @@ class PlayState extends MusicBeatState
 		mania = 3;
 		// yutautil.MemoryHelper.freeMemory(this);
 		instance = null;
+		variables = null;
+		keysArray = null;
 		super.destroy();
 		endingSong = true;
 		Paths.clearStoredWithoutStickers();
@@ -8054,6 +8053,7 @@ class PlayState extends MusicBeatState
 	public var strumOffsetbcauseitsstupid:Float = 0;
 	public var strumOffsetspacebcauseitsstupid:Float = 0;
 	
+	public var altNoteMove:Bool = false;
 	public var ModchartScrollType:Int = 0; // 0 = none, 1 = Downscroll, 3 = Rotate.
 	public var curDownscroll:Bool = ClientPrefs.data.downScroll; // Used to check if the downscroll has changed.
 	public function modchartSync(directChange:Bool = false):Void {
@@ -8072,7 +8072,7 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.baseXPositions[i];
-								modManager.setValue('transform${i}X', offsetX - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
+								modManager.setValue('transform${i}X', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position

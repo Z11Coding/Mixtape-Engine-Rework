@@ -397,6 +397,24 @@ class TitleState extends MusicBeatState
 		return swagGoodArray;
 	}
 
+	function get3IntroTextShit():Array<Array<String>>
+	{
+		#if MODS_ALLOWED
+		var firstArray:Array<String> = Mods.mergeAllTextsNamed('data/thefunnie.txt');
+		#else
+		var fullText:String = Assets.getText(Paths.txt('thefunnie'));
+		var firstArray:Array<String> = fullText.split('\n');
+		#end
+		var swagGoodArray:Array<Array<String>> = [];
+
+		for (i in firstArray)
+		{
+			swagGoodArray.push(i.split('--'));
+		}
+
+		return swagGoodArray;
+	}
+
 	var transitioning:Bool = false;
 	private static var playJingle:Bool = false;
 	
@@ -679,11 +697,12 @@ class TitleState extends MusicBeatState
 				case 13:
 					deleteCoolText();
 				case 14:
-					addMoreText('Friday');
+					curWacky = FlxG.random.getObject(get3IntroTextShit());
+					addMoreText(curWacky[0]);
 				case 15:
-					addMoreText('Night');
+					addMoreText(curWacky[1]);
 				case 16:
-					addMoreText('Funkin'); // credTextShit.text += '\nFunkin';
+					addMoreText(curWacky[2]); // credTextShit.text += '\nFunkin';
 
 				case 17:
 					skipIntro();

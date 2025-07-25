@@ -150,6 +150,22 @@ class SchoolErect extends BaseStage
 		camGame.snapToTarget();
 	}
 
+	override function eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime) {
+		if (eventName == "Change Charater") {
+			if(!ClientPrefs.data.lowQuality) {
+				applyShader(boyfriend,boyfriend.curCharacter);
+				applyShader(gf,gf.curCharacter);
+				applyShader(dad,dad.curCharacter);
+
+				if(PicoCapableStage.instance?.abotPixel != null){
+					applyShader(PicoCapableStage.instance.abotPixel.speakerTop, "speakerTop");
+					applyShader(PicoCapableStage.instance.abotPixel.speaker, "");
+					applyShader(PicoCapableStage.instance.abotPixel.eyes, "");
+				}
+			}
+		}
+	}
+
 	function applyShader(sprite:FlxSprite, char_name:String)
 	{
 		var rim = new DropShadowShader();

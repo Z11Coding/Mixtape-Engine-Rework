@@ -681,6 +681,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		add(fullTipText);
 		super.create();
 
+		setReverseScroll(reverseScrollEnabled);
+
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, keyUp);
 	}
@@ -1605,13 +1607,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						var timeChange:Float;
 						if(reverseScroll) {
 							// invert Diff value
-							timeChange = (-diff * cachedSectionCrochets[curSecRow] / 4) / GRID_SIZE * curZoom;
+							timeChange = -diff * cachedSectionCrochets[curSecRow] / 4 / GRID_SIZE * curZoom;
 						} else {
-							timeChange = (diff * cachedSectionCrochets[curSecRow] / 4) / GRID_SIZE * curZoom;
+							timeChange = diff * cachedSectionCrochets[curSecRow] / 4 / GRID_SIZE * curZoom;
 						}
 
 						note.setStrumTime(Math.max(-5000, note.strumTime + timeChange));
 						positionNoteYOnTime(note, curSecRow);
+						note.updateSustainToZoom(cachedSectionCrochets[curSecRow] / 4, curZoom);
 						if(note.isEvent) cast (note, EventMetaNote).updateEventText();
 					}
 					movingNotesLastY = dummyArrow.y;
@@ -1673,6 +1676,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					else if(!holdingAlt && FlxG.mouse.y >= gridBg.y && FlxG.mouse.y < gridBg.y + gridBg.height) // Add note
 					{
 						var strumTime:Float;
+						
 						if(reverseScroll) {
 							var sectionStart = cachedSectionTimes[curSec];
 							var sectionEnd = cachedSectionTimes[curSec + 1];
@@ -1695,6 +1699,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	
 						if(noteData >= 0)
 						{
+							FlxG.sound.play(Paths.sound('chartingSounds/noteLay'), 0.5);
 							var didAdd:Bool = false;
 
 							var noteSetupData:Array<Dynamic> = [strumTime, noteData, 0];
@@ -5741,6 +5746,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				if (vortexMoved)
 					resetSelectedNotes();
 				selectedNotes.push(noteAdded);
+				noteAdded.reverseScroll = reverseScroll;
 
 				if (Conductor.songPosition > noteAdded.strumTime + .001 && FlxG.sound.music != null && FlxG.sound.music.playing)
 					hitNote(noteAdded);

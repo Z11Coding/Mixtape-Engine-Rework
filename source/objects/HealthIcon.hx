@@ -99,23 +99,23 @@ class HealthIcon extends FlxSprite
 						trace('if you see this trace you messed up somewhere bro');
 					case ANIMSINGLE:
 						animation.addByPrefix('idle', 'idle', 24, true);
-						animation.play('idle');
+						animation.play('idle', true);
 					case ANIMDEFAULT:
 						animation.addByPrefix('normal', 'normal', 24, true);
 						animation.addByPrefix('losing', 'losing', 24, true);
-						animation.play('normal');
+						animation.play('normal', true);
 					case ANIMWINNING:
 						animation.addByPrefix('winning', 'winning', 24, true);
 						animation.addByPrefix('normal', 'normal', 24, true);
 						animation.addByPrefix('losing', 'losing', 24, true);
-						animation.play('normal');
+						animation.play('normal', true);
 					case ANIMSINGING:
 						animation.addByPrefix('idle',  'idle', 24, true);
 						animation.addByPrefix('left',  'left', 24, true);
 						animation.addByPrefix('down',  'down', 24, true);
 						animation.addByPrefix('up',    'up',   24, true);
 						animation.addByPrefix('right', 'right',24, true);
-						animation.play('idle');
+						animation.play('idle', true);
 				}
 			}
 			else {

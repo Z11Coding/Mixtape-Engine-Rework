@@ -80,6 +80,14 @@ class SchoolEvilErect extends BaseStage
 					bgGhouls.dance(true);
 					bgGhouls.visible = true;
 				}
+			case "Change Character":
+				if (ClientPrefs.data.shaders)
+				{
+					applyShader(boyfriend, boyfriend.curCharacter);
+					applyShader(gf, gf.curCharacter);
+					applyShader(dad, dad.curCharacter);
+					
+				}
 		}
 	}
 
@@ -125,7 +133,7 @@ class SchoolEvilErect extends BaseStage
 						sprite.shader = rim;
 	
 						// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
-						rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask").bitmap;
+						rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
 	
@@ -140,7 +148,7 @@ class SchoolEvilErect extends BaseStage
 						sprite.shader = rim;
 	
 						// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
-						rim.altMaskImage = Paths.image("weeb/erect/masks/picoPixel_mask").bitmap;
+						rim.altMaskImage = Paths.image("weeb/erect/masks/picoPixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
 	
@@ -156,7 +164,7 @@ class SchoolEvilErect extends BaseStage
 						sprite.shader = rim;
 						rim.distance = 3;
 						rim.threshold = 0.3;
-						rim.altMaskImage = Paths.image("weeb/erect/masks/gfPixel_mask").bitmap;
+						rim.altMaskImage = Paths.image("weeb/erect/masks/gfPixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
 	
@@ -172,7 +180,7 @@ class SchoolEvilErect extends BaseStage
 						sprite.shader = rim;
 						rim.distance = 3;
 						rim.threshold = 0.3;
-						rim.altMaskImage = Paths.image("weeb/erect/masks/nenePixel_mask").bitmap;
+						rim.altMaskImage = Paths.image("weeb/erect/masks/nenePixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
 						sprite.animation.callback = function(anim, frame, index)
