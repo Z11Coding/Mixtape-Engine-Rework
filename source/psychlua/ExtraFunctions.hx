@@ -65,7 +65,7 @@ class ExtraFunctions
 				case 'down': return PlayState.instance.controls.NOTE_DOWN_P;
 				case 'up': return PlayState.instance.controls.NOTE_UP_P;
 				case 'right': return PlayState.instance.controls.NOTE_RIGHT_P;
-				default: return Reflect.getProperty(FlxG.keys.justPressed, name);
+				default: return PlayState.instance.controls.justPressed(name);
 			}
 			return false;
 		});
@@ -76,7 +76,7 @@ class ExtraFunctions
 				case 'down': return PlayState.instance.controls.NOTE_DOWN;
 				case 'up': return PlayState.instance.controls.NOTE_UP;
 				case 'right': return PlayState.instance.controls.NOTE_RIGHT;
-				default: return Reflect.getProperty(FlxG.keys.pressed, name);
+				default: return PlayState.instance.controls.pressed(name);
 			}
 			return false;
 		});
@@ -87,7 +87,7 @@ class ExtraFunctions
 				case 'down': return PlayState.instance.controls.NOTE_DOWN_R;
 				case 'up': return PlayState.instance.controls.NOTE_UP_R;
 				case 'right': return PlayState.instance.controls.NOTE_RIGHT_R;
-				default: return Reflect.getProperty(FlxG.keys.justReleased, name);
+				default: return PlayState.instance.controls.justReleased(name);
 			}
 			return false;
 		});
@@ -105,7 +105,6 @@ class ExtraFunctions
 			}
 			FunkinLua.luaTrace('initSaveData: Save file already initialized: ' + name);
 		});
-		
 		Lua_helper.add_callback(lua, "flushSaveData", function(name:String) {
 			var variables = MusicBeatState.getVariables();
 			if(variables.exists('save_$name'))
