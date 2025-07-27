@@ -67,9 +67,9 @@ class HealthIcon extends FlxSprite
 				frames = Paths.getSparrowAtlas(name);
 
 				// Try to load JSON file
-				if (Paths.fileExists(Paths.json(name), TEXT)) {
+				if (Paths.fileExists('images/' + name + '.json', TEXT)) {
 					try {
-						jsonData = haxe.Json.parse(File.getContent(Paths.json(name)));
+						jsonData = haxe.Json.parse(File.getContent(Paths.getPath('images/$name.json', TEXT)));
 					} catch (e:Dynamic) {
 						trace('Invalid JSON file: ' + jsonPath);
 					}
@@ -98,18 +98,22 @@ class HealthIcon extends FlxSprite
 					case WINNING:
 						trace('if you see this trace you messed up somewhere bro');
 					case ANIMSINGLE:
+						trace('Loaded Anim Single!');
 						animation.addByPrefix('idle', 'idle', 24, true);
 						animation.play('idle', true);
 					case ANIMDEFAULT:
+						trace('Loaded Anim Default!');
 						animation.addByPrefix('normal', 'normal', 24, true);
 						animation.addByPrefix('losing', 'losing', 24, true);
 						animation.play('normal', true);
 					case ANIMWINNING:
+						trace('Loaded Anim Winning!');
 						animation.addByPrefix('winning', 'winning', 24, true);
 						animation.addByPrefix('normal', 'normal', 24, true);
 						animation.addByPrefix('losing', 'losing', 24, true);
 						animation.play('normal', true);
 					case ANIMSINGING:
+						trace('Loaded Anim Singing!');
 						animation.addByPrefix('idle',  'idle', 24, true);
 						animation.addByPrefix('left',  'left', 24, true);
 						animation.addByPrefix('down',  'down', 24, true);

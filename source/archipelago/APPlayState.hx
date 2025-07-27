@@ -309,7 +309,7 @@ class APPlayState extends PlayState {
                 var playSound:String = "spin";
                 var playSoundVol:Float = 1;
                 var noIcon:Bool = false;
-                modManager.setValue('orient', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
+                modManager.setValue('confusion', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'spin');
             },
             'songslower' => function() {
@@ -880,7 +880,7 @@ class APPlayState extends PlayState {
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'flip');
             },
             'invuln' => function() {
-                var ttl:Float = 5;
+                var ttl:Float = 30;
                 var onEnd:(Void->Void) = function() {
                     boyfriend.invuln = false;
                     shieldSprite.visible = false;

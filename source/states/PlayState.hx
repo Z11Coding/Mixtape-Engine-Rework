@@ -4816,6 +4816,12 @@ class PlayState extends MusicBeatState
 					iconP1.animation.curAnim.curFrame = 0;
 				case WINNING:
 					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 1 : (healthBar.percent < 20 ? 2 : 0));
+				case ANIMSINGLE:
+					iconP1.animation.play('idle', true);
+				case ANIMDEFAULT:
+					iconP1.animation.play((healthBar.percent < 20 ? 'normal' : 'losing'), true);
+				case ANIMWINNING:
+					iconP1.animation.play((healthBar.percent < 20 ? 'winning' : (healthBar.percent > 80 ? 'losing' : 'normal')), true);
 				default:
 					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 0 : 1);
 			}
@@ -4826,6 +4832,12 @@ class PlayState extends MusicBeatState
 					iconP2.animation.curAnim.curFrame = 0;
 				case WINNING:
 					iconP2.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 1 : 0));
+				case ANIMSINGLE:
+					iconP2.animation.play('idle', true);
+				case ANIMDEFAULT:
+					iconP2.animation.play((healthBar.percent > 80 ? 'normal' : 'losing'), true);
+				case ANIMWINNING:
+					iconP2.animation.play((healthBar.percent > 80 ? 'losing' : (healthBar.percent < 20 ? 'winning' : 'normal')), true);
 				default:
 					iconP2.animation.curAnim.curFrame = (healthBar.percent > 80 ? 0 : 1);
 			}
@@ -4838,10 +4850,17 @@ class PlayState extends MusicBeatState
 						iconP22.animation.curAnim.curFrame = 0;
 					case WINNING:
 						iconP22.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 1 : 0));
+					case ANIMSINGLE:
+						iconP22.animation.play('idle', true);
+					case ANIMDEFAULT:
+						iconP22.animation.play((healthBar.percent > 80 ? 'normal' : 'losing'), true);
+					case ANIMWINNING:
+						iconP22.animation.play((healthBar.percent > 80 ? 'losing' : (healthBar.percent < 20 ? 'winning' : 'normal')), true);
 					default:
 						iconP22.animation.curAnim.curFrame = (healthBar.percent > 80 ? 0 : 1);
 				}
 			}
+
 			if (iconP12 != null)
 			{
 				switch (iconP12.type)
@@ -4850,6 +4869,12 @@ class PlayState extends MusicBeatState
 						iconP12.animation.curAnim.curFrame = 0;
 					case WINNING:
 						iconP12.animation.curAnim.curFrame = (healthBar.percent > 80 ? 1 : (healthBar.percent < 20 ? 2 : 0));
+					case ANIMSINGLE:
+						iconP12.animation.play('idle', true);
+					case ANIMDEFAULT:
+						iconP12.animation.play((healthBar.percent < 20 ? 'normal' : 'losing'), true);
+					case ANIMWINNING:
+						iconP12.animation.play((healthBar.percent < 20 ? 'winning' : (healthBar.percent > 80 ? 'losing' : 'normal')), true);
 					default:
 						iconP12.animation.curAnim.curFrame = (healthBar.percent < 20 ? 0 : 1);
 				}
@@ -4862,7 +4887,13 @@ class PlayState extends MusicBeatState
 				case SINGLE:
 					iconP1.animation.curAnim.curFrame = 0;
 				case WINNING:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 1 : 0));
+					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 0 : (healthBar.percent > 80 ? 2 : 1));
+				case ANIMSINGLE:
+					iconP1.animation.play('idle', true);
+				case ANIMDEFAULT:
+					iconP1.animation.play((healthBar.percent < 20 ? 'losing' : 'normal'), true);
+				case ANIMWINNING:
+					iconP1.animation.play((healthBar.percent < 20 ? 'losing' : (healthBar.percent > 80 ? 'winning' : 'normal')), true);
 				default:
 					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 1 : 0);
 			}
@@ -4873,6 +4904,12 @@ class PlayState extends MusicBeatState
 					iconP2.animation.curAnim.curFrame = 0;
 				case WINNING:
 					iconP2.animation.curAnim.curFrame = (healthBar.percent > 80 ? 1 : (healthBar.percent < 20 ? 2 : 0));
+				case ANIMSINGLE:
+					iconP2.animation.play('idle', true);
+				case ANIMDEFAULT:
+					iconP2.animation.play((healthBar.percent > 80 ? 'losing' : 'normal'), true);
+				case ANIMWINNING:
+					iconP2.animation.play((healthBar.percent > 80 ? 'losing' : (healthBar.percent < 20 ? 'winning' : 'normal')), true);
 				default:
 					iconP2.animation.curAnim.curFrame = (healthBar.percent > 80 ? 1 : 0);
 			}
@@ -4885,10 +4922,17 @@ class PlayState extends MusicBeatState
 						iconP22.animation.curAnim.curFrame = 0;
 					case WINNING:
 						iconP22.animation.curAnim.curFrame = (healthBar.percent > 80 ? 1 : (healthBar.percent < 20 ? 2 : 0));
+					case ANIMSINGLE:
+						iconP22.animation.play('idle', true);
+					case ANIMDEFAULT:
+						iconP22.animation.play((healthBar.percent < 20 ? 'losing' : 'normal'), true);
+					case ANIMWINNING:
+						iconP22.animation.play((healthBar.percent < 20 ? 'losing' : (healthBar.percent > 80 ? 'winning' : 'normal')), true);
 					default:
 						iconP22.animation.curAnim.curFrame = (healthBar.percent > 80 ? 1 : 0);
 				}
 			}
+
 			if (iconP12 != null)
 			{
 				switch (iconP12.type)
@@ -4897,6 +4941,12 @@ class PlayState extends MusicBeatState
 						iconP12.animation.curAnim.curFrame = 0;
 					case WINNING:
 						iconP12.animation.curAnim.curFrame = (healthBar.percent > 80 ? 2 : (healthBar.percent < 20 ? 1 : 0));
+					case ANIMSINGLE:
+						iconP12.animation.play('idle', true);
+					case ANIMDEFAULT:
+						iconP12.animation.play((healthBar.percent > 80 ? 'losing' : 'normal'), true);
+					case ANIMWINNING:
+						iconP12.animation.play((healthBar.percent > 80 ? 'winning' : (healthBar.percent < 20 ? 'losing' : 'normal')), true);
 					default:
 						iconP12.animation.curAnim.curFrame = (healthBar.percent < 20 ? 1 : 0);
 				}
@@ -5096,7 +5146,7 @@ class PlayState extends MusicBeatState
 					}
 					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
 					{
-						gf.playAnim('sad', true);
+						if (gf != null) gf.playAnim('sad', true);
 					});
 					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
 					health = 1 / lives * lives;

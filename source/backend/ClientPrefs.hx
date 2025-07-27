@@ -432,6 +432,7 @@ class ClientPrefs {
 		'debug_2'		=> [],
 
 		'sidebar'		=> [], 
+		'dodge'			=> [],
 	];
 	public static var defaultKeys:Map<String, Array<FlxKey>> = null;
 	public static var defaultButtons:Map<String, Array<FlxGamepadInputID>> = null;

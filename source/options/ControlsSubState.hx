@@ -249,6 +249,7 @@ class ControlsSubState extends MusicBeatSubstate
 		[false, 'Key 2', 'debug_2', 'Debug Key #2'],
 		[false, 'Archipelago'],
 		[false, 'Open Console', 'sidebar', 'Side Bar'],
+		[false, 'Dodge', 		'dodge',   'Dodge'],
 	];
 	var curOptions:Array<Int>;
 	var curOptionsValid:Array<Int>;
