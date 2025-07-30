@@ -4,6 +4,7 @@ import backend.window.PlatformUtil;
 import haxe.ds.StringMap;
 import cutscenes.DialogueBoxPsych;
 import flixel.util.FlxDestroyUtil;
+import archipelago.TrapLinkFunctions;
 
 typedef Condition = {
     var checkFn:APItem->Bool;
@@ -496,19 +497,27 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            //TODO: Add the raymarching shader
+            //TODO: Test if this works
             case "Deisometric Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('Can you tilt your screen? I can\'t see...', "TrapLink: Deisometric Trap");
+                    for (cam in FlxG.cameras.list) {
+                        if (!cam.filters.contains(shaders.ShadersHandler.perspective))
+                            cam.filters.push(shaders.ShadersHandler.perspective);
+                    }
+                    flixel.tweens.FlxTween.num(shaders.ShadersHandler.perspective.shader.data.zrot.value[0], 0, 15, function(value:Float) {
+                        shaders.ShadersHandler.perspective.shader.data.zrot.value = [value];
+                    }); 
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
 
-            //TODO: add the car crash script stuff here
+            //TODO: Test if this works
             case "Push Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('You go bye bye now :)', "TrapLink: Push Trap");
+                    TrapLinkFunctions.doCarCrash(true);
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -523,19 +532,20 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            //TODO: Grab the bushwack pumpkin mechanic
+            //TODO: Test if this works
             case "Input Sequence Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('Imma hit you with a QTE just cause.', "TrapLink: Input Sequence Trap");
+                    TrapLinkFunctions.doBushwakThings(true);
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
 
-            //TODO: Grab the Hypno's Lullaby Typing Mechanic
             case "Pokemon Trivia Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('What is the following word:', "TrapLink: Pokemon Trivia Trap");
+                    TrapLinkFunctions.startUnown();
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -621,10 +631,12 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            //TODO: grab the Trampoline Script
+            //TODO: Test this
             case "Jump Trap" | "Spring Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    popup('Don\'t fall off...', 'TrapLink: $name');
+                    popup('Don\'t break your neck...', 'TrapLink: $name');
+                    var tramp:Trampoline = new Trampoline();
+                    FlxG.state.add(tramp);
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
