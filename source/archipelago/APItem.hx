@@ -636,7 +636,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('Don\'t break your neck...', 'TrapLink: $name');
                     var tramp:Trampoline = new Trampoline();
-                    FlxG.state.add(tramp);
+                    if (APPlayState.instance != null) APPlayState.instance.addBehindBF(tramp);
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
