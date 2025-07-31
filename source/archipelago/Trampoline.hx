@@ -1,4 +1,4 @@
-
+package archipelago;
 
 class Trampoline extends FlxSprite {
     // TRAMPOLINE SCRIPT!!!

@@ -1,22 +1,9 @@
-package;
+package archipelago.substates;
 
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-import Controls.Control;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.FlxSubState;
-import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKey;
-import flixel.system.FlxSound;
-import flixel.text.FlxText;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxColor;
 import flixel.effects.FlxFlicker;
-import flixel.FlxCamera;
-
-using StringTools;
 
 class UnownSubState extends MusicBeatSubstate
 {
@@ -193,9 +180,10 @@ class UnownSubState extends MusicBeatSubstate
 		if (position >= realWord.length) {
 			close();
 			win();
-			FlxG.sound.play(Paths.sound('CORRECT', 'shared'));
+			FlxG.sound.play(Paths.sound('traplink/CORRECT'));
 		}
 	}
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);

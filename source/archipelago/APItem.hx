@@ -536,7 +536,7 @@ class APItem {
             case "Input Sequence Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('Imma hit you with a QTE just cause.', "TrapLink: Input Sequence Trap");
-                    TrapLinkFunctions.doBushwakThings(true);
+                    TrapLinkFunctions.doBushwakThings();
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
