@@ -654,7 +654,7 @@ class APEntryState extends MusicBeatState
 		{
 			FlxG.autoPause = false;
 			var connectSubState = new APConnectingSubState();
-			var uri = '${_hostInput.text}:${_portInput.text}';
+var uri = '${#if sys (_hostInput.text == "localhost" || _hostInput.text == "127.0.0.1") ? sys.net.Host.localhost() : _hostInput.text #else _hostInput.text #end}:${_portInput.text}';
 			if (!wsCheck.match(uri))
 				uri = 'ws://$uri';
 
