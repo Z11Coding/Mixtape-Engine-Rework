@@ -71,7 +71,7 @@ class Trampoline extends FlxSprite {
     var combo_counter:FlxText;
     var debugTxt:FlxText;
 
-    function spawnComboThingy(thingy, points) {
+    function spawnComboThingy(thingy, pointss) {
         combo_timer = null;
         combo_timer_fade = null;
         
@@ -88,13 +88,15 @@ class Trampoline extends FlxSprite {
         combo_counter.alpha = 1;
 
         combo_label.text  = thingy;
-        
-        if (points == 0)
-            points = "";
-        else
-            points = "(+"..points..")";
 
-        combo_counter.text = "x"..combo.." "..points;
+        var pointsSt:String;
+        
+        if (pointss == 0)
+            pointsSt = "";
+        else
+            pointsSt = '(+$pointss)';
+
+        combo_counter.text = 'x$combo $pointsSt';
 
         combo_label.height = 40;
 
@@ -182,7 +184,7 @@ class Trampoline extends FlxSprite {
         // setProperty('botplayTxt.visible', true)
 
         if (DEBUG_MODE)
-            APPlayState.instance.add("debugTxt");
+            APPlayState.instance.add(debugTxt);
 
         if (APPlayState.instance.songName == "Senpai") { // LORE
             if (!jumping) {
@@ -199,14 +201,16 @@ class Trampoline extends FlxSprite {
     function checkIfBrokeNeck() {
         var angle = APPlayState.instance.boyfriend.angle % 360;
 
-        @:privateAccess
-        if !(safetyMode && PlayState.SONG.notes[APPlayState.instance.curSection].mustHitSection) {
-            if (tricksLastBounce == 0) {
-                if (combo != 0)
-                    combo = 0;
-                    spawnComboThingy(points.get('lost')[2], 0);
-                else
-                    combo = 0;
+        @:privateAccess {
+            if (!(safetyMode && PlayState.SONG.notes[APPlayState.instance.curSection].mustHitSection)) {
+                if (tricksLastBounce == 0) {
+                    if (combo != 0) {
+                        combo = 0;
+                        spawnComboThingy(points.get('lost')[2], 0);
+                    }
+                    else
+                        combo = 0;
+                }
             }
         }
         tricksLastBounce = 0;
@@ -221,7 +225,7 @@ class Trampoline extends FlxSprite {
                     bouncing = false;
                     jumping = false;
                     APPlayState.instance.boyfriend.velocity.y = 0;
-                    die(true);
+                    APPlayState.instance.die(true);
                     isHeFuckingDead = true;
                 } else if (lastJumpHeight == -1)
                     APPlayState.instance.health -= 0.25;
@@ -265,8 +269,8 @@ class Trampoline extends FlxSprite {
             if (FlxG.keys.justPressed.SPACE) {
                 posY = APPlayState.instance.boyfriend.y;  // get the start point
                 APPlayState.instance.boyfriend.velocity.y = -jumpheight * 0.5;
-                jumping = true
-                bouncing = true
+                jumping = true;
+                bouncing = true;
             }
         }
         else
@@ -278,10 +282,10 @@ class Trampoline extends FlxSprite {
                             APPlayState.instance.boyfriend.playAnim('hey', true);
                             APPlayState.instance.boyfriend.specialAnim = true;
                             APPlayState.instance.boyfriend.heyTimer = 0.6;
-                            addScore(points.get('peak')[2]);
+                            APPlayState.instance.comboManager.songScore += points.get('peak')[2];
                             combo++;
                             tricksLastBounce++; // SAFE
-                            spawnComboThingy(points.get('peak')[3], get('peak').peak[2]);
+                            spawnComboThingy(points.get('peak')[3], points.get('peak')[2]);
                             
                         }
                     }
@@ -314,7 +318,7 @@ class Trampoline extends FlxSprite {
                             lastJumpHeight = 2;
                             lastlastjumpheight = 2; // prevent conflict
                             if (points.get('highJump')[1])
-                                addScore(points.get('highJump')[2]);
+                                APPlayState.instance.comboManager.songScore += points.get('highJump')[2];
                         }
                         else if (lastlastjumpheight == -1 || lastlastjumpheight == -2) {
                             additional = jumpheight * -0.2;
@@ -333,7 +337,7 @@ class Trampoline extends FlxSprite {
                 }
             else {
                 // setProperty("boyfriend.velocity.x",getProperty('boyfriend.velocity.x')+50) // https://twitter.com/aflaccck/status/1595932461082763264
-                if (APPlayState.instance.controls.NOTE_LEFT);
+                if (APPlayState.instance.controls.NOTE_LEFT)
                     tilt = tilt - 0.5;
                 
                 if (APPlayState.instance.controls.NOTE_RIGHT) 
@@ -355,11 +359,11 @@ class Trampoline extends FlxSprite {
                 combo++;
                 tricksLastBounce++;
                 styleRot         = styleRot - 360;
-                addScore(points.get('backflip')[2] * (combo * 1.1));
+                APPlayState.instance.comboManager.songScore += Std.int(points.get('backflip')[2] * (combo * 1.1));
                 APPlayState.instance.boyfriend.playAnim('hey', true);
                 APPlayState.instance.boyfriend.specialAnim = true;
                 APPlayState.instance.boyfriend.heyTimer = 0.6;
-                spawnComboThingy(points.get('backflip')[3], points.get('backflip')[2] * (combo * 1.1));
+                spawnComboThingy(points.get('backflip')[3], Std.int(points.get('backflip')[2] * (combo * 1.1)));
             }
 
             if (styleRot <= -360 && points.get('frontflip')[1]) {
@@ -367,11 +371,11 @@ class Trampoline extends FlxSprite {
                 combo++;
                 styleRot         = styleRot + 360;
                 tricksLastBounce++;
-                addScore(points.get('frontflip')[2] * (combo * 1.1));
+                APPlayState.instance.comboManager.songScore += Std.int(points.get('frontflip')[2] * (combo * 1.1));
                 APPlayState.instance.boyfriend.playAnim('hey', true);
                 APPlayState.instance.boyfriend.specialAnim = true;
                 APPlayState.instance.boyfriend.heyTimer = 0.6;
-                spawnComboThingy(points.get('frontflip')[3],points.get('frontflip')[2] * (combo * 1.1));
+                spawnComboThingy(points.get('frontflip')[3], Std.int(points.get('frontflip')[2] * (combo * 1.1)));
             }
         }
 
