@@ -99,28 +99,29 @@ class HealthIcon extends FlxSprite
 						trace('if you see this trace you messed up somewhere bro');
 					case ANIMSINGLE:
 						trace('Loaded Anim Single!');
-						animation.addByPrefix('idle', 'idle', 24, true);
+						animation.addByPrefix('idle', 'idle', 24, true, isPlayer);
 						animation.play('idle', true);
 					case ANIMDEFAULT:
 						trace('Loaded Anim Default!');
-						animation.addByPrefix('normal', 'normal', 24, true);
-						animation.addByPrefix('losing', 'losing', 24, true);
+						animation.addByPrefix('normal', 'normal', 24, true, isPlayer);
+						animation.addByPrefix('losing', 'losing', 24, true, isPlayer);
 						animation.play('normal', true);
 					case ANIMWINNING:
 						trace('Loaded Anim Winning!');
-						animation.addByPrefix('winning', 'winning', 24, true);
-						animation.addByPrefix('normal', 'normal', 24, true);
-						animation.addByPrefix('losing', 'losing', 24, true);
+						animation.addByPrefix('winning', 'winning', 24, true, isPlayer);
+						animation.addByPrefix('normal', 'normal', 24, true, isPlayer);
+						animation.addByPrefix('losing', 'losing', 24, true, isPlayer);
 						animation.play('normal', true);
 					case ANIMSINGING:
 						trace('Loaded Anim Singing!');
-						animation.addByPrefix('idle',  'idle', 24, true);
-						animation.addByPrefix('left',  'left', 24, true);
-						animation.addByPrefix('down',  'down', 24, true);
-						animation.addByPrefix('up',    'up',   24, true);
-						animation.addByPrefix('right', 'right',24, true);
+						animation.addByPrefix('idle',  'idle', 24, true, isPlayer);
+						animation.addByPrefix('left',  'left', 24, true, isPlayer);
+						animation.addByPrefix('down',  'down', 24, true, isPlayer);
+						animation.addByPrefix('up',    'up',   24, true, isPlayer);
+						animation.addByPrefix('right', 'right',24, true, isPlayer);
 						animation.play('idle', true);
 				}
+				
 			}
 			else {
 				// Determine type based on JSON or fallback to size-based guessing
