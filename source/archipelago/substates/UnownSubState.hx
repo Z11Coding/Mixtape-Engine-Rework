@@ -92,8 +92,10 @@ class UnownSubState extends MusicBeatSubstate
 
 	var lines:FlxTypedGroup<FlxSprite>;
 	var unowns:FlxTypedSpriteGroup<FlxSprite>;
-	public var win:Void->Void = null;
-	public var lose:Void->Void = null;
+	public var win:haxe.Constraints.Function = null;
+	public var lose:haxe.Constraints.Function = null;
+	public var winArgs:OneOrMore<Dynamic> = null;
+	public var loseArgs:OneOrMore<Dynamic> = null;
 	var timer:Int = 20;
 	var timerTxt:FlxText;
 	public function new(theTimer:Int = 15, word:String = '')
@@ -179,7 +181,10 @@ class UnownSubState extends MusicBeatSubstate
 		position++;
 		if (position >= realWord.length) {
 			close();
-			win();
+			if (winArgs != null)
+				Reflect.callMethod(null, win, cast winArgs);
+			else
+				win();
 			FlxG.sound.play(Paths.sound('traplink/CORRECT'));
 		}
 	}
@@ -227,7 +232,10 @@ class UnownSubState extends MusicBeatSubstate
 			timer--;
 		else {
 			close();
-			lose();
+			if (loseArgs != null)
+				Reflect.callMethod(null, lose, cast loseArgs);
+			else
+				lose();
 			
 		}
 		timerTxt.text = Std.string(timer);

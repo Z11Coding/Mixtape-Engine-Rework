@@ -4320,16 +4320,16 @@ class PlayState extends MusicBeatState
 		doDeathCheck(true);
 	}
 
-	// the void varient of the function above with trueKill set to true
-	public function killhimtodeath():Void
-	{
-		bfkilledcheck = true;
-		health = 0;
-		lives = 0;
-		else lives -= 1;
-		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
-		doDeathCheck(true);
-	}
+	// // the void varient of the function above with trueKill set to true
+	// public function killhimtodeath():Void
+	// {
+	// 	bfkilledcheck = true;
+	// 	health = 0;
+	// 	lives = 0;
+	// 	else lives -= 1;
+	// 	noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
+	// 	doDeathCheck(true);
+	// }
 
 	function updateVisPos() { //Literaly so it doesn't look weird in the update function
 		try {

@@ -16,7 +16,7 @@ class TrapLinkFunctions {
 
         var curDirec:Int = 3;
         
-        if (random) curDirec = FlxG.random.int(0, 3);
+        if (random || direction == null) curDirec = FlxG.random.int(0, 3);
         if (direction != null) curDirec = direction;
 
         switch(curDirec) {
@@ -71,7 +71,7 @@ class TrapLinkFunctions {
         grpNotes = [];
 
         var colArray = ['purple', 'blue', 'green', 'red'];
-
+    @:privateAccess
         for (i in 0...randArray.length) {
             var cool:StrumNote = new StrumNote(0, 0, randArray[i], 0);
             if (!PlayState.isPixelStage) cool.animation.addByPrefix('color', colArray[cool.noteData] + '0', 24, true);
@@ -97,7 +97,7 @@ class TrapLinkFunctions {
                 j.angle = FlxG.random.float(-num / 2, num / 2);
             }
         });
-
+        @:privateAccess
         for (j in 0...grpNotes.length) {
             var strum = grpNotes[j];
             strum.playAnim('confirm', true);
@@ -109,7 +109,7 @@ class TrapLinkFunctions {
 
         position = -1;
         didcoolthing = false;
-        FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
+        FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, TrapLinkFunctions.onKeyPress);
     }
 
     public static function getKeyFromEvent(key:FlxKey):Int
@@ -124,7 +124,7 @@ class TrapLinkFunctions {
 
     static var position = -1;
     static var didcoolthing:Bool = false;
-    function onKeyPress(k:KeyboardEvent) {
+    static function onKeyPress(k:KeyboardEvent) {
         var eventKey:FlxKey = k.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
         if (APPlayState.instance.health > 0.05) {
@@ -171,7 +171,7 @@ class TrapLinkFunctions {
         }
     }
 
-    function removeListener() {
+    static function removeListener() {
         FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
     }
 
@@ -183,7 +183,7 @@ class TrapLinkFunctions {
 		var realTimer = timer;
 		var unownState = new UnownSubState(realTimer, word);
 		unownState.win = wonUnown;
-		unownState.lose = APPlayState.instance.killhimtodeath;
+		unownState.lose = APPlayState.instance.die;
 		unownState.cameras = [APPlayState.instance.camHUD];
 		FlxG.autoPause = false;
 		FlxG.state.openSubState(unownState);
