@@ -1031,6 +1031,11 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		return this.iterator();
 	}
+
+	public inline function splice():Iterator<NoteTemplate>
+	{
+		return this.iterator();
+	}
 }
 
 // AbstractNoteArray that acts like an Array<Note>, but creates Notes on demand from NoteTemplates.
@@ -1116,6 +1121,18 @@ abstract NoteArray(AbstractNoteArray) from AbstractNoteArray to AbstractNoteArra
         }
         return notes;
     }
+
+	public function remove(note:NoteTemplate) {
+		return this.remove(note);
+	}
+
+	public function indexOf(note:NoteTemplate) {
+		return this.indexOf(note);
+	}
+
+	public function splice(note:NoteTemplate, index:Int) {
+		return this.splice(note, index);
+	}
 }
 
 /**
