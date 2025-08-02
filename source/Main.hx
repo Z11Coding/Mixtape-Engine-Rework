@@ -930,6 +930,20 @@ class CommandPrompt
 					print("Error: multi-command requires at least one command.");
 				}
 
+			case "testTrapLink":
+				if (archipelago.APEntryState.inArchipelagoMode)
+					if (args.length == 1)
+						archipealgo.APGameState.instance?.doTrapLink({
+							source: "apTest",
+							trap_name: args[0],
+							time: haxe.Timer.stamp()
+						});
+
+						if (!archipelago.APEntryState.inArchipelagoMode)
+						{
+							print("Error: You can only use this command in Archipelago mode.");
+						}
+
 			case "runCode":
 				if (args.length > 0)
 				{

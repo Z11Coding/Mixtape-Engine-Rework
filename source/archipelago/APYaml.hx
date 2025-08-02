@@ -3,6 +3,110 @@ package archipelago;
 import haxe.format.JsonParser;
 import haxe.ds.StringMap;
 import haxe.ds.Map;
+
+abstract APOption(String) {
+    public inline function new(v:String) {
+        this = v;
+    }
+
+    // Auto-conversion from various types
+    @:from
+    public static inline function fromString(value:String):APOption {
+        return new APOption(value);
+    }
+
+    @:from
+    public static inline function fromBool(value:Bool):APOption {
+        return new APOption(value ? "true" : "false");
+    }
+
+    @:from
+    public static inline function fromFloat(value:Float):APOption {
+        return new APOption(Std.string(value));
+    }
+
+    @:from
+    public static inline function fromInt(value:Int):APOption {
+        return new APOption(Std.string(value));
+    }
+
+    @:from
+    public static inline function fromArray(value:Array<String>):APOption {
+        return new APOption("[" + value.join(", ") + "]");
+    }
+
+    // Auto-conversion to various types
+    @:to
+    public inline function toString():String {
+        return this;
+    }
+
+    @:to
+    public function toBool():Bool {
+        return this == "true";
+    }
+
+    @:to
+    public function toFloat():Float {
+        var parsed = Std.parseFloat(this);
+        return Math.isNaN(parsed) ? 0.0 : parsed;
+    }
+
+    @:to
+    public function toInt():Int {
+        return Std.int(toFloat());
+    }
+
+    @:to
+    public function toArray():Array<String> {
+        if (this.startsWith("[") && this.endsWith("]")) {
+            var content = this.substr(1, this.length - 2);
+            return content.split(",").map(function(item) return item.trim());
+        }
+        return [this];
+    }
+
+    // Smart parsing function that attempts to determine and convert to the appropriate type
+    public function parseValue():Dynamic {
+        // Check for array format
+        if (this.startsWith("[") && this.endsWith("]")) {
+            return toArray();
+        }
+        
+        // Check for boolean
+        if (this == "true" || this == "false") {
+            return toBool();
+        }
+        
+        // Check for numeric (float/int)
+        var floatValue = Std.parseFloat(this);
+        if (!Math.isNaN(floatValue)) {
+            // Check if it's an integer
+            if (floatValue == Std.int(floatValue)) {
+                return toInt();
+            }
+            return toFloat();
+        }
+        
+        // Default to string
+        return toString();
+    }
+
+    // Check if the value represents a specific type
+    public function isArray():Bool {
+        return this.startsWith("[") && this.endsWith("]");
+    }
+
+    public function isBool():Bool {
+        return this == "true" || this == "false";
+    }
+
+    public function isNumeric():Bool {
+        return !Math.isNaN(Std.parseFloat(this));
+    }
+}
+
+
 class APYaml {
     public var game:String;
     public var name:String;
@@ -44,22 +148,13 @@ class APYaml {
                     var value = keyValue[1].trim();
 
                     if (key == "game")
-                        this.game = value;
+                        this.game = new APOption(value);
                     else if (key == "name")
-                        this.name = value;
+                        this.name = new APOtion(value);
                     else if (key == "description")
-                        this.description = value;
+                        this.description = new APOption(value);
 
-                    if (value.startsWith("[") && value.endsWith("]")) {
-                        value = value.substr(1, value.length - 2);
-                        sectionData.set(key, value.split(",").map(function(item) return item.trim()));
-                    } else if (value == "true" || value == "false") {
-                        sectionData.set(key, value == "true");
-                    } else if (cast(Std.parseFloat(value), Null<Float>) != null || Math.isNaN(Std.parseFloat(value))) {
-                        sectionData.set(key, Std.parseFloat(value));
-                    } else {
-                        sectionData.set(key, value);
-                    }
+                    sectionData.set(key, new APOption(value));
                 }
             }
         }
