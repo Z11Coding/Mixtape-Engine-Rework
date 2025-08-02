@@ -975,6 +975,42 @@ class APGameState
 					archipelago.APItem.createItemByName("Fast Trap").fromTrapLink = true;
 				case "Slow Trap" | "Slowness Trap":
 					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Deisometric Trap":
+					archipelago.APItem.createItemByName("Deisometric Trap").fromTrapLink = true;
+				case "Push Trap":
+					archipelago.APItem.createItemByName('Push Trap').fromTrapLink = true;
+				case "Input Sequence Trap":
+					archipelago.APItem.createItemByName('Input Sequence Trap').fromTrapLink = true;
+				case "Pokemon Trivia Trap":
+					archipelago.APItem.createItemByName('Pokemon Trivia Trap').fromTrapLink = true;
+				case "Thwimp Trap":
+					archipelago.APItem.createItemByName('Thwimp Trap').fromTrapLink = true;
+				case "Tiny Trap":
+					archipelago.APItem.createItemByName('Tiny Trap').fromTrapLink = true;
+				case "Bonk Trap":
+					archipelago.APItem.createItemByName('Bonk Trap').fromTrapLink = true;
+				case "Bald Trap":
+					archipelago.APItem.createItemByName('Bald Trap').fromTrapLink = true;
+				case "Bomb" | "TNT Barrel Trap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Controller Drift Trap":
+					archipelago.APItem.createItemByName("Controller Drift Trap").fromTrapLink = true;
+				case "Timer Trap":
+					archipelago.APItem.createItemByName("Timer Trap").fromTrapLink = true;
+				case "Jump Trap" | "Spring Trap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Animal Bonus Trap":
+					archipelago.APItem.createItemByName("Animal Bonus Trap").fromTrapLink = true;
+				case "Hiccup Trap":
+					archipelago.APItem.createItemByName("Hiccup Trap").fromTrapLink = true;
+				case "Gooey Bag":
+					archipelago.APItem.createItemByName("Gooey Bag").fromTrapLink = true;
+				case "Nut Trap":
+					archipelago.APItem.createItemByName("Nut Trap").fromTrapLink = true;
+				case "Pokemon Count Trap":
+					archipelago.APItem.createItemByName("Pokemon Count Trap").fromTrapLink = true;
+				case "Exposition Trap":
+					archipelago.APItem.createItemByName("Exposition Trap").fromTrapLink = true;
 				default:
 					// If it's not a known trap, we can just log it.
 					trace("Unknown trap link received: " + trapName + ".");

@@ -311,7 +311,7 @@ class APEntryState extends MusicBeatState
 
 		var yamlImport = new PsychUIButton(0, 0, "Import YAML", function()
 		{
-			var yamlContent = yutautil.ImprovedFileHandling.loadFile("Import YAML", [new FileFilter('yaml', 'FNF AP YAML File')], Text);
+			var yamlContent = yutautil.ImprovedFileHandling.loadFile("Import YAML", [{ext: "yaml", desc: "FNF AP YAML File"}], Text);
 			if (yamlContent != null) {
 				try {
 					var yaml = new archipelago.APYaml(yamlContent);
