@@ -35,7 +35,7 @@ class MusicBeatState extends FlxState
 				ease: FlxEase.quadOut,
 				onComplete: function(tween:FlxTween)
 				{
-					if (this is PlayState)
+					if (FlxG.state is PlayState)
 					{
 						FlxTween.tween(PlayState.instance.camHUD, {angle: -180}, 0.5, {
 							ease: FlxEase.quadOut,
@@ -50,7 +50,7 @@ class MusicBeatState extends FlxState
 				}
 			});
 		}
-		return flip;
+		return _apFlip;
 	}
 
 	private var curDecStep:Float = 0;
