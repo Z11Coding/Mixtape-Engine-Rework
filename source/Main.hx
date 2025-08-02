@@ -281,7 +281,7 @@ class Main extends Sprite
 		// testArray.NativeTrace(true, false);
 
 
-		yutautil.Threader.runInThread(commandPrompt.start());
+		yutautil.Threader.runInThread(commandPrompt.start(), 0, "cmd", true, 0);
 		#if HSCRIPT_ALLOWED
 		Iris.warn = function(x, ?pos:haxe.PosInfos) {
 			Iris.logLevel(WARN, x, pos);

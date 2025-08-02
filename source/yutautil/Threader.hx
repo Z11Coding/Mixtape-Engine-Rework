@@ -80,7 +80,7 @@ class Threader {
      * @param name The name of the thread.
      * @return The macro expression to run the thread.
      */
-    public static macro function runInThread(expr:Expr, ?sleepDuration:Float = 0, ?name:String = ""):Expr {
+    public static macro function runInThread(expr:Expr, ?sleepDuration:Float = 0, ?name:String = "", ?retryOnError:Bool = false, ?maxRetries:Int = 3):Expr {
         if (!usedthreads) {
             trace("Initializing Threader...");
             Context.onAfterGenerate(function() {
@@ -99,6 +99,8 @@ class Threader {
         usedthreads = !usedthreads ? true : usedthreads;
         var sleepExpr = Context.makeExpr(sleepDuration, Context.currentPos());
         var nameExpr = Context.makeExpr(name != "" && name != null ? name : "Thread_" + Std.random(1000000) + "_" + (stringRandomizer(8)), Context.currentPos());
+        var retryExpr = Context.makeExpr(retryOnError, Context.currentPos());
+        var maxRetriesExpr = Context.makeExpr(maxRetries, Context.currentPos());
         var generatedName:String = ExprTools.toString(nameExpr);
         generatedThreads.push(generatedName);
         trace("Preparing a threaded section of code:\n" + expr + " \nwith sleep duration: " + sleepDuration + " and name: " + generatedName);
@@ -106,23 +108,54 @@ class Threader {
             #if sys
             yutautil.Threader.quietThreads.push($nameExpr);
             var thrd = sys.thread.Thread.create(function() {
-                try {
-                    trace("Set command to run in a thread...");
-                    if ($nameExpr != "") {
-                        trace("Thread name: " + $nameExpr);
+                var retryCount = 0;
+                var shouldRetry = true;
+                
+                while (shouldRetry) {
+                    try {
+                        trace("Set command to run in a thread...");
+                        if ($nameExpr != "") {
+                            trace("Thread name: " + $nameExpr + (retryCount > 0 ? " (retry " + retryCount + ")" : ""));
+                        }
+                        $expr;
+                        if ($sleepExpr > 0) {
+                            Sys.sleep($sleepExpr);
+                        }
+                        trace("Thread finished running command: " + $nameExpr);
+                        yutautil.Threader.quietThreads.remove($nameExpr);
+                        shouldRetry = false; // Success, exit retry loop
+                    } catch (e:Dynamic) {
+                        trace("Exception in thread: " + e + " ... " + haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+                        if ($nameExpr != "") {
+                            trace("Errored Thread name: " + $nameExpr + " (attempt " + (retryCount + 1) + ")");
+                        }
+                        
+                        if ($retryExpr) {
+                            retryCount++;
+                            // If maxRetries is 0, allow infinite retries
+                            if ($maxRetriesExpr == 0) {
+                                trace("Retrying thread " + $nameExpr + " (infinite retries enabled, attempt " + retryCount + ")");
+                                continue;
+                            }
+                            // If we haven't exceeded max retries, try again
+                            else if (retryCount < $maxRetriesExpr) {
+                                trace("Retrying thread " + $nameExpr + " (attempt " + (retryCount + 1) + " of " + $maxRetriesExpr + ")");
+                                continue;
+                            }
+                            // Max retries exceeded
+                            else {
+                                trace("Max retries (" + $maxRetriesExpr + ") exceeded for thread " + $nameExpr + ". Stopping thread.");
+                                shouldRetry = false;
+                            }
+                        } else {
+                            // No retry enabled, exit immediately
+                            shouldRetry = false;
+                        }
+                        
+                        if (!shouldRetry) {
+                            yutautil.Threader.quietThreads.remove($nameExpr);
+                        }
                     }
-                    $expr;
-                    if ($sleepExpr > 0) {
-                        Sys.sleep($sleepExpr);
-                    }
-                    trace("Thread finished running command: " + $nameExpr);
-                    yutautil.Threader.quietThreads.remove($nameExpr);
-                } catch (e:Dynamic) {
-                    trace("Exception in thread: " + e + " ... " + haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
-                    if ($nameExpr != "") {
-                        trace("Errored Thread name: " + $nameExpr);
-                    }
-                    yutautil.Threader.quietThreads.remove($nameExpr);
                 }
             });
             #else
