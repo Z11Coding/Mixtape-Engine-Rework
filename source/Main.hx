@@ -931,9 +931,10 @@ class CommandPrompt
 				}
 
 			case "testTrapLink":
+				@:privateAccess
 				if (archipelago.APEntryState.inArchipelagoMode)
 					if (args.length == 1)
-						archipealgo.APGameState.instance?.doTrapLink({
+						archipelago.APGameState.instance?.doTrapLink({
 							source: "apTest",
 							trap_name: args[0],
 							time: haxe.Timer.stamp()
