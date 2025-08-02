@@ -18,6 +18,7 @@ class StrumNote extends NoteObject
 	public var direction:Float = 90;
 	public var downScroll:Bool = false;
 	public var sustainReduce:Bool = true;
+	private var player:Int;
 
 	public static var ogStrumPosX:Array<Null<Float>> = [];
 	public static var ogStrumPosY:Array<Null<Float>> = [];

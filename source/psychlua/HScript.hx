@@ -20,6 +20,8 @@ import crowplexus.hscript.Printer;
 
 import haxe.ValueException;
 
+import modchart.Manager;
+
 typedef HScriptInfos = {
 	> haxe.PosInfos,
 	var ?funcName:String;
@@ -428,6 +430,9 @@ class HScript extends Iris
 				PlayState.instance.modManager.queueEaseP(step, endStep, modName, percent, style, player, startVal);
 			}
 		);
+
+		//Funkin Modchart things
+		set("manager", Manager);
 
 		//Base game things
 		set("FlxPoint", {

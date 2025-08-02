@@ -13,7 +13,7 @@ class VideoFunctions
 			else trace('No argument for game over video!');
 		});
 
-		Lua_helper.add_callback(lua, 'makeVideoSprite', function(tag:String, videoFile:String, ?x:Float, ?y:Float, ?camera:String = 'game', ?shouldLoop:Bool = false, ?playOnLoad:Bool = true, ?isCutscene:Bool = false, addBehind:String = 'none') {	
+		Lua_helper.add_callback(lua, 'makeVideoSprite', function(tag:String, videoFile:String, ?x:Float, ?y:Float, ?camera:String = 'game', ?shouldLoop:Bool = false, ?playOnLoad:Bool = true, ?isCutscene:Bool = false, ?addBehind:String = 'none') {	
 			if (MusicBeatState.getVariables().exists(tag + '_video') || MusicBeatState.getVariables().exists(tag))
 			{
 				PlayState.instance.addTextToDebug('makeVideoSprite: This tag is not available! Use a different tag.', FlxColor.RED);
@@ -54,6 +54,10 @@ class VideoFunctions
 						videoCutscene = null;
 						PlayState.instance.canPause = true;
 						PlayState.instance.inCutscene = false;
+						if(PlayState.instance.endingSong)
+							PlayState.instance.endSong();
+						else
+							PlayState.instance.startCountdown();
 					}
 					videoCutscene.finishCallback = onVideoEnd;
 					videoCutscene.onSkip = onVideoEnd;

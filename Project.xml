@@ -52,6 +52,14 @@
 		<define name="TITLE_SCREEN_EASTER_EGG"/>
 	</section>
 
+	<!-- Apparently I can just drop this in and it'll work so i'll be the judge of that --> 
+
+	<haxedef name="FM_ENGINE" value="PSYCH"/>
+	<haxedef name="FM_ENGINE_VERSION" value="1.0"/>
+
+	<haxelib name="funkin-modchart" />
+	<haxeflag name="--macro" value="modchart.core.macros.Macro.includeFiles()"/>
+
 	<!-- ____________________________ Window Settings ___________________________ -->
 
 	<!--These window settings apply to all targets-->
