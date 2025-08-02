@@ -1,4 +1,4 @@
-package yutautil;
+package archipelago;
 
 import haxe.format.JsonParser;
 import haxe.ds.StringMap;
@@ -42,6 +42,13 @@ class APYaml {
                 if (keyValue.length == 2) {
                     var key = keyValue[0].trim();
                     var value = keyValue[1].trim();
+
+                    if (key == "game")
+                        this.game = value;
+                    else if (key == "name")
+                        this.name = value;
+                    else if (key == "description")
+                        this.description = value;
 
                     if (value.startsWith("[") && value.endsWith("]")) {
                         value = value.substr(1, value.length - 2);

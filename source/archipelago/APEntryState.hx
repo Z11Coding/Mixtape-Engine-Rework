@@ -311,49 +311,18 @@ class APEntryState extends MusicBeatState
 
 		var yamlImport = new PsychUIButton(0, 0, "Import YAML", function()
 		{
-			if(!fileDialog.completed) return;
-			lowFilterAmount = 0.0134;
-			/*fileDialog.open(_slotInput.text, [new FileFilter('YAML', 'yaml')], function()
-			{
-				FlxTween.num(0.0134, 1, 1, {ease: FlxEase.sineInOut}, function(t) {
-					APEntryState.lowFilterAmount = t;
-				});
-				try
-				{
-					var filePath:String = fileDialog.path.replace('\\', '/');
-					var loadedFile = Yaml.parse(fileDialog.data, Parser.options().useMaps());
-					trace(Yaml.parse(fileDialog.data, Parser.options().useMaps()));
-					trace('Name: ' + loadedFile.get('name'));
-					gameSettings.name = loadedFile.get('name');
-					_slotInput.text = loadedFile.get('name');
-					var fnfData = Reflect.getProperty(loadedFile, 'Friday Night Funkin');//loadedFile.get('Friday Night Funkin');
-					trace(fnfData);
-					gameSettings.FNF.progression_balancing = fnfData.get('progression_balancing');
-					gameSettings.FNF.accessibility = fnfData.get('accessibility');
-					gameSettings.FNF.mods_enabled = stringToBool(fnfData.get('mods_enabled'));
-					gameSettings.FNF.deathlink = stringToBool(fnfData.get('deathlink'));
-					gameSettings.FNF.unlock_type = fnfData.get('unlock_type');
-					gameSettings.FNF.unlock_method = fnfData.get('unlock_method');
-					gameSettings.FNF.ticket_percentage = Std.parseInt(fnfData.get('ticket_percentage'));
-					gameSettings.FNF.ticket_win_percentage = Std.parseInt(fnfData.get('ticket_win_percentage'));
-					gameSettings.FNF.chart_modifier_change_chance = Std.parseInt(fnfData.get('chart_modifier_change_chance'));
-					gameSettings.FNF.trapAmount = Std.parseInt(fnfData.get('trapAmount'));
-					gameSettings.FNF.bbcWeight = Std.parseInt(fnfData.get('bbcWeight'));
-					gameSettings.FNF.ghostChatWeight = Std.parseInt(fnfData.get('ghostChatWeight'));
-					gameSettings.FNF.svcWeight = Std.parseInt(fnfData.get('svcWeight'));
-					gameSettings.FNF.tutorialWeight = Std.parseInt(fnfData.get('tutorialWeight'));
-					gameSettings.FNF.fakeTransWeight = Std.parseInt(fnfData.get('fakeTransWeight'));
-					gameSettings.FNF.shieldWeight = Std.parseInt(fnfData.get('shieldWeight'));
-					gameSettings.FNF.MHPWeight = Std.parseInt(fnfData.get('MHPWeight'));
-					gameSettings.FNF.accrequirement = fnfData.get('accrequirement');
-					gameSettings.FNF.graderequirement = fnfData.get('graderequirement');
-				    gameSettings.FNF.song_limit = fnfData.get('song_limit');
-				}
-				catch(e:Exception)
-				{
-					trace(e.stack);
-				}
-			});*/
+			var yamlContent = yutautil.ImprovedFileHandling.loadFile("Import YAML", [new FileFilter('yaml', 'FNF AP YAML File')], Text);
+			if (yamlContent != null) {
+				try {
+					var yaml = new archipelago.APYaml(yamlContent);
+					gameSettings.name = yaml.name; _slotInput.text = yaml.name;
+					for (field in Reflect.fields(yaml.settings)) {
+						if (Reflect.hasField(gameSettings.FNF, field)) {
+							Reflect.setField(gameSettings.FNF, field, Reflect.field(yaml.settings, field));
+						}
+					}
+				} catch(e) { trace('YAML import error: $e'); }
+			}
 		});
 		yamlImport.x = (FlxG.width / 2) + 10 + yamlImport.width;
 		yamlImport.y = yamlGen.y - 50;

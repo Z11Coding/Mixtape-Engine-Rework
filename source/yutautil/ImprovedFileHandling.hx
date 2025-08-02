@@ -14,27 +14,53 @@ enum ReadType {
     Bytes;
 }
 
-class ImprovedFileHandling {
-    public static var lastPath:String = "";
-    public static function openFile(title:String, ?filters:Array<FileFilter>, ?preserve_cwd:Bool=true):String {
-        if (filters != null) {
-            for (filter in filters) {
-                filter.desc = filter.desc != null ? filter.desc : filter.ext.toUpperCase() + " File";
-            }
+abstract Filter(FileFilter) from FileFilter to FileFilter {
+    public inline function new(ext:String, ?desc:String) {
+        this = {
+            ext: ext,
+            desc: desc != null ? desc : '${ext.toUpperCase()} File'
         }
-        return FilePopup.open(title, filters, preserve_cwd);
+    }
+    
+    @:from static inline function fromObject(obj:{ext:String, ?desc:String}):Filter {
+        return new Filter(obj.ext, obj.desc);
     }
 
-    public static function saveFile(title:String, ?filter:FileFilter, ?preserve_cwd:Bool=true):String {
-        if (filter != null) {
-            filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
+    @:from static inline function fromOpenFLFilter(filter:openfl.net.FileFilter):Filter {
+        return new Filter(filter.extension, filter.description);
+    }
+    
+    public var ext(get, never):String;
+    public var desc(get, never):String;
+    
+    function get_ext():String return this.ext;
+    function get_desc():String return this.desc;
+}
+
+class ImprovedFileHandling {
+    public static var lastPath:String = "";
+    public static function openFile(title:String, ?filters:OneOrMore<Filter>, ?preserve_cwd:Bool=true):String {
+        if (filters != null) {
+            for (filter in filters) {
+                var f:FileFilter = filter;
+                f.desc = f.desc != null ? f.desc : f.ext.toUpperCase() + " File";
+            }
         }
-        var filePath = FilePopup.save(title, filter, preserve_cwd);
+        return FilePopup.open(title, cast filters, preserve_cwd);
+    }
+
+    public static function saveFile(title:String, ?filter:Filter, ?preserve_cwd:Bool=true):String {
+        if (filter != null) {
+            var f:FileFilter = filter;
+            f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
+        }
+        var filePath = FilePopup.save(title, cast filter, preserve_cwd);
         if (filePath != null && filter != null) {
-            var ext = "." + filter.ext;
+            var f:FileFilter = filter;
+            var ext = "." + f.ext;
             if (!filePath.endsWith(ext)) {
                 if (filePath.endsWith(".")) {
-                    filePath += filter.ext;
+                    filePath += f.ext;
                 } else {
                     filePath += ext;
                 }
@@ -48,10 +74,11 @@ class ImprovedFileHandling {
         return FilePopup.folder(title, preserve_cwd).trim();
     }
 
-    public static function loadFile(title:String, ?filters:Array<FileFilter>, readType:ReadType, ?operation:Dynamic->Dynamic, ?preserve_cwd:Bool=true):Dynamic {
+    public static function loadFile(title:String, ?filters:OneOrMore<Filter>, readType:ReadType, ?operation:Dynamic->Dynamic, ?preserve_cwd:Bool=true):Dynamic {
         if (filters != null) {
             for (filter in filters) {
-                filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
+                var f:FileFilter = filter;
+                f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
             }
         }
         var filePath = openFile(title, filters, preserve_cwd);
@@ -64,16 +91,18 @@ class ImprovedFileHandling {
         return null;
     }
 
-    public static function saveOperation(title:String, ?filter:FileFilter, writeType:ReadType, data:Dynamic, ?preserve_cwd:Bool=true):Bool {
+    public static function saveOperation(title:String, ?filter:Filter, writeType:ReadType, data:Dynamic, ?preserve_cwd:Bool=true):Bool {
         if (filter != null) {
-            filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
+            var f:FileFilter = filter;
+            f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
         }
         var filePath = saveFile(title, filter, preserve_cwd);
         if (filePath != null && filePath.trim() != "") {
-            var ext = "." + filter.ext;
+            var f:FileFilter = filter;
+            var ext = "." + f.ext;
             if (!filePath.endsWith(ext)) {
                 if (filePath.endsWith(".")) {
-                    filePath += filter.ext;
+                    filePath += f.ext;
                 } else {
                     filePath += ext;
                 }
@@ -98,24 +127,26 @@ class ImprovedFileHandling {
      */
     public static function multiSaveOperation(
         title:String,
-        ?filter:FileFilter,
+        ?filter:Filter,
         writeType:ReadType,
         mainData:Dynamic,
         ?extraFiles:Array<{name:String, data:Dynamic}>,
         ?preserve_cwd:Bool=true
     ):Bool {
         if (filter != null) {
-            filter.desc = filter.desc != null ? filter.desc : '${filter.ext.toUpperCase()} File';
+            var f:FileFilter = filter;
+            f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
         }
         var filePaths:Array<String> = [];
 
         // Save main file
         var mainFilePath = saveFile(title, filter, preserve_cwd);
         if (mainFilePath != null && mainFilePath.trim() != "") {
-            var ext = "." + filter.ext;
+            var f:FileFilter = filter;
+            var ext = "." + f.ext;
             if (!mainFilePath.endsWith(ext)) {
                 if (mainFilePath.endsWith(".")) {
-                    mainFilePath += filter.ext;
+                    mainFilePath += f.ext;
                 } else {
                     mainFilePath += ext;
                 }
@@ -133,7 +164,7 @@ class ImprovedFileHandling {
                     var extraPath = Path.join([dir, extra.name]);
                     if (!extraPath.endsWith(ext)) {
                         if (extraPath.endsWith(".")) {
-                            extraPath += filter.ext;
+                            extraPath += f.ext;
                         } else {
                             extraPath += ext;
                         }
