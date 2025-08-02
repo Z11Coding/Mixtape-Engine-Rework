@@ -833,6 +833,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			babyArrow.y = strumLineY;
 			babyArrow.handleRendering = false; // NoteField handles rendering
 			babyArrow.cameras = cameras;
+			@:privateAccess
+			babyArrow.player = this.playerId;
 			strumNotes.push(babyArrow);
 			babyArrow.playerPosition();
 			if (ClientPrefs.data.showKeybindsOnStart && this.isPlayer)

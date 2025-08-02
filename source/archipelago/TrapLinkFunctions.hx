@@ -74,6 +74,7 @@ class TrapLinkFunctions {
     @:privateAccess
         for (i in 0...randArray.length) {
             var cool:StrumNote = new StrumNote(0, 0, randArray[i], 0);
+            @:privateAccess
             if (!PlayState.isPixelStage) cool.animation.addByPrefix('color', colArray[cool.noteData] + '0', 24, true);
             cool.playAnim('static');
             cool.ID = i;
@@ -102,6 +103,7 @@ class TrapLinkFunctions {
             var strum = grpNotes[j];
             strum.playAnim('confirm', true);
             strum.animation.finishCallback = function(animName:String) {
+                @:privateAccess
                 if (PlayState.isPixelStage) strum.playAnim(colArray[strum.noteData]);
                 else strum.playAnim('color', true);
             }

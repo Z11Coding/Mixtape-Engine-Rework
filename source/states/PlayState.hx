@@ -2229,7 +2229,7 @@ class PlayState extends MusicBeatState
 
 		setOnScripts('songLength', songLength);
 		callOnScripts('onSongStart');
-
+		
 		// my latest invention: THE CHAOS BRINGER
 		if (AprilFools.allowAF && !inArchipelagoMode) {
 			switch (FlxG.random.int(0, 5)) {
@@ -4104,19 +4104,13 @@ class PlayState extends MusicBeatState
 
 	public function newPlayfield()
 	{
-		try {
-			var field = new PlayField(modManager);
-			field.modNumber = playfields.members.length;
-			field.playerId = field.modNumber;
-			field.cameras = playfields.cameras;
-			initPlayfield(field);
-			playfields.add(field);
-			return field;
-		}
-		catch(e) {
-			trace("Playfield Failed to make a Field!");
-			return null;
-		}
+		var field = new PlayField(modManager);
+		field.modNumber = playfields.members.length;
+		field.playerId = field.modNumber;
+		field.cameras = playfields.cameras;
+		initPlayfield(field);
+		playfields.add(field);
+		return field;
 	}
 
 	// good to call this whenever you make a playfield
@@ -4320,16 +4314,15 @@ class PlayState extends MusicBeatState
 		doDeathCheck(true);
 	}
 
-	// // the void varient of the function above with trueKill set to true
-	// public function killhimtodeath():Void
-	// {
-	// 	bfkilledcheck = true;
-	// 	health = 0;
-	// 	lives = 0;
-	// 	else lives -= 1;
-	// 	noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
-	// 	doDeathCheck(true);
-	// }
+	// the void varient of the function above with trueKill set to true
+	/*public function killhimtodeath():Void
+	{
+		bfkilledcheck = true;
+		health = 0;
+		lives = 0;
+		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
+		doDeathCheck(true);
+	}*/
 
 	function updateVisPos() { //Literaly so it doesn't look weird in the update function
 		try {
