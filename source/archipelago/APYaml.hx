@@ -43,6 +43,9 @@ class APYaml {
                     var key = keyValue[0].trim();
                     var value = keyValue[1].trim();
 
+                    trace(key);
+                    trace(value);
+
                     if (key == "game")
                         this.game = value;
                     else if (key == "name")
