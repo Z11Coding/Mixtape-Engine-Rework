@@ -932,10 +932,10 @@ class CommandPrompt
 
 			case "testTrapLink":
 				if (archipelago.APEntryState.inArchipelagoMode)
-					if (args.length == 1)
-						archipealgo.APGameState.instance?.doTrapLink({
+					if (args.length < 1)
+						archipelago.APGameState.instance?.doTrapLink({
 							source: "apTest",
-							trap_name: args[0],
+							trap_name: args.join(" "),
 							time: haxe.Timer.stamp()
 						});
 
