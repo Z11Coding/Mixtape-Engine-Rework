@@ -58,7 +58,7 @@ class APYaml {
                         sectionData.set(key, value.split(",").map(function(item) return item.trim()));
                     } else if (value == "true" || value == "false") {
                         sectionData.set(key, value == "true");
-                    } else if (cast(Std.parseFloat(value), Null<Float>) != null || !Math.isNaN(Std.parseFloat(value))) {
+                    } else if (cast(Std.parseFloat(value), Null<Float>) != null || Math.isNaN(Std.parseFloat(value))) {
                         sectionData.set(key, Std.parseFloat(value));
                     } else {
                         sectionData.set(key, value);
