@@ -564,6 +564,7 @@ class Main extends Sprite
 		}
 
 		errMsg += "\nUncaught Error: " + e.error;
+		errMsg += "\nError Code: " + new DetailedException(e).errorCode;
 		// remove if you're modding and want the crash log message to contain the link
 		// please remember to actually modify the link for the github page to report the issues to.
 		errMsg += "\nPlease report this error to the GitHub page: https://github.com/Z11Gaming/Mixtape-Engine-Rework";
