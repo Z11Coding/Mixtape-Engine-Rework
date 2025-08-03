@@ -395,7 +395,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						else {
 							if (note.wasGoodHit)
 								continue;	
-							noteHitCallback(note, this);
+							if (!note.blockHit) noteHitCallback(note, this);
 							return note;
 						}
 					}
@@ -719,7 +719,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						var hitNote = noteList[0];
 						if(!hitNote.wasGoodHit) // because parent tap notes
 						{
-							noteHitCallback(hitNote, this);
+							if (!hitNote.blockHit) noteHitCallback(hitNote, this);
 							return hitNote;
 						}
 					}else{

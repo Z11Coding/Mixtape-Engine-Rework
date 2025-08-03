@@ -7,8 +7,8 @@ import flixel.input.keyboard.FlxKey;
 import archipelago.substates.UnownSubState;
 
 class TrapLinkFunctions {
-    static var bfPosition:Array<Float>;
-    static var bfMaxPos:Array<Float>;
+    public static var bfPosition:Array<Float>;
+    public static var bfMaxPos:Array<Float>;
     public static function doCarCrash(random:Bool, ?direction:Null<Int>) {
         for (i in bfPosition) {
             bfMaxPos.push(i+5000);
