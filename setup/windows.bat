@@ -15,7 +15,7 @@ haxelib install hxdiscord_rpc 1.3.0
 haxelib install hxvlc 2.0.1 --skip-dependencies
 haxelib install helder.set 0.3.1
 haxelib install yaml 2.0.1
-haxelib install hxWebSockets 1.4.0
+haxelib git hxWebSockets https://github.com/ianharrigan/hxWebSockets
 haxelib install haxe-concurrent 5.1.3
 haxelib install actuate 1.9.0
 haxelib install flixel-ui 2.6.1
@@ -54,7 +54,7 @@ if /i "%ensure_versions%"=="y" (
     haxelib set hxvlc 2.0.1
     haxelib set helder.set 0.3.1
     haxelib set yaml 2.0.1
-    haxelib set hxWebSockets 1.4.0
+    haxelib set hxWebSockets git
     haxelib set haxe-concurrent 5.1.3
     haxelib set actuate 1.9.0
     haxelib set flixel-ui 2.6.1

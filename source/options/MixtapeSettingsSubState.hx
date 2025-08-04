@@ -516,6 +516,11 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			]);
 		addOption(option);
 
+		var option:Option = new Option('AP Server Compression',
+		'Tell the Engine to ask for compressed data. (WIP)',
+		'apCompressed', BOOL);
+		addOption(option);
+
 		if (Sys.args().indexOf('-livereload') != -1)
 		{
 

@@ -1083,6 +1083,9 @@ class HXPointerCheck<T> {
     }
 }
 
+// abstract ByteString(Bytes)
+
+
 typedef ExceptionDetails = {
     errorCode:String,
     message:String,

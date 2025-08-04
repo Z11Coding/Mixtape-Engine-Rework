@@ -11,6 +11,10 @@ import helder.Set;
 import hx.ws.Types.MessageType;
 import hx.ws.WebSocket;
 import haxe.Json as TJson;
+import haxe.zip.Uncompress;
+import haxe.io.Bytes;
+import deflatex.*;
+import yutautil.PermessageDeflate;
 import backend.ClientPrefs;
 #if sys
 import sys.FileSystem;
@@ -1317,7 +1321,7 @@ class Client {
 		if (_sendQueue.length > 0) {
 			_sendLock.execute(() -> {
 				trace('Sending ${_sendQueue.length} queued packet(s)');
-				_ws.send(haxe.io.Bytes.ofString(TJson.stringify(_sendQueue)));
+				_ws.send((TJson.stringify(_sendQueue)));
 				_sendQueue = [];
 			});
 		}
@@ -1692,21 +1696,202 @@ class Client {
 			case StrMessage(content):
 				_recvLock.execute(() -> {
 					try {
-						var newPackets:Array<IncomingPacket> = TJson.parse(content);
-						// trace(newPackets);
+						// Comprehensive debugging of the received data
+						trace("=== RAW MESSAGE ANALYSIS ===");
+						trace("Content length: " + content.length);
+						// trace("First 100 chars: " + content.substr(0, 100));
+						
+						// // Show character codes for first 20 characters
+						// var charCodes = [];
+						// for (i in 0...Std.int(Math.min(20, content.length))) {
+						// 	charCodes.push(content.charCodeAt(i));
+						// }
+						// trace("First 20 char codes: " + charCodes.join(", "));
+						
+						// // Convert to bytes and show hex
+						// var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
+						// var hexBytes = [];
+						// for (i in 0...Std.int(Math.min(20, contentBytes.length))) {
+						// 	hexBytes.push(StringTools.hex(contentBytes.get(i), 2));
+						// }
+						// trace("First 20 bytes (hex): " + hexBytes.join(" "));
+						
+						// Check if it's already valid JSON
+						var trimmed = StringTools.trim(content);
+						if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+							trace("Data appears to be uncompressed JSON");
+							var newPackets:Array<IncomingPacket> = TJson.parse(content);
+							for (newPacket in newPackets)
+								_recvQueue.push(newPacket);
+							trace('=== END OF RAW MESSAGE ANALYSIS ===');
+							return;
+						}
+						
+						// Check for common compression signatures
+						var first2Bytes = contentBytes.length >= 2 ? (contentBytes.get(0) << 8) | contentBytes.get(1) : 0;
+						trace("First 2 bytes as uint16: 0x" + StringTools.hex(first2Bytes, 4));
+						
+						// Check for various compression formats
+						if (contentBytes.length >= 2) {
+							var b1 = contentBytes.get(0);
+							var b2 = contentBytes.get(1);
+							
+							if (b1 == 0x78 && (b2 == 0x01 || b2 == 0x5E || b2 == 0x9C || b2 == 0xDA)) {
+								trace("Detected zlib header");
+							} else if (b1 == 0x1F && b2 == 0x8B) {
+								trace("Detected gzip header");
+							} else if (b1 == 0x08 || b1 == 0x01) {
+								trace("Possible deflate block header");
+							} else {
+								trace("Unknown compression format or uncompressed data");
+							}
+						}
+						
+						// Try multiple decompression approaches
+						var approaches = [
+							// Approach 1: Try as-is if it looks like JSON
+							function():String {
+								trace("Approach 1: Direct parsing");
+								if (content.indexOf('"') >= 0 || content.indexOf('[') >= 0 || content.indexOf('{') >= 0) {
+									return content;
+								}
+								return null;
+							},
+							
+							// Approach 2: Our custom permessage-deflate
+							function():String {
+								trace("Approach 2: PermessageDeflate");
+								return PermessageDeflate.smartDecompress(content);
+							},
+							
+							// Approach 3: Raw deflate with Haxe's implementation
+							function():String {
+								trace("Approach 3: Raw deflate");
+								try {
+									var input = new haxe.io.StringInput(content);
+									var inflater = new haxe.zip.InflateImpl(input, false, false);
+									var output = new haxe.io.BytesOutput();
+									@:privateAccess
+									inflater.output = output.getBytes();
+									var output = haxe.zip.InflateImpl.run(input);
+									return output.toString();
+								} catch (e:Dynamic) {
+									trace("Raw deflate failed: " + e);
+									return null;
+								}
+							},
+							
+							// Approach 4: Try base64 decode first
+							function():String {
+								trace("Approach 4: Base64 decode");
+								try {
+									var decoded = haxe.crypto.Base64.decode(content);
+									return decoded.toString();
+								} catch (e:Dynamic) {
+									trace("Base64 decode failed: " + e);
+									return null;
+								}
+							},
+							
+							// Approach 5: Try URL decode
+							function():String {
+								trace("Approach 5: URL decode");
+								try {
+									var decoded = StringTools.urlDecode(content);
+									if (decoded != content) {
+										return decoded;
+									}
+									return null;
+								} catch (e:Dynamic) {
+									trace("URL decode failed: " + e);
+									return null;
+								}
+							},
+							
+							// Approach 6: Try treating each character as a byte
+							function():String {
+								trace("Approach 6: Character-to-byte conversion");
+								try {
+									var bytes = haxe.io.Bytes.alloc(content.length);
+									for (i in 0...content.length) {
+										bytes.set(i, content.charCodeAt(i) & 0xFF);
+									}
+									return bytes.toString();
+								} catch (e:Dynamic) {
+									trace("Char-to-byte failed: " + e);
+									return null;
+								}
+							}
+						];
+						
+						var decompressedContent:String = null;
+						for (i in 0...approaches.length) {
+							try {
+								var result = approaches[i]();
+								if (result != null && result != content) {
+									trace("Approach " + (i + 1) + " produced different result (length: " + result.length + ")");
+									trace("Result preview: " + result.substr(0, 100));
+									
+									// Check if result looks like valid JSON
+									var trimmedResult = StringTools.trim(result);
+									if (trimmedResult.startsWith("[") || trimmedResult.startsWith("{")) {
+										trace("Approach " + (i + 1) + " produced valid JSON!");
+										decompressedContent = result;
+										break;
+									}
+								} else if (result != null) {
+									trace("Approach " + (i + 1) + " returned same content");
+								} else {
+									trace("Approach " + (i + 1) + " returned null");
+								}
+							} catch (e:Dynamic) {
+								trace("Approach " + (i + 1) + " failed: " + e);
+							}
+						}
+						
+						// If nothing worked, use original content
+						if (decompressedContent == null) {
+							trace("All decompression approaches failed, using original content");
+							decompressedContent = content;
+						}
+						
+						trace("Final content preview: " + decompressedContent.substr(0, 100));
+						trace("=== END ANALYSIS ===");
+						
+						var newPackets:Array<IncomingPacket> = TJson.parse(decompressedContent);
 						for (newPacket in newPackets)
 							_recvQueue.push(newPacket);
 					} catch (e) {
 						trace("EXCEPTION onmessage: " + e);
 						_hOnThrow("onmessage", e);
+						trace("Content: " + content);
 					}
 				});
 
 			case BytesMessage(bytes):
 				_recvLock.execute(() -> {
 					try {
-						var content = bytes.readAllAvailableBytes().toString();
-						var newPackets:Array<IncomingPacket> = TJson.parse(content);
+						var rawBytes = bytes.readAllAvailableBytes();
+						var decompressedContent:String;
+						
+						try {
+							// Try to decompress the bytes using our custom permessage-deflate handler
+							var uncompressed = PermessageDeflate.decompress(rawBytes);
+							if (uncompressed != null) {
+								decompressedContent = uncompressed.toString();
+								trace("Successfully decompressed bytes message using PermessageDeflate (length: " + rawBytes.length + " -> " + decompressedContent.length + ")");
+							} else {
+								// If our handler fails, treat as plain text
+								decompressedContent = rawBytes.toString();
+								trace("PermessageDeflate returned null, using raw bytes as string");
+							}
+						} catch (e:Dynamic) {
+							// If all decompression fails, treat as plain text
+							trace("All decompression failed for bytes message: " + e);
+							decompressedContent = rawBytes.toString();
+						}
+						
+						var newPackets:Array<IncomingPacket> = TJson.parse(decompressedContent);
 						// trace(newPackets);
 						for (newPacket in newPackets)
 							_recvQueue.push(newPacket);
@@ -1751,12 +1936,17 @@ class Client {
 				_socketReconnectInterval = 15;
 			connectAttempts++;
 
-			_ws = new WebSocket(uri);
+			_ws = new WebSocket(uri, false, new OneOrMany<String>('permessage-deflate'));
 			_ws.onopen = onopen;
 			_ws.onclose = onclose;
 			_ws.onmessage = onmessage;
 			_ws.onerror = onerror;
+			if (ClientPrefs.data.apCompressed)
+			_ws.additionalHeaders.set('Sec-WebSocket-Extensions', 'permessage-deflate');
+			_ws.open();
+			trace("Using headers: " + _ws.additionalHeaders);
 		} catch (e:Exception) {
+			trace("Error Details: " + new DetailedException(e));
 			trace("Error connecting to AP socket", e);
 			_hOnThrow("connect_socket", e);
 			if (e.message == "ssl network error" && uri.startsWith("wss:")) {

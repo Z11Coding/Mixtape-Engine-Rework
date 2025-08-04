@@ -162,6 +162,7 @@
 	<haxelib name="actuate" />
 	<haxelib name="tentools" />
 	<haxelib name="systools" />
+	<haxelib name="deflatex" />
 	<ndll name="systools" haxelib="systools" />
 
 	<!-- Disable Discord IO Thread -->
