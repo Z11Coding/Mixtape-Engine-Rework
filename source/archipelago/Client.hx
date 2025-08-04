@@ -1317,7 +1317,7 @@ class Client {
 		if (_sendQueue.length > 0) {
 			_sendLock.execute(() -> {
 				trace('Sending ${_sendQueue.length} queued packet(s)');
-				_ws.send(TJson.stringify(_sendQueue));
+				_ws.send(haxe.io.Bytes.ofString(TJson.stringify(_sendQueue)));
 				_sendQueue = [];
 			});
 		}
@@ -1692,6 +1692,20 @@ class Client {
 			case StrMessage(content):
 				_recvLock.execute(() -> {
 					try {
+						var newPackets:Array<IncomingPacket> = TJson.parse(content);
+						// trace(newPackets);
+						for (newPacket in newPackets)
+							_recvQueue.push(newPacket);
+					} catch (e) {
+						trace("EXCEPTION onmessage: " + e);
+						_hOnThrow("onmessage", e);
+					}
+				});
+
+			case BytesMessage(bytes):
+				_recvLock.execute(() -> {
+					try {
+						var content = bytes.readAllAvailableBytes().toString();
 						var newPackets:Array<IncomingPacket> = TJson.parse(content);
 						// trace(newPackets);
 						for (newPacket in newPackets)
