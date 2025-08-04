@@ -655,15 +655,15 @@ class APPlayState extends PlayState {
             'spam' => function() {
                 var noIcon:Bool = true;
                 var startingPoint = FlxG.random.int(5, 9);
-                var endingPoint = FlxG.random.int(startingPoint + 5, startingPoint + 10);
+                var endingPoint = FlxG.random.int(startingPoint + 5, startingPoint + 30);
                 for (i in startingPoint...endingPoint) {
                     addNoteSvCLegacy(0, i, i);
                 }
             },
             'insanespam' => function() {
                 var noIcon:Bool = true;
-                var startingPoint = FlxG.random.int(5, 39);
-                var endingPoint = FlxG.random.int(startingPoint + 5, startingPoint + 10);
+                var startingPoint = FlxG.random.int(5, 9);
+                var endingPoint = FlxG.random.int(startingPoint + 5, startingPoint + 40);
                 for (i in startingPoint...endingPoint) {
                     addNoteSvCLegacy(0, i, i);
                 }
@@ -703,7 +703,7 @@ class APPlayState extends PlayState {
                     explosion.kill();
                 };
                 explosion.cameras = [camHUD];
-                explosion.x = playerField.strumNotes[picked].x + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
+                explosion.x = playerField.baseXPositions[picked] + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
                 explosion.y = playerField.strumNotes[picked].y + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
                 explosion.animation.play("boom", true);
                 add(explosion);
@@ -745,7 +745,7 @@ class APPlayState extends PlayState {
                     explosion.kill();
                 };
                 explosion.cameras = [camHUD];
-                explosion.x = (playerField.strumNotes[picked].x - playerField.baseXPositions[picked]) + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
+                explosion.x = (playerField.baseXPositions[picked] - playerField.baseXPositions[picked]) + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
                 explosion.y = (playerField.strumNotes[picked].y - baseY) + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
                 explosion.animation.play("boom", true);
                 add(explosion);
@@ -951,8 +951,8 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = true;
                 var lastPoint:Int = 0; 
                 var exList:Array<Int> = [];
-                for (note in 0...10) {
-                    var startPoint:Int = FlxG.random.int(5, 39, exList);
+                for (note in 0...50) {
+                    var startPoint:Int = FlxG.random.int(5, 9, exList);
                     if (lastPoint == 0) {
                         addNoteSvCLegacy(4, startPoint, startPoint, -1);
                         lastPoint = startPoint;
@@ -1134,8 +1134,9 @@ class APPlayState extends PlayState {
             },
             'songSwitch' => function() {
                 // var haltTween:NumTween = new NumTween(null, null);
-                    FlxTween.num(playbackRate, 0.0000000000000000001, 0.5, {
+                    FlxTween.num(playbackRate, 0, 0.5, {
                     onComplete: function(e) {
+                        paused = false;
                         FlxG.sound.play(Paths.sound('streamervschat/itcomes'), 1, false, null, true, function() {
                             trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
                             if (!FlxG.save.data.manualOverride) {
@@ -1172,6 +1173,7 @@ class APPlayState extends PlayState {
                 var soundOptions:Array<String> = ["delay", "dialup"];
                 var selectedSound:String = soundOptions[FlxG.random.int(0, soundOptions.length)];
                 var onEnd:(Void->Void) = function() {
+                    paused = false;
                     FlxTween.num(0, oldPlaybackRate, 0.5, {
                         onComplete: function(e) {
                             playbackRate = oldPlaybackRate;
@@ -1181,8 +1183,9 @@ class APPlayState extends PlayState {
                     });
                 };
 
-                FlxTween.num(playbackRate, 0.0000000000000000001, 0.5, {
+                FlxTween.num(playbackRate, 0, 0.5, {
                     onComplete: function(e) {
+                        paused = true;
                         FlxG.sound.play(Paths.sound('streamervschat/$selectedSound'), 1, false, null, true, function() {
                             FlxTween.num(playbackRate, 0, 0.5, {
                                 onComplete: function(e) {
@@ -2067,7 +2070,7 @@ class APPlayState extends PlayState {
             trace("Ghost Chat Re-activated!");
         }
 
-        if (bfAscend) boyfriendGroup.y += 0.001;
+        if (bfAscend) boyfriendGroup.y += 0.01;
 
         super.update(elapsed);
     }

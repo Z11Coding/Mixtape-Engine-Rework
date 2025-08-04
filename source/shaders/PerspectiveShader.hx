@@ -1,11 +1,18 @@
 package shaders;
 
-import flixel.system.FlxAssets.FlxShader;
-
-class PerspectiveShader extends FlxShader
+import flixel.addons.display.FlxRuntimeShader;
+class PerspectiveShader extends FlxRuntimeShader
 {
-    @:glFragmentSource('
-		#pragma header
+    public var xrot(default, set):Float;
+    public var yrot(default, set):Float;
+    public var zrot(default, set):Float;
+    public var xpos(default, set):Float;
+    public var ypos(default, set):Float;
+    public var zpos(default, set):Float;
+	public function new()
+	{
+        super("
+        #pragma header
         #define PI 3.1415926538
 
         uniform float xrot = 0.0;
@@ -78,10 +85,61 @@ class PerspectiveShader extends FlxShader
                 
             gl_FragColor = flixel_texture2D(bitmap, uv);
             }
-        }
-')
-	public function new()
-	{
-		super();
+        }");
+
+        xrot = 0.0;
+        yrot = 0.0;
+        zrot = 0.0;
+        xpos = 0.0;
+        ypos = 0.0;
+        zpos = 0.0;
 	}
+
+    function set_xrot(value:Float):Float
+    {
+        this.setFloat('xrot', value);
+        this.xrot = value;
+
+        return this.xrot;
+    }
+
+    function set_yrot(value:Float):Float
+    {
+        this.setFloat('yrot', value);
+        this.yrot = value;
+
+        return this.yrot;
+    }
+
+    function set_zrot(value:Float):Float
+    {
+        this.setFloat('zrot', value);
+        this.zrot = value;
+
+        return this.zrot;
+    }
+
+    function set_xpos(value:Float):Float
+    {
+        this.setFloat('xpos', value);
+        this.xpos = value;
+
+        return this.xpos;
+    }
+
+    function set_ypos(value:Float):Float
+    {
+        this.setFloat('ypos', value);
+        this.ypos = value;
+
+        return this.ypos;
+    }
+
+    function set_zpos(value:Float):Float
+    {
+        this.setFloat('zpos', value);
+        this.zpos = value;
+
+        return this.zpos;
+    }
 }

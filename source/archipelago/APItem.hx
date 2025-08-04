@@ -5,6 +5,8 @@ import haxe.ds.StringMap;
 import cutscenes.DialogueBoxPsych;
 import flixel.util.FlxDestroyUtil;
 import archipelago.TrapLinkFunctions;
+import openfl.filters.ShaderFilter;
+import flixel.addons.display.FlxRuntimeShader;
 
 typedef Condition = {
     var checkFn:APItem->Bool;
@@ -329,22 +331,21 @@ class APItem {
             case "Phone Trap" | "Literature Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     APPlayState.instance.inCutscene = true;
-                    APPlayState.instance.paused = true;
+                    APPlayState.instance.pausePlayState();
                     backend.MusicBeatState.revokeControls = (name == 'Phone Trap');
                     var psychDialogue:DialogueBoxPsych;
                     psychDialogue = new DialogueBoxPsych(DialogueBoxPsych.parseDialogue(Paths.json('apthings/dialogue/' + FlxG.random.int(0, 10))));
                     psychDialogue.scrollFactor.set();
                     psychDialogue.autoScroller = (name == 'Phone Trap');
                     psychDialogue.finishThing = function() {
-                        APPlayState.instance.paused = false;
+                        APPlayState.instance.resumePlayState();
                         APPlayState.instance.inCutscene = false;
                         backend.MusicBeatState.revokeControls = false;
                         FlxG.state.remove(psychDialogue);
                         psychDialogue = null;
                     }
-                    psychDialogue.screenCenter();
                     FlxG.state.add(psychDialogue);
-                    popup('You\'ve been Paralyzed!', 'TrapLink: $name');
+                    popup('I hope you like reading...', 'TrapLink: $name');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -450,20 +451,39 @@ class APItem {
                         okayden.push(i);
                     }
 
-                    var explosion = new FlxSprite().loadGraphic(Paths.image("streamervschat/explosion"), true, 256, 256);
-                    explosion.animation.add("boom", okayden, 60, false);
-                    explosion.animation.finishCallback = function(name) {
-                        explosion.visible = false;
-                        APPlayState.instance.remove(explosion);
-                        explosion.kill();
-                    };
-                    explosion.cameras = [APPlayState.instance.camHUD];
-                    explosion.animation.play("boom", true);
-                    explosion.x = APPlayState.instance.boyfriend.x + APPlayState.instance.boyfriend.width / 2 - explosion.width / 2;
-                    explosion.y = APPlayState.instance.boyfriend.y + APPlayState.instance.boyfriend.height / 2 - explosion.height / 2;
-                    APPlayState.instance.add(explosion);
-                    APPlayState.instance.boyfriend.animation.play('hurt', true);
-                    APPlayState.instance.boyfriend.specialAnim = true;
+                    if (FlxG.random.bool(18)) {
+                        var explosion = new FlxSprite().loadGraphic(Paths.image("streamervschat/explosion"), true, 256, 256);
+                        explosion.animation.add("boom", okayden, 60, false);
+                        explosion.animation.finishCallback = function(name) {
+                            explosion.visible = false;
+                            APPlayState.instance.remove(explosion);
+                            explosion.kill();
+                        };
+                        //explosion.cameras = [APPlayState.instance.camHUD];
+                        explosion.animation.play("boom", true);
+                        explosion.x = APPlayState.instance.boyfriend.x + APPlayState.instance.boyfriend.width / 2 - explosion.width / 2;
+                        explosion.y = APPlayState.instance.boyfriend.y + APPlayState.instance.boyfriend.height / 2 - explosion.height / 2;
+                        APPlayState.instance.add(explosion);
+                        APPlayState.instance.boyfriend.animation.play('hurt', true);
+                        APPlayState.instance.boyfriend.specialAnim = true;
+                    } else {
+                        var explosion = new FlxSprite().loadGraphic(Paths.image("streamervschat/explosion"), true, 256, 256);
+                        explosion.animation.add("boom", okayden, 60, false);
+                        explosion.animation.finishCallback = function(name) {
+                            explosion.visible = false;
+                            APPlayState.instance.remove(explosion);
+                            explosion.kill();
+                        };
+                        explosion.setGraphicSize(Std.int(explosion.width * 5));
+                        //explosion.cameras = [APPlayState.instance.camHUD];
+                        explosion.animation.play("boom", true);
+                        explosion.x = APPlayState.instance.boyfriend.x + APPlayState.instance.boyfriend.width / 2 - explosion.width / 2;
+                        explosion.y = APPlayState.instance.boyfriend.y + APPlayState.instance.boyfriend.height / 2 - explosion.height / 2;
+                        APPlayState.instance.add(explosion);
+                        APPlayState.instance.boyfriend.animation.play('hurt', true);
+                        APPlayState.instance.boyfriend.specialAnim = true;
+                        APPlayState.instance.health -= 0.4;
+                    }
                     popup('That looked like it hurt', "TrapLink: Damage Trap");
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -501,12 +521,12 @@ class APItem {
             case "Deisometric Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('Can you tilt your screen? I can\'t see...', "TrapLink: Deisometric Trap");
-                    for (cam in FlxG.cameras.list) {
-                        if (!cam.filters.contains(shaders.ShadersHandler.perspective))
-                            cam.filters.push(shaders.ShadersHandler.perspective);
-                    }
-                    flixel.tweens.FlxTween.num(shaders.ShadersHandler.perspective.shader.data.zrot.value[0], 0, 15, function(value:Float) {
-                        shaders.ShadersHandler.perspective.shader.data.zrot.value = [value];
+                    var pers:shaders.PerspectiveShader;
+                    pers = new shaders.PerspectiveShader();
+                    for (cam in FlxG.cameras.list)
+                        cam.filters = [new ShaderFilter(pers)];
+                    flixel.tweens.FlxTween.num(pers.xrot, 0.45, 1, function(value:Float) {
+                        pers.xrot = value;
                     }); 
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -517,6 +537,7 @@ class APItem {
             case "Push Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('You go bye bye now :)', "TrapLink: Push Trap");
+                    TrapLinkFunctions.bfPosition = [APPlayState.instance.boyfriend.x ,APPlayState.instance.boyfriend.y];
                     TrapLinkFunctions.doCarCrash(true);
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -570,7 +591,7 @@ class APItem {
                 });
 
             case "Zoom Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.Special(), function() {
                     popup('ZOOM!', "TrapLink: Zoom Trap");
                     for (cam in FlxG.cameras.list) {
                         cam.zoom += 5;
@@ -725,7 +746,7 @@ class APItem {
 
             case "Confound Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    popup('FLASHBACG OUT', 'TrapLink: Confound Trap');
+                    popup('FLASHBANG OUT', 'TrapLink: Confound Trap');
                     APPlayState.instance.doEffect('strongflashbang');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.

@@ -4989,6 +4989,56 @@ class PlayState extends MusicBeatState
 		#end
 	}
 
+	public function pausePlayState()
+	{
+		FlxG.camera.followLerp = 0;
+		persistentUpdate = false;
+		persistentDraw = true;
+		paused = true;
+
+		if(FlxG.sound.music != null) {
+			FlxG.sound.music.pause();
+			vocals.pause();
+			opponentVocals.pause();
+			gfVocals.pause();
+		}
+		
+		if(!cpuControlled)
+		{
+			for (note in playerStrums)
+				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
+				{
+					note.playAnim('static');
+					note.resetAnim = 0;
+				}
+		}
+
+		FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if(!tmr.finished) tmr.active = false);
+		FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = false);
+
+		for (tag in MusicBeatState.getVariables().keys())
+			if (tag.contains("_video")) MusicBeatState.getVariables().get(tag).pause();
+	}
+
+	public function resumePlayState()
+	{
+		if (paused)
+		{
+			if (FlxG.sound.music != null && !startingSong && canResync)
+			{
+				resyncVocals();
+			}
+			FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if(!tmr.finished) tmr.active = true);
+			FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = true);
+			for (tag in MusicBeatState.getVariables().keys())
+				if (tag.contains("_video")) MusicBeatState.getVariables().get(tag).resume();
+
+			paused = false;
+			callOnScripts('onResume');
+			resetRPC(startTimer != null && startTimer.finished);
+		}
+	}
+
 	function openChartEditor()
 	{
 		canResync = false;

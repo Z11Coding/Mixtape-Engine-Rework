@@ -146,8 +146,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         trapAmount.value = APEntryState.gameSettings.FNF.trapAmount;
         bbcWeight.value = APEntryState.gameSettings.FNF.bbcWeight;
         ghostChatWeight.value = APEntryState.gameSettings.FNF.ghostChatWeight;
-        tutorialWeight.value = APEntryState.gameSettings.FNF.svcWeight;
-        svcWeight.value = APEntryState.gameSettings.FNF.tutorialWeight;
+        tutorialWeight.value = APEntryState.gameSettings.FNF.tutorialWeight;
+        svcWeight.value = APEntryState.gameSettings.FNF.svcWeight;
         chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
         shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
         MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
@@ -281,13 +281,13 @@ class APSettingsSubState extends MusicBeatSubstate {
         ghostChatWeight.decimals = 0;
 
         objY += 40;
-        tutorialWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.svcWeight = Std.int(v));
+        tutorialWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.tutorialWeight = Std.int(v));
         tutorialWeight.min = 0;
         tutorialWeight.max = 10;
         tutorialWeight.decimals = 0;
 
         objY += 40;
-        svcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.tutorialWeight = Std.int(v));
+        svcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.svcWeight = Std.int(v));
         svcWeight.min = 0;
         svcWeight.max = 10;
         svcWeight.decimals = 0;

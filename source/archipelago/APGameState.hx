@@ -937,6 +937,7 @@ class APGameState
 					waitForPlayState();
 				case "Instant Death Trap":
 					archipelago.APItem.createItemByName("Blue Balls Curse").fromTrapLink = true;
+					backend.COD.COD.COD = "Killed by Blue Balls Curse.\n(Instant Death TrapLink)";
 				case "Ghost":
 					archipelago.APItem.createItemByName("Ghost").fromTrapLink = true;
 				case "My Turn! Trap":
@@ -946,7 +947,7 @@ class APGameState
 				case "Phone Trap" | "Literature Trap":
 					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
 				case "Home Trap":
-					archipelago.APItem.createItemByName("Home Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Tutorial Trap").fromTrapLink = true;
 				case "Ice Trap":
 					archipelago.APItem.createItemByName("Ice Trap").fromTrapLink = true;
 				case "Freeze Trap" | "Frozen Trap":
@@ -962,7 +963,7 @@ class APGameState
 				case "Eject Ability":
 					archipelago.APItem.createItemByName("Eject Ability").fromTrapLink = true;
 				case "Whoops! Trap":
-					archipelago.APItem.createItemByName("Eject Ability").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Whoops! Trap").fromTrapLink = true;
 				case "Zoom Trap":
 					archipelago.APItem.createItemByName("Zoom Trap").fromTrapLink = true;
 				case "Posession Trap":
