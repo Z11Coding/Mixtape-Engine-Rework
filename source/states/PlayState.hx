@@ -32,6 +32,7 @@ import shaders.ErrorHandledShader;
 import objects.VideoSprite;
 import objects.Note.EventNote;
 import objects.NoteObject;
+import objects.Note.PreloadedNote;
 import objects.*;
 import stages.*;
 
@@ -485,6 +486,9 @@ class PlayState extends MusicBeatState
 	var vocalvisual:AudioDisplay = null;
 	var oppvisual:AudioDisplay = null;
 
+	//JS Engine shenanigans
+	public var renderedTxt:FlxText;
+
 	// End of Mixtape Engine's large amount of bull
 
 
@@ -523,7 +527,7 @@ class PlayState extends MusicBeatState
 		}
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
-		Paths.clearUnusedMemory();
+		inline Paths.clearStoredMemory();
 		Language.reloadPhrases();
 		nextReloadAll = false;
 
@@ -1025,7 +1029,7 @@ class PlayState extends MusicBeatState
 		}
 
 		var prevTime = Sys.time();
-		generateSong();
+		var doGeneration = generateSong();
 		trace('generateSong() took ${Sys.time() - prevTime} seconds');
 
 		noteGroup.add(grpNoteSplashes);
@@ -1117,6 +1121,15 @@ class PlayState extends MusicBeatState
 		scoreTxt.visible = !ClientPrefs.data.hideHud;
 		uiGroup.add(scoreTxt);
 
+		renderedTxt = new FlxText(0, healthBar.y - 50, FlxG.width, "", 32);
+		renderedTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		renderedTxt.scrollFactor.set();
+		renderedTxt.borderSize = 1.25;
+		renderedTxt.cameras = [camHUD];
+
+		if (ClientPrefs.data.downScroll) renderedTxt.y = healthBar.y + 50;
+		uiGroup.add(renderedTxt);
+
 		botplayTxt = new FlxText(400, healthBar.y - 90, FlxG.width - 800, Language.getPhrase("Botplay").toUpperCase(), 32);
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
@@ -1203,6 +1216,8 @@ class PlayState extends MusicBeatState
 		uiGroup.cameras = [camHUD];
 		hearts.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
+
+		renderedTxt.text = 'Rendered Notes: ' + notes.length;
 
 		startingSong = true;
 
@@ -1367,6 +1382,9 @@ class PlayState extends MusicBeatState
 		rank.y = 640 - rank.height;
 		rank.x = FlxG.width/2 - 590;
 		uiGroup.add(rank);
+
+		regenNotes(doGeneration);
+		//yutautil.Threader.runInThread(regenNotes(doGeneration), 0, "generateTheRestOfTheNotes");
 
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
@@ -2444,7 +2462,7 @@ class PlayState extends MusicBeatState
 	}
 	
 
-	private function generateSong():Void
+	private function generateSong():Array<SwagSection>
 	{
 		// trace('Generating Song: ${SONG.song}');
 		// FlxG.log.add(ChartParser.parse());
@@ -2530,16 +2548,8 @@ class PlayState extends MusicBeatState
 		catch (e:Dynamic) {}
 		FlxG.sound.list.add(inst);
 
-
-
-
-
 		notes = new FlxTypedGroup<Note>();
 		noteGroup.add(notes);
-
-		
-
-		
 
 		try
 		{
@@ -2555,6 +2565,7 @@ class PlayState extends MusicBeatState
 
 		var oldNote:Note = null;
 		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
+		var sectionsIndex:Int = (20*1000);
 		var ghostNotesCaught:Int = 0;
 		var daBpm:Float = Conductor.bpm;
 	
@@ -2563,37 +2574,15 @@ class PlayState extends MusicBeatState
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
 				daBpm = section.bpm;
 
-			// Function to get random mappings from available indexes and a list of special integers
-			/*function getAPLocations(max:Int, loc:Array<Int>, gottaHit:Array<Bool>):Array<{index:Int, loc:Int}> {
-				var mappings:Array<{index:Int, loc:Int}> = [];
-				var indexes:Array<Int> = [for (i in 0...max) if (gottaHit[i]) i];
-				//trace(indexes.length);
-				for (i in 0...Std.int(Math.min(indexes.length, loc.length))) {
-					mappings.push({index: indexes[i], loc: loc[i]});
-				}
-				return mappings;
-			}*/
-
-			//var gottaHit:Array<Bool> = [for (note in section.sectionNotes) note[1] < (SONG.mania != null ? totalColumns : Note.ammo[3])];
-			//var APNotes:Array<{index:Int, loc:Int}> = (this is archipelago.APPlayState) ? getAPLocations(section.sectionNotes.length, archipelago.APGameState.instance.noteData(PlayState.SONG.song, archipelago.APPlayState.currentMod), gottaHit) : [];
-
 			for (i in 0...section.sectionNotes.length)
 			{
-				final songNotes: Array<Dynamic> = section.sectionNotes[i];
+				final songNotes:Array<Dynamic> = section.sectionNotes[i];
 				var spawnTime:Float = songNotes[0];
+				if (spawnTime > sectionsIndex) break;
 				var noteColumn:Int = Std.int(songNotes[1]);
 				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
 				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-				/*var apNote:Bool = (function() {
-					for (apNoteData in APNotes) {
-						if (apNoteData.index == i) {
-							return true;
-						}
-					}
-					return false;
-				})();*/
-				//var apLoc = APNotes.filter(function(apNoteData) return apNoteData.index == i)[0]?.loc;
 				if (Math.isNaN(holdLength)) holdLength = 0.0;
 
 				var gottaHitNote:Bool;
@@ -3120,52 +3109,58 @@ class PlayState extends MusicBeatState
 
 		for (field in playfields.members)
 			field.clearStackedNotes();
+
 		generatedMusic = true;
+
+		function noteCheck(a:SwagSection):Bool {
+			var car:Null<Float> = null;
+			for (i in 0...a.sectionNotes.length)
+			{
+				final songNotes:Array<Dynamic> = a.sectionNotes[i];
+				var spawnTime:Float = songNotes[0];
+				if (car == null || spawnTime < car) car = spawnTime; 
+			}
+			if (car < sectionsIndex) return false;
+			return true;
+		}
+
+		function smallFunction(a:Array<SwagSection>):Array<SwagSection> {
+			for (section in a)
+			{
+				//trace(section);
+				for (note in section.sectionNotes)
+				{
+					//trace(note[0]);
+					var spawnTime:Null<Float> = note[0];
+					if (spawnTime > sectionsIndex) section.sectionNotes.splice(section.sectionNotes.indexOf(note), 1);
+				}
+			}
+			return a;
+		}
+		return sectionsData;
 	}
 
-	private function regenNotes():Void
+	var swagNoteLagless:PreloadedNote;
+	private function regenNotes(sexData:Array<SwagSection>)
 	{
-		// FlxG.log.add(ChartParser.parse());
-		songSpeed = PlayState.SONG.speed;
-		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
-		switch(songSpeedType)
-		{
-			case "multiplicative":
-				songSpeed = SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed');
-			case "constant":
-				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
-		}
-
-		var songData = SONG;
-		Conductor.bpm = songData.bpm;
-		curSong = songData.song;
-
-		try
-		{
-			var eventsChart:SwagSong = Song.getChart('events', songName);
-			if(eventsChart != null)
-				for (event in eventsChart.events) //Event Notes
-					for (i in 0...event[1].length)
-						makeEvent(event, i);
-		}
-		catch(e:Dynamic) {}
-
 		var AIPlayMap:Array<Array<Float>> = AIPlayer.active ? AIPlayer.GeneratePlayMap(SONG, AIPlayer.diff) : null;
 
 		var oldNote:Note = null;
-		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
+		var sectionsData:Array<SwagSection> = sexData;
+		var sectionsIndex:Int = (20*1000);
 		var ghostNotesCaught:Int = 0;
 		var daBpm:Float = Conductor.bpm;
 	
+		trace(sectionsData);
 		for (section in sectionsData)
 		{
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
 				daBpm = section.bpm;
-
 			for (i in 0...section.sectionNotes.length)
 			{
-				final songNotes: Array<Dynamic> = section.sectionNotes[i];
+				final songNotes:Array<Dynamic> = section.sectionNotes[i];
 				var spawnTime:Float = songNotes[0];
+				if (spawnTime < sectionsIndex) continue;
 				var noteColumn:Int = Std.int(songNotes[1]);
 				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
@@ -3175,6 +3170,8 @@ class PlayState extends MusicBeatState
 				var gottaHitNote:Bool;
 				noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
+
+				//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
 
 				if (i != 0) {
 					// CLEAR ANY POSSIBLE GHOST NOTES
@@ -3574,7 +3571,73 @@ class PlayState extends MusicBeatState
 				else
 					oldNote = null;
 
-				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
+				var isAlt: Bool = section.altAnim && !gottaHitNote;
+				swagNoteLagless = cast {
+					strumTime: spawnTime,
+					noteData: noteColumn,
+					column: noteColumn,
+					prevNote: oldNote,
+					mustPress: gottaHitNote,
+					noteType: noteType,
+					animSuffix: isAlt ? "-alt" : "",
+					sustainLength: songNotes[2] <= curStepCrochet ? songNotes[2] : (holdLength + 1) * curStepCrochet,
+					noAnimation: false,
+					noMissAnimation: false,
+					gfNote: (section.gfSection && gottaHitNote == section.mustHitSection),
+					isSustainNote: false,
+					hitHealth: 0.02,
+					missHealth: 0.1,
+					hitCausesMiss: false,
+					ignoreNote: false,
+					blockHit: false,
+					lowPriority: false,
+					row: Conductor.secsToRow(spawnTime),
+					holdType: ((songNotes[2] <= curStepCrochet ? songNotes[2] : (holdLength + 1) * curStepCrochet) > 0 ? HEAD : TAP),
+					isParent: true,
+					multSpeed: 1,
+					//noteIndex: Std.int(allNotesLagless.length),
+					field: null,
+					fieldIndex: -1,
+					inEditor: false,
+					spawned: false,
+					tail: [],
+					unhitTail: [],
+					childs: [],
+					template: this
+				}
+
+				if (!swagNoteLagless.mustPress)
+				{
+					if (AIPlayMap != null && AIPlayMap.length != 0 && [sectionsData.indexOf(section)] != null)
+					{
+						swagNoteLagless.AIStrumTime = AIPlayMap[sectionsData.indexOf(section)][section.sectionNotes.indexOf(songNotes)];
+						if (Math.abs(swagNoteLagless.AIStrumTime) > Conductor.safeZoneOffset)
+							swagNoteLagless.ignoreNote = swagNoteLagless.AIMiss = true;
+					}
+				}
+
+				var playfield:PlayField = swagNoteLagless.field;
+
+				if (playfield == null && playfields.length > 0) {
+					if (swagNoteLagless.fieldIndex == -1)
+						swagNoteLagless.fieldIndex = swagNoteLagless.mustPress ? 0 : 1;
+
+					if (playfields.members[swagNoteLagless.fieldIndex] != null) {
+						playfield = playfields.members[swagNoteLagless.fieldIndex];
+						swagNoteLagless.field = playfield;
+					}
+				}
+
+				playfield = swagNoteLagless.field;
+				swagNoteLagless.fieldIndex = playfield.modNumber;
+				
+				if (playfield != null)
+				{
+					playfield.preloadQueue(swagNoteLagless); // queues the note to be spawned
+					allNotes.push(Note.quickMakeNote(swagNoteLagless)); // just for the sake of convenience
+				}
+
+				/*var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
 
@@ -3621,76 +3684,29 @@ class PlayState extends MusicBeatState
 						swagNote.field = playfield;
 					}
 				}
-
-				playfield = swagNote.field;
-				swagNote.fieldIndex = playfield.modNumber;
 				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
 
 				if (playfield != null)
 				{
 					playfield.queue(swagNote); // queues the note to be spawned
 					allNotes.push(swagNote); // just for the sake of convenience
-				}
-
-				var spot = 0;
-				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet) -1;
-				if (roundSus > 0)
-				{
-					for (susNote in 0...roundSus)
-					{
-						oldNote = allNotes[Std.int(allNotes.length - 1)];
-
-						var sustainNote:Note = new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
-						sustainNote.mustPress = gottaHitNote;
-						sustainNote.gfNote = swagNote.gfNote;
-						sustainNote.exNote = swagNote.exNote;
-						sustainNote.animSuffix = swagNote.animSuffix;
-						sustainNote.noteType = swagNote.noteType;
-						sustainNote.noteIndex = swagNote.noteIndex;
-						if (chartModifier == 'Amalgam' && currentModifier == 11)
-						{
-							sustainNote.multSpeed = swagNote.multSpeed;
-						}
-						if (sustainNote == null || !sustainNote.alive)
-							break;
-						sustainNote.ID = allNotes.length;
-						sustainNote.scrollFactor.set();
-						sustainNote.holdType = roundSus > 0 ? PART : END;
-						sustainNote.parent = swagNote;
-						sustainNote.fieldIndex = swagNote.fieldIndex;
-						sustainNote.field = swagNote.field;
-						swagNote.tail.push(sustainNote);
-						swagNote.unhitTail.push(sustainNote);
-						playfield.queue(sustainNote);
-						allNotes.push(sustainNote);
-
-						if (sustainNote.mustPress)
-						{
-							sustainNote.x += FlxG.width * 0.5; // general offset
-						}
-
-						sustainNote.parent = swagNote;
-						swagNote.childs.push(sustainNote);
-						sustainNote.spotInLine = spot;
-						spot++;
-					}
-				}
+				}*/
 			}
 		}
 
 		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-		for (event in songData.events) //Event Notes
-			for (i in 0...event[1].length)
-				makeEvent(event, i);
 
 		allNotes.sort(sortByTime);
 
-		for (fuck in allNotes)
+		for (fuck in allNotes) {
 			unspawnNotes.push(fuck);
+			curChart.push(fuck);
+		}
+
+		// curChart = cast (curChart:objects.NotePool.NoteArray);
 
 		for (field in playfields.members)
 			field.clearStackedNotes();
-		generatedMusic = true;
 	}
 
 	function updateNote(note:Note)
@@ -4133,6 +4149,7 @@ class PlayState extends MusicBeatState
 		});
 
 		field.noteSpawned.add((dunceNote:Note, field:PlayField) -> {
+			/*
 			callOnScripts('onSpawnNote', [dunceNote.noteReflection]);
 			#if LUA_ALLOWED
 			callOnLuas('onSpawnNote', [
@@ -4142,13 +4159,13 @@ class PlayState extends MusicBeatState
 				dunceNote.isSustainNote,
 				dunceNote.strumTime
 			]);
-			#end
+			#end*/
 
 			notes.add(dunceNote);
 			var index:Int = unspawnNotes.indexOf(dunceNote);
 			unspawnNotes.splice(index, 1);
 
-			callOnScripts('onSpawnNotePost', [dunceNote.noteReflection]);
+			//callOnScripts('onSpawnNotePost', [dunceNote.noteReflection]);
 		});
 
 
@@ -4573,6 +4590,16 @@ class PlayState extends MusicBeatState
 			{
 				if(!cpuControlled) keysCheck();
 				else playerDance();
+
+				amountOfRenderedNotes = 0;
+				for (group in notes)
+				{
+					notes.forEach(function(daNote)
+					{
+						updateLiveNote(daNote);
+					});
+					//notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+				}
 			}
 			checkEventNote();
 		}
@@ -4723,9 +4750,68 @@ class PlayState extends MusicBeatState
 			i(elapsed);
 		}
 
+		renderedTxt.text = 'Rendered Notes: ${formatCompactNumber(amountOfRenderedNotes)}/${formatCompactNumber(maxRenderedNotes)}/${formatCompactNumber(notes.members.length)}';
+
 		setOnScripts('botPlay', cpuControlled);
 		callOnScripts('onUpdatePost', [elapsed]);
 	}
+
+	public static function formatCompactNumber(number:Float):String
+	{
+		var suffixes1:Array<String> = ['ni', 'mi', 'bi', 'tri', 'quadri', 'quinti', 'sexti', 'septi', 'octi', 'noni'];
+		var tenSuffixes:Array<String> = ['', 'deci', 'viginti', 'triginti', 'quadraginti', 'quinquaginti', 'sexaginti', 'septuaginti', 'octoginti', 'nonaginti', 'centi'];
+		var decSuffixes:Array<String> = ['', 'un', 'duo', 'tre', 'quattuor', 'quin', 'sex', 'septe', 'octo', 'nove'];
+		var centiSuffixes:Array<String> = ['centi', 'ducenti', 'trecenti', 'quadringenti', 'quingenti', 'sescenti', 'septingenti', 'octingenti', 'nongenti'];
+
+		var magnitude:Int = 0;
+		var num:Float = number;
+		var tenIndex:Int = 0;
+
+		while (num >= 1000.0)
+		{
+			num /= 1000.0;
+
+			if (magnitude == suffixes1.length - 1) {
+				tenIndex++;
+			}
+
+			magnitude++;
+
+			if (magnitude == 21) {
+				tenIndex++;
+				magnitude = 11;
+			}
+		}
+
+		// Determine which set of suffixes to use
+		var suffixSet:Array<String> = (magnitude <= suffixes1.length) ? suffixes1 : ((magnitude <= suffixes1.length + decSuffixes.length) ? decSuffixes : centiSuffixes);
+
+		// Use the appropriate suffix based on magnitude
+		var suffix:String = (magnitude <= suffixes1.length) ? suffixSet[magnitude - 1] : suffixSet[magnitude - 1 - suffixes1.length];
+		var tenSuffix:String = (tenIndex <= 10) ? tenSuffixes[tenIndex] : centiSuffixes[tenIndex - 11];
+
+		// Use the floor value for the compact representation
+		var compactValue:Float = Math.floor(num * 100) / 100;
+
+		if (compactValue <= 0.001) {
+			return "0"; // Return 0 if compactValue = null
+		} else {
+			var illionRepresentation:String = "";
+
+			if (magnitude > 0) {
+				illionRepresentation += suffix + tenSuffix;
+			}
+
+				if (magnitude > 1) illionRepresentation += "llion";
+
+			return compactValue + (magnitude == 0 ? "" : " ") + (magnitude == 1 ? 'thousand' : illionRepresentation);
+		}
+	}
+
+	public var amountOfRenderedNotes:Float = 0;
+	public var maxRenderedNotes:Float = 0;
+	public var skippedCount:Float = 0;
+	public var maxSkipped:Float = 0;
 
 	// Health icon updaters
 	public dynamic function updateIconsScale(elapsed:Float)
@@ -4772,6 +4858,28 @@ class PlayState extends MusicBeatState
 					iconP12.scale.set(mult, mult);
 					iconP12.updateHitbox();
 				}
+		}
+	}
+
+	function updateLiveNote(daNote:Note):Void
+	{
+		if (daNote != null && daNote.exists)
+		{
+			//first, process whether or not the note should be hit. this prevents pointless strum following
+			if (!daNote.exists) return;
+
+			amountOfRenderedNotes += 1;
+			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
+			if (daNote.isSustainNote)
+			{
+				final strum = (daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData];
+				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
+			}
+
+			if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
+			{
+				invalidateNote(daNote);
+			}
 		}
 	}
 
@@ -7666,10 +7774,10 @@ class PlayState extends MusicBeatState
 	}
 
 	public function invalidateNote(note:Note):Void {
-		// note.kill();
-		// notes.remove(note, true);
-		// note.destroy();
 		note.field.removeNote(note);
+		note.kill();
+		notes.remove(note, true);
+		note.destroy();
 	}
 
 	function playAnim(note:Note, char:Character, animToPlay:String, ?forceAnim:Bool = false) {

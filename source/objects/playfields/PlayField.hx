@@ -20,6 +20,7 @@ import objects.NoteSplash;
 import flixel.FlxBasic;
 import objects.NoteObject;
 import objects.Note.SustainPart;
+import objects.Note.PreloadedNote;
 
 /*
 The system is seperated into 3 classes:
@@ -89,6 +90,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var tapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned tap notes (with requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
 	public var noTapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned tap notes (without requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
 	public var noteQueue:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // unspawned notes
+	public var pendingQueue:Array<Array<PreloadedNote>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // preloaded notes
 	
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
@@ -214,7 +216,17 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			noteQueue[note.column] = [];
 		noteQueue[note.column].push(note);
 
-		noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
+		//noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
+		
+	}
+
+	// preloads a note to be spawned
+	public function preloadQueue(note:PreloadedNote){
+		if(pendingQueue[note.column]==null)
+			pendingQueue[note.column] = [];
+		pendingQueue[note.column].push(note);
+
+		//noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 		
 	}
 
@@ -234,9 +246,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		daNote.kill();
 
 		noteRemoved.dispatch(daNote, this);
-
-		daNote.kill();
 		spawnedNotes.remove(daNote);
+		
 		if (spawnedByData[daNote.column] != null)
 			spawnedByData[daNote.column].remove(daNote);
 
@@ -953,6 +964,20 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			}
 		}
 
+		for (data => column in pendingQueue)
+		{
+			if (column[0] != null)
+			{
+				var dataSpawnTime = modManager.get("noteSpawnTime" + data); 
+				var noteSpawnTime = (dataSpawnTime != null && dataSpawnTime.getValue(modNumber)>0)?dataSpawnTime:modManager.get("noteSpawnTime");
+				var time:Float = noteSpawnTime == null ? spawnTime : noteSpawnTime.getValue(modNumber); // no longer averages the spawn times
+				if (time <= 0)time = spawnTime;
+				var funNote = Note.quickMakeNote(column[0]);
+				while (column.length > 0 && funNote.strumTime - Conductor.songPosition < time)
+					(funNote.spawned) ? column.remove(column[0]) : spawnNotesbutcoolerithink(funNote);
+			}
+		}
+
 		super.update(elapsed);
 
 		for(obj in strumNotes)
@@ -1138,6 +1163,62 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 			}
 		}
+	}
+
+	function logicStudioOne(note:Note):Array<Note> {
+		trace("SPAWNING SUSTAINS!");
+		var spot = 0;
+		var susArray:Array<Note> = []; //Get it?
+		var oldNote:Note = note;
+		final roundSus:Int = Math.round(note.sustainLength / Conductor.stepCrochet) -1;
+		if (roundSus > 0)
+		{
+			for (susNote in 0...roundSus)
+			{
+				if (susArray.length > 0) oldNote = susArray[Std.int(susArray.length - 1)];
+				var sustainNote:Note = new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), note.column, oldNote, true);
+				sustainNote.mustPress = note.mustPress;
+				sustainNote.gfNote = note.gfNote;
+				//sustainNote.exNote = note.exNote;
+				sustainNote.animSuffix = note.animSuffix;
+				sustainNote.noteType = note.noteType;
+				//sustainNote.noteIndex = swagNote.noteIndex;
+				sustainNote.multSpeed = note.multSpeed;
+				if (sustainNote == null || !sustainNote.alive)
+					break;
+				//sustainNote.ID = allNotes.length;
+				sustainNote.scrollFactor.set();
+				sustainNote.holdType = roundSus > 0 ? PART : END;
+				sustainNote.parent = note;
+				sustainNote.fieldIndex = note.fieldIndex;
+				sustainNote.field = note.field;
+				
+				note.tail.push(sustainNote);
+				note.unhitTail.push(sustainNote);
+				sustainNote.field.queue(sustainNote);
+				susArray.push(sustainNote);
+				PlayState.instance.allNotes.push(sustainNote);
+
+				if (sustainNote.mustPress)
+				{
+					sustainNote.x += FlxG.width * 0.5; // general offset
+				}
+
+				sustainNote.parent = note;
+				note.childs.push(sustainNote);
+				sustainNote.spotInLine = spot;
+				spot++;
+			}
+		}
+		return susArray;
+	}
+
+	function spawnNotesbutcoolerithink(note:Note) {
+		var anarrayofnotes:Array<Note> = [];
+		anarrayofnotes.push(note);
+		anarrayofnotes.concat(logicStudioOne(note));
+		for (note in anarrayofnotes) spawnNote(note);
+		trace(anarrayofnotes);
 	}
 	
 

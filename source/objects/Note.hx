@@ -31,6 +31,42 @@ typedef NoteSplashData = {
 	a:Float
 }
 
+typedef PreloadedNote = {
+	strumTime:Float,
+	noteData:Int,
+	column:Int,
+	prevNote:Note,
+	mustPress:Bool,
+	noteType:String,
+	animSuffix:String,
+	sustainLength:Float,
+	noAnimation:Bool,
+	noMissAnimation:Bool,
+	gfNote:Bool,
+	hitHealth:Float,
+	missHealth:Float,
+	hitCausesMiss:Null<Bool>,
+	ignoreNote:Bool,
+	blockHit:Bool,
+	lowPriority:Bool,
+	row:Int,
+	holdType:SustainPart,
+	isParent:Bool,
+	multSpeed:Float,
+	noteIndex:Int,
+	field:PlayField,
+	fieldIndex:Int,
+	tail:Array<PreloadedNote>,
+	unhitTail:Array<PreloadedNote>,
+	childs:Array<PreloadedNote>,
+	parent:PreloadedNote,
+	spotInLine:Int,
+	AIStrumTime:Float,
+	AIMiss:Bool,
+	inEditor:Bool,
+	spawned:Bool
+}
+
 enum abstract SustainPart(Int) from Int to Int
 {
 	var TAP = -1; // Not a sustain
@@ -1251,5 +1287,36 @@ class Note extends NoteObject
 			frame = frames.frames[animation.frameIndex];
 
 		return rect;
+	}
+
+	public static function quickMakeNote(template:PreloadedNote):Note {
+		var newNote = new Note(template.strumTime, template.noteData, template.prevNote, false, template.inEditor);
+		newNote.mustPress = template.mustPress;
+		newNote.noteType = template.noteType;
+		newNote.animSuffix = template.animSuffix;
+		newNote.sustainLength = template.sustainLength;
+		newNote.noAnimation = template.noAnimation;
+		newNote.noMissAnimation = template.noMissAnimation;
+		newNote.gfNote = template.gfNote;
+		newNote.hitHealth = template.hitHealth;
+		newNote.missHealth = template.missHealth;
+		newNote.hitCausesMiss = template.hitCausesMiss;
+		newNote.ignoreNote = template.ignoreNote;
+		newNote.blockHit = template.blockHit;
+		newNote.lowPriority = template.lowPriority;
+		newNote.row = template.row;
+		newNote.holdType = template.holdType;
+		newNote.isParent = template.isParent;
+		newNote.multSpeed = template.multSpeed;
+		newNote.noteIndex = template.noteIndex;
+		newNote.field = template.field;
+		newNote.fieldIndex = template.fieldIndex;
+		newNote.spotInLine = template.spotInLine;
+		newNote.AIStrumTime = template.AIStrumTime;
+		newNote.AIMiss = template.AIMiss;
+		newNote.inEditor = template.inEditor;
+		newNote.spawned = template.spawned;
+
+		return newNote;
 	}
 }

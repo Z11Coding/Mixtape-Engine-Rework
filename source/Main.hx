@@ -617,7 +617,7 @@ class Main extends Sprite
 							PlayState.Crashed = true;
 							if (errType.contains("Null Object Reference")) {
 								FlxG.sound.music != null ? FlxG.sound.music.stop() : null;
-								FlxG.sound.play(Paths.sound("metal_pipe"));
+								FlxG.sound.play(Paths.sound("metal_pipe"), 0.5);
 								if (PlayState.isStoryMode) {
 									FlxG.switchState(new states.StoryMenuState());
 								} else {

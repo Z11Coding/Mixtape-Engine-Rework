@@ -1595,14 +1595,16 @@ class APPlayState extends PlayState {
 	}
 
     var apNotes:Array<archipelago.APNote> = [];
-    private override function generateSong():Void
+    private override function generateSong():Array<backend.SwagSection>
     {
         super.generateSong();
-        if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap") return;
+        if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap") return  PlayState.SONG.notes;
         apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
 
         for (field in playfields.members)
             field.clearStackedNotes();
+
+        return PlayState.SONG.notes;
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void

@@ -100,19 +100,21 @@ class DiscordClient
 
 	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String = 'icon', ?hasStartTimestamp:Bool, ?endTimestamp:Float, largeImageKey:String = 'icon')
 	{
-		var startTimestamp:Float = 0;
-		if (hasStartTimestamp) startTimestamp = Date.now().getTime();
-		if (endTimestamp > 0) endTimestamp = startTimestamp + endTimestamp;
+		if (PlayState.instance != null && !PlayState.Crashed) {
+			var startTimestamp:Float = 0;
+			if (hasStartTimestamp) startTimestamp = Date.now().getTime();
+			if (endTimestamp > 0) endTimestamp = startTimestamp + endTimestamp;
 
-		presence.state = state;
-		presence.details = details;
-		presence.smallImageKey = smallImageKey;
-		presence.largeImageKey = largeImageKey;
-		presence.largeImageText = "Engine Version: " + states.MainMenuState.mixtapeEngineVersion;
-		// Obtained times are in milliseconds so they are divided so Discord can use it
-		presence.startTimestamp = Std.int(startTimestamp / 1000);
-		presence.endTimestamp = Std.int(endTimestamp / 1000);
-		updatePresence();
+			presence.state = state;
+			presence.details = details;
+			presence.smallImageKey = smallImageKey;
+			presence.largeImageKey = largeImageKey;
+			presence.largeImageText = "Engine Version: " + states.MainMenuState.mixtapeEngineVersion;
+			// Obtained times are in milliseconds so they are divided so Discord can use it
+			presence.startTimestamp = Std.int(startTimestamp / 1000);
+			presence.endTimestamp = Std.int(endTimestamp / 1000);
+			updatePresence();
+		}
 
 		//trace('Discord RPC Updated. Arguments: $details, $state, $smallImageKey, $hasStartTimestamp, $endTimestamp, $largeImageKey');
 	}
