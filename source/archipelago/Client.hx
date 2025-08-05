@@ -1709,7 +1709,7 @@ class Client {
 						// trace("First 20 char codes: " + charCodes.join(", "));
 						
 						// // Convert to bytes and show hex
-						// var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
+						var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
 						// var hexBytes = [];
 						// for (i in 0...Std.int(Math.min(20, contentBytes.length))) {
 						// 	hexBytes.push(StringTools.hex(contentBytes.get(i), 2));
