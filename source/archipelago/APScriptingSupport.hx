@@ -425,7 +425,7 @@ class APScriptingSupport
     {
         if (!APEntryState.inArchipelagoMode || APGameState.instance == null || APGameState.instance.info() == null) return "";
         
-        return APGameState.instance.info().get_player_alias(APGameState.instance.info().slot);
+        return APGameState.instance.info().slot;
     }
     
     /**
