@@ -523,7 +523,7 @@ class PermessageDeflate {
         try {
             // First, try to see if it's already valid JSON/text
             var trimmed = StringTools.trim(compressedString);
-            if (trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.indexOf('"') >= 0) {
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
                 trace("Data appears to be uncompressed JSON/text");
                 return compressedString;
             }

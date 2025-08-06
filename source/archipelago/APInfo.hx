@@ -21,7 +21,9 @@ typedef APSlotDataType = {
 	locationType: String,
 	locationMethod: String,
 	selectedSongs: Array<String>,
-	songData: Map<String, SongDetailData>
+	songData: Map<String, SongDetailData>,
+	?custom_weeks: Dynamic, // Custom weeks data from HScript processing
+	?song_modifications: Dynamic // Song additions/exclusions data
 }
 
 abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
@@ -37,7 +39,9 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 			locationType: "Song Completion",
 			locationMethod: "Per Song",
 			selectedSongs: [],
-			songData: new Map<String, SongDetailData>()
+			songData: new Map<String, SongDetailData>(),
+			custom_weeks: null,
+			song_modifications: null
 		};
 	}
 
@@ -52,6 +56,8 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	public var locationMethod(get, never):String;
 	public var selectedSongs(get, never):Array<String>;
 	public var songData(get, never):Map<String, SongDetailData>;
+	public var custom_weeks(get, never):Dynamic;
+	public var song_modifications(get, never):Dynamic;
 
 	private function get_deathLink():Bool return this.deathLink;
 	private function get_fullSongCount():Int return this.fullSongCount;
@@ -64,6 +70,8 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	private function get_locationMethod():String return this.locationMethod;
 	private function get_selectedSongs():Array<String> return this.selectedSongs;
 	private function get_songData():Map<String, SongDetailData> return this.songData;
+	private function get_custom_weeks():Dynamic return this.custom_weeks;
+	private function get_song_modifications():Dynamic return this.song_modifications;
 
 	public function get(key:String):Dynamic {
 		return Reflect.field(this, key);

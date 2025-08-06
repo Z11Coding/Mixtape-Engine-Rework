@@ -1936,15 +1936,16 @@ class Client {
 				_socketReconnectInterval = 15;
 			connectAttempts++;
 
-			_ws = new WebSocket(uri, false, new OneOrMany<String>('permessage-deflate'));
+			_ws = new WebSocket(uri, false, new OneOrMany<String>('Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits=15'));
 			_ws.onopen = onopen;
 			_ws.onclose = onclose;
 			_ws.onmessage = onmessage;
 			_ws.onerror = onerror;
 			if (ClientPrefs.data.apCompressed)
-			_ws.additionalHeaders.set('Sec-WebSocket-Extensions', 'permessage-deflate');
-			_ws.open();
+			_ws.additionalHeaders.set('Sec-WebSocket-Extensions', 'permessage-deflate; client_max_window_bits=15');
+			else
 			trace("Using headers: " + _ws.additionalHeaders);
+			_ws.open();
 		} catch (e:Exception) {
 			trace("Error Details: " + new DetailedException(e));
 			trace("Error connecting to AP socket", e);

@@ -130,6 +130,12 @@ class HScript extends Iris
 		}
 		#end
 		preset();
+		
+		// Add Archipelago-specific functions if in Archipelago mode
+		#if ARCHIPELAGO_ALLOWED
+		addArchipelagoSupport();
+		#end
+		
 		this.varsToBring = varsToBring;
 		if (!manualRun) {
 			try {
@@ -800,6 +806,113 @@ class HScript
 			return null;
 		});
 	}
+
+	#if ARCHIPELAGO_ALLOWED
+	private function addArchipelagoSupport():Void {
+		// Add Archipelago classes
+		set('APScriptingSupport', archipelago.APScriptingSupport);
+		set('APGameState', archipelago.APGameState);
+		
+		// Register callback for item received
+		set('registerItemReceivedCallback', function(callback:String->Void) {
+			if (!archipelago.APEntryState.inArchipelagoMode) {
+				trace('registerItemReceivedCallback: Archipelago mode is not enabled!');
+				return false;
+			}
+			
+			archipelago.APScriptingSupport.registerItemReceivedCallback(callback);
+			return true;
+		});
+		
+		// Register callback for custom item received
+		set('registerCustomItemReceivedCallback', function(callback:String->Void) {
+			if (!archipelago.APEntryState.inArchipelagoMode) {
+				trace('registerCustomItemReceivedCallback: Archipelago mode is not enabled!');
+				return false;
+			}
+			
+			archipelago.APScriptingSupport.registerCustomItemReceivedCallback(callback);
+			return true;
+		});
+		
+		// Register callback for item sent
+		set('registerItemSentCallback', function(callback:String->Void) {
+			if (!archipelago.APEntryState.inArchipelagoMode) {
+				trace('registerItemSentCallback: Archipelago mode is not enabled!');
+				return false;
+			}
+			
+			archipelago.APScriptingSupport.registerItemSentCallback(callback);
+			return true;
+		});
+		
+		// Register callback for location sent
+		set('registerLocationSentCallback', function(callback:String->Int->Void) {
+			if (!archipelago.APEntryState.inArchipelagoMode) {
+				trace('registerLocationSentCallback: Archipelago mode is not enabled!');
+				return false;
+			}
+			
+			archipelago.APScriptingSupport.registerLocationSentCallback(callback);
+			return true;
+		});
+		
+		// Send location function
+		set('sendArchipelagoLocation', function(locationName:String) {
+			if (!archipelago.APEntryState.inArchipelagoMode) {
+				trace('sendArchipelagoLocation: Archipelago mode is not enabled!');
+				return false;
+			}
+			
+			return archipelago.APScriptingSupport.sendLocation(locationName);
+		});
+		
+		// Check if item exists
+		set('hasArchipelagoItem', function(itemName:String) {
+			if (!archipelago.APEntryState.inArchipelagoMode) return false;
+			return archipelago.APScriptingSupport.hasItem(itemName);
+		});
+		
+		// Get item count
+		set('getArchipelagoItemCount', function(itemName:String) {
+			if (!archipelago.APEntryState.inArchipelagoMode) return 0;
+			return archipelago.APScriptingSupport.getItemCount(itemName);
+		});
+		
+		// Check connection status
+		set('isConnectedToArchipelago', function() {
+			return archipelago.APScriptingSupport.isConnected();
+		});
+		
+		// Get player name
+		set('getArchipelagoPlayerName', function() {
+			if (!archipelago.APEntryState.inArchipelagoMode) return "";
+			return archipelago.APScriptingSupport.getPlayerName();
+		});
+		
+		// Get slot data field from APInfo
+		set('getArchipelagoSlotData', function(fieldName:String) {
+			if (!archipelago.APEntryState.inArchipelagoMode) return null;
+			return archipelago.APScriptingSupport.getSlotDataField(fieldName);
+		});
+		
+		// Get available songs from slot data
+		set('getArchipelagoAvailableSongs', function() {
+			if (!archipelago.APEntryState.inArchipelagoMode) return [];
+			return archipelago.APScriptingSupport.getAvailableSongs();
+		});
+		
+		// Get song data for a specific song
+		set('getArchipelagoSongData', function(songName:String) {
+			if (!archipelago.APEntryState.inArchipelagoMode) return null;
+			return archipelago.APScriptingSupport.getSongData(songName);
+		});
+		
+		// Archipelago status variables
+		set('archipelagoEnabled', archipelago.APEntryState.inArchipelagoMode);
+		set('connectedToArchipelago', archipelago.APScriptingSupport.isConnected());
+	}
+	#end
 	#end
 }
 #end

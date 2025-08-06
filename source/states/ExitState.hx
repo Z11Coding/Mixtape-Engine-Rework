@@ -2,6 +2,7 @@ package states;
 import flixel.FlxState;
 import flixel.text.FlxText;
 import haxe.ds.StringMap;
+import states.APGameState;
 
 class ExitState extends FlxState
 {
@@ -34,6 +35,9 @@ class ExitState extends FlxState
 
 	private function performCleanup():Void
 	{
+		// Clean up temporary Archipelago weeks before exit
+		APGameState.forceCleanupTemporaryWeeks();
+		
 		// Execute cleanup functions
 		for (cleanupFunc in cleanupFunctions)
 		{
