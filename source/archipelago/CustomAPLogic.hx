@@ -8,6 +8,7 @@ import backend.Mods;
 import backend.Paths;
 import backend.WeekData;
 
+typedef APItem = APRequiredItem;
 
 typedef APRequiredItem = {
     name: String,
