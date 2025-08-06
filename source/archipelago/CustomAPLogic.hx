@@ -8,43 +8,12 @@ import backend.Mods;
 import backend.Paths;
 import backend.WeekData;
 
-// Typedefs for items and locati    // Song modification functions (available in HScript)
-    public function excludeSong(songName:String, ?targetMod:String):Void {
-        // Use current mod as default target if not specified
-        if (targetMod == null) {
-            targetMod = modName;
-        }
-        
-        var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
-        if (!excludedSongs.contains(formattedName)) {
-            excludedSongs.push(formattedName);
-            songExclusions.push({name: songName, targetMod: targetMod});
-            trace('Excluded song: ${songName} from mod ${targetMod}');
-        }
-    }
 
-    public function addSong(songName:String, ?targetMod:String):Void {
-        // Use current mod as default target if not specified
-        if (targetMod == null) {
-            targetMod = modName;
-        }
-        
-        var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
-        if (!addedSongs.contains(formattedName)) {
-            addedSongs.push(formattedName);
-            songAdditions.push({name: songName, targetMod: targetMod});
-            trace('Added song: ${songName} to mod ${targetMod}');
-        }
-    }tem = {
+typedef APRequiredItem = {
     name: String,
     ?mod: String, // Optional mod name
     ?isTrap: Bool, // Whether this is a trap item (defaults to false)
     ?targetMod: String // Optional target mod for trap items
-};
-
-typedef APRequiredItem = {
-    name: String,
-    count: Int // How many of this item are required (default 1)
 };
 
 typedef APAccessRule = {
