@@ -1793,9 +1793,43 @@ class APGameState
 		}
 	}
 	
+	// Generate a custom week file for a specific mod and song list
+	private function generateCustomWeekFile(weekName:String, targetMod:String, songs:Array<String>):Void
+	{
+		try
+		{
+			trace('Generating custom week file: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');
+			
+			// Validate inputs
+			if (weekName == null || weekName.trim() == "")
+			{
+				trace('Error: Invalid week name for custom week generation');
+				return;
+			}
+			
+			if (songs == null || songs.length == 0)
+			{
+				trace('Error: No songs provided for custom week ${weekName}');
+				return;
+			}
+			
+			// Create the temporary week directly (no file I/O)
+			createTemporaryWeek(weekName, targetMod, songs);
+		}
+		catch (e:Dynamic)
+		{
+			trace('Error generating custom week file ${weekName}: ${e}');
+			#if sys
+			trace('Stack trace: ${haxe.CallStack.toString(haxe.CallStack.exceptionStack())}');
+			#end
+		}
+	}
+	
 	// Create a single temporary week for a mod
 	private function createTemporaryWeek(weekName:String, targetMod:String, songs:Array<String>):Void
 	{
+		if (temporaryWeekNames.contains(weekName))
+			weekName = weekName + "+"
 		try
 		{
 			trace('Creating temporary week: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');

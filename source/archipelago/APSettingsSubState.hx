@@ -4,6 +4,7 @@ import substates.RankingSubstate;
 import backend.ui.*;
 import archipelago.APEntryState;
 import archipelago.APInfo;
+import archipelago.CustomAPLogic;
 import flixel.util.FlxGradient;
 import yaml.Yaml;
 import yaml.Renderer;
@@ -340,7 +341,10 @@ class APSettingsSubState extends MusicBeatSubstate {
     var testMap:Map<String, Dynamic>;
     function onGenYaml()
 	{
-
+        // Process CustomAPLogic scripts before generating YAML
+        trace('Processing CustomAPLogic scripts...');
+        CustomAPLogic.APHScriptProcessor.processAllMods();
+        
         var yamlThing = {}
         for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
         {
@@ -474,6 +478,16 @@ class APSettingsSubState extends MusicBeatSubstate {
 
         #if sys
         sys.io.File.saveContent("PlayerSettings/" + APEntryState.yamlName + ".yaml", finalDocument);
+        
+        // Generate and save the Python file for CustomAPLogic
+        if (CustomAPLogic.APDataStore.items.length > 0 || CustomAPLogic.APDataStore.locations.length > 0 || 
+            CustomAPLogic.APDataStore.customWeeks.length > 0 || Lambda.count(CustomAPLogic.APDataStore.customData) > 0) {
+            trace('Generating Python file for CustomAPLogic...');
+            var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
+            var pythonFilename = "PlayerSettings/" + APEntryState.yamlName + "_customFNFData.py";
+            sys.io.File.saveContent(pythonFilename, pythonContent);
+            trace('Saved Python file: ${pythonFilename}');
+        }
         #end
         close();
 

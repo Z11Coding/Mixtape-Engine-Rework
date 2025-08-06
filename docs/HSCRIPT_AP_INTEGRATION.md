@@ -1,6 +1,61 @@
 # HScript Archipelago Integration
 
-The Mixtape Engine now supports HScript-based Archipelago integration through the CustomAPLogic system. This allows mod developers to define custom items and locations using HScript syntax with full access to mod context and validation.
+The Mixtape Engine now supports HScript-based Archipelago integration through the CustomAPLogic system. This allows mod developers to define custom items and### Advanced Features
+
+### Accessing Player Settings
+
+You can access all the player's YAML settings to make decisions based on their configuration:
+
+```haxe
+// Check player's unlock method preference
+if (playerSettings.unlock_method == "Song Completion") {
+    // Create easier locations for song completion only
+    addSimpleLocation("Easy Clear", "easy-song", null, ["Basic Item"], true);
+} else if (playerSettings.unlock_method == "Both") {
+    // Create more challenging locations for both note checks and completion
+    addLocationWithCounts("Ultimate Challenge", "hard-song", null, [
+        { name: "Skill Item", count: 3 },
+        { name: "Perfect Item", count: 1 }
+    ], true);
+}
+
+// Scale content based on song limit
+var songLimit = playerSettings.song_limit;
+if (songLimit >= 50) {
+    // Player wants lots of content, add extra songs
+    addSongs(["bonus-track-1", "bonus-track-2", "bonus-track-3"]);
+    defineCustomWeek("Bonus Content", ["bonus-track-1", "bonus-track-2", "bonus-track-3"]);
+} else if (songLimit <= 20) {
+    // Player wants minimal content, exclude optional songs
+    excludeSongs(["optional-song", "extra-content"]);
+}
+
+// Adjust trap frequency based on player's trap amount setting
+var trapAmount = playerSettings.trapAmount;
+if (trapAmount >= 30) {
+    // Player likes lots of traps
+    addTrapItem("Extra Chaos");
+    addTrapItem("Maximum Confusion");
+} else if (trapAmount <= 10) {
+    // Player prefers fewer traps, make them less frequent
+    setDataValue("reduced_trap_chance", true);
+}
+
+// Use accessibility settings
+if (playerSettings.accessibility == "minimal") {
+    // Create more accessible content
+    setDataValue("easy_mode", true);
+    excludeSongs(["extremely-difficult", "accessibility-nightmare"]);
+}
+
+// Check deathlink preference
+if (playerSettings.deathlink) {
+    addTrapItem("Deathlink Trigger");
+    setDataValue("deathlink_enabled", true);
+}
+```
+
+### Conditional Logic Based on Available Modscations using HScript syntax with full access to mod context and validation.
 
 ## Setup
 
@@ -30,6 +85,7 @@ When your HScript runs, these variables are automatically available:
 - `modFolderName`: String - Folder name of your mod  
 - `songList`: Array<String> - List of songs in your mod
 - `availableMods`: Array<ModInfo> - Information about all available mods
+- `playerSettings`: Dynamic - All player settings from the YAML generation (APEntryState.gameSettings.FNF)
 
 ## Song Discovery and Management
 

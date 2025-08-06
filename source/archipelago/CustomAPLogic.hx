@@ -529,6 +529,9 @@ class APHScriptProcessor {
         interpreter.variables.set("songList", context.songList);
         interpreter.variables.set("availableMods", context.availableMods);
         
+        // Add player settings access
+        interpreter.variables.set("playerSettings", archipelago.APEntryState.gameSettings.FNF);
+        
         // Add helper functions
         interpreter.variables.set("addItem", context.addItem);
         interpreter.variables.set("addTrapItem", context.addTrapItem);
