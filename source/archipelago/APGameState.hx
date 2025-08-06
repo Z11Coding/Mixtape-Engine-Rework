@@ -1919,6 +1919,90 @@ class APGameState
 		cleanupTemporaryWeeks();
 	}
 	
+	/**
+	 * Validate that all temporary weeks were created successfully
+	 * @return true if all temporary weeks are valid, false if any issues found
+	 */
+	public function validateTemporaryWeeks():Bool
+	{
+		if (temporaryWeeks == null || temporaryWeekNames == null)
+		{
+			trace("Warning: Temporary week arrays are null");
+			return false;
+		}
+		
+		// Check that arrays have matching sizes
+		if (temporaryWeeks.length != temporaryWeekNames.length)
+		{
+			trace('Warning: Temporary week arrays have mismatched sizes - weeks: ${temporaryWeeks.length}, names: ${temporaryWeekNames.length}');
+			return false;
+		}
+		
+		var validCount = 0;
+		var totalCount = temporaryWeeks.length;
+		
+		// Validate each temporary week
+		for (i in 0...temporaryWeeks.length)
+		{
+			var weekData = temporaryWeeks[i];
+			var weekName = temporaryWeekNames[i];
+			
+			if (weekData == null)
+			{
+				trace('Warning: Temporary week at index ${i} is null');
+				continue;
+			}
+			
+			if (weekName == null || weekName.trim() == "")
+			{
+				trace('Warning: Temporary week name at index ${i} is null or empty');
+				continue;
+			}
+			
+			// Validate week data structure
+			if (weekData.weekName == null || weekData.weekName.trim() == "")
+			{
+				trace('Warning: Week "${weekName}" has invalid weekName field');
+				continue;
+			}
+			
+			if (weekData.songs == null || weekData.songs.length == 0)
+			{
+				trace('Warning: Week "${weekName}" has no songs');
+				continue;
+			}
+			
+			// Validate song structure
+			var validSongs = 0;
+			for (song in weekData.songs)
+			{
+				if (song != null && song.length >= 2 && song[0] != null && song[0].trim() != "")
+				{
+					validSongs++;
+				}
+				else
+				{
+					trace('Warning: Week "${weekName}" has invalid song entry: ${song}');
+				}
+			}
+			
+			if (validSongs == 0)
+			{
+				trace('Warning: Week "${weekName}" has no valid songs');
+				continue;
+			}
+			
+			// Week passed all validations
+			validCount++;
+			trace('Validated temporary week: "${weekName}" with ${validSongs} songs');
+		}
+		
+		var success = (validCount == totalCount && totalCount > 0);
+		trace('Temporary week validation complete: ${validCount}/${totalCount} valid weeks');
+		
+		return success;
+	}
+	
 	// Update the weekList.txt file to include the new custom week
 	private function updateWeekList(targetMod:String, weekName:String):Void
 	{

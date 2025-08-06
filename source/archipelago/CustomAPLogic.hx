@@ -7,13 +7,14 @@ import hscript.Interp;
 import backend.Mods;
 import backend.Paths;
 import backend.WeekData;
+import archipelago.APInfo;
 
 typedef APRequiredItem = {
-    var name:String;
-    var ?mod:String; // Optional mod name
-    var ?isTrap:Bool; // Whether this is a trap item (defaults to false)
-    var ?targetMod:String; // Optional target mod for trap items
-    var ?count:Int;
+    name: String,
+    ?count: Int, // How many of this item are required (default 1)
+    ?mod: String, // Optional mod name
+    ?isTrap: Bool, // Whether this is a trap item (defaults to false)
+    ?targetMod: String // Optional target mod for trap items
 };
 
 typedef APAccessRule = {
@@ -175,18 +176,18 @@ class APHScriptContext {
             throw new haxe.Exception(errorMsg);
         }
         
-        // Validate origin song and check if it's available in the current song pool
-        archipelago.APScriptingSupport.validateOriginSong(originSong, name);
-        
-        // Check if the origin song is actually available in the slot data (respects song limits)
-        if (!archipelago.APScriptingSupport.isSongAvailable(originSong)) {
-            trace('Warning: Cannot add location "${name}" - origin song "${originSong}" is not available in current song selection (may have been cut by song limit)');
-            return;
-        }
-        
         // Use current mod as target if not specified
         if (targetMod == null) {
             targetMod = modName;
+        }
+        
+        // Validate origin song and check if it's available in the target mod during generation
+        validateOriginSongForGeneration(originSong, name, targetMod);
+        
+        // Check if the origin song is actually available in the target mod's song pool
+        if (!isSongAvailableForGeneration(originSong, targetMod)) {
+            trace('Warning: Cannot add location "${name}" - origin song "${originSong}" is not available in target mod "${targetMod}"');
+            return;
         }
         
         // Empty string means base game (always available)
@@ -294,6 +295,7 @@ class APHScriptContext {
     // Data storage functions (available in HScript)
     public function setDataValue(key:String, value:Dynamic):Void {
         customData.set(key, value);
+        APDataStore.customData.set(key, value);
         trace('Set data: ${key} = ${value}');
     }
     
@@ -336,12 +338,129 @@ class APHScriptContext {
         };
         
         customWeeks.push(customWeek);
+        APDataStore.customWeeks.push(customWeek);
         trace('Defined custom week: ${weekName} with ${songs.length} songs for mod ${targetMod}');
     }
     
     public function supportsCustomWeeks():Bool {
         // Custom weeks are always supported in the current implementation
         return true;
+    }
+    
+    // Generation-time validation functions (for use during HScript processing)
+    
+    /**
+     * Validate that an origin song exists and is valid for location creation during generation time
+     * @param originSong The song name to validate
+     * @param locationName The location name for error reporting
+     * @param targetMod The target mod to check the song in (null/empty = base game)
+     */
+    public function validateOriginSongForGeneration(originSong:String, locationName:String = "", targetMod:String = null):Void {
+        if (originSong == null || originSong.trim() == "") {
+            var errorMsg = 'Invalid origin song for location "${locationName}": Origin song cannot be null or empty';
+            trace(errorMsg);
+            throw new haxe.Exception(errorMsg);
+        }
+        
+        // Check if the song exists in the target mod (targetMod passed as-is)
+        if (!isSongAvailableForGeneration(originSong, targetMod)) {
+            var modDescription = (targetMod == null || targetMod == "") ? "base game" : targetMod;
+            var errorMsg = 'Invalid origin song for location "${locationName}": Origin song "${originSong}" not found in ${modDescription}';
+            trace(errorMsg);
+            throw new haxe.Exception(errorMsg);
+        }
+    }
+    
+    /**
+     * Check if a song is available in the specified mod during generation time
+     * @param songName The song name to check
+     * @param targetMod The target mod to check (null/empty = base game)
+     * @return true if the song is available, false otherwise
+     */
+    public function isSongAvailableForGeneration(songName:String, targetMod:String = null):Bool {
+        if (songName == null || songName.trim() == "") {
+            return false;
+        }
+        
+        // Check base game songs (empty string means base game)
+        if (targetMod == null || targetMod == "") {
+            // First check if this base song was excluded
+            for (exclusion in songExclusions) {
+                if (exclusion.name == songName && (exclusion.targetMod == null || exclusion.targetMod == "")) {
+                    return false; // Base game song was explicitly excluded
+                }
+            }
+            
+            // Check if it's a base game song
+            var isBase = isBaseSong(songName);
+            if (isBase) {
+                return true;
+            }
+            
+            // Check if song was added to base game via addSong
+            for (addition in songAdditions) {
+                if (addition.name == songName && (addition.targetMod == null || addition.targetMod == "")) {
+                    return true;
+                }
+            }
+            
+            return false; // Not found in base game
+        }
+        
+        // Check if the target mod exists and is enabled
+        var targetModInfo = getModInfo(targetMod);
+        if (targetModInfo == null) {
+            return false; // Target mod doesn't exist
+        }
+        
+        if (!targetModInfo.enabled) {
+            return false; // Target mod is disabled
+        }
+        
+        // First check if song was excluded from this mod via excludeSong
+        for (exclusion in songExclusions) {
+            if (exclusion.name == songName && exclusion.targetMod == targetMod) {
+                return false; // Song was explicitly excluded
+            }
+        }
+        
+        // Check if song exists in the target mod's original song list
+        for (modSong in targetModInfo.songList) {
+            if (modSong == songName) {
+                return true;
+            }
+        }
+        
+        // Check if song was added to this mod via addSong
+        for (addition in songAdditions) {
+            if (addition.name == songName && addition.targetMod == targetMod) {
+                return true;
+            }
+        }
+        
+        return false; // Song not found in target mod
+    }
+    
+    /**
+     * Check if a song is a base game song
+     * @param songName The song name to check
+     * @return true if it's a base game song, false otherwise
+     */
+    public function isBaseSong(songName:String):Bool {
+        if (songName == null || songName.trim() == "") {
+            return false;
+        }
+        
+        // Access base song arrays from APInfo
+        var allBaseSongs = APInfo.baseGame.concat(APInfo.baseErect).concat(APInfo.basePico).concat(APInfo.secrets);
+        
+        for (baseSong in allBaseSongs) {
+            if (baseSong.toLowerCase() == songName.toLowerCase()) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }
 
@@ -526,6 +645,14 @@ class APHScriptProcessor {
         // Add custom week functions
         interpreter.variables.set("defineCustomWeek", context.defineCustomWeek);
         interpreter.variables.set("supportsCustomWeeks", context.supportsCustomWeeks);
+        
+        // Add validation functions (for generation-time validation)
+        interpreter.variables.set("validateOriginSongForGeneration", context.validateOriginSongForGeneration);
+        interpreter.variables.set("isSongAvailableForGeneration", context.isSongAvailableForGeneration);
+        interpreter.variables.set("isBaseSong", context.isBaseSong);
+        
+        // Add utility functions
+        interpreter.variables.set("trace", trace);
         
         try {
             var program = parser.parseString(scriptContent);
@@ -788,17 +915,19 @@ class APPythonGenerator {
         // Function that returns data for integration during class setup
         pythonContent += "# Function to return data for class-level integration\n";
         pythonContent += "# NOTE: This function now returns combined location objects and song modifications\n";
-    pythonContent += "def get_custom_data_for_class():\n";
-    pythonContent += "    \"\"\"Returns custom data for integration during class setup\"\"\"\n";
-    pythonContent += "    return {\n";
-    pythonContent += "        'items': custom_items,\n";
-    pythonContent += "        'trap_items': custom_trap_items,\n";
-    pythonContent += "        'locations': get_custom_locations(),  # Locations now include access rules\n";
-    pythonContent += "        'song_additions': song_additions,  # Songs to add to mods\n";
-    pythonContent += "        'song_exclusions': song_exclusions,  # Songs to remove from mods\n";
-    pythonContent += "        'custom_weeks': custom_weeks,  # Custom weeks to create dynamically\n";
-    pythonContent += "        'custom_data': custom_data  # Additional data from HScript\n";
-    pythonContent += "    }\n\n";        // Helper function for creating locations with automatic song requirements
+        pythonContent += "def get_custom_data_for_class():\n";
+        pythonContent += "    \"\"\"Returns custom data for integration during class setup\"\"\"\n";
+        pythonContent += "    return {\n";
+        pythonContent += "        'items': custom_items,\n";
+        pythonContent += "        'trap_items': custom_trap_items,\n";
+        pythonContent += "        'locations': get_custom_locations(),  # Locations now include access rules\n";
+        pythonContent += "        'song_additions': song_additions,  # Songs to add to mods\n";
+        pythonContent += "        'song_exclusions': song_exclusions,  # Songs to remove from mods\n";
+        pythonContent += "        'custom_weeks': custom_weeks,  # Custom weeks to create dynamically\n";
+        pythonContent += "        'custom_data': custom_data  # Additional data from HScript\n";
+        pythonContent += "    }\n\n";
+        
+        // Helper function for creating locations with automatic song requirements
         pythonContent += "# Helper function to create song-based locations\n";
         pythonContent += "def create_song_location_rule(song_name: str, additional_requirements=None):\n";
         pythonContent += "    \"\"\"Create an access rule that requires a specific song plus optional additional requirements\"\"\"\n";
@@ -922,4 +1051,5 @@ class APPythonGenerator {
             trace('Error saving HScript AP data to ${filename}: ${e}');
         }
     }
+}
 }

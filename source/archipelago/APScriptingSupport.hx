@@ -489,6 +489,66 @@ class APScriptingSupport
     }
     
     /**
+     * Check if a song is available in the current Archipelago slot data
+     * @param songName The song name to check
+     * @return true if the song is available, false otherwise
+     */
+    public static function isSongAvailable(songName:String):Bool 
+    {
+        if (songName == null || songName.trim() == "") 
+        {
+            return false;
+        }
+        
+        if (!APEntryState.inArchipelagoMode) 
+        {
+            return true; // All songs available when not in AP mode
+        }
+        
+        var slotData = APInfo.slotData;
+        if (slotData == null) 
+        {
+            return false; // Can't determine availability without slot data
+        }
+        
+        // Check if song exists in selectedSongs
+        for (selectedSong in slotData.selectedSongs) 
+        {
+            if (selectedSong == songName) 
+            {
+                return true;
+            }
+        }
+        
+        // Check if song exists in songData
+        if (slotData.songData.exists(songName)) 
+        {
+            return true;
+        }
+        
+        // Check if song exists by searching songData values
+        for (songData in slotData.songData) 
+        {
+            if (songData.songName == songName) 
+            {
+                return true;
+            }
+        }
+        
+        // Check against base game songs (these are always available)
+        var allBaseSongs = APInfo.baseGame.concat(APInfo.baseErect).concat(APInfo.basePico).concat(APInfo.secrets);
+        for (baseSong in allBaseSongs) 
+        {
+            if (baseSong.toLowerCase() == songName.toLowerCase()) 
+            {
+                return true;
+            }
+        }
+        
+        return false; // Song not found
+    }
+    
+    /**
      * Validate that an item exists in the slot data before processing
      */
     public static function validateItem(itemName:String):Bool 
@@ -602,17 +662,3 @@ class APScriptingSupport
         }
     }
     
-    /**
-     * Validate origin song for Archipelago location generation
-     * Throws an exception if the origin song is invalid
-     */
-    public static function validateOriginSong(originSong:String, locationName:String):Void 
-    {
-        validateSongName(originSong, 'location "${locationName}"');
-        
-        // Additional validation could be added here, such as:
-        // - Check if song exists in the current mod
-        // - Validate song format
-        // - Check against song blacklists, etc.
-    }
-}
