@@ -650,10 +650,7 @@ class APHScriptProcessor {
         interpreter.variables.set("validateOriginSongForGeneration", context.validateOriginSongForGeneration);
         interpreter.variables.set("isSongAvailableForGeneration", context.isSongAvailableForGeneration);
         interpreter.variables.set("isBaseSong", context.isBaseSong);
-        
-        // Add utility functions
-        interpreter.variables.set("trace", trace);
-        
+                
         try {
             var program = parser.parseString(scriptContent);
             interpreter.execute(program);
@@ -1062,5 +1059,4 @@ class APPythonGenerator {
             trace('Error saving HScript AP data to ${filename}: ${e}');
         }
     }
-}
 }
