@@ -34,7 +34,7 @@ class SplashScreen extends MusicBeatState
     override public function create()
     {
         var currentDate = ExtendedDate.global();
-        if (currentDate.getDate() == 6) {
+        if (currentDate.getDate() == 5) {
             // Skip intro and show video
             trace("Playing Video!");
             startVideo("splashscreen/bat");

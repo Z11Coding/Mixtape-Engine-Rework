@@ -662,3 +662,4 @@ class APScriptingSupport
         }
     }
     
+}
