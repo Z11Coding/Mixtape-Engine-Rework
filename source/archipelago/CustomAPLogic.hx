@@ -829,7 +829,6 @@ class APPythonGenerator {
         pythonContent += "    def _setup_access_rules(self):\n";
         pythonContent += "        \"\"\"Setup access rule functions for custom locations\"\"\"\n";
         pythonContent += "        # Access rule functions for custom locations  \n";
-        pythonContent += "        # NOTE: Location names no longer have player prefixes - the system handles player ownership automatically\n";
         
         for (location in APDataStore.locations) {
             if (location.name == null || location.name == "") continue; // Skip locations with invalid names
