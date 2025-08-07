@@ -9,8 +9,6 @@ import backend.Paths;
 import backend.WeekData;
 import archipelago.APInfo;
 
-typedef APItem = APRequiredItem;
-
 typedef APRequiredItem = {
     name: String,
     ?count: Int, // How many of this item are required (default 1)
@@ -41,7 +39,7 @@ typedef ModInfo = {
 
 // Class to hold static arrays of items and locations
 class APDataStore {
-    public static var items:Array<APItem> = [];
+    public static var items:Array<APRequiredItem> = [];
     public static var locations:Array<APLocation> = [];
     public static var availableMods:Array<ModInfo> = [];
     public static var songAdditions:Array<{name:String, targetMod:String}> = [];
@@ -55,7 +53,7 @@ class APHScriptContext {
     public var modName:String;
     public var modFolderName:String;
     public var songList:Array<String>;
-    public var items:Array<APItem>;
+    public var items:Array<APRequiredItem>;
     public var locations:Array<APLocation>;
     public var availableMods:Array<ModInfo>;
     
@@ -131,7 +129,7 @@ class APHScriptContext {
             return;
         }
         
-        var item:APItem = { 
+        var item:APRequiredItem = { 
             name: name,
             isTrap: false
         };
@@ -156,7 +154,7 @@ class APHScriptContext {
         // Target mod is optional for trap items and doesn't need to be validated for existence
         // since trap items can target mods that may not be currently enabled
         
-        var item:APItem = { 
+        var item:APRequiredItem = { 
             name: name,
             isTrap: true
         };
@@ -533,6 +531,7 @@ class APHScriptProcessor {
             for (file in FileSystem.readDirectory(weeksPath)) {
                 if (file.endsWith('.json')) {
                     try {
+                        @:privateAccess
                         var weekData = WeekData.getWeekFile(file.substr(0, file.length - 5));
                         if (weekData != null && weekData.songs != null) {
                             for (song in weekData.songs) {

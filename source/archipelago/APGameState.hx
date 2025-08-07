@@ -1829,7 +1829,8 @@ class APGameState
 	private function createTemporaryWeek(weekName:String, targetMod:String, songs:Array<String>):Void
 	{
 		if (temporaryWeekNames.contains(weekName))
-			weekName = weekName + "+"
+			weekName = weekName + "+";
+
 		try
 		{
 			trace('Creating temporary week: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');

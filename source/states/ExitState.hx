@@ -2,7 +2,7 @@ package states;
 import flixel.FlxState;
 import flixel.text.FlxText;
 import haxe.ds.StringMap;
-import states.APGameState;
+import archipelago.APGameState;
 
 class ExitState extends FlxState
 {
