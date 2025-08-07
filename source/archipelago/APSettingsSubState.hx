@@ -484,7 +484,7 @@ class APSettingsSubState extends MusicBeatSubstate {
             CustomAPLogic.APDataStore.customWeeks.length > 0 || Lambda.count(CustomAPLogic.APDataStore.customData) > 0) {
             trace('Generating Python file for CustomAPLogic...');
             var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
-            var pythonFilename = "PlayerSettings/" + APEntryState.yamlName + "_customFNFData.py";
+            var pythonFilename = "PlayerSettings/fnfData/" + APEntryState.yamlName + "_customFNFData.py";
             sys.io.File.saveContent(pythonFilename, pythonContent);
             trace('Saved Python file: ${pythonFilename}');
         }

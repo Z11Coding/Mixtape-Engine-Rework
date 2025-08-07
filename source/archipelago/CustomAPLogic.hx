@@ -715,53 +715,73 @@ class APPythonGenerator {
         pythonContent += "# Example: if your player name is \"Alice\", name this file \"Alice_customFNFData.py\"\n\n";
         pythonContent += "from typing import Dict, Callable, Any\n\n";
         
+        // FNFModHandler class definition
+        pythonContent += "class FNFModHandler:\n";
+        pythonContent += "    \"\"\"Class to handle all custom FNF mod data and logic\"\"\"\n";
+        pythonContent += "    \n";
+        pythonContent += "    def __init__(self):\n";
+        pythonContent += "        self.custom_items = []\n";
+        pythonContent += "        self.custom_trap_items = []\n";
+        pythonContent += "        self.custom_weeks = []\n";
+        pythonContent += "        self.custom_data = {}\n";
+        pythonContent += "        self.song_additions = []\n";
+        pythonContent += "        self.song_exclusions = []\n";
+        pythonContent += "        self.access_rules = {}\n";
+        pythonContent += "        self.custom_locations = {}\n";
+        pythonContent += "        \n";
+        pythonContent += "        # Initialize all data\n";
+        pythonContent += "        self._setup_data()\n";
+        pythonContent += "    \n";
+        pythonContent += "    def _setup_data(self):\n";
+        pythonContent += "        \"\"\"Initialize all custom data\"\"\"\n";
+        
         // Custom items array
-        pythonContent += "# Custom items that can be added to the item pool\n";
-        pythonContent += "# NOTE: Items are now shared across players - no player prefixes needed\n";
-        pythonContent += "# The system will automatically handle which players get which items based on their custom locations\n";
-        pythonContent += "custom_items = [\n";
+        pythonContent += "        # Custom items that can be added to the item pool\n";
+        pythonContent += "        # NOTE: Items are now shared across players - no player prefixes needed\n";
+        pythonContent += "        # The system will automatically handle which players get which items based on their custom locations\n";
+        pythonContent += "        self.custom_items = [\n";
         for (item in APDataStore.items) {
             if (item.name != null && item.name != "" && (item.isTrap == null || !item.isTrap)) {
-                pythonContent += "    \"" + item.name + "\",\n";
+                pythonContent += "            \"" + item.name + "\",\n";
             }
         }
-        pythonContent += "]\n\n";
+        pythonContent += "        ]\n\n";
         
         // Custom trap items array
-        pythonContent += "# Custom trap items that can be added to the item pool\n";
-        pythonContent += "# Trap items don't require associated songs and can target specific mods\n";
-        pythonContent += "custom_trap_items = [\n";
+        pythonContent += "        # Custom trap items that can be added to the item pool\n";
+        pythonContent += "        # Trap items don't require associated songs and can target specific mods\n";
+        pythonContent += "        self.custom_trap_items = [\n";
         for (item in APDataStore.items) {
             if (item.name != null && item.name != "" && item.isTrap == true) {
-                pythonContent += "    \"" + item.name + "\",\n";
+                pythonContent += "            \"" + item.name + "\",\n";
             }
         }
-        pythonContent += "]\n\n";
+        pythonContent += "        ]\n\n";
         
         // Custom weeks array
-        pythonContent += "# Custom weeks that will be created dynamically during the AP session\n";
-        pythonContent += "# These weeks exist only in memory and are automatically cleaned up\n";
-        pythonContent += "custom_weeks = [\n";
+        pythonContent += "        # Custom weeks that will be created dynamically during the AP session\n";
+        pythonContent += "        # These weeks exist only in memory and are automatically cleaned up\n";
+        pythonContent += "        self.custom_weeks = [\n";
         for (week in APDataStore.customWeeks) {
-            pythonContent += "    {\n";
-            pythonContent += "        \"name\": \"" + week.name + "\",\n";
-            pythonContent += "        \"songs\": [";
+            pythonContent += "            {\n";
+            pythonContent += "                \"name\": \"" + week.name + "\",\n";
+            pythonContent += "                \"songs\": [";
             for (i in 0...week.songs.length) {
                 pythonContent += "\"" + week.songs[i] + "\"";
                 if (i < week.songs.length - 1) pythonContent += ", ";
             }
             pythonContent += "],\n";
-            pythonContent += "        \"targetMod\": \"" + (week.targetMod != null ? week.targetMod : "") + "\"\n";
-            pythonContent += "    },\n";
+            pythonContent += "                \"targetMod\": \"" + (week.targetMod != null ? week.targetMod : "") + "\"\n";
+            pythonContent += "            },\n";
         }
-        pythonContent += "]\n\n";
+        pythonContent += "        ]\n\n";
         
         // Custom data dictionary
-        pythonContent += "# Custom data values set by HScript for use during world generation\n";
-        pythonContent += "custom_data = {\n";
+        pythonContent += "        # Custom data values set by HScript for use during world generation\n";
+        pythonContent += "        self.custom_data = {\n";
         for (key in APDataStore.customData.keys()) {
             var value = APDataStore.customData.get(key);
-            pythonContent += "    \"" + key + "\": ";
+            pythonContent += "            \"" + key + "\": ";
             
             // Handle different data types
             if (Std.isOfType(value, String)) {
@@ -786,44 +806,46 @@ class APPythonGenerator {
             
             pythonContent += ",\n";
         }
-        pythonContent += "}\n\n";
+        pythonContent += "        }\n\n";
         
         // Song modifications
-        pythonContent += "# Song additions - songs that should be added to specific mods\n";
-        pythonContent += "# Format: {'name': 'song_name', 'targetMod': 'mod_name'}\n";
-        pythonContent += "# targetMod can be empty string for base game\n";
-        pythonContent += "song_additions = [\n";
+        pythonContent += "        # Song additions - songs that should be added to specific mods\n";
+        pythonContent += "        # Format: {'name': 'song_name', 'targetMod': 'mod_name'}\n";
+        pythonContent += "        # targetMod can be empty string for base game\n";
+        pythonContent += "        self.song_additions = [\n";
         for (addition in APDataStore.songAdditions) {
-            pythonContent += "    {\"name\": \"" + addition.name + "\", \"targetMod\": \"" + (addition.targetMod != null ? addition.targetMod : "") + "\"},\n";
+            pythonContent += "            {\"name\": \"" + addition.name + "\", \"targetMod\": \"" + (addition.targetMod != null ? addition.targetMod : "") + "\"},\n";
         }
-        pythonContent += "]\n\n";
+        pythonContent += "        ]\n\n";
         
-        pythonContent += "# Song exclusions - songs that should be removed from specific mods\n";
-        pythonContent += "# Format: {'name': 'song_name', 'targetMod': 'mod_name'}\n";
-        pythonContent += "# targetMod can be empty string for base game\n";
-        pythonContent += "song_exclusions = [\n";
+        pythonContent += "        # Song exclusions - songs that should be removed from specific mods\n";
+        pythonContent += "        # Format: {'name': 'song_name', 'targetMod': 'mod_name'}\n";
+        pythonContent += "        # targetMod can be empty string for base game\n";
+        pythonContent += "        self.song_exclusions = [\n";
         for (exclusion in APDataStore.songExclusions) {
-            pythonContent += "    {\"name\": \"" + exclusion.name + "\", \"targetMod\": \"" + (exclusion.targetMod != null ? exclusion.targetMod : "") + "\"},\n";
+            pythonContent += "            {\"name\": \"" + exclusion.name + "\", \"targetMod\": \"" + (exclusion.targetMod != null ? exclusion.targetMod : "") + "\"},\n";
         }
-        pythonContent += "]\n\n";
+        pythonContent += "        ]\n\n";
         
-        // Access rule functions
-        pythonContent += "# Access rule functions for custom locations  \n";
-        pythonContent += "# NOTE: Location names no longer have player prefixes - the system handles player ownership automatically\n";
-        pythonContent += "def get_access_rules() -> Dict[str, Callable]:\n";
-        pythonContent += "    \"\"\"Returns a dictionary of location names to their access rule functions\"\"\"\n";
-        pythonContent += "    access_rules = {}\n\n";
+        pythonContent += "        # Initialize access rules and locations\n";
+        pythonContent += "        self._setup_access_rules()\n";
+        pythonContent += "        self._setup_custom_locations()\n";
+        pythonContent += "    \n";
+        pythonContent += "    def _setup_access_rules(self):\n";
+        pythonContent += "        \"\"\"Setup access rule functions for custom locations\"\"\"\n";
+        pythonContent += "        # Access rule functions for custom locations  \n";
+        pythonContent += "        # NOTE: Location names no longer have player prefixes - the system handles player ownership automatically\n";
         
         for (location in APDataStore.locations) {
             if (location.name == null || location.name == "") continue; // Skip locations with invalid names
             
             var ruleName = location.name.replace(" ", "_").replace("-", "_").replace("(", "").replace(")", "").toLowerCase();
-            pythonContent += "    # Access rule for " + location.name + "\n";
-            pythonContent += "    def " + ruleName + "_rule(state, player: int) -> bool:\n";
+            pythonContent += "        # Access rule for " + location.name + "\n";
+            pythonContent += "        def " + ruleName + "_rule(state, player: int) -> bool:\n";
             
             // Generate base access rule for origin song
             if (location.originSong != null && location.originSong != "") {
-                pythonContent += "        # Requires origin song: " + location.originSong;
+                pythonContent += "            # Requires origin song: " + location.originSong;
                 if (location.targetMod != null && location.targetMod != "") {
                     pythonContent += " (" + location.targetMod + ")";
                 }
@@ -835,15 +857,15 @@ class APPythonGenerator {
                     songName += " (" + location.targetMod + ")";
                 }
                 // If targetMod is empty, don't add anything (base game songs have no mod suffix)
-                pythonContent += "        has_origin_song = state.has(\"" + songName + "\", player)\n";
+                pythonContent += "            has_origin_song = state.has(\"" + songName + "\", player)\n";
             } else {
-                pythonContent += "        has_origin_song = True  # No origin song requirement\n";
+                pythonContent += "            has_origin_song = True  # No origin song requirement\n";
             }
             
             // Generate access rule based on required items
             if (location.accessRule != null && location.accessRule.requiredItems != null && location.accessRule.requiredItems.length > 0) {
                 var itemNames = [for (item in location.accessRule.requiredItems) item.name];
-                pythonContent += "        # Required items: " + itemNames.join(", ") + "\n";
+                pythonContent += "            # Required items: " + itemNames.join(", ") + "\n";
                 
                 var itemChecks = [];
                 for (reqItem in location.accessRule.requiredItems) {
@@ -857,96 +879,85 @@ class APPythonGenerator {
                 }
                 
                 if (itemChecks.length > 0) {
-                    pythonContent += "        has_required_items = " + itemChecks.join(" and ") + "\n";
-                    pythonContent += "        return has_origin_song and has_required_items\n\n";
+                    pythonContent += "            has_required_items = " + itemChecks.join(" and ") + "\n";
+                    pythonContent += "            return has_origin_song and has_required_items\n\n";
                 } else {
-                    pythonContent += "        # No valid item requirements found\n";
-                    pythonContent += "        return has_origin_song\n\n";
+                    pythonContent += "            # No valid item requirements found\n";
+                    pythonContent += "            return has_origin_song\n\n";
                 }
             } else {
-                pythonContent += "        # No additional item requirements\n";
-                pythonContent += "        return has_origin_song\n\n";
+                pythonContent += "            # No additional item requirements\n";
+                pythonContent += "            return has_origin_song\n\n";
             }
             
-            pythonContent += "    access_rules[\"" + location.name + "\"] = " + ruleName + "_rule\n\n";
+            pythonContent += "        self.access_rules[\"" + location.name + "\"] = " + ruleName + "_rule\n\n";
         }
         
-        pythonContent += "    return access_rules\n\n";
-        
-        // Custom locations data with embedded access rules
-        pythonContent += "# Custom location objects with embedded access rules\n";
-        pythonContent += "def get_custom_locations() -> Dict[str, Dict[str, Any]]:\n";
-        pythonContent += "    \"\"\"Returns custom location objects with access rules and metadata combined\"\"\"\n";
-        pythonContent += "    # Get the access rules to embed in location objects\n";
-        pythonContent += "    access_rules = get_access_rules()\n";
-        pythonContent += "    \n";
-        pythonContent += "    return {\n";
+        pythonContent += "    def _setup_custom_locations(self):\n";
+        pythonContent += "        \"\"\"Setup custom location objects with embedded access rules\"\"\"\n";
         
         for (location in APDataStore.locations) {
             if (location.name == null || location.name == "") continue; // Skip locations with invalid names
             
-            pythonContent += "        \"" + location.name + "\": {\n";
+            pythonContent += "        self.custom_locations[\"" + location.name + "\"] = {\n";
             pythonContent += "            \"origin_song\": " + (location.originSong != null && location.originSong != "" ? '"' + location.originSong + '"' : "None") + ",\n";
             pythonContent += "            \"target_mod\": " + (location.targetMod != null && location.targetMod != "" ? '"' + location.targetMod + '"' : "None") + ",\n";
-            
-            var ruleName = location.name.replace(" ", "_").replace("-", "_").replace("(", "").replace(")", "").toLowerCase();
-            pythonContent += "            \"access_rule\": access_rules[\"" + location.name + "\"],  # Rule embedded in object\n";
-            pythonContent += "        },\n";
+            pythonContent += "            \"access_rule\": self.access_rules[\"" + location.name + "\"],\n";
+            pythonContent += "        }\n";
         }
         
-        pythonContent += "    }\n\n";
-        
-        // Main integration function
-        pythonContent += "# Main function to integrate with Archipelago world\n";
-        pythonContent += "# NOTE: This function signature has changed - no longer uses separate access rules\n";
-        pythonContent += "def apply_custom_logic(world_instance):\n";
-        pythonContent += "    \"\"\"Apply custom items and locations to the world instance\"\"\"\n";
-        pythonContent += "    # Get location data (which now includes access rules)\n";
-        pythonContent += "    location_data = get_custom_locations()\n\n";
-        pythonContent += "    # Store in world instance for use during generation\n";
-        pythonContent += "    if not hasattr(world_instance, 'custom_location_data'):\n";
-        pythonContent += "        world_instance.custom_location_data = {}\n";
-        pythonContent += "    if not hasattr(world_instance, 'custom_items'):\n";
-        pythonContent += "        world_instance.custom_items = []\n\n";
-        pythonContent += "    # Apply the custom data (no separate access rules needed)\n";
-        pythonContent += "    world_instance.custom_location_data.update(location_data)\n";
-        pythonContent += "    world_instance.custom_items.extend(custom_items)\n\n";
-        pythonContent += "    return world_instance\n\n";
-        
-        // Function that returns data for integration during class setup
-        pythonContent += "# Function to return data for class-level integration\n";
-        pythonContent += "# NOTE: This function now returns combined location objects and song modifications\n";
+        pythonContent += "    \n";
+        pythonContent += "    def get_custom_data_for_class(self):\n";
+        pythonContent += "        \"\"\"Returns custom data for integration during class setup\"\"\"\n";
+        pythonContent += "        return {\n";
+        pythonContent += "            'items': self.custom_items,\n";
+        pythonContent += "            'trap_items': self.custom_trap_items,\n";
+        pythonContent += "            'locations': self.custom_locations,\n";
+        pythonContent += "            'song_additions': self.song_additions,\n";
+        pythonContent += "            'song_exclusions': self.song_exclusions,\n";
+        pythonContent += "            'custom_weeks': self.custom_weeks,\n";
+        pythonContent += "            'custom_data': self.custom_data\n";
+        pythonContent += "        }\n";
+        pythonContent += "    \n";
+        pythonContent += "    def apply_custom_logic(self, world_instance):\n";
+        pythonContent += "        \"\"\"Apply custom items and locations to the world instance\"\"\"\n";
+        pythonContent += "        # Store in world instance for use during generation\n";
+        pythonContent += "        if not hasattr(world_instance, 'custom_location_data'):\n";
+        pythonContent += "            world_instance.custom_location_data = {}\n";
+        pythonContent += "        if not hasattr(world_instance, 'custom_items'):\n";
+        pythonContent += "            world_instance.custom_items = []\n";
+        pythonContent += "        \n";
+        pythonContent += "        # Apply the custom data\n";
+        pythonContent += "        world_instance.custom_location_data.update(self.custom_locations)\n";
+        pythonContent += "        world_instance.custom_items.extend(self.custom_items)\n";
+        pythonContent += "        \n";
+        pythonContent += "        return world_instance\n";
+        pythonContent += "\n";
+        pythonContent += "# Create the instance that will be accessed by the AP world loader\n";
+        pythonContent += "INSTANCE = FNFModHandler()\n";
+        pythonContent += "\n";
+        pythonContent += "# ============================================================================\n";
+        pythonContent += "# LEGACY COMPATIBILITY FUNCTIONS\n";
+        pythonContent += "# These maintain compatibility with existing code that expects the old API\n";
+        pythonContent += "# ============================================================================\n";
+        pythonContent += "\n";
         pythonContent += "def get_custom_data_for_class():\n";
-        pythonContent += "    \"\"\"Returns custom data for integration during class setup\"\"\"\n";
-        pythonContent += "    return {\n";
-        pythonContent += "        'items': custom_items,\n";
-        pythonContent += "        'trap_items': custom_trap_items,\n";
-        pythonContent += "        'locations': get_custom_locations(),  # Locations now include access rules\n";
-        pythonContent += "        'song_additions': song_additions,  # Songs to add to mods\n";
-        pythonContent += "        'song_exclusions': song_exclusions,  # Songs to remove from mods\n";
-        pythonContent += "        'custom_weeks': custom_weeks,  # Custom weeks to create dynamically\n";
-        pythonContent += "        'custom_data': custom_data  # Additional data from HScript\n";
-        pythonContent += "    }\n\n";
-        
-        // Helper function for creating locations with automatic song requirements
-        pythonContent += "# Helper function to create song-based locations\n";
-        pythonContent += "def create_song_location_rule(song_name: str, additional_requirements=None):\n";
-        pythonContent += "    \"\"\"Create an access rule that requires a specific song plus optional additional requirements\"\"\"\n";
-        pythonContent += "    def rule(state, player: int) -> bool:\n";
-        pythonContent += "        has_song = state.has(song_name, player)\n";
-        pythonContent += "        if additional_requirements:\n";
-        pythonContent += "            return has_song and additional_requirements(state, player)\n";
-        pythonContent += "        return has_song\n";
-        pythonContent += "    return rule\n\n";
-        
-        pythonContent += "# Example of how locations are now handled:\n";
-        pythonContent += "# - Location names have NO player prefixes (e.g., \"Custom Boss Battle\" not \"Alice:Custom Boss Battle\")\n";
-        pythonContent += "# - Each player's custom data file defines the same location names\n";
-        pythonContent += "# - The system automatically tracks which players own which locations\n";
-        pythonContent += "# - Custom IDs start after the last song/location IDs to avoid conflicts\n";
-        pythonContent += "# - Access rules are stored directly with the LocationData objects in the 'access_rule' field\n";
-        pythonContent += "# - Files should be named '{playerName}_customFNFData.py' (not _customData.py)\n\n";
-        
+        pythonContent += "    \"\"\"Legacy function - use INSTANCE.get_custom_data_for_class() instead\"\"\"\n";
+        pythonContent += "    return INSTANCE.get_custom_data_for_class()\n";
+        pythonContent += "\n";
+        pythonContent += "def apply_custom_logic(world_instance):\n";
+        pythonContent += "    \"\"\"Legacy function - use INSTANCE.apply_custom_logic() instead\"\"\"\n";
+        pythonContent += "    return INSTANCE.apply_custom_logic(world_instance)\n";
+        pythonContent += "\n";
+        pythonContent += "# ============================================================================\n";
+        pythonContent += "# DOCUMENTATION\n";
+        pythonContent += "# ============================================================================\n";
+        pythonContent += "\n";
+        pythonContent += "# USAGE:\n";
+        pythonContent += "# The INSTANCE variable contains a FNFModHandler object with all your custom data.\n";
+        pythonContent += "# Access data through: INSTANCE.custom_items, INSTANCE.custom_locations, etc.\n";
+        pythonContent += "# Call INSTANCE.get_custom_data_for_class() to get all data for world setup.\n";
+        pythonContent += "\n";
         pythonContent += "# SONG MANAGEMENT FUNCTIONS:\n";
         pythonContent += "# \n";
         pythonContent += "# excludeSong(songName, targetMod=None):\n";
