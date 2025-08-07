@@ -733,7 +733,6 @@ class APPythonGenerator {
         
         // Custom items array
         pythonContent += "        # Custom items that can be added to the item pool\n";
-        pythonContent += "        # NOTE: Items are now shared across players - no player prefixes needed\n";
         pythonContent += "        # The system will automatically handle which players get which items based on their custom locations\n";
         pythonContent += "        self.custom_items = [\n";
         for (item in APDataStore.items) {
