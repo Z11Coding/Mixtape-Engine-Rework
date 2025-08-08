@@ -854,7 +854,7 @@ class APPythonGenerator {
         for (location in APDataStore.locations) {
             if (location.name == null || location.name == "") continue; // Skip locations with invalid names
             
-            var ruleName = location.name.replace(" ", "_").replace("-", "_").replace("(", "").replace(")", "").toLowerCase();
+            var ruleName = sanitizePythonFunctionName(location.name);
             pythonContent += "        # Access rule for " + location.name + "\n";
             pythonContent += "        def " + ruleName + "_rule(state, player: int) -> bool:\n";
             
@@ -1077,5 +1077,33 @@ class APPythonGenerator {
         } catch (e:Dynamic) {
             trace('Error saving HScript AP data to ${filename}: ${e}');
         }
+    }
+    
+    // Helper function to sanitize location names for Python function names
+    private static function sanitizePythonFunctionName(name:String):String {
+        if (name == null || name.trim() == "") {
+            return "invalid_location";
+        }
+        
+        // Convert to lowercase and replace all non-alphanumeric characters with underscores
+        var sanitized = ~/[^a-zA-Z0-9_]/g.replace(name.toLowerCase(), "_");
+        
+        // Remove consecutive underscores
+        sanitized = ~/_{2,}/g.replace(sanitized, "_");
+        
+        // Remove leading and trailing underscores
+        sanitized = ~/^_+|_+$/g.replace(sanitized, "");
+        
+        // Ensure it starts with a letter or underscore (Python requirement)
+        if (sanitized.length == 0 || ~/^[0-9]/.match(sanitized)) {
+            sanitized = "location_" + sanitized;
+        }
+        
+        // Ensure minimum length
+        if (sanitized.length == 0) {
+            sanitized = "location";
+        }
+        
+        return sanitized;
     }
 }
