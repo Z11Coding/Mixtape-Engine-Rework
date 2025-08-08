@@ -623,7 +623,7 @@ class APHScriptProcessor {
 
         function addModItem(name:String, ?mod:String)
         {
-            if (name != null || name.strip() != "") {
+            if (name != null || name.trim() != "") {
                 context.addItem(name + (' (${context.modFolderName})'), mod);
             } else {
                 trace('Invalid item name for mod: ${context.modFolderName}');
@@ -633,7 +633,7 @@ class APHScriptProcessor {
 
         function addModTrap(name:String, ?mod:String)
         {
-            if (name == null || name.strip() == "") {
+            if (name == null || name.trim() == "") {
                 trace('Invalid trap item name for mod: ${context.modFolderName}');
                 throw new haxe.Exception('Invalid Mod Trap Item in mod ${context.modFolderName}');
             }
