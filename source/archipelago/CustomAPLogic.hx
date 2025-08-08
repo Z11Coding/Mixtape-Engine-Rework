@@ -178,7 +178,7 @@ class APHScriptContext {
         
         // Use current mod as target if not specified
         if (targetMod == null) {
-            targetMod = modName;
+            targetMod = modFolderName;
         }
         
         // Validate origin song and check if it's available in the target mod during generation
@@ -202,7 +202,7 @@ class APHScriptContext {
         }
         
         var location:APLocation = {
-            name: name,
+            name: name + (' (' + (targetMod != null && targetMod != "" ? targetMod : modFolderName) + ')'),
             originSong: originSong,
             targetMod: targetMod,
             accessRule: accessRule
@@ -247,7 +247,7 @@ class APHScriptContext {
     public function addSong(songName:String, ?targetMod:String):Void {
         // Use current mod as default target if not specified
         if (targetMod == null) {
-            targetMod = modName;
+            targetMod = modFolderName;
         }
         
         var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
@@ -620,10 +620,31 @@ class APHScriptProcessor {
         
         // Add player settings access
         interpreter.variables.set("playerSettings", archipelago.APEntryState.gameSettings.FNF);
-        
+
+        function addModItem(name:String, ?mod:String)
+        {
+            if (name != null || name.strip() != "") {
+                context.addItem(name + (' (${context.modFolderName})'), mod);
+            } else {
+                trace('Invalid item name for mod: ${context.modFolderName}');
+                throw new haxe.Exception('Invalid Mod Item in mod ${context.modFolderName}');
+            }
+        }
+
+        function addModTrap(name:String, ?mod:String)
+        {
+            if (name == null || name.strip() == "") {
+                trace('Invalid trap item name for mod: ${context.modFolderName}');
+                throw new haxe.Exception('Invalid Mod Trap Item in mod ${context.modFolderName}');
+            }
+            context.addTrapItem(name + (' (${context.modFolderName})'), mod);
+        }
+
+
+
         // Add helper functions
-        interpreter.variables.set("addItem", context.addItem);
-        interpreter.variables.set("addTrapItem", context.addTrapItem);
+        interpreter.variables.set("addItem", addModItem);
+        interpreter.variables.set("addTrapItem", addModTrap);
         interpreter.variables.set("addLocation", context.addLocation);
         interpreter.variables.set("addSimpleLocation", context.addSimpleLocation);
         interpreter.variables.set("addLocationWithCounts", context.addLocationWithCounts);
