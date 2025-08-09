@@ -25,6 +25,13 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			BOOL); //Variable type
 		addOption(option);
 
+		var option:Option = new Option('Trash Mode', //Name
+			'If checked, compresses graphics during gameplay for better performance\non older PCs. Only affects PlayState.', //Description
+			'trashMode', //Save data variable name
+			BOOL); //Variable type
+		option.onChange = onChangeTrashMode; //Clear graphics when toggled
+		addOption(option);
+
 		var option:Option = new Option('Anti-Aliasing',
 			'If unchecked, disables anti-aliasing, increases performance\nat the cost of sharper visuals.',
 			'antialiasing',
@@ -94,6 +101,17 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			FlxG.drawFramerate = ClientPrefs.data.framerate;
 			FlxG.updateFramerate = ClientPrefs.data.framerate;
 		}
+	}
+
+	function onChangeTrashMode()
+	{
+		// Clear all cached graphics when trash mode is toggled
+		// This ensures that the compression setting takes effect immediately
+		Paths.clearStoredMemory();
+		Paths.clearUnusedMemory();
+		Paths.freeGraphicsFromMemory();
+		trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
+		MusicBeatState.resetState();
 	}
 
 	override function changeSelection(change:Int = 0)

@@ -1,8 +1,126 @@
 # HScript Archipelago Integration
 
-The Mixtape Engine now supports HScript-based Archipelago integration through the CustomAPLogic system. This allows mod developers to define custom items and### Advanced Features
+The Mixtape Engine supports HScript-based Archipelago integration through the CustomAPLogic system. This allows mod developers to define custom items and locations using HScript syntax with full access to mod context and validation.
 
-### Accessing Player Settings
+## Getting Started
+
+### Quick Start Guide
+
+1. **Create the AP folder**: In your mod directory, create an `ap/` folder
+2. **Add HScript files**: Create `.hx` files containing your Archipelago logic
+3. **Define your content**: Use the available functions to add items, locations, and customize songs
+4. **Test and iterate**: The system provides automatic validation and helpful error messages
+
+### Basic Example
+
+```haxe
+// mods/MyMod/ap/basic.hx
+
+// Add some items that players can receive
+addItem("Song Unlock Key");
+addItem("Difficulty Modifier");
+addItem("Special Effect");
+
+// Create locations based on your mod's songs
+for (song in songList) {
+    // Simple location requiring just the unlock key
+    addSimpleLocation(song + " Clear", song, null, ["Song Unlock Key"], true);
+    
+    // Advanced location requiring multiple items
+    addLocationWithCounts(song + " Perfect", song, null, [
+        { name: "Song Unlock Key", count: 1 },
+        { name: "Difficulty Modifier", count: 2 }
+    ], true);
+}
+
+// Add some trap items for extra challenge
+addTrapItem("Speed Chaos");
+addTrapItem("Reverse Controls");
+```
+
+### Recommended Mod Structure
+
+```
+mods/
+  your-mod/
+    ap/
+      items.hx          # Define your items
+      locations.hx      # Define your locations
+      traps.hx          # Define trap items
+      special.hx        # Any other AP logic
+    data/
+    images/
+    weeks/
+    ...
+```
+
+**Organization Tips:**
+- Split your AP logic into multiple files for better organization
+- Use descriptive file names that indicate their purpose
+- Keep related functionality together (e.g., all trap items in `traps.hx`)
+- Use comments to document complex logic
+
+## Available Variables
+
+When your HScript runs, these variables are automatically available:
+
+- `modName`: String - Display name of your mod
+- `modFolderName`: String - Folder name of your mod  
+- `songList`: Array<String> - List of songs in your mod
+- `availableMods`: Array<ModInfo> - Information about all available mods
+- `playerSettings`: Dynamic - All player settings from the YAML generation (APEntryState.gameSettings.FNF)
+
+## Optional Callbacks
+
+Your HScript can define optional callback functions that will be called at specific points during the generation process:
+
+### `onGenYAML()`
+Called after all initial HScript processing is complete and the song list has been finalized, but before the Python generation. This is useful for final validation or cleanup operations.
+Can also simply be used for people used to having a callback method to execute code in scripts.
+
+```haxe
+function onGenYAML() {
+    // This runs after all mods have been processed and the final song list is generated
+    trace("Final validation for " + modName);
+    
+    var finalSongs = getFinalSongList();
+    trace("Final song count: " + finalSongs.length);
+    
+    // Perform any final adjustments or validation
+    if (finalSongs.length == 0) {
+        trace("Warning: No songs available for mod " + modName);
+    }
+    
+    // Final opportunity to add conditional content
+    if (finalSongs.length >= 10) {
+        addItem("Song Collection Master");
+        addSimpleLocation("Complete Collection", finalSongs[finalSongs.length - 1], null, ["Song Collection Master"], true);
+    }
+}
+```
+
+### `onAfterGen()`
+Called after the complete generation process, including all processing and data storage. This is the final callback before the process completes.
+
+```haxe
+function onAfterGen() {
+    // This runs after everything is complete, including all data processing
+    trace("Generation complete for " + modName);
+    
+    // Log final statistics or perform cleanup
+    if (hasDataValue("debug_mode")) {
+        trace("Debug info: " + getDataValue("debug_mode"));
+    }
+    
+    // Final summary
+    trace("Total items added: " + getDataValue("item_count", 0));
+    trace("Total locations added: " + getDataValue("location_count", 0));
+}
+```
+
+**Note:** These callbacks are optional - your HScript will work perfectly without them. They're provided for developers who need more control over the generation process.
+
+## Accessing Player Settings
 
 You can access all the player's YAML settings to make decisions based on their configuration:
 
@@ -54,38 +172,6 @@ if (playerSettings.deathlink) {
     setDataValue("deathlink_enabled", true);
 }
 ```
-
-### Conditional Logic Based on Available Modscations using HScript syntax with full access to mod context and validation.
-
-## Setup
-
-1. Create an `ap/` folder in your mod directory
-2. Add `.hx` files containing your Archipelago logic
-3. The system will automatically scan and execute these scripts when generating the YAML, creating a python file which will be generated with it.
-
-## Mod Structure
-```
-mods/
-  your-mod/
-    ap/
-      items.hx          # Define your items
-      locations.hx      # Define your locations
-      traps.hx          # Define trap items
-      special.hx        # Any other AP logic
-    data/
-    images/
-    ...
-```
-
-## Available Variables
-
-When your HScript runs, these variables are automatically available:
-
-- `modName`: String - Display name of your mod
-- `modFolderName`: String - Folder name of your mod  
-- `songList`: Array<String> - List of songs in your mod
-- `availableMods`: Array<ModInfo> - Information about all available mods
-- `playerSettings`: Dynamic - All player settings from the YAML generation (APEntryState.gameSettings.FNF)
 
 ## Song Discovery and Management
 
@@ -211,7 +297,7 @@ trace("Available songs: " + finalSongs.join(", "));
 
 ### Python Generation and Data Storage
 
-The CustomAPLogic system automatically generates Python code that mirrors your HScript definitions. This ensures that your AP world generation has access to the same data structures you define in HScript.
+The CustomAPLogic system automatically generates Python code that corresponds to your HScript definitions. This ensures that your Archipelago world generation has access to the same data structures you define in HScript.
 
 ```haxe
 // Set data that will be available during Python generation
@@ -236,16 +322,80 @@ var multiplier = getDataValue("item_multiplier", 1);
 The system supports creating temporary custom weeks during Archipelago sessions without modifying files on disk:
 
 ```haxe
-// Define custom weeks that will be created dynamically
-// These are added to the slot data and created in-memory during the AP session
+// Basic custom week with default settings
 defineCustomWeek("AP Special Week", ["song1", "song2", "song3"]);
 defineCustomWeek("Cross-Mod Week", ["base-song", "mod-song"], "Cross Mod");
+
+// Enhanced custom week with metadata
+defineCustomWeek("Boss Week", ["Boss1", "Boss2"], "MyMod", 
+    ["hard", "expert"],  // Custom difficulties
+    "boss",              // Default icon for songs
+    [255, 0, 0]         // Default color for songs
+);
+
+// Custom week with per-song metadata
+defineCustomWeekWithSongMetadata("Mixed Week", [
+    {name: "Easy Song", icon: "face", color: [0, 255, 0]},
+    {name: "Hard Song", icon: "boss", color: [255, 0, 0]},
+    {name: "Normal Song"} // Uses week defaults or global defaults
+], "MyMod", ["easy", "normal", "hard"]);
 
 // Check if custom weeks are supported in the current configuration
 if (supportsCustomWeeks()) {
     defineCustomWeek("Dynamic Content", ["adaptive-song"]);
 }
 ```
+
+### Enhanced Song Management
+
+The system now supports enhanced song management with metadata for icons, colors, and difficulties:
+
+```haxe
+// Basic song addition (backwards compatible)
+addSong("My New Song", "MyMod");
+
+// Enhanced song addition with metadata
+addSong("Boss Battle", "MyMod", "boss", [255, 0, 0], ["hard", "expert"]);
+
+// Parameters: songName, targetMod, icon, color, difficulties
+// - icon: Optional icon name (defaults to "face")
+// - color: Optional RGB color array (defaults to [146, 113, 253])
+// - difficulties: Optional array of difficulty names (defaults to week difficulties)
+
+// Batch song addition with shared metadata
+addSongs(["Song1", "Song2"], "MyMod", "boss", [255, 0, 0], ["hard"]);
+
+// Individual song metadata
+addSongsWithMetadata([
+    {name: "Easy Song", icon: "face", color: [0, 255, 0], difficulties: ["easy"]},
+    {name: "Hard Song", icon: "boss", color: [255, 0, 0], difficulties: ["hard", "expert"]}
+], "MyMod");
+```
+
+### Difficulty-Based Week Optimization
+
+The system automatically optimizes week creation by grouping songs with identical difficulty sets:
+
+```haxe
+// These songs will be grouped into separate optimized weeks automatically
+addSong("Easy Song", "MyMod", "face", [0, 255, 0], ["easy"]);
+addSong("Normal Song", "MyMod", "face", [0, 0, 255], ["easy", "normal"]);
+addSong("Hard Song", "MyMod", "boss", [255, 0, 0], ["hard"]);
+addSong("Expert Song", "MyMod", "boss", [255, 0, 0], ["hard", "expert"]);
+
+// Results in optimized weeks:
+// - ap_custom_MyMod_easy (contains "Easy Song")
+// - ap_custom_MyMod_easy_normal (contains "Normal Song") 
+// - ap_custom_MyMod_hard (contains "Hard Song")
+// - ap_custom_MyMod_hard_expert (contains "Expert Song")
+```
+
+**Benefits:**
+- **Reduced Week Count**: Songs with identical difficulty sets are grouped together
+- **Performance**: Fewer weeks means faster loading and better memory usage
+- **Organization**: Songs are logically grouped by their difficulty requirements
+- **Per-Song Granularity**: Each song can have its own unique icon and color
+- **Compatibility**: All enhancements are optional - existing code continues to work
 
 ## Advanced Features
 
@@ -308,17 +458,63 @@ for (song in songList) {
     }
 }
 
-// Strategy 2: Add cross-mod bonus content
-var bonusSongs = ["secret-collab", "community-remix", "dev-special"];
-for (song in bonusSongs) {
-    addSong(song);
-}
+// Strategy 2: Add cross-mod bonus content with metadata
+addSongsWithMetadata([
+    {name: "secret-collab", icon: "secret", color: [128, 0, 128], difficulties: ["secret"]},
+    {name: "community-remix", icon: "community", color: [0, 255, 255], difficulties: ["easy", "normal"]},
+    {name: "dev-special", icon: "dev", color: [255, 255, 0], difficulties: ["expert"]}
+]);
 
 // Strategy 3: Conditional content based on other mods
 if (isModEnabled("Expansion Mod")) {
-    addSongs(["expansion-collab-1", "expansion-collab-2"]);
+    addSongs(["expansion-collab-1", "expansion-collab-2"], null, "collab", [100, 200, 255]);
     addSimpleLocation("Expansion Crossover", "expansion-collab-1", "Expansion Mod", 
                      ["Crossover Item"], true);
+}
+
+// Strategy 4: Create themed weeks with consistent styling
+defineCustomWeekWithSongMetadata("Boss Rush Week", [
+    {name: "Mini Boss", icon: "miniboss", color: [255, 165, 0]},
+    {name: "Main Boss", icon: "boss", color: [255, 0, 0]},
+    {name: "Final Boss", icon: "finalboss", color: [128, 0, 0]}
+], "MyMod", ["hard", "expert"]);
+```
+
+### Complete Enhanced Example
+
+```haxe
+// Example showing all enhanced features working together
+function setupEnhancedContent() {
+    // Individual songs with full metadata
+    addSong("Tutorial Song", "MyMod", "tutorial", [0, 255, 0], ["easy"]);
+    addSong("Boss Fight", "MyMod", "boss", [255, 0, 0], ["hard", "expert"]);
+    
+    // Batch songs with shared metadata
+    addSongs(["Chapter1", "Chapter2"], "MyMod", "story", [0, 100, 200], ["normal"]);
+    
+    // Songs with individual metadata (auto-optimized by difficulty)
+    addSongsWithMetadata([
+        {name: "Calm Intro", icon: "calm", color: [100, 200, 255], difficulties: ["easy"]},
+        {name: "Epic Finale", icon: "epic", color: [255, 100, 0], difficulties: ["hard"]},
+        {name: "Secret Track", icon: "secret", color: [128, 0, 128], difficulties: ["secret"]}
+    ], "MyMod");
+    
+    // Basic custom week with defaults
+    defineCustomWeek("Standard Week", ["Normal1", "Normal2"], "MyMod", 
+        ["easy", "normal"], "face", [146, 113, 253]);
+    
+    // Advanced custom week with per-song metadata
+    defineCustomWeekWithSongMetadata("Story Mode", [
+        {name: "Prologue", icon: "start", color: [0, 255, 0]},
+        {name: "Rising Action", icon: "action", color: [255, 165, 0]},
+        {name: "Climax", icon: "boss", color: [255, 0, 0]},
+        {name: "Resolution", icon: "end", color: [0, 0, 255]}
+    ], "MyMod", ["story"]);
+    
+    // Add corresponding locations with proper access rules
+    addSimpleLocation("Tutorial Complete", "Tutorial Song", "MyMod", ["Basic Training"], true);
+    addSimpleLocation("Boss Defeated", "Boss Fight", "MyMod", ["Boss Key", "Power Upgrade"], true);
+    addSimpleLocation("Story Complete", "Resolution", "MyMod", ["Story Progress"], true);
 }
 ```
 
@@ -649,39 +845,6 @@ if (otherModCount > 5) {
     addItem("Veteran Player Bonus");
 }
 ```
-
-## Migration from Python
-
-If you were using the old Python-based custom location system:
-
-### Old Python Format
-```python
-def get_custom_locations():
-    return [
-        {
-            "name": "Song FC",
-            "originSong": "song1",
-            "originMod": "My Mod",
-            "access_rule": {
-                "requiredItems": [{"name": "Song Access", "count": 1}]
-            }
-        }
-    ]
-```
-
-### New HScript Format
-```haxe
-// Simple location for current mod's song
-addSimpleLocation("Song FC", "song1", null, ["Song Access"], true);
-
-// Cross-mod location
-addSimpleLocation("Cross-Mod Achievement", "song1", "Other Mod", ["Song Access"], false);
-
-// Base game location (empty string = base game)
-addSimpleLocation("Base Game FC", "bopeebo", "", ["Song Access"], false);
-```
-
-The HScript system is more powerful and provides better mod integration while being easier to write and maintain.
 
 ## Example Files
 

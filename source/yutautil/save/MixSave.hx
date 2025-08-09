@@ -7,8 +7,8 @@ class MixSave {
     private var customBehaviors:Map<String, {save:Dynamic->String, load:String->Dynamic}>;
 
     public function new() {
-        content = new Map();
-        customBehaviors = new Map();
+        content = new Map<String, Dynamic>();
+        customBehaviors = new Map<String, {save:Dynamic->String, load:String->Dynamic}>();
     }
 
     public function addContent(key:String, value:Dynamic):Void {

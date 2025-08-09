@@ -23,7 +23,7 @@ class StateTick {
         if (start) {
             this.start();
         }
-        trace("StateTick created with interval: " + tickInterval);
+        // trace("StateTick created with interval: " + tickInterval);
     }
 
     private function onEnterFrame(event:Event):Void {

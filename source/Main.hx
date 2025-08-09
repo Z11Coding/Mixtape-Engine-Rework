@@ -1296,6 +1296,208 @@ class CommandPrompt
 					print("Error: globalVar requires exactly two arguments.");
 				}
 
+			case "saveState":
+				if (args.length == 0) {
+					// Save with auto-generated filename
+					var success = yutautil.save.StateSerializer.saveCurrentState();
+					if (success) {
+						print("Current state saved successfully with auto-generated filename.");
+					} else {
+						print("Error: Failed to save current state.");
+					}
+				} else if (args.length == 1) {
+					// Save with custom filename
+					var filename = args[0];
+					var success = yutautil.save.StateSerializer.saveCurrentState(filename);
+					if (success) {
+						print("Current state saved successfully as: " + filename + ".json");
+					} else {
+						print("Error: Failed to save current state.");
+					}
+				} else {
+					print("Error: saveState accepts 0 or 1 arguments. Usage: saveState [filename]");
+				}
+
+			case "loadState":
+				if (args.length == 1) {
+					var filename = args[0];
+					var success = yutautil.save.StateSerializer.loadAndSwitchToState(filename);
+					if (success) {
+						print("State loaded and switched successfully: " + filename);
+					} else {
+						print("Error: Failed to load state: " + filename);
+					}
+				} else {
+					print("Error: loadState requires exactly one argument. Usage: loadState <filename>");
+				}
+
+			case "listSaves":
+				if (args.length == 0) {
+					var saves = yutautil.save.StateSerializer.listSaveFiles();
+					if (saves.length == 0) {
+						print("No save files found.");
+					} else {
+						print("Available save files:");
+						for (i in 0...saves.length) {
+							print("  " + (i + 1) + ". " + saves[i]);
+						}
+					}
+				} else {
+					print("Error: listSaves does not accept any arguments.");
+				}
+
+			case "deleteSave":
+				if (args.length == 1) {
+					var filename = args[0];
+					var success = yutautil.save.StateSerializer.deleteSaveFile(filename);
+					if (success) {
+						print("Save file deleted successfully: " + filename);
+					} else {
+						print("Error: Failed to delete save file: " + filename);
+					}
+				} else {
+					print("Error: deleteSave requires exactly one argument. Usage: deleteSave <filename>");
+				}
+
+			case "serializeObject":
+				if (args.length == 1) {
+					var objectPath = args[0];
+					try {
+						// Parse object path (e.g., "FlxG.state" or "this.currentState")
+						var obj:Dynamic = null;
+						if (objectPath == "FlxG.state" || objectPath == "this.currentState") {
+							obj = FlxG.state;
+						} else {
+							// Try to resolve from current state
+							var parts = objectPath.split('.');
+							obj = FlxG.state;
+							for (part in parts) {
+								if (obj != null) {
+									obj = Reflect.field(obj, part);
+								}
+							}
+						}
+						
+						if (obj != null) {
+							var serialized = yutautil.save.StateSerializer.createSerializableObject(obj);
+							print("Object serialized successfully:");
+							print("  Class: " + serialized.CLASS);
+							print("  Type: " + serialized.TYPE);
+							print("  Timestamp: " + serialized.TIMESTAMP);
+							print("  Fields: " + Reflect.fields(serialized.FIELDS).length + " field(s)");
+						} else {
+							print("Error: Object not found at path: " + objectPath);
+						}
+					} catch (e:Dynamic) {
+						print("Error serializing object: " + e);
+					}
+				} else {
+					print("Error: serializeObject requires exactly one argument. Usage: serializeObject <objectPath>");
+				}
+
+			case "testSerialization":
+				try {
+					print("=== Creating Random Complex Object ===");
+					
+					// Create a complex test object with nested structures
+					var testObj = {
+						id: Math.floor(Math.random() * 1000),
+						name: "TestObject_" + Date.now().toString(),
+						timestamp: Date.now().getTime(),
+						settings: {
+							enabled: Math.random() > 0.5,
+							volume: Math.random(),
+							difficulty: Math.floor(Math.random() * 5) + 1,
+							options: ["option1", "option2", "option3"]
+						},
+						data: new Map<String, Dynamic>(),
+						history: [],
+						metadata: {
+							version: "1.0.0",
+							creator: "SerializationTest",
+							tags: ["test", "random", "complex"]
+						}
+					};
+					
+					// Add some random data to the map
+					for (i in 0...5) {
+						testObj.data.set("key_" + i, {
+							value: Math.random() * 100,
+							type: "random_data_" + i,
+							active: Math.random() > 0.3
+						});
+					}
+					
+					// Add some history entries
+					for (i in 0...3) {
+						testObj.history.push({
+							action: "action_" + i,
+							timestamp: Date.now().getTime() - (i * 1000),
+							data: "Some random data: " + Math.random()
+						});
+					}
+					
+					print("Random object created with:");
+					print("  ID: " + testObj.id);
+					print("  Name: " + testObj.name);
+					print("  Settings enabled: " + testObj.settings.enabled);
+					print("  Data entries: " + Lambda.count(testObj.data));
+					print("  History entries: " + testObj.history.length);
+					
+					print("\n=== Testing Serialization ===");
+					
+					// Test serialization
+					var startTime = haxe.Timer.stamp();
+					var serialized = yutautil.save.StateSerializer.createSerializableObject(testObj);
+					var serializeTime = haxe.Timer.stamp() - startTime;
+					
+					if (serialized != null) {
+						print("✓ Serialization successful!");
+						print("  Class: " + serialized.CLASS);
+						print("  Type: " + serialized.TYPE);
+						print("  Version: " + serialized.VERSION);
+						print("  Total Objects: " + serialized.METADATA.totalObjects);
+						print("  Max Depth: " + serialized.METADATA.maxDepth);
+						print("  Has Circular Refs: " + serialized.METADATA.hasCircularRefs);
+						print("  Object Types: " + serialized.METADATA.objectTypes.join(", "));
+						print("  Serialization Time: " + Math.round(serializeTime * 1000) + "ms");
+						
+						print("\n=== Testing Deserialization ===");
+						
+						// Test deserialization
+						var deserializeStart = haxe.Timer.stamp();
+						var restored = yutautil.save.StateSerializer.restoreFromSerializedObject(serialized);
+						var deserializeTime = haxe.Timer.stamp() - deserializeStart;
+						
+						if (restored != null) {
+							print("✓ Deserialization successful!");
+							print("  Deserialization Time: " + Math.round(deserializeTime * 1000) + "ms");
+							
+							// Verify some data integrity
+							var restoredObj:Dynamic = restored;
+							var dataMatches = (restoredObj.id == testObj.id && 
+											  restoredObj.name == testObj.name &&
+											  restoredObj.settings.enabled == testObj.settings.enabled);
+							
+							print("  Data Integrity Check: " + (dataMatches ? "✓ PASSED" : "✗ FAILED"));
+							
+							if (restoredObj.history != null) {
+								print("  History Restored: " + restoredObj.history.length + " entries");
+							}
+							
+							var totalTime = Math.round((serializeTime + deserializeTime) * 1000);
+							print("  Total Time: " + totalTime + "ms");
+							
+						} else {
+							print("✗ Deserialization failed!");
+						}
+					} else {
+						print("✗ Serialization failed!");
+					}
+					
+				} catch (e:Dynamic) {
+					print("Error during serialization test: " + e);
+				}
 					
 			default:
 				if (args.length == 2 && args[1] == '=')

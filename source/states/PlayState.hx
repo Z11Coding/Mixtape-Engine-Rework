@@ -8291,6 +8291,7 @@ class PlayState extends MusicBeatState
 					case 'potato':
 						unlock = (!ClientPrefs.data.shaders 
 							&& ClientPrefs.data.lowQuality 
+							&& ClientPrefs.data.trashMode
 							&& !ClientPrefs.data.antialiasing 
 							&& ClientPrefs.data.framerate <= 30
 							&& !ClientPrefs.data.unlockFramerate

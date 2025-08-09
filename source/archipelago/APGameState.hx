@@ -1711,16 +1711,74 @@ class APGameState
 				for (field in Reflect.fields(customWeeksData))
 				{
 					var weekData:Dynamic = Reflect.field(customWeeksData, field);
-					var targetMod:String = weekData.target_mod;
+					var targetMod:String = weekData.targetMod != null ? weekData.targetMod : "";
 					var songs:Array<String> = weekData.songs;
 					
-					if (targetMod == null || songs == null || songs.length == 0)
+					if (songs == null || songs.length == 0)
 					{
-						trace('Invalid custom week data for ${field}');
+						trace('Invalid custom week data for ${field}: no songs');
 						continue;
 					}
 					
-					generateCustomWeekFile(field, targetMod, songs);
+					// Extract optional week-level metadata
+					var difficulties:Array<String> = weekData.difficulties;
+					var defaultIcon:String = weekData.icon;
+					var defaultColor:Array<Int> = weekData.color;
+					
+					// Create metadata for songs, prioritizing per-song metadata over week defaults
+					var songMetadata:Array<Dynamic> = [];
+					
+					// Check if per-song metadata is available
+					if (weekData.songMetadata != null)
+					{
+						var perSongMetadata:Array<Dynamic> = weekData.songMetadata;
+						for (i in 0...songs.length)
+						{
+							var songName = songs[i];
+							var songMeta:Dynamic = {name: songName};
+							
+							// Find matching metadata for this song
+							var foundMetadata:Dynamic = null;
+							for (meta in perSongMetadata)
+							{
+								if (meta.name == songName)
+								{
+									foundMetadata = meta;
+									break;
+								}
+							}
+							
+							// Use per-song metadata if available, otherwise fall back to week defaults
+							if (foundMetadata != null)
+							{
+								songMeta.icon = foundMetadata.icon != null ? foundMetadata.icon : (defaultIcon != null ? defaultIcon : "face");
+								songMeta.color = foundMetadata.color != null ? foundMetadata.color : (defaultColor != null ? defaultColor : [146, 113, 253]);
+							}
+							else
+							{
+								songMeta.icon = defaultIcon != null ? defaultIcon : "face";
+								songMeta.color = defaultColor != null ? defaultColor : [146, 113, 253];
+							}
+							
+							songMetadata.push(songMeta);
+						}
+					}
+					else
+					{
+						// No per-song metadata, use week defaults for all songs
+						for (song in songs)
+						{
+							songMetadata.push({
+								name: song,
+								icon: defaultIcon != null ? defaultIcon : "face",
+								color: defaultColor != null ? defaultColor : [146, 113, 253]
+							});
+						}
+					}
+					
+					// Create the custom week with metadata
+					createOptimizedTemporaryWeek(field, targetMod, songs, songMetadata, difficulties);
+					trace('Created custom week ${field} with ${songs.length} songs and per-song metadata');
 				}
 			}
 		}
@@ -1746,36 +1804,106 @@ class APGameState
 	// Process song additions and exclusions from slot data
 	private function processSongModifications(songModsData:Dynamic):Void
 	{
-		// Process song additions - create temporary weeks for mods that need new songs
+		// Process song additions - create optimized temporary weeks based on difficulties
 		if (Reflect.hasField(songModsData, "song_additions"))
 		{
 			var songAdditions:Array<Dynamic> = Reflect.field(songModsData, "song_additions");
 			if (songAdditions != null && songAdditions.length > 0)
 			{
-				// Group songs by target mod
-				var modSongs:Map<String, Array<String>> = new Map();
+				trace('Processing ${songAdditions.length} song additions with difficulty optimization');
+				
+				// Group songs by target mod first, then by difficulty set
+				var modGroups:Map<String, Array<Dynamic>> = new Map();
 				
 				for (addition in songAdditions)
 				{
-					var songName:String = addition.name;
 					var targetMod:String = addition.targetMod != null ? addition.targetMod : "";
 					
-					if (!modSongs.exists(targetMod))
+					if (!modGroups.exists(targetMod))
 					{
-						modSongs.set(targetMod, []);
+						modGroups.set(targetMod, []);
 					}
-					modSongs.get(targetMod).push(songName);
+					modGroups.get(targetMod).push(addition);
 				}
 				
-				// Create temporary weeks for each mod that needs new songs
-				for (targetMod in modSongs.keys())
+				// For each mod, group by difficulties and create optimized weeks
+				for (targetMod in modGroups.keys())
 				{
-					var songs = modSongs.get(targetMod);
-					var weekName = 'ap_custom_' + (targetMod != "" ? targetMod : "base");
-					createTemporaryWeek(weekName, targetMod, songs);
+					var modSongs = modGroups.get(targetMod);
+					var difficultyGroups:Map<String, Array<Dynamic>> = new Map();
+					
+					// Group songs by their difficulty sets
+					for (song in modSongs)
+					{
+						var difficultyKey:String;
+						
+						if (song.difficulties != null && song.difficulties.length > 0)
+						{
+							// Sort difficulties for consistent grouping (convert to lowercase)
+							var sortedDiffs:Array<String> = [for (diff in song.difficulties.toIterable()) diff.toLowerCase()];
+							sortedDiffs.sort((a, b) -> a < b ? -1 : (a > b ? 1 : 0));
+							difficultyKey = sortedDiffs.join("|");
+						}
+						else
+						{
+							difficultyKey = "default";
+						}
+						
+						if (!difficultyGroups.exists(difficultyKey))
+						{
+							difficultyGroups.set(difficultyKey, []);
+						}
+						difficultyGroups.get(difficultyKey).push(song);
+					}
+					
+					// Create optimized weeks for each difficulty group
+					for (difficultyKey in difficultyGroups.keys())
+					{
+						var songs = difficultyGroups.get(difficultyKey);
+						if (songs.length == 0) continue;
+						
+						// Generate week name based on difficulty set
+						var weekName:String;
+						if (difficultyKey == "default")
+						{
+							weekName = 'ap_custom_' + (targetMod != "" ? targetMod : "base");
+						}
+						else
+						{
+							var diffSuffix = difficultyKey.replace("|", "_");
+							weekName = 'ap_custom_' + (targetMod != "" ? targetMod : "base") + '_' + diffSuffix;
+						}
+						
+						// Extract song names and metadata
+						var songNames:Array<String> = [];
+						var songMetadata:Array<Dynamic> = [];
+						var weekDifficulties:Array<String> = null;
+						
+						for (song in songs)
+						{
+							songNames.push(song.name);
+							
+							// Create metadata with icon and color from slot data
+							var metadata:Dynamic = {
+								name: song.name,
+								icon: song.icon != null ? song.icon : "face",
+								color: song.color != null ? song.color : [146, 113, 253]
+							};
+							songMetadata.push(metadata);
+							
+							// Use first song's difficulties for the week
+							if (weekDifficulties == null && song.difficulties != null && song.difficulties.length > 0)
+							{
+								weekDifficulties = [for (diff in song.difficulties.toIterable()) diff.toLowerCase()];
+							}
+						}
+						
+						createOptimizedTemporaryWeek(weekName, targetMod, songNames, songMetadata, weekDifficulties);
+						trace('Created optimized week ${weekName} with ${songs.length} songs for difficulty set: ${difficultyKey}');
+					}
 				}
 				
-				trace('Created temporary weeks for song additions: ${modSongs.keys()}');
+				trace('Completed optimized temporary week creation for song additions');
 			}
 		}
 		
@@ -1875,6 +2003,82 @@ class APGameState
 		catch (e:Dynamic)
 		{
 			trace('Error creating temporary week ${weekName}: ${e}');
+			#if sys
+			trace('Stack trace: ${haxe.CallStack.toString(haxe.CallStack.exceptionStack())}');
+			#end
+		}
+	}
+	
+	// Create an optimized temporary week with metadata support
+	private function createOptimizedTemporaryWeek(weekName:String, targetMod:String, songs:Array<String>, ?songMetadata:Array<Dynamic>, ?difficulties:Array<String>):Void
+	{
+		if (temporaryWeekNames.contains(weekName))
+			weekName = weekName + "+";
+
+		try
+		{
+			trace('Creating optimized temporary week: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');
+			
+			// Create week file structure
+			var weekFile:WeekFile = {
+				songs: [],
+				weekCharacters: ['bf', 'bf', 'gf'], // Default characters
+				weekBackground: 'stage', // Default background
+				weekBefore: '', // No prerequisite week
+				storyName: weekName.replace("ap_custom_", "AP Custom "), // Display name
+				weekName: weekName, // Internal name
+				startUnlocked: true, // Always unlocked for AP weeks
+				hiddenUntilUnlocked: false,
+				hideStoryMode: false, // Show in story mode
+				hideFreeplay: false, // Show in freeplay
+				difficulties: '', // Will be set below if provided
+				category: 'archipelago' // Custom category for AP weeks
+			};
+			
+			// Set custom difficulties if provided
+			if (difficulties != null && difficulties.length > 0)
+			{
+				weekFile.difficulties = difficulties.join(',');
+				trace('Set custom difficulties for week ${weekName}: ${difficulties.join(", ")}');
+			}
+			
+			// Add songs to the week file with metadata
+			for (i in 0...songs.length)
+			{
+				var songName = songs[i];
+				var icon = "face"; // Default icon
+				var color = [146, 113, 253]; // Default color
+				
+				// Use metadata if available
+				if (songMetadata != null && i < songMetadata.length)
+				{
+					var metadata = songMetadata[i];
+					if (metadata.icon != null) icon = metadata.icon;
+					if (metadata.color != null) color = metadata.color;
+				}
+				
+				// Format: [songName, iconName, [r, g, b]]
+				weekFile.songs.push([songName, icon, color]);
+				trace('Added song ${songName} with icon: ${icon}, color: ${color}');
+			}
+			
+			// Create WeekData object from WeekFile
+			var weekData:WeekData = new WeekData(weekFile, weekName);
+			weekData.folder = targetMod; // Set the mod folder
+			
+			// Add to temporary arrays for tracking
+			temporaryWeeks.push(weekData);
+			temporaryWeekNames.push(weekName);
+			
+			// Add directly to the WeekData system (in-memory only)
+			WeekData.weeksLoaded.set(weekName, weekData);
+			WeekData.weeksList.push(weekName);
+			
+			trace('Successfully created optimized temporary week: ${weekName}');
+		}
+		catch (e:Dynamic)
+		{
+			trace('Error creating optimized temporary week ${weekName}: ${e}');
 			#if sys
 			trace('Stack trace: ${haxe.CallStack.toString(haxe.CallStack.exceptionStack())}');
 			#end
