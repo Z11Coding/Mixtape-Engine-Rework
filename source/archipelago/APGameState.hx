@@ -593,10 +593,6 @@ class APGameState
 	{
 		_ap = ap;
 		_slotData = slotData;
-
-		trace("slotData: " + Std.string(slotData));
-		trace("Retained slotData: " + Std.string(_slotData));
-
 		_seed = _ap.seed;
 
 		archipelago.APPlayState.apGame = this;
@@ -643,13 +639,19 @@ class APGameState
 
 		// _ap.onRoomInfo.add(onRoomInfo);
 		// _ap.onSlotRefused.add(onSlotRefused);
-		_ap.onSlotConnected.add(onSlotConnected);
+		// _ap.onSlotConnected.add(onSlotConnected);
 		APPlayState.deathByLink = false;
+
+		// Generate custom week files if they don't exist
+		// This processes slot data that contains information about:
+		// - Custom weeks defined in HScript files
+		// - Song modifications (additions/exclusions) from mod processing
+		generateCustomWeeks();
 	}
 
 	function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void
 	{
-		trace("Retrieved packet: " + retrievedPacket);
+		//trace("Retrieved packet: " + retrievedPacket);
 		for (key in retrievedPacket.keys())
 		{
 			var value = retrievedPacket.get(key);
@@ -1053,34 +1055,32 @@ class APGameState
 	{
 		if (backend.ClientPrefs.data.deathlink)
 			_ap.tags.push("DeathLink");
-		
-		// Generate custom week files if they don't exist
-		// This processes slot data that contains information about:
-		// - Custom weeks defined in HScript files
-		// - Song modifications (additions/exclusions) from mod processing
-		generateCustomWeeks();
-	}		function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
-		{
-			var theMessageFM:String = "";
-			for (message in data)
-			{
-				switch (message.type)
-				{
-					case "player_id":
-						theMessageFM += _ap.get_player_alias(Std.parseInt(message.text));
-					case "item_id":
-						theMessageFM += _ap.get_item_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
-					case "location_id":
-						theMessageFM += _ap.get_location_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
-					default:
-						theMessageFM += message.text;
-				}
-			}
-			archipelago.console.MainTab.addMessage(theMessageFM);
-		}
 
-		function sendMessageSimple(text:Dynamic)
-			archipelago.console.MainTab.addMessage(text);
+		trace("Slot Data Connected and Custom Songs Grabbed!");
+	}		
+	
+	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
+	{
+		var theMessageFM:String = "";
+		for (message in data)
+		{
+			switch (message.type)
+			{
+				case "player_id":
+					theMessageFM += _ap.get_player_alias(Std.parseInt(message.text));
+				case "item_id":
+					theMessageFM += _ap.get_item_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
+				case "location_id":
+					theMessageFM += _ap.get_location_name(Std.parseInt(message.text), _ap.get_player_game(message.player));
+				default:
+					theMessageFM += message.text;
+			}
+		}
+		archipelago.console.MainTab.addMessage(theMessageFM);
+	}
+
+	function sendMessageSimple(text:Dynamic)
+		archipelago.console.MainTab.addMessage(text);
 
 	public function disconnectAP()
 	{
@@ -1644,7 +1644,7 @@ class APGameState
  * through Archipelago's custom song management system. It works as follows:
  * 
  * 1. SLOT DATA PROCESSING:
- *    - Reads 'custom_weeks' data from slot data (explicit week definitions)
+ *    - Reads 'customWeeks' data from slot data (explicit week definitions)
  *    - Reads 'song_modifications' data (song additions/exclusions)
  * 
  * 2. TEMPORARY WEEK CREATION:
@@ -1659,7 +1659,7 @@ class APGameState
  * 
  * EXAMPLE SLOT DATA STRUCTURE:
  * {
- *   "custom_weeks": {
+ *   "customWeeks": {
  *     "ap_custom_mymod": {
  *       "target_mod": "MyMod",
  *       "songs": ["New Song 1", "New Song 2"]
@@ -1677,7 +1677,7 @@ class APGameState
  * Generate temporary custom weeks for mods that received new songs through Archipelago
 	 * 
 	 * This function processes slot data from the Python world generation that includes:
-	 * - custom_weeks: Explicitly defined custom weeks from HScript processing
+	 * - customWeeks: Explicitly defined custom weeks from HScript processing
 	 * - song_modifications: Song additions/exclusions that require new week files
 	 * 
 	 * Custom weeks are generated as JSON files in the appropriate mod directories
@@ -1691,8 +1691,10 @@ class APGameState
 			return;
 		}
 		
-		var hasCustomWeeks = Reflect.hasField(_slotData, "custom_weeks");
+		var hasCustomWeeks = Reflect.hasField(_slotData, "customWeeks");
 		var hasSongMods = Reflect.hasField(_slotData, "song_modifications");
+
+		trace('hasSongMods: $hasSongMods');
 		
 		if (!hasCustomWeeks && !hasSongMods)
 		{
@@ -1704,7 +1706,7 @@ class APGameState
 		// Process custom weeks data if available
 		if (hasCustomWeeks)
 		{
-			var customWeeksData:Dynamic = Reflect.field(_slotData, "custom_weeks");
+			var customWeeksData:Dynamic = Reflect.field(_slotData, "customWeeks");
 			if (customWeeksData != null)
 			{
 				// Process each custom week
@@ -1729,6 +1731,7 @@ class APGameState
 		if (hasSongMods)
 		{
 			var songModsData:Dynamic = Reflect.field(_slotData, "song_modifications");
+			trace('songModsData: $songModsData');
 			if (songModsData != null)
 			{
 				processSongModifications(songModsData);
@@ -1857,6 +1860,8 @@ class APGameState
 				// Format: [songName, iconName, [r, g, b]]
 				weekFile.songs.push([song, 'face', [146, 113, 253]]); // Default icon and color
 			}
+
+			trace('weekFile: $weekFile');
 			
 			// Create WeekData object from WeekFile
 			var weekData:WeekData = new WeekData(weekFile, weekName);
@@ -1865,10 +1870,15 @@ class APGameState
 			// Add to temporary arrays for tracking
 			temporaryWeeks.push(weekData);
 			temporaryWeekNames.push(weekName);
+
+			trace('weekFile: $weekData');
 			
 			// Add directly to the WeekData system (in-memory only)
 			WeekData.weeksLoaded.set(weekName, weekData);
 			WeekData.weeksList.push(weekName);
+
+			trace('weeksLoaded: ${WeekData.weeksLoaded}');
+			trace('weeksList: ${WeekData.weeksList}');
 			
 			trace('Successfully created temporary week: ${weekName}');
 		}
@@ -2059,7 +2069,7 @@ class APGameState
 			return true; // No slot data, nothing to validate
 		}
 		
-		var hasCustomWeeks = Reflect.hasField(_slotData, "custom_weeks");
+		var hasCustomWeeks = Reflect.hasField(_slotData, "customWeeks");
 		var hasSongMods = Reflect.hasField(_slotData, "song_modifications");
 		
 		if (!hasCustomWeeks && !hasSongMods)
@@ -2072,7 +2082,7 @@ class APGameState
 		// Check custom weeks
 		if (hasCustomWeeks)
 		{
-			var customWeeksData:Dynamic = Reflect.field(_slotData, "custom_weeks");
+			var customWeeksData:Dynamic = Reflect.field(_slotData, "customWeeks");
 			if (customWeeksData != null)
 			{
 				for (field in Reflect.fields(customWeeksData))

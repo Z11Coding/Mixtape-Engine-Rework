@@ -1533,8 +1533,7 @@ class Client {
 
 					// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 
-				trace("Data: " + slot_data);
-
+				
 					_hOnSlotConnected(slot_data);
 					_hOnLocationChecked(checked_locations);
 
