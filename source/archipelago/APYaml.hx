@@ -143,19 +143,12 @@ class APYaml {
                 sectionData = new Map<String, Dynamic>();
             } else {
                 var keyValue = line.split(":");
-                if (keyValue.length == 2) {
+
+                if (keyValue.length >= 2) {
                     var key = keyValue[0].trim();
-                    var value = keyValue[1].trim();
+                    var value = keyValue.slice(1).join(":").trim();
 
-                    
-                    if (key == "game")
-                        this.game = new APOption(value);
-                    else if (key == "name")
-                        this.name = new APOption(value);
-                    else if (key == "description")
-                        this.description = new APOption(value);
-
-                    sectionData.set(key, new APOption(value));
+                    // Don't set key/value yet as requested
                 }
             }
         }

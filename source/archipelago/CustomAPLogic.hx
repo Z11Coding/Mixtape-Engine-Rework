@@ -38,14 +38,40 @@ typedef ModInfo = {
 };
 
 // Class to hold static arrays of items and locations
+// Enhanced song addition structure with metadata
+typedef APSongAddition = {
+    name: String,
+    targetMod: String,
+    ?icon: String, // Optional icon name (defaults to 'face')
+    ?color: Array<Int>, // Optional RGB color array (defaults to [146, 113, 253])
+    ?difficulties: Array<String> // Optional difficulties list (lowercase, defaults to week's difficulties)
+};
+
+// Enhanced song exclusion structure
+typedef APSongExclusion = {
+    name: String,
+    targetMod: String
+};
+
+// Enhanced custom week structure with metadata
+typedef APCustomWeek = {
+    name: String,
+    songs: Array<String>,
+    targetMod: String,
+    ?difficulties: Array<String>, // Optional difficulties for the week (defaults to global difficulties)
+    ?icon: String, // Optional default icon for songs in this week
+    ?color: Array<Int>, // Optional default color for songs in this week
+    ?songMetadata: Array<{name:String, ?icon:String, ?color:Array<Int>}> // Optional per-song metadata
+};
+
 class APDataStore {
     public static var items:Array<APRequiredItem> = [];
     public static var locations:Array<APLocation> = [];
     public static var availableMods:Array<ModInfo> = [];
-    public static var songAdditions:Array<{name:String, targetMod:String}> = [];
-    public static var songExclusions:Array<{name:String, targetMod:String}> = [];
+    public static var songAdditions:Array<APSongAddition> = [];
+    public static var songExclusions:Array<APSongExclusion> = [];
     public static var customData:Map<String, Dynamic> = new Map<String, Dynamic>();
-    public static var customWeeks:Array<{name:String, songs:Array<String>, targetMod:String}> = [];
+    public static var customWeeks:Array<APCustomWeek> = [];
 }
 
 // HScript execution context for each mod
@@ -61,15 +87,15 @@ class APHScriptContext {
     public var excludedSongs:Array<String>;
     public var addedSongs:Array<String>;
     
-    // Detailed song modification tracking for Python generation
-    public var songAdditions:Array<{name:String, targetMod:String}>;
-    public var songExclusions:Array<{name:String, targetMod:String}>;
+    // Enhanced song modification tracking for Python generation
+    public var songAdditions:Array<APSongAddition>;
+    public var songExclusions:Array<APSongExclusion>;
     
     // Data storage for Python generation
     public var customData:Map<String, Dynamic>;
     
-    // Custom week definitions
-    public var customWeeks:Array<{name:String, songs:Array<String>, targetMod:String}>;
+    // Enhanced custom week definitions
+    public var customWeeks:Array<APCustomWeek>;
     
     public function new(modInfo:ModInfo, allMods:Array<ModInfo>) {
         this.modName = modInfo.name;
@@ -244,7 +270,7 @@ class APHScriptContext {
         }
     }
 
-    public function addSong(songName:String, ?targetMod:String):Void {
+    public function addSong(songName:String, ?targetMod:String, ?icon:String, ?color:Array<Int>, ?difficulties:Array<String>):Void {
         // Use current mod as default target if not specified
         if (targetMod == null) {
             targetMod = modFolderName;
@@ -253,9 +279,26 @@ class APHScriptContext {
         var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
         if (!addedSongs.contains(formattedName)) {
             addedSongs.push(formattedName);
-            songAdditions.push({name: songName, targetMod: targetMod});
-            APDataStore.songAdditions.push({name: songName, targetMod: targetMod});
-            trace('Added song: ${songName} to mod ${targetMod}');
+            
+            // Create enhanced song addition with metadata
+            var songAddition:APSongAddition = {
+                name: songName,
+                targetMod: targetMod
+            };
+            
+            if (icon != null) songAddition.icon = icon;
+            if (color != null) songAddition.color = color;
+            if (difficulties != null) {
+                // Convert to lowercase for consistency
+                songAddition.difficulties = [for (diff in difficulties) diff.toLowerCase()];
+            }
+            
+            songAdditions.push(songAddition);
+            APDataStore.songAdditions.push(songAddition);
+            trace('Added song: ${songName} to mod ${targetMod}' + 
+                  (icon != null ? ' with icon: ${icon}' : '') +
+                  (color != null ? ' with color: ${color}' : '') +
+                  (difficulties != null ? ' with difficulties: ${difficulties}' : ''));
         }
     }
     
@@ -266,10 +309,17 @@ class APHScriptContext {
         }
     }
     
-    // Helper to add multiple songs at once
-    public function addSongs(songNames:Array<String>, ?targetMod:String):Void {
+    // Helper to add multiple songs at once with individual metadata
+    public function addSongs(songNames:Array<String>, ?targetMod:String, ?icon:String, ?color:Array<Int>, ?difficulties:Array<String>):Void {
         for (song in songNames) {
-            addSong(song, targetMod);
+            addSong(song, targetMod, icon, color, difficulties);
+        }
+    }
+    
+    // Enhanced function to add songs with different metadata for each
+    public function addSongsWithMetadata(songs:Array<{name:String, ?icon:String, ?color:Array<Int>, ?difficulties:Array<String>}>, ?targetMod:String):Void {
+        for (songData in songs) {
+            addSong(songData.name, targetMod, songData.icon, songData.color, songData.difficulties);
         }
     }
     
@@ -310,8 +360,8 @@ class APHScriptContext {
         return customData.exists(key);
     }
     
-    // Custom week definition functions (available in HScript)
-    public function defineCustomWeek(weekName:String, songs:Array<String>, ?targetMod:String):Void {
+    // Enhanced custom week definition functions (available in HScript)
+    public function defineCustomWeek(weekName:String, songs:Array<String>, ?targetMod:String, ?difficulties:Array<String>, ?icon:String, ?color:Array<Int>):Void {
         // Use current mod as default target if not specified
         if (targetMod == null) {
             targetMod = modName;
@@ -331,15 +381,69 @@ class APHScriptContext {
             throw new haxe.Exception(errorMsg);
         }
         
-        var customWeek = {
+        var customWeek:APCustomWeek = {
             name: weekName,
             songs: songs.copy(),
             targetMod: targetMod
         };
         
+        // Add optional metadata
+        if (difficulties != null) {
+            // Convert to lowercase for consistency
+            customWeek.difficulties = [for (diff in difficulties) diff.toLowerCase()];
+        }
+        if (icon != null) customWeek.icon = icon;
+        if (color != null) customWeek.color = color;
+        
         customWeeks.push(customWeek);
         APDataStore.customWeeks.push(customWeek);
-        trace('Defined custom week: ${weekName} with ${songs.length} songs for mod ${targetMod}');
+        trace('Defined custom week: ${weekName} with ${songs.length} songs for mod ${targetMod}' +
+              (difficulties != null ? ' with difficulties: ${difficulties}' : '') +
+              (icon != null ? ' with default icon: ${icon}' : '') +
+              (color != null ? ' with default color: ${color}' : ''));
+    }
+    
+    // Enhanced custom week definition with per-song metadata
+    public function defineCustomWeekWithSongMetadata(weekName:String, songData:Array<{name:String, ?icon:String, ?color:Array<Int>}>, ?targetMod:String, ?difficulties:Array<String>):Void {
+        // Use current mod as default target if not specified
+        if (targetMod == null) {
+            targetMod = modName;
+        }
+        
+        // Validate week name
+        if (weekName == null || weekName.trim() == "") {
+            var errorMsg = 'Invalid custom week name: Week name cannot be null or empty';
+            trace(errorMsg);
+            throw new haxe.Exception(errorMsg);
+        }
+        
+        // Validate song data array
+        if (songData == null || songData.length == 0) {
+            var errorMsg = 'Invalid custom week song data: Song data array cannot be null or empty';
+            trace(errorMsg);
+            throw new haxe.Exception(errorMsg);
+        }
+        
+        // Extract song names for the basic week structure
+        var songs:Array<String> = [for (song in songData) song.name];
+        
+        var customWeek:APCustomWeek = {
+            name: weekName,
+            songs: songs,
+            targetMod: targetMod,
+            songMetadata: songData.copy() // Store individual song metadata
+        };
+        
+        // Add optional week-level metadata
+        if (difficulties != null) {
+            // Convert to lowercase for consistency
+            customWeek.difficulties = [for (diff in difficulties) diff.toLowerCase()];
+        }
+        
+        customWeeks.push(customWeek);
+        APDataStore.customWeeks.push(customWeek);
+        trace('Defined custom week with song metadata: ${weekName} with ${songs.length} songs for mod ${targetMod}' +
+              (difficulties != null ? ' with difficulties: ${difficulties}' : ''));
     }
     
     public function supportsCustomWeeks():Bool {
@@ -651,11 +755,12 @@ class APHScriptProcessor {
         interpreter.variables.set("isModEnabled", context.isModEnabled);
         interpreter.variables.set("getModInfo", context.getModInfo);
         
-        // Add song modification functions
+        // Add enhanced song modification functions
         interpreter.variables.set("excludeSong", context.excludeSong);
         interpreter.variables.set("addSong", context.addSong);
         interpreter.variables.set("excludeSongs", context.excludeSongs);
         interpreter.variables.set("addSongs", context.addSongs);
+        interpreter.variables.set("addSongsWithMetadata", context.addSongsWithMetadata);
         interpreter.variables.set("getFinalSongList", context.getFinalSongList);
         
         // Add data storage functions
@@ -663,8 +768,9 @@ class APHScriptProcessor {
         interpreter.variables.set("getDataValue", context.getDataValue);
         interpreter.variables.set("hasDataValue", context.hasDataValue);
         
-        // Add custom week functions
+        // Add enhanced custom week functions
         interpreter.variables.set("defineCustomWeek", context.defineCustomWeek);
+        interpreter.variables.set("defineCustomWeekWithSongMetadata", context.defineCustomWeekWithSongMetadata);
         interpreter.variables.set("supportsCustomWeeks", context.supportsCustomWeeks);
         
         // Add validation functions (for generation-time validation)
@@ -675,6 +781,19 @@ class APHScriptProcessor {
         try {
             var program = parser.parseString(scriptContent);
             interpreter.execute(program);
+            
+            // Call onGenYAML callback if it exists
+            if (interpreter.variables.exists("onGenYAML")) {
+                try {
+                    var callback = interpreter.variables.get("onGenYAML");
+                    if (Reflect.isFunction(callback)) {
+                        trace('Calling onGenYAML callback for ${modInfo.name}');
+                        Reflect.callMethod(null, callback, []);
+                    }
+                } catch (e:Dynamic) {
+                    trace('Error calling onGenYAML callback for ${modInfo.name}: ${e}');
+                }
+            }
             
             // Update the mod's song list with modifications from the script
             var finalSongList = context.getFinalSongList();
@@ -697,6 +816,19 @@ class APHScriptProcessor {
             
             for (week in context.customWeeks) {
                 APDataStore.customWeeks.push(week);
+            }
+            
+            // Call onAfterGen callback if it exists
+            if (interpreter.variables.exists("onAfterGen")) {
+                try {
+                    var callback = interpreter.variables.get("onAfterGen");
+                    if (Reflect.isFunction(callback)) {
+                        trace('Calling onAfterGen callback for ${modInfo.name}');
+                        Reflect.callMethod(null, callback, []);
+                    }
+                } catch (e:Dynamic) {
+                    trace('Error calling onAfterGen callback for ${modInfo.name}: ${e}');
+                }
             }
             
             trace('Successfully executed AP script: ${scriptPath}');
@@ -787,7 +919,49 @@ class APPythonGenerator {
                 if (i < week.songs.length - 1) pythonContent += ", ";
             }
             pythonContent += "],\n";
-            pythonContent += "                \"targetMod\": \"" + (week.targetMod != null ? week.targetMod : "") + "\"\n";
+            pythonContent += "                \"targetMod\": \"" + (week.targetMod != null ? week.targetMod : "") + "\",\n";
+            
+            // Add optional week-level metadata
+            if (week.difficulties != null) {
+                pythonContent += "                \"difficulties\": [";
+                for (i in 0...week.difficulties.length) {
+                    pythonContent += "\"" + week.difficulties[i] + "\"";
+                    if (i < week.difficulties.length - 1) pythonContent += ", ";
+                }
+                pythonContent += "],\n";
+            }
+            
+            if (week.icon != null) {
+                pythonContent += "                \"icon\": \"" + week.icon + "\",\n";
+            }
+            
+            if (week.color != null) {
+                pythonContent += "                \"color\": [" + week.color.join(", ") + "],\n";
+            }
+            
+            // Add per-song metadata if available
+            if (week.songMetadata != null) {
+                pythonContent += "                \"songMetadata\": [\n";
+                for (i in 0...week.songMetadata.length) {
+                    var songMeta = week.songMetadata[i];
+                    pythonContent += "                    {\n";
+                    pythonContent += "                        \"name\": \"" + songMeta.name + "\"";
+                    
+                    if (songMeta.icon != null) {
+                        pythonContent += ",\n                        \"icon\": \"" + songMeta.icon + "\"";
+                    }
+                    
+                    if (songMeta.color != null) {
+                        pythonContent += ",\n                        \"color\": [" + songMeta.color.join(", ") + "]";
+                    }
+                    
+                    pythonContent += "\n                    }";
+                    if (i < week.songMetadata.length - 1) pythonContent += ",";
+                    pythonContent += "\n";
+                }
+                pythonContent += "                ],\n";
+            }
+            
             pythonContent += "            },\n";
         }
         pythonContent += "        ]\n\n";
@@ -826,11 +1000,33 @@ class APPythonGenerator {
         
         // Song modifications
         pythonContent += "        # Song additions - songs that should be added to specific mods\n";
-        pythonContent += "        # Format: {'name': 'song_name', 'targetMod': 'mod_name'}\n";
+        pythonContent += "        # Format: {'name': 'song_name', 'targetMod': 'mod_name', 'icon': 'icon_name', 'color': [r, g, b], 'difficulties': ['diff1', 'diff2']}\n";
         pythonContent += "        # targetMod can be empty string for base game\n";
+        pythonContent += "        # icon, color, and difficulties are optional and will use defaults if not specified\n";
         pythonContent += "        self.song_additions = [\n";
         for (addition in APDataStore.songAdditions) {
-            pythonContent += "            {\"name\": \"" + addition.name + "\", \"targetMod\": \"" + (addition.targetMod != null ? addition.targetMod : "") + "\"},\n";
+            pythonContent += "            {\n";
+            pythonContent += "                \"name\": \"" + addition.name + "\",\n";
+            pythonContent += "                \"targetMod\": \"" + (addition.targetMod != null ? addition.targetMod : "") + "\"";
+            
+            if (addition.icon != null) {
+                pythonContent += ",\n                \"icon\": \"" + addition.icon + "\"";
+            }
+            
+            if (addition.color != null) {
+                pythonContent += ",\n                \"color\": [" + addition.color.join(", ") + "]";
+            }
+            
+            if (addition.difficulties != null) {
+                pythonContent += ",\n                \"difficulties\": [";
+                for (i in 0...addition.difficulties.length) {
+                    pythonContent += "\"" + addition.difficulties[i] + "\"";
+                    if (i < addition.difficulties.length - 1) pythonContent += ", ";
+                }
+                pythonContent += "]";
+            }
+            
+            pythonContent += "\n            },\n";
         }
         pythonContent += "        ]\n\n";
         
@@ -981,13 +1177,52 @@ class APPythonGenerator {
         pythonContent += "#   - Example: excludeSong(\"Tutorial\") removes Tutorial from base game\n";
         pythonContent += "#   - Example: excludeSong(\"Boss Fight\", \"MyMod\") removes Boss Fight from MyMod\n";
         pythonContent += "# \n";
-        pythonContent += "# addSong(songName, targetMod=None):\n";
-        pythonContent += "#   - Adds a song to the specified mod's song list\n";
+        pythonContent += "# addSong(songName, targetMod=None, icon=None, color=None, difficulties=None):\n";
+        pythonContent += "#   - Adds a song to the specified mod's song list with optional metadata\n";
         pythonContent += "#   - If targetMod is None or empty, adds to base game songs\n";
+        pythonContent += "#   - icon: Custom icon name for the song (defaults to 'face')\n";
+        pythonContent += "#   - color: RGB color array for the song [r, g, b] (defaults to [146, 113, 253])\n";
+        pythonContent += "#   - difficulties: Array of difficulty names for this song (defaults to week difficulties)\n";
         pythonContent += "#   - Creates internal week files for mods that don't have the song\n";
         pythonContent += "#   - Will NOT add songs that already exist in existing weeks for that mod\n";
-        pythonContent += "#   - Example: addSong(\"New Song\") adds to base game\n";
-        pythonContent += "#   - Example: addSong(\"Custom Song\", \"MyMod\") adds to MyMod\n";
+        pythonContent += "#   - Example: addSong(\"New Song\") adds to base game with defaults\n";
+        pythonContent += "#   - Example: addSong(\"Custom Song\", \"MyMod\", \"boss\", [255, 0, 0], [\"hard\", \"expert\"])\n";
+        pythonContent += "# \n";
+        pythonContent += "# addSongs(songNames, targetMod=None, icon=None, color=None, difficulties=None):\n";
+        pythonContent += "#   - Adds multiple songs with the same metadata to a mod\n";
+        pythonContent += "#   - All songs will share the same icon, color, and difficulties\n";
+        pythonContent += "#   - Example: addSongs([\"Song1\", \"Song2\"], \"MyMod\", \"boss\", [255, 0, 0], [\"hard\"])\n";
+        pythonContent += "# \n";
+        pythonContent += "# addSongsWithMetadata(songs, targetMod=None):\n";
+        pythonContent += "#   - Adds multiple songs with individual metadata for each song\n";
+        pythonContent += "#   - songs: Array of objects with {name, icon?, color?, difficulties?}\n";
+        pythonContent += "#   - Example: addSongsWithMetadata([{\"name\": \"Song1\", \"icon\": \"boss\"}, {\"name\": \"Song2\", \"color\": [0, 255, 0]}])\n";
+        pythonContent += "# \n";
+        pythonContent += "# CUSTOM WEEK FUNCTIONS:\n";
+        pythonContent += "# \n";
+        pythonContent += "# defineCustomWeek(weekName, songs, targetMod=None, difficulties=None, icon=None, color=None):\n";
+        pythonContent += "#   - Creates a custom week with the specified songs and metadata\n";
+        pythonContent += "#   - difficulties: Array of difficulty names for this week (defaults to global difficulties)\n";
+        pythonContent += "#   - icon: Default icon for songs in this week (individual song icons override this)\n";
+        pythonContent += "#   - color: Default color for songs in this week (individual song colors override this)\n";
+        pythonContent += "#   - Example: defineCustomWeek(\"Boss Week\", [\"Boss1\", \"Boss2\"], \"MyMod\", [\"hard\", \"expert\"], \"boss\", [255, 0, 0])\n";
+        pythonContent += "# \n";
+        pythonContent += "# defineCustomWeekWithSongMetadata(weekName, songData, targetMod=None, difficulties=None):\n";
+        pythonContent += "#   - Creates a custom week with individual metadata for each song\n";
+        pythonContent += "#   - songData: Array of objects with {name, icon?, color?} for each song\n";
+        pythonContent += "#   - Individual song metadata takes priority over week defaults\n";
+        pythonContent += "#   - Example: defineCustomWeekWithSongMetadata(\"Mixed Week\", [\n";
+        pythonContent += "#       {\"name\": \"Easy Song\", \"icon\": \"face\", \"color\": [0, 255, 0]},\n";
+        pythonContent += "#       {\"name\": \"Hard Song\", \"icon\": \"boss\", \"color\": [255, 0, 0]}\n";
+        pythonContent += "#     ], \"MyMod\", [\"easy\", \"hard\"])\n";
+        pythonContent += "# \n";
+        pythonContent += "# DIFFICULTY OPTIMIZATION:\n";
+        pythonContent += "# \n";
+        pythonContent += "# The system automatically optimizes week creation by grouping songs with identical difficulty sets.\n";
+        pythonContent += "# Songs with difficulties [\"easy\", \"normal\"] will be grouped together in one week,\n";
+        pythonContent += "# while songs with [\"hard\", \"expert\"] will be in a separate week.\n";
+        pythonContent += "# This minimizes the number of temporary weeks created and improves performance.\n";
+        pythonContent += "# Week names follow the pattern: ap_custom_{mod}_{difficulties} or ap_custom_{mod} for default difficulties.\n";
         pythonContent += "# \n";
         pythonContent += "# TRAP ITEM FUNCTIONS:\n";
         pythonContent += "# \n";

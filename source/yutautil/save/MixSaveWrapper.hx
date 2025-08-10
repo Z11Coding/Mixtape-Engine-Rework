@@ -66,7 +66,7 @@ class MixSaveWrapper {
     }
 
     public function clear():Void {
-        mixSave.content = new Map();
+        mixSave.content = new Map<String, Dynamic>();
     }
 
     public function load():Void {
@@ -154,7 +154,7 @@ class MixSaveWrapper {
     public static function newWithDefault(filePath:String = "save/mixsave.json"):MixSaveWrapper {
         var wrapper = new MixSaveWrapper(new MixSave(), filePath, false);
         if (!sys.FileSystem.exists(filePath)) {
-            wrapper.mixSave.content = new Map();
+            wrapper.mixSave.content = new Map<String, Dynamic>();
             wrapper.save();
         } else {
             wrapper.load();
@@ -189,6 +189,23 @@ class MixSaveWrapper {
     public static function newMixWithData(data:Map<String, Dynamic>, filePath = "save/mixsave.json"):MixSaveWrapper {
         return newWithData(new MixSave(), data, filePath);
     }
+
+//     /**
+//      * Convert this MixSaveWrapper to a SecureMixSave for compression and encryption
+//      * @param secureFilePath The path for the new secure save file (will use .smix extension)
+//      * @param encryptionKey Optional encryption key (uses default if null)
+//      * @param compressionLevel Compression level 0-9 (default 6)
+//      * @param useCompression Whether to enable compression (default true)
+//      * @param useEncryption Whether to enable encryption (default true)
+//      * @return A new SecureMixSave instance with the same data
+//      */
+//     public function toSecureSave(secureFilePath:String = "save/mixsave.smix", 
+//                                 ?encryptionKey:String,
+//                                 compressionLevel:Int = 6,
+//                                 useCompression:Bool = true,
+//                                 useEncryption:Bool = true):SecureMixSave {
+//         return SecureMixSave.fromMixSaveWrapper(this, secureFilePath, encryptionKey, compressionLevel, useCompression, useEncryption);
+//     }
 }
 
 class ActiveSave extends MixSaveWrapper { // Work in progress

@@ -80,3 +80,31 @@ addItem("Base Game Mastery");
 addSimpleLocation("Base Game Expert", "bopeebo", "", ["Base Game Mastery"], false);
 
 trace("Finished processing AP data for " + modName);
+
+// Optional callback functions (these are optional and not required)
+
+function onGenYAML() {
+    // Called after all processing is complete and the final song list is ready
+    trace("onGenYAML callback: Final validation for " + modName);
+    
+    var finalSongs = getFinalSongList();
+    trace("Final song count after all processing: " + finalSongs.length);
+    
+    // You can add final items or locations here based on the complete state
+    if (finalSongs.length >= 5) {
+        addItem("Completionist Reward");
+        setDataValue("completion_bonus_available", true);
+    }
+}
+
+function onAfterGen() {
+    // Called after everything is completely finished
+    trace("onAfterGen callback: Generation complete for " + modName);
+    
+    // Final logging or cleanup operations
+    if (hasDataValue("completion_bonus_available")) {
+        trace("Completion bonus was added for " + modName);
+    }
+    
+    trace("Total processing complete for " + modName);
+}

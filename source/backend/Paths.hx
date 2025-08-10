@@ -13,12 +13,12 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import openfl.system.System;
 import openfl.geom.Rectangle;
+import openfl.geom.Matrix;
 
 import lime.utils.Assets;
 import flash.media.Sound;
 
 import haxe.Json;
-
 
 #if MODS_ALLOWED
 import backend.Mods;
@@ -574,6 +574,65 @@ class Paths
 		return toRet;
 	}
 
+	/**
+	 * Compresses a bitmap for Trash Mode by reducing quality while maintaining dimensions
+	 * @param original The original bitmap to compress
+	 * @param compressionFactor The factor to reduce internal quality by (0.5 = half quality)
+	 * @return The compressed bitmap with same dimensions but reduced quality
+	 */
+	private static function compressBitmapForTrashMode(original:BitmapData, compressionFactor:Float = 0.7):BitmapData
+	{
+		if (original == null) return null;
+		
+		// Keep original dimensions to preserve spritesheet layouts
+		var originalWidth:Int = original.width;
+		var originalHeight:Int = original.height;
+		
+		// Calculate temporary smaller size for quality reduction
+		var tempWidth:Int = Math.ceil(originalWidth * compressionFactor);
+		var tempHeight:Int = Math.ceil(originalHeight * compressionFactor);
+		
+		// Don't compress if it would make the temp image too small to be useful
+		if (tempWidth < 4 || tempHeight < 4) return original;
+		
+		// Create temporary smaller bitmap for quality reduction
+		var tempBitmap:BitmapData = new BitmapData(tempWidth, tempHeight, original.transparent, 0);
+		var scaleMatrix:Matrix = new Matrix();
+		scaleMatrix.scale(compressionFactor, compressionFactor);
+		
+		// Draw original to smaller size (reduces quality)
+		tempBitmap.draw(original, scaleMatrix, null, null, null, true); // true = smoothing
+		
+		// Create final bitmap with original dimensions
+		var compressed:BitmapData = new BitmapData(originalWidth, originalHeight, original.transparent, 0);
+		var restoreMatrix:Matrix = new Matrix();
+		restoreMatrix.scale(1.0 / compressionFactor, 1.0 / compressionFactor);
+		
+		// Scale the reduced quality image back to original size
+		compressed.draw(tempBitmap, restoreMatrix, null, null, null, true); // true = smoothing
+		
+		// Clean up temporary bitmap
+		tempBitmap.dispose();
+		
+		return compressed;
+	}
+
+	/**
+	 * Checks if we should apply trash mode compression
+	 * @return True if trash mode should be applied
+	 */
+	private static function shouldApplyTrashMode():Bool
+	{
+		#if sys
+		// Check if we're in PlayState (or any subclass) and trash mode is enabled
+		return ClientPrefs.data.trashMode && 
+			   FlxG.state != null && 
+			   Std.isOfType(FlxG.state, states.PlayState);
+		#else
+		return false;
+		#end
+	}
+
 	public static function getGraphic(path:String, cache:Bool = true, gpu:Bool = false):Null<FlxGraphic>
 	{
 		var newGraphic:FlxGraphic = cache ? currentTrackedAssets.get(path) : null;
@@ -756,6 +815,15 @@ class Paths
 				trace('Bitmap not found: $file | key: $key');
 				return null;
 			}
+			
+			// Apply trash mode compression if we loaded the bitmap here
+			if (shouldApplyTrashMode()) {
+				var compressedBitmap = compressBitmapForTrashMode(bitmap);
+				if (compressedBitmap != null && compressedBitmap != bitmap) {
+					bitmap.dispose(); // Clean up original
+					bitmap = compressedBitmap;
+				}
+			}
 		}
 
 		if (allowGPU && ClientPrefs.data.cacheOnGPU && bitmap.image != null)
@@ -811,18 +879,29 @@ class Paths
 	}
 
 	public static function getBitmapData(path:String):Null<BitmapData> {
+		var bitmap:BitmapData = null;
+		
 		#if sys
 		if (FileSystem.exists(path))
-			return BitmapData.fromFile(path);
+			bitmap = BitmapData.fromFile(path);
 		#end
 
 		#if MODS_ALLOWED
-		if (FileSystem.exists(path))
-			return BitmapData.fromFile(path);
-		else #end if (OpenFlAssets.exists(path, IMAGE))
-			return OpenFlAssets.getBitmapData(path);
+		if (FileSystem.exists(path) && bitmap == null)
+			bitmap = BitmapData.fromFile(path);
+		else #end if (OpenFlAssets.exists(path, IMAGE) && bitmap == null)
+			bitmap = OpenFlAssets.getBitmapData(path);
 
-		return null;
+		// Apply trash mode compression if enabled and in PlayState
+		if (bitmap != null && shouldApplyTrashMode()) {
+			var compressedBitmap = compressBitmapForTrashMode(bitmap);
+			if (compressedBitmap != null && compressedBitmap != bitmap) {
+				bitmap.dispose(); // Clean up original
+				bitmap = compressedBitmap;
+			}
+		}
+
+		return bitmap;
 	}
 
 	inline public static function getSound(path:String):Null<Sound> {
@@ -1202,7 +1281,18 @@ class Paths
 
 	public inline static function loadabsoluteGraphic(path:String):FlxGraphic {
 		if(!Paths.currentTrackedAssets.exists(path)) {
-			Paths.cacheBitmap(path,null,BitmapData.fromFile(path));
+			var bitmap:BitmapData = BitmapData.fromFile(path);
+			
+			// Apply trash mode compression if enabled and in PlayState
+			if (shouldApplyTrashMode()) {
+				var compressedBitmap = compressBitmapForTrashMode(bitmap);
+				if (compressedBitmap != null && compressedBitmap != bitmap) {
+					bitmap.dispose(); // Clean up original
+					bitmap = compressedBitmap;
+				}
+			}
+			
+			Paths.cacheBitmap(path, null, bitmap);
 		}
 		return Paths.currentTrackedAssets.get(path);
 	}
