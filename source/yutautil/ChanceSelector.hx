@@ -1,5 +1,7 @@
 package yutautil;
 
+
+
 typedef Chance = {
     item: Dynamic,
     chance: Float // Probability as a percentage (0 to 100)
@@ -9,7 +11,7 @@ typedef ChanceFunction = {
     chance: Float // Chance of execution, assumed to be between 0 and 100
 }
 
-
+#if !macro
 /**
  * Random<T> is an abstract type that allows you to create a random item from an array of items.
  * It provides methods to get a random item, set a new array of items, and convert between Random<T> and T.
@@ -50,6 +52,7 @@ abstract Random<T>(OneOrMore<T>) {
         return new Random<T>(values);
     }
 }
+#end
 class ChanceSelector {
     public static function selectOption(options:Array<Chance>, strict:Bool = false, downsize:Bool = true, allowNull:Bool = false):Dynamic {
         //trace("Entering selectOption function");

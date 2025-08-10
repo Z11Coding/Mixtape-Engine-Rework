@@ -21,7 +21,7 @@ typedef OneOrMore<T> = OneOrMany<T>;
         Mem; Memory; // Memory access, equivalent to a HaxeAddress.
         Raw;
     }
-
+#if cpp
 class TypeTools {
     public static final ptrMap:Map<PtrAddress, GlobalPointer<Dynamic>> = new Map<PtrAddress, GlobalPointer<Dynamic>>();
     public static final runtimeClassMap:Map<String, Dynamic> = new Map<String, Dynamic>();
@@ -44,6 +44,7 @@ class TypeTools {
         return result;
     }
 }
+#end
 
 
 /**

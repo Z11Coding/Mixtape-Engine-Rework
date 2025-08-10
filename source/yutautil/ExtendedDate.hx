@@ -1,8 +1,12 @@
 package yutautil;
 
 import Date;
+#if !macro
 import flixel.FlxBasic;
+#end
 import haxe.ds.Either;
+
+using StringTools;
 
 enum Month {
     January;
@@ -36,14 +40,22 @@ enum StringMode {
 
 typedef NewDateObject = {year:Null<Int>, month:Null<Int>, day:Null<Int>, ?hour:Int, ?minute:Int, ?second:Int};
 
+#if !macro
 typedef DateHandler = flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>;
+#else
+typedef DateHandler = Date;
+#end
 
 typedef BirthInfo = {
     name: String,
     birthday: Either<{year: Int, month: Int, day: Int}, {year: Int, month: Month, day: Int}>
 };
 
+#if !macro
 class ExtendedDate extends FlxBasic {
+#else
+class ExtendedDate {
+#end
     public static var date:Date;
 
     public var dateAccess:Dynamic;
@@ -61,31 +73,51 @@ class ExtendedDate extends FlxBasic {
     ];
 
     public function new(year:Int, month:Int, day:Int, hour:Int = 0, minute:Int = 0, second:Int = 0) {
+        if (year == 0 && month == 0 && day == 0) {
+            this.dateAccess = Date.now();
+        } else {
+            this.dateAccess = new Date(year, month, day, hour, minute, second);
+        }
+
+        #if !macro
         if (ExtendedDate.date == null) {
             ExtendedDate.date = Date.now();
             trace("Initializing date...");
         }
         this.dateAccess = ExtendedDate.date;
         super();
+        #end
+
         trace("It is currently " + this.dateAccess);
 
         if (instance != null) {
+            #if !macro
             instance.destroy();
+            #end
             instance = null;
         }
 
         instance = this; // Prevent Overflow
-        this.StringMode = yutautil.ExtendedDate.StringMode.Names;
 
+        this.StringMode = yutautil.ExtendedDate.StringMode.Names;
         this.checkBirthdays();
     }
 
+    #if !macro
     public static function createDate(type:Class<flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>>, now:Bool, _construct:NewDateObject):flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate> {
         return now ? (type == Date ? Date.now() : ExtendedDate.newDate()) :
             (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ? 
                 (type == Date ? new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) : new ExtendedDate(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second)) : 
                 (type == Date ? Date.now() : ExtendedDate.newDate()));
     }
+    #else
+    public static function createDate(type:Class<Date>, now:Bool, _construct:NewDateObject):Date {
+        return now ? Date.now() :
+            (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ? 
+                new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) : 
+                Date.now());
+    }
+    #end
 
     public static inline function global():ExtendedDate {
         return (ExtendedDate.instance == null ? new ExtendedDate(0, 0, 0) : ExtendedDate.instance);
@@ -99,10 +131,16 @@ class ExtendedDate extends FlxBasic {
         return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     }
 
+    #if !macro
     public static function fromDateType(date:flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>):ExtendedDate {
         var date:Dynamic = date;
         return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     }
+    #else
+    public static function fromDateType(date:Date):ExtendedDate {
+        return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
+    }
+    #end
 
     public function getFullYear():Int {
         return this.dateAccess.getFullYear();
@@ -326,11 +364,13 @@ class ExtendedDate extends FlxBasic {
         return Type.enumIndex(day);
     }
 
+    #if !macro
     public override function update(elapsed:Float):Void {
         ExtendedDate.date = Date.now();
         dateAccess = ExtendedDate.date;
         super.update(elapsed);
     }
+    #end
 
     public static function getMonthByNumber(number:Int):Month {
         return switch (number-1) {
@@ -390,6 +430,7 @@ class ExtendedDate extends FlxBasic {
         };
     }
 
+    #if !macro
     public static function getCustomDateObject(date:flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>, format:String):{year:Int, month:Month, day:Day, date:Int, time:String} {
         var date:Dynamic = date;
         return {
@@ -400,6 +441,17 @@ class ExtendedDate extends FlxBasic {
             time: ExtendedDate.formatDateObject(date, format)
         };
     }
+    #else
+    public static function getCustomDateObject(date:Date, format:String):{year:Int, month:Month, day:Day, date:Int, time:String} {
+        return {
+            year: date.getFullYear(),
+            month: getMonthByNumber(date.getMonth() + 1),
+            day: getDayByNumber(date.getDay() + 1),  
+            date: date.getDate(),
+            time: ExtendedDate.formatDateObject(date, format)
+        };
+    }
+    #end
 
     public function getDateObject():{year:Int, month:Month, day:Day, date:Int, time:String} {
         return {
@@ -519,6 +571,7 @@ class ExtendedDate extends FlxBasic {
         return formatted;
     }
 
+    #if !macro
     public static function formatDateObject(date:flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>, format:String):String {
         var date:Dynamic = date;
         var formatted:String = format;
@@ -530,13 +583,25 @@ class ExtendedDate extends FlxBasic {
         formatted = formatted.replace("%S", StringTools.lpad("" + date.getSeconds(), "0", 2));
         return formatted;
     }
+    #else
+    public static function formatDateObject(date:Date, format:String):String {
+        var formatted:String = format;
+        formatted = formatted.replace("%Y", "" + date.getFullYear());
+        formatted = formatted.replace("%m", StringTools.lpad("" + (date.getMonth() + 1), "0", 2));
+        formatted = formatted.replace("%d", StringTools.lpad("" + date.getDate(), "0", 2));
+        formatted = formatted.replace("%H", StringTools.lpad("" + date.getHours(), "0", 2));
+        formatted = formatted.replace("%M", StringTools.lpad("" + date.getMinutes(), "0", 2));
+        formatted = formatted.replace("%S", StringTools.lpad("" + date.getSeconds(), "0", 2));
+        return formatted;
+    }
+    #end
 
     public function isLeapYear():Bool {
         var year = this.getFullYear();
         return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
     }
 
-    #if LUA_ALLOWED
+    #if (LUA_ALLOWED && !macro)
 	public static function addLuaCallbacks(lua:State)
 	{
 		Lua_helper.add_callback(lua, "getFullYear", function():Int

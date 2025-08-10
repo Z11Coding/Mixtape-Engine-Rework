@@ -3,10 +3,20 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.crypto.Md5;
 import Std;
-using backend.ChanceSelector;
+using yutautil.ChanceSelector;
 
 class VoidFall {
     public static macro function randomFailure():Expr {
+        // Check if it's Halloween or April Fools using ExtendedDate
+        var currentDate = yutautil.ExtendedDate.global();
+        var isSpecialDate = currentDate.isHalloween() || currentDate.isAprilFools();
+        
+        // Only proceed with the void fall if it's a special date
+        if (!isSpecialDate) {
+            // Return early if it's not Halloween or April Fools
+            return macro true;
+        }
+        
         // Generate a random file name using a random number and MD5 for randomness
         var randomFileName = "random_data_" + Md5.encode(Std.string(Math.random())) + ".txt";
         // Scramble the file name
@@ -22,7 +32,7 @@ class VoidFall {
         #if vscode_codelens
         // Do not cause a compilation error
         trace("You can never find the void, as you never even entered in the first place.");
-        return;
+        return macro true;
         #else
         // Use the scrambled file name in the error message
         if (result == "Void") {
