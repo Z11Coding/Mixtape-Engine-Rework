@@ -1546,7 +1546,7 @@ class CollectionUtils
 		return cast number;
 	}
 
-	public static inline function exists(input:Dynamic, ?checkUninitialized:Bool = false):Dynamic {
+	public static inline function isReal(input:Dynamic, ?checkUninitialized:Bool = false):Null<Bool> {
 		if (checkUninitialized) {
 			try {
 				if (input == null) {
@@ -1554,6 +1554,7 @@ class CollectionUtils
 				}
 				return true;
 			} catch (e:Dynamic) {
+				trace("Warning: An improper variable was found.");
 				return null;
 			}
 		} else {
@@ -2755,7 +2756,7 @@ class CollectionUtils
 
 	public static inline function lengthTo<T>(input:Dynamic):Int
 	{
-		if (!exists(input, true))
+		if (!isReal(input, true))
 		{
 			return 0;
 		}

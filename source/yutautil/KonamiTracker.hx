@@ -44,6 +44,26 @@ class KonamiTracker extends FlxBasic {
         if (code.length > maxLength) maxLength = code.length;
     }
 
+    public function addCheatFromString(codeString:String, callback:CheatCallback, ?ignoreSpaces:Bool = false):Void {
+        var code:Array<FlxKey> = [];
+        for (i in 0...codeString.length) {
+            var char = codeString.charAt(i);
+            if (ignoreSpaces && char == ' ') continue;
+            var found = false;
+            for (key in FlxKey.toStringMap.keys()) {
+                if (FlxKey.toStringMap.get(key).toUpperCase() == char.toUpperCase()) {
+                    code.push(key);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                throw 'Key "$char" does not exist in FlxKey.';
+            }
+        }
+        addCheat(code, callback);
+    }
+
     override public function update(elapsed:Float):Void {
         super.update(elapsed);
         var pressed:Null<FlxKey> = getPressedKey();

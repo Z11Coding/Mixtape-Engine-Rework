@@ -96,7 +96,13 @@ class ActiveArray {
     }
 }
 
-
+typedef CustomModItem = {
+    name:String,
+    ?mod:String,
+    ?onTrigger:Void->Void,
+    count:Int,
+    ?condition:Condition
+}
 
 class APItem {
     public var name:String;
@@ -115,6 +121,7 @@ class APItem {
     public static var maxHPUp:Int = 0;
     public static var overloadHP:Int = 0; // Adds extra health which can go over the max HP.
     public static var extaLives:Int = 0; // Used for the "Extralives" item.
+    public static var extraItemInventory:Array<CustomModItem> = [];
 
     private var toSync:Bool = true;
     public var triggered:Bool = false;

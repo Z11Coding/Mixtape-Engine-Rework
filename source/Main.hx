@@ -50,6 +50,10 @@ import haxe.io.BytesOutput;
 
 import backend.modules.*;
 import backend.Highscore;
+import yutautil.games.uno.*;
+import yutautil.games.uno.UnoCard.UnoColor;
+import yutautil.games.uno.UnoCPU.UnoDifficulty;
+import yutautil.games.uno.UnoRules.UnoGameState;
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
 #if (linux && !debug)
@@ -785,6 +789,7 @@ class CommandPrompt
 {
 	private var state:String;
 	private var variables:Map<String, Dynamic>;
+	private var unoGame:UnoGame;
 
 	public var active:Boolean = true; // I thought it'd be funny to add this.
 
@@ -1498,6 +1503,13 @@ class CommandPrompt
 				} catch (e:Dynamic) {
 					print("Error during serialization test: " + e);
 				}
+
+			case "uno":
+				this.handleUnoCommand(args);
+
+			case "unoSim":
+				var maxTurns = args.length > 0 ? Std.parseInt(args[0]) : null;
+				this.startUnoSimulation(maxTurns);
 					
 			default:
 				if (args.length == 2 && args[1] == '=')
@@ -1666,6 +1678,576 @@ class CommandPrompt
 	private function print(message:String):Void
 	{
 		Sys.stdout().writeString(message + "\n");
+	}
+
+	// UNO Game Methods
+	private function handleUnoCommand(args:Array<String>):Void {
+		if (args.length == 0) {
+			print("UNO Commands:");
+			print("  uno start [players] - Start a new UNO game with specified number of players (2-4)");
+			print("  uno custom [players] - Start a UNO game with custom colors (Purple, Orange, Cyan, Pink)");
+			print("  uno play <cardIndex> [color] - Play a card by index (use color for wild cards: red/blue/green/yellow)");
+			print("  uno draw - Draw a card");
+			print("  uno hand - Show your current hand");
+			print("  uno top - Show the top card");
+			print("  uno status - Show game status");
+			print("  uno uno - Call UNO when you have one card left");
+			print("  uno quit - End the current game");
+			print("  uno help - Show detailed help");
+			return;
+		}
+
+		var subCommand = args[0].toLowerCase();
+		var subArgs = args.slice(1);
+
+		switch (subCommand) {
+			case "start":
+				this.startUnoGame(subArgs);
+			case "custom":
+				this.startCustomUnoGame(subArgs);
+			case "play":
+				this.playUnoCard(subArgs);
+			case "draw":
+				this.drawUnoCard();
+			case "hand":
+				this.showUnoHand();
+			case "top":
+				this.showUnoTopCard();
+			case "status":
+				this.showUnoStatus();
+			case "uno":
+				this.callUno();
+			case "quit":
+				this.quitUnoGame();
+			case "help":
+				this.showUnoHelp();
+			default:
+				print("Unknown UNO command. Type 'uno' for available commands.");
+		}
+	}
+
+	private function startUnoGame(args:Array<String>):Void {
+		if (unoGame != null && unoGame.isGameActive) {
+			print("A UNO game is already active! Type 'uno quit' to end it first.");
+			return;
+		}
+
+		var playerCount = 2; // Default
+		if (args.length > 0) {
+			playerCount = Std.parseInt(args[0]);
+			if (!playerCount.isReal(true) || playerCount < 2 || playerCount > 4) {
+				print("Error: Player count must be between 2 and 4.");
+				return;
+			}
+		}
+
+		try {
+			unoGame = new UnoGame();
+			
+			// Set up event handlers
+			setupUnoEvents();
+
+			// Add human player
+			var humanPlayer = new UnoPlayer("human", "You", true);
+			unoGame.addPlayer(humanPlayer);
+
+			// Add CPU players
+			var difficulties = [UnoDifficulty.EASY, UnoDifficulty.NORMAL, UnoDifficulty.HARD];
+			for (i in 1...playerCount) {
+				var difficulty = difficulties[(i - 1) % difficulties.length];
+				var diffName = switch (difficulty) {
+					case EASY: "Easy";
+					case NORMAL: "Normal"; 
+					case HARD: "Hard";
+					case EXPERT: "Expert";
+				}
+				var cpu = new UnoCPU('cpu$i', 'CPU $i ($diffName)', difficulty);
+				unoGame.addPlayer(cpu);
+			}
+
+			print('Starting UNO game with $playerCount players...');
+			unoGame.startGame();
+
+		} catch (e:Dynamic) {
+			print("Error starting UNO game: " + e);
+			unoGame = null;
+		}
+	}
+
+	private function startCustomUnoGame(args:Array<String>):Void {
+		if (unoGame != null && unoGame.isGameActive) {
+			print("A UNO game is already active! Type 'uno quit' to end it first.");
+			return;
+		}
+
+		var playerCount = 2; // Default
+		if (args.length > 0) {
+			playerCount = Std.parseInt(args[0]);
+			if (!playerCount.isReal(true) || playerCount < 2 || playerCount > 4) {
+				print("Error: Player count must be between 2 and 4.");
+				return;
+			}
+		}
+
+		try {
+			// Create custom colors
+			var customColors = UnoCard.createCustomColors([
+				flixel.util.FlxColor.PURPLE,   // Purple replaces Red
+				flixel.util.FlxColor.ORANGE,   // Orange replaces Yellow  
+				flixel.util.FlxColor.CYAN,     // Cyan replaces Blue
+				flixel.util.FlxColor.PINK      // Pink replaces Green
+			], ["Purple", "Orange", "Cyan", "Pink"]);
+
+			unoGame = new UnoGame(customColors);
+			
+			// Set up event handlers
+			setupUnoEvents();
+
+			// Add human player
+			var humanPlayer = new UnoPlayer("human", "You", true);
+			unoGame.addPlayer(humanPlayer);
+
+			// Add CPU players
+			var difficulties = [UnoDifficulty.EASY, UnoDifficulty.NORMAL, UnoDifficulty.HARD];
+			for (i in 1...playerCount) {
+				var difficulty = difficulties[(i - 1) % difficulties.length];
+				var diffName = switch (difficulty) {
+					case EASY: "Easy";
+					case NORMAL: "Normal"; 
+					case HARD: "Hard";
+					case EXPERT: "Expert";
+				}
+				var cpu = new UnoCPU('cpu$i', 'CPU $i ($diffName)', difficulty);
+				unoGame.addPlayer(cpu);
+			}
+
+			print('Starting CUSTOM COLOR UNO game with $playerCount players...');
+			print('Custom Colors: Purple, Orange, Cyan, Pink');
+			unoGame.startGame();
+
+		} catch (e:Dynamic) {
+			print("Error starting custom UNO game: " + e);
+			unoGame = null;
+		}
+	}
+
+	private function setupUnoEvents():Void {
+		unoGame.onGameStart = function() {
+			print("UNO Game Started!");
+			print("==================");
+		};
+
+		unoGame.onRoundStart = function(roundNum:Int) {
+			print('\nRound $roundNum started!');
+			print('Starting card: ${unoGame.deck.getTopCard().toString()}');
+			print('Current color: ${unoGame.currentColor}');
+			showUnoStatus();
+		};
+
+		unoGame.onCardPlayed = function(player:UnoPlayer, card:UnoCard) {
+			var cardStr = card.toString();
+			if (player.isHuman) {
+				print('You played: $cardStr');
+			} else {
+				print('${player.name} played: $cardStr');
+			}
+			
+			// Check for special effects
+			switch (card.type) {
+				case SKIP:
+					print('Next player is skipped!');
+				case REVERSE:
+					print('Direction reversed!');
+				case DRAW_TWO:
+					print('Next player draws 2 cards!');
+				case WILD_DRAW_FOUR:
+					print('Wild Draw Four! Next player draws 4 cards!');
+				case WILD:
+					print('Wild card played!');
+				default:
+					// No special message for number cards
+			}
+		};
+
+		unoGame.onPlayerDraw = function(player:UnoPlayer, count:Int) {
+			if (player.isHuman) {
+				print('You drew $count card(s)');
+			} else {
+				print('${player.name} drew $count card(s)');
+			}
+		};
+
+		unoGame.onUnoCall = function(player:UnoPlayer) {
+			if (player.isHuman) {
+				print('You called UNO!');
+			} else {
+				print('${player.name} called UNO!');
+			}
+		};
+
+		unoGame.onUnoPenalty = function(player:UnoPlayer) {
+			if (player.isHuman) {
+				print('WARNING: You were penalized for not calling UNO! (+2 cards)');
+			} else {
+				print('WARNING: ${player.name} was penalized for not calling UNO! (+2 cards)');
+			}
+		};
+
+		unoGame.onWildColorChosen = function(color:UnoColor) {
+			var colorStr = switch (color) {
+				case RED: "Red";
+				case BLUE: "Blue"; 
+				case GREEN: "Green";
+				case YELLOW: "Yellow";
+				default: Std.string(color);
+			}
+			print('Color changed to: $colorStr');
+		};
+
+		unoGame.onRoundEnd = function(winner:UnoPlayer, points:Int) {
+			print('\n${winner.name} won the round!');
+			print('Points earned: $points');
+			print('\nCurrent scores:');
+			for (player in unoGame.players) {
+				var icon = player.isHuman ? "[YOU]" : "[CPU]";
+				print('  $icon ${player.name}: ${player.score} points');
+			}
+		};
+
+		unoGame.onGameEnd = function(winner:UnoPlayer) {
+			print('\n*** GAME OVER! ***');
+			print('${winner.name} wins with ${winner.score} points!');
+			print('\nFinal scores:');
+			for (player in unoGame.players) {
+				var icon = player.isHuman ? "[YOU]" : "[CPU]";
+				print('  $icon ${player.name}: ${player.score} points');
+			}
+			print('===================================');
+			unoGame = null;
+		};
+	}
+
+	private function playUnoCard(args:Array<String>):Void {
+		if (unoGame == null || !unoGame.isRoundActive) {
+			print("No active UNO game. Type 'uno start' to begin.");
+			return;
+		}
+
+		if (args.length == 0) {
+			print("Error: Specify card index to play (e.g., 'uno play 0')");
+			showUnoHand();
+			return;
+		}
+
+		var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+		if (!currentPlayer.isHuman) {
+			print("It's not your turn!");
+			return;
+		}
+
+		var cardIndex = Std.parseInt(args[0]);
+		if (cardIndex == null || cardIndex < 0 || cardIndex >= currentPlayer.hand.getSize()) {
+			print("Error: Invalid card index. Must be between 0 and " + (currentPlayer.hand.getSize() - 1));
+			showUnoHand();
+			return;
+		}
+
+		var card = currentPlayer.hand.cards[cardIndex];
+		var chosenColor:UnoColor = null;
+
+		// Handle wild cards
+		if (card.isWildCard()) {
+			if (args.length < 2) {
+				print("Error: Wild cards require a color choice (red/blue/green/yellow)");
+				return;
+			}
+
+			chosenColor = switch (args[1].toLowerCase()) {
+				case "red": UnoColor.RED;
+				case "blue": UnoColor.BLUE;
+				case "green": UnoColor.GREEN;
+				case "yellow": UnoColor.YELLOW;
+				default: null;
+			}
+
+			if (chosenColor == null) {
+				print("Error: Invalid color. Use red, blue, green, or yellow.");
+				return;
+			}
+		}
+
+		try {
+			var success = unoGame.playCard(currentPlayer, cardIndex, chosenColor);
+			if (!success) {
+				print("Cannot play that card! It doesn't match the top card or current color.");
+				print('Top card: ${unoGame.deck.getTopCard().toString()}');
+				print('Current color: ${unoGame.currentColor}');
+			} else {
+				// Auto-advance through CPU turns
+				advanceThroughCPUTurns();
+			}
+		} catch (e:Dynamic) {
+			print("Error playing card: " + e);
+		}
+	}
+
+	private function drawUnoCard():Void {
+		if (unoGame == null || !unoGame.isRoundActive) {
+			print("No active UNO game. Type 'uno start' to begin.");
+			return;
+		}
+
+		var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+		if (!currentPlayer.isHuman) {
+			print("It's not your turn!");
+			return;
+		}
+
+		try {
+			unoGame.drawCards(currentPlayer, 1);
+			// Auto-advance through CPU turns
+			advanceThroughCPUTurns();
+		} catch (e:Dynamic) {
+			print("Error drawing card: " + e);
+		}
+	}
+
+	private function showUnoHand():Void {
+		if (unoGame == null || !unoGame.isRoundActive) {
+			print("No active UNO game. Type 'uno start' to begin.");
+			return;
+		}
+
+		var humanPlayer = null;
+		for (player in unoGame.players) {
+			if (player.isHuman) {
+				humanPlayer = player;
+				break;
+			}
+		}
+
+		if (humanPlayer == null) {
+			print("No human player found!");
+			return;
+		}
+
+		print('\n Your hand (${humanPlayer.hand.getSize()} cards):');
+		print('===============');
+		for (i in 0...humanPlayer.hand.cards.length) {
+			var card = humanPlayer.hand.cards[i];
+			var playable = card.canPlayOn(unoGame.deck.getTopCard()) || 
+						  (card.color == unoGame.currentColor) || 
+						  card.isWildCard();
+			var indicator = playable ? "✅" : "❌";
+			print('  [$i] $indicator ${card.toString()}');
+		}
+		print('===============');
+		print('Top card: ${unoGame.deck.getTopCard().toString()}');
+		print('Current color: ${unoGame.currentColor}');
+	}
+
+	private function showUnoTopCard():Void {
+		if (unoGame == null || !unoGame.isRoundActive) {
+			print("No active UNO game. Type 'uno start' to begin.");
+			return;
+		}
+
+		print(' Top card: ${unoGame.deck.getTopCard().toString()}');
+		print(' Current color: ${unoGame.currentColor}');
+	}
+
+	private function showUnoStatus():Void {
+		if (unoGame == null || !unoGame.isRoundActive) {
+			print("No active UNO game. Type 'uno start' to begin.");
+			return;
+		}
+
+		print('\n= Game Status:');
+		print('==========');
+		print('Round: ${unoGame.roundNumber}');
+		print('Current turn: ${unoGame.turnManager.getCurrentPlayer().name}');
+		print('Direction: ${unoGame.turnManager.direction == CLOCKWISE ? "Clockwise" : "Counter-clockwise"}');
+		print('Cards in deck: ${unoGame.deck.getRemainingCards()}');
+		print('');
+		print('\n- Players:');
+		for (player in unoGame.players) {
+			var icon = player.isHuman ? "[YOU]" : "[CPU]";
+			var unoStatus = player.hand.isUno() && player.calledUno ? " (UNO!)" : "";
+			var currentIndicator = player == unoGame.turnManager.getCurrentPlayer() ? " <--" : "";
+			print('  $icon ${player.name}: ${player.hand.getSize()} cards - ${player.score} pts$unoStatus$currentIndicator');
+		}
+		print('============');
+	}
+
+	private function callUno():Void {
+		if (unoGame == null || !unoGame.isRoundActive) {
+			print("No active UNO game. Type 'uno start' to begin.");
+			return;
+		}
+
+		var humanPlayer = null;
+		for (player in unoGame.players) {
+			if (player.isHuman) {
+				humanPlayer = player;
+				break;
+			}
+		}
+
+		if (humanPlayer == null) {
+			print("No human player found!");
+			return;
+		}
+
+		var success = unoGame.callUno(humanPlayer);
+		if (!success) {
+			print("You can only call UNO when you have exactly one card!");
+		}
+	}
+
+	private function quitUnoGame():Void {
+		if (unoGame == null) {
+			print("No UNO game is currently active.");
+			return;
+		}
+
+		print("Ending UNO game...");
+		unoGame.forceEndGame();
+		unoGame = null;
+		print("UNO game ended.");
+	}
+
+	private function showUnoHelp():Void {
+		print('\nUNO Game Help');
+		print('===================================');
+		print('');
+		print('Objective:');
+		print('  Be the first to play all your cards to win the round.');
+		print('  First player to reach 500 points wins the game!');
+		print('');
+		print('Card Types:');
+		print('  Number Cards (0-9): Must match color or number');
+		print('  Skip: Skip next player\'s turn');
+		print('  Reverse: Reverse play direction');
+		print('  Draw Two: Next player draws 2 cards');
+		print('  Wild: Change color of play');
+		print('  Wild Draw Four: Change color, next player draws 4');
+		print('');
+		print('Commands:');
+		print('  uno hand - View your cards');
+		print('  uno play <index> [color] - Play card by index');
+		print('  uno draw - Draw a card');
+		print('  uno uno - Call UNO when you have one card');
+		print('  uno status - View game state');
+		print('  uno quit - End game');
+		print('');
+		print('Rules:');
+		print('  • Must call UNO when you have one card left');
+		print('  • Wild cards require color choice (red/blue/green/yellow)');
+		print('  • Can only play cards that match color, number, or type');
+		print('  • Draw if you can\'t play');
+		print('');
+		print('Scoring:');
+		print('  • Number cards: Face value');
+		print('  • Action cards: 20 points');
+		print('  • Wild cards: 50 points');
+		print('===================================');
+	}
+
+	private function advanceThroughCPUTurns():Void {
+		if (unoGame == null || !unoGame.isRoundActive) return;
+
+		var maxTurns = 50; // Prevent infinite loops
+		var turnCount = 0;
+
+		while (unoGame.isRoundActive && !unoGame.turnManager.getCurrentPlayer().isHuman && turnCount < maxTurns) {
+			turnCount++;
+			var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+			
+			if (Std.isOfType(currentPlayer, UnoCPU)) {
+				var cpu = cast(currentPlayer, UnoCPU);
+				
+				// Small delay for CPU thinking (visual feedback)
+				Sys.sleep(0.5);
+
+				var playableCards = unoGame.getCurrentPlayerPlayableCards();
+				
+				if (playableCards.length > 0) {
+					// Create game state for CPU decision
+					var gameState = new UnoGameState();
+					gameState.update(
+						unoGame.players,
+						currentPlayer,
+						unoGame.turnManager.direction,
+						unoGame.deck.getTopCard(),
+						unoGame.currentColor,
+						unoGame.deck.getRemainingCards(),
+						unoGame.deck.getDiscardPileSize()
+					);
+
+					var cardIndex = cpu.chooseCard(unoGame.deck.getTopCard(), gameState);
+					
+					if (cardIndex >= 0 && cardIndex < currentPlayer.hand.getSize()) {
+						var card = currentPlayer.hand.cards[cardIndex];
+						var chosenColor:UnoColor = null;
+
+						if (card.isWildCard()) {
+							chosenColor = cpu.chooseWildColor();
+						}
+
+						// Auto-call UNO for CPU
+						if (currentPlayer.hand.getSize() == 2) {
+							cpu.autoCallUno();
+						}
+
+						// Try to play the card
+						var success = unoGame.playCard(currentPlayer, cardIndex, chosenColor);
+						if (!success) {
+							// Card couldn't be played (probably due to draw stack), must draw instead
+							print('${currentPlayer.name} cannot play card due to draw stack, drawing...');
+							unoGame.drawCards(currentPlayer, 1);
+						}
+					} else {
+						// CPU has no playable cards, must draw
+						print('${currentPlayer.name} draws a card...');
+						unoGame.drawCards(currentPlayer, 1);
+					}
+				} else {
+					// Must draw cards
+					print('🤖 ${currentPlayer.name} has no playable cards, drawing...');
+					unoGame.drawCards(currentPlayer, 1);
+				}
+
+				// Check for UNO penalties
+				unoGame.checkUnoPenalties();
+			}
+		}
+
+		if (turnCount >= maxTurns) {
+			print("Warning: CPU turn limit reached to prevent infinite loop");
+		}
+
+		// Show updated status after CPU turns
+		if (unoGame.isRoundActive) {
+			print('');
+			showUnoStatus();
+			if (unoGame.turnManager.getCurrentPlayer().isHuman) {
+				print('\nYour turn! Type "uno hand" to see your cards.');
+			}
+		}
+	}
+
+	private function startUnoSimulation(?maxTurns:Int):Void {
+		print("Starting UNO Simulation...");
+		print("===================================");
+
+		var maxTurns = maxTurns ?? 100;
+
+		try {
+			// Run the simulation using the existing UnoExample
+			UnoExample.simulateGame(maxTurns);
+		} catch (e:Dynamic) {
+			print("Error during UNO simulation: " + e);
+		}
 	}
 }
 
