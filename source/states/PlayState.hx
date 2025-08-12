@@ -485,6 +485,9 @@ class PlayState extends MusicBeatState
 	var vocalvisual:AudioDisplay = null;
 	var oppvisual:AudioDisplay = null;
 
+	// Skydecay Engine (our good friends)
+	public var noteManager:NoteManager;
+
 	// End of Mixtape Engine's large amount of bull
 
 
@@ -696,6 +699,8 @@ class PlayState extends MusicBeatState
 		else mania = 3;
 
 		trace("Mania set: " + mania);
+
+		noteManager = new NoteManager();
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.bpm = SONG.bpm;
@@ -3000,7 +3005,7 @@ class PlayState extends MusicBeatState
 				else
 					oldNote = null;
 
-				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
+				var swagNote:Note = noteManager.getNote(spawnTime, noteColumn, oldNote, false);
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
 
@@ -3063,7 +3068,7 @@ class PlayState extends MusicBeatState
 					{
 						oldNote = allNotes[Std.int(allNotes.length - 1)];
 
-						var sustainNote:Note = new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
+						var sustainNote:Note = noteManager.getNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
 						sustainNote.mustPress = gottaHitNote;
 						sustainNote.gfNote = swagNote.gfNote;
 						sustainNote.exNote = swagNote.exNote;
@@ -6441,6 +6446,7 @@ class PlayState extends MusicBeatState
 		notes.clear();
 		allNotes = [];
 		unspawnNotes = [];
+		noteManager.clearAllNotes();
 		for (field in playfields)
 		{
 			field.clearDeadNotes();
@@ -7666,10 +7672,11 @@ class PlayState extends MusicBeatState
 	}
 
 	public function invalidateNote(note:Note):Void {
-		// note.kill();
-		// notes.remove(note, true);
-		// note.destroy();
+		noteManager.recycleNote(note);
 		note.field.removeNote(note);
+		note.kill();
+		notes.remove(note, true);
+		note.destroy();
 	}
 
 	function playAnim(note:Note, char:Character, animToPlay:String, ?forceAnim:Bool = false) {

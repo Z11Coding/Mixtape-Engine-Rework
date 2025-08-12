@@ -543,59 +543,59 @@ class Character extends FlxSprite
 
 	public function playGhostAnim(ghostID = 0, AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0) {
 		try {
-		var ghost:FlxSprite = doubleGhosts[ghostID];
-		ghost.scale.copyFrom(scale);
-		ghost.frames = frames;
-		ghost.animation.copyFrom(animation);
-		// ghost.shader = shader;
-		ghost.x = x;
-		ghost.y = y;
-		ghost.flipX = flipX;
-		ghost.flipY = flipY;
-		ghost.alpha = alpha * 0.6;
-		ghost.visible = true;
-		ghost.color = FlxColor.fromRGB(healthColorArray[0], healthColorArray[1], healthColorArray[2]);
-		ghost.animation.play(AnimName, Force, Reversed, Frame);
-		if (ghostTweenGRP[ghostID] != null)
-			ghostTweenGRP[ghostID].cancel();
+			var ghost:FlxSprite = doubleGhosts[ghostID];
+			ghost.scale.copyFrom(scale);
+			ghost.frames = frames;
+			ghost.animation.copyFrom(animation);
+			// ghost.shader = shader;
+			ghost.x = x;
+			ghost.y = y;
+			ghost.flipX = flipX;
+			ghost.flipY = flipY;
+			ghost.alpha = alpha * 0.6;
+			ghost.visible = true;
+			ghost.color = FlxColor.fromRGB(healthColorArray[0], healthColorArray[1], healthColorArray[2]);
+			ghost.animation.play(AnimName, Force, Reversed, Frame);
+			if (ghostTweenGRP[ghostID] != null)
+				ghostTweenGRP[ghostID].cancel();
 
-		var direction:String = AnimName.substring(4);
+			var direction:String = AnimName.substring(4);
 
-		var directionMap:Map<String, Array<Float>> = [
-			'UP' => [0, -45],
-			'DOWN' => [0, 45],
-			'RIGHT' => [45, 0],
-			'LEFT' => [-45, 0],
-			'UP-alt' => [0, -45],
-			'DOWN-alt' => [0, 45],
-			'RIGHT-alt' => [45, 0],
-			'LEFT-alt' => [-45, 0],
-		];
-		//had to add alt cuz it kept crashing on room code LOL
+			var directionMap:Map<String, Array<Float>> = [
+				'UP' => [0, -45],
+				'DOWN' => [0, 45],
+				'RIGHT' => [45, 0],
+				'LEFT' => [-45, 0],
+				'UP-alt' => [0, -45],
+				'DOWN-alt' => [0, 45],
+				'RIGHT-alt' => [45, 0],
+				'LEFT-alt' => [-45, 0],
+			];
+			//had to add alt cuz it kept crashing on room code LOL
 
-		var moveDirections:Array<Float> = [
-			x + (directionMap.get(direction)[0]),
-			y + (directionMap.get(direction)[1])
-		];
+			var moveDirections:Array<Float> = [
+				x + (directionMap.get(direction)[0]),
+				y + (directionMap.get(direction)[1])
+			];
 
-		ghostTweenGRP[ghostID] = FlxTween.tween(ghost, {alpha: 0, x: moveDirections[0], y: moveDirections[1]}, 0.75, {
-			ease: FlxEase.linear,
-			onComplete: function(twn:FlxTween)
-			{
-				ghost.visible = false;
-				ghostTweenGRP[ghostID].destroy(); // maybe?
-				ghostTweenGRP[ghostID] = null;
+			ghostTweenGRP[ghostID] = FlxTween.tween(ghost, {alpha: 0, x: moveDirections[0], y: moveDirections[1]}, 0.75, {
+				ease: FlxEase.linear,
+				onComplete: function(twn:FlxTween)
+				{
+					ghost.visible = false;
+					ghostTweenGRP[ghostID].destroy(); // maybe?
+					ghostTweenGRP[ghostID] = null;
+				}
+			});
+
+			var daOffset = animOffsets.get(AnimName);
+			if (animOffsets.exists(AnimName))
+				ghost.offset.set(daOffset[0], daOffset[1]);
+			else
+				ghost.offset.set(0, 0);
 			}
-		});
-
-		var daOffset = animOffsets.get(AnimName);
-		if (animOffsets.exists(AnimName))
-			ghost.offset.set(daOffset[0], daOffset[1]);
-		else
-			ghost.offset.set(0, 0);
-		}
 		catch(e) {
-			trace('ERROR: $e');
+			// trace('ERROR: $e');
 		}
 	}
 
