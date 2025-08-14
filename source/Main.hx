@@ -200,6 +200,13 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
+		
+		// Initialize crash tracking system early
+		#if !debug
+		yutautil.CrashTrackerHelper.initialize();
+		yutautil.CrashTrackerHelper.logCriticalActivity("Main", "new", "Application starting up");
+		#end
+		
 		#if (cpp && windows)
 		backend.window.Native.fixScaling();
 		#end
@@ -242,6 +249,8 @@ class Main extends Sprite
 		Toolkit.init();
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
+
+		trace(yutautil.StatePick.getStateNames("MusicBeatState"));
 
 		if (cmdArgs.indexOf('check') != -1)
 		{
@@ -500,8 +509,22 @@ class Main extends Sprite
 		trace("Closing...");
 	}
 
+	private static var gameClosing:Bool = false;
+
 	public static inline function closeGame():Void
 	{
+		if (gameClosing) return;
+		gameClosing = true;
+		
+		// Track command exit through CrashReporter
+		#if !debug
+		try {
+			yutautil.CrashReporter.logActivity("Main", "closeGame", "Game is closing...");
+		} catch (trackError:Dynamic) {
+			trace("Failed to track game exit: " + trackError);
+		}
+		#end
+		
 		// if (Main.commandPrompt != null)
 		// 	commandPrompt.remove();
 
@@ -556,6 +579,25 @@ class Main extends Sprite
 
 		path = "./crash/" + "MixtapeEngine_" + dateNow + ".txt";
 
+		// Check if this is our custom UnexpectedCrashException
+		var isUnexpectedCrash = false;
+		var unexpectedCrashData:Dynamic = null;
+		
+		#if !debug
+		try {
+			var errorString = Std.string(e.error);
+			if (errorString.indexOf("UnexpectedCrashException") != -1) {
+				isUnexpectedCrash = true;
+				// Try to extract crash data if available
+				if (Reflect.hasField(e.error, "previousCrashData")) {
+					unexpectedCrashData = Reflect.field(e.error, "previousCrashData");
+				}
+			}
+		} catch (extractError:Dynamic) {
+			trace("Could not extract unexpected crash data: " + extractError);
+		}
+		#end
+
 		for (stackItem in callStack)
 		{
 			switch (stackItem)
@@ -569,11 +611,32 @@ class Main extends Sprite
 
 		errMsg += "\nUncaught Error: " + e.error;
 		errMsg += "\nError Code: " + new DetailedException(e).errorCode;
+		
+		// Add special handling for unexpected crashes
+		if (isUnexpectedCrash) {
+			errMsg += "\n\n*** UNEXPECTED CRASH DETECTED ***";
+			errMsg += "\nThis crash was detected from a previous session.";
+			if (unexpectedCrashData != null) {
+				errMsg += "\nPrevious session info: " + haxe.Json.stringify(unexpectedCrashData, "  ");
+			}
+			errMsg += "\nCheck the logger folder for detailed crash tracking reports.";
+		}
+		
+		#if !debug
+		// Generate enhanced crash report with tracking data
+		try {
+			yutautil.CrashReporter.generateEnhancedCrashReport("Uncaught exception: " + e.error);
+		} catch (reportError:Dynamic) {
+			trace("Failed to generate enhanced crash report: " + reportError);
+		}
+		#end
+		
 		// remove if you're modding and want the crash log message to contain the link
 		// please remember to actually modify the link for the github page to report the issues to.
 		errMsg += "\nPlease report this error to the GitHub page: https://github.com/Z11Gaming/Mixtape-Engine-Rework";
 		errMsg += "\n\n> Crash Handler written by: sqirra-rng";
 		errMsg += "\n\n> Modified by: Yutamon";
+		errMsg += "\n\n> Enhanced Crash Tracking: Enabled";
 
 		if (!FileSystem.exists("./crash/"))
 			FileSystem.createDirectory("./crash/");
@@ -582,6 +645,10 @@ class Main extends Sprite
 
 		Sys.println(errMsg);
 		Sys.println("Crash dump saved in " + Path.normalize(path));
+		
+		#if !debug
+		Sys.println("Enhanced crash report with tracking data saved in ./logger/ folder");
+		#end
 
 		for (stackItem in callStack)
 			{
@@ -603,7 +670,11 @@ class Main extends Sprite
 
 		if (ClientPrefs.data.showCrash)
 		{
-			Application.current.window.alert(errMsg, "Error!");
+			var alertMsg = errMsg;
+			if (isUnexpectedCrash) {
+				alertMsg = "UNEXPECTED CRASH DETECTED!\n\nThe engine crashed unexpectedly in a previous session.\nDetailed crash tracking reports are available in the logger folder.\n\n" + alertMsg;
+			}
+			Application.current.window.alert(alertMsg, isUnexpectedCrash ? "Unexpected Crash!" : "Error!");
 		}
 
 		backend.MusicBeatState.playErrorSound = true;
@@ -820,6 +891,10 @@ class CommandPrompt
 			if (input == "$exit")
 			{
 				print("Exiting...");
+				// Log command exit for crash tracking
+				#if !debug
+				yutautil.CrashReporter.checkCommandExit();
+				#end
 				Main.closeGame();
 				print("Killing CommandHook...");
 				break;
@@ -2038,7 +2113,7 @@ class CommandPrompt
 			var playable = card.canPlayOn(unoGame.deck.getTopCard()) || 
 						  (card.color == unoGame.currentColor) || 
 						  card.isWildCard();
-			var indicator = playable ? "✅" : "❌";
+			var indicator = playable ? "+" : "-";
 			print('  [$i] $indicator ${card.toString()}');
 		}
 		print('===============');

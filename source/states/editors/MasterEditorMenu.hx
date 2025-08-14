@@ -17,7 +17,9 @@ class MasterEditorMenu extends MusicBeatState
 		'Dialogue Portrait Editor',
 		'Note Splash Editor',
 		'Sticker Test',
-		'XML Editor'
+		'XML Editor',
+		'UNO Test',
+		'Debug State Menu'
 	];
 	private var grpTexts:FlxTypedGroup<Alphabet>;
 	private var directories:Array<String> = [null];
@@ -125,6 +127,10 @@ class MasterEditorMenu extends MusicBeatState
 					MusicBeatState.switchState(new StickerTest());
 				case 'XML Editor':
 					MusicBeatState.switchState(new XMLEditorState());
+				case 'UNO Test':
+					MusicBeatState.switchState(new states.UnoTestState());
+				case 'Debug State Menu':
+					MusicBeatState.switchState(new states.DebugStateMenu());
 			}
 			FlxG.sound.music.volume = 0;
 			if (FreeplayManager.instance != null) FreeplayManager.instance.destroyFreeplayVocals();

@@ -207,7 +207,8 @@ class UnoGame {
             if (chosenColor == null) {
                 // For CPU players, auto-choose color
                 if (!player.isHuman && Std.isOfType(player, UnoCPU)) {
-                    chosenColor = cast(player, UnoCPU).chooseWildColor();
+                    var availableColors = customColors != null ? customColors.concat(UnoCard.getStandardColors()) : UnoCard.getStandardColors();
+                    chosenColor = cast(player, UnoCPU).chooseWildColor(availableColors);
                 } else {
                     throw "Must choose a color for wild cards!";
                 }
@@ -427,9 +428,17 @@ class UnoGame {
      */
     public function getGameStatus():String {
         if (!isGameActive) return "Game not started";
+        if (!isRoundActive || turnManager == null || deck == null) return "Initializing game...";
         
         var status = 'Round $roundNumber - ${turnManager.getCurrentPlayer().name}\'s turn\n';
-        status += 'Top card: ${deck.getTopCard().toString()}\n';
+        
+        var topCard = deck.getTopCard();
+        if (topCard != null) {
+            status += 'Top card: ${topCard.toString()}\n';
+        } else {
+            status += 'Top card: None\n';
+        }
+        
         status += 'Current color: $currentColor\n';
         
         if (drawStack > 0) {

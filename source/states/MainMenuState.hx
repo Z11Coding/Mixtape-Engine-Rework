@@ -5,6 +5,7 @@ import flixel.FlxObject;
 import flixel.effects.FlxFlicker;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
+import states.DebugStateMenu;
 import options.OptionsState;
 import flixel.addons.display.FlxBackdrop;
 import flixel.util.FlxGradient;
@@ -547,6 +548,14 @@ class MainMenuState extends MusicBeatState
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;
 				MusicBeatState.switchState(new MasterEditorMenu());
+			}
+			
+			// Debug State Menu access with F3 or debug_2
+			if (FlxG.keys.justPressed.F3 || controls.justPressed('debug_2'))
+			{
+				selectedSomethin = true;
+				FlxG.mouse.visible = false;
+				MusicBeatState.switchState(new DebugStateMenu());
 			}
 			#end
 		}

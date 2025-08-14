@@ -166,10 +166,17 @@ class UnoCPU extends UnoPlayer {
                 score += cpuImportance;
         }
         
-        // Color strategy
+        // Color strategy (including custom colors)
         var colorCount = hand.getCardsByColor(card.color).length;
         if (!card.isWildCard()) {
             score += colorCount * 2; // Prefer playing colors we have more of
+        }
+        
+        // Custom color bonus - slightly prefer custom colors if we have many
+        switch(card.color) {
+            case CUSTOM(color, name):
+                score += colorCount > 2 ? 3 : 1; // Small bonus for custom colors
+            case _: // Standard colors get no bonus
         }
         
         // End game strategy
@@ -182,15 +189,41 @@ class UnoCPU extends UnoPlayer {
     }
     
     /**
-     * CPU chooses a color for wild cards
+     * CPU chooses a color for wild cards (including custom colors)
      */
-    public function chooseWildColor():UnoColor {
-        var colorCounts = [
-            {color: RED, count: hand.getCardsByColor(RED).length},
-            {color: BLUE, count: hand.getCardsByColor(BLUE).length},
-            {color: GREEN, count: hand.getCardsByColor(GREEN).length},
-            {color: YELLOW, count: hand.getCardsByColor(YELLOW).length}
-        ];
+    public function chooseWildColor(?availableColors:Array<UnoColor>):UnoColor {
+        // If no colors are specified, use standard colors plus any custom colors found in hand
+        if (availableColors == null) {
+            availableColors = UnoCard.getStandardColors();
+            
+            // Add any custom colors found in the hand
+            for (card in hand.cards) {
+                switch(card.color) {
+                    case CUSTOM(color, name):
+                        var found = false;
+                        for (availColor in availableColors) {
+                            if (UnoCard.colorsMatch(card.color, availColor)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            availableColors.push(card.color);
+                        }
+                    case _: // Standard colors already included
+                }
+            }
+        }
+        
+        var colorCounts = [];
+        for (color in availableColors) {
+            if (color != WILD) { // Don't count wild as a choosable color
+                colorCounts.push({
+                    color: color,
+                    count: hand.getCardsByColor(color).length
+                });
+            }
+        }
         
         // Sort by count (highest first)
         colorCounts.sort(function(a, b) return b.count - a.count);
@@ -207,7 +240,8 @@ class UnoCPU extends UnoPlayer {
             return colorCounts[1].color; // Choose second best sometimes
         }
         
-        return colorCounts[0].color;
+        // Return the color with the most cards, or a random standard color if no cards
+        return colorCounts.length > 0 ? colorCounts[0].color : UnoColor.RED;
     }
     
     /**

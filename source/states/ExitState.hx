@@ -35,6 +35,9 @@ class ExitState extends FlxState
 
 	private function performCleanup():Void
 	{
+		// Clean up crash tracking (remove lock file for normal exit)
+		yutautil.CrashReporter.cleanupOnExit();
+		
 		// Clean up temporary Archipelago weeks before exit
 		APGameState.forceCleanupTemporaryWeeks();
 		

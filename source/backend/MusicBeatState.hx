@@ -9,6 +9,7 @@ import backend.PsychCamera;
 import archipelago.APEntryState;
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
+@:autoBuild(yutautil.CrashTracker.instrument())
 class MusicBeatState extends FlxState
 {
 	private var curSection:Int = 0;
