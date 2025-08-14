@@ -20,6 +20,8 @@ import objects.NoteSplash;
 import flixel.FlxBasic;
 import objects.NoteObject;
 import objects.Note.SustainPart;
+import sys.thread.Thread;
+import sys.thread.Mutex;
 
 /*
 The system is seperated into 3 classes:
@@ -200,6 +202,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		@:privateAccess
 		lilguy.draw();
 		add(lilguy);
+
+		mutex = new Mutex();
 	}
 
 	// Anything that is static/used by both strums but cant be double-initialized can be placed here
@@ -268,18 +272,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	}
 
 	// spawns a note
+	var mutex:Mutex;
 	public function spawnNote(note:Note){
 		// trace("Attempting to spawn note: " + note);
 		if(note.spawned) {
 			// trace("Note already spawned, skipping: " + note);
 			return;
-		}
-		
-		if (noteQueue[note.column] != null) {
-			// trace("Removing note from queue for column: " + note.column);
-			noteQueue[note.column].remove(note);
-			// trace("Sorting note queue for column: " + note.column);
-			noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
 		}
 
 		if (spawnedByData[note.column] != null) {
@@ -290,31 +288,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			return;
 		}
 
-		if(note.holdType == HEAD || note.holdType == TAP) {
-			// trace("Note is of type HEAD or TAP: " + note);
-			if(note.requiresTap) {
-				// trace("Note requires tap.");
-				if (tapsByData[note.column] != null) {
-					// trace("Adding note to tapsByData for column: " + note.column);
-					tapsByData[note.column].push(note);
-				} else {
-					// trace("tapsByData for column " + note.column + " is null.");
-				}
-			} else {
-				// trace("Note does not require tap.");
-				if (noTapsByData[note.column] != null) {
-					// trace("Adding note to noTapsByData for column: " + note.column);
-					noTapsByData[note.column].push(note);
-				} else {
-					// trace("noTapsByData for column " + note.column + " is null.");
-				}
-			}
-		}
-
-		// trace("Dispatching noteSpawned event for note: " + note);
-		noteSpawned.dispatch(note, this);
-		// trace("Adding note to spawnedNotes.");
-		spawnedNotes.push(note);
+		sys.thread.Thread.create(() -> {
+			mutex.acquire();
+			spawnedNotes.push(note);
+			mutex.release();
+		});
 		note.handleRendering = false;
 
 		@:privateAccess
@@ -949,7 +927,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				if (time <= 0)time = spawnTime;
 				
 				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time)
-					(column[0].spawned) ? column.remove(column[0]) : spawnNote(column[0]);
+					((column[0].spawned) ? column.remove(column[0]) : spawnNote(column[0]));
 			}
 		}
 

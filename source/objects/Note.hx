@@ -1252,4 +1252,136 @@ class Note extends NoteObject
 
 		return rect;
 	}
+
+	public function makeNote(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null) {
+		animation = new PsychAnimationController(this);
+
+		antialiasing = ClientPrefs.data.antialiasing;
+		if(createdFrom == null) createdFrom = PlayState.instance;
+
+		if (prevNote == null)
+			prevNote = this;
+
+		this.objType = NOTE;
+		this.column = noteData;
+
+		this.prevNote = prevNote;
+		isSustainNote = sustainNote;
+		this.inEditor = inEditor;
+		this.moves = false;
+		this.beat = Conductor.getBeat(strumTime);
+
+		if (isSustainNote && prevNote != null) {
+			parentNote = prevNote;
+			while (parentNote.parentNote != null)
+				parentNote = parentNote.parentNote;
+			parentNote.childrenNotes.push(this);
+		} else if (!isSustainNote)
+			parentNote = null;
+
+		baseAlpha = 1;
+
+		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		// MAKE SURE ITS DEFINITELY OFF SCREEN?
+		if (!isSustainNote) y -= 2000;
+		this.strumTime = strumTime;
+		if(!inEditor) {
+			this.strumTime += ClientPrefs.data.noteOffset;
+			visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+		}
+
+		this.noteData = noteData;
+
+		if(noteData > -1)
+		{
+			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
+			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
+			texture = '';
+
+			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
+			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
+				var animToPlay:String = '';
+				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+				if (hasAnimation(animToPlay))
+					animation.play(animToPlay);
+				else
+				{
+					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+					animation.play(animToPlay + 'Scroll');
+				}
+			}
+		}
+
+		// trace(prevNote);
+
+		if(prevNote != null)
+			prevNote.nextNote = this;
+
+		if (isSustainNote && prevNote != null)
+		{
+			alpha = 0.6;
+			multAlpha = 0.6;
+			hitsoundDisabled = true;
+			if(ClientPrefs.data.downScroll) flipY = true;
+
+			istail = true;
+
+			//offsetY += height / 2;
+
+			var animToPlay:String = '';
+			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+			if (!hasAnimation(animToPlay))
+			{
+				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+			}
+			animation.play(animToPlay);
+
+			//scale.y = 0.7;
+			updateHitbox();
+            centerOffsets();
+
+			//offsetY += height;
+
+			//if (PlayState.isPixelStage)
+				//offsetX += 30;
+
+			if (prevNote.isSustainNote)
+			{
+				var animToPlay2:String = '';
+				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+				if (!hasAnimation(animToPlay2))
+				{
+					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+				}
+				prevNote.animation.play(animToPlay2);
+
+				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
+				if(createdFrom != null && createdFrom.songSpeed != null) prevNote.scale.y *= createdFrom.songSpeed;
+
+				if(PlayState.isPixelStage) {
+					prevNote.scale.y *= 1.19;
+					prevNote.scale.y *= (6 / height); //Auto adjust note size
+				}
+				prevNote.updateHitbox();
+				prevNote.centerOffsets();
+
+				// offsetY += height / 2;
+				// prevNote.setGraphicSize();
+			}
+
+			if(PlayState.isPixelStage)
+			{
+				scale.y *= PlayState.daPixelZoom;
+				updateHitbox();
+				centerOffsets();
+			}
+			earlyHitMult = 0;
+		}
+		else if(!isSustainNote)
+		{
+			centerOffsets();
+			centerOrigin();
+			centerOffsets();
+		}
+	}
 }
