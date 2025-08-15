@@ -872,3 +872,6 @@ class CrashTracker {
         return instrumentedClasses.copy();
     }
 }
+
+@:autoBuild(yutautil.CrashTracker.instrument())
+interface CrashMonitor {}
