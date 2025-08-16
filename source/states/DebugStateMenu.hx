@@ -265,16 +265,18 @@ class DebugStateMenu extends MusicBeatState {
             var alphabet:Alphabet;
             
             if (displayEntry.type == CATEGORY) {
-                alphabet = new Alphabet(50, startY + (i * 40), displayEntry.text, false);
+                alphabet = new Alphabet(50, startY, displayEntry.text, true);
                 alphabet.color = FlxColor.CYAN;
+                alphabet.isMenuItem = true;
                 alphabet.alpha = 0.8;
             } else {
-                alphabet = new Alphabet(70, startY + (i * 40), displayEntry.text, true);
+                alphabet = new Alphabet(70, startY, displayEntry.text, true);
                 alphabet.isMenuItem = true;
                 alphabet.alpha = 0.6; // Default alpha, will be updated in update()
             }
             
             // Configure for responsive scrolling
+            alphabet.ID = i;
             alphabet.targetY = i; // Initial position
             alphabet.distancePerItem.y = 80; // Tighter spacing for better responsiveness
             alphabet.isMenuItem = true; // Ensure menu item behavior
@@ -394,7 +396,7 @@ class DebugStateMenu extends MusicBeatState {
                 item.targetY = num - selectedDisplayIndex;
                 
                 // For snappier scrolling, adjust distance per item for tighter spacing
-                item.distancePerItem.y = 80;
+                //item.distancePerItem.y = 80;
                 
                 // If this is a big jump (like when selection changes), snap immediately
                 if (Math.abs(item.targetY - oldTargetY) > 3) {

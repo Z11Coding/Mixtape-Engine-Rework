@@ -23,10 +23,10 @@ class UnoCPU extends UnoPlayer {
      */
     private function getDifficultyThinkingTime(diff:UnoDifficulty):Float {
         return switch(diff) {
-            case EASY: 2.0;
-            case NORMAL: 1.5;
-            case HARD: 1.0;
-            case EXPERT: 0.5;
+            case EASY: 5.0;
+            case NORMAL: 4.5;
+            case HARD: 3.0;
+            case EXPERT: 2.5;
         }
     }
     

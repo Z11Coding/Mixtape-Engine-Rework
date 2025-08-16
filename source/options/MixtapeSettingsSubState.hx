@@ -54,6 +54,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"Native", 
 			"Native-old", 
 			"Andromeda (legacy)",
+			"Troll Engine"
 			//"BEAT! Engine", 
 			//"Kade Engine", 
 			//"ZoroForce EK", 
@@ -250,6 +251,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"",
 			'',
 			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Enable Garbage Collection',
+			"If checked, Your memory usage will be normalized, but you'll have lag spikes.\nBut, unchecked, little to no lag spikes, but higher average memory usage.",
+			'garbageCollection',
+			BOOL);
+		option.onChange = function() {MemoryUtil.init();};
 		addOption(option);
 
 		var option:Option = new Option('Allow Visualizers',

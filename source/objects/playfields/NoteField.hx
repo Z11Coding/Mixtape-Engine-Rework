@@ -2,10 +2,7 @@ package objects.playfields;
 
 import backend.modchart.modifiers.ReverseModifier;
 import backend.modchart.Modifier;
-import flixel.math.FlxMath;
-import flixel.math.FlxAngle;
-import flixel.math.FlxPoint;
-import flixel.math.FlxMatrix;
+import flixel.math.*;
 import flixel.util.FlxSort;
 import flixel.util.FlxDestroyUtil;
 import flixel.graphics.FlxGraphic;
@@ -19,7 +16,6 @@ import backend.modchart.ModManager;
 import backend.modchart.Modifier.RenderInfo;
 import shaders.NoteColorSwap;
 import states.PlayState;
-import objects.Note;
 import backend.MusicBeatState;
 import haxe.ds.Vector as FastVector;
 import objects.playfields.FieldBase;
@@ -39,10 +35,8 @@ class NoteField extends FieldBase
 	]);
 	var HOLD_INDICES:Vector<Int> = new Vector<Int>(0, false);
 
-	public var tryForceHoldsBehind:Bool = true; // Field tries to push holds behind receptors and notes
-
 	public var holdSubdivisions(default, set):Int;
-	public var optimizeHolds = false; //ClientPrefs.data.optimizeHolds;
+	public var optimizeHolds = false; //ClientPrefs.optimizeHolds;
 	public var defaultShader:FlxShader = new FlxShader();
 
 	public function new(field:PlayField, modManager:ModManager)
@@ -52,11 +46,12 @@ class NoteField extends FieldBase
 		this.modManager = modManager;
 		this.holdSubdivisions = Std.int(ClientPrefs.data.holdSubdivs);
 	}
+	override public function getNotefield() {return this;}
 
 	/**
 	 * The Draw Distance Modifier
 	 * Multiplied by the draw distance to determine at what time a note will start being drawn
-	 * Set to ClientPrefs.data.drawDistanceModifier by default, which is an option to let you change the draw distance.
+	 * Set to ClientPrefs.drawDistanceModifier by default, which is an option to let you change the draw distance.
 	 * Best not to touch this, as you can set the drawDistance modifier to set the draw distance of a notefield.
 	 */
 	public var drawDistMod:Float = ClientPrefs.data.drawDistanceModifier;
@@ -84,6 +79,8 @@ class NoteField extends FieldBase
 	var curDecStep:Float = 0;
 	var curDecBeat:Float = 0;
 
+	// This is a magic tool that will make getting the charting state playstate editor working easier
+	//TL;DR DONT DELETE THIS!
 	public var isEditor:Bool = true;
 
 	final perspectiveArrDontUse:Array<String> = ['__perspective'];
@@ -110,12 +107,14 @@ class NoteField extends FieldBase
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.zIndex, Obj2.zIndex);
 	}
 
+	var lookupMap = new haxe.ds.ObjectMap<Dynamic, RenderObject>();
+
 	// does all the drawing logic, best not to touch unless you know what youre doing
 	override function preDraw()
 	{
 		drawQueue = [];
 		if (field == null) return;
-		if (!active || !exists) return;
+		if ((!exists || !visible) && !forcePreDraw) return;
 		
 		curDecStep = MusicBeatState.pubCurDecStep;
 		curDecBeat = MusicBeatState.pubCurDecBeat;
@@ -126,25 +125,40 @@ class NoteField extends FieldBase
 		var nextNotePos:Map<Note, Vector3> = []; // for orient
 		var taps:Array<Note> = [];
 		var holds:Array<Note> = [];
-		var drawMod = modManager.get("drawDistance");
-		var drawDist = drawMod == null ? FlxG.height : drawMod.getValue(modNumber);
-		var multAllowed = modManager.get("disableDrawDistMult");
-		var alwaysDraw = try{ modManager.get("alwaysDraw").getValue(modNumber) != 0;} catch(e) {false;} // Forces notes to draw, no matter the draw distance
-		if (multAllowed == null || multAllowed.getValue(modNumber) == 0)
-			drawDist *= drawDistMod;
-		var lookAheadTime = modManager.getValue("lookAheadTime", modNumber);
+
+		inline function getModValue(name:String):Null<Float>
+			return modManager.get(name)?.getValue(modNumber);
+
+		var lookAheadTime:Float = getModValue("lookAheadTime");
+		var alwaysDraw:Bool;
+		var drawDist:Float;
+		
+		if ((getModValue("alwaysDraw") ?? 0.0) != 0.0) {
+			// Force notes to draw, no matter the draw distance
+			alwaysDraw = true;
+			drawDist = Math.POSITIVE_INFINITY;
+		}
+		else{
+			alwaysDraw = false;
+			drawDist = getModValue("drawDistance") ?? cast FlxG.height;
+			var dddm = getModValue("disableDrawDistMult");
+			if (dddm == null || dddm == 0.0)
+				drawDist *= drawDistMod;
+		}		
 		
 		for (daNote in field.spawnedNotes)
 		{
-			if (!daNote.alive || !daNote.visible)
+			if (!daNote.exists || !daNote.visible)
 				continue;
 
 			if (songSpeed != 0)
 			{
-				var speed = modManager.getNoteSpeed(daNote, modNumber, songSpeed);
-				var visPos = -((Conductor.visualPosition - daNote.visualTime) * speed);
-
-				if ((visPos > drawDist && !alwaysDraw) || (daNote.wasGoodHit && daNote.sustainLength > 0))
+				if (daNote.wasGoodHit && daNote.sustainLength > 0)
+					continue;
+				
+				var speed:Float = modManager.getNoteSpeed(daNote, modNumber, songSpeed);
+				var visPos:Float = (daNote.visualTime - Conductor.visualPosition) * speed;
+				if (visPos > drawDist)
 					continue; // don't draw
 
 				if (!daNote.copyX && !daNote.copyY) {
@@ -157,7 +171,8 @@ class NoteField extends FieldBase
 					taps.push(daNote);
 					continue;
 				}
-				else if (daNote != null && daNote.isSustainNote)
+				
+				else if (daNote.isSustainNote)
 				{
 					holds.push(daNote);
 				}
@@ -183,12 +198,10 @@ class NoteField extends FieldBase
 			}
 		}
 
-		var lookupMap = new haxe.ds.ObjectMap<Dynamic, RenderObject>();
-
 		// draw the receptors
 		for (obj in field.strumNotes)
 		{
-			if (!obj.alive || !obj.visible)
+			if (!obj.exists || !obj.visible)
 				continue;
 			// maybe add copyX and copyT to strums too???????
 
@@ -198,24 +211,10 @@ class NoteField extends FieldBase
 			if (object == null)
 				continue;
 
-			if (tryForceHoldsBehind)
-				object.zIndex -= 4; // so that way strums are always behind no matter what
-
 			lookupMap.set(obj, object);
 			drawQueue.push(object);
 		}
-
-		// draw tap notes
-		for (note in taps)
-		{
-			var pos = notePos.get(note);
-			var object = drawNote(note, pos, nextNotePos.get(note));
-			if (object == null)
-				continue;
-			lookupMap.set(note, object);
-			drawQueue.push(object);
-		}
-
+		
 		// draw hold notes (credit to 4mbr0s3 2)
 		for (note in holds)
 		{
@@ -230,10 +229,21 @@ class NoteField extends FieldBase
 			drawQueue.push(object);
 		}
 
+		// draw tap notes
+		for (note in taps) {
+			var pos = notePos.get(note);
+			var object = drawNote(note, pos, nextNotePos.get(note));
+			if (object == null)
+				continue;
+			lookupMap.set(note, object);
+			drawQueue.push(object);
+		}
+
+
 		// draw notesplashes
 		/*for (obj in field.grpNoteSplashes.members)
 		{
-			if (!obj.alive || !obj.visible)
+			if (!obj.exists || !obj.visible)
 				continue;
 
 			var pos = modManager.getPos(0, 0, curDecBeat, obj.column, modNumber, obj, this, perspectiveArrDontUse, obj.vec3Cache);
@@ -248,7 +258,7 @@ class NoteField extends FieldBase
 		// draw strumattachments
 		for (obj in field.strumAttachments.members)
 		{
-			if (obj == null || !obj.alive || !obj.visible)
+			if (!obj.exists || !obj.visible)
 				continue;
 			var pos = modManager.getPos(0, 0, curDecBeat, obj.column, modNumber, obj, this, perspectiveArrDontUse, obj.vec3Cache);
 			var object = drawNote(obj, pos);
@@ -260,20 +270,24 @@ class NoteField extends FieldBase
 		}
 
 		/*if ((FlxG.state is PlayState))
-			PlayState.instance.callOnScripts("notefieldPreDraw", ["drawQueue" => drawQueue, "lookupMap" => lookupMap]); // lets you do custom rendering in scripts, if needed
+			PlayState.instance.callOnHScripts("notefieldPreDraw", [this],
+				["drawQueue" => drawQueue, "lookupMap" => lookupMap]); // lets you do custom rendering in scripts, if needed*/
 		// one example would be reimplementing Die Batsards' original bullet mechanic
-		// if you need an example on how this all works just look at the tap note drawing portion*/
+		// if you need an example on how this all works just look at the tap note drawing portion
+
+		lookupMap.clear();
 
 		// No longer required since its done in the manager
 		//drawQueue.sort(drawQueueSort);
 
-		if(zoom != 1){
-			for(object in drawQueue){
+		if (zoom != 1) {
+			var centerX = FlxG.width * 0.5;
+			var centerY = FlxG.height * 0.5;
+
+			for (object in drawQueue) {
 				var vertices = object.vertices;
 				var currentVertexPosition:Int = 0;
 
-				var centerX = FlxG.width * 0.5;
-				var centerY = FlxG.height * 0.5;
 				while (currentVertexPosition < vertices.length)
 				{
 					vertices[currentVertexPosition] = (vertices[currentVertexPosition] - centerX) * zoom + centerX;
@@ -286,13 +300,9 @@ class NoteField extends FieldBase
 		}
 
 	}
-
-	var matrix:FlxMatrix = new FlxMatrix();
 	
-	override function draw(){
-		// Drawing is handled by NotefieldManager now (maybe rename to NotefieldRenderer?)
-		return;
-	}
+	override function draw()return;
+	
 
 	function getPoints(hold:Note, ?wid:Float, speed:Float, vDiff:Float, diff:Float, spiralHolds:Bool = false, ?lookAhead:Float = 1):Array<Vector3>
 	{ // stolen from schmovin'
@@ -323,7 +333,7 @@ class NoteField extends FieldBase
 		var quad1 = new Vector3(wid);
 		var scale:Float = (z!=0.0) ? (1.0 / z) : 1.0;
 
-		if (spiralHolds || simpleDraw) {
+		if (!spiralHolds || simpleDraw) {
 			// less accurate, but higher FPS
 			quad0.scaleBy(scale);
 			quad1.scaleBy(scale);
@@ -346,12 +356,9 @@ class NoteField extends FieldBase
 
 	var crotchet:Float = Conductor.getCrotchetAtTime(0.0) / 4.0;
 	function drawHold(hold:Note, ?prevAlpha:Float, ?prevGlow:Float):Null<RenderObject>
-	{ 
-		try {if (hold.animation.curAnim == null || hold.scale == null || hold.frame == null) return null;}
-		catch(e) {
-			//trace("Note was null!");
+	{
+		if (hold.animation.curAnim == null || hold.scale == null || hold.frame == null)
 			return null;
-		}
 
 		var render:Bool = false;
 		for (camera in cameras) {
@@ -462,29 +469,36 @@ class NoteField extends FieldBase
 			var top = lastMe ?? getPoints(hold, topWidth, speed, (visualDiff + (strumOff * 0.45)), strumDiff + strumOff, useSpiralHolds, lookAheadTime);
 			var bot = getPoints(hold, botWidth, speed, (visualDiff + ((strumOff + strumSub) * 0.45)), strumDiff + strumOff + strumSub, useSpiralHolds, lookAheadTime);
 			if (!hold.copyY) {
+				var a:Float = (crotchet + 1) * 0.45 * speed;
+				
 				if (lastMe == null) {
-					top[0].y -= FlxMath.lerp(0, (crotchet + 1) * 0.45 * speed, prog);
-					top[1].y -= FlxMath.lerp(0, (crotchet + 1) * 0.45 * speed, prog);
+					var a:Float = FlxMath.lerp(0, a, prog);
+					top[0].y -= a;
+					top[1].y -= a;
 				}
-				bot[0].y -= FlxMath.lerp(0, (crotchet + 1) * 0.45 * speed, nextProg);
-				bot[1].y -= FlxMath.lerp(0, (crotchet + 1) * 0.45 * speed, nextProg);
+
+				var a:Float = FlxMath.lerp(0, a, nextProg);
+				bot[0].y -= a;
+				bot[1].y -= a;
 			}
 			lastMe = bot;
 
-			for (_ in 0...Note.ammo[PlayState.mania]) { // why was this keyCount lol??  
+			for (_ in 0...2) {
 				alphas.push(info.alpha);
 				glows.push(info.glow);
 			}
 
-			top[0].x += hold.offsetX + hold.typeOffsetX;
-			top[1].x += hold.offsetX + hold.typeOffsetX;
-			bot[0].x += hold.offsetX + hold.typeOffsetX;
-			bot[1].x += hold.offsetX + hold.typeOffsetX;
+			var ox = hold.offsetX + hold.typeOffsetX;
+			top[0].x += ox;
+			top[1].x += ox;
+			bot[0].x += ox;
+			bot[1].x += ox;
 
-			top[0].y += hold.offsetY + hold.typeOffsetY;
-			top[1].y += hold.offsetY + hold.typeOffsetY;
-			bot[0].y += hold.offsetY + hold.typeOffsetY;
-			bot[1].y += hold.offsetY + hold.typeOffsetY;
+			var oy = hold.offsetY + hold.typeOffsetY;
+			top[0].y += oy;
+			top[1].y += oy;
+			bot[0].y += oy;
+			bot[1].y += oy;
 
 
 			var subIndex = sub * 8;
@@ -509,6 +523,7 @@ class NoteField extends FieldBase
 		return {
 			graphic: graphic,
 			shader: shader,
+			column: hold.column,
 			alphas: alphas,
 			glows: glows,
 			uvData: uvData,
@@ -516,6 +531,7 @@ class NoteField extends FieldBase
 			indices: HOLD_INDICES,
 			zIndex: zIndex + hold.zIndex,
 			colorSwap: hold.colorSwap,
+			objectType: hold.objType,
 			antialiasing: hold.antialiasing
 		}
 	}
@@ -579,183 +595,178 @@ class NoteField extends FieldBase
 	private var quad3 = new Vector3(); // bottom right
 	function drawNote(sprite:NoteObject, pos:Vector3, ?nextPos:Vector3):Null<RenderObject>
 	{
-		try {
-			if (!sprite.visible || !sprite.alive)
-				return null;
+		if (!sprite.exists || !sprite.visible)
+			return null;
 
-			if (sprite.frame == null)
-				return null;
-			
+		if (sprite.frame == null)
+			return null;
+		
 
-			var render = false;
-			for (camera in cameras)
+		var render = false;
+		for (camera in cameras)
+		{
+			if (camera.alpha > 0 && camera.visible)
 			{
-				if (camera.alpha > 0 && camera.visible)
-				{
-					render = true;
-					break;
-				}
-			}
-			if (!render)
-				return null;
-
-			var isNote = (sprite.objType == NOTE);
-			var note:Note = isNote ? cast sprite : null;
-
-			var width = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.height * sprite.scale.x : sprite.frame.frame.width * sprite.scale.x;
-			var height = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.width * sprite.scale.y : sprite.frame.frame.height * sprite.scale.y;
-			scalePoint.set(1, 1);
-			var diff:Float =0;
-			var visPos:Float = 0;
-			if(isNote) {
-				var speed = modManager.getNoteSpeed(note, modNumber, songSpeed);
-				diff = Conductor.songPosition - note.strumTime;
-				visPos = -((Conductor.visualPosition - note.visualTime) * speed);
-			}
-
-			var info:RenderInfo = {
-				alpha: sprite.alpha,
-				glow: 0,
-				scale: scalePoint
-			};
-
-			if(!isNote || note.copyAlpha)
-				info = modManager.getExtraInfo(visPos, diff, curDecBeat, info, sprite, modNumber, sprite.column);
-
-			var alpha = info.alpha;
-			var glow = info.glow;
-
-			final QUAD_SIZE = 4;
-			final halfWidth = sprite.frameWidth * sprite.scale.x * 0.5;
-			final halfHeight = sprite.frameHeight * sprite.scale.y * 0.5;
-			final xOff = sprite.frame.offset.x * sprite.scale.x;
-			final yOff = sprite.frame.offset.y * sprite.scale.y;
-			// If someone can make frameX/frameY be taken into account properly then feel free lol ^^
-
-			quad0.setTo(xOff - halfWidth, 			yOff - halfHeight, 			0); // top left
-			quad1.setTo(width + xOff - halfWidth, 	yOff - halfHeight, 			0); // top right
-			quad2.setTo(xOff - halfWidth, 			height + yOff - halfHeight,	0); // bottom left
-			quad3.setTo(width + xOff - halfWidth, 	height + yOff - halfHeight,	0); // bottom right
-
-			for (idx in 0...QUAD_SIZE)
-			{
-				var quad = switch(idx) {
-					case 0: quad0;
-					case 1: quad1;
-					case 2: quad2;
-					case 3: quad3;
-					default: null;
-				};
-				var angle = sprite.angle;
-				var radAngles:Float = 0;
-
-				if (nextPos != null){
-					var diffX = nextPos.x - pos.x;
-					var diffY = nextPos.y - pos.y;
-					var orient = modManager.getValue("orient", modNumber);
-
-					radAngles += Math.atan2(diffY, diffX) * orient;
-					var reverse:ReverseModifier = cast modManager.register.get("reverse");
-					angle -= 90 * orient * FlxMath.lerp(1, -1, reverse.getReverseValue(sprite.column, modNumber));
-				}
-
-				if(isNote)
-					angle += note.typeOffsetAngle;
-				
-				var vert = VectorHelpers.rotateV3(quad, 0, 0, (FlxAngle.TO_RAD * angle) + radAngles, quad);
-				vert.x = vert.x + sprite.offsetX;
-				vert.y = vert.y + sprite.offsetY;
-
-				if (isNote)
-				{
-					vert.x = vert.x + note.typeOffsetX;
-					vert.y = vert.y + note.typeOffsetY;
-				}
-
-				if (isNote && !note.copyVerts){
-					// still should have perspective, even if not copying verts!
-					// Maybe we should move perspective stuff out of a modifier???
-					var mod:Modifier = modManager.register.get("__perspective");
-					if (mod != null && mod.isRenderMod())
-						vert = mod.modifyVert(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
-				}else
-					vert = modManager.modifyVertex(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
-
-				vert.x = vert.x * scalePoint.x;
-				vert.y = vert.y * scalePoint.y;
-
-	/* 			vert.x *= zoom;
-				vert.y *= zoom; */
-				if (sprite.flipX)
-					vert.x = -vert.x;
-				if (sprite.flipY)
-					vert.y = -vert.x;
-				
-				//quad.setTo(vert.x, vert.y, vert.z);
-			}
-
-			var frameRect = sprite.frame.uv;
-
-			var vertices = switch (sprite.frame.angle) {
-				case ANGLE_0:
-					new Vector<Float>(8, false, [
-						pos.x + quad0.x, pos.y + quad0.y,
-						pos.x + quad1.x, pos.y + quad1.y,
-						pos.x + quad2.x, pos.y + quad2.y,
-						pos.x + quad3.x, pos.y + quad3.y
-					]);
-				case ANGLE_90:
-					new Vector<Float>(8, false, [
-						pos.x + quad1.x, pos.y + quad1.y,
-						pos.x + quad3.x, pos.y + quad3.y,
-						pos.x + quad0.x, pos.y + quad0.y,
-						pos.x + quad2.x, pos.y + quad2.y
-					]);
-				case ANGLE_270:
-					new Vector<Float>(8, false, [
-						pos.x + quad2.x, pos.y + quad2.y,
-						pos.x + quad0.x, pos.y + quad0.y,
-						pos.x + quad3.x, pos.y + quad3.y,
-						pos.x + quad1.x, pos.y + quad1.y
-					]);
-			}
-			var uvData = new Vector<Float>(8, false, [
-				frameRect.x,		frameRect.y,
-				frameRect.width,	frameRect.y,
-				frameRect.x,		frameRect.height,
-				frameRect.width,	frameRect.height
-			]);
-			var shader = sprite.shader != null ? sprite.shader : defaultShader;
-			if (shader != sprite.shader)
-				sprite.shader = shader;
-
-			var graphic:FlxGraphic = sprite.frame == null ? sprite.graphic : sprite.frame.parent;
-
-			final totalTriangles = Std.int(vertices.length / 2);
-			var alphas = new FastVector<Float>(totalTriangles);
-			var glows = new FastVector<Float>(totalTriangles);
-			for (i in 0...totalTriangles)
-			{
-				alphas[i] = alpha;
-				glows[i] = glow;
-			}
-
-			return {
-				graphic: graphic,
-				shader: shader,
-				alphas: cast alphas,
-				glows: cast glows,
-				uvData: uvData,
-				vertices: vertices,
-				indices: NOTE_INDICES,
-				zIndex: pos.z + sprite.zIndex,
-				colorSwap: sprite.colorSwap,
-				antialiasing: sprite.antialiasing
+				render = true;
+				break;
 			}
 		}
-		catch(e){
-			trace("Error:" + e);
+		if (!render)
 			return null;
+
+		var isNote = (sprite.objType == NOTE);
+		var note:Note = isNote ? cast sprite : null;
+
+		var width = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.height * sprite.scale.x : sprite.frame.frame.width * sprite.scale.x;
+		var height = (sprite.frame.angle != FlxFrameAngle.ANGLE_0) ? sprite.frame.frame.width * sprite.scale.y : sprite.frame.frame.height * sprite.scale.y;
+		scalePoint.set(1, 1);
+		var diff:Float =0;
+		var visPos:Float = 0;
+		if(isNote) {
+			var speed = modManager.getNoteSpeed(note, modNumber, songSpeed);
+			diff = Conductor.songPosition - note.strumTime;
+			visPos = -((Conductor.visualPosition - note.visualTime) * speed);
+		}
+
+		var info:RenderInfo = {
+			alpha: sprite.alpha,
+			glow: 0,
+			scale: scalePoint
+		};
+
+		if(!isNote || note.copyAlpha)
+			info = modManager.getExtraInfo(visPos, diff, curDecBeat, info, sprite, modNumber, sprite.column);
+
+		var alpha = info.alpha;
+		var glow = info.glow;
+
+		final QUAD_SIZE = 4;
+		final halfWidth = sprite.frameWidth * sprite.scale.x * 0.5;
+		final halfHeight = sprite.frameHeight * sprite.scale.y * 0.5;
+		final xOff = sprite.frame.offset.x * sprite.scale.x;
+		final yOff = sprite.frame.offset.y * sprite.scale.y;
+
+		quad0.setTo(xOff - halfWidth, 			yOff - halfHeight, 			0); // top left
+		quad1.setTo(width + xOff - halfWidth, 	yOff - halfHeight, 			0); // top right
+		quad2.setTo(xOff - halfWidth, 			height + yOff - halfHeight,	0); // bottom left
+		quad3.setTo(width + xOff - halfWidth, 	height + yOff - halfHeight,	0); // bottom right
+
+		for (idx in 0...QUAD_SIZE)
+		{
+			var quad = switch(idx) {
+				case 0: quad0;
+				case 1: quad1;
+				case 2: quad2;
+				case 3: quad3;
+				default: null;
+			};
+			var angle = sprite.angle;
+			var radAngles:Float = 0;
+
+			if (nextPos != null){
+				var diffX = nextPos.x - pos.x;
+				var diffY = nextPos.y - pos.y;
+				var orient = modManager.getValue("orient", modNumber);
+
+				radAngles += Math.atan2(diffY, diffX) * orient;
+				var reverse:ReverseModifier = cast modManager.register.get("reverse");
+				angle -= 90 * orient * FlxMath.lerp(1, -1, reverse.getReverseValue(sprite.column, modNumber));
+			}
+
+			if(isNote)
+				angle += note.typeOffsetAngle;
+			
+			var vert = VectorHelpers.rotateV3(quad, 0, 0, (FlxAngle.TO_RAD * angle) + radAngles, quad);
+			vert.x = vert.x + sprite.offsetX;
+			vert.y = vert.y + sprite.offsetY;
+
+			if (isNote)
+			{
+				vert.x = vert.x + note.typeOffsetX;
+				vert.y = vert.y + note.typeOffsetY;
+			}
+
+			if (isNote && !note.copyVerts){
+				// still should have perspective, even if not copying verts!
+				// Maybe we should move perspective stuff out of a modifier???
+				var mod:Modifier = modManager.register.get("__perspective");
+				if (mod != null && mod.isRenderMod())
+					vert = mod.modifyVert(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
+			}else
+				vert = modManager.modifyVertex(curDecBeat, vert, idx, sprite, pos, modNumber, sprite.column, this);
+
+			vert.x = vert.x * scalePoint.x;
+			vert.y = vert.y * scalePoint.y;
+
+/* 			vert.x *= zoom;
+			vert.y *= zoom; */
+			if (sprite.flipX)
+				vert.x = -vert.x;
+			if (sprite.flipY)
+				vert.y = -vert.x;
+			
+			//quad.setTo(vert.x, vert.y, vert.z);
+		}
+
+		var frameRect = sprite.frame.uv;
+
+		var vertices = switch (sprite.frame.angle) {
+			case ANGLE_0:
+				new Vector<Float>(8, false, [
+					pos.x + quad0.x, pos.y + quad0.y,
+					pos.x + quad1.x, pos.y + quad1.y,
+					pos.x + quad2.x, pos.y + quad2.y,
+					pos.x + quad3.x, pos.y + quad3.y
+				]);
+			case ANGLE_90:
+				new Vector<Float>(8, false, [
+					pos.x + quad1.x, pos.y + quad1.y,
+					pos.x + quad3.x, pos.y + quad3.y,
+					pos.x + quad0.x, pos.y + quad0.y,
+					pos.x + quad2.x, pos.y + quad2.y
+				]);
+			case ANGLE_270:
+				new Vector<Float>(8, false, [
+					pos.x + quad2.x, pos.y + quad2.y,
+					pos.x + quad0.x, pos.y + quad0.y,
+					pos.x + quad3.x, pos.y + quad3.y,
+					pos.x + quad1.x, pos.y + quad1.y
+				]);
+		}
+		var uvData = new Vector<Float>(8, false, [
+			frameRect.x,		frameRect.y,
+			frameRect.width,	frameRect.y,
+			frameRect.x,		frameRect.height,
+			frameRect.width,	frameRect.height
+		]);
+		var shader = sprite.shader != null ? sprite.shader : defaultShader;
+		if (shader != sprite.shader)
+			sprite.shader = shader;
+
+		var graphic:FlxGraphic = sprite.frame == null ? sprite.graphic : sprite.frame.parent;
+
+		final totalTriangles = Std.int(vertices.length / 2);
+		var alphas = new FastVector<Float>(totalTriangles);
+		var glows = new FastVector<Float>(totalTriangles);
+		for (i in 0...totalTriangles)
+		{
+			alphas[i] = alpha;
+			glows[i] = glow;
+		}
+
+		return {
+			graphic: graphic,
+			shader: shader,
+			column: sprite.column,
+			alphas: cast alphas,
+			glows: cast glows,
+			uvData: uvData,
+			vertices: vertices,
+			indices: NOTE_INDICES,
+			zIndex: pos.z + sprite.zIndex,
+			colorSwap: sprite.colorSwap,
+			objectType: sprite.objType,
+			antialiasing: sprite.antialiasing
 		}
 	}
 

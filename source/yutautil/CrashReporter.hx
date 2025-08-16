@@ -84,7 +84,7 @@ class CrashReporter {
         }
         
         // Check for previous unexpected crashes
-        checkForUnexpectedCrashAndThrow(loggerDir);
+        checkForUnexpectedCrashAndThrow();
         
         var timestamp = formatDate(Date.now());
         logFile = Path.join([loggerDir, 'engine_activity_$timestamp.log']);

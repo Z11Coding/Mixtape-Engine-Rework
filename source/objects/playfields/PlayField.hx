@@ -1,35 +1,22 @@
 package objects.playfields;
 
-import flixel.math.FlxPoint;
-import flixel.math.FlxMath;
-import backend.math.Vector3;
-import openfl.Vector;
-import openfl.geom.Vector3D;
-import backend.modchart.ModManager;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.util.FlxSort;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 import lime.app.Event;
-import flixel.math.FlxAngle;
+import backend.modchart.ModManager;
+import objects.notes.*;
 import states.PlayState;
 import backend.MusicBeatState;
-import backend.Rating;
-import objects.Character;
-import objects.NoteSplash;
-import flixel.FlxBasic;
-import objects.NoteObject;
-import objects.Note.SustainPart;
-import sys.thread.Thread;
-import sys.thread.Mutex;
 
 /*
 The system is seperated into 3 classes:
 
 - NoteField
-    - This is the rendering component.
-    - This can be created seperately from a PlayField to duplicate the notes multiple times, for example.
-    - Needs to be linked to a PlayField though, so it can keep track of what notes exist, when notes get hit (to update receptors), etc.
+	- This is the rendering component.
+	- This can be created seperately from a PlayField to duplicate the notes multiple times, for example.
+	- Needs to be linked to a PlayField though, so it can keep track of what notes exist, when notes get hit (to update receptors), etc.
 
 - ProxyField
 	- Clones a NoteField
@@ -38,10 +25,10 @@ The system is seperated into 3 classes:
 	- One use case is if you wanna include an infinite NoteField effect (i.e the end of The Government Knows by FMS_Cat, or get f**ked from UKSRT8)
 
 - PlayField
-    - This is the gameplay component.
-    - This keeps track of notes and updates them
-    - This is typically per-player, and can control multiple characters, can be locked up, etc.
-    - You can also swap which PlayField a player is actually controlling n all that
+	- This is the gameplay component.
+	- This keeps track of notes and updates them
+	- This is typically per-player, and can control multiple characters, can be locked up, etc.
+	- You can also swap which PlayField a player is actually controlling n all that
 */
 
 /*
@@ -53,6 +40,7 @@ The system is seperated into 3 classes:
  */
 
 typedef NoteCallback = (Note, PlayField) -> Void;
+
 class PlayField extends FlxTypedGroup<FlxBasic>
 {
 	override function set_camera(to){
@@ -79,38 +67,61 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return playerId;
 	}
 
+	public var tracks:Array<FlxSound> = []; // tracks managed by this field
 	public var playerId(default, set):Int = 0; // used to calculate the base position of the strums
 
 	public var spawnTime:Float = 1750; // spawn time for notes
-	public var judgeManager(get, default):Rating; // for deriving judgements for input reasons
-	function get_judgeManager()
-		return judgeManager;
 	public var spawnedNotes:Array<Note> = []; // spawned notes
-
-	public var spawnedByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned notes by data. Used for input
-	public var tapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned tap notes (with requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
-	public var noTapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // spawned tap notes (without requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
-	public var noteQueue:Array<Array<Note>> = [[], [], [], [], [], [], [], [],[], [], [], [],[], [], [], [], [], []]; // unspawned notes
+	
+	public var spawnedByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // spawned notes by data. Used for input
+	public var tapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // spawned tap notes (with requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
+	public var noTapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // spawned tap notes (without requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
+	public var noteQueue:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // unspawned notes
 	
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
+	public var singAnimations:Array<String> = ["singLEFT", "singDOWN", "singUP", "singRIGHT"]; // default character animations to play for each column
 	
 	public var noteField:NoteField; // renderer
-	public var modNumber:Int = 0; // used for the mod manager. can be set to a different number to give it a different set of modifiers. can be set to 0 to sync the modifiers w/ bf's, and 1 to sync w/ the opponent's
 	public var modManager:ModManager; // the mod manager. will be set automatically by playstate so dw bout this
+	public var modNumber:Int = 0; // used for the mod manager. can be set to a different number to give it a different set of modifiers. can be set to 0 to sync the modifiers w/ bf's, and 1 to sync w/ the opponent's
 	public var isPlayer:Bool = false; // if this playfield takes input from the player
 	public var inControl:Bool = true; // if this playfield will take input at all
 	public var AIPlayer:Bool = false; // if this playfield is played by the "AI" instead
 	public var keyCount(default, set):Int = 4; // How many lanes are in this field
 	public var autoPlayed(default, set):Bool = false; // if this playfield should be played automatically (botplay, opponent, etc)
-	public var isEditor:Bool = false;
+	public var isEditor:Bool = false; // Because the charting state playstate is "special"
 
-    public var x:Float = 0;
-    public var y:Float = 0;
-    
+	public var x:Float = 0;
+	public var y:Float = 0;
+	
 	function set_keyCount(cnt:Int){
 		if (cnt < 0)
 			cnt=0;
+		if (spawnedByData.length < cnt){
+			for (_ in (spawnedByData.length)...cnt)
+				spawnedByData.push([]);
+		}else if(spawnedByData.length > cnt){
+			for (_ in cnt...spawnedByData.length)
+				spawnedByData.pop();
+		}
+
+		if (tapsByData.length < cnt) {
+			for (_ in (tapsByData.length)...cnt)
+				tapsByData.push([]);
+		} else if (tapsByData.length > cnt) {
+			for (_ in cnt...tapsByData.length)
+				tapsByData.pop();
+		} 
+
+		if (noTapsByData.length < cnt) {
+			for (_ in (noTapsByData.length)...cnt)
+				noTapsByData.push([]);
+		} else if (noTapsByData.length > cnt) {
+			for (_ in cnt...noTapsByData.length)
+				noTapsByData.pop();
+		} 
+
 		if (keysPressed.length < cnt)
 		{
 			for (_ in (keysPressed.length)...cnt)
@@ -118,40 +129,42 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}
 
 		setDefaultBaseXPositions();
+
 		return keyCount = cnt;
 	}
 
 	function set_autoPlayed(aP:Bool){
-		/*for (idx in 0...keysPressed.length)
+		/*if(aP == autoPlayed)return aP;
+		
+		for (idx in 0...keysPressed.length)
 			keysPressed[idx] = false;
 		
 		for(obj in strumNotes){
 			obj.playAnim("static");
 			obj.resetAnim = 0;
 		}*/
-		
 		return autoPlayed = aP;
 	}
 
 	public static var extraStuff:FlxTypedGroup<FlxBasic>; // things that get added above the receptors.
-
+	
 	public var noteHitCallback:NoteCallback; // function that gets called when the note is hit. goodNoteHit and opponentNoteHit in playstate for eg
 	public var holdPressCallback:NoteCallback; // function that gets called when a hold is stepped on. Only really used for calling script events. Return 'false' to not do hold logic
-    public var holdReleaseCallback:NoteCallback; // function that gets called when a hold is released. Only really used for calling script events.
+	public var holdReleaseCallback:NoteCallback; // function that gets called when a hold is released. Only really used for calling script events.
 	public var holdStepCallback:NoteCallback; // function that gets called for every 'step' that a hold is pressed for.
 
-    public var grpNoteSplashes:FlxTypedGroup<NoteSplash>; // notesplashes
+	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>; // notesplashes
 	public var strumAttachments:FlxTypedGroup<NoteObject>; // things that get "attached" to the receptors. custom splashes, etc.
 
-	public var noteMissed:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time you miss a note. multiple functions can be bound here
-	public var noteRemoved:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a note is removed. multiple functions can be bound here
-	public var noteSpawned:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a note is spawned. multiple functions can be bound here
+	public var noteMissed:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time you miss a note.
+	public var noteRemoved:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a note is removed.
+	public var noteSpawned:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a note is spawned.
 	public var holdDropped:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a hold is dropped
 	public var holdFinished:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a hold is finished
 	public var holdUpdated:Event<(Note, PlayField, Float) -> Void> = new Event<(Note, PlayField, Float) -> Void>(); // event that gets called every time a hold is updated
- 
+	
 	public var keysPressed:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false]; // what keys are pressed rn
-    public var isHolding:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false];
+	public var isHolding:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false];
 
 	public var baseXPositions:Array<Float> = [];
 	public function setDefaultBaseXPositions() {
@@ -160,10 +173,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	}
 	public inline function getBaseX(direction:Int)
 		return baseXPositions[direction];
-
-	public function new(modMgr:ModManager){
+	
+	public function new(modMgr:ModManager, ?keyCount:Int){
 		super();
 		this.modManager = modMgr;
+		this.keyCount = keyCount == null ? Note.ammo[PlayState.mania] : keyCount;
 
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
 		add(grpNoteSplashes);
@@ -172,38 +186,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		strumAttachments.visible = false;
 		add(strumAttachments);
 
-		var splash:NoteSplash = new NoteSplash();
-//		splash.handleRendering = false;
+		/*var splash:NoteSplash = new NoteSplash(100, 100, 0);
+		splash.handleRendering = false;
 		grpNoteSplashes.add(splash);
 		grpNoteSplashes.visible = false; // so they dont get drawn
-		splash.alpha = 0.0;
+		splash.alpha = 0.0;*/
 
 		////
 		noteField = new NoteField(this, modMgr);
-		//noteField.isEditor = isEditor;
-		//add(noteField);
-
-		// idk what haxeflixel does to regenerate the frames
-		// SO! this will be how we do it
-		// lil guy will sit here and regenerate the frames automatically
-		// idk why this seems to work but it does	
-		// TODO: figure out WHY this works
-		var lilguy:StrumNote = new StrumNote(400, 400, 0);
-		lilguy.playAnim("static");
-		lilguy.alpha = 1;
-		lilguy.visible = true;
-		lilguy.color = 0xFF000000; // just to make it a bit harder to see
-		lilguy.alpha = 0.9; // just to make it a bit harder to see
-		lilguy.scale.set(0.002, 0.002);
-		lilguy.handleRendering = false;
-		lilguy.updateHitbox();
-		lilguy.x = 400;
-		lilguy.y = 400;
-		@:privateAccess
-		lilguy.draw();
-		add(lilguy);
-
-		mutex = new Mutex();
 	}
 
 	// Anything that is static/used by both strums but cant be double-initialized can be placed here
@@ -214,12 +204,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	// queues a note to be spawned
 	public function queue(note:Note){
-		if(noteQueue[note.column]==null)
-			noteQueue[note.column] = [];
-		noteQueue[note.column].push(note);
-
-		noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
-		
+		if (noteQueue[note.column] == null)
+			noteQueue[note.column] = [note];
+		else{
+			noteQueue[note.column].push(note);
+			noteQueue[note.column].sort(sortNotesAscend);
+		}
 	}
 
 	// unqueues a note
@@ -228,7 +218,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		if (noteQueue[note.column] == null)
 			noteQueue[note.column] = [];
 		noteQueue[note.column].remove(note);
-		noteQueue[note.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
+		noteQueue[note.column].sort(sortNotesAscend);
 	}
 
 	// destroys a note
@@ -253,11 +243,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		if (noteQueue[daNote.column] != null)
 			noteQueue[daNote.column].remove(daNote);
 
-		if (killTail)
-		if (daNote.unhitTail.length > 0)
-			while (daNote.unhitTail.length > 0)
-				removeNote(daNote.unhitTail.shift());
-		
+		if (killTail) {
+			if (daNote.unhitTail.length > 0)
+				while (daNote.unhitTail.length > 0)
+					removeNote(daNote.unhitTail.shift());
+		}
+			
 
 		if (daNote.parent != null && daNote.parent.tail.contains(daNote))
 			daNote.parent.tail.remove(daNote);
@@ -266,46 +257,44 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			daNote.parent.unhitTail.remove(daNote); 
 
 		if (noteQueue[daNote.column] != null)
-			noteQueue[daNote.column].sort((a, b) -> Std.int(a.strumTime - b.strumTime));
+			noteQueue[daNote.column].sort(sortNotesAscend);
 		remove(daNote);
 		daNote.destroy();
 	}
 
 	// spawns a note
-	var mutex:Mutex;
 	public function spawnNote(note:Note){
-		// trace("Attempting to spawn note: " + note);
-		if(note.spawned) {
-			// trace("Note already spawned, skipping: " + note);
+		if(note.spawned)
 			return;
+		
+		if (noteQueue[note.column]!=null){
+			noteQueue[note.column].remove(note);
+			noteQueue[note.column].sort(sortNotesAscend);
 		}
 
-		if (spawnedByData[note.column] != null) {
-			// trace("Adding note to spawnedByData for column: " + note.column);
+		if (spawnedByData[note.column] != null)
 			spawnedByData[note.column].push(note);
-		} else {
-			// trace("spawnedByData for column " + note.column + " is null, aborting spawn.");
+		else
 			return;
+		
+
+		if(note.holdType == HEAD || note.holdType == TAP){
+			if(note.requiresTap){
+				if (tapsByData[note.column] != null)
+					tapsByData[note.column].push(note);
+			}else{
+				if (noTapsByData[note.column] != null)
+					noTapsByData[note.column].push(note);
+			}
+
 		}
 
-		sys.thread.Thread.create(() -> {
-			mutex.acquire();
-			spawnedNotes.push(note);
-			mutex.release();
-		});
+		noteSpawned.dispatch(note, this);
+		spawnedNotes.push(note);
 		note.handleRendering = false;
-
-		@:privateAccess
-		if (note.isCheck) {
-			trace("APNote spawned: " + note);
-		}
-
-		// trace("Marking note as spawned.");
 		note.spawned = true;
 
-		// trace("Inserting note into PlayField.");
 		insert(0, note);
-		// trace("Note successfully spawned: " + note);
 	}
 
 	// gets all notes in the playfield, spawned or otherwise.
@@ -334,11 +323,38 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	var closestNotes:Array<Note> = [];
 	var strumsBlocked:Array<Bool> = [];
 	// sends an input to the playfield
-	public function input(data:Int){
+	public function input(data:Int, ?hitTime:Float):Null<Note> {
+		if (data < 0 || data > keyCount) 
+			return null;
+
 		if (!PlayState.instance.boyfriend.stunned)
 		{
 			switch (ClientPrefs.data.inputSystem)
 			{
+				case "Troll Engine":
+					hitTime ??= Conductor.songPosition;
+
+					var noteList = getTapNotes(data, (note:Note) -> !note.tooLate);
+					noteList.sort(sortNotesDescend); // so lowPriority actually works (even though i hate it lol!)
+
+					var recentHold:Null<Note> = null;
+
+					while (noteList.length > 0)
+					{
+						var note:Note = noteList.pop();
+						if (note.wasGoodHit && note.holdType == HEAD && note.holdingTime < note.sustainLength)
+							recentHold = note; // for the sake of ghost-tapping shit.
+							// returned lower so that holds dont interrupt hitting other notes as, even though that'd make sense, it also feels like shit to play on some songs i.e Bopeebo
+						else{
+							if (note.wasGoodHit)
+								continue;
+
+							noteHitCallback(note, this);
+							return note;
+						}
+					}
+
+					return recentHold;
 				case "Native":
 					if(data > keyCount || data < 0)return null;
 					
@@ -805,7 +821,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		for(i in 0...keyCount){
 			var babyArrow:StrumNote = new StrumNote(strumLineX, strumLineY, i, this);
 			babyArrow.downScroll = ClientPrefs.data.downScroll;
-			babyArrow.alpha = 1;
+			babyArrow.alpha = 0;
 			insert(0, babyArrow);
 			babyArrow.x = getBaseX(i);
 			babyArrow.y = strumLineY;
@@ -815,41 +831,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			babyArrow.player = this.playerId;
 			strumNotes.push(babyArrow);
 			babyArrow.playerPosition();
-			if (ClientPrefs.data.showKeybindsOnStart && this.isPlayer)
-			{
-				for (j in 0...PlayState.keysArray[PlayState.mania][i].length)
-				{
-					var keysArray = PlayState.keysArray;
-					var daKeyTxt:FlxText = new FlxText(babyArrow.x, babyArrow.y - 10, 0, backend.InputFormatter.getKeyName(keysArray[PlayState.mania][i][j]), 32);
-					daKeyTxt.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-					daKeyTxt.borderSize = 1.25;
-					daKeyTxt.alpha = 0;
-					daKeyTxt.size = 32 - PlayState.mania; // essentially if i ever add 0k!?!?
-					daKeyTxt.screenCenter();
-					daKeyTxt.x += ((babyArrow.x*0.1) * (2 - i));// + (babyArrow.width / 2);
-					//daKeyTxt.x -= daKeyTxt.width / 2;
-					add(daKeyTxt);
-					daKeyTxt.cameras = cameras;
-					var textY:Float = (j == 0 ? babyArrow.y - 32 : ((babyArrow.y - 32) + babyArrow.height) - daKeyTxt.height);
-					// daKeyTxt.y = -daKeyTxt.height;
-					trace(daKeyTxt.x);
-					
-
-					FlxTween.tween(daKeyTxt, {y: textY, alpha: 1, angle: 360}, 5, {
-						ease: FlxEase.circOut,
-						onComplete: function(t) {
-							new FlxTimer().start(4, function(_) {
-								FlxTween.tween(daKeyTxt, {y: daKeyTxt.y + 32, alpha: 0, angle: 720}, 1, {
-									ease: FlxEase.circIn,
-									onComplete: function(t) {
-										remove(daKeyTxt);
-									}
-								});
-							});
-						}
-					});
-				}
-			}
 		}
 	}
 
@@ -877,21 +858,41 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.zIndex, Obj2.zIndex);
 	}
 
-	// spawns a notesplash.
-	public function spawnNoteSplashOnNote(note:Note) {
-		if(note != null) {
-			var strum:StrumNote = strumNotes[note.noteData];
-			if(strum != null)
-				spawnSplash(strum.x, strum.y, note.noteData, note, strum);
-		}
-	}
+	private static function sortNotesAscend(a:Note, b:Note):Int
+		return Std.int(a.strumTime - b.strumTime);
 
-	public function spawnSplash(x:Float = 0, y:Float = 0, ?data:Int = 0, ?note:Note, ?strum:StrumNote) {
+	private static function sortNotesDescend(a:Note, b:Note):Int
+		return Std.int(b.strumTime - a.strumTime);
+
+	// spawns a notesplash w/ specified skin. optional note to derive the skin and colours from.
+
+	/*public function spawnSplash(note:Note, splashSkin:String){
+		var skin:String;
+		var hue:Float;
+		var sat:Float;
+		var brt:Float;
+
+		if (note != null) {
+			skin = note.noteSplashTexture;
+			hue = note.noteSplashHue;
+			sat = note.noteSplashSat;
+			brt = note.noteSplashBrt;
+		}else{
+			skin = splashSkin;
+			hue = sat = brt = 0.0;
+			
+			/*var hsb = ClientPrefs.arrowHSV[note.column % 4]; 
+			hue = hsb[0] / 360;
+			sat = hsb[1] / 100;
+			brt = hsb[2] / 100;
+		}
+
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.babyArrow = strum;
-		splash.spawnSplashNote(x, y, data, note);
+		splash.setupNoteSplash(0, 0, note.column, skin, hue, sat, brt, note);
+		splash.handleRendering = false;
 		grpNoteSplashes.add(splash);
-	}
+		return splash;
+	}*/
 
 	// spawns notes, deals w/ hold inputs, etc.
 	override public function update(elapsed:Float){
@@ -941,8 +942,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		var garbage:Array<Note> = [];
 		for (daNote in spawnedNotes)
 		{
-			if(!daNote.alive || daNote == null){
-				spawnedNotes.remove(daNote);	
+			if(!daNote.alive){
+				spawnedNotes.remove(daNote);
 				continue;
 			}
 			modManager.updateObject(curDecBeat, daNote, modNumber);
@@ -955,33 +956,31 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 				if(daNote.holdingTime < daNote.sustainLength && inControl && !daNote.blockHit){
 					if(!daNote.tooLate && daNote.wasGoodHit){
-						trace("hitting tail hold");
-						var isHeld:Bool = autoPlayed || keysPressed[daNote.column] || daNote.botNote;
-                        var wasHeld:Bool = daNote.isHeld;
-                        daNote.isHeld = isHeld;
-                        isHolding[daNote.column] = true;
-                        if(wasHeld != isHeld){
-                            if(isHeld){
-								trace("Holding!");
-                                if(holdPressCallback != null)
-                                    holdPressCallback(daNote, this);
-                            }else if(holdReleaseCallback!=null) {
-                                holdReleaseCallback(daNote, this);
-								trace("Hold Released!");
-							}
-                        }
+						var isHeld:Bool = autoPlayed || keysPressed[daNote.column];
+						var wasHeld:Bool = daNote.isHeld;
+						daNote.isHeld = isHeld;
+						isHolding[daNote.column] = true;
+						if(wasHeld != isHeld){
+							if(isHeld){
+								if(holdPressCallback != null)
+									holdPressCallback(daNote, this);
+							}else if(holdReleaseCallback!=null)
+								holdReleaseCallback(daNote, this);
+						}
 
 						var receptor = strumNotes[daNote.column];
 						var oldSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
 						var lastTime:Float = daNote.holdingTime;
-						daNote.holdingTime = Conductor.songPosition - daNote.strumTime + 120;
+						daNote.holdingTime = Conductor.songPosition - daNote.strumTime;
+						if (daNote.holdingTime > daNote.sustainLength)
+							daNote.holdingTime = daNote.sustainLength;
 						var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
 						if(oldSteps < currentSteps)
 							if(holdStepCallback != null)
 								holdStepCallback(daNote, this);
 						holdUpdated.dispatch(daNote, this, daNote.holdingTime - lastTime);
 
-						if(isHeld){
+						if(isHeld && !daNote.isRoll){
 							if(daNote.unhitTail.length > 0)
 								if (receptor.animation.finished || receptor.animation.curAnim.name != "confirm") 
 									receptor.playAnim("confirm", true, daNote);
@@ -990,26 +989,41 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						}else
 							daNote.tripProgress -= elapsed / (daNote.maxReleaseTime * 1);
 
-						// if rolls are ever implemented, uncomment this
-						/*if(autoPlayed && daNote.tripProgress <= 0.5)
-							holdPressCallback(daNote, this); // would set tripProgress back to 1 but idk maybe the roll script wants to do its own shit*/
+						if(daNote.isRoll && autoPlayed && daNote.tripProgress <= 0.5)
+							holdPressCallback(daNote, this); // would set tripProgress back to 1 but idk maybe the roll script wants to do its own shit
 
-						for (tail in daNote.unhitTail)
-						{
-							if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
-								noteHitCallback(tail, this);
-								trace("hitting tail hold");
+						if(daNote.tripProgress <= 0){
+							holdDropped.dispatch(daNote, this);
+							daNote.tripProgress = 0;
+							daNote.tooLate=true;
+							daNote.wasGoodHit=false;
+							for(tail in daNote.unhitTail){
+								tail.tooLate = true;
+								tail.blockHit = true;
+								tail.ignoreNote = true;
 							}
-						}
-
-						if (daNote.holdingTime >= daNote.sustainLength)
-						{
-							trace("finished hold");
-							holdFinished.dispatch(daNote, this);
-							daNote.holdingTime = daNote.sustainLength;
 							isHolding[daNote.column] = false;
 							if (!isHeld)
 								receptor.playAnim("static", true);
+
+						}else{
+							for (tail in daNote.unhitTail)
+							{
+								if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
+									noteHitCallback(tail, this);
+								}
+							}
+
+							if (daNote.holdingTime >= daNote.sustainLength)
+							{
+								//trace("finished hold");
+								holdFinished.dispatch(daNote, this);
+								daNote.holdingTime = daNote.sustainLength;
+								isHolding[daNote.column] = false;
+								if (!isHeld)
+									receptor.playAnim("static", true);
+							}
+
 						}
 					}
 				}
@@ -1033,7 +1047,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			else
 			{
 
-				if (daNote.tooLate && daNote.active && !daNote.causedMiss)
+				if (daNote.tooLate && daNote.active && !daNote.causedMiss && !daNote.isSustainNote)
 				{
 					daNote.causedMiss = true;
 					if (!daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit) && inControl)
@@ -1041,9 +1055,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				} 
 
 				if((
-					(daNote.holdingTime>=daNote.sustainLength ) && daNote.sustainLength>0 ||
+					(daNote.holdingTime>=daNote.sustainLength) && daNote.sustainLength>0 ||
 					daNote.isSustainNote && daNote.strumTime - Conductor.songPosition < -350 ||
-					!daNote.isSustainNote && (daNote.sustainLength==0 || daNote.tooLate) && daNote.strumTime - Conductor.songPosition < -(200 + ClientPrefs.data.badWindow)) && (daNote.tooLate || daNote.wasGoodHit))
+					!daNote.isSustainNote
+					&& (daNote.sustainLength == 0 || daNote.tooLate)
+					&& daNote.strumTime - Conductor.songPosition < -(200 + ClientPrefs.data.badWindow + daNote.sustainLength)) && (daNote.tooLate || daNote.wasGoodHit))
 				{
 					daNote.garbage = true;
 					garbage.push(daNote);
@@ -1086,7 +1102,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 			}
 		}else{
-
 			// Check for Bot Notes.
 			for(i in 0...keyCount){
 				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss && note.botNote)){
@@ -1102,12 +1117,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			for(data in 0...keyCount){
 				if (keysPressed[data]){
 					var noteList = getNotesWithEnd(data, Conductor.songPosition, (note:Note) -> (note.isSustainNote || note.istail) && (note.prevNote != null || note.unhitTail.length > -1));
-					#if PE_MOD_COMPATIBILITY
-					// so lowPriority actually works (even though i hate it lol!)
-					noteList.sort((a, b) -> Std.int((b.strumTime + (b.lowPriority ? 10000 : 0)) - (a.strumTime + (a.lowPriority ? 10000 : 0)))); 
-					#else
-					noteList.sort((a, b) -> Std.int(b.strumTime - a.strumTime));
-					#end
+					noteList.sort(sortNotesDescend);
 					while (noteList.length > 0)
 					{
 						var note:Note = noteList.pop();
@@ -1216,6 +1226,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	// kills all notes which are stacked
 	public function clearStackedNotes(){
+
 		var goobaeg:Array<Note> = [];
 		for (column in noteQueue)
 		{
@@ -1231,7 +1242,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						continue; // holds only get fukt if their parents get fukt
 					if (!last.alive || !current.alive)
 						continue; // just incase
-					if (Math.abs(last.strumTime - current.strumTime) <= Conductor.stepCrochet / (192 / 16))
+					if (Math.abs(last.strumTime - current.strumTime) <= Conductor.jackLimit)
 					{
 						if (last.sustainLength < current.sustainLength) // keep the longer hold
 							removeNote(last);

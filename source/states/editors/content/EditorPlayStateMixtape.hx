@@ -201,8 +201,6 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		notefields.add(field.noteField);
 
-		field.judgeManager = ratingsData[0];
-
 		field.noteRemoved.add((note:Note, field:PlayField) ->
 		{
 			allNotes.remove(note);

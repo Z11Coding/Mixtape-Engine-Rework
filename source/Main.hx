@@ -267,8 +267,7 @@ class Main extends Sprite
 
 		FlxG.save.bind('Mixtape', CoolUtil.getSavePath());
 		Highscore.load();
-
-		MemoryUtil.init();
+		
 		WindowUtils.init();
 
 		var commandPrompt = new CommandPrompt();
@@ -474,6 +473,8 @@ class Main extends Sprite
 		ForceCrashPlugin.initialize();
 		MemoryGCPlugin.initialize();
 		FullScreenPlugin.initialize();
+		ConsolePlugin.initialize();
+		new ScreenShotPlugin();
 		
 
 		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));
