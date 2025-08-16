@@ -205,7 +205,7 @@ class UnoTestState extends MusicBeatState {
     
     private function updateDisplay():Void {
         if (!isGameStarted || unoGame == null) {
-            trace("Cannot update display: game not started or unoGame is null");
+            //trace("Cannot update display: game not started or unoGame is null");
             return;
         }
         
