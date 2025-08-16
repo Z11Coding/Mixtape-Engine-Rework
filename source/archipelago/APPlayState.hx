@@ -26,6 +26,7 @@ class APPlayState extends PlayState {
     public static var apGame:APGameState;
     public static var deathByLink:Bool = false;
     public static var deathByBlueBalls:Bool = false;
+    public static var alreadyKilledByLink:Bool = false;
 
     public var checkedNotes:Array<Note> = new Array<Note>();
 
@@ -1870,7 +1871,10 @@ class APPlayState extends PlayState {
                 cause = "???\n[pause:0.5](Someone died... somehow...)\n[pause:0.5](Unsure how...)";
             }
             COD.setCOD(null, cause);
+            if (!alreadyKilledByLink) {
+            alreadyKilledByLink = true;
             die();
+            } else {FlxG.switchState(new GameOverSubState();)}
             trace("Triggering DeathLink!");
         }
         #if cpp			

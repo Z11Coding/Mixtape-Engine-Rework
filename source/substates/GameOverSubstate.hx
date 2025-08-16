@@ -88,6 +88,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		{
 			APPlayState.deathByLink = false;
 			APPlayState.deathLinkPacket = null;
+			APPlayState.alreadyKilledByLink = false;
 		}
 
 		Conductor.songPosition = 0;
