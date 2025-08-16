@@ -228,6 +228,7 @@ class UnoTestState extends MusicBeatState {
                 var currentPlayer = unoGame.turnManager.getCurrentPlayer();
                 if (!currentPlayer.isHuman) {
                     new FlxTimer().start(1.0, function(timer) {
+                        Sys.sleep(cast (currentPlayer:UnoCPU).thinkingTime)
                         processCPUTurn();
                     });
                 }
