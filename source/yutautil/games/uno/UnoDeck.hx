@@ -219,7 +219,7 @@ class UnoDeck {
      */
     public function reset(?customColors:Array<UnoColor>, ?customCards:Array<UnoCard>):Void {
         if (customColors != null) {
-            initializeDeckWithColors(customColors, customColors);
+            initializeDeckWithColors(customColors, customCards);
         } else {
             initializeDeck();
         }

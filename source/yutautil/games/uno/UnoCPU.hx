@@ -86,8 +86,8 @@ class UnoCPU extends UnoPlayer {
     /**
      * Convert UnoGameState to our enhanced game state format
      */
-    private function convertToEnhancedGameState(gameState:UnoGameState):yutautil.games.uno.UnoCPUStrategy.UnoGameState {
-        var enhanced = new yutautil.games.uno.UnoCPUStrategy.UnoGameState();
+    private function convertToEnhancedGameState(gameState:UnoGameState):yutautil.games.uno.UnoCPUStrategy.SmartUnoGameState {
+        var enhanced = new yutautil.games.uno.UnoCPUStrategy.SmartUnoGameState();
         enhanced.topCard = gameState.topCard;
         enhanced.currentPlayerId = Std.parseInt(this.id);
         enhanced.direction = gameState.direction;
@@ -251,7 +251,7 @@ class UnoCPU extends UnoPlayer {
     public function chooseWildColor(?availableColors:Array<UnoColor>):UnoColor {
         // Use enhanced strategy for color selection in higher difficulties
         if ((difficulty == HARD || difficulty == EXPERT) && strategy != null) {
-            var enhancedGameState = new yutautil.games.uno.UnoCPUStrategy.UnoGameState();
+            var enhancedGameState = new yutautil.games.uno.UnoCPUStrategy.SmartUnoGameState();
             enhancedGameState.currentHand = hand.cards.copy();
             return strategy.chooseBestWildColor(hand.cards, enhancedGameState);
         }

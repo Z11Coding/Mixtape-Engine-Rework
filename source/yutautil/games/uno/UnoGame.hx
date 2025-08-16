@@ -309,7 +309,7 @@ class UnoGame {
                 notifyAllCPUsRuleEffect("WildDrawFour", nextPlayer, false, -drawStack * 2.0);
                 
             case NUMBER:
-                if (UnoRules.SEVEN_ZERO_RULE && (card.number == 0 || card.number == 7)) {
+                if (UnoRules.SEVEN_ZERO_RULE && (card.value == 0 || card.value == 7)) {
                     applySevenZeroRuleWithMemory(card, player);
                 }
                 
@@ -330,11 +330,11 @@ class UnoGame {
      * Apply seven-zero rule with memory tracking
      */
     private function applySevenZeroRuleWithMemory(card:UnoCard, player:UnoPlayer):Void {
-        if (card.number == 0) {
+        if (card.value == 0) {
             // Swap hands with next player
             var nextPlayer = turnManager.getNextPlayer();
             handleCardSwapWithMemory(player, nextPlayer);
-        } else if (card.number == 7) {
+        } else if (card.value == 7) {
             // Player chooses who to swap with - for CPU players, choose strategically
             if (!player.isHuman && Std.isOfType(player, UnoCPU)) {
                 var bestTarget:UnoPlayer = null;

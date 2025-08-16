@@ -203,6 +203,10 @@ class UnoCard {
     public function clone():UnoCard {
         return new UnoCard(color, type, value);
     }
+
+    public function equals(card:UnoCard):Bool {
+        return (this == card);
+    }
     
     /**
      * Create custom color variants from an array of FlxColors
@@ -290,7 +294,7 @@ class UnoCard {
         var cards = [];
         var colors = getStandardColors();
         for (color in colors) {
-            cards.push(createCustomActionCard(name, color, points, cpuImportance, action, isWild));
+            cards.push(createActionCard(name, color, points, cpuImportance, action, isWild));
         }
         return cards;
     }
@@ -301,21 +305,20 @@ class UnoCard {
     public static function createActionCardsOfColors(name:String, colors:Array<UnoColor>, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Array<UnoCard> {
         var cards = [];
         for (color in colors) {
-            cards.push(createCustomActionCard(name, color, points, cpuImportance, action, isWild));
+            cards.push(createActionCard(name, color, points, cpuImportance, action, isWild));
         }
         return cards;
     }
-}
 
     public static function createSimpleCustomActionCards(name:String, count:Int = 1, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Array<UnoCard> {
         var cards = [];
         for (i in 0...count) {
             var color = (isWild == true) ? UnoColor.WILD : UnoColor.NONE;
-            cards.push(createCustomActionCard(name, color, points, cpuImportance, action, isWild));
+            cards.push(createActionCard(name, color, points, cpuImportance, action, isWild));
         }
         return cards;
     }
-
+}
 
 /**
  * UNO card colors

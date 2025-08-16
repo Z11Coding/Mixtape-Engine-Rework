@@ -4,6 +4,7 @@ import yutautil.games.uno.UnoCard;
 import yutautil.games.uno.UnoPlayer;
 import yutautil.games.uno.UnoCPUMemory;
 import yutautil.games.uno.UnoGame;
+import yutautil.games.uno.UnoTurnManager.TurnDirection;
 
 /**
  * Enhanced CPU strategy system that considers custom rules, memory, and cooperative play
@@ -22,7 +23,7 @@ class UnoCPUStrategy {
     /**
      * Choose the best card to play considering all factors
      */
-    public function chooseBestCard(hand:Array<UnoCard>, topCard:UnoCard, gameState:UnoGameState):UnoCard {
+    public function chooseBestCard(hand:Array<UnoCard>, topCard:UnoCard, gameState:SmartUnoGameState):UnoCard {
         var playableCards = getPlayableCards(hand, topCard);
         
         if (playableCards.length == 0) {
@@ -78,7 +79,7 @@ class UnoCPUStrategy {
     /**
      * Score a card based on multiple factors
      */
-    private function scoreCard(card:UnoCard, hand:Array<UnoCard>, topCard:UnoCard, gameState:UnoGameState):Float {
+    private function scoreCard(card:UnoCard, hand:Array<UnoCard>, topCard:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         // Base score factors
@@ -96,7 +97,7 @@ class UnoCPUStrategy {
     /**
      * Score based on card type (action cards, numbers, wilds)
      */
-    private function scoreByCardType(card:UnoCard, gameState:UnoGameState):Float {
+    private function scoreByCardType(card:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         switch (card.type) {
@@ -158,7 +159,7 @@ class UnoCPUStrategy {
     /**
      * Score based on color strategy
      */
-    private function scoreByColor(card:UnoCard, hand:Array<UnoCard>, gameState:UnoGameState):Float {
+    private function scoreByColor(card:UnoCard, hand:Array<UnoCard>, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         if (card.color == WILD || card.color == NONE) {
@@ -201,7 +202,7 @@ class UnoCPUStrategy {
     /**
      * Score based on number considerations
      */
-    private function scoreByNumber(card:UnoCard, hand:Array<UnoCard>, gameState:UnoGameState):Float {
+    private function scoreByNumber(card:UnoCard, hand:Array<UnoCard>, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         if (card.type != NUMBER) {
@@ -209,16 +210,16 @@ class UnoCPUStrategy {
         }
         
         // Consider custom rules for specific numbers
-        if (gameState.customRules.zeroAndSevenRule && (card.number == 0 || card.number == 7)) {
+        if (gameState.customRules.zeroAndSevenRule && (card.value == 0 || card.value == 7)) {
             score += scoreZeroSevenRule(card, gameState);
         }
         
         // Prefer higher numbers when hand is small (save low numbers)
         if (hand.length <= 3) {
-            score += (card.number * 0.5);
+            score += (card.value * 0.5);
         } else {
             // When hand is large, low numbers are fine
-            score += (10 - card.number) * 0.2;
+            score += (10 - card.value) * 0.2;
         }
         
         return score;
@@ -227,10 +228,10 @@ class UnoCPUStrategy {
     /**
      * Score based on Zero and Seven rule considerations
      */
-    private function scoreZeroSevenRule(card:UnoCard, gameState:UnoGameState):Float {
+    private function scoreZeroSevenRule(card:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
-        if (card.number == 0) {
+        if (card.value == 0) {
             // Playing 0 swaps hands with next player
             var nextPlayer = gameState.getNextPlayer();
             if (nextPlayer != null) {
@@ -249,7 +250,7 @@ class UnoCPUStrategy {
                     score -= 5.0; // Don't swap with someone close to winning
                 }
             }
-        } else if (card.number == 7) {
+        } else if (card.value == 7) {
             // Playing 7 allows choosing who to swap with
             var bestSwapScore:Float = -10.0;
             var myHandValue = calculateHandValue(gameState.currentHand);
@@ -274,7 +275,7 @@ class UnoCPUStrategy {
     /**
      * Score based on custom rule considerations
      */
-    private function scoreByRuleConsideration(card:UnoCard, gameState:UnoGameState):Float {
+    private function scoreByRuleConsideration(card:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         // Consider each active custom rule
@@ -295,7 +296,7 @@ class UnoCPUStrategy {
     /**
      * Score based on threat assessment of other players
      */
-    private function scoreByThreatAssessment(card:UnoCard, gameState:UnoGameState):Float {
+    private function scoreByThreatAssessment(card:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         // Find the most threatening player
@@ -346,10 +347,10 @@ class UnoCPUStrategy {
     /**
      * Score based on cooperative play considerations
      */
-    private function scoreByCooperativePlay(card:UnoCard, gameState:UnoGameState):Float {
+    private function scoreByCooperativePlay(card:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
-        if (gameState.players.length <= 2) {
+        if (gameState.players.keys().length <= 2) {
             return 0.0; // No cooperation in 2-player games
         }
         
@@ -382,7 +383,7 @@ class UnoCPUStrategy {
     /**
      * Score based on memory insights
      */
-    private function scoreByMemoryInsights(card:UnoCard, gameState:UnoGameState):Float {
+    private function scoreByMemoryInsights(card:UnoCard, gameState:SmartUnoGameState):Float {
         var score:Float = 0.0;
         
         // Consider recent card swaps
@@ -430,7 +431,7 @@ class UnoCPUStrategy {
         return value;
     }
     
-    private function estimatePlayerHandValue(playerId:Int, gameState:UnoGameState):Float {
+    private function estimatePlayerHandValue(playerId:Int, gameState:SmartUnoGameState):Float {
         var player = gameState.players.get(playerId);
         if (player == null) return 0.0;
         
@@ -451,7 +452,7 @@ class UnoCPUStrategy {
         return baseValue;
     }
     
-    private function getMostThreateningPlayer(gameState:UnoGameState):Int {
+    private function getMostThreateningPlayer(gameState:SmartUnoGameState):Int {
         var maxThreat:Float = 0.0;
         var mostThreatening:Int = -1;
         
@@ -468,7 +469,7 @@ class UnoCPUStrategy {
     /**
      * Update memory based on game events
      */
-    public function updateMemory(gameState:UnoGameState):Void {
+    public function updateMemory(gameState:SmartUnoGameState):Void {
         // Update threat levels for all players
         for (playerId => player in gameState.players) {
             var hasPlayable = false; // This would need to be calculated based on game state
@@ -503,7 +504,7 @@ class UnoCPUStrategy {
     /**
      * Choose best color for wild cards
      */
-    public function chooseBestWildColor(hand:Array<UnoCard>, gameState:UnoGameState):UnoColor {
+    public function chooseBestWildColor(hand:Array<UnoCard>, gameState:SmartUnoGameState):UnoColor {
         var colorCounts:Map<UnoColor, Int> = new Map();
         var standardColors = UnoCard.getStandardColors();
         
@@ -546,12 +547,12 @@ class UnoCPUStrategy {
 /**
  * Game state information needed for AI decision making
  */
-class UnoGameState {
+class SmartUnoGameState {
     public var players:Map<Int, UnoPlayer>;
     public var currentHand:Array<UnoCard>;
     public var topCard:UnoCard;
     public var currentPlayerId:Int;
-    public var direction:Int; // 1 for forward, -1 for reverse
+    public var direction:UnoTurnManager.TurnDirection; // 1 for forward, -1 for reverse
     public var customRules:Dynamic; // Custom rule settings
     public var activeCustomRules:Array<String>;
     
