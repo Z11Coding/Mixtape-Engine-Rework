@@ -588,7 +588,15 @@ class UnoTestState extends MusicBeatState {
     override function update(elapsed:Float) {
         super.update(elapsed);
 
-        updateDisplay();
+        // Handle CPU turns
+        if (unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {
+            var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+            if (!currentPlayer.isHuman) {
+                new FlxTimer().start(1.0, function(timer) {
+                    processCPUTurn();
+                });
+            }
+        }
         
         // Handle input
         if (controls.BACK) {
