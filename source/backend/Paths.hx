@@ -224,8 +224,10 @@ class Paths
 	public static function nukeMemory(){
 		clearStoredWithoutStickers();
 		freeGraphicsFromMemory();
-		clearUnusedMemory();
-		clearStoredMemory();
+		Paths.clearStoredMemory();
+		Paths.clearUnusedMemory();
+		MemoryUtilBase.compact();
+		MemoryUtilBase.collect(true);
 		currentTrackedSounds.clear();
 		@:privateAccess {
 			for (key => asset in FlxG.bitmap._cache)
