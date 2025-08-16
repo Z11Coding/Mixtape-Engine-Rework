@@ -27,6 +27,7 @@ class UnoGame {
     public var onRoundStart:Int->Void;
     public var onRoundEnd:UnoPlayer->Int->Void;
     public var onCardPlayed:UnoPlayer->UnoCard->Void;
+    public var afterCardPlayed:UnoPlayer->UnoCard->Void;
     public var onPlayerDraw:UnoPlayer->Int->Void;
     public var onUnoCall:UnoPlayer->Void;
     public var onUnoPenalty:UnoPlayer->Void;
@@ -45,7 +46,7 @@ class UnoGame {
         drawStack = 0;
         this.customColors = customColors;
         this.customCards = customCards != null ? customCards : [];
-        if (includeBaseColors && this.customColors != null)
+        if ((includeBaseColors && this.customColors != null) || this.customColors.length == 0)
             this.customColors = this.customColors.concat(UnoCard.getStandardColors());
     }
     
@@ -237,6 +238,9 @@ class UnoGame {
             endRound(player);
             return true;
         }
+
+        // After eveything is done
+        afterCardPlayed(player, playedCard);
         
         // Next turn
         turnManager.nextTurn();

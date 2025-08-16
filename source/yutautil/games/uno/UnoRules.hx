@@ -120,7 +120,7 @@ class UnoRules {
     public static var ALLOW_JUMP_IN:Bool = false; // Allow jumping in with exact match
     public static var FORCE_PLAY:Bool = false; // Must play if possible
     public static var PROGRESSIVE_UNO:Bool = false; // Must say UNO progressively
-    public static var SEVEN_ZERO_RULE:Bool = false; // Special 7 and 0 rules
+    public static var SEVEN_ZERO_RULE:Bool = true; // Special 7 and 0 rules
     public static var WILD_DRAW_FOUR_CHALLENGE:Bool = true; // Allow challenging wild draw four
     
     /**

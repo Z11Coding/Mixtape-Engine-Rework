@@ -41,6 +41,9 @@ class UnoTestState extends MusicBeatState {
     private var waitingForColorChoice:Bool = false;
     private var availableColors:Array<UnoColor>;
     private var colorChoiceGroup:FlxTypedGroup<FlxSprite>;
+
+    var normalMus:FlxSound;
+    var lastcardMus:FlxSound;
     
     override function create() {
         super.create();
@@ -56,6 +59,19 @@ class UnoTestState extends MusicBeatState {
         
         Cursor.show();
         Cursor.cursorMode = Default;
+
+        normalMus = new FlxSound().loadEmbedded(Paths.music('menuMusic/Heart of the Cards'));
+        lastcardMus = new FlxSound().loadEmbedded(Paths.music('menuMusic/Heart of the Cards (Last Card Mix)'));
+        normalMus.play();
+        lastcardMus.play();
+        lastcardMus.volume = 0;
+        lastcardMus.looped = true;
+        normalMus.looped = true;
+        FlxG.sound.list.add(normalMus);
+        FlxG.sound.list.add(lastcardMus);
+
+        idleTimer = new FlxTimer();
+        refreshTimer = new FlxTimer();
     }
     
     private function setupBackground():Void {
@@ -97,8 +113,12 @@ class UnoTestState extends MusicBeatState {
     
     private function setupGame():Void {
         try {
+            var customColoroftheRainbow:Array<UnoColor> = [];
+            for (color in 0...ClientPrefs.data.arrowRGBExtra.length) {
+                customColoroftheRainbow.push(UnoColor.CUSTOM(ClientPrefs.data.arrowRGBExtra[color][0], objects.Note.keysShit.get(17).get('letters')[color]));
+            }
             // Create UNO game with standard colors first (simpler initialization)
-            unoGame = new UnoGame();
+            unoGame = new UnoGame(customColoroftheRainbow);
             
             setupGameEvents();
             
@@ -143,6 +163,7 @@ class UnoTestState extends MusicBeatState {
             if (winner != null) {
                 updateInstructionText('${Std.string(winner.name)} wins the round with $points points! Press ENTER for next round');
             }
+            isGameStarted = false;
         };
         
         unoGame.onGameEnd = (winner) -> {
@@ -156,6 +177,13 @@ class UnoTestState extends MusicBeatState {
             waitingForColorChoice = false;
             updateDisplay();
         };
+
+        unoGame.afterCardPlayed = (player, card) -> {
+            if (card != null) {
+                trace('Updating UI');
+                updateDisplay();
+            }
+        };
         
         trace("UNO game events setup complete");
     }
@@ -168,35 +196,44 @@ class UnoTestState extends MusicBeatState {
         }
         
         try {
-            // Clear existing players
-            unoGame.players = [];
-            
-            // Add human player
-            var humanPlayer = new UnoPlayer("human", "You", true);
-            unoGame.addPlayer(humanPlayer);
-            
-            // Add CPU players with proper difficulty distribution
-            var difficulties = [UnoDifficulty.EASY, UnoDifficulty.NORMAL, UnoDifficulty.HARD];
-            for (i in 1...4) { // Add 3 CPU players
-                var difficulty = difficulties[(i - 1) % difficulties.length];
-                var diffName = switch (difficulty) {
-                    case EASY: "Easy";
-                    case NORMAL: "Normal"; 
-                    case HARD: "Hard";
-                    case EXPERT: "Expert";
+            if (unoGame.players.length > 0) {
+                unoGame.startNewRound();
+                selectedCardIndex = -1;
+                updateDisplay();
+                isGameStarted = true;
+                
+                trace("Game reset successfully");
+            } else {
+                // Clear existing players
+                unoGame.players = [];
+                
+                // Add human player
+                var humanPlayer = new UnoPlayer("human", "You", true);
+                unoGame.addPlayer(humanPlayer);
+                
+                // Add CPU players with proper difficulty distribution
+                var difficulties = [UnoDifficulty.EXPERT, UnoDifficulty.EXPERT, UnoDifficulty.EXPERT];
+                for (i in 1...4) { // Add 3 CPU players
+                    var difficulty = difficulties[(i - 1) % difficulties.length];
+                    var diffName = switch (difficulty) {
+                        case EASY: "Easy";
+                        case NORMAL: "Normal"; 
+                        case HARD: "Hard";
+                        case EXPERT: "Expert";
+                    }
+                    var cpu = new UnoCPU('cpu$i', 'CPU $i ($diffName)', difficulty);
+                    unoGame.addPlayer(cpu);
                 }
-                var cpu = new UnoCPU('cpu$i', 'CPU $i ($diffName)', difficulty);
-                unoGame.addPlayer(cpu);
+                
+                trace('Starting UNO game with ${unoGame.players.length} players...');
+                
+                // Start the game
+                unoGame.startGame();
+                selectedCardIndex = -1;
+                updateDisplay();
+                
+                trace("Game started successfully");
             }
-            
-            trace('Starting UNO game with ${unoGame.players.length} players...');
-            
-            // Start the game
-            unoGame.startGame();
-            selectedCardIndex = -1;
-            updateDisplay();
-            
-            trace("Game started successfully");
         } catch (e:Dynamic) {
             trace("Error starting UNO game: " + e);
             updateInstructionText("Error starting game: " + Std.string(e));
@@ -204,6 +241,7 @@ class UnoTestState extends MusicBeatState {
         }
     }
     
+    var onLastCard:Bool = false;
     private function updateDisplay():Void {
         if (!isGameStarted || unoGame == null) {
             //trace("Cannot update display: game not started or unoGame is null");
@@ -221,19 +259,37 @@ class UnoTestState extends MusicBeatState {
             
             // Update player hand display
             updatePlayerHandDisplay();
-            
+
             // Update player info display
             updatePlayerInfoDisplay();
-            
-            // Handle CPU turns
-            if (unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {
-                var currentPlayer = unoGame.turnManager.getCurrentPlayer();
-                if (!currentPlayer.isHuman) {
-                    new FlxTimer().start(1.0, function(timer) {
-                        Sys.sleep(cast (currentPlayer:UnoCPU).thinkingTime)
-                        processCPUTurn();
-                    });
+
+            var oneCardLeft = false;
+            for (player in unoGame.players) {
+                if (player.hand.cards.length == 1) {
+                    oneCardLeft = true;
+                    break;
                 }
+            }
+            if (oneCardLeft && !onLastCard) {
+                FlxTween.num(1, 0, 1, {ease: FlxEase.sineInOut}, function(value:Float)
+                {
+                    normalMus.volume = value;
+                });
+                FlxTween.num(0, 1, 1, {ease: FlxEase.sineInOut}, function(value:Float)
+                {
+                    lastcardMus.volume = value;
+                });
+                onLastCard = true;
+            } else if (!oneCardLeft && onLastCard) {
+                FlxTween.num(0, 1, 1, {ease: FlxEase.sineInOut}, function(value:Float)
+                {
+                    normalMus.volume = value;
+                });
+                FlxTween.num(1, 0, 1, {ease: FlxEase.sineInOut}, function(value:Float)
+                {
+                    lastcardMus.volume = value;
+                });
+                onLastCard = false;
             }
         } catch (e:Dynamic) {
             trace("Error updating display: " + e);
@@ -263,6 +319,9 @@ class UnoTestState extends MusicBeatState {
     }
     
     private function updatePlayerHandDisplay():Void {
+        for (card in playerHandGroup.members) {
+            card.destroy();
+        }
         playerHandGroup.clear();
         
         if (!isGameStarted || unoGame == null || unoGame.players == null || unoGame.players.length == 0) {
@@ -494,14 +553,14 @@ class UnoTestState extends MusicBeatState {
             colorChoiceGroup.clear();
             
             // Get available colors (standard colors only for simplicity)
-            availableColors = UnoCard.getStandardColors();
+            availableColors = unoGame.customColors;
             
             // Remove WILD from choosable colors
             availableColors = availableColors.filter(function(color) return color != WILD);
             
             // Create color choice buttons
             var startX = FlxG.width * 0.5 - (availableColors.length * 30);
-            var y = 200;
+            var y = 500;
             
             for (i in 0...availableColors.length) {
                 var colorButton = new FlxSprite(startX + (i * 60), y);
@@ -597,6 +656,8 @@ class UnoTestState extends MusicBeatState {
         }
     }
     
+    var idleTimer:FlxTimer;
+    var refreshTimer:FlxTimer;
     override function update(elapsed:Float) {
         super.update(elapsed);
 
@@ -604,10 +665,21 @@ class UnoTestState extends MusicBeatState {
         if (unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
             if (!currentPlayer.isHuman) {
-                new FlxTimer().start(1.0, function(timer) {
-                    processCPUTurn();
-                });
+                //Sys.sleep(cast (currentPlayer, UnoCPU).thinkingTime);
+                if (!idleTimer.active) {
+                    idleTimer.start(cast (currentPlayer, UnoCPU).thinkingTime, function(tmr:FlxTimer) {
+                        processCPUTurn();
+                        if (idleTimer != null) idleTimer.cancel();
+                    });
+                }
             }
+        }
+
+        if (!refreshTimer.active) {
+            refreshTimer.start(1, function(tmr:FlxTimer) {
+                updateDisplay();
+                if (refreshTimer != null) refreshTimer.reset();
+            });
         }
         
         // Handle input
