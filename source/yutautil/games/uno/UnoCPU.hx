@@ -4,18 +4,38 @@ using Math;
 
 import yutautil.games.uno.UnoRules.UnoGameState;
 import yutautil.games.uno.UnoCard.UnoColor;
+import yutautil.games.uno.UnoCPUStrategy;
+import yutautil.games.uno.UnoCPUMemory;
 
 /**
- * AI player implementation for UNO with different difficulty levels
+ * AI player implementation for UNO with enhanced memory and strategy
  */
 class UnoCPU extends UnoPlayer {
     public var difficulty:UnoDifficulty;
     public var thinkingTime:Float; // Delay to simulate thinking
+    private var strategy:UnoCPUStrategy;
+    private var memory:UnoCPUMemory;
     
     public function new(id:String, name:String, difficulty:UnoDifficulty = NORMAL) {
         super(id, name, false);
         this.difficulty = difficulty;
         this.thinkingTime = getDifficultyThinkingTime(difficulty);
+        
+        var difficultyFloat = getDifficultyAsFloat(difficulty);
+        this.strategy = new UnoCPUStrategy(Std.parseInt(id), difficultyFloat);
+        this.memory = new UnoCPUMemory(Std.parseInt(id));
+    }
+    
+    /**
+     * Convert difficulty enum to float
+     */
+    private function getDifficultyAsFloat(diff:UnoDifficulty):Float {
+        return switch(diff) {
+            case EASY: 0.3;
+            case NORMAL: 0.5;
+            case HARD: 0.8;
+            case EXPERT: 1.0;
+        }
     }
     
     /**
@@ -31,21 +51,58 @@ class UnoCPU extends UnoPlayer {
     }
     
     /**
-     * CPU chooses a card to play
+     * CPU chooses a card to play using enhanced strategy
      */
     public function chooseCard(topCard:UnoCard, gameState:UnoGameState):Int {
         var playableCards = getPlayableCards(topCard);
         
         if (playableCards.length == 0) {
-            return -1; // No playable cardsdr
+            return -1; // No playable cards
         }
         
+        // Convert UnoGameState to our enhanced game state
+        var enhancedGameState = convertToEnhancedGameState(gameState);
+        
+        // Update strategy memory
+        strategy.updateMemory(enhancedGameState);
+        
+        // Use enhanced strategy for HARD and EXPERT difficulties
+        if (difficulty == HARD || difficulty == EXPERT) {
+            var chosenCard = strategy.chooseBestCard(hand.cards, topCard, enhancedGameState);
+            if (chosenCard != null) {
+                return hand.cards.indexOf(chosenCard);
+            }
+        }
+        
+        // Fallback to original strategy for lower difficulties or if enhanced strategy fails
         return switch(difficulty) {
             case EASY: chooseCardEasy(playableCards, topCard, gameState);
             case NORMAL: chooseCardNormal(playableCards, topCard, gameState);
             case HARD: chooseCardHard(playableCards, topCard, gameState);
             case EXPERT: chooseCardExpert(playableCards, topCard, gameState);
         }
+    }
+    
+    /**
+     * Convert UnoGameState to our enhanced game state format
+     */
+    private function convertToEnhancedGameState(gameState:UnoGameState):yutautil.games.uno.UnoCPUStrategy.UnoGameState {
+        var enhanced = new yutautil.games.uno.UnoCPUStrategy.UnoGameState();
+        enhanced.topCard = gameState.topCard;
+        enhanced.currentPlayerId = Std.parseInt(this.id);
+        enhanced.direction = gameState.direction;
+        enhanced.currentHand = hand.cards.copy();
+        
+        // Convert players
+        for (player in gameState.players) {
+            enhanced.players.set(Std.parseInt(player.id), player);
+        }
+        
+        // Set up custom rules (this would need to be expanded based on actual rule structure)
+        enhanced.customRules = {};
+        enhanced.activeCustomRules = [];
+        
+        return enhanced;
     }
     
     /**
@@ -189,14 +246,21 @@ class UnoCPU extends UnoPlayer {
     }
     
     /**
-     * CPU chooses a color for wild cards (including custom colors)
+     * CPU chooses a color for wild cards (excluding NONE, ALL, and WILD from selection)
      */
     public function chooseWildColor(?availableColors:Array<UnoColor>):UnoColor {
-        // If no colors are specified, use standard colors plus any custom colors found in hand
+        // Use enhanced strategy for color selection in higher difficulties
+        if ((difficulty == HARD || difficulty == EXPERT) && strategy != null) {
+            var enhancedGameState = new yutautil.games.uno.UnoCPUStrategy.UnoGameState();
+            enhancedGameState.currentHand = hand.cards.copy();
+            return strategy.chooseBestWildColor(hand.cards, enhancedGameState);
+        }
+        
+        // If no colors are specified, use only standard colors plus any custom colors found in hand
         if (availableColors == null) {
             availableColors = UnoCard.getStandardColors();
             
-            // Add any custom colors found in the hand
+            // Add any custom colors found in the hand (but not NONE, ALL, or WILD)
             for (card in hand.cards) {
                 switch(card.color) {
                     case CUSTOM(color, name):
@@ -210,18 +274,22 @@ class UnoCPU extends UnoPlayer {
                         if (!found) {
                             availableColors.push(card.color);
                         }
-                    case _: // Standard colors already included
+                    case _: // Standard colors already included, skip NONE/ALL/WILD
                 }
             }
         }
         
         var colorCounts = [];
         for (color in availableColors) {
-            if (color != WILD) { // Don't count wild as a choosable color
-                colorCounts.push({
-                    color: color,
-                    count: hand.getCardsByColor(color).length
-                });
+            // Only count actual colored cards, not WILD, NONE, or ALL
+            switch(color) {
+                case RED | BLUE | GREEN | YELLOW | CUSTOM(_, _):
+                    colorCounts.push({
+                        color: color,
+                        count: hand.getCardsByColor(color).length
+                    });
+                case WILD | NONE | ALL:
+                    // Skip these - they're not valid choices for wild color
             }
         }
         
@@ -240,8 +308,47 @@ class UnoCPU extends UnoPlayer {
             return colorCounts[1].color; // Choose second best sometimes
         }
         
-        // Return the color with the most cards, or a random standard color if no cards
+        // Return the color with the most cards, or RED if no cards
         return colorCounts.length > 0 ? colorCounts[0].color : UnoColor.RED;
+    }
+    
+    /**
+     * Record a card being played by any player (for memory)
+     */
+    public function observeCardPlayed(playerId:String, card:UnoCard):Void {
+        if (strategy != null) {
+            strategy.recordCardPlayed(Std.parseInt(playerId), card);
+        }
+    }
+    
+    /**
+     * Record a card swap between players (for memory)
+     */
+    public function observeCardSwap(fromPlayerId:String, toPlayerId:String, cardCount:Int, ?knownCards:Array<UnoCard>):Void {
+        if (strategy != null) {
+            strategy.recordCardSwap(Std.parseInt(fromPlayerId), Std.parseInt(toPlayerId), cardCount, knownCards);
+        }
+    }
+    
+    /**
+     * Record the effect of a custom rule (for memory)
+     */
+    public function observeRuleEffect(ruleName:String, affectedPlayerId:String, beneficialEffect:Bool, impact:Float):Void {
+        if (strategy != null) {
+            strategy.recordRuleEffect(ruleName, Std.parseInt(affectedPlayerId), beneficialEffect, impact);
+        }
+    }
+    
+    /**
+     * Reset memory and strategy for a new game
+     */
+    public function resetAI():Void {
+        if (strategy != null) {
+            strategy.reset();
+        }
+        if (memory != null) {
+            memory.reset();
+        }
     }
     
     /**

@@ -113,10 +113,11 @@ class UnoGame {
         isGameActive = true;
         roundNumber = 0;
         
-        // Reset all player scores
+        // Reset all player scores and AI
         for (player in players) {
             player.reset();
         }
+        resetAllCPUAI();
         
         turnManager = new UnoTurnManager(players);
         setupTurnManagerEvents();
@@ -200,7 +201,11 @@ class UnoGame {
         
         // Play the card
         var playedCard = player.playCard(cardIndex, deck);
+        var previousTopCard = deck.getTopCard(); // Remember the card it was played on
         lastPlayedCard = playedCard;
+        
+        // Notify all CPU players about the card being played (for memory)
+        notifyAllCPUsCardPlayed(player, playedCard);
         
         // Handle wild cards
         if (playedCard.isWildCard()) {
@@ -217,11 +222,19 @@ class UnoGame {
             playedCard.color = chosenColor; // Set the chosen color
             
             if (onWildColorChosen != null) onWildColorChosen(chosenColor);
+        } else if (playedCard.color == NONE) {
+            // NONE cards inherit color from the card they were played on
+            playedCard.inheritColor(previousTopCard);
+            // If inheritance didn't work (playing on another colorless card), use current game color
+            if (playedCard.color == NONE) {
+                playedCard.color = currentColor;
+            }
+            currentColor = playedCard.color;
         } else {
             currentColor = playedCard.color;
         }
         
-        // Apply card effects
+        // Apply card effects (this might change the current color)
         applyCardEffect(playedCard, player);
         
         // Check for UNO
@@ -262,9 +275,16 @@ class UnoGame {
         switch(card.type) {
             case SKIP:
                 turnManager.skipNextPlayer();
+                var skippedPlayer = turnManager.getNextPlayer();
+                notifyAllCPUsRuleEffect("Skip", skippedPlayer, false, -5.0);
                 
             case REVERSE:
                 turnManager.reverseTurn();
+                // Reverse affects all players differently based on game state
+                for (p in players) {
+                    var benefit = p == player ? 2.0 : -1.0; // Player who played benefits slightly
+                    notifyAllCPUsRuleEffect("Reverse", p, benefit > 0, Math.abs(benefit));
+                }
                 
             case DRAW_TWO:
                 if (UnoRules.ALLOW_STACKING && drawStack > 0) {
@@ -272,6 +292,8 @@ class UnoGame {
                 } else {
                     drawStack = 2;
                 }
+                var nextPlayer = turnManager.getNextPlayer();
+                notifyAllCPUsRuleEffect("DrawTwo", nextPlayer, false, -drawStack * 1.5);
                 
             case WILD_DRAW_FOUR:
                 if (UnoRules.ALLOW_STACKING && drawStack > 0) {
@@ -279,16 +301,59 @@ class UnoGame {
                 } else {
                     drawStack = 4;
                 }
+                var nextPlayer = turnManager.getNextPlayer();
+                notifyAllCPUsRuleEffect("WildDrawFour", nextPlayer, false, -drawStack * 2.0);
                 
             case NUMBER:
-                UnoRules.applySevenZeroRule(card, players, turnManager.currentPlayerIndex);
+                if (UnoRules.SEVEN_ZERO_RULE && (card.number == 0 || card.number == 7)) {
+                    applySevenZeroRuleWithMemory(card, player);
+                }
                 
             case WILD:
                 // No additional effect beyond color change
+                notifyAllCPUsRuleEffect("Wild", player, true, 1.0);
+                
             case CUSTOM(name, points, cpuImportance, action):
                 if (action != null) {
                     action(this);
                 }
+                // Record custom action effect
+                notifyAllCPUsRuleEffect("Custom_" + name, player, cpuImportance > 0, Math.abs(cpuImportance));
+        }
+    }
+    
+    /**
+     * Apply seven-zero rule with memory tracking
+     */
+    private function applySevenZeroRuleWithMemory(card:UnoCard, player:UnoPlayer):Void {
+        if (card.number == 0) {
+            // Swap hands with next player
+            var nextPlayer = turnManager.getNextPlayer();
+            handleCardSwapWithMemory(player, nextPlayer);
+        } else if (card.number == 7) {
+            // Player chooses who to swap with - for CPU players, choose strategically
+            if (!player.isHuman && Std.isOfType(player, UnoCPU)) {
+                var bestTarget:UnoPlayer = null;
+                var bestScore:Float = -1000.0;
+                var currentHandValue = UnoRules.calculateHandValue(player.hand.cards);
+                
+                for (otherPlayer in players) {
+                    if (otherPlayer != player) {
+                        var otherHandValue = UnoRules.calculateHandValue(otherPlayer.hand.cards);
+                        var swapBenefit = otherHandValue - currentHandValue;
+                        
+                        if (swapBenefit > bestScore) {
+                            bestScore = swapBenefit;
+                            bestTarget = otherPlayer;
+                        }
+                    }
+                }
+                
+                if (bestTarget != null) {
+                    handleCardSwapWithMemory(player, bestTarget);
+                }
+            }
+            // For human players, this would need UI interaction
         }
     }
     
@@ -496,6 +561,74 @@ class UnoGame {
                 isHuman: p.isHuman
             })
         };
+    }
+    
+    /**
+     * Notify all CPU players about a card being played (for memory tracking)
+     */
+    private function notifyAllCPUsCardPlayed(player:UnoPlayer, card:UnoCard):Void {
+        for (p in players) {
+            if (!p.isHuman && Std.isOfType(p, UnoCPU) && p != player) {
+                cast(p, UnoCPU).observeCardPlayed(player.id, card);
+            }
+        }
+    }
+    
+    /**
+     * Notify all CPU players about a card swap (for memory tracking)
+     */
+    private function notifyAllCPUsCardSwap(fromPlayer:UnoPlayer, toPlayer:UnoPlayer, cardCount:Int, ?knownCards:Array<UnoCard>):Void {
+        for (p in players) {
+            if (!p.isHuman && Std.isOfType(p, UnoCPU)) {
+                cast(p, UnoCPU).observeCardSwap(fromPlayer.id, toPlayer.id, cardCount, knownCards);
+            }
+        }
+    }
+    
+    /**
+     * Notify all CPU players about a custom rule effect (for memory tracking)
+     */
+    private function notifyAllCPUsRuleEffect(ruleName:String, affectedPlayer:UnoPlayer, beneficial:Bool, impact:Float):Void {
+        for (p in players) {
+            if (!p.isHuman && Std.isOfType(p, UnoCPU)) {
+                cast(p, UnoCPU).observeRuleEffect(ruleName, affectedPlayer.id, beneficial, impact);
+            }
+        }
+    }
+    
+    /**
+     * Handle card swaps for Zero and Seven rule with CPU memory tracking
+     */
+    private function handleCardSwapWithMemory(swappingPlayer:UnoPlayer, targetPlayer:UnoPlayer):Void {
+        var swappingPlayerHand = swappingPlayer.hand.cards.copy();
+        var targetPlayerHand = targetPlayer.hand.cards.copy();
+        
+        // Notify CPUs about the swap before it happens
+        notifyAllCPUsCardSwap(swappingPlayer, targetPlayer, swappingPlayerHand.length, swappingPlayerHand);
+        notifyAllCPUsCardSwap(targetPlayer, swappingPlayer, targetPlayerHand.length, targetPlayerHand);
+        
+        // Perform the actual swap
+        swappingPlayer.hand.cards = targetPlayerHand;
+        targetPlayer.hand.cards = swappingPlayerHand;
+        
+        // Notify about rule effects
+        var swappingPlayerHandValue = UnoRules.calculateHandValue(swappingPlayerHand);
+        var targetPlayerHandValue = UnoRules.calculateHandValue(targetPlayerHand);
+        var swappingPlayerBenefit = targetPlayerHandValue - swappingPlayerHandValue;
+        
+        notifyAllCPUsRuleEffect("ZeroSevenRule", swappingPlayer, swappingPlayerBenefit > 0, Math.abs(swappingPlayerBenefit));
+        notifyAllCPUsRuleEffect("ZeroSevenRule", targetPlayer, swappingPlayerBenefit < 0, Math.abs(swappingPlayerBenefit));
+    }
+    
+    /**
+     * Reset all CPU AI for a new game
+     */
+    public function resetAllCPUAI():Void {
+        for (player in players) {
+            if (!player.isHuman && Std.isOfType(player, UnoCPU)) {
+                cast(player, UnoCPU).resetAI();
+            }
+        }
     }
     
     /**

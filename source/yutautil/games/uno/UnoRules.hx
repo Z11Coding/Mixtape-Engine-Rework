@@ -284,4 +284,15 @@ class UnoRules {
         WILD_DRAW_FOUR_CHALLENGE = wildChallenge;
         WINNING_SCORE = winningScore;
     }
+    
+    /**
+     * Calculate the total point value of a hand of cards
+     */
+    public static function calculateHandValue(cards:Array<UnoCard>):Float {
+        var total:Float = 0.0;
+        for (card in cards) {
+            total += card.getPointValue();
+        }
+        return total;
+    }
 }

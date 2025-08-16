@@ -57,6 +57,11 @@ class UnoCard {
             return true;
         }
         
+        // Colorless (NONE) action cards can be played on anything, like wild cards
+        if (color == NONE && type != NUMBER) {
+            return true;
+        }
+        
         // Same color match (including custom colors)
         if (UnoCard.colorsMatch(color, otherCard.color)) {
             return true;
@@ -83,13 +88,48 @@ class UnoCard {
     }
     
     /**
-     * Check if this is a wild card
+     * Check if this card has a specific color (not wild, none, or all)
+     */
+    public function isColored():Bool {
+        return switch(color) {
+            case RED | BLUE | GREEN | YELLOW | CUSTOM(_, _): true;
+            case WILD | NONE | ALL: false;
+        }
+    }
+    
+    /**
+     * Check if this is a wild card (can be played on any card and allows color choice)
      */
     public function isWildCard():Bool {
-        return type == WILD || type == WILD_DRAW_FOUR || (switch(type) {
-            case CUSTOM(_, _, _, _): true;
+        return switch(type) {
+            case WILD | WILD_DRAW_FOUR: true;
+            case CUSTOM(_, _, _, _, isWild): isWild == true;
             case _: false;
-        });
+        }
+    }
+    
+    /**
+     * Check if this card is colorless (acts like wild for color matching but not for effects)
+     */
+    public function isColorless():Bool {
+        return color == WILD || color == NONE || color == ALL;
+    }
+    
+    /**
+     * Make a NONE card inherit the color from the card it was played on
+     * This should be called after a NONE card is played
+     */
+    public function inheritColor(fromCard:UnoCard):Void {
+        if (color == NONE && fromCard != null) {
+            // Inherit the color from the card it was played on
+            switch(fromCard.color) {
+                case RED | BLUE | GREEN | YELLOW | CUSTOM(_, _):
+                    this.color = fromCard.color;
+                case WILD | NONE | ALL:
+                    // If playing on another colorless card, don't change color
+                    // (this should be handled by game logic - use current game color)
+            }
+        }
     }
     
     /**
@@ -113,7 +153,7 @@ class UnoCard {
             case BLUE: FlxColor.BLUE;
             case GREEN: FlxColor.GREEN;
             case YELLOW: FlxColor.YELLOW;
-            case WILD: FlxColor.WHITE;
+            case WILD | NONE | ALL: FlxColor.BLACK; // NONE, ALL, and WILD cards get black color
             case CUSTOM(color, name): color;
         }
     }
@@ -128,6 +168,8 @@ class UnoCard {
             case GREEN: "Green";
             case YELLOW: "Yellow";
             case WILD: "Wild";
+            case NONE: "Colorless";
+            case ALL: "All Colors";
             case CUSTOM(color, name): name != null ? '$name' : 'Custom (#${StringTools.hex(color, 6)})';
         }
     }
@@ -195,30 +237,84 @@ class UnoCard {
      */
     public static function colorsMatch(color1:UnoColor, color2:UnoColor):Bool {
         return switch([color1, color2]) {
-            case [RED, RED] | [BLUE, BLUE] | [GREEN, GREEN] | [YELLOW, YELLOW] | [WILD, WILD]: true;
+            case [RED, RED] | [BLUE, BLUE] | [GREEN, GREEN] | [YELLOW, YELLOW] | [WILD, WILD] | [NONE, NONE]: true;
             case [CUSTOM(c1, _), CUSTOM(c2, _)]: c1 == c2;
             case _: false;
         }
     }
     
     /**
-     * Create a custom action card
+     * Create action cards - unified function for creating action cards
+     * @param name Name of the action card
+     * @param color Color(s) for the card - use ALL to create cards for all standard colors
+     * @param count Number of cards to create per color (default: 1)
+     * @param points Point value of the card (default: 50)
+     * @param cpuImportance CPU importance rating (default: 5)
+     * @param action Optional action function to execute when played
+     * @param isWild Whether this card should be considered a wild card (default: false)
+     * @return Array of created cards
      */
-    public static function createCustomActionCard(name:String, color:UnoColor, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void):UnoCard {
-        return new UnoCard(color, CUSTOM(name, points, cpuImportance, action));
+    public static function createActionCards(name:String, color:UnoColor, count:Int = 1, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Array<UnoCard> {
+        var cards = [];
+        
+        if (color == ALL) {
+            // Create cards for all standard colors
+            var standardColors = getStandardColors();
+            for (standardColor in standardColors) {
+                for (i in 0...count) {
+                    cards.push(new UnoCard(standardColor, CUSTOM(name, points, cpuImportance, action, isWild)));
+                }
+            }
+        } else {
+            // Create cards for the specified color
+            for (i in 0...count) {
+                cards.push(new UnoCard(color, CUSTOM(name, points, cpuImportance, action, isWild)));
+            }
+        }
+        
+        return cards;
     }
     
     /**
-     * Create multiple copies of a custom action card
+     * Create a single action card (convenience method)
      */
-    public static function createCustomActionCards(name:String, color:UnoColor, count:Int = 1, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void):Array<UnoCard> {
+    public static function createActionCard(name:String, color:UnoColor, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):UnoCard {
+        var cards = createActionCards(name, color, 1, points, cpuImportance, action, isWild);
+        return cards[0];
+    }
+    
+    /**
+     * Create action cards of all standard colors
+     */
+    public static function createActionCardsAllColors(name:String, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Array<UnoCard> {
         var cards = [];
-        for (i in 0...count) {
-            cards.push(createCustomActionCard(name, color, points, cpuImportance, action));
+        var colors = getStandardColors();
+        for (color in colors) {
+            cards.push(createCustomActionCard(name, color, points, cpuImportance, action, isWild));
+        }
+        return cards;
+    }
+    
+    /**
+     * Create action cards of specified colors
+     */
+    public static function createActionCardsOfColors(name:String, colors:Array<UnoColor>, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Array<UnoCard> {
+        var cards = [];
+        for (color in colors) {
+            cards.push(createCustomActionCard(name, color, points, cpuImportance, action, isWild));
         }
         return cards;
     }
 }
+
+    public static function createSimpleCustomActionCards(name:String, count:Int = 1, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Array<UnoCard> {
+        var cards = [];
+        for (i in 0...count) {
+            var color = (isWild == true) ? UnoColor.WILD : UnoColor.NONE;
+            cards.push(createCustomActionCard(name, color, points, cpuImportance, action, isWild));
+        }
+        return cards;
+    }
 
 
 /**
@@ -229,7 +325,9 @@ enum UnoColor {
     BLUE;
     GREEN;
     YELLOW;
-    WILD; // For wild cards
+    WILD; // For wild cards that allow color choice
+    NONE; // For colorless cards that inherit the current color after being played
+    ALL; // Special marker for deck generation - create this card in all standard colors
     CUSTOM(color:FlxColor, ?name:String);
 }
 
@@ -243,5 +341,5 @@ enum UnoCardType {
     DRAW_TWO;
     WILD;
     WILD_DRAW_FOUR;
-    CUSTOM(name:String, points:Int, cpuImportance:Int, ?action:UnoGame->Void);
+    CUSTOM(name:String, points:Int, cpuImportance:Int, ?action:UnoGame->Void, ?isWild:Bool);
 }

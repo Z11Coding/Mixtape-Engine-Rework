@@ -162,11 +162,64 @@ class UnoDeck {
     }
     
     /**
+     * Add action cards using the unified creation system
+     * @param name Name of the action card
+     * @param color Color for the cards - use ALL to create cards for all standard colors
+     * @param count Number of cards to create per color (default: 2)
+     * @param points Point value of the card (default: 50)
+     * @param cpuImportance CPU importance rating (default: 5)
+     * @param action Optional action function to execute when played
+     * @param isWild Whether this card should be considered a wild card (default: false)
+     */
+    public function addActionCards(name:String, color:UnoColor, count:Int = 2, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void, ?isWild:Bool):Void {
+        var newCards = UnoCard.createActionCards(name, color, count, points, cpuImportance, action, isWild);
+        for (card in newCards) {
+            cards.push(card);
+        }
+    }
+    
+    /**
+     * Add a custom action card for all standard colors to the deck
+     * @param cardType The type of action card to add
+     * @param count Number of cards to add per color (default: 2)
+     * @param includeColorless Whether to also add a colorless version (default: false)
+     */
+    public function addActionCardForAllColors(cardType:UnoCardType, count:Int = 2, includeColorless:Bool = false):Void {
+        var standardColors = UnoCard.getStandardColors();
+        
+        for (color in standardColors) {
+            for (i in 0...count) {
+                cards.push(new UnoCard(color, cardType));
+            }
+        }
+        
+        if (includeColorless) {
+            for (i in 0...count) {
+                cards.push(new UnoCard(NONE, cardType)); // Colorless action card
+            }
+        }
+    }
+    
+    /**
+     * Add a custom action card for specific colors to the deck
+     * @param cardType The type of action card to add
+     * @param colors Array of colors to add the card for
+     * @param count Number of cards to add per color (default: 2)
+     */
+    public function addActionCardForColors(cardType:UnoCardType, colors:Array<UnoColor>, count:Int = 2):Void {
+        for (color in colors) {
+            for (i in 0...count) {
+                cards.push(new UnoCard(color, cardType));
+            }
+        }
+    }
+    
+    /**
      * Reset the deck to its initial state
      */
     public function reset(?customColors:Array<UnoColor>, ?customCards:Array<UnoCard>):Void {
         if (customColors != null) {
-            initializeDeckWithColors(customColors, customCards);
+            initializeDeckWithColors(customColors, customColors);
         } else {
             initializeDeck();
         }

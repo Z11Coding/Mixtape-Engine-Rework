@@ -169,8 +169,10 @@ class UnoHand {
             case YELLOW: 1;
             case GREEN: 2;
             case BLUE: 3;
-            case WILD: 4;
-            case CUSTOM(color, name): 5; // Custom colors come last. Will sort better later.
+            case NONE: 4;
+            case WILD: 5;
+            case ALL: 6; // ALL cards come after WILD
+            case CUSTOM(color, name): 7; // Custom colors come last. Will sort better later.
         }
     }
     
