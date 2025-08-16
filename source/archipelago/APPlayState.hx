@@ -1874,7 +1874,7 @@ class APPlayState extends PlayState {
             if (!alreadyKilledByLink) {
             alreadyKilledByLink = true;
             die();
-            } else {FlxG.switchState(new GameOverSubState();)}
+            } else {FlxG.switchState(new GameOverSubState());}
             trace("Triggering DeathLink!");
         }
         #if cpp			
