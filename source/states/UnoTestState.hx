@@ -52,8 +52,10 @@ class UnoTestState extends MusicBeatState {
         setupBackground();
         setupUI();
         setupGame();
+        add(instructionText); // so that it's over everything
         
-        FlxG.mouse.visible = true;
+        Cursor.show();
+        Cursor.cursorMode = Default;
     }
     
     private function setupBackground():Void {
@@ -70,14 +72,13 @@ class UnoTestState extends MusicBeatState {
     
     private function setupUI():Void {
         // Game status text
-        gameStatusText = new FlxText(10, 10, FlxG.width - 20, "", 16);
+        gameStatusText = new FlxText(10, 50, FlxG.width - 20, "", 16);
         gameStatusText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
         add(gameStatusText);
         
         // Instruction text
         instructionText = new FlxText(10, FlxG.height - 60, FlxG.width - 20, "", 14);
         instructionText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.YELLOW, CENTER);
-        add(instructionText);
         
         // Player hand group
         playerHandGroup = new FlxTypedGroup<FlxSprite>();
@@ -303,7 +304,7 @@ class UnoTestState extends MusicBeatState {
                 var player = unoGame.players[i];
                 if (player == null) continue;
                 
-                var text = new FlxText(10, 80 + (i * 20), FlxG.width - 20, player.getStatus(), 14);
+                var text = new FlxText(10, 280 + (i * 20), FlxG.width - 20, player.getStatus(), 14);
                 text.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT);
                 
                 // Highlight current player
@@ -376,6 +377,7 @@ class UnoTestState extends MusicBeatState {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
             if (currentPlayer == null || currentPlayer.isHuman) {
                 //trace("Current player is null or human, skipping CPU turn");
+                updatePlayerInfoDisplay();
                 return;
             }
             
@@ -421,6 +423,7 @@ class UnoTestState extends MusicBeatState {
     private function handleCardClick(cardIndex:Int):Void {
         if (!isGameStarted || unoGame == null || unoGame.turnManager == null) {
             trace("Cannot handle card click: game not ready");
+            Cursor.cursorMode = Default;
             return;
         }
         
@@ -428,29 +431,34 @@ class UnoTestState extends MusicBeatState {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
             if (currentPlayer == null || !currentPlayer.isHuman) {
                 trace("Not human player turn");
+                Cursor.cursorMode = Default;
                 return;
             }
             
             if (cardIndex < 0 || cardIndex >= currentPlayer.hand.cards.length) {
                 trace("Invalid card index: " + cardIndex);
+                Cursor.cursorMode = Default;
                 return;
             }
             
             var card = currentPlayer.hand.cards[cardIndex];
             if (card == null) {
                 trace("Selected card is null");
+                Cursor.cursorMode = Default;
                 return;
             }
             
             var topCard = unoGame.deck != null ? unoGame.deck.getTopCard() : null;
             if (topCard == null) {
                 trace("Top card is null");
+                Cursor.cursorMode = Default;
                 return;
             }
             
             if (!card.canPlayOn(topCard)) {
                 FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
                 updateInstructionText("Cannot play that card!");
+                Cursor.cursorMode = Default;
                 return;
             }
             
@@ -468,6 +476,7 @@ class UnoTestState extends MusicBeatState {
                     updateInstructionText("Failed to play card!");
                 }
             }
+            Cursor.cursorMode = Default;
         } catch (e:Dynamic) {
             trace("Error handling card click: " + e);
             updateInstructionText("Error playing card: " + Std.string(e));
@@ -539,6 +548,7 @@ class UnoTestState extends MusicBeatState {
     private function handleColorChoice(colorIndex:Int):Void {
         if (!waitingForColorChoice || availableColors == null || colorIndex >= availableColors.length) {
             trace("Invalid color choice: " + colorIndex);
+            Cursor.cursorMode = Default;
             return;
         }
         
@@ -562,6 +572,7 @@ class UnoTestState extends MusicBeatState {
             waitingForColorChoice = false;
             colorChoiceGroup.clear();
         }
+        Cursor.cursorMode = Default;
     }
     
     private function updateInstructionText(text:String):Void {
@@ -663,6 +674,7 @@ class UnoTestState extends MusicBeatState {
                     for (i in 0...colorChoiceGroup.length) {
                         var colorButton = colorChoiceGroup.members[i];
                         if (colorButton != null && FlxG.mouse.overlaps(colorButton)) {
+                            Cursor.cursorMode = Pointer;
                             handleColorChoice(i);
                             break;
                         }
@@ -674,6 +686,7 @@ class UnoTestState extends MusicBeatState {
                         for (i in 0...playerHandGroup.length) {
                             var cardSprite = playerHandGroup.members[i];
                             if (cardSprite != null && FlxG.mouse.overlaps(cardSprite)) {
+                                Cursor.cursorMode = Pointer;
                                 handleCardClick(i);
                                 break;
                             }
