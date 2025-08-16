@@ -44,6 +44,7 @@ class FirstCheckState extends MusicBeatState
 		if (!relaunch) {
 			COD.initCOD();
 			ClientPrefs.loadPrefs();
+			MemoryUtil.init();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
 			if (!Paths.exists(Paths.imagePath('fred'))) {
@@ -51,8 +52,6 @@ class FirstCheckState extends MusicBeatState
 				Sys.exit(1);
 			}
 		}
-
-		MemoryUtilBase.enable();
 
 		super.create();
 

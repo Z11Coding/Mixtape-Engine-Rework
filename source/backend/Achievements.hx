@@ -93,6 +93,11 @@ class Achievements {
 		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
 		createAchievement('potato',					{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
 		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 3 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 3, maxDecimals: 0});
+		createAchievement('challenger',				{name: "Challenger", description: "Complete a Song with 2 Safe Frames."});
+		createAchievement('hardcore',				{name: "Hardcore", description: "Beat a song with no Misses on 24/20 mode."});
+		createAchievement('demon',					{name: "Demon", description: "Beat a Song with 100% accuracy on 24/20 mode. Well done, now stop it."});
+		createAchievement('persistent',				{name: "Persistent", description: "Beat a Week with no Misses on 24/20 mode. Jesus Christ..."});
+		createAchievement('resilient',				{name: "Persistent", description: "Beat a Week with 100% accuracy on all songs on 24/20 mode. Go touch grass you moron"});
 		
 		// Secret achievements
 		createAchievement('fps',					{name: "1 FPS Gaming", description: "Slideshow Incarnate,", hidden: true});

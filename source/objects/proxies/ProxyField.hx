@@ -1,12 +1,7 @@
 package objects.proxies;
 
-import openfl.geom.ColorTransform;
-import openfl.Vector;
-import flixel.math.FlxPoint;
-import flixel.graphics.FlxGraphic;
 import objects.playfields.FieldBase;
 import objects.playfields.NoteField;
-import states.PlayState;
 
 /* 
 	I'm gonna have to do some changes to NoteField to allow this to happen, but
@@ -24,10 +19,14 @@ class ProxyField extends FieldBase {
 	@:allow(objects.playfields.NotefieldRenderer)
 	var proxiedField:NoteField;
 
-	public function new(field:NoteField) {
+	public function new(field:NoteField){
 		super(0,0);
 		proxiedField = field;
 	}
+
+	override public function getNotefield() {return proxiedField;}
+
+	override function preDraw(){} // hopefully no more crashes
 
 	override function draw()
 		drawQueue = proxiedField.drawQueue; // Just use the host field's queue

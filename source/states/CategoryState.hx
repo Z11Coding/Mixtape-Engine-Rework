@@ -49,6 +49,9 @@ class CategoryState extends MusicBeatState
 	var allowedKeys:String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	var easterEggKeysBuffer:String = '';
 
+	var rightOption:String = 'mechanics';
+	var rightItem:FlxSprite;
+
 	// TODO: later, change to OneOfTwo<Array<String>, Map<String, Void -> Bool>> for categories, so it specifies that it must be one of the two types.
 
 	public function new(?categories:Dynamic, ?showmods:Bool = true, ?showsecrets:Bool = true, ?showall:Bool = true, ?h:Bool = true, ?softCoded:Bool = true) {
@@ -216,7 +219,8 @@ class CategoryState extends MusicBeatState
 			{item: "no", chance: 95} // 95% chance to do nothing
 		];
 		
-		Cursor.cursorMode = Cross;
+		Cursor.show();
+		Cursor.cursorMode = Default;
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.color = FlxColor.PURPLE;
 		bg.scrollFactor.set();
@@ -250,9 +254,28 @@ class CategoryState extends MusicBeatState
 				grpLocks.add(lock);	
 			}
 		}
+
+		if (rightOption != null)
+		{
+			rightItem = createMenuItem(rightOption, FlxG.width - 60, 490);
+			rightItem.x -= rightItem.width;
+		}
 		changeSelection();
 
 		super.create();
+	}
+
+	function createMenuItem(name:String, x:Float, y:Float):FlxSprite
+	{
+		var menuItem:FlxSprite = new FlxSprite(x, y);
+		menuItem.loadGraphic(Paths.image('mechanics/mechanicsmod/menu/MMod'));
+		menuItem.setGraphicSize(Std.int(menuItem.width * 0.5));
+		menuItem.updateHitbox();
+		
+		menuItem.antialiasing = ClientPrefs.data.antialiasing;
+		menuItem.scrollFactor.set();
+		add(menuItem);
+		return menuItem;
 	}
 
 	public function changeCategories(categories:Dynamic, showmods:Bool = true, showsecrets:Bool = true, showall:Bool = true, h:Bool = true):Void {
@@ -339,6 +362,16 @@ class CategoryState extends MusicBeatState
 		}
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
+
+		if(rightItem != null && FlxG.mouse.overlaps(rightItem))
+		{
+			Cursor.cursorMode = Pointer;
+			if(FlxG.mouse.justPressed)
+			{
+				Cursor.cursorMode = Default;
+				FlxG.switchState(new mechanics.MechanicMenu());
+			}
+		}
 
 		super.update(elapsed);
 

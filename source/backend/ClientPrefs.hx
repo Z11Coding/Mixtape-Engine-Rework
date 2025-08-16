@@ -189,6 +189,8 @@ import states.TitleState;
 	public var allowEvents:Bool = true;
 	public var menuTheme:String = 'Light';
 
+	public var garbageCollection:Bool = true;
+
 	// Compiler Settings.
 	public var showInitialMemoryUsage:Bool = true;
 	public var SizeAccuracy:yutautil.CollectionUtils.Size = yutautil.CollectionUtils.Size.Auto;
@@ -411,6 +413,9 @@ class ClientPrefs {
 		'debug_2'		=> [EIGHT],
 
 		'fullscreen'	=> [F11],
+		'screenshot'	=> [F2],
+		'console'		=> [F6],
+
 		'sidebar'		=> [GRAVEACCENT],
 	];
 

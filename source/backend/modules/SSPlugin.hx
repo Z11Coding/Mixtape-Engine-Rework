@@ -125,7 +125,7 @@ class SSPlugin extends flixel.FlxBasic
 	var aliveTime:Float = 0;
 	override public function update(elapsed:Float):Void
 	{
-		if (FlxG.keys.checkStatus(screenshotKey, JUST_PRESSED) && enabled)
+		if (Controls.instance?.justPressed('screenshot') && enabled)
 			screenshot();
 
 		if (flashSprite.alpha > 0 || screenshotSprite.alpha > 0) aliveTime += elapsed;

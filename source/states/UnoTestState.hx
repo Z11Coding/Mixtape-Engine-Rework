@@ -193,6 +193,7 @@ class UnoTestState extends MusicBeatState {
             // Start the game
             unoGame.startGame();
             selectedCardIndex = -1;
+            updateDisplay();
             
             trace("Game started successfully");
         } catch (e:Dynamic) {
@@ -204,7 +205,7 @@ class UnoTestState extends MusicBeatState {
     
     private function updateDisplay():Void {
         if (!isGameStarted || unoGame == null) {
-            trace("Cannot update display: game not started or unoGame is null");
+            //trace("Cannot update display: game not started or unoGame is null");
             return;
         }
         
@@ -277,19 +278,12 @@ class UnoTestState extends MusicBeatState {
             
             var startX = 50;
             var y = FlxG.height - 150;
+            var cardOff = 0;
             
-            for (i in 0...humanPlayer.hand.cards.length) {
-                var card = humanPlayer.hand.cards[i];
-                if (card != null) {
-                    var cardSprite = createCardSprite(card, startX + (i * 60), y);
-                    
-                    // Highlight selected card
-                    if (i == selectedCardIndex) {
-                        cardSprite.color = FlxColor.LIME;
-                    }
-                    
-                    playerHandGroup.add(cardSprite);
-                }
+            for (card in humanPlayer.hand.cards) {
+                var cardSprite = createCardSprite(card, startX + (cardOff * 60), y);
+                cardOff++;
+                playerHandGroup.add(cardSprite);
             }
         } catch (e:Dynamic) {
             trace("Error updating player hand display: " + e);
@@ -328,31 +322,31 @@ class UnoTestState extends MusicBeatState {
         if (card == null) {
             trace("Warning: createCardSprite called with null card");
             var errorSprite = new FlxSprite(x, y);
-            errorSprite.makeGraphic(80, 110, FlxColor.RED);
+            errorSprite.makeGraphic(80, 110, FlxColor.RED, true);
             return errorSprite;
         }
         
         var cardSprite = new FlxSprite(x, y);
+
         
         try {
             // Create a simple card representation
-            var cardColor = card.getFlxColor();
-            cardSprite.makeGraphic(80, 110, FlxColor.WHITE);
+            cardSprite.makeGraphic(80, 110, FlxColor.WHITE, true);
             
             // Add colored border
             var borderSprite = new FlxSprite();
-            borderSprite.makeGraphic(76, 106, cardColor);
+            borderSprite.makeGraphic(76, 106, card.getFlxColor(), true);
             cardSprite.stamp(borderSprite, 2, 2);
             
             // Add card text (simplified)
             var cardText = new FlxText(0, 0, 80, getCardDisplayText(card), 12);
-            cardText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.BLACK, CENTER);
+            cardText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.BLACK, CENTER);
             cardText.y = 49; // Center vertically
             cardSprite.stamp(cardText, 0, 0);
         } catch (e:Dynamic) {
             trace("Error creating card sprite: " + e);
             // Fallback to simple colored rectangle
-            cardSprite.makeGraphic(80, 110, FlxColor.GRAY);
+            cardSprite.makeGraphic(80, 110, FlxColor.GRAY, true);
         }
         
         return cardSprite;
@@ -381,7 +375,7 @@ class UnoTestState extends MusicBeatState {
         try {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
             if (currentPlayer == null || currentPlayer.isHuman) {
-                trace("Current player is null or human, skipping CPU turn");
+                //trace("Current player is null or human, skipping CPU turn");
                 return;
             }
             
@@ -594,6 +588,16 @@ class UnoTestState extends MusicBeatState {
     
     override function update(elapsed:Float) {
         super.update(elapsed);
+
+        // Handle CPU turns
+        if (unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {
+            var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+            if (!currentPlayer.isHuman) {
+                new FlxTimer().start(1.0, function(timer) {
+                    processCPUTurn();
+                });
+            }
+        }
         
         // Handle input
         if (controls.BACK) {
