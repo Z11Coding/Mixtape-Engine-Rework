@@ -1,9 +1,9 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 using Math;
 
-import yutautil.games.uno.UnoRules.UnoGameState;
-import yutautil.games.uno.UnoCard.UnoColor;
+import games.uno.backend.UnoRules.UnoGameState;
+import games.uno.backend.UnoCard.UnoColor;
 
 /**
  * AI player implementation for UNO with different difficulty levels
@@ -23,10 +23,10 @@ class UnoCPU extends UnoPlayer {
      */
     private function getDifficultyThinkingTime(diff:UnoDifficulty):Float {
         return switch(diff) {
-            case EASY: 5.0;
-            case NORMAL: 4.5;
-            case HARD: 3.0;
-            case EXPERT: 2.5;
+            case EASY: 3.0;
+            case NORMAL: 2.5;
+            case HARD: 2.0;
+            case EXPERT: 1.5;
         }
     }
     

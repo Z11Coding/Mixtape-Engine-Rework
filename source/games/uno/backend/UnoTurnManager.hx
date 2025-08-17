@@ -1,4 +1,4 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 /**
  * Manages the turn order and player actions in UNO

@@ -1,8 +1,8 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoTurnManager.TurnDirection;
-import yutautil.games.uno.UnoRules.UnoGameState;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoTurnManager.TurnDirection;
+import games.uno.backend.UnoRules.UnoGameState;
 
 /**
  * Main UNO game controller that manages the complete game flow
@@ -44,9 +44,9 @@ class UnoGame {
         isRoundActive = false;
         roundNumber = 0;
         drawStack = 0;
-        this.customColors = customColors;
+        this.customColors = customColors != null ?  customColors : [];
         this.customCards = customCards != null ? customCards : [];
-        if ((includeBaseColors && this.customColors != null) || this.customColors.length == 0)
+        if (this.customColors != null && (includeBaseColors || this.customColors.length == 0))
             this.customColors = this.customColors.concat(UnoCard.getStandardColors());
     }
     

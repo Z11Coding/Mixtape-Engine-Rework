@@ -411,6 +411,7 @@ class ClientPrefs {
 		
 		'debug_1'		=> [SEVEN],
 		'debug_2'		=> [EIGHT],
+		'debug_3'		=> [NINE],
 
 		'fullscreen'	=> [F11],
 		'screenshot'	=> [F2],

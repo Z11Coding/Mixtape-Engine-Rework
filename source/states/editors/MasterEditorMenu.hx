@@ -128,7 +128,7 @@ class MasterEditorMenu extends MusicBeatState
 				case 'XML Editor':
 					MusicBeatState.switchState(new XMLEditorState());
 				case 'UNO Test':
-					MusicBeatState.switchState(new states.UnoTestState());
+					MusicBeatState.switchState(new games.uno.UnoTestState());
 				case 'Debug State Menu':
 					MusicBeatState.switchState(new states.DebugStateMenu());
 			}

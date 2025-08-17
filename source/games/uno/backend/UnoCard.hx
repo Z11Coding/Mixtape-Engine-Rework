@@ -1,4 +1,4 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 import flixel.util.FlxColor;
 

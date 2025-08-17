@@ -1,9 +1,9 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 using Math;
-import yutautil.games.uno.UnoCard;
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoCard.UnoCardType;
+import games.uno.backend.UnoCard;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCard.UnoCardType;
 
 /**
  * Represents a deck of UNO cards with shuffling and dealing capabilities
