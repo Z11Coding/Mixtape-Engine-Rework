@@ -142,7 +142,16 @@ class UnoHand {
             // First sort by color
             var colorA = getColorOrder(a.color);
             var colorB = getColorOrder(b.color);
-            
+
+            // If colorA is 5 (custom), use its FlxColor for sorting
+            if (colorA == 5) {
+                colorA = a.getFlxColor();
+            }
+            // If colorB is 5 (custom), use its FlxColor for sorting
+            if (colorB == 5) {
+                colorB = b.getFlxColor();
+            }
+
             if (colorA != colorB) {
                 return colorA - colorB;
             }
