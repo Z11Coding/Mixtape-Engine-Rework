@@ -45,6 +45,29 @@ class UnoTestState extends MusicBeatState {
 
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
+
+    var randomGenericNames:Array<String> = [
+        "Ansley Conner",
+        "Giovanni Duncan",
+        "Levi Carroll",
+        "Rory Winters",
+        "Cory Coleman",
+        "Jennifer Merritt",
+        "Riley Horne",
+        "Anika Gillespie",
+        "Dorothy Barry",
+        "Casen Fields",
+        "Abby Reyna",
+        "Nola Nixon",
+        "Cleo Rivas",
+        "Jennifer Merritt",
+        "Isabela Farmer",
+        "Frankie Holt",
+        "Adley Robinson",
+        "Devon Corona",
+        "Taylor Hanson",
+        "Dario Xiong"
+    ];
     
     override function create() {
         super.create();
@@ -234,7 +257,7 @@ class UnoTestState extends MusicBeatState {
                         case HARD: "Hard";
                         case EXPERT: "Expert";
                     }
-                    var cpu = new UnoCPU('cpu$i', 'CPU $i ($diffName)', difficulty);
+                    var cpu = new UnoCPU('cpu$i', randomGenericNames[FlxG.random.int(0, 20)], difficulty);
                     unoGame.addPlayer(cpu);
                 }
                 

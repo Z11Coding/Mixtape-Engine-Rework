@@ -18,6 +18,8 @@ class StrumNote extends NoteObject
 	public var direction:Float = 90;
 	public var downScroll:Bool = false;
 	public var sustainReduce:Bool = true;
+	public var formerPosition:FlxPoint = FlxPoint.get();
+	public var positionData:Int = 0;
 	private var player:Int;
 
 	public static var ogStrumPosX:Array<Null<Float>> = [];
@@ -96,6 +98,7 @@ class StrumNote extends NoteObject
 		column = leData;
 		field = playField;
 		this.noteData = leData;
+		positionData = noteData;
 		this.ID = noteData; 
 
 		texture = ''; //Load texture and anims
@@ -226,6 +229,7 @@ class StrumNote extends NoteObject
 		x += 50;
 		x += ((FlxG.width / 2) * 1);
 		x -= Note.posRest[PlayState.mania];
+		formerPosition.set(x, y);
 	}
 
 	override function update(elapsed:Float) {

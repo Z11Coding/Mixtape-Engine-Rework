@@ -189,7 +189,6 @@ class Main extends Sprite
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());
-		Lib.current.addChild(new games.uno.backend.logs.UnoTurnSummary());
 		//Lib.current.addChild(new objects.Nightlight());
 
 		// trace("Words loaded: " + backend.MusicBeatState.words);
