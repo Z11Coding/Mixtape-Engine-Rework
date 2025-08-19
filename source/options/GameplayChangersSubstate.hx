@@ -73,7 +73,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
 		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
 		if (!APEntryState.inArchipelagoMode){
-		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", 'Sequential', 'Mirror', 'Skip',  "Amalgam"]));
+		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", "UNO", "Amalgam"]));
 		var option:GameplayOption = new GameplayOption('Convert Mania', 'convertMania', INT, 3);
 		option.scrollSpeed = 2.5;
 		option.minValue = Note.minMania;

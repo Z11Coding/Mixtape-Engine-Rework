@@ -1148,6 +1148,11 @@ class Note extends NoteObject
 		}
 
 		super.draw();
+		
+		// Draw UNO card elements if this is a UNO note
+		if (extraData != null && extraData.exists("unoCard")) {
+			drawUnoCard();
+		}
 	}
 
 	override function update(elapsed:Float)
@@ -1172,6 +1177,9 @@ class Note extends NoteObject
 					alpha = field.strumNotes[column].alpha;
 			}
 		} catch(e) {}
+		
+		// Handle UNO +2/+4 note animations
+		updateUnoAnimations(elapsed);
 	}
 
 	override public function destroy()
@@ -1383,5 +1391,225 @@ class Note extends NoteObject
 			centerOrigin();
 			centerOffsets();
 		}
+	}
+	
+	/**
+	 * Handle UNO +2/+4 note animations
+	 */
+	private function updateUnoAnimations(elapsed:Float):Void {
+		if (extraData == null) return;
+		
+		var isSecondaryPlusCard:Bool = cast extraData.get("isSecondaryPlusCard");
+		if (isSecondaryPlusCard != true) return;
+		
+		var originalX:Dynamic = extraData.get("originalX");
+		var targetColumn:Dynamic = extraData.get("targetColumn");
+		var hasStartedTween:Bool = cast extraData.get("hasStartedTween");
+		
+		if (originalX != null && targetColumn != null && field != null) {
+			var originalXFloat:Float = cast originalX;
+			var targetColumnInt:Int = cast targetColumn;
+			
+			// Check if close enough to strum to start animation
+			var strumY = field.strumNotes[0].y;
+			var distanceToStrum = Math.abs(y - strumY);
+			
+			// Start tween when note is close to strum (within 200 pixels)
+			if (distanceToStrum < 200 && hasStartedTween != true) {
+				extraData.set("hasStartedTween", true);
+				
+				// Calculate target X position
+				var targetX = field.strumNotes[targetColumnInt].x;
+				
+				// Start from original position
+				x = originalXFloat;
+				
+				// Create tween to target position
+				flixel.tweens.FlxTween.tween(this, {x: targetX, angle: 360}, 0.5, {
+					ease: flixel.tweens.FlxEase.circOut,
+					onComplete: function(tween:flixel.tweens.FlxTween) {
+						angle = 0; // Reset angle after tween
+					}
+				});
+			}
+		}
+	}
+	
+	/**
+	 * Draw UNO card visual elements on the note
+	 */
+	private function drawUnoCard():Void {
+		if (extraData == null) return;
+		
+		var displayText:String = cast extraData.get("unoDisplayText");
+		var colorHexDynamic:Dynamic = extraData.get("unoColorHex");
+		var isWrongCard:Bool = cast extraData.get("isWrongCard");
+		var isSkipCard:Bool = cast extraData.get("isSkipCard");
+		var isPlusCard:Bool = cast extraData.get("isPlusCard");
+		var unoType:String = cast extraData.get("unoType");
+		
+		if (displayText == null) return;
+		
+		// Only draw on visible notes
+		if (!visible || alpha <= 0) return;
+		
+		// Set note's RGB color based on UNO card color (affects the note's red channel)
+		if (colorHexDynamic != null && rgbShader != null) {
+			var colorHex:Int = cast colorHexDynamic;
+			rgbShader.r = colorHex;
+		}
+		
+        // Create text display for the UNO card (always white unless wild)
+        var cardText = new flixel.text.FlxText(x + width * 0.25, y + height * 0.25, width * 0.5, displayText);
+        cardText.setFormat(null, 16, 0xFFFFFFFF, CENTER);
+        cardText.setBorderStyle(OUTLINE, 0xFF000000, 2);        // Special handling for different card types
+        if (isSkipCard == true) {
+            // Draw skip icon manually instead of emoji
+            drawSkipIcon();
+        } else if (unoType == "Reverse") {
+            // Draw reverse arrows manually
+            drawReverseIcon();
+        } else if (unoType == "Wild" || unoType == "WildDrawFour") {
+            // Wild cards get colorful text
+            cardText.color = colorHexDynamic != null ? cast(colorHexDynamic, Int) : 0xFFFFFFFF;
+            // Draw the text for wild cards
+            cardText.alpha = alpha;
+            cardText.draw();
+        } else {
+            // All other cards (numbers, +2) have white text
+            cardText.color = 0xFFFFFFFF;
+            
+            // Special styling for wrong cards
+            if (isWrongCard == true) {
+                // Wrong cards get red outline instead of red text
+                cardText.setBorderStyle(OUTLINE, 0xFFFF0000, 3);
+            }
+            
+            if (isPlusCard == true) {
+                // Add yellow glow effect for plus cards
+                cardText.setBorderStyle(OUTLINE, 0xFFFFFF00, 3);
+            }
+            
+            // Draw the text for regular cards
+            cardText.alpha = alpha;
+            cardText.draw();
+        }
+        
+        if (cardText != null) {
+            cardText.destroy();
+        }
+    }
+	
+	/**
+	 * Manually draw a skip icon (circle with diagonal line)
+	 */
+	private function drawSkipIcon():Void {
+		// Create a sprite for the skip icon
+		var skipGraphic = new flixel.FlxSprite(x + width * 0.2, y + height * 0.2);
+		skipGraphic.makeGraphic(Std.int(width * 0.6), Std.int(height * 0.6), 0x00000000);
+		
+		// Get the graphics context
+		var graphics = skipGraphic.pixels;
+		if (graphics != null) {
+			graphics.lock();
+			
+			// Draw circle outline
+			var centerX = Std.int(skipGraphic.width * 0.5);
+			var centerY = Std.int(skipGraphic.height * 0.5);
+			var radius = Std.int(Math.min(skipGraphic.width, skipGraphic.height) * 0.4);
+			
+			// Draw circle (simplified approach)
+			for (angle in 0...360) {
+				var radians = angle * Math.PI / 180;
+				var px = centerX + Std.int(radius * Math.cos(radians));
+				var py = centerY + Std.int(radius * Math.sin(radians));
+				
+				if (px >= 0 && px < skipGraphic.width && py >= 0 && py < skipGraphic.height) {
+					graphics.setPixel32(px, py, 0xFFFFFFFF);
+				}
+			}
+			
+			// Draw diagonal line through circle
+			var lineThickness = 3;
+			for (i in 0...lineThickness) {
+				for (j in 0...Std.int(skipGraphic.width)) {
+					var lineY = centerY - (j - centerX) + i - 1;
+					if (lineY >= 0 && lineY < skipGraphic.height && j >= 0 && j < Std.int(skipGraphic.width)) {
+						graphics.setPixel32(j, Std.int(lineY), 0xFFFFFFFF);
+					}
+				}
+			}
+			
+			graphics.unlock();
+			skipGraphic.alpha = alpha;
+			skipGraphic.draw();
+		}
+		
+		skipGraphic.destroy();
+	}
+	
+	/**
+	 * Manually draw a reverse icon (circular arrows)
+	 */
+	private function drawReverseIcon():Void {
+		// Create a sprite for the reverse icon
+		var reverseGraphic = new flixel.FlxSprite(x + width * 0.2, y + height * 0.2);
+		reverseGraphic.makeGraphic(Std.int(width * 0.6), Std.int(height * 0.6), 0x00000000);
+		
+		// Get the graphics context
+		var graphics = reverseGraphic.pixels;
+		if (graphics != null) {
+			graphics.lock();
+			
+			var centerX = Std.int(reverseGraphic.width * 0.5);
+			var centerY = Std.int(reverseGraphic.height * 0.5);
+			var radius = Std.int(Math.min(reverseGraphic.width, reverseGraphic.height) * 0.3);
+			
+			// Draw two curved arrows (simplified as circular arcs)
+			for (angle in 45...135) { // Top arc
+				var radians = angle * Math.PI / 180;
+				var px = centerX + Std.int(radius * Math.cos(radians));
+				var py = centerY + Std.int(radius * Math.sin(radians)) - 5;
+				
+				if (px >= 0 && px < reverseGraphic.width && py >= 0 && py < reverseGraphic.height) {
+					graphics.setPixel32(px, py, 0xFFFFFFFF);
+				}
+			}
+			
+			for (angle in 225...315) { // Bottom arc
+				var radians = angle * Math.PI / 180;
+				var px = centerX + Std.int(radius * Math.cos(radians));
+				var py = centerY + Std.int(radius * Math.sin(radians)) + 5;
+				
+				if (px >= 0 && px < reverseGraphic.width && py >= 0 && py < reverseGraphic.height) {
+					graphics.setPixel32(px, py, 0xFFFFFFFF);
+				}
+			}
+			
+			// Add arrow heads (simplified as small lines)
+			// Top arrow head
+			for (i in 0...5) {
+				var px = centerX - radius + i;
+				var py = centerY - 8 + i;
+				if (px >= 0 && px < reverseGraphic.width && py >= 0 && py < reverseGraphic.height) {
+					graphics.setPixel32(px, py, 0xFFFFFFFF);
+				}
+			}
+			
+			// Bottom arrow head
+			for (i in 0...5) {
+				var px = centerX + radius - i;
+				var py = centerY + 8 - i;
+				if (px >= 0 && px < reverseGraphic.width && py >= 0 && py < reverseGraphic.height) {
+					graphics.setPixel32(px, py, 0xFFFFFFFF);
+				}
+			}
+			
+			graphics.unlock();
+			reverseGraphic.alpha = alpha;
+			reverseGraphic.draw();
+		}
+		
+		reverseGraphic.destroy();
 	}
 }

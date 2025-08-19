@@ -41,6 +41,7 @@ import backend.modchart.Modifier;
 import backend.modchart.ModManager;
 import objects.playfields.*;
 import objects.Note.SustainPart;
+import yutautil.UnoMechanic;
 
 import backend.AIPlayer;
 
@@ -464,6 +465,13 @@ class PlayState extends MusicBeatState
 	
 	public var chartModifier:String = 'Normal';
 	public var convertMania:Int = ClientPrefs.getGameplaySetting('convertMania', 3);
+	
+	// UNO mechanic instance for chart modifier
+	var unoMechanic:UnoMechanic;
+	
+	// UNO color indicator sprite
+	var unoColorIndicator:FlxSprite;
+	var currentUnoColor:Int = 0xFFFF0000; // Default red
 	public var opponentmode:Bool = ClientPrefs.getGameplaySetting('opponentplay', false);
 	public var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
 	public var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
@@ -1080,6 +1088,11 @@ class PlayState extends MusicBeatState
 		
 		if (opponentmode) healthBar.leftToRight = true;
 
+		// Create UNO color indicator if using UNO chart modifier
+		if (chartModifier == "UNO") {
+			createUnoColorIndicator();
+		}
+
 		
 
 		iconP1 = new HealthIcon(boyfriend.healthIcon, true);
@@ -1502,6 +1515,59 @@ class PlayState extends MusicBeatState
 		var bCol = if (bf2 != null) FlxColor.fromRGB(bf2.healthColorArray[0], bf2.healthColorArray[1],
 			bf2.healthColorArray[2]) else FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
 
+	}
+
+	public function createUnoColorIndicator() {
+		// Create a circular sprite to show the current UNO color
+		unoColorIndicator = new FlxSprite();
+		unoColorIndicator.makeGraphic(50, 50, currentUnoColor);
+		
+		// Position it to the right of the health bar
+		unoColorIndicator.x = healthBar.x + healthBar.width + 20;
+		unoColorIndicator.y = healthBar.y + (healthBar.height - unoColorIndicator.height) / 2;
+		
+		unoColorIndicator.scrollFactor.set();
+		unoColorIndicator.visible = !ClientPrefs.data.hideHud;
+		unoColorIndicator.alpha = ClientPrefs.data.healthBarAlpha;
+		
+		// Make it circular by drawing a circle
+		makeCircularSprite(unoColorIndicator, 25);
+		
+		uiGroup.add(unoColorIndicator);
+	}
+	
+	private function makeCircularSprite(sprite:FlxSprite, radius:Int):Void {
+		sprite.makeGraphic(radius * 2, radius * 2, 0x00000000); // Transparent background
+		
+		var graphics = sprite.pixels;
+		if (graphics != null) {
+			graphics.lock();
+			
+			var centerX = radius;
+			var centerY = radius;
+			
+			// Draw filled circle
+			for (x in 0...(radius * 2)) {
+				for (y in 0...(radius * 2)) {
+					var dx = x - centerX;
+					var dy = y - centerY;
+					var distance = Math.sqrt(dx * dx + dy * dy);
+					
+					if (distance <= radius) {
+						graphics.setPixel32(x, y, currentUnoColor);
+					}
+				}
+			}
+			
+			graphics.unlock();
+		}
+	}
+	
+	public function updateUnoColorIndicator(newColor:Int):Void {
+		if (unoColorIndicator != null) {
+			currentUnoColor = newColor;
+			makeCircularSprite(unoColorIndicator, 25);
+		}
 	}
 
 	public function addCharacterToList(newCharacter:String, type:Int) {
@@ -3009,6 +3075,14 @@ class PlayState extends MusicBeatState
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
 
+				// UNO Chart Modifier Processing
+				if (chartModifier == "UNO") {
+					if (unoMechanic == null) {
+						unoMechanic = new UnoMechanic();
+					}
+					unoMechanic.processNote(swagNote, mania, spawnTime, gottaHitNote);
+				}
+
 				swagNote.row = Conductor.secsToRow(spawnTime);
 				var rowArray = noteRows[gottaHitNote?0:1];
 				if(rowArray[swagNote.row]==null)
@@ -3058,6 +3132,19 @@ class PlayState extends MusicBeatState
 				{
 					playfield.queue(swagNote); // queues the note to be spawned
 					allNotes.push(swagNote); // just for the sake of convenience
+				}
+
+				// Generate special UNO notes (skip, wrong, +2, +4) 
+				if (chartModifier == "UNO" && unoMechanic != null) {
+					var specialNotes = unoMechanic.generateSpecialNotes(swagNote, mania, allNotes);
+					for (specialNote in specialNotes) {
+						if (playfield != null) {
+							specialNote.field = playfield;
+							specialNote.fieldIndex = swagNote.fieldIndex;
+							playfield.queue(specialNote);
+							allNotes.push(specialNote);
+						}
+					}
 				}
 
 				var spot = 0;
