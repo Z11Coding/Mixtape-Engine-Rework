@@ -42,6 +42,7 @@ class UnoTestState extends MusicBeatState {
     private var waitingForColorChoice:Bool = false;
     private var availableColors:Array<UnoColor>;
     private var colorChoiceGroup:FlxTypedGroup<FlxSprite>;
+    var instructionFade:FlxTween;
 
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
@@ -257,7 +258,7 @@ class UnoTestState extends MusicBeatState {
                         case HARD: "Hard";
                         case EXPERT: "Expert";
                     }
-                    var cpu = new UnoCPU('cpu$i', randomGenericNames[FlxG.random.int(0, 20)], difficulty);
+                    var cpu = new UnoCPU('cpu$i', randomGenericNames[FlxG.random.int(0, randomGenericNames.length)], difficulty);
                     unoGame.addPlayer(cpu);
                 }
                 
@@ -283,6 +284,8 @@ class UnoTestState extends MusicBeatState {
             //trace("Cannot update display: game not started or unoGame is null");
             return;
         }
+
+        Paths.clearUnusedMemory();
         
         try {
             // Update game status
@@ -347,6 +350,7 @@ class UnoTestState extends MusicBeatState {
             var topCard = unoGame.deck.getTopCard();
             if (topCard != null) {
                 topCardSprite = createCardSprite(topCard, FlxG.width * 0.5 - 40, 150);
+                topCardSprite.setGraphicSize(Std.int(topCardSprite.width * 1.5));
                 add(topCardSprite);
             }
         } catch (e:Dynamic) {
@@ -373,11 +377,12 @@ class UnoTestState extends MusicBeatState {
             }
             
             var startX = 50;
-            var y = FlxG.height - 150;
+            var y = FlxG.height - 200;
             var cardOff = 0;
+            var cardOffMult = 60;
             
             for (card in humanPlayer.hand.cards) {
-                var cardSprite = createCardSprite(card, startX + (cardOff * 60), y);
+                var cardSprite = createCardSprite(card, startX + (cardOff * cardOffMult), y);
                 cardOff++;
                 playerHandGroup.add(cardSprite);
             }
@@ -551,7 +556,7 @@ class UnoTestState extends MusicBeatState {
         
         if (!card.canPlayOn(topCard)) {
             FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
-            updateInstructionText("Cannot play that card!");
+            updateInstructionText("Cannot play that card!", true);
             Cursor.cursorMode = Default;
             return;
         }
@@ -567,7 +572,7 @@ class UnoTestState extends MusicBeatState {
             if (success) {
                 selectedCardIndex = -1;
             } else {
-                updateInstructionText("Failed to play card!");
+                updateInstructionText("Failed to play card!", true);
             }
         }
         Cursor.cursorMode = Default;
@@ -758,7 +763,7 @@ class UnoTestState extends MusicBeatState {
                         waitingForColorChoice = false;
                         colorChoiceGroup.clear();
                     } else {
-                        updateInstructionText("Failed to play wild card!");
+                        updateInstructionText("Failed to play wild card!", true);
                     }
                 }
             }
@@ -770,10 +775,13 @@ class UnoTestState extends MusicBeatState {
         Cursor.cursorMode = Default;
     }
     
-    private function updateInstructionText(text:String):Void {
+    private function updateInstructionText(text:String, ?doFade:Bool = false):Void {
         if (instructionText != null) {
             instructionText.text = text;
             trace("Instruction: " + text);
+            instructionFade.cancel();
+            instructionText.alpha = 1;
+            if (doFade) instructionFade = FlxTween.tween(instructionText, {alpha: 0}, 1, {startDelay: 3, ease: FlxEase.quadOut});
         }
     }
     
@@ -929,7 +937,7 @@ class UnoTestState extends MusicBeatState {
                 var currentPlayer = unoGame.turnManager.getCurrentPlayer();
                 if (currentPlayer != null && currentPlayer.isHuman) {
                     if (unoGame.callUno(currentPlayer)) {
-                        updateInstructionText("UNO called!");
+                        updateInstructionText("UNO called!", true);
                         FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
                     }
                 }

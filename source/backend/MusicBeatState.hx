@@ -60,6 +60,7 @@ class MusicBeatState extends FlxState
 	public static var pubCurDecStep:Float = 0;
 	public static var pubCurDecBeat:Float = 0;
 	public static var playErrorSound:Bool = false;
+	public static var allowNuke:Bool = false;
 
 	public function handleFileDrop(file:String)
 	{
@@ -69,6 +70,8 @@ class MusicBeatState extends FlxState
 
 	override public function destroy()
 	{
+		if (allowNuke)
+			Paths.nukeMemory();
 		super.destroy();
 	}
 

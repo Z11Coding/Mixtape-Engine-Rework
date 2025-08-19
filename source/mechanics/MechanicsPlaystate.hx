@@ -339,7 +339,7 @@ class MechanicsPlaystate {
 	{
 		PlayState.instance.noTriggerKarma = true;
 		if (PlayState.instance.health < 0.4)
-			PlayState.instance.health -= 40;
+			PlayState.instance.die();
 		else
 			PlayState.instance.health /= 2;
 		failedDodges++;
@@ -351,7 +351,6 @@ class MechanicsPlaystate {
 	}
     
     public var ghostCursor:FlxSprite;
-	public var mouseCursor:FlxSprite;
 	public var cursorValue:Float = 0;
 	public var cursorTimer:FlxTimer;
 	public var cpuPos:FlxPoint = FlxPoint.get();
@@ -368,7 +367,7 @@ class MechanicsPlaystate {
 
 		cpuPos.set(FlxG.random.float(FlxG.width * 0.2, FlxG.width * 0.8), FlxG.random.float(FlxG.height * 0.2, FlxG.height * 0.8));
 
-		mouseCursor.visible = true;
+		PlayState.instance.mouseCursor.visible = true;
 
 		FlxTween.tween(ghostCursor, {alpha: 0.35}, 0.5, {ease: FlxEase.quadOut});
 
@@ -377,12 +376,12 @@ class MechanicsPlaystate {
 			{
 				var lerpValue:Float = 1 + (FlxG.elapsed * 3.7) * 2.5;
 
-				FlxVelocity.moveTowardsObject(ghostCursor, mouseCursor, 175 * lerpValue, 0);
+				FlxVelocity.moveTowardsObject(ghostCursor, PlayState.instance.mouseCursor, 175 * lerpValue, 0);
 
-				if (FlxMath.distanceBetween(ghostCursor, mouseCursor) < 48)
+				if (FlxMath.distanceBetween(ghostCursor, PlayState.instance.mouseCursor) < 48)
 				{
 					ghostCursor.velocity.set();
-					FlxTween.tween(ghostCursor, {x: mouseCursor.x, y: mouseCursor.y}, 0.25);
+					FlxTween.tween(ghostCursor, {x: PlayState.instance.mouseCursor.x, y: PlayState.instance.mouseCursor.y}, 0.25);
 				}
 				else
 				{
@@ -437,17 +436,17 @@ class MechanicsPlaystate {
 		timeSine += FlxG.elapsed * 2.5;
 		overlapBox.alpha = FlxMath.remapToRange(1 - Math.sin((Math.PI * timeSine)), 0, 1, 0.2, 0.8);
 
-		var lastPosition = mouseCursor.getPosition();
+		var lastPosition = PlayState.instance.mouseCursor.getPosition();
 		if (PlayState.instance?.cpuControlled)
 		{
 			if (Math.abs(Conductor.songPosition - timeNeed) < 1800 && !timeTweenIsActive) // allow a larger range
 			{
 				timeTweenIsActive = true;
-				FlxTween.tween(mouseCursor, {x: timeBlockGroup.x + (overlapBox.width / 2), y: timeBlockGroup.y + (overlapBox.height / 2)}, 0.5, {
+				FlxTween.tween(PlayState.instance.mouseCursor, {x: timeBlockGroup.x + (overlapBox.width / 2), y: timeBlockGroup.y + (overlapBox.height / 2)}, 0.5, {
 					ease: FlxEase.cubeOut,
 					onComplete: function(twn:FlxTween)
 					{
-						FlxTween.tween(mouseCursor, {x: lastPosition.x, y: lastPosition.y}, 0.5, {
+						FlxTween.tween(PlayState.instance.mouseCursor, {x: lastPosition.x, y: lastPosition.y}, 0.5, {
 							ease: FlxEase.cubeOut,
 							onComplete: function(twn:FlxTween)
 							{
@@ -480,6 +479,7 @@ class MechanicsPlaystate {
 				timeBlockGroup.setPosition(CoolUtil.boundTo(Math.round(pos.x - offsetPos.x), 0, FlxG.width - timeBlockGroup.width),
 					CoolUtil.boundTo(Math.round(pos.y - offsetPos.y), 0, FlxG.height - timeBlockGroup.height));
 			}
+
 			if ((FlxG.mouse.justPressed || keyPress) || (PlayState.instance.cpuControlled && Math.abs(Conductor.songPosition - timeNeed) < 1750))
 			{
 				var curTime:Float = Conductor.songPosition - ClientPrefs.data.noteOffset;
@@ -530,13 +530,13 @@ class MechanicsPlaystate {
 		timeBlockGroup = new FlxSpriteGroup(FlxG.random.float(FlxG.width * 0.2, FlxG.width * 0.8), FlxG.random.float(FlxG.height * 0.2, FlxG.height * 0.8));
 		timeBlockGroup.cameras = [PlayState.instance.camOther];
 
-		if (mouseCursor != null)
-			PlayState.instance.remove(mouseCursor);
+		if (PlayState.instance.mouseCursor != null)
+			PlayState.instance.remove(PlayState.instance.mouseCursor);
 
 		PlayState.instance.add(timeBlockGroup);
 
-		if (mouseCursor != null)
-			PlayState.instance.add(mouseCursor);
+		if (PlayState.instance.mouseCursor != null)
+			PlayState.instance.add(PlayState.instance.mouseCursor);
 
 		timeBox = new FlxSprite().makeGraphic(60, 40, FlxColor.BLACK);
 		timeBox.alpha = 0;
@@ -586,7 +586,7 @@ class MechanicsPlaystate {
 		{
 			// dont accidentally trigger it
 			timeBlockGroup.setPosition(9999999, -9999999);
-			PlayState.instance.health -= 500;
+			PlayState.instance.die();
 		}
 		PlayState.instance.noTriggerKarma = false;
 	}
@@ -604,13 +604,13 @@ class MechanicsPlaystate {
 	{
 		moraleActivated = true;
 
-		moraleBar = new Bar(87, 87, 'mechanics/mechanicsmod/ui/moraleBar', function() return moraleLerp, 0, maxMoraleValue);
+		moraleBar = new Bar(87, 187, 'mechanics/mechanicsmod/ui/moraleBar', function() return moraleLerp, 0, maxMoraleValue);
 		moraleBar.scrollFactor.set();
 		moraleBar.cameras = [PlayState.instance.camHUD];
 		moraleBar.antialiasing = ClientPrefs.data.antialiasing;
 		moraleBar.alpha = 0;
 
-		moraleBar.setColors(0xFFFFFFFF, 0xFF8400FF);
+		moraleBar.setColors(FlxColor.fromInt(0xFFFFFFFF), FlxColor.fromInt(0xFF8400FF));
 		PlayState.instance.add(moraleBar);
 
 		FlxTween.tween(moraleBar, {alpha: 1}, 0.5, {ease: FlxEase.quadOut});
@@ -623,8 +623,7 @@ class MechanicsPlaystate {
 		moraleValue = CoolUtil.boundTo(moraleValue, -1, maxMoraleValue);
 		if (moraleValue <= 0)
 		{
-			PlayState.instance.health -= 500;
-			PlayState.instance.doDeathCheck(true);
+			PlayState.instance.die();
 		}
 	}
 

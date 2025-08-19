@@ -15,6 +15,7 @@ import flixel.util.FlxSave;
 import flixel.input.keyboard.FlxKey;
 import lime.utils.Assets;
 import openfl.events.KeyboardEvent;
+import openfl.events.MouseEvent;
 import openfl.filters.BitmapFilter;
 import haxe.Json;
 
@@ -509,6 +510,7 @@ class PlayState extends MusicBeatState
 	public var dodgeText:FlxText;
 	public var lastKill:Int = -1;
 	public var barCursor:FlxSprite;
+	public var mouseCursor:FlxSprite;
 	var shapeTmr:FlxTimer;
 
 	// Skydecay Engine (our good friends)
@@ -557,86 +559,93 @@ class PlayState extends MusicBeatState
 		Language.reloadPhrases();
 		nextReloadAll = false;
 
-		mechanicsMod = new mechanics.MechanicsPlaystate();
+		for (mechanic in MechanicManager.mechanics) {
+			if (mechanic.points > 0) {
+				mechanicsMod = new mechanics.MechanicsPlaystate();
+				break;
+			}
+		}
 
-		mechanicsMod.luckMechanic();
+		if (mechanicsMod != null) {
+			mechanicsMod.luckMechanic();
 
-		mechanicsMod.letterMechanicGroup = new FlxTypedGroup<FlxObject>();
-		add(mechanicsMod.letterMechanicGroup);
+			mechanicsMod.letterMechanicGroup = new FlxTypedGroup<FlxObject>();
+			add(mechanicsMod.letterMechanicGroup);
 
-		var cappedPoints:Float = MechanicManager.mechanics['shape_obst'].points;
+			var cappedPoints:Float = MechanicManager.mechanics['shape_obst'].points;
 
-		if (cappedPoints >= 1000)
-			cappedPoints = 1000;
+			if (cappedPoints >= 1000)
+				cappedPoints = 1000;
 
-		if (cappedPoints > 0)
-		{
-			shapeGroup = new FlxTypedGroup<Shape>();
-			shapeGroup.memberAdded.add(function(s:Shape) // now we dont gotta manually set the camera
+			if (cappedPoints > 0)
 			{
-				s.cameras = [camOther];
-			});
-			add(shapeGroup);
-
-			shapeTmr = new FlxTimer();
-
-			var shapeChance:Array<Float> = [77.35, 44.15, 11.45];
-			var shapeNames:Array<String> = ['square', 'triangle', 'pentagon'];
-			var directionList:Array<FlxDirection> = [LEFT, DOWN, UP, RIGHT];
-
-			var spawnShapes:FlxTimer->Void = function(tmr:Null<FlxTimer>)
-			{
-				for (i in 0...Math.floor(FlxG.random.float(FlxMath.remapToRange(cappedPoints, 1, 20, 2, 8),
-					FlxMath.remapToRange(cappedPoints, 1, 20, 10, 30)) * FlxG.random.float(1, 4.5)))
+				shapeGroup = new FlxTypedGroup<Shape>();
+				shapeGroup.memberAdded.add(function(s:Shape) // now we dont gotta manually set the camera
 				{
-					if (FlxG.random.bool(FlxMath.remapToRange(cappedPoints, 0, 20, 30, 70)))
-					{
-						new FlxTimer().start(FlxG.random.float(0.5, 2), function(shapeTmr:FlxTimer)
-						{
-							var newShape:Shape = new Shape(directionList[FlxG.random.int(0, directionList.length - 1)],
-								shapeNames[FlxG.random.weightedPick(shapeChance)]);
-							newShape.scale.set(0.6, 0.6);
-							newShape.updateHitbox();
-							newShape.antialiasing = ClientPrefs.data.antialiasing;
-							shapeGroup.add(newShape);
-						});
-					}
-				}
-				if (tmr != null)
-					tmr.reset(FlxG.random.float(5, 20));
-			};
-
-			spawnShapes(null);
-
-			shapeTmr.start(FlxG.random.float(5, 10), spawnShapes);
-
-			new FlxTimer().start(5, function(tmr:FlxTimer)
-			{
-				shapeGroup.forEachDead(function(s:Shape)
-				{
-					s.destroy();
-					shapeGroup.remove(s);
+					s.cameras = [camOther];
 				});
-			}, 0);
-		}
+				add(shapeGroup);
 
-		var sortedMechanics:Array<MechanicManager.MechanicData> = [];
+				shapeTmr = new FlxTimer();
 
-		for (key => mechanic in MechanicManager.mechanics)
-		{
-			if (mechanic.points > 0)
-				sortedMechanics.push(mechanic);
-		}
+				var shapeChance:Array<Float> = [77.35, 44.15, 11.45];
+				var shapeNames:Array<String> = ['square', 'triangle', 'pentagon'];
+				var directionList:Array<FlxDirection> = [LEFT, DOWN, UP, RIGHT];
 
-		sortedMechanics.sort(function(_1, _2)
-		{
-			return FlxSort.byValues(FlxSort.ASCENDING, _1.ID, _2.ID);
-		});
+				var spawnShapes:FlxTimer->Void = function(tmr:Null<FlxTimer>)
+				{
+					for (i in 0...Math.floor(FlxG.random.float(FlxMath.remapToRange(cappedPoints, 1, 20, 2, 8),
+						FlxMath.remapToRange(cappedPoints, 1, 20, 10, 30)) * FlxG.random.float(1, 4.5)))
+					{
+						if (FlxG.random.bool(FlxMath.remapToRange(cappedPoints, 0, 20, 30, 70)))
+						{
+							new FlxTimer().start(FlxG.random.float(0.5, 2), function(shapeTmr:FlxTimer)
+							{
+								var newShape:Shape = new Shape(directionList[FlxG.random.int(0, directionList.length - 1)],
+									shapeNames[FlxG.random.weightedPick(shapeChance)]);
+								newShape.scale.set(0.6, 0.6);
+								newShape.updateHitbox();
+								newShape.antialiasing = ClientPrefs.data.antialiasing;
+								shapeGroup.add(newShape);
+							});
+						}
+					}
+					if (tmr != null)
+						tmr.reset(FlxG.random.float(5, 20));
+				};
 
-		for (mechanic in sortedMechanics)
-		{
-			if (mechanic.results != null)
-				mechanicsResult[mechanic.ID] = {name: mechanic.name, value: 0, text: mechanic.results};
+				spawnShapes(null);
+
+				shapeTmr.start(FlxG.random.float(5, 10), spawnShapes);
+
+				new FlxTimer().start(5, function(tmr:FlxTimer)
+				{
+					shapeGroup.forEachDead(function(s:Shape)
+					{
+						s.destroy();
+						shapeGroup.remove(s);
+					});
+				}, 0);
+			}
+
+			var sortedMechanics:Array<MechanicManager.MechanicData> = [];
+
+			for (key => mechanic in MechanicManager.mechanics)
+			{
+				if (mechanic.points > 0)
+					sortedMechanics.push(mechanic);
+			}
+
+			sortedMechanics.sort(function(_1, _2)
+			{
+				return FlxSort.byValues(FlxSort.ASCENDING, _1.ID, _2.ID);
+			});
+
+			for (mechanic in sortedMechanics)
+			{
+				if (mechanic.results != null)
+					mechanicsResult[mechanic.ID] = {name: mechanic.name, value: 0, text: mechanic.results};
+			}
 		}
 
 		startCallback = startCountdown;
@@ -1093,12 +1102,12 @@ class PlayState extends MusicBeatState
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		playfields.cameras = [camHUD];
 		
-		trace("Making New Playfields!");
+		//trace("Making New Playfields!");
 		modManager.playerAmount = 2;
 		for (i in 0...modManager.playerAmount)
 			newPlayfield();
 
-		trace("Making PlayerField!");
+		//trace("Making PlayerField!");
 		playerField = playfields.members[0];
 		if (playerField != null) {
 			playerField.noteField.isEditor = false;
@@ -1107,7 +1116,7 @@ class PlayState extends MusicBeatState
 			playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
 		}
 
-		trace("Making DadField!");
+		//trace("Making DadField!");
 		dadField = playfields.members[1];
 		if (dadField != null) {
 			dadField.noteField.isEditor = false;
@@ -1124,11 +1133,11 @@ class PlayState extends MusicBeatState
 		#end
 		callOnScripts("onPlayfieldCreationPost");
 
-		trace("Adding Playfields!");
+		//trace("Adding Playfields!");
 		add(playfields);
 		add(notefields);
 		add(PlayField.extraStuff);
-		trace("Playfields Created!");
+		//trace("Playfields Created!");
 		////
 
 		if(ClientPrefs.data.timeBarType == 'Song Name')
@@ -1412,9 +1421,9 @@ class PlayState extends MusicBeatState
 		Paths.image('alphabet');
 
 		if (PauseSubState.songName != null)
-			Paths.music(PauseSubState.songName);
+			Paths.music('pauseMusic/${PauseSubState.songName}');
 		else if(Paths.formatToSongPath(ClientPrefs.data.pauseMusic) != 'none')
-			Paths.music(Paths.formatToSongPath(ClientPrefs.data.pauseMusic));
+			Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'));
 
 		resetRPC();
 
@@ -1518,72 +1527,24 @@ class PlayState extends MusicBeatState
 		rank.x = FlxG.width/2 - 590;
 		uiGroup.add(rank);
 
-		if (MechanicManager.mechanics['limit_health'].points > 0)
-		{
-			var formerMaxHealth = cast(MaxHP, Float);
+		if (mechanicsMod != null) {
 
-			maxHealthOffset = FlxG.random.float(0, FlxMath.remapToRange(MechanicManager.mechanics['limit_health'].points, 0, 20, 0, formerMaxHealth / 2));
-
-			if (maxHealthOffset > 1.9)
-				maxHealthOffset = 1.9;
-			healthBarBlock.x = healthBar.x + FlxMath.remapToRange(maxHealthOffset, 0, formerMaxHealth, 0, healthBar.width);
-
-			var time:Float = 15;
-			var changeTime:Void->Void = function()
-			{
-				time = 15;
-				var chanceBool:Bool = false;
-				var chance:Float = FlxMath.remapToRange(MechanicManager.mechanics['limit_health'].points, 1, 20, 90, 10);
-				var chanceDecre:Float = cast(chance, Float);
-
-				while (!chanceBool && time >= 3)
-				{
-					chanceBool = FlxG.random.bool(100 - chance);
-					if (chanceBool)
-						time -= FlxG.random.float(0.5, 1.5);
-					else
-					{
-						time -= FlxG.random.float(0.5, 1.5);
-						chance += chanceDecre / FlxG.random.float(5, 15);
-					}
-				}
-			}
-
-			new FlxTimer().start(20 - time, function(tmr:FlxTimer)
-			{
-				changeTime();
-
-				maxHealthOffset = FlxG.random.float(0, FlxMath.remapToRange(MechanicManager.mechanics['limit_health'].points, 0, 20, 0, formerMaxHealth / 2));
-			}, 0);
-		}
-
-		if (MechanicManager.mechanics['minimum_hp'].points > 0)
-		{
-			var firstNoteTime:Float = 0;
-
-			var idx:Int = 0;
-			while (unspawnNotes[idx].noteType != null && !unspawnNotes[idx].mustPress)
-			{
-				idx++;
-			}
-
-			firstNoteTime = unspawnNotes[idx].strumTime;
-			new FlxTimer().start((firstNoteTime / 1000) + 7.5, function(tmr:FlxTimer)
+			if (MechanicManager.mechanics['limit_health'].points > 0)
 			{
 				var formerMaxHealth = cast(MaxHP, Float);
 
-				minHealthOffset = FlxG.random.float(0, FlxMath.remapToRange(MechanicManager.mechanics['minimum_hp'].points, 0, 20, 0, formerMaxHealth / 4));
+				maxHealthOffset = FlxG.random.float(0, FlxMath.remapToRange(MechanicManager.mechanics['limit_health'].points, 0, 20, 0, formerMaxHealth / 2));
 
-				if (minHealthOffset > 0.9)
-					minHealthOffset = 0.9;
-				minBarBlock.x = (healthBar.x + healthBar.width) - ((minHealthOffset * healthBar.width) / 2);
+				if (maxHealthOffset > 1.9)
+					maxHealthOffset = 1.9;
+				healthBarBlock.x = healthBar.x + FlxMath.remapToRange(maxHealthOffset, 0, formerMaxHealth, 0, healthBar.width);
 
 				var time:Float = 15;
 				var changeTime:Void->Void = function()
 				{
 					time = 15;
 					var chanceBool:Bool = false;
-					var chance:Float = FlxMath.remapToRange(MechanicManager.mechanics['minimum_hp'].points, 1, 20, 90, 10);
+					var chance:Float = FlxMath.remapToRange(MechanicManager.mechanics['limit_health'].points, 1, 20, 90, 10);
 					var chanceDecre:Float = cast(chance, Float);
 
 					while (!chanceBool && time >= 3)
@@ -1603,66 +1564,112 @@ class PlayState extends MusicBeatState
 				{
 					changeTime();
 
-					minHealthOffset = FlxG.random.float(0,
-						FlxMath.remapToRange(MechanicManager.mechanics['minimum_hp'].points, 0, 20, 0, formerMaxHealth / 4));
-					minHealthOffset /= 3;
+					maxHealthOffset = FlxG.random.float(0, FlxMath.remapToRange(MechanicManager.mechanics['limit_health'].points, 0, 20, 0, formerMaxHealth / 2));
 				}, 0);
-			});
-		}
-
-		sleepFog = new FlxSprite().loadGraphic(Paths.image((stageUI == "pixel" ? "pixelUI/" : "mechanics/mechanicsmod/effects/") + "sleepyFog"));
-		sleepFog.scrollFactor.set();
-		sleepFog.antialiasing = ClientPrefs.data.antialiasing;
-		sleepFog.alpha = 0;
-		// sleepFog.blend = ADD;
-		uiGroup.add(sleepFog);
-
-		dodgeFog = new FlxSprite().loadGraphic(Paths.image('mechanics/mechanicsmod/effects/dodgeVignette'));
-		dodgeFog.scrollFactor.set();
-		dodgeFog.antialiasing = ClientPrefs.data.antialiasing;
-		dodgeFog.alpha = 0;
-		uiGroup.add(dodgeFog);
-
-		dodgeText = new FlxText(0, 0, FlxG.width * 0.9, "", 24);
-		dodgeText.text = 'Press ${ClientPrefs.keyBinds['dodge'][0].toString()}${(ClientPrefs.keyBinds['dodge'][1] != NONE ? "or" + ClientPrefs.keyBinds['dodge'][1].toString() : "")} to dodge!';
-		dodgeText.setFormat(Paths.font("vcr.ttf"), 24, 0xFFFFFFFF, CENTER, OUTLINE, 0xFF000000);
-		dodgeText.borderSize = 2.5;
-		dodgeText.antialiasing = ClientPrefs.data.antialiasing;
-		dodgeText.screenCenter(X);
-		dodgeText.y = FlxG.height * 0.8;
-		dodgeText.alpha = 0;
-		uiGroup.add(dodgeText);
-
-		/*if (MechanicManager.mechanics['tictactoe'].points > 0)
-		{
-				ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
-				ticTacToeSpr.cameras = [camOther];
-				add(ticTacToeSpr);
-		}*/
-
-		var mouseList:Array<String> = ['mouse_follower', 'click_time'];
-
-		for (listed in mouseList)
-		{
-			if (MechanicManager.mechanics[listed].points > 0)
-			{
-				mechanicsMod.mouseCursor = new FlxSprite().loadGraphic(Paths.image('cursor/cursor-default'));
-				mechanicsMod.mouseCursor.scrollFactor.set();
-				mechanicsMod.mouseCursor.antialiasing = ClientPrefs.data.antialiasing;
-				mechanicsMod.mouseCursor.alpha = 0;
-				mechanicsMod.mouseCursor.cameras = [camOther];
-				FlxG.mouse.visible = false;
-				new FlxTimer().start(0.5, function(tmr:FlxTimer)
-				{
-					FlxTween.tween(mechanicsMod.mouseCursor, {alpha: 1}, 0.5, {ease: FlxEase.quadOut});
-					uiGroup.add(mechanicsMod.mouseCursor);
-				});
-				break;
 			}
-			else
+
+			if (MechanicManager.mechanics['minimum_hp'].points > 0)
 			{
-				FlxG.mouse.load(new FlxSprite().loadGraphic(Paths.image('cursor/cursor-default')).pixels);
-				break;
+				var firstNoteTime:Float = 0;
+
+				var idx:Int = 0;
+				while (unspawnNotes[idx].noteType != null && !unspawnNotes[idx].mustPress)
+				{
+					idx++;
+				}
+
+				firstNoteTime = unspawnNotes[idx].strumTime;
+				new FlxTimer().start((firstNoteTime / 1000) + 7.5, function(tmr:FlxTimer)
+				{
+					var formerMaxHealth = cast(MaxHP, Float);
+
+					minHealthOffset = FlxG.random.float(0, FlxMath.remapToRange(MechanicManager.mechanics['minimum_hp'].points, 0, 20, 0, formerMaxHealth / 4));
+
+					if (minHealthOffset > 0.9)
+						minHealthOffset = 0.9;
+					minBarBlock.x = (healthBar.x + healthBar.width) - ((minHealthOffset * healthBar.width) / 2);
+
+					var time:Float = 15;
+					var changeTime:Void->Void = function()
+					{
+						time = 15;
+						var chanceBool:Bool = false;
+						var chance:Float = FlxMath.remapToRange(MechanicManager.mechanics['minimum_hp'].points, 1, 20, 90, 10);
+						var chanceDecre:Float = cast(chance, Float);
+
+						while (!chanceBool && time >= 3)
+						{
+							chanceBool = FlxG.random.bool(100 - chance);
+							if (chanceBool)
+								time -= FlxG.random.float(0.5, 1.5);
+							else
+							{
+								time -= FlxG.random.float(0.5, 1.5);
+								chance += chanceDecre / FlxG.random.float(5, 15);
+							}
+						}
+					}
+
+					new FlxTimer().start(20 - time, function(tmr:FlxTimer)
+					{
+						changeTime();
+
+						minHealthOffset = FlxG.random.float(0,
+							FlxMath.remapToRange(MechanicManager.mechanics['minimum_hp'].points, 0, 20, 0, formerMaxHealth / 4));
+						minHealthOffset /= 3;
+					}, 0);
+				});
+			}
+
+			sleepFog = new FlxSprite().loadGraphic(Paths.image((stageUI == "pixel" ? "pixelUI/" : "mechanics/mechanicsmod/effects/") + "sleepyFog"));
+			sleepFog.scrollFactor.set();
+			sleepFog.antialiasing = ClientPrefs.data.antialiasing;
+			sleepFog.alpha = 0;
+			// sleepFog.blend = ADD;
+			uiGroup.add(sleepFog);
+
+			dodgeFog = new FlxSprite().loadGraphic(Paths.image('mechanics/mechanicsmod/effects/dodgeVignette'));
+			dodgeFog.scrollFactor.set();
+			dodgeFog.antialiasing = ClientPrefs.data.antialiasing;
+			dodgeFog.alpha = 0;
+			uiGroup.add(dodgeFog);
+
+			dodgeText = new FlxText(0, 0, FlxG.width * 0.9, "", 24);
+			dodgeText.text = 'Press ${ClientPrefs.keyBinds['dodge'][0].toString()}${(ClientPrefs.keyBinds['dodge'][1] != NONE ? "or" + ClientPrefs.keyBinds['dodge'][1].toString() : "")} to dodge!';
+			dodgeText.setFormat(Paths.font("vcr.ttf"), 24, 0xFFFFFFFF, CENTER, OUTLINE, 0xFF000000);
+			dodgeText.borderSize = 2.5;
+			dodgeText.antialiasing = ClientPrefs.data.antialiasing;
+			dodgeText.screenCenter(X);
+			dodgeText.y = FlxG.height * 0.8;
+			dodgeText.alpha = 0;
+			uiGroup.add(dodgeText);
+
+			/*if (MechanicManager.mechanics['tictactoe'].points > 0)
+			{
+					ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
+					ticTacToeSpr.cameras = [camOther];
+					add(ticTacToeSpr);
+			}*/
+
+			var mouseList:Array<String> = ['mouse_follower', 'click_time'];
+
+			for (listed in mouseList)
+			{
+				if (MechanicManager.mechanics[listed].points > 0)
+				{
+					mouseCursor = new FlxSprite().loadGraphic(Paths.image('cursor/cursor-default'));
+					mouseCursor.scrollFactor.set();
+					mouseCursor.antialiasing = ClientPrefs.data.antialiasing;
+					mouseCursor.alpha = 0;
+					mouseCursor.cameras = [camOther];
+					FlxG.mouse.visible = false;
+					new FlxTimer().start(0.5, function(tmr:FlxTimer)
+					{
+						FlxTween.tween(mouseCursor, {alpha: 1}, 0.5, {ease: FlxEase.quadOut});
+						uiGroup.add(mouseCursor);
+					});
+					break;
+				}
 			}
 		}
 
@@ -2088,7 +2095,7 @@ class PlayState extends MusicBeatState
 
 			if (skipCountdown || startOnTime > 0) skipArrowStartTween = true;
 
-			trace("Starting Countdown!");
+			//trace("Starting Countdown!");
 			canPause = true;
 
 			if (skipCountdown || startOnTime > 0)
@@ -2162,7 +2169,7 @@ class PlayState extends MusicBeatState
 			}
 			moveCameraSection();
 
-			trace("Started Countdown!");
+			//trace("Started Countdown!");
 
 			startTimer = new FlxTimer().start(Conductor.crochet / 1000 / playbackRate, function(tmr:FlxTimer)
 			{
@@ -2570,6 +2577,11 @@ class PlayState extends MusicBeatState
 		if (MechanicManager.mechanics['morale'].points > 0)
 		{
 			mechanicsMod.activateMorale();
+		}
+
+		if (MechanicManager.mechanics['dodging'].points > 0)
+		{
+			mechanicsMod.dodgeWant = FlxG.random.float(6, 18);
 		}
 	}
 	
@@ -3353,6 +3365,7 @@ class PlayState extends MusicBeatState
 						setPos = false;
 						swagNote.noteType = 'Swap Note';
 						swagNote.copyX = false;
+						swagNote.typeOffsetX += 60;
 					}
 				}
 
@@ -3416,8 +3429,10 @@ class PlayState extends MusicBeatState
 						playfield.queue(sustainNote);
 						allNotes.push(sustainNote);
 						var setPos:Bool = true;
-						if (sustainNote.noteType == 'Swap Note')
+						if (sustainNote.noteType == 'Swap Note') {
 							setPos = false;
+							sustainNote.typeOffsetX = swagNote.typeOffsetX;
+						}
 						if (setPos)
 						{
 							var originalSusPos:Float = sustainNote.x;
@@ -3616,35 +3631,38 @@ class PlayState extends MusicBeatState
 		for (field in playfields.members)
 			field.clearStackedNotes();
 
-		if (MechanicManager.mechanics['drain_hp'].points > 0)
-		{
-			new FlxTimer().start(0.1, function(tmr:FlxTimer)
+		if (mechanicsMod != null) {
+
+			if (MechanicManager.mechanics['drain_hp'].points > 0)
 			{
-				if (!paused && !startingSong && !endingSong && health > minHealth + minHealthOffset + 0.1)
+				new FlxTimer().start(0.1, function(tmr:FlxTimer)
 				{
-					if (MechanicManager.mechanics['drain_hp'].points > 0)
+					if (!paused && !startingSong && !endingSong && health > minHealth + minHealthOffset + 0.1)
 					{
-						if (FlxG.random.bool(FlxMath.remapToRange(MechanicManager.mechanics['drain_hp'].points, 0, 20, 0, 75)))
+						if (MechanicManager.mechanics['drain_hp'].points > 0)
 						{
-							noTriggerKarma = true;
-							var loss:Float = FlxMath.remapToRange(0.1, 0, 100, 0, 2);
-							if (mechanicsMod.restoreActivated)
-								lastHealth -= loss;
-							else
-								health -= loss;
+							if (FlxG.random.bool(FlxMath.remapToRange(MechanicManager.mechanics['drain_hp'].points, 0, 20, 0, 75)))
+							{
+								noTriggerKarma = true;
+								var loss:Float = FlxMath.remapToRange(0.1, 0, 100, 0, 2);
+								if (mechanicsMod.restoreActivated)
+									lastHealth -= loss;
+								else
+									health -= loss;
 
-							if (mechanicsResult[8] != null)
-								mechanicsResult[8].value += loss * 10;
+								if (mechanicsResult[8] != null)
+									mechanicsResult[8].value += loss * 10;
 
-							noTriggerKarma = false;
+								noTriggerKarma = false;
+							}
+						}
+						else
+						{
+							tmr.cancel();
 						}
 					}
-					else
-					{
-						tmr.cancel();
-					}
-				}
-			}, 0);
+				}, 0);
+			}
 		}
 		generatedMusic = true;
 	}
@@ -4486,7 +4504,7 @@ class PlayState extends MusicBeatState
 
 	private function generateStrums():Void
 	{
-		trace('GENERATING STRUMS!');
+		//trace('GENERATING STRUMS!');
 		#if ALLOW_DEPRECATION
 		callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
 		#end
@@ -4712,7 +4730,7 @@ class PlayState extends MusicBeatState
 		callOnScripts("onHoldStep", [note, field]);
 		
 		if(field.isPlayer){
-			if (holdsGiveHP && !mechanicsMod.restoreActivated){
+			if (holdsGiveHP && (mechanicsMod != null && !mechanicsMod.restoreActivated)){
 				health += note.hitHealth * healthGain;
 			}
 		}
@@ -5118,116 +5136,142 @@ class PlayState extends MusicBeatState
 				if(!cpuControlled) keysCheck();
 				else playerDance();
 
-				if (MechanicManager.mechanics['burst_note'].points > 0 && mechanicsMod.burstTime != null)
-				{
-					if (mechanicsMod.burstTime.value > mechanicsMod.burstTime.min)
+				if (mechanicsMod != null) {
+					if (MechanicManager.mechanics['burst_note'].points > 0 && mechanicsMod.burstTime != null)
 					{
-						mechanicsMod.burstTime.value = CoolUtil.boundTo(mechanicsMod.burstTime.value - elapsed, mechanicsMod.burstTime.min - 0.1, mechanicsMod.burstTime.max);
-						if (mechanicsMod.allowBurstTween)
+						if (mechanicsMod.burstTime.value > mechanicsMod.burstTime.min)
 						{
-							mechanicsMod.allowBurstTween = false;
+							mechanicsMod.burstTime.value = CoolUtil.boundTo(mechanicsMod.burstTime.value - elapsed, mechanicsMod.burstTime.min - 0.1, mechanicsMod.burstTime.max);
+							if (mechanicsMod.allowBurstTween)
+							{
+								mechanicsMod.allowBurstTween = false;
+								if (healthBarTween != null)
+									healthBarTween.cancel();
+
+								healthBarTween = FlxTween.tween(healthBarShader, {brightness: 0, hue: 0.5}, 1, {ease: FlxEase.cubeOut});
+							}
+						}
+						else
+						{
+							mechanicsMod.allowBurstTween = true;
 							if (healthBarTween != null)
 								healthBarTween.cancel();
 
-							healthBarTween = FlxTween.tween(healthBarShader, {brightness: 0, hue: 0.5}, 1, {ease: FlxEase.cubeOut});
+							healthBarTween = FlxTween.tween(healthBarShader, {brightness: -1, hue: 0}, 1, {ease: FlxEase.cubeOut});
 						}
 					}
-					else
+
+					if (MechanicManager.mechanics['sleep_note'].points > 0)
 					{
-						mechanicsMod.allowBurstTween = true;
-						if (healthBarTween != null)
-							healthBarTween.cancel();
-
-						healthBarTween = FlxTween.tween(healthBarShader, {brightness: -1, hue: 0}, 1, {ease: FlxEase.cubeOut});
-					}
-				}
-
-				if (MechanicManager.mechanics['sleep_note'].points > 0)
-				{
-					if (mechanicsMod.sleepTime != null)
-					{
-						mechanicsMod.sleepTime.lerpValue = FlxMath.lerp(mechanicsMod.sleepTime.lerpValue, mechanicsMod.sleepTime.value, CoolUtil.boundTo(elapsed * 3, 0, 1));
-						sleepFog.alpha = FlxMath.remapToRange(mechanicsMod.sleepTime.lerpValue, 0, mechanicsMod.sleepTime.max, 0, 1);
-						modManager.setValue('drunk-a', FlxMath.remapToRange(mechanicsMod.sleepTime.lerpValue, 0, mechanicsMod.sleepTime.max, 0, 1), 0);
-						modManager.setValue('wave-a', FlxMath.remapToRange(mechanicsMod.sleepTime.lerpValue, 0, mechanicsMod.sleepTime.max, 0, 1), 0);
-					}
-				}
-
-				if (MechanicManager.mechanics['limit_health'].points > 0)
-				{
-					healthBarBlock.x = FlxMath.lerp(healthBarBlock.x, healthBar.x + FlxMath.remapToRange(maxHealthOffset, 0, MaxHP, 0, healthBar.width),
-						CoolUtil.boundTo(elapsed * 3.7, 0, 1));
-				}
-
-				if (MechanicManager.mechanics['minimum_hp'].points > 0)
-				{
-					minBarBlock.x = FlxMath.lerp(minBarBlock.x, (healthBar.x + healthBar.width) - ((minHealthOffset * healthBar.width) / 2),
-						CoolUtil.boundTo(elapsed * 3.7, 0, 1));
-				}
-
-				if (MechanicManager.mechanics['mouse_follower'].points > 0)
-				{
-					if (mechanicsMod.mouseCursor != null)
-					{
-						if (cpuControlled)
+						if (mechanicsMod.sleepTime != null)
 						{
-							mechanicsMod.mouseCursor.x = FlxMath.lerp(mechanicsMod.mouseCursor.x, mechanicsMod.cpuPos.x, CoolUtil.boundTo(elapsed * 4.65, 0, 1));
-							mechanicsMod.mouseCursor.y = FlxMath.lerp(mechanicsMod.mouseCursor.y, mechanicsMod.cpuPos.y, CoolUtil.boundTo(elapsed * 4.65, 0, 1));
+							mechanicsMod.sleepTime.lerpValue = FlxMath.lerp(mechanicsMod.sleepTime.lerpValue, mechanicsMod.sleepTime.value, CoolUtil.boundTo(elapsed * 3, 0, 1));
+							sleepFog.alpha = FlxMath.remapToRange(mechanicsMod.sleepTime.lerpValue, 0, mechanicsMod.sleepTime.max, 0, 1);
+							modManager.setValue('drunk-a', FlxMath.remapToRange(mechanicsMod.sleepTime.lerpValue, 0, mechanicsMod.sleepTime.max, 0, 1), 0);
+							modManager.setValue('wave-a', FlxMath.remapToRange(mechanicsMod.sleepTime.lerpValue, 0, mechanicsMod.sleepTime.max, 0, 1), 0);
+						}
+					}
+
+					if (MechanicManager.mechanics['dodging'].points > 0)
+					{
+						if (mechanicsMod.dodgeInput)
+						{
+							if (cpuControlled || controls.justPressed('dodge'))
+							{
+								mechanicsMod.dodged = true;
+								for (tmr in mechanicsMod.dodgeTimers)
+								{
+									tmr.onComplete(tmr);
+								}
+								dodgeFog.alpha = 0;
+							}
 						}
 						else
 						{
-							mechanicsMod.mouseCursor.x = FlxG.mouse.getScreenPosition(camOther).x;
-							mechanicsMod.mouseCursor.y = FlxG.mouse.getScreenPosition(camOther).y;
+							mechanicsMod.dodgeTimer += elapsed;
+							if (Conductor.songPosition >= 0 && (mechanicsMod.canDodge = (mechanicsMod.dodgeTimer >= mechanicsMod.dodgeWant)))
+							{
+								mechanicsMod.doDodge();
+							}
 						}
 					}
 
-					if (mechanicsMod.mouseCursor != null && mechanicsMod.ghostCursor != null)
+					if (MechanicManager.mechanics['limit_health'].points > 0)
 					{
-						if (FlxG.overlap(mechanicsMod.mouseCursor, mechanicsMod.ghostCursor))
+						healthBarBlock.x = FlxMath.lerp(healthBarBlock.x, healthBar.x + FlxMath.remapToRange(maxHealthOffset, 0, MaxHP, 0, healthBar.width),
+							CoolUtil.boundTo(elapsed * 3.7, 0, 1));
+					}
+
+					if (MechanicManager.mechanics['minimum_hp'].points > 0)
+					{
+						minBarBlock.x = FlxMath.lerp(minBarBlock.x, (healthBar.x + healthBar.width) - ((minHealthOffset * healthBar.width) / 2),
+							CoolUtil.boundTo(elapsed * 3.7, 0, 1));
+					}
+
+					if (MechanicManager.mechanics['mouse_follower'].points > 0)
+					{
+						if (mouseCursor != null)
 						{
 							if (cpuControlled)
 							{
-								mechanicsMod.cpuPos.x = FlxG.random.float(0, FlxG.width);
-								mechanicsMod.cpuPos.y = FlxG.random.float(0, FlxG.height);
+								mouseCursor.x = FlxMath.lerp(mouseCursor.x, mechanicsMod.cpuPos.x, CoolUtil.boundTo(elapsed * 4.65, 0, 1));
+								mouseCursor.y = FlxMath.lerp(mouseCursor.y, mechanicsMod.cpuPos.y, CoolUtil.boundTo(elapsed * 4.65, 0, 1));
 							}
-							mechanicsMod.cursorValue += elapsed;
+							else
+							{
+								mouseCursor.x = FlxG.mouse.getScreenPosition(camOther).x;
+								mouseCursor.y = FlxG.mouse.getScreenPosition(camOther).y;
+							}
 						}
-						else
-							mechanicsMod.cursorValue -= elapsed;
+
+						if (mouseCursor != null && mechanicsMod.ghostCursor != null)
+						{
+							if (FlxG.overlap(mouseCursor, mechanicsMod.ghostCursor))
+							{
+								if (cpuControlled)
+								{
+									mechanicsMod.cpuPos.x = FlxG.random.float(0, FlxG.width);
+									mechanicsMod.cpuPos.y = FlxG.random.float(0, FlxG.height);
+								}
+								mechanicsMod.cursorValue += elapsed;
+							}
+							else
+								mechanicsMod.cursorValue -= elapsed;
+						}
+
+						mechanicsMod.cursorValue = FlxMath.bound(mechanicsMod.cursorValue, 0, 3);
+
+						noTriggerKarma = true;
+						if (mechanicsMod.cursorValue >= 2.75)
+							die();
+						noTriggerKarma = false;
+
+						barCursor.alpha = FlxMath.remapToRange(mechanicsMod.cursorValue, 0, 2, 0, 1);
 					}
-
-					mechanicsMod.cursorValue = FlxMath.bound(mechanicsMod.cursorValue, 0, 3);
-
-					noTriggerKarma = true;
-					if (mechanicsMod.cursorValue >= 2.75)
-						health -= 40;
-					noTriggerKarma = false;
-
-					barCursor.alpha = FlxMath.remapToRange(mechanicsMod.cursorValue, 0, 2, 0, 1);
-				}
-				else
-				{
-					if (mechanicsMod.mouseCursor != null)
+					else
 					{
-						mechanicsMod.mouseCursor.x = FlxG.mouse.getScreenPosition(camOther).x;
-						mechanicsMod.mouseCursor.y = FlxG.mouse.getScreenPosition(camOther).y;
+						if (mouseCursor != null)
+						{
+							mouseCursor.x = FlxG.mouse.getScreenPosition(camOther).x;
+							mouseCursor.y = FlxG.mouse.getScreenPosition(camOther).y;
+						}
 					}
-				}
 
-				if (MechanicManager.mechanics['click_time'].points > 0)
-				{
-					mechanicsMod.updateTimeMechanic();
-				}
+					if (MechanicManager.mechanics['click_time'].points > 0)
+					{
+						mechanicsMod.updateTimeMechanic();
+					}
 
-				if (mechanicsMod.moraleActivated)
-				{
 					if (mechanicsMod.moraleActivated)
-						mechanicsMod.updateMorale();
-				}
+					{
+						if (mechanicsMod.moraleActivated)
+							mechanicsMod.updateMorale();
+					}
 
-				if (MechanicManager.mechanics['letter_placement'].points > 0)
-				{
-					mechanicsMod.updateLetterMechanic();
+					if (MechanicManager.mechanics['letter_placement'].points > 0)
+					{
+						mechanicsMod.updateLetterMechanic();
+					}
 				}
 			}
 
@@ -5255,7 +5299,7 @@ class PlayState extends MusicBeatState
 					var points:Int = MechanicManager.mechanics['flashlight'].points;
 					if (points > 0)
 					{
-						modManager.setValue('sudden-a', FlxMath.remapToRange(points, 0, 20, 0.1, 1))
+						modManager.setValue('sudden-a', FlxMath.remapToRange(points, 0, 20, 0.1, 1));
 					}
 				}
 
@@ -7364,8 +7408,10 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (note.mustPress)
-			mechanicsMod.changeMorale(daRating.moraleFactor);
+		if (mechanicsMod != null) {
+			if (note.mustPress)
+				mechanicsMod.changeMorale(daRating.moraleFactor);
+		}
 
 		var uiFolder:String = "";
 		var antialias:Bool = ClientPrefs.data.antialiasing;
@@ -7889,63 +7935,63 @@ class PlayState extends MusicBeatState
 		onMouseRelease(-5);
 	}
 
-	private function onMousePress(key:Int):Void
-	{
+	private function onMousePress(key:Int):Void {
 		var keyDirection:Int = getMouseFromEvent(key);
 
 		if (AprilFools.allowAF && reverseNoteRules) {
 			if (keyDirection != -1) strumKeyUp(keyDirection);
 		} else {
-		if (ClientPrefs.data.inputSystem == "Native-old") {
-			if (!controls.controllerMode)
-			{
-				if (paused || !startedCountdown || inCutscene) return;
-				if (keyDirection != -1) strumKeyDown(keyDirection);
-			}
-		}
-		else {
-			if (paused || !startedCountdown || inCutscene) return;
-			if (callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
-	
-			if (keyDirection > -1)
-			{
-				var hitNotes:Array<Note> = [];
-				var controlledFields:Array<PlayField> = [];
-	
-				if (strumsBlocked[keyDirection]) return;
-				if (callOnScripts("onKeyPress", [keyDirection]) == LuaUtils.Function_Stop) return;	
-				for (field in playfields.members)
+			if (ClientPrefs.data.inputSystem == "Native-old") {
+				if (!controls.controllerMode)
 				{
-					if (!field.autoPlayed && field.isPlayer && field.inControl)
-					{
-						controlledFields.push(field);
-						field.keysPressed[keyDirection] = true;
-						if (generatedMusic && !endingSong)
-						{
-							var note:Note = null;
-							var ret:Dynamic = callOnScripts("onFieldInput", [field, keyDirection, hitNotes]);
-							if (ret == LuaUtils.Function_Stop) continue;
-							else if ((ret.objType == NOTE)) note = ret;
-							else note = field.input(key);
-	
-							if (note == null)
-							{
-								var spr:StrumNote = field.strumNotes[keyDirection];
-								if (spr != null && spr.animation.curAnim.name != 'confirm')
-								{
-									spr.playAnim('pressed');
-									spr.resetAnim = 0;
-								}
-							}
-							else hitNotes.push(note);
-						}
-					}
-					if (hitNotes.length == 0 && controlledFields.length > 0)
-					{
-						callOnScripts('onGhostTap', [keyDirection]);
+					if (paused || !startedCountdown || inCutscene) return;
+					if (keyDirection != -1) strumKeyDown(keyDirection);
+				}
+			}
+			else {
+				if (paused || !startedCountdown || inCutscene) return;
+				if (callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
 		
-						if (!ClientPrefs.data.ghostTapping)
-							noteMissPress(keyDirection, field);
+				if (keyDirection > -1)
+				{
+					var hitNotes:Array<Note> = [];
+					var controlledFields:Array<PlayField> = [];
+		
+					if (strumsBlocked[keyDirection]) return;
+					if (callOnScripts("onKeyPress", [keyDirection]) == LuaUtils.Function_Stop) return;	
+					for (field in playfields.members)
+					{
+						if (!field.autoPlayed && field.isPlayer && field.inControl)
+						{
+							controlledFields.push(field);
+							field.keysPressed[keyDirection] = true;
+							if (generatedMusic && !endingSong)
+							{
+								var note:Note = null;
+								var ret:Dynamic = callOnScripts("onFieldInput", [field, keyDirection, hitNotes]);
+								if (ret == LuaUtils.Function_Stop) continue;
+								else if ((ret.objType == NOTE)) note = ret;
+								else note = field.input(key);
+		
+								if (note == null)
+								{
+									var spr:StrumNote = field.strumNotes[keyDirection];
+									if (spr != null && spr.animation.curAnim.name != 'confirm')
+									{
+										spr.playAnim('pressed');
+										spr.resetAnim = 0;
+									}
+								}
+								else hitNotes.push(note);
+							}
+						}
+						if (hitNotes.length == 0 && controlledFields.length > 0)
+						{
+							callOnScripts('onGhostTap', [keyDirection]);
+			
+							if (!ClientPrefs.data.ghostTapping)
+								noteMissPress(keyDirection, field);
+						}
 					}
 				}
 			}
@@ -7957,32 +8003,32 @@ class PlayState extends MusicBeatState
 		var direction:Int = getMouseFromEvent(key);
 		if (AprilFools.allowAF && reverseNoteRules) {
 			if (paused || !startedCountdown || inCutscene) return;
-			if (callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
+			if (callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
 	
-			if (keyDirection > -1)
+			if (direction > -1)
 			{
 				var hitNotes:Array<Note> = [];
 				var controlledFields:Array<PlayField> = [];
 	
-				if (strumsBlocked[keyDirection]) return;
-				if (callOnScripts("onKeyPress", [keyDirection]) == LuaUtils.Function_Stop) return;	
+				if (strumsBlocked[direction]) return;
+				if (callOnScripts("onKeyPress", [direction]) == LuaUtils.Function_Stop) return;	
 				for (field in playfields.members)
 				{
 					if (!field.autoPlayed && field.isPlayer && field.inControl)
 					{
 						controlledFields.push(field);
-						field.keysPressed[keyDirection] = true;
+						field.keysPressed[direction] = true;
 						if (generatedMusic && !endingSong)
 						{
 							var note:Note = null;
-							var ret:Dynamic = callOnScripts("onFieldInput", [field, keyDirection, hitNotes]);
+							var ret:Dynamic = callOnScripts("onFieldInput", [field, direction, hitNotes]);
 							if (ret == LuaUtils.Function_Stop) continue;
 							else if ((ret.objType == NOTE)) note = ret;
 							else note = field.input(key);
 	
 							if (note == null)
 							{
-								var spr:StrumNote = field.strumNotes[keyDirection];
+								var spr:StrumNote = field.strumNotes[direction];
 								if (spr != null && spr.animation.curAnim.name != 'confirm')
 								{
 									spr.playAnim('pressed');
@@ -7994,15 +8040,15 @@ class PlayState extends MusicBeatState
 					}
 					if (hitNotes.length == 0 && controlledFields.length > 0)
 					{
-						callOnScripts('onGhostTap', [keyDirection]);
+						callOnScripts('onGhostTap', [direction]);
 		
 						if (!ClientPrefs.data.ghostTapping)
-							noteMissPress(keyDirection, field);
+							noteMissPress(direction, field);
 					}
 				}
 			}
 		} else {
-			if (keyDirection != -1) strumKeyUp(keyDirection);
+			if (direction != -1) strumKeyUp(direction);
 		}
 		// trace('released: ' + controlArray);
 	}
@@ -8499,7 +8545,7 @@ class PlayState extends MusicBeatState
 				if (note.isSustainNote)
 					lossHealth /= 5;
 				noTriggerKarma = true;
-				if (mechanicsMod.restoreActivated)
+				if (mechanicsMod != null && mechanicsMod.restoreActivated)
 					lastHealth = Math.max(health - lossHealth, minHealth + minHealthOffset + 0.1);
 				else
 					health = Math.max(health - lossHealth, minHealth + minHealthOffset + 0.1);
@@ -8621,7 +8667,7 @@ class PlayState extends MusicBeatState
 					mashViolations = 0;
 			}
 			var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
-			if (guitarHeroSustains && note.isSustainNote || mechanicsMod.restoreActivated) gainHealth = false;
+			if (guitarHeroSustains && note.isSustainNote || (mechanicsMod != null && mechanicsMod.restoreActivated)) gainHealth = false;
 			if (gainHealth){
 				switch (curHealthMode) {
 					case "Kade":
@@ -8672,20 +8718,22 @@ class PlayState extends MusicBeatState
 				}
 			} 
 
-			switch (note.noteType)
-			{
-				case 'Kill Note':
-					noTriggerKarma = true;
-					die();
-					COD.setCOD(null, 'Hit a Kill Note.');
-					noTriggerKarma = false;
-					FlxG.sound.play(Paths.sound('explosion'));
+			if (mechanicsMod != null) {
+				switch (note.noteType)
+				{
+					case 'Kill Note':
+						noTriggerKarma = true;
+						die();
+						COD.setCOD(null, 'Hit a Kill Note.');
+						noTriggerKarma = false;
+						FlxG.sound.play(Paths.sound('explosion'));
 
-					if (mechanicsResult[1] != null)
-						mechanicsResult[1].value += 20;
-				case 'Restore Note':
-					if (mechanicsMod.restoreActivated)
-						mechanicsMod.restoreNoteHit();
+						if (mechanicsResult[1] != null)
+							mechanicsResult[1].value += 20;
+					case 'Restore Note':
+						if (mechanicsMod.restoreActivated)
+							mechanicsMod.restoreNoteHit();
+				}
 			}
 
 		}
@@ -8731,12 +8779,15 @@ class PlayState extends MusicBeatState
 			//if(!note.noteSplashData.disabled && !note.isSustainNote) note.field.spawnNoteSplashOnNote(note);
 		}
 
-		if (MechanicManager.mechanics['burst_note'].points == 0 || (mechanicsMod.burstTime == null || mechanicsMod.burstTime.value < mechanicsMod.burstTime.min))
-		{
-			if (!mechanicsMod.restoreActivated)
-				health += note.hitHealth * healthGain;
-			else
-				lastHealth += note.hitHealth * healthGain;
+		if (mechanicsMod != null) {
+
+			if (MechanicManager.mechanics['burst_note'].points == 0 || (mechanicsMod.burstTime == null || mechanicsMod.burstTime.value < mechanicsMod.burstTime.min))
+			{
+				if (!mechanicsMod.restoreActivated)
+					health += note.hitHealth * healthGain;
+				else
+					lastHealth += note.hitHealth * healthGain;
+			}
 		}
 
 		bfkilledcheck = false;
@@ -8835,7 +8886,7 @@ class PlayState extends MusicBeatState
 		}
 		#end
 
-		luckMechanicDestroy();
+		if (mechanicsMod != null) mechanicsMod.luckMechanicDestroy();
 
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
@@ -8853,6 +8904,7 @@ class PlayState extends MusicBeatState
 		NoteSplash.configs.clear();
 		mania = 3;
 		// yutautil.MemoryHelper.freeMemory(this);
+		mechanicsMod = null;
 		instance = null;
 		variables = null;
 		keysArray = null;
@@ -8984,43 +9036,46 @@ class PlayState extends MusicBeatState
 		super.beatHit();
 		lastBeatHit = curBeat;
 
-		if (curBeat % 4 == 0)
-		{
-			if (generatedMusic && PlayState.SONG.notes[Std.int(curBeat / 4)] != null && !endingSong)
+		if (mechanicsMod != null) {
+			if (curBeat % 4 == 0)
 			{
-				if (MechanicManager.mechanics['restore_note'].points > 0)
+				if (generatedMusic && PlayState.SONG.notes[Std.int(curBeat / 4)] != null && !endingSong)
 				{
-					if (FlxG.random.bool(FlxMath.remapToRange(MechanicManager.mechanics['restore_note'].points, 0, 20, 0, 10)))
+					if (MechanicManager.mechanics['restore_note'].points > 0)
 					{
-						mechanicsMod.restoreNote();
-						// trace('we\'re gonna check donations to see who activated the great reset');
+						if (FlxG.random.bool(FlxMath.remapToRange(MechanicManager.mechanics['restore_note'].points, 0, 20, 0, 10)))
+						{
+							mechanicsMod.restoreNote();
+							// trace('we\'re gonna check donations to see who activated the great reset');
+						}
 					}
-				}
 
-				mechanicsMod.letterMechanic();
+					mechanicsMod.letterMechanic();
+				}
 			}
-		}
 
-		if (MechanicManager.mechanics['strum_swap'].points > 0)
-		{
-			if (generatedMusic && PlayState.SONG.notes[Math.floor(curBeat / 4)] != null && !endingSong)
+
+			if (MechanicManager.mechanics['strum_swap'].points > 0)
 			{
-				if (mechanicsMod.wasSwapped && curBeat % 4 == 0)
+				if (generatedMusic && PlayState.SONG.notes[Math.floor(curBeat / 4)] != null && !endingSong)
 				{
-					mechanicsMod.swapCooldown--;
-					if (mechanicsMod.swapCooldown < 0)
-						mechanicsMod.swapCooldown = 0;
-				}
-
-				if (moveStrumSections[Math.floor(curBeat / 4)] != null && curBeat % 4 == 0)
-				{
-					if (moveStrumSections[Math.floor(curBeat / 4)] == true)
+					if (mechanicsMod.wasSwapped && curBeat % 4 == 0)
 					{
-						mechanicsMod.swapStrums();
+						mechanicsMod.swapCooldown--;
+						if (mechanicsMod.swapCooldown < 0)
+							mechanicsMod.swapCooldown = 0;
 					}
-					else if (mechanicsMod.swapCooldown == 0 && mechanicsMod.wasSwapped)
+
+					if (moveStrumSections[Math.floor(curBeat / 4)] != null && curBeat % 4 == 0)
 					{
-						mechanicsMod.swapStrums();
+						if (moveStrumSections[Math.floor(curBeat / 4)] == true)
+						{
+							mechanicsMod.swapStrums();
+						}
+						else if (mechanicsMod.swapCooldown == 0 && mechanicsMod.wasSwapped)
+						{
+							mechanicsMod.swapStrums();
+						}
 					}
 				}
 			}
@@ -9137,7 +9192,7 @@ class PlayState extends MusicBeatState
 			if (newScript.exists('onLoad')) {
 				newScript.call('onLoad');
 			}
-			trace('initialized hscript interp successfully: $file');
+			//trace('initialized hscript interp successfully: $file');
 			hscriptArray.push(newScript);
 		}
 		catch(e:IrisError)

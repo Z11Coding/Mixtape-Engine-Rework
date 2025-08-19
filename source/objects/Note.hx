@@ -1017,7 +1017,7 @@ class Note extends NoteObject
 		{
 			var newRGB:RGBPalette = new RGBPalette();
 			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGBExtra[noteData] : ClientPrefs.data.arrowRGBPixelExtra[noteData];
-			trace(arr.length);
+			//trace(arr.length);
 			if (noteData > -1 && noteData <= arr.length) 
 			{
 				newRGB.r = arr[0];

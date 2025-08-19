@@ -82,6 +82,7 @@ class TitleState extends MusicBeatState
 	var candance:Bool = true;
 	override public function create():Void
 	{
+		MusicBeatState.allowNuke = true; // COMMENCE THE MEMORY CLEARAGE
 		// ticker.update(0);
 		trace(ticker.metadata());
 		Paths.clearStoredWithoutStickers();
