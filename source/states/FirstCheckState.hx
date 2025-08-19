@@ -51,6 +51,12 @@ class FirstCheckState extends MusicBeatState
 				NativeAPI.showMessageBox('WHERE IS HE!?!?', "WHERE'S FRED???\nYOU CAN'T COME HERE WITHOUT FRED!", MSG_ERROR);
 				Sys.exit(1);
 			}
+
+			// Initialize crash tracking system early
+			#if !debug
+			yutautil.CrashTrackerHelper.initialize();
+			yutautil.CrashTrackerHelper.logCriticalActivity("FirstCheckState", "new", "Application starting up");
+			#end
 		}
 
 		super.create();

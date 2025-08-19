@@ -11,6 +11,7 @@ class Rating
 	public var score:Int = 400;
 	public var noteSplash:Bool = true;
 	public var hits:Int = 0;
+	public var moraleFactor:Float = 3;
 
 	public function new(name:String)
 	{
@@ -34,24 +35,28 @@ class Rating
 		rating.ratingMod = 0.88;
 		rating.score = 350;
 		rating.noteSplash = true;
+		rating.moraleFactor = 2.75;
 		ratingsData.push(rating);
 
 		var rating:Rating = new Rating('good');
 		rating.ratingMod = 0.67;
 		rating.score = 200;
 		rating.noteSplash = false;
+		rating.moraleFactor = 1.15;
 		ratingsData.push(rating);
 
 		var rating:Rating = new Rating('bad');
 		rating.ratingMod = 0.34;
 		rating.score = 100;
 		rating.noteSplash = false;
+		rating.moraleFactor = Math.sqrt(3);
 		ratingsData.push(rating);
 
 		var rating:Rating = new Rating('shit');
 		rating.ratingMod = 0;
 		rating.score = 50;
 		rating.noteSplash = false;
+		rating.moraleFactor = 0.05;
 		ratingsData.push(rating);
 		return ratingsData;
 	}

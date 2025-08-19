@@ -1,9 +1,9 @@
-package yutautil.games.uno.examples;
+package games.uno.backend.examples;
 
-import yutautil.games.uno.UnoGame;
-import yutautil.games.uno.UnoCard;
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoPlayer;
+import games.uno.backend.UnoGame;
+import games.uno.backend.UnoCard;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoPlayer;
 import flixel.util.FlxColor;
 
 /**

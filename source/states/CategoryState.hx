@@ -268,7 +268,7 @@ class CategoryState extends MusicBeatState
 	function createMenuItem(name:String, x:Float, y:Float):FlxSprite
 	{
 		var menuItem:FlxSprite = new FlxSprite(x, y);
-		menuItem.loadGraphic(Paths.image('mechanics/mechanicsmod/menu/MMod'));
+		menuItem.loadGraphic(Paths.image('mechanicsMenu/MMod'));
 		menuItem.setGraphicSize(Std.int(menuItem.width * 0.5));
 		menuItem.updateHitbox();
 		

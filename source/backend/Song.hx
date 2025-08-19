@@ -131,7 +131,7 @@ class Song
 		if (songJson.mania == null)
 		{
 			songJson.mania = Note.defaultMania;
-			trace("Song mania value is NULL, set to " + Note.defaultMania);
+			//trace("Song mania value is NULL, set to " + Note.defaultMania);
 		}
 
 		if(songJson.events == null)
@@ -203,7 +203,7 @@ class Song
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
 		_lastPath = Paths.json('$formattedFolder/$formattedSong');
 
-		trace(_lastPath);
+		//trace(_lastPath);
 		#if MODS_ALLOWED
 		if(FileSystem.exists(_lastPath))
 			rawData = File.getContent(_lastPath);
@@ -234,7 +234,7 @@ class Song
 				case 'psych_v1':
 					if(!fmt.startsWith('psych_v1')) //Convert to Psych 1.0 format
 					{
-						trace('converting chart $nameForError with format $fmt to psych_v1 format...');
+						//trace('converting chart $nameForError with format $fmt to psych_v1 format...');
 						songJson.format = 'psych_v1_convert';
 						convert(songJson);
 					}
@@ -242,7 +242,7 @@ class Song
 				case 'mixtape_v1':
 					if(!fmt.startsWith('mixtape_v1')) //Convert to Mixtape 1.0 format
 					{
-						trace('converting chart $nameForError with format $fmt to Mixtape_v1 format...');
+						//trace('converting chart $nameForError with format $fmt to Mixtape_v1 format...');
 						songJson.format = 'mixtape_v1_convert';
 						convertMixtape(songJson);
 					}

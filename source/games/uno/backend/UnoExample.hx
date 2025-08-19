@@ -1,11 +1,11 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 import flixel.util.FlxColor;
-import yutautil.games.uno.UnoRules.UnoGameState;
-import yutautil.games.uno.UnoTurnManager.TurnDirection;
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoCard.UnoCardType;
-import yutautil.games.uno.UnoCPU.UnoDifficulty;
+import games.uno.backend.UnoRules.UnoGameState;
+import games.uno.backend.UnoTurnManager.TurnDirection;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCard.UnoCardType;
+import games.uno.backend.UnoCPU.UnoDifficulty;
 
 /**
  * Example usage and testing of the UNO game system

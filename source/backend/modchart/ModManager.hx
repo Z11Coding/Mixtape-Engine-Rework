@@ -141,6 +141,10 @@ class ModManager {
 		for(shit in toAlternate)
 			registerAltNode(shit);
 
+		registerAltNode('drunk');
+		registerAltNode('wave');
+		registerAltNode('sudden');
+
 		isAvailable = true;
 		for (playerNumber => mods in activeMods){
 			setDefaultValues(playerNumber);

@@ -1,6 +1,6 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
-import yutautil.games.uno.UnoTurnManager.TurnDirection;
+import games.uno.backend.UnoTurnManager.TurnDirection;
 
 /**
  * Game state information for UNO game decisions

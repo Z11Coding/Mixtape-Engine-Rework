@@ -38,9 +38,9 @@ class Shape extends FlxSprite
 		}
 
 		if (_fileRef.exists(shape))
-			loadGraphic(Paths.image('shape_${_fileRef.get(shape)}', 'shared'));
+			loadGraphic(Paths.image('mechanics/mechanicsmod/shapes/shape_${_fileRef.get(shape)}'));
 		else
-			loadGraphic(Paths.image('shape_yellow', 'shared'));
+			loadGraphic(Paths.image('mechanics/mechanicsmod/shapes/shape_yellow'));
 
 		switch (spawnFrom)
 		{

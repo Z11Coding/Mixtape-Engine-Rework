@@ -1,4 +1,4 @@
-package states;
+package games.uno;
 
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -11,12 +11,13 @@ import flixel.tweens.FlxEase;
 import flixel.sound.FlxSound;
 import flixel.math.FlxMath;
 import objects.Alphabet;
-import yutautil.games.uno.*;
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoCard.UnoCardType;
-import yutautil.games.uno.UnoCPU.UnoDifficulty;
+import games.uno.backend.*;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCard.UnoCardType;
+import games.uno.backend.UnoCPU.UnoDifficulty;
 import backend.MusicBeatState;
 import states.MainMenuState;
+import openfl.Lib;
 
 /**
  * UNO Test State - A complete UNO game implementation using generated temporary assets
@@ -41,12 +42,39 @@ class UnoTestState extends MusicBeatState {
     private var waitingForColorChoice:Bool = false;
     private var availableColors:Array<UnoColor>;
     private var colorChoiceGroup:FlxTypedGroup<FlxSprite>;
+    var instructionFade:FlxTween;
 
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
+
+    var randomGenericNames:Array<String> = [
+        "Ansley Conner",
+        "Giovanni Duncan",
+        "Levi Carroll",
+        "Rory Winters",
+        "Cory Coleman",
+        "Jennifer Merritt",
+        "Riley Horne",
+        "Anika Gillespie",
+        "Dorothy Barry",
+        "Casen Fields",
+        "Abby Reyna",
+        "Nola Nixon",
+        "Cleo Rivas",
+        "Jennifer Merritt",
+        "Isabela Farmer",
+        "Frankie Holt",
+        "Adley Robinson",
+        "Devon Corona",
+        "Taylor Hanson",
+        "Dario Xiong"
+    ];
     
     override function create() {
         super.create();
+
+        Paths.clearStoredMemory();
+        Paths.clearUnusedMemory();
         
         #if DISCORD_ALLOWED
         DiscordClient.changePresence("Testing UNO", "In UNO Test State");
@@ -72,6 +100,8 @@ class UnoTestState extends MusicBeatState {
 
         idleTimer = new FlxTimer();
         refreshTimer = new FlxTimer();
+
+        Lib.current.addChild(new games.uno.backend.logs.UnoTurnSummary());
     }
     
     private function setupBackground():Void {
@@ -118,7 +148,7 @@ class UnoTestState extends MusicBeatState {
                 customColoroftheRainbow.push(UnoColor.CUSTOM(ClientPrefs.data.arrowRGBExtra[color][0], objects.Note.keysShit.get(17).get('letters')[color]));
             }
             // Create UNO game with standard colors first (simpler initialization)
-            unoGame = new UnoGame(customColoroftheRainbow);
+            unoGame = new UnoGame(); //customColoroftheRainbow
             
             setupGameEvents();
             
@@ -180,8 +210,15 @@ class UnoTestState extends MusicBeatState {
 
         unoGame.afterCardPlayed = (player, card) -> {
             if (card != null) {
-                trace('Updating UI');
+                MemoryUtilBase.compact();
+                MemoryUtilBase.collect(true);
                 updateDisplay();
+                if (!refreshTimer.active) {
+                    refreshTimer.start(1, function(tmr:FlxTimer) {
+                        updateDisplay();
+                        if (refreshTimer != null) refreshTimer.reset();
+                    });
+                }
             }
         };
         
@@ -221,7 +258,7 @@ class UnoTestState extends MusicBeatState {
                         case HARD: "Hard";
                         case EXPERT: "Expert";
                     }
-                    var cpu = new UnoCPU('cpu$i', 'CPU $i ($diffName)', difficulty);
+                    var cpu = new UnoCPU('cpu$i', randomGenericNames[FlxG.random.int(0, randomGenericNames.length)], difficulty);
                     unoGame.addPlayer(cpu);
                 }
                 
@@ -247,6 +284,8 @@ class UnoTestState extends MusicBeatState {
             //trace("Cannot update display: game not started or unoGame is null");
             return;
         }
+
+        Paths.clearUnusedMemory();
         
         try {
             // Update game status
@@ -311,6 +350,7 @@ class UnoTestState extends MusicBeatState {
             var topCard = unoGame.deck.getTopCard();
             if (topCard != null) {
                 topCardSprite = createCardSprite(topCard, FlxG.width * 0.5 - 40, 150);
+                topCardSprite.setGraphicSize(Std.int(topCardSprite.width * 1.5));
                 add(topCardSprite);
             }
         } catch (e:Dynamic) {
@@ -337,11 +377,12 @@ class UnoTestState extends MusicBeatState {
             }
             
             var startX = 50;
-            var y = FlxG.height - 150;
+            var y = FlxG.height - 200;
             var cardOff = 0;
+            var cardOffMult = 60;
             
             for (card in humanPlayer.hand.cards) {
-                var cardSprite = createCardSprite(card, startX + (cardOff * 60), y);
+                var cardSprite = createCardSprite(card, startX + (cardOff * cardOffMult), y);
                 cardOff++;
                 playerHandGroup.add(cardSprite);
             }
@@ -485,8 +526,58 @@ class UnoTestState extends MusicBeatState {
             Cursor.cursorMode = Default;
             return;
         }
+
+        var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+        if (currentPlayer == null || !currentPlayer.isHuman) {
+            trace("Not human player turn");
+            Cursor.cursorMode = Default;
+            return;
+        }
         
-        try {
+        if (cardIndex < 0 || cardIndex >= currentPlayer.hand.cards.length) {
+            trace("Invalid card index: " + cardIndex);
+            Cursor.cursorMode = Default;
+            return;
+        }
+        
+        var card = currentPlayer.hand.cards[cardIndex];
+        if (card == null) {
+            trace("Selected card is null");
+            Cursor.cursorMode = Default;
+            return;
+        }
+        
+        var topCard = unoGame.deck != null ? unoGame.deck.getTopCard() : null;
+        if (topCard == null) {
+            trace("Top card is null");
+            Cursor.cursorMode = Default;
+            return;
+        }
+        
+        if (!card.canPlayOn(topCard)) {
+            FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
+            updateInstructionText("Cannot play that card!", true);
+            Cursor.cursorMode = Default;
+            return;
+        }
+        
+        selectedCardIndex = cardIndex;
+        
+        if (card.isWildCard()) {
+            // Show color choice
+            showColorChoice();
+        } else {
+            // Play the card directly
+            var success = unoGame.playCard(currentPlayer, cardIndex);
+            if (success) {
+                selectedCardIndex = -1;
+            } else {
+                updateInstructionText("Failed to play card!", true);
+            }
+        }
+        Cursor.cursorMode = Default;
+        
+        /*try {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
             if (currentPlayer == null || !currentPlayer.isHuman) {
                 trace("Not human player turn");
@@ -539,7 +630,7 @@ class UnoTestState extends MusicBeatState {
         } catch (e:Dynamic) {
             trace("Error handling card click: " + e);
             updateInstructionText("Error playing card: " + Std.string(e));
-        }
+        }*/
     }
     
     private function showColorChoice():Void {
@@ -547,8 +638,58 @@ class UnoTestState extends MusicBeatState {
             trace("Cannot show color choice: missing game components");
             return;
         }
+
+        waitingForColorChoice = true;
+        colorChoiceGroup.clear();
         
-        try {
+        // Get available colors (standard colors only for simplicity)
+        availableColors = (unoGame.customColors != null && unoGame.customColors.length > 0 ? unoGame.customColors : UnoCard.getStandardColors());
+        
+        // Remove WILD from choosable colors
+        availableColors = availableColors.filter(function(color) return color != WILD);
+        
+        // Create color choice buttons
+        var startX = FlxG.width * 0.5 - (availableColors.length * 30);
+        var y = 300;
+        
+        for (i in 0...availableColors.length) {
+            var colorButton = new FlxSprite(startX + (i * 60), y);
+            var buttonColor = switch(availableColors[i]) {
+                case RED: FlxColor.RED;
+                case BLUE: FlxColor.BLUE;
+                case GREEN: FlxColor.GREEN;
+                case YELLOW: FlxColor.YELLOW;
+                case CUSTOM(color, _): color;
+                case _: FlxColor.WHITE;
+            };
+            colorButton.makeGraphic(50, 50, buttonColor);
+            
+            // Add a border
+            var border = new FlxSprite();
+            border.makeGraphic(46, 46, FlxColor.WHITE);
+            colorButton.stamp(border, 2, 2);
+            
+            // Add color text
+            var colorName = switch(availableColors[i]) {
+                case RED: "RED";
+                case BLUE: "BLUE";
+                case GREEN: "GREEN";
+                case YELLOW: "YELLOW";
+                case CUSTOM(_, name): name != null ? name.substr(0, 6) : "CUSTOM";
+                case _: "?";
+            };
+            
+            var colorText = new FlxText(0, 0, 50, colorName, 8);
+            colorText.setFormat(Paths.font("vcr.ttf"), 8, FlxColor.BLACK, CENTER);
+            colorText.y = 21; // Center vertically
+            colorButton.stamp(colorText, 0, 0);
+            
+            colorChoiceGroup.add(colorButton);
+        }
+        
+        updateInstructionText("Choose a color by clicking on it");
+        
+        /*try {
             waitingForColorChoice = true;
             colorChoiceGroup.clear();
             
@@ -599,9 +740,9 @@ class UnoTestState extends MusicBeatState {
             
             updateInstructionText("Choose a color by clicking on it");
         } catch (e:Dynamic) {
-            trace("Error showing color choice: " + e);
+            trace("Error showing color choice: " + new DetailedException(e));
             waitingForColorChoice = false;
-        }
+        }*/
     }
     
     private function handleColorChoice(colorIndex:Int):Void {
@@ -622,7 +763,7 @@ class UnoTestState extends MusicBeatState {
                         waitingForColorChoice = false;
                         colorChoiceGroup.clear();
                     } else {
-                        updateInstructionText("Failed to play wild card!");
+                        updateInstructionText("Failed to play wild card!", true);
                     }
                 }
             }
@@ -634,10 +775,13 @@ class UnoTestState extends MusicBeatState {
         Cursor.cursorMode = Default;
     }
     
-    private function updateInstructionText(text:String):Void {
+    private function updateInstructionText(text:String, ?doFade:Bool = false):Void {
         if (instructionText != null) {
             instructionText.text = text;
             trace("Instruction: " + text);
+            instructionFade.cancel();
+            instructionText.alpha = 1;
+            if (doFade) instructionFade = FlxTween.tween(instructionText, {alpha: 0}, 1, {startDelay: 3, ease: FlxEase.quadOut});
         }
     }
     
@@ -662,7 +806,7 @@ class UnoTestState extends MusicBeatState {
         super.update(elapsed);
 
         // Handle CPU turns
-        if (unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {
+        if (unoGame != null && unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
             if (!currentPlayer.isHuman) {
                 //Sys.sleep(cast (currentPlayer, UnoCPU).thinkingTime);
@@ -673,13 +817,6 @@ class UnoTestState extends MusicBeatState {
                     });
                 }
             }
-        }
-
-        if (!refreshTimer.active) {
-            refreshTimer.start(1, function(tmr:FlxTimer) {
-                updateDisplay();
-                if (refreshTimer != null) refreshTimer.reset();
-            });
         }
         
         // Handle input
@@ -740,7 +877,31 @@ class UnoTestState extends MusicBeatState {
         
         // Handle mouse clicks
         if (FlxG.mouse.justPressed && isGameStarted) {
-            try {
+            if (waitingForColorChoice) {
+                // Check color choice clicks
+                for (i in 0...colorChoiceGroup.length) {
+                    var colorButton = colorChoiceGroup.members[i];
+                    if (colorButton != null && FlxG.mouse.overlaps(colorButton)) {
+                        Cursor.cursorMode = Pointer;
+                        handleColorChoice(i);
+                        break;
+                    }
+                }
+            } else if (unoGame != null && unoGame.turnManager != null) {
+                var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+                if (currentPlayer != null && currentPlayer.isHuman) {
+                    // Check card clicks
+                    for (i in 0...playerHandGroup.length) {
+                        var cardSprite = playerHandGroup.members[i];
+                        if (cardSprite != null && FlxG.mouse.overlaps(cardSprite)) {
+                            Cursor.cursorMode = Pointer;
+                            handleCardClick(i);
+                            break;
+                        }
+                    }
+                }
+            }
+            /*try {
                 if (waitingForColorChoice) {
                     // Check color choice clicks
                     for (i in 0...colorChoiceGroup.length) {
@@ -767,7 +928,7 @@ class UnoTestState extends MusicBeatState {
                 }
             } catch (e:Dynamic) {
                 trace("Error handling mouse click: " + e);
-            }
+            }*/
         }
         
         // UNO call with U key
@@ -776,7 +937,7 @@ class UnoTestState extends MusicBeatState {
                 var currentPlayer = unoGame.turnManager.getCurrentPlayer();
                 if (currentPlayer != null && currentPlayer.isHuman) {
                     if (unoGame.callUno(currentPlayer)) {
-                        updateInstructionText("UNO called!");
+                        updateInstructionText("UNO called!", true);
                         FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
                     }
                 }

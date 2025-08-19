@@ -1659,7 +1659,7 @@ class FunkinLua {
 		addArchipelagoCallbacks();
 		#end
 
-		trace('lua file loaded succesfully:' + scriptName);
+		//trace('lua file loaded succesfully:' + scriptName);
 
 		call('onCreate', []);
 	}

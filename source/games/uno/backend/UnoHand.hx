@@ -1,4 +1,4 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 /**
  * Represents a player's hand of UNO cards

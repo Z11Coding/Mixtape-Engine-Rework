@@ -562,6 +562,7 @@ class Note extends NoteObject
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
 	public var copyAlpha:Bool = true;
+	public var alphaLimit:Float = 1;
 	public var alphaMod:Float = 1;
 	public var alphaMod2:Float = 1; // TODO: unhardcode this shit lmao
 	@:noCompletion private static function set_swagWidth(val:Float){
@@ -600,6 +601,7 @@ class Note extends NoteObject
 	public var spinAmount:Float = 0;
 	public var rootNote:Note;
 	var posTween:FlxTween;
+	public var formerPress:Bool = false;
 
 	//Action Engine Stuff
 	public var noteIndex:Int = -1;
@@ -653,6 +655,7 @@ class Note extends NoteObject
 
 	public var copyVerts:Bool = true;
 	public var typeOffsetAngle:Float = 0;
+	public var expectedData:Int = -1;
 	#if PE_MOD_COMPATIBILITY
 	@:isVar
 	public var multAlpha(get, set):Float;
@@ -759,6 +762,80 @@ class Note extends NoteObject
 					hitCausesMiss = true;
 					hitsound = 'cancelMenu';
 					hitsoundChartEditor = false;
+				case 'Kill Note':
+					ignoreNote = mustPress;
+					reloadNote('noteSkins/mechanicsmod/KILLNOTE_assets');
+					noteSplashData.texture = 'noteSplashes/HURTnoteSplashes';
+					rgbShader.enabled = false;
+					missHealth = FlxMath.MAX_VALUE_FLOAT;
+					lowPriority = true;
+					hitCausesMiss = true;
+				case 'Burst Note':
+					ignoreNote = mustPress;
+					reloadNote('noteSkins/mechanicsmod/BURSTNOTE_assets');
+					noteSplashData.disabled = true;
+					rgbShader.enabled = false;
+					if (isSustainNote)
+					{
+						missHealth = 0.0475 / 2;
+					}
+					else
+					{
+						missHealth = 0.0475;
+					}
+					hitCausesMiss = true;
+					lowPriority = true;
+				case 'Sleep Note':
+					ignoreNote = mustPress;
+					reloadNote('noteSkins/mechanicsmod/SLEEPYNOTE_assets');
+					noteSplashData.disabled = true;
+					rgbShader.enabled = false;
+					if (isSustainNote)
+					{
+						missHealth = 0.0475 / 2;
+					}
+					else
+					{
+						missHealth = 0.0475;
+					}
+					hitCausesMiss = true;
+					lowPriority = true;
+				case 'Restore Note':
+					reloadNote('noteSkins/mechanicsmod/RESTORENOTE_assets');
+					if (isSustainNote)
+					{
+						missHealth = 0.0475 / 2;
+					}
+					else
+					{
+						missHealth = 0.0475;
+					}
+					rgbShader.enabled = false;
+				case 'Fake Note':
+					ignoreNote = mustPress;
+					reloadNote('noteSkins/mechanicsmod/FAKENOTE_assets');
+					noteSplashData.texture = 'HURTnoteSplashes';
+					rgbShader.enabled = false;
+					if (isSustainNote)
+					{
+						missHealth = 0.0475 / 2;
+					}
+					else
+					{
+						missHealth = 0.0475;
+					}
+					hitCausesMiss = true;
+				case 'Swap Note':
+					reloadNote('noteSkins/mechanicsmod/SWAPNOTE_assets');
+					rgbShader.enabled = false;
+					if (isSustainNote)
+					{
+						missHealth = 0.0475 / 2;
+					}
+					else
+					{
+						missHealth = 0.0475;
+					}
 				case 'Alt Animation':
 					animSuffix = '-alt';
 				case 'No Animation':
@@ -921,6 +998,11 @@ class Note extends NoteObject
 			centerOrigin();
 			centerOffsets();
 		}
+
+		if (isSustainNote)
+		{
+			alphaLimit = 0.6;
+		}
 		//x += offsetX;
 	}
 
@@ -935,7 +1017,7 @@ class Note extends NoteObject
 		{
 			var newRGB:RGBPalette = new RGBPalette();
 			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGBExtra[noteData] : ClientPrefs.data.arrowRGBPixelExtra[noteData];
-			trace(arr.length);
+			//trace(arr.length);
 			if (noteData > -1 && noteData <= arr.length) 
 			{
 				newRGB.r = arr[0];

@@ -1,4 +1,4 @@
-package yutautil.games.uno;
+package games.uno.backend;
 
 /**
  * Represents a player in the UNO game

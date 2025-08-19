@@ -10,6 +10,7 @@ import flixel.util.FlxTimer;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup;
 import flixel.input.mouse.FlxMouseEventManager;
+import flixel.input.mouse.FlxMouseEvent;
 import openfl.utils.Assets;
 
 class MechanicPortrait extends FlxSpriteGroup
@@ -23,13 +24,9 @@ class MechanicPortrait extends FlxSpriteGroup
 
 	public var data:String = '';
 
-    var MManager:FlxMouseEventManager;
-
 	public function new(x:Float, y:Float, child:MechanicManager.MechanicData, scrollFactor:FlxPoint = null)
 	{
 		super(0, 0);
-
-        MManager = new FlxMouseEventManager();
 
 		if (scrollFactor == null)
 			scrollFactor = new FlxPoint(0, 0);
@@ -88,7 +85,7 @@ class MechanicPortrait extends FlxSpriteGroup
 		tooltip.position.y = portrait.y + (portrait.height * 0.2);
 		tooltip.visible = false;
 
-		MManager.add(portrait, null, null, function(spr:MechanicSprite)
+		FlxMouseEvent.add(portrait, null, null, function(spr:MechanicSprite)
 		{
 			spr.isSelected = true;
 			tooltip.visible = true;

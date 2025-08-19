@@ -50,10 +50,10 @@ import haxe.io.BytesOutput;
 
 import backend.modules.*;
 import backend.Highscore;
-import yutautil.games.uno.*;
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoCPU.UnoDifficulty;
-import yutautil.games.uno.UnoRules.UnoGameState;
+import games.uno.backend.*;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCPU.UnoDifficulty;
+import games.uno.backend.UnoRules.UnoGameState;
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
 #if (linux && !debug)
@@ -200,12 +200,6 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
-		
-		// Initialize crash tracking system early
-		#if !debug
-		yutautil.CrashTrackerHelper.initialize();
-		yutautil.CrashTrackerHelper.logCriticalActivity("Main", "new", "Application starting up");
-		#end
 		
 		#if (cpp && windows)
 		backend.window.Native.fixScaling();

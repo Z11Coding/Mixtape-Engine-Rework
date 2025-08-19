@@ -222,19 +222,21 @@ class Paths
 
 	// The "If All Else Fails" option 
 	public static function nukeMemory(){
-		clearStoredWithoutStickers();
-		freeGraphicsFromMemory();
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
-		MemoryUtilBase.compact();
-		MemoryUtilBase.collect(true);
-		currentTrackedSounds.clear();
-		@:privateAccess {
-			for (key => asset in FlxG.bitmap._cache)
-				asset.destroy();
+		try {
+			clearStoredWithoutStickers();
+			freeGraphicsFromMemory();
+			Paths.clearStoredMemory();
+			Paths.clearUnusedMemory();
+			//MemoryUtilBase.compact();
+			//MemoryUtilBase.collect(true);
+			currentTrackedSounds.clear();
+			@:privateAccess {
+				for (key => asset in FlxG.bitmap._cache)
+					asset.destroy();
+			}
+		} catch(e) {
+			trace('ERROR: Couldn\'t' );
 		}
-		MemoryUtilBase.compact();
-		MemoryUtilBase.collect(true);
 	}
 
 	/** returns a FlxRuntimeShader but with file names lol **/ 
