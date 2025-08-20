@@ -182,6 +182,15 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var loadingThemes:Array<String> = ['Psych', 'Mixtape'];
+		var option:Option = new Option('Loading Screen Theme:',
+			"Which loading screen theme do you prefer?\nPsych: The classic loading screen\nMixtape: A new loading screen based on the splash screen with animated logo",
+			'loadingScreenTheme',
+			STRING,
+			loadingThemes);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('Menu Music:',
 			"What song do you prefer for the Main Menu?\n(And like 90% of every other menu as well)",
 			'menuSong',
