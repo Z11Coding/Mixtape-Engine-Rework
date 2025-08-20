@@ -23,6 +23,8 @@ import sys.thread.Mutex;
 import objects.Note;
 import objects.NoteSplash;
 
+import states.MixtapeLoadingScreen;
+
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
 import crowplexus.iris.Iris;
@@ -36,6 +38,7 @@ import crowplexus.hscript.Printer;
 #include <thread>
 ')
 #end
+@:privateAccess(states.MixtapeLoadingScreen)
 class LoadingState extends MusicBeatState
 {
 	public static var loaded:Int = 0;
@@ -397,7 +400,18 @@ class LoadingState extends MusicBeatState
 		loadNextDirectory();
 
 		if(intrusive)
-			return new LoadingState(target, stopMusic);
+		{
+			// Check the loading screen theme preference
+			switch(ClientPrefs.data.loadingScreenTheme)
+			{
+				case 'Mixtape':
+					return new MixtapeLoadingScreen(target, stopMusic);
+				case 'Psych':
+					return new LoadingState(target, stopMusic);
+				default:
+					return new LoadingState(target, stopMusic);
+			}
+		}
 		
 		if (stopMusic && FlxG.sound.music != null)
 			FlxG.sound.music.stop();
