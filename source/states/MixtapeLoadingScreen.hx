@@ -94,7 +94,7 @@ class MixtapeLoadingScreen extends MusicBeatState
 		logo.setGraphicSize(Std.int(logo.width * 0.4));
 		logo.updateHitbox();
 		logo.screenCenter();
-		logo.y -= 200; // Move up a bit to make room for loading bar
+		logo.y -= 300;
 		add(logo);
 
 		// Create bottom effect/glow (similar to splash screen effects)
@@ -243,7 +243,12 @@ class MixtapeLoadingScreen extends MusicBeatState
 				FlxTween.tween(loadingText, {alpha: 0}, 0.5, {ease: FlxEase.quadOut});
 				
 				new FlxTimer().start(0.9, function(tmr:FlxTimer) {
-					finishTransition();
+				FlxTween.tween(bg, {alpha: 0}, 1.0, {
+					ease: FlxEase.quadOut,
+					onComplete: function(tween:FlxTween) {
+						finishTransition();
+					}
+				});
 				});
 		}
 	}
