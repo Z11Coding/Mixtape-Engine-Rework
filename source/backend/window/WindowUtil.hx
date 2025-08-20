@@ -45,4 +45,38 @@ class WindowUtil
 		return res;
 	}
     #end
+
+    #if windows
+	@:functionCode('
+        HWND hWnd = GetActiveWindow();
+        res = SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+        if (res)
+        {
+            SetLayeredWindowAttributes(hWnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
+        }
+    ')
+    #elseif linux
+    /*
+    REQUIRES IMPORTING X11 LIBRARIES (Xlib, Xutil, Xatom) to run, even tho it doesnt work
+    @:functionCode('
+        Display* display = XOpenDisplay(NULL);
+        Window wnd;
+        Atom property = XInternAtom(display, "_NET_WM_WINDOW_OPACITY", False);
+        int revert;
+        
+        if(property != None)
+        {
+            XGetInputFocus(display, &wnd, &revert);
+            unsigned long opacity = (0xff000000 / 0xffffffff) * 50;
+            XChangeProperty(display, wnd, property, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&opacity, 1);
+            XFlush(display);
+        }
+        XCloseDisplay(display);
+    ')
+    */
+    #end
+	static public function getWindowsTransparent(res:Int = 0)   // Only works on windows, otherwise returns 0!
+	{
+		return res;
+	}
 }

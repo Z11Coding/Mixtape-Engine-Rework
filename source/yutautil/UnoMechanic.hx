@@ -1,9 +1,9 @@
 package yutautil;
 
-import yutautil.games.uno.UnoCard;
-import yutautil.games.uno.UnoDeck;
-import yutautil.games.uno.UnoCard.UnoColor;
-import yutautil.games.uno.UnoCard.UnoCardType;
+import games.uno.backend.UnoCard;
+import games.uno.backend.UnoDeck;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCard.UnoCardType;
 import objects.Note;
 import flixel.FlxG;
 import flixel.math.FlxMath;

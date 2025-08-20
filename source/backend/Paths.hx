@@ -584,7 +584,7 @@ class Paths
 	 * @param compressionFactor The factor to reduce internal quality by (0.5 = half quality)
 	 * @return The compressed bitmap with same dimensions but reduced quality
 	 */
-	private static function compressBitmapForTrashMode(original:BitmapData, compressionFactor:Float = 0.7):BitmapData
+	private static function compressBitmapForTrashMode(original:BitmapData, compressionFactor:Float = 0.1):BitmapData
 	{
 		if (original == null) return null;
 		

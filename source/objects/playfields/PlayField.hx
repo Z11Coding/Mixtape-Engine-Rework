@@ -294,6 +294,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		note.handleRendering = false;
 		note.spawned = true;
 
+		note.makeNote(note.noteData, note.prevNote, note.isSustainNote);
+
 		insert(0, note);
 	}
 
@@ -941,7 +943,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						}
 					}
 				}
-				if (PlayState.instance.mechanicsMod.restoreActivated
+				if (PlayState.instance?.mechanicsMod?.restoreActivated
 					&& (column[0].noteType != null || column[0].noteType.length == 0)
 					&& FlxG.random.bool(30)
 					&& column[0].mustPress

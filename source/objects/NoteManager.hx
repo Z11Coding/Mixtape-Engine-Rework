@@ -19,7 +19,8 @@ class NoteManager
         if (notePool.length > 0)
         {
             note = notePool.pop();
-            note.makeNote(strumTime, noteData, prevNote, sustainNote);
+			note.strumTime = strumTime;
+            note.makeNote(noteData, prevNote, sustainNote);
         }
         else
         {

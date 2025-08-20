@@ -222,7 +222,7 @@ class DialogueBox extends FlxSpriteGroup
 		// add(theDialog);
 
 		// swagDialogue.text = ;
-		swagDialogue.resetText(dialogueList[0]);
+		swagDialogue.resetText(StringTools.replace(dialogueList[0], 'USERNAME', CoolSystemStuff.getUsername()));
 		swagDialogue.start(0.04, true);
 		swagDialogue.completeCallback = function() {
 			handSelect.visible = true;

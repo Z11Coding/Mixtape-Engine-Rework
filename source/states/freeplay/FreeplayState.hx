@@ -548,7 +548,6 @@ class FreeplayState extends MusicBeatState
 		if (searchBar.text == 'CLICK TO SEARCH FREEPLAY!' && searchBar.hasFocus)
 		{
 			searchBar.text = '';
-			fpManager.reloadFreeplay(true);
 			searchBar.updateHitbox();
 		}
 		if (!searchBar.hasFocus)
@@ -707,7 +706,7 @@ class FreeplayState extends MusicBeatState
 		{
 			searchBar.hasFocus = false;
 		}
-		if (FlxG.keys.justPressed.ANY && searchBar.hasFocus) fpManager.reloadFreeplay(false, searchBar.text);
+		if (controls.justPressed('accept') && searchBar.hasFocus) fpManager.reloadFreeplay(false, searchBar.text);
 
 		if (searchBar.hasFocus == false || searchBar.text == null)
 		{

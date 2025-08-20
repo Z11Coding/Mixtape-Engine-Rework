@@ -779,7 +779,7 @@ class UnoTestState extends MusicBeatState {
         if (instructionText != null) {
             instructionText.text = text;
             trace("Instruction: " + text);
-            instructionFade.cancel();
+            if (instructionFade != null) instructionFade.cancel();
             instructionText.alpha = 1;
             if (doFade) instructionFade = FlxTween.tween(instructionText, {alpha: 0}, 1, {startDelay: 3, ease: FlxEase.quadOut});
         }

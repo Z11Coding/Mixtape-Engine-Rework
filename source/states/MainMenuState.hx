@@ -231,11 +231,7 @@ class MainMenuState extends MusicBeatState
 
 		if (ClientPrefs.data.username)
 		{
-			#if windows
-				funnytext.text = "HI " + Sys.environment()["USERNAME"] + " :)";
-			#elseif mac
-				funnytext.text = "HI " + Sys.environment()["USER"] + " :)";
-			#end
+			funnytext.text = "HI " + CoolSystemStuff.getUsername() + " :)";
 		}
 		else funnytext.text = "You're safe, for now...";
 
