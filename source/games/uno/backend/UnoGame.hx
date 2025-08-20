@@ -1,8 +1,8 @@
 package games.uno.backend;
 
 import games.uno.backend.UnoCard.UnoColor;
-import games.uno.backend.UnoTurnManager.TurnDirection;
 import games.uno.backend.UnoRules.UnoGameState;
+import games.uno.backend.UnoTurnManager.TurnDirection;
 
 /**
  * Main UNO game controller that manages the complete game flow
@@ -20,7 +20,7 @@ class UnoGame {
     public var lastPlayedCard:UnoCard;
     public var customColors:Array<UnoColor>; // Optional custom colors for the deck
     public var customCards:Array<UnoCard>; // Optional custom cards for the deck
-    
+
     // Events
     public var onGameStart:Void->Void;
     public var onGameEnd:UnoPlayer->Void;
@@ -35,7 +35,7 @@ class UnoGame {
     public var onPlayerSkipped:UnoPlayer->Void;
     public var onWildColorChosen:UnoColor->Void;
     public var onChallenge:UnoPlayer->UnoPlayer->Bool->Void;
-    
+
     public function new(?customColors:Array<UnoColor>, ?includeBaseColors:Bool = true, ?customCards:Array<UnoCard>) {
         deck = new UnoDeck();
         players = [];
@@ -49,7 +49,7 @@ class UnoGame {
         if (this.customColors != null && (includeBaseColors || this.customColors.length == 0))
             this.customColors = this.customColors.concat(UnoCard.getStandardColors());
     }
-    
+
     /**
      * Add a player to the game
      */
@@ -57,19 +57,19 @@ class UnoGame {
         if (isGameActive) {
             throw "Cannot add players while game is active!";
         }
-        
+
         players.push(player);
-        
+
         // Set up player events
         player.onCardPlayed = (card) -> {
             if (onCardPlayed != null) onCardPlayed(player, card);
         };
-        
+
         player.onUnoCall = () -> {
             if (onUnoCall != null) onUnoCall(player);
         };
     }
-    
+
     /**
      * Set custom colors for the deck
      */
@@ -79,7 +79,7 @@ class UnoGame {
         }
         customColors = colors;
     }
-    
+
     /**
      * Set custom cards for the deck
      */
@@ -89,7 +89,7 @@ class UnoGame {
         }
         customCards = cards != null ? cards : [];
     }
-    
+
     /**
      * Add a custom card to the deck
      */
@@ -102,7 +102,7 @@ class UnoGame {
         }
         customCards.push(card);
     }
-    
+
     /**
      * Start a new game
      */
@@ -110,62 +110,62 @@ class UnoGame {
         if (players.length < 2) {
             throw "Need at least 2 players to start!";
         }
-        
+
         isGameActive = true;
         roundNumber = 0;
-        
+
         // Reset all player scores
         for (player in players) {
             player.reset();
         }
-        
+
         turnManager = new UnoTurnManager(players);
         setupTurnManagerEvents();
-        
+
         if (onGameStart != null) onGameStart();
-        
+
         startNewRound();
     }
-    
+
     /**
      * Start a new round
      */
     public function startNewRound():Void {
         if (!isGameActive) return;
-        
+
         roundNumber++;
         isRoundActive = true;
         drawStack = 0;
-        
+
         // Reset deck and hands
         deck.reset(customColors, customCards);
         for (player in players) {
             player.resetForNewRound();
         }
-        
+
         // Deal starting hands
         for (i in 0...UnoRules.getStartingHandSize()) {
             for (player in players) {
                 player.drawCards(deck, 1);
             }
         }
-        
+
         // Set initial top card (ensure it's not a special card)
         var topCard:UnoCard;
         do {
             topCard = deck.drawCard();
         } while (topCard.isActionCard());
-        
+
         deck.discard(topCard);
         lastPlayedCard = topCard;
         currentColor = topCard.color;
-        
+
         turnManager.reset();
         updateGameState();
-        
+
         if (onRoundStart != null) onRoundStart(roundNumber);
     }
-    
+
     /**
      * Setup turn manager event handlers
      */
@@ -173,12 +173,12 @@ class UnoGame {
         turnManager.onDirectionChange = (direction) -> {
             if (onDirectionChange != null) onDirectionChange(direction);
         };
-        
+
         turnManager.onPlayerSkipped = (player) -> {
             if (onPlayerSkipped != null) onPlayerSkipped(player);
         };
     }
-    
+
     /**
      * Player attempts to play a card
      */
@@ -186,23 +186,23 @@ class UnoGame {
         if (!isRoundActive || turnManager.getCurrentPlayer() != player) {
             return false;
         }
-        
+
         var card = player.hand.cards[cardIndex];
-        
+
         // Check if card can be played
         if (!UnoRules.canPlayCard(card, deck.getTopCard(), currentColor)) {
             return false;
         }
-        
+
         // Handle draw stack
         if (drawStack > 0 && !canDefendAgainstDraw(card)) {
             return false; // Must draw or defend with appropriate card
         }
-        
+
         // Play the card
         var playedCard = player.playCard(cardIndex, deck);
         lastPlayedCard = playedCard;
-        
+
         // Handle wild cards
         if (playedCard.isWildCard()) {
             if (chosenColor == null) {
@@ -216,15 +216,15 @@ class UnoGame {
             }
             currentColor = chosenColor;
             playedCard.color = chosenColor; // Set the chosen color
-            
+
             if (onWildColorChosen != null) onWildColorChosen(chosenColor);
         } else {
             currentColor = playedCard.color;
         }
-        
+
         // Apply card effects
         applyCardEffect(playedCard, player);
-        
+
         // Check for UNO
         if (player.hand.isUno() && !player.calledUno) {
             // Auto-call UNO for CPU players
@@ -232,7 +232,7 @@ class UnoGame {
                 cast(player, UnoCPU).autoCallUno();
             }
         }
-        
+
         // Check for round win
         if (player.hasWon()) {
             endRound(player);
@@ -241,24 +241,29 @@ class UnoGame {
 
         // After eveything is done
         afterCardPlayed(player, playedCard);
-        
+
         // Next turn
         turnManager.nextTurn();
         updateGameState();
-        
+
         return true;
     }
-    
+
     /**
      * Check if a card can defend against draw cards
      */
     private function canDefendAgainstDraw(card:UnoCard):Bool {
         if (!UnoRules.ALLOW_STACKING) return false;
-        
+        if (!UnoRules.ALLOW_ANY_PLUS_STACK) return false;
+
         var topCard = deck.getTopCard();
-        return UnoRules.canStackCards(topCard, card);
+        return (UnoRules.ALLOW_ANY_PLUS_STACK ? UnoRules.canStackAnyCards(topCard, card) : UnoRules.canStackCards(topCard, card));
     }
-    
+
+    /**
+     * Check if a card can defend against draw cards
+     */
+
     /**
      * Apply the effect of a played card
      */
@@ -266,27 +271,27 @@ class UnoGame {
         switch(card.type) {
             case SKIP:
                 turnManager.skipNextPlayer();
-                
+
             case REVERSE:
                 turnManager.reverseTurn();
-                
+
             case DRAW_TWO:
                 if (UnoRules.ALLOW_STACKING && drawStack > 0) {
                     drawStack += 2;
                 } else {
                     drawStack = 2;
                 }
-                
+
             case WILD_DRAW_FOUR:
                 if (UnoRules.ALLOW_STACKING && drawStack > 0) {
                     drawStack += 4;
                 } else {
                     drawStack = 4;
                 }
-                
+
             case NUMBER:
                 UnoRules.applySevenZeroRule(card, players, turnManager.currentPlayerIndex);
-                
+
             case WILD:
                 // No additional effect beyond color change
             case CUSTOM(name, points, cpuImportance, action):
@@ -295,30 +300,30 @@ class UnoGame {
                 }
         }
     }
-    
+
     /**
      * Player draws cards (voluntarily or forced)
      */
     public function drawCards(player:UnoPlayer, count:Int = 1):Void {
         if (!isRoundActive) return;
-        
+
         // Handle draw stack
         if (drawStack > 0 && turnManager.getCurrentPlayer() == player) {
             count = drawStack;
             drawStack = 0;
         }
-        
+
         player.drawCards(deck, count);
-        
+
         if (onPlayerDraw != null) onPlayerDraw(player, count);
-        
+
         // If player drew due to no playable cards, advance turn
         if (turnManager.getCurrentPlayer() == player && !UnoRules.mustPlayIfPossible()) {
             turnManager.nextTurn();
             updateGameState();
         }
     }
-    
+
     /**
      * Player calls UNO
      */
@@ -329,21 +334,21 @@ class UnoGame {
         }
         return false;
     }
-    
+
     /**
      * Challenge a Wild Draw Four card
      */
     public function challengeWildDrawFour(challenger:UnoPlayer):Bool {
         if (!UnoRules.WILD_DRAW_FOUR_CHALLENGE) return false;
-        
+
         var previousPlayer = turnManager.getPreviousPlayer();
         var topCard = deck.getTopCard();
-        
+
         if (topCard.type != WILD_DRAW_FOUR) return false;
-        
+
         // Check if the Wild Draw Four was played legally
         var wasLegal = UnoRules.isWildDrawFourLegal(previousPlayer, lastPlayedCard);
-        
+
         if (wasLegal) {
             // Challenge failed - challenger draws extra cards
             challenger.drawCards(deck, UnoRules.getChallengePenalty() + UnoRules.getDrawAmount(topCard));
@@ -353,11 +358,11 @@ class UnoGame {
             previousPlayer.drawCards(deck, UnoRules.getDrawAmount(topCard));
             if (onChallenge != null) onChallenge(challenger, previousPlayer, true);
         }
-        
+
         drawStack = 0; // Clear the draw stack
         return true;
     }
-    
+
     /**
      * Apply UNO penalty to a player
      */
@@ -367,7 +372,7 @@ class UnoGame {
             if (onUnoPenalty != null) onUnoPenalty(player);
         }
     }
-    
+
     /**
      * Check for UNO penalties on all players
      */
@@ -378,18 +383,18 @@ class UnoGame {
             }
         }
     }
-    
+
     /**
      * End the current round
      */
     private function endRound(winner:UnoPlayer):Void {
         isRoundActive = false;
-        
+
         var points = UnoRules.calculateRoundPoints(players, winner);
         winner.addScore(points);
-        
+
         if (onRoundEnd != null) onRoundEnd(winner, points);
-        
+
         // Check for game winner
         var gameWinner = UnoRules.hasGameWinner(players);
         if (gameWinner != null) {
@@ -399,7 +404,7 @@ class UnoGame {
             startNewRound();
         }
     }
-    
+
     /**
      * End the game
      */
@@ -407,10 +412,10 @@ class UnoGame {
         isGameActive = false;
         isRoundActive = false;
         gameState.gameWinner = winner;
-        
+
         if (onGameEnd != null) onGameEnd(winner);
     }
-    
+
     /**
      * Update the game state
      */
@@ -426,57 +431,57 @@ class UnoGame {
         );
         gameState.roundNumber = roundNumber;
     }
-    
+
     /**
      * Get current game status
      */
     public function getGameStatus():String {
         if (!isGameActive) return "Game not started";
         if (!isRoundActive || turnManager == null || deck == null) return "Initializing game...";
-        
+
         var status = 'Round $roundNumber - ${turnManager.getCurrentPlayer().name}\'s turn\n';
-        
+
         var topCard = deck.getTopCard();
         if (topCard != null) {
             status += 'Top card: ${topCard.toString()}\n';
         } else {
             status += 'Top card: None\n';
         }
-        
+
         status += 'Current color: $currentColor\n';
-        
+
         if (drawStack > 0) {
             status += 'Draw stack: $drawStack cards\n';
         }
-        
+
         status += 'Players:\n';
         for (player in players) {
             status += '  ${player.toString()}\n';
         }
-        
+
         return status;
     }
-    
+
     /**
      * Get playable cards for current player
      */
     public function getCurrentPlayerPlayableCards():Array<UnoCard> {
         if (!isRoundActive) return [];
-        
+
         var currentPlayer = turnManager.getCurrentPlayer();
         return currentPlayer.getPlayableCards(deck.getTopCard());
     }
-    
+
     /**
      * Check if current player can play
      */
     public function canCurrentPlayerPlay():Bool {
         if (!isRoundActive) return false;
-        
+
         var currentPlayer = turnManager.getCurrentPlayer();
         return currentPlayer.canPlay(deck.getTopCard()) || drawStack == 0;
     }
-    
+
     /**
      * Force end the game
      */
@@ -484,7 +489,7 @@ class UnoGame {
         isGameActive = false;
         isRoundActive = false;
     }
-    
+
     /**
      * Get game statistics
      */
@@ -501,14 +506,14 @@ class UnoGame {
             })
         };
     }
-    
+
     /**
      * Create a new UnoGame with custom action cards
      */
     public static function createWithCustomActions(customActionCards:Array<UnoCard>, ?customColors:Array<UnoColor>, ?includeBaseColors:Bool = true):UnoGame {
         return new UnoGame(customColors, includeBaseColors, customActionCards);
     }
-    
+
     /**
      * Create a UnoGame with custom colors and actions
      */
