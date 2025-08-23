@@ -1623,6 +1623,7 @@ class FunkinLua {
 		VideoFunctions.implement(this);
 		PlayFieldFunctions.implement(this);
 		stages.VSliceLoader.implement(this);
+		WindowFunctions.implement(this);
 
 		for (name => func in customFunctions)
 		{
