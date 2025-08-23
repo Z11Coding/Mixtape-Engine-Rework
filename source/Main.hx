@@ -395,10 +395,6 @@ class Main extends Sprite
 		DiscordClient.prepare();
 		#end
 
-		FlxG.fixedTimestep = false;
-		FlxG.game.focusLostFramerate = 60;
-		FlxG.keys.preventDefaultKeys = [TAB];
-
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
 		// try { // WHY THE HELL IS THIS CRASHING???????????????????

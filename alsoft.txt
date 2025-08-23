@@ -9,6 +9,6 @@ front-stablizer=false
 output-limiter=false
 volume-adjust=0
 [decoder]
-hq-mode=false
+hq-mode=true
 distance-comp=false
 nfc=false

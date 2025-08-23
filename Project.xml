@@ -213,7 +213,6 @@
 	<!--<haxedef name="FLX_NO_SOUND_SYSTEM" />-->
 
 	<!--Optimise inputs, be careful you will get null errors if you don't use conditionals in your game-->
-	<haxedef name="FLX_NO_MOUSE" if="mobile" />
 	<haxedef name="FLX_NO_TOUCH" if="desktop" />
 
 	<!--Disable the Flixel core focus lost screen-->
@@ -245,7 +244,7 @@
 	</section>
 	
 	<!--Allow working memory greater than 1 Gig-->
-	<haxedef name="HXCPP_GC_BIG_BLOCKS"/>
+	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
 
 	<!--Disable deprecated warnings-->
 	<haxedef name='no-deprecation-warnings' />
