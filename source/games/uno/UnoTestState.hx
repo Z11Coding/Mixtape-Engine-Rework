@@ -1,6 +1,7 @@
 package games.uno;
 
 import backend.MusicBeatState;
+import backend.MusicBeatState;
 import backend.ui.PsychUIButton;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -12,13 +13,13 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import games.uno.UnoOptionsSubState;
 import games.uno.backend.*;
 import games.uno.backend.UnoCPU.UnoDifficulty;
-import backend.MusicBeatState;
-import states.MainMenuState;
-import games.uno.UnoOptionsSubState;
 import games.uno.backend.UnoCard.UnoCardType;
 import games.uno.backend.UnoCard.UnoColor;
+import lime.media.openal.AL;
+import lime.media.openal.ALEffect;
 import objects.Alphabet;
 import openfl.Lib;
 import states.MainMenuState;
@@ -54,6 +55,7 @@ class UnoTestState extends MusicBeatState {
 
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
+    var af:ALEffect;
 
     var randomGenericNames:Array<String> = [
         "Ansley Conner",
@@ -109,6 +111,13 @@ class UnoTestState extends MusicBeatState {
         idleTimer = new FlxTimer();
         refreshTimer = new FlxTimer();
 
+        @:privateAccess
+        {
+            af = AL.createEffect(); // create AudioFilter
+            lime.media.openal.AL.effecti( af, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_PITCH_SHIFTER ); // set filter type
+            lime.media.openal.AL.sourcei( lastcardMus._channel.__audioSource.__backend.handle, lime.media.openal.AL.DIRECT_FILTER, af ); // apply filter to source (handle)
+        }
+
         Lib.current.addChild(new games.uno.backend.logs.UnoTurnSummary());
     }
 
@@ -145,7 +154,7 @@ class UnoTestState extends MusicBeatState {
         // Color choice group (initially hidden)
         colorChoiceGroup = new FlxTypedGroup<FlxSprite>();
         add(colorChoiceGroup);
-        
+
 
         unoButton = new PsychUIButton(0, 0, "UNO!", function() {
             try {
@@ -356,18 +365,17 @@ class UnoTestState extends MusicBeatState {
 
         //try {
             if (unoGame.players.length > 0) {
+                FlxG.camera.visible = false;
                 Paths.clearStoredMemory();
                 Paths.clearUnusedMemory();
-                toggleHideScreen(true);
-                Sys.sleep(0.01);
+                //toggleHideScreen(true);
                 bgSprite.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(34, 139, 34)); // Forest Green
                 unoGame.startNewRound();
                 selectedCardIndex = -1;
                 updateDisplay();
                 isGameStarted = true;
                 resetUI();
-                Sys.sleep(0.01);
-                toggleHideScreen(false);
+                FlxG.camera.visible = true;
                 trace("Game reset successfully");
             } else {
                 // Clear existing players
@@ -431,14 +439,20 @@ class UnoTestState extends MusicBeatState {
             // Update player info display
             updatePlayerInfoDisplay();
 
-            var oneCardLeft = false;
+            var oneCardLeft:Int = 0;
             for (player in unoGame.players) {
                 if (player.hand.cards.length == 1) {
-                    oneCardLeft = true;
-                    break;
+                    oneCardLeft++;
                 }
             }
-            if (oneCardLeft && !onLastCard) {
+            if (oneCardLeft > 0 && !onLastCard) {
+                if (lastcardMus != null && lastcardMus.playing)
+                {
+                    @:privateAccess
+                    {
+                        lime.media.openal.AL.effectf( af, lime.media.openal.AL.PITCH, oneCardLeft); // set pitch
+                    }
+                }
                 FlxTween.num(1, 0, 1, {ease: FlxEase.sineInOut}, function(value:Float)
                 {
                     normalMus.volume = value;
@@ -448,7 +462,7 @@ class UnoTestState extends MusicBeatState {
                     lastcardMus.volume = value;
                 });
                 onLastCard = true;
-            } else if (!oneCardLeft && onLastCard) {
+            } else if (oneCardLeft == 0 && onLastCard) {
                 FlxTween.num(0, 1, 1, {ease: FlxEase.sineInOut}, function(value:Float)
                 {
                     normalMus.volume = value;
@@ -891,6 +905,7 @@ class UnoTestState extends MusicBeatState {
                         selectedCardIndex = -1;
                         waitingForColorChoice = false;
                         colorChoiceGroup.clear();
+                        updateInstructionText("Color Picked: "+chosenColor, true);
                     } else {
                         updateInstructionText("Failed to play wild card!", true);
                     }
@@ -970,12 +985,12 @@ class UnoTestState extends MusicBeatState {
                 startNewGame();
             }
         }
-        
+
         // Open UNO options with O key
         if (FlxG.keys.justPressed.O && !isGameStarted) {
             openUnoOptions();
         }
-        
+
         // Add debug key to restart game
         if (FlxG.keys.justPressed.R) {
             trace("Restarting UNO game...");
@@ -1090,11 +1105,11 @@ class UnoTestState extends MusicBeatState {
             }
         }
     }
-    
+
     private function openUnoOptions():Void
     {
         var optionsSubState = new UnoOptionsSubState();
-        
+
         // Set up callbacks for when options change
         optionsSubState.onColorsChanged = function(newColors:Array<UnoColor>) {
             trace('UNO colors updated: ${newColors.length} custom colors');
@@ -1103,7 +1118,7 @@ class UnoTestState extends MusicBeatState {
                 unoGame.customColors = newColors;
             }
         };
-        
+
         optionsSubState.onRulesChanged = function() {
             trace('UNO rules updated');
             // Apply new rules to current game if needed
@@ -1112,7 +1127,7 @@ class UnoTestState extends MusicBeatState {
                 trace('Rules applied to existing game');
             }
         };
-        
+
         openSubState(optionsSubState);
         FlxG.sound.play(Paths.sound('scrollMenu'));
     }

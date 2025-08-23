@@ -1,25 +1,25 @@
 package archipelago;
+import backend.InputFormatter;
 import backend.Song;
+import flixel.FlxObject;
+import flixel.input.keyboard.FlxKey;
+import flixel.tweens.misc.NumTween;
+import flixel.util.FlxDestroyUtil;
+import objects.Character;
+import objects.Note;
+import objects.playfields.PlayField;
+import openfl.filters.BitmapFilter;
+import openfl.filters.BlurFilter;
+import openfl.filters.ColorMatrixFilter;
+import shaders.MosaicEffect;
+import stages.StageData;
+import streamervschat.*;
+
+using yutautil.Table;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
 #end
-import shaders.MosaicEffect;
-import openfl.filters.BitmapFilter;
-import flixel.tweens.misc.NumTween;
-import flixel.input.keyboard.FlxKey;
-import streamervschat.*;
-import flixel.util.FlxDestroyUtil;
-import objects.Character;
-import openfl.filters.BlurFilter;
-import openfl.filters.ColorMatrixFilter;
-import flixel.FlxObject;
-import objects.Note;
-import backend.InputFormatter;
-import stages.StageData;
-import objects.playfields.PlayField;
-
-using yutautil.Table;
 class APPlayState extends PlayState {
     public static var instance:APPlayState;
 
@@ -140,7 +140,7 @@ class APPlayState extends PlayState {
 	}
 
     override public function create()
-    { 
+    {
         if (ghostChat) triggerGhostChat();
 
 
@@ -950,7 +950,7 @@ class APPlayState extends PlayState {
             },
             'icebutmoreagressive' => function() {
                 var noIcon:Bool = true;
-                var lastPoint:Int = 0; 
+                var lastPoint:Int = 0;
                 var exList:Array<Int> = [];
                 for (note in 0...50) {
                     var startPoint:Int = FlxG.random.int(5, 9, exList);
@@ -1149,7 +1149,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
                                 FlxG.save.flush();
-                            
+
                                 PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
                                 PlayState.storyWeek = 0;
                                 Mods.currentModDirectory = 'week1';
@@ -1296,7 +1296,7 @@ class APPlayState extends PlayState {
 
         super.create();
 
-        if (FlxG.save.data.songPos != 0 && !FlxG.save.data.manualOverride) 
+        if (FlxG.save.data.songPos != 0 && !FlxG.save.data.manualOverride)
         {
             PlayState.savedTime = FlxG.save.data.songPos;
             FlxG.save.data.songPos = 0;
@@ -1452,16 +1452,16 @@ class APPlayState extends PlayState {
     var ghostChatCheck:Bool = false;
     // I feel bad for the poor soul that has this trigger on them multiple times
     public function triggerGhostChat()
-    { 
+    {
         ghostChat = true;
         ghostChatCheck = true;
         randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer) {
             doEffect(effectArray[curEffect]);
-            tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0)); 
+            tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0));
         });
         trace("Ghost Chat Activated! L E T  T H E  C H A O S  B E G I N !");
     }
-    
+
     function addNonoLetters(keyBind:String) {
         var keys:Null<Array<FlxKey>> = ClientPrefs.keyBinds.get(keyBind);
         if (keys != null) {
@@ -1492,7 +1492,7 @@ class APPlayState extends PlayState {
     var oldRate:Int = 60;
 	var noIcon:Bool = false;
 	var available:Array<Int> = [];
-	
+
     public function doEffect(effect:String)
     {
         // trace('im finna act up');
@@ -1500,7 +1500,7 @@ class APPlayState extends PlayState {
         if (paused || endingSong) return;
 
         effectsRan++;
-        
+
         if (APEntryState.inArchipelagoMode && (paused || endingSong)) {
             new FlxTimer().start(0.1, function(tmr:FlxTimer) {
                 if (!paused && !endingSong) {
@@ -1510,7 +1510,7 @@ class APPlayState extends PlayState {
             });
             return;
         }
-        
+
         try {
             if (effectMap.exists(effect)) {
             effectMap.get(effect)();
@@ -1522,26 +1522,26 @@ class APPlayState extends PlayState {
             trace("Error while executing effect: " + effect + " - " + e);
         }
     }
-	
+
 	inline public function applyEffect(ttl:Float, onEnd:(Void->Void), playSound:String, playSoundVol:Float, noIcon:Bool, alwaysEnd:Bool = false, ?effect:String = "")
 	{
 		effectsActive[effect] = (effectsActive[effect] == null ? 0 : effectsActive[effect] + 1);
-	
+
 		if (playSound != "") {
 			FlxG.sound.play(Paths.sound("streamervschat/" + playSound), playSoundVol);
 		}
-	
+
 		new FlxTimer().start(ttl, function(tmr:FlxTimer) {
 			effectsActive[effect]--;
 			if (effectsActive[effect] < 0)
 				effectsActive[effect] = 0;
-	
+
 			if (onEnd != null && (effectsActive[effect] <= 0 || alwaysEnd))
 				onEnd();
-	
+
 			FlxDestroyUtil.destroy(tmr);
 		});
-	
+
 		if (!noIcon) {
 			var icon = new FlxSprite().loadGraphic(Paths.image("streamervschat/effectIcons/" + effect));
 			icon.cameras = [camOther];
@@ -1847,7 +1847,7 @@ class APPlayState extends PlayState {
     override public function update(elapsed:Float)
     {
         // if (archipelago.APItem.activeItem is archipelago.APItem.APChartModifier && cast(archipealgo.APItem.activeItem:archipelago.APItem.APChartModifier).chartModifier != chartModifier)
-        // 
+        //
         if ((startedCountdown && !(inCutscene || (function()
         {
             var hasVideoSprite = false;
@@ -1877,7 +1877,7 @@ class APPlayState extends PlayState {
             } else {FlxG.switchState(new substates.GameOverSubstate(boyfriend));}
             trace("Triggering DeathLink!");
         }
-        #if cpp			
+        #if cpp
 		if(FlxG.sound.music != null && FlxG.sound.music.playing)
 		{
 			@:privateAccess
@@ -1914,7 +1914,7 @@ class APPlayState extends PlayState {
 				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
 			}
 		}
-		
+
         /*if(gfVocals != null && gfVocals.playing)
 		{
 			@:privateAccess
@@ -1985,7 +1985,7 @@ class APPlayState extends PlayState {
 				activeItems[0]--;
 				ArchPopup.startPopupCustom('You Used A Shield!', '-1 Shield ( ' + activeItems[0] + ' Left)', 'archColor');
 			}
-			else 
+			else
             {
                 die();
                 COD.setCOD(null, 'Blue Balls Curse\n[pause:0.2](Better luck next time!)');
@@ -2006,7 +2006,7 @@ class APPlayState extends PlayState {
 			else if (spellPrompts[i].ttl <= 0)
 			{
                 COD.setCOD('Apparently, ${apGame.info().slot} is bad at spelling.');
-				die(); 
+				die();
 				FlxG.sound.play(Paths.sound('streamervschat/spellfail'));
 				camOther.flash(FlxColor.RED, 1, null, true);
 				spellPrompts[i].kill();
@@ -2069,7 +2069,7 @@ class APPlayState extends PlayState {
             ghostChatCheck = false;
             randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer) {
                 doEffect(effectArray[curEffect]);
-                tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0)); 
+                tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0));
             });
             trace("Ghost Chat Re-activated!");
         }
@@ -2095,7 +2095,7 @@ class APPlayState extends PlayState {
                 noiseSound.pause();
             }
         }
-        if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) { 
+        if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
             alreadySent = true; // because indie cross likes to spam this every frame for some reason
             APEntryState.apGame.info().sendDeathLink(COD.COD);
         }
@@ -2128,7 +2128,7 @@ class APPlayState extends PlayState {
         updateFunctions.resize(0);
         updateFunctions = [];
 
-        if (ghostChat) 
+        if (ghostChat)
             ghostChat = false;
 
         if (((((((archipelago.APItem.activeItem != null))))))) // Why was this GONE???
@@ -2165,7 +2165,7 @@ class APPlayState extends PlayState {
 
         super.endSong();
 
-        
+
         paused = true;
         APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(PlayState.SONG.song, currentMod);
         openSubState(new substates.RankingSubstate());
@@ -2348,7 +2348,7 @@ class APPlayState extends PlayState {
 			return;
 		}
 
-        @:privateAccess 
+        @:privateAccess
         if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
             ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
             checkedNotes.push(note);
@@ -2441,7 +2441,7 @@ class APPlayState extends PlayState {
                     var time:Float = 0.15;
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
                         time += 0.15;
-    
+
                     strumPlayAnim(field, note.column % field.keyCount, time, /*note*/);
                 }
                 else
