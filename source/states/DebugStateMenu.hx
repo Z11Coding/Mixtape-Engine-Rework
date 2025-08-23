@@ -12,6 +12,7 @@ import objects.Alphabet;
 import backend.MusicBeatState;
 import states.MainMenuState;
 import yutautil.StatePick;
+// import states.MicrophoneTestState;
 
 /**
  * Debug State Menu - Access any state in the engine for testing and debugging
@@ -117,6 +118,9 @@ class DebugStateMenu extends MusicBeatState {
             {className: "states.editors.ChartingState", displayName: "Chart Editor", category: "Editors"},
             {className: "states.editors.CharacterEditorState", displayName: "Character Editor", category: "Editors"},
             {className: "states.editors.StageEditorState", displayName: "Stage Editor", category: "Editors"},
+            {className: "states.CameraTestState", displayName: "Camera Test", category: "Media"},
+            {className: "states.MicrophoneTestState", displayName: "Microphone Test", category: "Media"},
+            {className: "states.MediaComboTestState", displayName: "MediaCombo Test", category: "Media"},
             {className: "states.LoadingState", displayName: "Loading State", category: "Utility"},
             {className: "states.ErrorState", displayName: "Error State", category: "Utility"},
             {className: "flixel.FlxState", displayName: "Basic FlxState", category: "Framework"}
@@ -171,6 +175,7 @@ class DebugStateMenu extends MusicBeatState {
         if (className.indexOf("debug") != -1) return "Debug";
         if (className.indexOf("options") != -1) return "Options";
         if (className.indexOf("UnoTest") != -1) return "Games";
+        if (className.indexOf("Camera") != -1 || className.indexOf("Microphone") != -1 || className.indexOf("Media") != -1) return "Media";
         if (className.indexOf("Play") != -1 || className.indexOf("Menu") != -1 || className.indexOf("Title") != -1) return "Core";
         if (className.indexOf("Loading") != -1 || className.indexOf("Error") != -1 || className.indexOf("Update") != -1) return "Utility";
         if (className.indexOf("flixel") != -1) return "Framework";
@@ -190,6 +195,9 @@ class DebugStateMenu extends MusicBeatState {
             case "states.editors.ChartingState": "Chart editor for creating/editing songs";
             case "states.editors.CharacterEditorState": "Character animation and offset editor";
             case "states.editors.StageEditorState": "Stage background and element editor";
+            case "states.CameraTestState": "Test camera functionality with video feed and transmission to Flx objects";
+            case "states.MicrophoneTestState": "Test microphone input with visual feedback and audio level monitoring";
+            case "states.MediaComboTestState": "Test combined camera and microphone with synchronized audio-reactive effects";
             case "states.LoadingState": "Loading screen state";
             case "states.ErrorState": "Error display state";
             case _: "Game state: " + getDisplayName(className);

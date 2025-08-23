@@ -191,6 +191,9 @@ import states.TitleState;
 	public var menuTheme:String = 'Light';
 
 	public var garbageCollection:Bool = true;
+	
+	// UNO game settings
+	public var unoCustomColors:Array<{color:Int, name:String}> = [];
 
 	// Compiler Settings.
 	public var showInitialMemoryUsage:Bool = true;

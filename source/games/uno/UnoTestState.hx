@@ -17,6 +17,7 @@ import games.uno.backend.UnoCard.UnoCardType;
 import games.uno.backend.UnoCPU.UnoDifficulty;
 import backend.MusicBeatState;
 import states.MainMenuState;
+import games.uno.UnoOptionsSubState;
 import openfl.Lib;
 
 /**
@@ -138,7 +139,7 @@ class UnoTestState extends MusicBeatState {
         colorChoiceGroup = new FlxTypedGroup<FlxSprite>();
         add(colorChoiceGroup);
         
-        updateInstructionText("Press ENTER to start a new game, R to restart, I for debug info, or ESCAPE to return to menu");
+        updateInstructionText("Press ENTER to start a new game, R to restart, O for options, I for debug info, or ESCAPE to return to menu");
     }
     
     private function setupGame():Void {
@@ -776,12 +777,22 @@ class UnoTestState extends MusicBeatState {
     }
     
     private function updateInstructionText(text:String, ?doFade:Bool = false):Void {
+        var originalText = instructionText.text;
         if (instructionText != null) {
             instructionText.text = text;
             trace("Instruction: " + text);
             if (instructionFade != null) instructionFade.cancel();
             instructionText.alpha = 1;
-            if (doFade) instructionFade = FlxTween.tween(instructionText, {alpha: 0}, 1, {startDelay: 3, ease: FlxEase.quadOut});
+            if (doFade) {
+                instructionFade = FlxTween.tween(instructionText, {alpha: 0}, 1, {
+                    startDelay: 3,
+                    ease: FlxEase.quadOut,
+                    onComplete: function(_) {
+                        instructionText.alpha = 1;
+                        instructionText.text = originalText;
+                    }
+                });
+            }
         }
     }
     
@@ -832,6 +843,11 @@ class UnoTestState extends MusicBeatState {
             }
         }
         
+        // Open UNO options with O key
+        if (FlxG.keys.justPressed.O && !isGameStarted) {
+            openUnoOptions();
+        }
+        
         // Add debug key to restart game
         if (FlxG.keys.justPressed.R) {
             trace("Restarting UNO game...");
@@ -840,7 +856,7 @@ class UnoTestState extends MusicBeatState {
                 unoGame.players = [];
             }
             setupGame();
-            updateInstructionText("Press ENTER to start a new game, R to restart, I for debug info, or ESCAPE to return to menu");
+            updateInstructionText("Press ENTER to start a new game, R to restart, O for options, I for debug info, or ESCAPE to return to menu");
         }
         
         // Debug info with I key
@@ -945,6 +961,32 @@ class UnoTestState extends MusicBeatState {
                 trace("Error calling UNO: " + e);
             }
         }
+    }
+    
+    private function openUnoOptions():Void
+    {
+        var optionsSubState = new UnoOptionsSubState();
+        
+        // Set up callbacks for when options change
+        optionsSubState.onColorsChanged = function(newColors:Array<UnoColor>) {
+            trace('UNO colors updated: ${newColors.length} custom colors');
+            // Reinitialize game with new colors if needed
+            if (unoGame != null) {
+                unoGame.customColors = newColors;
+            }
+        };
+        
+        optionsSubState.onRulesChanged = function() {
+            trace('UNO rules updated');
+            // Apply new rules to current game if needed
+            if (unoGame != null) {
+                // The rules are automatically applied since they're static properties
+                trace('Rules applied to existing game');
+            }
+        };
+        
+        openSubState(optionsSubState);
+        FlxG.sound.play(Paths.sound('scrollMenu'));
     }
 }
 

@@ -13,7 +13,8 @@ class OptionsState extends MusicBeatState
 		'Visuals',
 		'Gameplay',
 		#if TRANSLATIONS_ALLOWED 'Language', #end
-		"Mixtape Settings"
+		"Mixtape Settings",
+		"UNO Options"
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
@@ -41,6 +42,8 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.ArchipelagoSettingsSubState());
 			case 'Mixtape Settings':
 				openSubState(new options.MixtapeSettingsSubState());
+			case 'UNO Options':
+				openSubState(new games.uno.UnoOptionsSubState());
 		}
 	}
 

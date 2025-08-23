@@ -338,7 +338,7 @@ class CrashReporter {
                 FileSystem.deleteFile(potentialLockFile);
                 
                 // Throw custom exception
-                throw new UnexpectedCrashException("Engine crashed unexpectedly in previous session", lockInfo);
+                // throw new UnexpectedCrashException("Engine crashed unexpectedly in previous session", lockInfo);
             }
         } catch (e:UnexpectedCrashException) {
             // Re-throw our custom exception
