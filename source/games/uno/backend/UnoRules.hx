@@ -118,7 +118,7 @@ class UnoRules {
     // Special rule flags
     public static var ALLOW_STACKING:Bool = true; // Allow stacking draw cards
     public static var ALLOW_JUMP_IN:Bool = false; // Allow jumping in with exact match
-    public static var DRAW_TO_PLAY:Bool = true; // Must play if possible
+    public static var DRAW_UNTIL_PLAYABLE:Bool = true; // Must play if possible
     public static var PROGRESSIVE_UNO:Bool = false; // Must say UNO progressively
     public static var SEVEN_ZERO_RULE:Bool = true; // Special 7 and 0 rules
     public static var WILD_DRAW_FOUR_CHALLENGE:Bool = true; // Allow challenging wild draw four
@@ -274,7 +274,7 @@ class UnoRules {
      * Check if force play rule applies
      */
     public static function mustPlayIfPossible():Bool {
-        return DRAW_TO_PLAY;
+        return DRAW_UNTIL_PLAYABLE;
     }
 
     /**
@@ -293,7 +293,7 @@ class UnoRules {
                                         anyStack:Bool = true):Void {
         ALLOW_STACKING = stacking;
         ALLOW_JUMP_IN = jumpIn;
-        DRAW_TO_PLAY = forcePlay;
+        DRAW_UNTIL_PLAYABLE = forcePlay;
         SEVEN_ZERO_RULE = sevenZero;
         WILD_DRAW_FOUR_CHALLENGE = wildChallenge;
         WINNING_SCORE = winningScore;
