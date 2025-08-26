@@ -13,6 +13,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import games.uno.PongUnoSubstate;
 import games.uno.UnoOptionsSubState;
 import games.uno.backend.*;
 import games.uno.backend.UnoCPU.UnoDifficulty;
@@ -278,8 +279,26 @@ class UnoTestState extends MusicBeatState {
             for (color in 0...ClientPrefs.data.arrowRGBExtra.length) {
                 customColoroftheRainbow.push(UnoColor.CUSTOM(ClientPrefs.data.arrowRGBExtra[color][0], objects.Note.keysShit.get(17).get('letters')[color]));
             }
-            // Create UNO game with standard colors first (simpler initialization)
-            unoGame = new UnoGame(); //customColoroftheRainbow
+
+            // Create custom Pong-UNO cards (10% chance to include them)
+            var customCards:Array<UnoCard> = [];
+            if (FlxG.random.bool(10)) { // 10% chance
+                // Create 4 Pong-UNO cards as wild cards
+                for (i in 0...4) {
+                    var pongCard = UnoCard.createCustomActionCard(
+                        "Pong Battle",
+                        UnoColor.WILD,
+                        75,
+                        8,
+                        triggerPongBattle
+                    );
+                    customCards.push(pongCard);
+                }
+                trace("Added 4 Pong-UNO cards to deck!");
+            }
+
+            // Create UNO game with custom cards
+            unoGame = new UnoGame(null, true, customCards.length > 0 ? customCards : null);
 
             setupGameEvents();
 
@@ -973,10 +992,18 @@ class UnoTestState extends MusicBeatState {
             }
         }
 
-        // Handle input
-        if (controls.BACK) {
-            FlxG.mouse.visible = false;
-            MusicBeatState.switchState(new MainMenuState());
+        // Handle input (unless it's the trap version)
+        if (!(this is archipelago.traps.games.APUnoTrapState)) {
+            if (controls.BACK) {
+                FlxG.mouse.visible = false;
+                MusicBeatState.switchState(new MainMenuState());
+            }
+        } else {
+            // Trap version - no escape allowed
+            if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
+                updateInstructionText("NO ESCAPE! You must win or die!");
+                return;
+            }
         }
 
         if (controls.ACCEPT) {
@@ -1130,6 +1157,37 @@ class UnoTestState extends MusicBeatState {
 
         openSubState(optionsSubState);
         FlxG.sound.play(Paths.sound('scrollMenu'));
+    }
+
+    /**
+     * Trigger Pong battle when Pong-UNO card is played
+     */
+    private function triggerPongBattle(game:UnoGame):Void {
+        trace("Pong battle triggered!");
+
+        // Find the current player and the next player
+        var currentPlayerIndex = game.turnManager.currentPlayerIndex;
+        var nextPlayerIndex = (currentPlayerIndex + 1) % game.players.length;
+
+        var currentPlayer = game.players[currentPlayerIndex];
+        var nextPlayer = game.players[nextPlayerIndex];
+
+        var pongSubstate = new PongUnoSubstate(currentPlayer, nextPlayer);
+
+        // Set up callbacks for Pong results - loser draws 4 cards
+        pongSubstate.onLeftPlayerWin = (losingPlayer:UnoPlayer) -> {
+            trace('${currentPlayer.name} won Pong! ${losingPlayer.name} draws 4 cards.');
+            unoGame.drawCards(losingPlayer, 4);
+            updateInstructionText('${currentPlayer.name} won Pong! ${losingPlayer.name} drew 4 cards.');
+        };
+
+        pongSubstate.onRightPlayerWin = (losingPlayer:UnoPlayer) -> {
+            trace('${nextPlayer.name} won Pong! ${losingPlayer.name} draws 4 cards.');
+            unoGame.drawCards(losingPlayer, 4);
+            updateInstructionText('${nextPlayer.name} won Pong! ${losingPlayer.name} drew 4 cards.');
+        };
+
+        openSubState(pongSubstate);
     }
 }
 

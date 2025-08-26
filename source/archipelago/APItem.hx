@@ -1,12 +1,13 @@
 package archipelago;
 
-import backend.window.PlatformUtil;
-import haxe.ds.StringMap;
-import cutscenes.DialogueBoxPsych;
-import flixel.util.FlxDestroyUtil;
 import archipelago.TrapLinkFunctions;
-import openfl.filters.ShaderFilter;
+import archipelago.traps.TrapGameManager;
+import backend.window.PlatformUtil;
+import cutscenes.DialogueBoxPsych;
 import flixel.addons.display.FlxRuntimeShader;
+import flixel.util.FlxDestroyUtil;
+import haxe.ds.StringMap;
+import openfl.filters.ShaderFilter;
 
 typedef Condition = {
     var checkFn:APItem->Bool;
@@ -29,25 +30,25 @@ class ConditionHelper {
         return item.condition.checkFn(item) && (item.condition.extraConditions == null || item.condition.extraConditions.map(function(fn) { return fn(item); }).contains(false) == false);
     }
 
-    public static inline function Special():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { 
+    public static inline function Special():Condition {
+        return ConditionHelper.create(function(item:APItem):Bool {
             if (Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
                 return true; // Acts like Everywhere in Freeplay
             } else if (Std.is(FlxG.state, states.PlayState)) {
                 return PlayState().checkFn(item);
             }
             return false; // Default to false for other states
-        }, ConditionType.Everywhere); 
+        }, ConditionType.Everywhere);
     }
 
-    public static inline function Everywhere():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere); 
+    public static inline function Everywhere():Condition {
+        return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere);
     }
-    public static inline function PlayState():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong && backend.TransitionState.currenttransition == null)); }, ConditionType.PlayState); 
+    public static inline function PlayState():Condition {
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong && backend.TransitionState.currenttransition == null)); }, ConditionType.PlayState);
     }
-    public static inline function Freeplay():Condition { 
-        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, FreeplayManager.getFreeplay()); }, ConditionType.Freeplay); 
+    public static inline function Freeplay():Condition {
+        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, FreeplayManager.getFreeplay()); }, ConditionType.Freeplay);
     }
 }
 
@@ -57,7 +58,7 @@ class ActiveArray {
     public function new(items:Array<APItem>) {
         this.items = items;
     }
-    
+
     public function getItems():Array<APItem> {
         return items;
     }
@@ -151,7 +152,7 @@ class APItem {
         allItems.push(this); else
         if (activeItem == null || activeItem.isException || activeItem.name == "Tutorial Trap") {
             activeItem != null ? allItems.unshift(activeItem) : null;
-            activeItem = this; 
+            activeItem = this;
         } else {
             allItems.push(this);
         }
@@ -189,7 +190,7 @@ class APItem {
                         // Switch to APPlayState if not already there
                         FlxG.switchState(new archipelago.APPlayState());
                     }
-            
+
                     // Wait for PlayState's startedCountdown to become active
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
@@ -236,6 +237,22 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
+            case "Pong Challenge":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Score 5 points to survive!', "APItem: Pong Challenge", true);
+                    TrapGameManager.launchPongTrap(states.PlayState.instance);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+            case "UNO Challenge":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Win the round to survive!', "APItem: UNO Challenge", true);
+                    TrapGameManager.launchUnoTrap(states.PlayState.instance);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Shield":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     shields++;
@@ -259,7 +276,7 @@ class APItem {
                         if (playState != null && playState.startedCountdown) {
                             popup('Go relearn the basics', "APItem: Tutorial Trap");
                             APPlayState.instance.doEffect('songSwitch');
-                            if (APItem.activeItem !=null) 
+                            if (APItem.activeItem !=null)
                                 allItems.push(APItem.activeItem);
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
@@ -366,7 +383,7 @@ class APItem {
                         if (playState != null && playState.startedCountdown) {
                             popup('Go relearn the basics', "TrapLink: Home Trap");
                             APPlayState.instance.doEffect('songSwitch');
-                            if (APItem.activeItem !=null) 
+                            if (APItem.activeItem !=null)
                                 allItems.push(APItem.activeItem);
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "TrapLink: Home Trap");
@@ -534,7 +551,7 @@ class APItem {
                         cam.filters = [new ShaderFilter(pers)];
                     flixel.tweens.FlxTween.num(pers.xrot, 0.45, 1, function(value:Float) {
                         pers.xrot = value;
-                    }); 
+                    });
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -550,7 +567,7 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
-                
+
             case "Whoops! Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     APPlayState.instance.bfAscend = true;
@@ -818,7 +835,7 @@ class APItem {
                 throw "Unknown item name: " + name;
         }
     }
-    
+
     public function trigger():Void {
         if (this.triggered) {
             return; // Prevent multiple triggers
@@ -933,9 +950,9 @@ class APChartModifier extends APTrap {
             modifiers.push("SpeedRando");
         }
 
-        this.chartModifier = modifiers[Std.random(modifiers.length)];   
-        this.chartModifier = (this.chartModifier == "ManiaConverter" && 
-            ((states.PlayState.mania > 3) || 
+        this.chartModifier = modifiers[Std.random(modifiers.length)];
+        this.chartModifier = (this.chartModifier == "ManiaConverter" &&
+            ((states.PlayState.mania > 3) ||
              (states.PlayState.SONG != null && states.PlayState.SONG.mania != null && states.PlayState.SONG.mania > 3)))
             ? "4K Only" : this.chartModifier;
 
@@ -967,7 +984,7 @@ class APrilFools extends APItem {
     private static var options:Map<Int, Void->Void> = new Map();
     private static var initialized:Bool = false;
 
-    
+
     static function initializeOptions():Void {
         options = [
             0 => function() {
@@ -1019,7 +1036,7 @@ class APrilFools extends APItem {
                             }
                             var randomDiff:Int = FlxG.random.int(0, Difficulty.list.length-1);
                             var songLowercase:String = Paths.formatToSongPath(songList[randomSong].songName);
-                            var poop:String = backend.Highscore.formatSong(songLowercase, randomDiff);	
+                            var poop:String = backend.Highscore.formatSong(songLowercase, randomDiff);
                             backend.Song.loadFromJson(poop, songLowercase);
                             states.PlayState.isStoryMode = false;
                             states.PlayState.storyDifficulty = randomDiff;
@@ -1192,7 +1209,7 @@ class APrilFools extends APItem {
     //     triggered = true; // Set triggered to true to prevent multiple triggers
     //     super.trigger();
     //     //trace("April Fools item triggered.");
-    // } 
+    // }
 
         public function new() {
             super("April Fools", ConditionHelper.Special(), function() {

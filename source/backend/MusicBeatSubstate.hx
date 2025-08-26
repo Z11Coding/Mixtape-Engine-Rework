@@ -1,8 +1,10 @@
 package backend;
 
-import flixel.FlxSubState;
 import archipelago.APEntryState;
+import flixel.FlxSubState;
 
+@:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatSubstate))
+@:autoBuild(yutautil.CrashTracker.instrument())
 class MusicBeatSubstate extends FlxSubState
 {
 	public function new()
@@ -78,7 +80,7 @@ class MusicBeatSubstate extends FlxSubState
 			{
 				stepsToDo += Math.round(getBeatsOnSection() * 4);
 				if(stepsToDo > curStep) break;
-				
+
 				curSection++;
 			}
 		}
@@ -111,12 +113,12 @@ class MusicBeatSubstate extends FlxSubState
 	{
 		//do literally nothing dumbass
 	}
-	
+
 	public function sectionHit():Void
 	{
 		//yep, you guessed it, nothing again, dumbass
 	}
-	
+
 	function getBeatsOnSection()
 	{
 		var val:Null<Float> = 4;

@@ -1,20 +1,17 @@
 package substates;
 
 import archipelago.APPlayState;
-import objects.FNFWeeklyVideoSprite;
 import backend.WeekData;
-
-import objects.Character;
 import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.math.FlxPoint;
-
+import objects.Character;
+import objects.FNFWeeklyVideoSprite;
 import states.StoryMenuState;
-
-//It has its own folder cuz it was made for something much bigger. 
+import undertale.UnderTextParser;
+//It has its own folder cuz it was made for something much bigger.
 //im just too lazy to move it.
 //-sans
-import undertale.UnderTextParser;
 
 class GameOverSubstate extends MusicBeatSubstate
 {
@@ -29,6 +26,10 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var endSoundName:String = 'gameOverEnd';
 	public static var deathDelay:Float = 0;
 
+	// Custom return state support for AP traps
+	private var customReturnState:MusicBeatState = null;
+	private var customBackState:MusicBeatState = null;
+
 	public static var deathbysquare:FlxSprite;
 	public static var causeofdeath:UnderTextParser;
 
@@ -36,8 +37,12 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var isVideo:Bool = false;
 
 	public static var instance:GameOverSubstate;
-	public function new(?playStateBoyfriend:Character = null)
+	public function new(?playStateBoyfriend:Character = null, ?customReturnState:MusicBeatState = null, ?customBackState:MusicBeatState = null)
 	{
+		// Set custom states from constructor parameters
+		this.customReturnState = customReturnState;
+		this.customBackState = customBackState;
+
 		if(playStateBoyfriend != null && playStateBoyfriend.curCharacter == characterName) //Avoids spawning a second boyfriend cuz animate atlas is laggy
 		{
 			this.boyfriend = playStateBoyfriend;
@@ -80,7 +85,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		camCOD.target = null;
 		camCOD.visible = true;
 
-		
+
 
 		FlxG.camera.bgColor = 0xFF000000; // to fix mods that like to change its color (looking at you, 17bucks)
 
@@ -95,9 +100,15 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		if(boyfriend == null)
 		{
-			boyfriend = new Character(PlayState.instance.boyfriend.getScreenPosition().x, PlayState.instance.boyfriend.getScreenPosition().y, characterName, true);
-			boyfriend.x += boyfriend.positionArray[0] - PlayState.instance.boyfriend.positionArray[0];
-			boyfriend.y += boyfriend.positionArray[1] - PlayState.instance.boyfriend.positionArray[1];
+			// Try to create boyfriend, using PlayState position if available
+			if (PlayState.instance != null && PlayState.instance.boyfriend != null) {
+				boyfriend = new Character(PlayState.instance.boyfriend.getScreenPosition().x, PlayState.instance.boyfriend.getScreenPosition().y, characterName, true);
+				boyfriend.x += boyfriend.positionArray[0] - PlayState.instance.boyfriend.positionArray[0];
+				boyfriend.y += boyfriend.positionArray[1] - PlayState.instance.boyfriend.positionArray[1];
+			} else {
+				// Create boyfriend at default position if no PlayState
+				boyfriend = new Character(FlxG.width * 0.5, FlxG.height * 0.7, characterName, true);
+			}
 		}
 		boyfriend.skipDance = true;
 		add(boyfriend);
@@ -113,9 +124,11 @@ class GameOverSubstate extends MusicBeatSubstate
 		FlxG.camera.focusOn(new FlxPoint(FlxG.camera.scroll.x + (FlxG.camera.width / 2), FlxG.camera.scroll.y + (FlxG.camera.height / 2)));
 		FlxG.camera.follow(camFollow, LOCKON, 0.01);
 		add(camFollow);
-		
-		PlayState.instance.setOnScripts('inGameOver', true);
-		PlayState.instance.callOnScripts('onGameOverStart', []);
+
+		if (PlayState.instance != null) {
+			PlayState.instance.setOnScripts('inGameOver', true);
+			PlayState.instance.callOnScripts('onGameOverStart', []);
+		}
 		FlxG.sound.music.loadEmbedded(Paths.music(loopSoundName), true);
 
 		if(characterName == 'pico-dead')
@@ -164,7 +177,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		deathbysquare = new FlxSprite().makeGraphic(500, 300, 0xFFFFFFFF);
 		deathbysquare.scrollFactor.set();
 		deathbysquare.x += 800;
-		deathbysquare.y -= 100; 
+		deathbysquare.y -= 100;
 		deathbysquare.alpha = 0.3;
 		deathbysquare.cameras = [PlayState.instance.camCOD];
 		add(deathbysquare);
@@ -173,7 +186,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		causeofdeath = new UnderTextParser(deathbysquare.x, deathbysquare.y + 125, Std.int(deathbysquare.width), "", 32);
 		causeofdeath.scrollFactor.set();
 		causeofdeath.font = Paths.font("fnf1.ttf");
-        causeofdeath.color = 0xFFFFFFFF; 
+        causeofdeath.color = 0xFFFFFFFF;
 		for (letter in alphabet) {
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
@@ -216,13 +229,18 @@ class GameOverSubstate extends MusicBeatSubstate
 				PlayState.deathCounter = 0;
 				PlayState.seenCutscene = false;
 				PlayState.chartingMode = false;
-	
+
 				Mods.loadTopMod();
-				if (PlayState.isStoryMode)
+
+				// Use custom back state if provided
+				if (customBackState != null) {
+					MusicBeatState.switchState(customBackState);
+				} else if (PlayState.isStoryMode) {
 					MusicBeatState.switchState(new StoryMenuState());
-				else
+				} else {
 					FreeplayManager.openFreeplay();
-	
+				}
+
 				MusicManager.playMenuMusic();
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
 			}
@@ -232,10 +250,10 @@ class GameOverSubstate extends MusicBeatSubstate
 				{
 					case 'tank':
 						coolStartDeath(0.2);
-						
+
 						var exclude:Array<Int> = [];
 						//if(!ClientPrefs.cursing) exclude = [1, 3, 8, 13, 17, 21];
-	
+
 						FlxG.sound.play(Paths.sound('jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude)), 1, false, null, true, function() {
 							if(!isEnding)
 							{
@@ -247,7 +265,7 @@ class GameOverSubstate extends MusicBeatSubstate
 						coolStartDeath();
 				}
 			}
-			
+
 			if (FlxG.sound.music.playing)
 			{
 				Conductor.songPosition = FlxG.sound.music.time;
@@ -308,7 +326,12 @@ class GameOverSubstate extends MusicBeatSubstate
 						}
 						else
 						{
-							MusicBeatState.resetState();
+							// Use custom return state if provided
+							if (customReturnState != null) {
+								MusicBeatState.switchState(customReturnState);
+							} else {
+								MusicBeatState.resetState();
+							}
 						}
 					});
 				});
