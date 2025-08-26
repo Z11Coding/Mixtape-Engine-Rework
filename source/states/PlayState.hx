@@ -670,8 +670,9 @@ class PlayState extends MusicBeatState
 
 		PauseSubState.songName = null; //Reset to default
 		playbackRate = ClientPrefs.getGameplaySetting('songspeed');
-		if (keysArray == null)
-			keysArray = backend.Keybinds.fill();
+
+		// Load keysArray dynamically after mania is determined
+		loadDynamicKeys();
 
 		controlArray = ['NOTE_LEFT', 'NOTE_DOWN', 'NOTE_UP', 'NOTE_RIGHT'];
 
@@ -1777,6 +1778,39 @@ class PlayState extends MusicBeatState
 		playbackRate = 1.0; // ensuring -Crow
 		#end
 		return playbackRate;
+	}
+
+	function loadDynamicKeys():Void
+	{
+		// Ensure support for current mania level
+		Note.ensureManiaSupport(mania);
+
+		// Load keybinds for current mania
+		if (mania <= 17) {
+			// Use standard keybind loading for base supported manias
+			if (keysArray == null)
+				keysArray = backend.Keybinds.fill();
+		} else {
+			// Use dynamic keybind loading for custom manias
+			keysArray = [];
+			var customKeys = backend.Keybinds.fillForMania(mania);
+
+			// Ensure we have keysArray filled properly for all supported manias up to current
+			for (i in 0...18) {
+				if (i <= 17) {
+					var baseArray = backend.Keybinds.fill();
+					keysArray.push(baseArray[i]);
+				}
+			}
+
+			// Add the custom mania keys
+			keysArray.push(customKeys);
+		}
+
+		// If keysArray is still null, fallback to default
+		if (keysArray == null) {
+			keysArray = backend.Keybinds.fill();
+		}
 	}
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)

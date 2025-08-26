@@ -4,7 +4,8 @@ class Keybinds
 {
     public static function fill():Array<Array<Dynamic>>
     {
-        return [
+		// Static array for base supported manias (0-17)
+        var baseKeybinds = [
 			[
 				ClientPrefs.keyBinds.get('note_one1').copy()
 			],
@@ -213,5 +214,27 @@ class Keybinds
 				ClientPrefs.keyBinds.get('note_ate18').copy(),
 			]
 		];
+
+		return baseKeybinds;
+    }
+
+    // Dynamic keybind filling for any mania count
+    public static function fillForMania(mania:Int):Array<Dynamic> {
+    	if (mania < 0) return [];
+
+    	var keys:Array<Dynamic> = [];
+
+    	// For base supported manias, use the predefined configuration
+    	if (mania <= 17) {
+    		var baseArray = fill();
+    		return baseArray[mania];
+    	}
+
+    	// For custom manias beyond 18K, generate keys dynamically
+    	for (i in 0...mania + 1) {
+    		keys.push(ClientPrefs.getKeyForMania(mania, i).copy());
+    	}
+
+    	return keys;
     }
 }

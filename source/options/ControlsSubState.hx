@@ -3,12 +3,13 @@ package options;
 import backend.InputFormatter;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;
-import objects.AttachedSprite;
-
-import flixel.input.keyboard.FlxKey;
+import flixel.addons.ui.FlxInputText;
 import flixel.input.gamepad.FlxGamepad;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.gamepad.FlxGamepadManager;
+import flixel.input.keyboard.FlxKey;
+import flixel.ui.FlxButton;
+import objects.AttachedSprite;
 
 class ControlsSubState extends MusicBeatSubstate
 {
@@ -255,6 +256,38 @@ class ControlsSubState extends MusicBeatSubstate
 		[false, 'Archipelago'],
 		[false, 'Open Console', 'sidebar', 'Side Bar']
 	];
+
+	// Dynamic special configurations for high key counts
+	private function addSpecialConfigurations():Void {
+		var hasCustom:Bool = false;
+
+		// Check for any custom configurations above 18K
+		for (i in 19...1000) { // Check up to reasonable limit
+			if (ClientPrefs.hasCustomKeysForMania(i - 1)) {
+				if (!hasCustom) {
+					// Add header for special configurations
+					options.push([true]);
+					options.push([true, 'SPECIAL CONFIGURATIONS']);
+					options.push([true]);
+					hasCustom = true;
+				}
+
+				// Add entry for this custom mania
+				var displayName = '${i}K Configuration';
+				var keyName = 'custom_config_${i-1}'; // Special identifier
+				options.push([false, displayName, keyName, displayName]);
+			}
+		}
+
+		// Always add an option to create new configurations
+		if (!hasCustom) {
+			options.push([true]);
+			options.push([true, 'SPECIAL CONFIGURATIONS']);
+			options.push([true]);
+		}
+		options.push([false, 'Create New Config...', 'create_custom', 'Create New Config']);
+	}
+
 	var curOptions:Array<Int>;
 	var curOptionsValid:Array<Int>;
 	static var defaultKey:String = 'Reset to Default Keys';
@@ -269,9 +302,9 @@ class ControlsSubState extends MusicBeatSubstate
 	var gamepadColor:FlxColor = 0xfffd7194;
 	var keyboardColor:FlxColor = 0xff7192fd;
 	var onKeyboardMode:Bool = true;
-	
+
 	var controllerSpr:FlxSprite;
-	
+
 	public function new()
 	{
 		super();
@@ -279,6 +312,9 @@ class ControlsSubState extends MusicBeatSubstate
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Controls Menu", null);
 		#end
+
+		// Add special configurations before finalizing options
+		addSpecialConfigurations();
 
 		options.push([true]);
 		options.push([true]);
@@ -445,7 +481,7 @@ class ControlsSubState extends MusicBeatSubstate
 				case '[', ']': //Square and Triangle respectively
 					letter.image = 'alphabet_playstation';
 					letter.updateHitbox();
-					
+
 					letter.offset.x += 4;
 					letter.offset.y -= 5;
 			}
@@ -463,7 +499,7 @@ class ControlsSubState extends MusicBeatSubstate
 		attach.ID = bind.ID;
 		attach.x = bind.x;
 		attach.y = bind.y;
-		
+
 		playstationCheck(attach);
 		attach.scaleX = Math.min(1, 230 / attach.width);
 		//attach.text = text;
@@ -507,7 +543,24 @@ class ControlsSubState extends MusicBeatSubstate
 
 			if(FlxG.keys.justPressed.ENTER || FlxG.gamepads.anyJustPressed(START) || FlxG.gamepads.anyJustPressed(A))
 			{
-				if(options[curOptions[curSelected]][1] != defaultKey)
+				var optionName = options[curOptions[curSelected]][1];
+				var keyName:String = options[curOptions[curSelected]].length > 2 ? options[curOptions[curSelected]][2] : null;
+
+				// Handle special configuration options
+				if (keyName != null && keyName.startsWith('custom_config_')) {
+					var maniaStr = keyName != null ? keyName.replace('custom_config_', '') : '';
+					var mania = Std.parseInt(maniaStr);
+					if (mania != null) {
+						openSubState(new CustomControlsSubState(mania));
+						return;
+					}
+				} else if (keyName != null && keyName == 'create_custom') {
+					// Ask user for mania count
+					openCreateCustomDialog();
+					return;
+				}
+
+				if(optionName != defaultKey)
 				{
 					bindingBlack = new FlxSprite().makeGraphic(1, 1, /*FlxColor.BLACK*/ FlxColor.WHITE);
 					bindingBlack.scale.set(FlxG.width, FlxG.height);
@@ -519,7 +572,7 @@ class ControlsSubState extends MusicBeatSubstate
 					bindingText = new Alphabet(FlxG.width / 2, 160, Language.getPhrase('controls_rebinding', 'Rebinding {1}', [options[curOptions[curSelected]][3]]), false);
 					bindingText.alignment = CENTERED;
 					add(bindingText);
-					
+
 					bindingText2 = new Alphabet(FlxG.width / 2, 340, Language.getPhrase('controls_rebinding2', 'Hold ESC to Cancel\nHold Backspace to Delete'), true);
 					bindingText2.alignment = CENTERED;
 					add(bindingText2);
@@ -732,5 +785,55 @@ class ControlsSubState extends MusicBeatSubstate
 		}
 		selectSpr.sprTracker = grpBlacks.members[Math.floor(curSelected * 2) + (curAlt ? 1 : 0)];
 		selectSpr.visible = (selectSpr.sprTracker != null);
+	}
+
+	private function openCreateCustomDialog():Void {
+		// Simple input prompt for mania count
+		var promptText = new Alphabet(FlxG.width / 2, FlxG.height / 2 - 100, 'Enter Key Count (19-999):', false);
+		promptText.alignment = CENTERED;
+
+		var inputField = new flixel.addons.ui.FlxInputText(FlxG.width / 2 - 100, FlxG.height / 2, 200, 40);
+		inputField.size = 24;
+		inputField.alignment = CENTER;
+		inputField.text = "19";
+		// inputField.filterMode = FlxInputText.ONLY_NUMERIC;
+		inputField.maxLength = 3;
+
+		var confirmButton:FlxButton = null;
+		var cancelButton:FlxButton = null;
+
+		confirmButton = new FlxButton(FlxG.width / 2 - 100, FlxG.height / 2 + 60, "Create", function() {
+			var keyCount = Std.parseInt(inputField.text);
+			if (keyCount != null && keyCount >= 19 && keyCount <= 999) {
+				// Initialize empty keybinds for this mania
+				for (i in 0...keyCount) {
+					ClientPrefs.setKeyForMania(keyCount - 1, i, [NONE, NONE]);
+				}
+
+				// Open the custom controls
+				openSubState(new CustomControlsSubState(keyCount - 1));
+			}
+
+			// Remove the dialog
+			remove(promptText);
+			remove(inputField);
+			remove(confirmButton);
+			remove(cancelButton);
+		});
+
+		cancelButton = new FlxButton(FlxG.width / 2 + 20, FlxG.height / 2 + 60, "Cancel", function() {
+			// Remove the dialog
+			remove(promptText);
+			remove(inputField);
+			remove(confirmButton);
+			remove(cancelButton);
+		});
+
+		add(promptText);
+		add(inputField);
+		add(confirmButton);
+		add(cancelButton);
+
+		inputField.hasFocus = true;
 	}
 }
