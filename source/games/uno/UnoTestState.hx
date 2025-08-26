@@ -99,8 +99,8 @@ class UnoTestState extends MusicBeatState {
         Cursor.show();
         Cursor.cursorMode = Default;
 
-        normalMus = new FlxSound().loadEmbedded(Paths.music('menuMusic/Heart of the Cards'));
-        lastcardMus = new FlxSound().loadEmbedded(Paths.music('menuMusic/Heart of the Cards (Last Card Mix)'));
+        normalMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards'));
+        lastcardMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards (Last Card Mix)'));
         normalMus.play();
         lastcardMus.play();
         lastcardMus.volume = 0;

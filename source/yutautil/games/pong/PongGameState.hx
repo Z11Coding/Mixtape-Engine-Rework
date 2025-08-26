@@ -413,10 +413,12 @@ class PongGameState extends MusicBeatState {
 
     private function setupAudio():Void {
         // Optional background music - using existing menu music
-        // bgMusic = FlxG.sound.load(Paths.music('menuMusic/Heart of the Cards'));
-        // bgMusic.looped = true;
-        // bgMusic.volume = 0.3;
-        // bgMusic.play();
+        FlxG.sound.music.stop();
+        bgMusic = FlxG.sound.load(Paths.music('gameMusic/PONG beyond the stars'));
+        bgMusic.looped = true;
+        bgMusic.volume = 0.3;
+        bgMusic.play();
+        FlxG.sound.list.add(bgMusic);
     }
 
     private function startNewGame(mode:PongGameMode = null):Void {
