@@ -147,6 +147,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		96,
 		192
 	];
+
 	public var quantColors:Array<FlxColor> = [
 		0xFFDF0000,
 		0xFF4040CF,
