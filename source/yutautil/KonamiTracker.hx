@@ -1,8 +1,8 @@
 package yutautil;
 
+import flixel.FlxBasic;
 import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
-import flixel.FlxBasic;
 
 typedef CheatCallback = Cheat->Void;
 
@@ -126,9 +126,9 @@ class KonamiTracker extends FlxBasic {
                 FlxKey.Z, FlxKey.ENTER, FlxKey.SPACE
             ];
         for (key in keys) {
-            // Use Reflect to access the justPressed property dynamically
-            var justPressed = Reflect.field(FlxG.keys, "justPressed");
-            if (justPressed != null && Reflect.callMethod(FlxG.keys, justPressed, [key])) {
+            var keyName = Std.string(key);
+            var keyPressed = Reflect.getProperty(FlxG.keys.justPressed, keyName);
+            if (keyPressed == true) {
                 return key;
             }
         }

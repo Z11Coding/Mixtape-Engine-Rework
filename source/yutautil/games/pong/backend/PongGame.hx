@@ -46,6 +46,9 @@ class PongGame {
     public var lastScorer:PongPlayer = null;
     public var ballTrail:Array<{x:Float, y:Float, time:Float}> = [];
 
+    // Debug settings
+    public var debugTracesEnabled:Bool = false;
+
     public function new(fieldWidth:Float = 800, fieldHeight:Float = 600, maxScore:Int = 10) {
         this.fieldWidth = fieldWidth;
         this.fieldHeight = fieldHeight;
@@ -252,20 +255,26 @@ class PongGame {
     private function checkCollisions():Void {
         // Wall collisions (top/bottom)
         if (ball.position.y - ball.radius <= 0) {
-            // Debug trace - can remove later
-            trace("Ball hit top wall - Y position: " + ball.position.y + ", velocity before: " + ball.velocity.y);
+            if (debugTracesEnabled) {
+                trace("Ball hit top wall - Y position: " + ball.position.y + ", velocity before: " + ball.velocity.y);
+            }
             ball.position.y = ball.radius; // Fix position to prevent getting stuck
             ball.bounceVertical();
-            trace("Ball velocity after bounce: " + ball.velocity.y);
+            if (debugTracesEnabled) {
+                trace("Ball velocity after bounce: " + ball.velocity.y);
+            }
             if (onBallBounce != null) {
                 onBallBounce();
             }
         } else if (ball.position.y + ball.radius >= fieldHeight) {
-            // Debug trace - can remove later
-            trace("Ball hit bottom wall - Y position: " + ball.position.y + ", velocity before: " + ball.velocity.y);
+            if (debugTracesEnabled) {
+                trace("Ball hit bottom wall - Y position: " + ball.position.y + ", velocity before: " + ball.velocity.y);
+            }
             ball.position.y = fieldHeight - ball.radius; // Fix position to prevent getting stuck
             ball.bounceVertical();
-            trace("Ball velocity after bounce: " + ball.velocity.y);
+            if (debugTracesEnabled) {
+                trace("Ball velocity after bounce: " + ball.velocity.y);
+            }
             if (onBallBounce != null) {
                 onBallBounce();
             }

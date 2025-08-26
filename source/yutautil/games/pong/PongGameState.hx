@@ -157,6 +157,7 @@ class PongGameState extends MusicBeatState {
 
         // Initialize game with field dimensions
         pongGame = new PongGame(fieldWidth, fieldHeight, 10);
+        pongGame.debugTracesEnabled = debugTracesEnabled;
 
         // Store field offset for rendering
         gameFieldOffsetX = fieldX;
@@ -284,6 +285,9 @@ class PongGameState extends MusicBeatState {
         // Debug traces cheat - spell "DEBUG"
         konamiTracker.addCheatFromString("DEBUG", function(cheat) {
             debugTracesEnabled = !debugTracesEnabled;
+            if (pongGame != null) {
+                pongGame.debugTracesEnabled = debugTracesEnabled;
+            }
             var status = debugTracesEnabled ? "ENABLED" : "DISABLED";
             updateInstructionText('Debug traces ' + status + '!');
             if (debugTracesEnabled) {
