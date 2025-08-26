@@ -14,6 +14,8 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import objects.Alphabet;
 import states.MainMenuState;
+import yutautil.ExtendedDate;
+import yutautil.KonamiTracker;
 import yutautil.games.pong.backend.*;
 import yutautil.games.pong.backend.PongGame.PongGameMode;
 import yutautil.games.pong.backend.PongGame.PongPlayer;
@@ -67,6 +69,19 @@ class PongGameState extends MusicBeatState {
     private var gameFieldOffsetX:Float = 0;
     private var gameFieldOffsetY:Float = 0;
 
+    // Cheat system
+    private var konamiTracker:KonamiTracker;
+    private var debugTracesEnabled:Bool = false;
+    private var rainbowMode:Bool = ExtendedDate.global().isPrideMonth();
+    private var godModeUnlocked:Bool = false;
+    private var rainbowTimer:Float = 0;
+    private var leftPaddleOriginalColor:FlxColor;
+    private var rightPaddleOriginalColor:FlxColor;
+    private var leftPaddleRainbowTimer:Float = 0;
+    private var rightPaddleRainbowTimer:Float = 0;
+    private var leftPaddleIsRainbow:Bool = false;
+    private var rightPaddleIsRainbow:Bool = false;
+
     // Default settings (can be set before create())
     private var defaultGameMode:PongGameMode = null;
     private var defaultAIDifficulty:PongAIDifficulty = null;
@@ -88,6 +103,7 @@ class PongGameState extends MusicBeatState {
         setupField();
         setupUI();
         setupGame();
+        setupCheats();
 
         // Apply default settings if any were set
         applyDefaultSettings();
@@ -209,12 +225,15 @@ class PongGameState extends MusicBeatState {
         add(ballSprite);
 
         // Paddle sprites
+        leftPaddleOriginalColor = FlxColor.fromRGB(100, 200, 255);
+        rightPaddleOriginalColor = FlxColor.fromRGB(255, 100, 100);
+
         leftPaddleSprite = new FlxSprite();
-        leftPaddleSprite.makeGraphic(Std.int(pongGame.leftPaddle.width), Std.int(pongGame.leftPaddle.height), FlxColor.fromRGB(100, 200, 255));
+        leftPaddleSprite.makeGraphic(Std.int(pongGame.leftPaddle.width), Std.int(pongGame.leftPaddle.height), leftPaddleOriginalColor);
         add(leftPaddleSprite);
 
         rightPaddleSprite = new FlxSprite();
-        rightPaddleSprite.makeGraphic(Std.int(pongGame.rightPaddle.width), Std.int(pongGame.rightPaddle.height), FlxColor.fromRGB(255, 100, 100));
+        rightPaddleSprite.makeGraphic(Std.int(pongGame.rightPaddle.width), Std.int(pongGame.rightPaddle.height), rightPaddleOriginalColor);
         add(rightPaddleSprite);
     }
 
@@ -254,7 +273,73 @@ class PongGameState extends MusicBeatState {
         if (pongGame == null) return;
 
         setupGameEvents();
-        trace("Pong game initialized successfully");
+        if (debugTracesEnabled) {
+            trace("Pong game initialized successfully");
+        }
+    }
+
+    private function setupCheats():Void {
+        konamiTracker = new KonamiTracker();
+
+        // Debug traces cheat - spell "DEBUG"
+        konamiTracker.addCheatFromString("DEBUG", function(cheat) {
+            debugTracesEnabled = !debugTracesEnabled;
+            var status = debugTracesEnabled ? "ENABLED" : "DISABLED";
+            updateInstructionText('Debug traces ' + status + '!');
+            if (debugTracesEnabled) {
+                trace("Debug traces enabled in Pong!");
+            }
+            FlxG.sound.play(Paths.sound('confirmMenu'), 0.6);
+        });
+
+        // Rainbow mode cheat - spell "LGBT"
+        konamiTracker.addCheatFromString("LGBT", function(cheat) {
+            rainbowMode = !rainbowMode;
+            var status = rainbowMode ? "ENABLED" : "DISABLED";
+            updateInstructionText('Rainbow mode ' + status + '! 🌈');
+            if (debugTracesEnabled) {
+                trace("Rainbow mode " + status.toLowerCase() + "!");
+            }
+            if (!rainbowMode) {
+                // Reset ball and paddles to original colors
+                if (ballSprite != null) {
+                    ballSprite.color = FlxColor.WHITE;
+                }
+                resetPaddleColors();
+            }
+            FlxG.sound.play(Paths.sound('confirmMenu'), 0.6);
+        });
+
+        // God mode unlock cheat - spell "GODISREAL"
+        konamiTracker.addCheatFromString("GODISREAL", function(cheat) {
+            if (!godModeUnlocked) {
+                godModeUnlocked = true;
+                updateInstructionText('GOD MODE UNLOCKED! The ultimate AI difficulty is now available!');
+                if (debugTracesEnabled) {
+                    trace("GOD MODE has been unlocked!");
+                }
+                FlxG.sound.play(Paths.sound('confirmMenu'), 0.8);
+
+                // Visual effect - flash the screen briefly
+                var godFlash = new FlxSprite();
+                godFlash.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGBFloat(1, 1, 0, 0.5));
+                add(godFlash);
+                FlxTween.tween(godFlash, {alpha: 0}, 1.0, {
+                    onComplete: function(_) {
+                        remove(godFlash);
+                        godFlash.destroy();
+                    }
+                });
+            } else {
+                updateInstructionText('GOD MODE already unlocked!');
+                if (debugTracesEnabled) {
+                    trace("GOD MODE was already unlocked");
+                }
+                FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+            }
+        });
+
+        add(konamiTracker);
     }
 
     private function setupGameEvents():Void {
@@ -300,7 +385,25 @@ class PongGameState extends MusicBeatState {
 
             // Visual feedback on paddle hit
             var paddleSprite = paddle == pongGame.leftPaddle ? leftPaddleSprite : rightPaddleSprite;
-            FlxTween.color(paddleSprite, 0.1, FlxColor.WHITE, paddle == pongGame.leftPaddle ? FlxColor.fromRGB(100, 200, 255) : FlxColor.fromRGB(255, 100, 100));
+            var isLeftPaddle = paddle == pongGame.leftPaddle;
+
+            if (rainbowMode) {
+                // Start rainbow cycle for the paddle that was hit
+                if (isLeftPaddle) {
+                    leftPaddleIsRainbow = true;
+                    leftPaddleRainbowTimer = 0;
+                } else {
+                    rightPaddleIsRainbow = true;
+                    rightPaddleRainbowTimer = 0;
+                }
+                if (debugTracesEnabled) {
+                    trace("Paddle hit - starting rainbow effect for " + (isLeftPaddle ? "left" : "right") + " paddle");
+                }
+            } else {
+                // Normal color flash
+                var originalColor = isLeftPaddle ? leftPaddleOriginalColor : rightPaddleOriginalColor;
+                FlxTween.color(paddleSprite, 0.1, FlxColor.WHITE, originalColor);
+            }
         };
 
         pongGame.onBallBounce = () -> {
@@ -321,6 +424,12 @@ class PongGameState extends MusicBeatState {
 
         if (mode != null) {
             currentGameMode = mode;
+        }
+
+        // Check if GOD difficulty is selected but not unlocked
+        if (currentAIDifficulty == GOD && !godModeUnlocked) {
+            currentAIDifficulty = NORMAL; // Fallback to normal difficulty
+            updateInstructionText("GOD difficulty is locked! Use cheat 'GODISREAL' to unlock it. Set to Normal for now.");
         }
 
         pongGame.resetGame();
@@ -469,7 +578,13 @@ class PongGameState extends MusicBeatState {
             case NORMAL: HARD;
             case HARD: EXPERT;
             case EXPERT: YES;
-            case YES: EASY;
+            case YES:
+                if (godModeUnlocked) {
+                    GOD;
+                } else {
+                    EASY; // Skip GOD if not unlocked, go back to EASY
+                }
+            case GOD: EASY;
         };
     }
 
@@ -480,6 +595,12 @@ class PongGameState extends MusicBeatState {
             case HARD: "Hard";
             case EXPERT: "Expert";
             case YES: "Yes";
+            case GOD:
+                if (godModeUnlocked) {
+                    "GOD MODE";
+                } else {
+                    "??? (LOCKED)";
+                }
         };
     }
 
@@ -549,6 +670,11 @@ class PongGameState extends MusicBeatState {
             pongGame.update(elapsed);
             updateDisplay();
         }
+
+        // Update rainbow effects
+        if (rainbowMode) {
+            updateRainbowEffects(elapsed);
+        }
     }
 
     /**
@@ -576,6 +702,25 @@ class PongGameState extends MusicBeatState {
     }
 
     /**
+     * Unlock GOD mode (can be called externally)
+     */
+    public function unlockGodMode():Void {
+        if (!godModeUnlocked) {
+            godModeUnlocked = true;
+            if (debugTracesEnabled) {
+                trace("GOD MODE unlocked externally");
+            }
+        }
+    }
+
+    /**
+     * Check if GOD mode is unlocked
+     */
+    public function isGodModeUnlocked():Bool {
+        return godModeUnlocked;
+    }
+
+    /**
      * Apply default settings if they were set
      */
     private function applyDefaultSettings():Void {
@@ -590,6 +735,75 @@ class PongGameState extends MusicBeatState {
             pongGame.ball.speed = defaultBallSpeed;
             pongGame.leftPaddle.speed = defaultPaddleSpeed;
             pongGame.rightPaddle.speed = defaultPaddleSpeed;
+        }
+    }
+
+    /**
+     * Update rainbow effects when rainbow mode is active
+     */
+    private function updateRainbowEffects(elapsed:Float):Void {
+        if (!rainbowMode) return;
+
+        rainbowTimer += elapsed;
+
+        // Make ball rainbow
+        if (ballSprite != null) {
+            var ballHue = (rainbowTimer * 120) % 360; // Rotate hue over time
+            ballSprite.color = FlxColor.fromHSB(ballHue, 1.0, 1.0);
+        }
+
+        // Handle paddle rainbow cycles
+        if (leftPaddleIsRainbow) {
+            leftPaddleRainbowTimer += elapsed;
+            var duration = 2.0; // Rainbow cycle duration
+
+            if (leftPaddleRainbowTimer < duration) {
+                var progress = leftPaddleRainbowTimer / duration;
+                var hue = progress * 360;
+                leftPaddleSprite.color = FlxColor.fromHSB(hue, 0.8, 1.0);
+            } else {
+                // Rainbow cycle complete, return to original color
+                leftPaddleIsRainbow = false;
+                leftPaddleSprite.color = leftPaddleOriginalColor;
+                if (debugTracesEnabled) {
+                    trace("Left paddle rainbow cycle complete");
+                }
+            }
+        }
+
+        if (rightPaddleIsRainbow) {
+            rightPaddleRainbowTimer += elapsed;
+            var duration = 2.0; // Rainbow cycle duration
+
+            if (rightPaddleRainbowTimer < duration) {
+                var progress = rightPaddleRainbowTimer / duration;
+                var hue = progress * 360;
+                rightPaddleSprite.color = FlxColor.fromHSB(hue, 0.8, 1.0);
+            } else {
+                // Rainbow cycle complete, return to original color
+                rightPaddleIsRainbow = false;
+                rightPaddleSprite.color = rightPaddleOriginalColor;
+                if (debugTracesEnabled) {
+                    trace("Right paddle rainbow cycle complete");
+                }
+            }
+        }
+    }
+
+    /**
+     * Reset paddle colors to their original values
+     */
+    private function resetPaddleColors():Void {
+        leftPaddleIsRainbow = false;
+        rightPaddleIsRainbow = false;
+        leftPaddleRainbowTimer = 0;
+        rightPaddleRainbowTimer = 0;
+
+        if (leftPaddleSprite != null) {
+            leftPaddleSprite.color = leftPaddleOriginalColor;
+        }
+        if (rightPaddleSprite != null) {
+            rightPaddleSprite.color = rightPaddleOriginalColor;
         }
     }
 }

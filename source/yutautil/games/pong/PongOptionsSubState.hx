@@ -29,6 +29,9 @@ class PongOptionsSubState extends MusicBeatSubstate {
     public var gameSpeed:Float = 1.0;
     public var soundEnabled:Bool = true;
 
+    // GOD mode unlock status
+    public var godModeUnlocked:Bool = true;
+
     // Callbacks
     public var onSettingsChanged:Void->Void;
     public var onGameModeChanged:PongGameMode->Void;
@@ -142,7 +145,14 @@ class PongOptionsSubState extends MusicBeatSubstate {
             case EASY: NORMAL;
             case NORMAL: HARD;
             case HARD: EXPERT;
-            case EXPERT: EASY;
+            case EXPERT: YES;
+            case YES:
+                if (godModeUnlocked) {
+                    GOD;
+                } else {
+                    EASY; // Skip GOD if not unlocked, go back to EASY
+                }
+            case GOD: EASY;
         };
         updateOptionText(1, getDifficultyName(aiDifficulty));
 
@@ -193,6 +203,13 @@ class PongOptionsSubState extends MusicBeatSubstate {
             case NORMAL: "Normal";
             case HARD: "Hard";
             case EXPERT: "Expert";
+            case YES: "Yes (Advanced)";
+            case GOD:
+                if (godModeUnlocked) {
+                    "GOD MODE";
+                } else {
+                    "??? (LOCKED)";
+                }
         };
     }
 

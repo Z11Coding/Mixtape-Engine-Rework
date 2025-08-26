@@ -61,9 +61,6 @@ class PongBall {
         if (Math.abs(velocity.y) < minSpeed * 0.3) {
             velocity.y = velocity.y > 0 ? minSpeed * 0.3 : -minSpeed * 0.3;
         }
-
-        // Debug trace - can remove later
-        trace("Ball reset - velocity: " + velocity.x + ", " + velocity.y);
     }
 
     /**
@@ -84,9 +81,6 @@ class PongBall {
         if (Math.abs(velocity.x) < minSpeed * 0.6) {
             velocity.x = velocity.x > 0 ? minSpeed * 0.6 : -minSpeed * 0.6;
         }
-
-        // Debug trace
-        trace("Ball served to " + (toLeft ? "left" : "right") + " player - position: " + position.x + ", " + position.y + " velocity: " + velocity.x + ", " + velocity.y);
     }
 
     /**

@@ -137,6 +137,10 @@ class PongGame {
         // Clear ball trail
         ballTrail = [];
 
+        // Reset God mode states for both paddles
+        leftPaddle.resetGodModeStates();
+        rightPaddle.resetGodModeStates();
+
         if (onRoundStart != null) {
             onRoundStart();
         }
