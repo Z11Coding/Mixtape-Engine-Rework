@@ -73,7 +73,7 @@ class PongGameState extends MusicBeatState {
     private var konamiTracker:KonamiTracker;
     private var debugTracesEnabled:Bool = false;
     private var rainbowMode:Bool = ExtendedDate.global().isPrideMonth();
-    private var godModeUnlocked:Bool = false;
+    private var godModeUnlocked:Bool = true;
     private var rainbowTimer:Float = 0;
     private var leftPaddleOriginalColor:FlxColor;
     private var rightPaddleOriginalColor:FlxColor;
