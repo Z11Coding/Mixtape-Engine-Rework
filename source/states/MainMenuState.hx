@@ -2,13 +2,13 @@ package states;
 
 import archipelago.APGameState;
 import flixel.FlxObject;
-import flixel.effects.FlxFlicker;
-import lime.app.Application;
-import states.editors.MasterEditorMenu;
-import states.DebugStateMenu;
-import options.OptionsState;
 import flixel.addons.display.FlxBackdrop;
+import flixel.effects.FlxFlicker;
 import flixel.util.FlxGradient;
+import lime.app.Application;
+import options.OptionsState;
+import states.DebugStateMenu;
+import states.editors.MasterEditorMenu;
 
 enum MainMenuColumn {
 	LEFT;
@@ -61,7 +61,7 @@ class MainMenuState extends MusicBeatState
 
 		Cursor.cursorMode = Default;
 		checker = new FlxBackdrop(Paths.image('mainmenu/Main_Checker'), XY, Std.int(0.2), Std.int(0.2));
-		
+
 		super.create();
 
 				if (archipelago.APEntryState.inArchipelagoMode) {
@@ -87,7 +87,7 @@ class MainMenuState extends MusicBeatState
 		if (ClientPrefs.data.menuTheme == "Dark")
 			bg.color = 0xFFFDE871;
 		// Simple rainbow effect for Pride Month
-		
+
 		if (yutautil.ExtendedDate.global().isPrideMonth() && ClientPrefs.data.allowEvents)
 		{
 			trace("Happy Pride Month!");
@@ -138,10 +138,12 @@ class MainMenuState extends MusicBeatState
 		add(magenta);
 
 		try {
-			var menuSpec:AudioDisplay = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-			menuSpec.scrollFactor.set(0, 0);
-			add(menuSpec);
-			menuSpec.alpha = ClientPrefs.data.visOpacity;
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
+				var menuSpec:AudioDisplay = new AudioDisplay(FlxG.sound.music, 0, FlxG.height, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
+				menuSpec.scrollFactor.set(0, 0);
+				add(menuSpec);
+				menuSpec.alpha = ClientPrefs.data.visOpacity;
+			}
 		} catch(e) {
 			trace("The music broke! Preventing this from loading so the game doesn't crash");
 		}
@@ -163,7 +165,7 @@ class MainMenuState extends MusicBeatState
 			rightItem = createMenuItem(rightOption, FlxG.width - 60, 490);
 			rightItem.x -= rightItem.width;
 		}
-		
+
 		if (archipelagoOption != null)
 		{
 			archipelagoItem = createMenuItemArch(archipelagoOption, FlxG.width - 60, 260);
@@ -177,7 +179,7 @@ class MainMenuState extends MusicBeatState
 			trace('[ERROR] Failed to load logoBumpin atlas: ' + e.details());
 			logoBl.frames = null;
 		}
-		if (logoBl.frames == null) { 
+		if (logoBl.frames == null) {
 			logoBl.frames = Paths.getSparrowAtlas('bump');
 			usingDefaultLogo = true;
 		}
@@ -188,7 +190,7 @@ class MainMenuState extends MusicBeatState
 		logoBl.animation.play('bump');
 		if (usingDefaultLogo) logoBl.setGraphicSize(Std.int(logoBl.width * 0.4));
 		logoBl.updateHitbox();
-		
+
 		logoBl.scrollFactor.set();
 		logoBl.antialiasing = ClientPrefs.data.antialiasing;
 		logoBl.setGraphicSize(Std.int(logoBl.width * 0.6));
@@ -257,7 +259,7 @@ class MainMenuState extends MusicBeatState
 		menuItem.animation.addByPrefix('selected', '$name selected', 24, true);
 		menuItem.animation.play('idle');
 		menuItem.updateHitbox();
-		
+
 		menuItem.antialiasing = ClientPrefs.data.antialiasing;
 		menuItem.scrollFactor.set();
 		menuItems.add(menuItem);
@@ -272,7 +274,7 @@ class MainMenuState extends MusicBeatState
 		menuItem.animation.addByPrefix('selected', 'selected', 15, false);
 		menuItem.animation.play('idle');
 		menuItem.updateHitbox();
-		
+
 		menuItem.antialiasing = ClientPrefs.data.antialiasing;
 		menuItem.scrollFactor.set();
 		menuItems.add(menuItem);
@@ -286,7 +288,7 @@ class MainMenuState extends MusicBeatState
 	{
 		if (FlxG.sound.music.volume < 0.8)
 			FlxG.sound.music.volume = Math.min(FlxG.sound.music.volume + 0.5 * elapsed, 0.8);
-		
+
 		if (!FlxG.sound.music.playing)
 			MusicManager.playMenuMusic();
 
@@ -460,7 +462,7 @@ class MainMenuState extends MusicBeatState
 				{
 					FlxG.camera.zoom = 1;
 				}});
-				
+
 				new FlxTimer().start(0.2, function(tmr:FlxTimer)
 				{
 					hideit(1);
@@ -529,7 +531,7 @@ class MainMenuState extends MusicBeatState
 							item.visible = true;
 					}
 				});
-				
+
 				for (memb in menuItems)
 				{
 					if(memb == item)
@@ -545,7 +547,7 @@ class MainMenuState extends MusicBeatState
 				FlxG.mouse.visible = false;
 				MusicBeatState.switchState(new MasterEditorMenu());
 			}
-			
+
 			// Debug State Menu access with F3 or debug_2
 			if (FlxG.keys.justPressed.F3 || controls.justPressed('debug_2'))
 			{
