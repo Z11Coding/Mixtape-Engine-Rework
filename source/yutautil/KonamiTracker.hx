@@ -40,6 +40,9 @@ class KonamiTracker extends FlxBasic {
     }
 
     public function addCheat(code:Array<FlxKey>, callback:CheatCallback):Void {
+        // Check for overlaps with existing cheats
+        checkCheatOverlap(code);
+
         cheats.push({ code: code, callback: callback });
         if (code.length > maxLength) maxLength = code.length;
     }
@@ -61,7 +64,72 @@ class KonamiTracker extends FlxBasic {
                 throw 'Key "$char" does not exist in FlxKey.';
             }
         }
+
+        // Check for overlaps with existing cheats
+        checkCheatOverlap(code, codeString);
+
         addCheat(code, callback);
+    }
+
+    /**
+     * Check if a new cheat code overlaps with any existing cheat
+     * Throws an error if overlap is detected
+     */
+    private function checkCheatOverlap(newCode:Array<FlxKey>, ?newCodeString:String):Void {
+        for (existingCheat in cheats) {
+            var existingCode = existingCheat.code;
+
+            // Check if newCode can be activated while trying to activate existingCode
+            if (canActivateWhileTrying(newCode, existingCode)) {
+                var existingCodeString = codeToString(existingCode);
+                var newCodeStr = newCodeString != null ? newCodeString : codeToString(newCode);
+                throw 'Cheat "$newCodeStr" overlaps with "$existingCodeString".';
+            }
+
+            // Check if existingCode can be activated while trying to activate newCode
+            if (canActivateWhileTrying(existingCode, newCode)) {
+                var existingCodeString = codeToString(existingCode);
+                var newCodeStr = newCodeString != null ? newCodeString : codeToString(newCode);
+                throw 'Cheat "$newCodeStr" overlaps with "$existingCodeString".';
+            }
+        }
+    }
+
+    /**
+     * Check if cheatA can be activated while entering cheatB
+     * This happens when cheatA's sequence appears as a subsequence within cheatB
+     */
+    private function canActivateWhileTrying(cheatA:Array<FlxKey>, cheatB:Array<FlxKey>):Bool {
+        if (cheatA.length > cheatB.length) return false;
+
+        // Check all possible positions where cheatA could start within cheatB
+        for (startPos in 0...(cheatB.length - cheatA.length + 1)) {
+            var matches = true;
+            for (i in 0...cheatA.length) {
+                if (cheatA[i] != cheatB[startPos + i]) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Convert a cheat code array back to a readable string
+     */
+    private function codeToString(code:Array<FlxKey>):String {
+        var result = "";
+        for (key in code) {
+            var keyStr = FlxKey.toStringMap.get(key);
+            if (keyStr != null) {
+                result += keyStr;
+            } else {
+                result += "?";
+            }
+        }
+        return result;
     }
 
     override public function update(elapsed:Float):Void {

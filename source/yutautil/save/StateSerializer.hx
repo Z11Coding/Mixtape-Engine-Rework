@@ -1,22 +1,21 @@
 package yutautil.save;
 
-import haxe.Json;
-import haxe.Serializer;
-import haxe.Unserializer;
-import sys.io.File;
-import sys.FileSystem;
-import flixel.FlxState;
 import flixel.FlxG;
+import flixel.FlxState;
+import haxe.Json;
+import sys.FileSystem;
+import sys.io.File;
 
 /**
- * Structure to hold serialized class information with queue support
+ * Structure to hold serialized class information with JSON support
  */
 typedef SerializedClass = {
     var CLASS:String;           // Class name
     var TYPE:String;            // Full type path
-    var FIELDS:Dynamic;         // Serialized field data
+    var FIELDS:Dynamic;         // JSON-converted field data
     var TIMESTAMP:Float;        // When it was saved
     var VERSION:String;         // Serializer version
+    var IS_ANONYMOUS:Bool;      // Whether this is an anonymous structure
     var QUEUED_OBJECTS:Map<String, Dynamic>; // Queue of nested objects
     var MAIN_OBJECT_ID:String;  // ID of the main object
     var METADATA:SerializationMetadata; // Additional metadata
@@ -46,15 +45,15 @@ typedef QueuedDeserialization = {
 }
 
 /**
- * Advanced StateSerializer that handles complex object graphs using a queue-based approach
- * to prevent stack overflow and properly restores class instances without calling constructors.
+ * Advanced StateSerializer that handles complex object graphs using JSON conversion
+ * instead of Haxe serialization, making data more portable and debuggable.
  */
 class StateSerializer {
-    
-    private static var SERIALIZER_VERSION:String = "2.0.0";
+
+    private static var SERIALIZER_VERSION:String = "3.0.0";
     private static var SAVE_DIRECTORY:String = "save/states/";
     private static var MAX_RECURSION_DEPTH:Int = 50;
-    
+
     // Static variables for queue-based processing
     private static var _nextObjectId:Int = 0;
     private static var _objectRegistry:Map<Dynamic, String> = new Map<Dynamic, String>();
@@ -65,33 +64,35 @@ class StateSerializer {
     private static var _currentMaxDepth:Int = 0;
     private static var _foundTypes:Array<String> = [];
     private static var _circularRefs:Bool = false;
-    
+
     /**
-     * Creates a serializable object using queue-based approach to prevent stack overflow
-     * @param instance The object instance to serialize
-     * @return SerializedClass structure containing all necessary restoration data
+     * Creates a JSON-convertible object from any instance
+     * @param instance The object instance to convert
+     * @return SerializedClass structure containing JSON data
      */
     public static function createSerializableObject(instance:Dynamic):SerializedClass {
         if (instance == null) return null;
-        
+
         // Reset state
         resetSerializationState();
-        
+
         var mainObjectId = generateObjectId();
         var className = getClassName(instance);
         var typePath = getTypePath(instance);
-        
+        var isAnonymous = isAnonymousStructure(instance);
+
         // Register the main object
         _objectRegistry.set(instance, mainObjectId);
         _idToObject.set(mainObjectId, instance);
         _foundTypes.push(typePath);
-        
+
         var result:SerializedClass = {
             CLASS: className,
             TYPE: typePath,
             FIELDS: {},
             TIMESTAMP: haxe.Timer.stamp(),
             VERSION: SERIALIZER_VERSION,
+            IS_ANONYMOUS: isAnonymous,
             QUEUED_OBJECTS: new Map<String, Dynamic>(),
             MAIN_OBJECT_ID: mainObjectId,
             METADATA: {
@@ -101,108 +102,110 @@ class StateSerializer {
                 objectTypes: []
             }
         };
-        
+
         // Start with the main object
-        result.FIELDS = serializeObjectFields(instance, mainObjectId, 0);
-        
+        result.FIELDS = convertObjectToJSON(instance, mainObjectId, 0);
+
         // Process the queue
         processSerializationQueue(result);
-        
+
         // Update metadata
         updateSerializationMetadata(result);
-        
+
         return result;
     }
-    
+
     /**
-     * Restores an object from a SerializedClass structure using empty instances
+     * Restores an object from JSON data in a SerializedClass structure
      * @param serializedClass The serialized class data
      * @return The restored instance, or null if restoration failed
      */
     public static function restoreFromSerializedObject(serializedClass:SerializedClass):Dynamic {
         if (serializedClass == null) return null;
-        
+
         try {
             // Reset deserialization state
             resetDeserializationState();
-            
-            // Create empty instance of the main class
-            var mainInstance = createEmptyInstance(serializedClass.TYPE);
-            if (mainInstance == null) {
-                trace('Failed to create empty instance of ${serializedClass.TYPE}');
-                return null;
-            }
-            
-            // Check if main instance should be treated as anonymous object
-            if (Reflect.hasField(mainInstance, "__treatAsAnonymous")) {
-                // Create a plain object for the main instance
+
+            var mainInstance:Dynamic;
+
+            if (serializedClass.IS_ANONYMOUS) {
+                // Create plain object for anonymous structures
                 mainInstance = {};
+            } else {
+                // Create empty instance of the main class
+                mainInstance = createEmptyInstance(serializedClass.TYPE);
+                if (mainInstance == null) {
+                    trace('Failed to create empty instance of ${serializedClass.TYPE}, treating as anonymous');
+                    mainInstance = {};
+                }
             }
-            
+
             // Register the main instance
             _idToObject.set(serializedClass.MAIN_OBJECT_ID, mainInstance);
-            
+
             // Create empty instances for all queued objects first
             for (objectId in serializedClass.QUEUED_OBJECTS.keys()) {
                 var queuedData = serializedClass.QUEUED_OBJECTS.get(objectId);
                 if (queuedData != null && Reflect.hasField(queuedData, "TYPE")) {
                     var typePath = Reflect.field(queuedData, "TYPE");
-                    var emptyInstance = createEmptyInstance(typePath);
-                    if (emptyInstance != null) {
-                        // Check if this should be treated as anonymous object
-                        if (Reflect.hasField(emptyInstance, "__treatAsAnonymous")) {
-                            // Create a plain object instead
-                            _idToObject.set(objectId, {});
-                        } else {
-                            _idToObject.set(objectId, emptyInstance);
-                        }
+                    var isAnonymous = Reflect.hasField(queuedData, "IS_ANONYMOUS") ?
+                                    Reflect.field(queuedData, "IS_ANONYMOUS") : false;
+
+                    var emptyInstance:Dynamic;
+                    if (isAnonymous) {
+                        emptyInstance = {};
+                    } else {
+                        emptyInstance = createEmptyInstance(typePath);
+                        if (emptyInstance == null) emptyInstance = {};
                     }
+                    _idToObject.set(objectId, emptyInstance);
                 }
             }
-            
+
             // Now restore fields for the main object
-            restoreObjectFields(mainInstance, serializedClass.FIELDS);
-            
+            restoreObjectFromJSON(mainInstance, serializedClass.FIELDS);
+
             // Process queued objects
             for (objectId in serializedClass.QUEUED_OBJECTS.keys()) {
                 var queuedData = serializedClass.QUEUED_OBJECTS.get(objectId);
                 var targetObject = _idToObject.get(objectId);
                 if (targetObject != null && queuedData != null && Reflect.hasField(queuedData, "FIELDS")) {
                     var fields = Reflect.field(queuedData, "FIELDS");
-                    restoreObjectFields(targetObject, fields);
+                    restoreObjectFromJSON(targetObject, fields);
                 }
             }
-            
+
             return mainInstance;
-            
+
         } catch (e:Dynamic) {
-            trace('Error restoring object from serialized class: ${e}');
+            trace('Error restoring object from JSON data: ${e}');
             return null;
         }
     }
-    
+
     /**
      * Creates an empty instance of a class without calling its constructor
      * @param typePath The full type path of the class
      * @return Empty instance or null if creation failed
      */
     private static function createEmptyInstance(typePath:String):Dynamic {
-        // If the type is unknown, return a marker object that signals to treat as anonymous
+        // If the type is unknown, return null to indicate anonymous handling
         if (typePath == null || typePath == "Unknown" || typePath == "null") {
-            return { __treatAsAnonymous: true };
+            return null;
         }
-        
+
         try {
             var classType = Type.resolveClass(typePath);
             if (classType == null) {
                 trace('Could not resolve class type: ${typePath}, treating as anonymous object');
-                return { __treatAsAnonymous: true };
+                return null;
             }
-            
+
             // Create empty instance without calling constructor
             var instance = Type.createEmptyInstance(classType);
             return instance;
-            
+
         } catch (e:Dynamic) {
             trace('Failed to create empty instance of ${typePath}: ${e}, treating as anonymous object');
             // Fallback: try creating with empty array parameters
@@ -214,14 +217,22 @@ class StateSerializer {
             } catch (e2:Dynamic) {
                 trace('Fallback creation also failed: ${e2}, treating as anonymous object');
             }
-            return { __treatAsAnonymous: true };
+            return null;
         }
     }
-    
+
     /**
-     * Serialize object fields with queue-based approach
+     * Check if an object is an anonymous structure
      */
-    private static function serializeObjectFields(obj:Dynamic, objectId:String, depth:Int):Dynamic {
+    private static function isAnonymousStructure(obj:Dynamic):Bool {
+        if (obj == null) return false;
+        return Type.typeof(obj) == TObject;
+    }
+
+    /**
+     * Convert object fields to JSON-compatible data
+     */
+    private static function convertObjectToJSON(obj:Dynamic, objectId:String, depth:Int):Dynamic {
         if (obj == null) return null;
         if (depth > MAX_RECURSION_DEPTH) {
             trace('Maximum recursion depth reached, skipping object');
@@ -229,30 +240,30 @@ class StateSerializer {
         }
 
         _currentMaxDepth = Std.int(Math.max(_currentMaxDepth, depth));
-        var serializedFields:Dynamic = {};
+        var jsonFields:Dynamic = {};
         var fields = Reflect.fields(obj);
-        
+
         for (field in fields) {
             var value = Reflect.field(obj, field);
-            
+
             // Skip functions as they cannot be serialized
             if (Reflect.isFunction(value)) {
                 continue;
             }
-            
-            var serializedValue = serializeValue(value, objectId, field, depth + 1);
-            Reflect.setField(serializedFields, field, serializedValue);
+
+            var convertedValue = convertValueToJSON(value, objectId, field, depth + 1);
+            Reflect.setField(jsonFields, field, convertedValue);
         }
-        
-        return serializedFields;
+
+        return jsonFields;
     }
-    
+
     /**
-     * Serialize a single value, queuing complex objects
+     * Convert a single value to JSON-compatible format
      */
-    private static function serializeValue(value:Dynamic, parentId:String, fieldName:String, depth:Int):Dynamic {
+    private static function convertValueToJSON(value:Dynamic, parentId:String, fieldName:String, depth:Int):Dynamic {
         if (value == null) return null;
-        
+
         switch (Type.typeof(value)) {
             case TNull | TBool | TInt | TFloat:
                 return value;
@@ -266,7 +277,7 @@ class StateSerializer {
                 };
             case TClass(Array):
                 var arr:Array<Dynamic> = cast value;
-                return arr.map(function(item) return serializeValue(item, parentId, fieldName + "[]", depth + 1));
+                return arr.map(function(item) return convertValueToJSON(item, parentId, fieldName + "[]", depth + 1));
             case TObject:
                 // Handle anonymous structures/plain objects
                 var obj = {
@@ -275,24 +286,24 @@ class StateSerializer {
                 };
                 for (objField in Reflect.fields(value)) {
                     var objValue = Reflect.field(value, objField);
-                    
+
                     // Skip functions in anonymous objects
                     if (Reflect.isFunction(objValue)) {
                         continue;
                     }
-                    
-                    Reflect.setField(obj.__fields, objField, serializeValue(objValue, parentId, fieldName + "." + objField, depth + 1));
+
+                    Reflect.setField(obj.__fields, objField, convertValueToJSON(objValue, parentId, fieldName + "." + objField, depth + 1));
                 }
                 return obj;
             case TClass(c):
                 var className = Type.getClassName(c);
                 var typePath = getTypePath(value);
-                
-                // Check for simple serializable types
-                if (isSimpleSerializableType(className)) {
-                    return serializeSimpleType(value, className);
+
+                // Check for simple types that can be converted directly
+                if (isSimpleConvertibleType(className)) {
+                    return convertSimpleType(value, className);
                 }
-                
+
                 // Check if we've already seen this object (circular reference)
                 if (_objectRegistry.exists(value)) {
                     _circularRefs = true;
@@ -301,16 +312,18 @@ class StateSerializer {
                         __objectId: _objectRegistry.get(value)
                     };
                 }
-                
+
                 // Queue this object for later processing
                 var objectId = generateObjectId();
                 _objectRegistry.set(value, objectId);
                 _idToObject.set(objectId, value);
-                
+
                 if (_foundTypes.indexOf(typePath) == -1) {
                     _foundTypes.push(typePath);
                 }
-                
+
+                var isAnonymous = isAnonymousStructure(value);
+
                 _serializationQueue.push({
                     obj: value,
                     objectId: objectId,
@@ -319,12 +332,13 @@ class StateSerializer {
                     depth: depth,
                     processed: false
                 });
-                
+
                 return {
                     __type: "QUEUED_OBJECT",
                     __objectId: objectId,
                     __className: className,
-                    __typePath: typePath
+                    __typePath: typePath,
+                    __isAnonymous: isAnonymous
                 };
             case TEnum(e):
                 // Handle enums by converting to string representation
@@ -347,7 +361,7 @@ class StateSerializer {
                 };
         }
     }
-    
+
     /**
      * Process the serialization queue
      */
@@ -355,48 +369,51 @@ class StateSerializer {
         while (_serializationQueue.length > 0) {
             var queuedObj = _serializationQueue.shift();
             if (queuedObj == null || queuedObj.processed) continue;
-            
+
             queuedObj.processed = true;
-            
+
             if (_processedObjects.exists(queuedObj.objectId)) continue;
             _processedObjects.set(queuedObj.objectId, true);
-            
+
+            var isAnonymous = isAnonymousStructure(queuedObj.obj);
+
             var serializedObj = {
                 CLASS: getClassName(queuedObj.obj),
                 TYPE: getTypePath(queuedObj.obj),
-                FIELDS: serializeObjectFields(queuedObj.obj, queuedObj.objectId, queuedObj.depth),
+                FIELDS: convertObjectToJSON(queuedObj.obj, queuedObj.objectId, queuedObj.depth),
+                IS_ANONYMOUS: isAnonymous,
                 PARENT_ID: queuedObj.parentId,
                 FIELD_NAME: queuedObj.fieldName,
                 DEPTH: queuedObj.depth
             };
-            
+
             result.QUEUED_OBJECTS.set(queuedObj.objectId, serializedObj);
         }
     }
-    
+
     /**
-     * Restore fields for an object instance
+     * Restore fields for an object instance from JSON data
      */
-    private static function restoreObjectFields(instance:Dynamic, fields:Dynamic):Void {
+    private static function restoreObjectFromJSON(instance:Dynamic, fields:Dynamic):Void {
         if (instance == null || fields == null) return;
-        
+
         for (field in Reflect.fields(fields)) {
             var value = Reflect.field(fields, field);
             try {
-                var restoredValue = deserializeValue(value);
+                var restoredValue = convertValueFromJSON(value);
                 Reflect.setField(instance, field, restoredValue);
             } catch (e:Dynamic) {
                 trace('Warning: Could not restore field ${field}: ${e}');
             }
         }
     }
-    
+
     /**
-     * Deserialize a value, handling object references
+     * Convert a value from JSON back to original form
      */
-    private static function deserializeValue(value:Dynamic):Dynamic {
+    private static function convertValueFromJSON(value:Dynamic):Dynamic {
         if (value == null) return null;
-        
+
         if (Reflect.hasField(value, "__type")) {
             var type = Reflect.field(value, "__type");
             switch (type) {
@@ -410,11 +427,11 @@ class StateSerializer {
                     // Restore anonymous object/structure
                     var fields = Reflect.field(value, "__fields");
                     if (fields == null) return {};
-                    
+
                     var obj = {};
                     for (field in Reflect.fields(fields)) {
                         var fieldValue = Reflect.field(fields, field);
-                        Reflect.setField(obj, field, deserializeValue(fieldValue));
+                        Reflect.setField(obj, field, convertValueFromJSON(fieldValue));
                     }
                     return obj;
                 case "FUNCTION_SKIPPED":
@@ -446,89 +463,77 @@ class StateSerializer {
                     return null;
                 default:
                     if (type.startsWith("haxe.ds.") || type == "Map") {
-                        return deserializeMap(value, type);
+                        return convertMapFromJSON(value, type);
                     }
             }
         }
-        
+
         // Handle arrays
         if (Std.isOfType(value, Array)) {
             var arr:Array<Dynamic> = cast value;
-            return arr.map(function(item) return deserializeValue(item));
+            return arr.map(function(item) return convertValueFromJSON(item));
         }
-        
+
         // Handle plain objects
         if (Type.typeof(value) == TObject) {
             var obj = {};
             for (field in Reflect.fields(value)) {
                 var fieldValue = Reflect.field(value, field);
-                Reflect.setField(obj, field, deserializeValue(fieldValue));
+                Reflect.setField(obj, field, convertValueFromJSON(fieldValue));
             }
             return obj;
         }
-        
+
         return value;
     }
-    
+
     /**
-     * Custom Map deserialization
+     * Convert Map from JSON data
      */
-    private static function deserializeMap(value:Dynamic, type:String):Dynamic {
+    private static function convertMapFromJSON(value:Dynamic, type:String):Dynamic {
         try {
             // Check for new format first
             if (Reflect.hasField(value, "__mapEntries")) {
                 var entries:Array<{key:Dynamic, value:Dynamic}> = cast Reflect.field(value, "__mapEntries");
                 var map = new Map<Dynamic, Dynamic>();
-                
+
                 for (entry in entries) {
-                    var key = deserializeMapValue(entry.key);
-                    var val = deserializeMapValue(entry.value);
+                    var key = convertMapValueFromJSON(entry.key);
+                    var val = convertMapValueFromJSON(entry.value);
                     map.set(key, val);
                 }
-                
+
                 return map;
             }
-            
-            // Fallback to old format for backwards compatibility
-            if (Reflect.hasField(value, "__value")) {
-                var serializedValue = Reflect.field(value, "__value");
-                try {
-                    return Unserializer.run(serializedValue);
-                } catch (e:Dynamic) {
-                    trace('Failed to deserialize map with old format: ${e}');
-                    return new Map<Dynamic, Dynamic>();
-                }
-            }
-            
+
             return new Map<Dynamic, Dynamic>();
         } catch (e:Dynamic) {
-            trace('Error deserializing map: ${e}');
+            trace('Error converting map from JSON: ${e}');
             return new Map<Dynamic, Dynamic>();
         }
     }
-    
+
     /**
-     * Deserialize individual map key/value
+     * Convert individual map key/value from JSON
      */
-    private static function deserializeMapValue(value:Dynamic):Dynamic {
+    private static function convertMapValueFromJSON(value:Dynamic):Dynamic {
         if (value == null) return null;
-        
-        // Try to unserialize first (for complex objects)
-        if (Std.isOfType(value, String)) {
-            try {
-                return Unserializer.run(cast value);
-            } catch (e:Dynamic) {
-                // If unserialization fails, return as string
+
+        // For simple values, return as-is
+        switch (Type.typeof(value)) {
+            case TNull | TBool | TInt | TFloat:
                 return value;
-            }
+            case TClass(String):
+                return value;
+            default:
+                // For complex objects, convert from JSON
+                return convertValueFromJSON(value);
         }
-        
-        return value;
     }
 
-    
+
     // Helper methods
-    
+
     private static function resetSerializationState():Void {
         _nextObjectId = 0;
         _objectRegistry = new Map<Dynamic, String>();
@@ -539,16 +544,16 @@ class StateSerializer {
         _foundTypes = [];
         _circularRefs = false;
     }
-    
+
     private static function resetDeserializationState():Void {
         _idToObject = new Map<String, Dynamic>();
         _deserializationQueue = [];
     }
-    
+
     private static function generateObjectId():String {
         return "obj_" + (_nextObjectId++);
     }
-    
+
     private static function getClassName(obj:Dynamic):String {
         if (obj == null) return "null";
         var classType = Type.getClass(obj);
@@ -556,21 +561,21 @@ class StateSerializer {
         var className = Type.getClassName(classType);
         return className != null ? className.split(".").pop() : "Unknown";
     }
-    
+
     private static function getTypePath(obj:Dynamic):String {
         if (obj == null) return "null";
         var classType = Type.getClass(obj);
         if (classType == null) return "Unknown";
         return Type.getClassName(classType);
     }
-    
-    private static function isSimpleSerializableType(className:String):Bool {
-        return className == "Date" || 
-               className == "Map" || 
+
+    private static function isSimpleConvertibleType(className:String):Bool {
+        return className == "Date" ||
+               className == "Map" ||
                className.startsWith("haxe.ds.");
     }
-    
-    private static function serializeSimpleType(value:Dynamic, className:String):Dynamic {
+
+    private static function convertSimpleType(value:Dynamic, className:String):Dynamic {
         switch (className) {
             case "Date":
                 var date:Date = cast value;
@@ -580,56 +585,56 @@ class StateSerializer {
                 };
             default:
                 if (className == "Map" || className.startsWith("haxe.ds.")) {
-                    return serializeMap(value, className);
+                    return convertMapToJSON(value, className);
                 }
                 return value;
         }
     }
-    
+
     /**
-     * Custom Map serialization that skips functions
+     * Convert Map to JSON data
      */
-    private static function serializeMap(map:Dynamic, className:String):Dynamic {
+    private static function convertMapToJSON(map:Dynamic, className:String):Dynamic {
         try {
-            var serializedEntries:Array<{key:Dynamic, value:Dynamic}> = [];
-            trace("Object as Map: " + map);
+            var convertedEntries:Array<{key:Dynamic, value:Dynamic}> = [];
+
             // Handle different Map types
             if (map.isMap()) {
                 var mapInstance:Map<Dynamic, Dynamic> = cast map;
                 for (key in mapInstance.keys()) {
                     var value = mapInstance.get(key);
-                    
+
                     // Skip function values in maps
                     if (Reflect.isFunction(value)) {
                         continue;
                     }
-                    
-                    serializedEntries.push({
-                        key: serializeMapValue(key),
-                        value: serializeMapValue(value)
+
+                    convertedEntries.push({
+                        key: convertMapValueToJSON(key),
+                        value: convertMapValueToJSON(value)
                     });
                 }
             }
-            
+
             return {
                 __type: className,
-                __mapEntries: serializedEntries
+                __mapEntries: convertedEntries
             };
         } catch (e:Dynamic) {
-            trace('Error serializing map: ${e}');
+            trace('Error converting map to JSON: ${e}');
             return {
                 __type: className,
                 __mapEntries: []
             };
         }
     }
-    
+
     /**
-     * Serialize individual map key/value
+     * Convert individual map key/value to JSON
      */
-    private static function serializeMapValue(value:Dynamic):Dynamic {
+    private static function convertMapValueToJSON(value:Dynamic):Dynamic {
         if (value == null) return null;
-        
+
         switch (Type.typeof(value)) {
             case TNull | TBool | TInt | TFloat:
                 return value;
@@ -638,24 +643,20 @@ class StateSerializer {
             case TFunction:
                 return null; // Skip functions
             default:
-                // For complex objects, convert to string representation
-                try {
-                    return Serializer.run(value);
-                } catch (e:Dynamic) {
-                    return Std.string(value);
-                }
+                // For complex objects, convert to JSON representation
+                return convertValueToJSON(value, "", "", 0);
         }
     }
-    
+
     private static function updateSerializationMetadata(result:SerializedClass):Void {
         result.METADATA.totalObjects = Lambda.count(result.QUEUED_OBJECTS) + 1;
         result.METADATA.maxDepth = _currentMaxDepth;
         result.METADATA.hasCircularRefs = _circularRefs;
         result.METADATA.objectTypes = _foundTypes.copy();
     }
-    
+
     // Public API methods for state management
-    
+
     /**
      * Saves the current FlxState to a file
      * @param filename Optional filename (without extension)
@@ -666,16 +667,16 @@ class StateSerializer {
             trace('Error: No active state to save');
             return false;
         }
-        
+
         if (filename == null) {
             var timestamp = Std.string(Date.now().getTime());
             var stateName = getClassName(FlxG.state);
             filename = '${stateName}_${timestamp}';
         }
-        
+
         return saveState(FlxG.state, filename);
     }
-    
+
     /**
      * Saves a specific FlxState to a file
      * @param state The state to save
@@ -685,15 +686,15 @@ class StateSerializer {
     public static function saveState(state:FlxState, filename:String):Bool {
         try {
             var serializedState = createSerializableObject(state);
-            
+
             // Ensure save directory exists
             if (!sys.FileSystem.exists(SAVE_DIRECTORY)) {
                 sys.FileSystem.createDirectory(SAVE_DIRECTORY);
             }
-            
+
             var filePath = SAVE_DIRECTORY + filename + ".json";
             var jsonString = Json.stringify(serializedState, null, "\t");
-            
+
             File.saveContent(filePath, jsonString);
             trace('State saved successfully to: ${filePath}');
             trace('Serialization stats: ${serializedState.METADATA.totalObjects} objects, max depth: ${serializedState.METADATA.maxDepth}');
@@ -703,7 +704,7 @@ class StateSerializer {
             return false;
         }
     }
-    
+
     /**
      * Loads a state from a file and switches to it
      * @param filename Filename (without extension)
@@ -723,7 +724,7 @@ class StateSerializer {
         }
         return false;
     }
-    
+
     /**
      * Loads a state from a file without switching to it
      * @param filename Filename (without extension)
@@ -732,19 +733,19 @@ class StateSerializer {
     public static function loadState(filename:String):FlxState {
         try {
             var filePath = SAVE_DIRECTORY + filename + ".json";
-            
+
             if (!sys.FileSystem.exists(filePath)) {
                 trace('Error: Save file not found: ${filePath}');
                 return null;
             }
-            
+
             var jsonContent = File.getContent(filePath);
             var serializedState:SerializedClass = Json.parse(jsonContent);
-            
+
             trace('Loading state with ${serializedState.METADATA.totalObjects} objects...');
-            
+
             var restoredState = restoreFromSerializedObject(serializedState);
-            
+
             if (restoredState != null && Std.isOfType(restoredState, FlxState)) {
                 trace('State loaded successfully from: ${filePath}');
                 return cast restoredState;
@@ -757,18 +758,18 @@ class StateSerializer {
             return null;
         }
     }
-    
+
     /**
      * Lists all available save files
      * @return Array of save file names (without extensions)
      */
     public static function listSaveFiles():Array<String> {
         var files:Array<String> = [];
-        
+
         if (!sys.FileSystem.exists(SAVE_DIRECTORY)) {
             return files;
         }
-        
+
         try {
             for (file in sys.FileSystem.readDirectory(SAVE_DIRECTORY)) {
                 if (file.endsWith(".json")) {
@@ -778,10 +779,10 @@ class StateSerializer {
         } catch (e:Dynamic) {
             trace('Error reading save directory: ${e}');
         }
-        
+
         return files;
     }
-    
+
     /**
      * Deletes a save file
      * @param filename Filename (without extension)
@@ -790,7 +791,7 @@ class StateSerializer {
     public static function deleteSaveFile(filename:String):Bool {
         try {
             var filePath = SAVE_DIRECTORY + filename + ".json";
-            
+
             if (sys.FileSystem.exists(filePath)) {
                 sys.FileSystem.deleteFile(filePath);
                 trace('Save file deleted: ${filePath}');
@@ -804,7 +805,7 @@ class StateSerializer {
             return false;
         }
     }
-    
+
     /**
      * Gets detailed information about a save file
      * @param filename Filename (without extension)
@@ -813,14 +814,14 @@ class StateSerializer {
     public static function getSaveFileInfo(filename:String):SerializationMetadata {
         try {
             var filePath = SAVE_DIRECTORY + filename + ".json";
-            
+
             if (!sys.FileSystem.exists(filePath)) {
                 return null;
             }
-            
+
             var jsonContent = File.getContent(filePath);
             var serializedState:SerializedClass = Json.parse(jsonContent);
-            
+
             return serializedState.METADATA;
         } catch (e:Dynamic) {
             trace('Error reading save file info: ${e}');

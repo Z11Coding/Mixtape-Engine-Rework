@@ -4,23 +4,32 @@ package;
 import android.content.Context;
 #end
 
-import debug.FPSCounter;
-
+import backend.Highscore;
+import backend.modules.*;
 import backend.modules.SSPlugin as ScreenShotPlugin;
-import flixel.graphics.FlxGraphic;
+import debug.FPSCounter;
 import flixel.FlxGame;
 import flixel.FlxState;
+import flixel.graphics.FlxGraphic;
+import games.uno.backend.*;
+import games.uno.backend.UnoCPU.UnoDifficulty;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoRules.UnoGameState;
 import haxe.io.Path;
+import haxe.ui.Toolkit;
+import lime.app.Application;
 import openfl.Assets;
 import openfl.Lib;
 import openfl.display.Sprite;
-import openfl.events.Event;
 import openfl.display.StageScaleMode;
-import lime.app.Application;
-import states.TitleState;
-import psychlua.LuaUtils;
-import haxe.ui.Toolkit;
+import openfl.events.Event;
 import openfl.events.NativeProcessExitEvent;
+import psychlua.LuaUtils;
+import states.TitleState;
+#if debug
+import debug.DebugManager;
+import yutautil.StatePick;
+#end
 
 #if HSCRIPT_ALLOWED
 import crowplexus.iris.Iris;
@@ -37,23 +46,17 @@ import backend.ALSoftConfig; // Just to make sure DCE doesn't remove this, since
 
 //crash handler stuff
 #if CRASH_HANDLER
-import openfl.events.UncaughtErrorEvent;
 import haxe.CallStack;
 import haxe.io.Path;
+import openfl.events.UncaughtErrorEvent;
 #end
 
 #if sys
+import haxe.io.BytesOutput;
 import sys.FileSystem;
 import sys.io.Process;
-import haxe.io.BytesOutput;
 #end
 
-import backend.modules.*;
-import backend.Highscore;
-import games.uno.backend.*;
-import games.uno.backend.UnoCard.UnoColor;
-import games.uno.backend.UnoCPU.UnoDifficulty;
-import games.uno.backend.UnoRules.UnoGameState;
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
 #if (linux && !debug)
@@ -164,7 +167,7 @@ class Main extends Sprite
 		// Pointer of a pointer test (HaxePointer of HaxePointer, stacked 5 times)
 		var arr:Array<Int> = [1, 2, 3, 4, 5];
 
-		
+
 		// var ptr1 = new HaxePointer<Array<Int>>(arr);
 		// var ptr2 = new HaxePointer<HaxePointer<Array<Int>>>(ptr1);
 		// var ptr3 = new HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>(ptr2);
@@ -200,7 +203,7 @@ class Main extends Sprite
 	public function new()
 	{
 		super();
-		
+
 		#if (cpp && windows)
 		backend.window.Native.fixScaling();
 		#end
@@ -261,7 +264,7 @@ class Main extends Sprite
 
 		FlxG.save.bind('Mixtape', CoolUtil.getSavePath());
 		Highscore.load();
-		
+
 		WindowUtils.init();
 
 		var commandPrompt = new CommandPrompt();
@@ -383,7 +386,7 @@ class Main extends Sprite
 		FlxG.fixedTimestep = false;
 		FlxG.game.focusLostFramerate = 60;
 		FlxG.keys.preventDefaultKeys = [TAB];
-		
+
 		#if CRASH_HANDLER
 		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
 		#if cpp
@@ -465,7 +468,7 @@ class Main extends Sprite
 		FullScreenPlugin.initialize();
 		ConsolePlugin.initialize();
 		new ScreenShotPlugin();
-		
+
 
 		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));
 		// trace("Game Dialog Test 2: " + dialogs.Dialogs.save('Test for Save', {ext:'txt', desc:'Text files'}));
@@ -506,7 +509,7 @@ class Main extends Sprite
 	{
 		if (gameClosing) return;
 		gameClosing = true;
-		
+
 		// Track command exit through CrashReporter
 		#if !debug
 		try {
@@ -515,7 +518,7 @@ class Main extends Sprite
 			trace("Failed to track game exit: " + trackError);
 		}
 		#end
-		
+
 		// if (Main.commandPrompt != null)
 		// 	commandPrompt.remove();
 
@@ -573,7 +576,7 @@ class Main extends Sprite
 		// Check if this is our custom UnexpectedCrashException
 		var isUnexpectedCrash = false;
 		var unexpectedCrashData:Dynamic = null;
-		
+
 		#if !debug
 		try {
 			var errorString = Std.string(e.error);
@@ -602,7 +605,7 @@ class Main extends Sprite
 
 		errMsg += "\nUncaught Error: " + e.error;
 		errMsg += "\nError Code: " + new DetailedException(e).errorCode;
-		
+
 		// Add special handling for unexpected crashes
 		if (isUnexpectedCrash) {
 			errMsg += "\n\n*** UNEXPECTED CRASH DETECTED ***";
@@ -612,7 +615,7 @@ class Main extends Sprite
 			}
 			errMsg += "\nCheck the logger folder for detailed crash tracking reports.";
 		}
-		
+
 		#if !debug
 		// Generate enhanced crash report with tracking data
 		try {
@@ -621,7 +624,7 @@ class Main extends Sprite
 			trace("Failed to generate enhanced crash report: " + reportError);
 		}
 		#end
-		
+
 		// remove if you're modding and want the crash log message to contain the link
 		// please remember to actually modify the link for the github page to report the issues to.
 		errMsg += "\nPlease report this error to the GitHub page: https://github.com/Z11Gaming/Mixtape-Engine-Rework";
@@ -636,7 +639,7 @@ class Main extends Sprite
 
 		Sys.println(errMsg);
 		Sys.println("Crash dump saved in " + Path.normalize(path));
-		
+
 		#if !debug
 		Sys.println("Enhanced crash report with tracking data saved in ./logger/ folder");
 		#end
@@ -676,7 +679,7 @@ class Main extends Sprite
 				var stateClassName = Type.getClassName(Type.getClass(FlxG.state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(FlxG.state)).split(".")) - 1];
 				var stateClass:Class<Dynamic> = Type.getClass(FlxG.state);
 				var handled = false;
-		
+
 				while (stateClass != null && !handled) {
 					switch (stateClassName) {
 						case "PlayState":
@@ -692,38 +695,38 @@ class Main extends Sprite
 								PlayState.Crashed = false;
 							}
 							handled = true;
-		
+
 						case "ChartingState":
 							if (e.error.toLowerCase().contains("null object reference")) {
 								Application.current.window.alert("You tried to load a Chart that doesn't exist!", "Chart Error");
 							}
 							handled = true;
-		
+
 						case "FreeplayState", "StoryModeState":
 							FlxG.switchState(new states.CategoryState());
 							handled = true;
-		
+
 						case "MainMenuState":
 							FlxG.switchState(new states.TitleState());
 							handled = true;
-		
+
 						case "TitleState":
 							Application.current.window.alert("Something went extremely wrong... You may want to check some things in the files!\nFailed to load TitleState!",
 								"Fatal Error");
 							trace("Unable to recover...");
 							FlxG.switchState(new states.ExitState());
 							handled = true;
-		
+
 						case "CacheState":
 							Application.current.window.alert("Major Error occurred while caching data.\nSkipping Cache Operation.", "Fatal Error");
 							FlxG.switchState(new states.What());
 							handled = true;
-		
+
 						case "What":
 							trace("Restarting Game...");
 							FlxG.switchState(new states.TitleState());
 							handled = true;
-		
+
 						case "OptionsState", "GameJoltState":
 							if (Sys.args().indexOf("-livereload") != -1) {
 								Sys.println("Cannot restart from compiled build.");
@@ -761,13 +764,13 @@ class Main extends Sprite
 							// Kill the game process and restart it.
 							var restartProcess = new Process("Mixtape.exe", ["GameBricked", "restart"]);
 							Main.closeGame(); // We can't switch to a new state if the game is bricked, so just close it.
-		
+
 						default:
 							stateClass = Type.getSuperClass(stateClass);
 							stateClassName = stateClass != null ? Type.getClassName(stateClass).split(".")[Lambda.count(Type.getClassName(stateClass).split(".")) - 1] : null;
 					}
 				}
-		
+
 				if (!handled) {
 					var mainGame = Main.game;
 					FlxG.switchState(Type.createInstance(states.TitleState, []));
@@ -839,7 +842,7 @@ class Main extends Sprite
 		} else {
 			process.close();
 		}
-		
+
 		return retVal;
 	}
 	#end
@@ -859,7 +862,85 @@ class CommandPrompt
 	{
 		this.state = "default";
 		this.variables = new Map();
-		// yutautil.VariableForCommands.generateVariableMap(true);
+		// Initialize debug system
+		debug.DebugManager.initialize();
+	}
+
+	/**
+	 * Get all available state classes using StatePick
+	 */
+	private function getAllStateClasses():Map<String, Class<Dynamic>> {
+		var stateClasses:Map<String, Class<Dynamic>> = new Map();
+
+		try {
+			// Get MusicBeatState classes
+			var musicBeatStates = yutautil.StatePick.getStateNames("MusicBeatState");
+			for (stateName in musicBeatStates.toIterable()) {
+				var stateClass = Type.resolveClass(stateName);
+				if (stateClass != null) {
+					stateClasses.set(stateName, stateClass);
+				}
+			}
+
+			// Get FlxState classes
+			var flxStates = yutautil.StatePick.getStateNames("FlxState");
+			for (stateName in flxStates.toIterable()) {
+				var stateClass = Type.resolveClass(stateName);
+				if (stateClass != null) {
+					stateClasses.set(stateName, stateClass);
+				}
+			}
+		} catch (e:Dynamic) {
+			trace('Error getting state classes: ${e}');
+		}
+
+		return stateClasses;
+	}
+
+	/**
+	 * Get static properties of a class
+	 */
+	private function getStaticProperties(stateClass:Class<Dynamic>):Array<String> {
+		var properties:Array<String> = [];
+
+		try {
+			var staticFields = Type.getClassFields(stateClass);
+			for (field in staticFields) {
+				var fieldValue = Reflect.field(stateClass, field);
+				if (!Reflect.isFunction(fieldValue)) {
+					properties.push(field);
+				}
+			}
+		} catch (e:Dynamic) {
+			trace('Error getting static properties for ${Type.getClassName(stateClass)}: ${e}');
+		}
+
+		return properties;
+	}
+
+	/**
+	 * Get static property value
+	 */
+	private function getStaticProperty(stateClass:Class<Dynamic>, propertyName:String):Dynamic {
+		try {
+			return Reflect.field(stateClass, propertyName);
+		} catch (e:Dynamic) {
+			trace('Error getting static property ${propertyName}: ${e}');
+			return null;
+		}
+	}
+
+	/**
+	 * Set static property value
+	 */
+	private function setStaticProperty(stateClass:Class<Dynamic>, propertyName:String, value:Dynamic):Bool {
+		try {
+			Reflect.setField(stateClass, propertyName, value);
+			return true;
+		} catch (e:Dynamic) {
+			trace('Error setting static property ${propertyName}: ${e}');
+			return false;
+		}
 	}
 
 	public function start():Void
@@ -1448,7 +1529,7 @@ class CommandPrompt
 								}
 							}
 						}
-						
+
 						if (obj != null) {
 							var serialized = yutautil.save.StateSerializer.createSerializableObject(obj);
 							print("Object serialized successfully:");
@@ -1469,7 +1550,7 @@ class CommandPrompt
 			case "testSerialization":
 				try {
 					print("=== Creating Random Complex Object ===");
-					
+
 					// Create a complex test object with nested structures
 					var testObj = {
 						id: Math.floor(Math.random() * 1000),
@@ -1489,7 +1570,7 @@ class CommandPrompt
 							tags: ["test", "random", "complex"]
 						}
 					};
-					
+
 					// Add some random data to the map
 					for (i in 0...5) {
 						testObj.data.set("key_" + i, {
@@ -1498,7 +1579,7 @@ class CommandPrompt
 							active: Math.random() > 0.3
 						});
 					}
-					
+
 					// Add some history entries
 					for (i in 0...3) {
 						testObj.history.push({
@@ -1507,21 +1588,21 @@ class CommandPrompt
 							data: "Some random data: " + Math.random()
 						});
 					}
-					
+
 					print("Random object created with:");
 					print("  ID: " + testObj.id);
 					print("  Name: " + testObj.name);
 					print("  Settings enabled: " + testObj.settings.enabled);
 					print("  Data entries: " + Lambda.count(testObj.data));
 					print("  History entries: " + testObj.history.length);
-					
+
 					print("\n=== Testing Serialization ===");
-					
+
 					// Test serialization
 					var startTime = haxe.Timer.stamp();
 					var serialized = yutautil.save.StateSerializer.createSerializableObject(testObj);
 					var serializeTime = haxe.Timer.stamp() - startTime;
-					
+
 					if (serialized != null) {
 						print("✓ Serialization successful!");
 						print("  Class: " + serialized.CLASS);
@@ -1532,40 +1613,40 @@ class CommandPrompt
 						print("  Has Circular Refs: " + serialized.METADATA.hasCircularRefs);
 						print("  Object Types: " + serialized.METADATA.objectTypes.join(", "));
 						print("  Serialization Time: " + Math.round(serializeTime * 1000) + "ms");
-						
+
 						print("\n=== Testing Deserialization ===");
-						
+
 						// Test deserialization
 						var deserializeStart = haxe.Timer.stamp();
 						var restored = yutautil.save.StateSerializer.restoreFromSerializedObject(serialized);
 						var deserializeTime = haxe.Timer.stamp() - deserializeStart;
-						
+
 						if (restored != null) {
 							print("✓ Deserialization successful!");
 							print("  Deserialization Time: " + Math.round(deserializeTime * 1000) + "ms");
-							
+
 							// Verify some data integrity
 							var restoredObj:Dynamic = restored;
-							var dataMatches = (restoredObj.id == testObj.id && 
+							var dataMatches = (restoredObj.id == testObj.id &&
 											  restoredObj.name == testObj.name &&
 											  restoredObj.settings.enabled == testObj.settings.enabled);
-							
+
 							print("  Data Integrity Check: " + (dataMatches ? "✓ PASSED" : "✗ FAILED"));
-							
+
 							if (restoredObj.history != null) {
 								print("  History Restored: " + restoredObj.history.length + " entries");
 							}
-							
+
 							var totalTime = Math.round((serializeTime + deserializeTime) * 1000);
 							print("  Total Time: " + totalTime + "ms");
-							
+
 						} else {
 							print("✗ Deserialization failed!");
 						}
 					} else {
 						print("✗ Serialization failed!");
 					}
-					
+
 				} catch (e:Dynamic) {
 					print("Error during serialization test: " + e);
 				}
@@ -1576,7 +1657,156 @@ class CommandPrompt
 			case "unoSim":
 				var maxTurns = args.length > 0 ? Std.parseInt(args[0]) : null;
 				this.startUnoSimulation(maxTurns);
-					
+
+			case "debug":
+				if (args.length == 0) {
+					print("Debug commands:");
+					print("  debug toggle - Toggle debug overlay");
+					print("  debug states - List all available state classes");
+					print("  debug static <stateClass> - View static properties of a state class");
+					print("  debug get <stateClass> <property> - Get static property value");
+					print("  debug set <stateClass> <property> <value> - Set static property value");
+				} else {
+					switch (args[0]) {
+						case "toggle":
+							debug.DebugManager.toggleDebugOverlay();
+							print("Debug overlay toggled");
+						case "states":
+							var states = getAllStateClasses();
+							print("Available state classes:");
+							for (name in states.keys()) {
+								print("  " + name);
+							}
+						case "static":
+							if (args.length >= 2) {
+								var stateName = args[1];
+								var states = getAllStateClasses();
+								var stateClass = states.get(stateName);
+								if (stateClass != null) {
+									var props = getStaticProperties(stateClass);
+									print('Static properties of ${stateName}:');
+									for (prop in props) {
+										var value = getStaticProperty(stateClass, prop);
+										print('  ${prop}: ${Std.string(value)}');
+									}
+								} else {
+									print('State class not found: ${stateName}');
+								}
+							} else {
+								print("Usage: debug static <stateClass>");
+							}
+						case "get":
+							if (args.length >= 3) {
+								var stateName = args[1];
+								var propName = args[2];
+								var states = getAllStateClasses();
+								var stateClass = states.get(stateName);
+								if (stateClass != null) {
+									var value = getStaticProperty(stateClass, propName);
+									print('${stateName}.${propName} = ${Std.string(value)}');
+								} else {
+									print('State class not found: ${stateName}');
+								}
+							} else {
+								print("Usage: debug get <stateClass> <property>");
+							}
+						case "set":
+							if (args.length >= 4) {
+								var stateName = args[1];
+								var propName = args[2];
+								var valueStr = args.slice(3).join(" ");
+								var states = getAllStateClasses();
+								var stateClass = states.get(stateName);
+								if (stateClass != null) {
+									// Try to parse the value
+									var value:Dynamic = valueStr;
+									if (valueStr == "true") value = true;
+									else if (valueStr == "false") value = false;
+									else {
+										var intValue = Std.parseInt(valueStr);
+										if (intValue != null) value = intValue;
+										else {
+											var floatValue = Std.parseFloat(valueStr);
+											if (!Math.isNaN(floatValue)) value = floatValue;
+										}
+									}
+
+									var success = setStaticProperty(stateClass, propName, value);
+									if (success) {
+										print('Set ${stateName}.${propName} = ${Std.string(value)}');
+									} else {
+										print('Failed to set ${stateName}.${propName}');
+									}
+								} else {
+									print('State class not found: ${stateName}');
+								}
+							} else {
+								print("Usage: debug set <stateClass> <property> <value>");
+							}
+						default:
+							print("Unknown debug command. Use 'debug' for help.");
+					}
+				}
+
+			case "stateEdit":
+				if (args.length == 0) {
+					print("State editing commands:");
+					print("  stateEdit list - List all properties of current state");
+					print("  stateEdit get <property> - Get property value");
+					print("  stateEdit set <property> <value> - Set property value");
+					print("  stateEdit navigate <property> - Navigate into complex object");
+				} else {
+					switch (args[0]) {
+						case "list":
+							var fields = Reflect.fields(FlxG.state);
+							print("Current state properties:");
+							for (field in fields) {
+								if (!Reflect.isFunction(Reflect.field(FlxG.state, field))) {
+									var value = Reflect.field(FlxG.state, field);
+									var typeStr = Type.typeof(value);
+									print('  ${field}: ${Std.string(typeStr)}');
+								}
+							}
+						case "get":
+							if (args.length >= 2) {
+								var propName = args[1];
+								var value = Reflect.field(FlxG.state, propName);
+								print('${propName} = ${Std.string(value)}');
+							} else {
+								print("Usage: stateEdit get <property>");
+							}
+						case "set":
+							if (args.length >= 3) {
+								var propName = args[1];
+								var valueStr = args.slice(2).join(" ");
+
+								// Try to parse the value
+								var value:Dynamic = valueStr;
+								if (valueStr == "true") value = true;
+								else if (valueStr == "false") value = false;
+								else {
+									var intValue = Std.parseInt(valueStr);
+									if (intValue != null) value = intValue;
+									else {
+										var floatValue = Std.parseFloat(valueStr);
+										if (!Math.isNaN(floatValue)) value = floatValue;
+									}
+								}
+
+								try {
+									Reflect.setField(FlxG.state, propName, value);
+									print('Set ${propName} = ${Std.string(value)}');
+								} catch (e:Dynamic) {
+									print('Failed to set ${propName}: ${e}');
+								}
+							} else {
+								print("Usage: stateEdit set <property> <value>");
+							}
+						default:
+							print("Unknown stateEdit command. Use 'stateEdit' for help.");
+					}
+				}
+
 			default:
 				if (args.length == 2 && args[1] == '=')
 				{
@@ -1809,7 +2039,7 @@ class CommandPrompt
 
 		try {
 			unoGame = new UnoGame();
-			
+
 			// Set up event handlers
 			setupUnoEvents();
 
@@ -1823,7 +2053,7 @@ class CommandPrompt
 				var difficulty = difficulties[(i - 1) % difficulties.length];
 				var diffName = switch (difficulty) {
 					case EASY: "Easy";
-					case NORMAL: "Normal"; 
+					case NORMAL: "Normal";
 					case HARD: "Hard";
 					case EXPERT: "Expert";
 				}
@@ -1859,13 +2089,13 @@ class CommandPrompt
 			// Create custom colors
 			var customColors = UnoCard.createCustomColors([
 				flixel.util.FlxColor.PURPLE,   // Purple replaces Red
-				flixel.util.FlxColor.ORANGE,   // Orange replaces Yellow  
+				flixel.util.FlxColor.ORANGE,   // Orange replaces Yellow
 				flixel.util.FlxColor.CYAN,     // Cyan replaces Blue
 				flixel.util.FlxColor.PINK      // Pink replaces Green
 			], ["Purple", "Orange", "Cyan", "Pink"]);
 
 			unoGame = new UnoGame(customColors);
-			
+
 			// Set up event handlers
 			setupUnoEvents();
 
@@ -1879,7 +2109,7 @@ class CommandPrompt
 				var difficulty = difficulties[(i - 1) % difficulties.length];
 				var diffName = switch (difficulty) {
 					case EASY: "Easy";
-					case NORMAL: "Normal"; 
+					case NORMAL: "Normal";
 					case HARD: "Hard";
 					case EXPERT: "Expert";
 				}
@@ -1917,7 +2147,7 @@ class CommandPrompt
 			} else {
 				print('${player.name} played: $cardStr');
 			}
-			
+
 			// Check for special effects
 			switch (card.type) {
 				case SKIP:
@@ -1962,7 +2192,7 @@ class CommandPrompt
 		unoGame.onWildColorChosen = function(color:UnoColor) {
 			var colorStr = switch (color) {
 				case RED: "Red";
-				case BLUE: "Blue"; 
+				case BLUE: "Blue";
 				case GREEN: "Green";
 				case YELLOW: "Yellow";
 				default: Std.string(color);
@@ -2101,8 +2331,8 @@ class CommandPrompt
 		print('===============');
 		for (i in 0...humanPlayer.hand.cards.length) {
 			var card = humanPlayer.hand.cards[i];
-			var playable = card.canPlayOn(unoGame.deck.getTopCard()) || 
-						  (card.color == unoGame.currentColor) || 
+			var playable = card.canPlayOn(unoGame.deck.getTopCard()) ||
+						  (card.color == unoGame.currentColor) ||
 						  card.isWildCard();
 			var indicator = playable ? "+" : "-";
 			print('  [$i] $indicator ${card.toString()}');
@@ -2228,15 +2458,15 @@ class CommandPrompt
 		while (unoGame.isRoundActive && !unoGame.turnManager.getCurrentPlayer().isHuman && turnCount < maxTurns) {
 			turnCount++;
 			var currentPlayer = unoGame.turnManager.getCurrentPlayer();
-			
+
 			if (Std.isOfType(currentPlayer, UnoCPU)) {
 				var cpu = cast(currentPlayer, UnoCPU);
-				
+
 				// Small delay for CPU thinking (visual feedback)
 				Sys.sleep(0.5);
 
 				var playableCards = unoGame.getCurrentPlayerPlayableCards();
-				
+
 				if (playableCards.length > 0) {
 					// Create game state for CPU decision
 					var gameState = new UnoGameState();
@@ -2251,7 +2481,7 @@ class CommandPrompt
 					);
 
 					var cardIndex = cpu.chooseCard(unoGame.deck.getTopCard(), gameState);
-					
+
 					if (cardIndex >= 0 && cardIndex < currentPlayer.hand.getSize()) {
 						var card = currentPlayer.hand.cards[cardIndex];
 						var chosenColor:UnoColor = null;
@@ -2332,7 +2562,7 @@ class GlobalException extends haxe.Exception
 		haxe.Timer.delay(function()
 		{
 			if (allowHandle)
-			{	
+			{
 				// Handle the exception
 				WindowUtils.preventClosing = true;
 				Main.onCrash(new UncaughtErrorEvent(UncaughtErrorEvent.UNCAUGHT_ERROR, exception));

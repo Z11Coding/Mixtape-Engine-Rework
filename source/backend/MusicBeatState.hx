@@ -1,12 +1,15 @@
 package backend;
 
+import archipelago.APEntryState;
+import backend.PsychCamera;
+import flixel.FlxState;
 import haxe.ds.HashMap;
 #if windows
 import backend.window.CppAPI;
 #end
-import flixel.FlxState;
-import backend.PsychCamera;
-import archipelago.APEntryState;
+#if debug
+import debug.DebugManager;
+#end
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
 @:autoBuild(yutautil.CrashTracker.instrument())
@@ -218,6 +221,13 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		// Suspend updating if debug overlay is active
+		if (debug.DebugManager.isDebugOverlayVisible()) {
+			// Only handle debug keys and essential systems when overlay is active
+			debug.DebugManager.handleDebugKeys();
+			return;
+		}
+
 		if (justgothere)
 		{
 			justgothere = false;
@@ -280,6 +290,9 @@ class MusicBeatState extends FlxState
 		{
 			stage.update(elapsed);
 		});
+
+		// Handle debug keys
+		debug.DebugManager.handleDebugKeys();
 
 		super.update(elapsed);
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)

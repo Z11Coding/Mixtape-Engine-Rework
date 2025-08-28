@@ -30,7 +30,7 @@ class PongOptionsSubState extends MusicBeatSubstate {
     public var soundEnabled:Bool = true;
 
     // GOD mode unlock status
-    public var godModeUnlocked:Bool = true;
+    public var godModeUnlocked:Bool = false;
 
     // Callbacks
     public var onSettingsChanged:Void->Void;

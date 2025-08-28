@@ -26,7 +26,7 @@ class PongGame {
     public var isPaused:Bool = false; // Separate pause state
     public var gameMode:PongGameMode;
     public var winner:PongPlayer = null;
-    public var servingPlayer:PongPlayer = LEFT; // Track who should serve
+    public var servingPlayer:PongPlayer = PongPlayer.LEFT; // Track who should serve
 
     // Timing
     public var roundStartDelay:Float = 2.0;
@@ -41,13 +41,17 @@ class PongGame {
     public var onScore:PongPlayer->Int->Int->Void; // player, leftScore, rightScore
     public var onBallBounce:Void->Void;
     public var onPaddleHit:PongPaddle->Void;
+    public var onBallUpdate:Float->Float->Void; // ballX, ballY - for boss mode interactions
 
     // Visual feedback
     public var lastScorer:PongPlayer = null;
-    public var ballTrail:Array<{x:Float, y:Float, time:Float}> = [];
+    public var ballTrail:Array<{x:Float, y:Float, time:Float, color:Null<Int>}> = [];
 
     // Debug settings
     public var debugTracesEnabled:Bool = false;
+
+    // Rainbow mode support
+    public var currentBallColor:Null<Int> = null;
 
     public function new(fieldWidth:Float = 800, fieldHeight:Float = 600, maxScore:Int = 10) {
         this.fieldWidth = fieldWidth;
@@ -64,6 +68,9 @@ class PongGame {
     private function setupGame():Void {
         // Create ball
         ball = new PongBall(fieldWidth / 2, fieldHeight / 2);
+
+        // Set up anticlip collision detection
+        ball.onCollisionCheck = checkAntiClipCollision;
 
         // Create paddles
         var paddleHeight = fieldHeight * 0.15; // 15% of field height
@@ -108,12 +115,16 @@ class PongGame {
                 leftPaddle.setAIDifficulty(NORMAL);
         }
 
+        // Set game mode on both paddles so they know about custom controls availability
+        leftPaddle.gameMode = gameMode;
+        rightPaddle.gameMode = gameMode;
+
         // Reset scores
         leftScore = 0;
         rightScore = 0;
         winner = null;
         lastScorer = null;
-        servingPlayer = LEFT; // Left player serves first
+        servingPlayer = PongPlayer.LEFT; // Left player serves first
 
         isGameActive = true;
         startRound();
@@ -135,7 +146,7 @@ class PongGame {
         ball.position.y = fieldHeight / 2;
 
         // Serve the ball toward the serving player
-        ball.serveToPlayer(servingPlayer == LEFT);
+        ball.serveToPlayer(servingPlayer == PongPlayer.LEFT);
 
         // Clear ball trail
         ballTrail = [];
@@ -157,14 +168,14 @@ class PongGame {
         lastScorer = scorer;
 
         // Update score
-        if (scorer == LEFT) {
+        if (scorer == PongPlayer.LEFT) {
             leftScore++;
-        } else if (scorer == RIGHT) {
+        } else if (scorer == PongPlayer.RIGHT) {
             rightScore++;
         }
 
         // The player who got scored on serves next (traditional pong rule)
-        servingPlayer = (scorer == LEFT) ? RIGHT : LEFT;
+        servingPlayer = (scorer == PongPlayer.LEFT) ? PongPlayer.RIGHT : PongPlayer.LEFT;
 
         if (onScore != null) {
             onScore(scorer, leftScore, rightScore);
@@ -189,7 +200,7 @@ class PongGame {
         isGameActive = false;
         isRoundActive = false;
 
-        winner = leftScore >= maxScore ? LEFT : RIGHT;
+        winner = leftScore >= maxScore ? PongPlayer.LEFT : PongPlayer.RIGHT;
 
         if (onGameEnd != null) {
             onGameEnd(winner);
@@ -224,6 +235,11 @@ class PongGame {
         // Update ball
         ball.update(elapsed);
 
+        // Trigger ball update callback for boss mode interactions
+        if (onBallUpdate != null) {
+            onBallUpdate(ball.position.x, ball.position.y);
+        }
+
         // Check collisions
         checkCollisions();
 
@@ -235,8 +251,13 @@ class PongGame {
      * Update ball trail for visual effects
      */
     private function updateBallTrail(elapsed:Float):Void {
-        // Add current position to trail
-        ballTrail.push({x: ball.position.x, y: ball.position.y, time: 0});
+        // Add current position to trail with color data
+        ballTrail.push({
+            x: ball.position.x,
+            y: ball.position.y,
+            time: 0,
+            color: currentBallColor
+        });
 
         // Update trail times and remove old entries
         var i = ballTrail.length - 1;
@@ -246,6 +267,11 @@ class PongGame {
                 ballTrail.splice(i, 1);
             }
             i--;
+        }
+
+        // Limit trail length for performance (max 20 points)
+        if (ballTrail.length > 20) {
+            ballTrail.splice(0, ballTrail.length - 20);
         }
     }
 
@@ -286,6 +312,9 @@ class PongGame {
             // Move ball out of paddle to prevent multiple collisions
             ball.position.x = leftPaddle.x + leftPaddle.width + ball.radius;
 
+            // Notify paddle about ball hit (prevents immediate dash)
+            leftPaddle.onBallHit();
+
             if (onPaddleHit != null) {
                 onPaddleHit(leftPaddle);
             }
@@ -295,6 +324,9 @@ class PongGame {
             ball.bouncePaddle(rightPaddle.y, rightPaddle.height, rightPaddle.velocity);
             // Move ball out of paddle to prevent multiple collisions
             ball.position.x = rightPaddle.x - ball.radius;
+
+            // Notify paddle about ball hit (prevents immediate dash)
+            rightPaddle.onBallHit();
 
             if (onPaddleHit != null) {
                 onPaddleHit(rightPaddle);
@@ -307,9 +339,9 @@ class PongGame {
      */
     private function checkScoring():Void {
         if (ball.scoredLeft()) {
-            endRound(RIGHT);
+            endRound(PongPlayer.RIGHT);
         } else if (ball.scoredRight(fieldWidth)) {
-            endRound(LEFT);
+            endRound(PongPlayer.LEFT);
         }
     }
 
@@ -324,7 +356,7 @@ class PongGame {
         rightScore = 0;
         winner = null;
         lastScorer = null;
-        servingPlayer = LEFT; // Reset to left player serving
+        servingPlayer = PongPlayer.LEFT; // Reset to left player serving
         ballTrail = [];
 
         // Reset ball
@@ -370,7 +402,7 @@ class PongGame {
     public function getGameStatus():String {
         if (!isGameActive) {
             if (winner != null) {
-                var winnerName = winner == LEFT ? "Left Player" : "Right Player";
+                var winnerName = winner == PongPlayer.LEFT ? "Left Player" : "Right Player";
                 return '$winnerName Wins! Final Score: $leftScore - $rightScore';
             }
             return 'Game Ready - Press ENTER to start';
@@ -381,11 +413,80 @@ class PongGame {
         }
 
         if (!isRoundActive) {
-            var servingPlayerName = servingPlayer == LEFT ? "Left" : "Right";
+            var servingPlayerName = servingPlayer == PongPlayer.LEFT ? "Left" : "Right";
             return 'Score: $leftScore - $rightScore | $servingPlayerName serves | Starting in ${Math.ceil(currentDelay)}...';
         }
 
         return 'Score: $leftScore - $rightScore | Playing to $maxScore';
+    }
+
+    /**
+     * ANTICLIP: Check if the ball's movement line intersects with any paddles
+     * Returns true if collision detected (prevents movement)
+     */
+    private function checkAntiClipCollision(oldX:Float, oldY:Float, newX:Float, newY:Float):Bool {
+        // Check collision with left paddle
+        if (checkLineRectIntersection(oldX, oldY, newX, newY,
+                                     leftPaddle.x, leftPaddle.y,
+                                     leftPaddle.x + leftPaddle.width, leftPaddle.y + leftPaddle.height)) {
+            // Simulate paddle collision
+            ball.position.x = leftPaddle.x + leftPaddle.width + ball.radius;
+            ball.bouncePaddle(leftPaddle.y, leftPaddle.height, leftPaddle.velocity);
+            if (onPaddleHit != null) onPaddleHit(leftPaddle);
+            return true;
+        }
+
+        // Check collision with right paddle
+        if (checkLineRectIntersection(oldX, oldY, newX, newY,
+                                     rightPaddle.x, rightPaddle.y,
+                                     rightPaddle.x + rightPaddle.width, rightPaddle.y + rightPaddle.height)) {
+            // Simulate paddle collision
+            ball.position.x = rightPaddle.x - ball.radius;
+            ball.bouncePaddle(rightPaddle.y, rightPaddle.height, rightPaddle.velocity);
+            if (onPaddleHit != null) onPaddleHit(rightPaddle);
+            return true;
+        }
+
+        return false; // No collision detected
+    }
+
+    /**
+     * Check if a line intersects with a rectangle (for anticlip system)
+     */
+    private function checkLineRectIntersection(x1:Float, y1:Float, x2:Float, y2:Float,
+                                             rectX:Float, rectY:Float, rectX2:Float, rectY2:Float):Bool {
+        // Expand rectangle by ball radius to account for ball size
+        var expandedX = rectX - ball.radius;
+        var expandedY = rectY - ball.radius;
+        var expandedX2 = rectX2 + ball.radius;
+        var expandedY2 = rectY2 + ball.radius;
+
+        // Check if line intersects with expanded rectangle using Liang-Barsky algorithm
+        var dx = x2 - x1;
+        var dy = y2 - y1;
+
+        var p = [-dx, dx, -dy, dy];
+        var q = [x1 - expandedX, expandedX2 - x1, y1 - expandedY, expandedY2 - y1];
+
+        var u1 = 0.0;
+        var u2 = 1.0;
+
+        for (i in 0...4) {
+            if (p[i] == 0) {
+                if (q[i] < 0) return false;
+            } else {
+                var t = q[i] / p[i];
+                if (p[i] < 0) {
+                    if (t > u2) return false;
+                    if (t > u1) u1 = t;
+                } else {
+                    if (t < u1) return false;
+                    if (t < u2) u2 = t;
+                }
+            }
+        }
+
+        return u1 <= u2;
     }
 }
 
