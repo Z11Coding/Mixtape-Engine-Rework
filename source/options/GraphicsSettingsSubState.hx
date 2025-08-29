@@ -32,6 +32,13 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.onChange = onChangeTrashMode; //Clear graphics when toggled
 		addOption(option);
 
+		var option:Option = new Option('144p Mode', //Name
+			'If checked, Sets the video to', //Description
+			'ultratrashMode', //Save data variable name
+			BOOL); //Variable type
+		option.onChange = onChangeTrashMode; //Clear graphics when toggled
+		addOption(option);
+
 		var option:Option = new Option('Anti-Aliasing',
 			'If unchecked, disables anti-aliasing, increases performance\nat the cost of sharper visuals.',
 			'antialiasing',

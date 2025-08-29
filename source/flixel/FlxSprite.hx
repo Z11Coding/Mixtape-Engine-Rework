@@ -20,6 +20,7 @@ import flixel.util.FlxDirectionFlags;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
+import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 
@@ -28,13 +29,13 @@ using flixel.util.FlxColorTransformUtil;
 /**
  * The core building blocks of all Flixel games. With helpful tools for animation, movement and
  * features for the needs of most games.
- * 
+ *
  * It is pretty common place to extend `FlxSprite` for your own game's needs; for example a `SpaceShip`
  * class may extend `FlxSprite` but could have additional variables for the game like `shieldStrength`
  * or `shieldPower`.
- * 
+ *
  * - [Handbook - FlxSprite](https://haxeflixel.com/documentation/flxsprite/)
- * 
+ *
  * ## Collision and Motion
  * Flixel handles many aspects of collision and physics motions for you. This is all defined in the
  * base class: [FlxObject](https://api.haxeflixel.com/flixel/FlxObject.html), check there for things
@@ -42,7 +43,7 @@ using flixel.util.FlxColorTransformUtil;
  * and `angularVelocity`. All of these affect the movement and orientation of the sprite as well
  * as [FlxG.collide](https://api.haxeflixel.com/flixel/FlxG.html#collide) and
  * [FlxG.overlap](https://api.haxeflixel.com/flixel/FlxG.html#overlap)
- * 
+ *
  * ## Graphics
  * `FlxSprites` are just `FlxObjects` with the ability to show graphics. There are various ways to do this.
  * ### `loadGraphic()`
@@ -55,7 +56,7 @@ using flixel.util.FlxColorTransformUtil;
  * player.loadGraphic("assets/player.png");
  * add(player);
  * ```
- * 
+ *
  * ####Animations
  * [Snippets - Animations](https://snippets.haxeflixel.com/sprites/animation/)
  * When loading a graphic for a `FlxSprite`, you can specify is as an animated graphic. Then, using
@@ -63,14 +64,14 @@ using flixel.util.FlxColorTransformUtil;
  * ```haxe
  *  // sprite's graphic will be loaded from 'path/to/image.png' and is set to allow animations.
  * sprite.loadGraphic('path/to/image/png', true);
- * 
+ *
  * // add an animation named 'run' to sprite, using the specified frames
  * sprite.animation.add('run', [0, 1, 2, 1]);
- * 
+ *
  * // play the 'run' animation
  * sprite.animation.play('run');
  * ```
- * 
+ *
  * ### `makeGraphic()`
  * [Snippets - Loading Sprites](https://snippets.haxeflixel.com/sprites/making-sprites/)
  * This method is a handy way to make a simple color fill to quickly test a feature or have the basic shape.
@@ -85,19 +86,19 @@ using flixel.util.FlxColorTransformUtil;
  * whiteSquare.x = 100;
  * whiteSquare.y = 300;
  * ```
- * 
+ *
  * ### Size: width, height
  * Automatically set in loadGraphic() or makeGraphic(), changing this will only affect the hitbox
  * of this sprite, use scale to change the graphic's size.
  * ```haxe
  * // get
  * var getWidth = whiteSquare.width;
- * 
+ *
  * // set
  * whiteSquare.width = 100;
  * whiteSquare.height = 100;
  * ```
- * 
+ *
  * ### Scale
  * [Snippets - Scale](https://snippets.haxeflixel.com/sprites/scale/)
  * (FlxPoint) Change the size of your sprite's graphic. NOTE: The hitbox is not automatically
@@ -105,26 +106,26 @@ using flixel.util.FlxColorTransformUtil;
  * ```haxe
  * // twice as big
  * whiteSquare.scale.set(2, 2);
- * 
+ *
  * // 50%
  * whiteSquare.scale.set(0.5, 0.5);
  * ```
- * 
+ *
  * ### Offset
  * (FlxPoint) Controls the position of the sprite's hitbox. Likely needs to be adjusted after changing a sprite's width, height or scale.
  * ```haxe
  * whiteSquare.offset.set(50, 50);
  * ```
- * 
+ *
  * ### Origin
  * (FlxPoint) Rotation axis. Default: center.
- * 
+ *
  * WARNING: If you change this, the visuals and the collisions will likely be pretty out-of-sync if you do any rotation.
  * ```haxe
  * // rotate from top-left corner instead of center
  * whiteSquare.origin.set(0, 0);
  * ```
- * 
+ *
  */
 class FlxSprite extends FlxObject
 {
@@ -138,7 +139,7 @@ class FlxSprite extends FlxObject
 	 * @since 5.0.0
 	 */
 	public static var defaultAntialiasing:Bool = false;
-	
+
 	/**
 	 * Class that handles adding and playing animations on this sprite.
 	 * @see https://snippets.haxeflixel.com/sprites/animation/
@@ -341,7 +342,7 @@ class FlxSprite extends FlxObject
 	 */
 	@:noCompletion
 	var _halfSize:FlxPoint;
-	
+
 	/**
 	 *  Helper variable
 	 */
@@ -576,13 +577,21 @@ class FlxSprite extends FlxObject
 		if (tempGraph == null)
 		{
 			var bitmap:BitmapData = FlxBitmapDataUtil.generateRotations(brush, Rotations, AntiAliasing, AutoBuffer);
+			// Apply trash mode compression if we loaded the bitmap here
+			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode) {
+				var compressedBitmap = compressBitmapForTrashMode(bitmap);
+				if (compressedBitmap != null && compressedBitmap != bitmap) {
+					bitmap.dispose(); // Clean up original
+					bitmap = compressedBitmap;
+				}
+			}
 			tempGraph = FlxGraphic.fromBitmapData(bitmap, false, key);
 		}
-		
+
 		#if FLX_TRACK_GRAPHICS
 		tempGraph.trackingInfo = 'loadRotatedGraphic($ID, $Rotations, $Frame, $AntiAliasing, $AutoBuffer)';
 		#end
-		
+
 		var max:Int = (brush.height > brush.width) ? brush.height : brush.width;
 		max = AutoBuffer ? Std.int(max * 1.5) : max;
 
@@ -618,15 +627,15 @@ class FlxSprite extends FlxObject
 			key += ":" + frame.name;
 		else
 			key += ":" + frame.frame.toString();
-		
+
 		var graphic:FlxGraphic = FlxG.bitmap.get(key);
 		if (graphic == null)
 			graphic = FlxGraphic.fromBitmapData(frame.paint(), false, key);
-		
+
 		#if FLX_TRACK_GRAPHICS
 		graphic.trackingInfo = 'loadRotatedFrame($ID, $rotations, $antiAliasing, $autoBuffer)';
 		#end
-		
+
 		return loadRotatedGraphic(graphic, rotations, -1, antiAliasing, autoBuffer);
 	}
 
@@ -656,11 +665,11 @@ class FlxSprite extends FlxObject
 	{
 		var graph:FlxGraphic = FlxG.bitmap.create(width, height, color, unique, key);
 		frames = graph.imageFrame;
-		
+
 		#if FLX_TRACK_GRAPHICS
 		graph.trackingInfo = 'makeGraphic($ID, ${color.toHexString()})';
 		#end
-		
+
 		return this;
 	}
 
@@ -1029,7 +1038,7 @@ class FlxSprite extends FlxObject
 		useColorTransform = alpha != 1 || color != 0xffffff || colorTransform.hasRGBOffsets();
 		dirty = true;
 	}
-	
+
 	function updateColorTransform():Void
 	{
 		if (colorTransform == null)
@@ -1057,18 +1066,18 @@ class FlxSprite extends FlxObject
 	public function pixelsOverlapPoint(worldPoint:FlxPoint, alphaTolerance = 0xFF, ?camera:FlxCamera):Bool
 	{
 		final pixelColor = getPixelAt(worldPoint, camera);
-		
+
 		if (pixelColor != null)
 			return pixelColor.alpha * alpha >= alphaTolerance;
-		
+
 		// point is outside of the graphic
 		return false;
 	}
-	
+
 	/**
 	 * Determines which of this sprite's pixels are at the specified world coordinate, if any.
 	 * Factors in `scale`, `angle`, `offset`, `origin`, and `scrollFactor`.
-	 * 
+	 *
 	 * @param  worldPoint  The point in world space
 	 * @param  camera      The camera, used for `scrollFactor`. If `null`, `FlxG.camera` is used.
 	 * @return a `FlxColor`, if the point is in the sprite's graphic, otherwise `null` is returned.
@@ -1077,21 +1086,21 @@ class FlxSprite extends FlxObject
 	public function getPixelAt(worldPoint:FlxPoint, ?camera:FlxCamera):Null<FlxColor>
 	{
 		transformWorldToPixels(worldPoint, camera, _point);
-		
+
 		// point is inside the graphic
 		if (_point.x >= 0 && _point.x <= frameWidth && _point.y >= 0 && _point.y <= frameHeight)
 		{
 			var frameData:BitmapData = updateFramePixels();
 			return frameData.getPixel32(Std.int(_point.x), Std.int(_point.y));
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Determines which of this sprite's pixels are at the specified screen coordinate, if any.
 	 * Factors in `scale`, `angle`, `offset`, `origin`, and `scrollFactor`.
-	 * 
+	 *
 	 * @param  screenPoint  The point in screen space
 	 * @param  camera       The desired "screen" coordinate space. If `null`, `FlxG.camera` is used.
 	 * @return a `FlxColor`, if the point is in the sprite's graphic, otherwise `null` is returned.
@@ -1100,22 +1109,22 @@ class FlxSprite extends FlxObject
 	public function getPixelAtScreen(screenPoint:FlxPoint, ?camera:FlxCamera):Null<FlxColor>
 	{
 		transformScreenToPixels(screenPoint, camera, _point);
-		
+
 		// point is inside the graphic
 		if (_point.x >= 0 && _point.x <= frameWidth && _point.y >= 0 && _point.y <= frameHeight)
 		{
 			var frameData:BitmapData = updateFramePixels();
 			return frameData.getPixel32(Std.int(_point.x), Std.int(_point.y));
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Converts the point from world coordinates to this sprite's pixel coordinates where (0,0)
 	 * is the top left of the graphic.
 	 * Factors in `scale`, `angle`, `offset`, `origin`, and `scrollFactor`.
-	 * 
+	 *
 	 * @param   worldPoint  The world coordinates.
 	 * @param   camera      The camera, used for `scrollFactor`. If `null`, `FlxG.camera` is used.
 	 * @param   result      Optional arg for the returning point
@@ -1124,24 +1133,24 @@ class FlxSprite extends FlxObject
 	{
 		if (camera == null)
 			camera = FlxG.camera;
-		
+
 		var screenPoint = FlxPoint.weak(worldPoint.x - camera.scroll.x, worldPoint.y - camera.scroll.y);
 		worldPoint.putWeak();
 		return transformScreenToPixels(screenPoint, camera, result);
 	}
-	
+
 	/**
 	 * Converts the point from world coordinates to this sprite's pixel coordinates where (0,0)
 	 * is the top left of the graphic. Same as `worldToPixels` but never uses a camera,
 	 * therefore `scrollFactor` is ignored
-	 * 
+	 *
 	 * @param   worldPoint  The world coordinates.
 	 * @param   result      Optional arg for the returning point
 	 */
 	public function transformWorldToPixelsSimple(worldPoint:FlxPoint, ?result:FlxPoint):FlxPoint
 	{
 		result = getPosition(result);
-		
+
 		result.subtract(worldPoint.x, worldPoint.y);
 		result.negate();
 		result.addPoint(offset);
@@ -1149,9 +1158,9 @@ class FlxSprite extends FlxObject
 		result.scale(1 / scale.x, 1 / scale.y);
 		result.degrees -= angle;
 		result.addPoint(origin);
-		
+
 		worldPoint.putWeak();
-		
+
 		return result;
 	}
 
@@ -1159,7 +1168,7 @@ class FlxSprite extends FlxObject
 	 * Converts the point from screen coordinates to this sprite's pixel coordinates where (0,0)
 	 * is the top left of the graphic.
 	 * Factors in `scale`, `angle`, `offset`, `origin`, and `scrollFactor`.
-	 * 
+	 *
 	 * @param   screenPoint  The screen coordinates
 	 * @param   camera       The desired "screen" coordinate space. If `null`, `FlxG.camera` is used.
 	 * @param   result       Optional arg for the returning point
@@ -1167,7 +1176,7 @@ class FlxSprite extends FlxObject
 	public function transformScreenToPixels(screenPoint:FlxPoint, ?camera:FlxCamera, ?result:FlxPoint):FlxPoint
 	{
 		result = getScreenPosition(result, camera);
-		
+
 		result.subtract(screenPoint.x, screenPoint.y);
 		result.negate();
 		result.addPoint(offset);
@@ -1175,9 +1184,9 @@ class FlxSprite extends FlxObject
 		result.scale(1 / scale.x, 1 / scale.y);
 		result.degrees -= angle;
 		result.addPoint(origin);
-		
+
 		screenPoint.putWeak();
-		
+
 		return result;
 	}
 
@@ -1241,7 +1250,7 @@ class FlxSprite extends FlxObject
 		dirty = false;
 		return framePixels;
 	}
-	
+
 	/**
 	 * Retrieve the midpoint of this sprite's graphic in world coordinates.
 	 *
@@ -1255,7 +1264,7 @@ class FlxSprite extends FlxObject
 		rect.put();
 		return point;
 	}
-	
+
 	/**
 	 * Retrieves the world bounds of this sprite's graphic
 	 * **Note:** Ignores `scrollFactor`, to get the screen position of the graphic use
@@ -1268,22 +1277,22 @@ class FlxSprite extends FlxObject
 	{
 		if (rect == null)
 			rect = FlxRect.get();
-		
+
 		rect.set(x, y);
 		if (pixelPerfectPosition)
 			rect.floor();
-		
+
 		_scaledOrigin.set(origin.x * scale.x, origin.y * scale.y);
 		rect.x += origin.x - offset.x - _scaledOrigin.x;
 		rect.y += origin.y - offset.y - _scaledOrigin.y;
 		rect.setSize(frameWidth * scale.x, frameHeight * scale.y);
-		
+
 		if (angle % 360 != 0)
 			rect.getRotatedBounds(angle, _scaledOrigin, rect);
-		
+
 		return rect;
 	}
-	
+
 	/**
 	 * Check and see if this object is currently on screen. Differs from `FlxObject`'s implementation
 	 * in that it takes the actual graphic into account, not just the hitbox or bounding box or whatever.
@@ -1295,7 +1304,7 @@ class FlxSprite extends FlxObject
 	{
 		if (camera == null)
 			camera = FlxG.camera;
-		
+
 		return camera.containsRect(getScreenBounds(_rect, camera));
 	}
 
@@ -1339,11 +1348,11 @@ class FlxSprite extends FlxObject
 	{
 		if (newRect == null)
 			newRect = FlxRect.get();
-		
+
 		newRect.set(x, y, width, height);
 		return newRect.getRotatedBounds(angle, origin, newRect);
 	}
-	
+
 	/**
 	 * Calculates the smallest globally aligned bounding box that encompasses this sprite's graphic as it
 	 * would be displayed. Honors scrollFactor, rotation, scale, offset and origin.
@@ -1356,10 +1365,10 @@ class FlxSprite extends FlxObject
 	{
 		if (newRect == null)
 			newRect = FlxRect.get();
-		
+
 		if (camera == null)
 			camera = FlxG.camera;
-		
+
 		newRect.setPosition(x, y);
 		if (pixelPerfectPosition)
 			newRect.floor();
@@ -1371,7 +1380,7 @@ class FlxSprite extends FlxObject
 		newRect.setSize(frameWidth * Math.abs(scale.x), frameHeight * Math.abs(scale.y));
 		return newRect.getRotatedBounds(angle, _scaledOrigin, newRect);
 	}
-	
+
 	/**
 	 * Set how a sprite flips when facing in a particular direction.
 	 *
@@ -1572,14 +1581,14 @@ class FlxSprite extends FlxObject
 			// If new graphic is not null, increase its use count
 			if (value != null)
 				value.incrementUseCount();
-			
+
 			// If old graphic is not null, decrease its use count
 			if (graphic != null)
 				graphic.decrementUseCount();
-			
+
 			graphic = value;
 		}
-		
+
 		return value;
 	}
 
@@ -1635,7 +1644,7 @@ class FlxSprite extends FlxObject
 	{
 		if (frames != null)
 			return frames.numFrames;
-			
+
 		return 0;
 	}
 
@@ -1726,6 +1735,68 @@ class FlxSprite extends FlxObject
 			return doFlipY != animation.curAnim.flipY;
 		}
 		return doFlipY;
+	}
+
+	/**
+	 * Compresses a bitmap for Trash Mode by reducing quality while maintaining dimensions
+	 * @param original The original bitmap to compress
+	 * @param compressionFactor The factor to reduce internal quality by (0.5 = half quality)
+	 * @return The compressed bitmap with same dimensions but reduced quality
+	 */
+	private static function compressBitmapForTrashMode(original:BitmapData, compressionFactor:Float = 0.5):BitmapData
+	{
+		if (original == null) return null;
+
+		// it's done like this so that if you have trash mode on it'll override it
+		if (ClientPrefs.data.ultratrashMode) compressionFactor = 0.1; //144p my belovid
+
+		// Keep original dimensions to preserve spritesheet layouts
+		var originalWidth:Int = original.width;
+		var originalHeight:Int = original.height;
+
+		// Calculate temporary smaller size for quality reduction
+		var tempWidth:Int = Math.ceil(originalWidth * compressionFactor);
+		var tempHeight:Int = Math.ceil(originalHeight * compressionFactor);
+
+		// Don't compress if it would make the temp image too small to be useful
+		if (tempWidth < 4 || tempHeight < 4) return original;
+
+		// Create temporary smaller bitmap for quality reduction
+		var tempBitmap:BitmapData = new BitmapData(tempWidth, tempHeight, original.transparent, 0);
+		var scaleMatrix:Matrix = new Matrix();
+		scaleMatrix.scale(compressionFactor, compressionFactor);
+
+		// Draw original to smaller size (reduces quality)
+		tempBitmap.draw(original, scaleMatrix, null, null, null, true); // true = smoothing
+
+		// Create final bitmap with original dimensions
+		var compressed:BitmapData = new BitmapData(originalWidth, originalHeight, original.transparent, 0);
+		var restoreMatrix:Matrix = new Matrix();
+		restoreMatrix.scale(1.0 / compressionFactor, 1.0 / compressionFactor);
+
+		// Scale the reduced quality image back to original size
+		compressed.draw(tempBitmap, restoreMatrix, null, null, null, true); // true = smoothing
+
+		// Clean up temporary bitmap
+		tempBitmap.dispose();
+
+		return compressed;
+	}
+
+	/**
+	 * Checks if we should apply trash mode compression
+	 * @return True if trash mode should be applied
+	 */
+	private static function shouldApplyTrashMode():Bool
+	{
+		#if sys
+		// Check if we're in PlayState (or any subclass) and trash mode is enabled
+		return ClientPrefs.data.trashMode &&
+			   FlxG.state != null &&
+			   Std.isOfType(FlxG.state, states.PlayState);
+		#else
+		return false;
+		#end
 	}
 }
 

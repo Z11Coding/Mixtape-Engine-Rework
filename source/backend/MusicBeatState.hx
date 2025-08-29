@@ -295,6 +295,20 @@ class MusicBeatState extends FlxState
 		debug.DebugManager.handleDebugKeys();
 
 		super.update(elapsed);
+
+		/*if (ClientPrefs.data.ultratrashMode) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing){
+				@:privateAccess
+				FlxG.sound.music._sound.__buffer.bitsPerSample = 8;
+			}
+			for(sound in FlxG.sound.list) {
+				if (sound != null && sound.playing) {
+					@:privateAccess
+					sound._sound.__buffer.bitsPerSample = 8;
+				}
+			}
+		}*/
+
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
 			APEntryState.apGame.info().poll();
 	}

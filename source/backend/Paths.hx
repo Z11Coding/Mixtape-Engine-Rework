@@ -1,24 +1,21 @@
 package backend;
 
-import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
-import flixel.graphics.frames.FlxAtlasFrames;
+import flash.media.Sound;
+import flixel.addons.display.FlxRuntimeShader;
 import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets;
-import flixel.addons.display.FlxRuntimeShader;
-
+import haxe.Json;
+import lime.utils.Assets;
 import openfl.display.BitmapData;
 import openfl.display3D.textures.RectangleTexture;
+import openfl.geom.Matrix;
+import openfl.geom.Rectangle;
+import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
-import openfl.system.System;
-import openfl.geom.Rectangle;
-import openfl.geom.Matrix;
-
-import lime.utils.Assets;
-import flash.media.Sound;
-
-import haxe.Json;
 
 #if MODS_ALLOWED
 import backend.Mods;
@@ -73,7 +70,7 @@ class Paths
 		for(ext in Paths.HSCRIPT_EXTENSIONS)
 			if(file.endsWith('.$ext'))
 				return true;
-		
+
 		return false;
 	}
 	public inline static function getHScriptPath(scriptPath:String)
@@ -211,7 +208,7 @@ class Paths
 		var cache = FlxG.bitmap._cache;
 		Paths.currentTrackedAssets.clear();
 		for (key => val in cache){
-			if(	key.toLowerCase().contains("transitionswag") || 
+			if(	key.toLowerCase().contains("transitionswag") ||
 				key.contains("bg_graphic_") ||
 				key == "images/justBf.png" ||
 				!dumpExclusions.contains(key)
@@ -220,7 +217,7 @@ class Paths
 		}
 	}
 
-	// The "If All Else Fails" option 
+	// The "If All Else Fails" option
 	public static function nukeMemory(){
 		try {
 			clearStoredWithoutStickers();
@@ -239,7 +236,7 @@ class Paths
 		}
 	}
 
-	/** returns a FlxRuntimeShader but with file names lol **/ 
+	/** returns a FlxRuntimeShader but with file names lol **/
 	public static function getShader(fragFile:String = null, vertFile:String = null, version:Int = 120):FlxRuntimeShader
 	{
 		try{
@@ -247,19 +244,19 @@ class Paths
 			var vertPath:Null<String> = vertFile==null ? null : shaderVertex(vertFile);
 
 			return new FlxRuntimeShader(
-				fragFile==null ? null : File.getContent(fragPath), 
+				fragFile==null ? null : File.getContent(fragPath),
 				vertFile==null ? null : File.getContent(vertPath));
 		}catch(e:Dynamic){
 			trace("Shader compilation error:" + e.message);
 		}
 
-		return null;		
+		return null;
 	}
 
 	inline static public function getFolders(dir:String, ?modsOnly:Bool = false){
 		#if !MODS_ALLOWED
 		return [Paths.getShadersPath('$dir/')];
-		
+
 		#else
 		var foldersToCheck:Array<String> = [
 			Paths.mods(Mods.currentModDirectory + '/$dir/'),
@@ -306,7 +303,7 @@ class Paths
 			} else {
 				if (folder.endsWith(fileExtension)) {
 					fileCount++;
-					result.push(directoryPath+'/'+folder);                    
+					result.push(directoryPath+'/'+folder);
 				}
 			}
 		}
@@ -347,10 +344,10 @@ class Paths
 	public static function crawlMulti(directoryPaths:Array<String>, fileExtension:String, ?targetArray:Array<String> = null, ?OG:Bool = false):Array<String> {
 		var result:Array<String> = targetArray != null ? targetArray : [];
 		var skipList:Array<String> = [];
-		
+
 		for (directoryPath in directoryPaths) {
 			var skip:Bool = false;
-			
+
 			// Check if the directoryPath is a subdirectory of any path in result
 			for (existingPath in result) {
 				if (directoryPath.startsWith(existingPath)) {
@@ -360,19 +357,19 @@ class Paths
 					break;
 				}
 			}
-			
+
 			if (skip) {
 				trace('Skipping: ' + directoryPath);
 				continue;
 			}
-			
+
 			if (OG)
 				result = crawlDirectoryOG(directoryPath, fileExtension, result);
 			else {
 				result = crawlDirectory(directoryPath, fileExtension, result);
 			}
 		}
-		
+
 		return result;
 	}
 
@@ -385,7 +382,7 @@ class Paths
 					result = crawl('$directoryPath/$folder', fileExtension, result, subdirectoryCount + 1);
 				} else {
 					if (folder.endsWith(fileExtension)) {
-						result.push(directoryPath+'/'+folder);                    
+						result.push(directoryPath+'/'+folder);
 					}
 				}
 			}
@@ -498,7 +495,7 @@ class Paths
 
 		if (parentfolder != null)
 			return getFolderPath(file, parentfolder);
-		
+
 		if (currentLevel != null && currentLevel != 'shared')
 		{
 			var levelPath = getFolderPath(file, currentLevel);
@@ -549,7 +546,7 @@ class Paths
 
 	inline static public function inst(song:String, ?modsAllowed:Bool = true):Sound
 		return returnSound('${formatToSongPath(song)}/Inst', 'songs', modsAllowed);
-	
+
 	inline static public function track(song:String, track:String, ?modsAllowed:Bool = true):Any
 		return returnSound('${formatToSongPath(song)}/$track', 'songs', modsAllowed);
 
@@ -584,40 +581,43 @@ class Paths
 	 * @param compressionFactor The factor to reduce internal quality by (0.5 = half quality)
 	 * @return The compressed bitmap with same dimensions but reduced quality
 	 */
-	private static function compressBitmapForTrashMode(original:BitmapData, compressionFactor:Float = 0.1):BitmapData
+	private static function compressBitmapForTrashMode(original:BitmapData, compressionFactor:Float = 0.5):BitmapData
 	{
 		if (original == null) return null;
-		
+
+		// it's done like this so that if you have trash mode on it'll override it
+		if (ClientPrefs.data.ultratrashMode) compressionFactor = 0.1; //144p my belovid
+
 		// Keep original dimensions to preserve spritesheet layouts
 		var originalWidth:Int = original.width;
 		var originalHeight:Int = original.height;
-		
+
 		// Calculate temporary smaller size for quality reduction
 		var tempWidth:Int = Math.ceil(originalWidth * compressionFactor);
 		var tempHeight:Int = Math.ceil(originalHeight * compressionFactor);
-		
+
 		// Don't compress if it would make the temp image too small to be useful
 		if (tempWidth < 4 || tempHeight < 4) return original;
-		
+
 		// Create temporary smaller bitmap for quality reduction
 		var tempBitmap:BitmapData = new BitmapData(tempWidth, tempHeight, original.transparent, 0);
 		var scaleMatrix:Matrix = new Matrix();
 		scaleMatrix.scale(compressionFactor, compressionFactor);
-		
+
 		// Draw original to smaller size (reduces quality)
 		tempBitmap.draw(original, scaleMatrix, null, null, null, true); // true = smoothing
-		
+
 		// Create final bitmap with original dimensions
 		var compressed:BitmapData = new BitmapData(originalWidth, originalHeight, original.transparent, 0);
 		var restoreMatrix:Matrix = new Matrix();
 		restoreMatrix.scale(1.0 / compressionFactor, 1.0 / compressionFactor);
-		
+
 		// Scale the reduced quality image back to original size
 		compressed.draw(tempBitmap, restoreMatrix, null, null, null, true); // true = smoothing
-		
+
 		// Clean up temporary bitmap
 		tempBitmap.dispose();
-		
+
 		return compressed;
 	}
 
@@ -629,8 +629,8 @@ class Paths
 	{
 		#if sys
 		// Check if we're in PlayState (or any subclass) and trash mode is enabled
-		return ClientPrefs.data.trashMode && 
-			   FlxG.state != null && 
+		return ClientPrefs.data.trashMode &&
+			   FlxG.state != null &&
 			   Std.isOfType(FlxG.state, states.PlayState);
 		#else
 		return false;
@@ -819,9 +819,9 @@ class Paths
 				trace('Bitmap not found: $file | key: $key');
 				return null;
 			}
-			
+
 			// Apply trash mode compression if we loaded the bitmap here
-			if (shouldApplyTrashMode()) {
+			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode) {
 				var compressedBitmap = compressBitmapForTrashMode(bitmap);
 				if (compressedBitmap != null && compressedBitmap != bitmap) {
 					bitmap.dispose(); // Clean up original
@@ -859,7 +859,7 @@ class Paths
 		var path:String = imagePath(key);
 
 		if (currentTrackedAssets.exists(path)) {
-			if (!localTrackedAssets.contains(path)) 
+			if (!localTrackedAssets.contains(path))
 				localTrackedAssets.push(path);
 
 			return currentTrackedAssets.get(path);
@@ -884,7 +884,7 @@ class Paths
 
 	public static function getBitmapData(path:String):Null<BitmapData> {
 		var bitmap:BitmapData = null;
-		
+
 		#if sys
 		if (FileSystem.exists(path))
 			bitmap = BitmapData.fromFile(path);
@@ -897,7 +897,7 @@ class Paths
 			bitmap = OpenFlAssets.getBitmapData(path);
 
 		// Apply trash mode compression if enabled and in PlayState
-		if (bitmap != null && shouldApplyTrashMode()) {
+		if (bitmap != null && (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode)) {
 			var compressedBitmap = compressBitmapForTrashMode(bitmap);
 			if (compressedBitmap != null && compressedBitmap != bitmap) {
 				bitmap.dispose(); // Clean up original
@@ -977,10 +977,10 @@ class Paths
 		}
 		return getPackerAtlas(key, parentFolder);
 	}
-	
+
 	static public function getMultiAtlas(keys:Array<String>, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
 	{
-		
+
 		var parentFrames:FlxAtlasFrames = Paths.getAtlas(keys[0].trim());
 		if(keys.length > 1)
 		{
@@ -1018,7 +1018,7 @@ class Paths
 		var imageLoaded:FlxGraphic = image(key, parentFolder, allowGPU);
 		#if MODS_ALLOWED
 		var txtExists:Bool = false;
-		
+
 		var txt:String = modsTxt(key);
 		if(FileSystem.exists(txt)) txtExists = true;
 
@@ -1083,26 +1083,26 @@ class Paths
 	public static function returnSoundCache(path:String, key:String, ?library:String)
 	{
 		var gottenPath:String = soundPath(path, key, library);
-	
+
 		if (currentTrackedSounds.exists(gottenPath)) {
 			if (!localTrackedAssets.contains(gottenPath))
 				localTrackedAssets.push(gottenPath);
 
 			return currentTrackedSounds.get(gottenPath);
 		}
-		
+
 		var sound = getSound(gottenPath);
 		if (sound != null) {
 			currentTrackedSounds.set(gottenPath, sound);
-	
+
 			if (!localTrackedAssets.contains(gottenPath))
-				localTrackedAssets.push(gottenPath);	
-			
+				localTrackedAssets.push(gottenPath);
+
 			return sound;
 		}
-		
+
 		trace('sound $path, $key => $gottenPath returned null');
-		
+
 		return null;
 	}
 
@@ -1167,14 +1167,14 @@ class Paths
 		var changedAnimJson = false;
 		var changedAtlasJson = false;
 		var changedImage = false;
-		
+
 		if(spriteJson != null)
 		{
 			changedAtlasJson = true;
 			spriteJson = File.getContent(spriteJson);
 		}
 
-		if(animationJson != null) 
+		if(animationJson != null)
 		{
 			changedAnimJson = true;
 			animationJson = File.getContent(animationJson);
@@ -1286,16 +1286,16 @@ class Paths
 	public inline static function loadabsoluteGraphic(path:String):FlxGraphic {
 		if(!Paths.currentTrackedAssets.exists(path)) {
 			var bitmap:BitmapData = BitmapData.fromFile(path);
-			
+
 			// Apply trash mode compression if enabled and in PlayState
-			if (shouldApplyTrashMode()) {
+			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode) {
 				var compressedBitmap = compressBitmapForTrashMode(bitmap);
 				if (compressedBitmap != null && compressedBitmap != bitmap) {
 					bitmap.dispose(); // Clean up original
 					bitmap = compressedBitmap;
 				}
 			}
-			
+
 			Paths.cacheBitmap(path, null, bitmap);
 		}
 		return Paths.currentTrackedAssets.get(path);

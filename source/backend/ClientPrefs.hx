@@ -1,9 +1,8 @@
 package backend;
 
-import flixel.util.FlxSave;
-import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
-
+import flixel.input.keyboard.FlxKey;
+import flixel.util.FlxSave;
 import states.TitleState;
 
 // Add a variable here and it will get automatically saved
@@ -20,6 +19,7 @@ import states.TitleState;
 	public var splashAlpha:Float = 0.6;
 	public var lowQuality:Bool = false;
 	public var trashMode:Bool = false;
+	public var ultratrashMode:Bool = false;
 	public var shaders:Bool = true;
 	public var cacheOnGPU:Bool = false; // GPU Caching made by Raltyro // its buggy lol
 	public var framerate:Int = 60;
@@ -91,7 +91,7 @@ import states.TitleState;
 	public var apCompressed:Bool = false;
 	public var gameplaySettings:Map<String, Dynamic> = [
 		'scrollspeed' => 1.0,
-		'scrolltype' => 'multiplicative', 
+		'scrolltype' => 'multiplicative',
 		// anyone reading this, amod is multiplicative speed mod, cmod is constant speed mod, and xmod is bpm based speed mod.
 		// an amod example would be chartSpeed * multiplier
 		// cmod would just be constantSpeed = chartSpeed
@@ -191,7 +191,7 @@ import states.TitleState;
 	public var menuTheme:String = 'Light';
 
 	public var garbageCollection:Bool = true;
-	
+
 	// UNO game settings
 	public var unoCustomColors:Array<{color:Int, name:String}> = [];
 
@@ -209,7 +209,7 @@ class ClientPrefs {
 	public static var keyBinds:Map<String, Array<FlxKey>> = [
 		//Key Bind, Name for ControlsSubState
 		'note_one1' 	=> [SPACE, NONE],
-		
+
 		'note_two1' 	=> [D, NONE],
 		'note_two2' 	=> [K, NONE],
 
@@ -398,21 +398,21 @@ class ClientPrefs {
 		'note_ate18' 	=> [P, NONE],
 
 		'dodge'			=> [SPACE, NONE],
-		
+
 		'ui_left'		=> [A, LEFT],
 		'ui_down'		=> [S, DOWN],
 		'ui_up'			=> [W, UP],
 		'ui_right'		=> [D, RIGHT],
-		
+
 		'accept'		=> [SPACE, ENTER],
 		'back'			=> [BACKSPACE, ESCAPE],
 		'pause'			=> [ENTER, ESCAPE],
 		'reset'			=> [R, DELETE],
-		
+
 		'volume_mute'	=> [ZERO, NUMPADZERO],
 		'volume_up'		=> [NUMPADPLUS, PLUS],
 		'volume_down'	=> [NUMPADMINUS, MINUS],
-		
+
 		'debug_1'		=> [SEVEN],
 		'debug_2'		=> [EIGHT],
 		'debug_3'		=> [NINE],
@@ -428,22 +428,22 @@ class ClientPrefs {
 		'note_up'		=> [DPAD_UP, Y],
 		'note_left'		=> [DPAD_LEFT, X],
 		'note_down'		=> [DPAD_DOWN, A],
-		'note_right'	=> [DPAD_RIGHT, B], 
-		
+		'note_right'	=> [DPAD_RIGHT, B],
+
 		'ui_up'			=> [DPAD_UP, LEFT_STICK_DIGITAL_UP],
 		'ui_left'		=> [DPAD_LEFT, LEFT_STICK_DIGITAL_LEFT],
 		'ui_down'		=> [DPAD_DOWN, LEFT_STICK_DIGITAL_DOWN],
-		'ui_right'		=> [DPAD_RIGHT, LEFT_STICK_DIGITAL_RIGHT], 
-		
-		'accept'		=> [A, START], 
+		'ui_right'		=> [DPAD_RIGHT, LEFT_STICK_DIGITAL_RIGHT],
+
+		'accept'		=> [A, START],
 		'back'			=> [B],
 		'pause'			=> [START],
-		'reset'			=> [BACK], 
+		'reset'			=> [BACK],
 
 		'debug_1'		=> [],
 		'debug_2'		=> [],
 
-		'sidebar'		=> [], 
+		'sidebar'		=> [],
 		'dodge'			=> [],
 	];
 	public static var defaultKeys:Map<String, Array<FlxKey>> = null;
@@ -534,7 +534,7 @@ class ClientPrefs {
 		for (key in Reflect.fields(data))
 			if (key != 'gameplaySettings' && Reflect.hasField(FlxG.save.data, key))
 				Reflect.setField(data, key, Reflect.field(FlxG.save.data, key));
-		
+
 		if(Main.fpsVar != null)
 			Main.fpsVar.visible = data.showFPS;
 
@@ -575,7 +575,7 @@ class ClientPrefs {
 			for (name => value in savedMap)
 				data.gameplaySettings.set(name, value);
 		}
-		
+
 		// flixel automatically saves your volume!
 		if(FlxG.save.data.volume != null)
 			FlxG.sound.volume = FlxG.save.data.volume;
