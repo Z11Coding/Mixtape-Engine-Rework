@@ -1383,7 +1383,7 @@ class PlayState extends MusicBeatState
 		rank.x = FlxG.width/2 - 590;
 		uiGroup.add(rank);
 
-		regenNotes(doGeneration);
+		//regenNotes(doGeneration);
 		//yutautil.Threader.runInThread(regenNotes(doGeneration), 0, "generateTheRestOfTheNotes");
 
 		// trace size with verbose settings.
@@ -2549,7 +2549,7 @@ class PlayState extends MusicBeatState
 		FlxG.sound.list.add(inst);
 
 		notes = new FlxTypedGroup<Note>();
-		noteGroup.add(notes);
+		//noteGroup.add(notes);
 
 		try
 		{
@@ -2578,7 +2578,7 @@ class PlayState extends MusicBeatState
 			{
 				final songNotes:Array<Dynamic> = section.sectionNotes[i];
 				var spawnTime:Float = songNotes[0];
-				if (spawnTime > sectionsIndex) break;
+				//if (spawnTime > sectionsIndex) break;
 				var noteColumn:Int = Std.int(songNotes[1]);
 				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
@@ -3151,7 +3151,7 @@ class PlayState extends MusicBeatState
 		var ghostNotesCaught:Int = 0;
 		var daBpm:Float = Conductor.bpm;
 	
-		trace(sectionsData);
+		//trace(sectionsData);
 		for (section in sectionsData)
 		{
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
@@ -3160,7 +3160,7 @@ class PlayState extends MusicBeatState
 			{
 				final songNotes:Array<Dynamic> = section.sectionNotes[i];
 				var spawnTime:Float = songNotes[0];
-				if (spawnTime < sectionsIndex) continue;
+				//if (spawnTime < sectionsIndex) continue;
 				var noteColumn:Int = Std.int(songNotes[1]);
 				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
@@ -4592,14 +4592,10 @@ class PlayState extends MusicBeatState
 				else playerDance();
 
 				amountOfRenderedNotes = 0;
-				for (group in notes)
+				notes.forEach(function(daNote)
 				{
-					notes.forEach(function(daNote)
-					{
-						updateLiveNote(daNote);
-					});
-					//notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-				}
+					updateLiveNote(daNote);
+				});
 			}
 			checkEventNote();
 		}
@@ -4750,13 +4746,18 @@ class PlayState extends MusicBeatState
 			i(elapsed);
 		}
 
-		renderedTxt.text = 'Rendered Notes: ${formatCompactNumber(amountOfRenderedNotes)}/${formatCompactNumber(maxRenderedNotes)}/${formatCompactNumber(notes.members.length)}';
+		renderedTxt.text = 'Rendered Notes: ${formatNumber(amountOfRenderedNotes)}/${formatNumber(maxRenderedNotes)}/${formatNumber(notes.members.length)}';
 
 		setOnScripts('botPlay', cpuControlled);
 		callOnScripts('onUpdatePost', [elapsed]);
 	}
 
-	public static function formatCompactNumber(number:Float):String
+	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting
+	{
+		return (number < 10e11 ? FlxStringUtil.formatMoney(number, false) : formatCompactNumber(number));
+	}
+
+	static function formatCompactNumber(number:Float):String
 	{
 		var suffixes1:Array<String> = ['ni', 'mi', 'bi', 'tri', 'quadri', 'quinti', 'sexti', 'septi', 'octi', 'noni'];
 		var tenSuffixes:Array<String> = ['', 'deci', 'viginti', 'triginti', 'quadraginti', 'quinquaginti', 'sexaginti', 'septuaginti', 'octoginti', 'nonaginti', 'centi'];

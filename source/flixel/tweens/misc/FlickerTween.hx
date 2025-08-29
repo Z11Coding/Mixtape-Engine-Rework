@@ -64,6 +64,16 @@ typedef FlickerTweenOptions =
 	 * `function (tween) { return (tween.time / tween.period) % 1 > tween.ratio; }`
 	 */
 	@:optional var tweenFunction:(FlickerTween) -> Bool;
+
+	/**
+	 * If the tween should be synced to the song or not.
+	 */
+	@:optional var songBased:Bool;
+
+	/**
+	  * When the tween has started in the song. `0` by default if songBased is false, else `Conductor.songPosition` by default.
+	  */
+	@:optional var songPos:Float;
 };
 
 /**

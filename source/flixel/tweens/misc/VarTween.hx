@@ -120,11 +120,14 @@ class VarTween extends FlxTween
 		if (object == _object && field == null)
 			return true;
 		
-		for (property in _propertyInfos)
-		{
-			if (object == property.object && (field == property.field || field == null))
-				return true;
-		}
+        if (_propertyInfos != null) // wtf?
+        {
+            for (property in _propertyInfos)
+            {
+                if (object == property.object && (field == property.field || field == null))
+                    return true;
+            }
+        }
 
 		return false;
 	}

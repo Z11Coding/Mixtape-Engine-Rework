@@ -81,6 +81,8 @@ import states.TitleState;
 	public var noReset:Bool = false;
 	public var healthBarAlpha:Float = 1;
 	public var hitsoundVolume:Float = 0;
+	public var sfxVolume:Float = 1;
+	public var songVolume:Float = 1;
 	public var pauseMusic:String = 'Tea Time';
 	public var editorMusic:String = 'None';
 	public var checkForUpdates:Bool = true;

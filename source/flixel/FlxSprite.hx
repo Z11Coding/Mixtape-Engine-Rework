@@ -162,8 +162,8 @@ class FlxSprite extends FlxObject
 	/**
 	 * Controls whether the object is smoothed when rotated, affects performance.
 	 */
-    @:isVar
-	public var antialiasing(get, set):Bool = false;
+	@:isVar
+	public var antialiasing(get, set):Bool = defaultAntialiasing;
 
 	/**
 	 * Set this flag to true to force the sprite to update during the `draw()` call.
@@ -498,8 +498,10 @@ class FlxSprite extends FlxObject
 	 */
 	public function loadGraphic(graphic:FlxGraphicAsset, animated = false, frameWidth = 0, frameHeight = 0, unique = false, ?key:String):FlxSprite
 	{
-		if (graphic is String && Paths.imageExists(graphic))
-			graphic = Paths.image(graphic);
+		if (graphic is String) {
+			var gn = backend.Paths.image(graphic);
+			if (gn != null) graphic = gn; 
+		}
 
 		var graph:FlxGraphic = FlxG.bitmap.add(graphic, unique, key);
 		if (graph == null)
@@ -742,17 +744,10 @@ class FlxSprite extends FlxObject
 	 */
 	public function updateHitbox():Void
 	{
-        try {
-            width = Math.abs(scale.x) * frameWidth;
-            height = Math.abs(scale.y) * frameHeight;
-            offset.set(-0.5 * (width - frameWidth), -0.5 * (height - frameHeight));
-            centerOrigin();
-        } catch (e) {
-            width = 1;
-            height = 1;
-            //offset.set(-0.5 * 1, -0.5 * 1);
-            //centerOrigin();
-        }
+		width = Math.abs(scale.x) * frameWidth;
+		height = Math.abs(scale.y) * frameHeight;
+		offset.set(-0.5 * (width - frameWidth), -0.5 * (height - frameHeight));
+		centerOrigin();
 	}
 
 	/**
@@ -825,8 +820,11 @@ class FlxSprite extends FlxObject
 		if (dirty) // rarely
 			calcFrame(useFramePixels);
 
-		//for (camera in getCamerasLegacy())
+		#if (flixel < "5.9.0")
 		for (camera in cameras)
+		#else
+		for (camera in getCamerasLegacy())
+		#end
 		{
 			if (!camera.visible || !camera.exists || !isOnScreen(camera))
 				continue;
@@ -1250,8 +1248,11 @@ class FlxSprite extends FlxObject
 	public function getGraphicMidpoint(?point:FlxPoint):FlxPoint
 	{
 		final rect = getGraphicBounds();
+		#if (flixel < "5.9.0")
 		(point ?? (point=FlxPoint.get())).set(rect.x + 0.5 * rect.width, rect.y + 0.5 * rect.height);
-		//point = rect.getMidpoint(point);
+		#else
+		point = rect.getMidpoint(point);
+		#end
 		rect.put();
 		return point;
 	}
@@ -1662,7 +1663,7 @@ class FlxSprite extends FlxObject
 	}
 
 	@:noCompletion
-    function get_antialiasing():Bool
+	function get_antialiasing():Bool
 	{
 		return useDefaultAntialiasing ? defaultAntialiasing : antialiasing;
 	}
@@ -1673,13 +1674,13 @@ class FlxSprite extends FlxObject
 		useDefaultAntialiasing = false;
 		return antialiasing = value;
 	}
-    /*
+	/*
 	function set_antialiasing(value:Bool):Bool
 	{
-        antialiasing = value;
+		antialiasing = value;
 		return get_antialiasing();
 	}
-    */
+	*/
 
 	@:noCompletion
 	function set_useFramePixels(value:Bool):Bool

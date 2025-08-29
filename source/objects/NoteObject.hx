@@ -22,10 +22,9 @@ class NoteObject extends FlxSprite {
 
 	public var column:Int = 0;
 	@:isVar
-	public var noteData(get, set):Int; // backwards compat
+	public var noteData(get,set):Int; // backwards compat
 	inline function get_noteData()return column;
 	inline function set_noteData(v:Int)return column = v;
-	public var ogNoteData:Int; // true backwards compat
 
 	public var colorSwap:NoteColorSwap;
 
@@ -45,7 +44,6 @@ class NoteObject extends FlxSprite {
 	{
 		if (handleRendering)
 			return super.draw();
-		ogNoteData = column; // so it actually sets it
 	}
 
 	public function new(?x:Float, ?y:Float)
@@ -55,7 +53,7 @@ class NoteObject extends FlxSprite {
 
 	override function drawComplex(camera:FlxCamera):Void
 	{
-		drawComplex(camera);
+		prepareMatrix(camera);
 		camera.drawPixels(_frame, framePixels, _matrix, colorTransform, blend, antialiasing, shader, colorSwap);
 	}
 

@@ -325,7 +325,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		// trace("Dispatching noteSpawned event for note: " + note);
 		noteSpawned.dispatch(note, this);
 		// trace("Adding note to spawnedNotes.");
-		spawnedNotes.push(note);
+		sys.thread.Thread.create(() -> {
+			spawnedNotes.push(note);
+		});
 		note.handleRendering = false;
 
 		@:privateAccess
@@ -974,7 +976,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				if (time <= 0)time = spawnTime;
 				var funNote = Note.quickMakeNote(column[0]);
 				while (column.length > 0 && funNote.strumTime - Conductor.songPosition < time)
-					(funNote.spawned) ? column.remove(column[0]) : spawnNotesbutcoolerithink(funNote);
+					(funNote.spawned) ? column.remove(column[0]) : spawnNote(funNote);
 			}
 		}
 

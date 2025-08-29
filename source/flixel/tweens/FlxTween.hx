@@ -1,5 +1,7 @@
 package flixel.tweens;
 
+import backend.Conductor;
+
 import flixel.tweens.misc.ShakeTween;
 import flixel.util.FlxAxes;
 import flixel.FlxG;
@@ -112,6 +114,8 @@ enum abstract FlxTweenType(Int) from Int to Int
  *           end of the tween smoother. `FlxEase` has various easing methods to choose from.
  * - `startDelay`: Time to wait before starting this tween, in seconds.
  * - `loopDelay`: Time to wait before this tween is repeated, in seconds
+ * - `songBased`: Whether this tween should be synced to the Conductor. Automatically set to true if songPos is provided.
+ * - `songPos`: The song time that the tween starts on. Used to sync the tween to the Conductor.
  * 
  * Example:
  * ```haxe
@@ -175,6 +179,36 @@ enum abstract FlxTweenType(Int) from Int to Int
  */
 class FlxTween implements IFlxDestroyable
 {
+	/**
+	 * Deprecated, use `FlxTweenType.PERSIST` instead.
+	 */
+	@:deprecated("Use FlxTweenType.PERSIST instead")
+	public static var PERSIST = FlxTweenType.PERSIST;
+
+	/**
+	 * Deprecated, use `FlxTweenType.LOOPING` instead.
+	 */
+	@:deprecated("Use FlxTweenType.LOOPING instead")
+	public static var LOOPING = FlxTweenType.LOOPING;
+
+	/**
+	 * Deprecated, use `FlxTweenType.PINGPONG` instead.
+	 */
+	@:deprecated("Use FlxTweenType.PINGPONG instead")
+	public static var PINGPONG = FlxTweenType.PINGPONG;
+
+	/**
+	 * Deprecated, use `FlxTweenType.ONESHOT` instead.
+	 */
+	@:deprecated("Use FlxTweenType.ONESHOT instead")
+	public static var ONESHOT = FlxTweenType.ONESHOT;
+
+	/**
+	 * Deprecated, use `FlxTweenType.BACKWARD` instead.
+	 */
+	@:deprecated("Use FlxTweenType.BACKWARD instead")
+	public static var BACKWARD = FlxTweenType.BACKWARD;
+
 	/**
 	 * The global tweening manager that handles global tweens
 	 * @since 4.2.0
@@ -511,6 +545,11 @@ class FlxTween implements IFlxDestroyable
 
 	public var type(default, set):FlxTweenType;
 
+    /**
+     * Determines if this tween should be synced to the Conductor or not
+     */
+    public var songBased:Bool = false;
+
 	/**
 	 * Value between `0` and `1` that indicates how far along this tween is in its completion.
 	 * A value of `0.33` means that the tween is `33%` complete.
@@ -543,6 +582,14 @@ class FlxTween implements IFlxDestroyable
 	 */
 	public var loopDelay(default, set):Float = 0;
 
+	/**
+	 * When the tween has started in the song. The current Conductor.songPosition by default.
+	 */
+	public var songPos(default, set):Float;
+
+
+
+    var _currentSongPos:Float = 0;
 	var _secondsSinceStart:Float = 0;
 	var _delayToUse:Float = 0;
 	var _running:Bool = false;
@@ -562,6 +609,8 @@ class FlxTween implements IFlxDestroyable
 		onUpdate = Options.onUpdate;
 		onComplete = Options.onComplete;
 		ease = Options.ease;
+        songBased = Options.songBased;
+        songPos = Options.songPos;
 		setDelays(Options.startDelay, Options.loopDelay);
 		this.manager = manager != null ? manager : globalManager;
 	}
@@ -573,6 +622,12 @@ class FlxTween implements IFlxDestroyable
 
 		if (Options.type == null)
 			Options.type = FlxTweenType.ONESHOT;
+
+        if(Options.songBased == null)
+            Options.songBased = Options.songPos != null;
+
+        if(Options.songPos == null)
+            Options.songPos = Options.songBased ? Conductor.songPosition : 0;
 
 		return Options;
 	}
@@ -619,7 +674,14 @@ class FlxTween implements IFlxDestroyable
 
 	function update(elapsed:Float):Void
 	{
-		_secondsSinceStart += elapsed;
+        if(songBased){
+            _secondsSinceStart = (Conductor.songPosition - songPos) * 0.001;
+			if (_secondsSinceStart < 0)
+				_secondsSinceStart = 0;
+        }
+        else
+		    _secondsSinceStart += elapsed;
+
 		var delay:Float = (executions > 0) ? loopDelay : startDelay;
 		if (_secondsSinceStart < delay)
 		{
@@ -730,7 +792,12 @@ class FlxTween implements IFlxDestroyable
 
 		if (type == FlxTweenType.LOOPING || type == FlxTweenType.PINGPONG)
 		{
-			_secondsSinceStart = (_secondsSinceStart - _delayToUse) % duration + _delayToUse;
+            if(songBased){
+                songPos += (duration + _delayToUse) * 1000; // idk if this works lol
+                _secondsSinceStart = (Conductor.songPosition - songPos) * 0.001;
+            }else
+			    _secondsSinceStart = (_secondsSinceStart - _delayToUse) % duration + _delayToUse;
+            
 			scale = Math.max((_secondsSinceStart - _delayToUse), 0) / duration;
 
 			if (ease != null && scale > 0 && scale < 1)
@@ -843,6 +910,18 @@ class FlxTween implements IFlxDestroyable
 		return this;
 	}
 
+    function set_songPos(value:Float):Float
+    {
+		if (songBased)
+		{
+			_secondsSinceStart = (Conductor.songPosition - value) * 0.001;
+			if (_secondsSinceStart < 0)
+				_secondsSinceStart = 0;
+
+		}
+        return songPos = value;
+    }
+
 	function set_startDelay(value:Float):Float
 	{
 		var dly:Float = Math.abs(value);
@@ -943,6 +1022,16 @@ typedef TweenOptions =
 	 * Seconds to wait between loops of this tween, `0` by default.
 	 */
 	@:optional var loopDelay:Float;
+
+	/**
+	 * If the tween should be synced to the song or not.
+	 */
+	@:optional var songBased:Bool;
+
+    /**
+     * When the tween has started in the song. `0` by default if songBased is false, else `Conductor.songPosition` by default.
+     */
+    @:optional var songPos:Float;
 }
 
 /**
