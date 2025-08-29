@@ -348,7 +348,7 @@ class MusicBeatState extends FlxState
 								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
 								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
 								lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afv1);
-								lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+								lime.media.openal.AL.source3i(vocal._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
 							}
 						}
 						else if (afv2 == null) {
@@ -363,7 +363,7 @@ class MusicBeatState extends FlxState
 								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
 								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
 								lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afv2);
-								lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+								lime.media.openal.AL.source3i(vocal._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
 							}
 						}
 						else if (afv3 == null) {
@@ -378,7 +378,7 @@ class MusicBeatState extends FlxState
 								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
 								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
 								lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afv3);
-								lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+								lime.media.openal.AL.source3i(vocal._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
 							}
 						}
 						//FlxG.sound.music._sound.__buffer.bitsPerSample = 128;
@@ -667,9 +667,9 @@ class MusicBeatState extends FlxState
 		return val == null ? 4 : val;
 	}
 
-	override public function onFocus():Void
+	override public function onFocusLost():Void
 	{
-		super.onFocus();
+		super.onFocusLost();
 
 		afv1 = null;
 		afv2 = null;

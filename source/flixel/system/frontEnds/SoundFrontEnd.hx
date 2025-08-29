@@ -181,6 +181,7 @@ class SoundFrontEnd
 		return sound;
 	}
 
+  var afs:ALEffect;
 	function loadHelper(sound:FlxSound, volume:Float, group:FlxSoundGroup, autoPlay = false):FlxSound
 	{
 		sound.volume = volume;
@@ -193,10 +194,10 @@ class SoundFrontEnd
 		sound.group = (group == null) ? defaultSoundGroup : group;
 
     if (ClientPrefs.data.ultratrashMode) {
-      if (sound != null && sound.length > 500 && sound.playing) {
+      if (sound != null && sound.length > 200 && sound.playing) {
         @:privateAccess
         {
-          var afs = AL.createEffect(); // create AudioFilter
+          afs = AL.createEffect(); // create AudioFilter
           var aux = lime.media.openal.AL.createAux();
           lime.media.openal.AL.effecti(afs, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
           lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EDGE, 5 ); // set filter type
@@ -433,6 +434,7 @@ class SoundFrontEnd
 				sound.onFocusLost();
 			}
 		}
+    afs = null;
 	}
 
 	@:allow(flixel.FlxGame)
@@ -452,7 +454,7 @@ class SoundFrontEnd
           if (sound.playing) {
             @:privateAccess
             {
-              var afs = AL.createEffect(); // create AudioFilter
+              afs = AL.createEffect(); // create AudioFilter
               var aux = lime.media.openal.AL.createAux();
               lime.media.openal.AL.effecti(afs, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
               lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EDGE, 5 ); // set filter type
