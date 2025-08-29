@@ -3151,7 +3151,6 @@ class PlayState extends MusicBeatState
 		var ghostNotesCaught:Int = 0;
 		var daBpm:Float = Conductor.bpm;
 	
-		//trace(sectionsData);
 		for (section in sectionsData)
 		{
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)

@@ -12,6 +12,10 @@ import flixel.math.FlxRect;
 import objects.playfields.PlayField;
 import states.editors.ChartingState;
 
+import sys.thread.Thread;
+import sys.thread.Mutex;
+import lime.app.Future;
+
 typedef EventNote = {
 	strumTime:Float,
 	event:String,
@@ -37,6 +41,7 @@ typedef PreloadedNote = {
 	column:Int,
 	prevNote:Note,
 	mustPress:Bool,
+	isSustainNote:Bool,
 	noteType:String,
 	animSuffix:String,
 	sustainLength:Float,
@@ -721,6 +726,8 @@ class Note extends NoteObject
 	}
 	public var hitsound:String = 'hitsound';
 
+	static var mutex:Mutex;
+
 	private function set_multSpeed(value:Float):Float {
 		resizeByRatio(value / multSpeed);
 		multSpeed = value;
@@ -1290,7 +1297,7 @@ class Note extends NoteObject
 	}
 
 	public static function quickMakeNote(template:PreloadedNote):Note {
-		var newNote = new Note(template.strumTime, template.noteData, template.prevNote, false, template.inEditor);
+		var newNote = new Note(template.strumTime, template.noteData, template.prevNote, template.isSustainNote, template.inEditor);
 		newNote.mustPress = template.mustPress;
 		newNote.noteType = template.noteType;
 		newNote.animSuffix = template.animSuffix;
@@ -1316,7 +1323,6 @@ class Note extends NoteObject
 		newNote.AIMiss = template.AIMiss;
 		newNote.inEditor = template.inEditor;
 		newNote.spawned = template.spawned;
-
 		return newNote;
 	}
 }
