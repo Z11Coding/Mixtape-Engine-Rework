@@ -4,6 +4,9 @@ import archipelago.APEntryState;
 import backend.PsychCamera;
 import flixel.FlxState;
 import haxe.ds.HashMap;
+import lime.media.openal.AL;
+import lime.media.openal.ALAuxiliaryEffectSlot;
+import lime.media.openal.ALEffect;
 #if windows
 import backend.window.CppAPI;
 #end
@@ -73,6 +76,12 @@ class MusicBeatState extends FlxState
 
 	override public function destroy()
 	{
+		afv1 = null;
+		afv2 = null;
+		afv3 = null;
+
+		afm = null;
+		auxm = null;
 		if (allowNuke)
 			Paths.nukeMemory();
 		super.destroy();
@@ -219,6 +228,12 @@ class MusicBeatState extends FlxState
 	var allowLagAcheve:Bool = false;
 	var justgothere:Bool = true;
 
+	var afm:ALEffect;
+	var afv1:ALEffect;
+	var afv2:ALEffect;
+	var afv3:ALEffect;
+	var auxm:ALAuxiliaryEffectSlot;
+
 	override function update(elapsed:Float)
 	{
 		// Suspend updating if debug overlay is active
@@ -296,18 +311,81 @@ class MusicBeatState extends FlxState
 
 		super.update(elapsed);
 
-		/*if (ClientPrefs.data.ultratrashMode) {
-			if (FlxG.sound.music != null && FlxG.sound.music.playing){
-				@:privateAccess
-				FlxG.sound.music._sound.__buffer.bitsPerSample = 8;
-			}
-			for(sound in FlxG.sound.list) {
-				if (sound != null && sound.playing) {
+		if (ClientPrefs.data.ultratrashMode) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
+				if (afm == null) {
 					@:privateAccess
-					sound._sound.__buffer.bitsPerSample = 8;
+					{
+						afm = AL.createEffect(); // create AudioFilter
+						auxm = lime.media.openal.AL.createAux();
+						lime.media.openal.AL.effecti(afm, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
+						lime.media.openal.AL.effectf(afm, lime.media.openal.AL.DISTORTION_EDGE, 50 ); // set filter type
+						lime.media.openal.AL.effectf(afm, lime.media.openal.AL.DISTORTION_EQBANDWIDTH, 20000 ); // set filter type
+						lime.media.openal.AL.effectf(afm, lime.media.openal.AL.DISTORTION_EQCENTER, 1 ); // set filter type
+						lime.media.openal.AL.effectf(afm, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
+						lime.media.openal.AL.effectf(afm, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
+						lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afm);
+						lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+					}
+				}
+				//FlxG.sound.music._sound.__buffer.bitsPerSample = 128;
+			}
+
+			// done like this so that it actually does it once as to not blow out your ears lol
+			if (getState() == PlayState.instance) {
+				for (vocal in [PlayState.instance.vocals, PlayState.instance.opponentVocals, PlayState.instance.gfVocals]) {
+					if (vocal != null && vocal.playing) {
+						if (afv1 == null) {
+							trace('making vocal!');
+							@:privateAccess
+							{
+								afv1 = AL.createEffect(); // create AudioFilter
+								var auxm = lime.media.openal.AL.createAux();
+								lime.media.openal.AL.effecti(afv1, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
+								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_EDGE, 50 ); // set filter type
+								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_EQBANDWIDTH, 20000 ); // set filter type
+								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_EQCENTER, 1 ); // set filter type
+								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
+								lime.media.openal.AL.effectf(afv1, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
+								lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afv1);
+								lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+							}
+						}
+						else if (afv2 == null) {
+							@:privateAccess
+							{
+								afv2 = AL.createEffect(); // create AudioFilter
+								var auxm = lime.media.openal.AL.createAux();
+								lime.media.openal.AL.effecti(afv2, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
+								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_EDGE, 50 ); // set filter type
+								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_EQBANDWIDTH, 20000 ); // set filter type
+								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_EQCENTER, 1 ); // set filter type
+								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
+								lime.media.openal.AL.effectf(afv2, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
+								lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afv2);
+								lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+							}
+						}
+						else if (afv3 == null) {
+							@:privateAccess
+							{
+								afv3 = AL.createEffect(); // create AudioFilter
+								var auxm = lime.media.openal.AL.createAux();
+								lime.media.openal.AL.effecti(afv3, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
+								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_EDGE, 50 ); // set filter type
+								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_EQBANDWIDTH, 20000 ); // set filter type
+								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_EQCENTER, 1 ); // set filter type
+								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
+								lime.media.openal.AL.effectf(afv3, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
+								lime.media.openal.AL.auxi(auxm, lime.media.openal.AL.EFFECTSLOT_EFFECT, afv3);
+								lime.media.openal.AL.source3i(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, auxm, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
+							}
+						}
+						//FlxG.sound.music._sound.__buffer.bitsPerSample = 128;
+					}
 				}
 			}
-		}*/
+		}
 
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
 			APEntryState.apGame.info().poll();
@@ -587,5 +665,17 @@ class MusicBeatState extends FlxState
 		if (PlayState.SONG != null && PlayState.SONG.notes[curSection] != null)
 			val = PlayState.SONG.notes[curSection].sectionBeats;
 		return val == null ? 4 : val;
+	}
+
+	override public function onFocus():Void
+	{
+		super.onFocus();
+
+		afv1 = null;
+		afv2 = null;
+		afv3 = null;
+
+		afm = null;
+		auxm = null;
 	}
 }
