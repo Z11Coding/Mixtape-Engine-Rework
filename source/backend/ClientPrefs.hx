@@ -198,6 +198,9 @@ import states.TitleState;
 	// Compiler Settings.
 	public var showInitialMemoryUsage:Bool = true;
 	public var SizeAccuracy:yutautil.CollectionUtils.Size = yutautil.CollectionUtils.Size.Auto;
+
+	// Debug Settings
+	public var debugTypeAnalysis:Bool = true;
 	public var showProgressInCMD:Bool = true;
 }
 

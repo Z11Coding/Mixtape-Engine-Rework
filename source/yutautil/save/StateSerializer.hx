@@ -226,7 +226,7 @@ class StateSerializer {
      */
     private static function isAnonymousStructure(obj:Dynamic):Bool {
         if (obj == null) return false;
-        return Type.typeof(obj) == TObject;
+        return Type.typeof(obj) == TObject || Type.getClass(obj) == null;
     }
 
     /**
@@ -300,7 +300,7 @@ class StateSerializer {
                 var typePath = getTypePath(value);
 
                 // Check for simple types that can be converted directly
-                if (isSimpleConvertibleType(className)) {
+                if (isSimpleConvertibleType(value)) {
                     return convertSimpleType(value, className);
                 }
 
@@ -457,14 +457,55 @@ class StateSerializer {
                 case "Date":
                     var timestamp = Reflect.field(value, "__value");
                     return Date.fromTime(timestamp);
+                case "NULL_MAP":
+                    // Return null for null maps
+                    return null;
+                case "MAP_OBJECT":
+                    // Restore Map from object data
+                    var mapData = Reflect.field(value, "__value");
+                    var restoredMap = new Map<Dynamic, Dynamic>();
+
+                    for (field in Reflect.fields(mapData)) {
+                        var mapValue = Reflect.field(mapData, field);
+
+                        // Convert the value back from JSON
+                        var convertedValue = convertValueFromJSON(mapValue);
+
+                        // Try to restore the key to its original type
+                        var originalKey:Dynamic = field;
+
+                        // Simple type detection for common key types
+                        if (field == "null") {
+                            originalKey = null;
+                        } else {
+                            // Try int first
+                            var intValue = Std.parseInt(field);
+                            if (intValue != null && Std.string(intValue) == field) {
+                                originalKey = intValue;
+                            } else {
+                                // Try float
+                                var floatValue = Std.parseFloat(field);
+                                if (!Math.isNaN(floatValue) && Std.string(floatValue) == field) {
+                                    originalKey = floatValue;
+                                } else if (field == "true") {
+                                    originalKey = true;
+                                } else if (field == "false") {
+                                    originalKey = false;
+                                }
+                                // Otherwise keep as string
+                            }
+                        }
+
+                        restoredMap.set(originalKey, convertedValue);
+                    }
+
+                    return restoredMap;
                 case "MAX_DEPTH_REACHED":
                     return null;
                 case "UNSUPPORTED":
                     return null;
                 default:
-                    if (type.startsWith("haxe.ds.") || type == "Map") {
-                        return convertMapFromJSON(value, type);
-                    }
+                    // No special handling needed for other types
             }
         }
 
@@ -486,51 +527,6 @@ class StateSerializer {
 
         return value;
     }
-
-    /**
-     * Convert Map from JSON data
-     */
-    private static function convertMapFromJSON(value:Dynamic, type:String):Dynamic {
-        try {
-            // Check for new format first
-            if (Reflect.hasField(value, "__mapEntries")) {
-                var entries:Array<{key:Dynamic, value:Dynamic}> = cast Reflect.field(value, "__mapEntries");
-                var map = new Map<Dynamic, Dynamic>();
-
-                for (entry in entries) {
-                    var key = convertMapValueFromJSON(entry.key);
-                    var val = convertMapValueFromJSON(entry.value);
-                    map.set(key, val);
-                }
-
-                return map;
-            }
-
-            return new Map<Dynamic, Dynamic>();
-        } catch (e:Dynamic) {
-            trace('Error converting map from JSON: ${e}');
-            return new Map<Dynamic, Dynamic>();
-        }
-    }
-
-    /**
-     * Convert individual map key/value from JSON
-     */
-    private static function convertMapValueFromJSON(value:Dynamic):Dynamic {
-        if (value == null) return null;
-
-        // For simple values, return as-is
-        switch (Type.typeof(value)) {
-            case TNull | TBool | TInt | TFloat:
-                return value;
-            case TClass(String):
-                return value;
-            default:
-                // For complex objects, convert from JSON
-                return convertValueFromJSON(value);
-        }
-    }
-
 
     // Helper methods
 
@@ -569,83 +565,61 @@ class StateSerializer {
         return Type.getClassName(classType);
     }
 
-    private static function isSimpleConvertibleType(className:String):Bool {
-        return className == "Date" ||
-               className == "Map" ||
-               className.startsWith("haxe.ds.");
+    private static function isSimpleConvertibleType(value:Dynamic):Bool {
+        return Std.is(value, Date) || value.isMap();
     }
 
     private static function convertSimpleType(value:Dynamic, className:String):Dynamic {
-        switch (className) {
-            case "Date":
-                var date:Date = cast value;
-                return {
-                    __type: "Date",
-                    __value: date.getTime()
-                };
-            default:
-                if (className == "Map" || className.startsWith("haxe.ds.")) {
-                    return convertMapToJSON(value, className);
-                }
-                return value;
+        // Check for Date objects directly
+        if (Std.is(value, Date)) {
+            var date:Date = cast value;
+            return {
+                __type: "Date",
+                __value: date.getTime()
+            };
         }
-    }
 
-    /**
-     * Convert Map to JSON data
-     */
-    private static function convertMapToJSON(map:Dynamic, className:String):Dynamic {
-        try {
-            var convertedEntries:Array<{key:Dynamic, value:Dynamic}> = [];
+        // Check if object is actually a Map using extension method
+        if (value.isMap()) {
+            var mapInstance:Map<Dynamic, Dynamic> = cast value;
 
-            // Handle different Map types
-            if (map.isMap()) {
-                var mapInstance:Map<Dynamic, Dynamic> = cast map;
-                for (key in mapInstance.keys()) {
-                    var value = mapInstance.get(key);
+            // Check if the map is null and handle it specially
+            if (mapInstance == null) {
+                return {
+                    __type: "NULL_MAP",
+                    __value: null
+                };
+            }
 
-                    // Skip function values in maps
-                    if (Reflect.isFunction(value)) {
-                        continue;
-                    }
+            var mapData:Dynamic = {};
 
-                    convertedEntries.push({
-                        key: convertMapValueToJSON(key),
-                        value: convertMapValueToJSON(value)
-                    });
+            // trace(mapInstance);
+
+            // Simply convert map to object - let JSON handle simple types
+            for (key in mapInstance.keys()) {
+                var mapValue = mapInstance.get(key);
+
+                // Skip function values
+                if (Reflect.isFunction(mapValue)) {
+                    continue;
                 }
+
+                // Use simple string conversion for all keys
+                var keyString = Std.string(key);
+
+                // Only recursively serialize the value if it's complex
+                var convertedValue = convertValueToJSON(mapValue, "", "", 0);
+
+                Reflect.setField(mapData, keyString, convertedValue);
             }
 
             return {
-                __type: className,
-                __mapEntries: convertedEntries
-            };
-        } catch (e:Dynamic) {
-            trace('Error converting map to JSON: ${e}');
-            return {
-                __type: className,
-                __mapEntries: []
+                __type: "MAP_OBJECT",
+                __value: mapData
             };
         }
-    }
 
-    /**
-     * Convert individual map key/value to JSON
-     */
-    private static function convertMapValueToJSON(value:Dynamic):Dynamic {
-        if (value == null) return null;
-
-        switch (Type.typeof(value)) {
-            case TNull | TBool | TInt | TFloat:
-                return value;
-            case TClass(String):
-                return value;
-            case TFunction:
-                return null; // Skip functions
-            default:
-                // For complex objects, convert to JSON representation
-                return convertValueToJSON(value, "", "", 0);
-        }
+        return value;
     }
 
     private static function updateSerializationMetadata(result:SerializedClass):Void {

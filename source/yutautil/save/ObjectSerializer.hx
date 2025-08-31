@@ -1,7 +1,9 @@
 package yutautil.save;
 
+// import backend.MixSave;
+import yutautil.save.MixSaveWrapper;
+import yutautil.save.StateSerializer.SerializedClass;
 import yutautil.save.StateSerializer;
-import backend.MixSave;
 
 /**
  * Simplified wrapper around StateSerializer for general object JSON conversion
@@ -10,54 +12,41 @@ import backend.MixSave;
 class ObjectSerializer {
 
     /**
-     * Convert any object to JSON using the advanced StateSerializer
+     * Convert any object to SerializedClass using the advanced StateSerializer
      * @param obj The object to convert
-     * @param saveKey Optional key for MixSave integration
-     * @return JSON-convertible object data
+     * @return SerializedClass object
      */
-    public static function serialize(obj:Dynamic, ?saveKey:String):Dynamic {
-        var convertedData = StateSerializer.createSerializableObject(obj);
-
-        if (saveKey != null && convertedData != null) {
-            // Save to MixSave system if key provided
-            var mixSave = new MixSave();
-            mixSave.addContent(saveKey, convertedData);
-        }
-
-        return convertedData;
+    public static function serialize(obj:Dynamic):SerializedClass {
+        return StateSerializer.createSerializableObject(obj);
     }
 
     /**
-     * Restore an object from JSON data using the advanced StateSerializer
-     * @param convertedData The JSON-converted object data
-     * @param saveKey Optional key for MixSave integration (requires external MixSave instance)
+     * Restore an object from SerializedClass data using the advanced StateSerializer
+     * @param serializedClass The SerializedClass object data
      * @return Restored object instance
      */
-    public static function deserialize(convertedData:Dynamic, ?saveKey:String):Dynamic {
-        // Note: For MixSave integration with saveKey, use deserializeFromMixSave instead
-        if (convertedData == null && saveKey != null) {
-            trace('Warning: Cannot load from saveKey without external MixSave instance. Use deserializeFromMixSave instead.');
+    public static function deserialize(serializedClass:SerializedClass):Dynamic {
+        return StateSerializer.restoreFromSerializedObject(serializedClass);
+    }
+
+    /**
+     * Restore an object from a MixSaveWrapper file
+     * @param filename The filename to load from
+     * @return Restored object instance, or null if restoration failed
+     */
+    public static function deserializeFromMixSave(filename:String):Dynamic {
+        if (filename == null) return null;
+
+        try {
+            var wrapper = new MixSaveWrapper(null, filename);
+            var serializedClass:SerializedClass = cast wrapper.getItem("savedObject");
+            if (serializedClass == null) return null;
+
+            return StateSerializer.restoreFromSerializedObject(serializedClass);
+        } catch (e:Dynamic) {
+            trace('Error deserializing from MixSave file: ${e}');
             return null;
         }
-
-        if (convertedData == null) return null;
-
-        return StateSerializer.restoreFromSerializedObject(convertedData);
-    }
-
-    /**
-     * Restore an object from a MixSave instance
-     * @param mixSave The MixSave instance to load from
-     * @param saveKey The key to load
-     * @return Restored object instance
-     */
-    public static function deserializeFromMixSave(mixSave:MixSave, saveKey:String):Dynamic {
-        if (mixSave == null || saveKey == null) return null;
-
-        var convertedData = mixSave.getContent(saveKey);
-        if (convertedData == null) return null;
-
-        return StateSerializer.restoreFromSerializedObject(convertedData);
     }
 
     /**
@@ -88,52 +77,63 @@ class ObjectSerializer {
 
     /**
      * Get metadata about a serialized object without fully deserializing it
-     * @param serializedData The serialized object data
+     * @param serializedClass The SerializedClass object data
      * @return Object metadata
      */
-    public static function getMetadata(serializedData:Dynamic):Dynamic {
-        if (serializedData == null) return null;
+    public static function getMetadata(serializedClass:SerializedClass):Dynamic {
+        if (serializedClass == null) return null;
 
         return {
-            className: Reflect.hasField(serializedData, "CLASS") ? Reflect.field(serializedData, "CLASS") : "Unknown",
-            typePath: Reflect.hasField(serializedData, "TYPE") ? Reflect.field(serializedData, "TYPE") : "Unknown",
-            timestamp: Reflect.hasField(serializedData, "TIMESTAMP") ? Reflect.field(serializedData, "TIMESTAMP") : 0,
-            version: Reflect.hasField(serializedData, "VERSION") ? Reflect.field(serializedData, "VERSION") : "Unknown",
-            metadata: Reflect.hasField(serializedData, "METADATA") ? Reflect.field(serializedData, "METADATA") : null,
-            hasQueuedObjects: Reflect.hasField(serializedData, "QUEUED_OBJECTS"),
-            queuedObjectCount: Reflect.hasField(serializedData, "QUEUED_OBJECTS") ?
-                Lambda.count(Reflect.field(serializedData, "QUEUED_OBJECTS")) : 0
+            className: serializedClass.CLASS != null ? serializedClass.CLASS : "Unknown",
+            typePath: serializedClass.TYPE != null ? serializedClass.TYPE : "Unknown",
+            timestamp: serializedClass.TIMESTAMP,
+            version: serializedClass.VERSION != null ? serializedClass.VERSION : "Unknown",
+            metadata: serializedClass.METADATA != null ? serializedClass.METADATA : null,
+            hasQueuedObjects: serializedClass.QUEUED_OBJECTS != null,
+            queuedObjectCount: serializedClass.QUEUED_OBJECTS != null ?
+                Lambda.count(serializedClass.QUEUED_OBJECTS) : 0
         };
     }
 
     /**
-     * Validate that a serialized object structure is complete and valid
-     * @param serializedData The serialized object data
+     * Validate that a SerializedClass structure is complete and valid
+     * @param serializedClass The SerializedClass object data
      * @return True if valid
      */
-    public static function validateSerialization(serializedData:Dynamic):Bool {
-        if (serializedData == null) return false;
+    public static function validateSerialization(serializedClass:SerializedClass):Bool {
+        if (serializedClass == null) return false;
 
         // Check required fields
-        var requiredFields = ["CLASS", "TYPE", "FIELDS", "TIMESTAMP", "VERSION"];
-        for (field in requiredFields) {
-            if (!Reflect.hasField(serializedData, field)) {
-                trace('Missing required field: ${field}');
-                return false;
-            }
+        if (serializedClass.CLASS == null || serializedClass.CLASS == "") {
+            trace('Missing or empty CLASS field');
+            return false;
+        }
+
+        if (serializedClass.TYPE == null || serializedClass.TYPE == "") {
+            trace('Missing or empty TYPE field');
+            return false;
+        }
+
+        if (serializedClass.FIELDS == null) {
+            trace('Missing FIELDS field');
+            return false;
+        }
+
+        if (serializedClass.VERSION == null) {
+            trace('Missing VERSION field');
+            return false;
         }
 
         // Check if version is supported
-        var version = Reflect.field(serializedData, "VERSION");
+        var version = serializedClass.VERSION;
         if (version != "2.0.0" && !isCompatibleVersion(version)) {
             trace('Unsupported serializer version: ${version}');
             return false;
         }
 
         // Check for queued objects consistency
-        if (Reflect.hasField(serializedData, "QUEUED_OBJECTS") && Reflect.hasField(serializedData, "MAIN_OBJECT_ID")) {
-            var queuedObjects = Reflect.field(serializedData, "QUEUED_OBJECTS");
-            var mainObjectId = Reflect.field(serializedData, "MAIN_OBJECT_ID");
+        if (serializedClass.QUEUED_OBJECTS != null && serializedClass.MAIN_OBJECT_ID != null) {
+            var mainObjectId = serializedClass.MAIN_OBJECT_ID;
 
             // Ensure main object ID is valid
             if (mainObjectId == null || mainObjectId == "") {
@@ -158,11 +158,11 @@ class ObjectSerializer {
 
     /**
      * Get a human-readable description of a serialized object
-     * @param serializedData The serialized object data
+     * @param serializedClass The SerializedClass object data
      * @return Description string
      */
-    public static function getDescription(serializedData:Dynamic):String {
-        var metadata = getMetadata(serializedData);
+    public static function getDescription(serializedClass:SerializedClass):String {
+        var metadata = getMetadata(serializedClass);
         if (metadata == null) return "Invalid serialized data";
 
         var description = 'Object: ${metadata.className}';
@@ -199,140 +199,76 @@ class ObjectSerializer {
      * Legacy method for backward compatibility
      * @param obj The object to serialize
      * @param name Optional name (ignored in new version)
-     * @return Serialized object data
+     * @return SerializedClass object data
      */
-    public static function createSerializableObject(obj:Dynamic, ?name:String):Dynamic {
+    public static function createSerializableObject(obj:Dynamic, ?name:String):SerializedClass {
         return serialize(obj);
     }
 
     /**
      * Legacy method for backward compatibility
-     * @param serializedObj The serialized object data
+     * @param serializedObj The SerializedClass object data
      * @return Restored object instance
      */
-    public static function restoreObject(serializedObj:Dynamic):Dynamic {
+    public static function restoreObject(serializedObj:SerializedClass):Dynamic {
         return deserialize(serializedObj);
     }
 
     /**
      * Legacy method for backward compatibility
-     * @param serializedObj The serialized object data
+     * @param serializedObj The SerializedClass object data
      * @return Object metadata
      */
-    public static function getObjectInfo(serializedObj:Dynamic):Dynamic {
+    public static function getObjectInfo(serializedObj:SerializedClass):Dynamic {
         return getMetadata(serializedObj);
     }
 
     /**
-     * Saves a serializable object to a MixSave instance
+     * Saves a serializable object to a MixSaveWrapper file
      * @param obj The object to save
-     * @param key The key to save it under
-     * @param mixSave The MixSave instance to save to (creates new if not provided)
-     * @return The MixSave instance used (for chaining or persistence)
-     */
-    public static function saveToMixSave(obj:Dynamic, key:String, ?mixSave:MixSave):MixSave {
-        try {
-            if (mixSave == null) {
-                mixSave = new MixSave();
-            }
-
-            var serialized = serialize(obj);
-            if (serialized != null) {
-                mixSave.addContent(key, serialized);
-                return mixSave;
-            }
-
-            return null;
-        } catch (e:Dynamic) {
-            trace('Error saving object to MixSave: ${e}');
-            return null;
-        }
-    }
-
-    /**
-     * Loads a serializable object from a MixSave instance
-     * @param key The key to load from
-     * @param mixSave The MixSave instance to load from (creates new if not provided)
-     * @return The restored object, or null if loading failed
-     */
-    public static function loadFromMixSave(key:String, ?mixSave:MixSave):Dynamic {
-        try {
-            if (mixSave == null) {
-                mixSave = new MixSave();
-            }
-
-            var serializedData = mixSave.getContent(key);
-            if (serializedData != null) {
-                return deserialize(serializedData);
-            }
-
-            return null;
-        } catch (e:Dynamic) {
-            trace('Error loading object from MixSave: ${e}');
-            return null;
-        }
-    }
-
-    /**
-     * Saves an object to a file using MixSave wrapper (convenience method)
-     * @param obj The object to save
-     * @param key The key to save it under
-     * @param filePath The file path for the MixSave file
+     * @param filename The filename to save to
      * @return True if save was successful
      */
-    public static function saveToFile(obj:Dynamic, key:String, filePath:String = "save/serialized_objects.json"):Bool {
+    public static function saveToMixSave(obj:Dynamic, filename:String):Bool {
         try {
             var serialized = serialize(obj);
             if (serialized == null) return false;
 
-            // Create a simple save structure
-            var saveData = {};
-            Reflect.setField(saveData, key, serialized);
-
-            // Ensure directory exists
-            var dir = haxe.io.Path.directory(filePath);
-            if (!sys.FileSystem.exists(dir)) {
-                sys.FileSystem.createDirectory(dir);
-            }
-
-            // Save to file
-            var jsonString = haxe.Json.stringify(saveData, null, "\t");
-            sys.io.File.saveContent(filePath, jsonString);
-
+            var wrapper = new MixSaveWrapper(null, filename, false);
+            wrapper.addItem("savedObject", serialized);
+            wrapper.save();
             return true;
         } catch (e:Dynamic) {
-            trace('Error saving object to file: ${e}');
+            trace('Error saving object to MixSave: ${e}');
             return false;
         }
     }
 
     /**
-     * Loads an object from a file (convenience method)
-     * @param key The key to load from
-     * @param filePath The file path for the MixSave file
+     * Loads a serializable object from a MixSaveWrapper file
+     * @param filename The filename to load from
      * @return The restored object, or null if loading failed
      */
-    public static function loadFromFile(key:String, filePath:String = "save/serialized_objects.json"):Dynamic {
-        try {
-            if (!sys.FileSystem.exists(filePath)) {
-                trace('File does not exist: ${filePath}');
-                return null;
-            }
+    public static function loadFromMixSave(filename:String):Dynamic {
+        return deserializeFromMixSave(filename);
+    }
 
-            var jsonContent = sys.io.File.getContent(filePath);
-            var saveData = haxe.Json.parse(jsonContent);
+    /**
+     * Saves an object to a file using MixSaveWrapper
+     * @param obj The object to save
+     * @param filename The filename to save to
+     * @return True if save was successful
+     */
+    public static function saveToFile(obj:Dynamic, filename:String = "save/serialized_objects.json"):Bool {
+        return saveToMixSave(obj, filename);
+    }
 
-            if (!Reflect.hasField(saveData, key)) {
-                trace('Key "${key}" not found in save file');
-                return null;
-            }
-
-            var serializedData = Reflect.field(saveData, key);
-            return deserialize(serializedData);
-
-        } catch (e:Dynamic) {
-            trace('Error loading object from file: ${e}');
-            return null;
-        }
+    /**
+     * Loads an object from a file using MixSaveWrapper
+     * @param filename The filename to load from
+     * @return The restored object, or null if loading failed
+     */
+    public static function loadFromFile(filename:String = "save/serialized_objects.json"):Dynamic {
+        return loadFromMixSave(filename);
     }
 }

@@ -7,6 +7,7 @@ import haxe.ds.HashMap;
 import lime.media.openal.AL;
 import lime.media.openal.ALAuxiliaryEffectSlot;
 import lime.media.openal.ALEffect;
+import yutautil.save.ObjectSerializer;
 #if windows
 import backend.window.CppAPI;
 #end
@@ -23,6 +24,10 @@ class MusicBeatState extends FlxState
 
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
+
+	// Substate stacking system with ObjectSerializer for proper suspension/restoration
+	private var substateQueue:Array<MusicBeatSubstate> = [];
+	private var suspendedSubstateData:Array<{className:String, serializedData:Dynamic, originalSubstate:MusicBeatSubstate}> = [];
 
 	private static var _apFlip:Bool = false;
 	public static var APFlip(get, set):Bool;
@@ -76,6 +81,10 @@ class MusicBeatState extends FlxState
 
 	override public function destroy()
 	{
+		// Clean up suspended substate data
+		substateQueue = [];
+		suspendedSubstateData = [];
+
 		afv1 = null;
 		afv2 = null;
 		afv3 = null;
@@ -228,6 +237,108 @@ class MusicBeatState extends FlxState
 	var allowLagAcheve:Bool = false;
 	var justgothere:Bool = true;
 
+	/**
+	 * Queue a substate to be opened. If a substate is currently active,
+	 * it will be suspended using ObjectSerializer and the new substate will be opened on top.
+	 */
+	public function queueSubstate(substate:MusicBeatSubstate):Void {
+		if (subState != null && Std.isOfType(subState, MusicBeatSubstate)) {
+			// Suspend current substate using ObjectSerializer
+			var currentSubstate = cast(subState, MusicBeatSubstate);
+			try {
+				var className = Type.getClassName(Type.getClass(currentSubstate));
+				var serializedData = ObjectSerializer.serialize(currentSubstate);
+
+				suspendedSubstateData.push({
+					className: className,
+					serializedData: serializedData,
+					originalSubstate: currentSubstate
+				});
+
+				trace('Suspended substate: ${className}');
+			} catch (e:Dynamic) {
+				trace('Warning: Failed to serialize substate for suspension: ${e}');
+				// Fallback to simple reference storage if serialization fails
+				suspendedSubstateData.push({
+					className: "Unknown",
+					serializedData: null,
+					originalSubstate: currentSubstate
+				});
+			}
+
+			closeSubState();
+		}
+
+		substateQueue.push(substate);
+	}
+
+	/**
+	 * Clear all suspended substates (useful for cleanup or when you want to prevent restoration)
+	 */
+	public function clearSuspendedSubstates():Void {
+		suspendedSubstateData = [];
+		trace('Cleared all suspended substate data');
+	}
+
+	/**
+	 * Get the number of currently suspended substates
+	 */
+	public function getSuspendedSubstateCount():Int {
+		return suspendedSubstateData.length;
+	}
+
+	/**
+	 * Override openSubState to work with the stacking system
+	 */
+	override public function openSubState(subState:flixel.FlxSubState):Void {
+		if (Std.isOfType(subState, MusicBeatSubstate)) {
+			queueSubstate(cast(subState, MusicBeatSubstate));
+		} else {
+			super.openSubState(subState);
+		}
+	}
+
+	/**
+	 * Override closeSubState to restore suspended substates using ObjectSerializer
+	 */
+	override public function closeSubState():Void {
+		super.closeSubState();
+
+		// If there are suspended substates, restore the most recent one
+		if (suspendedSubstateData.length > 0) {
+			var suspendedData = suspendedSubstateData.pop();
+
+			try {
+				var restoredSubstate:MusicBeatSubstate;
+
+				if (suspendedData.serializedData != null) {
+					// Try to restore from serialized data
+					restoredSubstate = ObjectSerializer.deserialize(suspendedData.serializedData);
+					if (restoredSubstate != null) {
+						trace('Restored substate from serialized data: ${suspendedData.className}');
+					} else {
+						// Fallback to original substate reference
+						restoredSubstate = suspendedData.originalSubstate;
+						trace('Warning: Failed to deserialize, using original reference');
+					}
+				} else {
+					// Fallback to original substate reference
+					restoredSubstate = suspendedData.originalSubstate;
+					trace('Using original substate reference for restoration');
+				}
+
+				substateQueue.push(restoredSubstate);
+			} catch (e:Dynamic) {
+				trace('Error restoring substate: ${e}');
+				// Last resort: try to use the original substate reference
+				if (suspendedData.originalSubstate != null) {
+					substateQueue.push(suspendedData.originalSubstate);
+					trace('Fallback: using original substate reference');
+				}
+			}
+		}
+	}
+
 	var afm:ALEffect;
 	var afv1:ALEffect;
 	var afv2:ALEffect;
@@ -310,6 +421,12 @@ class MusicBeatState extends FlxState
 		debug.DebugManager.handleDebugKeys();
 
 		super.update(elapsed);
+
+		// Handle substate queue - open the most recent substate if one exists
+		if (substateQueue.length > 0 && subState == null) {
+			var nextSubstate = substateQueue.pop();
+			super.openSubState(nextSubstate);
+		}
 
 		if (ClientPrefs.data.ultratrashMode) {
 			if (FlxG.sound.music != null && FlxG.sound.music.playing) {

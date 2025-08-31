@@ -1,8 +1,8 @@
 package debug;
 
+import backend.MusicBeatSubstate;
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.FlxSubState;
 import flixel.group.FlxGroup;
 import flixel.text.FlxText;
 import flixel.ui.FlxButton;
@@ -11,7 +11,7 @@ import flixel.util.FlxColor;
 /**
  * Specialized editor for arrays and maps
  */
-class CollectionEditor extends FlxSubState {
+class CollectionEditor extends MusicBeatSubstate {
     private var backgroundPanel:FlxSprite;
     private var titleText:FlxText;
     private var itemList:FlxTypedGroup<FlxText>;

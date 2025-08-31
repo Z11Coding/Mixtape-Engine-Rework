@@ -525,7 +525,7 @@ abstract SuggestionArray<T>(Array<Suggestion<T>>) to Array<Suggestion<T>> {
 
 //     /**
 //      * Attempts to upgrade the value to type T if possible.
-//      * If value is not of type T but is upcastable (i.e., value is a superclass of T), 
+//      * If value is not of type T but is upcastable (i.e., value is a superclass of T),
 //      * it tries to cast it to T. Otherwise, throws an error.
 //      */
 //     private static function upgrade<T>(value:Dynamic):Dynamic {
@@ -684,7 +684,7 @@ private class TempIMPL<T> {
         // Try to recover the value from cpp.Pointer.fromRaw in a loop until Type.getClass(v) != null or an exception occurs
         #if cpp
         var attempts = 0;
-        while (Type.getClassName(Type.getClass(v)) == null || 
+        while (Type.getClassName(Type.getClass(v)) == null ||
                Type.getClassName(Type.getClass(v)) == "Null") {
             try {
             var ptr = cpp.Pointer.fromRaw(cast (new HaxePointer<T>(v)));
@@ -1155,15 +1155,51 @@ abstract DetailedException(ExceptionDetails) {
         return "E" + StringTools.hex(hash, 8).toUpperCase();
     }
 
-    static function getStackTrace():String {
-        var stack = haxe.CallStack.exceptionStack();
-        return stack != null ? haxe.CallStack.toString(stack) : "";
+    static function getStackTrace(?exception:Dynamic):String {
+        // First, try to get the stack trace from the exception object itself
+        if (exception != null) {
+            if (Std.isOfType(exception, haxe.Exception)) {
+                var haxeException:haxe.Exception = cast exception;
+                if (haxeException.stack != null && haxeException.stack.length > 0) {
+                    return haxe.CallStack.toString(haxeException.stack);
+                }
+            }
+            // Try to get stack property from any exception object
+            if (Reflect.hasField(exception, "stack")) {
+                var stack = Reflect.field(exception, "stack");
+                if (stack != null) {
+                    if (Std.isOfType(stack, Array)) {
+                        return haxe.CallStack.toString(cast stack);
+                    } else if (Std.isOfType(stack, String)) {
+                        return cast stack;
+                    }
+                }
+            }
+        }
+
+        // Second, try to get the exception stack trace
+        var exceptionStack = haxe.CallStack.exceptionStack();
+        if (exceptionStack != null && exceptionStack.length > 0) {
+            return haxe.CallStack.toString(exceptionStack);
+        }
+
+        // Finally, try the regular call stack
+        try {
+            var callStack = haxe.CallStack.callStack();
+            if (callStack != null && callStack.length > 0) {
+                return haxe.CallStack.toString(callStack);
+            }
+        } catch (e:Dynamic) {
+            // If call stack fails, just return empty string
+        }
+
+        return "";
     }
 
     static function buildDetailsObject(value:Dynamic, ?pos:haxe.PosInfos):ExceptionDetails {
         var message = extractMessage(value);
         var code = generateErrorCode(message, pos);
-        var stack = getStackTrace();
+        var stack = getStackTrace(value);
         var sb = [];
         sb.push("DetailedException:");
         sb.push("  ErrorCode: " + code);
@@ -1268,7 +1304,7 @@ abstract ForceCasted<T>(Dynamic) {
         var fields:Fields = new Fields(this.forceCast());
         fields[field] = value;
         return value;
-    } 
+    }
 
     @:from
     public static inline function fromValue<T>(value:T):ForceCasted<T> {
@@ -1286,7 +1322,7 @@ abstract ForceCasted<T>(Dynamic) {
  * It provides methods to convert from/to cpp.Pointer<T> and to handle field access.
  * It is useful for cases where you want to work with pointers in Haxe, especially when interfacing with C++ code.
  */
-typedef PtrAddress = HaxeAddress; 
+typedef PtrAddress = HaxeAddress;
 
 /**
  * HaxeAddress is an abstract type that represents a pointer address in Haxe.
@@ -1434,7 +1470,7 @@ abstract HaxeAddress(String) {
  * It provides methods to convert from/to cpp.Pointer<T>, cpp.RawPointer<T>, and Dynamic,
  * as well as to handle field access and pointer operations.
  * This is useful for working with pointers in Haxe, especially when interfacing with C++ code.
- * 
+ *
  * Note: Do not stack this type (do not wrap a HaxePointer inside another HaxePointer).
  */
 abstract HaxePointer<T>(cpp.RawPointer<T>) {
@@ -1881,7 +1917,7 @@ abstract GlobalPointer<T>(HaxePointer<T>) {
         }
         return cast value;
     }
-    
+
 }
 
 class PointerString {}
