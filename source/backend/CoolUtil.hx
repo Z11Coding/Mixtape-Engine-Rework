@@ -1,8 +1,8 @@
 package backend;
 
-import openfl.utils.Assets;
-import lime.utils.Assets as LimeAssets;
 import haxe.Json;
+import lime.utils.Assets as LimeAssets;
+import openfl.utils.Assets;
 
 class CoolUtil
 {
@@ -354,7 +354,7 @@ class CoolUtil
 	public static function checkStringCombinations(input:String, target:String):Bool {
 		var combinations:Array<String> = [];
 		var chars:Array<String> = input.split('');
-		
+
 		// Generate all combinations of capital letters
 		for (i in 0...Std.int(Math.pow(2, chars.length))) {
 			var combination:String = '';
@@ -388,7 +388,7 @@ class CoolUtil
 	public static function getAllStringCombinations(input:String):Array<String> {
 		var combinations:Array<String> = [];
 		var chars:Array<String> = input.split('');
-		
+
 		// Generate all combinations of capital letters
 		for (i in 0...Std.int(Math.pow(2, chars.length))) {
 			var combination:String = '';
@@ -486,6 +486,15 @@ class CoolUtil
 			return '$value';
 
 		return convertedValue;
+	}
+
+	public static function rotate(x:Float, y:Float, angle:Float, ?point:FlxPoint):FlxPoint{
+		var p = point==null?FlxPoint.get():point;
+		p.set(
+			(x*Math.cos(angle))-(y*Math.sin(angle)),
+			(x*Math.sin(angle))+(y*Math.cos(angle))
+		);
+		return p;
 	}
 }
 

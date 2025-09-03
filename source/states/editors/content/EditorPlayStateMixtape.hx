@@ -1,24 +1,20 @@
 package states.editors.content;
 
-import backend.Song;
 import backend.Rating;
-
+import backend.Song;
+import backend.modchart.ModManager;
+import flixel.animation.FlxAnimationController;
+import flixel.input.keyboard.FlxKey;
+import flixel.util.FlxSort;
+import flixel.util.FlxStringUtil;
+import haxe.Json;
+import objects.Character;
 import objects.Note;
 import objects.NoteSplash;
 import objects.StrumNote;
-
-import flixel.util.FlxSort;
-import flixel.util.FlxStringUtil;
-import flixel.animation.FlxAnimationController;
-import flixel.input.keyboard.FlxKey;
-import openfl.events.KeyboardEvent;
-
-import haxe.Json;
-import objects.Character;
-import openfl.utils.Assets as OpenFlAssets;
-
-import backend.modchart.ModManager;
 import objects.playfields.*;
+import openfl.events.KeyboardEvent;
+import openfl.utils.Assets as OpenFlAssets;
 
 class EditorPlayStateMixtape extends MusicBeatSubstate
 {
@@ -32,31 +28,31 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	var vocals:FlxSound;
 	var opponentVocals:FlxSound;
 	var inst:FlxSound;
-	
+
 	var notes:FlxTypedGroup<Note>;
 	var unspawnNotes:Array<Note> = [];
 	var ratingsData:Array<Rating> = Rating.loadDefault();
-	
+
 	var strumLineNotes:FlxTypedGroup<StrumNote>;
 	var opponentStrums:FlxTypedGroup<StrumNote>;
 	var playerStrums:FlxTypedGroup<StrumNote>;
 	var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
-	
+
 	var combo:Int = 0;
 	var lastRating:FlxSprite;
 	var lastCombo:FlxSprite;
 	var lastScore:Array<FlxSprite> = [];
-	
+
 	var songHits:Int = 0;
 	var songMisses:Int = 0;
 	var songLength:Float = 0;
 	var songSpeed:Float = 1;
-	
+
 	var totalPlayed:Int = 0;
 	var totalNotesHit:Float = 0.0;
 	var ratingPercent:Float;
 	var ratingFC:String;
-	
+
 	var showCombo:Bool = false;
 	var showComboNum:Bool = true;
 	var showRating:Bool = true;
@@ -85,7 +81,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	public function new(?playbackRate:Float)
 	{
 		super();
-		
+
 		Cursor.hide();
 		/* setting up some important data */
 		this.playbackRate = playbackRate;
@@ -95,7 +91,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		Conductor.songPosition -= startOffset;
 		startOffset = Conductor.crochet;
 		timerToStart = startOffset;
-		
+
 		/* borrowed from PlayState */
 		if (FlxG.sound.music != null)
 			FlxG.sound.music.stop();
@@ -113,7 +109,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		add(bg);
 
         instance = this;
-		
+
 		/**** NOTES ****/
 		keysArray = backend.Keybinds.fill();
 		modManager = new ModManager(this);
@@ -121,7 +117,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		playerField = new PlayField(modManager);
 		playerField.modNumber = 0;
 		playerField.characters = [];
-		
+
 		playerField.isPlayer = true;
 		playerField.autoPlayed = false;
         playerField.isEditor = true;
@@ -155,7 +151,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
         speedChanges.push({
 			position: -6000 * 0.45,
 			startTime: -6000,
-			speed: 1, 
+			speed: 1,
 			#if EASED_SVs
 			startSpeed: 1,
 			#end
@@ -163,14 +159,14 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
         add(playfields);
 		add(notefields);
-		
+
 		scoreTxt = new FlxText(10, FlxG.height - 50, FlxG.width - 20, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
 		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = !ClientPrefs.data.hideHud;
 		add(scoreTxt);
-		
+
 		dataTxt = new FlxText(10, 580, FlxG.width - 20, "Section: 0", 20);
 		dataTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		dataTxt.scrollFactor.set();
@@ -183,19 +179,19 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		tipText.scrollFactor.set();
 		add(tipText);
 		FlxG.mouse.visible = false;
-		
+
 		generateSong();
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
-		
+
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence (with Time Left)
 		DiscordClient.changePresence('Playtesting on Chart Editor', PlayState.SONG.song, null, true, songLength);
 		#end
 		RecalculateRating();
 	}
-    
+
     // good to call this whenever you make a playfield
 	public function initPlayfield(field:PlayField)
 	{
@@ -243,6 +239,24 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	public inline function getVisualPosition()
 		return getTimeFromSV(Conductor.songPosition, currentSV);
 
+	#if EASED_SVs
+	var lastSVTime:Float = 0;
+	var lastSVElapsed:Float = 0;
+	var lastSVPos:Float = 0;
+
+	inline function resetSVDeltas(){
+		if(speedChanges.length > 0){
+			lastSVTime = speedChanges[0].startTime;
+			lastSVElapsed = 0;
+			lastSVPos = speedChanges[0].position;
+		}else{
+			lastSVTime = -5000;
+			lastSVElapsed = 0;
+			lastSVPos = -5000 * 0.45;
+		}
+	}
+	#end
+
 	public function getTimeFromSV(time:Float, event:SpeedEvent):Float {
 		#if EASED_SVs
 		var func:EaseFunction = event.easeFunc == null ? FlxEase.linear : event.easeFunc;
@@ -254,7 +268,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 			var toAdd:Float = time - lastSVTime;
 			var finalPosition:Float = lastSVPos + toAdd * currentSpeed;
-			
+
 			lastSVPos = finalPosition;
 			lastSVTime = time;
 			lastSVElapsed = timeElapsed;
@@ -281,7 +295,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			super.update(elapsed);
 			return;
 		}
-		
+
 		if (startingSong)
 		{
             modManager.setValue('transformX', -400);
@@ -290,7 +304,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			Conductor.songPosition = startPos - timerToStart;
 			if(timerToStart < 0) startSong();
 		}
-		else 
+		else
 		{
 			for (field in playfields.members)
 				field.fadeIn(true); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
@@ -298,7 +312,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
             modManager.setValue('transformY', -300);
 			Conductor.songPosition += elapsed * 1000 * playbackRate;
 		}
-		
+
 		var time:Float = CoolUtil.floorDecimal((Conductor.songPosition - ClientPrefs.data.noteOffset) / 1000, 1);
 		dataTxt.text = 'Time: $time / ${songLength/1000}
 						\nSection: $curSection
@@ -306,7 +320,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 						\nStep: $curStep';
 		super.update(elapsed);
 	}
-	
+
 	var lastStepHit:Int = -1;
 	override function stepHit()
 	{
@@ -341,7 +355,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		super.beatHit();
 		lastBeatHit = curBeat;
 	}
-	
+
 	override function sectionHit()
 	{
 		if (PlayState.SONG.notes[curSection] != null)
@@ -359,7 +373,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		FlxG.mouse.visible = true;
 		super.destroy();
 	}
-	
+
 	function startSong():Void
 	{
 		startingSong = false;
@@ -455,7 +469,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 					{
 						var playerVocals = Paths.voices(songData.song, (characterData.vocalsP1.vocalsFile == null || characterData.vocalsP1.vocalsFile.length < 1) ? 'Player' : characterData.vocalsP1.vocalsFile);
 						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-						
+
 						var oppVocals = Paths.voices(songData.song, (characterData.vocalsP2.vocalsFile == null || characterData.vocalsP2.vocalsFile.length < 1) ? 'Opponent' : characterData.vocalsP2.vocalsFile);
 						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 					}
@@ -464,7 +478,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 				{
 					var playerVocals = Paths.voices(songData.song, (characterData.vocalsP1.vocalsFile == null || characterData.vocalsP1.vocalsFile.length < 1) ? 'Player' : characterData.vocalsP1.vocalsFile);
 					vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-					
+
 					var oppVocals = Paths.voices(songData.song, (characterData.vocalsP2.vocalsFile == null || characterData.vocalsP2.vocalsFile.length < 1) ? 'Opponent' : characterData.vocalsP2.vocalsFile);
 					if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 				}
@@ -494,7 +508,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
 		var ghostNotesCaught:Int = 0;
 		var daBpm:Float = Conductor.bpm;
-	
+
 		for (section in sectionsData)
 		{
 			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
@@ -580,8 +594,8 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 				swagNote.ID = allNotes.length;
 				swagNote.holdType = swagNote.sustainLength > 0 ? HEAD : TAP;
 				swagNote.isParent = swagNote.sustainLength > 0;
-				swagNote.scrollFactor.set();	
-				////			
+				swagNote.scrollFactor.set();
+				////
 				var playfield:PlayField = swagNote.field;
 
 				if (playfield == null && playfields.length > 0) {
@@ -690,7 +704,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		for (rating in ratingsData)
 			Paths.image(rating.image);
-		
+
 		for (i in 0...10)
 			Paths.image('num' + i);
 	}
@@ -752,7 +766,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		comboSpr.velocity.x += FlxG.random.int(1, 10) * playbackRate;
 
 		insert(members.indexOf(strumLineNotes), rating);
-		
+
 		if (!ClientPrefs.data.comboStacking)
 		{
 			if (lastRating != null) lastRating.kill();
@@ -798,7 +812,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			numScore.screenCenter();
 			numScore.x = coolText.x + (43 * daLoop) - 90 + ClientPrefs.data.comboOffset[2];
 			numScore.y += 80 - ClientPrefs.data.comboOffset[3];
-			
+
 			if (!ClientPrefs.data.comboStacking)
 				lastScore.push(numScore);
 
@@ -862,7 +876,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
             {
                 var hitNotes:Array<Note> = [];
                 var controlledFields:Array<PlayField> = [];
-    
+
                 for (field in playfields.members)
                 {
                     if (!field.autoPlayed && field.isPlayer && field.inControl)
@@ -871,7 +885,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
                         field.keysPressed[key] = true;
                         var note:Note = null;
                         note = field.input(key);
-    
+
                         if (note == null)
                         {
                             var spr:StrumNote = field.strumNotes[key];
@@ -944,7 +958,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
         }
 	}
 
-	
+
 	function opponentNoteHit(note:Note, field:PlayField):Void
 	{
 		if (PlayState.SONG.needsVoices && opponentVocals.length <= 0)
@@ -1004,7 +1018,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 					note.parent.unhitTail.remove(note);
 		}
 	}
-	
+
 	function noteMiss(daNote:Note, field:PlayField):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		//Dupe note remove
 		for (note in field.spawnedNotes)
@@ -1038,7 +1052,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		notes.remove(note, true);
 		note.destroy();
 	}
-	
+
 	function resyncVocals():Void
 	{
 		if(finishTimer != null) return;
@@ -1079,7 +1093,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		}
 		scoreTxt.text = 'Hits: $songHits | Misses: $songMisses | Rating: $str';
 	}
-	
+
 	function fullComboUpdate()
 	{
 		var sicks:Int = ratingsData[0].hits;

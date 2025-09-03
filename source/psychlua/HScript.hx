@@ -1,25 +1,24 @@
 package psychlua;
 
-import flixel.FlxBasic;
-import objects.Character;
-import psychlua.LuaUtils;
-import psychlua.CustomSubstate;
 import backend.modchart.SubModifier;
-import objects.VideoSprite;
+import flixel.FlxBasic;
 import flixel.addons.display.FlxRuntimeShader;
+import flixel.group.FlxSpriteContainer;
+import objects.Character;
+import objects.VideoSprite;
+import psychlua.CustomSubstate;
+import psychlua.LuaUtils;
 
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
 #end
 
 #if HSCRIPT_ALLOWED
-import crowplexus.iris.Iris;
-import crowplexus.iris.IrisConfig;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
-
+import crowplexus.iris.Iris;
+import crowplexus.iris.IrisConfig;
 import haxe.ValueException;
-
 import modchart.Manager;
 
 typedef HScriptInfos = {
@@ -130,12 +129,12 @@ class HScript extends Iris
 		}
 		#end
 		preset();
-		
+
 		// Add Archipelago-specific functions if in Archipelago mode
 		#if ARCHIPELAGO_ALLOWED
 		addArchipelagoSupport();
 		#end
-		
+
 		this.varsToBring = varsToBring;
 		if (!manualRun) {
 			try {
@@ -168,6 +167,7 @@ class HScript extends Iris
 		set('FlxTimer', flixel.util.FlxTimer);
 		set('FlxTween', flixel.tweens.FlxTween);
 		set('FlxEase', flixel.tweens.FlxEase);
+		set('FlxSpriteContainer', flixel.group.FlxSpriteContainer);
 		set('FlxColor', CustomFlxColor);
 		set('Countdown', stages.BaseStage.Countdown);
 		set('PlayState', PlayState);
@@ -328,7 +328,7 @@ class HScript extends Iris
 		set('createCallback', function(name:String, func:Dynamic, ?funk:FunkinLua = null)
 		{
 			if(funk == null) funk = parentLua;
-			
+
 			if(funk != null) funk.addLocalCallback(name, func);
 			else Iris.error('createCallback ($name): 3rd argument is null', this.interp.posInfos());
 		});
@@ -365,7 +365,7 @@ class HScript extends Iris
 		set('Function_StopHScript', LuaUtils.Function_StopHScript);
 		set('Function_StopAll', LuaUtils.Function_StopAll);
 
-		
+
 		//Troll Engine Hscript Functions
 		set("NoteObject", objects.NoteObject);
 		set("PlayField", objects.playfields.PlayField);
@@ -409,14 +409,14 @@ class HScript extends Iris
 			return PlayState.instance.modManager.getValue(modName, player);
 		});
 
-		set("queueSet", 
+		set("queueSet",
 		function(step:Float, modName:String, target:Float, player:Int = -1)
 			{
 				PlayState.instance.modManager.queueSet(step, modName, target, player);
 			}
 		);
 
-		set("queueSetP", 
+		set("queueSetP",
 			function(step:Float, modName:String, perc:Float, player:Int = -1)
 			{
 				PlayState.instance.modManager.queueSetP(step, modName, perc, player);
@@ -456,7 +456,7 @@ class HScript extends Iris
 		set("newShader", function(fragFile:String = null, vertFile:String = null){ // returns a FlxRuntimeShader but with file names lol
 			var runtime:FlxRuntimeShader = null;
 
-			try{				
+			try{
 				runtime = Paths.getShader(fragFile, vertFile);
 			}catch(e:Dynamic){
 				trace("Shader compilation error:" + e.message);
@@ -465,19 +465,19 @@ class HScript extends Iris
 			return runtime==null ? new FlxRuntimeShader() : runtime;
 		});
 
-		set('makeVideoSprite', function(tag:String, videoFile:String, ?x:Float, ?y:Float, ?camera:String = 'game', ?shouldLoop:Bool = false, ?playOnLoad:Bool = true, ?isCutscene:Bool = false, addBehind:String = 'none') {	
+		set('makeVideoSprite', function(tag:String, videoFile:String, ?x:Float, ?y:Float, ?camera:String = 'game', ?shouldLoop:Bool = false, ?playOnLoad:Bool = true, ?isCutscene:Bool = false, addBehind:String = 'none') {
 			if (MusicBeatState.getVariables().exists(tag + '_video') || MusicBeatState.getVariables().exists(tag))
 			{
 				PlayState.instance.addTextToDebug('makeVideoSprite: This tag is not available! Use a different tag.', FlxColor.RED);
 				return;
 			}
-			
+
 			if (!FileSystem.exists(Paths.video(videoFile)))
 			{
 				PlayState.instance.addTextToDebug('makeVideoSprite: The video file "' + videoFile + '" cannot be found!', FlxColor.RED);
 				return;
 			}
-			
+
 			var videoCutscene:VideoSprite = null;
 			#if VIDEOS_ALLOWED
 			PlayState.instance.inCutscene = isCutscene;
@@ -510,7 +510,7 @@ class HScript extends Iris
 					videoCutscene.finishCallback = onVideoEnd;
 					videoCutscene.onSkip = onVideoEnd;
 				}
-				videoCutscene.camera = LuaUtils.cameraFromString(camera); 
+				videoCutscene.camera = LuaUtils.cameraFromString(camera);
 				videoCutscene.x = x;
 				videoCutscene.y = y;
 				if (substates.GameOverSubstate.instance != null && PlayState.instance.isDead) substates.GameOverSubstate.instance.add(videoCutscene);
@@ -537,11 +537,11 @@ class HScript extends Iris
 			MusicBeatState.getVariables().set(tag, videoCutscene);
 		});
 
-		set('pauseVideo', function(tag:String) {	
+		set('pauseVideo', function(tag:String) {
 			if (MusicBeatState.getVariables().exists(tag)) MusicBeatState.getVariables().get(tag).pause();
 		});
 
-		set('resumeVideo', function(tag:String) {	
+		set('resumeVideo', function(tag:String) {
 			if (MusicBeatState.getVariables().exists(tag)) MusicBeatState.getVariables().get(tag).resume();
 		});
 
@@ -566,7 +566,7 @@ class HScript extends Iris
 			}
 			return null;
 		});
-		
+
 		funk.addLocalCallback("runHaxeFunction", function(funcToRun:String, ?funcArgs:Array<Dynamic> = null) {
 			if (funk.hscript != null)
 			{
@@ -688,102 +688,102 @@ class HScript extends Iris
 		// Add Archipelago classes
 		set('APScriptingSupport', archipelago.APScriptingSupport);
 		set('APGameState', archipelago.APGameState);
-		
+
 		// Register callback for item received
 		set('registerItemReceivedCallback', function(callback:String->Void) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				trace('registerItemReceivedCallback: Archipelago mode is not enabled!');
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerItemReceivedCallback(callback);
 			return true;
 		});
-		
+
 		// Register callback for custom item received
 		set('registerCustomItemReceivedCallback', function(callback:String->Void) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				trace('registerCustomItemReceivedCallback: Archipelago mode is not enabled!');
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerCustomItemReceivedCallback(callback);
 			return true;
 		});
-		
+
 		// Register callback for item sent
 		set('registerItemSentCallback', function(callback:String->Void) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				trace('registerItemSentCallback: Archipelago mode is not enabled!');
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerItemSentCallback(callback);
 			return true;
 		});
-		
+
 		// Register callback for location sent
 		set('registerLocationSentCallback', function(callback:String->Int->Void) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				trace('registerLocationSentCallback: Archipelago mode is not enabled!');
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerLocationSentCallback(callback);
 			return true;
 		});
-		
+
 		// Send location function
 		set('sendArchipelagoLocation', function(locationName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				trace('sendArchipelagoLocation: Archipelago mode is not enabled!');
 				return false;
 			}
-			
+
 			return archipelago.APScriptingSupport.sendLocation(locationName);
 		});
-		
+
 		// Check if item exists
 		set('hasArchipelagoItem', function(itemName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return false;
 			return archipelago.APScriptingSupport.hasItem(itemName);
 		});
-		
+
 		// Get item count
 		set('getArchipelagoItemCount', function(itemName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return 0;
 			return archipelago.APScriptingSupport.getItemCount(itemName);
 		});
-		
+
 		// Check connection status
 		set('isConnectedToArchipelago', function() {
 			return archipelago.APScriptingSupport.isConnected();
 		});
-		
+
 		// Get player name
 		set('getArchipelagoPlayerName', function() {
 			if (!archipelago.APEntryState.inArchipelagoMode) return "";
 			return archipelago.APScriptingSupport.getPlayerName();
 		});
-		
+
 		// Get slot data field from APInfo
 		set('getArchipelagoSlotData', function(fieldName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSlotDataField(fieldName);
 		});
-		
+
 		// Get available songs from slot data
 		set('getArchipelagoAvailableSongs', function() {
 			if (!archipelago.APEntryState.inArchipelagoMode) return [];
 			return archipelago.APScriptingSupport.getAvailableSongs();
 		});
-		
+
 		// Get song data for a specific song
 		set('getArchipelagoSongData', function(songName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSongData(songName);
 		});
-		
+
 		// Archipelago status variables
 		set('archipelagoEnabled', archipelago.APEntryState.inArchipelagoMode);
 		set('connectedToArchipelago', archipelago.APScriptingSupport.isConnected());
@@ -809,7 +809,7 @@ class CustomFlxColor {
 	public static var MAGENTA(default, null):Int = FlxColor.MAGENTA;
 	public static var CYAN(default, null):Int = FlxColor.CYAN;
 
-	public static function fromInt(Value:Int):Int 
+	public static function fromInt(Value:Int):Int
 		return cast FlxColor.fromInt(Value);
 
 	public static function fromRGB(Red:Int, Green:Int, Blue:Int, Alpha:Int = 255):Int
