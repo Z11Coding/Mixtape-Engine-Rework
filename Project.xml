@@ -17,7 +17,7 @@
 
 	<!--Minimum without FLX_NO_GAMEPAD: 11.8, without FLX_NO_NATIVE_CURSOR: 11.2-->
 	<set name="SWF_VERSION" value="11.8" />
-	
+
 	<!-- ______________________ MIXTAPE ENGINE CUSTOMIZATION ______________________ -->
 
 	<define name="MODS_ALLOWED" if="desktop" />
@@ -35,11 +35,12 @@
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY"/>
 	<define name="ALLOW_DEPRECATION"/>
+	<define name="EASED_SVs"/>
 	<define name="MULTICORE_LOADING" if="desktop" />
 	<define name="loadBenchmark" if="MULTICORE_LOADING"/>
 
 	<haxedef name="traceShaderLineNumbers"/>
-	
+
 	<define name="MULTITHREADED_LOADING" /> <!-- UNCOMMENTING THIS LINE WILL ENABLE MULTITHREADED LOADING, WHICH IMPROVES LOADING TIMES, BUT WITH A LOW CHANCE FOR THE GAME FREEZE ON SONG LOAD -->
 	<define name="SHOW_LOADING_SCREEN" />
 	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE THE PSYCH LOGO FROM LOADING SCREEN -->
@@ -52,7 +53,7 @@
 		<define name="TITLE_SCREEN_EASTER_EGG"/>
 	</section>
 
-	<!-- Apparently I can just drop this in and it'll work so i'll be the judge of that --> 
+	<!-- Apparently I can just drop this in and it'll work so i'll be the judge of that -->
 
 	<haxedef name="FM_ENGINE" value="PSYCH"/>
 	<haxedef name="FM_ENGINE_VERSION" value="1.0"/>
@@ -87,7 +88,7 @@
 	<classpath name="source" />
 
 	<!-- __________________________ Game Assets & Etc. __________________________ -->
-	
+
 	<!-- Turn on Crash Handler -->
 	<define name="CRASH_HANDLER" if="desktop" />
 
@@ -146,7 +147,7 @@
 	<haxelib name="flixel-text-input" /> <!-- Improved text field rendering for HaxeUI -->
 	<haxelib name="flixel-ui" />
 	<haxelib name="linc_dialogs" version="git" if="desktop" />
-	
+
 	<!--Uncomment if you want to use moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
     <haxelib name="moonchart" version="git" if="native"/>
 
@@ -188,7 +189,7 @@
 		<define name="traceLoading"/>
 		<define name="loadBenchmark"/>
 	</section>
-	
+
 	<!-- ______________________________ Haxedefines _____________________________ -->
 
 	<!--Enable the Flixel core recording system-->
@@ -217,16 +218,16 @@
 
 	<!--Disable the Flixel core focus lost screen-->
 	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
-	
+
 	<!-- Show debug traces for hxCodec -->
 	<haxedef name="HXC_DEBUG_TRACE" if="debug" />
-	
+
 	<!--Disable the Flixel core debugger. Automatically gets set whenever you compile in release mode!-->
 	<haxedef name="FLX_NO_DEBUG" unless="debug" />
 
 	<!--Enable this for Nape release builds for a serious peformance improvement-->
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />
-	
+
 	<!--Used for Izzy Engine's crash handler-->
 	<section if="cpp">
 		<haxedef name="HXCPP_CHECK_POINTER" />
@@ -235,14 +236,14 @@
 		<haxedef name="HXCPP_CATCH_SEGV" />
 		<haxedef name="HXCPP_GC_DISABLE" />
 	</section>
-	
+
 	<section if="desktop">
 		<!--Enable Handle Error-->
 		<haxedef name="openfl_enable_handle_error" if="${openfl &ge; 9.4.0}" />
 		<!--Undefinitions-->
 		<undefine name="openfl-disable-handle-error" if="debug" unless="${openfl &ge; 9.4.0}" />
 	</section>
-	
+
 	<!--Allow working memory greater than 1 Gig-->
 	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
 
@@ -287,7 +288,7 @@
 	<!-- _________________________________ Custom _______________________________ -->
 
 	<assets path='art/icons/iconOG.png' rename='icon.png' if="linux" />
-	
+
 	<icon path="art/icons/icon16.png" size='16'/>
 	<icon path="art/icons/icon32.png" size='32'/>
 	<icon path="art/icons/icon64.png" size='64'/>

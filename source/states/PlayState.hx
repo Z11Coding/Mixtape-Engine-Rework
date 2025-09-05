@@ -522,6 +522,8 @@ class PlayState extends MusicBeatState
 	// Skydecay Engine (our good friends)
 	public var noteManager:NoteManager;
 
+	//JS Engine shenanigans
+	public var renderedTxt:FlxText;
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -1287,6 +1289,15 @@ class PlayState extends MusicBeatState
 		if(ClientPrefs.data.downScroll)
 			legacyLuaTestTxt.y = healthBar.y + 110;
 
+		renderedTxt = new FlxText(0, healthBar.y - 50, FlxG.width, "", 32);
+		renderedTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		renderedTxt.scrollFactor.set();
+		renderedTxt.borderSize = 1.25;
+		renderedTxt.cameras = [camHUD];
+
+		if (ClientPrefs.data.downScroll) renderedTxt.y = healthBar.y + 50;
+		uiGroup.add(renderedTxt);
+
 		introStageText = new FlxTypedGroup<FlxText>();
 		songTxt = new FlxText(0, 1280 / 6, FlxG.width, "", 32);
 		songTxt.setFormat(Paths.font("mania-free.ttf"), 32, FlxColor.ORANGE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -1435,6 +1446,8 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
+
+		renderedTxt.text = 'Rendered Notes: ' + notes.length;
 
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
 		if(ClientPrefs.data.hitsoundVolume > 0) Paths.sound('hitsound');
@@ -4534,7 +4547,7 @@ class PlayState extends MusicBeatState
 						endTime = event.strumTime + (parsed * 1000);
 
 					if(tweenOptions.length > 1){
-						var f:EaseFunction = ScriptingUtil.getFlxEaseByString(tweenOptions[1]);
+						var f:EaseFunction = LuaUtils.getTweenEaseByString(tweenOptions[1]);
 						if(f != null)
 							easeFunc = f;
 					}
@@ -5254,6 +5267,12 @@ class PlayState extends MusicBeatState
 				if(!cpuControlled) keysCheck();
 				else playerDance();
 
+				amountOfRenderedNotes = 0;
+				notes.forEach(function(daNote)
+				{
+					updateLiveNote(daNote);
+				});
+
 				if (mechanicsMod != null) {
 					if (MechanicManager.mechanics['burst_note'].points > 0 && mechanicsMod.burstTime != null)
 					{
@@ -5651,10 +5670,69 @@ class PlayState extends MusicBeatState
 			health = MaxHP - maxHealthOffset;
 		noTriggerKarma = false;
 
+		renderedTxt.text = 'Rendered Notes: ${formatNumber(amountOfRenderedNotes)}/${formatNumber(maxRenderedNotes)}/${formatNumber(notes.members.length)}';
+
 		setOnScripts('cameraX', camFollow.x);
 		setOnScripts('cameraY', camFollow.y);
 		setOnScripts('botPlay', cpuControlled);
 		callOnScripts('onUpdatePost', [elapsed]);
+	}
+
+	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting
+	{
+		return (number < 10e11 ? FlxStringUtil.formatMoney(number, false) : formatCompactNumber(number));
+	}
+
+	static function formatCompactNumber(number:Float):String
+	{
+		var suffixes1:Array<String> = ['ni', 'mi', 'bi', 'tri', 'quadri', 'quinti', 'sexti', 'septi', 'octi', 'noni'];
+		var tenSuffixes:Array<String> = ['', 'deci', 'viginti', 'triginti', 'quadraginti', 'quinquaginti', 'sexaginti', 'septuaginti', 'octoginti', 'nonaginti', 'centi'];
+		var decSuffixes:Array<String> = ['', 'un', 'duo', 'tre', 'quattuor', 'quin', 'sex', 'septe', 'octo', 'nove'];
+		var centiSuffixes:Array<String> = ['centi', 'ducenti', 'trecenti', 'quadringenti', 'quingenti', 'sescenti', 'septingenti', 'octingenti', 'nongenti'];
+
+		var magnitude:Int = 0;
+		var num:Float = number;
+		var tenIndex:Int = 0;
+
+		while (num >= 1000.0)
+		{
+			num /= 1000.0;
+
+			if (magnitude == suffixes1.length - 1) {
+				tenIndex++;
+			}
+
+			magnitude++;
+
+			if (magnitude == 21) {
+				tenIndex++;
+				magnitude = 11;
+			}
+		}
+
+		// Determine which set of suffixes to use
+		var suffixSet:Array<String> = (magnitude <= suffixes1.length) ? suffixes1 : ((magnitude <= suffixes1.length + decSuffixes.length) ? decSuffixes : centiSuffixes);
+
+		// Use the appropriate suffix based on magnitude
+		var suffix:String = (magnitude <= suffixes1.length) ? suffixSet[magnitude - 1] : suffixSet[magnitude - 1 - suffixes1.length];
+		var tenSuffix:String = (tenIndex <= 10) ? tenSuffixes[tenIndex] : centiSuffixes[tenIndex - 11];
+
+		// Use the floor value for the compact representation
+		var compactValue:Float = Math.floor(num * 100) / 100;
+
+		if (compactValue <= 0.001) {
+			return "0"; // Return 0 if compactValue = null
+		} else {
+			var illionRepresentation:String = "";
+
+			if (magnitude > 0) {
+				illionRepresentation += suffix + tenSuffix;
+			}
+
+				if (magnitude > 1) illionRepresentation += "llion";
+
+			return compactValue + (magnitude == 0 ? "" : " ") + (magnitude == 1 ? 'thousand' : illionRepresentation);
+		}
 	}
 
 	function convertTime(seconds:Float, ?showMS:Bool = false):String {
@@ -5668,6 +5746,31 @@ class PlayState extends MusicBeatState
 				omegaFormat += '${DateTools.hours(seconds)}:';
 			omegaFormat += FlxStringUtil.formatTime(seconds, showMS);
 			return omegaFormat;
+		}
+	}
+
+	public var amountOfRenderedNotes:Float = 0;
+	public var maxRenderedNotes:Float = 0;
+
+	function updateLiveNote(daNote:Note):Void
+	{
+		if (daNote != null && daNote.exists)
+		{
+			//first, process whether or not the note should be hit. this prevents pointless strum following
+			if (!daNote.exists) return;
+
+			amountOfRenderedNotes += 1;
+			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
+			if (daNote.isSustainNote)
+			{
+				final strum = (daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData];
+				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
+			}
+
+			if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
+			{
+				invalidateNote(daNote);
+			}
 		}
 	}
 

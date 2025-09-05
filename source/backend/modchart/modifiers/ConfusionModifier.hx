@@ -1,12 +1,12 @@
 package backend.modchart.modifiers;
 
-import objects.playfields.NoteField;
-import backend.ui.*;
-import backend.modchart.*;
-import flixel.math.FlxPoint;
-import flixel.math.FlxMath;
 import backend.math.*;
+import backend.modchart.*;
+import backend.ui.*;
 import flixel.math.FlxAngle;
+import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
+import objects.playfields.NoteField;
 
 class ConfusionModifier extends NoteModifier {
     override function getName()return 'confusion';
@@ -40,11 +40,11 @@ class ConfusionModifier extends NoteModifier {
 			angleY += getSubmodValue("noteAngleY", player) + getSubmodValue("note" + data + "AngleY", player);
 
 			if(note.isSustainNote){
-				angleZ = 0;	
+				angleZ = 0;
                 //trace(angleX, angleY, angleZ);
             }else{
 				var noteBeat = note.beat - beat;
-				
+
 				angleZ += (noteBeat * getSubmodValue("dizzy", player) % 360) * (180 / Math.PI);
 				angleZ += getSubmodValue("noteAngle", player) + getSubmodValue("note" + data + "Angle", player);
 
@@ -65,38 +65,38 @@ class ConfusionModifier extends NoteModifier {
 		vert = VectorHelpers.rotateV3(vert, FlxAngle.TO_RAD *  angleX, FlxAngle.TO_RAD *  angleY, FlxAngle.TO_RAD * angleZ);
         return vert;
 	}
-    
-    override function getSubmods(){
-		var subMods:Array<String> = [
-			"confusionOffset",
-			"confusionX",
-			"confusionY",
-			"confusionXOffset",
-			"confusionYOffset",
-			"noteAngleX",
-			"receptorAngleX",
-			"noteAngleY",
-			"receptorAngleY",
-			"noteAngle", 
-            "receptorAngle",
-			"roll",
-			"twirl",
-			"dizzy"
-        ];
 
-        for(i in 0...Note.ammo[PlayState.mania]){
-			subMods.push('note${i}AngleX');
-			subMods.push('receptor${i}AngleX');
-			subMods.push('note${i}AngleY');
-			subMods.push('receptor${i}AngleY');
-			subMods.push('note${i}Angle');
-			subMods.push('receptor${i}Angle');
-            subMods.push('confusion${i}');
-			subMods.push('confusionOffset${i}');
-			subMods.push('confusionX${i}');
-			subMods.push('confusionXOffset${i}');
-			subMods.push('confusionY${i}');
-			subMods.push('confusionYOffset${i}');
+    override function getSubmods(){
+			var subMods:Array<String> = [
+				"confusionOffset",
+				"confusionX",
+				"confusionY",
+				"confusionXOffset",
+				"confusionYOffset",
+				"noteAngleX",
+				"receptorAngleX",
+				"noteAngleY",
+				"receptorAngleY",
+				"noteAngle",
+				"receptorAngle",
+				"roll",
+				"twirl",
+				"dizzy"
+			];
+
+      for(i in 0...Note.ammo[PlayState.mania]){
+					subMods.push('note${i}AngleX');
+					subMods.push('receptor${i}AngleX');
+					subMods.push('note${i}AngleY');
+					subMods.push('receptor${i}AngleY');
+					subMods.push('note${i}Angle');
+					subMods.push('receptor${i}Angle');
+					subMods.push('confusion${i}');
+					subMods.push('confusionOffset${i}');
+					subMods.push('confusionX${i}');
+					subMods.push('confusionXOffset${i}');
+					subMods.push('confusionY${i}');
+					subMods.push('confusionYOffset${i}');
         }
 
         return subMods;

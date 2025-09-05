@@ -1,19 +1,19 @@
 package backend.modchart;
 // @author Nebula_Zorua
 
-import objects.StrumNote;
-import objects.playfields.NoteField;
+import backend.math.Vector3;
 import backend.modchart.Modifier;
+import backend.modchart.events.*;
 import backend.modchart.modifiers.*;
 import backend.modchart.modifiers.extra.*;
-import backend.modchart.events.*;
-import backend.math.Vector3;
-import flixel.tweens.FlxEase;
-import flixel.math.FlxPoint;
 import flixel.FlxG;
 import flixel.FlxState;
+import flixel.math.FlxPoint;
+import flixel.tweens.FlxEase;
 import objects.Note;
 import objects.NoteObject;
+import objects.StrumNote;
+import objects.playfields.NoteField;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
 // NEW: Now also has some features of mirin (aliases, nodes)
@@ -56,16 +56,16 @@ class ModManager {
 	var miscmodRegister:Map<String, Modifier> = [];
 
 	public var register:Map<String, Modifier> = [];
-	
-	/** mods that should be executing and will be called by functions like getPos **/ 
-	var activeMods:Array<Array<String>> = [[], []]; 
+
+	/** mods that should be executing and will be called by functions like getPos **/
+	var activeMods:Array<Array<String>> = [[], []];
 	// ^^ maybe this can be seperated into a misc and note one, just so you arent checking misc mods for note shit & vice versa
 	// also so you arent calling shit like getPos on submods etc etc, might be better for optimization to do that
 	var modArray:Array<Modifier> = [];
 	var aliases:Map<String, String> = [];
-	
-	/** maps nodes by their inputs **/ 
-	var nodes:Map<String, Array<Node>> = []; 
+
+	/** maps nodes by their inputs **/
+	var nodes:Map<String, Array<Node>> = [];
 	var nodeArray:Array<Node> = [];
 
 	var touchedMods:Array<Array<String>> = [[], []];
@@ -77,7 +77,7 @@ class ModManager {
 
 	public function registerAux(name:String)
 		return quickRegister(new SubModifier(name, this));
-	
+
 	public function registerDefaultModifiers()
 	{
 		var quickRegs:Array<Any> = [
@@ -86,10 +86,10 @@ class ModManager {
 			DrunkModifier,
 			BeatModifier,
 			AlphaModifier,
-			ScaleModifier, 
-			ConfusionModifier, 
-			OpponentModifier, 
-			TransformModifier, 
+			ScaleModifier,
+			ConfusionModifier,
+			OpponentModifier,
+			TransformModifier,
 			InfinitePathModifier,
 			PathModifier,
 			AccelModifier,
@@ -98,8 +98,9 @@ class ModManager {
 			ZoomModifier,
 			SnapModifier,
 			SpiralModifier,
-			SchmovinDrunkModifier, 
-			FlaccidModifier
+			SchmovinDrunkModifier,
+			FlaccidModifier,
+			AngleModifier
 		];
 		for (mod in quickRegs)
 			quickRegister(Type.createInstance(mod, [this]));
@@ -112,7 +113,7 @@ class ModManager {
 		registerAux("spiralHolds");
 		registerAux("orient");
 		registerAux("lookAheadTime"); // used for holds and orient
-		
+
 		registerAux("centeredPath");
 		registerAlias("centered2", "centeredPath");
 
@@ -137,7 +138,7 @@ class ModManager {
 			toAlternate.push('transform${i}Y');
 			toAlternate.push('transform${i}Z');
 		}
-		
+
 		for(shit in toAlternate)
 			registerAltNode(shit);
 
@@ -153,7 +154,7 @@ class ModManager {
 
 		for (shit in queuedEvents)
 			timeline.addEvent(shit);
-		
+
 
 	}
 
@@ -213,7 +214,7 @@ class ModManager {
 		for(inp in inputs){
 			if(!nodes.exists(inp))
 				nodes.set(inp, []);
-			
+
 			nodes.get(inp).push(node);
 		}
 		nodeArray.push(node);
@@ -251,10 +252,10 @@ class ModManager {
 
 		timeline.addMod(modName);
 		modArray.push(mod);
-		
+
 		for(a => m in mod.getAliases())
 			registerAlias(a, m);
-		
+
 
 		if (registerSubmods){
 			for (name in mod.submods.keys())
@@ -270,19 +271,19 @@ class ModManager {
 	}
 
 	public function addHScriptModifier(modName:String, ?defaultVal:Float = 0):Null<HScriptModifier>
-	{	
+	{
 		var modifier = HScriptModifier.fromName(this, null, modName);
 		if (modifier == null) return null;
-	
+
 		quickRegister(modifier);
 		setValue(modifier.getName(), defaultVal==null ? 0 : defaultVal, -1, true);
-		
+
 		return modifier;
 	}
 
 	inline public function get(modName:String)
 		return register.get(getActualModName(modName));
-	
+
 	inline public function getPercent(modName:String, player:Int)
 		return !register.exists(getActualModName(modName))?0:get(modName).getPercent(player);
 
@@ -300,7 +301,7 @@ class ModManager {
 
 	inline public function getTargetValue(modName:String, player:Int)
 		return !register.exists(getActualModName(modName)) ? 0 : get(modName).getTargetValue(player);
-	
+
 	public function getCMod(data:Int, player:Int, ?defaultSpeed:Float):Float
 	{
 		var daSpeed = getValue('cmod${data}', player);
@@ -312,7 +313,7 @@ class ModManager {
 				{
 					if (MusicBeatState.getState() == PlayState.instance)
 						return PlayState.instance.songSpeed;
-					else	
+					else
 						return 3;
 				}
 				else
@@ -325,10 +326,10 @@ class ModManager {
 
 	public function getXMod(data:Int, player:Int)
 		return getValue("xmod", player) * getValue('xmod${data}', player);
-	
+
 	inline public function getNoteSpeed(note:Note, pN:Int, ?songSpeed:Float)
 		return getCMod(note.column, pN, songSpeed) * note.multSpeed * getXMod(note.column, pN);
-	
+
 
 	public function getActiveMods(pN:Int){
 		if(activeMods[pN]==null){
@@ -372,7 +373,7 @@ class ModManager {
 			trace('setting default $modName to $val for $player');
 			defaultValues.set(modName, {value: val, playerIndex: player});
 		}
-		
+
 
 		if (player == -1)
 		{
@@ -382,7 +383,7 @@ class ModManager {
 			var daMod = get(modName);
 			if (daMod == null)
 				return;
-			
+
 			daMod.setValue(val, player);
 		}
 	}
@@ -396,7 +397,7 @@ class ModManager {
 		}
 
 		var active_mods = getActiveMods(player);
-		
+
 		// remove currently inactive mods from the active mods
 		var discarded_mods:Array<String> = [];
 		var activated_mods:Array<String> = [];
@@ -416,7 +417,7 @@ class ModManager {
 
 					if(can_discard)
 						discarded_mods.push(mod_name); // shit is inactive, remove it later (cant in this loop)
-					
+
 				}
 			}else{
 
@@ -433,14 +434,14 @@ class ModManager {
 			//trace("discarded " + mod_name + " for " + player);
 			active_mods.remove(mod_name);
 		}
-		
+
 		for (mod in activated_mods){
 			if(!active_mods.contains(mod)){ // prob a redundant check but better safe than sorry
 				active_mods.push(mod);
 				//trace("activated " + mod + " for " + player);
 			}
 		}
-		
+
 		active_mods.sort((a, b) -> Std.int(get(a).getOrder() - get(b).getOrder()));
 	}
 
@@ -452,7 +453,7 @@ class ModManager {
 			{
 				nodeIndex++; // used to prevent calling the same node over and over when it has multiple inputs
 				// could do a ran_nodes array but honestly this is probably better for optimization since its not having to store the entire node, just an index
-				
+
 				// I dont think this works ^^ TODO: fix
 
 				for (mod in mods)
@@ -470,7 +471,7 @@ class ModManager {
 									input_values.push(getValue(input_mod, player));
 
 								var output_values:Array<Float> = node.nodeFunc(input_values, player);
-								
+
 								if (node.out_mods.length > 0)
 								{ // if theres outputs
 									if (output_values.length < node.out_mods.length)
@@ -516,7 +517,7 @@ class ModManager {
 		}
 
 		timeline.updateMods(step);
-		
+
 		for (mod in modArray)
 		{
 			mod._internalUpdate();
@@ -537,7 +538,7 @@ class ModManager {
 	{
 		if (playerOOBIsCentered && (player >= playerAmount || player < 0))
 			player = 0.5; // replicating old behaviour for upcoming modcharts
-		
+
 		var spaceWidth = FlxG.width / playerAmount;
 		var spaceX = spaceWidth * (playerAmount-1-player);
 
@@ -555,7 +556,7 @@ class ModManager {
 
 			var mod:Modifier = notemodRegister.get(name);
 			if (mod==null) continue;
-			
+
 			if(obj.objType == NOTE){
 				if (mod.ignoreUpdateNote()) continue;
 				mod.updateNote(beat, cast obj, player);
@@ -565,7 +566,7 @@ class ModManager {
 				mod.updateReceptor(beat, cast obj, player);
 			}
 		}
-		
+
 		obj.updateHitbox();
 	}
 
@@ -576,17 +577,17 @@ class ModManager {
 
 	public function getPos(diff:Float, tDiff:Float, beat:Float, data:Int, player:Int, obj:NoteObject, field:NoteField, ?exclusions:Array<String>, ?pos:Vector3):Vector3
 	{
-		if (!obj.alive) 
+		if (!obj.alive)
 			return pos;
 
-		if (exclusions == null) 
+		if (exclusions == null)
 			exclusions = []; // since [] cant be a default value for.. some reason?? "its not constant!!" kys haxe
-		
+
 		if (pos == null)
 			pos = new Vector3();
 
 		diff += getValue("centeredPath", player) * Note.swagWidth; // Each 100% moves the path by receptor size
-		
+
 		pos.setTo(
 			Note.halfWidth + getBaseX(data, player, field.field.keyCount),
 			Note.halfWidth + 50 + diff,
@@ -594,12 +595,12 @@ class ModManager {
 		);
 
  		for (name in getActiveMods(player)) {
-			/*if (!obj.alive) 
+			/*if (!obj.alive)
 				continue;*/
-			
-			if (exclusions.contains(name)) 
+
+			if (exclusions.contains(name))
 				continue; // because some modifiers may want the path without reverse, for example.
-			
+
 			var mod:Modifier = notemodRegister.get(name);
 			if (mod != null && !mod.ignorePos())
 				pos = mod.getPos(diff, tDiff, beat, pos, data, player, obj, field);
@@ -615,11 +616,11 @@ class ModManager {
 
 		for (name in getActiveMods(player))
 		{
-			if (exclusions.contains(name)) 
+			if (exclusions.contains(name))
 				continue;
 
 			var mod:Modifier = miscmodRegister.get(name);
-			if (mod != null && mod.affectsField()) 
+			if (mod != null && mod.affectsField())
 				zoom = mod.getFieldZoom(zoom, beat, songPos, player, field);
 		}
 
@@ -628,15 +629,15 @@ class ModManager {
 
 	public function modifyVertex(beat:Float, vert:Vector3, idx:Int, obj:NoteObject, pos:Vector3, player:Int, data:Int, field:NoteField, ?exclusions:Array<String>):Vector3
 	{
-		if (!obj.active) 
+		if (!obj.active)
 			return vert;
 
-		if (exclusions == null) 
+		if (exclusions == null)
 			exclusions = [];
 
 		for (name in getActiveMods(player))
 		{
-			/*if (!obj.active) 
+			/*if (!obj.active)
 				return vert;*/
 
 			if (exclusions.contains(name))
@@ -693,7 +694,7 @@ class ModManager {
 		var easeFunc:EaseFunction = FlxEase.linear;
 
 		if (style == null) {
-			
+
 		}
 		else if (style is String) {
 			// most common use of the style var is to just use an existing FlxEase
@@ -705,11 +706,11 @@ class ModManager {
 			// maybe custom eases?
 			easeFunc = style;
 		}
-		
+
 
 		if (player == -1)
 			for (pN => mods in activeMods)
-				addEvent(new ModEaseEvent(step, endStep, modName, target, easeFunc, pN, this, startVal));				
+				addEvent(new ModEaseEvent(step, endStep, modName, target, easeFunc, pN, this, startVal));
 		else
 			addEvent(new ModEaseEvent(step, endStep, modName, target, easeFunc, player, this, startVal));
 	}
@@ -722,12 +723,12 @@ class ModManager {
 				addEvent(new SetEvent(step, modName, target, pN, this));
 		else
 			addEvent(new SetEvent(step, modName, target, player, this));
-		
+
 	}
 
 	inline public function queueEaseL(step:Float, length:Float, modName:String, value:Float, style:Dynamic = 'linear', player = -1, ?startVal:Float)
 		queueEase(step, step + length, modName, value, style, player, startVal);
-	
+
 	inline public function queueEaseLB(beat:Float, length:Float, modName:String, value:Float, style:Dynamic = 'linear', player = -1, ?startVal:Float)
 		queueEase(beat * 4, (beat + length) * 4, modName, value, style, player, startVal);
 
@@ -740,13 +741,13 @@ class ModManager {
 
 	public function queueEaseP(step:Float, endStep:Float, modName:String, percent:Float, style:Dynamic = 'linear', player:Int = -1, ?startVal:Float)
 		queueEase(step, endStep, modName, percent * 0.01, style, player, startVal * 0.01);
-	
+
 	public function queueSetP(step:Float, modName:String, percent:Float, player:Int = -1)
 		queueSet(step, modName, percent * 0.01, player);
 
 	public function queueFunc(step:Float, endStep:Float, callback:(CallbackEvent, Float) -> Void)
 		addEvent(new StepCallbackEvent(step, endStep, callback, this));
-	
+
 	public function queueFuncL(step:Float, length:Float, callback:(CallbackEvent, Float) -> Void)
 		addEvent(new StepCallbackEvent(step, step + length, callback, this));
 
@@ -758,7 +759,7 @@ class ModManager {
 
 	public function queueFuncOnce(step:Float, callback:(CallbackEvent, Float) -> Void)
 		addEvent(new CallbackEvent(step, callback, this));
-	
+
 	public function queueEaseFunc(step:Float, endStep:Float, func:EaseFunction, callback:(EaseEvent, Float, Float) -> Void)
 		addEvent(new EaseEvent(step, endStep, func, callback, this));
 
