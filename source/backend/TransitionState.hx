@@ -2,16 +2,19 @@ package backend;
 
 import archipelago.ArchPopup;
 import backend.window.CppAPI;
-import flixel.FlxState;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxColor;
 import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.FlxState;
 import flixel.math.FlxRandom;
 import flixel.state.*;
-import substates.StickerSubState;
-import flixel.FlxSprite;
-import openfl.display.BitmapData;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
 import openfl.Lib;
+import openfl.display.BitmapData;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
+import substates.StickerSubState;
 
 class TransitionState {
     public static var stickers:FlxTypedGroup<StickerSprite>;
@@ -26,7 +29,7 @@ class TransitionState {
     public static var requiredTransition:Dynamic;
 
     static function switchState(targetState:Class<FlxState>, ?onComplete:Dynamic, ?stateArgs:Array<Dynamic> = null):Void {
-        
+
         timers.transition.start(5, function(timer:FlxTimer) {
             if (currenttransition != null) {
                 trace("Transition timer expired. Resetting current transition.");
@@ -37,8 +40,8 @@ class TransitionState {
                 var newTransitoon = requiredTransition;
                 requiredTransition = null;
                 transitionState(newTransitoon.targetState, newTransitoon.options, newTransitoon.args, true);
-                
-                
+
+
             }
         }, 1);
         if (onComplete != null && Reflect.isFunction(onComplete)) {
@@ -85,12 +88,12 @@ class TransitionState {
         if (targetState == states.ExitState) {
             trace("Preparing to exit game...");
             requiredTransition = { targetState: targetState, options: options, args: args, required: true };
-            new FlxTimer().start(3, function(timer:FlxTimer) { 
+            new FlxTimer().start(3, function(timer:FlxTimer) {
                 trace("GAME IS STILL OPEN! FORCE CLOSING!");
                 Main.closeGame();
             });
         }
-    
+
         if (currenttransition != null) {
             trace("Transition already in progress. Ignoring new transition request.");
             timers.transition.start(5, function(timer:FlxTimer) {
@@ -131,7 +134,7 @@ class TransitionState {
         //trace("Args: " + args);
         //trace("Target state: " + Type.getClassName(targetState));
         //trace("Options: " + options);
-        
+
         switch (transitionType) {
             case "fadeOut":
                 FlxTween.tween(FlxG.camera, { alpha: 0 }, duration, {
@@ -161,7 +164,7 @@ class TransitionState {
                 var sprites: Array<FlxSprite> = [];
                 var completedTweens = 0;
                 var totalTweens = 0;
-            
+
                 // Collect valid sprites
                 //trace("Collecting sprites...");
                 for (object in FlxG.state.members) {
@@ -170,14 +173,14 @@ class TransitionState {
                     }
                 }
                 totalTweens = sprites.length;
-            
+
                 // Function to check if all tweens are complete
                 var checkAllComplete = function() {
                     if (completedTweens >= totalTweens) {
                         switchState(targetState, onComplete, args);
                     }
                 };
-            
+
                 // Apply a tween to each sprite with a random delay
                 for (sprite in sprites) {
                     var delay = FlxG.random.float(0, 1); // Adjust max delay as needed
@@ -193,17 +196,17 @@ class TransitionState {
                         });
                     }, 1);
                 }
-            
+
                 // In case there are no sprites, directly switch state
                 if (totalTweens == 0) {
                     switchState(targetState, onComplete, args);
                 }
-            
+
             case "fallSequential":
                 var randomDirection:Bool = true; // Ensure this is defined appropriately
                 var delayIncrement = 0.0;
                 var objectsToTween: Array<FlxSprite> = [];
-                
+
                 // Collect valid objects first
                 //trace("Collecting sprites...");
 
@@ -212,7 +215,7 @@ class TransitionState {
                         objectsToTween.push(cast(object));
                     }
                 }
-                
+
                 // Function to process each object with a delay
                 var processNextObject: Void->Void = null;
                 processNextObject = function() {
@@ -230,7 +233,7 @@ class TransitionState {
                         switchState(targetState, onComplete, args);
                     }
                 };
-                
+
                 // Start processing with the first object
                 processNextObject();
 
@@ -238,20 +241,31 @@ class TransitionState {
                 //trace("Opening sticker substate...");
                 FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> Type.createInstance(targetState, args != null ? args : [])));
             case "melt":
-                var screenCopy = new BitmapData(FlxG.width, FlxG.height);
+                // Take a proper screenshot of the current state
+                var screenCopy = new BitmapData(FlxG.width, FlxG.height, false, FlxColor.BLACK);
                 screenCopy.draw(FlxG.camera.buffer);
-                switchState(targetState, onComplete, args);
-                meltEffect(screenCopy, options);
+
+                // Create a sprite to display the melting effect
+                var meltSprite = new FlxSprite(0, 0);
+                meltSprite.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT);
+                meltSprite.pixels.copyPixels(screenCopy, new openfl.geom.Rectangle(0, 0, FlxG.width, FlxG.height), new openfl.geom.Point(0, 0));
+                meltSprite.scrollFactor.set(0, 0);
+                FlxG.state.add(meltSprite);
+
+                // Start the melt effect
+                meltEffect(meltSprite, screenCopy, duration, function() {
+                    switchState(targetState, onComplete, args);
+                });
             case "instant":
                 switchState(targetState, onComplete, args);
             case 'transparent fade':
                 #if windows
                 MusicBeatState.emergencyOpacityFix = true;
-                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
+                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete:
                 function(twn:FlxTween)
                 {
                     switchState(targetState, onComplete, args);
-                }}, 
+                }},
                 function(num)
                 {
                     CppAPI.setWindowOppacity(num);
@@ -273,11 +287,11 @@ class TransitionState {
                 MusicBeatState.emergencyOpacityFix = true;
                 if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
                 #if windows
-                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
+                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete:
                 function(twn:FlxTween)
                 {
                     switchState(targetState, onComplete, args);
-                }}, 
+                }},
                 function(num)
                 {
                     CppAPI.setWindowOppacity(num);
@@ -416,7 +430,7 @@ class TransitionState {
                 var sprites: Array<FlxSprite> = [];
                 var completedTweens = 0;
                 var totalTweens = 0;
-            
+
                 // Collect valid sprites
                 for (object in FlxG.state.members) {
                     if (object != null && Std.is(object, FlxSprite)) {
@@ -424,14 +438,14 @@ class TransitionState {
                     }
                 }
                 totalTweens = sprites.length;
-            
+
                 // Function to check if all tweens are complete
                 var checkAllComplete = function() {
                     if (completedTweens >= totalTweens) {
                         MusicBeatState.resetState();
                     }
                 };
-            
+
                 // Apply a tween to each sprite with a random delay
                 for (sprite in sprites) {
                     var delay = FlxG.random.float(0, 1); // Adjust max delay as needed
@@ -447,24 +461,24 @@ class TransitionState {
                         });
                     }, 1);
                 }
-            
+
                 // In case there are no sprites, directly restore state
                 if (totalTweens == 0) {
                     MusicBeatState.resetState();
                 }
-            
+
             case "fallSequential":
                 var randomDirection:Bool = true; // Ensure this is defined appropriately
                 var delayIncrement = 0.0;
                 var objectsToTween: Array<FlxSprite> = [];
-                
+
                 // Collect valid objects first
                 for (object in FlxG.state.members) {
                     if (object != null && Std.is(object, FlxSprite)) {
                         objectsToTween.push(cast(object));
                     }
                 }
-                
+
                 // Function to process each object with a delay
                 var processNextObject: Void->Void = null;
                 processNextObject = function() {
@@ -482,24 +496,24 @@ class TransitionState {
                         MusicBeatState.resetState();
                     }
                 };
-                
+
                 // Start processing with the first object
                 processNextObject();
             case 'transparent fade':
-                MusicBeatState.emergencyOpacityFix = true;    
+                MusicBeatState.emergencyOpacityFix = true;
                 #if windows
-                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
+                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete:
                 function(twn:FlxTween)
                 {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
-                }}, 
+                }},
                 function(num)
                 {
                     CppAPI.setWindowOppacity(num);
                 });
                 #end
-            case 'transparent close': 
+            case 'transparent close':
                 var psPause = states.PlayState.instance?.paused;
                 if (FlxG.sound.music != null && FlxG.sound.music.playing)
                 {
@@ -520,18 +534,18 @@ class TransitionState {
                 MusicBeatState.emergencyOpacityFix = true;
                 if (ClientPrefs.data.flashing) FlxG.camera.flash(FlxColor.WHITE, 2);
                 #if windows
-                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete: 
+                FlxTween.num(1, 0, 2, {ease: FlxEase.sineInOut, onComplete:
                 function(twn:FlxTween)
                 {
                     restoreSprites();
                     CppAPI.setWindowOppacity(1);
                     FlxG.sound.resume();
-                    try { 
-                        if (!psPause) cast(states.PlayState.instance, archipelago.APPlayState).paused = false; 
-                        cast(states.PlayState.instance, archipelago.APPlayState).forceResync(); 
+                    try {
+                        if (!psPause) cast(states.PlayState.instance, archipelago.APPlayState).paused = false;
+                        cast(states.PlayState.instance, archipelago.APPlayState).forceResync();
                     } catch (_) {}
                     ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
-                }}, 
+                }},
                 function(num)
                 {
                     CppAPI.setWindowOppacity(num);
@@ -547,7 +561,7 @@ class TransitionState {
     //     var windowHeight:Float = Lib.current.stage.stageHeight;
     //     var targetX:Float = (windowWidth - screenWidth) / 2 + x;
     //     var targetY:Float = (windowHeight - screenHeight) / 2 + y;
-        
+
     //     FlxTween.tween(Lib.current.stage, { x: targetX, y: targetY }, duration, {
     //         onComplete: function(_) {
     //             switchState(targetState, onComplete, args);
@@ -560,35 +574,75 @@ class TransitionState {
     //     });
     // }
 
-    static function meltEffect(screenCopy:BitmapData, ?options:Dynamic):Void {
-        var pixels = screenCopy;
-        var duration:Float = Reflect.hasField(options, "duration") ? options.duration : FlxG.random.float(1, 3);
-        FlxTween.num(0, FlxG.height, duration, {
+    static function meltEffect(meltSprite:FlxSprite, originalPixels:BitmapData, duration:Float, onComplete:Void->Void):Void {
+        var pixelColumns:Array<Array<{x:Int, y:Int, color:Int, fallSpeed:Float}>> = [];
+
+        // Initialize pixel columns
+        for (x in 0...FlxG.width) {
+            pixelColumns[x] = [];
+        }
+
+        // Scan the original image and create falling pixel data
+        for (y in 0...FlxG.height) {
+            for (x in 0...FlxG.width) {
+                var pixel = originalPixels.getPixel32(x, y);
+                if ((pixel & 0xFF000000) != 0) { // Check if pixel is not transparent
+                    pixelColumns[x].push({
+                        x: x,
+                        y: y,
+                        color: pixel,
+                        fallSpeed: FlxG.random.float(50, 200) // Random fall speed for each pixel
+                    });
+                }
+            }
+        }
+
+        var meltProgress:Float = 0;
+        var meltDuration:Float = duration > 0 ? duration : 2.0;
+
+        // Create the melting animation
+        FlxTween.num(0, 1, meltDuration, {
+            ease: FlxEase.quadIn,
             onUpdate: function(tween:FlxTween) {
-                var value = tween.percent;
-                for (y in 0...FlxG.height) {
-                    for (x in 0...FlxG.width) {
-                        var pixel = pixels.getPixel32(x, y);
-                        if (pixel != FlxColor.TRANSPARENT) {
-                            var newY = y + Std.int(Math.random() * value);
-                            if (newY < FlxG.height) {
-                                screenCopy.setPixel(x, newY, pixel);
-                                screenCopy.setPixel(x, y, FlxColor.TRANSPARENT);
-                            }
+                meltProgress = tween.percent;
+
+                // Clear the sprite
+                meltSprite.pixels.fillRect(new openfl.geom.Rectangle(0, 0, FlxG.width, FlxG.height), FlxColor.TRANSPARENT);
+
+                // Draw melting pixels
+                for (x in 0...pixelColumns.length) {
+                    var column = pixelColumns[x];
+                    for (i in 0...column.length) {
+                        var pixelData = column[i];
+                        var fallDistance = pixelData.fallSpeed * meltProgress;
+                        var newY = pixelData.y + Std.int(fallDistance);
+
+                        // Only draw pixels that haven't fallen off screen
+                        if (newY < FlxG.height) {
+                            meltSprite.pixels.setPixel32(pixelData.x, newY, pixelData.color);
                         }
                     }
                 }
-                FlxG.camera.buffer.draw(screenCopy);
+
+                // Apply the changes to the sprite
+                meltSprite.dirty = true;
+                meltSprite.pixels = meltSprite.pixels;
             },
             onComplete: function(tween:FlxTween) {
-                //trace("Post-switch melt complete.");
-                screenCopy.dispose(); // Clean up memory for screenCopy
+                // Clean up
+                meltSprite.destroy();
+                originalPixels.dispose();
+
+                // Call completion callback
+                if (onComplete != null) {
+                    onComplete();
+                }
             }
         });
     }
 
     function getTargetState(state:FlxState) {
-        
+
     }
 }
 

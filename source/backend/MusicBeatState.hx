@@ -732,6 +732,17 @@ class MusicBeatState extends FlxState
 			return;
 		}
 
+		// Add a rare chance (5%) to use TransitionState instead of normal transition
+		if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn)
+		{
+			// Use TransitionState with random transition type
+			var nextStateClass = Type.getClass(nextState);
+			TransitionState.transitionState(nextStateClass, {
+				transitionType: getRandomTransition()
+			});
+			return;
+		}
+
 		if (FlxTransitionableState.skipNextTransIn)
 			FlxG.switchState(nextState);
 		else
@@ -741,6 +752,17 @@ class MusicBeatState extends FlxState
 
 	public static function resetState()
 	{
+		// Add a rare chance (5%) to use TransitionState instead of normal transition
+		if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn)
+		{
+			// Use TransitionState with random transition type for reset
+			var currentStateClass = Type.getClass(FlxG.state);
+			TransitionState.transitionState(currentStateClass, {
+				transitionType: getRandomTransition()
+			});
+			return;
+		}
+
 		if (FlxTransitionableState.skipNextTransIn)
 			FlxG.resetState();
 		else
