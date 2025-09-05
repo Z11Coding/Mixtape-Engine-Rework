@@ -1,13 +1,14 @@
 package managers;
 
-import flixel.util.FlxDestroyUtil;
-import backend.WeekData;
-import haxe.Json;
 import backend.Song;
-import states.CategoryState;
-import states.StoryMenuState;
+import backend.WeekData;
+import flixel.util.FlxDestroyUtil;
+import haxe.Json;
 import lime.utils.Assets;
 import metadata.STMetaFile.MetadataFile;
+import states.CategoryState;
+import states.PlayState;
+import states.StoryMenuState;
 import yutautil.AprilFools;
 
 #if ARCHIPELAGO_ALLOWED
@@ -23,7 +24,7 @@ import archipelago.PacketTypes.ClientStatus;
     Scripting support will eventually be added through this as well
     Speaking of, scripted freeplays will also be ran through this (unless a better system for them is made)
     For now, this is what this Freeplay Manager does:
-    
+
     ** Sends you to the proper freeplay that you select
     ** Loads the list for freeplay
     ** enables multiple diferent styled menus that can all act the same, as they would all be ran through this
@@ -108,6 +109,12 @@ class FreeplayManager {
 
     public static function getFreeplayState():Class<flixel.FlxState>
     {
+        // Check if we should return to Legacy Lua settings instead of normal freeplay
+        if (PlayState.isLegacyLuaTest) {
+            PlayState.isLegacyLuaTest = false; // Reset the flag
+            return options.legacylua.LegacyLuaFreeplayState;
+        }
+
         return switch (ClientPrefs.data.freeplayMenu) {
             case "Mixtape": //Why rename it when you're already here?
                 states.freeplay.FreeplayState;
@@ -162,7 +169,7 @@ class FreeplayManager {
     {
         trace("Reloading Songs!");
         songs = [];
-        
+
         for (i in 0...WeekData.weeksList.length) {
             if(weekIsLocked(WeekData.weeksList[i])) continue;
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
@@ -177,13 +184,13 @@ class FreeplayManager {
             WeekData.setDirectoryFromWeek(leWeek);
             for (song in leWeek.songs)
             {
-                var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
+                var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?
                     (cast leWeek.category:String).split(',').map(function(cat:String):String {
                         return cat.trim().toLowerCase();
-                    }) : Std.isOfType(leWeek.category, Array) ? 
+                    }) : Std.isOfType(leWeek.category, Array) ?
                     (cast leWeek.category:Array<String>).map(function(cat:String):String {
                         return cat.trim().toLowerCase();
-                    }) : 
+                    }) :
                     [(cast leWeek.category:String)].map(function(cat:String):String {
                         return cat.trim().toLowerCase();
                     });
@@ -241,13 +248,13 @@ class FreeplayManager {
                         {
                             colors = [146, 113, 253];
                         }
-                        
+
                         if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
                             addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
-                            
+
                     }
                     else
-                    {	
+                    {
                         if (Std.string(song[0]).toLowerCase().trim().contains(searchText.toLowerCase().trim()))
                         {
                             var colors:Array<Int> = song[2];
@@ -263,24 +270,24 @@ class FreeplayManager {
                 }
             }
         }
-            
+
 
         if (refresh)
         {
-            if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+            if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-            if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+            if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+            if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
         }
         else
         {
-            if (Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+            if (Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-            if (Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+            if (Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+            if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
         }
 
@@ -356,7 +363,7 @@ class FreeplayManager {
                 var playerVocals:String = getVocalFromCharacter(PlayState.SONG.player1);
                 var loadedVocals = Paths.voices(PlayState.SONG.song, (playerVocals != null && playerVocals.length > 0) ? playerVocals : 'Player');
                 if(loadedVocals == null) loadedVocals = Paths.voices(PlayState.SONG.song);
-                
+
                 if(loadedVocals != null)
                 {
                     vocals.loadEmbedded(loadedVocals);
@@ -372,7 +379,7 @@ class FreeplayManager {
             {
                 vocals = FlxDestroyUtil.destroy(vocals);
             }
-            
+
             opponentVocals = new FlxSound();
             gfVocals = new FlxSound();
             try
@@ -381,7 +388,7 @@ class FreeplayManager {
                 var oppVocals:String = getVocalFromCharacter(PlayState.SONG.player2);
                 var loadedVocals = Paths.voices(PlayState.SONG.song, (oppVocals != null && oppVocals.length > 0) ? oppVocals : 'Opponent');
                 var loadedgfVocals = Paths.voices(PlayState.SONG.song, 'gf');
-                
+
                 if(loadedVocals != null)
                 {
                     opponentVocals.loadEmbedded(loadedVocals);

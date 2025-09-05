@@ -1,14 +1,12 @@
 package substates;
 
 import archipelago.APPlayState;
-import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
-
+import backend.WeekData;
 import flixel.util.FlxStringUtil;
-
-import states.StoryMenuState;
 import options.OptionsState;
+import states.StoryMenuState;
 
 enum PauseSpecialAction {
 	NOTHING;
@@ -121,17 +119,17 @@ class PauseSubState extends MusicBeatSubstate
 		levelInfo.updateHitbox();
 		add(levelInfo);
 
-		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0, 
-			(Difficulty.getString().toUpperCase() + 
-			(PlayState.instance.chartModifier != "Normal" ? ' (' + PlayState.instance.chartModifier + ')'.toUpperCase() : '') + 
+		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0,
+			(Difficulty.getString().toUpperCase() +
+			(PlayState.instance.chartModifier != "Normal" ? ' (' + PlayState.instance.chartModifier + ')'.toUpperCase() : '') +
 			(Std.is(PlayState.instance, archipelago.APPlayState) ? ' (AP)' : '')), 32);
-			
+
 		levelDifficulty.scrollFactor.set();
 		levelDifficulty.setFormat(Paths.font('vcr.ttf'), 32);
 		levelDifficulty.updateHitbox();
 		add(levelDifficulty);
 
-		var ballsTxt = inVid ? Language.getPhrase("pause_branding",'{1} Paused',[cutscene_branding]) : 
+		var ballsTxt = inVid ? Language.getPhrase("pause_branding",'{1} Paused',[cutscene_branding]) :
 			Language.getPhrase("blueballed", "{1} Blue Balls", [PlayState.deathCounter]);
 		var blueballedTxt:FlxText = new FlxText(20, 15 + 64, 0, ballsTxt, 32);
 		blueballedTxt.scrollFactor.set();
@@ -178,7 +176,7 @@ class PauseSubState extends MusicBeatSubstate
 		missingTextBG.alpha = 0.6;
 		missingTextBG.visible = false;
 		add(missingTextBG);
-		
+
 		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
 		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		missingText.scrollFactor.set();
@@ -190,7 +188,7 @@ class PauseSubState extends MusicBeatSubstate
 
 		super.create();
 	}
-	
+
 	function getPauseSong()
 	{
 		var formattedSongName:String = (songName != null ? Paths.formatToSongPath(songName) : '');
@@ -286,7 +284,7 @@ class PauseSubState extends MusicBeatSubstate
 				catch(e:haxe.Exception)
 				{
 					trace('ERROR! ${e.message}');
-	
+
 					var errorStr:String = e.message;
 					if(errorStr.startsWith('[lime.utils.Assets] ERROR:')) errorStr = 'Missing file: ' + errorStr.substring(errorStr.indexOf(songLowercase), errorStr.length-1); //Missing chart
 					else errorStr += '\n\n' + e.stack;
@@ -370,7 +368,11 @@ class PauseSubState extends MusicBeatSubstate
 					Mods.loadTopMod();
 					if(PlayState.isStoryMode)
 						MusicBeatState.switchState(new StoryMenuState());
-					else 
+					else if (PlayState.isLegacyLuaTest) {
+						// Return to Legacy Lua settings system
+						PlayState.isLegacyLuaTest = false;
+						MusicBeatState.switchState(new options.legacylua.LegacyLuaFreeplayState());
+					} else
 						FreeplayManager.openFreeplay();
 
 					MusicManager.playMenuMusic();
@@ -474,7 +476,7 @@ class PauseSubState extends MusicBeatSubstate
 		curSelected = 0;
 		changeSelection();
 	}
-	
+
 	function updateSkipTextStuff()
 	{
 		if(skipTimeText == null || skipTimeTracker == null) return;

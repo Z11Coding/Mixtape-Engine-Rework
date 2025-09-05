@@ -570,8 +570,8 @@ class StateDebugOverlay extends MusicBeatSubstate {
             return;
         }
 
-        // Update breadcrumb
-        breadcrumbText.text = "Path: " + breadcrumbs.join(" -> ");
+        // Update breadcrumb with clickable navigation
+        updateBreadcrumbUI();
 
         var yPos:Float = 60;
         var itemIndex:Int = 0;
@@ -1028,8 +1028,8 @@ class StateDebugOverlay extends MusicBeatSubstate {
                 }
             }
 
-            // Add collection breadcrumb
-            breadcrumbs.push('[${collectionType}]');
+            // Add the actual property name as breadcrumb instead of generic [array]/[map]
+            breadcrumbs.push(prop.name);
             breadcrumbPaths.push(currentCollectionPath);
 
             scrollOffset = 0;
@@ -1164,21 +1164,29 @@ class StateDebugOverlay extends MusicBeatSubstate {
     /**
      * Create UI for a single collection element
      */
-    private function createCollectionElementUI(key:String, element:Dynamic, elementType:String, yPos:Float, keyIndex:Int):Void {
+    private function createCollectionElementUI(key:Dynamic, element:Dynamic, elementType:String, yPos:Float, keyIndex:Int):Void {
         // Key/Index display and editing
-        if (collectionType == "Map") {
-            // For maps, allow key renaming
-            var keyInput = new FlxUIInputText(10, yPos, 100, key, 12);
+        if (collectionType == "map") {
+            // For maps, show the key with proper breadcrumb syntax
+            var propName = breadcrumbs[breadcrumbs.length - 1]; // Get the current property name
+            var keyDisplayText = new FlxText(10, yPos + 12, 100, '${propName}[${key}]', 10);
+            keyDisplayText.color = FlxColor.YELLOW;
+            keyDisplayText.cameras = [overlayCamera];
+            propertyList.add(keyDisplayText);
+
+            // Allow key renaming with input field below
+            var keyInput = new FlxUIInputText(10, yPos, 100, Std.string(key), 12);
             keyInput.callback = function(text:String, action:String) {
-                if (action == "enter" && text != key) {
+                if (action == "enter" && text != Std.string(key)) {
                     renameMapKey(key, text, keyIndex);
                 }
             };
             keyInput.cameras = [overlayCamera];
             propertyList.add(keyInput);
         } else {
-            // For arrays, show index
-            var indexText = new FlxText(10, yPos, 50, '[' + key + ']', 12);
+            // For arrays, show index with proper breadcrumb syntax
+            var propName = breadcrumbs[breadcrumbs.length - 1]; // Get the current property name
+            var indexText = new FlxText(10, yPos, 100, '${propName}[${key}]', 12);
             indexText.color = FlxColor.YELLOW;
             indexText.cameras = [overlayCamera];
             propertyList.add(indexText);
@@ -1229,7 +1237,7 @@ class StateDebugOverlay extends MusicBeatSubstate {
     /**
      * Create UI for editing element values
      */
-    private function createElementValueUI(element:Dynamic, elementType:String, x:Float, y:Float, key:String):Void {
+    private function createElementValueUI(element:Dynamic, elementType:String, x:Float, y:Float, key:Dynamic):Void {
         if (Std.isOfType(element, Bool)) {
             var toggleButton = new FlxButton(x, y, element ? "true" : "false", function() {
                 var newValue = !cast(element, Bool);
@@ -1255,9 +1263,14 @@ class StateDebugOverlay extends MusicBeatSubstate {
         } else if (elementType.indexOf("Array") == 0 || elementType.indexOf("Map") == 0) {
             // Nested collection - show navigate button
             var navButton = new FlxButton(x, y, "Explore →", function() {
-                // Navigate into nested collection
-                breadcrumbs.push(key);
-                breadcrumbPaths.push(currentCollectionPath + "." + key);
+                // Create proper indexed path for the breadcrumb
+                var keyStr = Std.string(key);
+                var propName = breadcrumbs[breadcrumbs.length - 1];
+                var indexedName = '${propName}[${keyStr}]';
+                var indexedPath = currentCollectionPath + '[${keyStr}]';
+
+                breadcrumbs.push(indexedName);
+                breadcrumbPaths.push(indexedPath);
                 currentObject = element;
                 exitCollectionEditMode(); // Exit collection mode and navigate normally
             });
@@ -1274,9 +1287,14 @@ class StateDebugOverlay extends MusicBeatSubstate {
             propertyList.add(valueText);
 
             var navButton = new FlxButton(x + 105, y, "Edit", function() {
-                // Navigate into object
-                breadcrumbs.push(key);
-                breadcrumbPaths.push(currentCollectionPath + "." + key);
+                // Create proper indexed path for the breadcrumb
+                var keyStr = Std.string(key);
+                var propName = breadcrumbs[breadcrumbs.length - 1];
+                var indexedName = '${propName}[${keyStr}]';
+                var indexedPath = currentCollectionPath + '[${keyStr}]';
+
+                breadcrumbs.push(indexedName);
+                breadcrumbPaths.push(indexedPath);
                 currentObject = element;
                 exitCollectionEditMode(); // Exit collection mode and navigate normally
             });
@@ -1291,7 +1309,7 @@ class StateDebugOverlay extends MusicBeatSubstate {
     /**
      * Create number editing UI for collection elements
      */
-    private function createElementNumberUI(element:Dynamic, x:Float, y:Float, key:String):Void {
+    private function createElementNumberUI(element:Dynamic, x:Float, y:Float, key:Dynamic):Void {
         var isInt = Std.isOfType(element, Int);
         var inputField = new FlxUIInputText(x, y, 80, Std.string(element), 12);
         inputField.callback = function(text:String, action:String) {
@@ -1703,5 +1721,149 @@ class StateDebugOverlay extends MusicBeatSubstate {
                 timer.stop();
             };
         }
+    }
+
+    /**
+     * Create clickable breadcrumb navigation UI
+     */
+    private function updateBreadcrumbUI():Void {
+        // Clear previous breadcrumb text and show clickable breadcrumbs
+        var breadcrumbStr = "";
+        var xPos:Float = 10;
+
+        for (i in 0...breadcrumbs.length) {
+            if (i > 0) {
+                // Add separator
+                var separator = new FlxText(xPos, 35, 20, " -> ", 12);
+                separator.color = FlxColor.YELLOW;
+                separator.cameras = [overlayCamera];
+                propertyList.add(separator);
+                xPos += 30;
+            }
+
+            var breadcrumbText = breadcrumbs[i];
+            var isLastBreadcrumb = (i == breadcrumbs.length - 1);
+
+            if (isLastBreadcrumb || i == 0) {
+                // Current location or root - just show as text
+                var text = new FlxText(xPos, 35, 150, breadcrumbText, 12);
+                text.color = isLastBreadcrumb ? FlxColor.WHITE : FlxColor.YELLOW;
+                text.cameras = [overlayCamera];
+                propertyList.add(text);
+                xPos += text.width + 5;
+            } else {
+                // Clickable breadcrumb button
+                var button = new FlxButton(xPos, 33, breadcrumbText, function() {
+                    navigateToBreadcrumb(i);
+                });
+                button.color = FlxColor.CYAN;
+                button.scale.set(0.8, 0.8);
+                button.updateHitbox();
+                button.cameras = [overlayCamera];
+                propertyList.add(button);
+                xPos += button.width + 5;
+            }
+        }
+    }
+
+    /**
+     * Navigate to a specific breadcrumb level
+     */
+    private function navigateToBreadcrumb(targetIndex:Int):Void {
+        if (targetIndex < 0 || targetIndex >= breadcrumbs.length) {
+            return;
+        }
+
+        // Exit collection editing if we're in it
+        if (collectionEditMode) {
+            exitCollectionEditMode();
+        }
+
+        // Trim breadcrumbs and paths to the target index
+        breadcrumbs = breadcrumbs.slice(0, targetIndex + 1);
+        breadcrumbPaths = breadcrumbPaths.slice(0, targetIndex + 1);
+
+        // Navigate to the target object
+        var targetPath = breadcrumbPaths[targetIndex];
+        if (targetPath == "" || targetPath == breadcrumbs[0]) {
+            // Root object
+            currentObject = rootObject;
+        } else {
+            // Find object at path (need to handle indexed paths)
+            currentObject = getObjectByPath(rootObject, targetPath);
+        }
+
+        scrollOffset = 0;
+        updateDisplay();
+    }
+
+    /**
+     * Get an object by a path that may include indexed access like "prop[0]" or "map[key]"
+     */
+    private function getObjectByPath(rootObj:Dynamic, path:String):Dynamic {
+        if (path == "" || rootObj == null) {
+            return rootObj;
+        }
+
+        var current = rootObj;
+        var parts = path.split(".");
+
+        for (part in parts) {
+            if (part == "") continue;
+
+            // Check if this part has indexing syntax like "prop[index]"
+            var indexStart = part.indexOf("[");
+            var indexEnd = part.indexOf("]");
+
+            if (indexStart > 0 && indexEnd > indexStart) {
+                // This is an indexed access like "prop[0]" or "map[key]"
+                var propName = part.substring(0, indexStart);
+                var indexStr = part.substring(indexStart + 1, indexEnd);
+
+                // Get the property first
+                current = Reflect.field(current, propName);
+                if (current == null) return null;
+
+                // Then access the index
+                if (Std.isOfType(current, Array)) {
+                    var arr:Array<Dynamic> = cast current;
+                    var index = Std.parseInt(indexStr);
+                    if (index != null && index >= 0 && index < arr.length) {
+                        current = arr[index];
+                    } else {
+                        return null;
+                    }
+                } else if (current.isMap()) {
+                    var map:Map<Dynamic, Dynamic> = cast current;
+                    // Try to parse the index as different types
+                    var key:Dynamic = indexStr;
+                    var intKey = Std.parseInt(indexStr);
+                    var floatKey = Std.parseFloat(indexStr);
+
+                    if (intKey != null && Std.string(intKey) == indexStr) {
+                        key = intKey;
+                    } else if (!Math.isNaN(floatKey) && Std.string(floatKey) == indexStr) {
+                        key = floatKey;
+                    } else if (indexStr == "true") {
+                        key = true;
+                    } else if (indexStr == "false") {
+                        key = false;
+                    } else if (indexStr == "null") {
+                        key = null;
+                    }
+                    // Otherwise keep as string
+
+                    current = map.get(key);
+                } else {
+                    return null;
+                }
+            } else {
+                // Regular property access
+                current = Reflect.field(current, part);
+                if (current == null) return null;
+            }
+        }
+
+        return current;
     }
 }

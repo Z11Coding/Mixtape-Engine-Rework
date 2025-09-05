@@ -1,7 +1,7 @@
 package options;
 
-import states.MainMenuState;
 import stages.StageData;
+import states.MainMenuState;
 
 class OptionsState extends MusicBeatState
 {
@@ -14,7 +14,8 @@ class OptionsState extends MusicBeatState
 		'Gameplay',
 		#if TRANSLATIONS_ALLOWED 'Language', #end
 		"Mixtape Settings",
-		"UNO Options"
+		"UNO Options",
+		"Legacy Lua Settings"
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
@@ -44,6 +45,8 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.MixtapeSettingsSubState());
 			case 'UNO Options':
 				openSubState(new games.uno.UnoOptionsSubState());
+			case 'Legacy Lua Settings':
+				MusicBeatState.switchState(new options.legacylua.LegacyLuaSettingsState());
 		}
 	}
 
@@ -148,7 +151,7 @@ class OptionsState extends MusicBeatState
 			ease: FlxEase.quadOut
 		});
 	}
-	
+
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, options.length - 1);

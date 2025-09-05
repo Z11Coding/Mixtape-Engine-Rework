@@ -1,36 +1,31 @@
 package states.freeplay;
 
-import substates.Prompt;
-import backend.WeekData;
+import archipelago.*;
 import backend.Highscore;
 import backend.Song;
-
-import objects.HealthIcon;
-import objects.MusicPlayer;
-
-import archipelago.*;
-import states.editors.ChartingStateOG;
-import states.editors.ChartingState;
-import metadata.STMetaFile.MetadataFile;
-
-import flixel.addons.ui.FlxUIInputText;
-import states.freeplay.backend.DifficultyStars;
-
-import options.GameplayChangersSubstate;
-import substates.ResetScoreSubState;
+import backend.WeekData;
 import flixel.addons.transition.FlxTransitionableState;
-
+import flixel.addons.ui.FlxUIInputText;
+import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxMath;
 import flixel.ui.FlxButton;
-import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
-import yutautil.ChanceSelector;
-import yutautil.ChanceSelector.Chance;
+import metadata.STMetaFile.MetadataFile;
 import objects.Alphabet.DynamicAlphabet;
 import objects.Alphabet.DynamicColoredAlphabet;
-import yutautil.AprilFools;
 import objects.Character;
+import objects.HealthIcon;
+import objects.MusicPlayer;
+import options.GameplayChangersSubstate;
+import states.editors.ChartingState;
+import states.editors.ChartingStateOG;
+import states.freeplay.backend.DifficultyStars;
+import substates.Prompt;
+import substates.ResetScoreSubState;
+import yutautil.AprilFools;
+import yutautil.ChanceSelector.Chance;
+import yutautil.ChanceSelector;
 
 class VictorySong extends DynamicColoredAlphabet
 {
@@ -52,7 +47,7 @@ class VictorySong extends DynamicColoredAlphabet
 class FreeplayState extends MusicBeatState
 {
 	public static var instance:FreeplayState;
-	
+
 	var selector:FlxText;
 	private static var curSelected:Int = 0;
 	var lerpSelected:Float = 0;
@@ -83,7 +78,7 @@ class FreeplayState extends MusicBeatState
 	var randomText:Scrollable;
 	var randomIcon:HealthIcon;
 
-	public static var searchBar:FlxUIInputText;
+	public var searchBar:FlxUIInputText;
 	private var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
 	public static var SONG:SwagSong = null;
 
@@ -105,7 +100,7 @@ class FreeplayState extends MusicBeatState
 
 	public static var doChange:Bool = false;
 	public static var multisong:Bool = false;
-	
+
 	var h:String;
 	var mismatched:String = "";
 	var rankTable:Array<String> = [
@@ -138,7 +133,7 @@ class FreeplayState extends MusicBeatState
 
 		fpManager = FreeplayManager.loadFPManager();
 
-		// Check if the Victory Song is cleared.	
+		// Check if the Victory Song is cleared.
 		if (APEntryState.inArchipelagoMode) {
 			APFreeplayManager.checkVictory();
 			APFreeplayManager.updateArchFreeplay();
@@ -181,10 +176,10 @@ class FreeplayState extends MusicBeatState
 				visual.alpha = ClientPrefs.data.visOpacity;
 
 				vocalvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-				vocalvisual.scrollFactor.set(0, 0); 
-				vocalvisual.flipY = true; 
-				add(vocalvisual); 
-				vocalvisual.alpha = ClientPrefs.data.visOpacity; 
+				vocalvisual.scrollFactor.set(0, 0);
+				vocalvisual.flipY = true;
+				add(vocalvisual);
+				vocalvisual.alpha = ClientPrefs.data.visOpacity;
 
 				oppvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
 				oppvisual.scrollFactor.set(0, 0);
@@ -228,7 +223,7 @@ class FreeplayState extends MusicBeatState
         difficultyStars.scrollFactor.set();
         add(difficultyStars);
 
-		
+
 		WeekData.setDirectoryFromWeek();
 
 		//Search bar my belovid
@@ -278,7 +273,7 @@ class FreeplayState extends MusicBeatState
 		missingTextBG.alpha = 0.6;
 		missingTextBG.visible = false;
 		add(missingTextBG);
-		
+
 		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
 		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		missingText.scrollFactor.set();
@@ -310,16 +305,16 @@ class FreeplayState extends MusicBeatState
 		bottomText.setFormat(Paths.font("vcr.ttf"), size, FlxColor.WHITE, CENTER);
 		bottomText.scrollFactor.set();
 		add(bottomText);
-		
+
 		player = new MusicPlayer(this);
 		add(player);
-		
+
 		updateTexts();
 		super.create();
 
 		FlxTween.tween(rank, {alpha: 1}, 0.5, {ease: FlxEase.quartInOut});
 		FlxTween.tween(searchBar, {y: 100}, 0.6, {
-			ease: FlxEase.elasticInOut, 
+			ease: FlxEase.elasticInOut,
 			onComplete: function(twn:FlxTween){
 				searchBar.updateHitbox();
 		}});
@@ -329,11 +324,11 @@ class FreeplayState extends MusicBeatState
 		fpManager.reloadFreeplay(true);
 		changeSelection();
 
-		if (!FlxG.save.data.gotIntoAnArgument && !APEntryState.inArchipelagoMode) 
+		if (!FlxG.save.data.gotIntoAnArgument && !APEntryState.inArchipelagoMode)
 			hh.push({item: "small argument", chance: 5}); // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode) 
+		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode)
 			hh.push({item: "beat battle", chance: 5}); // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode) 
+		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode)
 			hh.push({item: "beat battle 2", chance: 5}); // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
@@ -368,7 +363,7 @@ class FreeplayState extends MusicBeatState
 	}
 
 	override function closeSubState() {
-		if (doChange) 
+		if (doChange)
 		{
 			changeSelection(0, false);
 			doChange = false;
@@ -389,7 +384,7 @@ class FreeplayState extends MusicBeatState
 			iconArray = [];
 			iconList.clear();
 			grpLocks.clear();
-			
+
 			for (i in 0...iconArray.length)
 			{
 				iconArray.pop();
@@ -405,7 +400,7 @@ class FreeplayState extends MusicBeatState
 				var locationId:Array<Int> = [];
 				var color:FlxColor = 0xFFFFFFFF;
 				var someLocationsNotMissing:Bool = false;
-				
+
 				if (APEntryState.inArchipelagoMode) {
 					songName = fpManager.songList[i].songName;
 					modName = fpManager.songList[i].folder;
@@ -414,17 +409,17 @@ class FreeplayState extends MusicBeatState
 					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 				}
 
-				
+
 				var songText:Alphabet = null;
 				if (APEntryState.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-					songText = APFreeplayManager.isVictorySong(songName, modName) ? 
-						(isMissing ? 
-							(someLocationsNotMissing ? 
-								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true) 
-								: new VictorySong(90, 320, songName, color, true)) 
-							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true)) 
+					songText = APFreeplayManager.isVictorySong(songName, modName) ?
+						(isMissing ?
+							(someLocationsNotMissing ?
+								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true)
+								: new VictorySong(90, 320, songName, color, true))
+							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true))
 						: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
 				} else {
 					songText = new DynamicAlphabet(90, 320, fpManager.songList[i].songName, true, true);
@@ -446,9 +441,9 @@ class FreeplayState extends MusicBeatState
 				songText.snapToPosition();
 
 				Mods.currentModDirectory = fpManager.songList[i].folder;
-				
+
 				songText.visible = songText.active = songText.isMenuItem = false;
-				
+
 				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
 				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : fpManager.songList[i].songCharacter);
 				icon.sprTracker = songText;
@@ -464,7 +459,7 @@ class FreeplayState extends MusicBeatState
 			changeDiff();
 			if (PlayState.SONG != null) Conductor.bpm = PlayState.SONG.bpm;
 		}
-	} 
+	}
 
 	function switchVisualizer(?hasVocals:Bool = false, ?vocalSND:FlxSound = null, ?oppSND:FlxSound = null) {
 		if (ClientPrefs.data.allowVis) {
@@ -511,7 +506,13 @@ class FreeplayState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		if (fpManager.songList[curSelected] != null) 
+		// If Legacy Lua settings are being edited, switch to Legacy Lua version
+		if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode && !(this is options.legacylua.LegacyLuaFreeplayState)) {
+			FlxG.switchState(new options.legacylua.LegacyLuaFreeplayState());
+			return;
+		}
+
+		if (fpManager.songList[curSelected] != null)
 		{
 			switch(Paths.formatToSongPath(fpManager.songList[curSelected].songName))
 			{
@@ -554,18 +555,18 @@ class FreeplayState extends MusicBeatState
 		{
 			if (searchBar.y == 100)
 				FlxTween.tween(searchBar, {y: 0}, 0.6, {
-				ease: FlxEase.elasticInOut, 
+				ease: FlxEase.elasticInOut,
 				onComplete: function(twn:FlxTween){
 					searchBar.updateHitbox();
 				}});
 			searchBar.updateHitbox();
 			searchBar.text = 'CLICK TO SEARCH FREEPLAY!';
 		}
-		else 
+		else
 		{
 			if (searchBar.y == 0)
 				FlxTween.tween(searchBar, {y: 100}, 0.6, {
-				ease: FlxEase.elasticInOut, 
+				ease: FlxEase.elasticInOut,
 				onComplete: function(twn:FlxTween){
 					searchBar.updateHitbox();
 				}});
@@ -575,7 +576,7 @@ class FreeplayState extends MusicBeatState
 		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !searchBar.hasFocus)  {
 			try {
 				var songLowercase:String = Paths.formatToSongPath(fpManager.songList[curSelected].songName);
-				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);	
+				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);
 				Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 				Song.loadFromJson(poop, songLowercase);
 				PlayState.isStoryMode = false;
@@ -621,7 +622,7 @@ class FreeplayState extends MusicBeatState
 		if(ratingSplit.length < 2) { //No decimals, add an empty space
 			ratingSplit.push('');
 		}
-		
+
 		while(ratingSplit[1].length < 2) { //Less than 2 decimals in it, add decimals then
 			ratingSplit[1] += '0';
 		}
@@ -636,7 +637,7 @@ class FreeplayState extends MusicBeatState
 			else
 				scoreText.text = Language.getPhrase('personal_best', 'PERSONAL BEST: {1} ({2}%)', [lerpScore, ratingSplit.join('.')]);
 			positionHighscore();
-			
+
 			if(fpManager.songList.length > 1)
 			{
 				if(FlxG.keys.justPressed.HOME)
@@ -644,13 +645,13 @@ class FreeplayState extends MusicBeatState
 					curSelected = -1;
 					changeSelection();
 					holdTime = 0;
-					searchBar.hasFocus = false;	
+					searchBar.hasFocus = false;
 				}
 				else if(FlxG.keys.justPressed.END)
 				{
 					curSelected = fpManager.songList.length - 1;
 					changeSelection();
-					holdTime = 0;	
+					holdTime = 0;
 					searchBar.hasFocus = false;
 				}
 				if (controls.UI_UP_P)
@@ -727,14 +728,15 @@ class FreeplayState extends MusicBeatState
 					FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
 					switchVisualizer();
 				}
-				else 
+				else
 				{
 					persistentUpdate = false;
 					if(colorTween != null) {
 						colorTween.cancel();
 					}
 					FlxG.sound.play(Paths.sound('cancelMenu'));
-					if (APEntryState.inArchipelagoMode)
+					// Don't switch to AP versions if we're in LegacyLua mode
+					if (APEntryState.inArchipelagoMode && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
 						FlxG.switchState(new archipelago.APCategoryState(APEntryState.apGame, APEntryState.ap));
 					else
 						FlxG.switchState(new CategoryState());
@@ -769,7 +771,7 @@ class FreeplayState extends MusicBeatState
 					searchBar.hasFocus = false;
 					fpManager.destroyFreeplayVocals();
 					FlxG.sound.music.volume = 0;
-	
+
 					Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 					var poop:String = Highscore.formatSong(fpManager.songList[curSelected].songName.toLowerCase(), curDifficulty);
 					Song.loadFromJson(poop, fpManager.songList[curSelected].songName.toLowerCase());
@@ -816,7 +818,7 @@ class FreeplayState extends MusicBeatState
 					FlxTween.color(ticketCounter, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
 					return;
 				}
-				
+
 				if (APFreeplayManager.trueMissing.contains(fpManager.songList[curSelected].songName) && !APFreeplayManager.unplayedList.contains(fpManager.songList[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
@@ -942,7 +944,7 @@ class FreeplayState extends MusicBeatState
 						super.update(elapsed);
 						return;
 					}
-				
+
 					if (FlxG.keys.pressed.SHIFT){
 						ClientPrefs.openChartEditor();
 					} else{
@@ -964,7 +966,7 @@ class FreeplayState extends MusicBeatState
 				}
 
 				FlxG.sound.music.volume = 0;
-						
+
 				fpManager.destroyFreeplayVocals();
 				#if (MODS_ALLOWED && DISCORD_ALLOWED)
 				DiscordClient.loadModRPC();
@@ -998,7 +1000,7 @@ class FreeplayState extends MusicBeatState
 				FlxG.sound.volumeUpKeys = [];
 				break;
 			}
-			else 
+			else
 			{
 				FlxG.sound.muteKeys = FirstCheckState.muteKeys;
 				FlxG.sound.volumeDownKeys = FirstCheckState.volumeDownKeys;
@@ -1128,9 +1130,9 @@ class FreeplayState extends MusicBeatState
 
 		if (curSelected == -1)
 			playFreakyMusic('menuMusic/freeplayRandom');
-		else if (!player.playingMusic) 
+		else if (!player.playingMusic)
 			playFreakyMusic();
-		
+
 		try {
 			if (fpManager.songList.length >= 0)
 			{
@@ -1197,7 +1199,7 @@ class FreeplayState extends MusicBeatState
 					item.alpha = 1;
 			}
 		}
-		
+
 		if (fpManager.songList[curSelected] != null)
 		{
 			WeekData.setDirectoryFromWeek();
@@ -1208,7 +1210,7 @@ class FreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 		}
 
-		if (curSelected == -1) 
+		if (curSelected == -1)
 			diffText.visible = false;
 		else
 			diffText.visible = true;
@@ -1217,7 +1219,7 @@ class FreeplayState extends MusicBeatState
 			if (fpManager.songList[curSelected] == null)
 				return;
 
-			if (fpManager.songList[curSelected].songName != 'SONG NOT FOUND') 
+			if (fpManager.songList[curSelected].songName != 'SONG NOT FOUND')
 			{
 				Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 				PlayState.storyWeek = fpManager.songList[curSelected].week;
@@ -1243,7 +1245,7 @@ class FreeplayState extends MusicBeatState
 					curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(Difficulty.getDefault())));
 				else
 					curDifficulty = 0;
-				
+
 				curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
 			}
 			else
@@ -1352,7 +1354,7 @@ class FreeplayState extends MusicBeatState
 				if (!(grpSongs.members[i] is Scrollable)) {
 					continue;
 				}
-	
+
 				var item:Scrollable = cast(grpSongs.members[i], Scrollable);
 				item.visible = item.active = true;
 				item.x = ((item.targetY - lerpSelected) * item.distancePerItem.x) + item.startPosition.x;
@@ -1391,7 +1393,7 @@ class FreeplayState extends MusicBeatState
 		FlxG.autoPause = ClientPrefs.data.autoPause;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
 			MusicManager.playMenuMusic(0);
-	}	
+	}
 
 	// public static function addInternetModSource(url:String):Void {
 	// 	Mods.addInternetModSource(url);
@@ -1412,4 +1414,49 @@ class FreeplayState extends MusicBeatState
 	// 	Mods.removeGithubModSource(repoUrl);
 	// 	reloadSongs(true);
 	// }
+
+	// Accessor methods for Legacy Lua subclass
+	public function getCurrentSelected():Int {
+		return curSelected;
+	}
+
+	public function setCurrentSelected(value:Int):Void {
+		curSelected = value;
+	}
+
+	public function getGrpSongs():FlxTypedGroup<Alphabet> {
+		return grpSongs;
+	}
+
+	public function getCurDifficulty():Int {
+		return curDifficulty;
+	}
+
+	public function setCurDifficulty(value:Int):Void {
+		curDifficulty = value;
+	}
+
+	public function getSelected():Bool {
+		return selected;
+	}
+
+	public function setSelected(value:Bool):Void {
+		selected = value;
+	}
+
+	public function getStopMusicPlay():Bool {
+		return stopMusicPlay;
+	}
+
+	public function setStopMusicPlay(value:Bool):Void {
+		stopMusicPlay = value;
+	}
+
+	public function getAlreadyClicked():Bool {
+		return alreadyClicked;
+	}
+
+	public function setAlreadyClicked(value:Bool):Void {
+		alreadyClicked = value;
+	}
 }

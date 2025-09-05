@@ -1497,13 +1497,19 @@ class APPlayState extends PlayState {
     {
         // trace('im finna act up');
         if (!APEntryState.inArchipelagoMode)
-        if (paused || endingSong) return;
+        if (paused || endingSong || transitioning) return;
+
+        // Additional checks to prevent effects during transitions or ranking
+        if (backend.TransitionState.currenttransition != null ||
+            (subState != null && Std.is(subState, substates.RankingSubstate))) return;
 
         effectsRan++;
 
-        if (APEntryState.inArchipelagoMode && (paused || endingSong)) {
+        if (APEntryState.inArchipelagoMode && (paused || endingSong || transitioning)) {
             new FlxTimer().start(0.1, function(tmr:FlxTimer) {
-                if (!paused && !endingSong) {
+                if (!paused && !endingSong && !transitioning &&
+                    backend.TransitionState.currenttransition == null &&
+                    !(subState != null && Std.is(subState, substates.RankingSubstate))) {
                     doEffect(effect);
                 }
                 FlxDestroyUtil.destroy(tmr);
@@ -1846,6 +1852,20 @@ class APPlayState extends PlayState {
 	var doRandomize:Bool = false;
     override public function update(elapsed:Float)
     {
+        // If Legacy Lua settings are being edited, don't allow AP PlayState during gameplay
+        // This prevents conflicts but doesn't interrupt mid-song
+        if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode && !startedCountdown) {
+            // Only switch if we haven't started the song yet to avoid interrupting gameplay
+            FlxG.switchState(new states.PlayState());
+            return;
+        }
+
+        // If we're in Legacy Lua testing mode, switch to regular PlayState
+        if (states.PlayState.isLegacyLuaTest && !startedCountdown) {
+            FlxG.switchState(new states.PlayState());
+            return;
+        }
+
         // if (archipelago.APItem.activeItem is archipelago.APItem.APChartModifier && cast(archipealgo.APItem.activeItem:archipelago.APItem.APChartModifier).chartModifier != chartModifier)
         //
         if ((startedCountdown && !(inCutscene || (function()

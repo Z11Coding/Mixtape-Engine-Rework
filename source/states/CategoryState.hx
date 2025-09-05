@@ -1,9 +1,9 @@
 package states;
-import flixel.input.keyboard.FlxKey;
-import flixel.addons.transition.FlxTransitionableState;
-import backend.WeekData;
-import yutautil.ChanceSelector.Chance;
 import archipelago.APEntryState;
+import backend.WeekData;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.input.keyboard.FlxKey;
+import yutautil.ChanceSelector.Chance;
 
 using yutautil.CollectionUtils;
 
@@ -40,6 +40,9 @@ class CategoryState extends MusicBeatState
 	public var catMode:String = ClientPrefs.data.showMods ? "Mods" : "Categories";
 
 	public var showModsAsCategories:Bool = ClientPrefs.data.showMods;
+
+	// Legacy Lua settings support
+	public static var legacyLuaMode:options.legacylua.LegacyLuaCategoryState.LegacyLuaSettingsMode = null;
 
 	private static var curSelected:Int = 0;
 
@@ -96,7 +99,22 @@ class CategoryState extends MusicBeatState
 		this.showSecrets = showsecrets;
 		this.showAll = showall;
 		this.hhhhhh = h;
-	
+
+		// Remove disabled categories from menuItems before validation
+		if (!showAll && menuItems.contains("All")) {
+			menuItems.remove("All");
+		}
+		if (!showMods && menuItems.contains("Mods")) {
+			menuItems.remove("Mods");
+		}
+		if (!showSecrets && menuItems.contains("Secrets")) {
+			menuItems.remove("Secrets");
+		}
+		if (!h && menuItems.contains("h?")) {
+			menuItems.remove("h?");
+		}
+
+		// Now validate that disabled categories aren't still in the array
 		if (menuItems.contains("All") && !showAll) {
 			throw "CategoryState: 'All' category is disabled, yet it's in the menuItems array!";
 		}
@@ -107,7 +125,7 @@ class CategoryState extends MusicBeatState
 			throw "CategoryState: 'Secrets' category is disabled, yet it's in the menuItems array!";
 		}
 		// menuItems.mapIfBreak(it -> it.isEmpty(), throw "CategoryState: Empty strings are not allowed in the menuItems array!");
-	
+
 		if (menuItems.contains("h?")) {
 			if (h) {
 				throw "CategoryState: 'h?' category is reserved for a secret!";
@@ -152,7 +170,7 @@ class CategoryState extends MusicBeatState
 				if (!menuItems.contains("Mods")) {
 					menuItems.push("Mods");
 				}
-				break; 
+				break;
 			}
 		}
 
@@ -205,7 +223,7 @@ class CategoryState extends MusicBeatState
 
 		// Move "All" to the front of menuItems
 		if (menuItems.contains("All") && showAll) {
-			menuItems.remove("All");				
+			menuItems.remove("All");
 			menuItems.insert(0, "All");
 		} else
 		{ if (menuItems.contains("All")) menuItems.remove("All"); }
@@ -218,7 +236,7 @@ class CategoryState extends MusicBeatState
 			{item: "h?", chance: 5}, // 5% chance to add "h?"
 			{item: "no", chance: 95} // 95% chance to do nothing
 		];
-		
+
 		Cursor.show();
 		Cursor.cursorMode = Default;
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
@@ -251,11 +269,11 @@ class CategoryState extends MusicBeatState
 				lock.animation.play('lock');
 				lock.ID = i;
 				lock.antialiasing = ClientPrefs.data.antialiasing;
-				grpLocks.add(lock);	
+				grpLocks.add(lock);
 			}
 		}
 
-		if (rightOption != null)
+		if (rightOption != null && !(this is archipelago.APCategoryState) && !(this is options.legacylua.LegacyLuaCategoryState))
 		{
 			rightItem = createMenuItem(rightOption, FlxG.width - 60, 490);
 			rightItem.x -= rightItem.width;
@@ -271,7 +289,7 @@ class CategoryState extends MusicBeatState
 		menuItem.loadGraphic(Paths.image('mechanicsMenu/MMod'));
 		menuItem.setGraphicSize(Std.int(menuItem.width * 0.5));
 		menuItem.updateHitbox();
-		
+
 		menuItem.antialiasing = ClientPrefs.data.antialiasing;
 		menuItem.scrollFactor.set();
 		add(menuItem);
@@ -322,6 +340,22 @@ class CategoryState extends MusicBeatState
 			menuItems = ["All", "Base", "Erect", "Pico"];
 			menuLocks = [false, false, false, false];
 		}
+
+		// Remove disabled categories from menuItems before validation
+		if (!showAll && menuItems.contains("All")) {
+			menuItems.remove("All");
+		}
+		if (!showMods && menuItems.contains("Mods")) {
+			menuItems.remove("Mods");
+		}
+		if (!showSecrets && menuItems.contains("Secrets")) {
+			menuItems.remove("Secrets");
+		}
+		if (!h && menuItems.contains("h?")) {
+			menuItems.remove("h?");
+		}
+
+		// Now validate that disabled categories aren't still in the array
 		if (menuItems.contains("All") && !showAll) {
 			throw "CategoryState: 'All' category is disabled, yet it's in the menuItems array!";
 		}
@@ -346,17 +380,27 @@ class CategoryState extends MusicBeatState
 	var inDialogue:Bool = false;
 	override function update(elapsed:Float)
 	{
-		ClientPrefs.data.showMods && catMode != "Mods" || !ClientPrefs.data.showMods && catMode == "Mods" 
-			? MusicBeatState.resetState() 
-			: null;
+		// If Legacy Lua settings are being edited, switch to Legacy Lua version
+		if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode && !(this is options.legacylua.LegacyLuaCategoryState)) {
+			FlxG.switchState(new options.legacylua.LegacyLuaCategoryState());
+			return;
+		}
+
+		// Don't trigger resetState if we're in LegacyLua mode
+		if (legacyLuaMode == null) {
+			ClientPrefs.data.showMods && catMode != "Mods" || !ClientPrefs.data.showMods && catMode == "Mods"
+				? MusicBeatState.resetState()
+				: null;
 
 			if (showModsAsCategories != ClientPrefs.data.showMods) {
 				MusicBeatState.resetState();
 			}
+		}
 
 			// trace('CategoryState: ' + catMode + ' | ' + showModsAsCategories + ' | ' + ClientPrefs.data.showMods);
 
-		if (archipelago.APEntryState.inArchipelagoMode && !(this is archipelago.APCategoryState)) {
+		// Don't switch to AP versions if we're in LegacyLua mode or already in LegacyLua CategoryState
+		if (archipelago.APEntryState.inArchipelagoMode && !(this is archipelago.APCategoryState) && legacyLuaMode == null && !(this is options.legacylua.LegacyLuaCategoryState)) {
 			FlxG.switchState(new archipelago.APCategoryState(archipelago.APGameState.instance));
 			return;
 		}
@@ -447,6 +491,12 @@ class CategoryState extends MusicBeatState
 			}
 			else if (accepted)
 			{
+				// Handle Legacy Lua override mode
+				if (legacyLuaMode != null) {
+					handleLegacyLuaOverride();
+					return;
+				}
+
 				if (loadWeekForce == 'h?')
 				{
 					Window.alert('h?', 'h?');
@@ -503,6 +553,18 @@ class CategoryState extends MusicBeatState
 				item.alpha = 1;
 				// item.setGraphicSize(Std.int(item.width));
 			}
+		}
+	}
+
+	function handleLegacyLuaOverride():Void
+	{
+		switch (legacyLuaMode) {
+			case options.legacylua.LegacyLuaCategoryState.LegacyLuaSettingsMode.MOD_SETTINGS:
+				// Switch to LegacyLuaCategoryState for mod settings
+				MusicBeatState.switchState(new options.legacylua.LegacyLuaCategoryState());
+			case options.legacylua.LegacyLuaCategoryState.LegacyLuaSettingsMode.SONG_SETTINGS:
+				// Go to freeplay for song overrides
+				MusicBeatState.switchState(new options.legacylua.LegacyLuaFreeplayState());
 		}
 	}
 }

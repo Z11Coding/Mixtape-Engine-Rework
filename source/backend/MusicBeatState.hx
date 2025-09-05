@@ -25,6 +25,11 @@ class MusicBeatState extends FlxState
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
 
+	// Application closing management
+	public static var isClosing:Bool = false;
+	private static var closeTimer:FlxTimer;
+	private static var transitionTimeout:Float = 10.0; // 10 seconds timeout
+
 	// Substate stacking system with ObjectSerializer for proper suspension/restoration
 	private var substateQueue:Array<MusicBeatSubstate> = [];
 	private var suspendedSubstateData:Array<{className:String, serializedData:Dynamic, originalSubstate:MusicBeatSubstate}> = [];
@@ -112,6 +117,13 @@ class MusicBeatState extends FlxState
 
 	override function create()
 	{
+		// If a new state is created while closing, force a transition to exit
+		if (isClosing) {
+			FlxG.autoPause = false;
+			backend.TransitionState.transitionState(states.ExitState, {transitionType: getRandomTransition()});
+			return;
+		}
+
 		justgothere = true;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
@@ -347,6 +359,27 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		// Disable all input when the application is closing
+		if (isClosing) {
+			// Start timer if transition is active but timer isn't running
+			if (backend.TransitionState.currenttransition != null && closeTimer == null) {
+				closeTimer = new FlxTimer().start(transitionTimeout, function(timer:FlxTimer) {
+					// Force reset transition and try again with a different one
+					trace("Transition timeout reached, forcing new transition");
+					backend.TransitionState.currenttransition = null;
+					closeTimer = null;
+					FlxG.autoPause = false;
+					backend.TransitionState.transitionState(states.ExitState, {transitionType: getRandomTransition()});
+				});
+			}
+			// Clean up timer if transition completed naturally
+			else if (backend.TransitionState.currenttransition == null && closeTimer != null) {
+				closeTimer.cancel();
+				closeTimer = null;
+			}
+			return;
+		}
+
 		// Suspend updating if debug overlay is active
 		if (debug.DebugManager.isDebugOverlayVisible()) {
 			// Only handle debug keys and essential systems when overlay is active
@@ -784,6 +817,25 @@ class MusicBeatState extends FlxState
 		return val == null ? 4 : val;
 	}
 
+	private static function getRandomTransition():String
+	{
+		var availableTransitions:Array<String> = [
+			"fadeOut", "fadeColor", "slideLeft", "slideRight",
+			"slideUp", "slideDown", "slideRandom", "fallRandom",
+			"fallSequential", "stickers", "melt", "instant",
+			"transparent fade", "transparent close"
+		];
+		return FlxG.random.getObject(availableTransitions);
+	}
+
+	public static function resetClosingState():Void
+	{
+		isClosing = false;
+		if (closeTimer != null) {
+			closeTimer.cancel();
+			closeTimer = null;
+		}
+	}
 	override public function onFocusLost():Void
 	{
 		super.onFocusLost();

@@ -45,7 +45,19 @@ class ConditionHelper {
         return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere);
     }
     public static inline function PlayState():Condition {
-        return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, states.PlayState) && (states.PlayState.instance.startingSong || (item.isException && !states.PlayState.instance.endingSong && backend.TransitionState.currenttransition == null)); }, ConditionType.PlayState);
+        return ConditionHelper.create(function(item:APItem):Bool {
+            if (!Std.is(FlxG.state, states.PlayState)) return false;
+            var playState = states.PlayState.instance;
+            if (playState == null) return false;
+
+            // Don't allow activation if song has ended, transitioning, or in ranking substate
+            if (playState.endingSong || playState.transitioning || backend.TransitionState.currenttransition != null) return false;
+
+            // Check if we're in a substate that should block activation
+            if (playState.subState != null && Std.is(playState.subState, substates.RankingSubstate)) return false;
+
+            return playState.startingSong || (item.isException && playState.startedCountdown);
+        }, ConditionType.PlayState);
     }
     public static inline function Freeplay():Condition {
         return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, FreeplayManager.getFreeplay()); }, ConditionType.Freeplay);
@@ -844,6 +856,17 @@ class APItem {
         // Ensure non-exception items wait until activeItem is null
         if (!this.isException && APItem.activeItem != null) {
             return; // Exit if activeItem is still in use
+        }
+
+        // Additional safety check for PlayState-specific items
+        if (this.condition.type == ConditionType.PlayState && Std.is(FlxG.state, states.PlayState)) {
+            var playState = states.PlayState.instance;
+            if (playState != null && (playState.endingSong || playState.transitioning ||
+                backend.TransitionState.currenttransition != null ||
+                (playState.subState != null && Std.is(playState.subState, substates.RankingSubstate)))) {
+                trace("Blocking item trigger due to inappropriate PlayState condition: " + this.name);
+                return; // Don't trigger during song end, transitions, or ranking
+            }
         }
 
         // Check conditions before triggering

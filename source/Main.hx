@@ -534,6 +534,9 @@ class Main extends Sprite
 		if (!pressedOnce || WindowUtils.__triedClosing)
 		{
 			pressedOnce = true;
+			// Set the closing flag to disable controls
+			backend.MusicBeatState.isClosing = true;
+
 			switch (Type.getClassName(Type.getClass(FlxG.state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(FlxG.state)).split(".")) - 1])
 			{
 				case "ChartingStateOG":
@@ -1336,22 +1339,101 @@ class CommandPrompt
 				}
 
 			case "debug":
-				if (args.length == 1)
-				{
-					switch (args[0])
-					{
+				if (args.length == 0) {
+					print("Debug commands:");
+					print("  debug toggle - Toggle debug overlay");
+					print("  debug states - List all available state classes");
+					print("  debug static <stateClass> - View static properties of a state class");
+					print("  debug get <stateClass> <property> - Get static property value");
+					print("  debug set <stateClass> <property> <value> - Set static property value");
+					print("  debug aprilFools - Enable April Fools debug mode");
+					print("  debug flip - Toggle APFlip state");
+				} else {
+					switch (args[0]) {
+						case "toggle":
+							debug.DebugManager.toggleDebugOverlay();
+							print("Debug overlay toggled");
+						case "states":
+							var states = getAllStateClasses();
+							print("Available state classes:");
+							for (name in states.keys()) {
+								print("  " + name);
+							}
+						case "static":
+							if (args.length >= 2) {
+								var stateName = args[1];
+								var states = getAllStateClasses();
+								var stateClass = states.get(stateName);
+								if (stateClass != null) {
+									var props = getStaticProperties(stateClass);
+									print('Static properties of ${stateName}:');
+									for (prop in props) {
+										var value = getStaticProperty(stateClass, prop);
+										print('  ${prop}: ${Std.string(value)}');
+									}
+								} else {
+									print('State class not found: ${stateName}');
+								}
+							} else {
+								print("Usage: debug static <stateClass>");
+							}
+						case "get":
+							if (args.length >= 3) {
+								var stateName = args[1];
+								var propName = args[2];
+								var states = getAllStateClasses();
+								var stateClass = states.get(stateName);
+								if (stateClass != null) {
+									var value = getStaticProperty(stateClass, propName);
+									print('${stateName}.${propName} = ${Std.string(value)}');
+								} else {
+									print('State class not found: ${stateName}');
+								}
+							} else {
+								print("Usage: debug get <stateClass> <property>");
+							}
+						case "set":
+							if (args.length >= 4) {
+								var stateName = args[1];
+								var propName = args[2];
+								var valueStr = args.slice(3).join(" ");
+								var states = getAllStateClasses();
+								var stateClass = states.get(stateName);
+								if (stateClass != null) {
+									// Try to parse the value
+									var value:Dynamic = valueStr;
+									if (valueStr == "true") value = true;
+									else if (valueStr == "false") value = false;
+									else {
+										var intValue = Std.parseInt(valueStr);
+										if (intValue != null) value = intValue;
+										else {
+											var floatValue = Std.parseFloat(valueStr);
+											if (!Math.isNaN(floatValue)) value = floatValue;
+										}
+									}
+
+									var success = setStaticProperty(stateClass, propName, value);
+									if (success) {
+										print('Set ${stateName}.${propName} = ${Std.string(value)}');
+									} else {
+										print('Failed to set ${stateName}.${propName}');
+									}
+								} else {
+									print('State class not found: ${stateName}');
+								}
+							} else {
+								print("Usage: debug set <stateClass> <property> <value>");
+							}
 						case "aprilFools":
 							yutautil.AprilFools.debug = true;
 							print("April Fools debug mode enabled.");
 						case "flip":
 							backend.MusicBeatState.APFlip = !backend.MusicBeatState.APFlip;
+							print("APFlip toggled. Current state: " + backend.MusicBeatState.APFlip);
 						default:
-							print("Error: Unknown debug argument.");
+							print("Unknown debug command. Use 'debug' for help.");
 					}
-				}
-				else
-				{
-					print("Error: debug requires exactly one argument.");
 				}
 
 			case "var":
@@ -1657,96 +1739,6 @@ class CommandPrompt
 			case "unoSim":
 				var maxTurns = args.length > 0 ? Std.parseInt(args[0]) : null;
 				this.startUnoSimulation(maxTurns);
-
-			case "debug":
-				if (args.length == 0) {
-					print("Debug commands:");
-					print("  debug toggle - Toggle debug overlay");
-					print("  debug states - List all available state classes");
-					print("  debug static <stateClass> - View static properties of a state class");
-					print("  debug get <stateClass> <property> - Get static property value");
-					print("  debug set <stateClass> <property> <value> - Set static property value");
-				} else {
-					switch (args[0]) {
-						case "toggle":
-							debug.DebugManager.toggleDebugOverlay();
-							print("Debug overlay toggled");
-						case "states":
-							var states = getAllStateClasses();
-							print("Available state classes:");
-							for (name in states.keys()) {
-								print("  " + name);
-							}
-						case "static":
-							if (args.length >= 2) {
-								var stateName = args[1];
-								var states = getAllStateClasses();
-								var stateClass = states.get(stateName);
-								if (stateClass != null) {
-									var props = getStaticProperties(stateClass);
-									print('Static properties of ${stateName}:');
-									for (prop in props) {
-										var value = getStaticProperty(stateClass, prop);
-										print('  ${prop}: ${Std.string(value)}');
-									}
-								} else {
-									print('State class not found: ${stateName}');
-								}
-							} else {
-								print("Usage: debug static <stateClass>");
-							}
-						case "get":
-							if (args.length >= 3) {
-								var stateName = args[1];
-								var propName = args[2];
-								var states = getAllStateClasses();
-								var stateClass = states.get(stateName);
-								if (stateClass != null) {
-									var value = getStaticProperty(stateClass, propName);
-									print('${stateName}.${propName} = ${Std.string(value)}');
-								} else {
-									print('State class not found: ${stateName}');
-								}
-							} else {
-								print("Usage: debug get <stateClass> <property>");
-							}
-						case "set":
-							if (args.length >= 4) {
-								var stateName = args[1];
-								var propName = args[2];
-								var valueStr = args.slice(3).join(" ");
-								var states = getAllStateClasses();
-								var stateClass = states.get(stateName);
-								if (stateClass != null) {
-									// Try to parse the value
-									var value:Dynamic = valueStr;
-									if (valueStr == "true") value = true;
-									else if (valueStr == "false") value = false;
-									else {
-										var intValue = Std.parseInt(valueStr);
-										if (intValue != null) value = intValue;
-										else {
-											var floatValue = Std.parseFloat(valueStr);
-											if (!Math.isNaN(floatValue)) value = floatValue;
-										}
-									}
-
-									var success = setStaticProperty(stateClass, propName, value);
-									if (success) {
-										print('Set ${stateName}.${propName} = ${Std.string(value)}');
-									} else {
-										print('Failed to set ${stateName}.${propName}');
-									}
-								} else {
-									print('State class not found: ${stateName}');
-								}
-							} else {
-								print("Usage: debug set <stateClass> <property> <value>");
-							}
-						default:
-							print("Unknown debug command. Use 'debug' for help.");
-					}
-				}
 
 			case "stateEdit":
 				if (args.length == 0) {

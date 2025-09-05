@@ -38,6 +38,8 @@ class APCategoryState extends states.CategoryState {
             FlxG.switchState(new states.ExitState());
         };
 
+        rightOption = null;
+
         // Ensure specialOptions are set correctly for 'Options' and 'Quit'
         for (i in 0...menuItems.length) {
             if (menuItems[i] == 'Options') {
@@ -73,6 +75,12 @@ class APCategoryState extends states.CategoryState {
     var shopItem:FlxSprite;
     override function update(elapsed:Float)
     {
+        // If Legacy Lua settings are being edited, switch to Legacy Lua version
+        if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode) {
+            FlxG.switchState(new options.legacylua.LegacyLuaCategoryState());
+            return;
+        }
+
         super.update(elapsed);
         AP.poll();
     }

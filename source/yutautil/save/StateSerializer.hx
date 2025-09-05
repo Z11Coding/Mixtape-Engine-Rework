@@ -121,7 +121,12 @@ class StateSerializer {
      * @return The restored instance, or null if restoration failed
      */
     public static function restoreFromSerializedObject(serializedClass:SerializedClass):Dynamic {
-        if (serializedClass == null) return null;
+        if (serializedClass == null) {
+            trace('Error: serializedClass is null');
+            return null;
+        }
+
+        trace('Starting restoration of ${serializedClass.TYPE} (${serializedClass.METADATA.totalObjects} objects)');
 
         try {
             // Reset deserialization state
@@ -136,7 +141,7 @@ class StateSerializer {
                 // Create empty instance of the main class
                 mainInstance = createEmptyInstance(serializedClass.TYPE);
                 if (mainInstance == null) {
-                    trace('Failed to create empty instance of ${serializedClass.TYPE}, treating as anonymous');
+                    trace('Warning: Failed to create empty instance of ${serializedClass.TYPE}, treating as anonymous');
                     mainInstance = {};
                 }
             }
@@ -144,9 +149,46 @@ class StateSerializer {
             // Register the main instance
             _idToObject.set(serializedClass.MAIN_OBJECT_ID, mainInstance);
 
+            // Always restore fields for the main object first
+            try {
+                restoreObjectFromJSON(mainInstance, serializedClass.FIELDS);
+            } catch (e:Dynamic) {
+                trace('Warning: Error restoring main object fields: ${e}');
+                throw e;
+            }
+
+            // Check if queued objects exists and handle JSON deserialization issue
+            if (serializedClass.QUEUED_OBJECTS == null) {
+                trace('No queued objects to process - restoration completed');
+                return mainInstance;
+            }
+
+            // After JSON parsing, QUEUED_OBJECTS might be a regular object instead of a Map
+            var queuedObjectsMap:Map<String, Dynamic>;
+            if (serializedClass.QUEUED_OBJECTS.isMap()) {
+                queuedObjectsMap = cast serializedClass.QUEUED_OBJECTS;
+            } else {
+                // Convert from regular object to Map
+                queuedObjectsMap = new Map<String, Dynamic>();
+                try {
+                    for (field in Reflect.fields(serializedClass.QUEUED_OBJECTS)) {
+                        var value = Reflect.field(serializedClass.QUEUED_OBJECTS, field);
+                        queuedObjectsMap.set(field, value);
+                    }
+                } catch (e:Dynamic) {
+                    trace('Warning: Error converting QUEUED_OBJECTS to Map: ${e}');
+                    return mainInstance; // Still return main instance with its fields restored
+                }
+            }
+
             // Create empty instances for all queued objects first
-            for (objectId in serializedClass.QUEUED_OBJECTS.keys()) {
-                var queuedData = serializedClass.QUEUED_OBJECTS.get(objectId);
+            var queuedObjectCount = Lambda.count(queuedObjectsMap);
+            if (queuedObjectCount > 0) {
+                trace('Processing ${queuedObjectCount} queued objects');
+            }
+
+            for (objectId in queuedObjectsMap.keys()) {
+                var queuedData = queuedObjectsMap.get(objectId);
                 if (queuedData != null && Reflect.hasField(queuedData, "TYPE")) {
                     var typePath = Reflect.field(queuedData, "TYPE");
                     var isAnonymous = Reflect.hasField(queuedData, "IS_ANONYMOUS") ?
@@ -157,29 +199,44 @@ class StateSerializer {
                         emptyInstance = {};
                     } else {
                         emptyInstance = createEmptyInstance(typePath);
-                        if (emptyInstance == null) emptyInstance = {};
+                        if (emptyInstance == null) {
+                            trace('Warning: Failed to create instance of ${typePath}, using anonymous object');
+                            emptyInstance = {};
+                        }
                     }
                     _idToObject.set(objectId, emptyInstance);
+                } else {
+                    trace('Warning: Queued object ${objectId} missing TYPE field or is null');
                 }
             }
 
-            // Now restore fields for the main object
-            restoreObjectFromJSON(mainInstance, serializedClass.FIELDS);
-
-            // Process queued objects
-            for (objectId in serializedClass.QUEUED_OBJECTS.keys()) {
-                var queuedData = serializedClass.QUEUED_OBJECTS.get(objectId);
+            // Process queued object fields
+            var processedCount = 0;
+            for (objectId in queuedObjectsMap.keys()) {
+                var queuedData = queuedObjectsMap.get(objectId);
                 var targetObject = _idToObject.get(objectId);
                 if (targetObject != null && queuedData != null && Reflect.hasField(queuedData, "FIELDS")) {
-                    var fields = Reflect.field(queuedData, "FIELDS");
-                    restoreObjectFromJSON(targetObject, fields);
+                    try {
+                        var fields = Reflect.field(queuedData, "FIELDS");
+                        restoreObjectFromJSON(targetObject, fields);
+                        processedCount++;
+                    } catch (e:Dynamic) {
+                        trace('Warning: Error restoring queued object ${objectId}: ${e}');
+                        // Continue with other objects instead of failing completely
+                    }
+                } else {
+                    trace('Warning: Skipping queued object ${objectId} - missing data or target object');
                 }
             }
 
-            return mainInstance;
-
-        } catch (e:Dynamic) {
-            trace('Error restoring object from JSON data: ${e}');
+            if (processedCount > 0) {
+                trace('Successfully processed ${processedCount} queued objects');
+            }
+            trace('Restoration completed successfully');
+            return mainInstance;        } catch (e:Dynamic) {
+            trace('Critical error in restoreFromSerializedObject: ${e}');
+            trace('Error occurred while restoring ${serializedClass != null ? serializedClass.TYPE : "unknown type"}');
+            trace('Stack trace: ${haxe.CallStack.toString(haxe.CallStack.callStack())}');
             return null;
         }
     }
@@ -395,9 +452,14 @@ class StateSerializer {
      * Restore fields for an object instance from JSON data
      */
     private static function restoreObjectFromJSON(instance:Dynamic, fields:Dynamic):Void {
-        if (instance == null || fields == null) return;
+        if (instance == null || fields == null) {
+            trace('Warning: restoreObjectFromJSON called with null - instance: ${instance != null}, fields: ${fields != null}');
+            return;
+        }
 
-        for (field in Reflect.fields(fields)) {
+        var fieldNames = Reflect.fields(fields);
+
+        for (field in fieldNames) {
             var value = Reflect.field(fields, field);
             try {
                 var restoredValue = convertValueFromJSON(value);
@@ -406,9 +468,7 @@ class StateSerializer {
                 trace('Warning: Could not restore field ${field}: ${e}');
             }
         }
-    }
-
-    /**
+    }    /**
      * Convert a value from JSON back to original form
      */
     private static function convertValueFromJSON(value:Dynamic):Dynamic {

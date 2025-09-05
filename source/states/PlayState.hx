@@ -173,6 +173,7 @@ class PlayState extends MusicBeatState
 	public static var stageUI(default, set):String = "normal";
 	public static var uiPrefix:String = "";
 	public static var uiPostfix:String = "";
+	public static var isLegacyLuaTest:Bool = false; // Flag to track if we're testing from Legacy Lua settings
 	public static var isPixelStage(get, never):Bool;
 	var raveLight:FlxSprite;
 	var raveLightsColors:Array<Int>;
@@ -292,6 +293,7 @@ class PlayState extends MusicBeatState
 
 	public var botplaySine:Float = 0;
 	public var botplayTxt:FlxText;
+	public var legacyLuaTestTxt:FlxText; // Text to indicate Legacy Lua testing mode
 
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
@@ -553,7 +555,7 @@ class PlayState extends MusicBeatState
 			Song.loadFromJson(poop, songLowercase);
 		}
 		inArchipelagoMode = archipelago.APEntryState.inArchipelagoMode;
-		if (inArchipelagoMode && !(this is archipelago.APPlayState))
+		if (inArchipelagoMode && !(this is archipelago.APPlayState) && !isLegacyLuaTest && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
 		{
 			FlxG.switchState(new archipelago.APPlayState());
 		}
@@ -1016,7 +1018,7 @@ class PlayState extends MusicBeatState
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
+					(shouldUseLegacyLua() ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
 				#end
 
 				#if HSCRIPT_ALLOWED
@@ -1275,6 +1277,16 @@ class PlayState extends MusicBeatState
 		if(ClientPrefs.data.downScroll)
 			botplayTxt.y = healthBar.y + 70;
 
+		// Legacy Lua Testing Mode text
+		legacyLuaTestTxt = new FlxText(400, healthBar.y - 130, FlxG.width - 800, "LEGACY LUA TESTING MODE", 28);
+		legacyLuaTestTxt.setFormat(Paths.font("vcr.ttf"), 28, FlxColor.CYAN, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		legacyLuaTestTxt.scrollFactor.set();
+		legacyLuaTestTxt.borderSize = 1.25;
+		legacyLuaTestTxt.visible = isLegacyLuaTest;
+		uiGroup.add(legacyLuaTestTxt);
+		if(ClientPrefs.data.downScroll)
+			legacyLuaTestTxt.y = healthBar.y + 110;
+
 		introStageText = new FlxTypedGroup<FlxText>();
 		songTxt = new FlxText(0, 1280 / 6, FlxG.width, "", 32);
 		songTxt.setFormat(Paths.font("mania-free.ttf"), 32, FlxColor.ORANGE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -1378,7 +1390,7 @@ class PlayState extends MusicBeatState
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
+					(shouldUseLegacyLua() ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
 				#end
 
 				#if HSCRIPT_ALLOWED
@@ -1800,6 +1812,18 @@ class PlayState extends MusicBeatState
 	}
 	#end
 
+	/**
+	 * Determines whether Legacy Lua should be used based on settings for current song/mod
+	 * Priority: Song Setting > Mod Setting > Player Choice
+	 */
+	private function shouldUseLegacyLua():Bool {
+		var currentSong = SONG.song;
+		var currentMod = backend.WeekData.getCurrentWeek().folder;
+
+		var settingsManager = options.legacylua.LegacyLuaSettingsManager.getInstance();
+		return settingsManager.shouldUseLegacyLua(currentSong, currentMod);
+	}
+
 	public function reloadHealthBarColors() {
 		healthBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
 			FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
@@ -1959,7 +1983,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 			if(doPush)
-				(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
+				(shouldUseLegacyLua() ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
 
 		}
 		#end
@@ -4995,6 +5019,13 @@ class PlayState extends MusicBeatState
 	var lastHealth:Float = -1;
 	override public function update(elapsed:Float)
 	{
+		// If Legacy Lua settings are being edited and we're not in test mode, don't allow regular PlayState
+		// The Legacy Lua system should handle PlayState switching through its own mechanisms
+		if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode && !isLegacyLuaTest) {
+			// Don't auto-switch PlayState when in Legacy Lua settings mode - let the Legacy Lua system handle it
+			// This prevents conflicts between the systems
+		}
+
 		if(!inCutscene && !paused && !freezeCamera) {
 			FlxG.camera.followLerp = 0.04 * cameraSpeed * playbackRate;
 			var idleAnim:Bool = (boyfriend.getAnimationName().startsWith('idle') || boyfriend.getAnimationName().startsWith('danceLeft') || boyfriend.getAnimationName().startsWith('danceRight'));
@@ -5107,6 +5138,14 @@ class PlayState extends MusicBeatState
 		if(botplayTxt != null && botplayTxt.visible) {
 			botplaySine += 180 * elapsed;
 			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
+		}
+
+		// Legacy Lua test text animation
+		if(legacyLuaTestTxt != null) {
+			legacyLuaTestTxt.visible = isLegacyLuaTest; // Update visibility in case flag changes
+			if(legacyLuaTestTxt.visible) {
+				legacyLuaTestTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180); // Sync with botplay animation
+			}
 		}
 
 		if (controls.PAUSE && startedCountdown && canPause && !endingSong)
@@ -9233,7 +9272,7 @@ class PlayState extends MusicBeatState
 			for (script in luaArray)
 				if(script.scriptName == luaToLoad) return false;
 
-			(ClientPrefs.getGameplaySetting('legacyMode', false) ? new LegacyFunkinLua(luaToLoad) : new FunkinLua(luaToLoad));
+			(shouldUseLegacyLua() ? new LegacyFunkinLua(luaToLoad) : new FunkinLua(luaToLoad));
 			return true;
 		}
 		return false;
