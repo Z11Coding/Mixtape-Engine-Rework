@@ -41,57 +41,62 @@ class UnoCard {
     public var color:UnoColor;
     public var type:UnoCardType;
     public var value:Int; // Used for number cards and special card identification
-    
+
     public function new(color:UnoColor, type:UnoCardType, value:Int = 0) {
         this.color = color;
         this.type = type;
         this.value = value;
     }
-    
+
     /**
      * Check if this card can be played on top of another card
      */
     public function canPlayOn(otherCard:UnoCard):Bool {
         // Wild cards can be played on anything
-        if (type == WILD || type == WILD_DRAW_FOUR) {
+        if (type == WILD || type == WILD_DRAW_FOUR || color == WILD) {
             return true;
         }
-        
+
+        // Custom cards with actions can be played on anything (they're wild by nature)
+        if (switch(type) { case CUSTOM(_, _, _, _): true; case _: false; }) {
+            return true;
+        }
+
         // Same color match (including custom colors)
         if (UnoCard.colorsMatch(color, otherCard.color)) {
             return true;
         }
-        
+
         // Same type match (but only for action cards, not numbers)
         if (type == otherCard.type && type != NUMBER) {
             return true;
         }
-        
+
         // Same number value (only for number cards)
         if (type == NUMBER && otherCard.type == NUMBER && value == otherCard.value) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Check if this is a special action card
      */
     public function isActionCard():Bool {
         return type != NUMBER;
     }
-    
+
     /**
      * Check if this is a wild card
      */
     public function isWildCard():Bool {
-        return type == WILD || type == WILD_DRAW_FOUR || (switch(type) {
+        return type == WILD || type == WILD_DRAW_FOUR || color == WILD || (switch(type) {
             case CUSTOM(_, _, _, _): true;
             case _: false;
         });
     }
-    
+
     /**
      * Get the point value of this card for scoring
      */
@@ -103,7 +108,7 @@ class UnoCard {
             case CUSTOM(name, points, cpuImportance, action): points;
         }
     }
-    
+
     /**
      * Get the FlxColor representation of this card's color
      */
@@ -117,7 +122,7 @@ class UnoCard {
             case CUSTOM(color, name): color;
         }
     }
-    
+
     /**
      * Get the display name of this card's color
      */
@@ -131,13 +136,13 @@ class UnoCard {
             case CUSTOM(color, name): name != null ? '$name' : 'Custom (#${StringTools.hex(color, 6)})';
         }
     }
-    
+
     /**
      * Get a string representation of the card
      */
     public function toString():String {
         var colorStr = getColorName();
-        
+
         var typeStr = switch(type) {
             case NUMBER: Std.string(value);
             case SKIP: "Skip";
@@ -147,21 +152,21 @@ class UnoCard {
             case WILD_DRAW_FOUR: "Wild Draw Four";
             case CUSTOM(name, points, cpuImportance, action): '$name';
         }
-        
+
         if (isWildCard()) {
             return typeStr;
         }
-        
+
         return '$colorStr $typeStr';
     }
-    
+
     /**
      * Create a copy of this card
      */
     public function clone():UnoCard {
         return new UnoCard(color, type, value);
     }
-    
+
     /**
      * Create custom color variants from an array of FlxColors
      */
@@ -189,7 +194,7 @@ class UnoCard {
     public static function getStandardColors():Array<UnoColor> {
         return [UnoColor.RED, UnoColor.BLUE, UnoColor.GREEN, UnoColor.YELLOW];
     }
-    
+
     /**
      * Check if two colors match (including custom colors)
      */
@@ -200,14 +205,14 @@ class UnoCard {
             case _: false;
         }
     }
-    
+
     /**
      * Create a custom action card
      */
     public static function createCustomActionCard(name:String, color:UnoColor, points:Int = 50, cpuImportance:Int = 5, ?action:UnoGame->Void):UnoCard {
         return new UnoCard(color, CUSTOM(name, points, cpuImportance, action));
     }
-    
+
     /**
      * Create multiple copies of a custom action card
      */

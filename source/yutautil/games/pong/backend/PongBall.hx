@@ -32,7 +32,11 @@ class PongBall {
 
     // Momentum system (for boost mechanics)
     public var momentum:Float = 0.0;
-    public var momentumDecayRate:Float = 25.0; // Momentum decay per second
+    public var momentumDecayRate:Float = 150.0; // Base momentum decay per second - much faster decay for quick burst effect
+    public var momentumDecayAcceleration:Float = 2.0; // Acceleration factor for decay - makes decay speed up over time
+
+    // Speed decay system (for when ball exceeds maxSpeed)
+    public var speedDecayRate:Float = 50.0; // Speed decay per second when above maxSpeed
 
     public function new(x:Float = 0, y:Float = 0, radius:Float = 8, speed:Float = 200) {
         this.radius = radius;
@@ -107,6 +111,9 @@ class PongBall {
 
         // Update momentum system
         updateMomentum(elapsed);
+
+        // Update speed decay system (slow down if above maxSpeed)
+        updateSpeedDecay(elapsed);
 
         if (!antiClipEnabled || onCollisionCheck == null) {
             // Normal update with momentum
@@ -339,10 +346,43 @@ class PongBall {
      * Apply momentum to current speed and handle decay
      */
     public function updateMomentum(elapsed:Float):Void {
-        // Decay momentum over time first
+        // Accelerating decay over time - starts slow and speeds up
         if (momentum > 0) {
-            momentum -= momentumDecayRate * elapsed;
+            // Calculate dynamic decay rate based on how much momentum remains
+            // Lower momentum = faster decay rate for quicker final decay
+            var momentumRatio = momentum / 300.0; // Normalize to new boost amount (300)
+            var dynamicDecayRate = momentumDecayRate * (1.0 + momentumDecayAcceleration * (1.0 - momentumRatio));
+
+            momentum -= dynamicDecayRate * elapsed;
             if (momentum < 0) momentum = 0;
+        }
+    }
+
+    /**
+     * Update speed decay when ball exceeds maxSpeed
+     */
+    public function updateSpeedDecay(elapsed:Float):Void {
+        // Check if current base speed (without momentum) exceeds maxSpeed
+        var currentBaseSpeed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+
+        if (currentBaseSpeed > maxSpeed) {
+            // Calculate how much we need to reduce the speed
+            var excessSpeed = currentBaseSpeed - maxSpeed;
+            var reductionAmount = Math.min(speedDecayRate * elapsed, excessSpeed);
+
+            // Scale down the velocity to reduce speed
+            var reductionFactor = (currentBaseSpeed - reductionAmount) / currentBaseSpeed;
+            velocity.x *= reductionFactor;
+            velocity.y *= reductionFactor;
+
+            // Ensure we don't go below maxSpeed
+            var newSpeed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+            if (newSpeed < maxSpeed && currentBaseSpeed > maxSpeed) {
+                // Scale back up to exactly maxSpeed
+                var scaleFactor = maxSpeed / newSpeed;
+                velocity.x *= scaleFactor;
+                velocity.y *= scaleFactor;
+            }
         }
     }
 

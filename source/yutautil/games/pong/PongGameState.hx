@@ -42,6 +42,10 @@ class PongGameState extends MusicBeatState {
     private var leftScoreText:FlxText;
     private var rightScoreText:FlxText;
 
+    // Debug display
+    private var ballDebugText:FlxText;
+    private var ballDebugEnabled:Bool = false;
+
     // Game objects visual representations
     private var ballSprite:FlxSprite;
     private var leftPaddleSprite:FlxSprite;
@@ -262,6 +266,12 @@ class PongGameState extends MusicBeatState {
         instructionText = new FlxText(10, FlxG.height - 50, FlxG.width - 20, "", 14);
         instructionText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.YELLOW, CENTER);
         add(instructionText);
+
+        // Ball debug text (speed, momentum, max speed display)
+        ballDebugText = new FlxText(10, 120, 300, "", 12);
+        ballDebugText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.CYAN, LEFT);
+        ballDebugText.visible = ballDebugEnabled;
+        add(ballDebugText);
 
         // Pause button
         pauseButton = new PsychUIButton(FlxG.width - 120, 10, "Pause", function() {
@@ -608,6 +618,20 @@ class PongGameState extends MusicBeatState {
             }
         });
 
+        // Ball debug info cheat - spell "SPEEDOMETER"
+        konamiTracker.addCheatFromString("SPEEDOMETER", function(cheat) {
+            ballDebugEnabled = !ballDebugEnabled;
+            if (ballDebugText != null) {
+                ballDebugText.visible = ballDebugEnabled;
+            }
+            var status = ballDebugEnabled ? "ENABLED" : "DISABLED";
+            updateInstructionText('Ball speed debug display ' + status + '!', true, 2.0);
+            if (debugTracesEnabled) {
+                trace("Ball debug display " + status.toLowerCase() + "!");
+            }
+            FlxG.sound.play(Paths.sound('confirmMenu'), 0.6);
+        });
+
         add(konamiTracker);
     }
 
@@ -786,6 +810,9 @@ class PongGameState extends MusicBeatState {
 
         // Update ball trail
         updateBallTrail();
+
+        // Update ball debug text if enabled
+        updateBallDebugText();
     }
 
     /**
@@ -887,6 +914,37 @@ class PongGameState extends MusicBeatState {
                 ballTrailGroup.add(trailSprite);
             }
         }
+    }
+
+    /**
+     * Update ball debug text display with current speed, momentum, and max speed
+     */
+    private function updateBallDebugText():Void {
+        if (!ballDebugEnabled || ballDebugText == null || pongGame == null || pongGame.ball == null) return;
+
+        var ball = pongGame.ball;
+
+        // Calculate current speed from velocity
+        var currentSpeed = Math.sqrt(ball.velocity.x * ball.velocity.x + ball.velocity.y * ball.velocity.y);
+
+        // Get effective speed (including momentum)
+        var effectiveSpeed = ball.getEffectiveSpeed();
+
+        // Get momentum and max speed
+        var momentum = ball.getMomentum();
+        var maxSpeed = ball.maxSpeed;
+
+        // Format the debug text
+        var debugInfo = "BALL DEBUG INFO:\n";
+        debugInfo += 'Base Speed: ${Math.round(currentSpeed * 10) / 10}\n';
+        debugInfo += 'Effective Speed: ${Math.round(effectiveSpeed * 10) / 10}\n';
+        debugInfo += 'Momentum: ${Math.round(momentum * 10) / 10}\n';
+        debugInfo += 'Max Speed: ${Math.round(maxSpeed * 10) / 10}\n';
+        debugInfo += 'Speed Boost: ${Math.round((effectiveSpeed - currentSpeed) * 10) / 10}\n';
+        debugInfo += 'Over Limit: ${currentSpeed > maxSpeed ? "YES" : "NO"}\n';
+        debugInfo += 'Velocity: (${Math.round(ball.velocity.x * 10) / 10}, ${Math.round(ball.velocity.y * 10) / 10})';
+
+        ballDebugText.text = debugInfo;
     }
 
     /**

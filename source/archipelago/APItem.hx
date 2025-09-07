@@ -250,13 +250,7 @@ class APItem {
                     t.isTrap = true;
                 });
             case "Pong Challenge":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    popup('Score 5 points to survive!', "APItem: Pong Challenge", true);
-                    TrapGameManager.launchPongTrap(states.PlayState.instance);
-                }, true, false).funcAndReturn(function(t:APItem) {
-                    // Set it as a trap.
-                    t.isTrap = true;
-                });
+                return new APPongTrap();
             case "UNO Challenge":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
@@ -995,6 +989,77 @@ class APChartModifier extends APTrap {
     }
 }
 
+class APPongTrap extends APTrap {
+    public var difficulty:Int; // 1-5, higher = harder
+    private static var activeTrapState:archipelago.traps.games.APPongTrapState = null;
+    private static var difficultyQueue:Array<Int> = [];
+
+    public function new(?difficulty:Int = null) {
+        // If no difficulty specified, use random 1-3 (reasonable range)
+        this.difficulty = difficulty != null ? difficulty : (1 + Std.random(3));
+
+        super("Pong Challenge (" + getDifficultyName(this.difficulty) + ")", ConditionHelper.Everywhere(), function() {
+            // If already in a pong trap, queue this difficulty
+            if (activeTrapState != null) {
+                difficultyQueue.push(this.difficulty);
+                APItem.popup("Pong Challenge (" + getDifficultyName(this.difficulty) + ") queued! " + difficultyQueue.length + " in queue.");
+                return;
+            }
+
+            // Launch the pong trap with this difficulty
+            var currentState = FlxG.state;
+            if (Std.isOfType(currentState, MusicBeatState)) {
+                var previousState = cast(currentState, MusicBeatState);
+                activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, this.difficulty);
+                MusicBeatState.switchState(activeTrapState);
+                APItem.popup("Pong Challenge (" + getDifficultyName(this.difficulty) + ") activated!");
+            }
+        }, false, false);
+    }
+
+    private function getDifficultyName(diff:Int):String {
+        return getTrapDifficultyName(diff);
+    }
+
+    private static function getTrapDifficultyName(diff:Int):String {
+        return switch(diff) {
+            case 1: "Easy";
+            case 2: "Normal";
+            case 3: "Hard";
+            case 4: "Expert";
+            case 5: "Nightmare";
+            default: "Unknown";
+        }
+    }
+
+    public static function onTrapStateExit():Void {
+        activeTrapState = null;
+
+        // Process next difficulty in queue if any
+        if (difficultyQueue.length > 0) {
+            var nextDifficulty = difficultyQueue.shift();
+            // Launch the next trap directly after a short delay
+            new flixel.util.FlxTimer().start(0.5, function(timer) {
+                var currentState = FlxG.state;
+                if (Std.isOfType(currentState, MusicBeatState)) {
+                    var previousState = cast(currentState, MusicBeatState);
+                    activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, nextDifficulty);
+                    MusicBeatState.switchState(activeTrapState);
+                    APItem.popup("Pong Challenge (" + getTrapDifficultyName(nextDifficulty) + ") activated from queue!");
+                }
+            });
+        }
+    }
+
+    public static function clearQueue():Void {
+        difficultyQueue = [];
+    }
+
+    public static function restoreFromSave(difficulty:Int):APPongTrap {
+        return new APPongTrap(difficulty);
+    }
+}
+
 class APTrap extends APItem {
     public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false) {
         this.isTrap = true; // Automatically set as trap
@@ -1003,7 +1068,7 @@ class APTrap extends APItem {
     }
 }
 
-class APrilFools extends APItem {
+class APrilFools extends APTrap {
     private static var options:Map<Int, Void->Void> = new Map();
     private static var initialized:Bool = false;
 

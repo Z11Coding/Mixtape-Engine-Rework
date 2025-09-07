@@ -1,8 +1,12 @@
 package archipelago.traps;
 
+import backend.COD;
 import backend.MusicBeatState;
+import backend.ClientPrefs;
 import states.PlayState;
 import substates.GameOverSubstate;
+import archipelago.APEntryState;
+import archipelago.APPlayState;
 
 /**
  * Utility class for forcing death in AP trap games
@@ -13,12 +17,32 @@ class TrapDeathHandler {
      * Forces the boyfriend to die and triggers game over
      * Does not require PlayState to exist - creates GameOverSubstate directly
      * Handles boyfriend detection specifically for AP trap functionality
+     * Sets cause of death and triggers death link if enabled
      *
+     * @param causeOfDeath The reason for death to be displayed and sent via death link
      * @param customReturnState Optional custom state to return to instead of restarting
      * @param customBackState Optional custom state for BACK button instead of menu
      */
-    public static function forceDeath(?customReturnState:MusicBeatState = null, ?customBackState:MusicBeatState = null):Void {
-        trace("TrapDeathHandler: Forcing death with custom states");
+    public static function forceDeath(causeOfDeath:String, ?customReturnState:MusicBeatState = null, ?customBackState:MusicBeatState = null):Void {
+        trace("TrapDeathHandler: Forcing death with cause: " + causeOfDeath);
+
+        // Set the cause of death in the backend
+        if (causeOfDeath != null && causeOfDeath != "") {
+            COD.COD = causeOfDeath;
+        } else {
+            COD.COD = "Died in Archipelago trap.";
+        }
+
+        // Trigger death link if enabled and connected
+        if (APEntryState.apGame != null && APEntryState.apGame.info() != null &&
+            ClientPrefs.data.deathlink) {
+            try {
+                APEntryState.apGame.info().sendDeathLink(COD.COD);
+                trace("TrapDeathHandler: Death link sent with cause: " + COD.COD);
+            } catch (e:Dynamic) {
+                trace("TrapDeathHandler: Failed to send death link: " + e);
+            }
+        }
 
         // Try to get boyfriend from PlayState.instance if it exists
         var boyfriend:objects.Character = null;
@@ -46,14 +70,15 @@ class TrapDeathHandler {
     /**
      * Force death with automatic return to main menu
      */
-    public static function forceDeathToMenu():Void {
-        forceDeath(null, new states.MainMenuState());
+    public static function forceDeathToMenu(causeOfDeath:String):Void {
+        var menuState = new states.MainMenuState();
+        forceDeath(causeOfDeath, menuState, menuState);
     }
 
     /**
      * Force death with automatic return to previous state
      */
-    public static function forceDeathToPreviousState(previousState:MusicBeatState):Void {
-        forceDeath(null, previousState);
+    public static function forceDeathToPreviousState(causeOfDeath:String, previousState:MusicBeatState):Void {
+        forceDeath(causeOfDeath, previousState, previousState);
     }
 }

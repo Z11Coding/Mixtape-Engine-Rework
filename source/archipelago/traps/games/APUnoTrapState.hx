@@ -84,7 +84,7 @@ class APUnoTrapState extends UnoTestState {
                         // Player lost - force death
                         updateInstructionText("AI WINS UNO! PREPARE TO DIE!");
                         new FlxTimer().start(2.0, function(timer) {
-                            TrapDeathHandler.forceDeath(null, previousState);
+                            TrapDeathHandler.forceDeath("Lost UNO Challenge", previousState, previousState);
                         });
                     }
                 };

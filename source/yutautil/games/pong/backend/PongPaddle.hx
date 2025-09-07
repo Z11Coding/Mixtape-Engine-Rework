@@ -77,7 +77,7 @@ class PongPaddle {
     public var boostCooldownMax:Float = 3.0; // 3 second cooldown
     public var boostActiveTimer:Float = 0;
     public var boostActiveTime:Float = 0.6; // Time window for boost to affect ball
-    public var boostAmount:Float = 50; // Amount of momentum to add to ball
+    public var boostAmount:Float = 300; // Amount of momentum to add to ball - dramatically increased for major impact
 
     // Callbacks for visual effects
     public var onBoostActivated:Void->Void = null;
