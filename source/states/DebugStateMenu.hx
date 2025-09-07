@@ -9,6 +9,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import games.match3.Match3TestState;
 import objects.Alphabet;
 import states.MainMenuState;
 // import states.MicrophoneTestState;
@@ -107,6 +108,7 @@ class DebugStateMenu extends MusicBeatState {
     private function addKnownStates():Void {
         var knownStates = [
             {className: "states.UnoTestState", displayName: "UNO Test State", category: "Games"},
+            {className: "games.match3.Match3TestState", displayName: "Match 3 Game", category: "Games"},
             {className: "states.PlayState", displayName: "Play State", category: "Core"},
             {className: "states.MainMenuState", displayName: "Main Menu", category: "Core"},
             {className: "states.freeplay.FreeplayState", displayName: "Freeplay", category: "Core"},
@@ -175,7 +177,7 @@ class DebugStateMenu extends MusicBeatState {
         if (className.indexOf("freeplay") != -1) return "Freeplay";
         if (className.indexOf("debug") != -1) return "Debug";
         if (className.indexOf("options") != -1) return "Options";
-        if (className.indexOf("UnoTest") != -1) return "Games";
+        if (className.indexOf("UnoTest") != -1 || className.indexOf("match3") != -1 || className.indexOf("Match3") != -1) return "Games";
         if (className.indexOf("Camera") != -1 || className.indexOf("Microphone") != -1 || className.indexOf("Media") != -1) return "Media";
         if (className.indexOf("Play") != -1 || className.indexOf("Menu") != -1 || className.indexOf("Title") != -1) return "Core";
         if (className.indexOf("Loading") != -1 || className.indexOf("Error") != -1 || className.indexOf("Update") != -1) return "Utility";
@@ -187,6 +189,7 @@ class DebugStateMenu extends MusicBeatState {
     private function getStateDescription(className:String):String {
         return switch(className) {
             case "states.UnoTestState": "Test implementation of UNO card game with custom colors and actions";
+            case "games.match3.Match3TestState": "Complete Match 3 puzzle game with multiple modes, objectives, and power-ups";
             case "states.PlayState": "Main gameplay state where songs are played";
             case "states.MainMenuState": "Main menu of the game";
             case "states.TitleState": "Title screen with intro sequence";

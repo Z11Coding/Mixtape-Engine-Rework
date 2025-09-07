@@ -589,7 +589,7 @@ class UnoTestState extends MusicBeatState {
             var isInitialDeal = previousHandCards.length == 0;
             var newCardIndices:Array<Int> = [];
             var existingCardMap:Map<UnoCard, Int> = new Map();
-            
+
             // Map existing cards to their new positions
             if (!isInitialDeal) {
                 for (i in 0...currentCards.length) {
@@ -648,7 +648,7 @@ class UnoTestState extends MusicBeatState {
                     // Reuse existing sprite and animate to new position
                     cardSprite = existingSprite;
                     playerHandGroup.add(cardSprite);
-                    
+
                     // Animate to new position if it changed
                     if (Math.abs(cardSprite.x - targetX) > 5 || Math.abs(cardSprite.y - targetY) > 5) {
                         var tween = FlxTween.tween(cardSprite, {x: targetX, y: targetY}, 0.3, {
@@ -660,12 +660,12 @@ class UnoTestState extends MusicBeatState {
                     // Create new sprite for new card
                     cardSprite = createCardSprite(card, targetX, targetY);
                     playerHandGroup.add(cardSprite);
-                    
+
                     if (isInitialDeal) {
                         // Initial deal - animate from above
                         cardSprite.alpha = 0;
                         cardSprite.y -= 50;
-                        
+
                         var animDelay = i * 0.1; // Stagger animations
                         var fadeIn = FlxTween.tween(cardSprite, {alpha: 1, y: targetY}, 0.3, {
                             ease: FlxEase.sineOut,
@@ -676,27 +676,27 @@ class UnoTestState extends MusicBeatState {
                         // Drawn card - fly from deck to position
                         var deckX = FlxG.width * 0.5 + 50; // Deck position (right of center pile)
                         var deckY = 150;
-                        
+
                         cardSprite.x = deckX;
                         cardSprite.y = deckY;
                         cardSprite.alpha = 0.8;
                         cardSprite.scale.set(1.5, 1.5); // Start larger (deck size)
-                        
+
                         // Animate flying to hand position
                         var flyTween = FlxTween.tween(cardSprite, {
-                            x: targetX, 
-                            y: targetY, 
+                            x: targetX,
+                            y: targetY,
                             alpha: 1
                         }, 0.5, {
                             ease: FlxEase.sineOut
                         });
                         cardAnimations.set(cardSprite, flyTween);
-                        
+
                         // Scale down to hand size
                         FlxTween.tween(cardSprite.scale, {x: 1, y: 1}, 0.5, {ease: FlxEase.sineOut});
                     }
                 }
-                
+
                 // Store position for next update
                 previousCardPositions.set(card, {x: targetX, y: targetY});
             }
@@ -721,7 +721,7 @@ class UnoTestState extends MusicBeatState {
 
             // Update previous hand state
             previousHandCards = currentCards.copy();
-            
+
         } catch (e:Dynamic) {
             trace("Error updating player hand display: " + e);
         }
@@ -908,7 +908,7 @@ class UnoTestState extends MusicBeatState {
         isPlayingCard = true;
         resetCardSelection();
         Cursor.cursorMode = Default;
-        
+
         selectedCardIndex = cardIndex;
 
         if (card.isWildCard()) {
@@ -923,11 +923,11 @@ class UnoTestState extends MusicBeatState {
                     cardAnimations.get(cardSprite).cancel();
                     cardAnimations.remove(cardSprite);
                 }
-                
+
                 // Reset sprite to base state before animation
                 cardSprite.color = FlxColor.WHITE;
                 cardSprite.angle = 0;
-                
+
                 animateCardPlay(cardSprite, function() {
                     // The card play happens after animation completes
                     var success = unoGame.playCard(currentPlayer, cardIndex);
@@ -988,7 +988,7 @@ class UnoTestState extends MusicBeatState {
                 cardAnimations.get(selectedCardSprite).cancel();
                 cardAnimations.remove(selectedCardSprite);
             }
-            
+
             // Reset sprite to normal state
             selectedCardSprite.y = FlxG.height - 200;
             selectedCardSprite.color = FlxColor.WHITE;
@@ -1019,7 +1019,7 @@ class UnoTestState extends MusicBeatState {
         // Check if this is a wild card by examining its color/type
         var isWildCard = false;
         var cardColor = FlxColor.WHITE; // Default color
-        
+
         // Try to get the UnoCard data to check if it's wild
         for (i in 0...playerHandGroup.length) {
             var sprite = playerHandGroup.members[i];
@@ -1038,13 +1038,13 @@ class UnoTestState extends MusicBeatState {
         if (isWildCard) {
             // For wild cards, first tween color then animate movement
             var targetColor = getWildCardChosenColor();
-            
+
             // Color preview animation
             var colorTween = FlxTween.color(cardSprite, 0.3, originalColor, targetColor, {
                 ease: FlxEase.sineInOut,
                 onComplete: function(_) {
                     cardAnimations.remove(cardSprite);
-                    
+
                     // Now animate movement to center
                     var moveTween = FlxTween.tween(cardSprite, {
                         x: centerX,
@@ -1061,7 +1061,7 @@ class UnoTestState extends MusicBeatState {
                         }
                     });
                     cardAnimations.set(cardSprite, moveTween);
-                    
+
                     // Add slight rotation for style
                     FlxTween.angle(cardSprite, 0, 8, 0.25, {ease: FlxEase.sineOut});
                 }
@@ -1112,7 +1112,7 @@ class UnoTestState extends MusicBeatState {
         // Shake animation
         var shakeCount = 0;
         var maxShakes = 6;
-        
+
         function doShake() {
             if (shakeCount >= maxShakes) {
                 // Return to original position and color
@@ -1121,7 +1121,7 @@ class UnoTestState extends MusicBeatState {
                 cardAnimations.remove(cardSprite);
                 return;
             }
-            
+
             var targetX = originalX + (shakeCount % 2 == 0 ? shakeAmount : -shakeAmount);
             var tween = FlxTween.tween(cardSprite, {x: targetX}, 0.05, {
                 ease: FlxEase.sineInOut,
@@ -1132,7 +1132,7 @@ class UnoTestState extends MusicBeatState {
             });
             cardAnimations.set(cardSprite, tween);
         }
-        
+
         doShake();
 
         // Color fade back to normal
@@ -1265,11 +1265,11 @@ class UnoTestState extends MusicBeatState {
                 if (humanPlayer != null && humanPlayer.isHuman) {
                     // Set playing flag to prevent hover interference
                     isPlayingCard = true;
-                    
+
                     // Animate the wild card being played
-                    var cardSprite = (selectedCardIndex >= 0 && selectedCardIndex < playerHandGroup.length) ? 
+                    var cardSprite = (selectedCardIndex >= 0 && selectedCardIndex < playerHandGroup.length) ?
                                     playerHandGroup.members[selectedCardIndex] : null;
-                    
+
                     if (cardSprite != null) {
                         // Cancel any existing animations and reset sprite
                         if (cardAnimations.exists(cardSprite)) {
@@ -1278,7 +1278,7 @@ class UnoTestState extends MusicBeatState {
                         }
                         cardSprite.color = FlxColor.WHITE;
                         cardSprite.angle = 0;
-                        
+
                         animateCardPlay(cardSprite, function() {
                             // Play the card after animation
                             var success = unoGame.playCard(humanPlayer, selectedCardIndex, chosenColor);
