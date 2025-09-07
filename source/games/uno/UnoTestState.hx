@@ -61,6 +61,7 @@ class UnoTestState extends MusicBeatState {
     private var isFirstCardPlayed:Bool = false;
     private var previousHandCards:Array<UnoCard> = []; // Track previous hand state
     private var isPlayingCard:Bool = false; // Prevent hover effects during card play
+    private var previousCardPositions:Map<UnoCard, {x:Float, y:Float}> = new Map(); // Track card positions
 
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
@@ -587,14 +588,17 @@ class UnoTestState extends MusicBeatState {
             // Determine if this is initial deal or just an update
             var isInitialDeal = previousHandCards.length == 0;
             var newCardIndices:Array<Int> = [];
+            var existingCardMap:Map<UnoCard, Int> = new Map();
             
-            // Find which cards are new
+            // Map existing cards to their new positions
             if (!isInitialDeal) {
                 for (i in 0...currentCards.length) {
+                    var card = currentCards[i];
                     var isNewCard = true;
-                    for (oldCard in previousHandCards) {
-                        if (currentCards[i] == oldCard) {
+                    for (j in 0...previousHandCards.length) {
+                        if (previousHandCards[j] == card) {
                             isNewCard = false;
+                            existingCardMap.set(card, i);
                             break;
                         }
                     }
@@ -604,47 +608,114 @@ class UnoTestState extends MusicBeatState {
                 }
             }
 
-            // Clear existing animations but keep sprites for repositioning
-            var existingSprites:Array<FlxSprite> = [];
-            for (cardSprite in playerHandGroup.members) {
-                if (cardSprite != null) {
-                    if (cardAnimations.exists(cardSprite)) {
-                        cardAnimations.get(cardSprite).cancel();
-                        cardAnimations.remove(cardSprite);
-                    }
-                    existingSprites.push(cardSprite);
+            // Store current sprites for repositioning
+            var currentSprites:Array<{sprite:FlxSprite, card:UnoCard}> = [];
+            for (i in 0...playerHandGroup.length) {
+                var sprite = playerHandGroup.members[i];
+                if (sprite != null && i < previousHandCards.length) {
+                    currentSprites.push({sprite: sprite, card: previousHandCards[i]});
                 }
             }
 
-            // Clear and rebuild hand display
-            for (sprite in existingSprites) {
-                sprite.destroy();
+            // Clear existing animations
+            for (sprite in currentSprites) {
+                if (cardAnimations.exists(sprite.sprite)) {
+                    cardAnimations.get(sprite.sprite).cancel();
+                    cardAnimations.remove(sprite.sprite);
+                }
             }
+
+            // Clear group but keep sprites for reuse/repositioning
             playerHandGroup.clear();
 
-            // Create new sprites for all cards
+            // Create new hand display
             for (i in 0...currentCards.length) {
                 var card = currentCards[i];
-                var cardSprite = createCardSprite(card, startX + (i * cardSpacing), y);
-                
-                // Determine animation type
-                if (isInitialDeal || newCardIndices.contains(i)) {
-                    // New card - animate from above
-                    cardSprite.alpha = 0;
-                    cardSprite.y -= 50;
-                    
+                var targetX = startX + (i * cardSpacing);
+                var targetY = y;
+                var cardSprite:FlxSprite = null;
+
+                // Check if this card already has a sprite
+                var existingSprite:FlxSprite = null;
+                for (spriteData in currentSprites) {
+                    if (spriteData.card == card) {
+                        existingSprite = spriteData.sprite;
+                        break;
+                    }
+                }
+
+                if (existingSprite != null) {
+                    // Reuse existing sprite and animate to new position
+                    cardSprite = existingSprite;
                     playerHandGroup.add(cardSprite);
                     
-                    var animDelay = isInitialDeal ? i * 0.1 : 0; // Stagger only for initial deal
-                    var fadeIn = FlxTween.tween(cardSprite, {alpha: 1, y: y}, 0.3, {
-                        ease: FlxEase.sineOut,
-                        startDelay: animDelay
-                    });
-                    cardAnimations.set(cardSprite, fadeIn);
+                    // Animate to new position if it changed
+                    if (Math.abs(cardSprite.x - targetX) > 5 || Math.abs(cardSprite.y - targetY) > 5) {
+                        var tween = FlxTween.tween(cardSprite, {x: targetX, y: targetY}, 0.3, {
+                            ease: FlxEase.sineOut
+                        });
+                        cardAnimations.set(cardSprite, tween);
+                    }
                 } else {
-                    // Existing card - slide to new position if needed
+                    // Create new sprite for new card
+                    cardSprite = createCardSprite(card, targetX, targetY);
                     playerHandGroup.add(cardSprite);
-                    // No animation needed for existing cards in same position
+                    
+                    if (isInitialDeal) {
+                        // Initial deal - animate from above
+                        cardSprite.alpha = 0;
+                        cardSprite.y -= 50;
+                        
+                        var animDelay = i * 0.1; // Stagger animations
+                        var fadeIn = FlxTween.tween(cardSprite, {alpha: 1, y: targetY}, 0.3, {
+                            ease: FlxEase.sineOut,
+                            startDelay: animDelay
+                        });
+                        cardAnimations.set(cardSprite, fadeIn);
+                    } else {
+                        // Drawn card - fly from deck to position
+                        var deckX = FlxG.width * 0.5 + 50; // Deck position (right of center pile)
+                        var deckY = 150;
+                        
+                        cardSprite.x = deckX;
+                        cardSprite.y = deckY;
+                        cardSprite.alpha = 0.8;
+                        cardSprite.scale.set(1.5, 1.5); // Start larger (deck size)
+                        
+                        // Animate flying to hand position
+                        var flyTween = FlxTween.tween(cardSprite, {
+                            x: targetX, 
+                            y: targetY, 
+                            alpha: 1
+                        }, 0.5, {
+                            ease: FlxEase.sineOut
+                        });
+                        cardAnimations.set(cardSprite, flyTween);
+                        
+                        // Scale down to hand size
+                        FlxTween.tween(cardSprite.scale, {x: 1, y: 1}, 0.5, {ease: FlxEase.sineOut});
+                    }
+                }
+                
+                // Store position for next update
+                previousCardPositions.set(card, {x: targetX, y: targetY});
+            }
+
+            // Destroy any leftover sprites that weren't reused
+            for (spriteData in currentSprites) {
+                var wasReused = false;
+                for (newCard in currentCards) {
+                    if (spriteData.card == newCard) {
+                        wasReused = true;
+                        break;
+                    }
+                }
+                if (!wasReused) {
+                    if (cardAnimations.exists(spriteData.sprite)) {
+                        cardAnimations.get(spriteData.sprite).cancel();
+                        cardAnimations.remove(spriteData.sprite);
+                    }
+                    spriteData.sprite.destroy();
                 }
             }
 
@@ -927,6 +998,15 @@ class UnoTestState extends MusicBeatState {
     }
 
     /**
+     * Get the color chosen for a wild card (simplified - you might want to show a color picker UI)
+     */
+    private function getWildCardChosenColor():FlxColor {
+        // For now, randomly choose a color - in a real game you'd show a color picker
+        var colors = [FlxColor.RED, FlxColor.BLUE, FlxColor.GREEN, FlxColor.YELLOW];
+        return colors[FlxG.random.int(0, colors.length - 1)];
+    }
+
+    /**
      * Animate card being played
      */
     private function animateCardPlay(cardSprite:FlxSprite, onComplete:Void->Void):Void {
@@ -936,31 +1016,78 @@ class UnoTestState extends MusicBeatState {
             return;
         }
 
-        // Store original values for safety
-        var originalY = FlxG.height - 200;
+        // Check if this is a wild card by examining its color/type
+        var isWildCard = false;
+        var cardColor = FlxColor.WHITE; // Default color
+        
+        // Try to get the UnoCard data to check if it's wild
+        for (i in 0...playerHandGroup.length) {
+            var sprite = playerHandGroup.members[i];
+            if (sprite == cardSprite && i < unoGame.players[0].hand.cards.length) {
+                var card = unoGame.players[0].hand.cards[i];
+                isWildCard = card.isWildCard();
+                break;
+            }
+        }
 
-        // Animate card flying to the center
+        // Store original values for safety
+        var originalColor = cardSprite.color;
         var centerX = FlxG.width * 0.5 - 40;
         var centerY = 150;
 
-        var tween = FlxTween.tween(cardSprite, {
-            x: centerX,
-            y: centerY,
-            alpha: 0.8
-        }, 0.25, {
-            ease: FlxEase.sineOut,
-            onComplete: function(_) {
-                cardAnimations.remove(cardSprite);
-                // Reset cursor and playing state immediately
-                Cursor.cursorMode = Default;
-                isPlayingCard = false;
-                onComplete();
-            }
-        });
-        cardAnimations.set(cardSprite, tween);
+        if (isWildCard) {
+            // For wild cards, first tween color then animate movement
+            var targetColor = getWildCardChosenColor();
+            
+            // Color preview animation
+            var colorTween = FlxTween.color(cardSprite, 0.3, originalColor, targetColor, {
+                ease: FlxEase.sineInOut,
+                onComplete: function(_) {
+                    cardAnimations.remove(cardSprite);
+                    
+                    // Now animate movement to center
+                    var moveTween = FlxTween.tween(cardSprite, {
+                        x: centerX,
+                        y: centerY,
+                        alpha: 0.8
+                    }, 0.25, {
+                        ease: FlxEase.sineOut,
+                        onComplete: function(_) {
+                            cardAnimations.remove(cardSprite);
+                            // Reset cursor and playing state immediately
+                            Cursor.cursorMode = Default;
+                            isPlayingCard = false;
+                            onComplete();
+                        }
+                    });
+                    cardAnimations.set(cardSprite, moveTween);
+                    
+                    // Add slight rotation for style
+                    FlxTween.angle(cardSprite, 0, 8, 0.25, {ease: FlxEase.sineOut});
+                }
+            });
+            cardAnimations.set(cardSprite, colorTween);
+        } else {
+            // Regular card - just animate movement to center
+            var tween = FlxTween.tween(cardSprite, {
+                x: centerX,
+                y: centerY,
+                alpha: 0.8
+            }, 0.25, {
+                ease: FlxEase.sineOut,
+                onComplete: function(_) {
+                    cardAnimations.remove(cardSprite);
+                    // Reset cursor and playing state immediately
+                    Cursor.cursorMode = Default;
+                    isPlayingCard = false;
+                    onComplete();
+                }
+            });
+            cardAnimations.set(cardSprite, tween);
 
-        // Add slight rotation for style
-        FlxTween.angle(cardSprite, 0, 8, 0.25, {ease: FlxEase.sineOut});
+            // Add slight rotation for style
+            FlxTween.angle(cardSprite, 0, 8, 0.25, {ease: FlxEase.sineOut});
+        }
     }
 
     /**
