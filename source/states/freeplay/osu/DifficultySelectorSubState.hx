@@ -1,15 +1,14 @@
 package states.freeplay.osu;
-    
-// import flixel.FlxSprite;
-import flixel.input.keyboard.FlxKey;
-import states.freeplay.OsuFreeplayState;
-import states.freeplay.backend.DifficultyStars;
-import haxe.Json;
-import lime.utils.Assets;
 
 import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
+// import flixel.FlxSprite;
+import flixel.input.keyboard.FlxKey;
+import haxe.Json;
+import lime.utils.Assets;
+import states.freeplay.OsuFreeplayState;
+import states.freeplay.backend.DifficultyStars;
 
 class DifficultySelectorSubState extends MusicBeatSubstate
 {
@@ -43,7 +42,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         sprite = new FlxSprite().loadGraphic(Paths.image('menudifficulties/${Difficulty.list[difficulty].toLowerCase()}'));
         sprite.screenCenter();
         add(sprite);
-        
+
         difficultyStars = new DifficultyStars(0, 0);
 		difficultyStars.visible = true;
         difficultyStars.scrollFactor.set();
@@ -56,7 +55,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 		missingTextBG.alpha = 0.6;
 		missingTextBG.visible = false;
 		add(missingTextBG);
-		
+
 		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
 		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		missingText.scrollFactor.set();
@@ -95,7 +94,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 		difficultyStars.setNumber(difficulty);
         showStars();
 	}
-	
+
 	/**
 	 * Make the album stars visible.
 	 */
@@ -179,7 +178,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             }
 
             var curDiff:String = Difficulty.list[difficulty].toLowerCase();
-            setDifficultyStars(actualRating.get(curDiff));
+            setDifficultyStars(fpManager.metadata.get(curDiff));
         } catch(e) {
             difficultyStars.visible = false;
             trace("No Metadata Found!");
@@ -204,7 +203,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         if (sprite == null)
         {
             sprite = new FlxSprite(0, 0);
-        
+
             if (Paths.exists(Paths.file('images/menudifficulties/${diff}.xml')))
             {
                 sprite.frames = Paths.getSparrowAtlas('menudifficulties/${diff}');
@@ -215,7 +214,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             {
                 sprite.loadGraphic(Paths.image('menudifficulties/${diff}'));
             }
-        
+
             difficultySprites.set(diff, sprite);
         }
 

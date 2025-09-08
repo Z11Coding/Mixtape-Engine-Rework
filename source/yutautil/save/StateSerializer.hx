@@ -465,7 +465,7 @@ class StateSerializer {
                 var restoredValue = convertValueFromJSON(value);
                 Reflect.setField(instance, field, restoredValue);
             } catch (e:Dynamic) {
-                trace('Warning: Could not restore field ${field}: ${e}');
+                //trace('Warning: Could not restore field ${field}: ${e}');
             }
         }
     }    /**

@@ -732,7 +732,7 @@ class MusicBeatState extends FlxState
 			return;
 		}
 
-		// Add a rare chance (5%) to use TransitionState instead of normal transition
+		// Add a "rare" chance (5%) to use TransitionState instead of normal transition
 		if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn)
 		{
 			// Use TransitionState with random transition type

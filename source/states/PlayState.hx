@@ -9073,16 +9073,24 @@ class PlayState extends MusicBeatState
 		}
 
 		#if LUA_ALLOWED
-		for (lua in luaArray)
-		{
-			lua.call('onDestroy', []);
-			lua.stop();
+		if (luaArray != null && luaArray.length > 0) { //if there's nothing, simply dont.
+			for (lua in luaArray)
+			{
+				if (lua != null) {
+					lua.call('onDestroy', []);
+					lua.stop();
+				}
+			}
 		}
 
-		for (lua in legacyLuaArray)
-		{
-			lua.call('onDestroy', []);
-			lua.stop();
+		if (legacyLuaArray != null && legacyLuaArray.length > 0) { //if there's nothing, simply dont.
+			for (lua in legacyLuaArray)
+			{
+				if (lua != null) {
+					lua.call('onDestroy', []);
+					lua.stop();
+				}
+			}
 		}
 		luaArray = null;
 		legacyLuaArray = null;
@@ -9090,12 +9098,14 @@ class PlayState extends MusicBeatState
 		#end
 
 		#if HSCRIPT_ALLOWED
+		if (hscriptArray != null && hscriptArray.length > 0) { //if there's nothing, simply dont.
 		for (script in hscriptArray)
 			if(script != null)
 			{
 				if(script.exists('onDestroy')) script.call('onDestroy');
 				script.destroy();
 			}
+		}
 
 		hscriptArray = null;
 		#end

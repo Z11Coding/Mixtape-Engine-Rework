@@ -1,19 +1,20 @@
 package yutautil;
 
 import cpp.Float32;
-//import states.PlayState.LuaScript;
-import yutautil.Threader;
-import yutautil.Threader.MemLimitThreadQ;
-import yutautil.modules.SyncUtils;
 import cpp.abi.Abi;
 import haxe.Constraints.IMap;
 import haxe.ds.StringMap;
+// import states.PlayState.LuaScript;
+import yutautil.Threader.MemLimitThreadQ;
+import yutautil.Threader;
+import yutautil.modules.SyncUtils;
+
 using yutautil.ChanceSelector;
-using yutautil.Table;
-using yutautil.DataStorage;
-using yutautil.IterSingle;
-using yutautil.HoldableVariable;
 using yutautil.CollectionUtils;
+using yutautil.DataStorage;
+using yutautil.HoldableVariable;
+using yutautil.IterSingle;
+using yutautil.Table;
 
 // @:inline
 // enum ListFunc {
@@ -1493,11 +1494,11 @@ class CollectionUtils
 		return pattern.match(input);
 	}
 
-	
+
 
 	/**
 	 * Sums a list of numbers provided as a `OneOrMore<FlexibleNum>`.
-	 * 
+	 *
 	 * @param numbers A collection containing one or more numbers of type `FlexibleNum`.
 	 * @return The sum of all numbers as a `Float`.
 	 */
@@ -1513,7 +1514,7 @@ class CollectionUtils
 	}
 	/**
 	 * Sums all elements in an array of `Float` values.
-	 * 
+	 *
 	 * @param numbers An array of `Float` numbers to sum.
 	 * @return The sum of all elements as a `Float`.
 	 */
@@ -1528,7 +1529,7 @@ class CollectionUtils
 	}
 	/**
 	 * Sums all elements in an array of `Int` values.
-	 * 
+	 *
 	 * @param numbers An array of `Int` numbers to sum.
 	 * @return The sum of all elements as a `Float`.
 	 */
@@ -2823,6 +2824,22 @@ class CollectionUtils
 		default:
 			throw "Unsupported LuaScript type";
 		}
+	}
+
+	public static function mergeWithJson<T>(target:T,source:Dynamic,?ignoreFields:Array<String>):T{
+		if(ignoreFields == null) ignoreFields = [];
+		var fillInFields = Type.getInstanceFields(Type.getClass(target)).filter(s -> !ignoreFields.contains(s));
+
+		if(source == null) return target;
+		for (field in Reflect.fields(source)){
+			if(fillInFields.contains(field)) Reflect.setField(target,field,Reflect.field(source,field));
+			#if debug
+			else if (!ignoreFields.contains(field)) throw 'Class ${Type.getClassName(Type.getClass(target))} doesn\'t contain field field $field';
+			#else
+			else if (!ignoreFields.contains(field)) trace('Class ${Type.getClassName(Type.getClass(target))} doesn\'t contain field field $field');
+			#end
+		}
+		return target;
 	}
 
 

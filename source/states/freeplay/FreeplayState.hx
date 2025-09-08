@@ -330,6 +330,8 @@ class FreeplayState extends MusicBeatState
 			hh.push({item: "beat battle", chance: 5}); // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
 		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode)
 			hh.push({item: "beat battle 2", chance: 5}); // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotgeostar && !APEntryState.inArchipelagoMode)
+			hh.push({item: "geostar", chance: 5}); // 5% chance to do GeoStar if not already unlocked or in Archipelago Mode
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			ticketCounter = new FlxText(FlxG.width - 470, FlxG.height - 630, 0, "0/0", 32);
@@ -886,6 +888,11 @@ class FreeplayState extends MusicBeatState
 									FlxG.save.data.gotbeatbattle2 = true;
 									FlxG.save.flush();
 									Achievements.addScore("search_songs");
+								case "geostar":
+									Song.loadFromJson('geostar-hard', 'geostar');
+									FlxG.save.data.gotgeostar = true;
+									FlxG.save.flush();
+									Achievements.addScore("search_songs");
 								case "normal error":
 									trace('ERROR! NO SONGS FOUND!');
 
@@ -1226,7 +1233,7 @@ class FreeplayState extends MusicBeatState
 
 				switch (fpManager.songList[curSelected].songName)
 				{
-					case 'Small Argument' | 'Beat Battle 2':
+					case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
 						Difficulty.list = ['Hard'];
 					case "Beat Battle":
 						Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];

@@ -5,6 +5,7 @@ import backend.WeekData;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import lime.utils.Assets;
+import metadata.STMetaFile.FreeplayMetaJSON;
 import metadata.STMetaFile.MetadataFile;
 import states.CategoryState;
 import states.PlayState;
@@ -48,6 +49,7 @@ class FreeplayManager {
 
     public var metadata:Map<String, MetadataFile> = new Map<String, MetadataFile>();
     var metadataFile:MetadataFile;
+    var pMetadataFile:FreeplayMetaJSON;
 	var hasMetadataFile:Bool = false;
 
     public function new() {
@@ -206,16 +208,45 @@ class FreeplayManager {
                     colors = [146, 113, 253];
                 }
 
-                //This is for later
-                var musician:String = 'unknown';
-                if (FileSystem.exists(Paths.json(song[0].toLowerCase() + "/credits")))
-                musician = File.getContent((Paths.json(song[0].toLowerCase() + "/credits")));
-
 
                 try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
                 catch(e) {
                     //trace("can't.");
                     metadataFile = null;
+                }
+
+                try {
+                    pMetadataFile = new FreeplayMetaJSON().mergeWithJson(Json.parse(Paths.getTextFromFile('data/${Paths.formatToSongPath(song[0].toLowerCase())}/metadata.json')));
+                    metadataFile = {
+                        song: {
+                            name: song[0],
+                            mod: pMetadataFile.freeplayWeekName,
+                            charter: "???",
+                            artist: "???"
+                        },
+                        freeplay: {
+                            ratings: [],
+                            bg: "menuDesat",
+                            album: pMetadataFile.albumId
+                        },
+                    };
+                    var diffStr:String = leWeek.difficulties;
+                    if(diffStr != null && diffStr.length > 0)
+                    {
+                        var diffs:Array<String> = diffStr.trim().split(',');
+                        for (diff in diffs) {
+                            if(diff != null)
+                            {
+                                diff = diff.trim();
+                                if(diff.length < 1) diffs.remove(diff);
+                            }
+                            metadataFile.freeplay.ratings.set(diff, pMetadataFile.songRating);
+                        }
+                    }
+                }
+                catch(e) {
+                    //trace("can't.");
+                    pMetadataFile = null;
                 }
 
                 try
@@ -280,6 +311,8 @@ class FreeplayManager {
                 addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
             if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
         }
         else
         {
@@ -289,9 +322,11 @@ class FreeplayManager {
                 addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
             if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (Std.string('GeoStar').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
         }
 
-        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument"]) {
+        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument", "GeoStar"]) {
             try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
             catch(e) {
                 //trace("can't.");
@@ -331,9 +366,9 @@ class FreeplayManager {
         }
     }
 
-    public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Array<Array<Dynamic>>)
+    public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Array<Array<Dynamic>>, ?charter:String = "???", ?artist:String = "???")
 	{
-		songs.push(new GlobalSongMetadata(songName, weekNum, songCharacter, color));
+		songs.push(new GlobalSongMetadata(songName, weekNum, songCharacter, color, charter, artist));
 	}
 
     public function isModName(name:String):Bool {
@@ -460,13 +495,19 @@ class GlobalSongMetadata
 	public var folder:String = "";
 	public var lastDifficulty:String = null;
 
-	public function new(song:String, week:Int, songCharacter:String, color:Array<Array<Dynamic>>)
+    // V-Slice/P-Slice compat
+    public var charter:String = "???";
+    public var artist:String = "???";
+
+	public function new(song:String, week:Int, songCharacter:String, color:Array<Array<Dynamic>>, ?charter:String = "???", ?artist:String = "???")
 	{
 		this.songName = song;
 		this.week = week;
 		this.songCharacter = songCharacter;
 		this.color = color;
 		this.folder = Mods.currentModDirectory;
+        this.charter = charter;
+        this.artist = artist;
 		if(this.folder == null) this.folder = '';
 	}
 }

@@ -54,12 +54,13 @@
 	</section>
 
 	<!-- Apparently I can just drop this in and it'll work so i'll be the judge of that -->
+	<!-- As it turns out, you can indeed just drop it in and it'll work -->
 
 	<haxedef name="FM_ENGINE" value="PSYCH"/>
 	<haxedef name="FM_ENGINE_VERSION" value="1.0"/>
 
 	<haxelib name="funkin-modchart" />
-	<haxeflag name="--macro" value="modchart.core.macros.Macro.includeFiles()"/>
+	<haxeflag name="--macro" value="modchart.backend.macros.Macro.includeFiles()"/>
 
 	<!-- ____________________________ Window Settings ___________________________ -->
 

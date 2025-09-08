@@ -1,5 +1,6 @@
 package metadata;
 
+// Mixtape Engine
 typedef MetadataFile = {
     var song:SongMetaSection;
     var freeplay:FreeplayMeta;
@@ -9,7 +10,7 @@ typedef SongMetaSection = {
     var name:String;
     var artist:String;
     var charter:String;
-    var mod:String;    
+    var mod:String;
 }
 
 typedef FreeplayMeta = {
@@ -18,6 +19,7 @@ typedef FreeplayMeta = {
     var ratings:Map<String, Int>;
 }
 
+// V-Slice Compat
 typedef VSliceMetadataFile = {
     var version:String;
     var timeFormat:String;
@@ -45,4 +47,19 @@ typedef VSliceCharacterMeta = {
     var girlfriend:String;
     var opponent:String;
     var altInstrumentals:Array<String>;
+}
+
+// P-Slice Compat
+class FreeplayMetaJSON {
+    public function new() {}
+    public var songRating:Int = -1;
+    public var allowNewTag:Bool = false;
+    public var allowErectVariants:Bool = false;
+    public var freeplayPrevStart:Float = 0; // those are in seconds btw
+    public var freeplayPrevEnd:Float = 0.2;// and this too
+    public var freeplaySongLength:Float = 1;// and this too
+    public var freeplayCharacter:String = "";
+    public var albumId:String = "";
+    public var altInstrumentalSongs:String = "";
+    public var freeplayWeekName:String = "";
 }
