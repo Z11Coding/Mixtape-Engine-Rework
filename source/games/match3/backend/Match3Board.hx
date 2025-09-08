@@ -63,7 +63,7 @@ class Match3Board {
     /**
      * Generate a random piece that won't create immediate matches
      */
-    private function generateRandomPiece(x:Int, y:Int):Match3Piece {
+    public function generateRandomPiece(x:Int, y:Int):Match3Piece {
         var attempts = 0;
         var piece:Match3Piece;
 
@@ -251,68 +251,115 @@ class Match3Board {
     }
 
     /**
-     * Find all current matches on the board
+     * Synchronize all piece coordinates with their grid positions
+     */
+    public function synchronizeCoordinates():Void {
+        for (x in 0...width) {
+            for (y in 0...height) {
+                var piece = grid[x][y];
+                if (piece != null) {
+                    piece.x = x;
+                    piece.y = y;
+                }
+            }
+        }
+    }
+
+    /**
+     * Find all current matches on the board using precise grid coordinate checking
      */
     public function findAllMatches():Array<Array<Match3Piece>> {
         var matches:Array<Array<Match3Piece>> = [];
+        var processedPositions:Array<Array<Bool>> = [];
 
-        // Check horizontal matches
-        for (y in 0...height) {
-            var currentMatch:Array<Match3Piece> = [];
-            var lastPiece:Match3Piece = null;
-
-            for (x in 0...width) {
-                var piece = grid[x][y];
-
-                if (piece != null && piece.type != OBSTACLE) {
-                    if (lastPiece != null && piece.canMatchWith(lastPiece)) {
-                        if (currentMatch.length == 0) {
-                            currentMatch.push(lastPiece);
-                        }
-                        currentMatch.push(piece);
-                    } else {
-                        if (currentMatch.length >= 3) {
-                            matches.push(currentMatch);
-                        }
-                        currentMatch = [];
-                    }
-                }
-
-                lastPiece = piece;
-            }
-
-            if (currentMatch.length >= 3) {
-                matches.push(currentMatch);
+        // Initialize processed positions tracking
+        for (x in 0...width) {
+            processedPositions[x] = [];
+            for (y in 0...height) {
+                processedPositions[x][y] = false;
             }
         }
 
-        // Check vertical matches
-        for (x in 0...width) {
-            var currentMatch:Array<Match3Piece> = [];
-            var lastPiece:Match3Piece = null;
-
-            for (y in 0...height) {
+        // Find horizontal matches
+        for (y in 0...height) {
+            var x = 0;
+            while (x < width) {
                 var piece = grid[x][y];
 
-                if (piece != null && piece.type != OBSTACLE) {
-                    if (lastPiece != null && piece.canMatchWith(lastPiece)) {
-                        if (currentMatch.length == 0) {
-                            currentMatch.push(lastPiece);
-                        }
-                        currentMatch.push(piece);
-                    } else {
-                        if (currentMatch.length >= 3) {
-                            matches.push(currentMatch);
-                        }
-                        currentMatch = [];
+                if (piece == null || piece.type == OBSTACLE || processedPositions[x][y]) {
+                    x++;
+                    continue;
+                }
+
+                // Start a potential match
+                var match:Array<Match3Piece> = [piece];
+                var matchX = x + 1;
+
+                // Extend the match as far as possible
+                while (matchX < width) {
+                    var nextPiece = grid[matchX][y];
+                    if (nextPiece == null || nextPiece.type == OBSTACLE || !piece.canMatchWith(nextPiece)) {
+                        break;
+                    }
+                    match.push(nextPiece);
+                    matchX++;
+                }
+
+                // If we have a valid match (3 or more pieces)
+                if (match.length >= 3) {
+                    matches.push(match);
+                    // Mark all positions in this match as processed
+                    for (i in 0...match.length) {
+                        processedPositions[x + i][y] = true;
                     }
                 }
 
-                lastPiece = piece;
+                x = matchX; // Skip to the next unprocessed position
             }
+        }
 
-            if (currentMatch.length >= 3) {
-                matches.push(currentMatch);
+        // Reset processed positions for vertical matches
+        for (x in 0...width) {
+            for (y in 0...height) {
+                processedPositions[x][y] = false;
+            }
+        }
+
+        // Find vertical matches
+        for (x in 0...width) {
+            var y = 0;
+            while (y < height) {
+                var piece = grid[x][y];
+
+                if (piece == null || piece.type == OBSTACLE || processedPositions[x][y]) {
+                    y++;
+                    continue;
+                }
+
+                // Start a potential match
+                var match:Array<Match3Piece> = [piece];
+                var matchY = y + 1;
+
+                // Extend the match as far as possible
+                while (matchY < height) {
+                    var nextPiece = grid[x][matchY];
+                    if (nextPiece == null || nextPiece.type == OBSTACLE || !piece.canMatchWith(nextPiece)) {
+                        break;
+                    }
+                    match.push(nextPiece);
+                    matchY++;
+                }
+
+                // If we have a valid match (3 or more pieces)
+                if (match.length >= 3) {
+                    matches.push(match);
+                    // Mark all positions in this match as processed
+                    for (i in 0...match.length) {
+                        processedPositions[x][y + i] = true;
+                    }
+                }
+
+                y = matchY; // Skip to the next unprocessed position
             }
         }
 

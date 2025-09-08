@@ -388,6 +388,18 @@ class Match3Game {
     }
 
     /**
+     * Add points to a player's score
+     */
+    public function addToScore(points:Int, player:Int = 0):Void {
+        if (player >= 0 && player < scores.length) {
+            scores[player] += points;
+            if (onScoreChanged != null) {
+                onScoreChanged(player, scores[player]);
+            }
+        }
+    }
+
+    /**
      * Get game progress (for objectives)
      */
     public function getProgress():Float {
