@@ -76,7 +76,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         PlayState.storyWeek = song.week;
         switch (song.songName)
         {
-            case 'Small Argument' | 'Beat Battle 2':
+            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
                 Difficulty.list = ['Hard'];
             case "Beat Battle":
                 Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
@@ -165,8 +165,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 
         // I really don't wanna talk about it
         try {
-            var jsonMeta:Dynamic = Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song.songName.toLowerCase()) + '/meta')));
-            var ratingValue:Dynamic = jsonMeta.freeplay.ratings;
+            var ratingValue:Dynamic = OsuFreeplayState.instance.fpManager.metadata.get(song.songName.toLowerCase()).freeplay.ratings;
             var actualRating:Map<String, Int> = new Map<String, Int>();
 
             for (item in Reflect.fields(ratingValue)) {
@@ -178,7 +177,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             }
 
             var curDiff:String = Difficulty.list[difficulty].toLowerCase();
-            setDifficultyStars(fpManager.metadata.get(curDiff));
+            setDifficultyStars(actualRating.get(curDiff));
         } catch(e) {
             difficultyStars.visible = false;
             trace("No Metadata Found!");

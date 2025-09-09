@@ -1831,7 +1831,7 @@ class PlayState extends MusicBeatState
 	 */
 	private function shouldUseLegacyLua():Bool {
 		var currentSong = SONG.song;
-		var currentMod = backend.WeekData.getCurrentWeek().folder;
+		var currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
 
 		var settingsManager = options.legacylua.LegacyLuaSettingsManager.getInstance();
 		return settingsManager.shouldUseLegacyLua(currentSong, currentMod);

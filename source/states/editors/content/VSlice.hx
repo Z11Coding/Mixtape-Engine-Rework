@@ -1,8 +1,7 @@
 package states.editors.content;
 
-import backend.Song;
 import backend.Difficulty;
-
+import backend.Song;
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
 
@@ -32,7 +31,7 @@ typedef VSliceEvent =
 }
 
 // Metadata
-typedef VSliceMetadata = 
+typedef VSliceMetadata =
 {
 	var songName:String;
 	var artist:String;
@@ -93,7 +92,7 @@ class VSlice
 		var songDifficulties:Map<String, SwagSong> = [];
 		var timeChanges:Array<VSliceTimeChange> = cast metadata.timeChanges;
 		timeChanges.sort(sortByTime);
-		
+
 		var songBpm:Float = timeChanges[0].bpm;
 		timeChanges.shift();
 
@@ -163,7 +162,7 @@ class VSlice
 							focusEventNum = i;
 							break;
 						}
-						
+
 						var char:Dynamic = focusEvent.v.char;
 						if(char != null)
 							char = Std.string(char);
@@ -256,7 +255,7 @@ class VSlice
 				offset: 0,
 				startMania: 3,
 				mania: 0,
-			
+
 				player1: metadata.playData.characters.player,
 				player2: metadata.playData.characters.opponent,
 				gfVersion: metadata.playData.characters.girlfriend,
@@ -335,10 +334,10 @@ class VSlice
 		var notes:Array<VSliceNote> = [];
 		var generatedBy:String = 'Psych Engine v${MainMenuState.psychEngineVersion} - Chart Editor V-Slice Exporter';
 		var timeChanges:Array<VSliceTimeChange> = [];
-		
+
 		var time:Float = 0;
 		var bpm:Float = songData.bpm;
-		timeChanges.push({t: 0, bpm: bpm}); //so there was first bpm issue (if the song has multiplier bpm) 
+		timeChanges.push({t: 0, bpm: bpm}); //so there was first bpm issue (if the song has multiplier bpm)
 		var lastMustHit:Bool = false;
 		if(songData.notes != null)
 		{
@@ -354,7 +353,7 @@ class VSlice
 							vsliceNote.l = note[2];
 						if(note[3] != null && note[3].length > 0)
 							vsliceNote.k = note[3];
-						
+
 						notes.push(vsliceNote);
 					}
 				}
@@ -380,18 +379,18 @@ class VSlice
 		}
 		events.sort(sortByTime);
 		notes.sort(sortByTime);
-		
+
 		//try to find composer despite it not being a value on psych charts
 		var composer:String = 'Unknown';
 		if(Reflect.hasField(songData, 'artist')) composer = Reflect.field(songData, 'artist');
 		else if(Reflect.hasField(songData, 'composer')) composer = Reflect.field(songData, 'composer');
-		
+
 		var charter:String = 'Unknown';
 		if(Reflect.hasField(songData, 'charter')) composer = Reflect.field(songData, 'charter');
 
 		// Has to add all difficulties or it might crash on V-Slice's Freeplay
 		var diffs:Array<String> = null;
-		
+
 		var scrollSpeed:Map<String, Float> = [];
 		var notesMap:Map<String, Array<VSliceNote>> = [];
 		if(difficultyName == null) //Fill all difficulties to attempt to prevent the song from not showing up on Base Game
@@ -409,7 +408,7 @@ class VSlice
 			var diff:String = Difficulty.getString(false);
 			if(diff == null) diff = Difficulty.getDefault();
 			diff = Paths.formatToSongPath(diff);
-			
+
 			scrollSpeed.set(diff, songData.speed);
 			notesMap.set(diff, notes);
 		}
@@ -447,7 +446,7 @@ class VSlice
 				difficulties: diffs,
 				characters: {
 					player: songData.player1,
-					girlfriend: songData.gfVersion != null ? songData.gfVersion : '', //there is no problem if gf don't exist with it 
+					girlfriend: songData.gfVersion != null ? songData.gfVersion : '', //there is no problem if gf don't exist with it
 					opponent: songData.player2
 				},
 				noteStyle: !PlayState.isPixelStage ? 'funkin' : 'pixel',
@@ -466,6 +465,7 @@ class VSlice
 		return {
 			sectionNotes: [],
 			sectionBeats: 4,
+			sectionSteps: 4,
 			mustHitSection: true,
 		};
 	}

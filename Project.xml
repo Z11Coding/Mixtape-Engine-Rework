@@ -184,12 +184,17 @@
 	<!--Avoid memory leaks with for loops in HScript-->
 	<haxedef name="loop_unroll_max_cost" value="25" />
 
+	<haxelib name="flxsoundfilters" />
+
 	<haxelib name="faxe" if='switch'/>
 
 	<section if="MULTICORE_LOADING false">
 		<define name="traceLoading"/>
 		<define name="loadBenchmark"/>
 	</section>
+
+	<haxedef name="HXCPP_ALIGN_ALLOC"/>
+	<haxedef name="HX_HAS_ATOMIC"/>
 
 	<!-- ______________________________ Haxedefines _____________________________ -->
 

@@ -1084,25 +1084,25 @@ class FreeplayState extends MusicBeatState
 		#end
 
 		// I really don't wanna talk about it
-        try {
-            var ratingValue:Dynamic = metadata.freeplay.ratings;
-            var actualRating:Map<String, Int> = new Map<String, Int>();
+		try {
+			var ratingValue:Dynamic = metadata.freeplay.ratings;
+			var actualRating:Map<String, Int> = new Map<String, Int>();
 
-            for (item in Reflect.fields(ratingValue)) {
-                if (item == 'normal' || item == 'easy' || item == 'hard') {
-                    actualRating.set(item, Reflect.field(ratingValue, item));
-                } else {
-                    actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
-                }
-            }
+			for (item in Reflect.fields(ratingValue)) {
+					if (item == 'normal' || item == 'easy' || item == 'hard') {
+							actualRating.set(item, Reflect.field(ratingValue, item));
+					} else {
+							actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
+					}
+			}
 
-            var curDiff:String = Difficulty.list[curDifficulty].toLowerCase();
+			var curDiff:String = Difficulty.list[curDifficulty].toLowerCase();
 			setDifficultyStars(actualRating.get(curDiff));
 			setDifficultyStars(actualRating.get(curDiff));
-        } catch(e) {
-            difficultyStars.visible = false;
-            trace("No Metadata Found!");
-        }
+		} catch(e) {
+			difficultyStars.visible = false;
+			trace("No Metadata Found!");
+		}
 
 		lastDifficultyName = Difficulty.getString(curDifficulty, false);
 		var displayDiff:String = Difficulty.getString(curDifficulty);

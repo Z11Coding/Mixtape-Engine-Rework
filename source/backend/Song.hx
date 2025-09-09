@@ -1,10 +1,9 @@
 package backend;
 
+import backend.Conductor;
 import haxe.Json;
 import lime.utils.Assets;
-
 import objects.Note;
-import backend.Conductor;
 
 typedef SwagSong =
 {
@@ -34,7 +33,7 @@ typedef SwagSong =
 	@:optional var gameOverSound:String;
 	@:optional var gameOverLoop:String;
 	@:optional var gameOverEnd:String;
-	
+
 	@:optional var disableNoteRGB:Bool;
 
 	@:optional var arrowSkin:String;
@@ -45,6 +44,7 @@ typedef SwagSection =
 {
 	var sectionNotes:Array<Dynamic>;
 	var sectionBeats:Float;
+	var sectionSteps:Float;
 	var mustHitSection:Bool;
 	@:optional var altAnim:Bool;
 	@:optional var gfSection:Bool;
@@ -167,7 +167,13 @@ class Song
 			if (beats == null || Math.isNaN(beats))
 			{
 				section.sectionBeats = 4;
-				if(Reflect.hasField(section, 'lengthInSteps')) Reflect.deleteField(section, 'lengthInSteps');
+			}
+
+			var steps:Null<Float> = cast section.sectionSteps;
+			if (steps == null || Math.isNaN(steps))
+			{
+				section.sectionSteps = 4;
+				if(Reflect.hasField(section, 'lengthInSteps')) section.sectionSteps = Reflect.field(section, 'lengthInSteps');
 			}
 
 			for (note in section.sectionNotes)
@@ -198,7 +204,7 @@ class Song
 	{
 		if(folder == null) folder = jsonInput;
 		var rawData:String = null;
-		
+
 		var formattedFolder:String = Paths.formatToSongPath(folder);
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
 		_lastPath = Paths.json('$formattedFolder/$formattedSong');

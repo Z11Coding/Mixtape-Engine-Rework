@@ -2834,9 +2834,9 @@ class CollectionUtils
 		for (field in Reflect.fields(source)){
 			if(fillInFields.contains(field)) Reflect.setField(target,field,Reflect.field(source,field));
 			#if debug
-			else if (!ignoreFields.contains(field)) throw 'Class ${Type.getClassName(Type.getClass(target))} doesn\'t contain field field $field';
+			else if (!ignoreFields.contains(field)) throw 'Class ${Type.getClassName(Type.getClass(target))} doesn\'t contain field $field';
 			#else
-			else if (!ignoreFields.contains(field)) trace('Class ${Type.getClassName(Type.getClass(target))} doesn\'t contain field field $field');
+			else if (!ignoreFields.contains(field)) trace('Class ${Type.getClassName(Type.getClass(target))} doesn\'t contain field $field');
 			#end
 		}
 		return target;

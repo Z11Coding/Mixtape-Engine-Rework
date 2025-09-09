@@ -66,17 +66,17 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	var dataTxt:FlxText;
 	var guitarHeroSustains:Bool = false;
 
-    //Mixtape
-    var speedChanges:Array<SpeedEvent> = [];
+	//Mixtape
+	var speedChanges:Array<SpeedEvent> = [];
 	public var currentSV:SpeedEvent = {position: 0, startTime: 0, speed: 1 #if EASED_SVs , startSpeed: 1 #end};
-    public var keysArray:Array<Dynamic>;
+  public var keysArray:Array<Dynamic>;
 	public var modManager:ModManager;
 	public var playerField:PlayField;
 	public var dadField:PlayField;
 	public var notefields = new NotefieldRenderer();
 	public var playfields = new FlxTypedGroup<PlayField>();
 	public var allNotes:Array<Note> = []; // all notes
-    public static var instance:EditorPlayStateMixtape;
+  public static var instance:EditorPlayStateMixtape;
 
 	public function new(?playbackRate:Float)
 	{

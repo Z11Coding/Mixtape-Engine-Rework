@@ -22,23 +22,23 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Base Stage Gimmicks',
-			"if checked, each weeks gimmick will activate.", 
+			"if checked, each weeks gimmick will activate.",
 			'stageGimmick',
 			BOOL);
 		addOption(option);
 
 		var option:Option = new Option('Health System Mode',
-			"Switch how the health bar works", 
+			"Switch how the health bar works",
 			'healthMode',
 			STRING,
 			[
-				"OG", 
-				"Mixtape", 
+				"OG",
+				"Mixtape",
 				"Kade",
-				"Tabi", 
-				"Double", 
-				"Lives", 
-				"Lives + HealthBar", 
+				"Tabi",
+				"Double",
+				"Lives",
+				"Lives + HealthBar",
 				"Random",
 			]);
 		if (Achievements.isUnlocked('freaky_bar'))
@@ -46,18 +46,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
-		var option:Option = new Option('Input System', 
-		"The input system you wish to use.", 
-		'inputSystem', 
+		var option:Option = new Option('Input System',
+		"The input system you wish to use.",
+		'inputSystem',
 		STRING,
 		[
-			"Native", 
-			"Native-old", 
+			"Native",
+			"Native-old",
 			"Andromeda (legacy)",
 			"Troll Engine"
-			//"BEAT! Engine", 
-			//"Kade Engine", 
-			//"ZoroForce EK", 
+			//"BEAT! Engine",
+			//"Kade Engine",
+			//"ZoroForce EK",
 			//"Mic'ed Up Engine",
 			//"YoshiEngine",
 			//"Kade Engine Community",
@@ -71,16 +71,16 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option(
-			'Optimized Holds', 
-			"If checked, smooth holds will have fewer calls to the modchart system for position info.\nBest to leave this on, unless you have a high-end PC and require the highest accuracy rendering for, some reason.", 
-			'optimizeHolds', 
+			'Optimized Holds',
+			"If checked, smooth holds will have fewer calls to the modchart system for position info.\nBest to leave this on, unless you have a high-end PC and require the highest accuracy rendering for, some reason.",
+			'optimizeHolds',
 			BOOL
 		);
 		addOption(option);
-		
+
 		var option:Option = new Option('Hold Subdivisions',
-			"How many divisions are in a hold note with smooth holds.\nMore means smoother holds, but more of a performance hit.", 
-			'holdSubdivs', 
+			"How many divisions are in a hold note with smooth holds.\nMore means smoother holds, but more of a performance hit.",
+			'holdSubdivs',
 			INT
 		);
 		option.displayFormat = '%v';
@@ -91,8 +91,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Draw Dist. Mult',
-			"A multiplier to note's draw distance. Higher number means notes can be seen from further away, less means closer.\nNote that with higher numbers, draw distance is still capped by the spawn distance (which is only modifiable by modcharts) so it's only recommended to lower this value for low-end PCs.\nKEEP IN MIND, ANYTHING PAST X2 IS UNTESTED AND WILL MOST LIKELY BREAK SOMETHING!\nYOU HAVE BEEN WARNED!!!", 
-			'drawDistanceModifier', 
+			"A multiplier to note's draw distance. Higher number means notes can be seen from further away, less means closer.\nNote that with higher numbers, draw distance is still capped by the spawn distance (which is only modifiable by modcharts) so it's only recommended to lower this value for low-end PCs.\nKEEP IN MIND, ANYTHING PAST X2 IS UNTESTED AND WILL MOST LIKELY BREAK SOMETHING!\nYOU HAVE BEEN WARNED!!!",
+			'drawDistanceModifier',
 			FLOAT);
 		option.displayFormat = 'x%v';
 		option.decimals = 1;
@@ -100,10 +100,10 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.minValue = 0.8;
 		option.maxValue = 10;
 		option.scrollSpeed = 20;
-		addOption(option);	
+		addOption(option);
 
-		var option:Option = new Option('Intro Skip When', 
-		"Choose when the intro can be skipped.", 
+		var option:Option = new Option('Intro Skip When',
+		"Choose when the intro can be skipped.",
 		'skipWhen',
 		STRING,
 		[
@@ -114,13 +114,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		]);
 		addOption(option);
 		option.displayFormat = '< %v >';
-		
-		var option:Option = new Option('Intro Skip To', 
-		"The note skipped to when the intro is skipped.", 
-		'skipMode', 
+
+		var option:Option = new Option('Intro Skip To',
+		"The note skipped to when the intro is skipped.",
+		'skipMode',
 		STRING,
 		[
-			"First Note", 
+			"First Note",
 			"First BF Note"
 		]);
 		addOption(option);
@@ -153,7 +153,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Opp. Difficulty',
 			"ONLY WORKS IF MIX-UP MODE IS ON!!!\nSet the level of how badly the opponent beats your butt.",
 			'aiDifficulty',
-			STRING, 
+			STRING,
 			[
 			"Baby Mode",
 			"Easier",
@@ -182,6 +182,17 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('Chart Editor Style',
+			"Choose the style of the chart editor.",
+			'chartEditorStyle',
+			STRING,
+			[
+				'New',
+				'Old'
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var loadingThemes:Array<String> = ['Psych', 'Mixtape'];
 		var option:Option = new Option('Loading Screen Theme:',
 			"Which loading screen theme do you prefer?\nPsych: The classic loading screen\nMixtape: A new loading screen based on the splash screen with animated logo",
@@ -199,7 +210,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 		option.onChange = onChangeMenuMusic;
-		
+
 		var option:Option = new Option('Pause Music:',
 			"What song do you prefer for the Pause Screen?",
 			'pauseMusic',
@@ -214,22 +225,22 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			'editorMusic',
 			STRING,
 			[
-				'None', 
+				'None',
 				'Pause Menu',
 				FlxG.random.bool(0.3) ? 'Menu Menu' : "Menu Music",
 				'Artistic Expression',
-				'DSI Shop', 
-				'Mii Theme', 
-				'Wii Shop', 
-				'Sneaky Adventure', 
-				'SkyDecay 5', 
-				'Ice Flow', 
-				'Monkeys Spinning Monkeys', 
-				'Quirky Dog', 
-				'Carefree', 
-				'Scheming Weasel', 
-				'Local Forecast', 
-				'Sneaky Snitch', 
+				'DSI Shop',
+				'Mii Theme',
+				'Wii Shop',
+				'Sneaky Adventure',
+				'SkyDecay 5',
+				'Ice Flow',
+				'Monkeys Spinning Monkeys',
+				'Quirky Dog',
+				'Carefree',
+				'Scheming Weasel',
+				'Local Forecast',
+				'Sneaky Snitch',
 				'Fluffing a Duck'
 			]);
 		addOption(option);
@@ -246,16 +257,16 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.decimals = 1;
 		option.changeValue = 0.1;
 		addOption(option);
-		
+
 		var option:Option = new Option('Menu Theme',
 			"Select the theme you want to use\n(Has not effect on the chart editor theme)",
 			'menuTheme',
-			STRING, 
+			STRING,
 			["Light", "Dark"]);
 		option.displayFormat = '< %v >';
 		option.onChange = function() {if (ClientPrefs.data.menuTheme == "Dark") Achievements.unlock('much_better');};
 		addOption(option);
-		
+
 		var option:Option = new Option('---MISC.---',
 			"",
 			'',
@@ -312,18 +323,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option(
-			'Silent Volume Noise', 
-			"If checked, The volume wont make noise when you turn up/down the volume", 
-			'silentVol', 
+			'Silent Volume Noise',
+			"If checked, The volume wont make noise when you turn up/down the volume",
+			'silentVol',
 			BOOL
 		);
 		addOption(option);
 
 		var option:Option = new Option(
-			'Raise Volume Sound', 
-			"The sound that plays when you change the volume.", 
-			'volUp', 
-			STRING, 
+			'Raise Volume Sound',
+			"The sound that plays when you change the volume.",
+			'volUp',
+			STRING,
 			[
 			"beep",
 			"bfBeep",
@@ -346,10 +357,10 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '< %v >';
 
 		var option:Option = new Option(
-			'Lower Volume Sound', 
-			"The sound that plays when you change the volume.", 
-			'volDown', 
-			STRING, 
+			'Lower Volume Sound',
+			"The sound that plays when you change the volume.",
+			'volDown',
+			STRING,
 			[
 			"beep",
 			"bfBeep",
@@ -372,10 +383,10 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '< %v >';
 
 		var option:Option = new Option(
-			'Max Volume Sound', 
-			"The sound that plays when you reach max volume.", 
-			'volMax', 
-			STRING, 
+			'Max Volume Sound',
+			"The sound that plays when you reach max volume.",
+			'volMax',
+			STRING,
 			[
 			"beep",
 			"bfBeep",
@@ -422,10 +433,10 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option(
-			'Loading Preference: ', 
-			"When a song is loading, select how much to load.", 
-			'loadingState', 
-			STRING, 
+			'Loading Preference: ',
+			"When a song is loading, select how much to load.",
+			'loadingState',
+			STRING,
 			[
 			"Nothing",
 			"Song Only",
@@ -521,16 +532,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			'showCrash',
 			BOOL);
 
-			addOption(option);
-
-		var option:Option = new Option('Chart Editor Style',
-			"Choose the style of the chart editor.",
-			'chartEditorStyle',
-			STRING,
-			[
-				'New',
-				'Old'
-			]);
 		addOption(option);
 
 		var option:Option = new Option('AP Server Compression',

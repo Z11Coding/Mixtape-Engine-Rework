@@ -132,7 +132,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	public static var GRID_SIZE = 40;
 	final BACKUP_EXT = '.bkp';
 
-		public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
+	public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
 		// /trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
 	}, 30);
 
@@ -2063,7 +2063,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(reverseScroll)
 		{
 			// stays constant with the scrolling
-			var sectionHeight:Float = 4 * PlayState.SONG.notes[curSec].sectionBeats * GRID_SIZE * curZoom;
+			var sectionHeight:Float = PlayState.SONG.notes[curSec].sectionSteps * PlayState.SONG.notes[curSec].sectionBeats * GRID_SIZE * curZoom;
 			scrollY = sectionY + sectionHeight - timeOffset - GRID_SIZE - FlxG.height/2;
 		}
 		else
@@ -2528,7 +2528,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			cachedSectionBPMs.push(bpm);
 
 			var lastTime:Float = time;
-			var rowRound:Int = Math.round(4 * section.sectionBeats);
+			var rowRound:Int = Math.round(section.sectionSteps * section.sectionBeats);
 			row += rowRound;
 			time += beat * (rowRound / 4);
 
@@ -2565,8 +2565,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			var lastSection = PlayState.SONG.notes[PlayState.SONG.notes.length-1];
 			var beat:Float = Conductor.calculateCrochet(bpm);
 			var sectionBeats:Float = lastSection != null ? lastSection.sectionBeats : 4;
-			var rowRound:Int = Math.round(4 * sectionBeats);
-			var timeAdd:Float = beat * (rowRound / 4);
+			var sectionSteps:Float = lastSection != null ? lastSection.sectionSteps : 4;
+			var rowRound:Int = Math.round(sectionSteps * sectionBeats);
+			var timeAdd:Float = beat * (rowRound / sectionSteps);
 			var mustHitSec:Bool = lastSection != null ? lastSection.mustHitSection : true;
 			var changeBpmSec:Bool = lastSection != null ? lastSection.changeBPM : false;
 			var altAnimSec:Bool = lastSection != null ? lastSection.altAnim : false;
@@ -2577,6 +2578,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				PlayState.SONG.notes.push({
 					sectionNotes: [],
 					sectionBeats: sectionBeats,
+					sectionSteps: sectionSteps,
 					mustHitSection: mustHitSec,
 					bpm: bpm,
 					changeBPM: changeBpmSec,
@@ -2644,7 +2646,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			} else {
 				prevGridBg.y = cachedSectionRow[curSec-1] * GRID_SIZE * curZoom;
 			}
-			prevGridBg.rows = 4 * PlayState.SONG.notes[curSec-1].sectionBeats * curZoom;
+			prevGridBg.rows = PlayState.SONG.notes[curSec-1].sectionSteps * PlayState.SONG.notes[curSec-1].sectionBeats * curZoom;
 			prevGridBg.visible = showPreviousSection;
 			hei += prevGridBg.height;
 			eventLockOverlay.y = reverseScroll ? gridBg.y : prevGridBg.y;
@@ -2658,14 +2660,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			} else {
 				nextGridBg.y = cachedSectionRow[curSec+1] * GRID_SIZE * curZoom;
 			}
-			nextGridBg.rows = 4 * PlayState.SONG.notes[curSec+1].sectionBeats * curZoom;
+			nextGridBg.rows = PlayState.SONG.notes[curSec+1].sectionSteps * PlayState.SONG.notes[curSec+1].sectionBeats * curZoom;
 			nextGridBg.visible = showNextSection;
 			hei += nextGridBg.height;
 		}
 		else nextGridBg.visible = false;
 
 		gridBg.y = cachedSectionRow[curSec] * GRID_SIZE * curZoom;
-		gridBg.rows = 4 * PlayState.SONG.notes[curSec].sectionBeats * curZoom;
+		gridBg.rows = PlayState.SONG.notes[curSec].sectionSteps * PlayState.SONG.notes[curSec].sectionBeats * curZoom;
 		hei += gridBg.height;
 
 		if(!prevGridBg.visible) eventLockOverlay.y = gridBg.y;
@@ -2684,6 +2686,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			changeBpmCheckBox.checked = sec.changeBPM;
 			changeBpmStepper.value = Conductor.bpm;
 			beatsPerSecStepper.value = sec.sectionBeats;
+			stepsPerSecStepper.value = sec.sectionSteps;
 
 			strumTimeStepper.step = Conductor.stepCrochet;
 			susLengthStepper.step = cachedSectionCrochets[curSec] / 4 / 2;
@@ -2916,7 +2919,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var noteY:Float;
 		// Never touching this ever again
 		if(reverseScroll) {
-			var sectionHeight:Float = 4 * PlayState.SONG.notes[section].sectionBeats * GRID_SIZE * curZoom;
+			var sectionHeight:Float = PlayState.SONG.notes[section].sectionSteps * PlayState.SONG.notes[section].sectionBeats * GRID_SIZE * curZoom;
 			noteY = sectionY + sectionHeight - timeOffset - GRID_SIZE;
 		} else {
 			noteY = sectionY + timeOffset;
@@ -3498,6 +3501,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var changeBpmCheckBox:PsychUICheckBox;
 	var changeBpmStepper:PsychUINumericStepper;
 	var beatsPerSecStepper:PsychUINumericStepper;
+	var stepsPerSecStepper:PsychUINumericStepper;
 
 	function addSectionTab()
 	{
@@ -3620,6 +3624,19 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 		};
 
+		stepsPerSecStepper = new PsychUINumericStepper(objX + 150, objY, 1, 4, 1, 99, 2);
+		stepsPerSecStepper.onValueChange = function()
+		{
+			var sec = getCurChartSection();
+			if(sec != null)
+			{
+				var oldTimes:Array<Float> = cachedSectionTimes.copy();
+				sec.sectionSteps = stepsPerSecStepper.value;
+				adaptNotesToNewTimes(oldTimes);
+			}
+		};
+
+		objY += 40;
 		beatsPerSecStepper = new PsychUINumericStepper(objX + 150, objY, 1, 4, 1, 16, 2);
 		beatsPerSecStepper.onValueChange = function()
 		{
@@ -3749,9 +3766,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(altAnimSectionCheckBox);
 
 		tab_group.add(new FlxText(beatsPerSecStepper.x, beatsPerSecStepper.y - 15, 100, 'Beats per Section:'));
+		tab_group.add(new FlxText(stepsPerSecStepper.x, stepsPerSecStepper.y - 15, 100, 'Steps per Section:'));
 		tab_group.add(changeBpmCheckBox);
 		tab_group.add(changeBpmStepper);
 		tab_group.add(beatsPerSecStepper);
+		tab_group.add(stepsPerSecStepper);
 
 		tab_group.add(copyButton);
 		tab_group.add(pasteButton);
