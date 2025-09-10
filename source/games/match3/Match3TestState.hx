@@ -358,9 +358,9 @@ class Match3TestState extends MusicBeatState {
 
     private function getIconList():Array<String> {
         // Use character icons sometimes
-        if (Math.random() < 0.3) {
-            return Match3Game.getAvailableIcons();
-        }
+        // if (Math.random() < 0.3) {
+        //     return Match3Game.getAvailableIcons();
+        // }
         return null; // Use basic colored pieces
     }
 
@@ -1040,32 +1040,17 @@ class Match3TestState extends MusicBeatState {
         sprite.x = posX;
         sprite.y = posY;
 
-        // Create piece visual based on type
+        // Create piece visual based on type - backend handles logic, frontend only handles visuals
         switch(piece.type) {
             case BASIC(basicType):
-                // Ensure piece has valid color
-                if (piece.color == 0 || piece.color == FlxColor.WHITE) {
-                    // Assign explicit color based on type
-                    var fallbackColor = switch(basicType) {
-                        case RED: FlxColor.RED;
-                        case BLUE: FlxColor.BLUE;
-                        case GREEN: FlxColor.GREEN;
-                        case YELLOW: FlxColor.YELLOW;
-                        case PURPLE: FlxColor.PURPLE;
-                        case ORANGE: FlxColor.ORANGE;
-                    }
-                    piece.color = fallbackColor; // Update piece color
-                    sprite.makeGraphic(tileSize - 2, tileSize - 2, fallbackColor);
-                } else {
-                    sprite.makeGraphic(tileSize - 2, tileSize - 2, piece.color);
-                }
+                // Use piece color directly (backend sets this properly)
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, piece.color, true);
 
             case POWER_UP(specialType, powerUpColor):
-                sprite.makeGraphic(tileSize - 2, tileSize - 2, powerUpColor);
-                // Add special effects for power-ups
-                if (piece.isSpecial) {
-                    addSpecialEffects(sprite, piece.specialType);
-                }
+                // Create base graphic with unique flag to prevent shared graphics issues
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, powerUpColor, true);
+                // Add visual effects for power-ups (visuals only, no logic)
+                addVisualEffects(sprite, specialType);
 
             case ICON(iconName):
                 // Try to load character icon, fallback to colored square
@@ -1075,17 +1060,14 @@ class Match3TestState extends MusicBeatState {
                     sprite.setGraphicSize(tileSize - 4, tileSize - 4);
                     sprite.updateHitbox();
                 } else {
-                    sprite.makeGraphic(tileSize - 2, tileSize - 2, piece.color);
+                    // Use piece color from backend
+                    sprite.makeGraphic(tileSize - 2, tileSize - 2, piece.color, true);
                 }
 
             case OBSTACLE:
-                sprite.makeGraphic(tileSize - 2, tileSize - 2, FlxColor.GRAY);
-                // Add border manually
-                var borderThickness = 2;
-                sprite.pixels.fillRect(new Rectangle(0, 0, tileSize - 2, borderThickness), FlxColor.BLACK);
-                sprite.pixels.fillRect(new Rectangle(0, tileSize - 2 - borderThickness, tileSize - 2, borderThickness), FlxColor.BLACK);
-                sprite.pixels.fillRect(new Rectangle(0, 0, borderThickness, tileSize - 2), FlxColor.BLACK);
-                sprite.pixels.fillRect(new Rectangle(tileSize - 2 - borderThickness, 0, borderThickness, tileSize - 2), FlxColor.BLACK);
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, FlxColor.GRAY, true);
+                // Add border visual effect
+                addVisualBorder(sprite, FlxColor.BLACK);
         }
 
         sprite.updateHitbox();
@@ -1095,32 +1077,35 @@ class Match3TestState extends MusicBeatState {
         return sprite;
     }
 
-    private function addSpecialEffects(sprite:FlxSprite, specialType:SpecialType):Void {
+    /**
+     * Add visual effects to powerup sprites (frontend visual only)
+     */
+    private function addVisualEffects(sprite:FlxSprite, specialType:SpecialType):Void {
         switch(specialType) {
             case HORIZONTAL_STRIPE:
-                // Draw horizontal stripe manually
-                sprite.pixels.fillRect(new Rectangle(0, tileSize / 2 - 2, tileSize - 2, 4), FlxColor.WHITE);
+                // Draw horizontal stripe visual
+                sprite.pixels.fillRect(new Rectangle(0, (tileSize - 2) / 2 - 2, tileSize - 2, 4), FlxColor.WHITE);
             case VERTICAL_STRIPE:
-                // Draw vertical stripe manually
-                sprite.pixels.fillRect(new Rectangle(tileSize / 2 - 2, 0, 4, tileSize - 2), FlxColor.WHITE);
+                // Draw vertical stripe visual
+                sprite.pixels.fillRect(new Rectangle((tileSize - 2) / 2 - 2, 0, 4, tileSize - 2), FlxColor.WHITE);
             case BOMB:
-                // Create bomb effect - simplified as a square for now
+                // Create bomb visual effect
                 var bombSize = 16;
-                var bombX = Std.int(tileSize / 2 - bombSize / 2);
-                var bombY = Std.int(tileSize / 2 - bombSize / 2);
+                var bombX = Std.int((tileSize - 2) / 2 - bombSize / 2);
+                var bombY = Std.int((tileSize - 2) / 2 - bombSize / 2);
                 sprite.pixels.fillRect(new Rectangle(bombX, bombY, bombSize, bombSize), FlxColor.WHITE);
             case COLOR_BOMB:
-                // Create color bomb effect - simplified as nested squares
+                // Create color bomb visual effect
                 var outerSize = 24;
                 var innerSize = 16;
-                var outerX = Std.int(tileSize / 2 - outerSize / 2);
-                var outerY = Std.int(tileSize / 2 - outerSize / 2);
-                var innerX = Std.int(tileSize / 2 - innerSize / 2);
-                var innerY = Std.int(tileSize / 2 - innerSize / 2);
+                var outerX = Std.int((tileSize - 2) / 2 - outerSize / 2);
+                var outerY = Std.int((tileSize - 2) / 2 - outerSize / 2);
+                var innerX = Std.int((tileSize - 2) / 2 - innerSize / 2);
+                var innerY = Std.int((tileSize - 2) / 2 - innerSize / 2);
                 sprite.pixels.fillRect(new Rectangle(outerX, outerY, outerSize, outerSize), FlxColor.YELLOW);
                 sprite.pixels.fillRect(new Rectangle(innerX, innerY, innerSize, innerSize), FlxColor.WHITE);
             case RAINBOW:
-                // Draw rainbow effect
+                // Draw rainbow visual effect
                 var colors = [FlxColor.RED, FlxColor.ORANGE, FlxColor.YELLOW, FlxColor.GREEN, FlxColor.BLUE, FlxColor.PURPLE];
                 for (i in 0...colors.length) {
                     var stripeHeight = Std.int((tileSize - 2) / colors.length);
@@ -1128,6 +1113,16 @@ class Match3TestState extends MusicBeatState {
                 }
             case _:
         }
+    }
+
+    /**
+     * Add visual border to sprites (frontend visual only)
+     */
+    private function addVisualBorder(sprite:FlxSprite, borderColor:FlxColor, thickness:Int = 2):Void {
+        sprite.pixels.fillRect(new Rectangle(0, 0, tileSize - 2, thickness), borderColor);
+        sprite.pixels.fillRect(new Rectangle(0, 0, thickness, tileSize - 2), borderColor);
+        sprite.pixels.fillRect(new Rectangle(tileSize - 2 - thickness, 0, thickness, tileSize - 2), borderColor);
+        sprite.pixels.fillRect(new Rectangle(0, tileSize - 2 - thickness, tileSize - 2, thickness), borderColor);
     }
 
     private function clearGrid():Void {
@@ -1475,32 +1470,30 @@ class Match3TestState extends MusicBeatState {
 
     private function createCPUPieceSprite(piece:Match3Piece, x:Int, y:Int):FlxSprite {
         var sprite = new FlxSprite();
-
-        // Ensure the piece has a valid color
-        var pieceColor = piece.color;
-        if (pieceColor == 0 || pieceColor == FlxColor.WHITE) {
-            // Fallback color assignment based on piece type
-            pieceColor = switch(piece.type) {
-                case BASIC(basicType):
-                    switch(basicType) {
-                        case RED: FlxColor.RED;
-                        case BLUE: FlxColor.BLUE;
-                        case GREEN: FlxColor.GREEN;
-                        case YELLOW: FlxColor.YELLOW;
-                        case PURPLE: FlxColor.PURPLE;
-                        case ORANGE: FlxColor.ORANGE;
-                    }
-                case POWER_UP(_, powerUpColor): powerUpColor;
-                case ICON(_): FlxColor.CYAN;
-                case OBSTACLE: FlxColor.GRAY;
-            }
-            piece.color = pieceColor; // Update the piece's color
-        }
-
-        // Create sprite with same size as player pieces
-        sprite.makeGraphic(tileSize - 2, tileSize - 2, pieceColor);
         sprite.x = cpuGridOffsetX + x * tileSize;
         sprite.y = cpuGridOffsetY + y * tileSize;
+
+        // Create visual based on piece type - backend handles logic, frontend only handles visuals
+        switch(piece.type) {
+            case BASIC(basicType):
+                // Use piece color directly (backend sets this properly)
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, piece.color, true);
+
+            case POWER_UP(specialType, powerUpColor):
+                // Create base graphic with unique flag to prevent shared graphics issues
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, powerUpColor, true);
+                // Add visual effects for power-ups (visuals only, no logic)
+                addVisualEffects(sprite, specialType);
+
+            case ICON(iconName):
+                // Use piece color from backend
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, piece.color, true);
+
+            case OBSTACLE:
+                sprite.makeGraphic(tileSize - 2, tileSize - 2, FlxColor.GRAY, true);
+                // Add border visual effect
+                addVisualBorder(sprite, FlxColor.BLACK);
+        }
 
         // Add border for better visibility
         var borderThickness = 2;

@@ -372,7 +372,7 @@ class Match3Board {
     public function processMatches():Array<Match3Piece> {
         var allMatches = findAllMatches();
         var removedPieces:Array<Match3Piece> = [];
-        var powerUpsToCreate:Array<{x:Int, y:Int, type:SpecialType}> = [];
+        var powerUpsToCreate:Array<{x:Int, y:Int, type:SpecialType, color:FlxColor}> = [];
 
         for (match in allMatches) {
             // Determine if special power-up should be created
@@ -381,7 +381,7 @@ class Match3Board {
             if (specialType != NONE && match.length > 0) {
                 // Create power-up at the position of the first piece in the match
                 var firstPiece = match[0];
-                powerUpsToCreate.push({x: firstPiece.x, y: firstPiece.y, type: specialType});
+                powerUpsToCreate.push({x: firstPiece.x, y: firstPiece.y, type: specialType, color: firstPiece.color});
             }
 
             // Mark pieces for removal
@@ -394,8 +394,10 @@ class Match3Board {
 
         // Create power-ups
         for (powerUpData in powerUpsToCreate) {
-            var newPowerUp = createRandomPiece(powerUpData.x, powerUpData.y);
-            var powerUp = newPowerUp.createPowerUp(powerUpData.type);
+            // Use the color from the matched pieces to maintain visual consistency
+            var powerUp = new Match3Piece(POWER_UP(powerUpData.type, powerUpData.color), powerUpData.x, powerUpData.y, powerUpData.color);
+            powerUp.isSpecial = true;
+            powerUp.specialType = powerUpData.type;
             setPiece(powerUpData.x, powerUpData.y, powerUp);
         }
 
