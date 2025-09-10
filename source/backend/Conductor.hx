@@ -100,7 +100,7 @@ class Conductor
 			bpm: bpm,
 			stepCrochet: stepCrochet
 		}
-		
+
 		for (i in 0...Conductor.bpmChangeMap.length)
 		{
 			if (Conductor.bpmChangeMap[i].stepTime<=step)
@@ -187,7 +187,7 @@ class Conductor
 				bpmtweens.push(tween);
 			}
 
-			var deltaSteps:Int = Math.round(getSectionBeats(song, i) * 4);
+			var deltaSteps:Int = Math.round(getSectionSteps(song, i) * getSectionBeats(song, i));
 			totalSteps += deltaSteps;
 			totalPos += ((60 / curBPM) * 1000 / 4) * deltaSteps;
 		}
@@ -199,6 +199,13 @@ class Conductor
 	{
 		var val:Null<Float> = null;
 		if(song.notes[section] != null) val = song.notes[section].sectionBeats;
+		return val != null ? val : 4;
+	}
+
+	static function getSectionSteps(song:SwagSong, section:Int)
+	{
+		var val:Null<Float> = null;
+		if(song.notes[section] != null) val = song.notes[section].sectionSteps;
 		return val != null ? val : 4;
 	}
 

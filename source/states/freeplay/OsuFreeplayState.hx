@@ -1,28 +1,22 @@
 package states.freeplay;
 
-import flixel.input.keyboard.FlxKey;
-import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
-import objects.Character;
-
+import backend.WeekData;
+import flixel.input.keyboard.FlxKey;
+import haxe.Json;
 import lime.utils.Assets;
-import openfl.utils.Assets as OpenFlAssets;
-
+import metadata.STMetaFile.MetadataFile;
+import objects.Character;
 import objects.HealthIcon;
-import states.editors.ChartingState;
-
+import openfl.utils.Assets as OpenFlAssets;
 import options.GameplayChangersSubstate;
-import substates.ResetScoreSubState;
+import states.editors.ChartingState;
 import states.freeplay.osu.DifficultySelectorSubState;
 import states.freeplay.osu.SongBox;
-
+import substates.ResetScoreSubState;
 import sys.FileSystem;
 import sys.io.File;
-
-import haxe.Json;
-
-import metadata.STMetaFile.MetadataFile;
 
 #if ARCHIPELAGO_ALLOWED
 import archipelago.*;
@@ -75,7 +69,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		fpManager = FreeplayManager.loadFPManager();
 
-		// Check if the Victory Song is cleared.	
+		// Check if the Victory Song is cleared.
 		{
 			APFreeplayManager.checkVictory();
 			APFreeplayManager.updateArchFreeplay();
@@ -83,7 +77,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
-		
+
 		Cursor.cursorMode = Default;
 
 		persistentUpdate = true;
@@ -100,10 +94,10 @@ class OsuFreeplayState extends MusicBeatState
 				visual.alpha = ClientPrefs.data.visOpacity;
 
 				vocalvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
-				vocalvisual.scrollFactor.set(0, 0); 
-				vocalvisual.flipY = true; 
-				add(vocalvisual); 
-				vocalvisual.alpha = ClientPrefs.data.visOpacity; 
+				vocalvisual.scrollFactor.set(0, 0);
+				vocalvisual.flipY = true;
+				add(vocalvisual);
+				vocalvisual.alpha = ClientPrefs.data.visOpacity;
 
 				oppvisual = new AudioDisplay(FlxG.sound.music, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.WHITE);
 				oppvisual.scrollFactor.set(0, 0);
@@ -120,7 +114,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		songBox = new FlxTypedGroup<SongBox>();
 		add(songBox);
-		
+
 		textGrp = new FlxTypedGroup<FlxText>();
 		add(textGrp);
 
@@ -148,12 +142,12 @@ class OsuFreeplayState extends MusicBeatState
 		botBar.setGraphicSize(1280, 119);
 		botBar.screenCenter(X);
 		add(botBar);
-		
+
 		var logo:FlxSprite = new FlxSprite(0, 460).loadGraphic(Paths.image('logobutsmaller'));
 		logo.setGraphicSize(200, 100);
 		logo.screenCenter(X);
 		add(logo);
-		
+
 		fakeLogo = new FlxSprite(0, 460).loadGraphic(Paths.image('logobutsmaller'));
 		fakeLogo.setGraphicSize(200, 100);
 		fakeLogo.screenCenter(X);
@@ -406,7 +400,7 @@ class OsuFreeplayState extends MusicBeatState
 				changeSong(shiftMult);
 				holdTime = 0;
 			}
-			
+
 			if(controls.UI_UP || controls.UI_DOWN) {
 				var checkLastHold:Int = Math.floor((holdTime - 0.5) * 10);
 				holdTime += elapsed;
@@ -429,7 +423,7 @@ class OsuFreeplayState extends MusicBeatState
 			}
 			else if(FlxG.keys.justPressed.PAGEUP || FlxG.keys.justPressed.PAGEDOWN)
 				changeSong(FlxG.keys.justPressed.PAGEUP? -6 : 6);
-			
+
 			if(controls.ACCEPT)
 			{
 				var vicCheck:Bool = APFreeplayManager.isVictorySong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
@@ -446,7 +440,7 @@ class OsuFreeplayState extends MusicBeatState
 					FlxTween.color(ticketCounterTop, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
 					return;
 				}
-				
+
 				if (APFreeplayManager.trueMissing.contains(fpManager.songList[curSelected].songName) && !APFreeplayManager.unplayedList.contains(fpManager.songList[curSelected].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
@@ -457,15 +451,17 @@ class OsuFreeplayState extends MusicBeatState
 					});
 					return;
 				}
-				
+
 				//reloadSongArray();
 				inSub = true;
+				persistentUpdate = false;
 				openSubState(new DifficultySelectorSubState(fpManager.songList[curSelected]));
 			}
 
 			if(FlxG.keys.justPressed.TAB || FlxG.keys.justPressed.CONTROL) //adding control for consistancy sake
 			{
 				inSub = true;
+				persistentUpdate = false;
 				openSubState(new GameplayChangersSubstate());
 			}
 		}
@@ -523,7 +519,8 @@ class OsuFreeplayState extends MusicBeatState
 
 	override function closeSubState() {
 		inSub = false;
-		if (FreeplayState.doChange) 
+		persistentUpdate = true;
+		if (FreeplayState.doChange)
 		{
 			changeSong(0, false);
 			FreeplayState.doChange = false;
@@ -610,7 +607,7 @@ class OsuFreeplayState extends MusicBeatState
 				}
 			}
 		}
-		if(playSound) 
+		if(playSound)
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 	}
 
@@ -636,7 +633,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		var diffInt:Int = 0;
 		for (j in 0...Difficulty.list.length)
-		{			
+		{
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 50);
@@ -690,16 +687,16 @@ class OsuFreeplayState extends MusicBeatState
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
-			
+
 			if (APEntryState.inArchipelagoMode) {
 				var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 				var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-				songBox.color = APFreeplayManager.isVictorySong(songName, modName) ? 
-					(isMissing ? 
-						(someLocationsNotMissing ? 
-							songBox.color = bronzeOrOrangeColor 
-							: songBox.color = victoryColor) 
-						: songBox.color = 0xFFFFD700) 
+				songBox.color = APFreeplayManager.isVictorySong(songName, modName) ?
+					(isMissing ?
+						(someLocationsNotMissing ?
+							songBox.color = bronzeOrOrangeColor
+							: songBox.color = victoryColor)
+						: songBox.color = 0xFFFFD700)
 					: songBox.color = color;
 			} else {
 				songBox.setColorTransform(-1, -1, -1, 1, fpManager.songList[i].color[0][0], fpManager.songList[i].color[0][1], fpManager.songList[i].color[0][2], 1);
@@ -726,7 +723,7 @@ class OsuFreeplayState extends MusicBeatState
 			text.ID = i;
 			textGrp.add(text);
 		}
-		
+
 		maxSelected = songBox.length;
 
 		changeSong();
@@ -741,7 +738,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		trueInt = 0;
 
-		if (APEntryState.inArchipelagoMode) 
+		if (APEntryState.inArchipelagoMode)
 			APFreeplayManager.checkSongStatus();
 
 		for (i in 0...fpManager.songList.length)
@@ -766,16 +763,16 @@ class OsuFreeplayState extends MusicBeatState
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
-			
+
 			if (APEntryState.inArchipelagoMode) {
 				var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 				var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-				songBox.color = APFreeplayManager.isVictorySong(songName, modName) ? 
-					(isMissing ? 
-						(someLocationsNotMissing ? 
-							songBox.color = bronzeOrOrangeColor 
-							: songBox.color = victoryColor) 
-						: songBox.color = 0xFFFFD700) 
+				songBox.color = APFreeplayManager.isVictorySong(songName, modName) ?
+					(isMissing ?
+						(someLocationsNotMissing ?
+							songBox.color = bronzeOrOrangeColor
+							: songBox.color = victoryColor)
+						: songBox.color = 0xFFFFD700)
 					: songBox.color = color;
 			} else {
 				songBox.setColorTransform(-1, -1, -1, 1, fpManager.songList[i].color[0][0], fpManager.songList[i].color[0][1], fpManager.songList[i].color[0][2], 1);
@@ -810,7 +807,7 @@ class OsuFreeplayState extends MusicBeatState
 				trueInt = i+1;
 				for (j in 0...Difficulty.list.length)
 				{
-					
+
 					var songBox:SongBox = new SongBox(320, 100);
 					songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 					songBox.setGraphicSize(650, 100);
@@ -840,7 +837,7 @@ class OsuFreeplayState extends MusicBeatState
 				//trace(FreeplayManager.songList[curSelected].songName);
 			}
 		}
-		
+
 		maxSelected = songBox.length;
 
 		changeSong();

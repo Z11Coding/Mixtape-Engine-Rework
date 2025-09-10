@@ -65,7 +65,6 @@ class UnoTestState extends MusicBeatState {
 
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
-    var af:ALEffect;
 
     var randomGenericNames:Array<String> = [
         "Ansley Conner",
@@ -121,14 +120,7 @@ class UnoTestState extends MusicBeatState {
         idleTimer = new FlxTimer();
         refreshTimer = new FlxTimer();
 
-        @:privateAccess
-        {
-            af = AL.createEffect(); // create AudioFilter
-            lime.media.openal.AL.effecti( af, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_PITCH_SHIFTER ); // set filter type
-            lime.media.openal.AL.sourcei( lastcardMus._channel.__audioSource.__backend.handle, lime.media.openal.AL.DIRECT_FILTER, af ); // apply filter to source (handle)
-        }
-
-        Lib.current.addChild(new games.uno.backend.logs.UnoTurnSummary());
+        //Lib.current.addChild(new games.uno.backend.logs.UnoTurnSummary());
     }
 
     private function setupBackground():Void {
@@ -485,13 +477,6 @@ class UnoTestState extends MusicBeatState {
                 }
             }
             if (oneCardLeft > 0 && !onLastCard) {
-                if (lastcardMus != null && lastcardMus.playing)
-                {
-                    @:privateAccess
-                    {
-                        lime.media.openal.AL.effectf( af, lime.media.openal.AL.PITCH, oneCardLeft); // set pitch
-                    }
-                }
                 FlxTween.num(1, 0, 1, {ease: FlxEase.sineInOut}, function(value:Float)
                 {
                     normalMus.volume = value;

@@ -1,15 +1,14 @@
 package states.freeplay.osu;
-    
-// import flixel.FlxSprite;
-import flixel.input.keyboard.FlxKey;
-import states.freeplay.OsuFreeplayState;
-import states.freeplay.backend.DifficultyStars;
-import haxe.Json;
-import lime.utils.Assets;
 
 import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
+// import flixel.FlxSprite;
+import flixel.input.keyboard.FlxKey;
+import haxe.Json;
+import lime.utils.Assets;
+import states.freeplay.OsuFreeplayState;
+import states.freeplay.backend.DifficultyStars;
 
 class DifficultySelectorSubState extends MusicBeatSubstate
 {
@@ -43,7 +42,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         sprite = new FlxSprite().loadGraphic(Paths.image('menudifficulties/${Difficulty.list[difficulty].toLowerCase()}'));
         sprite.screenCenter();
         add(sprite);
-        
+
         difficultyStars = new DifficultyStars(0, 0);
 		difficultyStars.visible = true;
         difficultyStars.scrollFactor.set();
@@ -56,7 +55,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 		missingTextBG.alpha = 0.6;
 		missingTextBG.visible = false;
 		add(missingTextBG);
-		
+
 		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
 		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		missingText.scrollFactor.set();
@@ -77,7 +76,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         PlayState.storyWeek = song.week;
         switch (song.songName)
         {
-            case 'Small Argument' | 'Beat Battle 2':
+            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
                 Difficulty.list = ['Hard'];
             case "Beat Battle":
                 Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
@@ -95,7 +94,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 		difficultyStars.setNumber(difficulty);
         showStars();
 	}
-	
+
 	/**
 	 * Make the album stars visible.
 	 */
@@ -166,8 +165,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 
         // I really don't wanna talk about it
         try {
-            var jsonMeta:Dynamic = Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song.songName.toLowerCase()) + '/meta')));
-            var ratingValue:Dynamic = jsonMeta.freeplay.ratings;
+            var ratingValue:Dynamic = OsuFreeplayState.instance.fpManager.metadata.get(song.songName.toLowerCase()).freeplay.ratings;
             var actualRating:Map<String, Int> = new Map<String, Int>();
 
             for (item in Reflect.fields(ratingValue)) {
@@ -204,7 +202,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         if (sprite == null)
         {
             sprite = new FlxSprite(0, 0);
-        
+
             if (Paths.exists(Paths.file('images/menudifficulties/${diff}.xml')))
             {
                 sprite.frames = Paths.getSparrowAtlas('menudifficulties/${diff}');
@@ -215,7 +213,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             {
                 sprite.loadGraphic(Paths.image('menudifficulties/${diff}'));
             }
-        
+
             difficultySprites.set(diff, sprite);
         }
 

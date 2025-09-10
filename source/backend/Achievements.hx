@@ -1,9 +1,9 @@
 package backend;
 
 #if ACHIEVEMENTS_ALLOWED
-import objects.AchievementPopup;
 import haxe.Exception;
 import haxe.Json;
+import objects.AchievementPopup;
 
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
@@ -19,7 +19,7 @@ typedef Achievement =
 
 	//handled automatically, ignore these two
 	@:optional var mod:String;
-	@:optional var ID:Int; 
+	@:optional var ID:Int;
 }
 
 enum abstract AchievementOp(String)
@@ -82,7 +82,7 @@ class Achievements {
 		createAchievement('week6_nomiss',			{name: "Highscore!!", description: "Beat Week 6 on Hard with no Misses."});
 		createAchievement('week7_nomiss',			{name: "God Effing Damn It!", description: "Beat Week 7 on Hard with no Misses."});
 		createAchievement('weekend1_nomiss',		{name: "Just a Friendly Sparring", description: "Beat Weekend 1 on Hard with no Misses."});
-		
+
 		// extra achievements
 		createAchievement('ur_bad',					{name: "What a Funkin' Disaster!", description: "Complete a Song with a rating lower than 20%."});
 		createAchievement('ur_good',				{name: "Perfectionist", description: "Complete a Song with a rating of 100%."});
@@ -92,13 +92,13 @@ class Achievements {
 		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
 		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
 		createAchievement('potato',					{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
-		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 3 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 3, maxDecimals: 0});
+		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 3 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 4, maxDecimals: 0});
 		createAchievement('challenger',				{name: "Challenger", description: "Complete a Song with 2 Safe Frames."});
 		createAchievement('hardcore',				{name: "Hardcore", description: "Beat a song with no Misses on 24/20 mode."});
 		createAchievement('demon',					{name: "Demon", description: "Beat a Song with 100% accuracy on 24/20 mode. Well done, now stop it."});
 		createAchievement('persistent',				{name: "Persistent", description: "Beat a Week with no Misses on 24/20 mode. Jesus Christ..."});
-		createAchievement('resilient',				{name: "Persistent", description: "Beat a Week with 100% accuracy on all songs on 24/20 mode. Go touch grass you moron"});
-		
+		createAchievement('resilient',				{name: "Resilient", description: "Beat a Week with 100% accuracy on all songs on 24/20 mode. Go touch grass you moron"});
+
 		// Secret achievements
 		createAchievement('fps',					{name: "1 FPS Gaming", description: "Slideshow Incarnate,", hidden: true});
 		createAchievement('lag',					{name: "man this engine SUCKS", description: "Lag.", hidden: true});
@@ -107,7 +107,7 @@ class Achievements {
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		createAchievement('freaky_bar',				{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
 		createAchievement('much_better',			{name: "Much Better", description: "Join the dark side.", hidden: true});
-		
+
 		//dont delete this thing below
 		_originalLength = _sortID + 1;
 	}
@@ -143,13 +143,13 @@ class Achievements {
 			_firstLoad = false;
 		}
 	}
-	
+
 	public static function save():Void
 	{
 		FlxG.save.data.achievementsUnlocked = achievementsUnlocked;
 		FlxG.save.data.achievementsVariables = variables;
 	}
-	
+
 	public static function getScore(name:String):Float
 		return _scoreFunc(name, GET);
 
@@ -327,7 +327,7 @@ class Achievements {
 			try {
 				var rawJson:String = File.getContent(path).trim();
 				if(rawJson != null && rawJson.length > 0) retVal = tjson.TJSON.parse(rawJson); //Json.parse('{"achievements": $rawJson}').achievements;
-				
+
 				if(addMods && retVal != null)
 				{
 					for (i in 0...retVal.length)

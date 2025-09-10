@@ -330,6 +330,8 @@ class FreeplayState extends MusicBeatState
 			hh.push({item: "beat battle", chance: 5}); // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
 		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode)
 			hh.push({item: "beat battle 2", chance: 5}); // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+		if (!FlxG.save.data.gotgeostar && !APEntryState.inArchipelagoMode)
+			hh.push({item: "geostar", chance: 5}); // 5% chance to do GeoStar if not already unlocked or in Archipelago Mode
 
 		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			ticketCounter = new FlxText(FlxG.width - 470, FlxG.height - 630, 0, "0/0", 32);
@@ -886,6 +888,11 @@ class FreeplayState extends MusicBeatState
 									FlxG.save.data.gotbeatbattle2 = true;
 									FlxG.save.flush();
 									Achievements.addScore("search_songs");
+								case "geostar":
+									Song.loadFromJson('geostar-hard', 'geostar');
+									FlxG.save.data.gotgeostar = true;
+									FlxG.save.flush();
+									Achievements.addScore("search_songs");
 								case "normal error":
 									trace('ERROR! NO SONGS FOUND!');
 
@@ -1077,25 +1084,25 @@ class FreeplayState extends MusicBeatState
 		#end
 
 		// I really don't wanna talk about it
-        try {
-            var ratingValue:Dynamic = metadata.freeplay.ratings;
-            var actualRating:Map<String, Int> = new Map<String, Int>();
+		try {
+			var ratingValue:Dynamic = metadata.freeplay.ratings;
+			var actualRating:Map<String, Int> = new Map<String, Int>();
 
-            for (item in Reflect.fields(ratingValue)) {
-                if (item == 'normal' || item == 'easy' || item == 'hard') {
-                    actualRating.set(item, Reflect.field(ratingValue, item));
-                } else {
-                    actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
-                }
-            }
+			for (item in Reflect.fields(ratingValue)) {
+					if (item == 'normal' || item == 'easy' || item == 'hard') {
+							actualRating.set(item, Reflect.field(ratingValue, item));
+					} else {
+							actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
+					}
+			}
 
-            var curDiff:String = Difficulty.list[curDifficulty].toLowerCase();
+			var curDiff:String = Difficulty.list[curDifficulty].toLowerCase();
 			setDifficultyStars(actualRating.get(curDiff));
 			setDifficultyStars(actualRating.get(curDiff));
-        } catch(e) {
-            difficultyStars.visible = false;
-            trace("No Metadata Found!");
-        }
+		} catch(e) {
+			difficultyStars.visible = false;
+			trace("No Metadata Found!");
+		}
 
 		lastDifficultyName = Difficulty.getString(curDifficulty, false);
 		var displayDiff:String = Difficulty.getString(curDifficulty);
@@ -1226,7 +1233,7 @@ class FreeplayState extends MusicBeatState
 
 				switch (fpManager.songList[curSelected].songName)
 				{
-					case 'Small Argument' | 'Beat Battle 2':
+					case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
 						Difficulty.list = ['Hard'];
 					case "Beat Battle":
 						Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];

@@ -54,12 +54,13 @@
 	</section>
 
 	<!-- Apparently I can just drop this in and it'll work so i'll be the judge of that -->
+	<!-- As it turns out, you can indeed just drop it in and it'll work -->
 
 	<haxedef name="FM_ENGINE" value="PSYCH"/>
 	<haxedef name="FM_ENGINE_VERSION" value="1.0"/>
 
 	<haxelib name="funkin-modchart" />
-	<haxeflag name="--macro" value="modchart.core.macros.Macro.includeFiles()"/>
+	<haxeflag name="--macro" value="modchart.backend.macros.Macro.includeFiles()"/>
 
 	<!-- ____________________________ Window Settings ___________________________ -->
 
@@ -183,12 +184,17 @@
 	<!--Avoid memory leaks with for loops in HScript-->
 	<haxedef name="loop_unroll_max_cost" value="25" />
 
+	<haxelib name="flxsoundfilters" />
+
 	<haxelib name="faxe" if='switch'/>
 
 	<section if="MULTICORE_LOADING false">
 		<define name="traceLoading"/>
 		<define name="loadBenchmark"/>
 	</section>
+
+	<haxedef name="HXCPP_ALIGN_ALLOC"/>
+	<haxedef name="HX_HAS_ATOMIC"/>
 
 	<!-- ______________________________ Haxedefines _____________________________ -->
 

@@ -93,6 +93,8 @@ import flixel.tweens.FlxTween;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.addons.transition.FlxTransitionableState;
+import flixel.sound.filters.*;
+import flixel.sound.filters.effects.*;
 
 import yutautil.ImprovedFileHandling;
 
@@ -102,7 +104,7 @@ using StringTools;
 using yutautil.CollectionUtils;
 using yutautil.MetaData;
 using yutautil.PointerTools;
-using yutautil.CUMacroTools; 
+using yutautil.CUMacroTools;
 using yutautil.KonamiTracker;
 using yutautil.GenericObject;
 using yutautil.PyScript;
