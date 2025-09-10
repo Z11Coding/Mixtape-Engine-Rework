@@ -1,16 +1,16 @@
 package backend.ui;
 
+import backend.ui.PsychUIBox;
+import backend.ui.PsychUIEventHandler;
+import backend.ui.PsychUITab;
 import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.math.FlxPoint;
 import flixel.text.FlxText;
-import flixel.util.FlxColor;
-import flixel.FlxG;
-import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
-import backend.ui.PsychUIBox;
-import backend.ui.PsychUITab;
-import backend.ui.PsychUIEventHandler;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
 
 enum DrawerSide {
     LEFT;
@@ -36,13 +36,13 @@ class PsychUIDrawer extends PsychUIBox {
     public var drawerWidth:Int = 300;
     public var animationSpeed:Float = 0.3;
     public var animationTween:FlxTween;
-    
+
     // Original positions for animation
     private var closedX:Float;
     private var closedY:Float;
     private var openX:Float;
     private var openY:Float;
-    
+
     // Drag tracking for pull tab
     private var _isDragging:Bool = false;
     private var _dragStartPos:FlxPoint;
@@ -52,23 +52,23 @@ class PsychUIDrawer extends PsychUIBox {
         this.attachedCamera = camera;
         this.side = side;
         this.drawerWidth = width;
-        
+
         drawerTabs = [];
-        
+
         // Create pull tab
         pullTab = new FlxSprite();
         pullTabText = new FlxText(0, 0, tabWidth, ">");
         pullTabText.alignment = CENTER;
         pullTabText.size = 12;
-        
+
         // Initialize with camera height for proper sizing
         var drawerHeight = Std.int(camera.height);
         super(0, 0, width, drawerHeight);
-        
+
         // Add drawer components
         add(pullTab);
         add(pullTabText);
-        
+
         setupDrawer();
     }
 
@@ -77,7 +77,7 @@ class PsychUIDrawer extends PsychUIBox {
         var camHeight = attachedCamera.height;
         var camX = attachedCamera.x;
         var camY = attachedCamera.y;
-        
+
         // Position the drawer based on the side
         switch (side) {
             case LEFT:
@@ -117,18 +117,18 @@ class PsychUIDrawer extends PsychUIBox {
                 pullTabText.text = "^";
                 pullTabText.fieldWidth = tabWidth * 2;
         }
-        
+
         // Set initial position (closed)
         setPosition(closedX, closedY);
         bg.alpha = 0.9;
-        
+
         // Position pull tab
         updatePullTabPosition();
-        
+
         // Resize the inherited PsychUIBox to fit the drawer
         resize(Std.int(bg.width), Std.int(bg.height));
     }
-    
+
     function updatePullTabPosition() {
         switch (side) {
             case LEFT:
@@ -144,7 +144,7 @@ class PsychUIDrawer extends PsychUIBox {
                 pullTab.x = x + 50;
                 pullTab.y = y - tabHeight;
         }
-        
+
         pullTabText.x = pullTab.x + pullTab.width/2 - pullTabText.width/2;
         pullTabText.y = pullTab.y + pullTab.height/2 - pullTabText.height/2;
     }
@@ -154,14 +154,14 @@ class PsychUIDrawer extends PsychUIBox {
         drawerTabs.push(drawerTab);
         add(drawerTab);
         updateDrawerTabPositions();
-        
+
         if (activeDrawerTab == -1) {
             activeDrawerTab = 0;
         }
-        
+
         return drawerTab;
     }
-    
+
     function updateDrawerTabPositions() {
         for (i in 0...drawerTabs.length) {
             var tab = drawerTabs[i];
@@ -187,24 +187,24 @@ class PsychUIDrawer extends PsychUIBox {
             animationTween.cancel();
             animationTween = null;
         }
-        
+
         if (tabIndex >= 0 && tabIndex < drawerTabs.length) {
             activeDrawerTab = tabIndex;
         }
-        
+
         if (isOpen) {
             closeDrawer();
         } else {
             openDrawer();
         }
     }
-    
+
     public function openDrawer() {
         if (isOpen) return;
-        
+
         isOpen = true;
         updatePullTabText();
-        
+
         animationTween = FlxTween.tween(this, {x: openX, y: openY}, animationSpeed, {
             ease: FlxEase.quartOut,
             onUpdate: function(tween:FlxTween) {
@@ -216,13 +216,13 @@ class PsychUIDrawer extends PsychUIBox {
             }
         });
     }
-    
+
     public function closeDrawer() {
         if (!isOpen) return;
-        
+
         isOpen = false;
         updatePullTabText();
-        
+
         animationTween = FlxTween.tween(this, {x: closedX, y: closedY}, animationSpeed, {
             ease: FlxEase.quartOut,
             onUpdate: function(tween:FlxTween) {
@@ -234,7 +234,7 @@ class PsychUIDrawer extends PsychUIBox {
             }
         });
     }
-    
+
     function updatePullTabText() {
         switch (side) {
             case LEFT:
@@ -250,28 +250,28 @@ class PsychUIDrawer extends PsychUIBox {
 
     override function update(elapsed:Float) {
         super.update(elapsed);
-        
+
         // Handle pull tab interaction
         if (FlxG.mouse.overlaps(pullTab, attachedCamera)) {
             pullTab.alpha = 0.8;
-            
+
             if (FlxG.mouse.justPressed) {
                 _dragStartPos = FlxG.mouse.getPositionInCameraView(attachedCamera);
                 _isDragging = true;
             }
-            
+
             if (FlxG.mouse.justReleased && !_isDragging) {
                 toggleDrawer();
             }
         } else {
             pullTab.alpha = 1.0;
         }
-        
+
         // Handle dragging
         if (_isDragging && FlxG.mouse.pressed) {
             var currentPos = FlxG.mouse.getPositionInCameraView(attachedCamera);
             var dragDistance = 0.0;
-            
+
             switch (side) {
                 case LEFT:
                     dragDistance = currentPos.x - _dragStartPos.x;
@@ -282,7 +282,7 @@ class PsychUIDrawer extends PsychUIBox {
                 case BOTTOM:
                     dragDistance = _dragStartPos.y - currentPos.y;
             }
-            
+
             if (Math.abs(dragDistance) > _dragThreshold) {
                 if (dragDistance > 0 && !isOpen) {
                     openDrawer();
@@ -292,11 +292,11 @@ class PsychUIDrawer extends PsychUIBox {
                 _isDragging = false;
             }
         }
-        
+
         if (FlxG.mouse.justReleased) {
             _isDragging = false;
         }
-        
+
         // Handle drawer tab clicks
         for (i in 0...drawerTabs.length) {
             var tab = drawerTabs[i];
@@ -314,35 +314,35 @@ class PsychUIDrawer extends PsychUIBox {
                 tab.alpha = (activeDrawerTab == i) ? 1.0 : 0.6;
             }
         }
-        
+
         // Update active drawer tab content
         if (isOpen && activeDrawerTab >= 0 && activeDrawerTab < drawerTabs.length) {
             var activeTab = drawerTabs[activeDrawerTab];
             activeTab.updateContent(elapsed);
         }
     }
-    
+
     override function draw() {
         super.draw();
-        
+
         // Draw active drawer tab content
         if (isOpen && activeDrawerTab >= 0 && activeDrawerTab < drawerTabs.length) {
             var activeTab = drawerTabs[activeDrawerTab];
             activeTab.drawContent();
         }
     }
-    
+
     override function destroy() {
         if (animationTween != null) {
             animationTween.cancel();
             animationTween = null;
         }
-        
+
         drawerTabs = null;
         pullTab = null;
         pullTabText = null;
         _dragStartPos = null;
-        
+
         super.destroy();
     }
 }
@@ -361,27 +361,27 @@ class DrawerTab extends FlxSprite {
         super();
         this.tabName = name;
         this.parentDrawer = parent;
-        
+
         makeGraphic(parent.tabWidth, parent.tabHeight, 0xFF444444);
-        
+
         tabText = new FlxText(0, 0, width, name);
         tabText.size = 8;
         tabText.alignment = CENTER;
-        
+
         // Create the top tab box for this drawer tab
         topTabBox = new PsychUIBox(0, 0, parent.drawerWidth - 20, parent.drawerWidth - 100);
         topTabBox.canMove = false;
         topTabBox.canMinimize = false;
     }
-    
+
     public function addTopTab(name:String) {
         topTabBox.addTab(name);
     }
-    
+
     public function getTopTab(name:String):PsychUITab {
         return topTabBox.getTab(name);
     }
-    
+
     public function updateContent(elapsed:Float) {
         if (topTabBox != null) {
             topTabBox.x = parentDrawer.x + 10;
@@ -389,23 +389,23 @@ class DrawerTab extends FlxSprite {
             topTabBox.update(elapsed);
         }
     }
-    
+
     public function drawContent() {
         if (topTabBox != null) {
             topTabBox.draw();
         }
     }
-    
+
     override function draw() {
         super.draw();
-        
+
         if (tabText != null) {
             tabText.x = x;
             tabText.y = y + height/2 - tabText.height/2;
             tabText.draw();
         }
     }
-    
+
     override function destroy() {
         topTabBox = null;
         tabText = null;

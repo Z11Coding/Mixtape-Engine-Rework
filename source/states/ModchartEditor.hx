@@ -271,7 +271,7 @@ class ModchartEditor extends PlayState {
         if (isPlaying && FlxG.sound.music != null) {
             currentTime = Conductor.songPosition / 1000;
         }
-        
+
         // Ensure all playfields remain in autoplay mode
         for (field in playfields.members) {
             if (field != null && !field.autoPlayed) {
@@ -284,13 +284,13 @@ class ModchartEditor extends PlayState {
 
         super.update(elapsed);
     }
-    
+
     // Override pause functionality to prevent normal pause menu
     override function openPauseMenu() {
         // Do nothing - prevent pause menu from opening
         return;
     }
-    
+
     // Override substate opening to prevent pause menu
     override function openSubState(SubState:flixel.FlxSubState) {
         // Only allow specific substates if needed for the editor
@@ -356,11 +356,11 @@ class ModchartEditor extends PlayState {
 
     function seekTime(offset:Float) {
         currentTime = Math.max(0, Math.min(currentTime + offset, FlxG.sound.music.length / 1000));
-        
+
         // Sync all audio sources
         FlxG.sound.music.time = currentTime * 1000;
         vocals.time = currentTime * 1000;
-        
+
         // Sync additional vocal tracks if they exist
         if (opponentVocals != null) {
             opponentVocals.time = currentTime * 1000;
@@ -368,10 +368,10 @@ class ModchartEditor extends PlayState {
         if (gfVocals != null) {
             gfVocals.time = currentTime * 1000;
         }
-        
+
         // Update conductor position
         Conductor.songPosition = currentTime * 1000;
-        
+
         // Resync vocals to ensure they stay in sync
         resyncVocals();
     }

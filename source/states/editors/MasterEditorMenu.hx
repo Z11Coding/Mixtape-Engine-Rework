@@ -1,11 +1,11 @@
 package states.editors;
 
-import backend.WeekData;
 import backend.Song;
+import backend.WeekData;
 import objects.Character;
 import states.MainMenuState;
-import states.freeplay.FreeplayState;
 import states.ModchartEditor;
+import states.freeplay.FreeplayState;
 
 class MasterEditorMenu extends MusicBeatState
 {
@@ -55,7 +55,7 @@ class MasterEditorMenu extends MusicBeatState
 			grpTexts.add(leText);
 			leText.snapToPosition();
 		}
-		
+
 		#if MODS_ALLOWED
 		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 42).makeGraphic(FlxG.width, 42, 0xFF000000);
 		textBG.alpha = 0.6;
@@ -65,7 +65,7 @@ class MasterEditorMenu extends MusicBeatState
 		directoryTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER);
 		directoryTxt.scrollFactor.set();
 		add(directoryTxt);
-		
+
 		for (folder in Mods.getModDirectories())
 		{
 			directories.push(folder);
@@ -146,7 +146,7 @@ class MasterEditorMenu extends MusicBeatState
 			FlxG.sound.music.volume = 0;
 			if (FreeplayManager.instance != null) FreeplayManager.instance.destroyFreeplayVocals();
 		}
-		
+
 		for (num => item in grpTexts.members)
 		{
 			item.targetY = num - curSelected;
@@ -174,7 +174,7 @@ class MasterEditorMenu extends MusicBeatState
 			curDirectory = directories.length - 1;
 		if(curDirectory >= directories.length)
 			curDirectory = 0;
-	
+
 		WeekData.setDirectoryFromWeek();
 		if(directories[curDirectory] == null || directories[curDirectory].length < 1)
 			directoryTxt.text = '< No Mod Directory Loaded >';
