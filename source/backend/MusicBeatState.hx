@@ -680,7 +680,7 @@ class MusicBeatState extends FlxState
 		}
 
 		// Add a "rare" chance (5%) to use TransitionState instead of normal transition
-		if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn)
+		if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn && !(nextState is states.LoadingState || nextState is states.MixtapeLoadingScreen))
 		{
 			// Use TransitionState with random transition type
 			var nextStateClass = Type.getClass(nextState);
