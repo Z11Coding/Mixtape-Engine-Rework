@@ -108,7 +108,7 @@ class APInfo {
 		return apGame?._slotData;
 	}
 
-	public static var gradeList:Array<String> = 
+	public static var gradeList:Array<String> =
 	[
 		'Any',
 		"MFC",
@@ -119,7 +119,7 @@ class APInfo {
 		"SDCB"
 	];
 
-	public static var accuracyList:Array<String> = 
+	public static var accuracyList:Array<String> =
 	[
 		"Any",
 		"P",
@@ -224,7 +224,7 @@ class APInfo {
 		return unlockMethod == "Song Completion" || unlockMethod == "Both";
 	}
 
-	public static final baseGame:Array<String> = 
+	public static final baseGame:Array<String> =
 	[
 		'Tutorial',
 		'Bopeebo', 'Fresh', 'Dad Battle',
@@ -237,7 +237,7 @@ class APInfo {
 		'Darnell (BF Mix)', 'Lit Up (BF Mix)'
 	];
 
-	public static final baseErect:Array<String> = 
+	public static final baseErect:Array<String> =
 	[
 		'Bopeebo Erect', 'Fresh Erect', 'Dad Battle Erect',
 		'Spookeez Erect', 'South Erect',
@@ -249,7 +249,7 @@ class APInfo {
 		'Darnell Erect'
 	];
 
-	public static final basePico:Array<String> = 
+	public static final basePico:Array<String> =
 	[
 		'Darnell', 'Lit Up', '2Hot', 'Blazin',
 		'Bopeebo (Pico Mix)', 'Fresh (Pico mix)', 'Dad Battle (Pico mix)',
@@ -261,9 +261,10 @@ class APInfo {
 	];
 
 	public static final secrets:Array<String> = [
-		'Small Argument', 
-		'Beat Battle', 
-		'Beat Battle 2'
+		'Small Argument',
+		'Beat Battle',
+		'Beat Battle 2',
+		'GeoStar'
 	];
 
 	// TODO: Make this better lol

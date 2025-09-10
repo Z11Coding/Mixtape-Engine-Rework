@@ -597,7 +597,7 @@ class Paths
 		var tempHeight:Int = Math.ceil(originalHeight * compressionFactor);
 
 		// Don't compress if it would make the temp image too small to be useful
-		if (tempWidth < 4 || tempHeight < 4) return original;
+		//if (tempWidth < 4 || tempHeight < 4) return original;
 
 		// Create temporary smaller bitmap for quality reduction
 		var tempBitmap:BitmapData = new BitmapData(tempWidth, tempHeight, original.transparent, 0);

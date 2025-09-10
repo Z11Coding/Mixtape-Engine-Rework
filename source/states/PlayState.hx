@@ -4805,6 +4805,7 @@ class PlayState extends MusicBeatState
 			notes.remove(note);
 		});
 		field.noteMissed.add((daNote:Note, field:PlayField) -> {
+			trace("Missed!");
 			if (field.isPlayer && !field.autoPlayed && !daNote.ignoreNote && !endingSong && (daNote.tooLate || !daNote.wasGoodHit))
 				noteMiss(daNote, field);
 
@@ -5761,16 +5762,6 @@ class PlayState extends MusicBeatState
 
 			amountOfRenderedNotes += 1;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
-			if (daNote.isSustainNote)
-			{
-				final strum = (daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData];
-				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
-			}
-
-			if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
-			{
-				invalidateNote(daNote);
-			}
 		}
 	}
 

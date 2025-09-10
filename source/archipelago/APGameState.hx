@@ -3,38 +3,38 @@ package archipelago;
 /*
  * TEMPORARY CUSTOM WEEK SYSTEM FOR ARCHIPELAGO
  * ============================================
- * 
- * This APGameState includes a system that creates temporary, in-memory week data 
+ *
+ * This APGameState includes a system that creates temporary, in-memory week data
  * for mods that receive new songs through Archipelago's custom song management.
- * 
+ *
  * KEY FEATURES:
  * - No permanent file creation - weeks exist only in memory during AP session
  * - Automatic cleanup on disconnect, exit, or manual disconnect
  * - Supports both explicit custom weeks and dynamically generated weeks from song additions
  * - Integrates seamlessly with existing WeekData system
- * 
+ *
  * CLEANUP TRIGGERS:
  * - onSocketDisconnected(): Network disconnection
- * - onCancel(): User exits AP mode  
+ * - onCancel(): User exits AP mode
  * - disconnectAP(): Manual disconnect
  * - APGameState.forceCleanupTemporaryWeeks(): Emergency cleanup
  */
 
-import yutautil.AprilFools;
-import haxe.DynamicAccess;
-import yutautil.MemoryHelper;
-import flixel.FlxState;
+import archipelago.APCategoryState;
+import archipelago.APDisconnectSubstate;
 import archipelago.Client;
 import archipelago.PacketTypes;
-import archipelago.APDisconnectSubstate;
-import archipelago.APCategoryState;
-import backend.WeekData;
-import backend.WeekData.WeekFile;
 import backend.Paths;
+import backend.WeekData.WeekFile;
+import backend.WeekData;
+import flixel.FlxState;
+import haxe.DynamicAccess;
 import haxe.ds.Option;
-import openfl.text.TextFormat;
 import lime.app.Future;
 import lime.app.Promise;
+import openfl.text.TextFormat;
+import yutautil.AprilFools;
+import yutautil.MemoryHelper;
 #if MODS_ALLOWED
 import sys.FileSystem;
 import sys.io.File;
@@ -307,7 +307,7 @@ class APGameState
 	private var _seed:String;
 	private var _disconnectSubstate:APDisconnectSubstate;
 	private var _saveData:yutautil.save.MixSaveWrapper;
-	
+
 	// Temporary weeks created for AP session - automatically cleaned up on disconnect/exit
 	public static var temporaryWeeks:Array<WeekData> = [];
 	public static var temporaryWeekNames:Array<String> = [];
@@ -982,7 +982,7 @@ class APGameState
 					archipelago.APItem.createItemByName("Tutorial Trap").fromTrapLink = true;
 				case "Ice Trap":
 					archipelago.APItem.createItemByName("Ice Trap").fromTrapLink = true;
-				case "Freeze Trap" | "Frozen Trap":
+				case "Freeze Trap" | "Frozen Trap" | "Bubble Trap":
 					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
 				case "Army Trap" | "Police Trap" | "Buyon Trap" | "OmoTrap":
 					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
@@ -1008,8 +1008,8 @@ class APGameState
 					archipelago.APItem.createItemByName("Fast Trap").fromTrapLink = true;
 				case "Slow Trap" | "Slowness Trap":
 					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
-				case "Deisometric Trap":
-					archipelago.APItem.createItemByName("Deisometric Trap").fromTrapLink = true;
+				case "Deisometric Trap" | "Camera Rotate Trap":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
 				case "Push Trap":
 					archipelago.APItem.createItemByName('Push Trap').fromTrapLink = true;
 				case "Input Sequence Trap":
@@ -1057,8 +1057,8 @@ class APGameState
 			_ap.tags.push("DeathLink");
 
 		trace("Slot Data Connected and Custom Songs Grabbed!");
-	}		
-	
+	}
+
 	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
 	{
 		var theMessageFM:String = "";
@@ -1086,7 +1086,7 @@ class APGameState
 	{
 		// Clean up temporary weeks when manually disconnecting
 		cleanupTemporaryWeeks();
-		
+
 		_ap.disconnect_socket();
 		_ap = null;
 		if (APEntryState.ap != null)
@@ -1232,7 +1232,7 @@ class APGameState
 		/**
 		 * Alternative method with batch processing and progress feedback
 		 * Usage example:
-		 * 
+		 *
 		 * addSongsWithBatching(songs, 5, function(processed, total) {
 		 *     trace('Processing: ${processed}/${total}');
 		 * }).onComplete(function(_) {
@@ -1639,24 +1639,24 @@ class APGameState
 	/*
  * TEMPORARY CUSTOM WEEK SYSTEM
  * ============================
- * 
+ *
  * This system creates temporary, in-memory week data for mods that receive new songs
  * through Archipelago's custom song management system. It works as follows:
- * 
+ *
  * 1. SLOT DATA PROCESSING:
  *    - Reads 'customWeeks' data from slot data (explicit week definitions)
  *    - Reads 'song_modifications' data (song additions/exclusions)
- * 
+ *
  * 2. TEMPORARY WEEK CREATION:
  *    - Creates WeekData objects in memory (no file I/O)
  *    - Adds them directly to WeekData.weeksLoaded and WeekData.weeksList
  *    - Uses naming pattern: ap_custom_{modname} or ap_custom_base
- * 
+ *
  * 3. AUTOMATIC CLEANUP:
  *    - Temporary weeks are stored in APGameState.temporaryWeeks
  *    - Automatically removed on disconnect or AP exit
  *    - No permanent files are created or modified
- * 
+ *
  * EXAMPLE SLOT DATA STRUCTURE:
  * {
  *   "customWeeks": {
@@ -1675,11 +1675,11 @@ class APGameState
 
 /**
  * Generate temporary custom weeks for mods that received new songs through Archipelago
-	 * 
+	 *
 	 * This function processes slot data from the Python world generation that includes:
 	 * - customWeeks: Explicitly defined custom weeks from HScript processing
 	 * - song_modifications: Song additions/exclusions that require new week files
-	 * 
+	 *
 	 * Custom weeks are generated as JSON files in the appropriate mod directories
 	 * and are automatically unlocked for Archipelago play.
 	 */
@@ -1690,18 +1690,18 @@ class APGameState
 			trace("No slot data found");
 			return;
 		}
-		
+
 		var hasCustomWeeks = Reflect.hasField(_slotData, "customWeeks");
 		var hasSongMods = Reflect.hasField(_slotData, "song_modifications");
 
 		trace('hasSongMods: $hasSongMods');
-		
+
 		if (!hasCustomWeeks && !hasSongMods)
 		{
 			trace("No custom weeks or song modifications data found in slot data");
 			return;
 		}
-		
+
 		#if MODS_ALLOWED
 		// Process custom weeks data if available
 		if (hasCustomWeeks)
@@ -1715,21 +1715,21 @@ class APGameState
 					var weekData:Dynamic = Reflect.field(customWeeksData, field);
 					var targetMod:String = weekData.targetMod != null ? weekData.targetMod : "";
 					var songs:Array<String> = weekData.songs;
-					
+
 					if (songs == null || songs.length == 0)
 					{
 						trace('Invalid custom week data for ${field}: no songs');
 						continue;
 					}
-					
+
 					// Extract optional week-level metadata
 					var difficulties:Array<String> = weekData.difficulties;
 					var defaultIcon:String = weekData.icon;
 					var defaultColor:Array<Int> = weekData.color;
-					
+
 					// Create metadata for songs, prioritizing per-song metadata over week defaults
 					var songMetadata:Array<Dynamic> = [];
-					
+
 					// Check if per-song metadata is available
 					if (weekData.songMetadata != null)
 					{
@@ -1738,7 +1738,7 @@ class APGameState
 						{
 							var songName = songs[i];
 							var songMeta:Dynamic = {name: songName};
-							
+
 							// Find matching metadata for this song
 							var foundMetadata:Dynamic = null;
 							for (meta in perSongMetadata)
@@ -1749,7 +1749,7 @@ class APGameState
 									break;
 								}
 							}
-							
+
 							// Use per-song metadata if available, otherwise fall back to week defaults
 							if (foundMetadata != null)
 							{
@@ -1761,7 +1761,7 @@ class APGameState
 								songMeta.icon = defaultIcon != null ? defaultIcon : "face";
 								songMeta.color = defaultColor != null ? defaultColor : [146, 113, 253];
 							}
-							
+
 							songMetadata.push(songMeta);
 						}
 					}
@@ -1777,14 +1777,14 @@ class APGameState
 							});
 						}
 					}
-					
+
 					// Create the custom week with metadata
 					createOptimizedTemporaryWeek(field, targetMod, songs, songMetadata, difficulties);
 					trace('Created custom week ${field} with ${songs.length} songs and per-song metadata');
 				}
 			}
 		}
-		
+
 		// Process song modifications if available
 		if (hasSongMods)
 		{
@@ -1795,7 +1795,7 @@ class APGameState
 				processSongModifications(songModsData);
 			}
 		}
-		
+
 		// Reload week data to include newly generated weeks
 		WeekData.reloadWeekFiles(false);
 		trace("Custom weeks generated and week data reloaded");
@@ -1803,7 +1803,7 @@ class APGameState
 		trace("Mods not allowed, skipping custom week generation");
 		#end
 	}
-	
+
 	// Process song additions and exclusions from slot data
 	private function processSongModifications(songModsData:Dynamic):Void
 	{
@@ -1814,32 +1814,32 @@ class APGameState
 			if (songAdditions != null && songAdditions.length > 0)
 			{
 				trace('Processing ${songAdditions.length} song additions with difficulty optimization');
-				
+
 				// Group songs by target mod first, then by difficulty set
 				var modGroups:Map<String, Array<Dynamic>> = new Map();
-				
+
 				for (addition in songAdditions)
 				{
 					var targetMod:String = addition.targetMod != null ? addition.targetMod : "";
-					
+
 					if (!modGroups.exists(targetMod))
 					{
 						modGroups.set(targetMod, []);
 					}
 					modGroups.get(targetMod).push(addition);
 				}
-				
+
 				// For each mod, group by difficulties and create optimized weeks
 				for (targetMod in modGroups.keys())
 				{
 					var modSongs = modGroups.get(targetMod);
 					var difficultyGroups:Map<String, Array<Dynamic>> = new Map();
-					
+
 					// Group songs by their difficulty sets
 					for (song in modSongs)
 					{
 						var difficultyKey:String;
-						
+
 						if (song.difficulties != null && song.difficulties.length > 0)
 						{
 							// Sort difficulties for consistent grouping (convert to lowercase)
@@ -1851,20 +1851,20 @@ class APGameState
 						{
 							difficultyKey = "default";
 						}
-						
+
 						if (!difficultyGroups.exists(difficultyKey))
 						{
 							difficultyGroups.set(difficultyKey, []);
 						}
 						difficultyGroups.get(difficultyKey).push(song);
 					}
-					
+
 					// Create optimized weeks for each difficulty group
 					for (difficultyKey in difficultyGroups.keys())
 					{
 						var songs = difficultyGroups.get(difficultyKey);
 						if (songs.length == 0) continue;
-						
+
 						// Generate week name based on difficulty set
 						var weekName:String;
 						if (difficultyKey == "default")
@@ -1876,16 +1876,16 @@ class APGameState
 							var diffSuffix = difficultyKey.replace("|", "_");
 							weekName = 'ap_custom_' + (targetMod != "" ? targetMod : "base") + '_' + diffSuffix;
 						}
-						
+
 						// Extract song names and metadata
 						var songNames:Array<String> = [];
 						var songMetadata:Array<Dynamic> = [];
 						var weekDifficulties:Array<String> = null;
-						
+
 						for (song in songs)
 						{
 							songNames.push(song.name);
-							
+
 							// Create metadata with icon and color from slot data
 							var metadata:Dynamic = {
 								name: song.name,
@@ -1893,23 +1893,23 @@ class APGameState
 								color: song.color != null ? song.color : [146, 113, 253]
 							};
 							songMetadata.push(metadata);
-							
+
 							// Use first song's difficulties for the week
 							if (weekDifficulties == null && song.difficulties != null && song.difficulties.length > 0)
 							{
 								weekDifficulties = [for (diff in song.difficulties.toIterable()) diff.toLowerCase()];
 							}
 						}
-						
+
 						createOptimizedTemporaryWeek(weekName, targetMod, songNames, songMetadata, weekDifficulties);
 						trace('Created optimized week ${weekName} with ${songs.length} songs for difficulty set: ${difficultyKey}');
 					}
 				}
-				
+
 				trace('Completed optimized temporary week creation for song additions');
 			}
 		}
-		
+
 		// Note: Song exclusions don't need week generation, they're handled by removing songs from existing weeks
 		// This would typically be handled during song list processing in other parts of the system
 		if (Reflect.hasField(songModsData, "song_exclusions"))
@@ -1923,27 +1923,27 @@ class APGameState
 			}
 		}
 	}
-	
+
 	// Generate a custom week file for a specific mod and song list
 	private function generateCustomWeekFile(weekName:String, targetMod:String, songs:Array<String>):Void
 	{
 		try
 		{
 			trace('Generating custom week file: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');
-			
+
 			// Validate inputs
 			if (weekName == null || weekName.trim() == "")
 			{
 				trace('Error: Invalid week name for custom week generation');
 				return;
 			}
-			
+
 			if (songs == null || songs.length == 0)
 			{
 				trace('Error: No songs provided for custom week ${weekName}');
 				return;
 			}
-			
+
 			// Create the temporary week directly (no file I/O)
 			createTemporaryWeek(weekName, targetMod, songs);
 		}
@@ -1955,7 +1955,7 @@ class APGameState
 			#end
 		}
 	}
-	
+
 	// Create a single temporary week for a mod
 	private function createTemporaryWeek(weekName:String, targetMod:String, songs:Array<String>):Void
 	{
@@ -1965,7 +1965,7 @@ class APGameState
 		try
 		{
 			trace('Creating temporary week: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');
-			
+
 			// Create week file structure
 			var weekFile:WeekFile = {
 				songs: [],
@@ -1981,7 +1981,7 @@ class APGameState
 				difficulties: '', // Use default difficulties
 				category: 'archipelago' // Custom category for AP weeks
 			};
-			
+
 			// Add songs to the week file
 			for (song in songs)
 			{
@@ -1990,24 +1990,24 @@ class APGameState
 			}
 
 			trace('weekFile: $weekFile');
-			
+
 			// Create WeekData object from WeekFile
 			var weekData:WeekData = new WeekData(weekFile, weekName);
 			weekData.folder = targetMod; // Set the mod folder
-			
+
 			// Add to temporary arrays for tracking
 			temporaryWeeks.push(weekData);
 			temporaryWeekNames.push(weekName);
 
 			trace('weekFile: $weekData');
-			
+
 			// Add directly to the WeekData system (in-memory only)
 			WeekData.weeksLoaded.set(weekName, weekData);
 			WeekData.weeksList.push(weekName);
 
 			trace('weeksLoaded: ${WeekData.weeksLoaded}');
 			trace('weeksList: ${WeekData.weeksList}');
-			
+
 			trace('Successfully created temporary week: ${weekName}');
 		}
 		catch (e:Dynamic)
@@ -2018,7 +2018,7 @@ class APGameState
 			#end
 		}
 	}
-	
+
 	// Create an optimized temporary week with metadata support
 	private function createOptimizedTemporaryWeek(weekName:String, targetMod:String, songs:Array<String>, ?songMetadata:Array<Dynamic>, ?difficulties:Array<String>):Void
 	{
@@ -2028,7 +2028,7 @@ class APGameState
 		try
 		{
 			trace('Creating optimized temporary week: ${weekName} for mod: ${targetMod} with ${songs.length} songs: ${songs.join(", ")}');
-			
+
 			// Create week file structure
 			var weekFile:WeekFile = {
 				songs: [],
@@ -2044,21 +2044,21 @@ class APGameState
 				difficulties: '', // Will be set below if provided
 				category: 'archipelago' // Custom category for AP weeks
 			};
-			
+
 			// Set custom difficulties if provided
 			if (difficulties != null && difficulties.length > 0)
 			{
 				weekFile.difficulties = difficulties.join(',');
 				trace('Set custom difficulties for week ${weekName}: ${difficulties.join(", ")}');
 			}
-			
+
 			// Add songs to the week file with metadata
 			for (i in 0...songs.length)
 			{
 				var songName = songs[i];
 				var icon = "face"; // Default icon
 				var color = [146, 113, 253]; // Default color
-				
+
 				// Use metadata if available
 				if (songMetadata != null && i < songMetadata.length)
 				{
@@ -2066,24 +2066,24 @@ class APGameState
 					if (metadata.icon != null) icon = metadata.icon;
 					if (metadata.color != null) color = metadata.color;
 				}
-				
+
 				// Format: [songName, iconName, [r, g, b]]
 				weekFile.songs.push([songName, icon, color]);
 				trace('Added song ${songName} with icon: ${icon}, color: ${color}');
 			}
-			
+
 			// Create WeekData object from WeekFile
 			var weekData:WeekData = new WeekData(weekFile, weekName);
 			weekData.folder = targetMod; // Set the mod folder
-			
+
 			// Add to temporary arrays for tracking
 			temporaryWeeks.push(weekData);
 			temporaryWeekNames.push(weekName);
-			
+
 			// Add directly to the WeekData system (in-memory only)
 			WeekData.weeksLoaded.set(weekName, weekData);
 			WeekData.weeksList.push(weekName);
-			
+
 			trace('Successfully created optimized temporary week: ${weekName}');
 		}
 		catch (e:Dynamic)
@@ -2094,7 +2094,7 @@ class APGameState
 			#end
 		}
 	}
-	
+
 	/**
 	 * Clean up all temporary weeks created for this AP session
 	 * This removes them from WeekData.weeksLoaded and WeekData.weeksList
@@ -2106,9 +2106,9 @@ class APGameState
 		{
 			return; // Nothing to clean up
 		}
-		
+
 		trace('Cleaning up ${temporaryWeeks.length} temporary AP weeks');
-		
+
 		// Remove from WeekData system
 		for (weekName in temporaryWeekNames)
 		{
@@ -2116,14 +2116,14 @@ class APGameState
 			WeekData.weeksList.remove(weekName);
 			trace('Removed temporary week: ${weekName}');
 		}
-		
+
 		// Clear our tracking arrays
 		temporaryWeeks = [];
 		temporaryWeekNames = [];
-		
+
 		trace('Temporary week cleanup completed');
 	}
-	
+
 	/**
 	 * Static function to force cleanup from anywhere in the codebase
 	 * Useful for ensuring cleanup happens during app exit or state changes
@@ -2132,7 +2132,7 @@ class APGameState
 	{
 		cleanupTemporaryWeeks();
 	}
-	
+
 	/**
 	 * Validate that all temporary weeks were created successfully
 	 * @return true if all temporary weeks are valid, false if any issues found
@@ -2144,48 +2144,48 @@ class APGameState
 			trace("Warning: Temporary week arrays are null");
 			return false;
 		}
-		
+
 		// Check that arrays have matching sizes
 		if (temporaryWeeks.length != temporaryWeekNames.length)
 		{
 			trace('Warning: Temporary week arrays have mismatched sizes - weeks: ${temporaryWeeks.length}, names: ${temporaryWeekNames.length}');
 			return false;
 		}
-		
+
 		var validCount = 0;
 		var totalCount = temporaryWeeks.length;
-		
+
 		// Validate each temporary week
 		for (i in 0...temporaryWeeks.length)
 		{
 			var weekData = temporaryWeeks[i];
 			var weekName = temporaryWeekNames[i];
-			
+
 			if (weekData == null)
 			{
 				trace('Warning: Temporary week at index ${i} is null');
 				continue;
 			}
-			
+
 			if (weekName == null || weekName.trim() == "")
 			{
 				trace('Warning: Temporary week name at index ${i} is null or empty');
 				continue;
 			}
-			
+
 			// Validate week data structure
 			if (weekData.weekName == null || weekData.weekName.trim() == "")
 			{
 				trace('Warning: Week "${weekName}" has invalid weekName field');
 				continue;
 			}
-			
+
 			if (weekData.songs == null || weekData.songs.length == 0)
 			{
 				trace('Warning: Week "${weekName}" has no songs');
 				continue;
 			}
-			
+
 			// Validate song structure
 			var validSongs = 0;
 			for (song in weekData.songs)
@@ -2199,24 +2199,24 @@ class APGameState
 					trace('Warning: Week "${weekName}" has invalid song entry: ${song}');
 				}
 			}
-			
+
 			if (validSongs == 0)
 			{
 				trace('Warning: Week "${weekName}" has no valid songs');
 				continue;
 			}
-			
+
 			// Week passed all validations
 			validCount++;
 			trace('Validated temporary week: "${weekName}" with ${validSongs} songs');
 		}
-		
+
 		var success = (validCount == totalCount && totalCount > 0);
 		trace('Temporary week validation complete: ${validCount}/${totalCount} valid weeks');
-		
+
 		return success;
 	}
-	
+
 	// Update the weekList.txt file to include the new custom week
 	private function updateWeekList(targetMod:String, weekName:String):Void
 	{
@@ -2224,7 +2224,7 @@ class APGameState
 		try
 		{
 			var weekListPath:String;
-			
+
 			if (targetMod == "" || targetMod == null)
 			{
 				// Base game weekList
@@ -2235,25 +2235,25 @@ class APGameState
 				// Mod weekList
 				weekListPath = Paths.mods('${targetMod}/weeks/weekList.txt');
 			}
-			
+
 			var currentWeeks:Array<String> = [];
-			
+
 			// Read existing weekList if it exists
 			if (FileSystem.exists(weekListPath))
 			{
 				var content = File.getContent(weekListPath);
 				currentWeeks = content.split('\n').map(function(line) return line.trim()).filter(function(line) return line.length > 0);
 			}
-			
+
 			// Add the new week if it's not already in the list
 			if (!currentWeeks.contains(weekName))
 			{
 				currentWeeks.push(weekName);
-				
+
 				// Save the updated weekList
 				var updatedContent = currentWeeks.join('\n') + '\n';
 				File.saveContent(weekListPath, updatedContent);
-				
+
 				trace('Updated weekList.txt to include: ${weekName}');
 			}
 		}
@@ -2263,7 +2263,7 @@ class APGameState
 		}
 		#end
 	}
-	
+
 	// Check if custom week generation completed successfully
 	public function validateCustomWeeks():Bool
 	{
@@ -2272,17 +2272,17 @@ class APGameState
 		{
 			return true; // No slot data, nothing to validate
 		}
-		
+
 		var hasCustomWeeks = Reflect.hasField(_slotData, "customWeeks");
 		var hasSongMods = Reflect.hasField(_slotData, "song_modifications");
-		
+
 		if (!hasCustomWeeks && !hasSongMods)
 		{
 			return true; // No custom week data, validation passes
 		}
-		
+
 		var allWeeksExist = true;
-		
+
 		// Check custom weeks
 		if (hasCustomWeeks)
 		{
@@ -2293,10 +2293,10 @@ class APGameState
 				{
 					var weekData:Dynamic = Reflect.field(customWeeksData, field);
 					var targetMod:String = weekData.target_mod;
-					
+
 					var weekFileName = field + ".json";
 					var weekPath:String;
-					
+
 					if (targetMod == "" || targetMod == null)
 					{
 						weekPath = Paths.getSharedPath('weeks/${weekFileName}');
@@ -2305,7 +2305,7 @@ class APGameState
 					{
 						weekPath = Paths.mods('${targetMod}/weeks/${weekFileName}');
 					}
-					
+
 					if (!FileSystem.exists(weekPath))
 					{
 						trace('Custom week file missing: ${weekPath}');
@@ -2314,7 +2314,7 @@ class APGameState
 				}
 			}
 		}
-		
+
 		// Check for generated weeks from song modifications
 		if (hasSongMods)
 		{
@@ -2325,19 +2325,19 @@ class APGameState
 				if (songAdditions != null && songAdditions.length > 0)
 				{
 					var modSongs:Map<String, Bool> = new Map();
-					
+
 					for (addition in songAdditions)
 					{
 						var targetMod:String = addition.targetMod != null ? addition.targetMod : "";
 						modSongs.set(targetMod, true);
 					}
-					
+
 					for (targetMod in modSongs.keys())
 					{
 						var weekName = 'ap_custom_' + (targetMod != "" ? targetMod : "base");
 						var weekFileName = weekName + ".json";
 						var weekPath:String;
-						
+
 						if (targetMod == "" || targetMod == null)
 						{
 							weekPath = Paths.getSharedPath('weeks/${weekFileName}');
@@ -2346,7 +2346,7 @@ class APGameState
 						{
 							weekPath = Paths.mods('${targetMod}/weeks/${weekFileName}');
 						}
-						
+
 						if (!FileSystem.exists(weekPath))
 						{
 							trace('Generated custom week file missing: ${weekPath}');
@@ -2356,17 +2356,17 @@ class APGameState
 				}
 			}
 		}
-		
+
 		return allWeeksExist;
 		#else
 		return true; // Mods not allowed, skip validation
 		#end
 	}
-	
+
 	/**
 	 * Public function to manually trigger temporary week creation
 	 * Can be called if weeks need to be regenerated
-	 * 
+	 *
 	 * Example usage:
 	 * APGameState.instance.regenerateTemporaryWeeks();
 	 */
@@ -2374,7 +2374,7 @@ class APGameState
 	{
 		trace("Manually regenerating temporary weeks...");
 		generateCustomWeeks();
-		
+
 		if (validateTemporaryWeeks())
 		{
 			trace("Temporary week regeneration completed successfully");
@@ -2394,7 +2394,7 @@ class APGameState
 		{
 			// Clean up temporary weeks when canceling/exiting AP mode
 			cleanupTemporaryWeeks();
-			
+
 			_ap.clientStatus = ClientStatus.UNKNOWN;
 			_ap.onSocketDisconnected.remove(onSocketDisconnected);
 			_ap = null;

@@ -296,7 +296,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		insert(0, note);
 
-		note.makeNote(note.noteData, note.prevNote, note.isSustainNote);
 	}
 
 	// gets all notes in the playfield, spawned or otherwise.
@@ -1081,8 +1080,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				if (daNote.tooLate && daNote.active && !daNote.causedMiss && !daNote.isSustainNote)
 				{
 					daNote.causedMiss = true;
-					if (!daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit) && inControl)
+					if (!daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit) && inControl) {
 						noteMissed.dispatch(daNote, this);
+					}
 				}
 
 				if((

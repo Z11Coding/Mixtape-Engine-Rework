@@ -219,16 +219,16 @@ class MusicBeatState extends FlxState
 		if (ClientPrefs.data.ultratrashMode && afm == null) {
 			afm = new FlxSoundFilter();
 			afm.filterType = FlxSoundFilterType.BANDPASS;
+			afm.gain = 0;
 			add(afm);
 
 			var badqualitymic = new FlxSoundDistortionEffect();
-			badqualitymic.edge = 500;
+			badqualitymic.edge = 5000;
 			badqualitymic.eqBandwidth = 20000;
 			badqualitymic.gain = 1;
+			badqualitymic.lowpassCutoff = 0;
+			badqualitymic.eqCenter = 20000;
 			afm.addEffect(badqualitymic);
-		} else if (afm != null) {
-			remove(afm);
-			afm.destroy();
 		}
 	}
 
@@ -308,13 +308,13 @@ class MusicBeatState extends FlxState
 	/**
 	 * Override openSubState to work with the stacking system
 	 */
-	override public function openSubState(subState:flixel.FlxSubState):Void {
+	/*override public function openSubState(subState:flixel.FlxSubState):Void {
 		if (Std.isOfType(subState, MusicBeatSubstate)) {
 			queueSubstate(cast(subState, MusicBeatSubstate));
 		} else {
 			super.openSubState(subState);
 		}
-	}
+	}*/
 
 	/**
 	 * Override closeSubState to restore suspended substates using ObjectSerializer
@@ -482,6 +482,10 @@ class MusicBeatState extends FlxState
 					afm.applyFilter(sound);
 				}
 			}
+		} else if (!ClientPrefs.data.ultratrashMode && afm != null) {
+			afm.clearEffects(true);
+			remove(afm);
+			afm.destroy();
 		}
 
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
@@ -540,15 +544,10 @@ class MusicBeatState extends FlxState
 		curStep = lastChange.stepTime + Math.floor(shit);
 	}
 
-	public static function playSong(storyPlaylist:Array<String>, storyMode:Bool = false, difficulty:Int = 0, ?transition:String, ?type:String = null,
-			?manualDiff:Array<String> = null):Void
+	public static function playSong(storyPlaylist:Array<String>, storyMode:Bool = false, difficulty:Int = 0, ?transition:String, ?type:String = null, ?manualDiff:Array<String> = null):Void
 	{
 		var songs:Array<backend.Song.SwagSong> = [];
 
-		if (storyPlaylist.length > 1)
-		{
-			storyMode = true;
-		}
 		Difficulty.resetList();
 		if (manualDiff != null)
 			Difficulty.list = manualDiff;
@@ -579,6 +578,35 @@ class MusicBeatState extends FlxState
 		PlayState.storyDifficulty = difficulty;
 
 		// Additional setup for PlayState as needed
+
+		// Transition to PlayState
+		switch (transition)
+		{
+			case "FlxG", "FlxG.switchState":
+				FlxG.switchState(new PlayState());
+
+			case "MusicBeatState":
+				switchState(new PlayState());
+
+			case "TransitionState":
+				TransitionState.transitionState(PlayState, {
+					transitionType: type
+				});
+
+			default:
+				FlxG.switchState(new PlayState());
+		}
+	}
+
+	// Like PlaySong, but made specifically for the Swap Trap
+	public static function switchSong(song:String, difficulty:Int = 0, ?transition:String, ?type:String = null):Void
+	{
+		var songLowercase:String = Paths.formatToSongPath(song);
+		var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
+		PlayState.SONG = Song.loadFromJson(formattedSong, songLowercase);
+
+		PlayState.isStoryMode = false;
+		PlayState.storyDifficulty = difficulty;
 
 		// Transition to PlayState
 		switch (transition)

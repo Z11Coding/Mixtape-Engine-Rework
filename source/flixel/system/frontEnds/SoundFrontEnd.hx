@@ -181,7 +181,7 @@ class SoundFrontEnd
 		return sound;
 	}
 
-  var afs:ALEffect;
+  var afs:FlxSoundFilter;
 	function loadHelper(sound:FlxSound, volume:Float, group:FlxSoundGroup, autoPlay = false):FlxSound
 	{
 		sound.volume = volume;
@@ -194,20 +194,22 @@ class SoundFrontEnd
 		sound.group = (group == null) ? defaultSoundGroup : group;
 
     if (ClientPrefs.data.ultratrashMode) {
-      if (sound != null && sound.length > 200 && sound.playing) {
-        @:privateAccess
-        {
-          afs = AL.createEffect(); // create AudioFilter
-          var aux = lime.media.openal.AL.createAux();
-          lime.media.openal.AL.effecti(afs, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
-          lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EDGE, 5 ); // set filter type
-          lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EQBANDWIDTH, 20000 ); // set filter type
-          lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EQCENTER, 1 ); // set filter type
-          lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
-          lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
-          lime.media.openal.AL.auxi(aux, lime.media.openal.AL.EFFECTSLOT_EFFECT, afs);
-          lime.media.openal.AL.source3i(sound._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, aux, 0, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
-        }
+      if (sound != null && sound.playing) {
+				if (afs == null) {
+					afs = new FlxSoundFilter();
+					afs.filterType = FlxSoundFilterType.BANDPASS;
+					afs.gain = 0;
+
+					var badqualitymic = new FlxSoundDistortionEffect();
+					badqualitymic.edge = 5000;
+					badqualitymic.eqBandwidth = 20000;
+					badqualitymic.gain = 1;
+					badqualitymic.lowpassCutoff = 0;
+					badqualitymic.eqCenter = 20000;
+					afs.addEffect(badqualitymic);
+
+					afs.applyFilter(sound);
+				}
       }
     }
 
@@ -434,7 +436,6 @@ class SoundFrontEnd
 				sound.onFocusLost();
 			}
 		}
-    afs = null;
 	}
 
 	@:allow(flixel.FlxGame)
@@ -450,24 +451,7 @@ class SoundFrontEnd
 			if (sound != null)
 			{
 				sound.onFocus();
-        if (ClientPrefs.data.ultratrashMode) {
-          if (sound.playing) {
-            @:privateAccess
-            {
-              afs = AL.createEffect(); // create AudioFilter
-              var aux = lime.media.openal.AL.createAux();
-              lime.media.openal.AL.effecti(afs, lime.media.openal.AL.EFFECT_TYPE, lime.media.openal.AL.EFFECT_DISTORTION ); // set filter type
-              lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EDGE, 5 ); // set filter type
-              lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EQBANDWIDTH, 200 ); // set filter type
-              lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_EQCENTER, 1 ); // set filter type
-              lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_GAIN, 1 ); // set filter type
-              lime.media.openal.AL.effectf(afs, lime.media.openal.AL.DISTORTION_LOWPASS_CUTOFF, 0 ); // set filter type
-              lime.media.openal.AL.auxi(aux, lime.media.openal.AL.EFFECTSLOT_EFFECT, afs);
-              lime.media.openal.AL.source3i(sound._channel.__audioSource.__backend.handle, lime.media.openal.AL.AUXILIARY_SEND_FILTER, aux, 1, lime.media.openal.AL.FILTER_NULL); // apply filter to source (handle)
-            }
-          }
-        }
-			}
+      }
 		}
 	}
 

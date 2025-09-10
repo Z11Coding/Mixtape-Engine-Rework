@@ -2,6 +2,7 @@ package archipelago;
 
 import archipelago.TrapLinkFunctions;
 import archipelago.traps.TrapGameManager;
+import backend.WeekData;
 import backend.window.PlatformUtil;
 import cutscenes.DialogueBoxPsych;
 import flixel.addons.display.FlxRuntimeShader;
@@ -423,7 +424,7 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            case "Freeze Trap" | "Frozen Trap":
+            case "Freeze Trap" | "Frozen Trap" | "Bubble Trap":
                 return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
@@ -548,9 +549,9 @@ class APItem {
                 });
 
             //TODO: Test if this works
-            case "Deisometric Trap":
+            case "Deisometric Trap" | "Camera Rotate Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    popup('Can you tilt your screen? I can\'t see...', "TrapLink: Deisometric Trap");
+                    popup('Can you tilt your screen? I can\'t see...', 'TrapLink: $name');
                     var pers:shaders.PerspectiveShader;
                     pers = new shaders.PerspectiveShader();
                     for (cam in FlxG.cameras.list)
@@ -712,6 +713,41 @@ class APItem {
             case "Animal Bonus Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('We\'re gonna go someplace SPECIAL!', 'TrapLink: Animal Bonus Trap');
+                    var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
+                    FlxTween.num(APPlayState.instance.playbackRate, 0, 0.5, {
+                        onComplete: function(e) {
+                            APPlayState.instance.paused = false;
+                            FlxG.sound.play(Paths.sound('streamervschat/itcomes'), 1, false, null, true, function() {
+                                trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
+                                if (!FlxG.save.data.manualOverride) {
+                                    FlxG.save.data.manualOverride = true;
+                                    FlxG.save.data.storyWeek = states.PlayState.storyWeek;
+                                    FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+                                    FlxG.save.data.difficulties = Difficulty.list; // just in case
+                                    FlxG.save.data.SONG = states.PlayState.SONG;
+                                    FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
+                                    FlxG.save.data.songPos = FlxG.sound.music.time;
+                                    FlxG.save.flush();
+
+                                    Difficulty.list = Difficulty.defaultList.copy();
+                                    states.PlayState.storyDifficulty = 1;
+                                    var num = FlxG.random.int(0, specialSongList.length-1);
+                                    states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[num].toLowerCase(), 1), specialSongList[num].toLowerCase());
+                                    states.PlayState.storyWeek = 0;
+                                    Mods.currentModDirectory = '';
+                                    FlxG.save.flush();
+
+                                    if (Std.is(FlxG.state, APPlayState)) {
+                                        MusicBeatState.resetState();
+                                    } else {
+                                        FlxG.switchState(new APPlayState());
+                                    }
+                                }
+                            });
+                        }
+                    }, function(t) {
+                        APPlayState.instance.playbackRate = t;
+                    });
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -832,6 +868,97 @@ class APItem {
                 }), function() {
                     popup('Slow down there, buddy', 'TrapLink: Slow Trap');
                     APPlayState.instance.lerpSongSpeed(FlxG.random.float(0.25, 0.75), 1);
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Double Damage":
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    popup('Double the damage! Double the fun!', 'TrapLink: Double Damage');
+                    APPlayState.instance.healthLoss = 2;
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Instant Crystal Trap" | "One Hit KO":
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    popup('Be careful! You miss, you die!', 'TrapLink: $name');
+                    APPlayState.instance.instakillOnMiss = true;
+                    new FlxTimer().start(30, function(tmr:FlxTimer)
+                    {
+                        APPlayState.instance.instakillOnMiss = false;
+                    });
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Mirror Trap":
+                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                    popup('A world from a different perspective.', 'TrapLink: Mirror Trap');
+                    APPlayState.instance.camGame.flashSprite.scaleX *= -1;
+		            APPlayState.instance.camHUD.flashSprite.scaleX *= -1;
+                    new FlxTimer().start(30, function(tmr:FlxTimer)
+                    {
+                        APPlayState.instance.camGame.flashSprite.scaleX *= 1;
+		                APPlayState.instance.camHUD.flashSprite.scaleX *= 1;
+                    });
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Pixellation Trap":
+                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                    popup('Man your Wifi SUCKS!', 'TrapLink: Pixellation Trap');
+                    ClientPrefs.data.ultratrashMode = true;
+                    // Clear all cached graphics when trash mode is toggled
+                    // This ensures that the compression setting takes effect immediately
+                    Paths.clearStoredMemory();
+                    Paths.clearUnusedMemory();
+                    Paths.freeGraphicsFromMemory();
+                    trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
+                    MusicBeatState.resetState();
+                    new FlxTimer().start(120, function(tmr:FlxTimer)
+                    {
+                        ClientPrefs.data.ultratrashMode = false;
+                        // Clear all cached graphics when trash mode is toggled
+                        // This ensures that the compression setting takes effect immediately
+                        Paths.clearStoredMemory();
+                        Paths.clearUnusedMemory();
+                        Paths.freeGraphicsFromMemory();
+                        trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
+                        MusicBeatState.resetState();
+                    });
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Swap Trap":
+                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                    popup('I\'m bored. Play a different song.', 'TrapLink: Swap Trap');
+                    var freeplayState = cast FreeplayManager.getFreeplay();
+                    var theManager = freeplayState.instance.fpManager;
+                    var pickedSong = FlxG.random.int(0, Std.int(theManager.songList.length-1));
+                    var song = theManager.songList[pickedSong];
+                    var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[song.week]);
+                    Mods.currentModDirectory = song.folder;
+                    states.PlayState.storyWeek = song.week;
+                    Difficulty.loadFromWeek(leWeek);
+                    MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -1107,7 +1234,7 @@ class APrilFools extends APTrap {
                 APItem.createCustomItem("April Fools - Random Song", ConditionHelper.Freeplay(), function() {
                     if (Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
                         var freeplayState = cast FlxG.state;
-                        var songList = freeplayState.songList;
+                        var songList = freeplayState.fpManager.songList;
                         if (songList.length == 0) {
                             archipelago.APItem.popup("No songs available to switch!", "April Fools!");
                             return;
@@ -1115,7 +1242,7 @@ class APrilFools extends APTrap {
                             var randomSong:Int = FlxG.random.int(0, songList.length-1);
                             switch (songList[randomSong].songName)
                             {
-                                case 'Small Argument' | 'Beat Battle 2':
+                                case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
                                     Difficulty.list = ['Hard'];
                                 case "Beat Battle":
                                     Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];

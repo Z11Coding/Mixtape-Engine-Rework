@@ -2,47 +2,39 @@
 package psychlua;
 
 import archipelago.APEntryState;
-import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
-
-import openfl.Lib;
-import openfl.utils.Assets;
-import openfl.display.BitmapData;
+import backend.WeekData;
+import cutscenes.DialogueBoxPsych;
 import flixel.FlxBasic;
 import flixel.FlxObject;
 import flixel.FlxState;
-
+import flixel.input.gamepad.FlxGamepadInputID;
+import flixel.input.keyboard.FlxKey;
+import haxe.Json;
+import objects.Character;
+import objects.Note;
+import objects.NoteSplash;
+import objects.StrumNote;
+import openfl.Lib;
+import openfl.display.BitmapData;
+import openfl.utils.Assets;
+import psychlua.DebugLuaText;
+import psychlua.LuaUtils.LuaTweenOptions;
+import psychlua.LuaUtils;
+import psychlua.ModchartSprite;
+import states.MainMenuState;
+import states.StoryMenuState;
+import states.freeplay.FreeplayState;
+import substates.GameOverSubstate;
+import substates.PauseSubState;
 #if (!flash && sys)
 import flixel.addons.display.FlxRuntimeShader;
 #end
 
-import cutscenes.DialogueBoxPsych;
-
-import objects.StrumNote;
-import objects.Note;
-import objects.NoteSplash;
-import objects.Character;
-
-import states.MainMenuState;
-import states.StoryMenuState;
-import states.freeplay.FreeplayState;
-
-import substates.PauseSubState;
-import substates.GameOverSubstate;
-
-import psychlua.LuaUtils;
-import psychlua.LuaUtils.LuaTweenOptions;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
 #end
-import psychlua.DebugLuaText;
-import psychlua.ModchartSprite;
-
-import flixel.input.keyboard.FlxKey;
-import flixel.input.gamepad.FlxGamepadInputID;
-
-import haxe.Json;
 
 class FunkinLua {
 	public var lua:State = null;
@@ -132,13 +124,13 @@ class FunkinLua {
 			set('curStep', game.curStep);
 			set('curDecBeat', game.curDecBeat);
 			set('curDecStep', game.curDecStep);
-	
+
 			set('score', game.comboManager?.songScore);
 			set('misses', game.comboManager?.songMisses);
 			set('hits', game.comboManager?.songHits);
 			set('combo', game.comboManager?.combo);
 			set('deaths', PlayState.deathCounter);
-			
+
 			set('rating', game.comboManager?.ratingPercent);
 			set('ratingName', game.comboManager?.ratingName);
 			set('ratingFC', game.comboManager?.ratingFC);
@@ -157,26 +149,26 @@ class FunkinLua {
 
 			set('healthGainMult', game.healthGain);
 			set('healthLossMult', game.healthLoss);
-	
+
 			#if FLX_PITCH
 			set('playbackRate', game.playbackRate);
 			#else
 			set('playbackRate', 1);
 			#end
-	
+
 			set('guitarHeroSustains', game.guitarHeroSustains);
 			set('instakillOnMiss', game.instakillOnMiss);
 			set('botPlay', game.cpuControlled || ClientPrefs.getGameplaySetting('showcase', false));
 			set('practice', game.practiceMode);
 			set('practice', PlayState.changedDifficulty);
-	
+
 			for (i in 0...4) {
 				set('defaultPlayerStrumX' + i, 0);
 				set('defaultPlayerStrumY' + i, 0);
 				set('defaultOpponentStrumX' + i, 0);
 				set('defaultOpponentStrumY' + i, 0);
 			}
-	
+
 			// Default character data
 			set('defaultBoyfriendX', game.BF_X);
 			set('defaultBoyfriendY', game.BF_Y);
@@ -565,7 +557,7 @@ class FunkinLua {
 							ease: myOptions.ease,
 							startDelay: myOptions.startDelay,
 							loopDelay: myOptions.loopDelay,
-	
+
 							onUpdate: function(twn:FlxTween) {
 								if(myOptions.onUpdate != null) game.callOnLuas(myOptions.onUpdate, [originalTag, vars]);
 							},
@@ -630,7 +622,7 @@ class FunkinLua {
 			if(penisExam != null) {
 				var curColor:FlxColor = penisExam.color;
 				curColor.alphaFloat = penisExam.alpha;
-				
+
 				if(tag != null)
 				{
 					var originalTag:String = tag;
@@ -706,7 +698,7 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "runTimer", function(tag:String, time:Float = 1, loops:Int = 1) {
 			LuaUtils.cancelTimer(tag);
 			var variables = MusicBeatState.getVariables();
-			
+
 			var originalTag:String = tag;
 			tag = LuaUtils.formatVariable('timer_$tag');
 			variables.set(tag, new FlxTimer().start(time, function(tmr:FlxTimer)
@@ -1154,7 +1146,7 @@ class FunkinLua {
 			var obj:FlxSprite = LuaUtils.getObjectDirectly(tag);
 			if(obj == null || obj.destroy == null)
 				return;
-			
+
 			var groupObj:Dynamic = null;
 			if(group == null) groupObj = LuaUtils.getTargetInstance();
 			else groupObj = LuaUtils.getObjectDirectly(group);
@@ -1551,7 +1543,7 @@ class FunkinLua {
 				snd.pitch = value;
 				if (doPause && wasResumed) snd.play();
 			}
-			
+
 			if(tag == null || tag.length < 1)
 			{
 				if(FlxG.sound.music != null)
@@ -1660,7 +1652,7 @@ class FunkinLua {
 		addArchipelagoCallbacks();
 		#end
 
-		//trace('lua file loaded succesfully:' + scriptName);
+		trace('lua file loaded succesfully:' + scriptName);
 
 		call('onCreate', []);
 	}
@@ -1932,110 +1924,110 @@ class FunkinLua {
 		// Import APScriptingSupport if available
 		var APScriptingSupport = Type.resolveClass("archipelago.APScriptingSupport");
 		if (APScriptingSupport == null) return;
-		
+
 		// Register callback for item received
 		Lua_helper.add_callback(lua, "registerItemReceivedCallback", function(funcName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				luaTrace('registerItemReceivedCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerItemReceivedCallback(function(itemName:String) {
 				call(funcName, [itemName]);
 			});
 			return true;
 		});
-		
+
 		// Register callback for custom item received
 		Lua_helper.add_callback(lua, "registerCustomItemReceivedCallback", function(funcName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				luaTrace('registerCustomItemReceivedCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerCustomItemReceivedCallback(function(itemName:String) {
 				call(funcName, [itemName]);
 			});
 			return true;
 		});
-		
+
 		// Register callback for item sent
 		Lua_helper.add_callback(lua, "registerItemSentCallback", function(funcName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				luaTrace('registerItemSentCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerItemSentCallback(function(itemName:String) {
 				call(funcName, [itemName]);
 			});
 			return true;
 		});
-		
+
 		// Register callback for location sent
 		Lua_helper.add_callback(lua, "registerLocationSentCallback", function(funcName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				luaTrace('registerLocationSentCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
-			
+
 			archipelago.APScriptingSupport.registerLocationSentCallback(function(locationName:String, locationId:Int) {
 				call(funcName, [locationName, locationId]);
 			});
 			return true;
 		});
-		
+
 		// Send location function
 		Lua_helper.add_callback(lua, "sendArchipelagoLocation", function(locationName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) {
 				luaTrace('sendArchipelagoLocation: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
-			
+
 			return archipelago.APScriptingSupport.sendLocation(locationName);
 		});
-		
+
 		// Check if item exists
 		Lua_helper.add_callback(lua, "hasArchipelagoItem", function(itemName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return false;
 			return archipelago.APScriptingSupport.hasItem(itemName);
 		});
-		
+
 		// Get item count
 		Lua_helper.add_callback(lua, "getArchipelagoItemCount", function(itemName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return 0;
 			return archipelago.APScriptingSupport.getItemCount(itemName);
 		});
-		
+
 		// Check connection status
 		Lua_helper.add_callback(lua, "isConnectedToArchipelago", function() {
 			return archipelago.APScriptingSupport.isConnected();
 		});
-		
+
 		// Get player name
 		Lua_helper.add_callback(lua, "getArchipelagoPlayerName", function() {
 			if (!archipelago.APEntryState.inArchipelagoMode) return "";
 			return archipelago.APScriptingSupport.getPlayerName();
 		});
-		
+
 		// Get slot data field from APInfo
 		Lua_helper.add_callback(lua, "getArchipelagoSlotData", function(fieldName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSlotDataField(fieldName);
 		});
-		
+
 		// Get available songs from slot data
 		Lua_helper.add_callback(lua, "getArchipelagoAvailableSongs", function() {
 			if (!archipelago.APEntryState.inArchipelagoMode) return [];
 			return archipelago.APScriptingSupport.getAvailableSongs();
 		});
-		
+
 		// Get song data for a specific song
 		Lua_helper.add_callback(lua, "getArchipelagoSongData", function(songName:String) {
 			if (!archipelago.APEntryState.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSongData(songName);
 		});
-		
+
 		// Archipelago status variables
 		set('archipelagoEnabled', archipelago.APEntryState.inArchipelagoMode);
 		set('connectedToArchipelago', archipelago.APScriptingSupport.isConnected());

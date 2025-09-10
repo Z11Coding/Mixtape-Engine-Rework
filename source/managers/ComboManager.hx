@@ -3,23 +3,24 @@ package managers;
 import backend.Rating;
 #if LUA_ALLOWED
 import psychlua.*;
+
 using psychlua.IntegratedScript;
 #else
-import psychlua.LuaUtils;
 import psychlua.HScript;
+import psychlua.LuaUtils;
 #end
 
 /*
     The very fun combo manager because yes!!!
 
     as of right now it only handles the actual stats of a song
-    but i plan on also making handle the visual aspect as well 
+    but i plan on also making handle the visual aspect as well
 */
 
 class ComboManager {
     public static var instance:ComboManager;
 
-    public var ratingsData:Array<Rating> = Rating.loadDefault();    
+    public var ratingsData:Array<Rating> = Rating.loadDefault();
     public var combo:Int = 0;
 	public var songScore:Int = 0;
 	public var songHits:Int = 0;
@@ -76,7 +77,7 @@ class ComboManager {
             else if (sicks > 0)
                 ratingFCAI = '[Sick Full Combo]';
             else if (marvs > 0)
-                ratingFCAI = '[Marvioulus Full Combo]';
+                ratingFCAI = '[Marvelous Full Combo]';
         }
         else
         {
@@ -155,7 +156,7 @@ class ComboManager {
 		PlayState.instance?.updateScore(badHit, scoreBop); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce
 	}
 
-    
+
 	public function RecalculateRatingAI(badHit:Bool = false)
 	{
 		if (AITotalPlayed != 0) // Prevent divide by 0

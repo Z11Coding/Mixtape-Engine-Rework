@@ -18,13 +18,12 @@ class NoteManager
 
         if (notePool.length > 0)
         {
-            note = notePool.pop();
-			note.strumTime = strumTime;
-            note.makeNote(noteData, prevNote, sustainNote);
+					note = notePool.pop();
+					note.strumTime = strumTime;
         }
         else
         {
-            note = new Note(strumTime, noteData, prevNote, sustainNote);
+          note = new Note(strumTime, noteData, prevNote, sustainNote);
         }
 
         // Reset common FlxSprite/FlxObject flags

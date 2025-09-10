@@ -911,6 +911,18 @@ class Note extends NoteObject
 			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
 			texture = '';
 
+			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
+				var animToPlay:String = '';
+				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+				if (hasAnimation(animToPlay))
+					animation.play(animToPlay);
+				else
+				{
+					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+					animation.play(animToPlay + 'Scroll');
+				}
+			}
+
 			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
 		}
 
@@ -922,6 +934,73 @@ class Note extends NoteObject
 		if (isSustainNote)
 		{
 			alphaLimit = 0.6;
+		}
+
+		if (isSustainNote && prevNote != null)
+		{
+			alpha = 0.6;
+			multAlpha = 0.6;
+			hitsoundDisabled = true;
+			if(ClientPrefs.data.downScroll) flipY = true;
+
+			istail = true;
+
+			//offsetY += height / 2;
+
+			var animToPlay:String = '';
+			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+			if (!hasAnimation(animToPlay))
+			{
+				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+			}
+			animation.play(animToPlay);
+
+			//scale.y = 0.7;
+			updateHitbox();
+    	centerOffsets();
+
+			//offsetY += height;
+
+			//if (PlayState.isPixelStage)
+				//offsetX += 30;
+
+			if (prevNote != null && prevNote.isSustainNote)
+			{
+				var animToPlay2:String = '';
+				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+				if (!hasAnimation(animToPlay2))
+				{
+					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+				}
+				prevNote.animation.play(animToPlay2);
+
+				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
+				if(createdFrom != null && createdFrom.songSpeed != null) prevNote.scale.y *= createdFrom.songSpeed;
+
+				if(PlayState.isPixelStage) {
+					prevNote.scale.y *= 1.19;
+					prevNote.scale.y *= (6 / height); //Auto adjust note size
+				}
+				prevNote.updateHitbox();
+				prevNote.centerOffsets();
+
+				// offsetY += height / 2;
+				// prevNote.setGraphicSize();
+			}
+
+			if(PlayState.isPixelStage)
+			{
+				scale.y *= PlayState.daPixelZoom;
+				updateHitbox();
+				centerOffsets();
+			}
+			earlyHitMult = 0;
+		}
+		else if(!isSustainNote)
+		{
+			centerOffsets();
+			centerOrigin();
+			centerOffsets();
 		}
 		//x += offsetX;
 	}
@@ -1164,8 +1243,9 @@ class Note extends NoteObject
 		if (hitByOpponent) wasGoodHit = true;
 
 		var diff = (strumTime - Conductor.songPosition);
-		if (diff < -Conductor.safeZoneOffset && !wasGoodHit)
+		if (diff < -Conductor.safeZoneOffset && !wasGoodHit) {
 			tooLate = true;
+		}
 
 		if (tooLate && !inEditor)
 		{
@@ -1261,92 +1341,6 @@ class Note extends NoteObject
 			frame = frames.frames[animation.frameIndex];
 
 		return rect;
-	}
-
-	public function makeNote(noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?createdFrom:Dynamic = null) {
-		if(noteData > -1)
-		{
-			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
-				var animToPlay:String = '';
-				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
-				if (hasAnimation(animToPlay))
-					animation.play(animToPlay);
-				else
-				{
-					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
-					animation.play(animToPlay + 'Scroll');
-				}
-			}
-		}
-
-		// trace(prevNote);
-
-		if (isSustainNote && prevNote != null)
-		{
-			alpha = 0.6;
-			multAlpha = 0.6;
-			hitsoundDisabled = true;
-			if(ClientPrefs.data.downScroll) flipY = true;
-
-			istail = true;
-
-			//offsetY += height / 2;
-
-			var animToPlay:String = '';
-			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
-			if (!hasAnimation(animToPlay))
-			{
-				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
-			}
-			animation.play(animToPlay);
-
-			//scale.y = 0.7;
-			updateHitbox();
-    	centerOffsets();
-
-			//offsetY += height;
-
-			//if (PlayState.isPixelStage)
-				//offsetX += 30;
-
-			if (prevNote != null && prevNote.isSustainNote)
-			{
-				var animToPlay2:String = '';
-				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
-				if (!hasAnimation(animToPlay2))
-				{
-					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
-				}
-				prevNote.animation.play(animToPlay2);
-
-				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
-				if(createdFrom != null && createdFrom.songSpeed != null) prevNote.scale.y *= createdFrom.songSpeed;
-
-				if(PlayState.isPixelStage) {
-					prevNote.scale.y *= 1.19;
-					prevNote.scale.y *= (6 / height); //Auto adjust note size
-				}
-				prevNote.updateHitbox();
-				prevNote.centerOffsets();
-
-				// offsetY += height / 2;
-				// prevNote.setGraphicSize();
-			}
-
-			if(PlayState.isPixelStage)
-			{
-				scale.y *= PlayState.daPixelZoom;
-				updateHitbox();
-				centerOffsets();
-			}
-			earlyHitMult = 0;
-		}
-		else if(!isSustainNote)
-		{
-			centerOffsets();
-			centerOrigin();
-			centerOffsets();
-		}
 	}
 
 	/**
