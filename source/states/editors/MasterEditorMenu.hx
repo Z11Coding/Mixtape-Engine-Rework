@@ -1,9 +1,11 @@
 package states.editors;
 
 import backend.WeekData;
+import backend.Song;
 import objects.Character;
 import states.MainMenuState;
 import states.freeplay.FreeplayState;
+import states.ModchartEditor;
 
 class MasterEditorMenu extends MusicBeatState
 {
@@ -16,6 +18,7 @@ class MasterEditorMenu extends MusicBeatState
 		'Dialogue Editor',
 		'Dialogue Portrait Editor',
 		'Note Splash Editor',
+		'Modchart Editor',
 		'Sticker Test',
 		'XML Editor',
 		'UNO Test',
@@ -123,6 +126,14 @@ class MasterEditorMenu extends MusicBeatState
 					LoadingState.loadAndSwitchState(new DialogueCharacterEditorState(), false);
 				case 'Note Splash Editor':
 					MusicBeatState.switchState(new NoteSplashEditorState());
+				case 'Modchart Editor':
+					// Load a default song for modchart editing
+					if (PlayState.SONG == null) {
+						PlayState.SONG = Song.loadFromJson('tutorial', 'tutorial');
+						PlayState.isStoryMode = false;
+						PlayState.storyDifficulty = 1;
+					}
+					LoadingState.loadAndSwitchState(new ModchartEditor());
 				case 'Sticker Test':
 					MusicBeatState.switchState(new StickerTest());
 				case 'XML Editor':
