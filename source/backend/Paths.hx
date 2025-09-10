@@ -1,5 +1,6 @@
 package backend;
 
+import backend.GitHubAPI;
 import flash.media.Sound;
 import flixel.addons.display.FlxRuntimeShader;
 import flixel.graphics.FlxGraphic;
@@ -16,7 +17,6 @@ import openfl.geom.Rectangle;
 import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
-
 #if MODS_ALLOWED
 import backend.Mods;
 #end
@@ -488,6 +488,11 @@ class Paths
 			var customFile:String = file;
 			if (parentfolder != null) customFile = '$parentfolder/$file';
 
+			// Check GitHub mods first (higher priority than local mods)
+			var githubModded:String = GitHubAPI.githubModFolders(customFile);
+			if(githubModded != null) return githubModded;
+
+			// Then check local mods
 			var modded:String = modFolders(customFile);
 			if(FileSystem.exists(modded)) return modded;
 		}
@@ -794,6 +799,7 @@ class Paths
 			localTrackedAssets.push(key);
 			return currentTrackedAssets.get(key);
 		}
+
 		return cacheBitmap(key, parentFolder, bitmap, allowGPU);
 	}
 
@@ -808,11 +814,25 @@ class Paths
 		if (bitmap == null)
 		{
 			var file:String = getPath(key, IMAGE, parentFolder, true);
-			#if MODS_ALLOWED
-			if (FileSystem.exists(file))
-				bitmap = BitmapData.fromFile(file);
-			else #end if (OpenFlAssets.exists(file, IMAGE))
-				bitmap = OpenFlAssets.getBitmapData(file);
+
+			// Check if this is a GitHub path
+			if (file.startsWith("github://")) {
+				var binaryData = GitHubAPI.getGitHubBinary(file);
+				if (binaryData != null) {
+					try {
+						bitmap = BitmapData.fromBytes(binaryData);
+					} catch (e:Dynamic) {
+						trace('Error creating bitmap from GitHub data: $e');
+					}
+				}
+			}
+			else {
+				#if MODS_ALLOWED
+				if (FileSystem.exists(file))
+					bitmap = BitmapData.fromFile(file);
+				else #end if (OpenFlAssets.exists(file, IMAGE))
+					bitmap = OpenFlAssets.getBitmapData(file);
+			}
 
 			if (bitmap == null)
 			{
@@ -875,6 +895,12 @@ class Paths
 	inline static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
 	{
 		var path:String = getPath(key, TEXT, !ignoreMods);
+
+		// Check if this is a GitHub path
+		if (path.startsWith("github://")) {
+			return GitHubAPI.getGitHubFile(path);
+		}
+
 		#if sys
 		return (FileSystem.exists(path)) ? File.getContent(path) : null;
 		#else
@@ -1057,18 +1083,42 @@ class Paths
 		//trace('precaching sound: $file');
 		if(!currentTrackedSounds.exists(file))
 		{
-			#if sys
-			if(FileSystem.exists(file))
-				currentTrackedSounds.set(file, Sound.fromFile(file));
-			#else
-			if(OpenFlAssets.exists(file, SOUND))
-				currentTrackedSounds.set(file, OpenFlAssets.getSound(file));
-			#end
-			else if(beepOnNull)
-			{
-				trace('SOUND NOT FOUND: $key, PATH: $path');
-				FlxG.log.error('SOUND NOT FOUND: $key, PATH: $path');
-				return FlxAssets.getSound('flixel/sounds/beep');
+			var soundFound:Bool = false;
+
+			// Check if this is a GitHub path
+			if (file.startsWith("github://")) {
+				var binaryData = GitHubAPI.getGitHubBinary(file);
+				if (binaryData != null) {
+					try {
+						// Create a temporary file for the sound
+						var tempPath = 'temp_${Date.now().getTime()}.${SOUND_EXT}';
+						File.saveBytes(tempPath, binaryData);
+						var sound = Sound.fromFile(tempPath);
+						currentTrackedSounds.set(file, sound);
+						soundFound = true;
+						// Clean up temp file
+						FileSystem.deleteFile(tempPath);
+					} catch (e:Dynamic) {
+						trace('Error creating sound from GitHub data: $e');
+					}
+				}
+			}
+
+			// Try local files if GitHub didn't work
+			if (!soundFound) {
+				#if sys
+				if(FileSystem.exists(file))
+					currentTrackedSounds.set(file, Sound.fromFile(file));
+				#else
+				if(OpenFlAssets.exists(file, SOUND))
+					currentTrackedSounds.set(file, OpenFlAssets.getSound(file));
+				#end
+				else if(beepOnNull)
+				{
+					trace('SOUND NOT FOUND: $key, PATH: $path');
+					FlxG.log.error('SOUND NOT FOUND: $key, PATH: $path');
+					return FlxAssets.getSound('flixel/sounds/beep');
+				}
 			}
 		}
 		localTrackedAssets.push(file);
