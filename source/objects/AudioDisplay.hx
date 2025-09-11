@@ -16,7 +16,7 @@ class AudioDisplay extends FlxSpriteGroup
     public function new(snd:FlxSound = null, X:Float = 0, Y:Float = 0, Width:Int, Height:Int, line:Int, gap:Int, Color:FlxColor)
     {
       super(X, Y);
-  
+
       this.snd = snd;
       this.line = line;
 
@@ -29,7 +29,7 @@ class AudioDisplay extends FlxSpriteGroup
       _height = Height;
 
       @:privateAccess
-      if (snd != null) 
+      if (snd != null)
       {
         try {
           analyzer = new SpectralAnalyzer(snd._channel.__audioSource, Std.int(line * 1 + Math.abs(0.05 * (4 - ClientPrefs.data.audioDisplayQuality))), 1, 5);
@@ -42,56 +42,56 @@ class AudioDisplay extends FlxSpriteGroup
     }
 
     public var stopUpdate:Bool = false;
-    var saveTime:Float = 0;    
+    var saveTime:Float = 0;
     var getValues:Array<funkin.vis.dsp.Bar>;
-    
+
     override function update(elapsed:Float)
     {
       if (stopUpdate) return;
-      
+
       if (saveTime < ClientPrefs.data.audioDisplayUpdate) {
         saveTime += (elapsed * 1000);
-        
+
         updateLine(elapsed);
         return;
       } else {
         saveTime = 0;
       }
 
-      
-      getValues = analyzer.getLevels();
+      if (analyzer != null)
+        getValues = analyzer.getLevels();
       updateLine(elapsed);
-      
+
       super.update(elapsed);
     }
 
     function addAnalyzer(snd:FlxSound) {
       @:privateAccess
-      if (snd != null && analyzer == null) 
+      if (snd != null && analyzer == null)
       {
         analyzer = new SpectralAnalyzer(snd._channel.__audioSource, Std.int(line * 1 + Math.abs(0.05 * (4 - ClientPrefs.data.audioDisplayQuality))), 1, 5);
-        analyzer.fftN = 256 * ClientPrefs.data.audioDisplayQuality;       
+        analyzer.fftN = 256 * ClientPrefs.data.audioDisplayQuality;
       }
     }
-    
+
     function updateLine(elapsed:Float) {
         if (getValues == null) return;
-        
+
         for (i in 0...members.length)
         {
           if (flipY) {
             var animFrame:Int = Math.round(-getValues[i].value * _height);
-        
+
             animFrame = Math.round(animFrame * FlxG.sound.volume);
-        
+
             members[i].scale.y = FlxMath.lerp(animFrame, members[i].scale.y, Math.exp(-elapsed * 16));
             if (members[i].scale.y > _height / 40) members[i].scale.y = _height / 40;
             members[i].y = this.y -members[i].scale.y / 2;
           } else {
             var animFrame:Int = Math.round(getValues[i].value * _height);
-        
+
             animFrame = Math.round(animFrame * FlxG.sound.volume);
-        
+
             members[i].scale.y = FlxMath.lerp(animFrame, members[i].scale.y, Math.exp(-elapsed * 16));
             if (members[i].scale.y < _height / 40) members[i].scale.y = _height / 40;
             members[i].y = this.y -members[i].scale.y / 2;
@@ -99,7 +99,7 @@ class AudioDisplay extends FlxSpriteGroup
         }
     }
 
-    public function changeAnalyzer(snd:FlxSound) 
+    public function changeAnalyzer(snd:FlxSound)
     {
       @:privateAccess
       analyzer.changeSnd(snd._channel.__audioSource);

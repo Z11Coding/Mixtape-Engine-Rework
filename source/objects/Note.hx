@@ -488,6 +488,7 @@ class Note extends NoteObject
 		'Hey!',
 		'Hurt Note',
 		'GF Sing',
+		'EX Note',
 		'No Animation',
 		'Botplay Note'
 	];
@@ -841,6 +842,8 @@ class Note extends NoteObject
 					noMissAnimation = true;
 				case 'GF Sing':
 					gfNote = true;
+				case 'EX Note':
+					exNote = true;
 				case 'Botplay Note':
 					botNote = true;
 					hitsoundChartEditor = false;

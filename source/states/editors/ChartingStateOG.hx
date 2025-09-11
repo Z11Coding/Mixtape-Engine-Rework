@@ -213,7 +213,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	var dupes:Int = 0;
 
 	private var undoStack:Array<Dynamic> = [];
-    private var redoStack:Array<Dynamic> = [];
+  private var redoStack:Array<Dynamic> = [];
 
 	function refreshBalance():Void
 	{

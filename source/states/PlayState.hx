@@ -1222,7 +1222,6 @@ class PlayState extends MusicBeatState
 		iconP1.y = healthBar.y - 75;
 		iconP1.visible = !ClientPrefs.data.hideHud;
 		iconP1.alpha = ClientPrefs.data.healthBarAlpha;
-		uiGroup.add(iconP1);
 		iconP1.visible = (curHealthMode != "Lives");
 
 		if (bf2 != null)
@@ -1235,11 +1234,12 @@ class PlayState extends MusicBeatState
 		}
 		else iconP12 = null;
 
+		uiGroup.add(iconP1);
+
 		iconP2 = new HealthIcon(dad.healthIcon, false);
 		iconP2.y = healthBar.y - 75;
 		iconP2.visible = !ClientPrefs.data.hideHud;
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
-		uiGroup.add(iconP2);
 		iconP2.visible = (curHealthMode != "Lives");
 
 		if (dad2 != null)
@@ -1250,6 +1250,8 @@ class PlayState extends MusicBeatState
 			uiGroup.add(iconP22);
 			iconP22.visible = (curHealthMode != "Lives");
 		} else iconP22 = null;
+
+		uiGroup.add(iconP2);
 
 		healthBarBlock = new FlxSprite(-16, 0).makeGraphic(10, 20, FlxColor.RED);
 		healthBarBlock.y = healthBar.bg.getGraphicMidpoint().y - (healthBarBlock.height / 2);
@@ -2897,7 +2899,9 @@ class PlayState extends MusicBeatState
 		{
 			if (songData.needsVoices)
 			{
-				var currentMod = backend.WeekData.getCurrentWeek().folder;
+				var currentMod = "";
+				if (backend.WeekData.getCurrentWeek() != null)
+					currentMod = backend.WeekData.getCurrentWeek().folder; //istg this is somehow the root cause to all my problems ong
 				if (currentMod != null && currentMod != "")
 				{
 					var generalVocals = Paths.voices(songData.song);
@@ -2926,18 +2930,33 @@ class PlayState extends MusicBeatState
 				}
 				else
 				{
-					var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-					vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+					var generalVocals = Paths.voices(songData.song);
+					if (generalVocals != null && generalVocals.length > 0)
+					{
+						vocals.loadEmbedded(generalVocals);
 
-					var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-					if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+						// Check for the other vocals as well
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
-					var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-					if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
+					else
+					{
+						var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
 				}
 			}
 		}
-		catch (e:Dynamic) {}
+		catch (e:Dynamic) {trace("Vocals Broke.");}
 
 		#if FLX_PITCH
 		vocals.pitch = playbackRate;

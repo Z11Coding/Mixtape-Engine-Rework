@@ -1,0 +1,3 @@
+function onCreatePost()
+    
+end

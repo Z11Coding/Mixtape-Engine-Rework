@@ -1,0 +1,20 @@
+{
+  "freeplay": {
+    "bg": "menuDesat",
+    "album": "NoCover",
+    "ratings": {
+      "erect": 0,
+      "easy": 0,
+      "hard": 0,
+      "nightmare": 0,
+      "normal": 0
+    }
+  },
+
+  "song": {
+    "mod": "Modpack Mixup",
+    "charter": "Z11Gaming",
+    "artist": "Z11Gaming",
+    "name": "Zeventeen"
+  }
+}

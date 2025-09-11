@@ -1,0 +1,127 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [-10, -28],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "gfDown",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-5, 26],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "gfUp",
+			"indices": []
+		},
+		{
+			"offsets": [25, -19],
+			"loop": false,
+			"fps": 24,
+			"anim": "preAttack",
+			"indices": [],
+			"name": "gfPreAttack"
+		},
+		{
+			"loop": false,
+			"offsets": [65, -21],
+			"anim": "attack",
+			"fps": 24,
+			"name": "gfAttack",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [111, -44],
+			"anim": "hurt",
+			"fps": 24,
+			"name": "gfHurt",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [21, 8],
+			"anim": "hey",
+			"fps": 24,
+			"name": "gfHey",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-26, -28],
+			"anim": "singDOWNmiss",
+			"fps": 24,
+			"name": "gfMISSDown",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [8, 47],
+			"anim": "singUPmiss",
+			"fps": 24,
+			"name": "gfMISSUp",
+			"indices": []
+		},
+		{
+			"offsets": [-58, -10],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"loop": false,
+			"name": "gfMISSLeft"
+		},
+		{
+			"offsets": [103, -43],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"loop": false,
+			"name": "gfMISSRight"
+		},
+		{
+			"offsets": [-47, 9],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHT",
+			"loop": false,
+			"name": "gfLeft"
+		},
+		{
+			"offsets": [97, -31],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT",
+			"loop": false,
+			"name": "gfRight"
+		},
+		{
+			"offsets": [-13, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "danceRight",
+			"loop": false,
+			"name": "gfDanceLeft"
+		},
+		{
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "danceLeft",
+			"loop": false,
+			"name": "gfDanceRight"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"image": "characters/GF_V3",
+	"position": [20, 230],
+	"healthicon": "gfv3",
+	"flip_x": true,
+	"healthbar_colors": [234, 71, 146],
+	"camera_position": [-220, 60],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": false
+}

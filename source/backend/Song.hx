@@ -173,7 +173,7 @@ class Song
 			if (steps == null || Math.isNaN(steps))
 			{
 				section.sectionSteps = 4;
-				if(Reflect.hasField(section, 'lengthInSteps')) section.sectionSteps = Reflect.field(section, 'lengthInSteps');
+				if(Reflect.hasField(section, 'lengthInSteps')) section.sectionSteps = (Reflect.field(section, 'lengthInSteps') / 4);
 			}
 
 			for (note in section.sectionNotes)

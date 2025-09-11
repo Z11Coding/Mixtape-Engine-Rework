@@ -1,8 +1,19 @@
 {
-    "song": {
-       "name": "Rise",
-        "artist": "Z11Gaming",
-        "charter":"Z11Gaming",
-        "mod":"Vs. Captain Z"
-    }
+	"freeplay": {
+		"bg": "menuDesat",
+		"album": "NoCover",
+		"ratings": {
+			"erect": 0,
+			"easy": 0,
+			"hard": 0,
+			"nightmare": 0,
+			"normal": 8
+		}
+	},
+	"song": {
+		"artist": "Z11Gaming",
+		"charter": "Z11Gaming",
+		"mod": "Vs. Captain Z",
+		"name": "Rise"
+	}
 }
