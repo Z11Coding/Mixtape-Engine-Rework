@@ -352,6 +352,12 @@ class Main extends Sprite
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
+
+		// Initialize GitHub mod integration
+		backend.GitHubInit.initializeGitHubMods();
+
+		backend.GitHubAPI.addGitHubModsFolder('SiivaGunner Stuff', 'Mixtape-Engine-SiivaGunner-Packs', 'main', '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');
+
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
 		@:privateAccess
 		game._customSoundTray = backend.FunkinSoundTray;

@@ -2,6 +2,7 @@ package states;
 
 import backend.AIPlayer;
 import backend.Highscore;
+import backend.Paths;
 import backend.Rating;
 import backend.Song;
 import backend.WeekData;
@@ -530,6 +531,8 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		// Ensure GitHub mods are available (trigger transparent download if missing)
+		Paths.ensureGitHubContentAvailable();
 
 		// if (SONG != null)
 		// {

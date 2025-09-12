@@ -1,35 +1,30 @@
 package states;
 
-import lime.app.Future;
-import sys.thread.FixedThreadPool;
+import backend.Song;
+import flash.media.Sound;
+import flixel.FlxState;
+import flixel.graphics.FlxGraphic;
+import flixel.system.FlxAssets;
 import haxe.Json;
+import lime.app.Future;
 import lime.utils.Assets;
+import objects.Character;
+import objects.Note;
+import objects.NoteSplash;
 import openfl.display.BitmapData;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
-import flixel.graphics.FlxGraphic;
-import flixel.system.FlxAssets;
-import flixel.FlxState;
-
-import flash.media.Sound;
-
-import backend.Song;
 import stages.StageData;
-import objects.Character;
-
-import sys.thread.Thread;
-import sys.thread.Mutex;
-
-import objects.Note;
-import objects.NoteSplash;
-
 import states.MixtapeLoadingScreen;
+import sys.thread.FixedThreadPool;
+import sys.thread.Mutex;
+import sys.thread.Thread;
 
 #if HSCRIPT_ALLOWED
-import psychlua.HScript;
-import crowplexus.iris.Iris;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
+import crowplexus.iris.Iris;
+import psychlua.HScript;
 #end
 
 #if cpp
@@ -53,13 +48,13 @@ class LoadingState extends MusicBeatState
 	{
 		this.target = target;
 		this.stopMusic = stopMusic;
-		
+
 		super();
 	}
 
 	inline static public function loadAndSwitchState(target:FlxState, stopMusic = false, intrusive:Bool = true)
 		MusicBeatState.switchState(getNextState(target, stopMusic, intrusive));
-	
+
 	var target:FlxState = null;
 	var stopMusic:Bool = false;
 	var dontUpdate:Bool = false;
@@ -79,7 +74,7 @@ class LoadingState extends MusicBeatState
 	var timePassed:Float;
 	var shakeFl:Float;
 	var shakeMult:Float = 0;
-	
+
 	var isSpinning:Bool = false;
 	var spawnedPessy:Bool = false;
 	var pressedTimes:Int = 0;
@@ -91,6 +86,32 @@ class LoadingState extends MusicBeatState
 	var hscript:HScript;
 	#end
 	override function create()
+	{
+		// Check if we need to download GitHub content before proceeding
+		// This ensures all GitHub mods are available offline for fast access
+		if (Paths.shouldTriggerGitHubDownload())
+		{
+			trace('LoadingState: GitHub content missing, triggering download...');
+
+			Paths.ensureGitHubContentAvailable(this, function() {
+				// Download complete, continue with normal loading
+				trace('LoadingState: GitHub download complete, continuing with asset loading');
+				continueCreate();
+			});
+
+			return super.create();
+		}
+		else
+		{
+			// No GitHub download needed, continue normally
+			continueCreate();
+		}
+	}
+
+	/**
+	 * Continues the create function after GitHub downloads are complete
+	 */
+	private function continueCreate():Void
 	{
 		persistentUpdate = true;
 		barGroup = new FlxSpriteGroup();
@@ -121,7 +142,7 @@ class LoadingState extends MusicBeatState
 					hscript.set('getLoadMax', function() return loadMax);
 					hscript.set('barBack', barBack);
 					hscript.set('bar', bar);
-	
+
 					if(hscript.exists('onCreate'))
 					{
 						hscript.call('onCreate');
@@ -152,12 +173,12 @@ class LoadingState extends MusicBeatState
 		bg.color = 0xFFD16FFF;
 		bg.updateHitbox();
 		addBehindBar(bg);
-	
+
 		loadingText = new FlxText(520, 600, 400, Language.getPhrase('now_loading', 'Now Loading', ['...']), 32);
 		loadingText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
 		loadingText.borderSize = 2;
 		addBehindBar(loadingText);
-	
+
 		logo = new FlxSprite(0, 0).loadGraphic(Paths.image('loading_screen/icon'));
 		logo.antialiasing = ClientPrefs.data.antialiasing;
 		logo.scale.set(0.75, 0.75);
@@ -191,7 +212,7 @@ class LoadingState extends MusicBeatState
 		}
 		else {
 			loadNextDirectory();
-			
+
 			if (stopMusic && FlxG.sound.music != null)
 				FlxG.sound.music.stop();
 
@@ -242,7 +263,7 @@ class LoadingState extends MusicBeatState
 				addBehindBar(yourtakingtoolong);
 			}
 		}
-		
+
 		#if HSCRIPT_ALLOWED
 		if(hscript != null)
 		{
@@ -301,11 +322,11 @@ class LoadingState extends MusicBeatState
 						pessy.x = -pessy.width - 200;
 						pessy.velocity.x *= -1;
 					}
-		
+
 					pessy.visible = true;
 					pessy.animation.play('run', true);
 					#if ACHIEVEMENTS_ALLOWED Achievements.unlock('pessy_easter_egg'); #end
-					
+
 					insert(members.indexOf(loadingText), pessy);
 				});
 			}
@@ -335,7 +356,7 @@ class LoadingState extends MusicBeatState
 		super.destroy();
 	}
 	#end
-	
+
 	var finishedLoading:Bool = false;
 	function onLoad()
 	{
@@ -412,7 +433,7 @@ class LoadingState extends MusicBeatState
 					return new LoadingState(target, stopMusic);
 			}
 		}
-		
+
 		if (stopMusic && FlxG.sound.music != null)
 			FlxG.sound.music.stop();
 
@@ -493,7 +514,7 @@ class LoadingState extends MusicBeatState
 			// LOAD NOTE IMAGE
 			var noteSkin:String = Note.defaultNoteSkin;
 			if(PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) noteSkin = PlayState.SONG.arrowSkin;
-	
+
 			var customSkin:String = noteSkin + Note.getNoteSkinPostfix();
 			if(Paths.fileExists('images/$customSkin.png', IMAGE)) noteSkin = customSkin;
 			imagesToPrepare.push(noteSkin);
@@ -561,7 +582,7 @@ class LoadingState extends MusicBeatState
 			{
 				var path:String = Paths.json('$folder/preload');
 				var json:Dynamic = null;
-				
+
 				#if MODS_ALLOWED
 				var moddyFile:String = Paths.modsJson('$folder/preload');
 				if (FileSystem.exists(moddyFile)) json = Json.parse(File.getContent(moddyFile));
@@ -611,11 +632,11 @@ class LoadingState extends MusicBeatState
 					var moddedImages:Array<String> = [];
 					var moddedSounds:Array<String> = [];
 					var moddedMusic:Array<String> = [];
-					for (thing in Paths.crawlDirectory('$curDirct/images', 'png')) 
+					for (thing in Paths.crawlDirectory('$curDirct/images', 'png'))
 						moddedImages.push(thing.replace('$curDirct/images/', '').replace('.png', ''));
-					for (thing in Paths.crawlDirectory('$curDirct/sounds', 'ogg')) 
+					for (thing in Paths.crawlDirectory('$curDirct/sounds', 'ogg'))
 						moddedSounds.push(thing.replace('$curDirct/sounds/', '').replace('.ogg', ''));
-					for (thing in Paths.crawlDirectory('$curDirct/music', 'ogg')) 
+					for (thing in Paths.crawlDirectory('$curDirct/music', 'ogg'))
 						moddedMusic.push(thing.replace('$curDirct/music/', '').replace('.ogg', ''));
 					prepare(moddedImages, moddedSounds, moddedMusic);
 					//trace('IMAGE LOADING LIST: $moddedImages\nSOUND LOADING LIST: $moddedSounds\nMUSIC LOADING LIST: $moddedMusic');
@@ -651,7 +672,7 @@ class LoadingState extends MusicBeatState
 						}
 					}
 				}
-				
+
 				if (stageData.objects != null)
 				{
 					for (sprite in stageData.objects)
@@ -854,7 +875,7 @@ class LoadingState extends MusicBeatState
 				{
 					var st:String = '$i';
 					if(i == 0) st = '';
-	
+
 					if(Paths.fileExists('images/$img/spritemap$st.png', IMAGE))
 					{
 						//trace('found Sprite PNG');
@@ -864,7 +885,7 @@ class LoadingState extends MusicBeatState
 				}
 			}
 			#end
-	
+
 			if (prefixVocals != null && character.vocals_file != null && character.vocals_file.length > 0)
 			{
 				songsToPrepare.push(prefixVocals + "-" + character.vocals_file);
@@ -944,7 +965,7 @@ class LoadingState extends MusicBeatState
 
 		return null;
 	}
-	
+
 	#if cpp
 	@:functionCode('
 		return std::thread::hardware_concurrency();

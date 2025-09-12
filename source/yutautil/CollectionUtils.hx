@@ -5,6 +5,7 @@ import cpp.abi.Abi;
 import haxe.Constraints.IMap;
 import haxe.ds.StringMap;
 // import states.PlayState.LuaScript;
+import yutautil.Num;
 import yutautil.Threader.MemLimitThreadQ;
 import yutautil.Threader;
 import yutautil.modules.SyncUtils;
@@ -2914,6 +2915,43 @@ class CollectionUtils
 		// // Select a random number from numberMap
 		// var selectedNumberFromMap = ChanceSelector.selectOption(numberMapChances);
 		// trace("Selected number from map: " + selectedNumberFromMap);
+	}
+
+	/**
+	 * Identity function for Num type - takes any numeric value and returns it as Num
+	 * @param num The numeric value
+	 * @return The same numeric value as Num type
+	 */
+	public static inline function asNum(num:Num):Num return num;
+
+	public static inline function convertToNum(value:Dynamic):Num
+	{
+		if (Std.is(value, Int))
+		{
+			return cast value;
+		}
+		else if (Std.is(value, Float))
+		{
+			return cast value;
+		}
+		else if (Std.is(value, String))
+		{
+			try {
+				return Std.parseInt(value);
+			} catch (e:Dynamic) {
+				// Ignore and try parseFloat
+			}
+			var parsed = Std.parseFloat(value);
+			if (parsed == Math.NaN)
+			{
+				throw "Cannot convert string to Num: " + value;
+			}
+			return parsed;
+		}
+		else
+		{
+			throw "Unsupported type for conversion to Num: " + Type.getClassName(Type.getClass(value));
+		}
 	}
 }
 

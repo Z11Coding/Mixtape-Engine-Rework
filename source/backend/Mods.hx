@@ -1,7 +1,8 @@
 package backend;
 
-import openfl.utils.Assets;
+import backend.GitHubAPI;
 import haxe.Json;
+import openfl.utils.Assets;
 
 typedef ModsList = {
 	enabled:Array<String>,
@@ -61,9 +62,18 @@ class Mods
 			}
 		}
 		#end
+
+		// Add GitHub mods to the list
+		var githubMods = GitHubAPI.getAllGitHubModNames();
+		for (modName in githubMods) {
+			if (!list.contains(modName)) {
+				list.push(modName); // GitHub mods should appear as regular mod names
+			}
+		}
+
 		return list;
 	}
-	
+
 	inline public static function mergeAllTextsNamed(path:String, ?defaultDirectory:String = null, allowDuplicates:Bool = false)
 	{
 		if(defaultDirectory == null) defaultDirectory = Paths.getSharedPath();
@@ -128,6 +138,15 @@ class Mods
 			}
 		}
 		#end
+
+		// Check GitHub mods
+		if(mods) {
+			var githubPath = GitHubAPI.githubModFolders(fileToFind);
+			if(githubPath != null && !foldersToCheck.contains(githubPath)) {
+				foldersToCheck.push(githubPath);
+			}
+		}
+
 		return foldersToCheck;
 	}
 
@@ -139,11 +158,18 @@ class Mods
 		var path = Paths.mods(folder + '/pack.json');
 		if(FileSystem.exists(path)) {
 			try {
-				#if sys
-				var rawJson:String = File.getContent(path);
-				#else
-				var rawJson:String = Assets.getText(path);
-				#end
+				var rawJson:String = Paths.getTextFromFile(path);
+				if(rawJson != null && rawJson.length > 0) return tjson.TJSON.parse(rawJson);
+			} catch(e:Dynamic) {
+				trace(e);
+			}
+		}
+
+		// Also check GitHub mods for pack.json
+		var githubPackPath = GitHubAPI.githubModFolders('pack.json');
+		if(githubPackPath != null) {
+			try {
+				var rawJson:String = GitHubAPI.getGitHubFile(githubPackPath);
 				if(rawJson != null && rawJson.length > 0) return tjson.TJSON.parse(rawJson);
 			} catch(e:Dynamic) {
 				trace(e);
@@ -178,7 +204,7 @@ class Mods
 		#end
 		return list;
 	}
-	
+
 	private static function updateModList()
 	{
 		#if MODS_ALLOWED
@@ -190,7 +216,12 @@ class Mods
 			{
 				var dat:Array<String> = mod.split("|");
 				var folder:String = dat[0];
-				if(folder.trim().length > 0 && FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder)) && !added.contains(folder))
+
+				// Check if it's a GitHub mod or local mod
+				var isGitHubMod = GitHubAPI.getAllGitHubModNames().contains(folder);
+				var localModExists = FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder));
+
+				if(folder.trim().length > 0 && (isGitHubMod || localModExists) && !added.contains(folder))
 				{
 					added.push(folder);
 					list.push([folder, (dat[1] == "1")]);
@@ -199,11 +230,15 @@ class Mods
 		} catch(e) {
 			trace(e);
 		}
-		
+
 		// Scan for folders that aren't on modsList.txt yet
 		for (folder in getModDirectories())
 		{
-			if(folder.trim().length > 0 && FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder)) &&
+			// Check if it's a GitHub mod
+			var isGitHubMod = GitHubAPI.getAllGitHubModNames().contains(folder);
+			var localModExists = FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder));
+
+			if(folder.trim().length > 0 && (isGitHubMod || localModExists) &&
 			!ignoreModFolders.contains(folder.toLowerCase()) && !added.contains(folder))
 			{
 				added.push(folder);
@@ -229,7 +264,7 @@ class Mods
 	public static function loadTopMod()
 	{
 		Mods.currentModDirectory = '';
-		
+
 		#if MODS_ALLOWED
 		var list:Array<String> = Mods.parseList().enabled;
 		if(list != null && list[0] != null)

@@ -189,7 +189,7 @@ class InfNum {
 
 // Abstract Num for seamless usage
 @:forward
-abstract Num(InfNum) from InfNum {
+abstract INum(InfNum) from InfNum {
     public inline function new(v:Dynamic) {
         if (Std.isOfType(v, InfNum)) this = v;
         else if (Std.isOfType(v, Int) || Std.isOfType(v, Float)) {
@@ -200,23 +200,23 @@ abstract Num(InfNum) from InfNum {
     }
 
     @:from
-    public static function fromInt(i:Int):Num {
+    public static function fromInt(i:Int):INum {
         var n = new InfNum();
         n.fromFloat(i);
-        return new Num(n);
+        return new INum(n);
     }
 
     @:from
-    public static function fromFloat(f:Float):Num {
+    public static function fromFloat(f:Float):INum {
         var n = new InfNum();
         n.fromFloat(f);
-        return new Num(n);
+        return new INum(n);
     }
 
-    @:op(A + B) public static function add(a:Num, b:Num):Num return (cast a : InfNum).add((cast b : InfNum));
-    @:op(A - B) public static function sub(a:Num, b:Num):Num return (cast a : InfNum).subtract((cast b : InfNum));
-    @:op(A * B) public static function mul(a:Num, b:Num):Num return (cast a : InfNum).multiply((cast b : InfNum));
-    @:op(A / B) public static function div(a:Num, b:Num):Num return (cast a : InfNum).divide((cast b : InfNum));
+    @:op(A + B) public static function add(a:INum, b:INum):INum return (cast a : InfNum).add((cast b : InfNum));
+    @:op(A - B) public static function sub(a:INum, b:INum):INum return (cast a : InfNum).subtract((cast b : InfNum));
+    @:op(A * B) public static function mul(a:INum, b:INum):INum return (cast a : InfNum).multiply((cast b : InfNum));
+    @:op(A / B) public static function div(a:INum, b:INum):INum return (cast a : InfNum).divide((cast b : InfNum));
 
     public function toString():String return this.toString();
     @:to public function toInt():Int return Std.parseInt(this.toString());

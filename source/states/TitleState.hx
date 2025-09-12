@@ -1,25 +1,20 @@
 package states;
 
 import backend.WeekData;
-
-import flixel.input.keyboard.FlxKey;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.graphics.frames.FlxFrame;
 import flixel.group.FlxGroup;
 import flixel.input.gamepad.FlxGamepad;
+import flixel.input.keyboard.FlxKey;
 import haxe.Json;
-
 import openfl.Assets;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
-
-import shaders.ColorSwap;
-
-import states.StoryMenuState;
-import states.MainMenuState;
-
-import undertale.UnderTextParser;
 import openfl.filters.BitmapFilter;
+import shaders.ColorSwap;
+import states.MainMenuState;
+import states.StoryMenuState;
+import undertale.UnderTextParser;
 
 typedef TitleData =
 {
@@ -32,7 +27,7 @@ typedef TitleData =
 	var gfy:Float;
 	var backgroundSprite:String;
 	var bpm:Float;
-	
+
 	@:optional var gfSprite:String;
 	@:optional var gfAnimArray:Array<String>;
 	@:optional var gfAnimIndices:Array<Array<Int>>;
@@ -63,7 +58,7 @@ class TitleState extends MusicBeatState
 	var blackScreen:FlxSprite;
 	var credTextShit:Alphabet;
 	var ngSpr:FlxSprite;
-	
+
 	var titleTextColors:Array<FlxColor> = [0xFF33FFFF, 0xFF3333CC];
 	var titleTextAlphas:Array<Float> = [1, .64];
 
@@ -134,6 +129,9 @@ class TitleState extends MusicBeatState
 			startIntro();
 		#end
 
+		// Check for missing GitHub mod files and trigger download if needed
+		checkForMissingGitHubFiles();
+
 		if (Main.cmdArgs.indexOf("GameJoltBug") != -1 && !GJBug)
 		{
 			GJBug = true;
@@ -176,7 +174,7 @@ class TitleState extends MusicBeatState
 			trace('[ERROR] Failed to load logoBumpin atlas: ' + e.details());
 			logoBl.frames = null;
 		}
-		if (logoBl.frames == null) { 
+		if (logoBl.frames == null) {
 			logoBl.frames = Paths.getSparrowAtlas('bump');
 			usingDefaultLogo = true;
 		}
@@ -190,7 +188,7 @@ class TitleState extends MusicBeatState
 
 		gfDance = new FlxSprite(gfPosition.x, gfPosition.y);
 		gfDance.antialiasing = ClientPrefs.data.antialiasing;
-		
+
 		if(ClientPrefs.data.shaders)
 		{
 			swagShader = new ColorSwap();
@@ -239,7 +237,7 @@ class TitleState extends MusicBeatState
 			titleText.animation.findByPrefix(animFrames, "ENTER IDLE");
 			titleText.animation.findByPrefix(animFrames, "ENTER FREEZE");
 		}
-		
+
 		if (newTitle = animFrames.length > 0)
 		{
 			titleText.animation.addByPrefix('idle', "ENTER IDLE", 24);
@@ -319,15 +317,15 @@ class TitleState extends MusicBeatState
 						gfSprite = titleJSON.gfSprite;
 					if (titleJSON.gfAnimArray != null && titleJSON.gfAnimArray.length > 0)
 						gfAnimArray = titleJSON.gfAnimArray;
-					
+
 					musicBPM = titleJSON.bpm;
 					globalBPM = titleJSON.bpm;
-					
+
 					if(titleJSON.animation != null && titleJSON.animation.length > 0) animationName = titleJSON.animation;
 					if(titleJSON.dance_left != null && titleJSON.dance_left.length > 0) danceLeftFrames = titleJSON.dance_left;
 					if(titleJSON.dance_right != null && titleJSON.dance_right.length > 0) danceRightFrames = titleJSON.dance_right;
 					useIdle = (titleJSON.idle == true);
-	
+
 					if (titleJSON.backgroundSprite != null && titleJSON.backgroundSprite.trim().length > 0)
 					{
 						var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(titleJSON.backgroundSprite));
@@ -418,7 +416,7 @@ class TitleState extends MusicBeatState
 
 	var transitioning:Bool = false;
 	private static var playJingle:Bool = false;
-	
+
 	var newTitle:Bool = false;
 	var titleTimer:Float = 0;
 
@@ -452,7 +450,7 @@ class TitleState extends MusicBeatState
 				pressedEnter = true;
 			#end
 		}
-		
+
 		if (newTitle) {
 			titleTimer += FlxMath.bound(elapsed, 0, 1);
 			if (titleTimer > 2) titleTimer -= 2;
@@ -467,25 +465,25 @@ class TitleState extends MusicBeatState
 				var timer:Float = titleTimer;
 				if (timer >= 1)
 					timer = (-timer) + 2;
-				
+
 				timer = FlxEase.quadInOut(timer);
-				
+
 				titleText.color = FlxColor.interpolate(titleTextColors[0], titleTextColors[1], timer);
 				titleText.alpha = FlxMath.lerp(titleTextAlphas[0], titleTextAlphas[1], timer);
 			}
-			
+
 			if(pressedEnter)
 			{
 				titleText.color = FlxColor.WHITE;
 				titleText.alpha = 1;
-				
+
 				if(titleText != null) titleText.animation.play('press');
 
 				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
 				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 
 				transitioning = true;
-				if (gfDance.animation.exists("Hey")) 
+				if (gfDance.animation.exists("Hey"))
 					gfDance.animation.play('Hey');
 				candance = false;
 				// FlxG.sound.music.stop();
@@ -759,7 +757,7 @@ class TitleState extends MusicBeatState
 		"YOU SHOULDN'T BE HERE YOU KNOW",
 		"THE DARKNESS DOESN'T CARE FOR PEOPLE LIKE YOU"
 	];
-	
+
 	function doGasterEgg() {
 		curDial = 0;
 		FlxG.sound.playMusic(Paths.music("hello"), 1);
@@ -781,7 +779,7 @@ class TitleState extends MusicBeatState
 		underText = new UnderTextParser(300, 400, Std.int(FlxG.width * 0.6), '', 32);
         underText.font = Paths.font("undertale-wingdings.ttf");
         underText.color = 0xFFFFFFFF;
-        underText.prefix = '* '; 
+        underText.prefix = '* ';
         add(underText);
 		for (letter in alphabet) {
 			underText.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
@@ -790,7 +788,7 @@ class TitleState extends MusicBeatState
         //underText.alpha = 0;
 		inGasterEgg = true;
 		FlxG.camera.setFilters(camfilters);
-		FlxG.camera.filtersEnabled = true;	
+		FlxG.camera.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);
 	}
 
@@ -803,7 +801,7 @@ class TitleState extends MusicBeatState
         {
             if (i > 0) trueText += '\n* ' + splitName[i];
         }
-    
+
         if (hide)
         {
             underText.alpha = 0;
@@ -818,6 +816,38 @@ class TitleState extends MusicBeatState
             underText.start(speed, true);
 			box.visible = true;
 			boxB.visible = true;
+        }
+    }
+
+    /**
+     * Checks for missing GitHub mod files and triggers download if needed
+     */
+    private function checkForMissingGitHubFiles():Void
+    {
+        // Check all configured GitHub mods for missing files
+        backend.GitHubAPI.checkAllConfiguredMods();
+
+        // If we found missing files, trigger download
+        if (backend.GitHubAPI.hasMissingGitHubFiles())
+        {
+            var missingFiles = backend.GitHubAPI.getMissingGitHubFiles();
+            trace('Found ${missingFiles.length} missing GitHub files, triggering download...');
+
+            // Switch to DownloadState to handle the downloads
+            backend.GitHubAPI.downloadMissingFiles(
+                function() {
+                    trace('GitHub missing files download completed');
+                    // Download finished, continue normal flow
+                },
+                function(progress:Float, status:String) {
+                    // Progress callback - could be used to show download progress in UI
+                    trace('Download progress: ${Math.round(progress * 100)}% - $status');
+                }
+            );
+        }
+        else
+        {
+            trace('All configured GitHub mods are downloaded');
         }
     }
 }

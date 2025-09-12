@@ -1,10 +1,11 @@
 package backend;
 
-import lime.utils.Assets;
-import openfl.utils.Assets as OpenFlAssets;
-import haxe.Json;
 import archipelago.APEntryState;
 import archipelago.APGameState;
+import backend.GitHubAPI;
+import haxe.Json;
+import lime.utils.Assets;
+import openfl.utils.Assets as OpenFlAssets;
 
 typedef WeekFile =
 {
@@ -90,6 +91,10 @@ class WeekData {
 		var originalLength:Int = directories.length;
 		#end
 
+		// Add GitHub mods as virtual directories
+		var githubModNames = GitHubAPI.getAllGitHubModNames();
+		var githubDirStart = directories.length;
+
 		if (APEntryState.inArchipelagoMode) {
 			for (day in APGameState.temporaryWeeks) weeksLoaded.set(day.weekName, day);
 			weeksList = APGameState.temporaryWeekNames.copy();
@@ -113,6 +118,24 @@ class WeekData {
 						if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
 							weeksLoaded.set(sexList[i], weekFile);
 							weeksList.push(sexList[i]);
+						}
+					}
+				}
+			}
+
+			// Check GitHub mods for week files
+			if(!weeksLoaded.exists(sexList[i])) {
+				for (modName in githubModNames) {
+					var githubPath = 'github://' + modName + '/weeks/' + sexList[i] + '.json';
+					var week:WeekFile = getWeekFile(githubPath);
+					if(week != null) {
+						var weekFile:WeekData = new WeekData(week, sexList[i]);
+						weekFile.folder = modName; // Use actual mod name instead of 'github'
+
+						if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
+							weeksLoaded.set(sexList[i], weekFile);
+							weeksList.push(sexList[i]);
+							break; // Found it, no need to check other GitHub mods
 						}
 					}
 				}
@@ -143,6 +166,21 @@ class WeekData {
 				}
 			}
 		}
+
+		// Check GitHub mods for additional weeks by scanning their directories
+		for (modName in githubModNames) {
+			// Get all .json files from the weeks folder of this GitHub mod
+			var weekFiles:Array<String> = GitHubAPI.getGitHubDirectoryContents(modName, 'weeks/');
+			if (weekFiles.length > 0) {
+				for (fileName in weekFiles) {
+					if (fileName.endsWith('.json') && fileName != 'weekList.txt') {
+						var weekName = fileName.substr(0, fileName.length - 5);
+						var githubPath = 'github://' + modName + '/weeks/' + fileName;
+						addGitHubWeek(weekName, githubPath);
+					}
+				}
+			}
+		}
 		#end
 	}
 
@@ -169,17 +207,51 @@ class WeekData {
 		}
 	}
 
+	private static function addGitHubWeek(weekToCheck:String, githubPath:String)
+	{
+		if(!weeksLoaded.exists(weekToCheck))
+		{
+			var week:WeekFile = getWeekFile(githubPath);
+			if(week != null)
+			{
+				var weekFile:WeekData = new WeekData(week, weekToCheck);
+
+				// Extract mod name from github path (github://modname/weeks/...)
+				var modName = 'github';
+				if(githubPath.startsWith("github://")) {
+					var parts = githubPath.substring(9).split('/');
+					if(parts.length > 0) {
+						modName = parts[0];
+					}
+				}
+				weekFile.folder = modName;
+
+				if((PlayState.isStoryMode && !weekFile.hideStoryMode) || (!PlayState.isStoryMode && !weekFile.hideFreeplay))
+				{
+					weeksLoaded.set(weekToCheck, weekFile);
+					weeksList.push(weekToCheck);
+				}
+			}
+		}
+	}
+
 	private static function getWeekFile(path:String):WeekFile {
 		var rawJson:String = null;
-		#if MODS_ALLOWED
-		if(FileSystem.exists(path)) {
-			rawJson = File.getContent(path);
+
+		// Check if this is a GitHub path
+		if(path.startsWith("github://")) {
+			rawJson = GitHubAPI.getGitHubFile(path);
+		} else {
+			#if MODS_ALLOWED
+			if(FileSystem.exists(path)) {
+				rawJson = File.getContent(path);
+			}
+			#else
+			if(OpenFlAssets.exists(path)) {
+				rawJson = Assets.getText(path);
+			}
+			#end
 		}
-		#else
-		if(OpenFlAssets.exists(path)) {
-			rawJson = Assets.getText(path);
-		}
-		#end
 
 		if(rawJson != null && rawJson.length > 0) {
 			return cast tjson.TJSON.parse(rawJson);
@@ -202,7 +274,13 @@ class WeekData {
 	public static function setDirectoryFromWeek(?data:WeekData = null) {
 		Mods.currentModDirectory = '';
 		if(data != null && data.folder != null && data.folder.length > 0) {
-			Mods.currentModDirectory = data.folder;
+			if(data.folder == 'github') {
+				// For GitHub weeks, we don't set currentModDirectory since GitHub mods are handled differently
+				// The Paths system will automatically check GitHub mods via GitHubAPI.githubModFolders()
+				trace('Loading week from GitHub mods');
+			} else {
+				Mods.currentModDirectory = data.folder;
+			}
 		}
 	}
 }

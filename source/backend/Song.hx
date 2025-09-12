@@ -210,12 +210,7 @@ class Song
 		_lastPath = Paths.json('$formattedFolder/$formattedSong');
 
 		//trace(_lastPath);
-		#if MODS_ALLOWED
-		if(FileSystem.exists(_lastPath))
-			rawData = File.getContent(_lastPath);
-		else
-		#end
-			rawData = Assets.getText(_lastPath);
+		rawData = Paths.getTextFromFile(_lastPath);
 
 		return rawData != null ? parseJSON(rawData, jsonInput) : null;
 	}

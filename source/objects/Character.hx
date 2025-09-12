@@ -1,16 +1,14 @@
 package objects;
 
+import backend.Song;
 import backend.animation.PsychAnimationController;
 import flixel.graphics.frames.FlxFrame;
+import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxSort;
-
+import haxe.Json;
 import openfl.utils.AssetType;
 import openfl.utils.Assets;
-import haxe.Json;
-
-import backend.Song;
 import stages.objects.TankmenBG;
-import flixel.util.FlxDestroyUtil;
 
 typedef CharacterFile = {
 	var animations:Array<AnimArray>;
@@ -99,7 +97,7 @@ class Character extends FlxSprite
 	public var mostRecentRow:Int = 0; // for ghost anims n shit
 
 	// This is literally only for the dropshadow shader
-	public var charType:CharType = OTHER; 
+	public var charType:CharType = OTHER;
 
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?chType:CharType = OTHER)
 	{
@@ -119,7 +117,7 @@ class Character extends FlxSprite
 		this.isPlayer = isPlayer;
 		this.charType = chType;
 		changeCharacter(character);
-		
+
 		switch(curCharacter)
 		{
 			case 'pico-speaker'|'otis-speaker':
@@ -154,11 +152,7 @@ class Character extends FlxSprite
 
 		try
 		{
-			#if MODS_ALLOWED
-			loadCharacterFile(Json.parse(File.getContent(path)));
-			#else
-			loadCharacterFile(Json.parse(Assets.getText(path)));
-			#end
+			loadCharacterFile(Json.parse(Paths.getTextFromFile(path)));
 		}
 		catch(e:Dynamic)
 		{
@@ -268,7 +262,7 @@ class Character extends FlxSprite
 
 	public static function grabCharInfo(character:String):Map<String, Dynamic> {
 		var infoArray:Map<String, Dynamic> = [];
-		
+
 		var characterPath:String = 'characters/$character.json';
 		var path:String = Paths.getPath(characterPath, TEXT);
 		#if MODS_ALLOWED
@@ -283,11 +277,7 @@ class Character extends FlxSprite
 		var json:Dynamic = null;
 		try
 		{
-			#if MODS_ALLOWED
-			json = Json.parse(File.getContent(path));
-			#else
-			json = Json.parse(Assets.getText(path));
-			#end
+			json = Json.parse(Paths.getTextFromFile(path));
 		}
 		catch(e:Dynamic)
 		{
@@ -310,7 +300,7 @@ class Character extends FlxSprite
 		infoArray.set("No Antialiasing", (json.no_antialiasing == true));
 		// animations
 		infoArray.set("Animations", json.animations);
-		return infoArray; 
+		return infoArray;
 	}
 
 	override function update(elapsed:Float)
@@ -430,7 +420,7 @@ class Character extends FlxSprite
 
 		return value;
 	}
-	
+
 	public var danced:Bool = false;
 	/**
 	 * FOR GF DANCING SHIT
@@ -611,7 +601,7 @@ class Character extends FlxSprite
 			if(ghost.visible)
 				ghost.draw();
 		}
-		
+
 		var lastAlpha:Float = alpha;
 		var lastColor:FlxColor = color;
 		if(missingCharacter)

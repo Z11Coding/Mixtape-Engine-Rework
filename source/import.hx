@@ -21,97 +21,85 @@ import sys.io.*;
 import js.html.*;
 #end
 
-import backend.Paths;
-import backend.Controls;
-import backend.CoolUtil;
-import backend.MusicBeatState;
-import backend.MusicBeatSubstate;
-import backend.CustomFadeTransition;
+import backend.COD;
 import backend.ClientPrefs;
 import backend.Conductor;
-import backend.Difficulty;
-import backend.Mods;
-import backend.Language;
-import backend.TransitionState;
-import backend.COD;
-import backend.ui.*; //Psych-UI
-import backend.util.*;
-import backend.Cursor;
 import backend.Constants;
-
-import objects.AudioDisplay;
-import objects.FlxAtlasSprite;
-
-import stages.BaseStage;
-
-//Window Stuff
+import backend.Controls;
+import backend.CoolUtil;
+import backend.Cursor;
+import backend.CustomFadeTransition;
+import backend.Difficulty;
+import backend.Language;
+import backend.Mods;
+import backend.MusicBeatState;
+import backend.MusicBeatSubstate;
+import backend.Paths;
+import backend.TransitionState;
+import backend.ui.*; // Psych-UI
+import backend.util.*;
 import backend.window.Window;
 import backend.window.WindowUtil;
 import backend.window.WindowUtils;
-
 import cache.Cache;
-
-import objects.Alphabet;
-import objects.BGSprite;
-
-import states.PlayState;
-import states.LoadingState;
-
+import flixel.FlxBasic;
+import flixel.FlxCamera;
+import flixel.FlxG;
+import flixel.FlxObject;
+import flixel.FlxSprite;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.group.FlxSpriteGroup;
+import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
+import flixel.sound.FlxSound;
+import flixel.sound.filters.*;
+import flixel.sound.filters.effects.*;
+import flixel.text.FlxText;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
 import managers.*;
-
+import mechanics.*;
+import moonchart.Moonchart;
+import moonchart.formats.*;
+import moonchart.formats.fnf.*;
+import moonchart.formats.fnf.legacy.*;
+import moonchart.parsers.*;
+import objects.Alphabet;
+import objects.AudioDisplay;
+import objects.BGSprite;
+import objects.FlxAtlasSprite;
 import shaders.*;
+import stages.BaseStage;
+import states.LoadingState;
+import states.PlayState;
+import yutautil.ChanceSelector;
+import yutautil.ImprovedFileHandling;
 
+using StringTools;
+using yutautil.CUMacroTools;
+using yutautil.CollectionUtils;
+using yutautil.FieldMap;
+using yutautil.GenericObject;
+using yutautil.KonamiTracker;
+using yutautil.MacroTypeUtils;
+using yutautil.MetaData;
+using yutautil.Num;
+using yutautil.PointerTools;
+using yutautil.PyScript;
+using yutautil.RuntimeTypedef;
+using yutautil.Tracked;
+using yutautil.TypeUtils;
+using yutautil.Valid;
+//Window Stuff
 #if flxanimate
 import flxanimate.*;
 import flxanimate.PsychFlxAnimate as FlxAnimate;
 #end
 
 // Moonchart my belovid
-import moonchart.formats.fnf.legacy.*;
-import moonchart.formats.fnf.*;
-import moonchart.formats.*;
-import moonchart.parsers.*;
-import moonchart.Moonchart;
-
 //Mechanics Mod
-import mechanics.*;
-
 //Flixel
-import flixel.sound.FlxSound;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.FlxCamera;
-import flixel.FlxObject;
-import flixel.FlxBasic;
-import flixel.math.FlxMath;
-import flixel.math.FlxPoint;
-import flixel.util.FlxColor;
-import flixel.util.FlxTimer;
-import flixel.text.FlxText;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
-import flixel.group.FlxSpriteGroup;
-import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.addons.transition.FlxTransitionableState;
-import flixel.sound.filters.*;
-import flixel.sound.filters.effects.*;
-
-import yutautil.ImprovedFileHandling;
-
-import yutautil.ChanceSelector;
-
-using StringTools;
-using yutautil.CollectionUtils;
-using yutautil.MetaData;
-using yutautil.PointerTools;
-using yutautil.CUMacroTools;
-using yutautil.KonamiTracker;
-using yutautil.GenericObject;
-using yutautil.PyScript;
-using yutautil.FieldMap;
-using yutautil.Tracked;
-using yutautil.TypeUtils;
-using yutautil.MacroTypeUtils;
-using yutautil.RuntimeTypedef;
-using yutautil.Valid;
 #end

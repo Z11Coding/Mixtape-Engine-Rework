@@ -58,6 +58,31 @@ class MainMenuState extends MusicBeatState
 	var usingDefaultLogo:Bool = false;
 	override function create()
 	{
+		// Ensure GitHub content is available before loading main menu assets
+		if (Paths.shouldTriggerGitHubDownload())
+		{
+			trace('MainMenuState: GitHub content missing, triggering download...');
+
+			Paths.ensureGitHubContentAvailable(this, function() {
+				// Download complete, continue with main menu creation
+				trace('MainMenuState: GitHub download complete, continuing with main menu');
+				continueCreate();
+			});
+
+			return;
+		}
+		else
+		{
+			// No GitHub download needed, continue normally
+			continueCreate();
+		}
+	}
+
+	/**
+	 * Continues the create function after GitHub downloads are complete
+	 */
+	private function continueCreate():Void
+	{
 
 		Cursor.cursorMode = Default;
 		checker = new FlxBackdrop(Paths.image('mainmenu/Main_Checker'), XY, Std.int(0.2), Std.int(0.2));

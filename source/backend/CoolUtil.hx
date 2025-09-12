@@ -3,6 +3,10 @@ package backend;
 import haxe.Json;
 import lime.utils.Assets as LimeAssets;
 import openfl.utils.Assets;
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
 
 class CoolUtil
 {
@@ -45,11 +49,32 @@ class CoolUtil
 	inline public static function coolTextFile(path:String):Array<String>
 	{
 		var daList:String = null;
-		#if (sys && MODS_ALLOWED)
-		if(FileSystem.exists(path)) daList = File.getContent(path);
-		#else
-		if(Assets.exists(path)) daList = Assets.getText(path);
-		#end
+
+		// Handle special mod syntax like 'mod:mod_assets/FalseParadiseMod/weeks/arrowpaths/arrowpath1.csv'
+		if(path.startsWith('mod:')) {
+			daList = Paths.getTextFromFile(path);
+		}
+		// Handle direct paths by trying both file system and Paths system
+		else {
+			#if (sys && MODS_ALLOWED)
+			// Try direct file system access first (for absolute paths, directory concatenations)
+			if(FileSystem.exists(path)) {
+				daList = File.getContent(path);
+			}
+			// If not found, try through Paths system (for GitHub mods support)
+			else {
+				daList = Paths.getTextFromFile(path);
+			}
+			#else
+			// For non-sys targets, use Assets or Paths
+			if(Assets.exists(path)) {
+				daList = Assets.getText(path);
+			} else {
+				daList = Paths.getTextFromFile(path);
+			}
+			#end
+		}
+
 		return daList != null ? listFromString(daList) : [];
 	}
 

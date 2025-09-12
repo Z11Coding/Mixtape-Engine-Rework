@@ -17,6 +17,7 @@ import openfl.geom.Rectangle;
 import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
+import sys.FileSystem;
 #if MODS_ALLOWED
 import backend.Mods;
 #end
@@ -480,6 +481,55 @@ class Paths
 		return returnPath;
 	}
 
+	/**
+	 * Checks GitHub mods offline first, avoiding slow API calls
+	 * Only falls back to online checking if absolutely necessary
+	 */
+	private static function checkGitHubModsOfflineFirst(customFile:String):String
+	{
+		// First, check if we have any GitHub mods configured
+		var enabledMods = backend.GitHubAPI.getEnabledGitHubMods();
+		var enabledFolders = backend.GitHubAPI.getEnabledGitHubModsFolders();
+
+		if (enabledMods.length == 0 && enabledFolders.length == 0)
+		{
+			return null; // No GitHub mods configured
+		}
+
+		// Check individual GitHub mods (offline first)
+		for (mod in enabledMods)
+		{
+			var githubPath = 'github://${mod.name}/$customFile';
+			var offlineFile = backend.GitHubDownloadManager.getLocalGitHubFilePath(githubPath);
+			if (offlineFile != null)
+			{
+				return githubPath; // Found offline
+			}
+		}
+
+		// Check GitHub mod folders (offline first)
+		for (folder in enabledFolders)
+		{
+			for (modName in folder.discoveredMods)
+			{
+				if (folder.enabledMods.get(modName) == true)
+				{
+					var githubPath = 'github://folder-${folder.name}/$modName/$customFile';
+					var offlineFile = backend.GitHubDownloadManager.getLocalGitHubFilePath(githubPath);
+					if (offlineFile != null)
+					{
+						return githubPath; // Found offline
+					}
+				}
+			}
+		}
+
+		// If not found offline but we have GitHub mods configured,
+		// we might need to download content, but don't do slow online checks here
+		// Instead, the system will detect missing files and trigger downloads elsewhere
+		return null;
+	}
+
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
 	{
 		#if MODS_ALLOWED
@@ -488,8 +538,8 @@ class Paths
 			var customFile:String = file;
 			if (parentfolder != null) customFile = '$parentfolder/$file';
 
-			// Check GitHub mods first (higher priority than local mods)
-			var githubModded:String = GitHubAPI.githubModFolders(customFile);
+			// Check GitHub mods first - but prioritize offline downloads over API calls
+			var githubModded:String = checkGitHubModsOfflineFirst(customFile);
 			if(githubModded != null) return githubModded;
 
 			// Then check local mods
@@ -570,13 +620,82 @@ class Paths
 	inline static public function soundRandom(key:String, min:Int, max:Int, ?modsAllowed:Bool = true)
 		return sound(key + FlxG.random.int(min, max), modsAllowed);
 
+	/**
+	 * Checks if GitHub content might be missing and should trigger a download
+	 * This is a fast check that doesn't hit the GitHub API
+	 */
+	public static function shouldTriggerGitHubDownload():Bool
+	{
+		// Check if we have GitHub mods configured
+		var enabledMods = backend.GitHubAPI.getEnabledGitHubMods();
+		var enabledFolders = backend.GitHubAPI.getEnabledGitHubModsFolders();
+
+		if (enabledMods.length == 0 && enabledFolders.length == 0)
+		{
+			return false; // No GitHub mods configured
+		}
+
+		// Quick check - if GitHubDownloadManager says we don't have content downloaded
+		if (!backend.GitHubDownloadManager.areGitHubModsDownloaded())
+		{
+			return true;
+		}
+
+		// Check if we have missing files tracked
+		if (backend.GitHubAPI.hasMissingGitHubFiles())
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Triggers download substate if needed, returns true if download was triggered
+	 */
+	public static function ensureGitHubContentAvailable(state:MusicBeatState, ?onComplete:Void->Void):Bool
+	{
+		if (shouldTriggerGitHubDownload())
+		{
+			return substates.DownloadSubstate.downloadIfMissing(state, onComplete);
+		}
+
+		if (onComplete != null) onComplete();
+		return false;
+	}
+
 	static public function exists(someString:String):Bool
 	{
 		var toRet:Bool = false;
+
+		// Check if this is a GitHub path
+		if (someString.startsWith("github://"))
+		{
+			// First check if file exists in downloaded GitHub content
+			var offlineFile = backend.GitHubDownloadManager.getLocalGitHubFilePath(someString);
+			if (offlineFile != null)
+			{
+				return true; // File exists in downloaded content
+			}
+
+			// If not found offline, could check online but we want to avoid slow API calls
+			// Instead, we'll return false and let the system trigger a download
+			trace('GitHub file not found offline: $someString - download may be needed');
+			return false;
+		}
+
+		// For regular file system paths
+		if (sys.FileSystem.exists(someString))
+		{
+			return true;
+		}
+
+		// Check OpenFL assets
 		if (OpenFlAssets.exists(someString))
 		{
 			toRet = true;
 		}
+
 		return toRet;
 	}
 
