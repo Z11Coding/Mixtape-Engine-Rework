@@ -4824,7 +4824,7 @@ class PlayState extends MusicBeatState
 			notes.remove(note);
 		});
 		field.noteMissed.add((daNote:Note, field:PlayField) -> {
-			trace("Missed!");
+			//trace("Missed!");
 			if (field.isPlayer && !field.autoPlayed && !daNote.ignoreNote && !endingSong && (daNote.tooLate || !daNote.wasGoodHit))
 				noteMiss(daNote, field);
 

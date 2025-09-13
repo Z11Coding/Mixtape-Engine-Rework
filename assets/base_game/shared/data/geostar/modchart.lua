@@ -1,5 +1,4 @@
 function onCreatePost()
-    loadModchart()
     setValue('transformX', 200, 1)
     setValue('localrotateZ', 90, 1)
     setValue('noteAngle', 90, 1)
@@ -21,7 +20,7 @@ function onCreatePost()
 end
 
 function onSongStart()
-    
+
 end
 
 function onUpdatePost(elapsed)
@@ -35,28 +34,7 @@ end
 
 function loadModchart()
     if getPropertyFromClass('backend.ClientPrefs', 'data.modcharts') then
-        queueSet(348, 'reverse', 0.5, 0)
-        queueSet(350, 'reverse', 1, 0)
-        queueSet(412, 'reverse', 0.5, 0)
-        queueSet(414, 'reverse', 0, 0)
-        queueSet(476, 'reverse', 0.5, 0)
-        queueSet(478, 'reverse', 0, 0)
-        queueSet(478, 'centered', 1, 0)
-        queueSet(480, 'split', 1, 0)
-        queueSet(734, 'split', 0, 0)
-        queueSet(734, 'centered', 0, 0)
-        queueSet(734, 'receptorScroll', 1, 0)
-        queueSet(734, 'sudden', 0.5, 0)
-        queueSet(864, 'sudden', 1, 0)
-        queueSet(988, 'fieldRoll', 180/4, 0)
-        queueSet(990, 'fieldRoll', 180/3, 0)
-        queueSet(992, 'fieldRoll', 180/2, 0)
-        queueSet(1052, 'fieldRoll', 270/4, 0)
-        queueSet(1054, 'fieldRoll', 270/3, 0)
-        queueSet(1056, 'fieldRoll', 270/2, 0)
-        queueSet(1120, 'fieldRoll', 0, 0)
-        queueSet(1120, 'sudden', 0, 0)
-        queueSet(1120, 'receptorScroll', 0, 0)
+
     end
 end
 
@@ -99,50 +77,11 @@ function onStepHit()
             effectSwitcher('rotato')
         end
     end
-    
+
     if curStep == 32 then
         doTweenAlpha('reveal', 'black', 0, stepCrochet*0.001*128, 'sineInOut')
     end
 
-    if (shadersEnabled) then
-        runHaxeCode([[
-            import openfl.filters.ShaderFilter;
-            function onStepHit()
-            {
-                if (curStep == 1)
-                {
-                    game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                    game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                }
-                if (curStep == 284)
-                {
-                    game.camGame.setFilters([]);
-                    game.camHUD.setFilters([]);
-                }
-                if (curStep == 732)
-                {
-                    game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                    game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                }
-                if (curStep == 864)
-                {
-                    game.camGame.setFilters([]);
-                    game.camHUD.setFilters([]);
-                }
-                if (curStep == 1120)
-                {
-                    game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                    game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                }
-                if (curStep == 1184)
-                {
-                    game.camGame.setFilters([]);
-                    game.camHUD.setFilters([]);
-                }
-            }
-        ]]);
-    end
-        
     if curStep == 284 then
         setObjectCamera('black', 'other')
         setProperty('black.alpha', 1)

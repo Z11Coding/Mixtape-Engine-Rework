@@ -2763,6 +2763,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			var secs:Null<Float> = cast section.sectionBeats;
 			if(secs == null || Math.isNaN(secs) || secs <= 0) section.sectionBeats = 4;
 
+			var secsStep:Null<Float> = cast section.sectionSteps;
+			if(secsStep == null || Math.isNaN(secsStep) || secsStep <= 0) section.sectionSteps = 4;
+
 			if(section.changeBPM) bpm = section.bpm;
 			var beat:Float = Conductor.calculateCrochet(bpm);
 			//trace(secBPM, beat);

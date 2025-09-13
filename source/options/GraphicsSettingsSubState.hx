@@ -114,6 +114,14 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	{
 		// Clear all cached graphics when trash mode is toggled
 		// This ensures that the compression setting takes effect immediately
+		for (effect in MusicBeatState.effectArray) {
+			if (!ClientPrefs.data.ultratrashMode && effect != null) {
+				effect.removeFilter(FlxG.sound.music);
+				effect.clearEffects(true);
+				remove(effect);
+				effect.destroy();
+			}
+		}
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
 		Paths.freeGraphicsFromMemory();

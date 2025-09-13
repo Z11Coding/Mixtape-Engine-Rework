@@ -229,6 +229,8 @@ class MusicBeatState extends FlxState
 			badqualitymic.lowpassCutoff = 0;
 			badqualitymic.eqCenter = 20000;
 			afm.addEffect(badqualitymic);
+
+			effectArray.push(afm);
 		}
 	}
 
@@ -358,6 +360,7 @@ class MusicBeatState extends FlxState
 	}
 
 	var afm:FlxSoundFilter;
+	public static var effectArray:Array<FlxSoundFilter> = [];
 
 	override function update(elapsed:Float)
 	{
@@ -482,10 +485,6 @@ class MusicBeatState extends FlxState
 					afm.applyFilter(sound);
 				}
 			}
-		} else if (!ClientPrefs.data.ultratrashMode && afm != null) {
-			afm.clearEffects(true);
-			remove(afm);
-			afm.destroy();
 		}
 
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)

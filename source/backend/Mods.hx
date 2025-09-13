@@ -1,7 +1,7 @@
 package backend;
 
-import openfl.utils.Assets;
 import haxe.Json;
+import openfl.utils.Assets;
 
 typedef ModsList = {
 	enabled:Array<String>,
@@ -63,7 +63,7 @@ class Mods
 		#end
 		return list;
 	}
-	
+
 	inline public static function mergeAllTextsNamed(path:String, ?defaultDirectory:String = null, allowDuplicates:Bool = false)
 	{
 		if(defaultDirectory == null) defaultDirectory = Paths.getSharedPath();
@@ -178,7 +178,7 @@ class Mods
 		#end
 		return list;
 	}
-	
+
 	private static function updateModList()
 	{
 		#if MODS_ALLOWED
@@ -199,7 +199,7 @@ class Mods
 		} catch(e) {
 			trace(e);
 		}
-		
+
 		// Scan for folders that aren't on modsList.txt yet
 		for (folder in getModDirectories())
 		{
@@ -229,7 +229,7 @@ class Mods
 	public static function loadTopMod()
 	{
 		Mods.currentModDirectory = '';
-		
+
 		#if MODS_ALLOWED
 		var list:Array<String> = Mods.parseList().enabled;
 		if(list != null && list[0] != null)
