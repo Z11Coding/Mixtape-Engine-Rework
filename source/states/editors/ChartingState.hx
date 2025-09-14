@@ -1095,7 +1095,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(id == 3 || id == 6) //Reload The Girlfriend
 			remove(lilGf);
 			createLilGirlfriend(character3);
-			if(id == 5 || id == 6)//Reload The Player
+		if(PlayState.SONG.player5 != null && (id == 5 || id == 6))//Reload The Player
 			remove(lilPlayer2);
 			createLilPlayer2(character5);
 	}
@@ -1186,13 +1186,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		//METADATA TAB
 		loadMetadata();
-		songNameMetaInputText.text = mixtapeMetadata.song.name;
-		artistInputText.text = mixtapeMetadata.song.artist;
-		charterInputText.text = mixtapeMetadata.song.charter;
-		modInputText.text = mixtapeMetadata.song.mod;
-		bgInputText.text = mixtapeMetadata.freeplay.bg;
-		albumInputText.text = mixtapeMetadata.freeplay.album;
-		try{ratingsStepper.value = mixtapeMetadata.freeplay.ratings.get(Difficulty.list[PlayState.storyDifficulty].toLowerCase());}
+		songNameMetaInputText.text = (mixtapeMetadata.song != null ? mixtapeMetadata.song.name : '');
+		artistInputText.text = (mixtapeMetadata.song != null ? mixtapeMetadata.song.artist : '');
+		charterInputText.text = (mixtapeMetadata.song != null ? mixtapeMetadata.song.artist : "");
+		modInputText.text = (mixtapeMetadata.song != null ? mixtapeMetadata.song.artist : "");
+		bgInputText.text = (mixtapeMetadata.freeplay != null ? mixtapeMetadata.freeplay.bg : "");
+		albumInputText.text = (mixtapeMetadata.freeplay != null ? mixtapeMetadata.freeplay.album: "");
+		try{ratingsStepper.value = (mixtapeMetadata.freeplay != null ? mixtapeMetadata.freeplay.ratings.get(Difficulty.list[PlayState.storyDifficulty].toLowerCase()) : 0);}
 		catch(e) {ratingsStepper.value = 0;}
 		reloadLilBuddies();
 	}
@@ -2082,7 +2082,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilPlayer.dance();
 		}
 
-		if (curBeat % lilPlayer2.danceEveryNumBeats == 0 && !lilPlayer2.getAnimationName().startsWith('sing')) {
+		if (PlayState.SONG.player5 != null && curBeat % lilPlayer2.danceEveryNumBeats == 0 && !lilPlayer2.getAnimationName().startsWith('sing')) {
 			lilPlayer2.dance();
 		}
 
