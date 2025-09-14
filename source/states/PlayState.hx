@@ -1,6 +1,7 @@
 package states;
 
 import backend.AIPlayer;
+import backend.AdvancedChartModifier;
 import backend.Highscore;
 import backend.Rating;
 import backend.Song;
@@ -2876,6 +2877,17 @@ class PlayState extends MusicBeatState
 	{
 		// trace('Generating Song: ${SONG.song}');
 		// FlxG.log.add(ChartParser.parse());
+
+		// Apply Advanced Chart Modifier BEFORE note generation
+		if (chartModifier == "Advanced")
+		{
+			trace("Applying Advanced Chart Modifier transformation...");
+			var intensity = ClientPrefs.getGameplaySetting('advancedIntensity', 1.0);
+			var complexMode = ClientPrefs.getGameplaySetting('advancedComplex', false);
+			SONG = backend.AdvancedChartModifier.transformChart(SONG, intensity, complexMode);
+			trace("Advanced Chart Modifier transformation complete (Complex Mode: " + complexMode + ")");
+		}
+
 		songSpeed = PlayState.SONG.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
 		switch(songSpeedType)
@@ -5228,6 +5240,15 @@ class PlayState extends MusicBeatState
 				var timeDiff:Float = Math.abs((FlxG.sound.music.time + Conductor.offset) - Conductor.songPosition);
 				if (timeDiff > 1000 * playbackRate)
 					Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
+			}
+			
+			// Update BPM from current time (handles both BPM changes and BPM tweens)
+			var currentBPMData = Conductor.getBPMFromSeconds(Conductor.songPosition / 1000);
+			if (currentBPMData.bpm != Conductor.bpm)
+			{
+				Conductor.bpm = currentBPMData.bpm;
+				Conductor.crochet = (60 / Conductor.bpm) * 1000;
+				Conductor.stepCrochet = Conductor.crochet / 4;
 			}
 		}
 

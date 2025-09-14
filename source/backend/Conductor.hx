@@ -175,13 +175,14 @@ class Conductor
 				bpmChangeMap.push(event);
 			}
 
-			if ((song.notes[i].bpmT && song.notes[i].endBPM != null && song.notes[i].startBPM != null) && song.notes[i].endBPM != song.notes[i].startBPM)
+			if ((song.notes[i].bpmT && song.notes[i].endBPM != null && song.notes[i].startBPM != null && song.notes[i].tweenTime != null) && song.notes[i].endBPM != song.notes[i].startBPM)
 			{
+				var tweenDurationMs = song.notes[i].tweenTime * 1000; // Convert seconds to milliseconds
 				var tween:BPMTween = {
 					startBPM: song.notes[i].startBPM,
 					endBPM: song.notes[i].endBPM,
 					startTime: totalPos,
-					endTime: totalPos + ((60 / song.notes[i].endBPM) * 1000 / 4) * Math.round(getSectionBeats(song, i) * 4),
+					endTime: totalPos + tweenDurationMs,
 					stepCrochet: calculateCrochet(song.notes[i].endBPM) / 4
 				};
 				bpmtweens.push(tween);

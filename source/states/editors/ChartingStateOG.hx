@@ -994,6 +994,9 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	var check_exSection:FlxUICheckBox;
 	var check_changeBPM:FlxUICheckBox;
 	var stepperSectionBPM:FlxUINumericStepper;
+	var check_bpmTween:FlxUICheckBox;
+	var stepperEndBPM:FlxUINumericStepper;
+	var stepperTweenTime:FlxUINumericStepper;
 	var check_altAnim:FlxUICheckBox;
 
 	var sectionToCopy:Int = 0;
@@ -1058,6 +1061,19 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		}
 		stepperSectionBPM.name = 'section_bpm';
 		blockPressWhileTypingOnStepper.push(stepperSectionBPM);
+
+		check_bpmTween = new FlxUICheckBox(10, stepperSectionBPM.y + 30, null, null, 'BPM Tween', 100);
+		check_bpmTween.checked = _song.notes[curSec].bpmT == true;
+		check_bpmTween.name = 'check_bpmTween';
+
+		stepperEndBPM = new FlxUINumericStepper(10, check_bpmTween.y + 20, 1, Conductor.bpm, 0, 999, 3);
+		stepperEndBPM.value = _song.notes[curSec].endBPM != null ? _song.notes[curSec].endBPM : Conductor.bpm;
+		stepperEndBPM.name = 'tween_end_bpm';
+		blockPressWhileTypingOnStepper.push(stepperEndBPM);
+
+		stepperTweenTime = new FlxUINumericStepper(10, stepperEndBPM.y + 25, 0.1, 4.0, 0.1, 60.0, 1);
+		stepperTweenTime.name = 'tween_time';
+		blockPressWhileTypingOnStepper.push(stepperTweenTime);
 
 		var check_eventsSec:FlxUICheckBox = null;
 		var check_notesSec:FlxUICheckBox = null;
@@ -1230,11 +1246,16 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 
 		tab_group_section.add(new FlxText(stepperSteps.x, stepperSteps.y - 15, 0, 'Steps per Section:'));
 		tab_group_section.add(new FlxText(stepperBeats.x, stepperBeats.y - 15, 0, 'Beats per Section:'));
+		tab_group_section.add(new FlxText(stepperEndBPM.x, stepperEndBPM.y - 15, 0, 'End BPM:'));
+		tab_group_section.add(new FlxText(stepperTweenTime.x, stepperTweenTime.y - 15, 0, 'End Time (sec):'));
 		// tab_group_section.add(new FlxText(70, 10, 0, 'Step Length'));
 		tab_group_section.add(stepperSectionJump);
 		tab_group_section.add(stepperSteps);
 		tab_group_section.add(stepperBeats);
 		tab_group_section.add(stepperSectionBPM);
+		tab_group_section.add(check_bpmTween);
+		tab_group_section.add(stepperEndBPM);
+		tab_group_section.add(stepperTweenTime);
 		tab_group_section.add(check_mustHitSection);
 		tab_group_section.add(check_gfSection);
 		tab_group_section.add(check_exSection);
@@ -2237,8 +2258,33 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 					updateHeads();
 
 				case 'Change BPM':
+					if(check.checked)
+					{
+						// Validate BPM change against active BPM tweens
+						if(!validateBpmChangeOG(curSec))
+						{
+							check.checked = false;
+							return;
+						}
+					}
+					
 					_song.notes[curSec].changeBPM = check.checked;
 					FlxG.log.add('changed bpm shit');
+
+				case 'BPM Tween':
+					if(check.checked)
+					{
+						_song.notes[curSec].bpmT = true;
+						_song.notes[curSec].startBPM = getEffectiveBPMAtSectionOG(curSec);
+						_song.notes[curSec].endBPM = stepperEndBPM.value;
+						_song.notes[curSec].tweenTime = stepperTweenTime.value;
+						checkBpmTweenConflictOG();
+					}
+					else
+					{
+						_song.notes[curSec].bpmT = false;
+					}
+					updateBpmTweenUIStateOG();
 
 				case "Alt Animation":
 					_song.notes[curSec].altAnim = check.checked;
@@ -2289,8 +2335,30 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			}
 			else if (wname == 'section_bpm')
 			{
+				// Validate BPM change against active BPM tweens
+				if(_song.notes[curSec].changeBPM && !validateBpmChangeOG(curSec))
+				{
+					nums.value = _song.notes[curSec].bpm;
+					return;
+				}
+				
 				_song.notes[curSec].bpm = nums.value;
 				updateGrid();
+			}
+			else if (wname == 'tween_end_bpm')
+			{
+				if(_song.notes[curSec].bpmT)
+				{
+					_song.notes[curSec].endBPM = nums.value;
+				}
+			}
+			else if (wname == 'tween_time')
+			{
+				if(_song.notes[curSec].bpmT)
+				{
+					_song.notes[curSec].tweenTime = nums.value;
+				}
+				updateBpmTweenUIStateOG();
 			}
 			/*else if (wname == 'hit_volume')
 				{
@@ -3607,6 +3675,12 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		check_changeBPM.checked = sec.changeBPM;
 		stepperSectionBPM.value = sec.bpm;
 
+		// Update BPM tween UI
+		check_bpmTween.checked = sec.bpmT;
+		stepperEndBPM.value = sec.endBPM;
+		stepperTweenTime.value = sec.tweenTime != null ? sec.tweenTime : 4.0;
+		updateBpmTweenUIStateOG();
+
 		updateHeads();
 	}
 
@@ -3653,6 +3727,124 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		} else if (_song.notes[curSec].gfSection && !_song.notes[curSec].mustHitSection) {
 			rightIcon.changeIcon(characterData.iconP3);
 		}
+	}
+
+	function updateBpmTweenUIStateOG():Void
+	{
+		var enabled:Bool = check_bpmTween.checked;
+		stepperEndBPM.active = enabled;
+		stepperTweenTime.active = enabled;
+		stepperEndBPM.color = enabled ? FlxColor.WHITE : FlxColor.GRAY;
+		stepperTweenTime.color = enabled ? FlxColor.WHITE : FlxColor.GRAY;
+	}
+
+	function checkBpmTweenConflictOG():Void
+	{
+		if (!check_bpmTween.checked) return;
+		
+		var currentSection = _song.notes[curSec];
+		var tweenTime = stepperTweenTime.value;
+		
+		// Get section length in seconds
+		var sectionLengthInSteps = getSectionSteps();
+		var bpm = currentSection.changeBPM ? currentSection.bpm : _song.bpm;
+		var stepCrochet = (60 / bpm) * 1000 / 4;
+		var sectionLengthInSeconds = (sectionLengthInSteps * stepCrochet) / 1000;
+		
+		// Check if tween time exceeds section length
+		if (tweenTime > sectionLengthInSeconds)
+		{
+			var message = 'Warning: BPM tween duration (${Math.round(tweenTime * 100) / 100}s) exceeds section length (${Math.round(sectionLengthInSeconds * 100) / 100}s).\n\nThe tween will be clamped to the section boundaries during playback.';
+			#if windows
+			lime.app.Application.current.window.alert(message, "BPM Tween Warning");
+			#else
+			trace(message);
+			#end
+		}
+		
+		// Check for conflicts with adjacent sections
+		var hasConflict = false;
+		var conflictMessage = '';
+		
+		// Check previous section
+		if (curSec > 0 && _song.notes[curSec - 1].bpmT)
+		{
+			hasConflict = true;
+			conflictMessage += 'Previous section (${curSec - 1}) also has BPM tween enabled.\n';
+		}
+		
+		// Check next section
+		if (curSec < _song.notes.length - 1 && _song.notes[curSec + 1].bpmT)
+		{
+			hasConflict = true;
+			conflictMessage += 'Next section (${curSec + 1}) also has BPM tween enabled.\n';
+		}
+		
+		if (hasConflict)
+		{
+			conflictMessage += '\nOverlapping BPM tweens may cause unexpected behavior during playback.';
+			#if windows
+			lime.app.Application.current.window.alert(conflictMessage, "BPM Tween Conflict");
+			#else
+			trace(conflictMessage);
+			#end
+		}
+	}
+
+	function getEffectiveBPMAtSectionOG(sectionIndex:Int):Float
+	{
+		// Start with the song's base BPM
+		var currentBPM = _song.bpm;
+		
+		// Walk through all sections up to the target section to find the last BPM change
+		for (i in 0...Std.int(Math.min(sectionIndex, _song.notes.length)))
+		{
+			var section = _song.notes[i];
+			if (section.changeBPM && section.bpm != null)
+			{
+				currentBPM = section.bpm;
+			}
+		}
+		
+		return currentBPM;
+	}
+
+	function validateBpmChangeOG(sectionIndex:Int):Bool
+	{
+		// Check if there's an active BPM tween that would conflict
+		if(_song.notes == null || sectionIndex < 0 || sectionIndex >= _song.notes.length)
+			return true;
+			
+		var section = _song.notes[sectionIndex];
+		if(section == null) return true;
+		
+		// Simple check: if the current section has a BPM tween active, don't allow BPM changes
+		if(section.bpmT && section.tweenTime > 0)
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			return false;
+		}
+		
+		// Check if any other section has a BPM tween that would overlap with this section
+		for(i in 0..._song.notes.length)
+		{
+			if(i == sectionIndex) continue; // Skip current section
+			
+			var sec = _song.notes[i];
+			if(sec != null && sec.bpmT && sec.tweenTime > 0)
+			{
+				// Simple time-based check using section indices
+				// Prevent overlapping tweens (conservative approach)
+				var timeDifference = Math.abs(i - sectionIndex);
+				if(timeDifference <= 1) // Adjacent or same sections
+				{
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 
 	var characterFailed:Bool = false;
@@ -4366,6 +4558,127 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	}
 
 	private function saveLevel()
+	{
+		// Check for BPM tweens and show Psych compatibility prompt if needed
+		if(hasBPMTweensOG())
+		{
+			showPsychCompatibilityPromptOG();
+			return;
+		}
+		
+		// Normal save process
+		performSaveOG();
+	}
+	
+	function hasBPMTweensOG():Bool
+	{
+		if(_song == null || _song.notes == null) return false;
+		
+		for(section in _song.notes)
+		{
+			if(section != null && section.bpmT && section.tweenTime > 0)
+				return true;
+		}
+		return false;
+	}
+	
+	function showPsychCompatibilityPromptOG()
+	{
+		var promptText = 'BPM Tweens Detected!\n\nThis chart contains BPM tweens that are not compatible with Psych Engine.\n\nSave with BPM tweens (Mixtape only) or convert to Psych format?';
+		
+		openSubState(new Prompt(promptText, function()
+		{
+			// Save as-is with BPM tweens
+			performSaveOG();
+		}, function()
+		{
+			// Convert to Psych format and save
+			convertToPsychFormatOG();
+			performSaveOG();
+		}, false, 'Keep BPM Tweens', 'Convert to Psych'));
+	}
+	
+	function convertToPsychFormatOG()
+	{
+		if(_song == null || _song.notes == null) return;
+		
+		var convertedSections = 0;
+		var sectionsAdded = 0;
+		
+		// Process sections from end to beginning to avoid index issues when adding sections
+		var i = _song.notes.length - 1;
+		while(i >= 0)
+		{
+			var section = _song.notes[i];
+			if(section != null && section.bpmT && section.tweenTime > 0)
+			{
+				// Calculate how many intermediate sections we need for smooth approximation
+				var bpmDifference = Math.abs(section.endBPM - section.startBPM);
+				var numIntermediateSections = Math.ceil(Math.min(bpmDifference / 20, section.tweenTime / 2)); // Max 1 section per 20 BPM change or per 2 seconds
+				
+				if(numIntermediateSections > 1)
+				{
+					// Create multiple sections to approximate the BPM curve
+					var originalSectionBeats = section.sectionBeats > 0 ? section.sectionBeats : 4;
+					var beatsPerSubSection = originalSectionBeats / numIntermediateSections;
+					
+					// Update the original section to be the first part
+					section.changeBPM = true;
+					section.bpm = section.startBPM;
+					section.sectionBeats = beatsPerSubSection;
+					
+					// Create intermediate sections
+					for(j in 1...numIntermediateSections)
+					{
+						var progress = j / (numIntermediateSections - 1);
+						var interpolatedBPM = section.startBPM + (section.endBPM - section.startBPM) * progress;
+						
+						var newSection:SwagSection = {
+							sectionNotes: [],
+							sectionBeats: beatsPerSubSection,
+							sectionSteps: beatsPerSubSection * 4, // 4 steps per beat
+							altAnim: section.altAnim,
+							bpm: interpolatedBPM,
+							changeBPM: true,
+							mustHitSection: section.mustHitSection,
+							gfSection: section.gfSection,
+							exSection: section.exSection,
+							bpmT: false,
+							startBPM: 0,
+							endBPM: 0,
+							tweenTime: 0
+						};
+						
+						_song.notes.insert(i + j, newSection);
+						sectionsAdded++;
+					}
+				}
+				else
+				{
+					// Simple conversion: use end BPM as immediate change
+					section.changeBPM = true;
+					section.bpm = section.endBPM;
+				}
+				
+				// Remove tween properties from original section
+				section.bpmT = false;
+				section.startBPM = 0;
+				section.endBPM = 0;
+				section.tweenTime = 0;
+				
+				convertedSections++;
+			}
+			i--;
+		}
+		
+		// Update UI to reflect changes
+		reloadGridLayer();
+		updateGrid();
+		
+		FlxG.log.add('Converted ${convertedSections} BPM tween(s) to Psych Engine format. Added ${sectionsAdded} intermediate sections for smooth approximation.');
+	}
+	
+	function performSaveOG()
 	{
 		notSaved = false;
 		if (_song.events != null && _song.events.length > 1)

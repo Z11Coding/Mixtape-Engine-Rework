@@ -2933,6 +2933,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			beatsPerSecStepper.value = sec.sectionBeats;
 			stepsPerSecStepper.value = sec.sectionSteps;
 
+			// Update BPM tween UI
+			updateBpmTweenUI();
+
 			strumTimeStepper.step = Conductor.stepCrochet;
 			susLengthStepper.step = cachedSectionCrochets[curSec] / 4 / 2;
 			susLengthStepper.max = susLengthStepper.step * 128;
@@ -3746,6 +3749,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	var changeBpmCheckBox:PsychUICheckBox;
 	var changeBpmStepper:PsychUINumericStepper;
+	var bpmTweenCheckBox:PsychUICheckBox;
+	var endBpmStepper:PsychUINumericStepper;
+	var tweenTimeStepper:PsychUINumericStepper;
 	var beatsPerSecStepper:PsychUINumericStepper;
 	var stepsPerSecStepper:PsychUINumericStepper;
 
@@ -3850,6 +3856,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			var sec = getCurChartSection();
 			if(sec != null)
 			{
+				if(changeBpmCheckBox.checked)
+				{
+					// Validate BPM change against active BPM tweens
+					if(!validateBpmChange(curSec))
+					{
+						changeBpmCheckBox.checked = false;
+						return;
+					}
+				}
+				
 				var oldTimes:Array<Float> = cachedSectionTimes.copy();
 				sec.changeBPM = changeBpmCheckBox.checked;
 				if(!Reflect.hasField(sec, 'bpm')) sec.bpm = changeBpmStepper.value;
@@ -3864,6 +3880,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			var sec = getCurChartSection();
 			if(sec != null)
 			{
+				// Validate BPM change against active BPM tweens
+				if(!validateBpmChange(curSec))
+				{
+					changeBpmStepper.value = sec.bpm;
+					return;
+				}
+				
 				var oldTimes:Array<Float> = cachedSectionTimes.copy();
 				sec.bpm = changeBpmStepper.value;
 				sec.changeBPM = true;
@@ -3872,7 +3895,59 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 		};
 
-		stepsPerSecStepper = new PsychUINumericStepper(objX + 150, objY, 1, 4, 1, 99, 2);
+		objY += 40;
+		bpmTweenCheckBox = new PsychUICheckBox(objX, objY, 'BPM Tween', 80, function()
+		{
+			var sec = getCurChartSection();
+			if(sec != null)
+			{
+				if(bpmTweenCheckBox.checked)
+				{
+					// Check for conflicts before enabling
+					if(checkBpmTweenConflict())
+					{
+						bpmTweenCheckBox.checked = false;
+						return;
+					}
+					
+					sec.bpmT = true;
+					if(!Reflect.hasField(sec, 'startBPM')) sec.startBPM = getEffectiveBPMAtSection(curSec);
+					if(!Reflect.hasField(sec, 'endBPM')) sec.endBPM = endBpmStepper.value;
+					if(!Reflect.hasField(sec, 'tweenTime')) sec.tweenTime = tweenTimeStepper.value;
+				}
+				else
+				{
+					sec.bpmT = false;
+				}
+				updateBpmTweenUI();
+			}
+		});
+
+		objY += 25;
+		endBpmStepper = new PsychUINumericStepper(objX, objY, 1, PlayState.SONG.bpm, 1, 400, 3);
+		endBpmStepper.onValueChange = function()
+		{
+			var sec = getCurChartSection();
+			if(sec != null && sec.bpmT)
+			{
+				sec.endBPM = endBpmStepper.value;
+			}
+		};
+
+		objY += 25;
+		tweenTimeStepper = new PsychUINumericStepper(objX, objY, 0.1, 4.0, 0.1, 60.0, 1);
+		tweenTimeStepper.onValueChange = function()
+		{
+			var sec = getCurChartSection();
+			if(sec != null && sec.bpmT)
+			{
+				sec.tweenTime = tweenTimeStepper.value;
+				updateBpmTweenUI();
+			}
+		};
+
+		objY += 40;
+		stepsPerSecStepper = new PsychUINumericStepper(objX + 150, objY - 40, 1, 4, 1, 99, 2);
 		stepsPerSecStepper.onValueChange = function()
 		{
 			var sec = getCurChartSection();
@@ -4021,6 +4096,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(new FlxText(stepsPerSecStepper.x, stepsPerSecStepper.y - 15, 100, 'Steps per Section:'));
 		tab_group.add(changeBpmCheckBox);
 		tab_group.add(changeBpmStepper);
+		tab_group.add(bpmTweenCheckBox);
+		tab_group.add(new FlxText(endBpmStepper.x, endBpmStepper.y - 15, 100, 'End BPM:'));
+		tab_group.add(endBpmStepper);
+		tab_group.add(new FlxText(tweenTimeStepper.x, tweenTimeStepper.y - 15, 140, 'End Time (seconds):'));
+		tab_group.add(tweenTimeStepper);
 		tab_group.add(beatsPerSecStepper);
 		tab_group.add(stepsPerSecStepper);
 
@@ -5722,6 +5802,129 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function saveChart(canQuickSave:Bool = true)
 	{
 		updateChartData();
+		
+		// Check for BPM tweens and show Psych compatibility prompt if needed
+		if(hasBPMTweens())
+		{
+			showPsychCompatibilityPrompt(canQuickSave);
+			return;
+		}
+		
+		// Normal save process
+		performSave(canQuickSave);
+	}
+	
+	function hasBPMTweens():Bool
+	{
+		if(PlayState.SONG == null || PlayState.SONG.notes == null) return false;
+		
+		for(section in PlayState.SONG.notes)
+		{
+			if(section != null && section.bpmT && section.tweenTime > 0)
+				return true;
+		}
+		return false;
+	}
+	
+	function showPsychCompatibilityPrompt(canQuickSave:Bool)
+	{
+		var promptText = 'BPM Tweens Detected!\n\nThis chart contains BPM tweens that are not compatible with Psych Engine.\n\nSave with BPM tweens (Mixtape only) or convert to Psych format?';
+		
+		openSubState(new Prompt(promptText, function()
+		{
+			// Save as-is with BPM tweens
+			performSave(canQuickSave);
+		}, function()
+		{
+			// Convert to Psych format and save
+			convertToPsychFormat();
+			performSave(canQuickSave);
+		}, false, 'Keep BPM Tweens', 'Convert to Psych'));
+	}
+	
+	function convertToPsychFormat()
+	{
+		if(PlayState.SONG == null || PlayState.SONG.notes == null) return;
+		
+		var convertedSections = 0;
+		var sectionsAdded = 0;
+		showOutput('Converting BPM tweens to Psych Engine format...');
+		
+		// Process sections from end to beginning to avoid index issues when adding sections
+		var i = PlayState.SONG.notes.length - 1;
+		while(i >= 0)
+		{
+			var section = PlayState.SONG.notes[i];
+			if(section != null && section.bpmT && section.tweenTime > 0)
+			{
+				// Calculate how many intermediate sections we need for smooth approximation
+				var bpmDifference = Math.abs(section.endBPM - section.startBPM);
+				var numIntermediateSections = Math.ceil(Math.min(bpmDifference / 20, section.tweenTime / 2)); // Max 1 section per 20 BPM change or per 2 seconds
+				
+				if(numIntermediateSections > 1)
+				{
+					// Create multiple sections to approximate the BPM curve
+					var originalSectionBeats = section.sectionBeats > 0 ? section.sectionBeats : 4;
+					var beatsPerSubSection = originalSectionBeats / numIntermediateSections;
+					
+					// Update the original section to be the first part
+					section.changeBPM = true;
+					section.bpm = section.startBPM;
+					section.sectionBeats = beatsPerSubSection;
+					
+					// Create intermediate sections
+					for(j in 1...numIntermediateSections)
+					{
+						var progress = j / (numIntermediateSections - 1);
+						var interpolatedBPM = section.startBPM + (section.endBPM - section.startBPM) * progress;
+						
+						var newSection:SwagSection = {
+							sectionNotes: [],
+							sectionBeats: beatsPerSubSection,
+							sectionSteps: beatsPerSubSection * 4, // 4 steps per beat
+							altAnim: section.altAnim,
+							bpm: interpolatedBPM,
+							changeBPM: true,
+							mustHitSection: section.mustHitSection,
+							gfSection: section.gfSection,
+							exSection: section.exSection,
+							bpmT: false,
+							startBPM: 0,
+							endBPM: 0,
+							tweenTime: 0
+						};
+						
+						PlayState.SONG.notes.insert(i + j, newSection);
+						sectionsAdded++;
+					}
+				}
+				else
+				{
+					// Simple conversion: use end BPM as immediate change
+					section.changeBPM = true;
+					section.bpm = section.endBPM;
+				}
+				
+				// Remove tween properties from original section
+				section.bpmT = false;
+				section.startBPM = 0;
+				section.endBPM = 0;
+				section.tweenTime = 0;
+				
+				convertedSections++;
+			}
+			i--;
+		}
+		
+		// Update UI to reflect changes
+		reloadNotes();
+		updateBpmTweenUI();
+		
+		showOutput('Converted ${convertedSections} BPM tween(s) to Psych Engine format. Added ${sectionsAdded} intermediate sections for smooth approximation.');
+	}
+	
+	function performSave(canQuickSave:Bool = true)
+	{
 		var chartData:String = PsychJsonPrinter.print(PlayState.SONG, ['sectionNotes', 'events']);
 		if(canQuickSave && Song.chartPath != null)
 		{
@@ -6795,4 +6998,124 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 	}
 	#end
+
+	// BPM Tween Helper Functions
+	function checkBpmTweenConflict():Bool
+	{
+		var currentSection = curSec;
+		var currentSectionTime = getSectionStartTime(currentSection);
+		var tweenEndTime = currentSectionTime + (tweenTimeStepper.value * 1000); // Convert to ms
+
+		// Check for conflicts with other BPM tweens
+		for (i in 0...PlayState.SONG.notes.length)
+		{
+			if (i == currentSection) continue; // Skip current section
+			
+			var section = PlayState.SONG.notes[i];
+			if (section.bpmT && section.startBPM != null && section.endBPM != null)
+			{
+				var sectionStartTime = getSectionStartTime(i);
+				var sectionEndTime = sectionStartTime + getSectionDuration(i);
+				
+				// Check if tweens would overlap
+				if ((currentSectionTime >= sectionStartTime && currentSectionTime < sectionEndTime) ||
+					(tweenEndTime > sectionStartTime && tweenEndTime <= sectionEndTime) ||
+					(currentSectionTime < sectionStartTime && tweenEndTime > sectionEndTime))
+				{
+					// Show popup warning
+					openSubState(new Prompt('BPM Tween Conflict!\n\nAnother BPM tween already exists in this time range.\nSection ${i + 1} conflicts with the current section.\n\nPlease disable the other tween first or choose a different time range.', function() {}));
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	function updateBpmTweenUI():Void
+	{
+		var sec = getCurChartSection();
+		if (sec != null)
+		{
+			bpmTweenCheckBox.checked = sec.bpmT == true;
+			
+			if (sec.bpmT)
+			{
+				endBpmStepper.value = sec.endBPM != null ? sec.endBPM : PlayState.SONG.bpm;
+				tweenTimeStepper.value = sec.tweenTime != null ? sec.tweenTime : 4.0;
+				
+				// Enable/disable the steppers based on tween state
+				endBpmStepper.active = true;
+				tweenTimeStepper.active = true;
+			}
+			else
+			{
+				endBpmStepper.active = false;  
+				tweenTimeStepper.active = false;
+			}
+		}
+	}
+
+	function getSectionStartTime(sectionIndex:Int):Float
+	{
+		if (sectionIndex < 0 || sectionIndex >= cachedSectionTimes.length) return 0.0;
+		return cachedSectionTimes[sectionIndex];
+	}
+
+	function getSectionDuration(sectionIndex:Int):Float
+	{
+		if (sectionIndex < 0 || sectionIndex >= PlayState.SONG.notes.length) return 4000.0; // Default 4 seconds
+		
+		var section = PlayState.SONG.notes[sectionIndex];
+		var beats = (Math.isNaN(section.sectionBeats) || section.sectionBeats <= 0) ? 4.0 : section.sectionBeats;
+		var bpm = section.changeBPM ? (Math.isNaN(section.bpm) || section.bpm <= 0 ? PlayState.SONG.bpm : section.bpm) : PlayState.SONG.bpm;
+		
+		return (60.0 / bpm) * 1000.0 * beats; // Duration in milliseconds
+	}
+
+	function getEffectiveBPMAtSection(sectionIndex:Int):Float
+	{
+		// Start with the song's base BPM
+		var currentBPM = PlayState.SONG.bpm;
+		
+		// Walk through all sections up to the target section to find the last BPM change
+		for (i in 0...Std.int(Math.min(sectionIndex, PlayState.SONG.notes.length)))
+		{
+			var section = PlayState.SONG.notes[i];
+			if (section.changeBPM && section.bpm != null)
+			{
+				currentBPM = section.bpm;
+			}
+		}
+		
+		return currentBPM;
+	}
+
+	function validateBpmChange(sectionIndex:Int):Bool
+	{
+		// BPM changes are allowed at the same time as BPM tweens (same section)
+		// but not after a BPM tween has started until it ends
+		
+		var sectionStartTime = getSectionStartTime(sectionIndex);
+		
+		// Check all BPM tweens to see if any would conflict
+		for (i in 0...PlayState.SONG.notes.length)
+		{
+			var section = PlayState.SONG.notes[i];
+			if (section.bpmT && section.tweenTime != null)
+			{
+				var tweenStartTime = getSectionStartTime(i);
+				var tweenEndTime = tweenStartTime + (section.tweenTime * 1000); // Convert seconds to ms
+				
+				// If the BPM change would occur after a tween started but before it ends, prevent it
+				// Allow BPM change at the exact same time as tween start
+				if (sectionStartTime > tweenStartTime && sectionStartTime < tweenEndTime)
+				{
+					// Show popup warning
+					openSubState(new Prompt('BPM Change Conflict!\n\nCannot change BPM during an active BPM tween.\nSection ${i + 1} has a BPM tween that ends at ${Math.round(tweenEndTime/1000*100)/100} seconds.\n\nDisable the BPM tween first or place the BPM change after it ends.', function() {}));
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 }

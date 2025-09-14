@@ -4,7 +4,6 @@ import archipelago.APEntryState;
 import objects.AttachedText;
 import objects.CheckboxThingie;
 import objects.Note;
-
 import options.Option.OptionType;
 
 class GameplayChangersSubstate extends MusicBeatSubstate
@@ -73,7 +72,16 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
 		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
 		if (!APEntryState.inArchipelagoMode){
-		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", "UNO", "Amalgam"]));
+		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", "UNO", "Amalgam", "Advanced"]));
+		var option:GameplayOption = new GameplayOption('Advanced Intensity', 'advancedIntensity', FLOAT, 1.0);
+		option.scrollSpeed = 2.0;
+		option.minValue = 0.5;
+		option.maxValue = 2.0;
+		option.changeValue = 0.1;
+		option.displayFormat = '%vX';
+		option.decimals = 1;
+		optionsArray.push(option);
+		optionsArray.push(new GameplayOption('Advanced Complex Mode', 'advancedComplex', BOOL, false));
 		var option:GameplayOption = new GameplayOption('Convert Mania', 'convertMania', INT, 3);
 		option.scrollSpeed = 2.5;
 		option.minValue = Note.minMania;
@@ -114,7 +122,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	public function new()
 	{
 		super();
-		
+
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0.6;
 		add(bg);
@@ -128,7 +136,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		checkboxGroup = new FlxTypedGroup<CheckboxThingie>();
 		add(checkboxGroup);
-		
+
 		getOptions();
 
 		for (i in 0...optionsArray.length)
@@ -244,7 +252,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 									curOption.curOption = num;
 									curOption.setValue(curOption.options[num]); //lol
-									
+
 									if (curOption.name == "Scroll Type")
 									{
 										var oOption:GameplayOption = getOptionByName("Scroll Speed");
@@ -280,7 +288,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 							{
 								case INT:
 									curOption.setValue(Math.round(holdValue));
-								
+
 								case FLOAT, PERCENT:
 									var blah:Float = Math.max(curOption.minValue, Math.min(curOption.maxValue, holdValue + curOption.changeValue - (holdValue % curOption.changeValue)));
 									curOption.setValue(FlxMath.roundDecimal(blah, curOption.decimals));
@@ -350,7 +358,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		holdTime = 0;
 	}
-	
+
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);

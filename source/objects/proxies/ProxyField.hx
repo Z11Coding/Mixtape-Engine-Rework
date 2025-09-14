@@ -3,7 +3,7 @@ package objects.proxies;
 import objects.playfields.FieldBase;
 import objects.playfields.NoteField;
 
-/* 
+/*
 	I'm gonna have to do some changes to NoteField to allow this to happen, but
 	The idea is that ProxyField would be more optimized to use en masse compared to NoteFields, as this'd just copy what the field draws, rather than getting every pos etc itself
 	Just need to figure out how I'm gonna write it tho
@@ -22,17 +22,27 @@ class ProxyField extends FieldBase {
 	public function new(field:NoteField){
 		super(0,0);
 		proxiedField = field;
+		isProxy = true; // Set the proxy flag
 	}
+
 
 	override public function getNotefield() {return proxiedField;}
 
-	override function preDraw(){} // hopefully no more crashes
+	override function preDraw(){
+		// Clear our draw queue - we'll copy from the proxied field during draw()
+		drawQueue = [];
+	}
 
-	override function draw()
-		drawQueue = proxiedField.drawQueue; // Just use the host field's queue
-	
-	
+	override function draw(){
+		// Simply copy what the proxied field is drawing
+		if (proxiedField != null) {
+			drawQueue = proxiedField.drawQueue.copy();
+		}
+	}
+
+
 	override function update(elapsed:Float){
+		// Copy the field reference from the proxied field
 		field = proxiedField.field;
 		super.update(elapsed);
 	}

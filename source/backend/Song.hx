@@ -54,6 +54,7 @@ typedef SwagSection =
 	@:optional var changeBPM:Bool;
 	@:optional var startBPM:Float;
 	@:optional var endBPM:Float;
+	@:optional var tweenTime:Float;
 }
 
 class Song
