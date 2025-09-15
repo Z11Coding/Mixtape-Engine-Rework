@@ -5241,7 +5241,7 @@ class PlayState extends MusicBeatState
 				if (timeDiff > 1000 * playbackRate)
 					Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
 			}
-			
+
 			// Update BPM from current time (handles both BPM changes and BPM tweens)
 			var currentBPMData = Conductor.getBPMFromSeconds(Conductor.songPosition / 1000);
 			if (currentBPMData.bpm != Conductor.bpm)

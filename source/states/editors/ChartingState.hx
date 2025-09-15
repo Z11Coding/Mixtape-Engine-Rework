@@ -27,6 +27,7 @@ import objects.charting.ChartingStrumNote;
 import openfl.events.KeyboardEvent;
 import stages.StageData;
 import states.editors.content.*;
+import states.editors.content.ConversionPrompt;
 import states.editors.content.EditorPlayStatePsych;
 import states.editors.content.MetaNote;
 import states.editors.content.Prompt;
@@ -135,6 +136,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
 		// /trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
 	}, 30);
+
+	// Script content for multi-file saving
+	var _hscriptToSave:String = null;
+	var _luaToSave:String = null;
 
 	public var quantizations:Array<Int> = [
 		4,
@@ -1445,6 +1450,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 
 			if(!songFinished) Conductor.songPosition = FlxMath.bound(FlxG.sound.music.time + Conductor.offset, 0, FlxG.sound.music.length - 1);
+
+			// Update BPM during playback to handle BPM tweens
+			var currentBPMEvent = Conductor.getBPMFromSeconds(Conductor.songPosition / 1000);
+			var currentBPM = currentBPMEvent.bpm;
+			if(Math.abs(Conductor.bpm - currentBPM) > 0.01) // Only update if there's a meaningful change
+			{
+				Conductor.bpm = currentBPM;
+				Conductor.crochet = (60 / currentBPM) * 1000;
+				Conductor.stepCrochet = Conductor.crochet / 4;
+			}
+
 			updateScrollY();
 		}
 
@@ -3865,7 +3881,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						return;
 					}
 				}
-				
+
 				var oldTimes:Array<Float> = cachedSectionTimes.copy();
 				sec.changeBPM = changeBpmCheckBox.checked;
 				if(!Reflect.hasField(sec, 'bpm')) sec.bpm = changeBpmStepper.value;
@@ -3886,7 +3902,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					changeBpmStepper.value = sec.bpm;
 					return;
 				}
-				
+
 				var oldTimes:Array<Float> = cachedSectionTimes.copy();
 				sec.bpm = changeBpmStepper.value;
 				sec.changeBPM = true;
@@ -3909,7 +3925,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						bpmTweenCheckBox.checked = false;
 						return;
 					}
-					
+
 					sec.bpmT = true;
 					if(!Reflect.hasField(sec, 'startBPM')) sec.startBPM = getEffectiveBPMAtSection(curSec);
 					if(!Reflect.hasField(sec, 'endBPM')) sec.endBPM = endBpmStepper.value;
@@ -5802,54 +5818,133 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function saveChart(canQuickSave:Bool = true)
 	{
 		updateChartData();
-		
+
 		// Check for BPM tweens and show Psych compatibility prompt if needed
 		if(hasBPMTweens())
 		{
 			showPsychCompatibilityPrompt(canQuickSave);
 			return;
 		}
-		
+
 		// Normal save process
 		performSave(canQuickSave);
 	}
-	
+
 	function hasBPMTweens():Bool
 	{
 		if(PlayState.SONG == null || PlayState.SONG.notes == null) return false;
-		
+
 		for(section in PlayState.SONG.notes)
 		{
-			if(section != null && section.bpmT && section.tweenTime > 0)
-				return true;
+			if(section != null) {
+				// Check for BPM tweens
+				if(section.bpmT && section.tweenTime > 0)
+					return true;
+				// Check for non-standard steps per section (anything other than 4)
+				if(section.sectionSteps > 0 && section.sectionSteps != 4.0)
+					return true;
+			}
 		}
 		return false;
 	}
-	
+
 	function showPsychCompatibilityPrompt(canQuickSave:Bool)
 	{
-		var promptText = 'BPM Tweens Detected!\n\nThis chart contains BPM tweens that are not compatible with Psych Engine.\n\nSave with BPM tweens (Mixtape only) or convert to Psych format?';
-		
+		var promptText = 'Psych Engine Compatibility Issues Detected!\n\nThis chart contains features not compatible with Psych Engine:\n• BPM tweens\n• Non-standard steps per section\n\nKeep Mixtape format or choose conversion method?';
+
 		openSubState(new Prompt(promptText, function()
 		{
-			// Save as-is with BPM tweens
+			// Keep BPM Tweens
 			performSave(canQuickSave);
 		}, function()
 		{
-			// Convert to Psych format and save
-			convertToPsychFormat();
-			performSave(canQuickSave);
-		}, false, 'Keep BPM Tweens', 'Convert to Psych'));
+			// Show advanced conversion options
+			showAdvancedConversionMenu(canQuickSave);
+		}, 'Keep Mixtape Format', 'Convert to Psych'));
 	}
-	
+
+	function showAdvancedConversionMenu(canQuickSave:Bool)
+	{
+		// Create a custom conversion prompt substate
+		openSubState(new ConversionPrompt(function(method:Int) {
+			executeConversionMethod(method, canQuickSave);
+		}, function() {
+			performSave(canQuickSave); // Cancel - keep original
+		}));
+	}
+
+	function showConversionMethodInput(canQuickSave:Bool)
+	{
+		// This method is no longer needed as we use direct button selection
+		showAdvancedConversionMenu(canQuickSave);
+	}
+
+	function executeConversionMethod(method:Int, canQuickSave:Bool)
+	{
+		var stepsConverted = 0;
+		var hasBPMTweensToConvert = false;
+
+		// Check what needs to be converted
+		if(PlayState.SONG != null && PlayState.SONG.notes != null) {
+			for(section in PlayState.SONG.notes) {
+				if(section != null) {
+					// Check if we need steps conversion
+					if(section.sectionSteps > 0 && section.sectionSteps != 4.0) {
+						// Steps conversion needed but not done yet
+					}
+					// Check if we have BPM tweens to convert
+					if(section.bpmT && section.tweenTime > 0) {
+						hasBPMTweensToConvert = true;
+					}
+				}
+			}
+		}
+
+		// Convert steps to beats for Psych Engine compatibility (always needed for Psych format)
+		stepsConverted = convertStepsToBeatsPsychCompatibility();
+		if(stepsConverted > 0) {
+			showOutput('Converted ${stepsConverted} sections from steps-per-section to beats-per-section format.');
+		}
+
+		// Only apply BPM tween conversions if there are actual BPM tweens
+		if(hasBPMTweensToConvert) {
+			switch(method) {
+				case 1:
+					convertToPsychFormat(); // Standard conversion
+					showOutput('BPM tweens converted to standard BPM changes.');
+				case 2:
+					generateHScriptCode();
+					showOutput('HScript code generated and will be saved with chart.');
+				case 3:
+					generateLuaScriptCode();
+					showOutput('Lua script code generated and will be saved with chart.');
+				case 4:
+					convertWithCustomSectionSplit();
+					showOutput('BPM tweens converted with custom section splitting.');
+			}
+		} else {
+			// No BPM tweens to convert, just inform about steps conversion
+			switch(method) {
+				case 2:
+					showOutput('No BPM tweens found - HScript generation skipped.');
+				case 3:
+					showOutput('No BPM tweens found - Lua script generation skipped.');
+				default:
+					showOutput('Chart converted to Psych Engine format.');
+			}
+		}
+
+		performSave(canQuickSave);
+	}
+
 	function convertToPsychFormat()
 	{
 		if(PlayState.SONG == null || PlayState.SONG.notes == null) return;
-		
+
 		var convertedSections = 0;
 		var sectionsAdded = 0;
 		showOutput('Converting BPM tweens to Psych Engine format...');
-		
+
 		// Process sections from end to beginning to avoid index issues when adding sections
 		var i = PlayState.SONG.notes.length - 1;
 		while(i >= 0)
@@ -5860,28 +5955,28 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				// Calculate how many intermediate sections we need for smooth approximation
 				var bpmDifference = Math.abs(section.endBPM - section.startBPM);
 				var numIntermediateSections = Math.ceil(Math.min(bpmDifference / 20, section.tweenTime / 2)); // Max 1 section per 20 BPM change or per 2 seconds
-				
+
 				if(numIntermediateSections > 1)
 				{
 					// Create multiple sections to approximate the BPM curve
 					var originalSectionBeats = section.sectionBeats > 0 ? section.sectionBeats : 4;
 					var beatsPerSubSection = originalSectionBeats / numIntermediateSections;
-					
+
 					// Update the original section to be the first part
 					section.changeBPM = true;
 					section.bpm = section.startBPM;
 					section.sectionBeats = beatsPerSubSection;
-					
+
 					// Create intermediate sections
 					for(j in 1...numIntermediateSections)
 					{
 						var progress = j / (numIntermediateSections - 1);
 						var interpolatedBPM = section.startBPM + (section.endBPM - section.startBPM) * progress;
-						
+
 						var newSection:SwagSection = {
 							sectionNotes: [],
 							sectionBeats: beatsPerSubSection,
-							sectionSteps: beatsPerSubSection * 4, // 4 steps per beat
+							sectionSteps: 4.0, // Psych Engine standard: 4 steps per beat
 							altAnim: section.altAnim,
 							bpm: interpolatedBPM,
 							changeBPM: true,
@@ -5893,7 +5988,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 							endBPM: 0,
 							tweenTime: 0
 						};
-						
+
 						PlayState.SONG.notes.insert(i + j, newSection);
 						sectionsAdded++;
 					}
@@ -5904,32 +5999,316 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					section.changeBPM = true;
 					section.bpm = section.endBPM;
 				}
-				
-				// Remove tween properties from original section
+
+				// Remove tween properties and convert to Psych format
 				section.bpmT = false;
 				section.startBPM = 0;
 				section.endBPM = 0;
 				section.tweenTime = 0;
-				
+
+				// Convert to Psych-compatible format
+				if(section.sectionSteps > 0 && section.sectionBeats > 0) {
+					// Calculate total beats: (steps * beats) / 4 steps per beat
+					var totalBeats = (section.sectionSteps * section.sectionBeats) / 4;
+					section.sectionBeats = totalBeats;
+					// Set sectionSteps to 4 for Psych Engine compatibility
+					section.sectionSteps = 4.0;
+				} else {
+					section.sectionBeats = 4; // Default to 4 beats if not set
+					section.sectionSteps = 4.0; // Psych Engine standard
+				}
+
 				convertedSections++;
 			}
 			i--;
 		}
-		
+
 		// Update UI to reflect changes
 		reloadNotes();
 		updateBpmTweenUI();
-		
+
 		showOutput('Converted ${convertedSections} BPM tween(s) to Psych Engine format. Added ${sectionsAdded} intermediate sections for smooth approximation.');
 	}
-	
+
+	function generateHScriptCode()
+	{
+		if(PlayState.SONG == null || PlayState.SONG.notes == null) return;
+
+		var hscriptCode = "// Generated HScript for BPM Tweens\n";
+		hscriptCode += "// Compatible with Psych Engine and Mixtape Engine\n\n";
+		hscriptCode += "var bpmTweens = [];\n\n";
+
+		// Add engine detection for Mixtape Engine
+		hscriptCode += "function onCreate() {\n";
+		hscriptCode += "    // Check if running on Mixtape Engine - if so, don't run this script\n";
+		hscriptCode += "    try {\n";
+		hscriptCode += "        var MainMenuState = Type.resolveClass('states.MainMenuState');\n";
+		hscriptCode += "        var mixtapeVer = Reflect.getProperty(MainMenuState, 'mixtapeEngineVersion');\n";
+		hscriptCode += "        if (mixtapeVer != null && mixtapeVer.length > 0) {\n";
+		hscriptCode += "            return; // Don't run on Mixtape Engine\n";
+		hscriptCode += "        }\n";
+		hscriptCode += "    } catch(e) {\n";
+		hscriptCode += "        // Continue - probably not Mixtape Engine\n";
+		hscriptCode += "    }\n\n";
+		hscriptCode += "    // Initialize BPM tweens\n";
+
+		for(i in 0...PlayState.SONG.notes.length) {
+			var section = PlayState.SONG.notes[i];
+			if(section != null && section.bpmT && section.tweenTime > 0) {
+				var sectionTime = getSectionStartTime(i);
+				hscriptCode += '    bpmTweens.push({start: ${sectionTime}, duration: ${section.tweenTime * 1000}, startBPM: ${section.startBPM}, endBPM: ${section.endBPM}});\n';
+			}
+		}
+		hscriptCode += "}\n\n";
+
+		hscriptCode += "function onUpdate(elapsed) {\n";
+		hscriptCode += "    var curTime = Conductor.songPosition;\n";
+		hscriptCode += "    \n";
+		hscriptCode += "    for (tween in bpmTweens) {\n";
+		hscriptCode += "        if (curTime >= tween.start && curTime <= tween.start + tween.duration) {\n";
+		hscriptCode += "            var progress = (curTime - tween.start) / tween.duration;\n";
+		hscriptCode += "            var newBPM = tween.startBPM + (tween.endBPM - tween.startBPM) * progress;\n";
+		hscriptCode += "            setPropertyFromClass('backend.Conductor', 'bpm', newBPM);\n";
+		hscriptCode += "        }\n";
+		hscriptCode += "    }\n";
+		hscriptCode += "}\n";
+
+		// Store HScript code to be saved along with chart
+		_hscriptToSave = hscriptCode;
+	}
+
+	function generateLuaScriptCode()
+	{
+		if(PlayState.SONG == null || PlayState.SONG.notes == null) return;
+
+		var luaCode = "-- Generated Lua Script for BPM Tweens\n";
+		luaCode += "-- Compatible with Psych Engine and Mixtape Engine\n\n";
+		luaCode += "local bpmTweens = {}\n\n";
+
+		luaCode += "function onCreate()\n";
+		luaCode += "    -- Check if running on Mixtape Engine - if so, don't run this script\n";
+		luaCode += "    if mixtapeVersion ~= nil then\n";
+		luaCode += "        return -- Don't run on Mixtape Engine\n";
+		luaCode += "    end\n\n";
+		luaCode += "    -- Initialize BPM tweens\n";
+		for(i in 0...PlayState.SONG.notes.length) {
+			var section = PlayState.SONG.notes[i];
+			if(section != null && section.bpmT && section.tweenTime > 0) {
+				var sectionTime = getSectionStartTime(i);
+				luaCode += '    table.insert(bpmTweens, {start = ${sectionTime}, duration = ${section.tweenTime * 1000}, startBPM = ${section.startBPM}, endBPM = ${section.endBPM}})\n';
+			}
+		}
+		luaCode += "end\n\n";
+
+		luaCode += "function onUpdate(elapsed)\n";
+		luaCode += "    local curTime = getSongPosition()\n";
+		luaCode += "    \n";
+		luaCode += "    for i = 1, #bpmTweens do\n";
+		luaCode += "        local tween = bpmTweens[i]\n";
+		luaCode += "        if curTime >= tween.start and curTime <= tween.start + tween.duration then\n";
+		luaCode += "            local progress = (curTime - tween.start) / tween.duration\n";
+		luaCode += "            local newBPM = tween.startBPM + (tween.endBPM - tween.startBPM) * progress\n";
+		luaCode += "            setPropertyFromClass('backend.Conductor', 'bpm', newBPM)\n";
+		luaCode += "        end\n";
+		luaCode += "    end\n";
+		luaCode += "end\n";
+
+		// Store Lua code to be saved along with chart
+		_luaToSave = luaCode;
+	}
+
+	function convertWithCustomSectionSplit()
+	{
+		if(PlayState.SONG == null || PlayState.SONG.notes == null) return;
+
+		showOutput('Converting BPM tweens with custom section splitting...');
+		var convertedSections = 0;
+		var sectionsAdded = 0;
+
+		// Process sections from end to beginning
+		var i = PlayState.SONG.notes.length - 1;
+		while(i >= 0) {
+			var section = PlayState.SONG.notes[i];
+			if(section != null && section.bpmT && section.tweenTime > 0) {
+
+				// Smart section splitting based on BPM change significance
+				var bpmDifference = Math.abs(section.endBPM - section.startBPM);
+				var splitPoints = [];
+
+				// Add split points based on musical significance
+				if(bpmDifference >= 40) {
+					// Large BPM changes - split every quarter
+					splitPoints = [0.25, 0.5, 0.75];
+				} else if(bpmDifference >= 20) {
+					// Medium BPM changes - split in half
+					splitPoints = [0.5];
+				} else if(section.tweenTime >= 8) {
+					// Long tweens even with small changes
+					splitPoints = [0.33, 0.67];
+				}
+				// Small, short tweens get converted to instant changes
+
+				if(splitPoints.length > 0) {
+					// Calculate original total beats, accounting for both sectionSteps and sectionBeats
+					var originalBeats:Float;
+					if(section.sectionSteps > 0 && section.sectionBeats > 0) {
+						originalBeats = (section.sectionSteps * section.sectionBeats) / 4; // Convert steps*beats to total beats
+					} else if(section.sectionBeats > 0) {
+						originalBeats = section.sectionBeats;
+					} else {
+						originalBeats = 4; // Default to 4 beats
+					}
+
+					var beatsPerSection = originalBeats / (splitPoints.length + 1);
+
+					// Create intermediate sections
+					for(j in 0...splitPoints.length) {
+						var progress = splitPoints[splitPoints.length - 1 - j]; // Reverse order for insertion
+						var intermediateBPM = section.startBPM + (section.endBPM - section.startBPM) * progress;
+
+						var newSection = {
+							sectionNotes: [],
+							sectionBeats: beatsPerSection,
+							sectionSteps: 4.0, // Psych Engine standard: 4 steps per beat
+							bpm: intermediateBPM,
+							changeBPM: true,
+							mustHitSection: section.mustHitSection,
+							gfSection: section.gfSection != null ? section.gfSection : false,
+							altAnim: section.altAnim != null ? section.altAnim : false,
+							bpmT: false,
+							startBPM: 0.0,
+							endBPM: 0.0,
+							tweenTime: 0.0
+						};
+
+						PlayState.SONG.notes.insert(i + 1, newSection);
+						sectionsAdded++;
+					}
+
+					section.sectionBeats = beatsPerSection;
+				}
+
+				// Set final BPM and remove tween properties, convert to Psych format
+				section.changeBPM = true;
+				section.bpm = section.endBPM;
+				section.bpmT = false;
+				section.startBPM = 0;
+				section.endBPM = 0;
+				section.tweenTime = 0;
+
+				// Convert to Psych-compatible format
+				if(section.sectionSteps > 0 && section.sectionBeats > 0) {
+					// Calculate total beats: (steps * beats) / 4 steps per beat
+					var totalBeats = (section.sectionSteps * section.sectionBeats) / 4;
+					section.sectionBeats = totalBeats;
+					// Set sectionSteps to 4 for Psych Engine compatibility
+					section.sectionSteps = 4.0;
+				} else {
+					section.sectionBeats = 4; // Default to 4 beats if not set
+					section.sectionSteps = 4.0; // Psych Engine standard
+				}
+
+				convertedSections++;
+			}
+			i--;
+		}
+
+		// Update UI
+		reloadNotes();
+		updateBpmTweenUI();
+
+		showOutput('Custom conversion complete: ${convertedSections} tweens converted with ${sectionsAdded} smart split sections.');
+	}
+
+	function convertStepsToBeatsPsychCompatibility():Int
+	{
+		if(PlayState.SONG == null || PlayState.SONG.notes == null) return 0;
+
+		var convertedSections = 0;
+
+		for(section in PlayState.SONG.notes) {
+			if(section != null) {
+				// Convert steps per section to beats per section for Psych Engine compatibility
+				if(section.sectionSteps > 0 && section.sectionBeats > 0) {
+					// Mixtape format: sectionSteps defines how many steps are in a beat
+					// Psych format: sectionBeats defines total beats, sectionSteps is always 4
+
+					// Calculate the actual total beats based on Mixtape's step system
+					var actualBeats = (section.sectionSteps * section.sectionBeats) / 4;
+
+					section.sectionBeats = actualBeats;
+					section.sectionSteps = 4.0; // Psych Engine standard: 4 steps per beat
+					convertedSections++;
+				} else if(section.sectionSteps > 0) {
+					// Only sectionSteps is set - convert assuming 1 beat
+					section.sectionBeats = section.sectionSteps / 4;
+					section.sectionSteps = 4.0;
+					convertedSections++;
+				} else if(section.sectionBeats <= 0) {
+					// No valid beat/step data - set Psych defaults
+					section.sectionBeats = 4;
+					section.sectionSteps = 4.0;
+					convertedSections++;
+				}
+			}
+		}
+
+		return convertedSections;
+	}
+
 	function performSave(canQuickSave:Bool = true)
 	{
 		var chartData:String = PsychJsonPrinter.print(PlayState.SONG, ['sectionNotes', 'events']);
+
 		if(canQuickSave && Song.chartPath != null)
 		{
-			File.saveContent(Song.chartPath, chartData);
-			showOutput('Chart saved successfully to: ${Song.chartPath}');
+			var filesToSave = [];
+
+			// Always save the chart file
+			filesToSave.push({
+				path: Song.chartPath,
+				content: chartData
+			});
+
+			// Add HScript file if generated
+			if(_hscriptToSave != null && _hscriptToSave.length > 0) {
+				var songName = Paths.formatToSongPath(PlayState.SONG.song);
+				var dir = Song.chartPath.substr(0, Song.chartPath.lastIndexOf('/'));
+				filesToSave.push({
+					path: '$dir/${songName}_bpmTweens.hx',
+					content: _hscriptToSave
+				});
+			}
+
+			// Add Lua file if generated
+			if(_luaToSave != null && _luaToSave.length > 0) {
+				var songName = Paths.formatToSongPath(PlayState.SONG.song);
+				var dir = Song.chartPath.substr(0, Song.chartPath.lastIndexOf('/'));
+				filesToSave.push({
+					path: '$dir/${songName}_bpmTweens.lua',
+					content: _luaToSave
+				});
+			}
+
+			// Use ImprovedFileHandling for multi-file saving if multiple files
+			if(filesToSave.length > 1) {
+				// Create extra files array for the multiSaveOperation
+				var extraFiles = [];
+				for(i in 1...filesToSave.length) {
+					var fileName = filesToSave[i].path.substr(filesToSave[i].path.lastIndexOf('/') + 1);
+					extraFiles.push({name: fileName, data: filesToSave[i].content});
+				}
+
+				if(ImprovedFileHandling.multiSaveOperation("Save Chart with Scripts", {ext: "json", desc: "Chart and Script Files"}, Text, chartData, extraFiles)) {
+					showOutput('Chart and scripts saved successfully (${filesToSave.length} files)');
+				} else {
+					showOutput('Failed to save chart and scripts', true);
+				}
+			} else {
+				// Single file save (just chart)
+				File.saveContent(Song.chartPath, chartData);
+				showOutput('Chart saved successfully to: ${Song.chartPath}');
+			}
 		}
 		else
 		{
@@ -5940,6 +6319,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				Song.chartPath = newPath.replace('\\', '/');
 				reloadNotesDropdowns();
 				showOutput('Chart saved successfully to: $newPath');
+
+				// TODO: Handle script saving in non-quick save mode
+				// For now, scripts are only saved during quick saves
 			}
 			else
 				showOutput('Error on saving chart!', true);
@@ -7010,13 +7392,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		for (i in 0...PlayState.SONG.notes.length)
 		{
 			if (i == currentSection) continue; // Skip current section
-			
+
 			var section = PlayState.SONG.notes[i];
 			if (section.bpmT && section.startBPM != null && section.endBPM != null)
 			{
 				var sectionStartTime = getSectionStartTime(i);
 				var sectionEndTime = sectionStartTime + getSectionDuration(i);
-				
+
 				// Check if tweens would overlap
 				if ((currentSectionTime >= sectionStartTime && currentSectionTime < sectionEndTime) ||
 					(tweenEndTime > sectionStartTime && tweenEndTime <= sectionEndTime) ||
@@ -7037,19 +7419,19 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if (sec != null)
 		{
 			bpmTweenCheckBox.checked = sec.bpmT == true;
-			
+
 			if (sec.bpmT)
 			{
 				endBpmStepper.value = sec.endBPM != null ? sec.endBPM : PlayState.SONG.bpm;
 				tweenTimeStepper.value = sec.tweenTime != null ? sec.tweenTime : 4.0;
-				
+
 				// Enable/disable the steppers based on tween state
 				endBpmStepper.active = true;
 				tweenTimeStepper.active = true;
 			}
 			else
 			{
-				endBpmStepper.active = false;  
+				endBpmStepper.active = false;
 				tweenTimeStepper.active = false;
 			}
 		}
@@ -7064,11 +7446,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function getSectionDuration(sectionIndex:Int):Float
 	{
 		if (sectionIndex < 0 || sectionIndex >= PlayState.SONG.notes.length) return 4000.0; // Default 4 seconds
-		
+
 		var section = PlayState.SONG.notes[sectionIndex];
 		var beats = (Math.isNaN(section.sectionBeats) || section.sectionBeats <= 0) ? 4.0 : section.sectionBeats;
 		var bpm = section.changeBPM ? (Math.isNaN(section.bpm) || section.bpm <= 0 ? PlayState.SONG.bpm : section.bpm) : PlayState.SONG.bpm;
-		
+
 		return (60.0 / bpm) * 1000.0 * beats; // Duration in milliseconds
 	}
 
@@ -7076,7 +7458,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		// Start with the song's base BPM
 		var currentBPM = PlayState.SONG.bpm;
-		
+
 		// Walk through all sections up to the target section to find the last BPM change
 		for (i in 0...Std.int(Math.min(sectionIndex, PlayState.SONG.notes.length)))
 		{
@@ -7086,7 +7468,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				currentBPM = section.bpm;
 			}
 		}
-		
+
 		return currentBPM;
 	}
 
@@ -7094,20 +7476,22 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		// BPM changes are allowed at the same time as BPM tweens (same section)
 		// but not after a BPM tween has started until it ends
-		
+
+		if(sectionIndex < 0 || sectionIndex >= PlayState.SONG.notes.length) return true;
+
 		var sectionStartTime = getSectionStartTime(sectionIndex);
-		
+
 		// Check all BPM tweens to see if any would conflict
 		for (i in 0...PlayState.SONG.notes.length)
 		{
 			var section = PlayState.SONG.notes[i];
-			if (section.bpmT && section.tweenTime != null)
+			if (section != null && section.bpmT && section.tweenTime > 0)
 			{
 				var tweenStartTime = getSectionStartTime(i);
 				var tweenEndTime = tweenStartTime + (section.tweenTime * 1000); // Convert seconds to ms
-				
+
 				// If the BPM change would occur after a tween started but before it ends, prevent it
-				// Allow BPM change at the exact same time as tween start
+				// Allow BPM change at the exact same time as tween start (>=) but not during (>)
 				if (sectionStartTime > tweenStartTime && sectionStartTime < tweenEndTime)
 				{
 					// Show popup warning
