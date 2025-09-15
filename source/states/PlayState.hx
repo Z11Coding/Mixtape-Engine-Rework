@@ -5247,8 +5247,6 @@ class PlayState extends MusicBeatState
 			if (currentBPMData.bpm != Conductor.bpm)
 			{
 				Conductor.bpm = currentBPMData.bpm;
-				Conductor.crochet = (60 / Conductor.bpm) * 1000;
-				Conductor.stepCrochet = Conductor.crochet / 4;
 			}
 		}
 
