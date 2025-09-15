@@ -1006,10 +1006,10 @@ class PlayState extends MusicBeatState
 			{
 				VSliceLoader.addstage(curStage);
 				add(gfGroup);
-				add(dadGroup2);
-				add(boyfriendGroup2);
 				add(dadGroup);
 				add(boyfriendGroup);
+				add(dadGroup2);
+				add(boyfriendGroup2);
 			}
 		}
 
@@ -8481,6 +8481,11 @@ class PlayState extends MusicBeatState
 					&& !boyfriend.animation.curAnim.name.endsWith('miss'))
 					boyfriend.dance();
 
+				if (bf2 != null && bf2.holdTimer > Conductor.stepCrochet * 0.001 * bf2.singDuration
+					&& bf2.animation.curAnim.name.startsWith('sing')
+					&& !bf2.animation.curAnim.name.endsWith('miss'))
+					bf2.dance();
+
 				if (strumsBlocked.contains(true))
 				{
 					var parsedArray:Array<Bool> = parseKeys('_R');
@@ -9347,10 +9352,12 @@ class PlayState extends MusicBeatState
 		var anim:String = boyfriend.getAnimationName();
 		if(boyfriend.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * boyfriend.singDuration && anim.startsWith('sing') && !anim.endsWith('miss'))
 			boyfriend.dance();
+
 		if (bf2 != null) {
 			var anim2:String = bf2.getAnimationName();
-			if(bf2.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * bf2.singDuration && anim2.startsWith('sing') && !anim2.endsWith('miss'))
+			if(bf2.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * bf2.singDuration && anim2.startsWith('sing') && !anim2.endsWith('miss')) {
 				bf2.dance();
+			}
 		}
 	}
 
