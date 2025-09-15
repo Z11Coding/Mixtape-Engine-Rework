@@ -133,6 +133,7 @@ class APItem {
     public static var activeItem:APItem;
     public static var shields:Int = 0;
     public static var maxHPUp:Int = 0;
+    public static var hasPocketLens:Bool = false;
     public static var overloadHP:Int = 0; // Adds extra health which can go over the max HP.
     public static var extaLives:Int = 0; // Used for the "Extralives" item.
     public static var extraItemInventory:Array<CustomModItem> = [];
@@ -306,6 +307,18 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
+
+            case "Pocket Lens":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    hasPocketLens = true;
+                    trace("Pocket Lens acquired! Player can now view AP items.");
+                    popup('You can now view your AP items and stats!', "You got a Pocket Lens!");
+                    
+                    // If currently in APItemsViewerState, reset it to refresh with new data
+                    if (Std.is(FlxG.state, archipelago.APItemsViewerState)) {
+                        FlxG.resetState();
+                    }
+                }, true, true);
 
             case "Nothing":
                 popup('...For now...', "APItem: Nothing");
@@ -1038,6 +1051,7 @@ class APItem {
             "Shield",
             "Max HP Up",
             "Tutorial Trap",
+            "Pocket Lens",
             "Nothing"
         ];
         for (name in itemNames) {

@@ -20,9 +20,14 @@ class APCategoryState extends states.CategoryState {
             Sys.sleep(0.1);
             }
         }
-        menuItems = [];
-        super(['All', 'Hinted', 'Unlocked', 'Unplayed', 'Options', 'Quit'], false, false, true, false, false);
-        menuLocks = [false, false, false, false, false, false];
+        // Static menu with "Items" option that uses lock system
+        var menuOptions = ['All', 'Hinted', 'Unlocked', 'Items', 'Unplayed', 'Options', 'Quit'];
+        
+        super(menuOptions, false, false, true, false, false);
+        
+        // Initialize locks array - "Items" is locked based on hasPocketLens
+        menuLocks = [false, false, false, !archipelago.APItem.hasPocketLens, false, false, false];
+        
         specialOptions = [];
 
         var opFunc = function() {
@@ -38,14 +43,22 @@ class APCategoryState extends states.CategoryState {
             FlxG.switchState(new states.ExitState());
         };
 
+        var itemsFunc = function() {
+            MusicBeatState.switchState(new APItemsViewerState(gameState, AP));
+        };
+
         rightOption = null;
 
-        // Ensure specialOptions are set correctly for 'Options' and 'Quit'
+        // Set up specialOptions for each menu item
         for (i in 0...menuItems.length) {
-            if (menuItems[i] == 'Options') {
-            specialOptions[i] = opFunc;
+            if (menuItems[i] == 'Items') {
+                specialOptions[i] = itemsFunc;
+            } else if (menuItems[i] == 'Options') {
+                specialOptions[i] = opFunc;
             } else if (menuItems[i] == 'Quit') {
-            specialOptions[i] = quitFunc;
+                specialOptions[i] = quitFunc;
+            } else {
+                specialOptions[i] = null;
             }
         }
 
