@@ -13,7 +13,7 @@ import debug.DebugManager;
 #end
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
-@:autoBuild(yutautil.CrashTracker.instrument())
+// @:autoBuild(yutautil.CrashTracker.instrument())
 class MusicBeatState extends FlxState
 {
 	private var curSection:Int = 0;
@@ -36,6 +36,88 @@ class MusicBeatState extends FlxState
 
 	public static var words:Dynamic = yutautil.modules.SyncUtils.syncHttpRequestJson("https://random-word-api.herokuapp.com/all");
 	public static var revokeControls:Bool = false;
+
+	// AP State Tracking System
+	private static var _apOptionsState:MusicBeatState = null;
+	private static var _allowedStates:Array<Class<MusicBeatState>> = [];
+	private static var _variablesToCapture:Array<String> = [];
+	private static var _capturedVariables:Map<String, Dynamic> = new Map<String, Dynamic>();
+
+	/**
+	 * Sets up state tracking for AP options system
+	 * @param apOptionsState The AP options state to return to
+	 * @param allowedStates Array of state classes that are allowed without triggering return
+	 * @param variablesToCapture Array of variable names to capture from the current state
+	 */
+	public static function setAPOptionsTracking(apOptionsState:MusicBeatState, allowedStates:Array<Class<MusicBeatState>>, ?variablesToCapture:Array<String>) {
+		_apOptionsState = apOptionsState;
+		_allowedStates = allowedStates.copy();
+		_variablesToCapture = variablesToCapture != null ? variablesToCapture.copy() : [];
+		_capturedVariables.clear();
+	}
+
+	/**
+	 * Checks if we should return to AP options state
+	 * Called automatically in update()
+	 */
+	private static function checkAPOptionsReturn(currentState:MusicBeatState) {
+		if (_apOptionsState == null) return;
+
+		var currentStateClass = Type.getClass(currentState);
+
+		// Check if current state class is in allowed states
+		var isAllowed = false;
+		for (allowedClass in _allowedStates) {
+			if (currentStateClass == allowedClass) {
+				isAllowed = true;
+				break;
+			}
+		}
+
+		// If current state is not in allowed states and is not the AP options state itself
+		if (!isAllowed && currentState != _apOptionsState) {
+			// Capture variables if specified
+			for (varName in _variablesToCapture) {
+				try {
+					var value = Reflect.field(currentState, varName);
+					if (value != null) {
+						_capturedVariables.set(varName, value);
+					}
+				} catch (e:Dynamic) {
+					trace('Failed to capture variable: $varName from ${Type.getClassName(currentStateClass)}');
+				}
+			}
+
+			// Reset tracking and return to AP options
+			var returnState = _apOptionsState;
+			clearAPOptionsTracking();
+			switchState(returnState);
+		}
+	}
+
+	/**
+	 * Clears AP options tracking
+	 */
+	public static function clearAPOptionsTracking() {
+		_apOptionsState = null;
+		_allowedStates = [];
+		_variablesToCapture = [];
+		// Don't clear captured variables - let the AP options state handle them
+	}
+
+	/**
+	 * Gets captured variables from tracked states
+	 */
+	public static function getCapturedVariables():Map<String, Dynamic> {
+		return _capturedVariables;
+	}
+
+	/**
+	 * Clears captured variables after they've been processed
+	 */
+	public static function clearCapturedVariables() {
+		_capturedVariables.clear();
+	}
 
 	private static function get_APFlip():Bool
 		return _apFlip;
@@ -364,6 +446,9 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		// Check AP options tracking
+		checkAPOptionsReturn(this);
+
 		// Disable all input when the application is closing
 		if (isClosing) {
 			// Start timer if transition is active but timer isn't running

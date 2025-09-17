@@ -1,38 +1,39 @@
 package archipelago;
 
-import lime.app.Application;
+import archipelago.*;
+import archipelago.APAdvancedSettingsState;
+import archipelago.APGameState;
+import archipelago.Client;
+import archipelago.PacketTypes.JSONMessagePart;
+import archipelago.PacketTypes.NetworkItem;
+import flash.net.FileFilter;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.FlxState;
+import flixel.addons.display.FlxBackdrop;
+import flixel.text.FlxText;
+import flixel.util.FlxColor;
+import flixel.util.FlxGradient;
+import flixel.util.FlxSave;
+import haxe.DynamicAccess;
+import haxe.Exception;
+import haxe.Timer;
 import haxe.io.Bytes;
-import substates.RankingSubstate;
-import yutautil.modules.SyncUtils;
+import lime.app.Application;
 import states.editors.content.FileDialogHandler;
+import substates.Prompt;
+import substates.RankingSubstate;
+import yaml.Parser;
+import yaml.Renderer;
+import yaml.Yaml;
+import yutautil.modules.SyncUtils;
+
+using yutautil.CollectionUtils;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
 #end
 
-import archipelago.*;
-import flixel.FlxSprite;
-import haxe.DynamicAccess;
-import haxe.Timer;
-import archipelago.Client;
-import archipelago.APGameState;
-import substates.Prompt;
-import flixel.FlxG;
-import flixel.FlxState;
-import flixel.text.FlxText;
-import flixel.util.FlxColor;
-import flixel.util.FlxSave;
-import flixel.addons.display.FlxBackdrop;
-import flixel.util.FlxGradient;
-import haxe.Exception;
-import yaml.Yaml;
-import yaml.Renderer;
-import yaml.Parser;
-import flash.net.FileFilter;
-import archipelago.PacketTypes.JSONMessagePart;
-import archipelago.PacketTypes.NetworkItem;
-
-using yutautil.CollectionUtils;
 
 typedef APSettings =
 {
@@ -65,6 +66,11 @@ typedef APOptions =
     var	shieldWeight:Int;
     var	MHPWeight:Int;
 	var	song_limit:Int;
+	// New settings for APAdvancedSettingsState
+	var	include_secrets:Bool;
+	var	include_vanilla:Bool;
+	var	starting_song:String;
+	var	victory_song:String;
 }
 
 enum ComboRank {
@@ -103,8 +109,8 @@ class APEntryState extends MusicBeatState
 	static final wsCheck = ~/^wss?:\/\//;
 
 	static final APWorld:String = "apworld/fridaynightfunkin.apworld";
-	static var currentAPLocation:String = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") != null 
-		? new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") 
+	static var currentAPLocation:String = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") != null
+		? new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation")
 		: "C:/ProgramData/Archipelago";
 
 	// #if embed
@@ -164,6 +170,11 @@ class APEntryState extends MusicBeatState
 			shieldWeight: 15,
 			MHPWeight: 15,
 			song_limit: 320,
+			// New settings for APAdvancedSettingsState
+			include_secrets: true,
+			include_vanilla: true,
+			starting_song: "Tutorial",
+			victory_song: "Tutorial"
 		}
 	};
 
@@ -331,7 +342,7 @@ class APEntryState extends MusicBeatState
 		add(yamlImport);
 	}
 
-	
+
 	function stringToBool(value:Dynamic):Bool
 	{
 		if (Std.isOfType(value, String)) {
@@ -344,9 +355,18 @@ class APEntryState extends MusicBeatState
 		return false;
 	}
 
-	function doYaml() 
+	function doYaml()
 	{
-		openSubState(new APSettingsSubState());
+		// Show settings choice dialog
+		var settingsPrompt = new Prompt("Choose Settings Interface\n\nWhich settings interface would you like to use?", 0, function() {
+			// Basic settings
+			openSubState(new APSettingsSubState());
+		}, function() {
+			// Advanced settings
+			MusicBeatState.switchState(new APAdvancedSettingsState());
+		}, 'Basic', 'Advanced');
+
+		openSubState(settingsPrompt);
 	}
 
     var daReason:String = "man idk";
@@ -551,9 +571,9 @@ class APEntryState extends MusicBeatState
 					return;
 				}
 			}
-			File.saveBytes("fridaynightfunkin.apworld", apworld); 
+			File.saveBytes("fridaynightfunkin.apworld", apworld);
 
-			Sys.command("cmd /c start fridaynightfunkin.apworld"); 
+			Sys.command("cmd /c start fridaynightfunkin.apworld");
 
 			while (!FileSystem.exists(apWorldFile)) {
 				Sys.sleep(1); // Sleep for 1 second before checking again
@@ -598,7 +618,7 @@ class APEntryState extends MusicBeatState
 		trace("APWorld output success!");
 		#end
 	}
-	
+
 
 	inline function postError(str:String, ?vars:Map<String, Dynamic>)
 		openSubState(new Prompt("Error: " + errDesc(str), 0, null, null, false));
@@ -724,9 +744,9 @@ var uri = '${#if sys (_hostInput.text == "localhost" || _hostInput.text == "127.
 			}
 		}
 
-		
+
 		try {
-			bpmTxt.text = 
+			bpmTxt.text =
 				"Progression Balancing: "
 				+ gameSettings.FNF.progression_balancing
 				+ "\nAccessibility: "

@@ -2,13 +2,13 @@ package yutautil;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import haxe.macro.Type;
 import haxe.macro.Printer;
+import haxe.macro.Type;
 
 /**
  * Crash Tracker Macro - Automatically injects monitoring code into classes
  * to track engine activity and help diagnose unexpected crashes
- * 
+ *
  * WARNING: This macro instruments methods to track engine activity.
  * It may affect performance and should be used primarily for debugging.
  * Inline functions are ignored to prevent compilation issues.
@@ -17,7 +17,7 @@ class CrashTracker {
     private static var instrumentedClasses:Array<String> = [];
     private static var activated:Bool = false;
     private static var baseInfrastructureClass:String = null; // Track which class has the infrastructure
-    
+
     // Configuration flags - set these before compilation to enable features
     public static var ENABLE_DETAILED_EXPRESSION_TRACKING:Bool = true; // Re-enabled with safer expression handling
     public static var ENABLE_FUNCTION_WRAPPING:Bool = true; // Re-enabled
@@ -25,27 +25,36 @@ class CrashTracker {
     public static var ENABLE_VARIABLE_ACCESS_TRACKING:Bool = true; // Re-enabled with safer variable handling
     public static var ENABLE_COMPILATION_TRACING:Bool = true; // Re-enabled for debugging
     public static var ENABLE_DETAILED_COMPILATION_TRACING:Bool = true; // Re-enabled for debugging
-    
+
     /**
      * Macro to inject crash tracking into a class
      * Usage: @:autoBuild(yutautil.CrashTracker.instrument())
+     * To exclude a class from instrumentation, add @:noCrashTracker metadata to the class
      */
     public static macro function instrument():Array<Field> {
         if (!activated) {
             activated = true;
             trace('CrashTracker: Starting instrumentation...');
         }
-        
+
         var localClass = Context.getLocalClass().get();
         var className = localClass.name;
         var fullClassName = localClass.pack.join(".") + "." + className;
-        
+
+        // Check if the class has @:noCrashTracker metadata to exclude it from instrumentation
+        if (localClass.meta.has(":noCrashTracker")) {
+            if (ENABLE_COMPILATION_TRACING) {
+                trace('CrashTracker: Skipping class $fullClassName (has @:noCrashTracker metadata)');
+            }
+            return null; // Return null to skip instrumentation
+        }
+
         if (instrumentedClasses.indexOf(fullClassName) != -1) {
             return null; // Already instrumented
         }
-        
+
         instrumentedClasses.push(fullClassName);
-        
+
         // Determine if this is the base infrastructure class
         var isBaseInfrastructureClass = (baseInfrastructureClass == null);
         if (isBaseInfrastructureClass) {
@@ -54,15 +63,15 @@ class CrashTracker {
         } else {
             trace('CrashTracker: Instrumenting functions in $fullClassName');
         }
-        
+
         var fields = Context.getBuildFields();
         var newFields:Array<Field> = [];
-        
+
         // Only the first class gets the infrastructure
         if (isBaseInfrastructureClass) {
             newFields.push(createTrackingField());
         }
-        
+
         // Process existing fields
         for (field in fields) {
             switch (field.kind) {
@@ -70,7 +79,7 @@ class CrashTracker {
                     // Debug: Log what we're checking
                     var isInline = hasInlineMetadata(field);
                     var shouldInstrument = shouldInstrumentFunction(field.name, func);
-                    
+
                     if (ENABLE_COMPILATION_TRACING) {
                         trace('CrashTracker: Checking function ${field.name} in $fullClassName');
                         trace('  - Is inline: $isInline');
@@ -80,7 +89,7 @@ class CrashTracker {
                             trace('Expression as String: \n${haxe.macro.ExprTools.toString(func.expr)}');
                         }
                     }
-                    
+
                     if (isInline) {
                         if (ENABLE_COMPILATION_TRACING) {
                             trace('CrashTracker: Skipping inline function ${field.name} in $fullClassName');
@@ -104,15 +113,15 @@ class CrashTracker {
             }
             newFields.push(field);
         }
-        
+
         // Only the base infrastructure class gets the _initCrashTracking method
         if (isBaseInfrastructureClass) {
             newFields.push(createCleanupMethod(fullClassName));
         }
-        
+
         return newFields;
     }
-    
+
     #if macro
     private static function createTrackingField():Field {
         return {
@@ -122,7 +131,7 @@ class CrashTracker {
             access: [APrivate]
         };
     }
-    
+
     private static function createCleanupMethod(className:String):Field {
         var cleanupExpr = macro {
             if (!_crashTrackerInit) {
@@ -130,7 +139,7 @@ class CrashTracker {
                 yutautil.CrashReporter.registerInstance($v{className}, this);
             }
         };
-        
+
         return {
             name: "_initCrashTracking",
             pos: Context.currentPos(),
@@ -142,14 +151,14 @@ class CrashTracker {
             access: [APrivate]
         };
     }
-    
+
     private static function shouldInstrumentFunction(funcName:String, func:Function):Bool {
         // Skip certain functions to avoid overhead
         var skipFunctions = [
             "new", "toString", "get_", "set_", "_get", "_set",
             "_crashTracker", "_initCrashTracking", "destroy"
         ];
-        
+
         for (skip in skipFunctions) {
             if (funcName.indexOf(skip) == 0) {
                 if (ENABLE_COMPILATION_TRACING) {
@@ -158,7 +167,7 @@ class CrashTracker {
                 return false;
             }
         }
-        
+
         // Skip macro functions - check for macro metadata
         #if macro
         try {
@@ -170,7 +179,7 @@ class CrashTracker {
                     break;
                 }
             }
-            
+
             if (classField != null && classField.meta.has(":macro")) {
                 if (ENABLE_COMPILATION_TRACING) {
                     trace('CrashTracker: Skipping macro function $funcName');
@@ -184,10 +193,10 @@ class CrashTracker {
             }
         }
         #end
-        
+
         return true;
     }
-    
+
     private static function hasInlineMetadata(field:Field):Bool {
         // Check field metadata for :inline
         if (field.meta != null) {
@@ -198,7 +207,7 @@ class CrashTracker {
                 }
             }
         }
-        
+
         // Also check if the field has inline access modifier
         if (field.access != null) {
             for (access in field.access) {
@@ -208,16 +217,16 @@ class CrashTracker {
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Check if an expression contains a return statement
      */
     private static function containsReturnStatement(expr:Expr):Bool {
         if (expr == null) return false;
-        
+
         switch (expr.expr) {
             case EReturn(_):
                 return true;
@@ -259,13 +268,13 @@ class CrashTracker {
         }
         return false;
     }
-    
+
     /**
      * Analyze and describe what an expression is doing for detailed tracking
      */
     private static function analyzeExpressionAction(expr:Expr):String {
         if (expr == null) return "null_expression";
-        
+
         return switch (expr.expr) {
             case EConst(c):
                 switch (c) {
@@ -310,7 +319,7 @@ class CrashTracker {
             case EParenthesis(e): "parentheses";
             case EObjectDecl(fields): "object_creation";
             case EArrayDecl(values): "array_creation";
-            case ECall(e, params): 
+            case ECall(e, params):
                 var callTarget = switch (e.expr) {
                     case EField(_, field): 'method_$field';
                     case EConst(CIdent(name)): 'function_$name';
@@ -329,10 +338,10 @@ class CrashTracker {
                     case _: "unary_operation";
                 }
                 'unary_op_$opStr';
-            case EVars(vars): 
+            case EVars(vars):
                 var varNames = [for (v in vars) v.name].join(",");
                 'declaring_vars_$varNames';
-            case EFunction(kind, f): 
+            case EFunction(kind, f):
                 switch (kind) {
                     case FAnonymous: 'declaring_function_anon';
                     case FNamed(name, _): 'declaring_function_$name';
@@ -359,33 +368,33 @@ class CrashTracker {
             case _: "unknown_expression";
         }
     }
-    
+
     /**
      * Extract variable information from expressions for tracking
      */
     private static function extractVariableInfo(expr:Expr):{name:String, accessType:String, value:String} {
         if (expr == null) return null;
-        
+
         return switch (expr.expr) {
             case EConst(CIdent(name)): {name: name, accessType: "read", value: "unknown"};
-            case EBinop(OpAssign, {expr: EConst(CIdent(name))}, valueExpr): 
+            case EBinop(OpAssign, {expr: EConst(CIdent(name))}, valueExpr):
                 {name: name, accessType: "write", value: getExpressionValueString(valueExpr)};
-            case EBinop(OpAssign, {expr: EField(_, field)}, valueExpr): 
+            case EBinop(OpAssign, {expr: EField(_, field)}, valueExpr):
                 {name: field, accessType: "write", value: getExpressionValueString(valueExpr)};
             case EField(_, field): {name: field, accessType: "read", value: "unknown"};
-            case EVars(vars) if (vars.length > 0): 
+            case EVars(vars) if (vars.length > 0):
                 var v = vars[0];
                 {name: v.name, accessType: "declare", value: v.expr != null ? getExpressionValueString(v.expr) : "null"};
             case _: null;
         }
     }
-    
+
     /**
      * Get string representation of expression value
      */
     private static function getExpressionValueString(expr:Expr):String {
         if (expr == null) return "null";
-        
+
         return switch (expr.expr) {
             case EConst(c):
                 switch (c) {
@@ -400,7 +409,7 @@ class CrashTracker {
             case _: "expression";
         }
     }
-    
+
     /**
      * Get position information from expression at compile time
      */
@@ -416,7 +425,7 @@ class CrashTracker {
         return "runtime_position";
         #end
     }
-    
+
     /**
      * Create a compile-time string literal for position info
      */
@@ -428,14 +437,14 @@ class CrashTracker {
         return macro "runtime_position";
         #end
     }
-    
+
     /**
      * Wrap individual expressions with detailed tracking
      */
     private static function wrapExpressionWithDetailedTracking(expr:Expr, className:String, funcName:String, exprIndex:Int):Expr {
         if (expr == null) return expr;
         if (!ENABLE_DETAILED_EXPRESSION_TRACKING) return expr;
-        
+
         // Don't wrap expressions that break identifier resolution
         var shouldSkipWrapping = switch (expr.expr) {
             case EVars(_): true;  // Never wrap variable declarations
@@ -445,7 +454,7 @@ class CrashTracker {
             case EFunction(_, _): true;  // Don't wrap function declarations
             case _: false;
         };
-        
+
         if (shouldSkipWrapping) {
             // Just log the variable access but don't wrap the expression
             if (ENABLE_VARIABLE_ACCESS_TRACKING) {
@@ -471,7 +480,7 @@ class CrashTracker {
                         ]),
                         pos: Context.currentPos()
                     };
-                    
+
                     // Return a block with logging before the original expression
                     return {
                         expr: EBlock([varLogCall, expr]),
@@ -481,11 +490,11 @@ class CrashTracker {
             }
             return expr; // Return as-is if no variable tracking needed
         }
-        
+
         var action = analyzeExpressionAction(expr);
         var trackingAction = 'expr_${exprIndex}_$action';
         var positionLiteral = createPositionLiteral(expr.pos);
-        
+
         // Create logging call using proper expression construction
         var logCall = {
             expr: ECall({
@@ -504,20 +513,20 @@ class CrashTracker {
             ]),
             pos: Context.currentPos()
         };
-        
+
         // For safe expressions (function calls, operations), add logging before execution
         return {
             expr: EBlock([logCall, expr]),
             pos: Context.currentPos()
         };
     }
-    
+
     /**
      * Process expressions in a block for detailed tracking
      */
     private static function processExpressionsForDetailedTracking(expr:Expr, className:String, funcName:String):Expr {
         if (!ENABLE_DETAILED_EXPRESSION_TRACKING) return expr;
-        
+
         return switch (expr.expr) {
             case EBlock(exprs):
                 var wrappedExprs = [];
@@ -540,7 +549,7 @@ class CrashTracker {
                             }
                         case _: false; // Conservative default - don't track
                     }
-                    
+
                     if (shouldTrack) {
                         wrappedExprs.push(wrapExpressionWithDetailedTracking(originalExpr, className, funcName, i));
                     } else {
@@ -558,7 +567,7 @@ class CrashTracker {
                     case EBinop(OpAssign, _, _): false;
                     case _: true;
                 };
-                
+
                 if (shouldTrack) {
                     wrapExpressionWithDetailedTracking(expr, className, funcName, 0);
                 } else {
@@ -572,7 +581,7 @@ class CrashTracker {
      */
     private static function processInternalFunctions(expr:Expr, className:String, parentFuncName:String):Expr {
         if (expr == null || !ENABLE_FUNCTION_WRAPPING) return expr;
-        
+
         return switch (expr.expr) {
             case EFunction(kind, f):
                 // Found an internal function - instrument it
@@ -582,20 +591,20 @@ class CrashTracker {
                     case FArrow: '${parentFuncName}_lambda';
                     case _: '${parentFuncName}_internal';
                 }
-                
+
                 // Instrument the internal function
                 var instrumentedFunc = instrumentFunction(f, className, internalFuncName, false, false);
                 {expr: EFunction(kind, instrumentedFunc), pos: expr.pos};
-                
+
             case EBlock(exprs):
                 var processedExprs = [for (e in exprs) processInternalFunctions(e, className, parentFuncName)];
                 {expr: EBlock(processedExprs), pos: expr.pos};
-                
+
             case EIf(condExpr, ifExpr, elseExpr):
                 var processedIf = processInternalFunctions(ifExpr, className, parentFuncName);
                 var processedElse = elseExpr != null ? processInternalFunctions(elseExpr, className, parentFuncName) : null;
                 {expr: EIf(condExpr, processedIf, processedElse), pos: expr.pos};
-                
+
             case ESwitch(switchExpr, cases, defaultExpr):
                 var processedCases = [];
                 for (c in cases) {
@@ -614,7 +623,7 @@ class CrashTracker {
                     processedDefault = defaultExpr;
                 }
                 {expr: ESwitch(switchExpr, processedCases, processedDefault), pos: expr.pos};
-                
+
             case ETry(tryExpr, catches):
                 var processedTry = processInternalFunctions(tryExpr, className, parentFuncName);
                 var processedCatches = [];
@@ -626,26 +635,26 @@ class CrashTracker {
                     });
                 }
                 {expr: ETry(processedTry, processedCatches), pos: expr.pos};
-                
+
             case EWhile(condExpr, bodyExpr, normalWhile):
                 var processedBody = processInternalFunctions(bodyExpr, className, parentFuncName);
                 {expr: EWhile(condExpr, processedBody, normalWhile), pos: expr.pos};
-                
+
             case EFor(iterExpr, bodyExpr):
                 var processedBody = processInternalFunctions(bodyExpr, className, parentFuncName);
                 {expr: EFor(iterExpr, processedBody), pos: expr.pos};
-                
+
             case _:
                 expr; // Return as-is for other expression types
         };
     }
-    
+
     /**
      * Wrap an expression to add exit logging before any return statements
      */
     private static function wrapExpressionWithLogging(expr:Expr, className:String, funcName:String):Expr {
         if (expr == null) return expr;
-        
+
         return switch (expr.expr) {
             case EReturn(returnExpr):
                 var exitCall = {
@@ -665,7 +674,7 @@ class CrashTracker {
                     ]),
                     pos: Context.currentPos()
                 };
-                
+
                 if (returnExpr != null) {
                     {
                         expr: EBlock([
@@ -733,29 +742,29 @@ class CrashTracker {
                 expr; // Return as-is for other expression types
         };
     }
-    
+
     private static function instrumentFunction(func:Function, className:String, funcName:String, isStatic:Bool, hasInfrastructure:Bool):Function {
         var originalExpr = func.expr;
         var returnType = func.ret;
-        
+
         // Apply detailed expression tracking if enabled
         var processedExpr = processExpressionsForDetailedTracking(originalExpr, className, funcName);
-        
+
         // Process internal functions if function wrapping is enabled
         if (ENABLE_FUNCTION_WRAPPING) {
             processedExpr = processInternalFunctions(processedExpr, className, funcName);
         }
-        
+
         // Determine if this is a void function
         var isVoidFunction = switch (returnType) {
             case TPath({name: "Void", pack: []}): true;
             case null: true; // No explicit return type usually means void
             case _: false;
         };
-        
+
         // Check if the original expression contains a return statement
         var hasReturnStatement = containsReturnStatement(originalExpr);
-        
+
         // Create enter logging call
         var enterCall = {
             expr: ECall({
@@ -774,7 +783,7 @@ class CrashTracker {
             ]),
             pos: Context.currentPos()
         };
-        
+
         // Create exit logging call
         var exitCall = {
             expr: ECall({
@@ -793,7 +802,7 @@ class CrashTracker {
             ]),
             pos: Context.currentPos()
         };
-        
+
         // Create instrumented expression based on function type
         var instrumentedExpr = if (isVoidFunction) {
             if (hasReturnStatement) {
@@ -855,7 +864,7 @@ class CrashTracker {
                 };
             }
         };
-        
+
         return {
             args: func.args,
             ret: returnType, // Preserve original return type exactly
@@ -864,7 +873,7 @@ class CrashTracker {
         };
     }
     #end
-    
+
     /**
      * Get list of instrumented classes
      */
