@@ -51,6 +51,24 @@ class FreeplayManager {
     var metadataFile:MetadataFile;
     var pMetadataFile:FreeplayMetaJSON;
 	var hasMetadataFile:Bool = false;
+    var weeklessSongs:Array<String> = [
+        'Small Argument',
+        'Beat Battle',
+        'Beat Battle 2',
+        'GeoStar',
+        'Rise',
+        'Zeventeen',
+        'Pack-A-Punch',
+        'Driller',
+        'Test Field',
+        'Rawr',
+        'Fightback',
+        'Funky Fanta',
+        'Tag And Seek',
+        'Testimony',
+        'Fangirl Frenzy',
+        'Slowdown',
+    ];
 
     public function new() {
         instance = this;
@@ -305,6 +323,7 @@ class FreeplayManager {
 
         if (refresh)
         {
+            // Secrets
             if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
             if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
@@ -313,6 +332,32 @@ class FreeplayManager {
                 addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
             if (FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
                 addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+
+            // Special
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Test Field', 8, "ohagi", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Rawr', 8, "michael", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Fightback', 8, "z12", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Funky Fanta', 8, "fanta", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Tag And Seek', 8, "sillyexe", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Testimony', 8, "shaggy", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Fangirl Frenzy', 8, "sky", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+                addSong('Slowdown', 8, "sky", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
         }
         else
         {
@@ -326,7 +371,7 @@ class FreeplayManager {
                 addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
         }
 
-        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument", "GeoStar"]) {
+        for (song in weeklessSongs) {
             try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
             catch(e) {
                 //trace("can't.");

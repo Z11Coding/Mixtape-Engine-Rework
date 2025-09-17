@@ -786,7 +786,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		// CHARACTERS FOR THE DROP DOWNS
 		var gameOverCharacters:Array<String> = loadFileList('characters/', 'data/characterList.txt');
 		var characterList:Array<String> = gameOverCharacters.filter((name:String) -> (!name.endsWith('-dead') && !name.endsWith('-death')));
-		characterList.insert(0, '');
+		characterList.insert(0, null);
 		playerDropDown.list = characterList;
 		player2DropDown.list = characterList;
 		opponentDropDown.list = characterList;
