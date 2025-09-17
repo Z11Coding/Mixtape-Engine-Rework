@@ -212,8 +212,10 @@ class PsychUIDropDownMenu extends PsychUIInputText
 		var selected:String = selectedLabel;
 		showDropDown(false);
 
-		for (item in _items)
-			item.kill();
+		for (item in _items) {
+			if (item != null)
+				item.kill();
+		}
 
 		_items = [];
 		list = [];
@@ -272,7 +274,7 @@ class PsychUIDropDownItem extends FlxSpriteGroup
 			if(overlapped && FlxG.mouse.justPressed)
 				onClick();
 		}
-		
+
 		text.x = bg.x;
 		text.y = bg.y + bg.height/2 - text.height/2;
 	}

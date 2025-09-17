@@ -23,6 +23,7 @@ class CategoryState extends MusicBeatState
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;
+	private var showSpecial:Bool = true;
 	private var showAll:Bool = true;
 	private var softCoded:Bool = true;
 
@@ -48,7 +49,7 @@ class CategoryState extends MusicBeatState
 
 	//if you have em, put em here
 	//and yes, this is the exact code from titlestate, and?
-	var easterEggKeys:Array<String> = [];
+	var easterEggKeys:Array<String> = ['speciallilbaby'];
 	var allowedKeys:String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	var easterEggKeysBuffer:String = '';
 
@@ -57,7 +58,7 @@ class CategoryState extends MusicBeatState
 
 	// TODO: later, change to OneOfTwo<Array<String>, Map<String, Void -> Bool>> for categories, so it specifies that it must be one of the two types.
 
-	public function new(?categories:Dynamic, ?showmods:Bool = true, ?showsecrets:Bool = true, ?showall:Bool = true, ?h:Bool = true, ?softCoded:Bool = true) {
+	public function new(?categories:Dynamic, ?showmods:Bool = true, ?showsecrets:Bool = true, ?showall:Bool = true, ?h:Bool = true, ?softCoded:Bool = true, ?showspecial:Bool = true) {
 		super();
 		this.softCoded = softCoded;
 		if (categories != null) {
@@ -97,6 +98,7 @@ class CategoryState extends MusicBeatState
 		}
 		this.showMods = showmods;
 		this.showSecrets = showsecrets;
+		this.showSpecial = showspecial;
 		this.showAll = showall;
 		this.hhhhhh = h;
 
@@ -109,6 +111,9 @@ class CategoryState extends MusicBeatState
 		}
 		if (!showSecrets && menuItems.contains("Secrets")) {
 			menuItems.remove("Secrets");
+		}
+		if (!showSpecial && menuItems.contains("Special")) {
+			menuItems.remove("Special");
 		}
 		if (!h && menuItems.contains("h?")) {
 			menuItems.remove("h?");
@@ -123,6 +128,9 @@ class CategoryState extends MusicBeatState
 		}
 		if (menuItems.contains("Secrets") && !showSecrets) {
 			throw "CategoryState: 'Secrets' category is disabled, yet it's in the menuItems array!";
+		}
+		if (menuItems.contains("Special") && !showSpecial) {
+			throw "CategoryState: 'Special' category is disabled, yet it's in the menuItems array!";
 		}
 		// menuItems.mapIfBreak(it -> it.isEmpty(), throw "CategoryState: Empty strings are not allowed in the menuItems array!");
 
@@ -142,6 +150,8 @@ class CategoryState extends MusicBeatState
 		FlxTransitionableState.skipNextTransOut = false;
 
 		if (showSecrets && (FlxG.save.data.gotIntoAnArgument || FlxG.save.data.gotbeatbattle || FlxG.save.data.gotbeatbattle2)) menuItems.insert(menuItems.length+1, "Secrets");
+
+		if (showSpecial && (FlxG.save.data.specialbabyboy || FlxG.save.data.specialbabygirl)) menuItems.insert(menuItems.length+1, "Special");
 
 		WeekData.reloadWeekFiles(false);
 		var weeks:Array<WeekData> = [];
@@ -296,9 +306,10 @@ class CategoryState extends MusicBeatState
 		return menuItem;
 	}
 
-	public function changeCategories(categories:Dynamic, showmods:Bool = true, showsecrets:Bool = true, showall:Bool = true, h:Bool = true):Void {
+	public function changeCategories(categories:Dynamic, showmods:Bool = true, showsecrets:Bool = true, showall:Bool = true, h:Bool = true, showspecial:Bool = true):Void {
 		this.showMods = showmods;
 		this.showSecrets = showsecrets;
+		this.showSpecial = showspecial;
 		this.showAll = showall;
 		this.hhhhhh = h;
 		this.softCoded = true;
@@ -351,6 +362,9 @@ class CategoryState extends MusicBeatState
 		if (!showSecrets && menuItems.contains("Secrets")) {
 			menuItems.remove("Secrets");
 		}
+		if (!showSpecial && menuItems.contains("Special")) {
+			menuItems.remove("Special");
+		}
 		if (!h && menuItems.contains("h?")) {
 			menuItems.remove("h?");
 		}
@@ -364,6 +378,9 @@ class CategoryState extends MusicBeatState
 		}
 		if (menuItems.contains("Secrets") && !showSecrets) {
 			throw "CategoryState: 'Secrets' category is disabled, yet it's in the menuItems array!";
+		}
+		if (menuItems.contains("Special") && !showSpecial) {
+			throw "CategoryState: 'Special' category is disabled, yet it's in the menuItems array!";
 		}
 		// menuItems.mapIfBreak(it -> it.isEmpty(), throw "CategoryState: Empty strings are not allowed in the menuItems array!");
 
@@ -463,12 +480,12 @@ class CategoryState extends MusicBeatState
 						var word:String = wordRaw.toUpperCase(); //just for being sure you're doing it right
 						if (easterEggKeysBuffer.contains(word))
 						{
-							//trace('YOOO! ' + word);
+							trace('YOOO! ' + word);
 							FlxG.sound.play(Paths.sound('ToggleJingle'));
 
-							if (word == 'whateveryoureastereggcodeis')
+							if (word.toLowerCase() == 'speciallilbaby')
 							{
-								//do thing
+								FlxG.switchState(new states.GodCode());
 							}
 							easterEggKeysBuffer = '';
 							break;

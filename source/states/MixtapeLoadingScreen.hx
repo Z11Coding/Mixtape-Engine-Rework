@@ -1,33 +1,29 @@
 package states;
 
-import lime.app.Future;
-import sys.thread.FixedThreadPool;
+import backend.Song;
+import flash.media.Sound;
+import flixel.FlxState;
+import flixel.graphics.FlxGraphic;
+import flixel.system.FlxAssets;
 import haxe.Json;
+import lime.app.Future;
 import lime.utils.Assets;
+import objects.Character;
+import objects.Note;
+import objects.NoteSplash;
 import openfl.display.BitmapData;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
-import flixel.graphics.FlxGraphic;
-import flixel.system.FlxAssets;
-import flixel.FlxState;
-
-import flash.media.Sound;
-
-import backend.Song;
 import stages.StageData;
-import objects.Character;
-
-import sys.thread.Thread;
+import sys.thread.FixedThreadPool;
 import sys.thread.Mutex;
-
-import objects.Note;
-import objects.NoteSplash;
+import sys.thread.Thread;
 
 #if HSCRIPT_ALLOWED
-import psychlua.HScript;
-import crowplexus.iris.Iris;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
+import crowplexus.iris.Iris;
+import psychlua.HScript;
 #end
 
 @:privateAccess(states.LoadingState)
@@ -138,7 +134,7 @@ class MixtapeLoadingScreen extends MusicBeatState
 		}
 		else {
 			loadNextDirectory();
-			
+
 			if (stopMusic && FlxG.sound.music != null)
 				FlxG.sound.music.stop();
 
@@ -211,10 +207,10 @@ class MixtapeLoadingScreen extends MusicBeatState
 	{
 		if (isExiting) return;
 		isExiting = true;
-		
+
 		// Choose random exit animation: fade or drop
 		var exitType = FlxG.random.bool() ? 'fade' : 'drop';
-		
+
 		trace('Loading complete! Using exit animation: $exitType');
 
 		switch(exitType)
@@ -225,7 +221,7 @@ class MixtapeLoadingScreen extends MusicBeatState
 				FlxTween.tween(bottomEffect, {alpha: 0}, 0.6, {ease: FlxEase.quadOut});
 				FlxTween.tween(barGroup, {alpha: 0}, 0.5, {ease: FlxEase.quadOut});
 				FlxTween.tween(loadingText, {alpha: 0}, 0.5, {ease: FlxEase.quadOut});
-				
+
 				FlxTween.tween(bg, {alpha: 0}, 1.0, {
 					ease: FlxEase.quadOut,
 					onComplete: function(tween:FlxTween) {
@@ -241,7 +237,7 @@ class MixtapeLoadingScreen extends MusicBeatState
 				FlxTween.tween(bottomEffect, {alpha: 0}, 0.6, {ease: FlxEase.quadOut});
 				FlxTween.tween(barGroup, {alpha: 0}, 0.5, {ease: FlxEase.quadOut});
 				FlxTween.tween(loadingText, {alpha: 0}, 0.5, {ease: FlxEase.quadOut});
-				
+
 				new FlxTimer().start(0.9, function(tmr:FlxTimer) {
 				FlxTween.tween(bg, {alpha: 0}, 1.0, {
 					ease: FlxEase.quadOut,

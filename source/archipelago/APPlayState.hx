@@ -1169,6 +1169,43 @@ class APPlayState extends PlayState {
                     playbackRate = t;
                 });
             },
+            'songSwitchSpecial' => function() {
+                FlxTween.num(playbackRate, 0, 0.5, {
+                    onComplete: function(e) {
+                        paused = false;
+                        FlxG.sound.play(Paths.sound('streamervschat/itcomes'), 1, false, null, true, function() {
+                            trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
+                            if (!FlxG.save.data.manualOverride) {
+                                FlxG.save.data.manualOverride = true;
+                                FlxG.save.data.storyWeek = PlayState.storyWeek;
+                                FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+                                FlxG.save.data.difficulties = Difficulty.list; // just in case
+                                FlxG.save.data.SONG = PlayState.SONG;
+                                FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
+                                FlxG.save.data.songPos = FlxG.sound.music.time;
+                                FlxG.save.flush();
+
+                                var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
+                                var curSong = FlxG.random.int(0, specialSongList.length-1);
+                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], curDifficulty), Paths.formatToSongPath(specialSongList[curSong]));
+                                PlayState.storyWeek = -1;
+                                Mods.currentModDirectory = '';
+                                Difficulty.list = Difficulty.defaultList.copy();
+                                PlayState.storyDifficulty = curDifficulty;
+                                FlxG.save.flush();
+
+                                if (Std.is(FlxG.state, APPlayState)) {
+                                    MusicBeatState.resetState();
+                                } else {
+                                    FlxG.switchState(new APPlayState());
+                                }
+                            }
+                        });
+                    }
+                }, function(t) {
+                    playbackRate = t;
+                });
+            },
             "freeze" => function() {
                 var oldPlaybackRate:Float = playbackRate;
                 var soundOptions:Array<String> = ["delay", "dialup"];

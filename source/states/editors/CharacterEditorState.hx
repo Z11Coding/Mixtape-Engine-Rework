@@ -104,7 +104,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		ghost.visible = false;
 		ghost.alpha = ghostAlpha;
 		add(ghost);
-		
+
 		animsTxt = new FlxText(10, 32, 400, '');
 		animsTxt.setFormat(null, 16, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
 		animsTxt.scrollFactor.set();
@@ -308,7 +308,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 					if(animateGhost == null || animateGhostImage != character.imageFile)
 						Paths.loadAnimateAtlas(animateGhost, character.imageFile);
-					
+
 					if(myAnim.indices != null && myAnim.indices.length > 0)
 						animateGhost.anim.addBySymbolIndices('anim', myAnim.name, myAnim.indices, 0, false);
 					else
@@ -319,7 +319,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 					animateGhostImage = character.imageFile;
 				}
-				
+
 				var spr:FlxSprite = !character.isAnimateAtlas ? ghost : animateGhost;
 				if(spr != null)
 				{
@@ -520,10 +520,10 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 							var splitIndices:Array<String> = ind.split('-');
 							var indexStart:Int = Std.parseInt(splitIndices[0]);
 							if(Math.isNaN(indexStart) || indexStart < 0) indexStart = 0;
-	
+
 							var indexEnd:Int = Std.parseInt(splitIndices[1]);
 							if(Math.isNaN(indexEnd) || indexEnd < indexStart) indexEnd = indexStart;
-	
+
 							for (index in indexStart...indexEnd+1)
 								indices.push(index);
 						}
@@ -639,13 +639,13 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		});
 
 		var decideIconColor:PsychUIButton = new PsychUIButton(reloadImage.x, reloadImage.y + 30, "Get Icon Color", function()
-			{
-				var coolColor:FlxColor = FlxColor.fromInt(CoolUtil.dominantColor(healthIcon));
-				character.healthColorArray[0] = coolColor.red;
-				character.healthColorArray[1] = coolColor.green;
-				character.healthColorArray[2] = coolColor.blue;
-				updateHealthBar();
-			});
+		{
+			var coolColor:FlxColor = FlxColor.fromInt(CoolUtil.dominantColor(healthIcon));
+			character.healthColorArray[0] = coolColor.red;
+			character.healthColorArray[1] = coolColor.green;
+			character.healthColorArray[2] = coolColor.blue;
+			updateHealthBar();
+		});
 
 		healthIconInputText = new PsychUIInputText(15, imageInputText.y + 35, 75, healthIcon.getCharacter(), 8);
 
@@ -1033,7 +1033,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					var isLeft = false;
 					if((holdingFrameTime > 0.5 && FlxG.keys.pressed.A) || FlxG.keys.justPressed.A) isLeft = true;
 					character.animPaused = true;
-	
+
 					if(holdingFrameTime <= 0.5 || holdingFrameElapsed > 0.1)
 					{
 						frames = FlxMath.wrap(frames + Std.int(isLeft ? -shiftMult : shiftMult), 0, length-1);
@@ -1042,7 +1042,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 						holdingFrameElapsed -= 0.1;
 					}
 				}
-	
+
 				txt = 'Frames: ( $frames / ${length-1} )';
 				//if(character.animation.curAnim.paused) txt += ' - PAUSED';
 				clr = FlxColor.WHITE;
