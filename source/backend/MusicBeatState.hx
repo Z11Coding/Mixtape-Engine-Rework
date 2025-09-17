@@ -12,8 +12,9 @@ import backend.window.CppAPI;
 import debug.DebugManager;
 #end
 
-@:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
 // @:autoBuild(yutautil.CrashTracker.instrument())
+
+@:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
 class MusicBeatState extends FlxState
 {
 	private var curSection:Int = 0;

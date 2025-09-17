@@ -478,16 +478,16 @@ class APAdvancedSettingsState extends MusicBeatState {
             var option = page.options[i];
             var yPos = startY + (optionIndex * spacing);
 
-            // Create button
-            var button = new FlxSprite(100, yPos);
+            // Create button - start off-screen for animation
+            var button = new FlxSprite(FlxG.width, yPos);
             button.makeGraphic(FlxG.width - 350, 40, option.locked ? FlxColor.GRAY : FlxColor.fromRGB(40, 40, 80));
             button.ID = optionIndex;
             // Store button data using our custom system
             buttonData.set(button, ["type" => "regular", "index" => i]);
             optionButtons.add(button);
 
-            // Create text
-            var text = new FlxText(button.x + 10, button.y + 10, button.width - 20, option.name, 16);
+            // Create text - start off-screen for animation
+            var text = new FlxText(FlxG.width + 10, yPos + 10, button.width - 20, option.name, 16);
             text.setFormat(Paths.font("vcr.ttf"), 16, option.locked ? FlxColor.GRAY : FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
             text.borderSize = 1;
             text.ID = optionIndex;
@@ -496,10 +496,10 @@ class APAdvancedSettingsState extends MusicBeatState {
             // Add current value display
             var valueText = getCurrentValueText(option.name);
             if (valueText != "") {
-                var valueDisplay = new FlxText(button.x + button.width - 150, button.y + 10, 140, valueText, 14);
+                var valueDisplay = new FlxText(FlxG.width + 10, yPos + 10, 140, valueText, 14);
                 valueDisplay.setFormat(Paths.font("vcr.ttf"), 14, page.color, RIGHT, OUTLINE, FlxColor.BLACK);
                 valueDisplay.borderSize = 1;
-                valueDisplay.ID = optionIndex;
+                valueDisplay.ID = optionIndex + 1000; // Use different ID range for value displays
                 optionTexts.add(valueDisplay);
             }
             optionIndex++;
@@ -510,16 +510,16 @@ class APAdvancedSettingsState extends MusicBeatState {
             var stateOption = page.stateOptions[i];
             var yPos = startY + (optionIndex * spacing);
 
-            // Create button (different color to distinguish state options)
-            var button = new FlxSprite(100, yPos);
+            // Create button (different color to distinguish state options) - start off-screen for animation
+            var button = new FlxSprite(FlxG.width, yPos);
             button.makeGraphic(FlxG.width - 350, 40, stateOption.locked ? FlxColor.GRAY : FlxColor.fromRGB(60, 40, 80));
             button.ID = optionIndex;
             // Store button data using our custom system
             buttonData.set(button, ["type" => "state", "index" => i]);
             optionButtons.add(button);
 
-            // Create text with indicator
-            var text = new FlxText(button.x + 10, button.y + 10, button.width - 20, stateOption.name + " →", 16);
+            // Create text with indicator - start off-screen for animation
+            var text = new FlxText(FlxG.width + 10, yPos + 10, button.width - 20, stateOption.name + " →", 16);
             text.setFormat(Paths.font("vcr.ttf"), 16, stateOption.locked ? FlxColor.GRAY : FlxColor.CYAN, LEFT, OUTLINE, FlxColor.BLACK);
             text.borderSize = 1;
             text.ID = optionIndex;
@@ -557,33 +557,51 @@ class APAdvancedSettingsState extends MusicBeatState {
         if (isAnimating) return;
         isAnimating = true;
 
-        // Slide in animation for options
+        var completedAnimations = 0;
+        var totalAnimations = optionButtons.members.length;
+
+        if (totalAnimations == 0) {
+            isAnimating = false;
+            return;
+        }
+
+        // Animate buttons
         for (i in 0...optionButtons.members.length) {
             var button = optionButtons.members[i];
-            var text = optionTexts.members[i];
 
             if (button != null) {
                 button.x = FlxG.width;
                 FlxTween.tween(button, {x: 100}, transitionTime + (i * 0.05), {
                     ease: FlxEase.backOut,
                     onComplete: function(_) {
-                        if (i == optionButtons.members.length - 1) {
+                        completedAnimations++;
+                        if (completedAnimations == totalAnimations) {
                             isAnimating = false;
                         }
                     }
                 });
             }
+        }
 
+        // Animate all text elements separately
+        for (i in 0...optionTexts.members.length) {
+            var text = optionTexts.members[i];
+            
             if (text != null) {
                 text.x = FlxG.width + 10;
-                FlxTween.tween(text, {x: 110}, transitionTime + (i * 0.05), {
+                // Determine target X based on text content and positioning
+                var targetX:Float = 110; // Default for main option text
+                // If this is a value display (right-aligned text), position it accordingly
+                if (text.alignment == RIGHT) {
+                    targetX = 100 + (FlxG.width - 350) - 150; // Button X + Button width - value display width
+                }
+
+                FlxTween.tween(text, {x: targetX}, transitionTime + (i * 0.05), {
                     ease: FlxEase.backOut
                 });
             }
         }
-    }
-
-    function animateIn() {
+    }    function animateIn() {
         // Animate UI elements in
         titleText.y = -100;
         FlxTween.tween(titleText, {y: 30}, 0.8, {ease: FlxEase.backOut});
@@ -792,7 +810,7 @@ class APAdvancedSettingsState extends MusicBeatState {
      * @param variablesToCapture Variables to capture when returning from the state
      * @return StateOption that can be added to a page
      */
-    public static function createStateOption(
+    static function createStateOption(
         name:String,
         description:String,
         stateClass:Class<MusicBeatState>,
@@ -1029,6 +1047,9 @@ class APAdvancedSettingsState extends MusicBeatState {
             navigationCooldown -= elapsed;
         }
 
+        // Don't handle input if a substate is open or a slider is active
+        if (subState != null || selectedSlider != null) return;
+
         // Handle input with cooldown
         if (navigationCooldown <= 0) {
             if (controls.UI_LEFT || FlxG.keys.justPressed.LEFT) {
@@ -1080,6 +1101,9 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function handleMouseInput() {
+        // Don't handle input if a substate is open or a slider is active
+        if (subState != null || selectedSlider != null) return;
+        
         var mousePos = FlxG.mouse.getPosition();
 
         // Check option button clicks
@@ -1170,31 +1194,6 @@ class APAdvancedSettingsState extends MusicBeatState {
         }
     }
 
-    public static function restoreFromTemp():APAdvancedSettingsState {
-        var state = new APAdvancedSettingsState();
-        if (tempSave != null && tempSave.data.settings != null) {
-            var data = tempSave.data.settings;
-            state.progression_balancing = data.progression_balancing;
-            state.accessibility = data.accessibility;
-            state.unlockType = data.unlockType;
-            state.unlockMethod = data.unlockMethod;
-            state.gradeRequirement = data.gradeRequirement;
-            state.accRequirement = data.accRequirement;
-            state.allowMods = data.allowMods;
-            state.includeSecrets = data.includeSecrets;
-            state.includeVanilla = data.includeVanilla;
-            state.startingSong = data.startingSong;
-            state.victorySong = data.victorySong;
-            state.deathlink = data.deathlink;
-            state.ticketPercent = data.ticketPercent;
-            state.ticketWinPercent = data.ticketWinPercent;
-            state.chartmodifierchance = data.chartmodifierchance;
-            state.trapAmount = data.trapAmount;
-            state.songLimit = data.songLimit;
-        }
-        return state;
-    }
-
     function loadFromTempData() {
         if (tempSave != null && tempSave.data.settings != null) {
             var data = tempSave.data.settings;
@@ -1218,20 +1217,20 @@ class APAdvancedSettingsState extends MusicBeatState {
         }
     }
 
-    public static function returnToAdvancedSettings() {
-        if (tempSave != null) {
-            tempSave.data.shouldReturnToAdvancedSettings = true;
-            tempSave.flush();
-        }
-        MusicBeatState.switchState(new APAdvancedSettingsState());
-    }
-
     // Page transition animations
     function animatePageOut(direction:Int, onComplete:Void->Void) {
         if (isAnimating) return;
         isAnimating = true;
 
         var targetX = direction > 0 ? -FlxG.width : FlxG.width;
+        var completedAnimations = 0;
+        var totalAnimations = optionButtons.members.length;
+
+        if (totalAnimations == 0) {
+            isAnimating = false;
+            onComplete();
+            return;
+        }
 
         for (i in 0...optionButtons.members.length) {
             var button = optionButtons.members[i];
@@ -1241,7 +1240,9 @@ class APAdvancedSettingsState extends MusicBeatState {
                 FlxTween.tween(button, {x: targetX}, transitionTime * 0.5, {
                     ease: FlxEase.backIn,
                     onComplete: function(_) {
-                        if (i == optionButtons.members.length - 1) {
+                        completedAnimations++;
+                        if (completedAnimations == totalAnimations) {
+                            isAnimating = false; // Reset before calling onComplete
                             onComplete();
                         }
                     }
@@ -1390,6 +1391,39 @@ class APAdvancedSettingsState extends MusicBeatState {
             total += backend.Mods.parseList().enabled.length * 3;
         }
         return new Num(Math.max(5, total));
+    }
+
+    public static function restoreFromTemp():APAdvancedSettingsState {
+        var state = new APAdvancedSettingsState();
+        if (tempSave != null && tempSave.data.settings != null) {
+            var data = tempSave.data.settings;
+            state.progression_balancing = data.progression_balancing;
+            state.accessibility = data.accessibility;
+            state.unlockType = data.unlockType;
+            state.unlockMethod = data.unlockMethod;
+            state.gradeRequirement = data.gradeRequirement;
+            state.accRequirement = data.accRequirement;
+            state.allowMods = data.allowMods;
+            state.includeSecrets = data.includeSecrets;
+            state.includeVanilla = data.includeVanilla;
+            state.startingSong = data.startingSong;
+            state.victorySong = data.victorySong;
+            state.deathlink = data.deathlink;
+            state.ticketPercent = data.ticketPercent;
+            state.ticketWinPercent = data.ticketWinPercent;
+            state.chartmodifierchance = data.chartmodifierchance;
+            state.trapAmount = data.trapAmount;
+            state.songLimit = data.songLimit;
+        }
+        return state;
+    }
+
+    public static function returnToAdvancedSettings() {
+        if (tempSave != null) {
+            tempSave.data.shouldReturnToAdvancedSettings = true;
+            tempSave.flush();
+        }
+        MusicBeatState.switchState(new APAdvancedSettingsState());
     }
 
     function closeSettings() {
