@@ -586,7 +586,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Animate all text elements separately
         for (i in 0...optionTexts.members.length) {
             var text = optionTexts.members[i];
-            
+
             if (text != null) {
                 text.x = FlxG.width + 10;
                 // Determine target X based on text content and positioning
@@ -1103,7 +1103,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     function handleMouseInput() {
         // Don't handle input if a substate is open or a slider is active
         if (subState != null || selectedSlider != null) return;
-        
+
         var mousePos = FlxG.mouse.getPosition();
 
         // Check option button clicks

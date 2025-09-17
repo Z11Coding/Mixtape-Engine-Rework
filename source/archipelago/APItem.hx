@@ -138,6 +138,12 @@ class APItem {
     public static var extaLives:Int = 0; // Used for the "Extralives" item.
     public static var extraItemInventory:Array<CustomModItem> = [];
 
+    // Special trap state variables
+    public static var skipNextItem:Bool = false; // Used for some special items, but traps and tickets are never skippable
+    public static var buttonCurseActive:Bool = false;
+    public static var buttonCurseCount:Int = 0;
+    public static var chaosMode:Bool = false;
+
     private var toSync:Bool = true;
     public var triggered:Bool = false;
 
@@ -976,6 +982,20 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
+            case "Would You Rather?":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    var currentState = FlxG.state;
+                    FlxG.switchState(new archipelago.states.APWouldYouRatherState(currentState));
+                }, false, false).funcAndReturn(function(t:APItem) {
+                    t.isTrap = true;
+                });
+            case "Would You Push The Button?":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    var currentState = FlxG.state;
+                    FlxG.switchState(new archipelago.states.APWouldYouPushButtonState(currentState));
+                }, false, false).funcAndReturn(function(t:APItem) {
+                    t.isTrap = true;
+                });
 
             default:
                 throw "Unknown item name: " + name;
@@ -1011,6 +1031,13 @@ class APItem {
                         return; // Exit if any extra condition fails
                     }
                 }
+            }
+
+            // Check if item should be skipped (but never skip traps or tickets)
+            if (skipNextItem && !this.isTrap && this.name != "Ticket") {
+                skipNextItem = false;
+                popup('This item was skipped...', "Item Skipped");
+                return;
             }
 
             if (!this.isException)
