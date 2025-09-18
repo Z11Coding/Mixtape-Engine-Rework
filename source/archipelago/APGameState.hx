@@ -1049,6 +1049,16 @@ class APGameState
 					archipelago.APItem.createItemByName("Pokemon Count Trap").fromTrapLink = true;
 				case "Exposition Trap":
 					archipelago.APItem.createItemByName("Exposition Trap").fromTrapLink = true;
+				case "Double Damage":
+					archipelago.APItem.createItemByName("Double Damage").fromTrapLink = true;
+				case "Instant Crystal Trap" | "One Hit KO":
+					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				case "Mirror Trap":
+					archipelago.APItem.createItemByName("Mirror Trap").fromTrapLink = true;
+				case "Pixellation Trap":
+					archipelago.APItem.createItemByName("Pixellation Trap").fromTrapLink = true;
+				case "Swap Trap":
+					archipelago.APItem.createItemByName("Swap Trap").fromTrapLink = true;
 				default:
 					// If it's not a known trap, we can just log it.
 					trace("Unknown trap link received: " + trapName + ".");

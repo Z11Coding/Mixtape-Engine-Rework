@@ -320,6 +320,64 @@ class APItem {
                     }
                 }, true, true);
 
+            case "Song Switch Trap":
+                return new APItem(name, ConditionHelper.Everywhere().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    if (FlxG.random.bool(50)) {
+                        trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
+                        if (!FlxG.save.data.manualOverride) {
+                            FlxG.save.data.manualOverride = true;
+                            FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+                            FlxG.save.data.difficulties = Difficulty.list; // just in case
+                            FlxG.save.data.SONG = states.PlayState.SONG;
+                            FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
+                            FlxG.save.data.songPos = FlxG.sound.music.time;
+                            FlxG.save.flush();
+
+                            var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
+                            var curSong = FlxG.random.int(0, specialSongList.length-1);
+                            Difficulty.list = Difficulty.defaultList.copy();
+                            states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                            states.PlayState.storyWeek = -1;
+                            Mods.currentModDirectory = '';
+                            states.PlayState.storyDifficulty = Difficulty.list.length-1;
+                            FlxG.save.flush();
+
+                            if (Std.is(FlxG.state, APPlayState)) {
+                                MusicBeatState.resetState();
+                            } else {
+                                FlxG.switchState(new APPlayState());
+                            }
+                        }
+                    } else {
+                        trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
+                        if (!FlxG.save.data.manualOverride) {
+                            FlxG.save.data.manualOverride = true;
+                            FlxG.save.data.storyWeek = states.PlayState.storyWeek;
+                            FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+                            FlxG.save.data.difficulties = Difficulty.list; // just in case
+                            FlxG.save.data.SONG = states.PlayState.SONG;
+                            FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
+                            FlxG.save.data.songPos = FlxG.sound.music.time;
+                            FlxG.save.flush();
+
+                            var freeplayState = cast FreeplayManager.getFreeplay();
+                            var theManager = freeplayState.instance.fpManager;
+                            var pickedSong = FlxG.random.int(0, Std.int(theManager.songList.length-1));
+                            var song = theManager.songList[pickedSong];
+                            var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[song.week]);
+                            Mods.currentModDirectory = song.folder;
+                            states.PlayState.storyWeek = song.week;
+                            Difficulty.loadFromWeek(leWeek);
+                            MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
+                        }
+                    }
+                }, true, true);
+
             case "Nothing":
                 popup('...For now...', "APItem: Nothing");
                 return null;
@@ -961,17 +1019,33 @@ class APItem {
                 });
 
             case "Swap Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
                     popup('I\'m bored. Play a different song.', 'TrapLink: Swap Trap');
-                    var freeplayState = cast FreeplayManager.getFreeplay();
-                    var theManager = freeplayState.instance.fpManager;
-                    var pickedSong = FlxG.random.int(0, Std.int(theManager.songList.length-1));
-                    var song = theManager.songList[pickedSong];
-                    var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[song.week]);
-                    Mods.currentModDirectory = song.folder;
-                    states.PlayState.storyWeek = song.week;
-                    Difficulty.loadFromWeek(leWeek);
-                    MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
+                    if (!FlxG.save.data.manualOverride) {
+                        FlxG.save.data.manualOverride = true;
+                        FlxG.save.data.storyWeek = states.PlayState.storyWeek;
+                        FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+                        FlxG.save.data.difficulties = Difficulty.list; // just in case
+                        FlxG.save.data.SONG = states.PlayState.SONG;
+                        FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
+                        FlxG.save.data.songPos = FlxG.sound.music.time;
+                        FlxG.save.flush();
+
+                        var freeplayState = cast FreeplayManager.getFreeplay();
+                        var theManager = freeplayState.instance.fpManager;
+                        var pickedSong = FlxG.random.int(0, Std.int(theManager.songList.length-1));
+                        var song = theManager.songList[pickedSong];
+                        var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[song.week]);
+                        Mods.currentModDirectory = song.folder;
+                        states.PlayState.storyWeek = song.week;
+                        Difficulty.loadFromWeek(leWeek);
+                        MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
+                    }
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -1051,6 +1125,10 @@ class APItem {
             "Shield",
             "Max HP Up",
             "Tutorial Trap",
+            "Song Switch Trap",
+            "Resistance Trap",
+            "UNO Challenge",
+            "Pong Challenge",
             "Pocket Lens",
             "Nothing"
         ];

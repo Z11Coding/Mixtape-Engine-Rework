@@ -1145,16 +1145,17 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.storyWeek = PlayState.storyWeek;
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
+                                FlxG.save.data.curDifficulty = curDifficulty; // just in case
                                 FlxG.save.data.SONG = PlayState.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
                                 FlxG.save.flush();
 
-                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
+                                Difficulty.list = Difficulty.defaultList.copy();
                                 PlayState.storyWeek = 0;
                                 Mods.currentModDirectory = 'week1';
-                                Difficulty.list = Difficulty.defaultList.copy();
-                                PlayState.storyDifficulty = curDifficulty;
+                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', Difficulty.list.length-1), Paths.formatToSongPath('tutorial'));
+                                PlayState.storyDifficulty = Difficulty.list.length-1;
                                 FlxG.save.flush();
 
                                 if (Std.is(FlxG.state, APPlayState)) {
@@ -1180,6 +1181,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.storyWeek = PlayState.storyWeek;
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
+                                FlxG.save.data.curDifficulty = curDifficulty; // just in case
                                 FlxG.save.data.SONG = PlayState.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
@@ -1187,11 +1189,11 @@ class APPlayState extends PlayState {
 
                                 var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
                                 var curSong = FlxG.random.int(0, specialSongList.length-1);
-                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], curDifficulty), Paths.formatToSongPath(specialSongList[curSong]));
+                                Difficulty.list = Difficulty.defaultList.copy();
                                 PlayState.storyWeek = -1;
                                 Mods.currentModDirectory = '';
-                                Difficulty.list = Difficulty.defaultList.copy();
-                                PlayState.storyDifficulty = curDifficulty;
+                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                                PlayState.storyDifficulty = Difficulty.list.length-1;
                                 FlxG.save.flush();
 
                                 if (Std.is(FlxG.state, APPlayState)) {
@@ -2201,6 +2203,7 @@ class APPlayState extends PlayState {
             PlayState.storyWeek = FlxG.save.data.storyWeek;
             Mods.currentModDirectory = FlxG.save.data.currentModDirectory;
             Difficulty.list = FlxG.save.data.difficulties;
+            curDifficulty = FlxG.save.data.curDifficulty; // just in case
             PlayState.SONG = FlxG.save.data.SONG;
             PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
             FlxG.save.data.manualOverride = false;
