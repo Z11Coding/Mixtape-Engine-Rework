@@ -39,21 +39,27 @@ class MusicBeatState extends FlxState
 	public static var revokeControls:Bool = false;
 
 	// AP State Tracking System
-	private static var _apOptionsState:MusicBeatState = null;
+	private static var _apOptionsStateClass:Class<MusicBeatState> = null;
+	private static var _apOptionsStateArgs:Array<Dynamic> = [];
 	private static var _allowedStates:Array<Class<MusicBeatState>> = [];
 	private static var _variablesToCapture:Array<String> = [];
 	private static var _capturedVariables:Map<String, Dynamic> = new Map<String, Dynamic>();
+	private static var _navigationContext:String = null;
 
 	/**
 	 * Sets up state tracking for AP options system
-	 * @param apOptionsState The AP options state to return to
+	 * @param apOptionsStateClass The AP options state class to return to
 	 * @param allowedStates Array of state classes that are allowed without triggering return
 	 * @param variablesToCapture Array of variable names to capture from the current state
+	 * @param stateArgs Optional constructor arguments for the AP options state
+	 * @param context Optional context string to help identify the purpose of navigation
 	 */
-	public static function setAPOptionsTracking(apOptionsState:MusicBeatState, allowedStates:Array<Class<MusicBeatState>>, ?variablesToCapture:Array<String>) {
-		_apOptionsState = apOptionsState;
+	public static function setAPOptionsTracking(apOptionsStateClass:Class<MusicBeatState>, allowedStates:Array<Class<MusicBeatState>>, ?variablesToCapture:Array<String>, ?stateArgs:Array<Dynamic>, ?context:String) {
+		_apOptionsStateClass = apOptionsStateClass;
+		_apOptionsStateArgs = stateArgs != null ? stateArgs.copy() : [];
 		_allowedStates = allowedStates.copy();
 		_variablesToCapture = variablesToCapture != null ? variablesToCapture.copy() : [];
+		_navigationContext = context;
 		_capturedVariables.clear();
 	}
 
@@ -62,7 +68,7 @@ class MusicBeatState extends FlxState
 	 * Called automatically in update()
 	 */
 	private static function checkAPOptionsReturn(currentState:MusicBeatState) {
-		if (_apOptionsState == null) return;
+		if (_apOptionsStateClass == null) return;
 
 		var currentStateClass = Type.getClass(currentState);
 
@@ -75,8 +81,8 @@ class MusicBeatState extends FlxState
 			}
 		}
 
-		// If current state is not in allowed states and is not the AP options state itself
-		if (!isAllowed && currentState != _apOptionsState) {
+		// If current state is not in allowed states and is not the AP options state class itself
+		if (!isAllowed && currentStateClass != _apOptionsStateClass) {
 			// Capture variables if specified
 			for (varName in _variablesToCapture) {
 				try {
@@ -89,10 +95,19 @@ class MusicBeatState extends FlxState
 				}
 			}
 
-			// Reset tracking and return to AP options
-			var returnState = _apOptionsState;
+			// Store navigation context for the new state
+			if (_navigationContext != null) {
+				_capturedVariables.set("_navigationContext", _navigationContext);
+			}
+
+			// Create new instance of the AP options state
+			var returnStateClass = _apOptionsStateClass;
+			var returnStateArgs = _apOptionsStateArgs.copy();
 			clearAPOptionsTracking();
-			switchState(returnState);
+
+			// Create new state instance
+			var newState:MusicBeatState = Type.createInstance(returnStateClass, returnStateArgs);
+			switchState(newState);
 		}
 	}
 
@@ -100,9 +115,11 @@ class MusicBeatState extends FlxState
 	 * Clears AP options tracking
 	 */
 	public static function clearAPOptionsTracking() {
-		_apOptionsState = null;
+		_apOptionsStateClass = null;
+		_apOptionsStateArgs = [];
 		_allowedStates = [];
 		_variablesToCapture = [];
+		_navigationContext = null;
 		// Don't clear captured variables - let the AP options state handle them
 	}
 

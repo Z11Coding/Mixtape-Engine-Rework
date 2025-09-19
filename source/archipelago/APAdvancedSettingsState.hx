@@ -131,6 +131,8 @@ class APAdvancedSettingsState extends MusicBeatState {
     // Slider controls
     var activeSliders:Map<String, SliderControl> = new Map();
     var selectedSlider:String = null;
+    var isSliderActive:Bool = false;
+    var sliderUpdateFunc:Float->Void = null;
 
     override function create() {
         super.create();
@@ -138,13 +140,27 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Initialize temporary save system
         initTempSave();
 
+        // Check for captured variables from state navigation
+        var capturedVars = MusicBeatState.getCapturedVariables();
+        if (capturedVars != null && !capturedVars.isEmpty()) {
+            handleCapturedVariables(capturedVars);
+            MusicBeatState.clearCapturedVariables();
+        }
+
         // Check if we're returning from a state navigation
         if (tempSave != null && tempSave.data.shouldReturnToAdvancedSettings == true) {
             // Clear the return flag
             tempSave.data.shouldReturnToAdvancedSettings = false;
+            var navContext = tempSave.data.navigationContext;
             tempSave.flush();
+
             // Load from temp data instead of regular settings
             loadFromTempData();
+
+            // Show a brief notification about the navigation return
+            if (navContext != null) {
+                trace('Returned from navigation: $navContext');
+            }
         }
 
         setupBackground();
@@ -695,25 +711,42 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function selectStartingSong() {
-        // This would open a song selection submenu
         FlxG.sound.play(Paths.sound('confirmMenu'));
-        // For now, cycle through some options
-        var songs = ["Tutorial", "Bopeebo", "Fresh", "Dadbattle"];
-        var current = songs.indexOf(startingSong);
-        startingSong = songs[(current + 1) % songs.length];
-        refreshCurrentPage();
+
+        // Save current state data
+        saveTempData();
+
+        // Set up MusicBeatState tracking for song selection
+        MusicBeatState.setAPOptionsTracking(
+            APAdvancedSettingsState, // Return to this state CLASS
+            [states.freeplay.FreeplayState], // Allow staying in freeplay
+            ["curSelected", "selectedSong", "selectedDifficulty", "songs"], // Variables to capture
+            null, // No constructor args needed
+            "startingSong" // Context to identify this selection
+        );
+
+        // Switch to freeplay state
+        FlxG.switchState(new states.freeplay.FreeplayState());
     }
 
     function selectVictorySong() {
-        // This would open a song selection submenu
         FlxG.sound.play(Paths.sound('confirmMenu'));
-        var songs = ["Tutorial", "Bopeebo", "Fresh", "Dadbattle"];
-        var current = songs.indexOf(victorySong);
-        victorySong = songs[(current + 1) % songs.length];
-        refreshCurrentPage();
-    }
 
-    function refreshCurrentPage() {
+        // Save current state data
+        saveTempData();
+
+        // Set up MusicBeatState tracking for song selection
+        MusicBeatState.setAPOptionsTracking(
+            APAdvancedSettingsState, // Return to this state CLASS
+            [states.freeplay.FreeplayState], // Allow staying in freeplay
+            ["curSelected", "selectedSong", "selectedDifficulty", "songs"], // Variables to capture
+            null, // No constructor args needed
+            "victorySong" // Context to identify this selection
+        );
+
+        // Switch to freeplay state
+        FlxG.switchState(new states.freeplay.FreeplayState());
+    }    function refreshCurrentPage() {
         loadPage(currentPage);
         updateSongStats();
         saveTempData(); // Save changes
@@ -799,10 +832,73 @@ class APAdvancedSettingsState extends MusicBeatState {
         openSubState(new Prompt("State Data Captured\n\nCaptured from closed state:\n\n" + data, 0, null, null, false));
     }
 
-    // State option system for complex settings
-    // This will be handled by MusicBeatState's tracking system
-
     /**
+     * Handles captured variables from state navigation
+     */
+    function handleCapturedVariables(capturedVars:Map<String, Dynamic>) {
+        trace('Handling captured variables: ${capturedVars.keys()}');
+
+        // Get navigation context to determine what was being selected
+        var context:String = capturedVars.exists("_navigationContext") ?
+            cast(capturedVars.get("_navigationContext"), String) : null;
+
+        trace('Navigation context: $context');
+
+        // Process captured song selection data
+        var selectedSongName:String = null;
+
+        if (capturedVars.exists("selectedSong")) {
+            var songData = capturedVars.get("selectedSong");
+            if (songData != null && Std.isOfType(songData, String)) {
+                selectedSongName = cast(songData, String);
+            } else if (songData != null && Reflect.hasField(songData, "songName")) {
+                selectedSongName = Reflect.field(songData, "songName");
+            }
+        } else if (capturedVars.exists("curSelected") && capturedVars.exists("songs")) {
+            // Fallback: use curSelected index with songs array
+            var selectedIndex = capturedVars.get("curSelected");
+            var songsArray = capturedVars.get("songs");
+
+            if (selectedIndex != null && Std.isOfType(selectedIndex, Int) &&
+                songsArray != null && Std.isOfType(songsArray, Array)) {
+
+                var index:Int = cast selectedIndex;
+                var songs:Array<Dynamic> = cast songsArray;
+
+                if (index >= 0 && index < songs.length) {
+                    var songInfo = songs[index];
+
+                    // Try different ways to get the song name
+                    if (Std.isOfType(songInfo, String)) {
+                        selectedSongName = cast songInfo;
+                    } else if (Reflect.hasField(songInfo, "songName")) {
+                        selectedSongName = Reflect.field(songInfo, "songName");
+                    } else if (Reflect.hasField(songInfo, "name")) {
+                        selectedSongName = Reflect.field(songInfo, "name");
+                    }
+                }
+            }
+        }
+
+        // Apply the selected song to the appropriate setting based on context
+        if (selectedSongName != null) {
+            switch (context) {
+                case "startingSong":
+                    startingSong = selectedSongName;
+                    trace('Updated starting song: $startingSong');
+                case "victorySong":
+                    victorySong = selectedSongName;
+                    trace('Updated victory song: $victorySong');
+                default:
+                    // Default to starting song if no context
+                    startingSong = selectedSongName;
+                    trace('Updated starting song (default): $startingSong');
+            }
+        }
+
+        // Refresh the current page to show updated values
+        refreshCurrentPage();
+    }    /**
      * Creates a state option that opens another state with proper tracking
      * @param name Display name for the option
      * @param description Description of what the option does
@@ -1049,8 +1145,13 @@ class APAdvancedSettingsState extends MusicBeatState {
             navigationCooldown -= elapsed;
         }
 
+        // Handle slider updates if one is active
+        if (isSliderActive && sliderUpdateFunc != null) {
+            sliderUpdateFunc(elapsed);
+        }
+
         // Don't handle input if a substate is open or a slider is active
-        if (subState != null || selectedSlider != null) return;
+        if (subState != null || isSliderActive) return;
 
         // Handle input with cooldown
         if (navigationCooldown <= 0) {
@@ -1104,7 +1205,7 @@ class APAdvancedSettingsState extends MusicBeatState {
 
     function handleMouseInput() {
         // Don't handle input if a substate is open or a slider is active
-        if (subState != null || selectedSlider != null) return;
+        if (subState != null || isSliderActive) return;
 
         var mousePos = FlxG.mouse.getPosition();
 
@@ -1187,7 +1288,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             ticketWinPercent: ticketWinPercent,
             chartmodifierchance: chartmodifierchance,
             trapAmount: trapAmount,
-            songLimit: songLimit
+            songLimit: songLimit,
+            currentPage: currentPage
         };
 
         if (tempSave != null) {
@@ -1216,6 +1318,11 @@ class APAdvancedSettingsState extends MusicBeatState {
             chartmodifierchance = data.chartmodifierchance;
             trapAmount = data.trapAmount;
             songLimit = data.songLimit;
+
+            // Restore current page if available
+            if (Reflect.hasField(data, "currentPage")) {
+                currentPage = data.currentPage;
+            }
         }
     }
 
@@ -1261,6 +1368,9 @@ class APAdvancedSettingsState extends MusicBeatState {
 
     // Slider control system
     function openSliderControl(name:String, currentValue:Float, minValue:Float, maxValue:Float, stepSize:Float, onUpdate:Float->Void) {
+        // Set slider active to block other input
+        isSliderActive = true;
+
         var sliderBg = new FlxSprite(0, 0);
         sliderBg.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 120));
         add(sliderBg);
@@ -1322,8 +1432,8 @@ class APAdvancedSettingsState extends MusicBeatState {
         var isDragging = false;
         var currentVal = currentValue;
 
-        // Update function
-        var updateFunc = function(elapsed:Float) {
+        // Create the update function and assign it
+        sliderUpdateFunc = function(elapsed:Float) {
             if (FlxG.mouse.pressed && FlxG.mouse.overlaps(sliderTrack)) {
                 isDragging = true;
             }
@@ -1342,7 +1452,7 @@ class APAdvancedSettingsState extends MusicBeatState {
                 isDragging = false;
             }
 
-            // Button clicks
+            // Button clicks - only handle if slider is active
             if (FlxG.mouse.overlaps(inputButton) && FlxG.mouse.justPressed) {
                 openSubState(new NumberInputSubstate(
                     name,
@@ -1366,7 +1476,7 @@ class APAdvancedSettingsState extends MusicBeatState {
                 onUpdate(currentVal);
                 FlxG.sound.play(Paths.sound('confirmMenu'));
 
-                // Remove all slider elements
+                // Remove all slider elements and reset state
                 remove(sliderBg);
                 remove(panel);
                 remove(titleText);
@@ -1377,16 +1487,12 @@ class APAdvancedSettingsState extends MusicBeatState {
                 remove(inputButtonText);
                 remove(closeButton);
                 remove(closeButtonText);
+
+                // Reset slider state
+                isSliderActive = false;
+                sliderUpdateFunc = null;
             }
         };
-
-        // Add update function to a temporary timer
-        new FlxTimer().start(0.01, function(timer:FlxTimer) {
-            if (members.indexOf(sliderBg) != -1) {
-                updateFunc(timer.timeLeft);
-                timer.reset();
-            }
-        }, 0);
     }
 
     function openValueInput(name:String, currentValue:Float, minValue:Float, maxValue:Float, onUpdate:Float->Void) {

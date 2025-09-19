@@ -310,9 +310,73 @@ class NumberInputSubstate extends MusicBeatSubstate {
     function animateOut(onComplete:Void->Void) {
         isAnimating = true;
 
-        FlxTween.tween(this, {alpha: 0}, 0.3, {
-            ease: FlxEase.sineIn,
-            onComplete: function(_) {
+        // Count animations to know when we're done
+        var animationCount = 0;
+        var totalAnimations = 0;
+
+        // Count how many elements we'll animate
+        for (member in members) {
+            if (member != background && member != particles) {
+                if (Std.isOfType(member, FlxSprite) || Std.isOfType(member, FlxText)) {
+                    totalAnimations++;
+                } else if (Std.isOfType(member, FlxTypedGroup)) {
+                    var group:FlxTypedGroup<Dynamic> = cast member;
+                    totalAnimations += group.members.length;
+                }
+            }
+        }
+
+        var onAnimationComplete = function() {
+            animationCount++;
+            if (animationCount >= totalAnimations) {
+                onComplete();
+            }
+        };
+
+        // Animate out all visual elements
+        for (member in members) {
+            if (member != background && member != particles) {
+                if (Std.isOfType(member, FlxSprite)) {
+                    var sprite:FlxSprite = cast(member, FlxSprite);
+                    FlxTween.tween(sprite, {alpha: 0}, 0.3, {
+                        ease: FlxEase.sineIn,
+                        onComplete: function(_) onAnimationComplete()
+                    });
+                } else if (Std.isOfType(member, FlxText)) {
+                    var text:FlxText = cast(member, FlxText);
+                    FlxTween.tween(text, {alpha: 0}, 0.3, {
+                        ease: FlxEase.sineIn,
+                        onComplete: function(_) onAnimationComplete()
+                    });
+                } else if (Std.isOfType(member, FlxTypedGroup)) {
+                    var group:FlxTypedGroup<Dynamic> = cast member;
+                    group.forEachAlive(function(groupMember:Dynamic) {
+                        if (Std.isOfType(groupMember, FlxSprite)) {
+                            var sprite:FlxSprite = cast(groupMember, FlxSprite);
+                            FlxTween.tween(sprite, {alpha: 0}, 0.3, {
+                                ease: FlxEase.sineIn,
+                                onComplete: function(_) onAnimationComplete()
+                            });
+                        } else if (Std.isOfType(groupMember, FlxText)) {
+                            var text:FlxText = cast(groupMember, FlxText);
+                            FlxTween.tween(text, {alpha: 0}, 0.3, {
+                                ease: FlxEase.sineIn,
+                                onComplete: function(_) onAnimationComplete()
+                            });
+                        }
+                    });
+                }
+            }
+        }
+
+        // Animate background separately (faster fade)
+        FlxTween.tween(background, {alpha: 0}, 0.2, {
+            ease: FlxEase.sineIn
+        });
+
+        // Safety fallback in case animation counting fails
+        new FlxTimer().start(0.5, function(_) {
+            if (isAnimating) {
                 onComplete();
             }
         });
