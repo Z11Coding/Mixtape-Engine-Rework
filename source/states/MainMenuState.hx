@@ -1,6 +1,7 @@
 package states;
 
 import archipelago.APGameState;
+import archipelago.APVersionSelectionState;
 import flixel.FlxObject;
 import flixel.addons.display.FlxBackdrop;
 import flixel.effects.FlxFlicker;
@@ -524,7 +525,7 @@ class MainMenuState extends MusicBeatState
 							selectedSomethin = false;
 							item.visible = true;
 						case 'archipelago':
-							MusicBeatState.switchState(new archipelago.APEntryState());
+							archipelago.APVersionSelectionState.smartLaunch();
 						default:
 							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;

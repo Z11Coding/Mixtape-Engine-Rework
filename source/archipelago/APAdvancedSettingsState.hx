@@ -2,7 +2,9 @@ package archipelago;
 
 import archipelago.APEntryState;
 import archipelago.APInfo;
+import archipelago.APVersionSelectionState;
 import archipelago.CustomAPLogic;
+import archipelago.substates.NumberInputSubstate;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
 import backend.WeekData;
@@ -586,7 +588,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Animate all text elements separately
         for (i in 0...optionTexts.members.length) {
             var text = optionTexts.members[i];
-            
+
             if (text != null) {
                 text.x = FlxG.width + 10;
                 // Determine target X based on text content and positioning
@@ -1103,7 +1105,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     function handleMouseInput() {
         // Don't handle input if a substate is open or a slider is active
         if (subState != null || selectedSlider != null) return;
-        
+
         var mousePos = FlxG.mouse.getPosition();
 
         // Check option button clicks
@@ -1342,10 +1344,22 @@ class APAdvancedSettingsState extends MusicBeatState {
 
             // Button clicks
             if (FlxG.mouse.overlaps(inputButton) && FlxG.mouse.justPressed) {
-                openValueInput(name, currentVal, minValue, maxValue, function(newValue:Float) {
-                    currentVal = newValue;
-                    updateSlider(currentVal);
-                });
+                openSubState(new NumberInputSubstate(
+                    name,
+                    currentVal,
+                    minValue,
+                    maxValue,
+                    function(newValue:Float) {
+                        currentVal = newValue;
+                        updateSlider(currentVal);
+                    },
+                    null, // no cancel callback needed
+                    stepSize, // use the provided step size
+                    stepSize != Std.int(stepSize), // allow decimals if step size is not integer
+                    'Enter a value between $minValue and $maxValue',
+                    pages[currentPage].color, // use current page theme color
+                    true // show number pad
+                ));
             }
 
             if (FlxG.mouse.overlaps(closeButton) && FlxG.mouse.justPressed) {
@@ -1376,7 +1390,19 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function openValueInput(name:String, currentValue:Float, minValue:Float, maxValue:Float, onUpdate:Float->Void) {
-        openSubState(new NumberInputSubstate(name, currentValue, minValue, maxValue, onUpdate));
+        openSubState(new NumberInputSubstate(
+            name,
+            currentValue,
+            minValue,
+            maxValue,
+            onUpdate,
+            null, // no cancel callback needed
+            1, // step size
+            false, // no decimals for most AP settings
+            'Enter a value between $minValue and $maxValue',
+            pages[currentPage].color, // use current page theme color
+            true // show number pad
+        ));
     }
 
     function calculateMaxAvailableSongs():Int {
@@ -1390,7 +1416,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         if (allowMods) {
             total += backend.Mods.parseList().enabled.length * 3;
         }
-        return new Num(Math.max(5, total));
+        return Std.int(Math.max(5, total));
     }
 
     public static function restoreFromTemp():APAdvancedSettingsState {
@@ -1439,130 +1465,62 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Clear AP tracking
         MusicBeatState.clearAPOptionsTracking();
 
-        // Animate out
-        FlxTween.tween(this, {alpha: 0}, 0.5, {
-            onComplete: function(_) {
-                MusicBeatState.switchState(new APEntryState());
-            }
+        // Animate out all elements
+        animateOut(function() {
+            archipelago.APVersionSelectionState.smartLaunch();
         });
     }
-}
 
-class NumberInputSubstate extends MusicBeatSubstate {
-    var titleText:FlxText;
-    var inputText:FlxText;
-    var currentValue:String = "";
-    var minValue:Float;
-    var maxValue:Float;
-    var onConfirm:Float->Void;
+    function animateOut(onComplete:Void->Void) {
+        // Title and description slide up and fade
+        FlxTween.tween(titleText, {y: titleText.y - 100, alpha: 0}, 0.5, {ease: FlxEase.backIn});
+        FlxTween.tween(descriptionText, {y: descriptionText.y - 100, alpha: 0}, 0.4, {ease: FlxEase.backIn});
+        FlxTween.tween(pageIndicator, {y: pageIndicator.y - 80, alpha: 0}, 0.4, {ease: FlxEase.backIn});
 
-    public function new(title:String, currentVal:Float, min:Float, max:Float, callback:Float->Void) {
-        super();
-        minValue = min;
-        maxValue = max;
-        onConfirm = callback;
-        currentValue = Std.string(Std.int(currentVal));
+        // Navigation arrows fade out
+        FlxTween.tween(leftArrow, {alpha: 0}, 0.3, {ease: FlxEase.sineIn});
+        FlxTween.tween(rightArrow, {alpha: 0}, 0.3, {ease: FlxEase.sineIn});
 
-        var bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 120));
-        add(bg);
+        // Option buttons slide down and fade
+        optionButtons.forEachAlive(function(button:FlxSprite) {
+            FlxTween.tween(button, {y: button.y + 50, alpha: 0}, FlxG.random.float(0.3, 0.6), {ease: FlxEase.backIn});
+        });
 
-        var panel = new FlxSprite(Std.int(FlxG.width / 2) - 200, Std.int(FlxG.height / 2) - 100);
-        panel.makeGraphic(400, 200, FlxColor.fromRGB(20, 20, 40));
-        add(panel);
+        optionTexts.forEachAlive(function(text:FlxText) {
+            FlxTween.tween(text, {y: text.y + 50, alpha: 0}, FlxG.random.float(0.3, 0.6), {ease: FlxEase.backIn});
+        });
 
-        titleText = new FlxText(panel.x + 20, panel.y + 20, panel.width - 40, title, 20);
-        titleText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-        titleText.borderSize = 1;
-        add(titleText);
-
-        var rangeText = new FlxText(panel.x + 20, panel.y + 50, panel.width - 40, 'Range: ${min} - ${max}', 16);
-        rangeText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.GRAY, CENTER, OUTLINE, FlxColor.BLACK);
-        rangeText.borderSize = 1;
-        add(rangeText);
-
-        inputText = new FlxText(panel.x + 20, panel.y + 90, panel.width - 40, currentValue, 24);
-        inputText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
-        inputText.borderSize = 2;
-        add(inputText);
-
-        var confirmBtn = new FlxSprite(panel.x + 50, panel.y + 140);
-        confirmBtn.makeGraphic(100, 40, FlxColor.GREEN);
-        add(confirmBtn);
-
-        var confirmText = new FlxText(confirmBtn.x, confirmBtn.y + 10, confirmBtn.width, "CONFIRM", 16);
-        confirmText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-        confirmText.borderSize = 1;
-        add(confirmText);
-
-        var cancelBtn = new FlxSprite(panel.x + 250, panel.y + 140);
-        cancelBtn.makeGraphic(100, 40, FlxColor.RED);
-        add(cancelBtn);
-
-        var cancelText = new FlxText(cancelBtn.x, cancelBtn.y + 10, cancelBtn.width, "CANCEL", 16);
-        cancelText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-        cancelText.borderSize = 1;
-        add(cancelText);
-    }
-
-    override function update(elapsed:Float) {
-        super.update(elapsed);
-
-        // Handle number input
-        for (i in 0...10) {
-            var key = Reflect.field(FlxG.keys.justPressed, Std.string(i));
-            if (key) {
-                addDigit(Std.string(i));
-                FlxG.sound.play(Paths.sound('scrollMenu'), 0.5);
-            }
+        // Stats panel slides out
+        if (statsPanel != null) {
+            FlxTween.tween(statsPanel, {x: FlxG.width + 50, alpha: 0}, 0.4, {ease: FlxEase.backIn});
+        }
+        if (statsText != null) {
+            FlxTween.tween(statsText, {x: FlxG.width + 50, alpha: 0}, 0.4, {ease: FlxEase.backIn});
         }
 
-        if (FlxG.keys.justPressed.BACKSPACE && currentValue.length > 0) {
-            currentValue = currentValue.substr(0, currentValue.length - 1);
-            inputText.text = currentValue;
-            FlxG.sound.play(Paths.sound('scrollMenu'), 0.3);
+        // Close button slides down
+        FlxTween.tween(closeButton, {y: FlxG.height + 50, alpha: 0}, 0.4, {ease: FlxEase.backIn});
+        FlxTween.tween(exportButton, {y: FlxG.height + 50, alpha: 0}, 0.4, {ease: FlxEase.backIn});
+
+        // Background fade
+        FlxTween.tween(bg, {alpha: 0}, 0.6, {ease: FlxEase.sineIn});
+        FlxTween.tween(gradientOverlay, {alpha: 0}, 0.6, {ease: FlxEase.sineIn});
+
+        // Particles fade out
+        if (particles != null) {
+            particles.forEachAlive(function(particle:FlxSprite) {
+                FlxTween.tween(particle, {alpha: 0}, 0.3, {ease: FlxEase.sineIn});
+            });
         }
 
-        if (FlxG.keys.justPressed.ENTER) {
-            confirmInput();
+        // Glow effect fade out
+        if (glowEffect != null) {
+            FlxTween.tween(glowEffect, {alpha: 0}, 0.2, {ease: FlxEase.sineIn});
         }
 
-        if (FlxG.keys.justPressed.ESCAPE) {
-            close();
-        }
-
-        // Handle mouse clicks
-        if (FlxG.mouse.justPressed) {
-            var mousePos = FlxG.mouse.getPosition();
-            // Check if clicking confirm button area
-            if (mousePos.x >= FlxG.width / 2 - 150 && mousePos.x <= FlxG.width / 2 - 50 &&
-                mousePos.y >= FlxG.height / 2 + 40 && mousePos.y <= FlxG.height / 2 + 80) {
-                confirmInput();
-            }
-            // Check if clicking cancel button area
-            else if (mousePos.x >= FlxG.width / 2 + 50 && mousePos.x <= FlxG.width / 2 + 150 &&
-                     mousePos.y >= FlxG.height / 2 + 40 && mousePos.y <= FlxG.height / 2 + 80) {
-                close();
-            }
-        }
-    }
-
-    function addDigit(digit:String) {
-        if (currentValue.length < 3) { // Limit to 3 digits
-            currentValue += digit;
-            inputText.text = currentValue;
-        }
-    }
-
-    function confirmInput() {
-        if (currentValue == "") return;
-
-        var value = Std.parseFloat(currentValue);
-        if (value >= minValue && value <= maxValue) {
-            onConfirm(value);
-            close();
-        } else {
-            FlxG.sound.play(Paths.sound('cancelMenu'));
-            FlxG.camera.shake(0.01, 0.2);
-        }
+        // Call completion after longest animation
+        new FlxTimer().start(0.6, function(_) {
+            if (onComplete != null) onComplete();
+        });
     }
 }
