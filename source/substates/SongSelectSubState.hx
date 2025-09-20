@@ -38,6 +38,12 @@ class SongSelectSubState extends MusicBeatSubstate
     private var titleText:FlxText;
     private var instructText:FlxText;
     private var categoryText:FlxText;
+    private var searchField:FlxUIInputText;
+    private var searchLabel:FlxText;
+
+    // Search functionality
+    private var searchTerm:String = "";
+    private var isSearching:Bool = false;
 
     // Selection variables
     private var curSelected:Int = 0;
@@ -48,6 +54,12 @@ class SongSelectSubState extends MusicBeatSubstate
     // Available categories (discovered dynamically like CategoryState)
     public var categories:Array<String> = [];
     private var currentCategory:String = "All";
+
+    // Mod selection variables
+    private var inModSelection:Bool = false;
+    private var availableMods:Array<String> = [];
+    private var curModSelected:Int = 0;
+    private var selectionMode:String = "categories"; // "categories" or "mods"
 
     // Title for the selection (e.g. "Select Starting Song", "Select Victory Song")
     public var selectionTitle:String = "Select Song";
@@ -158,6 +170,27 @@ class SongSelectSubState extends MusicBeatSubstate
         trace("Discovered categories: " + categories);
     }
 
+    function discoverMods():Void
+    {
+        // Start with "All" for mods too
+        availableMods = ["All"];
+
+        try {
+            // Get enabled mods from backend.Mods
+            var enabledMods = backend.Mods.parseList().enabled;
+            for (mod in enabledMods) {
+                if (!availableMods.contains(mod)) {
+                    availableMods.push(mod);
+                }
+            }
+        } catch (e:Dynamic) {
+            // If Mods.parseList fails, just continue with empty mod list
+            trace("Warning: Could not parse mod list for mod selection: " + e);
+        }
+
+        trace("Discovered mods: " + availableMods);
+    }
+
     override function create()
     {
         super.create();
@@ -202,9 +235,25 @@ class SongSelectSubState extends MusicBeatSubstate
         categoryText.borderSize = 1;
         add(categoryText);
 
+        // Create search label
+        searchLabel = new FlxText(50, 120, 100, "Search:");
+        searchLabel.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.CYAN, LEFT, OUTLINE, FlxColor.BLACK);
+        searchLabel.borderSize = 1;
+        add(searchLabel);
+
+        // Create search field
+        searchField = new FlxUIInputText(150, 115, 300, "", 18);
+        searchField.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, LEFT);
+        searchField.backgroundColor = FlxColor.fromRGB(20, 20, 40);
+        searchField.borderStyle = OUTLINE;
+        searchField.borderColor = FlxColor.CYAN;
+        searchField.borderSize = 2;
+        searchField.callback = onSearchTextChange;
+        add(searchField);
+
         // Create instruction text
         instructText = new FlxText(0, FlxG.height - 100, FlxG.width,
-            "ENTER - Select | ESC - Cancel | UP/DOWN - Navigate | TAB - Category | LEFT/RIGHT - Category Nav");
+            "ENTER - Select | ESC - Cancel | UP/DOWN - Navigate | TAB - Category | F - Search | SHIFT+TAB - Mods");
         instructText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         instructText.borderSize = 1;
         add(instructText);
@@ -260,17 +309,57 @@ class SongSelectSubState extends MusicBeatSubstate
         grpCategories.visible = false;
     }
 
-    function loadSongList()
+    function loadModList()
     {
         // Clear existing items
+        grpCategories.clear();
+
+        // Ensure we have at least "All" mod
+        if (availableMods.length == 0) {
+            availableMods = ["All"];
+        }
+
+        // Add mods to categories group (reusing the UI)
+        for (i in 0...availableMods.length)
+        {
+            var modText:Alphabet = new Alphabet(90, 150, availableMods[i], true);
+            modText.isMenuItem = true;
+            modText.targetY = i;
+            modText.alpha = i == curModSelected ? 1.0 : 0.6;
+            grpCategories.add(modText);
+        }
+
+        // Show categories (which now contains mods)
+        grpCategories.visible = true;
+        grpSongs.visible = false;
+
+        // Hide song icons
+        for (icon in iconArray) {
+            if (icon != null) icon.visible = false;
+        }
+    }
+
+    function loadSongList()
+    {
+        // Clear existing items and clean up old icons
         grpSongs.clear();
+        
+        // Properly dispose of old icons
+        for (icon in iconArray) {
+            if (icon != null) {
+                remove(icon);
+                icon.destroy();
+            }
+        }
         iconArray = [];
 
         // Set the category before loading songs
         CategoryState.loadWeekForce = currentCategory.toLowerCase();
 
-        // Recreate FreeplayManager with the new category
+        // Recreate FreeplayManager with the new category and search term
         fpManager = new FreeplayManager(true);
+        // Use refresh=false when we have a search term, true when no search
+        fpManager.reloadFreeplay(searchTerm == "" || searchTerm == null, searchTerm);
 
         // Add songs from FreeplayManager
         if (fpManager != null && fpManager.songList != null)
@@ -297,11 +386,27 @@ class SongSelectSubState extends MusicBeatSubstate
         // Handle case where no songs are available
         if (grpSongs.length == 0)
         {
-            var noSongsText:Alphabet = new Alphabet(90, 320, "No Songs Available", true);
+            var noSongsText:Alphabet = new Alphabet(90, 320, searchTerm != "" ? "No Songs Found" : "No Songs Available", true);
             noSongsText.isMenuItem = true;
             noSongsText.targetY = 0;
             grpSongs.add(noSongsText);
         }
+
+        // Ensure songs and icons are visible and categories are hidden (unless in specific modes)
+        if (!inCategorySelection && !inModSelection) {
+            grpSongs.visible = true;
+            grpCategories.visible = false;
+            for (icon in iconArray) {
+                if (icon != null) icon.visible = true;
+            }
+        }
+    }
+
+    function onSearchTextChange(text:String, action:String)
+    {
+        searchTerm = text;
+        loadSongList();
+        changeSelection(0); // Reset selection to first item
     }
 
     override function update(elapsed:Float)
@@ -311,11 +416,51 @@ class SongSelectSubState extends MusicBeatSubstate
         // Handle TAB key to toggle category selection mode
         if (FlxG.keys.justPressed.TAB)
         {
-            toggleCategoryMode();
+            if (FlxG.keys.pressed.SHIFT)
+            {
+                // SHIFT+TAB for mod selection mode (future feature)
+                toggleModSelectionMode();
+            }
+            else
+            {
+                toggleCategoryMode();
+            }
+        }
+
+        // Handle F key to focus search field
+        if (FlxG.keys.justPressed.F)
+        {
+            toggleSearch();
         }
 
         // Handle input based on current mode
-        if (inCategorySelection)
+        if (isSearching)
+        {
+            // Search mode - let FlxUIInputText handle typing
+            if (controls.BACK || FlxG.keys.justPressed.ESCAPE)
+            {
+                toggleSearch();
+            }
+            return; // Don't process other controls while searching
+        }
+        else if (inModSelection)
+        {
+            // Mod selection mode
+            if (controls.UI_UP_P)
+                changeModSelection(-1);
+            if (controls.UI_DOWN_P)
+                changeModSelection(1);
+            if (controls.UI_LEFT_P)
+                changeModSelection(-1);
+            if (controls.UI_RIGHT_P)
+                changeModSelection(1);
+
+            if (controls.ACCEPT)
+            {
+                selectCurrentMod();
+            }
+        }
+        else if (inCategorySelection)
         {
             // Category selection mode
             if (controls.UI_LEFT_P)
@@ -349,7 +494,15 @@ class SongSelectSubState extends MusicBeatSubstate
         // Common controls
         if (controls.BACK)
         {
-            if (inCategorySelection)
+            if (isSearching)
+            {
+                toggleSearch();
+            }
+            else if (inModSelection)
+            {
+                toggleModSelectionMode(); // Exit mod selection mode
+            }
+            else if (inCategorySelection)
             {
                 toggleCategoryMode(); // Exit category mode
             }
@@ -393,6 +546,9 @@ class SongSelectSubState extends MusicBeatSubstate
 
         if (inCategorySelection)
         {
+            // Entering category selection mode
+            inModSelection = false; // Ensure we're not in mod selection
+            
             // Show categories, hide songs and icons
             grpCategories.visible = true;
             grpSongs.visible = false;
@@ -405,6 +561,7 @@ class SongSelectSubState extends MusicBeatSubstate
         }
         else
         {
+            // Exiting category selection mode
             // Show songs and icons, hide categories
             grpCategories.visible = false;
             grpSongs.visible = true;
@@ -413,7 +570,85 @@ class SongSelectSubState extends MusicBeatSubstate
             }
 
             categoryText.text = "Category: " + currentCategory + " (TAB to change)";
-            instructText.text = "ENTER - Select | ESC - Cancel | UP/DOWN - Navigate | TAB - Category";
+            updateInstructionText();
+        }
+
+        FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+    }
+
+    function toggleSearch():Void
+    {
+        isSearching = !isSearching;
+
+        if (isSearching)
+        {
+            // Entering search mode
+            inCategorySelection = false;
+            inModSelection = false;
+            
+            // Focus search field
+            searchField.hasFocus = true;
+            searchField.borderColor = FlxColor.YELLOW;
+            searchLabel.color = FlxColor.YELLOW;
+            instructText.text = "Type to search | ESC - Exit Search";
+        }
+        else
+        {
+            // Exiting search mode
+            // Unfocus search field
+            searchField.hasFocus = false;
+            searchField.borderColor = FlxColor.CYAN;
+            searchLabel.color = FlxColor.CYAN;
+            
+            // Clear search term and reload all songs
+            searchTerm = "";
+            searchField.text = "";
+            loadSongList();
+            changeSelection(0); // Reset selection
+            
+            updateInstructionText();
+        }
+
+        FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+    }
+
+    function toggleModSelectionMode():Void
+    {
+        if (selectionMode == "categories") {
+            // Switch to mod selection mode
+            selectionMode = "mods";
+            inModSelection = true;
+            inCategorySelection = false;
+            
+            // Discover available mods
+            discoverMods();
+            loadModList();
+            
+            // Update UI text
+            categoryText.text = "Selecting Mod: " + availableMods[curModSelected] + " (ENTER to confirm)";
+            instructText.text = "ENTER - Select Mod | SHIFT+TAB - Back to Categories | UP/DOWN - Navigate";
+        } else {
+            // Switch back to category selection mode
+            selectionMode = "categories";
+            inModSelection = false;
+            inCategorySelection = false;
+            
+            // Reload the category list and songs
+            loadCategoryList();
+            loadSongList();
+            
+            // Ensure proper visibility states
+            grpCategories.visible = false;
+            grpSongs.visible = true;
+            
+            // Show song icons
+            for (icon in iconArray) {
+                if (icon != null) icon.visible = true;
+            }
+            
+            // Update UI text
+            categoryText.text = "Category: " + currentCategory + " (TAB to change)";
+            updateInstructionText();
         }
 
         FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
@@ -464,7 +699,90 @@ class SongSelectSubState extends MusicBeatSubstate
         changeSelection(0);
 
         // Exit category mode
-        toggleCategoryMode();
+        inCategorySelection = false;
+        inModSelection = false; // Ensure clean state
+        
+        // Ensure proper visibility
+        grpCategories.visible = false;
+        grpSongs.visible = true;
+        for (icon in iconArray) {
+            if (icon != null) icon.visible = true;
+        }
+        
+        // Update UI text
+        categoryText.text = "Category: " + currentCategory + " (TAB to change)";
+        updateInstructionText();
+    }
+
+    function changeModSelection(change:Int = 0):Void
+    {
+        if (!inModSelection) return;
+
+        FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+
+        curModSelected += change;
+
+        if (curModSelected < 0)
+            curModSelected = availableMods.length - 1;
+        if (curModSelected >= availableMods.length)
+            curModSelected = 0;
+
+        var bullShit:Int = 0;
+        for (item in grpCategories.members)
+        {
+            item.targetY = bullShit - curModSelected;
+            bullShit++;
+
+            item.alpha = 0.6;
+            if (item.targetY == 0)
+                item.alpha = 1;
+        }
+
+        categoryText.text = "Selecting Mod: " + availableMods[curModSelected] + " (ENTER to confirm)";
+    }
+
+    function selectCurrentMod():Void
+    {
+        if (!inModSelection || curModSelected < 0 || curModSelected >= availableMods.length)
+            return;
+
+        var selectedMod = availableMods[curModSelected];
+
+        // Set the category to the selected mod (or "Mods" if "All" is selected)
+        if (selectedMod == "All") {
+            currentCategory = "Mods";
+            CategoryState.loadWeekForce = "mods";
+        } else {
+            currentCategory = selectedMod;
+            CategoryState.loadWeekForce = selectedMod.toLowerCase();
+        }
+
+        FlxG.sound.play(Paths.sound('confirmMenu'));
+
+        // Exit mod selection mode and return to regular song selection
+        selectionMode = "categories";
+        inModSelection = false;
+        inCategorySelection = false;
+
+        // Reload songs with new mod/category
+        loadSongList();
+
+        // Reset song selection
+        curSelected = 0;
+        changeSelection(0);
+
+        // Ensure proper visibility states
+        grpCategories.visible = false;
+        grpSongs.visible = true;
+
+        // Show song icons
+        for (icon in iconArray) {
+            if (icon != null) icon.visible = true;
+        }
+
+        // Update UI text
+        categoryText.text = "Category: " + currentCategory + " (TAB to change)";
+        updateInstructionText();
     }
 
     function changeSelection(change:Int = 0):Void
@@ -553,5 +871,10 @@ class SongSelectSubState extends MusicBeatSubstate
 
         // Close the substate
         close();
+    }
+    
+    function updateInstructionText():Void
+    {
+        instructText.text = "ENTER - Select | ESC - Cancel | UP/DOWN - Navigate | TAB - Category | F - Search | SHIFT+TAB - Mods";
     }
 }

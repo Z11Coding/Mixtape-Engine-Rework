@@ -5,6 +5,7 @@ import archipelago.APInfo;
 import archipelago.APVersionSelectionState;
 import archipelago.CustomAPLogic;
 import archipelago.substates.NumberInputSubstate;
+import archipelago.substates.TextInputSubstate;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
 import backend.WeekData;
@@ -108,6 +109,8 @@ class APAdvancedSettingsState extends MusicBeatState {
     var allowMods:Bool = false;
     var includeSecrets:Bool = true;
     var includeVanilla:Bool = true;
+    // Player name setting
+    var playerName:String = "Player";
     // Song selection settings with proper defaults
     var startingSong:String = "Tutorial";
     var victorySong:String = "Tutorial";
@@ -206,6 +209,12 @@ class APAdvancedSettingsState extends MusicBeatState {
     function setupPages() {
         // Main Settings Page
         var mainOptions:Array<SettingsOption> = [
+            {
+                name: "Player Name",
+                description: "Set your player name",
+                callback: () -> openPlayerNameInput(),
+                locked: false
+            },
             {
                 name: "Progression Balancing",
                 description: "How items are distributed: disabled, normal, or extreme",
@@ -554,6 +563,7 @@ class APAdvancedSettingsState extends MusicBeatState {
 
     function getCurrentValueText(optionName:String):String {
         return switch (optionName) {
+            case "Player Name": playerName;
             case "Progression Balancing": progression_balancing;
             case "Accessibility": accessibility;
             case "Unlock Type": unlockType;
@@ -670,6 +680,25 @@ class APAdvancedSettingsState extends MusicBeatState {
         var options = APInfo.gradeList;
         var current = options.indexOf(gradeRequirement);
         gradeRequirement = options[(current + 1) % options.length];
+    }
+
+    function openPlayerNameInput() {
+        var nameInput = new TextInputSubstate(
+            "Player Name",
+            playerName,
+            function(newName:String) {
+                playerName = newName;
+                refreshCurrentPage();
+            },
+            function() {
+                // Cancel callback - do nothing
+            },
+            30, // Max length
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_", // Allowed characters
+            "Enter your player name for Archipelago",
+            FlxColor.CYAN
+        );
+        openSubState(nameInput);
     }
 
     function adjustTrapAmount() {
@@ -972,6 +1001,7 @@ class APAdvancedSettingsState extends MusicBeatState {
             includeVanilla = Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true;
             startingSong = settings.starting_song != null ? settings.starting_song : "Tutorial";
             victorySong = settings.victory_song != null ? settings.victory_song : "Tutorial";
+            // playerName stays at its default value or is managed separately
         }
     }
 
@@ -1069,7 +1099,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
 
         var mainSettings = {
-            name: APEntryState.yamlName,
+            name: playerName,
             description: APEntryState.gameSettings.description,
             game: APEntryState.gameSettings.game
         };
@@ -1090,7 +1120,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         if (!sys.FileSystem.exists("./PlayerSettings/"))
             sys.FileSystem.createDirectory("./PlayerSettings/");
 
-        sys.io.File.saveContent("PlayerSettings/" + APEntryState.yamlName + ".yaml", finalDocument);
+        sys.io.File.saveContent("PlayerSettings/" + playerName + ".yaml", finalDocument);
         #end
     }
 
@@ -1277,6 +1307,7 @@ class APAdvancedSettingsState extends MusicBeatState {
             includeVanilla: includeVanilla,
             startingSong: startingSong,
             victorySong: victorySong,
+            playerName: playerName,
             deathlink: deathlink,
             ticketPercent: ticketPercent,
             ticketWinPercent: ticketWinPercent,
@@ -1306,6 +1337,7 @@ class APAdvancedSettingsState extends MusicBeatState {
             includeVanilla = data.includeVanilla;
             startingSong = data.startingSong;
             victorySong = data.victorySong;
+            playerName = Reflect.hasField(data, "playerName") ? data.playerName : "Player";
             deathlink = data.deathlink;
             ticketPercent = data.ticketPercent;
             ticketWinPercent = data.ticketWinPercent;
