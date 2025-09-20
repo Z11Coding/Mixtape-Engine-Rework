@@ -1,0 +1,11 @@
+digraph graphname {
+n6462007 [shape=box,label="(6462007)"];
+n6462006 [shape=box,label="(6462006)"];
+n6462005 [shape=box,label="<function-end>
+(6462005)"];
+n6462004 [shape=box,label="<function-begin>
+(6462004)\nvar trackedState\nvar trackedState = allowedStates.length > 0"];
+n1 [shape=box,label="<root>
+(1)"];
+n1 -> n6462004[label="function"];
+}

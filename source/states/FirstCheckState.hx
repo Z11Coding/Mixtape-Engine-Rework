@@ -1,11 +1,12 @@
 package states;
 
-import yutautil.AprilFools;
 import archipelago.APEntryState;
-import yutautil.modules.SyncUtils;
-import flixel.input.keyboard.FlxKey;
 import backend.AudioSwitchFix;
 import backend.util.NativeAPI;
+import flixel.input.keyboard.FlxKey;
+import states.MixtapeCrashSplash;
+import yutautil.AprilFools;
+import yutautil.modules.SyncUtils;
 
 class FirstCheckState extends MusicBeatState
 {
@@ -21,6 +22,25 @@ class FirstCheckState extends MusicBeatState
 	var updateIcon:FlxSprite;
 	var updateRibbon:FlxSprite;
 	var allowProgression:Bool = true; //For april fools
+
+	/**
+	 * Randomly chooses which splash screen to show
+	 * 97% normal splash, 2% What state, 1% rare crash splash
+	 */
+	public static function goToSplashScreen():Void {
+		var randomValue = FlxG.random.int(1, 100);
+
+		if (randomValue <= 97) {
+			// 97% chance - Normal splash screen
+			FlxG.switchState(new states.SplashScreen());
+		} else if (randomValue <= 99) {
+			// 2% chance - What state
+			FlxG.switchState(new states.What());
+		} else {
+			// 1% chance - Rare crash splash
+			FlxG.switchState(new states.MixtapeCrashSplash());
+		}
+	}
 
 	public static function checkInternetConnection():Bool {
 		var response:Dynamic = null;
@@ -39,7 +59,7 @@ class FirstCheckState extends MusicBeatState
     }
 
 	override public function create()
-	{ 
+	{
 		//backend.window.Priority.setPriority(0);
 		if (!relaunch) {
 			COD.initCOD();
@@ -97,7 +117,7 @@ class FirstCheckState extends MusicBeatState
 		// text8.color = FlxColor.RED;
 		// var text9 = new FlxText(0, 0, FlxG.width, "formatting.");
 		// text9.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		
+
 		// var combinedText = yutautil.MarkdownFlxText.combine([text3, text4, text5, text6, text7, text8, text9]);
 		// combinedText.y = 200;
 		// add(combinedText);
@@ -120,7 +140,7 @@ class FirstCheckState extends MusicBeatState
 						updateRibbon.visible = false;
 						updateRibbon.alpha = 0;
 						add(updateRibbon);
-			
+
 						updateIcon = new FlxSprite(FlxG.width - 75, FlxG.height - 75);
 						updateIcon.frames = Paths.getSparrowAtlas("pause/pauseAlt/bfLol");
 						updateIcon.animation.addByPrefix("dance", "funnyThing instance 1", 20, true);
@@ -130,7 +150,7 @@ class FirstCheckState extends MusicBeatState
 						updateIcon.antialiasing = true;
 						updateIcon.visible = false;
 						add(updateIcon);
-			
+
 						updateAlphabet = new ColoredAlphabet(0, 0, "Checking Your Vibe...", true, FlxColor.WHITE);
 						for(c in updateAlphabet.members) {
 							c.scale.x /= 2;
@@ -144,8 +164,8 @@ class FirstCheckState extends MusicBeatState
 						updateAlphabet.y = updateIcon.y;
 						add(updateAlphabet);
 						updateIcon.y += 15;
-			
-			
+
+
 						var tmr = new FlxTimer().start(2, function(tmr:FlxTimer)
 						{
 							trace('checking for update');
@@ -158,12 +178,7 @@ class FirstCheckState extends MusicBeatState
 								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								new FlxTimer().start(2, function(tmr:FlxTimer) {
 									trace("Ew, no internet!");
-									switch (FlxG.random.bool(99)) {
-										case true:
-											FlxG.switchState(new states.SplashScreen());
-										case false:
-											FlxG.switchState(new states.What());
-									}
+									FirstCheckState.goToSplashScreen();
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
@@ -171,7 +186,7 @@ class FirstCheckState extends MusicBeatState
 								return;
 							}
 							var http = new haxe.Http("https://raw.githubusercontent.com/Z11Coding/Mixtape-Engine-Rework/refs/heads/Archipelago/gitVersion.txt");
-			
+
 							http.onData = function(data:String)
 							{
 								updateVersion = data.split(':')[0].trim();
@@ -192,18 +207,13 @@ class FirstCheckState extends MusicBeatState
 									if (ClientPrefs.data.checkAPWorld)
 										FlxG.switchState(new APCheckState());
 									else
-										switch (FlxG.random.bool(99)) {
-											case true:
-												FlxG.switchState(new states.SplashScreen());
-											case false:
-												FlxG.switchState(new states.What());
-										}
+										FirstCheckState.goToSplashScreen();
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
 								}
 							}
-			
+
 							http.onError = function(error)
 							{
 								trace('error: $error');
@@ -213,18 +223,13 @@ class FirstCheckState extends MusicBeatState
 								FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 								new FlxTimer().start(2, function(tmr:FlxTimer) {
-									switch (FlxG.random.bool(99)) {
-										case true:
-											FlxG.switchState(new states.SplashScreen());
-										case false:
-											FlxG.switchState(new states.What());
-									}
+									FirstCheckState.goToSplashScreen();
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
 								});
 							}
-			
+
 							http.request();
 							updateIcon.visible = true;
 							updateAlphabet.visible = true;
@@ -236,7 +241,7 @@ class FirstCheckState extends MusicBeatState
 					{
 						FlxG.switchState(new TitleState());
 					}
-				}}, 
+				}},
 				function(num){aprilFoolsText.alpha = num;});
 		}
 		else {
@@ -287,12 +292,7 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
 						trace("Ew, no internet!");
-						switch (FlxG.random.bool(99)) {
-							case true:
-								FlxG.switchState(new states.SplashScreen());
-							case false:
-								FlxG.switchState(new states.What());
-						}
+						FirstCheckState.goToSplashScreen();
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -321,12 +321,7 @@ class FirstCheckState extends MusicBeatState
 						if (ClientPrefs.data.checkAPWorld)
 							FlxG.switchState(new APCheckState());
 						else
-							switch (FlxG.random.bool(99)) {
-								case true:
-									FlxG.switchState(new states.SplashScreen());
-								case false:
-									FlxG.switchState(new states.What());
-							}
+							FirstCheckState.goToSplashScreen();
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -342,12 +337,7 @@ class FirstCheckState extends MusicBeatState
 					FlxTween.tween(updateAlphabet, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					FlxTween.tween(updateIcon, {alpha: 0}, 2, {ease:FlxEase.sineOut});
 					new FlxTimer().start(2, function(tmr:FlxTimer) {
-						switch (FlxG.random.bool(99)) {
-							case true:
-								FlxG.switchState(new states.SplashScreen());
-							case false:
-								FlxG.switchState(new states.What());
-						}
+						FirstCheckState.goToSplashScreen();
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -384,37 +374,22 @@ class APCheckState extends MusicBeatState
 			update.title = "Archipelago World";
 			update.text = "Would you like to install the version of the APWorld for this version of Mixtape Engine?";
 			update.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
-			
+
 			update.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
 			{
 				if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 				{
 					archipelago.APEntryState.installAPWorld();
-					switch (FlxG.random.bool(99)) {
-						case true:
-							FlxG.switchState(new states.SplashScreen());
-						case false:
-							FlxG.switchState(new states.What());
-					}
+					FirstCheckState.goToSplashScreen();
 				}
 				else
 				{
-					switch (FlxG.random.bool(99)) {
-						case true:
-							FlxG.switchState(new states.SplashScreen());
-						case false:
-							FlxG.switchState(new states.What());
-					}
+					FirstCheckState.goToSplashScreen();
 				}
 			};
-			
+
 			update.show();
 		}
-		else switch (FlxG.random.bool(99)) {
-			case true:
-				FlxG.switchState(new states.SplashScreen());
-			case false:
-				FlxG.switchState(new states.What());
-		}
+		else FirstCheckState.goToSplashScreen();
 	}
 }

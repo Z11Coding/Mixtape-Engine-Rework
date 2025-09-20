@@ -2,6 +2,7 @@ package backend;
 
 import archipelago.APEntryState;
 import backend.PsychCamera;
+import backend.StateTracker;
 import flixel.FlxState;
 import haxe.ds.HashMap;
 import yutautil.save.ObjectSerializer;
@@ -38,103 +39,97 @@ class MusicBeatState extends FlxState
 	public static var words:Dynamic = yutautil.modules.SyncUtils.syncHttpRequestJson("https://random-word-api.herokuapp.com/all");
 	public static var revokeControls:Bool = false;
 
-	// AP State Tracking System
-	private static var _apOptionsStateClass:Class<MusicBeatState> = null;
-	private static var _apOptionsStateArgs:Array<Dynamic> = [];
-	private static var _allowedStates:Array<Class<MusicBeatState>> = [];
-	private static var _variablesToCapture:Array<String> = [];
-	private static var _capturedVariables:Map<String, Dynamic> = new Map<String, Dynamic>();
-	private static var _navigationContext:String = null;
+	// State Tracking System
+	private static var _stateTracker:StateTracker = new StateTracker();
 
 	/**
-	 * Sets up state tracking for AP options system
-	 * @param apOptionsStateClass The AP options state class to return to
+	 * Sets up state tracking system
+	 * @param trackedState The specific state class to track variables from
+	 * @param returnState The state class to return to when leaving allowed states
 	 * @param allowedStates Array of state classes that are allowed without triggering return
-	 * @param variablesToCapture Array of variable names to capture from the current state
-	 * @param stateArgs Optional constructor arguments for the AP options state
-	 * @param context Optional context string to help identify the purpose of navigation
+	 * @param variablesToTrack Array of variable names to track from the tracked state
+	 * @param returnArgs Optional constructor arguments for the return state
+	 * @param context Optional context string for this tracking session
 	 */
-	public static function setAPOptionsTracking(apOptionsStateClass:Class<MusicBeatState>, allowedStates:Array<Class<MusicBeatState>>, ?variablesToCapture:Array<String>, ?stateArgs:Array<Dynamic>, ?context:String) {
-		_apOptionsStateClass = apOptionsStateClass;
-		_apOptionsStateArgs = stateArgs != null ? stateArgs.copy() : [];
-		_allowedStates = allowedStates.copy();
-		_variablesToCapture = variablesToCapture != null ? variablesToCapture.copy() : [];
-		_navigationContext = context;
-		_capturedVariables.clear();
+	public static function setupStateTracking(
+		trackedState:Dynamic,
+		returnState:Dynamic,
+		allowedStates:Array<Dynamic>,
+		variablesToTrack:Array<String>,
+		?returnArgs:Array<Dynamic>,
+		?context:String
+	) {
+		_stateTracker.setupTracking(trackedState, returnState, allowedStates, variablesToTrack, returnArgs, context);
 	}
 
 	/**
-	 * Checks if we should return to AP options state
+	 * Backward compatibility method - deprecated, use setupStateTracking instead
+	 */
+	@:deprecated("Use setupStateTracking instead")
+	@:deprecated("Use setupStateTracking instead")
+	public static function setAPOptionsTracking(
+		returnState:Dynamic,
+		allowedStates:Array<Dynamic>,
+		?variablesToCapture:Array<String>,
+		?stateArgs:Array<Dynamic>,
+		?context:String
+	) {
+		// For backward compatibility, assume the first allowed state is the tracked state
+		var trackedState:Dynamic = allowedStates.length > 0 ? allowedStates[0] : returnState;
+		setupStateTracking(trackedState, returnState, allowedStates, variablesToCapture != null ? variablesToCapture : [], stateArgs, context);
+	}
+
+	/**
+	 * Updates state tracking and checks for returns
 	 * Called automatically in update()
 	 */
-	private static function checkAPOptionsReturn(currentState:MusicBeatState) {
-		if (_apOptionsStateClass == null) return;
+	private static function updateStateTracking(currentState:MusicBeatState) {
+		if (!_stateTracker.isActive()) return;
 
-		var currentStateClass = Type.getClass(currentState);
+		// Update tracked variables from current state (only if it's the tracked state)
+		_stateTracker.updateFromState(currentState);
 
-		// Check if current state class is in allowed states
-		var isAllowed = false;
-		for (allowedClass in _allowedStates) {
-			if (currentStateClass == allowedClass) {
-				isAllowed = true;
-				break;
-			}
-		}
-
-		// If current state is not in allowed states and is not the AP options state class itself
-		if (!isAllowed && currentStateClass != _apOptionsStateClass) {
-			// Capture variables if specified
-			for (varName in _variablesToCapture) {
-				try {
-					var value = Reflect.field(currentState, varName);
-					if (value != null) {
-						_capturedVariables.set(varName, value);
-					}
-				} catch (e:Dynamic) {
-					trace('Failed to capture variable: $varName from ${Type.getClassName(currentStateClass)}');
-				}
-			}
-
-			// Store navigation context for the new state
-			if (_navigationContext != null) {
-				_capturedVariables.set("_navigationContext", _navigationContext);
-			}
-
-			// Create new instance of the AP options state
-			var returnStateClass = _apOptionsStateClass;
-			var returnStateArgs = _apOptionsStateArgs.copy();
-			clearAPOptionsTracking();
-
-			// Create new state instance
-			var newState:MusicBeatState = Type.createInstance(returnStateClass, returnStateArgs);
-			switchState(newState);
-		}
+		// Check if we should return to the return state
+		_stateTracker.checkForReturn(currentState);
 	}
 
 	/**
-	 * Clears AP options tracking
+	 * Clears state tracking
 	 */
-	public static function clearAPOptionsTracking() {
-		_apOptionsStateClass = null;
-		_apOptionsStateArgs = [];
-		_allowedStates = [];
-		_variablesToCapture = [];
-		_navigationContext = null;
-		// Don't clear captured variables - let the AP options state handle them
+	public static function clearStateTracking() {
+		_stateTracker.clear();
 	}
 
 	/**
-	 * Gets captured variables from tracked states
+	 * Gets tracked variables from the state tracker
 	 */
+	public static function getTrackedVariables():Map<String, Dynamic> {
+		return _stateTracker.getTrackedVariables();
+	}
+
+	/**
+	 * Clears tracked variables after they've been processed
+	 */
+	public static function clearTrackedVariables() {
+		_stateTracker.clear();
+	}
+
+	/**
+	 * Backward compatibility methods - deprecated
+	 */
+	@:deprecated("Use getTrackedVariables instead")
 	public static function getCapturedVariables():Map<String, Dynamic> {
-		return _capturedVariables;
+		return getTrackedVariables();
 	}
 
-	/**
-	 * Clears captured variables after they've been processed
-	 */
+	@:deprecated("Use clearTrackedVariables instead")
 	public static function clearCapturedVariables() {
-		_capturedVariables.clear();
+		clearTrackedVariables();
+	}
+
+	@:deprecated("Use clearStateTracking instead")
+	public static function clearAPOptionsTracking() {
+		clearStateTracking();
 	}
 
 	private static function get_APFlip():Bool
@@ -464,8 +459,8 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
-		// Check AP options tracking
-		checkAPOptionsReturn(this);
+		// Update state tracking system
+		updateStateTracking(this);
 
 		// Disable all input when the application is closing
 		if (isClosing) {

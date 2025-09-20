@@ -19,6 +19,7 @@ import openfl.geom.Rectangle;
 import options.*;
 import states.*;
 import substates.Prompt;
+import substates.SongSelectSubState;
 import yaml.Renderer;
 import yaml.Yaml;
 
@@ -107,8 +108,13 @@ class APAdvancedSettingsState extends MusicBeatState {
     var allowMods:Bool = false;
     var includeSecrets:Bool = true;
     var includeVanilla:Bool = true;
+    // Song selection settings with proper defaults
     var startingSong:String = "Tutorial";
     var victorySong:String = "Tutorial";
+
+    // Additional song data for display (icons, etc)
+    var startingSongData:Dynamic = null;
+    var victorySongData:Dynamic = null;
     var deathlink:Bool = false;
 
     // Navigation cooldown
@@ -140,13 +146,6 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Initialize temporary save system
         initTempSave();
 
-        // Check for captured variables from state navigation
-        var capturedVars = MusicBeatState.getCapturedVariables();
-        if (capturedVars != null && !capturedVars.isEmpty()) {
-            handleCapturedVariables(capturedVars);
-            MusicBeatState.clearCapturedVariables();
-        }
-
         // Check if we're returning from a state navigation
         if (tempSave != null && tempSave.data.shouldReturnToAdvancedSettings == true) {
             // Clear the return flag
@@ -167,6 +166,9 @@ class APAdvancedSettingsState extends MusicBeatState {
         setupPages();
         setupUI();
         setupAnimations();
+
+        // Initialize default song data
+        initializeDefaultSongs();
 
         // Load current settings (skip if we already loaded from temp)
         if (tempSave == null || tempSave.data.shouldReturnToAdvancedSettings != false) {
@@ -317,7 +319,7 @@ class APAdvancedSettingsState extends MusicBeatState {
                 "Open advanced song selection interface",
                 cast states.freeplay.FreeplayState, // Example: open freeplay for song selection
                 [], // No constructor args
-                [cast options.OptionsState, cast states.MainMenuState], // Allow navigation to these states
+                [states.CategoryState], // Allow navigation to these states
                 ["selectedSongs", "difficulty"] // Variables to capture
             )
         ];
@@ -643,41 +645,31 @@ class APAdvancedSettingsState extends MusicBeatState {
         var options = ["disabled", "normal", "extreme"];
         var current = options.indexOf(progression_balancing);
         progression_balancing = options[(current + 1) % options.length];
-        FlxG.sound.play(Paths.sound('scrollMenu'));
-        refreshCurrentPage();
     }
 
     function cycleAccessibility() {
         var options = ["full", "minimal"];
         var current = options.indexOf(accessibility);
         accessibility = options[(current + 1) % options.length];
-        FlxG.sound.play(Paths.sound('scrollMenu'));
-        refreshCurrentPage();
     }
 
     function cycleUnlockType() {
         var options = ["Per Song", "Per Week"];
         var current = options.indexOf(unlockType);
         unlockType = options[(current + 1) % options.length];
-        FlxG.sound.play(Paths.sound('scrollMenu'));
-        refreshCurrentPage();
     }
 
     function cycleUnlockMethod() {
         var options = ["Note Checks", "Song Completion", "Both"];
         var current = options.indexOf(unlockMethod);
         unlockMethod = options[(current + 1) % options.length];
-        FlxG.sound.play(Paths.sound('scrollMenu'));
         updateSongStats();
-        refreshCurrentPage();
     }
 
     function cycleGradeRequirement() {
         var options = APInfo.gradeList;
         var current = options.indexOf(gradeRequirement);
         gradeRequirement = options[(current + 1) % options.length];
-        FlxG.sound.play(Paths.sound('scrollMenu'));
-        refreshCurrentPage();
     }
 
     function adjustTrapAmount() {
@@ -703,7 +695,7 @@ class APAdvancedSettingsState extends MusicBeatState {
 
     function adjustSongLimit() {
         var maxSongs = calculateMaxAvailableSongs();
-        openSliderControl("Song Limit", songLimit, 5, maxSongs, 5, function(value:Float) {
+        openSliderControl("Song Limit", songLimit, 5, maxSongs, 1, function(value:Float) {
             songLimit = Std.int(value);
             updateSongStats();
             refreshCurrentPage();
@@ -716,17 +708,24 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Save current state data
         saveTempData();
 
-        // Set up MusicBeatState tracking for song selection
-        MusicBeatState.setAPOptionsTracking(
-            APAdvancedSettingsState, // Return to this state CLASS
-            [states.freeplay.FreeplayState], // Allow staying in freeplay
-            ["curSelected", "selectedSong", "selectedDifficulty", "songs"], // Variables to capture
-            null, // No constructor args needed
-            "startingSong" // Context to identify this selection
-        );
+        // Open song selection substate
+        var songSelectSubstate = new substates.SongSelectSubState("Select Starting Song");
+        songSelectSubstate.onSongSelected = function(songData:Dynamic) {
+            // Format song name for YAML export
+            var formattedName:String = songData.songName;
+            if (songData.folder != null && songData.folder.length > 0) {
+                formattedName = songData.songName + " (" + songData.folder + ")";
+            }
 
-        // Switch to freeplay state
-        FlxG.switchState(new states.freeplay.FreeplayState());
+            startingSong = formattedName;
+            startingSongData = songData;
+            refreshCurrentPage();
+        };
+        songSelectSubstate.onCancel = function() {
+            // Just close, no action needed
+        };
+
+        openSubState(songSelectSubstate);
     }
 
     function selectVictorySong() {
@@ -735,18 +734,70 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Save current state data
         saveTempData();
 
-        // Set up MusicBeatState tracking for song selection
-        MusicBeatState.setAPOptionsTracking(
-            APAdvancedSettingsState, // Return to this state CLASS
-            [states.freeplay.FreeplayState], // Allow staying in freeplay
-            ["curSelected", "selectedSong", "selectedDifficulty", "songs"], // Variables to capture
-            null, // No constructor args needed
-            "victorySong" // Context to identify this selection
-        );
+        // Open song selection substate
+        var songSelectSubstate = new substates.SongSelectSubState("Select Victory Song");
+        songSelectSubstate.onSongSelected = function(songData:Dynamic) {
+            // Format song name for YAML export
+            var formattedName:String = songData.songName;
+            if (songData.folder != null && songData.folder.length > 0) {
+                formattedName = songData.songName + " (" + songData.folder + ")";
+            }
 
-        // Switch to freeplay state
-        FlxG.switchState(new states.freeplay.FreeplayState());
-    }    function refreshCurrentPage() {
+            victorySong = formattedName;
+            victorySongData = songData;
+            refreshCurrentPage();
+        };
+        songSelectSubstate.onCancel = function() {
+            // Just close, no action needed
+        };
+
+        openSubState(songSelectSubstate);
+    }
+
+    function initializeDefaultSongs() {
+        // Set default category if CategoryState.loadWeekForce is null
+        if (states.CategoryState.loadWeekForce == null) {
+            states.CategoryState.loadWeekForce = "all";
+        }
+
+        // Create FreeplayManager with true parameter to ensure proper initialization
+        var fpManager = new managers.FreeplayManager(true);
+
+        // Set up default song data for Tutorial (first song in the list)
+        if (fpManager != null && fpManager.songList != null && fpManager.songList.length > 0) {
+            var firstSong = fpManager.songList[0];
+
+            startingSongData = {
+                songName: firstSong.songName,
+                folder: firstSong.folder,
+                week: firstSong.week,
+                songCharacter: firstSong.songCharacter,
+                index: 0
+            };
+
+            victorySongData = {
+                songName: firstSong.songName,
+                folder: firstSong.folder,
+                week: firstSong.week,
+                songCharacter: firstSong.songCharacter,
+                index: 0
+            };
+
+            // Update the string values to match the first song
+            startingSong = firstSong.songName;
+            if (firstSong.folder != null && firstSong.folder.length > 0) {
+                startingSong = firstSong.songName + " (" + firstSong.folder + ")";
+            }
+
+            victorySong = startingSong; // Same as starting song by default
+        } else {
+            trace("Warning: Could not initialize default songs - FreeplayManager or song list is null");
+        }
+    }
+    function refreshCurrentPage() {
+        // Only refresh if UI has been set up
+        if (statsText == null) return;
+
         loadPage(currentPage);
         updateSongStats();
         saveTempData(); // Save changes
@@ -805,7 +856,10 @@ class APAdvancedSettingsState extends MusicBeatState {
         statsString += "Victory Condition:\n";
         statsString += "Complete: " + victorySong + "\n";
 
-        statsText.text = statsString;
+        // Only update the text if statsText has been initialized
+        if (statsText != null) {
+            statsText.text = statsString;
+        }
     }
 
     function openComplexSettings() {
@@ -833,72 +887,6 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     /**
-     * Handles captured variables from state navigation
-     */
-    function handleCapturedVariables(capturedVars:Map<String, Dynamic>) {
-        trace('Handling captured variables: ${capturedVars.keys()}');
-
-        // Get navigation context to determine what was being selected
-        var context:String = capturedVars.exists("_navigationContext") ?
-            cast(capturedVars.get("_navigationContext"), String) : null;
-
-        trace('Navigation context: $context');
-
-        // Process captured song selection data
-        var selectedSongName:String = null;
-
-        if (capturedVars.exists("selectedSong")) {
-            var songData = capturedVars.get("selectedSong");
-            if (songData != null && Std.isOfType(songData, String)) {
-                selectedSongName = cast(songData, String);
-            } else if (songData != null && Reflect.hasField(songData, "songName")) {
-                selectedSongName = Reflect.field(songData, "songName");
-            }
-        } else if (capturedVars.exists("curSelected") && capturedVars.exists("songs")) {
-            // Fallback: use curSelected index with songs array
-            var selectedIndex = capturedVars.get("curSelected");
-            var songsArray = capturedVars.get("songs");
-
-            if (selectedIndex != null && Std.isOfType(selectedIndex, Int) &&
-                songsArray != null && Std.isOfType(songsArray, Array)) {
-
-                var index:Int = cast selectedIndex;
-                var songs:Array<Dynamic> = cast songsArray;
-
-                if (index >= 0 && index < songs.length) {
-                    var songInfo = songs[index];
-
-                    // Try different ways to get the song name
-                    if (Std.isOfType(songInfo, String)) {
-                        selectedSongName = cast songInfo;
-                    } else if (Reflect.hasField(songInfo, "songName")) {
-                        selectedSongName = Reflect.field(songInfo, "songName");
-                    } else if (Reflect.hasField(songInfo, "name")) {
-                        selectedSongName = Reflect.field(songInfo, "name");
-                    }
-                }
-            }
-        }
-
-        // Apply the selected song to the appropriate setting based on context
-        if (selectedSongName != null) {
-            switch (context) {
-                case "startingSong":
-                    startingSong = selectedSongName;
-                    trace('Updated starting song: $startingSong');
-                case "victorySong":
-                    victorySong = selectedSongName;
-                    trace('Updated victory song: $victorySong');
-                default:
-                    // Default to starting song if no context
-                    startingSong = selectedSongName;
-                    trace('Updated starting song (default): $startingSong');
-            }
-        }
-
-        // Refresh the current page to show updated values
-        refreshCurrentPage();
-    }    /**
      * Creates a state option that opens another state with proper tracking
      * @param name Display name for the option
      * @param description Description of what the option does
@@ -1196,6 +1184,9 @@ class APAdvancedSettingsState extends MusicBeatState {
             var option = pages[currentPage].options[selectedOption];
             if (!option.locked) {
                 option.callback();
+                // Play sound and refresh UI after any option change
+                FlxG.sound.play(Paths.sound('scrollMenu'));
+                refreshCurrentPage();
             } else {
                 FlxG.sound.play(Paths.sound('cancelMenu'));
                 FlxG.camera.shake(0.01, 0.2);
@@ -1221,6 +1212,9 @@ class APAdvancedSettingsState extends MusicBeatState {
                         var option = pages[currentPage].options[index];
                         if (!option.locked) {
                             option.callback();
+                            // Play sound and refresh UI after any option change
+                            FlxG.sound.play(Paths.sound('scrollMenu'));
+                            refreshCurrentPage();
                         } else {
                             FlxG.sound.play(Paths.sound('cancelMenu'));
                             FlxG.camera.shake(0.01, 0.2);

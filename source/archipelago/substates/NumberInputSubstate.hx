@@ -199,7 +199,7 @@ class NumberInputSubstate extends MusicBeatSubstate {
         add(numberPad);
         add(numberPadTexts);
 
-        var padStartX = panel.x + 60;
+        var padStartX = panel.x - 200; // Moved to the left side of the panel
         var padStartY = panel.y + 220;
         var buttonSize = 50;
         var buttonSpacing = 10;
@@ -541,7 +541,7 @@ class NumberInputSubstate extends MusicBeatSubstate {
         FlxG.sound.play(Paths.sound('confirmMenu'));
 
         animateOut(function() {
-            onConfirm(value);
+            if (onConfirm != null) onConfirm(value);
             close();
         });
     }
@@ -550,7 +550,7 @@ class NumberInputSubstate extends MusicBeatSubstate {
         FlxG.sound.play(Paths.sound('cancelMenu'));
 
         animateOut(function() {
-            onCancel();
+            if (onCancel != null) onCancel();
             close();
         });
     }

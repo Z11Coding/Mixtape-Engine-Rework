@@ -70,39 +70,43 @@ class FreeplayManager {
         'Slowdown',
     ];
 
-    public function new() {
+    public function new(loadSongs:Bool = false) {
         instance = this;
+        if (loadSongs) reloadFreeplay(true);
     }
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
-    public static function loadFPManager() {
+    public static function loadFPManager(?ensureLoaded:Bool = false) {
         #if ARCHIPELAGO_ALLOWED
         return switch (APEntryState.inArchipelagoMode) {
             case true:
                 if (instance != null && Std.isOfType(instance, APFreeplayManager)) {
                     trace("Using existing APFreeplayManager instance.");
+                    if (ensureLoaded) instance.reloadFreeplay(true);
                     return instance;
                 } else {
                     trace("Creating new APFreeplayManager instance.");
-                    return instance = new APFreeplayManager();
+                    return instance = new APFreeplayManager(ensureLoaded);
                 }
             case false:
-                if (instance != null && !Std.isOfType(instance, FreeplayManager)) {
+                if (instance != null && Std.isOfType(instance, FreeplayManager)) {
                     trace("Using existing FreeplayManager instance.");
+                    if (ensureLoaded) instance.reloadFreeplay(true);
                     return instance;
                 } else {
                     trace("Creating new FreeplayManager instance.");
-                    return instance = new FreeplayManager();
+                    return instance = new FreeplayManager(ensureLoaded);
                 }
         }
         #else
         return switch (instance != null && Std.isOfType(instance, FreeplayManager)) {
             case true:
                 trace("Using existing FreeplayManager instance.");
+                if (ensureLoaded) instance.reloadFreeplay(true);
                 instance;
             case false:
                 trace("Creating new FreeplayManager instance.");
-                instance = new FreeplayManager();
+                instance = new FreeplayManager(ensureLoaded);
         }
         #end
     }
