@@ -34,7 +34,7 @@ class LegacyLuaFreeplayState extends FreeplayState {
     private var isTestMode:Bool = false;
 
     // Flag to track if we're in Legacy Lua settings mode (prevent returning to normal freeplay)
-    public static var inLegacyLuaMode:Bool = true;
+    public static var inLegacyLuaMode:Bool = false;
 
     override function create():Void {
         settingsManager = LegacyLuaSettingsManager.getInstance();

@@ -1,10 +1,10 @@
 package managers;
 
+import backend.Song;
 import backend.WeekData;
 import haxe.Json;
-import backend.Song;
-import managers.FreeplayManager;
 import lime.utils.Assets;
+import managers.FreeplayManager;
 import states.CategoryState;
 import states.freeplay.FreeplayState;
 
@@ -16,7 +16,7 @@ import archipelago.PacketTypes.ClientStatus;
 
 /*
     Basically FreeplayManager but specifically for AP
-    just a way to separate Archipelago from the main stuff so it doesn't get affected by AP's bull 
+    just a way to separate Archipelago from the main stuff so it doesn't get affected by AP's bull
 */
 
     // SongInfo structure as typedef
@@ -147,11 +147,11 @@ class APFreeplayManager extends FreeplayManager {
 								break;
 							}
 						}
-					} 
+					}
 				}
 			}
 		}
-		
+
 		trace("Final locationIdInts: " + locationIdInts);
 		for (locationIdInt in locationIdInts) {
 			trace("Checking locationIdInt: " + locationIdInt);
@@ -208,9 +208,14 @@ class APFreeplayManager extends FreeplayManager {
                 modName = '';
                 locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
                 isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-                color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
-                
+                // Check if song is unlocked
+                var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
+
+                // Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
+                color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
+
+
                 someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 
                 for (songObj in curUnlocked)
@@ -252,9 +257,14 @@ class APFreeplayManager extends FreeplayManager {
                     modName = leWeek.folder;
                     locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
                     isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-                    color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 
-                    
+                    // Check if song is unlocked
+                    var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
+
+                    // Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
+                    color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
+
+
                     someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 
                     for (songObj in curUnlocked)
@@ -312,7 +322,7 @@ class APFreeplayManager extends FreeplayManager {
 				trace("GOAL COMPLETE");
 				callVictory = false;
 				APEntryState.apGame.info().clientStatus = ClientStatus.GOAL;
-				FlxG.state.openSubState(new Prompt("Congradulations! You Win!", 0, 
+				FlxG.state.openSubState(new Prompt("Congradulations! You Win!", 0,
 				function()
 				{
 					collectAndRelease();
@@ -340,18 +350,18 @@ class APFreeplayManager extends FreeplayManager {
     {
         trace("Reloading Songs!");
         songs = [];
-        
+
         for (i in 0...WeekData.weeksList.length) {
             if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 
-            var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ? 
+            var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?
                     (cast leWeek.category:String).split(',').map(function(cat:String):String {
                         return cat.trim().toLowerCase();
-                    }) : Std.isOfType(leWeek.category, Array) ? 
+                    }) : Std.isOfType(leWeek.category, Array) ?
                     (cast leWeek.category:Array<String>).map(function(cat:String):String {
                         return cat.trim().toLowerCase();
-                    }) : 
+                    }) :
                     [(cast leWeek.category:String)].map(function(cat:String):String {
                         return cat.trim().toLowerCase();
                     });
@@ -447,7 +457,7 @@ class APFreeplayManager extends FreeplayManager {
                                 if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod && isMissing)
                                     addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
                             }
-                        } 
+                        }
                         else if (CategoryState.loadWeekForce == "unlocked")
                         {
                             var songNameThing:String = song[0];
@@ -500,10 +510,10 @@ class APFreeplayManager extends FreeplayManager {
                             }
                             else addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
                         }
-                            
+
                     }
                     else
-                    {	
+                    {
                         if (Std.string(song[0]).toLowerCase().trim().contains(searchText.toLowerCase().trim()))
                         {
                             var colors:Array<Int> = song[2];
@@ -517,7 +527,7 @@ class APFreeplayManager extends FreeplayManager {
                                 var songNameThing:String = song[0];
                                 var modName:String = leWeek.folder;
                                 var locationIds:Null<Array<Int>> = APEntryState.apGame.locationData(songNameThing, modName).concat(APEntryState.apGame.noteData(songNameThing, modName));
-                                var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);	
+                                var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
                                 for (songObj in curUnlocked)
                                 {
                                     if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && isMissing)
@@ -566,7 +576,7 @@ class APFreeplayManager extends FreeplayManager {
                 }
             }
         }
-            
+
 
         if (refresh)
 		{
@@ -577,16 +587,16 @@ class APFreeplayManager extends FreeplayManager {
 					addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 					addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-			}	
+			}
 		}
 		else
 		{
 			for (songObj in APFreeplayManager.curUnlocked) {
-				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
 					addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
 					addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all")) 
+				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
 					addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
 			}
 		}
