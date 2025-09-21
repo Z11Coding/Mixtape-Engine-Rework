@@ -20,14 +20,13 @@ class APCategoryState extends states.CategoryState {
             Sys.sleep(0.1);
             }
         }
-        // Static menu with "Items" option that uses lock system
-        var menuOptions = ['All', 'Hinted', 'Unlocked', 'Items', 'Unplayed', 'Options', 'Quit'];
-        
+        // Static menu with "Items" option moved after "Unplayed" and before "Options"
+        var menuOptions = ['All', 'Hinted', 'Unlocked', 'Unplayed', 'Items', 'Options', 'Quit'];
+
         super(menuOptions, false, false, true, false, false);
-        
-        // Initialize locks array - "Items" is locked based on hasPocketLens
-        menuLocks = [false, false, false, !archipelago.APItem.hasPocketLens, false, false, false];
-        
+
+        // Initialize locks array - "Items" is locked based on hasPocketLens (now at index 4)
+        menuLocks = [false, false, false, false, !archipelago.APItem.hasPocketLens, false, false];
         specialOptions = [];
 
         var opFunc = function() {
