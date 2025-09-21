@@ -25,7 +25,7 @@ class APCategoryState extends states.CategoryState {
 
         super(menuOptions, false, false, true, false, false);
 
-        // Initialize locks array - "Items" is locked based on hasPocketLens (now at index 4)
+        // Initialize locks array - "Items" is locked based on hasPocketLens.
         menuLocks = [false, false, false, false, !archipelago.APItem.hasPocketLens, false, false];
         specialOptions = [];
 
