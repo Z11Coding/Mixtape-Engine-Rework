@@ -276,6 +276,27 @@ class APItem {
                         APPlayState.APInstance().MaxHP += 0.5;
                     }
                 }, true, true);
+            case 'Max HP Down':
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    maxHPUp--;
+                    trace("Max HP decreased! Current max HP: " + maxHPUp);
+                    popup('Current Max HP: +$maxHPUp', "You lost Max HP!");
+                    if (APPlayState.APInstance() != null) {
+                        APPlayState.APInstance().MaxHP = APPlayState.APInstance().MaxHP - 0.5;
+                        if (APPlayState.APInstance().health > APPlayState.APInstance().MaxHP) {
+                            APPlayState.APInstance().health = APPlayState.APInstance().MaxHP;
+                        }
+                    }
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    t.isTrap = true;
+                });
+            case "Extra Life":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    extaLives++;
+                    trace("Extra life acquired! Current extra lives: " + extaLives);
+                    popup('Extra Lives Left: $extaLives', "You got an extra life!");
+                    // Add PlayState Logic here, Z11.
+                }, true, true);
             case "Tutorial Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     // Wait for PlayState's startedCountdown to become active
