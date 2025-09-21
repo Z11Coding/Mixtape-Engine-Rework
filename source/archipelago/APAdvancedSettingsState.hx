@@ -16,6 +16,7 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxGradient;
 import flixel.util.FlxSave;
 import flixel.util.FlxTimer;
+import haxe.crypto.Base64;
 import openfl.geom.Rectangle;
 import options.*;
 import states.*;
@@ -29,12 +30,28 @@ using yutautil.CollectionUtils;
 // Callback function type for settings options
 typedef SettingsCallback = Void->Void;
 
+// Context menu option structure
+typedef ContextMenuOption = {
+    var label:String;
+    var value:Dynamic;
+    var callback:Void->Void;
+    var isSelected:Bool;
+}
+
+// Context menu types
+enum ContextMenuType {
+    ENUM_SELECT(options:Array<ContextMenuOption>);
+    BOOLEAN(trueLabel:String, falseLabel:String);
+    EDIT_VALUE(editCallback:Void->Void);
+}
+
 // Settings option structure
 typedef SettingsOption = {
     var name:String;
     var description:String;
     var callback:SettingsCallback;
     var locked:Bool;
+    var contextMenu:ContextMenuType; // Add context menu support
 }
 
 // State option structure for complex settings that open other states
@@ -120,6 +137,15 @@ class APAdvancedSettingsState extends MusicBeatState {
     var victorySongData:Dynamic = null;
     var deathlink:Bool = false;
 
+    // Filler weight settings
+    var bbcWeight:Int = 3;
+    var ghostChatWeight:Int = 3;
+    var tutorialWeight:Int = 3;
+    var svcWeight:Int = 3;
+    var fakeTransWeight:Int = 3;
+    var shieldWeight:Int = 3;
+    var MHPWeight:Int = 3;
+
     // Navigation cooldown
     var navigationCooldown:Float = 0;
     var navigationDelay:Float = 0.15; // 150ms delay between navigation inputs
@@ -142,6 +168,15 @@ class APAdvancedSettingsState extends MusicBeatState {
     var selectedSlider:String = null;
     var isSliderActive:Bool = false;
     var sliderUpdateFunc:Float->Void = null;
+
+    // Context menu system
+    var contextMenuActive:Bool = false;
+    var contextMenuBackground:FlxSprite;
+    var contextMenuPanel:FlxSprite;
+    var contextMenuButtons:FlxTypedGroup<FlxSprite>;
+    var contextMenuTexts:FlxTypedGroup<FlxText>;
+    var currentContextMenu:ContextMenuType;
+    var contextMenuTarget:String; // Which option is showing the context menu
 
     override function create() {
         super.create();
@@ -168,6 +203,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         setupBackground();
         setupPages();
         setupUI();
+        setupContextMenu();
         setupAnimations();
 
         // Initialize default song data
@@ -206,6 +242,32 @@ class APAdvancedSettingsState extends MusicBeatState {
         });
     }
 
+    // Helper functions for creating context menus
+    function createEnumContextMenu(options:Array<String>, currentValue:String, setValue:String->Void):ContextMenuType {
+        var contextOptions:Array<ContextMenuOption> = [];
+        for (option in options) {
+            contextOptions.push({
+                label: option,
+                value: option,
+                callback: () -> {
+                    setValue(option);
+                    closeContextMenu();
+                    refreshCurrentPage();
+                },
+                isSelected: (option == currentValue) // Mark if this is the current selection
+            });
+        }
+        return ENUM_SELECT(contextOptions);
+    }
+
+    function createBoolContextMenu(currentValue:Bool, setValue:Bool->Void, trueLabel:String = "ON", falseLabel:String = "OFF"):ContextMenuType {
+        return BOOLEAN(trueLabel, falseLabel);
+    }
+
+    function createEditContextMenu(editCallback:Void->Void):ContextMenuType {
+        return EDIT_VALUE(editCallback);
+    }
+
     function setupPages() {
         // Main Settings Page
         var mainOptions:Array<SettingsOption> = [
@@ -213,37 +275,43 @@ class APAdvancedSettingsState extends MusicBeatState {
                 name: "Player Name",
                 description: "Set your player name",
                 callback: () -> openPlayerNameInput(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> openPlayerNameInput())
             },
             {
                 name: "Progression Balancing",
                 description: "How items are distributed: disabled, normal, or extreme",
                 callback: () -> cycleProgressionBalancing(),
-                locked: false
+                locked: false,
+                contextMenu: createEnumContextMenu(["disabled", "normal", "extreme"], progression_balancing, (value) -> progression_balancing = value)
             },
             {
                 name: "Accessibility",
                 description: "full or minimal accessibility features",
                 callback: () -> cycleAccessibility(),
-                locked: false
+                locked: false,
+                contextMenu: createEnumContextMenu(["full", "minimal"], accessibility, (value) -> accessibility = value)
             },
             {
                 name: "Unlock Type",
                 description: "Per Song or Per Week unlocking",
                 callback: () -> cycleUnlockType(),
-                locked: false
+                locked: false,
+                contextMenu: createEnumContextMenu(["Per Song", "Per Week"], unlockType, (value) -> unlockType = value)
             },
             {
                 name: "Unlock Method",
                 description: "Note Checks, Song Completion, or Both",
                 callback: () -> cycleUnlockMethod(),
-                locked: false
+                locked: false,
+                contextMenu: createEnumContextMenu(["Note Checks", "Song Completion", "Both"], unlockMethod, (value) -> { unlockMethod = value; updateSongStats(); })
             },
             {
                 name: "DeathLink",
                 description: "Enable/disable death synchronization",
                 callback: () -> deathlink = !deathlink,
-                locked: false
+                locked: false,
+                contextMenu: createBoolContextMenu(deathlink, (value) -> deathlink = value)
             }
         ];
 
@@ -253,37 +321,50 @@ class APAdvancedSettingsState extends MusicBeatState {
                 name: "Allow Mods",
                 description: "Include modded songs in the pool",
                 callback: () -> { allowMods = !allowMods; updateSongStats(); },
-                locked: false
+                locked: false,
+                contextMenu: createBoolContextMenu(allowMods, (value) -> { allowMods = value; updateSongStats(); })
             },
             {
                 name: "Include Secrets",
                 description: "Include secret songs in the pool",
                 callback: () -> { includeSecrets = !includeSecrets; updateSongStats(); },
-                locked: false
+                locked: false,
+                contextMenu: createBoolContextMenu(includeSecrets, (value) -> { includeSecrets = value; updateSongStats(); })
             },
             {
                 name: "Include Vanilla",
                 description: "Include base game songs (Base, Erect, Pico)",
                 callback: () -> { includeVanilla = !includeVanilla; updateSongStats(); },
-                locked: false
+                locked: false,
+                contextMenu: createBoolContextMenu(includeVanilla, (value) -> { includeVanilla = value; updateSongStats(); })
             },
             {
                 name: "Starting Song",
                 description: "Choose which song you start with",
                 callback: () -> selectStartingSong(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> selectStartingSong())
             },
             {
                 name: "Victory Song",
                 description: "Choose the final song for victory",
                 callback: () -> selectVictorySong(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> selectVictorySong())
             },
             {
                 name: "Grade Requirement",
                 description: "Minimum grade needed to complete songs",
                 callback: () -> cycleGradeRequirement(),
-                locked: false
+                locked: false,
+                contextMenu: createEnumContextMenu(APInfo.gradeList, gradeRequirement, (value) -> gradeRequirement = value)
+            },
+            {
+                name: "Accuracy Requirement",
+                description: "Minimum accuracy needed for completion",
+                callback: () -> cycleAccuracyRequirement(),
+                locked: false,
+                contextMenu: createEnumContextMenu(["60%", "70%", "80%", "90%", "95%"], accRequirement, (value) -> accRequirement = value)
             }
         ];
 
@@ -293,31 +374,89 @@ class APAdvancedSettingsState extends MusicBeatState {
                 name: "Trap Amount",
                 description: "Total number of trap items (0-60)",
                 callback: () -> adjustTrapAmount(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustTrapAmount())
             },
             {
                 name: "Chart Modifier Chance",
                 description: "Chance of getting chart modifiers (0-10)",
                 callback: () -> adjustChartModifier(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustChartModifier())
             },
             {
                 name: "Ticket Percentage",
                 description: "Percentage of checks that are tickets (10-50%)",
                 callback: () -> adjustTicketPercent(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustTicketPercent())
+            },
+            {
+                name: "Ticket Win Percentage",
+                description: "Percentage of tickets needed to win (50-90%)",
+                callback: () -> adjustTicketWinPercent(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustTicketWinPercent())
             },
             {
                 name: "Song Limit",
                 description: "Maximum number of songs in your run",
                 callback: () -> adjustSongLimit(),
-                locked: false
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustSongLimit())
+            }
+        ];
+
+        // Filler Weights Page
+        var fillerWeightsOptions:Array<SettingsOption> = [
+            {
+                name: "BBC Weight",
+                description: "Weight for Blue Balls Curse trap (0-10)",
+                callback: () -> adjustBBCWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustBBCWeight())
             },
             {
-                name: "Complex Settings",
-                description: "Open advanced configuration with state data capture",
-                callback: () -> openComplexSettings(),
-                locked: false
+                name: "Ghost Chat Weight",
+                description: "Weight for Ghost Chat trap (0-10)",
+                callback: () -> adjustGhostChatWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustGhostChatWeight())
+            },
+            {
+                name: "Tutorial Weight",
+                description: "Weight for Tutorial filler items (0-10)",
+                callback: () -> adjustTutorialWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustTutorialWeight())
+            },
+            {
+                name: "SVC Weight",
+                description: "Weight for SVC filler items (0-10)",
+                callback: () -> adjustSVCWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustSVCWeight())
+            },
+            {
+                name: "Fake Trans Weight",
+                description: "Weight for Fake Trans filler items (0-10)",
+                callback: () -> adjustFakeTransWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustFakeTransWeight())
+            },
+            {
+                name: "Shield Weight",
+                description: "Weight for Shield items (0-10)",
+                callback: () -> adjustShieldWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustShieldWeight())
+            },
+            {
+                name: "MHP Weight",
+                description: "Weight for MHP filler items (0-10)",
+                callback: () -> adjustMHPWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustMHPWeight())
             }
         ];
 
@@ -354,6 +493,13 @@ class APAdvancedSettingsState extends MusicBeatState {
                 options: trapsOptions,
                 stateOptions: exampleStateOptions, // Add state options to this page
                 color: FlxColor.ORANGE
+            },
+            {
+                name: "FILLER WEIGHTS",
+                description: "Configure item and trap generation weights",
+                options: fillerWeightsOptions,
+                stateOptions: [],
+                color: FlxColor.PURPLE
             }
         ];
     }
@@ -425,6 +571,236 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         // Load initial page
         loadPage(0);
+    }
+
+    function setupContextMenu() {
+        // Context menu background (covers entire screen)
+        contextMenuBackground = new FlxSprite(0, 0);
+        contextMenuBackground.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 120));
+        contextMenuBackground.visible = false;
+        add(contextMenuBackground);
+
+        // Context menu buttons and texts groups
+        contextMenuButtons = new FlxTypedGroup<FlxSprite>();
+        add(contextMenuButtons);
+
+        contextMenuTexts = new FlxTypedGroup<FlxText>();
+        add(contextMenuTexts);
+    }
+
+    function showContextMenu(optionName:String, contextMenu:ContextMenuType, x:Float, y:Float) {
+        if (contextMenuActive) return;
+
+        contextMenuActive = true;
+        currentContextMenu = contextMenu;
+        contextMenuTarget = optionName;
+
+        // Show background
+        contextMenuBackground.visible = true;
+
+        // Clear existing menu
+        contextMenuButtons.clear();
+        contextMenuTexts.clear();
+
+        switch (contextMenu) {
+            case ENUM_SELECT(options):
+                createEnumSelectMenu(options, x, y);
+            case BOOLEAN(trueLabel, falseLabel):
+                createBooleanMenu(trueLabel, falseLabel, x, y);
+            case EDIT_VALUE(editCallback):
+                // For edit values, just call the callback directly
+                closeContextMenu();
+                editCallback();
+        }
+    }
+
+    function createEnumSelectMenu(options:Array<ContextMenuOption>, x:Float, y:Float) {
+        var menuWidth = 200;
+        var menuHeight = options.length * 35 + 10;
+
+        // Position menu near cursor but keep it on screen
+        var menuX = Math.min(x, FlxG.width - menuWidth - 10);
+        var menuY = Math.min(y, FlxG.height - menuHeight - 10);
+
+        // Create panel background
+        contextMenuPanel = new FlxSprite(menuX, menuY);
+        contextMenuPanel.makeGraphic(menuWidth, menuHeight, FlxColor.fromRGB(40, 40, 60));
+        add(contextMenuPanel);
+
+        for (i in 0...options.length) {
+            var option = options[i];
+            var buttonY = menuY + 5 + (i * 35);
+
+            // Create button - use different color if this option is selected
+            var button = new FlxSprite(menuX + 5, buttonY);
+            var buttonColor = (option.isSelected == true) ? FlxColor.fromRGB(80, 120, 80) : FlxColor.fromRGB(60, 60, 100);
+            button.makeGraphic(menuWidth - 10, 30, buttonColor);
+            button.ID = i;
+            contextMenuButtons.add(button);
+
+            // Create text - add checkmark for selected option
+            var labelText = option.label;
+            if (option.isSelected == true) {
+                labelText = "✓ " + option.label;
+            }
+            var text = new FlxText(button.x + 5, button.y + 7, button.width - 10, labelText, 14);
+            var textColor = (option.isSelected == true) ? FlxColor.LIME : FlxColor.WHITE;
+            text.setFormat(Paths.font("vcr.ttf"), 14, textColor, LEFT, OUTLINE, FlxColor.BLACK);
+            text.borderSize = 1;
+            text.ID = i;
+            contextMenuTexts.add(text);
+        }
+    }
+
+    function createBooleanMenu(trueLabel:String, falseLabel:String, x:Float, y:Float) {
+        var menuWidth = 150;
+        var menuHeight = 80;
+
+        var menuX = Math.min(x, FlxG.width - menuWidth - 10);
+        var menuY = Math.min(y, FlxG.height - menuHeight - 10);
+
+        // Create panel background
+        contextMenuPanel = new FlxSprite(menuX, menuY);
+        contextMenuPanel.makeGraphic(menuWidth, menuHeight, FlxColor.fromRGB(40, 40, 60));
+        add(contextMenuPanel);
+
+        // True option
+        var trueButton = new FlxSprite(menuX + 5, menuY + 5);
+        trueButton.makeGraphic(menuWidth - 10, 30, FlxColor.fromRGB(60, 100, 60));
+        trueButton.ID = 1; // true
+        contextMenuButtons.add(trueButton);
+
+        var trueText = new FlxText(trueButton.x + 5, trueButton.y + 7, trueButton.width - 10, trueLabel, 14);
+        trueText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        trueText.borderSize = 1;
+        trueText.ID = 1;
+        contextMenuTexts.add(trueText);
+
+        // False option
+        var falseButton = new FlxSprite(menuX + 5, menuY + 40);
+        falseButton.makeGraphic(menuWidth - 10, 30, FlxColor.fromRGB(100, 60, 60));
+        falseButton.ID = 0; // false
+        contextMenuButtons.add(falseButton);
+
+        var falseText = new FlxText(falseButton.x + 5, falseButton.y + 7, falseButton.width - 10, falseLabel, 14);
+        falseText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        falseText.borderSize = 1;
+        falseText.ID = 0;
+        contextMenuTexts.add(falseText);
+    }
+
+    function closeContextMenu() {
+        if (!contextMenuActive) return;
+
+        contextMenuActive = false;
+        contextMenuBackground.visible = false;
+
+        if (contextMenuPanel != null) {
+            remove(contextMenuPanel);
+            contextMenuPanel = null;
+        }
+
+        contextMenuButtons.clear();
+        contextMenuTexts.clear();
+    }
+
+    function handleContextMenuInput() {
+        // Close context menu on escape or back
+        if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
+            closeContextMenu();
+            return;
+        }
+
+        // Handle hover effects for context menu buttons and text
+        for (i in 0...contextMenuButtons.length) {
+            var button = contextMenuButtons.members[i];
+            var text = contextMenuTexts.members[i];
+
+            if (button != null && text != null) {
+                if (FlxG.mouse.overlaps(button)) {
+                    // Hover effect - brighten button and make text yellow
+                    button.color = FlxColor.fromRGB(120, 120, 160);
+                    text.color = FlxColor.YELLOW;
+                } else {
+                    // Normal state - return to original colors based on context menu type
+                    switch (currentContextMenu) {
+                        case ENUM_SELECT(options):
+                            if (i < options.length && options[i].isSelected == true) {
+                                // Selected option gets green tint and lime text
+                                button.color = FlxColor.fromRGB(80, 120, 80);
+                                text.color = FlxColor.LIME;
+                            } else {
+                                // Unselected options get default colors
+                                button.color = FlxColor.fromRGB(60, 60, 100);
+                                text.color = FlxColor.WHITE;
+                            }
+                        case BOOLEAN(_, _):
+                            if (i == 1) {
+                                button.color = FlxColor.fromRGB(60, 100, 60); // True button green
+                                text.color = FlxColor.WHITE;
+                            } else {
+                                button.color = FlxColor.fromRGB(100, 60, 60); // False button red
+                                text.color = FlxColor.WHITE;
+                            }
+                        default:
+                            button.color = FlxColor.fromRGB(60, 60, 100);
+                            text.color = FlxColor.WHITE;
+                    }
+                }
+            }
+        }
+
+        // Handle mouse input for context menu
+        if (FlxG.mouse.justPressed) {
+            var clickedButton = -1;
+
+            // Check if we clicked on a context menu button
+            for (i in 0...contextMenuButtons.length) {
+                var button = contextMenuButtons.members[i];
+                if (button != null && FlxG.mouse.overlaps(button)) {
+                    clickedButton = button.ID;
+                    break;
+                }
+            }
+
+            if (clickedButton >= 0) {
+                handleContextMenuClick(clickedButton);
+            } else {
+                // Clicked outside menu, close it
+                closeContextMenu();
+            }
+        }
+    }
+
+    function handleContextMenuClick(buttonIndex:Int) {
+        switch (currentContextMenu) {
+            case ENUM_SELECT(options):
+                if (buttonIndex < options.length) {
+                    var option = options[buttonIndex];
+                    option.callback();
+                    FlxG.sound.play(Paths.sound('scrollMenu'));
+                    refreshCurrentPage();
+                }
+            case BOOLEAN(trueLabel, falseLabel):
+                // buttonIndex 1 = true, 0 = false
+                var newValue = buttonIndex == 1;
+                // Find the option and update it
+                for (option in pages[currentPage].options) {
+                    if (option.name == contextMenuTarget) {
+                        // Update the boolean value (implementation depends on your data structure)
+                        if (option.callback != null) {
+                            option.callback(); // This should toggle the boolean
+                        }
+                        FlxG.sound.play(Paths.sound('scrollMenu'));
+                        refreshCurrentPage();
+                        break;
+                    }
+                }
+            case EDIT_VALUE(editCallback):
+                // This case shouldn't happen here as EDIT_VALUE calls callback directly
+        }
+
+        closeContextMenu();
     }
 
     function setupStatsPanel() {
@@ -499,25 +875,45 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         // Create option buttons (both regular and state options)
         var startY:Float = 140;
-        var spacing:Float = 50;
+        var spacing:Float = 40; // Reduced spacing for more compact layout
         var optionIndex = 0;
+        var totalOptions = page.options.length + page.stateOptions.length;
+        var useCompactLayout = totalOptions > 8; // Use compact layout for pages with many options
+
+        var leftColumnX = 60;
+        var rightColumnX = Std.int(FlxG.width / 2) + 20;
+        var buttonWidth = useCompactLayout ? Std.int((FlxG.width - 400) / 2) : FlxG.width - 350;
+        var currentColumn = 0; // 0 for left, 1 for right
 
         // Add regular options
         for (i in 0...page.options.length) {
             var option = page.options[i];
-            var yPos = startY + (optionIndex * spacing);
+
+            var xPos:Float;
+            var yPos:Float;
+
+            if (useCompactLayout) {
+                // Two-column layout for pages with many options
+                xPos = currentColumn == 0 ? leftColumnX : rightColumnX;
+                yPos = startY + (Math.floor(optionIndex / 2) * spacing);
+                currentColumn = (currentColumn + 1) % 2;
+            } else {
+                // Single column layout for pages with few options
+                xPos = 100;
+                yPos = startY + (optionIndex * spacing);
+            }
 
             // Create button - start off-screen for animation
             var button = new FlxSprite(FlxG.width, yPos);
-            button.makeGraphic(FlxG.width - 350, 40, option.locked ? FlxColor.GRAY : FlxColor.fromRGB(40, 40, 80));
+            button.makeGraphic(buttonWidth, useCompactLayout ? 35 : 40, option.locked ? FlxColor.GRAY : FlxColor.fromRGB(40, 40, 80));
             button.ID = optionIndex;
             // Store button data using our custom system
             buttonData.set(button, ["type" => "regular", "index" => i]);
             optionButtons.add(button);
 
             // Create text - start off-screen for animation
-            var text = new FlxText(FlxG.width + 10, yPos + 10, button.width - 20, option.name, 16);
-            text.setFormat(Paths.font("vcr.ttf"), 16, option.locked ? FlxColor.GRAY : FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+            var text = new FlxText(FlxG.width + 10, yPos + (useCompactLayout ? 8 : 10), button.width - 20, option.name, useCompactLayout ? 14 : 16);
+            text.setFormat(Paths.font("vcr.ttf"), useCompactLayout ? 14 : 16, option.locked ? FlxColor.GRAY : FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
             text.borderSize = 1;
             text.ID = optionIndex;
             optionTexts.add(text);
@@ -525,8 +921,9 @@ class APAdvancedSettingsState extends MusicBeatState {
             // Add current value display
             var valueText = getCurrentValueText(option.name);
             if (valueText != "") {
-                var valueDisplay = new FlxText(FlxG.width + 10, yPos + 10, 140, valueText, 14);
-                valueDisplay.setFormat(Paths.font("vcr.ttf"), 14, page.color, RIGHT, OUTLINE, FlxColor.BLACK);
+                var valueWidth = useCompactLayout ? 100 : 140;
+                var valueDisplay = new FlxText(FlxG.width + 10, yPos + (useCompactLayout ? 8 : 10), valueWidth, valueText, useCompactLayout ? 12 : 14);
+                valueDisplay.setFormat(Paths.font("vcr.ttf"), useCompactLayout ? 12 : 14, page.color, RIGHT, OUTLINE, FlxColor.BLACK);
                 valueDisplay.borderSize = 1;
                 valueDisplay.ID = optionIndex + 1000; // Use different ID range for value displays
                 optionTexts.add(valueDisplay);
@@ -537,19 +934,32 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Add state options
         for (i in 0...page.stateOptions.length) {
             var stateOption = page.stateOptions[i];
-            var yPos = startY + (optionIndex * spacing);
+
+            var xPos:Float;
+            var yPos:Float;
+
+            if (useCompactLayout) {
+                // Two-column layout for pages with many options
+                xPos = currentColumn == 0 ? leftColumnX : rightColumnX;
+                yPos = startY + (Math.floor(optionIndex / 2) * spacing);
+                currentColumn = (currentColumn + 1) % 2;
+            } else {
+                // Single column layout for pages with few options
+                xPos = 100;
+                yPos = startY + (optionIndex * spacing);
+            }
 
             // Create button (different color to distinguish state options) - start off-screen for animation
             var button = new FlxSprite(FlxG.width, yPos);
-            button.makeGraphic(FlxG.width - 350, 40, stateOption.locked ? FlxColor.GRAY : FlxColor.fromRGB(60, 40, 80));
+            button.makeGraphic(buttonWidth, useCompactLayout ? 35 : 40, stateOption.locked ? FlxColor.GRAY : FlxColor.fromRGB(60, 40, 80));
             button.ID = optionIndex;
             // Store button data using our custom system
             buttonData.set(button, ["type" => "state", "index" => i]);
             optionButtons.add(button);
 
             // Create text with indicator - start off-screen for animation
-            var text = new FlxText(FlxG.width + 10, yPos + 10, button.width - 20, stateOption.name + " →", 16);
-            text.setFormat(Paths.font("vcr.ttf"), 16, stateOption.locked ? FlxColor.GRAY : FlxColor.CYAN, LEFT, OUTLINE, FlxColor.BLACK);
+            var text = new FlxText(FlxG.width + 10, yPos + (useCompactLayout ? 8 : 10), button.width - 20, stateOption.name + " →", useCompactLayout ? 14 : 16);
+            text.setFormat(Paths.font("vcr.ttf"), useCompactLayout ? 14 : 16, stateOption.locked ? FlxColor.GRAY : FlxColor.CYAN, LEFT, OUTLINE, FlxColor.BLACK);
             text.borderSize = 1;
             text.ID = optionIndex;
             optionTexts.add(text);
@@ -575,10 +985,19 @@ class APAdvancedSettingsState extends MusicBeatState {
             case "Starting Song": startingSong;
             case "Victory Song": victorySong;
             case "Grade Requirement": gradeRequirement;
+            case "Accuracy Requirement": accRequirement;
             case "Trap Amount": Std.string(trapAmount);
             case "Chart Modifier Chance": Std.string(chartmodifierchance);
             case "Ticket Percentage": ticketPercent + "%";
+            case "Ticket Win Percentage": ticketWinPercent + "%";
             case "Song Limit": Std.string(songLimit);
+            case "BBC Weight": Std.string(bbcWeight);
+            case "Ghost Chat Weight": Std.string(ghostChatWeight);
+            case "Tutorial Weight": Std.string(tutorialWeight);
+            case "SVC Weight": Std.string(svcWeight);
+            case "Fake Trans Weight": Std.string(fakeTransWeight);
+            case "Shield Weight": Std.string(shieldWeight);
+            case "MHP Weight": Std.string(MHPWeight);
             default: "";
         }
     }
@@ -595,13 +1014,32 @@ class APAdvancedSettingsState extends MusicBeatState {
             return;
         }
 
+        // Calculate layout variables for this page
+        var page = pages[currentPage];
+        var totalOptions = page.options.length + page.stateOptions.length;
+        var useCompactLayout = totalOptions > 8;
+        var leftColumnX = 60;
+        var rightColumnX = Std.int(FlxG.width / 2) + 20;
+        var buttonWidth = useCompactLayout ? Std.int((FlxG.width - 400) / 2) : FlxG.width - 350;
+
         // Animate buttons
         for (i in 0...optionButtons.members.length) {
             var button = optionButtons.members[i];
 
             if (button != null) {
                 button.x = FlxG.width;
-                FlxTween.tween(button, {x: 100}, transitionTime + (i * 0.05), {
+                // Calculate the target X position based on the layout
+                var targetX:Float;
+                if (useCompactLayout) {
+                    // Compact layout - determine which column this button should be in
+                    var column = i % 2;
+                    targetX = column == 0 ? leftColumnX : rightColumnX;
+                } else {
+                    // Regular single-column layout
+                    targetX = 100;
+                }
+
+                FlxTween.tween(button, {x: targetX}, transitionTime + (i * 0.05), {
                     ease: FlxEase.backOut,
                     onComplete: function(_) {
                         completedAnimations++;
@@ -620,10 +1058,28 @@ class APAdvancedSettingsState extends MusicBeatState {
             if (text != null) {
                 text.x = FlxG.width + 10;
                 // Determine target X based on text content and positioning
-                var targetX:Float = 110; // Default for main option text
-                // If this is a value display (right-aligned text), position it accordingly
-                if (text.alignment == RIGHT) {
-                    targetX = 100 + (FlxG.width - 350) - 150; // Button X + Button width - value display width
+                var targetX:Float;
+
+                if (useCompactLayout) {
+                    // Compact layout - determine which column this text should be in
+                    var textIndex = text.ID < 1000 ? text.ID : text.ID - 1000; // Handle value displays
+                    var column = textIndex % 2;
+                    var baseX = column == 0 ? leftColumnX : rightColumnX;
+
+                    if (text.alignment == RIGHT) {
+                        // Value display text (right-aligned)
+                        targetX = baseX + buttonWidth - (useCompactLayout ? 110 : 150);
+                    } else {
+                        // Main option text (left-aligned)
+                        targetX = baseX + 10;
+                    }
+                } else {
+                    // Regular single-column layout
+                    if (text.alignment == RIGHT) {
+                        targetX = 100 + (FlxG.width - 350) - 150;
+                    } else {
+                        targetX = 110;
+                    }
                 }
 
                 FlxTween.tween(text, {x: targetX}, transitionTime + (i * 0.05), {
@@ -682,6 +1138,12 @@ class APAdvancedSettingsState extends MusicBeatState {
         gradeRequirement = options[(current + 1) % options.length];
     }
 
+    function cycleAccuracyRequirement() {
+        var options = ["60%", "70%", "80%", "90%", "95%"];
+        var current = options.indexOf(accRequirement);
+        accRequirement = options[(current + 1) % options.length];
+    }
+
     function openPlayerNameInput() {
         var nameInput = new TextInputSubstate(
             "Player Name",
@@ -722,11 +1184,67 @@ class APAdvancedSettingsState extends MusicBeatState {
         });
     }
 
+    function adjustTicketWinPercent() {
+        openSliderControl("Ticket Win Percentage", ticketWinPercent, 50, 90, 5, function(value:Float) {
+            ticketWinPercent = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
     function adjustSongLimit() {
         var maxSongs = calculateMaxAvailableSongs();
         openSliderControl("Song Limit", songLimit, 5, maxSongs, 1, function(value:Float) {
             songLimit = Std.int(value);
             updateSongStats();
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustBBCWeight() {
+        openSliderControl("BBC Weight", bbcWeight, 0, 10, 1, function(value:Float) {
+            bbcWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustGhostChatWeight() {
+        openSliderControl("Ghost Chat Weight", ghostChatWeight, 0, 10, 1, function(value:Float) {
+            ghostChatWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustShieldWeight() {
+        openSliderControl("Shield Weight", shieldWeight, 0, 10, 1, function(value:Float) {
+            shieldWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustTutorialWeight() {
+        openSliderControl("Tutorial Weight", tutorialWeight, 0, 10, 1, function(value:Float) {
+            tutorialWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustSVCWeight() {
+        openSliderControl("SVC Weight", svcWeight, 0, 10, 1, function(value:Float) {
+            svcWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustFakeTransWeight() {
+        openSliderControl("Fake Trans Weight", fakeTransWeight, 0, 10, 1, function(value:Float) {
+            fakeTransWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustMHPWeight() {
+        openSliderControl("MHP Weight", MHPWeight, 0, 10, 1, function(value:Float) {
+            MHPWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
@@ -891,26 +1409,6 @@ class APAdvancedSettingsState extends MusicBeatState {
         }
     }
 
-    function openComplexSettings() {
-        // Example: Open a state for complex configuration and capture results
-        FlxG.sound.play(Paths.sound('confirmMenu'));
-
-        // Create a more complex settings state (example for song selection, keybinding, etc.)
-        openSubState(new Prompt(
-            "Complex Settings\n\nThis would open a complex settings state.\n\nWhen closed, variables from that state would be automatically captured and used here.\n\nUseful for:\n• Song selection screens\n• Key binding configuration\n• Multi-step setup wizards\n• Color pickers\n• File selectors",
-            0, // defaultSelected
-            function() {
-                // Simulate capturing data from closed state
-                var capturedData = "Example: Selected songs [Tutorial, Bopeebo, Fresh]";
-                showCaptureResult(capturedData);
-            },
-            null,
-            false,
-            'Simulate Capture',
-            'Cancel'
-        ));
-    }
-
     function showCaptureResult(data:String) {
         openSubState(new Prompt("State Data Captured\n\nCaptured from closed state:\n\n" + data, 0, null, null, false));
     }
@@ -996,12 +1494,20 @@ class APAdvancedSettingsState extends MusicBeatState {
             // Existing settings
             allowMods = settings.mods_enabled;
 
+            // Filler weight settings
+            bbcWeight = settings.bbcWeight;
+            ghostChatWeight = settings.ghostChatWeight;
+            tutorialWeight = settings.tutorialWeight;
+            svcWeight = settings.svcWeight;
+            fakeTransWeight = settings.fakeTransWeight;
+            shieldWeight = settings.shieldWeight;
+            MHPWeight = settings.MHPWeight;
+
             // New settings with defaults if they don't exist
             includeSecrets = Reflect.hasField(settings, "include_secrets") ? settings.include_secrets : true;
             includeVanilla = Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true;
             startingSong = settings.starting_song != null ? settings.starting_song : "Tutorial";
             victorySong = settings.victory_song != null ? settings.victory_song : "Tutorial";
-            // playerName stays at its default value or is managed separately
         }
     }
 
@@ -1028,6 +1534,15 @@ class APAdvancedSettingsState extends MusicBeatState {
             settings.include_vanilla = includeVanilla;
             settings.starting_song = startingSong;
             settings.victory_song = victorySong;
+
+            // Save filler weight settings
+            settings.bbcWeight = bbcWeight;
+            settings.ghostChatWeight = ghostChatWeight;
+            settings.tutorialWeight = tutorialWeight;
+            settings.svcWeight = svcWeight;
+            settings.fakeTransWeight = fakeTransWeight;
+            settings.shieldWeight = shieldWeight;
+            settings.MHPWeight = MHPWeight;
         }
     }
 
@@ -1081,8 +1596,25 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function performYAMLExport() {
-        // Use the same export logic as the original APSettingsSubState
-        APSettingsSubState.generateSongList();
+        var checks = 0;
+
+        while (APSettingsSubState.globalSongList.length == 0) {
+            APSettingsSubState.generateSongList();
+            checks++;
+        }
+        APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+
+        if (APEntryState.gameSettings.FNF.songList.length == 0) {
+            while (APEntryState.gameSettings.FNF.songList.length == 0) {
+                APSettingsSubState.generateSongList();
+                checks++;
+                APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+            }
+        }
+
+        // Process CustomAPLogic scripts before generating YAML
+        trace('Processing CustomAPLogic scripts...');
+        CustomAPLogic.APHScriptProcessor.processAllMods();
 
         var yamlThing = {};
         for (thing in Reflect.fields(APEntryState.gameSettings.FNF)) {
@@ -1094,6 +1626,29 @@ class APAdvancedSettingsState extends MusicBeatState {
         Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
         Reflect.setField(yamlThing, "starting_song", startingSong);
         Reflect.setField(yamlThing, "victory_song", victorySong);
+
+        // Generate and compress Python script for CustomAPLogic (ALWAYS compressed as Base64)
+        if (CustomAPLogic.APDataStore.items.length > 0 || CustomAPLogic.APDataStore.locations.length > 0 ||
+            CustomAPLogic.APDataStore.customWeeks.length > 0 || Lambda.count(CustomAPLogic.APDataStore.customData) > 0) {
+            trace('Generating Python script for CustomAPLogic...');
+
+            // Process all mods first to ensure data is up to date
+            CustomAPLogic.APHScriptProcessor.processAllMods();
+
+            // Generate the Python script content using the same method as APSettingsSubState
+            var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
+
+            if (pythonContent != null && pythonContent.length > 0) {
+                // ALWAYS compress the Python script using Base64 encoding (NOT optional)
+                var compressedPythonScript = Base64.encode(haxe.io.Bytes.ofString(pythonContent));
+
+                // Embed as modData in the YAML
+                Reflect.setField(yamlThing, "modData", compressedPythonScript);
+                trace('Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
+            } else {
+                trace('Warning: Python script generation returned empty content');
+            }
+        }
 
         APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
         FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
@@ -1150,8 +1705,16 @@ class APAdvancedSettingsState extends MusicBeatState {
         comment += "#   - Modded songs: " + (allowMods ? "YES" : "NO") + "\n";
 
         comment += "# Victory song: " + victorySong + "\n";
-        comment += "# Starting song: " + startingSong + "\n\n";
+        comment += "# Starting song: " + startingSong + "\n";
 
+        // Add modData information
+        if (Reflect.hasField(yamlThing, "modData")) {
+            comment += "# Contains compressed CustomAPLogic Python script (Base64 encoded)\n";
+            var modDataLength = Std.string(Reflect.field(yamlThing, "modData")).length;
+            comment += "# Compressed script size: " + modDataLength + " characters\n";
+        }
+
+        comment += "\n";
         return comment;
     }
 
@@ -1166,6 +1729,12 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Handle slider updates if one is active
         if (isSliderActive && sliderUpdateFunc != null) {
             sliderUpdateFunc(elapsed);
+        }
+
+        // Handle context menu input first
+        if (contextMenuActive) {
+            handleContextMenuInput();
+            return; // Don't process other input while context menu is active
         }
 
         // Don't handle input if a substate is open or a slider is active
@@ -1232,26 +1801,38 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         // Check option button clicks
         optionButtons.forEachAlive(function(button:FlxSprite) {
-            if (FlxG.mouse.overlaps(button) && FlxG.mouse.justPressed) {
+            if (FlxG.mouse.overlaps(button)) {
                 var data = buttonData.get(button);
                 if (data != null) {
                     var type:String = data.get("type");
                     var index:Int = data.get("index");
 
-                    if (type == "regular") {
-                        var option = pages[currentPage].options[index];
-                        if (!option.locked) {
-                            option.callback();
-                            // Play sound and refresh UI after any option change
-                            FlxG.sound.play(Paths.sound('scrollMenu'));
-                            refreshCurrentPage();
-                        } else {
-                            FlxG.sound.play(Paths.sound('cancelMenu'));
-                            FlxG.camera.shake(0.01, 0.2);
+                    // Handle left click
+                    if (FlxG.mouse.justPressed) {
+                        if (type == "regular") {
+                            var option = pages[currentPage].options[index];
+                            if (!option.locked) {
+                                option.callback();
+                                // Play sound and refresh UI after any option change
+                                FlxG.sound.play(Paths.sound('scrollMenu'));
+                                refreshCurrentPage();
+                            } else {
+                                FlxG.sound.play(Paths.sound('cancelMenu'));
+                                FlxG.camera.shake(0.01, 0.2);
+                            }
+                        } else if (type == "state") {
+                            var stateOption = pages[currentPage].stateOptions[index];
+                            executeStateOption(stateOption);
                         }
-                    } else if (type == "state") {
-                        var stateOption = pages[currentPage].stateOptions[index];
-                        executeStateOption(stateOption);
+                    }
+
+                    // Handle right click for context menu
+                    if (FlxG.mouse.justPressedRight && type == "regular") {
+                        var option = pages[currentPage].options[index];
+                        if (!option.locked && option.contextMenu != null) {
+                            var mousePos = FlxG.mouse.getPosition();
+                            showContextMenu(option.name, option.contextMenu, mousePos.x, mousePos.y);
+                        }
                     }
                 }
             }
@@ -1314,7 +1895,15 @@ class APAdvancedSettingsState extends MusicBeatState {
             chartmodifierchance: chartmodifierchance,
             trapAmount: trapAmount,
             songLimit: songLimit,
-            currentPage: currentPage
+            currentPage: currentPage,
+            // Filler weight settings
+            bbcWeight: bbcWeight,
+            ghostChatWeight: ghostChatWeight,
+            tutorialWeight: tutorialWeight,
+            svcWeight: svcWeight,
+            fakeTransWeight: fakeTransWeight,
+            shieldWeight: shieldWeight,
+            MHPWeight: MHPWeight
         };
 
         if (tempSave != null) {
@@ -1349,6 +1938,15 @@ class APAdvancedSettingsState extends MusicBeatState {
             if (Reflect.hasField(data, "currentPage")) {
                 currentPage = data.currentPage;
             }
+
+            // Load filler weight settings
+            if (Reflect.hasField(data, "bbcWeight")) bbcWeight = data.bbcWeight;
+            if (Reflect.hasField(data, "ghostChatWeight")) ghostChatWeight = data.ghostChatWeight;
+            if (Reflect.hasField(data, "tutorialWeight")) tutorialWeight = data.tutorialWeight;
+            if (Reflect.hasField(data, "svcWeight")) svcWeight = data.svcWeight;
+            if (Reflect.hasField(data, "fakeTransWeight")) fakeTransWeight = data.fakeTransWeight;
+            if (Reflect.hasField(data, "shieldWeight")) shieldWeight = data.shieldWeight;
+            if (Reflect.hasField(data, "MHPWeight")) MHPWeight = data.MHPWeight;
         }
     }
 
@@ -1572,6 +2170,15 @@ class APAdvancedSettingsState extends MusicBeatState {
             state.chartmodifierchance = data.chartmodifierchance;
             state.trapAmount = data.trapAmount;
             state.songLimit = data.songLimit;
+
+            // Load filler weight settings if available
+            if (Reflect.hasField(data, "bbcWeight")) state.bbcWeight = data.bbcWeight;
+            if (Reflect.hasField(data, "ghostChatWeight")) state.ghostChatWeight = data.ghostChatWeight;
+            if (Reflect.hasField(data, "tutorialWeight")) state.tutorialWeight = data.tutorialWeight;
+            if (Reflect.hasField(data, "svcWeight")) state.svcWeight = data.svcWeight;
+            if (Reflect.hasField(data, "fakeTransWeight")) state.fakeTransWeight = data.fakeTransWeight;
+            if (Reflect.hasField(data, "shieldWeight")) state.shieldWeight = data.shieldWeight;
+            if (Reflect.hasField(data, "MHPWeight")) state.MHPWeight = data.MHPWeight;
         }
         return state;
     }

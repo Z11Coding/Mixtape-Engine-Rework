@@ -343,7 +343,7 @@ class SongSelectSubState extends MusicBeatSubstate
     {
         // Clear existing items and clean up old icons
         grpSongs.clear();
-        
+
         // Properly dispose of old icons
         for (icon in iconArray) {
             if (icon != null) {
@@ -548,7 +548,7 @@ class SongSelectSubState extends MusicBeatSubstate
         {
             // Entering category selection mode
             inModSelection = false; // Ensure we're not in mod selection
-            
+
             // Show categories, hide songs and icons
             grpCategories.visible = true;
             grpSongs.visible = false;
@@ -585,7 +585,7 @@ class SongSelectSubState extends MusicBeatSubstate
             // Entering search mode
             inCategorySelection = false;
             inModSelection = false;
-            
+
             // Focus search field
             searchField.hasFocus = true;
             searchField.borderColor = FlxColor.YELLOW;
@@ -599,13 +599,13 @@ class SongSelectSubState extends MusicBeatSubstate
             searchField.hasFocus = false;
             searchField.borderColor = FlxColor.CYAN;
             searchLabel.color = FlxColor.CYAN;
-            
+
             // Clear search term and reload all songs
             searchTerm = "";
             searchField.text = "";
             loadSongList();
             changeSelection(0); // Reset selection
-            
+
             updateInstructionText();
         }
 
@@ -619,11 +619,11 @@ class SongSelectSubState extends MusicBeatSubstate
             selectionMode = "mods";
             inModSelection = true;
             inCategorySelection = false;
-            
+
             // Discover available mods
             discoverMods();
             loadModList();
-            
+
             // Update UI text
             categoryText.text = "Selecting Mod: " + availableMods[curModSelected] + " (ENTER to confirm)";
             instructText.text = "ENTER - Select Mod | SHIFT+TAB - Back to Categories | UP/DOWN - Navigate";
@@ -632,20 +632,20 @@ class SongSelectSubState extends MusicBeatSubstate
             selectionMode = "categories";
             inModSelection = false;
             inCategorySelection = false;
-            
+
             // Reload the category list and songs
             loadCategoryList();
             loadSongList();
-            
+
             // Ensure proper visibility states
             grpCategories.visible = false;
             grpSongs.visible = true;
-            
+
             // Show song icons
             for (icon in iconArray) {
                 if (icon != null) icon.visible = true;
             }
-            
+
             // Update UI text
             categoryText.text = "Category: " + currentCategory + " (TAB to change)";
             updateInstructionText();
@@ -701,14 +701,14 @@ class SongSelectSubState extends MusicBeatSubstate
         // Exit category mode
         inCategorySelection = false;
         inModSelection = false; // Ensure clean state
-        
+
         // Ensure proper visibility
         grpCategories.visible = false;
         grpSongs.visible = true;
         for (icon in iconArray) {
             if (icon != null) icon.visible = true;
         }
-        
+
         // Update UI text
         categoryText.text = "Category: " + currentCategory + " (TAB to change)";
         updateInstructionText();
@@ -872,7 +872,7 @@ class SongSelectSubState extends MusicBeatSubstate
         // Close the substate
         close();
     }
-    
+
     function updateInstructionText():Void
     {
         instructText.text = "ENTER - Select | ESC - Cancel | UP/DOWN - Navigate | TAB - Category | F - Search | SHIFT+TAB - Mods";
