@@ -1,21 +1,25 @@
 package archipelago;
 
-import hx.concurrent.lock.RLock;
 import archipelago.Definitions;
 import archipelago.PacketTypes;
+import backend.ClientPrefs;
+import deflatex.*;
 import haxe.DynamicAccess;
 import haxe.Exception;
-import haxe.exceptions.NotImplementedException;
+import haxe.Json as TJson;
 import haxe.Timer;
+import haxe.exceptions.NotImplementedException;
+import haxe.io.Bytes;
+import haxe.zip.Uncompress;
 import helder.Set;
+import hx.concurrent.lock.RLock;
 import hx.ws.Types.MessageType;
 import hx.ws.WebSocket;
-import haxe.Json as TJson;
-import haxe.zip.Uncompress;
-import haxe.io.Bytes;
-import deflatex.*;
 import yutautil.PermessageDeflate;
-import backend.ClientPrefs;
+
+using StringTools;
+using archipelago.Bitsets;
+using yutautil.CollectionUtils;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -24,9 +28,6 @@ import sys.io.File;
 import lime.app.Event;
 #end
 
-using StringTools;
-using archipelago.Bitsets;
-using yutautil.CollectionUtils;
 
 enum Status {
 	GOAL;
@@ -234,7 +235,7 @@ class Client {
 		@param item The item in question, if any.
 		@param receiving The ID of the receiving player, if any.
 	**/
-	public var onPrintJSON(default, null) = new Event<(Array<JSONMessagePart>, Null<NetworkItem>, Null<Int>) -> Void>();
+	public var onPrintJSON(default, null) = new Event<(Array<JSONMessagePart>, Null<NetworkItem>, Null<Int>, Null<String>) -> Void>();
 
 	/**
 		Called when a Countdown packet is received.
@@ -308,8 +309,8 @@ class Client {
 	inline function _hOnPrint(text)
 		return onPrint.dispatch(text);
 
-	inline function _hOnPrintJSON(data, item, receiving)
-		return onPrintJSON.dispatch(data, item, receiving);
+	inline function _hOnPrintJSON(data, item, receiving, type)
+		return onPrintJSON.dispatch(data, item, receiving, type);
 
 	inline function _hOnCountdown(countdown)
 		return onCountdown.dispatch(countdown);
@@ -487,7 +488,7 @@ class Client {
 	// 		case Status.UNKNOWN:
 	// 			InternalSend(OutgoingPacket.StatusUpdate(ClientStatus.UNKNOWN));
 	// 	}
-	// } 
+	// }
 
 	// public function setStatusByString(status:String) {
 	// 	switch (status) {
@@ -1284,7 +1285,7 @@ class Client {
 						packet.countdown
 					);
 				case "Bounced":
-					_hOnBounced(packet.data);	
+					_hOnBounced(packet.data);
 					return IncomingPacket.Bounced(
 						packet.games,
 						packet.slots,
@@ -1340,7 +1341,7 @@ class Client {
 			{
 				case Unknown(cmd):
 					parsedPacket = parseIncomingPacket(packet);
-				default: 
+				default:
 			}
 			// trace("< " + parsedPacket);
 			switch (parsedPacket) {
@@ -1385,7 +1386,7 @@ class Client {
 
 
 
-					
+
 				case ConnectionRefused(errors):
 					_hOnSlotRefused(errors);
 
@@ -1533,7 +1534,7 @@ class Client {
 
 					// ArchPopup.startPopupCustom("The game can now be played!", "You are now connected to the server. Have fun!", "archColor");
 
-				
+
 					_hOnSlotConnected(slot_data);
 					_hOnLocationChecked(checked_locations);
 
@@ -1581,7 +1582,7 @@ class Client {
 					_hOnPrint(text);
 
 				case PrintJSON(data, type, receiving, item, found, team, slot, message, tags, countdown):
-					_hOnPrintJSON(data, item, receiving);
+					_hOnPrintJSON(data, item, receiving, type);
 
 					if (type == "Countdown" && countdown != null) {
 						_hOnCountdown(countdown);
@@ -1699,14 +1700,14 @@ class Client {
 						trace("=== RAW MESSAGE ANALYSIS ===");
 						trace("Content length: " + content.length);
 						// trace("First 100 chars: " + content.substr(0, 100));
-						
+
 						// // Show character codes for first 20 characters
 						// var charCodes = [];
 						// for (i in 0...Std.int(Math.min(20, content.length))) {
 						// 	charCodes.push(content.charCodeAt(i));
 						// }
 						// trace("First 20 char codes: " + charCodes.join(", "));
-						
+
 						// // Convert to bytes and show hex
 						var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
 						// var hexBytes = [];
@@ -1714,7 +1715,7 @@ class Client {
 						// 	hexBytes.push(StringTools.hex(contentBytes.get(i), 2));
 						// }
 						// trace("First 20 bytes (hex): " + hexBytes.join(" "));
-						
+
 						// Check if it's already valid JSON
 						var trimmed = StringTools.trim(content);
 						if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
@@ -1725,16 +1726,16 @@ class Client {
 							trace('=== END OF RAW MESSAGE ANALYSIS ===');
 							return;
 						}
-						
+
 						// Check for common compression signatures
 						var first2Bytes = contentBytes.length >= 2 ? (contentBytes.get(0) << 8) | contentBytes.get(1) : 0;
 						trace("First 2 bytes as uint16: 0x" + StringTools.hex(first2Bytes, 4));
-						
+
 						// Check for various compression formats
 						if (contentBytes.length >= 2) {
 							var b1 = contentBytes.get(0);
 							var b2 = contentBytes.get(1);
-							
+
 							if (b1 == 0x78 && (b2 == 0x01 || b2 == 0x5E || b2 == 0x9C || b2 == 0xDA)) {
 								trace("Detected zlib header");
 							} else if (b1 == 0x1F && b2 == 0x8B) {
@@ -1745,7 +1746,7 @@ class Client {
 								trace("Unknown compression format or uncompressed data");
 							}
 						}
-						
+
 						// Try multiple decompression approaches
 						var approaches = [
 							// Approach 1: Try as-is if it looks like JSON
@@ -1756,13 +1757,13 @@ class Client {
 								}
 								return null;
 							},
-							
+
 							// Approach 2: Our custom permessage-deflate
 							function():String {
 								trace("Approach 2: PermessageDeflate");
 								return PermessageDeflate.smartDecompress(content);
 							},
-							
+
 							// Approach 3: Raw deflate with Haxe's implementation
 							function():String {
 								trace("Approach 3: Raw deflate");
@@ -1779,7 +1780,7 @@ class Client {
 									return null;
 								}
 							},
-							
+
 							// Approach 4: Try base64 decode first
 							function():String {
 								trace("Approach 4: Base64 decode");
@@ -1791,7 +1792,7 @@ class Client {
 									return null;
 								}
 							},
-							
+
 							// Approach 5: Try URL decode
 							function():String {
 								trace("Approach 5: URL decode");
@@ -1806,7 +1807,7 @@ class Client {
 									return null;
 								}
 							},
-							
+
 							// Approach 6: Try treating each character as a byte
 							function():String {
 								trace("Approach 6: Character-to-byte conversion");
@@ -1822,7 +1823,7 @@ class Client {
 								}
 							}
 						];
-						
+
 						var decompressedContent:String = null;
 						for (i in 0...approaches.length) {
 							try {
@@ -1830,7 +1831,7 @@ class Client {
 								if (result != null && result != content) {
 									trace("Approach " + (i + 1) + " produced different result (length: " + result.length + ")");
 									trace("Result preview: " + result.substr(0, 100));
-									
+
 									// Check if result looks like valid JSON
 									var trimmedResult = StringTools.trim(result);
 									if (trimmedResult.startsWith("[") || trimmedResult.startsWith("{")) {
@@ -1847,16 +1848,16 @@ class Client {
 								trace("Approach " + (i + 1) + " failed: " + e);
 							}
 						}
-						
+
 						// If nothing worked, use original content
 						if (decompressedContent == null) {
 							trace("All decompression approaches failed, using original content");
 							decompressedContent = content;
 						}
-						
+
 						trace("Final content preview: " + decompressedContent.substr(0, 100));
 						trace("=== END ANALYSIS ===");
-						
+
 						var newPackets:Array<IncomingPacket> = TJson.parse(decompressedContent);
 						for (newPacket in newPackets)
 							_recvQueue.push(newPacket);
@@ -1872,7 +1873,7 @@ class Client {
 					try {
 						var rawBytes = bytes.readAllAvailableBytes();
 						var decompressedContent:String;
-						
+
 						try {
 							// Try to decompress the bytes using our custom permessage-deflate handler
 							var uncompressed = PermessageDeflate.decompress(rawBytes);
@@ -1889,7 +1890,7 @@ class Client {
 							trace("All decompression failed for bytes message: " + e);
 							decompressedContent = rawBytes.toString();
 						}
-						
+
 						var newPackets:Array<IncomingPacket> = TJson.parse(decompressedContent);
 						// trace(newPackets);
 						for (newPacket in newPackets)
@@ -1917,7 +1918,7 @@ class Client {
 
 	/** Creates a new websocket client and connects to the server. **/
 	private function connect_socket() {
-		dontTryToReconnect = false; 
+		dontTryToReconnect = false;
 		if (_ws != null)
 			_ws.close();
 		if (uri.length == 0) {
@@ -1927,7 +1928,7 @@ class Client {
 		}
 		state = State.SOCKET_CONNECTING;
 		trace("Connecting to " + uri);
-		
+
 		try {
 			_lastSocketConnect = Timer.stamp();
 			_socketReconnectInterval *= 2;

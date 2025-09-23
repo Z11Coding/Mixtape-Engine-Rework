@@ -1,19 +1,19 @@
 package substates;
 
-import sys.FileSystem;
-import sys.io.File;
+import archipelago.*;
+import archipelago.APEntryState;
+import backend.Song;
+import backend.WeekData;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.addons.transition.FlxTransitionableState;
 import flixel.system.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
-import backend.Song;
-import flixel.addons.transition.FlxTransitionableState;
-import archipelago.APEntryState;
-import backend.WeekData;
-import archipelago.*;
+import sys.FileSystem;
+import sys.io.File;
 
 class RankingSubstate extends MusicBeatSubstate
 {
@@ -198,12 +198,12 @@ class RankingSubstate extends MusicBeatSubstate
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
-					
+
 					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
 						trace("Sending checks for all checked notes...");
 						for (note in APPlayState.instance.checkedNotes) {
 							trace("Sending check for note: " + note);
-							@:privateAccess{ 
+							@:privateAccess{
 								trace("Sending location: " + note.checkInfo.loc);
 								APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
 							}
@@ -211,7 +211,7 @@ class RankingSubstate extends MusicBeatSubstate
 						trace("All checks sent.");
 
 						var attempts = 0;
-						
+
 
 						var locationId = (PlayState.SONG.song);
 						trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
@@ -254,8 +254,8 @@ class RankingSubstate extends MusicBeatSubstate
 										: "assets/shared/" + (song[0] + Difficulty.getFilePath());
 									trace("Checking song path: " + songPath);
 									var songJson:SwagSong = null;
-									var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != "" 
-										? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json") 
+									var jsonStuff:Array<String> = archipelago.APPlayState.currentMod.trim() != ""
+										? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json")
 										: Paths.crawlDirectoryOG("assets/shared/data", ".json");
 
 																	for (json in jsonStuff)
@@ -293,13 +293,13 @@ class RankingSubstate extends MusicBeatSubstate
 																					}
 																				}
 																			}
-																		} 
+																		}
 																	}
 																}
 															}
 
-														
-															
+
+
 							trace("Final Location IDs: " + locationIdInts);
 							for (locationIdInt in locationIdInts)
 							{
@@ -309,7 +309,7 @@ class RankingSubstate extends MusicBeatSubstate
 							}
 							trace("Current Song: " + PlayState.SONG.song);
 
-							archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
+							archipelago.ArchPopup.startPopupCustom("You've completed a Song Check!", "Good Job!", "archColor", function() {
 								trace("Popup triggered for sending location to Archipelago.");
 								FlxG.sound.playMusic(Paths.sound('secret'));
 							});
@@ -328,7 +328,7 @@ class RankingSubstate extends MusicBeatSubstate
 							// 	}
 							// }
 						}
-						
+
 						if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
 							archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
 								trace("Goal achievement popup triggered.");

@@ -1074,8 +1074,12 @@ class APGameState
 		trace("Slot Data Connected and Custom Songs Grabbed!");
 	}
 
-	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
+	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic, ?type:String)
 	{
+		// if (type == "ItemSend")
+		// {
+		// 	trace("ItemSend message detected");
+		// }
 		// Check if this is an ItemSend message where this player is sending an item to someone else
 		if (item != null && receiving != null)
 		{
@@ -1089,7 +1093,7 @@ class APGameState
 				var receivingPlayerName = _ap.get_player_alias(receivingPlayer);
 
 				// Show popup notification that we sent an item
-				archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName', "Item Sent!", false);
+				archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName!', "Item Sent!", false);
 			}
 		}
 
