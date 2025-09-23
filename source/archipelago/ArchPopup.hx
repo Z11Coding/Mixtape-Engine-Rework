@@ -1,15 +1,15 @@
 package archipelago;
 
+import archipelago.APEntryState;
+import flash.display.BitmapData;
+import flixel.FlxG;
+import flixel.text.FlxText;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import openfl.Lib;
 import openfl.events.Event;
 import openfl.geom.Matrix;
-import flash.display.BitmapData;
-import openfl.Lib;
-import flixel.tweens.FlxTween;
-import flixel.text.FlxText;
-import flixel.util.FlxColor;
-import archipelago.APEntryState;
-import flixel.FlxG;
-import flixel.tweens.FlxEase;
 
 enum Icon
 {
@@ -100,7 +100,7 @@ class ArchPopup extends openfl.display.Sprite {
 		graphics.beginBitmapFill(clonedBitmap, new Matrix(1, 0, 0, 1, textX, textY), false, false);
 		graphics.drawRect(textX, textY, text.width + textX, text.height + textY);
 	}
-	
+
 	var lerpTime:Float = 0;
 	var countedTime:Float = 0;
 	var timePassed:Float = -1;
@@ -108,7 +108,7 @@ class ArchPopup extends openfl.display.Sprite {
 
 	function update(e:Event)
 	{
-		if(timePassed < 0) 
+		if(timePassed < 0)
 		{
 			timePassed = Lib.getTimer();
 			return;
@@ -181,15 +181,20 @@ class ArchPopup extends openfl.display.Sprite {
 		return _popups.length > 0;
 
 	static var _lastUnlock:Int = -999;
-	public static function startPopupSong(daSong:String, image:String, ?endFunc:Void->Void = null) {
+	public static function startPopupSong(daSong:{song:String, mod:String}, image:String, ?endFunc:Void->Void = null) {
 		for (popup in _popups)
 		{
 			if(popup == null) continue;
             popup.intendedY += 150;
 		}
-		if (!APEntryState.gonnaRunSync) 
+		if (!APEntryState.gonnaRunSync)
 		{
-			var newPop:ArchPopup = new ArchPopup('You Got A Song: ' + if (daSong != 'null') daSong else 'Nothing lol', 'Go Check Freeplay!', daSong, image, endFunc);
+			var songName = daSong.song;
+			var modName = daSong.mod;
+			var title = (modName != null && modName != "")
+				? '$songName (from $modName)'
+				: songName;
+			var newPop:ArchPopup = new ArchPopup('New Song!', title, songName, image, endFunc);
 			_popups.push(newPop);
 
 			var time:Int = openfl.Lib.getTimer();

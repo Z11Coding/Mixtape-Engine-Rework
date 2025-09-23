@@ -650,6 +650,19 @@ class CollectionUtils
 			})(input);
 	}
 
+	public static inline function attempt(f:haxe.Constraints.Function, attempts:Int, args:haxe.Rest<Dynamic>):Dynamic
+	{
+		for (i in 0...attempts)
+		{
+			try {
+				return Reflect.callMethod(null, f, args);
+			} catch (e:Dynamic) {
+				if (i == attempts - 1) return null;
+			}
+		}
+		return null;
+	}
+
 	public static inline function objectDynamic<T>(input:Dynamic):Dynamic
 	{
 		if (Std.is(input, Array))

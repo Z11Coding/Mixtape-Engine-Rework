@@ -408,7 +408,25 @@ class FreeplayState extends MusicBeatState
 					modName = fpManager.songList[i].folder;
 					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
 					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
-					color = isMissing ? FlxColor.RED : FlxColor.GREEN;
+
+					// Check if song is unlocked
+					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
+
+					// Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
+					color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
+
+					someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+
+					for (songObj in APFreeplayManager.curUnlocked)
+					{
+						if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
+							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+						}
+					}
+
+					if (!APFreeplayManager.unplayedList.contains(songName) && isMissing) {
+						color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+					}
 				}
 
 

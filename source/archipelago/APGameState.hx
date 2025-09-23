@@ -1092,8 +1092,16 @@ class APGameState
 				var itemName = _ap.get_item_name(networkItem.item, _ap.get_player_game(receivingPlayer));
 				var receivingPlayerName = _ap.get_player_alias(receivingPlayer);
 
-				// Show popup notification that we sent an item
-				archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName!', "Item Sent!", false);
+				// If sending to self, show special message
+				if (receivingPlayer == _ap.slotnr && archipelago.APItem.hasPocketLens)
+				{
+					archipelago.APItem.popup('Got yourself "$itemName"!', "Item Got!", false);
+				}
+				else
+				{
+					// Show popup notification that we sent an item
+					archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName!', "Item Sent!", false);
+				}
 			}
 		}
 
@@ -1383,7 +1391,7 @@ class APGameState
 			for (song in result.unlockedSongs)
 			{
 				if (!isSync)
-					ArchPopup.startPopupSong(song.song, 'archColor');
+					ArchPopup.startPopupSong(song, 'archColor');
 				APFreeplayManager.curUnlocked.push(song);
 			}
 

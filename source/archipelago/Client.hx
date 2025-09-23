@@ -683,17 +683,12 @@ class Client {
 		@return The game attached to the given slot number, or a blank string if no such slot exists. For a slot number of 0, "Archipelago" is returned.
 	**/
 	public function get_player_game(player:Int):String {
-		trace('get_player_game called with player: ' + player);
 		if (player == 0) {
-			trace('Returning "Archipelago" for player 0');
 			return "Archipelago";
 		}
 		if (_slotInfo.exists(player)) {
-			trace('Found slotInfo for player ' + player + ': ' + _slotInfo[player]);
-			trace('Returning game: ' + _slotInfo[player].game);
 			return _slotInfo[player].game;
 		}
-		trace('No slotInfo found for player ' + player + ', returning empty string');
 		return "";
 	}
 
