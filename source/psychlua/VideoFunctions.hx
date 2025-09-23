@@ -1,5 +1,6 @@
 package psychlua;
 
+import objects.SyncedVideoSprite;
 import objects.VideoSprite;
 import substates.GameOverSubstate;
 
@@ -88,6 +89,63 @@ class VideoFunctions
 			#end
 			MusicBeatState.getVariables().set(tag + '_video', videoCutscene);
 			MusicBeatState.getVariables().set(tag, videoCutscene);
+		});
+
+		Lua_helper.add_callback(lua, 'makeSyncedVideoSprite', function(tag:String, videoFile:String, ?x:Float = 0, ?y:Float = 0, ?syncOffset:Float = 0, ?canSkip:Bool = false, ?shouldLoop:Bool = false, ?addBehind:String = 'none') {
+			if (MusicBeatState.getVariables().exists(tag + '_synced_video') || MusicBeatState.getVariables().exists(tag))
+			{
+				PlayState.instance.addTextToDebug('makeSyncedVideoSprite: This tag is not available! Use a different tag.', FlxColor.RED);
+				return;
+			}
+
+			#if VIDEOS_ALLOWED
+			var syncedVideo = PlayState.instance.makeSyncedVideoSprite(videoFile, x, y, syncOffset, canSkip, shouldLoop, addBehind);
+			if (syncedVideo != null) {
+				MusicBeatState.getVariables().set(tag + '_synced_video', syncedVideo);
+				MusicBeatState.getVariables().set(tag, syncedVideo);
+			}
+			#else
+			FlxG.log.warn('Platform not supported!');
+			#end
+		});
+
+		Lua_helper.add_callback(lua, 'queueSyncedVideoSprite', function(tag:String, videoFile:String, startTime:Float, ?x:Float = 0, ?y:Float = 0, ?syncOffset:Float = 0, ?canSkip:Bool = false, ?shouldLoop:Bool = false, ?addBehind:String = 'none') {
+			if (MusicBeatState.getVariables().exists(tag + '_synced_video') || MusicBeatState.getVariables().exists(tag))
+			{
+				PlayState.instance.addTextToDebug('queueSyncedVideoSprite: This tag is not available! Use a different tag.', FlxColor.RED);
+				return;
+			}
+
+			#if VIDEOS_ALLOWED
+			var syncedVideo = PlayState.instance.queueSyncedVideoSprite(videoFile, startTime, x, y, syncOffset, canSkip, shouldLoop, addBehind);
+			if (syncedVideo != null) {
+				MusicBeatState.getVariables().set(tag + '_synced_video', syncedVideo);
+				MusicBeatState.getVariables().set(tag, syncedVideo);
+			}
+			#else
+			FlxG.log.warn('Platform not supported!');
+			#end
+		});
+
+		Lua_helper.add_callback(lua, 'pauseSyncedVideo', function(tag:String) {
+			var video = MusicBeatState.getVariables().get(tag + '_synced_video');
+			if (video != null && Std.isOfType(video, SyncedVideoSprite)) {
+				cast(video, SyncedVideoSprite).pause();
+			}
+		});
+
+		Lua_helper.add_callback(lua, 'resumeSyncedVideo', function(tag:String) {
+			var video = MusicBeatState.getVariables().get(tag + '_synced_video');
+			if (video != null && Std.isOfType(video, SyncedVideoSprite)) {
+				cast(video, SyncedVideoSprite).resume();
+			}
+		});
+
+		Lua_helper.add_callback(lua, 'stopSyncedVideo', function(tag:String) {
+			var video = MusicBeatState.getVariables().get(tag + '_synced_video');
+			if (video != null && Std.isOfType(video, SyncedVideoSprite)) {
+				cast(video, SyncedVideoSprite).stop();
+			}
 		});
 	}
 }

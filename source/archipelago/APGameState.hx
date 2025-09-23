@@ -1076,6 +1076,23 @@ class APGameState
 
 	function sendMessage(data:Array<JSONMessagePart>, item:Dynamic, receiving:Dynamic)
 	{
+		// Check if this is an ItemSend message where this player is sending an item to someone else
+		if (item != null && receiving != null)
+		{
+			var networkItem:NetworkItem = item;
+			var receivingPlayer:Int = receiving;
+
+			// If the item's player (sender) matches our slot, we are sending the item
+			if (networkItem.player == _ap.slotnr)
+			{
+				var itemName = _ap.get_item_name(networkItem.item, _ap.get_player_game(receivingPlayer));
+				var receivingPlayerName = _ap.get_player_alias(receivingPlayer);
+
+				// Show popup notification that we sent an item
+				archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName', "Item Sent!", false);
+			}
+		}
+
 		var theMessageFM:String = "";
 		for (message in data)
 		{

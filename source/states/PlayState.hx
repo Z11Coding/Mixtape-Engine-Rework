@@ -28,6 +28,7 @@ import objects.*;
 import objects.Note.EventNote;
 import objects.Note.SustainPart;
 import objects.NoteObject;
+import objects.SyncedVideoSprite;
 import objects.VideoSprite;
 import objects.playfields.*;
 import openfl.events.KeyboardEvent;
@@ -309,6 +310,7 @@ class PlayState extends MusicBeatState
 
 	public var scoreTxt:FlxText;
 	var timeTxt:FlxText;
+	var modchartDebugTxt:FlxText;
 	var scoreTxtTween:FlxTween;
 
 	public static var campaignScore:Int = 0;
@@ -1272,6 +1274,14 @@ class PlayState extends MusicBeatState
 		scoreTxt.visible = !ClientPrefs.data.hideHud;
 		uiGroup.add(scoreTxt);
 
+		// Modchart Debug Info Text (top-right corner)
+		modchartDebugTxt = new FlxText(FlxG.width - 300, 10, 290, "", 16);
+		modchartDebugTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		modchartDebugTxt.scrollFactor.set();
+		modchartDebugTxt.borderSize = 1.25;
+		modchartDebugTxt.visible = ClientPrefs.data.modchartDebugInfo && !ClientPrefs.data.hideHud;
+		uiGroup.add(modchartDebugTxt);
+
 		botplayTxt = new FlxText(400, healthBar.y - 90, FlxG.width - 800, Language.getPhrase("Botplay").toUpperCase(), 32);
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
@@ -2114,6 +2124,116 @@ class PlayState extends MusicBeatState
 		return null;
 	}
 
+	// SyncedVideoSprite Management System
+	public var syncedVideos:Array<SyncedVideoSprite> = [];
+	public var queuedSyncedVideos:Array<{video: SyncedVideoSprite, startTime: Float}> = [];
+
+	public function makeSyncedVideoSprite(name:String, ?x:Float = 0, ?y:Float = 0, ?syncOffset:Float = 0, ?canSkip:Bool = false, ?shouldLoop:Bool = false, ?addBehind:String = 'none'):SyncedVideoSprite
+	{
+		#if VIDEOS_ALLOWED
+		var foundFile:Bool = false;
+		var fileName:String = Paths.video(name);
+
+		#if sys
+		if (FileSystem.exists(fileName))
+		#else
+		if (OpenFlAssets.exists(fileName))
+		#end
+		foundFile = true;
+
+		if (foundFile)
+		{
+			var syncedVideo = new SyncedVideoSprite(fileName, false, canSkip, shouldLoop, syncOffset, true);
+			syncedVideo.x = x;
+			syncedVideo.y = y;
+
+			syncedVideos.push(syncedVideo);
+
+			if (GameOverSubstate.instance != null && isDead)
+				GameOverSubstate.instance.add(syncedVideo);
+			else {
+				switch(addBehind.toLowerCase()){
+					case "bf" | "boyfriend": addBehindBF(syncedVideo);
+					case "gf" | "girlfriend": addBehindGF(syncedVideo);
+					case "dad" | "opponent": addBehindDad(syncedVideo);
+					case "hud": addBehindHUD(syncedVideo);
+					default: add(syncedVideo);
+				}
+			}
+
+			return syncedVideo;
+		}
+		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+		else addTextToDebug("Synced Video not found: " + fileName, FlxColor.RED);
+		#else
+		else FlxG.log.error("Synced Video not found: " + fileName);
+		#end
+		#else
+		FlxG.log.warn('Platform not supported!');
+		#end
+		return null;
+	}
+
+	public function queueSyncedVideoSprite(name:String, startTime:Float, ?x:Float = 0, ?y:Float = 0, ?syncOffset:Float = 0, ?canSkip:Bool = false, ?shouldLoop:Bool = false, ?addBehind:String = 'none'):SyncedVideoSprite
+	{
+		#if VIDEOS_ALLOWED
+		var foundFile:Bool = false;
+		var fileName:String = Paths.video(name);
+
+		#if sys
+		if (FileSystem.exists(fileName))
+		#else
+		if (OpenFlAssets.exists(fileName))
+		#end
+		foundFile = true;
+
+		if (foundFile)
+		{
+			var syncedVideo = new SyncedVideoSprite(fileName, false, canSkip, shouldLoop, syncOffset, false);
+			syncedVideo.x = x;
+			syncedVideo.y = y;
+			syncedVideo.queueStart(startTime);
+
+			syncedVideos.push(syncedVideo);
+			queuedSyncedVideos.push({video: syncedVideo, startTime: startTime});
+
+			if (GameOverSubstate.instance != null && isDead)
+				GameOverSubstate.instance.add(syncedVideo);
+			else {
+				switch(addBehind.toLowerCase()){
+					case "bf" | "boyfriend": addBehindBF(syncedVideo);
+					case "gf" | "girlfriend": addBehindGF(syncedVideo);
+					case "dad" | "opponent": addBehindDad(syncedVideo);
+					case "hud": addBehindHUD(syncedVideo);
+					default: add(syncedVideo);
+				}
+			}
+
+			return syncedVideo;
+		}
+		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+		else addTextToDebug("Queued Synced Video not found: " + fileName, FlxColor.RED);
+		#else
+		else FlxG.log.error("Queued Synced Video not found: " + fileName);
+		#end
+		#else
+		FlxG.log.warn('Platform not supported!');
+		#end
+		return null;
+	}
+
+	private function updateSyncedVideos():Void
+	{
+		// Clean up destroyed videos
+		syncedVideos = syncedVideos.filter(function(video:SyncedVideoSprite) {
+			return video != null && video.exists;
+		});
+
+		queuedSyncedVideos = queuedSyncedVideos.filter(function(item) {
+			return item.video != null && item.video.exists;
+		});
+	}
+
 	function startAndEnd()
 	{
 		if(endingSong)
@@ -2462,6 +2582,50 @@ class PlayState extends MusicBeatState
 			scoreTxt.text = '${tempScore} | Health: ${CoolUtil.floorDecimal((health / 2) * 100, 2)}%' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : '');
 			scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
 		}
+	}
+
+	public dynamic function updateModchartDebugText()
+	{
+		if (modchartDebugTxt == null) return;
+
+		// Update visibility based on settings
+		modchartDebugTxt.visible = ClientPrefs.data.modchartDebugInfo && !ClientPrefs.data.hideHud;
+
+		if (!ClientPrefs.data.modchartDebugInfo) return;
+
+		// Get strum positions for player and opponent
+		var playerStrumInfo = "";
+		var opponentStrumInfo = "";
+
+		if (playfields.members[0] != null && playfields.members[0].strumNotes != null) {
+			for (i in 0...playfields.members[0].strumNotes.length) {
+				var strum = playfields.members[0].strumNotes[i];
+				if (strum != null) {
+					opponentStrumInfo += 'O${i}: ${Math.round(strum.x)},${Math.round(strum.y)}\n';
+				}
+			}
+		}
+
+		if (playfields.members[1] != null && playfields.members[1].strumNotes != null) {
+			for (i in 0...playfields.members[1].strumNotes.length) {
+				var strum = playfields.members[1].strumNotes[i];
+				if (strum != null) {
+					playerStrumInfo += 'P${i}: ${Math.round(strum.x)},${Math.round(strum.y)}\n';
+				}
+			}
+		}
+
+		var debugInfo = 'MODCHART DEBUG:\n';
+		debugInfo += 'Time: ${Math.round(Conductor.songPosition)}ms\n';
+		debugInfo += 'Step: ${curStep} (${CoolUtil.floorDecimal(curDecStep, 2)})\n';
+		debugInfo += 'Beat: ${curBeat} (${CoolUtil.floorDecimal(curDecBeat, 2)})\n';
+		debugInfo += 'Section: ${curSection}\n';
+		debugInfo += 'BPM: ${CoolUtil.floorDecimal(Conductor.bpm, 2)}\n\n';
+		debugInfo += 'STRUMS:\n';
+		debugInfo += opponentStrumInfo;
+		debugInfo += playerStrumInfo;
+
+		modchartDebugTxt.text = debugInfo;
 	}
 
 	public function doScoreBop():Void {
@@ -5082,6 +5246,10 @@ class PlayState extends MusicBeatState
 			updateScoreText();
 			lastHealth = health;
 		}
+
+		// Update modchart debug info every frame
+		updateModchartDebugText();
+
 		callOnScripts('onUpdate', [elapsed]);
 
 		updateVisPos();
@@ -5105,6 +5273,7 @@ class PlayState extends MusicBeatState
 		FlxG.sound.music.volume = 1 * instVolumeMultiplier;
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
+		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
 		if (!startingSong && ClientPrefs.data.modcharts)
@@ -9132,6 +9301,15 @@ class PlayState extends MusicBeatState
 			videoCutscene.destroy();
 			videoCutscene = null;
 		}
+
+		// Cleanup synced videos
+		for (video in syncedVideos) {
+			if (video != null) {
+				video.destroy();
+			}
+		}
+		syncedVideos = [];
+		queuedSyncedVideos = [];
 		#end
 
 		if (mechanicsMod != null) mechanicsMod.luckMechanicDestroy();

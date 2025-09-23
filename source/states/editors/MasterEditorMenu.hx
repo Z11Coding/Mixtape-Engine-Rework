@@ -21,6 +21,7 @@ class MasterEditorMenu extends MusicBeatState
 		'Modchart Editor',
 		'Sticker Test',
 		'XML Editor',
+		'Minigame Menu',
 		'UNO Test',
 		'Debug State Menu'
 	];
@@ -138,6 +139,8 @@ class MasterEditorMenu extends MusicBeatState
 					MusicBeatState.switchState(new StickerTest());
 				case 'XML Editor':
 					MusicBeatState.switchState(new XMLEditorState());
+				case 'Minigame Menu':
+					MusicBeatState.switchState(new MinigameMenuState());
 				case 'UNO Test':
 					MusicBeatState.switchState(new games.uno.UnoTestState());
 				case 'Debug State Menu':

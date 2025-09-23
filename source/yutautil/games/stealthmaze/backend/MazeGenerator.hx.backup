@@ -1,0 +1,443 @@
+package yutautil.games.stealthmaze.backend;
+
+import flixel.FlxG;
+import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
+import yutautil.games.stealthmaze.backend.MazeData;
+
+/**
+ * House/building generation using room-based architecture
+ */
+class MazeGenerator {
+
+    /**
+     * Helper function: Get center of a FlxRect
+     */
+    private static function getRectCenter(rect:FlxRect):FlxPoint {
+        return new FlxPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    }
+    
+    /**
+     * Helper function: Get distance from a point to the center of a FlxRect
+     */
+    private static function getDistanceToRectCenter(rect:FlxRect, point:FlxPoint):Float {
+        var center = getRectCenter(rect);
+        var dx = center.x - point.x;
+        var dy = center.y - point.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    
+    /**
+     * Helper function: Get distance between centers of two FlxRects
+     */
+    private static function getDistanceBetweenRects(rect1:FlxRect, rect2:FlxRect):Float {
+        var center1 = getRectCenter(rect1);
+        var center2 = getRectCenter(rect2);
+        var dx = center1.x - center2.x;
+        var dy = center1.y - center2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * Generate a complete house/building based on difficulty
+     */
+    public static function generateMaze(difficulty:MazeDifficulty, ?customSettings:Dynamic):MazeData {
+        var settings = MazeData.getDifficultySettings(difficulty);
+
+        var mazeData = new MazeData(difficulty, "Generated " + Std.string(difficulty).toLowerCase() + " house");
+
+        // Generate each floor
+        for (floorIndex in 0...settings.floorCount) {
+            var floor = generateFloor(
+                settings.floorSize.width,
+                settings.floorSize.height,
+                floorIndex,
+                settings
+            );
+            mazeData.addFloor(floor);
+        }
+
+        // Connect floors with stairs
+        connectFloorsWithStairs(mazeData, settings);
+
+        // Place collectibles randomly across floors
+        placeCollectibles(mazeData, settings);
+
+        return mazeData;
+    }
+
+    /**
+     * Generate a single floor with rooms
+     */
+    public static function generateFloor(
+        width:Float,
+        height:Float,
+        floorIndex:Int,
+        settings:Dynamic
+    ):MazeFloor {
+        var floor = new MazeFloor(width, height, floorIndex);
+
+        // Generate rooms based on floor type
+        if (floorIndex == 0) {
+            generateGroundFloor(floor, settings);
+        } else {
+            generateUpperFloor(floor, settings);
+        }
+
+        // Connect rooms with doors and hallways
+        connectRooms(floor);
+
+        // Add furniture and obstacles to rooms
+        furnishRooms(floor, settings);
+
+        // Place enemies
+        placeEnemies(floor, settings);
+
+        return floor;
+    }
+
+    /**
+     * Generate ground floor with main living areas
+     */
+    private static function generateGroundFloor(floor:MazeFloor, settings:Dynamic):Void {
+        var roomTypes = [LIVING_ROOM, KITCHEN, DINING_ROOM, BATHROOM, HALLWAY];
+
+        // Create main hallway first (central connection)
+        var hallway = new Room(
+            floor.bounds.width * 0.3,
+            floor.bounds.height * 0.4,
+            floor.bounds.width * 0.4,
+            floor.bounds.height * 0.2,
+            HALLWAY,
+            floor.floorIndex
+        );
+        floor.addRoom(hallway);
+
+        // Generate rooms around the hallway
+        generateRoomsAroundHallway(floor, hallway, roomTypes, settings);
+
+        // Set player spawn in hallway
+        floor.playerStartPosition = new MazePosition(
+            hallway.bounds.x + hallway.bounds.width/2,
+            hallway.bounds.y + hallway.bounds.height/2
+        );
+    }
+
+    /**
+     * Generate upper floor with bedrooms and private areas
+     */
+    private static function generateUpperFloor(floor:MazeFloor, settings:Dynamic):Void {
+        var roomTypes = [BEDROOM, BEDROOM, BATHROOM, OFFICE, CLOSET_ROOM, HALLWAY];
+
+        // Create corridor
+        var corridor = new Room(
+            floor.bounds.width * 0.1,
+            floor.bounds.height * 0.4,
+            floor.bounds.width * 0.8,
+            floor.bounds.height * 0.2,
+            CORRIDOR,
+            floor.floorIndex
+        );
+        floor.addRoom(corridor);
+
+        // Generate rooms along the corridor
+        generateRoomsAlongCorridor(floor, corridor, roomTypes, settings);
+    }
+
+    /**
+     * Generate rooms around a central hallway
+     */
+    private static function generateRoomsAroundHallway(floor:MazeFloor, hallway:Room, roomTypes:Array<RoomType>, settings:Dynamic):Void {
+        var roomsToCreate:Num = Math.min(roomTypes.length, settings.roomCount);
+
+        for (i in 0...roomsToCreate) {
+            var roomType = roomTypes[i % roomTypes.length];
+            var room = createRoomNearHallway(floor, hallway, roomType, settings);
+            if (room != null) {
+                floor.addRoom(room);
+            }
+        }
+    }
+
+    /**
+     * Generate rooms along a corridor
+     */
+    private static function generateRoomsAlongCorridor(floor:MazeFloor, corridor:Room, roomTypes:Array<RoomType>, settings:Dynamic):Void {
+        var roomsPerSide:Num = Math.floor(settings.roomCount / 2);
+
+        // Rooms on top side of corridor
+        for (i in 0...roomsPerSide) {
+            var roomType = roomTypes[i % roomTypes.length];
+            var room = createRoomAlongCorridor(floor, corridor, roomType, settings, true);
+            if (room != null) floor.addRoom(room);
+        }
+
+        // Rooms on bottom side of corridor
+        for (i in 0...roomsPerSide) {
+            var roomType = roomTypes[Std.int((i + roomsPerSide) % roomTypes.length)];
+            var room = createRoomAlongCorridor(floor, corridor, roomType, settings, false);
+            if (room != null) floor.addRoom(room);
+        }
+    }
+
+    /**
+     * Create a room near the central hallway
+     */
+    private static function createRoomNearHallway(floor:MazeFloor, hallway:Room, type:RoomType, settings:Dynamic):Room {
+        var size = getRoomSize(type, settings);
+        var attempts = 0;
+
+        while (attempts < 20) {
+            var x = Math.random() * (floor.bounds.width - size.x);
+            var y = Math.random() * (floor.bounds.height - size.y);
+
+            var newRoom = new Room(x, y, size.x, size.y, type, floor.floorIndex);
+
+            if (!roomOverlapsWithExisting(newRoom, floor.rooms) &&
+                getDistanceToRectCenter(newRoom.bounds, getRectCenter(hallway.bounds)) < 300) {
+                return newRoom;
+            }
+            attempts++;
+        }
+
+        return null;
+    }
+
+    /**
+     * Create a room along a corridor
+     */
+    private static function createRoomAlongCorridor(floor:MazeFloor, corridor:Room, type:RoomType, settings:Dynamic, topSide:Bool):Room {
+        var size = getRoomSize(type, settings);
+        var spacing = corridor.bounds.width / 4;
+        var x = corridor.bounds.x + Math.random() * (corridor.bounds.width - size.x);
+        var y = topSide ?
+            corridor.bounds.y - size.y - 20 :
+            corridor.bounds.y + corridor.bounds.height + 20;
+
+        if (y < 0 || y + size.y > floor.bounds.height) return null;
+
+        var newRoom = new Room(x, y, size.x, size.y, type, floor.floorIndex);
+
+        if (!roomOverlapsWithExisting(newRoom, floor.rooms)) {
+            return newRoom;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get appropriate size for room type
+     */
+    private static function getRoomSize(type:RoomType, settings:Dynamic):FlxPoint {
+        var base = settings.roomSizeRange;
+
+        return switch (type) {
+            case BEDROOM: new FlxPoint(base.min + 50, base.min + 30);
+            case LIVING_ROOM: new FlxPoint(base.max, base.max * 0.7);
+            case KITCHEN: new FlxPoint(base.min + 80, base.min + 60);
+            case BATHROOM: new FlxPoint(base.min, base.min);
+            case HALLWAY: new FlxPoint(base.max * 1.2, base.min + 20);
+            case CORRIDOR: new FlxPoint(base.max * 1.5, base.min);
+            case OFFICE: new FlxPoint(base.min + 40, base.min + 40);
+            case DINING_ROOM: new FlxPoint(base.min + 60, base.min + 40);
+            case CLOSET_ROOM: new FlxPoint(base.min * 0.7, base.min * 0.7);
+            case STORAGE: new FlxPoint(base.min + 20, base.min + 20);
+            default: new FlxPoint(base.min, base.min);
+        };
+    }
+
+    /**
+     * Check if room overlaps with existing rooms
+     */
+    private static function roomOverlapsWithExisting(newRoom:Room, existingRooms:Array<Room>):Bool {
+        for (existing in existingRooms) {
+            if (newRoom.bounds.overlaps(existing.bounds)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Connect rooms with doors
+     */
+    private static function connectRooms(floor:MazeFloor):Void {
+        // Connect each room to at least one other room
+        for (i in 0...floor.rooms.length) {
+            var room = floor.rooms[i];
+            var connected = false;
+
+            for (j in 0...floor.rooms.length) {
+                if (i == j) continue;
+
+                var other = floor.rooms[j];
+                if (roomsCanConnect(room, other)) {
+                    connectTwoRooms(room, other);
+                    connected = true;
+                    break;
+                }
+            }
+
+            // If no connection found, force connection to closest room
+            if (!connected && floor.rooms.length > 1) {
+                var closest = findClosestRoom(room, floor.rooms);
+                if (closest != null) {
+                    connectTwoRooms(room, closest);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if two rooms can be connected
+     */
+    private static function roomsCanConnect(room1:Room, room2:Room):Bool {
+        var distance = getDistanceBetweenRects(room1.bounds, room2.bounds);
+        return distance < 150; // Maximum connection distance
+    }
+
+    /**
+     * Connect two rooms with doors
+     */
+    private static function connectTwoRooms(room1:Room, room2:Room):Void {
+        // Find best door placement
+        var doorPoint = findBestDoorPlacement(room1, room2);
+        if (doorPoint != null) {
+            room1.addDoor(doorPoint.x, doorPoint.y);
+            room2.addDoor(doorPoint.x, doorPoint.y);
+        }
+    }
+
+    /**
+     * Find the best place to put a door between rooms
+     */
+    private static function findBestDoorPlacement(room1:Room, room2:Room):FlxPoint {
+        // Find the closest edges and place door there
+        var center1 = getRectCenter(room1.bounds);
+        var center2 = getRectCenter(room2.bounds);
+
+        // Simple approach: place door at midpoint between room centers
+        return new FlxPoint(
+            (center1.x + center2.x) / 2,
+            (center1.y + center2.y) / 2
+        );
+    }
+
+    /**
+     * Find closest room to given room
+     */
+    private static function findClosestRoom(room:Room, allRooms:Array<Room>):Room {
+        var closest:Room = null;
+        var closestDistance = Math.POSITIVE_INFINITY;
+
+        for (other in allRooms) {
+            if (other == room) continue;
+
+            var distance = getDistanceBetweenRects(room.bounds, other.bounds);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closest = other;
+            }
+        }
+
+        return closest;
+    }
+
+    /**
+     * Add furniture and obstacles to rooms
+     */
+    private static function furnishRooms(floor:MazeFloor, settings:Dynamic):Void {
+        for (room in floor.rooms) {
+            switch (room.type) {
+                case BEDROOM:
+                    room.addObstacle(room.bounds.x + 20, room.bounds.y + 20, 60, 40); // Bed
+                    room.addObstacle(room.bounds.x + room.bounds.width - 50, room.bounds.y + 20, 30, 30); // Dresser
+
+                case KITCHEN:
+                    room.addObstacle(room.bounds.x + 20, room.bounds.y + 20, 80, 30); // Counter
+                    room.addObstacle(room.bounds.x + 20, room.bounds.y + 60, 40, 40); // Island
+
+                case LIVING_ROOM:
+                    room.addObstacle(room.bounds.x + 40, room.bounds.y + 40, 80, 30); // Couch
+                    room.addObstacle(room.bounds.x + room.bounds.width - 60, room.bounds.y + 30, 40, 20); // TV Stand
+
+                case OFFICE:
+                    room.addObstacle(room.bounds.x + 20, room.bounds.y + 20, 50, 30); // Desk
+                    room.addObstacle(room.bounds.x + 20, room.bounds.y + room.bounds.height - 50, 30, 30); // Bookshelf
+
+                default:
+                    // Add some random obstacles for other room types
+                    if (Math.random() < 0.3) {
+                        room.addObstacle(
+                            room.bounds.x + 20 + Math.random() * (room.bounds.width - 80),
+                            room.bounds.y + 20 + Math.random() * (room.bounds.height - 60),
+                            30 + Math.random() * 40,
+                            20 + Math.random() * 30
+                        );
+                    }
+            }
+        }
+    }
+
+    /**
+     * Place enemies throughout the floor
+     */
+    private static function placeEnemies(floor:MazeFloor, settings:Dynamic):Void {
+        for (i in 0...settings.enemyCount) {
+            var room = floor.getRandomRoom();
+            if (room != null) {
+                var spawnPoint = room.getRandomPointInRoom();
+                floor.addEnemySpawn(spawnPoint.x, spawnPoint.y);
+            }
+        }
+    }
+
+    /**
+     * Connect floors with stairs
+     */
+    private static function connectFloorsWithStairs(mazeData:MazeData, settings:Dynamic):Void {
+        for (i in 0...mazeData.floors.length - 1) {
+            var currentFloor = mazeData.floors[i];
+            var upperFloor = mazeData.floors[i + 1];
+
+            // Find a room on each floor for stairs
+            var currentRoom = currentFloor.getRandomRoomOfType(HALLWAY);
+            if (currentRoom == null) currentRoom = currentFloor.getRandomRoom();
+
+            var upperRoom = upperFloor.getRandomRoomOfType(HALLWAY);
+            if (upperRoom == null) upperRoom = upperFloor.getRandomRoom();
+
+            if (currentRoom != null && upperRoom != null) {
+                var stairPoint = currentRoom.getRandomPointInRoom();
+                currentFloor.addStairsUp(stairPoint.x, stairPoint.y);
+                upperFloor.addStairsDown(stairPoint.x, stairPoint.y);
+            }
+        }
+    }
+
+    /**
+     * Place collectibles randomly across floors
+     */
+    private static function placeCollectibles(mazeData:MazeData, settings:Dynamic):Void {
+        // Place red objective on random floor
+        var randomFloor = Math.floor(Math.random() * mazeData.floors.length);
+        var floor = mazeData.floors[randomFloor];
+        var room = floor.getRandomRoom();
+        if (room != null) {
+            var point = room.getRandomPointInRoom();
+            floor.addCollectible(point.x, point.y, RED_OBJECTIVE);
+        }
+
+        // Place golden collectibles
+        for (floorIndex in 0...mazeData.floors.length) {
+            var currentFloor = mazeData.floors[floorIndex];
+            for (i in 0...settings.goldenCount) {
+                var room = currentFloor.getRandomRoom();
+                if (room != null) {
+                    var point = room.getRandomPointInRoom();
+                    currentFloor.addCollectible(point.x, point.y, GOLDEN_BONUS);
+                }
+            }
+        }
+    }
+}

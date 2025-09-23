@@ -33,7 +33,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			'ghostTapping',
 			BOOL);
 		addOption(option);
-		
+
 		var option:Option = new Option('Auto Pause',
 			"If checked, the game automatically pauses if the screen isn't on focus.",
 			'autoPause',
@@ -50,6 +50,12 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Allow Modcharts',
 		'If unchecked, turns off the modcharts for songs that have them.',
 		'modcharts',
+		'bool');
+		addOption(option);
+
+		var option:Option = new Option('Modchart Debug Info',
+		'If checked, shows debug information for modcharts\n(strum coordinates, song position, steps, beats, sections)\nin the top-right corner.',
+		'modchartDebugInfo',
 		'bool');
 		addOption(option);
 

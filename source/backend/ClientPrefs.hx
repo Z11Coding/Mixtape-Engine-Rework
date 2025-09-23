@@ -202,6 +202,7 @@ import states.TitleState;
 	// Debug Settings
 	public var debugTypeAnalysis:Bool = true;
 	public var showProgressInCMD:Bool = true;
+	public var modchartDebugInfo:Bool = false;
 }
 
 class ClientPrefs {
