@@ -1,6 +1,7 @@
 package states;
 
 import backend.AIPlayer;
+import backend.ChartPreloader;
 import backend.Highscore;
 import backend.Rating;
 import backend.Song;
@@ -501,6 +502,154 @@ class PlayState extends MusicBeatState
 	public var instVolumeMultiplier:Float = 1;
 	public var vocalVolumeMultiplier:Float = 1;
 	var inArchipelagoMode:Bool = false;
+
+	// Chart pre-generation flag
+	public var chartPreGenerated:Bool = false;
+
+	/**
+	 * Generate song from pre-generated Note objects
+	 */
+	function generateFromPreGeneratedData():Void
+	{
+		trace('Using pre-generated Note objects: ${ChartPreloader.preGeneratedNotes.length} notes');
+
+		// Set up basic song properties (same as normal generateSong)
+		songSpeed = PlayState.SONG.speed;
+		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
+		switch(songSpeedType)
+		{
+			case "multiplicative":
+				songSpeed = SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed');
+			case "constant":
+				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
+		}
+
+		var songData = SONG;
+		Conductor.bpm = songData.bpm;
+		curSong = songData.song;
+
+		// Initialize vocals (same as normal generateSong)
+		vocals = new FlxSound();
+		opponentVocals = new FlxSound();
+		gfVocals = new FlxSound();
+
+		try
+		{
+			if (songData.needsVoices)
+			{
+				var currentMod = "";
+				if (backend.WeekData.getCurrentWeek() != null)
+					currentMod = backend.WeekData.getCurrentWeek().folder;
+
+				if (currentMod != null && currentMod != "")
+				{
+					var generalVocals = Paths.voices(songData.song);
+					if (generalVocals != null && generalVocals.length > 0)
+					{
+						vocals.loadEmbedded(generalVocals);
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
+					else
+					{
+						var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
+				}
+				else
+				{
+					var generalVocals = Paths.voices(songData.song);
+					if (generalVocals != null && generalVocals.length > 0)
+					{
+						vocals.loadEmbedded(generalVocals);
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
+					else
+					{
+						var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+					}
+				}
+			}
+		}
+		catch (e:Dynamic) {trace("Vocals Broke.");}
+
+		#if FLX_PITCH
+		vocals.pitch = playbackRate;
+		opponentVocals.pitch = playbackRate;
+		gfVocals.pitch = playbackRate;
+		#end
+		FlxG.sound.list.add(vocals);
+		FlxG.sound.list.add(opponentVocals);
+		FlxG.sound.list.add(gfVocals);
+
+		// Initialize instrumental
+		inst = new FlxSound();
+		try
+		{
+			inst.loadEmbedded(Paths.inst(songData.song));
+		}
+		catch (e:Dynamic) {}
+		FlxG.sound.list.add(inst);
+
+		// Initialize notes group
+		notes = new FlxTypedGroup<Note>();
+		noteGroup.add(notes);
+
+		// Add pre-generated events
+		for (event in ChartPreloader.preGeneratedEvents)
+		{
+			eventNotes.push(event);
+		}
+
+		// Use pre-generated Note objects directly
+		for (preGenNote in ChartPreloader.preGeneratedNotes)
+		{
+			// Field assignments and visualTime are already set during pre-generation
+			// Just update the field reference for the current PlayState if needed
+			if (preGenNote.field == null && playfields.length > 0) 
+			{
+				// fieldIndex should already be set (0 = player, 1 = opponent/dad)
+				if (playfields.members[preGenNote.fieldIndex] != null) 
+				{
+					var playfield = playfields.members[preGenNote.fieldIndex];
+					preGenNote.field = playfield;
+				}
+			}
+
+			// Call script hooks
+			callOnScripts("onGeneratedNote", [preGenNote, null]);
+
+			// Queue the note to its assigned playfield
+			if (preGenNote.field != null)
+			{
+				preGenNote.field.queue(preGenNote);
+			}
+			
+			allNotes.push(preGenNote);
+		}		// Copy notes to unspawnNotes for the spawning system
+		unspawnNotes = allNotes.copy();
+		unspawnNotes.sort(sortByTime);
+		generatedMusic = true;
+
+		trace('Song generation completed using pre-generated Note objects: ${allNotes.length} notes');
+
+		// Note: We don't clear ChartPreloader data here since the Notes are now being used
+		// The cleanup will happen when PlayState is destroyed or when a new song is loaded
+	}
 
 	//Various things from other engines
 	var visual:AudioDisplay;
@@ -1157,8 +1306,12 @@ class PlayState extends MusicBeatState
 		}
 
 		var prevTime = Sys.time();
-		generateSong();
-		trace('generateSong() took ${Sys.time() - prevTime} seconds');
+		if (!chartPreGenerated) {
+			generateSong();
+			trace('generateSong() took ${Sys.time() - prevTime} seconds');
+		} else {
+			trace('Skipping generateSong() - chart was pre-generated during loading');
+		}
 
 		noteGroup.add(grpNoteSplashes);
 
@@ -2990,54 +3143,15 @@ class PlayState extends MusicBeatState
 			return result;
 		}
 
-				private var preGen:Array<Dynamic> = [];
-
-		private function preGenerateNotes():Void {
-		preGen = []; // Clear the array before generating
-
-		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
-		var daBpm:Float = Conductor.bpm;
-
-		for (section in sectionsData) {
-			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm) {
-				daBpm = section.bpm;
-			}
-
-			for (i in 0...section.sectionNotes.length) {
-				final songNotes: Array<Dynamic> = section.sectionNotes[i];
-				var spawnTime:Float = songNotes[0];
-				var noteColumn:Int = Std.int(songNotes[1]);
-				var holdLength:Float = songNotes[2];
-				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-
-				if (Math.isNaN(holdLength)) holdLength = 0.0;
-
-
-				var gottaHitNote:Bool = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
-
-				// Push the anonymous object into the preGen array
-				preGen.push({
-					spawnTime: spawnTime,
-					noteColumn: noteColumn,
-					holdLength: holdLength,
-					noteType: noteType,
-					gottaHitNote: gottaHitNote,
-					section: section,
-					isSustainNote: false
-				});
-				if (holdLength > 0)
-				{
-
-				}
-			}
-		}
-
-		trace('Pre-generated ${preGen.length} notes.');
-	}
-
-
 	private function generateSong():Void
 	{
+		// If chart was pre-generated during loading, use that data
+		if (ClientPrefs.data.preGenerateCharts && backend.ChartPreloader.isPreGenerated)
+		{
+			generateFromPreGeneratedData();
+			return;
+		}
+
 		// trace('Generating Song: ${SONG.song}');
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
@@ -9250,6 +9364,11 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		// Clean up ChartPreloader resources when PlayState is destroyed
+		if (ClientPrefs.data.preGenerateCharts && backend.ChartPreloader.isPreGenerated) {
+			backend.ChartPreloader.clear();
+		}
+
 		if (psychlua.CustomSubstate.instance != null)
 		{
 			closeSubState();

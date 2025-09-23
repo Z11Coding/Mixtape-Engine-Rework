@@ -903,7 +903,7 @@ class Note extends NoteObject
 		this.strumTime = strumTime;
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
-			visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+			visualTime = PlayState.instance?.getNoteInitialTime(this.strumTime);
 		}
 
 		this.noteData = noteData;

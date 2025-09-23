@@ -186,6 +186,7 @@ import states.TitleState;
 	public var performanceCounter:String = 'fps-mem-peak';
 	public var inGameRatings:Bool = false;
 	public var startHidden:Bool = false;
+	public var preGenerateCharts:Bool = false;
 	public var showKeybindsOnStart:Bool = false;
 	public var allowEvents:Bool = true;
 	public var menuTheme:String = 'Light';

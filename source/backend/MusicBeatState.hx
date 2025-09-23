@@ -729,8 +729,11 @@ class MusicBeatState extends FlxState
 		{
 			if (state is PlayState)
 			{
-				@:privateAccess
-				(cast state : PlayState).preGenerateNotes();
+				// Set flag to indicate chart was pre-generated during loading
+				if (ClientPrefs.data.preGenerateCharts) {
+					(cast state : PlayState).chartPreGenerated = true;
+					trace('Chart pre-generation flag set - using pre-generated data');
+				}
 			}
 		}
 		/*,

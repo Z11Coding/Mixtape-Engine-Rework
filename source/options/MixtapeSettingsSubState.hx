@@ -144,6 +144,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Pre-Generate Charts',
+			"If checked, song charts will be generated during the loading screen for faster song startup.\nThis may increase loading times but improves performance when the song starts.",
+			'preGenerateCharts',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Mix-Up Mode',
 			"Have you ever hear of Funky Friday/Friday Night Bloxin'?\nWell is essentially that, except it's single player.",
 			'mixupMode',
