@@ -1,5 +1,7 @@
 package archipelago;
 
+import yutautil.GenericProgressSubstate;
+
 using yutautil.CollectionUtils;
 
 class APCategoryState extends states.CategoryState {
@@ -49,20 +51,164 @@ class APCategoryState extends states.CategoryState {
 
         var quitFunc = function() {
             trace('QUIT FUNCTION CALLED - User selected quit or automatic quit triggered');
-            try{
-                if (AP != null) {
-                    AP.disconnect_socket();
-                } else {
-                    trace('AP client was null when trying to disconnect');
+
+            // Create progress tasks for graceful shutdown
+            var tasks = [
+                GenericProgressSubstate.createTask("Disconnecting from Archipelago server...", function(results) {
+                    // Just telling the game we're disconnecting to avoid reconnection attempts.
+                    gameState.isPurposefullyDisconnected = true;
+                    return "disconnect_initiated";
+                }, true), // throwOnError: true for proper disconnection
+                GenericProgressSubstate.createTask("Saving game data...", function(results) {
+                    try {
+                        if (gameState != null) {
+                            gameState.updateSaveData();
+                            trace('Game data saved successfully');
+                            return "save_success";
+                        } else {
+                            trace('No game state to save');
+                            return "save_skipped";
+                        }
+                    } catch (e) {
+                        trace('Error saving game data: ' + e);
+                        throw e;
+                    }
+                }, true), // throwOnError: true for critical save operation
+
+                GenericProgressSubstate.createTask("Cleaning up temporary weeks...", function(results) {
+                    try {
+                        archipelago.APGameState.forceCleanupTemporaryWeeks();
+                        trace('Temporary weeks cleaned up successfully');
+                        return "cleanup_success";
+                    } catch (e) {
+                        trace('Error cleaning up temporary weeks: ' + e);
+                        return "cleanup_error";
+                    }
+                }, false), // Don't throw on error - this is less critical
+
+                GenericProgressSubstate.createTask("Disconnecting from Archipelago server...", function(results) {
+                    try {
+                        if (AP != null) {
+                            if (gameState != null) {
+                                gameState.disconnectAP();
+                            } else {
+                                AP.disconnect_socket();
+                            }
+                            trace('Successfully disconnected from Archipelago server');
+                            return "disconnect_success";
+                        } else {
+                            trace('AP client was null, no disconnection needed');
+                            return "disconnect_skipped";
+                        }
+                    } catch (e) {
+                        trace('Error disconnecting AP: ' + e);
+                        throw e;
+                    }
+                }, true), // throwOnError: true for proper disconnection
+
+                GenericProgressSubstate.createTask("Nullifying all AP references...", function(results) {
+                    try {
+                        // Clean up all static references to apGame and client
+
+                        // APEntryState references
+                        archipelago.APEntryState.inArchipelagoMode = false;
+                        if (archipelago.APEntryState.apGame != null) {
+                            archipelago.APEntryState.apGame = null;
+                        }
+                        if (archipelago.APEntryState.ap != null) {
+                            archipelago.APEntryState.ap = null;
+                        }
+
+                        // APInfo references
+                        if (archipelago.APInfo.apGame != null) {
+                            archipelago.APInfo.apGame = null;
+                        }
+                        if (archipelago.APInfo.ap != null) {
+                            archipelago.APInfo.ap = null;
+                        }
+
+                        // APPlayState references
+                        if (archipelago.APPlayState.apGame != null) {
+                            archipelago.APPlayState.apGame = null;
+                        }
+
+                        // APStyledEntryState references
+                        if (archipelago.APStyledEntryState.apGame != null) {
+                            archipelago.APStyledEntryState.apGame = null;
+                        }
+                        if (archipelago.APStyledEntryState.ap != null) {
+                            archipelago.APStyledEntryState.ap = null;
+                        }
+
+                        // APGameState instance reference
+                        if (archipelago.APGameState.instance != null) {
+                            archipelago.APGameState.instance = null;
+                        }
+
+                        // Clean up local references in this state
+                        AP = null;
+                        gameState = null;
+
+                        trace('All Archipelago references nullified successfully');
+                        return "nullify_success";
+                    } catch (e) {
+                        trace('Error nullifying Archipelago references: ' + e);
+                        return "nullify_error";
+                    }
+                }, false) // Don't throw - we want to continue even if this fails
+            ];
+
+            var progressDialog = new GenericProgressSubstate(
+                "Exiting Archipelago Mode",
+                tasks,
+                function(results) {
+                    // Success callback - all tasks completed successfully
+                    trace('All shutdown tasks completed successfully. Results: ' + results);
+                    FlxG.switchState(new states.MainMenuState());
+                },
+                function(error, shouldThrow) {
+                    // Error callback - something went wrong
+                    trace('Error during shutdown process: ' + error);
+
+                    // Ensure emergency cleanup happens even on error
+                    try {
+                        archipelago.APEntryState.inArchipelagoMode = false;
+                        archipelago.APEntryState.apGame = null;
+                        archipelago.APEntryState.ap = null;
+                        archipelago.APInfo.apGame = null;
+                        archipelago.APInfo.ap = null;
+                        archipelago.APPlayState.apGame = null;
+                        archipelago.APStyledEntryState.apGame = null;
+                        archipelago.APStyledEntryState.ap = null;
+                        archipelago.APGameState.instance = null;
+                        AP = null;
+                        gameState = null;
+                        trace('Emergency cleanup completed during error handling');
+                    } catch (cleanupError) {
+                        trace('Error during emergency cleanup: ' + cleanupError);
+                    }
+
+                    if (shouldThrow) {
+                        // Critical error occurred, fall back to exit state
+                        trace('Critical error occurred, falling back to exit state');
+                        states.ExitState.addExitCallback(function() {
+                            var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
+                        });
+                        MusicBeatState.switchState(new states.ExitState());
+                    } else {
+                        // Non-critical error, try to continue to main menu
+                        trace('Non-critical error, attempting to continue to main menu');
+                        MusicBeatState.switchState(new states.MainMenuState());
+                    }
+                },
+                function() {
+                    // Cancel callback - user canceled the shutdown
+                    trace('User canceled the shutdown process');
+                    // Stay in the current state
                 }
-            }
-            catch(e){
-                trace('Error disconnecting AP: ' + e);
-            }
-            states.ExitState.addExitCallback(function() {
-                var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
-            });
-            FlxG.switchState(new states.ExitState());
+            );
+
+            openSubState(progressDialog);
         };
 
         var itemsFunc = function() {
@@ -85,13 +231,47 @@ class APCategoryState extends states.CategoryState {
         }
 
         // this.specialOptions.pushMulti([opFunc, quitFunc]);
+        // Enhanced cleanup function for emergency exit
         var cleanupFunc = function() {
-            if (AP != null){
-            APGameState.instance?.updateSaveData();
-            trace("Properly disconnecting from server before exiting...");
-            AP.disconnect_socket();
+            trace("Emergency cleanup: Disconnecting and nullifying all AP references...");
+
+            // Try to save data if possible
+            try {
+                if (gameState != null) {
+                    gameState.updateSaveData();
+                }
+                APGameState.instance?.updateSaveData();
+            } catch (e) {
+                trace('Error saving data during emergency cleanup: ' + e);
             }
-            AP = null;
+
+            // Disconnect if possible
+            try {
+                if (AP != null) {
+                    AP.disconnect_socket();
+                    AP = null;
+                }
+            } catch (e) {
+                trace('Error disconnecting during emergency cleanup: ' + e);
+            }
+
+            // Nullify all static references
+            try {
+                archipelago.APEntryState.inArchipelagoMode = false;
+                archipelago.APEntryState.apGame = null;
+                archipelago.APEntryState.ap = null;
+                archipelago.APInfo.apGame = null;
+                archipelago.APInfo.ap = null;
+                archipelago.APPlayState.apGame = null;
+                archipelago.APStyledEntryState.apGame = null;
+                archipelago.APStyledEntryState.ap = null;
+                archipelago.APGameState.instance = null;
+            } catch (e) {
+                trace('Error nullifying references during emergency cleanup: ' + e);
+            }
+
+            // Clean up local references
+            gameState = null;
         };
 
         if (!states.ExitState.cleanupFunctions.contains(cleanupFunc)) {

@@ -326,8 +326,19 @@ class MusicBeatState extends FlxState
 			afm.addEffect(badqualitymic);
 
 			effectArray.push(afm);
+
+			// Check for pending Archipelago reconnection
+		if (archipelago.APEntryState.inArchipelagoMode &&
+			archipelago.APGameState.pendingReconnection &&
+			archipelago.APGameState.reconnectionCallback != null) {
+
+			trace("Pending AP reconnection detected during state switch, triggering reconnection callback");
+
+			// Execute the reconnection callback
+			archipelago.APGameState.reconnectionCallback();
 		}
 	}
+}
 
 	public static var firstRun:Bool = true;
 	public static var emergencyOpacityFix:Bool = false;
@@ -586,7 +597,7 @@ class MusicBeatState extends FlxState
 		}
 
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
-			APEntryState.apGame.info().poll();
+			APEntryState.apGame.info()?.poll();
 	}
 
 	private function updateSection():Void
@@ -802,6 +813,22 @@ class MusicBeatState extends FlxState
 		{
 			resetState();
 			return;
+		}
+
+		// Check for pending Archipelago reconnection
+		if (!(FlxG.state is PlayState))
+		if (archipelago.APEntryState.inArchipelagoMode &&
+			archipelago.APGameState.pendingReconnection &&
+			archipelago.APGameState.reconnectionCallback != null) {
+
+			trace("Pending AP reconnection detected during state switch, triggering reconnection callback");
+
+			// Store the target state for after reconnection
+			archipelago.APGameState.reconnectionTargetState = nextState;
+
+			// Execute the reconnection callback
+			archipelago.APGameState.reconnectionCallback();
+			return; // Don't proceed with normal state transition yet
 		}
 
 		// Add a "rare" chance (5%) to use TransitionState instead of normal transition

@@ -52,7 +52,7 @@ class MusicBeatSubstate extends FlxSubState
 		}
 
 		super.update(elapsed);
-		if (APEntryState.apGame != null) APEntryState.apGame.info().poll();
+		if (APEntryState.apGame != null) APEntryState.apGame.info()?.poll();
 	}
 
 	private function updateSection():Void

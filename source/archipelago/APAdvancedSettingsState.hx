@@ -122,8 +122,8 @@ class APAdvancedSettingsState extends MusicBeatState {
     var accessibility:String = "full";
     var unlockType:String = "Per Song";
     var unlockMethod:String = "Song Completion";
-    var gradeRequirement:String = "D";
-    var accRequirement:String = "60%";
+    var gradeRequirement:String = "Any";
+    var accRequirement:String = "Any";
     var allowMods:Bool = false;
     var includeSecrets:Bool = true;
     var includeVanilla:Bool = true;
@@ -365,7 +365,7 @@ class APAdvancedSettingsState extends MusicBeatState {
                 description: "Minimum accuracy needed for completion",
                 callback: () -> cycleAccuracyRequirement(),
                 locked: false,
-                contextMenu: createEnumContextMenu(["60%", "70%", "80%", "90%", "95%"], accRequirement, (value) -> accRequirement = value)
+                contextMenu: createEnumContextMenu(APInfo.accuracyList, accRequirement, (value) -> accRequirement = value)
             }
         ];
 
@@ -1148,7 +1148,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function cycleAccuracyRequirement() {
-        var options = ["60%", "70%", "80%", "90%", "95%"];
+        var options = APInfo.accuracyList;
         var current = options.indexOf(accRequirement);
         accRequirement = options[(current + 1) % options.length];
     }

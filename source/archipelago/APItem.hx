@@ -9,6 +9,7 @@ import flixel.addons.display.FlxRuntimeShader;
 import flixel.util.FlxDestroyUtil;
 import haxe.ds.StringMap;
 import openfl.filters.ShaderFilter;
+import yutautil.GenericProgressSubstate;
 
 typedef Condition = {
     var checkFn:APItem->Bool;
@@ -725,6 +726,95 @@ class APItem {
                         }
                         FlxDestroyUtil.destroy(timer);
                     });
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Fake Loading Bar":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Preparing nonsense...', "TrapLink: Fake Loading Bar");
+
+                    // Array of ridiculous fake loading tasks
+                    var absurdTasks:Array<String> = [
+                        "Calibrating funk levels",
+                        "Downloading more RAM",
+                        "Teaching notes to dance",
+                        "Optimizing boyfriend's microphone",
+                        "Buffering dad's disapproval",
+                        "Loading girlfriend's attention span",
+                        "Synchronizing arrow keys with reality",
+                        "Defragmenting chart difficulty",
+                        "Installing better singing voice",
+                        "Updating boyfriend's confidence",
+                        "Compiling sick beats",
+                        "Initializing rhythm sensors",
+                        "Calculating perfect combo multiplier",
+                        "Loading next week's drama",
+                        "Preparing speakers for maximum volume",
+                        "Organizing note colors by importance",
+                        "Training AI to miss intentionally",
+                        "Downloading girlfriend's patience",
+                        "Calibrating dad's anger levels",
+                        "Loading backstory nobody asked for",
+                        "Optimizing funky fresh algorithms",
+                        "Buffering epic guitar solos",
+                        "Installing anti-lag lag",
+                        "Synchronizing beats with heartbeat",
+                        "Preparing for inevitable game over"
+                    ];
+
+                    // Randomly select 3-7 absurd tasks
+                    var numTasks = FlxG.random.int(3, 7);
+                    var selectedTasks:Array<String> = [];
+
+                    for (i in 0...numTasks) {
+                        var randomTask = FlxG.random.getObject(absurdTasks);
+                        selectedTasks.push(randomTask);
+                        absurdTasks.remove(randomTask);
+                    }
+
+                    // Create fake progress tasks with the correct structure
+                    var progressTasks:Array<yutautil.GenericProgressSubstate.ProgressTask> = [];
+                    for (task in selectedTasks) {
+                        progressTasks.push({
+                            name: task,
+                            func: function(args:Array<Dynamic>):Dynamic {
+                                // Do absolutely nothing productive
+                                trace('Fake loading: $task');
+                                // Simulate some "work" with a random delay
+                                haxe.Timer.delay(function() {
+                                    trace('Fake task completed: $task');
+                                }, Std.int(FlxG.random.float(500, 2000)));
+                                return null;
+                            },
+                            throwOnError: false
+                        });
+                    }
+
+                    // Add a final "completion" task
+                    progressTasks.push({
+                        name: "Realizing this was all pointless",
+                        func: function(args:Array<Dynamic>):Dynamic {
+                            trace("Fake loading complete - accomplished absolutely nothing!");
+                            return null;
+                        },
+                        throwOnError: false
+                    });
+
+                    // Show the fake loading dialog with the correct constructor
+                    var progressSubstate = new GenericProgressSubstate(
+                        "System Update Required",
+                        progressTasks,
+                        function(results:Array<Dynamic>) {
+                            // On completion - show another popup about the meaningless process
+                            haxe.Timer.delay(function() {
+                                popup('Update complete! Nothing changed.', "System Update");
+                            }, 100);
+                        }
+                    );
+
+                    FlxG.state.openSubState(progressSubstate);
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;

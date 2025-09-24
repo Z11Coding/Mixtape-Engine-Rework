@@ -87,11 +87,21 @@ class TransitionState {
 
         if (targetState == states.ExitState) {
             trace("Preparing to exit game...");
+            // Try to switch to ExitState first
             requiredTransition = { targetState: targetState, options: options, args: args, required: true };
+            // After 3 seconds, if still not in ExitState, force close the game
+            new FlxTimer().start(3, function(timer:FlxTimer) {
+                if (Type.getClass(FlxG.state) != states.ExitState) {
+                    trace("GAME IS STILL OPEN and not in ExitState! FORCE CLOSING!");
             new FlxTimer().start(3, function(timer:FlxTimer) {
                 trace("GAME IS STILL OPEN! FORCE CLOSING!");
                 Main.closeGame();
             });
+                    FlxG.switchState(new states.ExitState());
+
+                }
+            });
+
         }
 
         if (currenttransition != null) {

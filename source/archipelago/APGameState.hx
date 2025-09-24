@@ -36,6 +36,7 @@ import lime.app.Future;
 import lime.app.Promise;
 import openfl.text.TextFormat;
 import yutautil.AprilFools;
+import yutautil.GenericProgressSubstate;
 import yutautil.MemoryHelper;
 #if MODS_ALLOWED
 import sys.FileSystem;
@@ -1127,6 +1128,15 @@ class APGameState
 
 	public function disconnectAP()
 	{
+		// Set flag to prevent automatic reconnection
+		isPurposefullyDisconnected = true;
+
+		// Clear any pending reconnection state
+		pendingReconnection = false;
+		reconnectionCallback = null;
+		reconnectionTargetState = null;
+		_tempOfflineQueue = null;
+
 		// Clean up temporary weeks when manually disconnecting
 		cleanupTemporaryWeeks();
 
@@ -2428,12 +2438,60 @@ class APGameState
 		}
 	}
 
+	public var isPurposefullyDisconnected:Bool = false;
+
+	// Static variables to handle reconnection callbacks
+	public static var pendingReconnection:Bool = false;
+	public static var reconnectionCallback:Void->Void = null;
+	public static var reconnectionTargetState:FlxState = null;
+
+	// Temporary storage for offline queue during reconnection
+	private static var _tempOfflineQueue:Array<archipelago.Definitions.OfflineQueueType> = null;
+
+	/**
+	 * Static method to trigger reconnection process manually
+	 */
+	public static function triggerReconnection():Void {
+		if (instance != null && !pendingReconnection) {
+			trace("Manually triggering reconnection process");
+			instance.onSocketDisconnected();
+		}
+	}
+
+	/**
+	 * Static method to manually inject offline queue into current client
+	 */
+	public static function injectOfflineQueue(queue:Array<archipelago.Definitions.OfflineQueueType>):Bool {
+		if (instance != null && instance._ap != null && queue != null && queue.length > 0) {
+			try {
+				trace('Manually injecting ${queue.length} items into current client offline queue');
+				@:privateAccess instance._ap._offlineQueue = instance._ap._offlineQueue.concat(queue);
+				trace('Manual offline queue injection successful');
+				return true;
+			} catch (e) {
+				trace('Error during manual offline queue injection: ' + e);
+				return false;
+			}
+		}
+		return false;
+	}
+
 	private function onSocketDisconnected():Void
 	{
-		// Clean up temporary weeks when disconnecting
-		cleanupTemporaryWeeks();
+		if (isPurposefullyDisconnected)
+		{
+			trace("Socket disconnected purposefully, not attempting reconnection");
+			return;
+		}
 
-		// Get last connection settings for reconnection
+		trace("Socket disconnected unexpectedly, setting up reconnection callback");
+
+		// Set up callback system for next state transition
+		pendingReconnection = true;
+
+		_ap.dontTryToReconnect = true; // Prevent automatic reconnection attempts
+
+		// Store connection settings for later use
 		var FNF = new FlxSave();
 		FNF.bind("FNF");
 		var lastGame:Dynamic = FNF.data.lastGame;
@@ -2449,56 +2507,203 @@ class APGameState
 		}
 		FNF.destroy();
 
-		// Switch to APCategoryState with a connection substate for reconnection
-		var categoryState = new APCategoryState(this, _ap);
-		FlxG.switchState(categoryState);
+		// Create the reconnection callback that will be triggered on next state transition
+		var gameStateInstance = this; // Capture current instance for closure
+		reconnectionCallback = function() {
+			trace("Executing reconnection callback during state transition");
 
-		// Immediately open connection substate for reconnection
-		var connectionSubstate = new ConnectionSubstate(
-			hostValue,
-			portValue,
-			slotValue,
-			passwordValue,
-			function(client:Client, slotData:Dynamic) {
-				// Reconnection successful - update the AP client and continue
-				_ap = client;
-				APEntryState.ap = client;
+			// First, show generic progress substate for cleanup
+			@:privateAccess
+			var cleanupTasks = [
+				GenericProgressSubstate.createTask("Cleaning up temporary weeks...", function(results) {
+					try {
+						cleanupTemporaryWeeks();
+						trace('Temporary weeks cleaned up successfully');
+						return "cleanup_success";
+					} catch (e) {
+						trace('Error cleaning up temporary weeks: ' + e);
+						return "cleanup_error";
+					}
+				}, false),
+				GenericProgressSubstate.createTask("Gathering Offline Queue...", function(results) {
+					try {
+						if (gameStateInstance._ap != null && gameStateInstance._ap._offlineQueue != null) {
+							_tempOfflineQueue = gameStateInstance._ap._offlineQueue.copy();
+							trace('Offline queue gathered, ${_tempOfflineQueue != null ? _tempOfflineQueue.length : 0} items');
+						} else {
+							_tempOfflineQueue = [];
+							trace('No offline queue found');
+						}
+						return "offline_queue_gathered";
+					} catch (e) {
+						trace('Error gathering offline queue: ' + e);
+						_tempOfflineQueue = [];
+						return "offline_queue_error";
+					}
+				}, false)
+			];
 
-				// Update game state with new connection
-				archipelago.APPlayState.apGame = this;
-				archipelago.APInfo.apGame = this;
-				archipelago.APInfo.ap = _ap;
+			var cleanupDialog = new GenericProgressSubstate(
+				"Preparing Reconnection",
+				cleanupTasks,
+				function(results) {
+					// On cleanup complete, show connection substate
+					trace("Cleanup complete, showing connection substate");
 
-				// Re-setup callbacks
-				_ap.onSocketDisconnected.add(onSocketDisconnected);
-				_ap.onPrintJSON.add(sendMessage);
-				_ap.onPrint.add(sendMessageSimple);
-				// Readd Modifications, like temp weeks.
-				generateCustomWeeks();
+					var connectionSubstate = new ConnectionSubstate(
+						hostValue,
+						portValue,
+						slotValue,
+						passwordValue,
+						function(client:Client, slotData:Dynamic) {
+							// Reconnection successful - update the AP client and continue
+							gameStateInstance._ap = client;
+							APEntryState.ap = client;
 
-				trace('Reconnection successful!');
-			},
-			function(error:String) {
-				// Reconnection failed - go back to AP entry state
-				trace('Reconnection failed: ' + error);
-				onCancel();
-			}
-		);
-		categoryState.openSubState(connectionSubstate);
+							// Update game state with new connection
+							archipelago.APPlayState.apGame = gameStateInstance;
+							archipelago.APInfo.apGame = gameStateInstance;
+							archipelago.APInfo.ap = gameStateInstance._ap;
+
+							// Re-setup callbacks
+							gameStateInstance._ap.onSocketDisconnected.add(gameStateInstance.onSocketDisconnected);
+							gameStateInstance._ap.onPrintJSON.add(gameStateInstance.sendMessage);
+							gameStateInstance._ap.onPrint.add(gameStateInstance.sendMessageSimple);
+
+							// Inject offline queue into new client if available
+							if (_tempOfflineQueue != null && _tempOfflineQueue.length > 0) {
+								trace('Injecting ${_tempOfflineQueue.length} items from offline queue into new client');
+								trace('Offline queue contents: ${_tempOfflineQueue}');
+								try {
+									// Use @:privateAccess to access the private _offlineQueue field
+									@:privateAccess gameStateInstance._ap._offlineQueue = _tempOfflineQueue.copy();
+									// trace('Offline queue injection successful - new client queue length: ${gameStateInstance._ap._offlineQueue.length}');
+								} catch (e) {
+									trace('Error injecting offline queue: ' + e);
+								}
+								// Clear temp queue after injection
+								_tempOfflineQueue = null;
+							} else {
+								trace('No offline queue to inject');
+							}
+
+							// Regenerate custom weeks
+							gameStateInstance.generateCustomWeeks();
+
+							trace('Reconnection successful!');
+
+							// Clear the pending reconnection state
+							pendingReconnection = false;
+							reconnectionCallback = null;
+
+							// Now proceed with the original state transition
+							if (reconnectionTargetState != null) {
+								trace("Proceeding with delayed state transition");
+								var targetState = reconnectionTargetState;
+								reconnectionTargetState = null;
+								MusicBeatState.switchState(targetState);
+							}
+						},
+						function(error:String) {
+							// Reconnection failed - go back to AP entry state
+							trace('Reconnection failed: ' + error);
+							pendingReconnection = false;
+							reconnectionCallback = null;
+							reconnectionTargetState = null;
+							gameStateInstance.onCancel();
+						}
+					);
+
+					FlxG.state.openSubState(connectionSubstate);
+				},
+				function(error, shouldThrow) {
+					trace('Error during cleanup: ' + error);
+					// Even if cleanup fails, try to reconnect
+					var connectionSubstate = new ConnectionSubstate(
+						hostValue,
+						portValue,
+						slotValue,
+						passwordValue,
+						function(client:Client, slotData:Dynamic) {
+							// Same success handler as above
+							gameStateInstance._ap = client;
+							APEntryState.ap = client;
+							archipelago.APPlayState.apGame = gameStateInstance;
+							archipelago.APInfo.apGame = gameStateInstance;
+							archipelago.APInfo.ap = gameStateInstance._ap;
+							gameStateInstance._ap.onSocketDisconnected.add(gameStateInstance.onSocketDisconnected);
+							gameStateInstance._ap.onPrintJSON.add(gameStateInstance.sendMessage);
+							gameStateInstance._ap.onPrint.add(gameStateInstance.sendMessageSimple);
+
+							// Inject offline queue into new client if available
+							if (_tempOfflineQueue != null && _tempOfflineQueue.length > 0) {
+								trace('Injecting ${_tempOfflineQueue.length} items from offline queue into new client (fallback)');
+								trace('Offline queue contents (fallback): ${_tempOfflineQueue}');
+								try {
+									// Use @:privateAccess to access the private _offlineQueue field
+									@:privateAccess gameStateInstance._ap._offlineQueue = _tempOfflineQueue.copy();
+									// trace('Offline queue injection successful (fallback) - new client queue length: ${gameStateInstance._ap._offlineQueue.length}');
+								} catch (e) {
+									trace('Error injecting offline queue (fallback): ' + e);
+								}
+								// Clear temp queue after injection
+								_tempOfflineQueue = null;
+							} else {
+								trace('No offline queue to inject (fallback)');
+							}
+
+							gameStateInstance.generateCustomWeeks();
+							trace('Reconnection successful after cleanup error!');
+							pendingReconnection = false;
+							reconnectionCallback = null;
+							if (reconnectionTargetState != null) {
+								var targetState = reconnectionTargetState;
+								reconnectionTargetState = null;
+								MusicBeatState.switchState(targetState);
+							}
+						},
+						function(error:String) {
+							trace('Reconnection failed: ' + error);
+							pendingReconnection = false;
+							reconnectionCallback = null;
+							reconnectionTargetState = null;
+							gameStateInstance.onCancel();
+						}
+					);
+					FlxG.state.openSubState(connectionSubstate);
+				},
+				function() {
+					// Cancel callback
+					trace('Cleanup canceled by user');
+					pendingReconnection = false;
+					reconnectionCallback = null;
+					reconnectionTargetState = null;
+					_tempOfflineQueue = null;
+				}
+			);
+
+			FlxG.state.openSubState(cleanupDialog);
+		};
 	}
 	private function onCancel():Void
-		{
-			// Clean up temporary weeks when canceling/exiting AP mode
-			cleanupTemporaryWeeks();
+	{
+		// Clean up temporary weeks when canceling/exiting AP mode
+		cleanupTemporaryWeeks();
 
-			_ap.clientStatus = ClientStatus.UNKNOWN;
-			_ap.onSocketDisconnected.remove(onSocketDisconnected);
-			_ap = null;
-			APEntryState.ap = null;
-			APEntryState.apGame = null;
-			APEntryState.inArchipelagoMode = false;
-			MusicBeatState.switchState(new APEntryState());
-		}
+		// Clear reconnection callback state
+		pendingReconnection = false;
+		reconnectionCallback = null;
+		reconnectionTargetState = null;
+		_tempOfflineQueue = null;
+
+		_ap.clientStatus = ClientStatus.UNKNOWN;
+		_ap.onSocketDisconnected.remove(onSocketDisconnected);
+		_ap = null;
+		APEntryState.ap = null;
+		APEntryState.apGame = null;
+		APEntryState.inArchipelagoMode = false;
+		MusicBeatState.switchState(new APEntryState());
+	}
 
 		private function onReconnect():Void
 		{
