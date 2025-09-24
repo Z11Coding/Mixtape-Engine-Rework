@@ -4,6 +4,7 @@ import archipelago.APEntryState;
 import archipelago.APInfo;
 import archipelago.APVersionSelectionState;
 import archipelago.CustomAPLogic;
+import archipelago.substates.InfoPanelSubstate;
 import archipelago.substates.NumberInputSubstate;
 import archipelago.substates.TextInputSubstate;
 import backend.MusicBeatState;
@@ -804,17 +805,25 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function setupStatsPanel() {
-        statsPanel = new FlxSprite(FlxG.width - 300, 120);
-        statsPanel.makeGraphic(280, 200, FlxColor.BLACK);
-        statsPanel.alpha = 0.7;
+        // Instead of always visible panel, create a stats button
+        statsPanel = new FlxSprite(FlxG.width - 100, 80);
+        statsPanel.makeGraphic(80, 40, FlxColor.fromRGB(60, 60, 100));
+        statsPanel.alpha = 0.9;
         add(statsPanel);
 
-        statsText = new FlxText(statsPanel.x + 10, statsPanel.y + 10, 260, "", 12);
-        statsText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
-        statsText.borderSize = 1;
-        add(statsText);
+        var statsButtonText = new FlxText(statsPanel.x, statsPanel.y + 10, statsPanel.width, "STATS", 14);
+        statsButtonText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        statsButtonText.borderSize = 1;
+        add(statsButtonText);
 
+        // Store the stats text for the info panel
+        statsText = new FlxText(0, 0, 0, "", 12);
         updateSongStats();
+    }
+
+    function showStatsPanel() {
+        var statsTitle = "SONG STATISTICS";
+        openSubState(new InfoPanelSubstate(statsTitle, statsText.text, FlxColor.ORANGE));
     }
 
     function setupAnimations() {
@@ -1864,6 +1873,12 @@ class APAdvancedSettingsState extends MusicBeatState {
             FlxG.sound.play(Paths.sound('cancelMenu'));
             closeSettings();
         }
+
+        // Check stats panel button
+        if (FlxG.mouse.overlaps(statsPanel) && FlxG.mouse.justPressed) {
+            FlxG.sound.play(Paths.sound('scrollMenu'));
+            showStatsPanel();
+        }
     }
 
     // Temporary save system for state navigation
@@ -2229,12 +2244,9 @@ class APAdvancedSettingsState extends MusicBeatState {
             FlxTween.tween(text, {y: text.y + 50, alpha: 0}, FlxG.random.float(0.3, 0.6), {ease: FlxEase.backIn});
         });
 
-        // Stats panel slides out
+        // Stats panel button slides out
         if (statsPanel != null) {
             FlxTween.tween(statsPanel, {x: FlxG.width + 50, alpha: 0}, 0.4, {ease: FlxEase.backIn});
-        }
-        if (statsText != null) {
-            FlxTween.tween(statsText, {x: FlxG.width + 50, alpha: 0}, 0.4, {ease: FlxEase.backIn});
         }
 
         // Close button slides down

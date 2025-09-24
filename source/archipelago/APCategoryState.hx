@@ -13,12 +13,26 @@ class APCategoryState extends states.CategoryState {
         var attempts = 0;
         while (attempts < 20) {
             try {
-            this.AP = gameState.info();
-            break;
+                this.AP = gameState.info();
+                if (this.AP != null) {
+                    trace('Successfully connected to Archipelago server on attempt: ' + (attempts + 1));
+                    break;
+                }
             } catch (e) {
-                trace('Failed to connect to Archipelago server, retrying... Attempt: ' + (++attempts));
-            Sys.sleep(0.1);
+                trace('Failed to connect to Archipelago server, retrying... Attempt: ' + (++attempts) + ' Error: ' + e);
+                if (attempts >= 20) {
+                    trace('All connection attempts failed. Falling back to passed AP client.');
+                    this.AP = AP; // Use the passed AP client as fallback
+                    break;
+                }
+                Sys.sleep(0.1);
             }
+        }
+
+        // Final check - if we still don't have a connection, something is very wrong
+        if (this.AP == null) {
+            trace('CRITICAL: No AP connection available. This will cause issues.');
+            // Don't switch to ExitState immediately - let the parent class handle it
         }
         // Static menu with "Items" option moved after "Unplayed" and before "Options"
         var menuOptions = ['All', 'Hinted', 'Unlocked', 'Unplayed', 'Items', 'Options', 'Quit'];
@@ -34,8 +48,17 @@ class APCategoryState extends states.CategoryState {
         };
 
         var quitFunc = function() {
-            try{AP.disconnect_socket();}
-            catch(e){}
+            trace('QUIT FUNCTION CALLED - User selected quit or automatic quit triggered');
+            try{
+                if (AP != null) {
+                    AP.disconnect_socket();
+                } else {
+                    trace('AP client was null when trying to disconnect');
+                }
+            }
+            catch(e){
+                trace('Error disconnecting AP: ' + e);
+            }
             states.ExitState.addExitCallback(function() {
                 var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
             });
@@ -79,9 +102,18 @@ class APCategoryState extends states.CategoryState {
     override function create()
     {
         super.create();
-        if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode) {
-			APEntryState.apGame.info().Sync();
-		}
+        if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode && APEntryState.apGame != null) {
+            try {
+                var apClient = APEntryState.apGame.info();
+                if (apClient != null) {
+                    apClient.Sync();
+                } else {
+                    trace('Warning: AP client is null, skipping sync');
+                }
+            } catch (e) {
+                trace('Error during AP sync: ' + e);
+            }
+        }
     }
 
     var shopItem:FlxSprite;
@@ -94,6 +126,17 @@ class APCategoryState extends states.CategoryState {
         }
 
         super.update(elapsed);
-        AP.poll();
+
+        // Null check before polling
+        if (AP != null) {
+            try {
+                AP.poll();
+            } catch (e) {
+                trace('Error during AP polling: ' + e);
+                // Don't crash the game, just log the error
+            }
+        } else {
+            trace('Warning: AP client is null, skipping poll');
+        }
     }
 }

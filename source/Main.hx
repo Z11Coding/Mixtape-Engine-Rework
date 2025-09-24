@@ -1181,6 +1181,8 @@ class CommandPrompt
 				}
 			case "exit":
 				this.active = false;
+				FlxG.autoPause = false;
+				MusicBeatState.isClosing = true;
 				print("Exiting game...");
 				if (args.length == 0)
 				{
@@ -1195,7 +1197,7 @@ class CommandPrompt
 				else
 				{
 					print("Warning: exit command only accepts 'forced' as an argument. Closing game...");
-					this.switchState("ExitState");
+					this.switchState("states.ExitState");
 				}
 			case "resetState":
 				if (args.length == 0)

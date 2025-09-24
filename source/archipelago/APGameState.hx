@@ -24,10 +24,12 @@ import archipelago.APCategoryState;
 import archipelago.APDisconnectSubstate;
 import archipelago.Client;
 import archipelago.PacketTypes;
+import archipelago.substates.ConnectionSubstate;
 import backend.Paths;
 import backend.WeekData.WeekFile;
 import backend.WeekData;
 import flixel.FlxState;
+import flixel.util.FlxSave;
 import haxe.DynamicAccess;
 import haxe.ds.Option;
 import lime.app.Future;
@@ -305,7 +307,7 @@ class APGameState
 
 	private var _ap:Client;
 	private var _seed:String;
-	private var _disconnectSubstate:APDisconnectSubstate;
+	// APDisconnectSubstate removed - now using ConnectionSubstate for reconnection
 	private var _saveData:yutautil.save.MixSaveWrapper;
 
 	// Temporary weeks created for AP session - automatically cleaned up on disconnect/exit
@@ -600,10 +602,7 @@ class APGameState
 		archipelago.APInfo.ap = _ap;
 		instance = this;
 
-		_disconnectSubstate = new APDisconnectSubstate(_ap);
-		_disconnectSubstate.setSeed(_seed);
-		_disconnectSubstate.onCancel.add(onCancel);
-		_disconnectSubstate.onReconnect.add(onReconnect);
+		// APDisconnectSubstate removed - now using ConnectionSubstate for reconnection
 
 		_ap.onSocketDisconnected.add(onSocketDisconnected);
 		_ap.onPrintJSON.add(sendMessage);
@@ -2433,8 +2432,61 @@ class APGameState
 	{
 		// Clean up temporary weeks when disconnecting
 		cleanupTemporaryWeeks();
-		FlxG.switchState(_disconnectSubstate);
-	}		private function onCancel():Void
+
+		// Get last connection settings for reconnection
+		var FNF = new FlxSave();
+		FNF.bind("FNF");
+		var lastGame:Dynamic = FNF.data.lastGame;
+		var hostValue = "archipelago.gg";
+		var portValue = "38281";
+		var slotValue = "Player";
+		var passwordValue = "";
+
+		if (lastGame != null) {
+			hostValue = lastGame.server != null ? lastGame.server : "archipelago.gg";
+			portValue = lastGame.port != null ? lastGame.port : "38281";
+			slotValue = lastGame.slot != null ? lastGame.slot : "Player";
+		}
+		FNF.destroy();
+
+		// Switch to APCategoryState with a connection substate for reconnection
+		var categoryState = new APCategoryState(this, _ap);
+		FlxG.switchState(categoryState);
+
+		// Immediately open connection substate for reconnection
+		var connectionSubstate = new ConnectionSubstate(
+			hostValue,
+			portValue,
+			slotValue,
+			passwordValue,
+			function(client:Client, slotData:Dynamic) {
+				// Reconnection successful - update the AP client and continue
+				_ap = client;
+				APEntryState.ap = client;
+
+				// Update game state with new connection
+				archipelago.APPlayState.apGame = this;
+				archipelago.APInfo.apGame = this;
+				archipelago.APInfo.ap = _ap;
+
+				// Re-setup callbacks
+				_ap.onSocketDisconnected.add(onSocketDisconnected);
+				_ap.onPrintJSON.add(sendMessage);
+				_ap.onPrint.add(sendMessageSimple);
+				// Readd Modifications, like temp weeks.
+				generateCustomWeeks();
+
+				trace('Reconnection successful!');
+			},
+			function(error:String) {
+				// Reconnection failed - go back to AP entry state
+				trace('Reconnection failed: ' + error);
+				onCancel();
+			}
+		);
+		categoryState.openSubState(connectionSubstate);
+	}
+	private function onCancel():Void
 		{
 			// Clean up temporary weeks when canceling/exiting AP mode
 			cleanupTemporaryWeeks();

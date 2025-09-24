@@ -40,6 +40,7 @@ class TextInputSubstate extends MusicBeatSubstate {
     var allowedChars:String;
     var onConfirm:String->Void;
     var onCancel:Void->Void;
+    var isPasswordMode:Bool = false;
 
     // Visual state
     var isAnimating:Bool = false;
@@ -58,7 +59,8 @@ class TextInputSubstate extends MusicBeatSubstate {
         ?maxLength:Int = 50,
         ?allowedChars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_",
         ?description:String = "",
-        ?themeColor:FlxColor = null
+        ?themeColor:FlxColor = null,
+        ?passwordMode:Bool = false
     ) {
         super();
 
@@ -69,6 +71,7 @@ class TextInputSubstate extends MusicBeatSubstate {
         this.onConfirm = callback != null ? callback : function(v:String) {};
         this.onCancel = cancelCallback != null ? cancelCallback : function() {};
         this.themeColor = themeColor != null ? themeColor : FlxColor.CYAN;
+        this.isPasswordMode = passwordMode;
 
         // Set initial value
         this.currentValue = currentVal != null ? currentVal : "";
@@ -397,6 +400,10 @@ class TextInputSubstate extends MusicBeatSubstate {
             }
         }
 
+        if (keys.PERIOD) keysPressed.push(".");
+        if (keys.COMMA) keysPressed.push(",");
+
+
         // Process each key
         for (key in keysPressed) {
             var char = key;
@@ -427,6 +434,11 @@ class TextInputSubstate extends MusicBeatSubstate {
         // Delete to clear
         if (FlxG.keys.justPressed.DELETE) {
             clearInput();
+        }
+
+        // Paste functionality (Ctrl+V)
+        if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.V) {
+            handlePaste();
         }
     }
 
@@ -465,8 +477,49 @@ class TextInputSubstate extends MusicBeatSubstate {
         clearError();
     }
 
+    function handlePaste() {
+        #if desktop
+        try {
+            // Use openfl clipboard for cross-platform compatibility
+            var clipboardText = lime.system.Clipboard.text;
+
+            if (clipboardText != null && clipboardText.length > 0) {
+                // Filter the clipboard text to only allowed characters
+                var filteredText = "";
+                for (i in 0...clipboardText.length) {
+                    var char = clipboardText.charAt(i);
+                    if (allowedChars == "" || allowedChars.indexOf(char) != -1) {
+                        filteredText += char;
+                    }
+                }
+
+                // Replace current value or append depending on context
+                // For simplicity, let's replace the current value
+                if (filteredText.length > maxLength) {
+                    filteredText = filteredText.substring(0, maxLength);
+                }
+
+                currentValue = filteredText;
+                playInputSound();
+                clearError();
+            }
+        } catch (e:Dynamic) {
+            // Clipboard access failed, silently ignore
+            trace("Paste failed: " + e);
+        }
+        #end
+    }
+
     function updateDisplays() {
-        inputText.text = currentValue == "" ? "" : currentValue;
+        // Display masked text if in password mode
+        var displayText = currentValue;
+        if (isPasswordMode && currentValue.length > 0) {
+            displayText = "";
+            for (i in 0...currentValue.length) {
+                displayText += "•";
+            }
+        }
+        inputText.text = displayText == "" ? "" : displayText;
         currentValueDisplay.text = "Length: " + currentValue.length + "/" + maxLength;
 
         // Validate and update colors

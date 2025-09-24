@@ -6,11 +6,20 @@ import archipelago.APGameState;
 import archipelago.Client;
 import archipelago.PacketTypes.JSONMessagePart;
 import archipelago.PacketTypes.NetworkItem;
+import archipelago.substates.ConnectionSubstate;
+import archipelago.substates.InfoPanelSubstate;
+import archipelago.substates.PortInputSubstate;
+import archipelago.substates.TextInputSubstate;
 import backend.MusicBeatState;
 import backend.ui.*;
+import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.effects.FlxFlicker;
+// import flixel.group.FlxTypedGroup;
+import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
 import flixel.util.FlxGradient;
 import flixel.util.FlxSave;
 import flixel.util.FlxTimer;
@@ -45,8 +54,6 @@ class APStyledEntryState extends MusicBeatState {
     var infoText:FlxText;
 
     // Navigation elements
-    var leftArrow:FlxSprite;
-    var rightArrow:FlxSprite;
     var backButton:FlxSprite;
     var connectButton:FlxSprite;
 
@@ -56,11 +63,22 @@ class APStyledEntryState extends MusicBeatState {
 
     // Connection form elements
     var connectionPanel:FlxSprite;
-    var _hostInput:PsychUIInputText;
-    var _portInput:PsychUIInputText;
-    var _slotInput:PsychUIInputText;
-    var _pwInput:PsychUIInputText;
-    var _tabOrder:Array<PsychUIInputText> = [];
+    var hostField:FlxSprite;
+    var portField:FlxSprite;
+    var slotField:FlxSprite;
+    var passwordField:FlxSprite;
+    var hostText:FlxText;
+    var portText:FlxText;
+    var slotText:FlxText;
+    var passwordText:FlxText;
+
+    // Connection data
+    var hostValue:String = "archipelago.gg";
+    var portValue:String = "38281";
+    var slotValue:String = "Player";
+    var passwordValue:String = "";
+
+    var connectionFields:Array<FlxSprite> = [];
 
     // Buttons and actions
     var settingsButton:FlxSprite;
@@ -74,11 +92,8 @@ class APStyledEntryState extends MusicBeatState {
     // Animation state
     var isAnimating:Bool = false;
     var transitionTime:Float = 0.3;
-    var navigationCooldown:Float = 0;
-    var navigationDelay:Float = 0.15;
 
     // Connection state
-    var isConnecting:Bool = false;
     var connectionElements:Array<FlxSprite> = [];
 
     // Static references from original APEntryState
@@ -91,7 +106,6 @@ class APStyledEntryState extends MusicBeatState {
     public static var victorySong:String = '???';
     public static var fullSongCount:Int = 1;
 
-    static final wsCheck = ~/^wss?:\/\//;
     static var currentAPLocation:String = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") != null
         ? new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation")
         : "C:/ProgramData/Archipelago";
@@ -145,16 +159,6 @@ class APStyledEntryState extends MusicBeatState {
                 name: "CONNECTION",
                 description: "Connect to your Archipelago server",
                 color: FlxColor.CYAN
-            },
-            {
-                name: "SETUP",
-                description: "Install and configure Archipelago world",
-                color: FlxColor.LIME
-            },
-            {
-                name: "SETTINGS",
-                description: "Configure your game settings",
-                color: FlxColor.ORANGE
             }
         ];
     }
@@ -172,20 +176,11 @@ class APStyledEntryState extends MusicBeatState {
         descriptionText.borderSize = 1;
         add(descriptionText);
 
-        // Page indicator
+        // Page indicator (simplified for single page)
         pageIndicator = new FlxText(50, FlxG.height - 140, FlxG.width - 100, "", 16);
         pageIndicator.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         pageIndicator.borderSize = 1;
         add(pageIndicator);
-
-        // Navigation arrows
-        leftArrow = new FlxSprite(30, Std.int(FlxG.height / 2) - 25);
-        leftArrow.makeGraphic(40, 30, FlxColor.WHITE);
-        add(leftArrow);
-
-        rightArrow = new FlxSprite(Std.int(FlxG.width - 80), Std.int(FlxG.height / 2) - 25);
-        rightArrow.makeGraphic(40, 30, FlxColor.WHITE);
-        add(rightArrow);
 
         // Bottom buttons
         connectButton = new FlxSprite(Std.int(FlxG.width / 2) - 200, Std.int(FlxG.height - 80));
@@ -213,70 +208,179 @@ class APStyledEntryState extends MusicBeatState {
         setupConnectionPanel();
 
         // Load initial page
-        loadPage(0);
+        loadPage();
     }
 
     function setupInfoPanel() {
-        infoPanel = new FlxSprite(FlxG.width - 300, 120);
-        infoPanel.makeGraphic(280, 200, FlxColor.BLACK);
-        infoPanel.alpha = 0.7;
+        // Instead of always visible panel, create an info button
+        infoPanel = new FlxSprite(FlxG.width - 100, 30);
+        infoPanel.makeGraphic(80, 40, FlxColor.fromRGB(60, 60, 100));
+        infoPanel.alpha = 0.9;
         add(infoPanel);
 
-        infoText = new FlxText(infoPanel.x + 10, infoPanel.y + 10, 260, "", 12);
-        infoText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+        infoText = new FlxText(infoPanel.x, infoPanel.y + 10, infoPanel.width, "INFO", 14);
+        infoText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         infoText.borderSize = 1;
         add(infoText);
     }
 
     function setupConnectionPanel() {
         connectionPanel = new FlxSprite(100, 140);
-        connectionPanel.makeGraphic(FlxG.width - 350, 250, FlxColor.fromRGB(20, 20, 40));
+        connectionPanel.makeGraphic(FlxG.width - 250, 250, FlxColor.fromRGB(20, 20, 40)); // Reduced width to avoid overlap
         connectionPanel.alpha = 0.9;
         add(connectionPanel);
 
-        // Connection form inputs
+        // Connection form fields
         var startY = connectionPanel.y + 30;
         var spacing = 50;
+        var fieldWidth = 300;
+        var fieldHeight = 30;
 
+        // Host field
         var hostLabel = new FlxText(connectionPanel.x + 20, startY, 100, "Host:", 16);
         hostLabel.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         hostLabel.borderSize = 1;
         add(hostLabel);
 
-        _hostInput = new PsychUIInputText(connectionPanel.x + 120, startY - 5, 200, "", 16);
-        add(_hostInput);
+        hostField = new FlxSprite(connectionPanel.x + 120, startY - 5);
+        hostField.makeGraphic(fieldWidth, fieldHeight, FlxColor.fromRGB(40, 40, 70));
+        add(hostField);
 
+        hostText = new FlxText(hostField.x + 5, hostField.y + 5, fieldWidth - 10, hostValue, 14);
+        hostText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+        hostText.borderSize = 1;
+        add(hostText);
+
+        // Port field
         var portLabel = new FlxText(connectionPanel.x + 20, startY + spacing, 100, "Port:", 16);
         portLabel.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         portLabel.borderSize = 1;
         add(portLabel);
 
-        _portInput = new PsychUIInputText(connectionPanel.x + 120, startY + spacing - 5, 200, "", 16);
-        _portInput.filterMode = 2; // Numbers only
-        _portInput.maxLength = 6;
-        add(_portInput);
+        portField = new FlxSprite(connectionPanel.x + 120, startY + spacing - 5);
+        portField.makeGraphic(fieldWidth, fieldHeight, FlxColor.fromRGB(40, 40, 70));
+        add(portField);
 
+        portText = new FlxText(portField.x + 5, portField.y + 5, fieldWidth - 10, portValue, 14);
+        portText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+        portText.borderSize = 1;
+        add(portText);
+
+        // Slot field
         var slotLabel = new FlxText(connectionPanel.x + 20, startY + spacing * 2, 100, "Slot Name:", 16);
         slotLabel.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         slotLabel.borderSize = 1;
         add(slotLabel);
 
-        _slotInput = new PsychUIInputText(connectionPanel.x + 120, startY + spacing * 2 - 5, 200, "", 16);
-        add(_slotInput);
+        slotField = new FlxSprite(connectionPanel.x + 120, startY + spacing * 2 - 5);
+        slotField.makeGraphic(fieldWidth, fieldHeight, FlxColor.fromRGB(40, 40, 70));
+        add(slotField);
 
+        slotText = new FlxText(slotField.x + 5, slotField.y + 5, fieldWidth - 10, slotValue, 14);
+        slotText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+        slotText.borderSize = 1;
+        add(slotText);
+
+        // Password field
         var pwLabel = new FlxText(connectionPanel.x + 20, startY + spacing * 3, 100, "Password:", 16);
         pwLabel.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         pwLabel.borderSize = 1;
         add(pwLabel);
 
-        _pwInput = new PsychUIInputText(connectionPanel.x + 120, startY + spacing * 3 - 5, 200, "", 16);
-        _pwInput.passwordMask = true;
-        add(_pwInput);
+        passwordField = new FlxSprite(connectionPanel.x + 120, startY + spacing * 3 - 5);
+        passwordField.makeGraphic(fieldWidth, fieldHeight, FlxColor.fromRGB(40, 40, 70));
+        add(passwordField);
 
-        _tabOrder = [_hostInput, _portInput, _slotInput, _pwInput];
+        passwordText = new FlxText(passwordField.x + 5, passwordField.y + 5, fieldWidth - 10, maskPassword(passwordValue), 14);
+        passwordText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+        passwordText.borderSize = 1;
+        add(passwordText);
+
+        connectionFields = [hostField, portField, slotField, passwordField];
 
         // Side buttons for different pages
         setupSideButtons();
+    }
+
+    function maskPassword(password:String):String {
+        if (password.length == 0) return "(Click to set password)";
+        var masked = "";
+        for (i in 0...password.length) {
+            masked += "•";
+        }
+        return masked;
+    }
+
+    function openHostInput() {
+        var hostInput = new TextInputSubstate(
+            "Server Host",
+            hostValue,
+            function(newHost:String) {
+                hostValue = newHost;
+                if (hostText != null) hostText.text = hostValue;
+            },
+            function() {
+                // Cancel callback - do nothing
+            },
+            100, // Max length
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_", // Allowed characters
+            "Enter the Archipelago server address (e.g., archipelago.gg)",
+            FlxColor.CYAN
+        );
+        openSubState(hostInput);
+    }
+
+    function openPortInput() {
+        var portInput = new PortInputSubstate(
+            portValue,
+            function(newPort:String) {
+                portValue = newPort;
+                if (portText != null) portText.text = portValue;
+            },
+            function() {
+                // Cancel callback - do nothing
+            }
+        );
+        openSubState(portInput);
+    }
+
+    function openSlotInput() {
+        var slotInput = new TextInputSubstate(
+            "Slot Name",
+            slotValue,
+            function(newSlot:String) {
+                slotValue = newSlot;
+                if (slotText != null) slotText.text = slotValue;
+            },
+            function() {
+                // Cancel callback - do nothing
+            },
+            30, // Max length
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_", // Allowed characters
+            "Enter your player name from the YAML file",
+            FlxColor.CYAN
+        );
+        openSubState(slotInput);
+    }
+
+    function openPasswordInput() {
+        var passwordInput = new TextInputSubstate(
+            "Server Password",
+            passwordValue,
+            function(newPassword:String) {
+                passwordValue = newPassword;
+                if (passwordText != null) passwordText.text = maskPassword(passwordValue);
+            },
+            function() {
+                // Cancel callback - do nothing
+            },
+            50, // Max length
+            "", // All characters allowed
+            "Enter server password (leave empty if none required)",
+            FlxColor.CYAN,
+            true // Password mode - mask the input
+        );
+        openSubState(passwordInput);
     }
 
     function setupSideButtons() {
@@ -353,23 +457,20 @@ class APStyledEntryState extends MusicBeatState {
         }
     }
 
-    function loadPage(pageIndex:Int) {
-        if (pageIndex < 0 || pageIndex >= pages.length) return;
-
-        currentPage = pageIndex;
-        var page = pages[currentPage];
+    function loadPage() {
+        currentPage = 0; // Always 0 since we only have one page
+        var page = pages[0];
 
         // Update page info
         descriptionText.text = page.description;
-        pageIndicator.text = '${currentPage + 1} / ${pages.length} - ${page.name}';
+        pageIndicator.text = 'CONNECTION';
 
-        // Change title color based on page
+        // Set title color
         titleText.color = page.color;
         if (glowEffect != null) {
             glowEffect.color = page.color;
         }
 
-        updateInfoPanel();
         updatePageContent();
 
         // Animate page transition
@@ -377,73 +478,52 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     function updateInfoPanel() {
-        var infoString = "=== ${pages[currentPage].name} INFO ===\n\n";
+        // This function now just prepares the info content
+        // The actual display will be handled by the InfoPanelSubstate
+    }
 
-        switch (currentPage) {
-            case 0: // Connection
-                infoString += "Enter your Archipelago server\nconnection details:\n\n";
-                infoString += "• Host: Server address\n";
-                infoString += "• Port: Usually 38281\n";
-                infoString += "• Slot: Your player name\n";
-                infoString += "• Password: If required\n\n";
-                infoString += "Last Connection:\n";
-                var FNF = new FlxSave();
-                FNF.bind("FNF");
-                var lastGame:Dynamic = FNF.data.lastGame;
-                if (lastGame != null) {
-                    infoString += "• ${lastGame.server}:${lastGame.port}\n";
-                    infoString += "• Slot: ${lastGame.slot}";
-                }
-                FNF.destroy();
+    function showInfoPanel() {
+        var infoTitle = "CONNECTION INFO";
+        var infoContent = "";
 
-            case 1: // Setup
-                infoString += "Archipelago World Setup:\n\n";
-                var status = APEntryState.checkAPWorld();
-                infoString += "Status: " + status.status.toUpperCase() + "\n\n";
-                infoString += status.message + "\n\n";
-                infoString += "AP Location:\n";
-                infoString += currentAPLocation + "\n\n";
-                infoString += "• Install/Update APWorld\n";
-                infoString += "• Generate YAML files\n";
-                infoString += "• Configure settings";
-
-            case 2: // Settings
-                infoString += "Game Configuration:\n\n";
-                if (APEntryState.gameSettings != null) {
-                    var settings = APEntryState.gameSettings.FNF;
-                    infoString += "• Unlock: " + settings.unlock_type + "\n";
-                    infoString += "• Method: " + settings.unlock_method + "\n";
-                    infoString += "• DeathLink: " + (settings.deathlink ? "ON" : "OFF") + "\n";
-                    infoString += "• Song Limit: " + settings.song_limit + "\n";
-                    infoString += "• Traps: " + settings.trapAmount + "\n\n";
-                }
-                infoString += "Use Advanced Settings for\nfull configuration options.";
+        infoContent = "Enter your Archipelago server connection details:\n\n";
+        infoContent += "• Host: Server address (e.g., archipelago.gg)\n";
+        infoContent += "• Port: Usually 38281\n";
+        infoContent += "• Slot: Your player name from YAML\n";
+        infoContent += "• Password: If server requires one\n\n";
+        infoContent += "Last Connection:\n";
+        var FNF = new FlxSave();
+        FNF.bind("FNF");
+        var lastGame:Dynamic = FNF.data.lastGame;
+        if (lastGame != null) {
+            infoContent += '• ${lastGame.server}:${lastGame.port}\n';
+            infoContent += '• Slot: ${lastGame.slot}';
+        } else {
+            infoContent += "• None";
         }
+        FNF.destroy();
 
-        infoText.text = infoString;
+        openSubState(new InfoPanelSubstate(infoTitle, infoContent, FlxColor.CYAN));
     }
 
     function updatePageContent() {
-        // Show/hide elements based on current page
-        var showConnection = currentPage == 0;
-        var showSetup = currentPage == 1;
-        var showSettings = currentPage == 2;
+        // Always show connection elements since we only have one page
+        connectionPanel.visible = true;
 
-        connectionPanel.visible = showConnection;
-        _hostInput.visible = showConnection;
-        _portInput.visible = showConnection;
-        _slotInput.visible = showConnection;
-        _pwInput.visible = showConnection;
-
-        // Update button visibility and functionality
-        connectButton.visible = showConnection;
-
-        // Update button colors based on page
-        connectButton.color = pages[currentPage].color;
-
-        for (input in _tabOrder) {
-            input.visible = showConnection;
+        // Show connection fields
+        for (field in connectionFields) {
+            field.visible = true;
         }
+
+        if (hostText != null) hostText.visible = true;
+        if (portText != null) portText.visible = true;
+        if (slotText != null) slotText.visible = true;
+        if (passwordText != null) passwordText.visible = true;
+
+        connectButton.visible = true;
+
+        // Update button color
+        connectButton.color = pages[0].color;
     }
 
     function animatePageTransition() {
@@ -460,11 +540,11 @@ class APStyledEntryState extends MusicBeatState {
                 }
             });
 
-            // Animate inputs
-            for (i in 0..._tabOrder.length) {
-                var input = _tabOrder[i];
-                input.x = FlxG.width + 120;
-                FlxTween.tween(input, {x: connectionPanel.x + 120}, transitionTime + (i * 0.05), {
+            // Animate connection fields
+            for (i in 0...connectionFields.length) {
+                var field = connectionFields[i];
+                field.x = FlxG.width + 120;
+                FlxTween.tween(field, {x: connectionPanel.x + 120}, transitionTime + (i * 0.05), {
                     ease: FlxEase.backOut
                 });
             }
@@ -481,11 +561,6 @@ class APStyledEntryState extends MusicBeatState {
         descriptionText.alpha = 0;
         FlxTween.tween(descriptionText, {alpha: 1}, 1.2, {ease: FlxEase.sineOut});
 
-        leftArrow.x = -100;
-        rightArrow.x = FlxG.width + 100;
-        FlxTween.tween(leftArrow, {x: 30}, 1, {ease: FlxEase.backOut});
-        FlxTween.tween(rightArrow, {x: FlxG.width - 80}, 1, {ease: FlxEase.backOut});
-
         connectButton.y = FlxG.height + 50;
         backButton.y = FlxG.height + 50;
         FlxTween.tween(connectButton, {y: FlxG.height - 80}, 1.2, {ease: FlxEase.backOut});
@@ -500,46 +575,29 @@ class APStyledEntryState extends MusicBeatState {
         FNF.bind("FNF");
         var lastGame:Dynamic = FNF.data.lastGame;
         if (lastGame != null) {
-            _hostInput.text = lastGame.server != null ? lastGame.server : "archipelago.gg";
-            _portInput.text = lastGame.port != null ? lastGame.port : "38281";
-            _slotInput.text = lastGame.slot != null ? lastGame.slot : "Player";
+            hostValue = lastGame.server != null ? lastGame.server : "archipelago.gg";
+            portValue = lastGame.port != null ? lastGame.port : "38281";
+            slotValue = lastGame.slot != null ? lastGame.slot : "Player";
         } else {
-            _hostInput.text = "archipelago.gg";
-            _portInput.text = "38281";
-            _slotInput.text = "Player";
+            hostValue = "archipelago.gg";
+            portValue = "38281";
+            slotValue = "Player";
         }
+
+        // Update the text displays
+        if (hostText != null) hostText.text = hostValue;
+        if (portText != null) portText.text = portValue;
+        if (slotText != null) slotText.text = slotValue;
+        if (passwordText != null) passwordText.text = maskPassword(passwordValue);
+
         FNF.destroy();
     }
 
     override function update(elapsed:Float) {
         super.update(elapsed);
 
-        // Update navigation cooldown
-        if (navigationCooldown > 0) {
-            navigationCooldown -= elapsed;
-        }
-
-        // Don't handle input during connection or if a substate is open
-        if (isConnecting || subState != null) return;
-
-        // Handle page navigation
-        if (navigationCooldown <= 0) {
-            if (controls.UI_LEFT || FlxG.keys.justPressed.LEFT) {
-                if (currentPage > 0) {
-                    FlxG.sound.play(Paths.sound('scrollMenu'));
-                    loadPage(currentPage - 1);
-                    navigationCooldown = navigationDelay;
-                }
-            }
-
-            if (controls.UI_RIGHT || FlxG.keys.justPressed.RIGHT) {
-                if (currentPage < pages.length - 1) {
-                    FlxG.sound.play(Paths.sound('scrollMenu'));
-                    loadPage(currentPage + 1);
-                    navigationCooldown = navigationDelay;
-                }
-            }
-        }
+        // Don't handle input during if a substate is open
+        if (subState != null) return;
 
         if (controls.BACK) {
             FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -566,19 +624,71 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     function handleMouseInput() {
-        if (isConnecting || subState != null) return;
+        if (subState != null) return;
 
-        // Check page navigation arrows
-        if (FlxG.mouse.overlaps(leftArrow) && FlxG.mouse.justPressed && currentPage > 0 && navigationCooldown <= 0) {
-            FlxG.sound.play(Paths.sound('scrollMenu'));
-            loadPage(currentPage - 1);
-            navigationCooldown = navigationDelay;
+        // Info button hover effect
+        if (FlxG.mouse.overlaps(infoPanel)) {
+            infoPanel.color = FlxColor.fromRGB(100, 100, 140);
+            infoText.color = FlxColor.YELLOW;
+
+            if (FlxG.mouse.justPressed) {
+                FlxG.sound.play(Paths.sound('scrollMenu'));
+                showInfoPanel();
+                return;
+            }
+        } else {
+            infoPanel.color = FlxColor.fromRGB(60, 60, 100);
+            infoText.color = FlxColor.WHITE;
         }
 
-        if (FlxG.mouse.overlaps(rightArrow) && FlxG.mouse.justPressed && currentPage < pages.length - 1 && navigationCooldown <= 0) {
+        // Check connection field clicks - check both field and text overlaps
+        if ((FlxG.mouse.overlaps(hostField) || FlxG.mouse.overlaps(hostText)) && FlxG.mouse.justPressed) {
             FlxG.sound.play(Paths.sound('scrollMenu'));
-            loadPage(currentPage + 1);
-            navigationCooldown = navigationDelay;
+            openHostInput();
+            return;
+        }
+
+        if ((FlxG.mouse.overlaps(portField) || FlxG.mouse.overlaps(portText)) && FlxG.mouse.justPressed) {
+            FlxG.sound.play(Paths.sound('scrollMenu'));
+            openPortInput();
+            return;
+        }
+
+        if ((FlxG.mouse.overlaps(slotField) || FlxG.mouse.overlaps(slotText)) && FlxG.mouse.justPressed) {
+            FlxG.sound.play(Paths.sound('scrollMenu'));
+            openSlotInput();
+            return;
+        }
+
+        if ((FlxG.mouse.overlaps(passwordField) || FlxG.mouse.overlaps(passwordText)) && FlxG.mouse.justPressed) {
+            FlxG.sound.play(Paths.sound('scrollMenu'));
+            openPasswordInput();
+            return;
+        }
+
+        // Handle hover effects for connection fields
+        if (FlxG.mouse.overlaps(hostField) || FlxG.mouse.overlaps(hostText)) {
+            hostField.color = FlxColor.fromRGB(60, 60, 100);
+        } else {
+            hostField.color = FlxColor.fromRGB(40, 40, 70);
+        }
+
+        if (FlxG.mouse.overlaps(portField) || FlxG.mouse.overlaps(portText)) {
+            portField.color = FlxColor.fromRGB(60, 60, 100);
+        } else {
+            portField.color = FlxColor.fromRGB(40, 40, 70);
+        }
+
+        if (FlxG.mouse.overlaps(slotField) || FlxG.mouse.overlaps(slotText)) {
+            slotField.color = FlxColor.fromRGB(60, 60, 100);
+        } else {
+            slotField.color = FlxColor.fromRGB(40, 40, 70);
+        }
+
+        if (FlxG.mouse.overlaps(passwordField) || FlxG.mouse.overlaps(passwordText)) {
+            passwordField.color = FlxColor.fromRGB(60, 60, 100);
+        } else {
+            passwordField.color = FlxColor.fromRGB(40, 40, 70);
         }
 
         // Check bottom buttons
@@ -609,16 +719,16 @@ class APStyledEntryState extends MusicBeatState {
 
     function onConnect() {
         // Validation logic from original APEntryState
-        var port = Std.parseInt(_portInput.text);
-        if (_hostInput.text == "")
+        var port = Std.parseInt(portValue);
+        if (hostValue == "")
             postError('noHost');
-        else if (_portInput.text == "")
+        else if (portValue == "")
             postError('noPort');
-        else if (!~/^\d+$/.match(_portInput.text))
+        else if (!~/^\d+$/.match(portValue))
             postError('portNonNumeric');
         else if (port <= 0 || port > 65535)
             postError('portOutOfRange');
-        else if (_slotInput.text == "")
+        else if (slotValue == "")
             postError('noSlot');
         else {
             startConnection();
@@ -626,130 +736,26 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     function startConnection() {
-        isConnecting = true;
         FlxG.autoPause = false;
 
-        // Create connection animation
-        var connectingText = new FlxText(0, 0, 0, "CONNECTING...", 24);
-        connectingText.setFormat(Paths.font("vcr.ttf"), 24, pages[currentPage].color, CENTER, OUTLINE, FlxColor.BLACK);
-        connectingText.borderSize = 2;
-        connectingText.screenCenter();
-        add(connectingText);
-
-        var cancelButton = new FlxSprite(0, connectingText.y + 60);
-        cancelButton.makeGraphic(200, 40, FlxColor.RED);
-        cancelButton.screenCenter(X);
-        add(cancelButton);
-
-        var cancelText = new FlxText(cancelButton.x, cancelButton.y + 10, cancelButton.width, "CANCEL", 16);
-        cancelText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-        cancelText.borderSize = 1;
-        add(cancelText);
-
-        connectionElements = [connectingText, cancelButton, cancelText];
-
-        // Animate connection elements
-        FlxFlicker.flicker(connectingText, 0, 0.5);
-
-        // Set up connection (using original APEntryState logic)
-        var uri = '${#if sys (_hostInput.text == "localhost" || _hostInput.text == "127.0.0.1") ? sys.net.Host.localhost() : _hostInput.text #else _hostInput.text #end}:${_portInput.text}';
-        if (!wsCheck.match(uri))
-            uri = 'ws://$uri';
-
-        ap = new Client('FNF-${_slotInput.text}', "Friday Night Funkin", uri);
-
-        ap.onRoomInfo.add(onRoomInfo);
-        ap.onSlotRefused.add(onSlotRefused);
-        ap.onSocketDisconnected.add(onSocketDisconnected);
-        ap.onSlotConnected.add(onSlotConnected);
-
-        var polltimer = new Timer(50);
-        polltimer.run = ap.poll;
-
-        // Cancel button functionality
-        var checkCancel = function() {
-            if (FlxG.mouse.overlaps(cancelButton) && FlxG.mouse.justPressed) {
-                cancelConnection();
-            }
-        };
-
-        new FlxTimer().start(0.01, function(timer) {
-            if (isConnecting) {
-                checkCancel();
-                timer.reset();
-            }
-        }, 0);
+        openSubState(new ConnectionSubstate(
+            hostValue,
+            portValue,
+            slotValue,
+            passwordValue,
+            onConnectionSuccess,
+            onConnectionFailed
+        ));
     }
 
-    function cancelConnection() {
-        isConnecting = false;
-        inArchipelagoMode = false;
-        FlxG.autoPause = true;
-
-        if (ap != null) {
-            ap.disconnect_socket();
-        }
-
-        // Remove connection elements
-        for (element in connectionElements) {
-            remove(element);
-        }
-        connectionElements = [];
-
-        FlxG.sound.play(Paths.sound('cancelMenu'));
-    }
-
-    // Connection callback functions (from original APEntryState)
-    function onRoomInfo():Void {
-        trace("Got room info - sending connect packet");
-        #if debug
-        var tags = ["AP", "Testing"];
-        #else
-        var tags = ["AP", "Testing"];
-        #end
-        ap.ConnectSlot(_slotInput.text, _pwInput.text.length > 0 ? _pwInput.text : null, 0x7, tags, {major: 0, minor: 5, build: 0});
-    }
-
-    function onSlotRefused(errors:Array<String>):Void {
-        inArchipelagoMode = false;
-        isConnecting = false;
-        trace("Slot refused", errors);
-
-        // Remove connection elements
-        for (element in connectionElements) {
-            remove(element);
-        }
-        connectionElements = [];
-
-        switch (errors[0]) {
-            case x = "InvalidSlot" | "InvalidGame": postError(x, ["name" => _slotInput.text]);
-            case x = "IncompatibleVersion" | "InvalidPassword" | "InvalidItemsHandling": postError(x);
-            case x: postError("default", ["error" => x]);
-        }
-    }
-
-    function onSocketDisconnected():Void {
-        inArchipelagoMode = false;
-        isConnecting = false;
-        trace("Disconnected");
-
-        // Remove connection elements
-        for (element in connectionElements) {
-            remove(element);
-        }
-        connectionElements = [];
-
-        postError("connectionReset");
-    }
-
-    function onSlotConnected(slotData:Dynamic):Void {
-        trace("Connected - switching to game state");
-        isConnecting = false;
+    function onConnectionSuccess(client:Client, slotData:Dynamic) {
+        // Connection successful, prepare for AP mode with special animation
+        ap = client;
         gonnaRunSync = true;
 
-        ap.onRoomInfo.remove(onRoomInfo);
-        ap.onSlotRefused.remove(onSlotRefused);
-        ap.onSlotConnected.remove(onSlotConnected);
+        // Remove ap callbacks since APGameState will take over
+        // Note: The connection-specific callbacks (onRoomInfo, onSlotRefused, etc.)
+        // are already cleaned up by the ConnectionSubstate
 
         deathLink = slotData.deathlink == 0 ? false : true;
         victorySong = slotData.victoryLocation;
@@ -766,25 +772,73 @@ class APStyledEntryState extends MusicBeatState {
         var FNF = new FlxSave();
         FNF.bind("FNF");
         FNF.data.lastGame = {
-            server: _hostInput.text,
-            port: _portInput.text,
-            slot: _slotInput.text
+            server: hostValue,
+            port: portValue,
+            slot: slotValue
         };
         FNF.data.gameSettings = APEntryState.gameSettings;
         FNF.close();
 
-        // Create AP game state
-        apGame = new APGameState(ap, slotData);
-        if (deathLink)
-            apGame.info().add_tag("DeathLink");
-        apGame.info().toggleDeathLink(deathLink);
+        APEntryState.ap = ap;
 
-        APGameState.isSync = true;
-        runArch();
+
+
+        // Special AP Mode entry animation
+        startAPModeTransition(ap, slotData);
     }
 
-    function runArch():Void {
+    function onConnectionFailed(error:String) {
+        FlxG.autoPause = ClientPrefs.data.autoPause;
+
+        // // Show error dialog
+        // var errorDesc = getErrorDescription(error);
+        // var errorPrompt = new Prompt("Connection Failed\n\n" + errorDesc, 0, null, null, false);
+        // openSubState(errorPrompt);
+    }
+
+    function startAPModeTransition(ap, slotData) {
+        // Create a special transition animation when entering AP Mode
+        var transitionOverlay = new FlxSprite(0, 0);
+        transitionOverlay.makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+        transitionOverlay.alpha = 0;
+        add(transitionOverlay);
+
+        var transitionText = new FlxText(0, 0, 0, "ENTERING ARCHIPELAGO MODE", 32);
+        transitionText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
+        transitionText.borderSize = 3;
+        transitionText.screenCenter();
+        add(transitionText);
+
+        // Animate the transition
+        FlxTween.tween(transitionOverlay, {alpha: 1}, 0.8, {
+            ease: FlxEase.sineIn,
+            onComplete: function(_) {
+                FlxFlicker.flicker(transitionText, 1, 0.1, false, false, function(_) {
+                    runArch(slotData);
+                });
+            }
+        });
+
+        // Add some particle effects during transition
+        for (i in 0...30) {
+            var particle = new FlxSprite(FlxG.random.float(0, FlxG.width), FlxG.random.float(0, FlxG.height));
+            particle.makeGraphic(4, 4, FlxColor.CYAN);
+            particle.alpha = 0;
+            add(particle);
+
+            FlxTween.tween(particle, {
+                alpha: 1,
+                y: particle.y - FlxG.random.float(100, 200)
+            }, FlxG.random.float(0.5, 1.5), {
+                ease: FlxEase.sineOut,
+                startDelay: FlxG.random.float(0, 0.8)
+            });
+        }
+    }
+
+    function runArch(slotData):Void {
         inArchipelagoMode = true;
+        APEntryState.inArchipelagoMode = true; // Global flag
         backend.WeekData.reloadWeekFiles(false);
         FlxG.save.data.closeDuringOverRide = false;
         FlxG.save.data.manualOverride = false;
@@ -795,6 +849,17 @@ class APStyledEntryState extends MusicBeatState {
         FlxG.save.data.storyDifficulty = null;
         FlxG.save.data.songPos = null;
         FlxG.save.flush();
+
+        // Create AP game state
+        apGame = new APGameState(ap, slotData);
+        if (deathLink)
+            apGame.info().add_tag("DeathLink");
+        apGame.info().toggleDeathLink(deathLink);
+
+        APGameState.isSync = true;
+
+        APEntryState.apGame = apGame;
+
         FlxG.switchState(new archipelago.APCategoryState(apGame, ap));
         backend.ClientPrefs.data.gameplaySettings.set("chartModifier", "Normal");
         backend.ClientPrefs.data.gameplaySettings.set("convertMania", 3);
@@ -835,13 +900,13 @@ class APStyledEntryState extends MusicBeatState {
             try {
                 var yaml = new archipelago.APYaml(yamlContent);
                 APEntryState.gameSettings.name = yaml.name;
-                _slotInput.text = yaml.name;
+                slotValue = yaml.name;
+                if (slotText != null) slotText.text = slotValue;
                 for (field in Reflect.fields(yaml.settings)) {
                     if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
                         Reflect.setField(APEntryState.gameSettings.FNF, field, Reflect.field(yaml.settings, field));
                     }
                 }
-                updateInfoPanel(); // Refresh info display
                 FlxG.sound.play(Paths.sound('confirmMenu'));
             } catch(e) {
                 trace('YAML import error: $e');
@@ -861,10 +926,7 @@ class APStyledEntryState extends MusicBeatState {
             openSubState(locationPrompt);
         } else {
             APEntryState.installAPWorld();
-            // Refresh the info panel after installation
-            new FlxTimer().start(1, function(_) {
-                updateInfoPanel();
-            });
+            // Info panel content will be updated when next accessed
         }
     }
 
@@ -876,7 +938,7 @@ class APStyledEntryState extends MusicBeatState {
             save.addItem("apLocation", currentAPLocation);
             lime.app.Application.current.window.alert("Archipelago location changed to: " + currentAPLocation, "Archipelago Location Changed");
             save.save();
-            updateInfoPanel();
+            // Info panel content will be updated when next accessed
         } else {
             lime.app.Application.current.window.alert("Archipelago location not changed.", "Archipelago Location Not Changed");
             currentAPLocation = before;
@@ -913,11 +975,15 @@ class APStyledEntryState extends MusicBeatState {
             case 'badHostFormat':
                 daReason = "Please check the value entered as Host. The format is invalid.";
             case 'unknownHost':
-                daReason = "No server was found at \""+_hostInput.text+"\".";
+                daReason = "No server was found at \""+hostValue+"\".";
             case 'default':
-                daReason = "Slot name cannot be empty. (That's your name on your YAML configuration file.)";
+                daReason = "Unknown connection error occurred.";
         }
         return daReason;
+    }
+
+    function getErrorDescription(error:String):String {
+        return errDesc(error);
     }
 
     inline function postError(str:String, ?vars:Map<String, Dynamic>)
