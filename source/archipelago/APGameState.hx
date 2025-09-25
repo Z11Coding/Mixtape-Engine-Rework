@@ -2525,22 +2525,38 @@ class APGameState
 						return "cleanup_error";
 					}
 				}, false),
-				GenericProgressSubstate.createTask("Gathering Offline Queue...", function(results) {
-					try {
-						if (gameStateInstance._ap != null && gameStateInstance._ap._offlineQueue != null) {
-							_tempOfflineQueue = gameStateInstance._ap._offlineQueue.copy();
-							trace('Offline queue gathered, ${_tempOfflineQueue != null ? _tempOfflineQueue.length : 0} items');
-						} else {
-							_tempOfflineQueue = [];
-							trace('No offline queue found');
-						}
-						return "offline_queue_gathered";
-					} catch (e) {
-						trace('Error gathering offline queue: ' + e);
-						_tempOfflineQueue = [];
-						return "offline_queue_error";
-					}
-				}, false)
+				   GenericProgressSubstate.createTask("Gathering Offline Queue...", function(results) {
+					   try {
+						   if (gameStateInstance._ap != null && gameStateInstance._ap._offlineQueue != null) {
+							   _tempOfflineQueue = gameStateInstance._ap._offlineQueue.copy();
+							   trace('Offline queue gathered, ${_tempOfflineQueue != null ? _tempOfflineQueue.length : 0} items');
+							   // Save offline queue to save data if it has items
+							   if (_tempOfflineQueue.length > 0 && gameStateInstance._saveData != null) {
+								   gameStateInstance._saveData.addItem("offlineQueue", _tempOfflineQueue);
+								   gameStateInstance._saveData.save();
+							   } else if (gameStateInstance._saveData != null && gameStateInstance._saveData.hasItem("offlineQueue")) {
+								   gameStateInstance._saveData.removeItem("offlineQueue");
+								   gameStateInstance._saveData.save();
+							   }
+						   } else {
+							   _tempOfflineQueue = [];
+							   trace('No offline queue found');
+							   if (gameStateInstance._saveData != null && gameStateInstance._saveData.hasItem("offlineQueue")) {
+								   gameStateInstance._saveData.removeItem("offlineQueue");
+								   gameStateInstance._saveData.save();
+							   }
+						   }
+						   return "offline_queue_gathered";
+					   } catch (e) {
+						   trace('Error gathering offline queue: ' + e);
+						   _tempOfflineQueue = [];
+						   if (gameStateInstance._saveData != null && gameStateInstance._saveData.hasItem("offlineQueue")) {
+							   gameStateInstance._saveData.removeItem("offlineQueue");
+							   gameStateInstance._saveData.save();
+						   }
+						   return "offline_queue_error";
+					   }
+				   }, false)
 			];
 
 			var cleanupDialog = new GenericProgressSubstate(
@@ -2604,14 +2620,26 @@ class APGameState
 								MusicBeatState.switchState(targetState);
 							}
 						},
-						function(error:String) {
-							// Reconnection failed - go back to AP entry state
-							trace('Reconnection failed: ' + error);
-							pendingReconnection = false;
-							reconnectionCallback = null;
-							reconnectionTargetState = null;
-							gameStateInstance.onCancel();
-						}
+						   function(error:String) {
+							   // Reconnection failed - schedule another attempt
+							   trace('Reconnection failed: ' + error + ' - scheduling retry');
+							   // Grab and switch to the target state if set
+							   var targetState = reconnectionTargetState;
+							   pendingReconnection = false;
+							   reconnectionCallback = null;
+							   reconnectionTargetState = null;
+							   if (targetState != null) {
+								   MusicBeatState.switchState(targetState);
+							   }
+							   // Wait 3 seconds, then try again (unless purposefully disconnected)
+							   haxe.Timer.delay(function() {
+								   if (!isPurposefullyDisconnected) {
+									   gameStateInstance.onSocketDisconnected();
+								   } else {
+									   trace('Purposefully disconnected, not retrying');
+								   }
+							   }, 3000);
+						   }
 					);
 
 					FlxG.state.openSubState(connectionSubstate);
@@ -2662,13 +2690,23 @@ class APGameState
 								MusicBeatState.switchState(targetState);
 							}
 						},
-						function(error:String) {
-							trace('Reconnection failed: ' + error);
-							pendingReconnection = false;
-							reconnectionCallback = null;
-							reconnectionTargetState = null;
-							gameStateInstance.onCancel();
-						}
+						   function(error:String) {
+							   trace('Reconnection failed: ' + error + ' - scheduling retry');
+							   var targetState = reconnectionTargetState;
+							   pendingReconnection = false;
+							   reconnectionCallback = null;
+							   reconnectionTargetState = null;
+							   if (targetState != null) {
+								   MusicBeatState.switchState(targetState);
+							   }
+							   haxe.Timer.delay(function() {
+								   if (!isPurposefullyDisconnected) {
+									   gameStateInstance.onSocketDisconnected();
+								   } else {
+									   trace('Purposefully disconnected, not retrying');
+								   }
+							   }, 3000);
+						   }
 					);
 					FlxG.state.openSubState(connectionSubstate);
 				},

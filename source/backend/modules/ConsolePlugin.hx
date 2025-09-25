@@ -1,7 +1,7 @@
 package backend.modules;
 
-import flixel.FlxBasic;
 import cutscenes.DialogueBoxPsych;
+import flixel.FlxBasic;
 
 /**
  * A plugin which spawns a console if you press the 'console' keybind.
@@ -26,6 +26,9 @@ class ConsolePlugin extends FlxBasic
     if (Controls.instance?.justPressed('console'))
     {
       NativeAPI.allocConsole();
+      if (Main.CommandPrompt.instance == null)
+      yutautil.Threader.runInThread(new Main.CommandPrompt().start(), 0, "cmd", true, 0);
+
     }
   }
 

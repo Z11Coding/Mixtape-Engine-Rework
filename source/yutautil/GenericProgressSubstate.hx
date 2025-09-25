@@ -42,7 +42,7 @@ class GenericProgressSubstate extends MusicBeatSubstate {
     var onError:(String, Bool)->Void;
     var onCancel:Void->Void;
 
-    public function new(title:String, tasks:Array<ProgressTask>, ?onComplete:Array<Dynamic>->Void, ?onError:(String, Bool)->Void, ?onCancel:Void->Void) {
+    public function new(title:String, tasks:OneOrMore<ProgressTask>, ?onComplete:Array<Dynamic>->Void, ?onError:(String, Bool)->Void, ?onCancel:Void->Void) {
         super();
 
         this.taskFunctions = tasks;

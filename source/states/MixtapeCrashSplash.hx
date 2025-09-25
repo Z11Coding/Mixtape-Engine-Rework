@@ -9,7 +9,10 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import lime.ui.Window;
+import openfl.Lib;
 import states.SplashScreen.SplashGlowParticle;
+import yutautil.GenericProgressSubstate;
 
 /**
  * Rare crash splash screen variant that shows the Mixtape Engine text fading in slowly,
@@ -304,11 +307,73 @@ class MixtapeCrashSplash extends MusicBeatState {
         // Clean up
         Conductor.songPosition = 0;
 
-        // Transition to the next state (same as normal splash screen)
-        TransitionState.transitionState(
-            FirstCheckState.relaunch ? MainMenuState : TitleState,
-            {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK}
+        // Show initialization progress instead of direct transition
+        showInitializationProgress();
+    }
+
+    function showInitializationProgress():Void
+    {
+        var progressTasks = [
+            GenericProgressSubstate.createTask("Setting up file drop handler...", function(results) {
+                try {
+                    trace("Setting up onDropFile handler...");
+                    if (!states.FirstCheckState.dropFileSetup) {
+                        lime.app.Application.current.window.onDropFile.add(function(path:String) {
+                            var path = path;
+                            trace("user dropped file with path: " + path);
+                            try {
+                                if (Std.is(FlxG.state, backend.MusicBeatState))
+                                    (cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
+                            } catch (e:Dynamic) {
+                                trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
+                                trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
+                            }
+                        });
+                        states.FirstCheckState.dropFileSetup = true;
+                        trace("File drop handler set up successfully");
+                    } else {
+                        trace("File drop handler already set up, skipping");
+                    }
+                    return "file_drop_success";
+                } catch (e:Dynamic) {
+                    trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
+                    return "file_drop_error";
+                }
+            }, false),
+            GenericProgressSubstate.createTask("Loading game systems...", function(results) {
+                // Additional initialization tasks can go here
+                return "systems_loaded";
+            }, false),
+            GenericProgressSubstate.createTask("Finalizing startup...", function(results) {
+                // Final initialization step
+                return "startup_complete";
+            }, false)
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Initializing Mixtape Engine",
+            progressTasks,
+            function(results) {
+                // On completion, proceed to the intended state
+                trace("Initialization complete, proceeding to title state");
+                haxe.Timer.delay(function() {
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                }, 300);
+            },
+            function(error, shouldThrow) {
+                trace('Error during initialization: $error');
+                // Still proceed to title state even if initialization failed
+                haxe.Timer.delay(function() {
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                }, 300);
+            },
+            function() {
+                // Cancel - still go to title state
+                TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+            }
         );
+
+        openSubState(progressSubstate);
     }
 
     override public function update(elapsed:Float) {

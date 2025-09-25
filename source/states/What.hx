@@ -1,7 +1,10 @@
 package states;
+import lime.ui.Window;
+import openfl.Lib;
 import states.SplashScreen.SplashGlowParticle;
+import yutautil.GenericProgressSubstate;
 
-class What extends MusicBeatState 
+class What extends MusicBeatState
 {
     var what1:FlxText;
     var what2:FlxText;
@@ -91,7 +94,7 @@ class What extends MusicBeatState
         //FlxG.sound.play(Paths.sound('WHAT_STARTUP'));
         new FlxTimer().start(12, function(tmr:FlxTimer)
         {
-           TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+           showInitializationProgress();
         });
         whatT1 = FlxTween.tween(what1, {x:what5.x + 350, y:what5.y}, 8, {ease: FlxEase.expoInOut});
         whatT2 = FlxTween.tween(what2, {x:what5.x + 350, y:what5.y}, 8, {ease: FlxEase.expoInOut});
@@ -123,7 +126,7 @@ class What extends MusicBeatState
                 }
             }
         });
-        
+
         super.create();
     }
 
@@ -161,9 +164,9 @@ class What extends MusicBeatState
 
     override public function update(e)
     {
-        if (FlxG.keys.justPressed.ENTER) 
+        if (FlxG.keys.justPressed.ENTER)
         {
-            FlxG.switchState(new TitleState());
+            showInitializationProgress();
             what.stop();
         }
         if(phillyGlowParticles != null)
@@ -182,5 +185,70 @@ class What extends MusicBeatState
             }
         }
         super.update(e);
+    }
+
+    function showInitializationProgress():Void
+    {
+        var progressTasks = [
+            GenericProgressSubstate.createTask("Setting up file drop handler...", function(results) {
+                try {
+                    trace("Setting up onDropFile handler...");
+                    if (!states.FirstCheckState.dropFileSetup) {
+                        lime.app.Application.current.window.onDropFile.add(function(path:String) {
+                            var path = path;
+                            trace("user dropped file with path: " + path);
+                            try {
+                                if (Std.is(FlxG.state, backend.MusicBeatState))
+                                    (cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
+                            } catch (e:Dynamic) {
+                                trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
+                                trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
+                            }
+                        });
+                        states.FirstCheckState.dropFileSetup = true;
+                        trace("File drop handler set up successfully");
+                    } else {
+                        trace("File drop handler already set up, skipping");
+                    }
+                    return "file_drop_success";
+                } catch (e:Dynamic) {
+                    trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
+                    return "file_drop_error";
+                }
+            }, false),
+            GenericProgressSubstate.createTask("Loading game systems...", function(results) {
+                // Additional initialization tasks can go here
+                return "systems_loaded";
+            }, false),
+            GenericProgressSubstate.createTask("Finalizing startup...", function(results) {
+                // Final initialization step
+                return "startup_complete";
+            }, false)
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Initializing Mixtape Engine",
+            progressTasks,
+            function(results) {
+                // On completion, proceed to the intended state
+                trace("Initialization complete, proceeding to title state");
+                haxe.Timer.delay(function() {
+                    TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                }, 300);
+            },
+            function(error, shouldThrow) {
+                trace('Error during initialization: $error');
+                // Still proceed to title state even if initialization failed
+                haxe.Timer.delay(function() {
+                    TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                }, 300);
+            },
+            function() {
+                // Cancel - still go to title state
+                TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+            }
+        );
+
+        openSubState(progressSubstate);
     }
 }

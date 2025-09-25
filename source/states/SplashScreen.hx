@@ -1,10 +1,14 @@
 package states;
-import states.stages.objects.*;
+// import lime.ui.DropFileEvent;
+import lime.ui.Window;
 import objects.VideoSprite;
+import openfl.Lib;
+import states.stages.objects.*;
 import yutautil.ExtendedDate;
+import yutautil.GenericProgressSubstate;
 
 //About time i got around to this
-class SplashScreen extends MusicBeatState 
+class SplashScreen extends MusicBeatState
 {
     var mix:FlxText;
     var tape:FlxText;
@@ -15,14 +19,14 @@ class SplashScreen extends MusicBeatState
     var tapeT:FlxTween;
     var engineT:FlxTween;
     var mixtapeEngineT:FlxTween;
-    
+
     var camTween:FlxTween;
     var mixTA:FlxTween;
     var tapeTA:FlxTween;
     var engineTA:FlxTween;
     var mixtapeEngineTA:FlxTween;
     var splashTA:FlxTween;
-    
+
     var splashSound:FlxSound;
     var splashGrad:FlxSprite;
     var mixtapeLogo:FlxSprite;
@@ -132,7 +136,7 @@ class SplashScreen extends MusicBeatState
 
 		if (foundFile)
 		{
-            isVideo = true; 
+            isVideo = true;
 			videoCutscene = new VideoSprite(fileName, forMidSong, canSkip, loop);
 
 			// Finish callback
@@ -140,7 +144,7 @@ class SplashScreen extends MusicBeatState
             {
                 videoCutscene = null;
                 Conductor.songPosition = 0;
-                TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                showInitializationProgress();
             }
             videoCutscene.finishCallback = onVideoEnd;
             videoCutscene.onSkip = onVideoEnd;
@@ -155,10 +159,75 @@ class SplashScreen extends MusicBeatState
 		#else
 		FlxG.log.warn('Platform not supported!');
 		Conductor.songPosition = 0;
-        TransitionState.transitionState(TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+        showInitializationProgress();
 		#end
 		return null;
 	}
+
+    function showInitializationProgress():Void
+    {
+        var progressTasks = [
+            GenericProgressSubstate.createTask("Setting up file drop handler...", function(results) {
+                try {
+                    trace("Setting up onDropFile handler...");
+                    if (!states.FirstCheckState.dropFileSetup) {
+                        lime.app.Application.current.window.onDropFile.add(function(path:String) {
+                            var path = path;
+                            trace("user dropped file with path: " + path);
+                            try {
+                                if (Std.is(FlxG.state, backend.MusicBeatState))
+                                    (cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
+                            } catch (e:Dynamic) {
+                                trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
+                                trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
+                            }
+                        });
+                        states.FirstCheckState.dropFileSetup = true;
+                        trace("File drop handler set up successfully");
+                    } else {
+                        trace("File drop handler already set up, skipping");
+                    }
+                    return "file_drop_success";
+                } catch (e:Dynamic) {
+                    trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
+                    return "file_drop_error";
+                }
+            }, false),
+            GenericProgressSubstate.createTask("Loading game systems...", function(results) {
+                // Additional initialization tasks can go here
+                return "systems_loaded";
+            }, false),
+            GenericProgressSubstate.createTask("Finalizing startup...", function(results) {
+                // Final initialization step
+                return "startup_complete";
+            }, false)
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Initializing Mixtape Engine",
+            progressTasks,
+            function(results) {
+                // On completion, proceed to the intended state
+                trace("Initialization complete, proceeding to title state");
+                haxe.Timer.delay(function() {
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                }, 300);
+            },
+            function(error, shouldThrow) {
+                trace('Error during initialization: $error');
+                // Still proceed to title state even if initialization failed
+                haxe.Timer.delay(function() {
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                }, 300);
+            },
+            function() {
+                // Cancel - still go to title state
+                TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+            }
+        );
+
+        openSubState(progressSubstate);
+    }
 
     function particleBoom() {
         splashGrad.alpha = 1;
@@ -208,7 +277,7 @@ class SplashScreen extends MusicBeatState
                 case 14:
                     FlxG.camera.zoom = 1.2;
                     FlxG.camera.scrollAngle = -15;
-                    camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});    
+                    camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
                     engine.alpha = 1;
                     engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
                 case 16:
@@ -223,16 +292,14 @@ class SplashScreen extends MusicBeatState
     }
 
     var finishTimer:FlxTimer = null;
-    public function finishSong():Void
+	public function finishSong():Void
 	{
 		finishTimer = new FlxTimer().start(0.1, function(tmr:FlxTimer)
         {
             Conductor.songPosition = 0;
-            TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+            showInitializationProgress();
         });
-	}
-
-    override public function onFocus():Void
+	}    override public function onFocus():Void
     {
         if (!isVideo) {
             FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if (!tmr.finished)
@@ -261,7 +328,7 @@ class SplashScreen extends MusicBeatState
         if(splashSound != null)
 			Conductor.songPosition = splashSound.time;
 
-        if (FlxG.keys.justPressed.ENTER && !isVideo) 
+        if (FlxG.keys.justPressed.ENTER && !isVideo)
         {
             FlxG.switchState(FirstCheckState.relaunch ? new MainMenuState() : new TitleState());
             splashSound.stop();

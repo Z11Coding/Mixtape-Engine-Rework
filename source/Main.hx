@@ -26,6 +26,7 @@ import openfl.events.Event;
 import openfl.events.NativeProcessExitEvent;
 import psychlua.LuaUtils;
 import states.TitleState;
+import yutautil.GenericProgressSubstate;
 #if debug
 import debug.DebugManager;
 import yutautil.StatePick;
@@ -401,6 +402,7 @@ class Main extends Sprite
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
 		// try { // WHY THE HELL IS THIS CRASHING???????????????????
+		// 	trace("Setting up onDropFile handler...");
 		// 	stage.window.onDropFile.add(function(path:String)
 		// 	{
 		// 		trace("user dropped file with path: " + path);
@@ -683,6 +685,24 @@ class Main extends Sprite
 				var stateClass:Class<Dynamic> = Type.getClass(FlxG.state);
 				var handled = false;
 
+				if (stateClass == null) {
+					trace("State class is null. Either signals broke, or the game is bricked.");
+					try {
+						var exitStuff:Array<Dynamic> = [];
+						exitStuff = exitStuff.concat(states.ExitState.cleanupFunctions).concat(states.ExitState.returnFunctions);
+						for (callbacks in exitStuff)
+						{ try { callbacks(); } catch (e:Dynamic) { trace("Error in exit callback: " + e); } }
+						// do restart process
+						var restartProcess = new Process("Mixtape.exe", ["GameBricked", "restart"]);
+						Main.closeGame();
+					} catch (e:Dynamic) {
+						trace("Error occurred while executing exit callbacks: " + e);
+						// do restart process
+						var restartProcess = new Process("Mixtape.exe", ["GameBricked", "restart"]);
+						Main.closeGame();
+					}
+				}
+
 				while (stateClass != null && !handled) {
 					switch (stateClassName) {
 						case "PlayState":
@@ -858,6 +878,7 @@ class CommandPrompt
 	private var state:String;
 	private var variables:Map<String, Dynamic>;
 	private var unoGame:UnoGame;
+	public static var instance:CommandPrompt;
 
 	public var active:Boolean = true; // I thought it'd be funny to add this.
 
@@ -959,6 +980,7 @@ class CommandPrompt
 			if (!active)
 			{
 				print("Commands disabled.\nTO re-enable, restart the game.");
+				instance = null;
 				break;
 			}
 			var input:String = Sys.stdin().readLine();
@@ -1967,7 +1989,17 @@ class CommandPrompt
 
 	private function print(message:String):Void
 	{
-		Sys.stdout().writeString(message + "\n");
+		try {
+			Sys.stdout().writeString(message + "\n");
+		} catch (e:Dynamic) {
+			var errStr = Std.string(e);
+			if (errStr == "Custom([file_write,stdout])") {
+				this.active = false;
+				trace("No command interface detected. Disabling command prompt.");
+			} else {
+				trace("Error writing to stdout: " + errStr);
+			}
+		}
 	}
 
 	// UNO Game Methods

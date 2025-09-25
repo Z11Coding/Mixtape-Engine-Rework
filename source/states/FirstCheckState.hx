@@ -17,6 +17,7 @@ class FirstCheckState extends MusicBeatState
 	public static var updateVersion:String = '';
 	public static var betaVersion:String = '';
 	public static var relaunch:Bool = false;
+	public static var dropFileSetup:Bool = false;
 
 	var updateAlphabet:Alphabet;
 	var updateIcon:FlxSprite;
