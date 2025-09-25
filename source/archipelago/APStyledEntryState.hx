@@ -790,10 +790,10 @@ class APStyledEntryState extends MusicBeatState {
     function onConnectionFailed(error:String) {
         FlxG.autoPause = ClientPrefs.data.autoPause;
 
-        // // Show error dialog
-        // var errorDesc = getErrorDescription(error);
-        // var errorPrompt = new Prompt("Connection Failed\n\n" + errorDesc, 0, null, null, false);
-        // openSubState(errorPrompt);
+        // Show error dialog
+        var errorDesc = getErrorDescription(error);
+        var errorPrompt = new InfoPanelSubstate("Connection Failed", error, FlxColor.RED);
+        openSubState(errorPrompt);
     }
 
     function startAPModeTransition(ap, slotData) {

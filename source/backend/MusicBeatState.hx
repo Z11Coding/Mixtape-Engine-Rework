@@ -787,6 +787,7 @@ class MusicBeatState extends FlxState
 				return MusicBeatState.switchState(this);
 		};
 
+
 		var stateName = Type.getClassName(Type.getClass(state));
 
 		yutautil.Threader.runInThread(preloader(), 1, 'State Preloader');

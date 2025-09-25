@@ -94,8 +94,10 @@ class TransitionState {
                 if (Type.getClass(FlxG.state) != states.ExitState) {
                     trace("GAME IS STILL OPEN and not in ExitState! FORCE CLOSING!");
             new FlxTimer().start(3, function(timer:FlxTimer) {
-                trace("GAME IS STILL OPEN! FORCE CLOSING!");
-                Main.closeGame();
+                if (Type.getClass(FlxG.state) != states.ExitState) {
+                    trace("GAME IS STILL OPEN! FORCE CLOSING!");
+                    Main.closeGame();
+                }
             });
                     FlxG.switchState(new states.ExitState());
 

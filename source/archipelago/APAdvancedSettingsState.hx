@@ -344,14 +344,14 @@ class APAdvancedSettingsState extends MusicBeatState {
                 description: "Choose which song you start with",
                 callback: () -> selectStartingSong(),
                 locked: false,
-                contextMenu: createEditContextMenu(() -> selectStartingSong())
+                contextMenu: createEditContextMenu(() -> {startingSong = null; refreshCurrentPage();})
             },
             {
                 name: "Victory Song",
                 description: "Choose the final song for victory",
                 callback: () -> selectVictorySong(),
                 locked: false,
-                contextMenu: createEditContextMenu(() -> selectVictorySong())
+                contextMenu: createEditContextMenu(() -> {victorySong = null; refreshCurrentPage();})
             },
             {
                 name: "Grade Requirement",
@@ -991,8 +991,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             case "Allow Mods": allowMods ? "ON" : "OFF";
             case "Include Secrets": includeSecrets ? "ON" : "OFF";
             case "Include Vanilla": includeVanilla ? "ON" : "OFF";
-            case "Starting Song": startingSong;
-            case "Victory Song": victorySong;
+            case "Starting Song": startingSong != null ? startingSong : "RANDOM";
+            case "Victory Song": victorySong != null ? victorySong : "RANDOM";
             case "Grade Requirement": gradeRequirement;
             case "Accuracy Requirement": accRequirement;
             case "Trap Amount": Std.string(trapAmount);
@@ -1258,6 +1258,81 @@ class APAdvancedSettingsState extends MusicBeatState {
         });
     }
 
+    function openEnumSelectionPrompt(title:String, options:Array<ContextMenuOption>) {
+        var enumSubstate = new EnumSelectionSubstate(title, options, function(selectedOption:ContextMenuOption) {
+            // Directly set the value based on the option name and selected value
+            setOptionValue(title, selectedOption.value);
+            refreshCurrentPage();
+        });
+        openSubState(enumSubstate);
+    }
+
+    function openBooleanSelectionPrompt(title:String, trueLabel:String, falseLabel:String) {
+        var boolOptions:Array<ContextMenuOption> = [
+            {
+                label: falseLabel,
+                value: "false",
+                callback: () -> {}, // Not used anymore
+                isSelected: getCurrentBooleanValue(title) == false
+            },
+            {
+                label: trueLabel,
+                value: "true",
+                callback: () -> {}, // Not used anymore
+                isSelected: getCurrentBooleanValue(title) == true
+            }
+        ];
+
+        var enumSubstate = new EnumSelectionSubstate(title, boolOptions, function(selectedOption:ContextMenuOption) {
+            // Directly set the boolean value based on the selected option
+            var boolValue = selectedOption.value == "true";
+            setOptionValue(title, boolValue);
+            refreshCurrentPage();
+        });
+        openSubState(enumSubstate);
+    }
+
+    function setOptionValue(optionName:String, value:Dynamic) {
+        switch (optionName) {
+            case "Progression Balancing":
+                progression_balancing = Std.string(value);
+            case "Accessibility":
+                accessibility = Std.string(value);
+            case "Unlock Type":
+                unlockType = Std.string(value);
+            case "Unlock Method":
+                unlockMethod = Std.string(value);
+                updateSongStats();
+            case "Grade Requirement":
+                gradeRequirement = Std.string(value);
+            case "Accuracy Requirement":
+                accRequirement = Std.string(value);
+            case "DeathLink":
+                deathlink = cast(value, Bool);
+            case "Allow Mods":
+                allowMods = cast(value, Bool);
+                updateSongStats();
+            case "Include Secrets":
+                includeSecrets = cast(value, Bool);
+                updateSongStats();
+            case "Include Vanilla":
+                includeVanilla = cast(value, Bool);
+                updateSongStats();
+            default:
+                trace('Unknown option: $optionName');
+        }
+    }
+
+    function getCurrentBooleanValue(optionName:String):Bool {
+        return switch (optionName) {
+            case "DeathLink": deathlink;
+            case "Allow Mods": allowMods;
+            case "Include Secrets": includeSecrets;
+            case "Include Vanilla": includeVanilla;
+            default: false;
+        }
+    }
+
     function selectStartingSong() {
         FlxG.sound.play(Paths.sound('confirmMenu'));
 
@@ -1344,6 +1419,7 @@ class APAdvancedSettingsState extends MusicBeatState {
             if (firstSong.folder != null && firstSong.folder.length > 0) {
                 startingSong = firstSong.songName + " (" + firstSong.folder + ")";
             }
+
 
             victorySong = startingSong; // Same as starting song by default
         } else {
@@ -1633,8 +1709,12 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Add new settings
         Reflect.setField(yamlThing, "include_secrets", includeSecrets);
         Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
-        Reflect.setField(yamlThing, "starting_song", startingSong);
-        Reflect.setField(yamlThing, "victory_song", victorySong);
+        if (startingSong != null) {
+            Reflect.setField(yamlThing, "starting_song", startingSong);
+        }
+        if (victorySong != null) {
+            Reflect.setField(yamlThing, "victory_song", victorySong);
+        }
 
         // Generate and compress Python script for CustomAPLogic (ALWAYS compressed as Base64)
         if (CustomAPLogic.APDataStore.items.length > 0 || CustomAPLogic.APDataStore.locations.length > 0 ||
@@ -1680,6 +1760,9 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         var finalDocument = document + comment + yamlString;
 
+        trace('YAML export generated for player: ' + playerName);
+        trace('YAML export content:\n' + finalDocument);
+
         #if sys
         if (!sys.FileSystem.exists("./PlayerSettings/"))
             sys.FileSystem.createDirectory("./PlayerSettings/");
@@ -1713,8 +1796,12 @@ class APAdvancedSettingsState extends MusicBeatState {
         comment += "#   - Secret songs: " + (includeSecrets ? "YES" : "NO") + "\n";
         comment += "#   - Modded songs: " + (allowMods ? "YES" : "NO") + "\n";
 
-        comment += "# Victory song: " + victorySong + "\n";
-        comment += "# Starting song: " + startingSong + "\n";
+        if (victorySong != null) {
+            comment += "# Victory song: " + victorySong + "\n";
+        }
+        if (startingSong != null) {
+            comment += "# Starting song: " + startingSong + "\n";
+        }
 
         // Add modData information
         if (Reflect.hasField(yamlThing, "modData")) {
@@ -1821,10 +1908,29 @@ class APAdvancedSettingsState extends MusicBeatState {
                         if (type == "regular") {
                             var option = pages[currentPage].options[index];
                             if (!option.locked) {
-                                option.callback();
-                                // Play sound and refresh UI after any option change
-                                FlxG.sound.play(Paths.sound('scrollMenu'));
-                                refreshCurrentPage();
+                                // Check if this option has a context menu that should show on left-click
+                                if (option.contextMenu != null) {
+                                    switch (option.contextMenu) {
+                                        case ENUM_SELECT(options):
+                                            // Show enum selection substate instead of context menu
+                                            openEnumSelectionPrompt(option.name, options);
+                                        case BOOLEAN(trueLabel, falseLabel):
+                                            // Show boolean selection substate
+                                            openBooleanSelectionPrompt(option.name, trueLabel, falseLabel);
+                                        case EDIT_VALUE(editCallback):
+                                            // For edit values, keep the original callback behavior
+                                            option.callback();
+                                            // Play sound and refresh UI after any option change
+                                            FlxG.sound.play(Paths.sound('scrollMenu'));
+                                            refreshCurrentPage();
+                                    }
+                                } else {
+                                    // Fallback to original callback if no context menu
+                                    option.callback();
+                                    // Play sound and refresh UI after any option change
+                                    FlxG.sound.play(Paths.sound('scrollMenu'));
+                                    refreshCurrentPage();
+                                }
                             } else {
                                 FlxG.sound.play(Paths.sound('cancelMenu'));
                                 FlxG.camera.shake(0.01, 0.2);
@@ -2274,4 +2380,274 @@ class APAdvancedSettingsState extends MusicBeatState {
             if (onComplete != null) onComplete();
         });
     }
+}
+
+/**
+ * A scrollable substate for selecting from enum-like options
+ */
+class EnumSelectionSubstate extends MusicBeatSubstate {
+    var options:Array<ContextMenuOption>;
+    var title:String;
+    var onSelect:ContextMenuOption->Void;
+
+    var bg:FlxSprite;
+    var panel:FlxSprite;
+    var titleText:FlxText;
+    var instructionText:FlxText;
+
+    var optionButtons:FlxTypedGroup<FlxSprite>;
+    var optionTexts:FlxTypedGroup<FlxText>;
+
+    var selectedIndex:Int = 0;
+    var scrollOffset:Int = 0;
+    var maxVisibleOptions:Int = 8;
+
+    var navigationCooldown:Float = 0;
+    var navigationDelay:Float = 0.1;
+
+    var isClosing:Bool = false;
+
+    public function new(title:String, options:Array<ContextMenuOption>, onSelect:ContextMenuOption->Void) {
+        super();
+        this.title = title;
+        this.options = options;
+        this.onSelect = onSelect;
+
+        // Find currently selected option
+        for (i in 0...options.length) {
+            if (options[i].isSelected == true) {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        // Ensure selected item is visible
+        updateScrollOffset();
+    }
+
+    override function create() {
+        super.create();
+
+        // Semi-transparent background
+        bg = new FlxSprite();
+        bg.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 150));
+        add(bg);
+
+        // Main panel
+        var panelWidth = 400;
+        var panelHeight = 500;
+        panel = new FlxSprite((FlxG.width - panelWidth) / 2, (FlxG.height - panelHeight) / 2);
+        panel.makeGraphic(panelWidth, panelHeight, FlxColor.fromRGB(30, 30, 50));
+        add(panel);
+
+        // Panel border
+        var border = new FlxSprite(panel.x - 2, panel.y - 2);
+        border.makeGraphic(panelWidth + 4, panelHeight + 4, FlxColor.fromRGB(80, 80, 120));
+        insert(members.indexOf(panel), border);
+
+        // Title
+        titleText = new FlxText(panel.x + 10, panel.y + 15, panel.width - 20, title, 20);
+        titleText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        titleText.borderSize = 2;
+        add(titleText);
+
+        // Instructions
+        instructionText = new FlxText(panel.x + 10, panel.y + 50, panel.width - 20,
+            "Use UP/DOWN or Mouse to select • ENTER/Click to choose • ESC to cancel", 12);
+        instructionText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.GRAY, CENTER, OUTLINE, FlxColor.BLACK);
+        instructionText.borderSize = 1;
+        add(instructionText);
+
+        // Option lists
+        optionButtons = new FlxTypedGroup<FlxSprite>();
+        add(optionButtons);
+
+        optionTexts = new FlxTypedGroup<FlxText>();
+        add(optionTexts);
+
+        createOptionList();
+
+        // Animate in
+        panel.alpha = 0;
+        titleText.alpha = 0;
+        instructionText.alpha = 0;
+
+        FlxTween.tween(panel, {alpha: 1}, 0.2, {ease: FlxEase.sineOut});
+        FlxTween.tween(titleText, {alpha: 1}, 0.3, {ease: FlxEase.sineOut});
+        FlxTween.tween(instructionText, {alpha: 1}, 0.4, {ease: FlxEase.sineOut});
+    }
+
+    function createOptionList() {
+        optionButtons.clear();
+        optionTexts.clear();
+
+        var startY = panel.y + 90;
+        var buttonHeight = 35;
+        var spacing = 2;
+
+        var visibleEnd:Num = Math.min(scrollOffset + maxVisibleOptions, options.length);
+
+        for (i in scrollOffset...visibleEnd) {
+            var option = options[i];
+            var yPos = startY + ((i - scrollOffset) * (buttonHeight + spacing));
+
+            // Create button
+            var button = new FlxSprite(panel.x + 10, yPos);
+            var buttonColor = (i == selectedIndex) ? FlxColor.fromRGB(60, 120, 60) : FlxColor.fromRGB(50, 50, 80);
+            if (option.isSelected == true) {
+                buttonColor = (i == selectedIndex) ? FlxColor.fromRGB(80, 150, 80) : FlxColor.fromRGB(70, 130, 70);
+            }
+            button.makeGraphic(Std.int(panel.width - 20), buttonHeight, buttonColor);
+            button.ID = i;
+            optionButtons.add(button);
+
+            // Create text
+            var labelText = option.label;
+            if (option.isSelected == true) {
+                labelText = "✓ " + option.label;
+            }
+
+            var text = new FlxText(button.x + 10, button.y + 8, button.width - 20, labelText, 16);
+            var textColor = (i == selectedIndex) ? FlxColor.YELLOW : FlxColor.WHITE;
+            if (option.isSelected == true && i != selectedIndex) {
+                textColor = FlxColor.LIME;
+            }
+            text.setFormat(Paths.font("vcr.ttf"), 16, textColor, LEFT, OUTLINE, FlxColor.BLACK);
+            text.borderSize = 1;
+            text.ID = i;
+            optionTexts.add(text);
+        }
+
+        // Show scroll indicators if needed
+        if (scrollOffset > 0) {
+            var upArrow = new FlxText(panel.x + panel.width - 30, startY - 20, 20, "▲", 16);
+            upArrow.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
+            add(upArrow);
+        }
+
+        if (scrollOffset + maxVisibleOptions < options.length) {
+            var downArrow = new FlxText(panel.x + panel.width - 30, startY + (maxVisibleOptions * 37) - 10, 20, "▼", 16);
+            downArrow.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
+            add(downArrow);
+        }
+    }
+
+    function updateScrollOffset() {
+        // Keep selected item visible
+        if (selectedIndex < scrollOffset) {
+            scrollOffset = selectedIndex;
+        } else if (selectedIndex >= scrollOffset + maxVisibleOptions) {
+            scrollOffset = selectedIndex - maxVisibleOptions + 1;
+        }
+
+        // Clamp scroll offset
+        scrollOffset = Std.int(Math.max(0, Math.min(scrollOffset, Math.max(0, options.length - maxVisibleOptions))));
+    }
+
+    override function update(elapsed:Float) {
+        super.update(elapsed);
+
+        navigationCooldown -= elapsed;
+
+        // Keyboard navigation
+        if (navigationCooldown <= 0) {
+            var needsRefresh = false;
+
+            if (controls.UI_UP || FlxG.keys.justPressed.UP) {
+                selectedIndex--;
+                if (selectedIndex < 0) selectedIndex = options.length - 1;
+                updateScrollOffset();
+                needsRefresh = true;
+                navigationCooldown = navigationDelay;
+                FlxG.sound.play(Paths.sound('scrollMenu'));
+            } else if (controls.UI_DOWN || FlxG.keys.justPressed.DOWN) {
+                selectedIndex++;
+                if (selectedIndex >= options.length) selectedIndex = 0;
+                updateScrollOffset();
+                needsRefresh = true;
+                navigationCooldown = navigationDelay;
+                FlxG.sound.play(Paths.sound('scrollMenu'));
+            }
+
+            if (needsRefresh) {
+                createOptionList();
+            }
+        }
+
+        // Mouse navigation
+        optionButtons.forEachAlive(function(button:FlxSprite) {
+            if (FlxG.mouse.overlaps(button)) {
+                var newIndex = button.ID;
+                if (newIndex != selectedIndex) {
+                    selectedIndex = newIndex;
+                    createOptionList();
+                    FlxG.sound.play(Paths.sound('scrollMenu'));
+                }
+
+                if (FlxG.mouse.justPressed) {
+                    selectCurrentOption();
+                }
+            }
+        });
+
+        // Selection
+        if (controls.ACCEPT || FlxG.keys.justPressed.ENTER) {
+            selectCurrentOption();
+        }
+
+        // Cancel
+        if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
+            close();
+        }
+
+        // Click outside to cancel
+        if (FlxG.mouse.justPressed && !FlxG.mouse.overlaps(panel)) {
+            close();
+        }
+    }
+
+    function selectCurrentOption(playConfirmSound:Bool = true) {
+        if (selectedIndex >= 0 && selectedIndex < options.length) {
+            var selectedOption = options[selectedIndex];
+
+            if (playConfirmSound) {
+                FlxG.sound.play(Paths.sound('confirmMenu'));
+            } else {
+                FlxG.sound.play(Paths.sound('cancelMenu'));
+            }
+
+            isClosing = true; // Mark that we're closing with animation
+
+            // Animate out quickly
+            FlxTween.tween(panel, {alpha: 0, y: panel.y - 20}, 0.15, {
+                ease: FlxEase.backIn,
+                onComplete: function(_) {
+                    if (playConfirmSound && onSelect != null) {
+                        onSelect(selectedOption);
+                    }
+                    c();
+                }
+            });
+
+            FlxTween.tween(titleText, {alpha: 0}, 0.1);
+            FlxTween.tween(instructionText, {alpha: 0}, 0.1);
+            optionButtons.forEachAlive(function(button:FlxSprite) {
+                FlxTween.tween(button, {alpha: 0}, 0.1);
+            });
+            optionTexts.forEachAlive(function(text:FlxText) {
+                FlxTween.tween(text, {alpha: 0}, 0.1);
+            });
+        }
+    }
+
+    override function close() {
+        // If we're already in the process of closing with animation, don't do anything
+        if (isClosing) return;
+
+        // Use selectCurrentOption with cancel sound instead of confirm sound
+        selectCurrentOption(false);
+    }
+
+    function c()
+        super.close();
 }
