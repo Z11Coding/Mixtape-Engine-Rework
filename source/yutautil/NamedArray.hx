@@ -17,22 +17,22 @@ abstract NamedArray<T>(NamedArrayI<T>) from NamedArrayI<T> to NamedArrayI<T> {
         return this.length;
     }
 
-    /**
-     * Array access operator for getting values by index
-     */
-    @:arrayAccess
-    public function arrayGet(index:Int):Null<T> {
-        return this.get(index);
-    }
+    // /**
+    //  * Array access operator for getting values by index
+    //  */
+    // @:arrayAccess
+    // public function arrayGet(index:Int):Null<T> {
+    //     return this.get(index);
+    // }
 
-    /**
-     * Array access operator for setting values by index
-     */
-    @:arrayAccess
-    public function arraySet(index:Int, value:T):T {
-        this.set(index, value);
-        return value;
-    }
+    // /**
+    //  * Array access operator for setting values by index
+    //  */
+    // @:arrayAccess
+    // public function arraySet(index:Int, value:T):T {
+    //     this.set(index, value);
+    //     return value;
+    // }
 
     /**
      * Array access using Grabber for flexible access

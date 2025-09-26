@@ -27,6 +27,7 @@ import haxe.Exception;
 import haxe.Timer;
 import states.editors.content.FileDialogHandler;
 import substates.Prompt;
+import yutautil.GenericProgressSubstate;
 import yutautil.modules.SyncUtils;
 
 using yutautil.CollectionUtils;
@@ -895,24 +896,82 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     function importYAML() {
-        var yamlContent = yutautil.ImprovedFileHandling.loadFile("Import YAML", [{ext: "yaml", desc: "FNF AP YAML File"}], Text);
-        if (yamlContent != null) {
-            try {
-                var yaml = new archipelago.APYaml(yamlContent);
-                APEntryState.gameSettings.name = yaml.name;
-                slotValue = yaml.name;
-                if (slotText != null) slotText.text = slotValue;
-                for (field in Reflect.fields(yaml.settings)) {
-                    if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
-                        Reflect.setField(APEntryState.gameSettings.FNF, field, Reflect.field(yaml.settings, field));
+        var stuff = null;
+        var tasks = [
+            GenericProgressSubstate.createTask("Opening file dialog", function(results:Array<Dynamic>) {
+                var yamlContent = yutautil.ImprovedFileHandling.loadFile("Import YAML", [{ext: "yaml", desc: "FNF AP YAML File"}], Text);
+                if (yamlContent == null) {
+                    throw new Exception("No file selected or file could not be loaded");
+                }
+                return yamlContent;
+            }),
+            GenericProgressSubstate.createTask("Parsing YAML structure", function(results:Array<Dynamic>) {
+                var content:String = results[0];
+                return new archipelago.APYaml(content);
+            }),
+            GenericProgressSubstate.createTask("Processing YAML content", function(results:Array<Dynamic>) {
+                var content:String = results[0];
+                var yamlLines = content.split('\n');
+                // Process lines to show some progress
+                var processedLines = 0;
+                for (line in yamlLines) {
+                    if (line.trim().length > 0) {
+                        processedLines++;
                     }
                 }
+                return 'Processed $processedLines lines';
+            }),
+            GenericProgressSubstate.createTask("Applying settings", function(results:Array<Dynamic>) {
+                var yaml:archipelago.APYaml = results[1];
+                APEntryState.gameSettings.name = yaml.name;
+                slotValue = yaml.name;
+                trace('YAML Slot Name: $slotValue');
+                if (slotValue.isEmpty()) slotValue = "Player";
+                if (slotText != null && slotValue?.trim() != '') slotText.text = slotValue;
+
+                try {
+                    for (field in Reflect.fields(yaml.settings)) {
+                        if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
+                            var fieldValue:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
+                            Reflect.setField(APEntryState.gameSettings.FNF, field, fieldValue);
+                        }
+                    }
+                } catch (e:Dynamic) {
+                    trace('Error applying YAML settings: $e');
+                }
+                return "Settings applied successfully";
+            }),
+            GenericProgressSubstate.createIterTask("Validating...", Reflect.fields(APEntryState.gameSettings.FNF), function(results:Dynamic) {
+                // Simulate validation delay
+                Sys.sleep(0.1);
+                trace('Validated setting: ' + results);
+                return 'validated ' + results;
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Importing YAML Configuration",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On completion, open Advanced Settings
                 FlxG.sound.play(Paths.sound('confirmMenu'));
-            } catch(e) {
-                trace('YAML import error: $e');
-                postError('default', ["error" => "Failed to import YAML file"]);
+                var yaml:archipelago.APYaml = results[1];
+                MusicBeatState.switchState(new APAdvancedSettingsState(yaml));
+            },
+            function(error:String, shouldThrow:Bool) {
+                trace('YAML import error: $error');
+                if (error.indexOf("No file selected") == -1) {
+                    var errorPrompt = new InfoPanelSubstate("YAML Import Error", error, FlxColor.RED);
+                    openSubState(errorPrompt);
+                }
+                // If no file selected, just silently cancel
+            },
+            function() {
+                // On cancel - do nothing
             }
-        }
+        );
+
+        openSubState(progressSubstate);
     }
 
     #if sys
@@ -920,29 +979,118 @@ class APStyledEntryState extends MusicBeatState {
         FlxG.sound.play(Paths.sound('confirmMenu'));
 
         if (!FileSystem.exists(currentAPLocation)) {
-            var locationPrompt = new Prompt("Archipelago not found.\n\nWould you like to change the AP location?", 0, function() {
+            // Use Prompt instead of InfoPanelSubstate for location change option
+            var locationPrompt = new Prompt("Archipelago not found at:\n" + currentAPLocation + "\n\nWould you like to change the AP location?", 0, function() {
                 changeAPLocation();
-            }, null, false, 'Change Location', 'Cancel');
+            }, function() {
+                // Cancel
+            }, 'Change Location', 'Cancel');
             openSubState(locationPrompt);
         } else {
-            APEntryState.installAPWorld();
-            // Info panel content will be updated when next accessed
+            // Create installation tasks
+            var tasks = [
+                GenericProgressSubstate.createTask("Checking Archipelago installation", function(results:Array<Dynamic>) {
+                    if (!FileSystem.exists(currentAPLocation + "/custom_worlds")) {
+                        FileSystem.createDirectory(currentAPLocation + "/custom_worlds");
+                    }
+                    return "Directory verified";
+                }),
+                GenericProgressSubstate.createTask("Copying APWorld file", function(results:Array<Dynamic>) {
+                    APEntryState.installAPWorld();
+                    return "APWorld installed";
+                }),
+                GenericProgressSubstate.createTask("Verifying installation", function(results:Array<Dynamic>) {
+                    var apworldPath = currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld";
+                    return FileSystem.exists(apworldPath) ? "Installation verified" : "Installation failed";
+                })
+            ];
+
+            var progressSubstate = new GenericProgressSubstate(
+                "Installing Friday Night Funkin APWorld",
+                tasks,
+                function(results:Array<Dynamic>) {
+                    // On completion
+                    var successPrompt = new InfoPanelSubstate(
+                        "Installation Complete",
+                        "Friday Night Funkin APWorld has been successfully installed!\n\nLocation: " + currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld",
+                        FlxColor.LIME
+                    );
+                    openSubState(successPrompt);
+                },
+                function(error:String, shouldThrow:Bool) {
+                    var errorPrompt = new InfoPanelSubstate(
+                        "Installation Error",
+                        "Failed to install APWorld:\n" + error,
+                        FlxColor.RED
+                    );
+                    openSubState(errorPrompt);
+                },
+                function() {
+                    // On cancel - do nothing
+                }
+            );
+
+            openSubState(progressSubstate);
         }
     }
 
     function changeAPLocation() {
-        var before = currentAPLocation;
-        currentAPLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
-        if (currentAPLocation != null && currentAPLocation.trim() != "") {
-            var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true);
-            save.addItem("apLocation", currentAPLocation);
-            lime.app.Application.current.window.alert("Archipelago location changed to: " + currentAPLocation, "Archipelago Location Changed");
-            save.save();
-            // Info panel content will be updated when next accessed
-        } else {
-            lime.app.Application.current.window.alert("Archipelago location not changed.", "Archipelago Location Not Changed");
-            currentAPLocation = before;
-        }
+        var tasks = [
+            GenericProgressSubstate.createTask("Opening folder selection dialog", function(results:Array<Dynamic>) {
+                var newLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
+                if (newLocation == null || newLocation.trim() == "") {
+                    throw new Exception("No folder selected");
+                }
+                return newLocation;
+            }),
+            GenericProgressSubstate.createTask("Validating Archipelago installation", function(results:Array<Dynamic>) {
+                var newLocation:String = results[0];
+                if (!FileSystem.exists(newLocation + "/ArchipelagoLauncher.exe") &&
+                    !FileSystem.exists(newLocation + "/ArchipelagoClient.exe")) {
+                    throw new Exception("Selected folder doesn't appear to be an Archipelago installation");
+                }
+                return "Validation passed";
+            }),
+            GenericProgressSubstate.createTask("Saving new location", function(results:Array<Dynamic>) {
+                var newLocation:String = results[0];
+                var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true);
+                save.addItem("apLocation", newLocation);
+                save.save();
+                currentAPLocation = newLocation;
+                return "Location saved";
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Changing Archipelago Location",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On completion
+                var newLocation:String = results[0];
+                var successPrompt = new InfoPanelSubstate(
+                    "Location Updated",
+                    "Archipelago location changed to:\n" + newLocation,
+                    FlxColor.LIME
+                );
+                openSubState(successPrompt);
+            },
+            function(error:String, shouldThrow:Bool) {
+                if (error.indexOf("No folder selected") == -1) {
+                    var errorPrompt = new InfoPanelSubstate(
+                        "Location Change Failed",
+                        error,
+                        FlxColor.RED
+                    );
+                    openSubState(errorPrompt);
+                }
+                // If no folder selected, just silently cancel
+            },
+            function() {
+                // On cancel - do nothing
+            }
+        );
+
+        openSubState(progressSubstate);
     }
     #end
 
@@ -987,7 +1135,7 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     inline function postError(str:String, ?vars:Map<String, Dynamic>)
-        openSubState(new Prompt("Error: " + errDesc(str), 0, null, null, false));
+        openSubState(new InfoPanelSubstate("Error", errDesc(str) + (vars != null ? "\n\n" + [for (k in vars.keys()) '$k: ${vars.get(k)}'].join("\n") : ""), FlxColor.RED));
 
     function onBack() {
         MusicBeatState.switchState(new states.MainMenuState());

@@ -17,11 +17,13 @@ class InfoPanelSubstate extends MusicBeatSubstate {
     var closeButtonText:FlxText;
 
     var isAnimating:Bool = false;
+    var onCloseCallback:Void->Void;
 
-    public function new(title:String, content:String, ?themeColor:FlxColor) {
+    public function new(title:String, content:String, ?themeColor:FlxColor, ?onClose:Void->Void) {
         super();
 
         if (themeColor == null) themeColor = FlxColor.CYAN;
+        this.onCloseCallback = onClose;
 
         setupBackground();
         setupPanel(title, content, themeColor);
@@ -130,7 +132,7 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         // Close on back/escape
         if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
             FlxG.sound.play(Paths.sound('cancelMenu'));
-            close();
+            closePanel();
             return;
         }
 
@@ -141,7 +143,7 @@ class InfoPanelSubstate extends MusicBeatSubstate {
 
             if (FlxG.mouse.justPressed) {
                 FlxG.sound.play(Paths.sound('confirmMenu'));
-                close();
+                closePanel();
             }
         } else {
             closeButton.color = FlxColor.CYAN;
@@ -167,6 +169,9 @@ class InfoPanelSubstate extends MusicBeatSubstate {
     }
 
     function forceClose() {
+        if (onCloseCallback != null) {
+            onCloseCallback();
+        }
         super.close();
     }
 }

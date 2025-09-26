@@ -603,6 +603,10 @@ class APGameState
 		archipelago.APInfo.ap = _ap;
 		instance = this;
 
+		trace("APGameState initialized with seed: " + _seed);
+		trace("APGameState slot data: \n" + Std.string(slotData));
+
+
 		// APDisconnectSubstate removed - now using ConnectionSubstate for reconnection
 
 		_ap.onSocketDisconnected.add(onSocketDisconnected);
@@ -626,10 +630,36 @@ class APGameState
 			}
 		});
 
-		_ap.toggleDeathLink(slotData != null
-			&& Reflect.hasField(slotData, "deathLink") ? slotData?.deathLink : ClientPrefs.data.deathlink);
-			ClientPrefs.data.deathlink = slotData != null
-			&& Reflect.hasField(slotData, "deathLink") ? slotData?.deathLink : ClientPrefs.data.deathlink;
+		// Set the ClientPrefs deathlink setting first based on slot data
+		var slotDeathLink:Bool = false;
+		if (slotData != null && Reflect.hasField(slotData, "deathlink"))
+		{
+			// Handle both boolean and integer representations (0/1)
+			var deathLinkValue = Reflect.field(slotData, "deathlink");
+			if (Std.isOfType(deathLinkValue, Bool)) {
+				slotDeathLink = deathLinkValue;
+			} else if (Std.isOfType(deathLinkValue, Bool)) {
+				slotDeathLink = deathLinkValue;
+			} else {
+				// Fallback to string conversion
+				slotDeathLink = Std.string(deathLinkValue).toLowerCase() == "true";
+			}
+			trace('Death Link setting from slot data: $slotDeathLink (original value: $deathLinkValue)');
+		}
+		else
+		{
+			slotDeathLink = ClientPrefs.data.deathlink;
+			trace('Death Link setting from ClientPrefs: $slotDeathLink');
+		}
+
+		// Update ClientPrefs with the final death link setting
+		ClientPrefs.data.deathlink = slotDeathLink;
+		ClientPrefs.saveSettings();
+
+		// Now toggle the death link on the client with the correct setting
+		_ap.toggleDeathLink(slotDeathLink);
+
+		trace('Final Death Link state - ClientPrefs: ${ClientPrefs.data.deathlink}, Client triggerable: ${slotDeathLink}');
 
 		_ap.onRetrieved.add(handleRetrievedPacket);
 
@@ -2586,6 +2616,13 @@ class APGameState
 							gameStateInstance._ap.onPrintJSON.add(gameStateInstance.sendMessage);
 							gameStateInstance._ap.onPrint.add(gameStateInstance.sendMessageSimple);
 
+							// Restore death link state from ClientPrefs after reconnection
+							trace('Restoring death link state after reconnection: ${ClientPrefs.data.deathlink}');
+							gameStateInstance._ap.toggleDeathLink(ClientPrefs.data.deathlink);
+
+							// Validate that the death link state was restored correctly
+							gameStateInstance.validateDeathLinkState();
+
 							// Inject offline queue into new client if available
 							if (_tempOfflineQueue != null && _tempOfflineQueue.length > 0) {
 								trace('Injecting ${_tempOfflineQueue.length} items from offline queue into new client');
@@ -2662,6 +2699,13 @@ class APGameState
 							gameStateInstance._ap.onSocketDisconnected.add(gameStateInstance.onSocketDisconnected);
 							gameStateInstance._ap.onPrintJSON.add(gameStateInstance.sendMessage);
 							gameStateInstance._ap.onPrint.add(gameStateInstance.sendMessageSimple);
+
+							// Restore death link state from ClientPrefs after reconnection (fallback)
+							trace('Restoring death link state after reconnection (fallback): ${ClientPrefs.data.deathlink}');
+							gameStateInstance._ap.toggleDeathLink(ClientPrefs.data.deathlink);
+
+							// Validate that the death link state was restored correctly
+							gameStateInstance.validateDeathLinkState();
 
 							// Inject offline queue into new client if available
 							if (_tempOfflineQueue != null && _tempOfflineQueue.length > 0) {
@@ -2747,6 +2791,47 @@ class APGameState
 		{
 			MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
 		}
+
+	/**
+	 * Validates and synchronizes the death link state between ClientPrefs and the AP client
+	 * Call this periodically or when you suspect the death link state might be out of sync
+	 */
+	public function validateDeathLinkState():Bool {
+		if (_ap == null) return false;
+
+		var clientPrefsEnabled = ClientPrefs.data.deathlink;
+		var clientTagsHaveDeathLink = _ap.tagsManager.hasDeathLink();
+
+		// Check if they're out of sync
+		if (clientPrefsEnabled != clientTagsHaveDeathLink) {
+			trace('Death Link state mismatch detected - ClientPrefs: $clientPrefsEnabled, Client Tags: $clientTagsHaveDeathLink');
+
+			// Re-sync by toggling death link with the ClientPrefs setting
+			if (clientPrefsEnabled) {
+				_ap.tagsManager.enableDeathLink();
+			} else {
+				_ap.tagsManager.disableDeathLink();
+			}
+
+			trace('Death Link state synchronized to: $clientPrefsEnabled');
+			return false; // Return false to indicate there was a sync issue
+		}
+
+		return true; // Return true to indicate state was already synced
+	}
+
+	/**
+	 * Force-enable death link if it should be enabled but isn't
+	 * This is a more aggressive sync that prioritizes the setting being enabled
+	 */
+	public function ensureDeathLinkEnabled():Void {
+		if (_ap == null || !ClientPrefs.data.deathlink) return;
+
+		if (!_ap.tagsManager.hasDeathLink()) {
+			trace('Death Link should be enabled but client tags missing DeathLink - forcing enable');
+			_ap.tagsManager.enableDeathLink();
+		}
+	}
 
 		// public function onRoomUpdate(roomUpdatePacket:RoomUpdatePacket)
 		// {

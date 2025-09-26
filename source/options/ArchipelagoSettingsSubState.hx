@@ -8,13 +8,13 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 		rpcTitle = 'Archipelago Settings'; // for Discord Rich Presence
 
 		// var option:Option = new Option('Send Popup Per Note Check',
-		// 	"If checked, a popup will appear on the top right of the screen to inform you of how many checks are left.\nWARNING: NOTE THAT THE POPUPS CAN STACK BELOW EACH OTHER.", 
-		// 	'notePopup', 
+		// 	"If checked, a popup will appear on the top right of the screen to inform you of how many checks are left.\nWARNING: NOTE THAT THE POPUPS CAN STACK BELOW EACH OTHER.",
+		// 	'notePopup',
 		// 	'bool');
 		// addOption(option);
 
 		var option:Option = new Option('Enable Deathlink',
-			"if checked, you will die if anyone else with Deathlink dies.", 
+			"if checked, you will die if anyone else with Deathlink dies.",
 			'deathlink',
 			BOOL);
 		option.onChange = function()
@@ -22,13 +22,14 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			if (archipelago.APEntryState.inArchipelagoMode)
 			{
 				archipelago.APEntryState.ap.toggleDeathLink(option.getValue());
-				ClientPrefs.data.traplink = option.getValue();
+				ClientPrefs.data.deathlink = option.getValue(); // Fixed: was incorrectly setting traplink
+				ClientPrefs.saveSettings(); // Ensure settings are saved immediately
 			}
 		};
 		addOption(option);
 
 		var option:Option = new Option('Enable Trap Link',
-			"if checked, you will be affected by traps that other players activate.", 
+			"if checked, you will be affected by traps that other players activate.",
 			'traplink',
 			BOOL);
 		option.onChange = function()
@@ -37,12 +38,13 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			{
 				archipelago.APEntryState.ap.toggleTrapLink(option.getValue());
 				ClientPrefs.data.traplink = option.getValue();
+				ClientPrefs.saveSettings(); // Ensure settings are saved immediately
 			}
-				};
+		};
 		addOption(option);
 
 		var flip:Option = new Option('Flip Screen',
-			"if checked, the screen will be flipped upside down.\nWARNING: THIS MAY CAUSE ISSUES WITH THE GAME.", 
+			"if checked, the screen will be flipped upside down.\nWARNING: THIS MAY CAUSE ISSUES WITH THE GAME.",
 			'flipScreen',
 			BOOL);
 		flip.onChange = function()

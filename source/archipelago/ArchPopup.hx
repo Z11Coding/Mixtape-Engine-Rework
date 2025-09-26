@@ -158,6 +158,7 @@ class ArchPopup extends openfl.display.Sprite {
 		FlxG.stage.removeEventListener(Event.RESIZE, onResize);
 		removeEventListener(Event.ENTER_FRAME, update);
 		deleteClonedBitmaps();
+		if(onFinish != null) onFinish();
 	}
 
 	function deleteClonedBitmaps()

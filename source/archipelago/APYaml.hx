@@ -1,8 +1,8 @@
 package archipelago;
 
-import haxe.format.JsonParser;
-import haxe.ds.StringMap;
 import haxe.ds.Map;
+import haxe.ds.StringMap;
+import haxe.format.JsonParser;
 
 abstract APOption(String) {
     public inline function new(v:String) {
@@ -72,12 +72,12 @@ abstract APOption(String) {
         if (this.startsWith("[") && this.endsWith("]")) {
             return toArray();
         }
-        
+
         // Check for boolean
         if (this == "true" || this == "false") {
             return toBool();
         }
-        
+
         // Check for numeric (float/int)
         var floatValue = Std.parseFloat(this);
         if (!Math.isNaN(floatValue)) {
@@ -87,7 +87,7 @@ abstract APOption(String) {
             }
             return toFloat();
         }
-        
+
         // Default to string
         return toString();
     }
@@ -117,9 +117,9 @@ class APYaml {
         var jsonContent = convertYamlToJson(yamlContent);
         var parsedData = JsonParser.parse(jsonContent);
 
-        this.game = parsedData.game;
-        this.name = parsedData.name;
-        this.description = parsedData.description;
+        // this.game = parsedData.game;
+        // this.name = parsedData.name;
+        // this.description = parsedData.description;
         this.settings = Reflect.field(parsedData, "Friday Night Funkin");
     }
 
@@ -143,12 +143,19 @@ class APYaml {
                 sectionData = new Map<String, Dynamic>();
             } else {
                 var keyValue = line.split(":");
-
-                if (keyValue.length >= 2) {
+                if (keyValue.length == 2) {
                     var key = keyValue[0].trim();
-                    var value = keyValue.slice(1).join(":").trim();
+                    var value = keyValue[1].trim();
 
-                    // Don't set key/value yet as requested
+
+                    if (key == "game")
+                        this.game = new APOption(value);
+                    else if (key == "name")
+                        this.name = new APOption(value);
+                    else if (key == "description")
+                        this.description = new APOption(value);
+
+                    sectionData.set(key, new APOption(value));
                 }
             }
         }
@@ -172,7 +179,7 @@ class APYaml {
         return settings.mods_enabled;
     }
 
-    
+
     // Add more methods to access other settings as needed.
 }
 

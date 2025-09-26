@@ -14,10 +14,30 @@ import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
 import haxe.Exception;
 
-typedef ProgressTask = {
+typedef FuncTask = {
     var name:String;
     var func:Array<Dynamic>->Dynamic;
     var ?throwOnError:Bool;
+}
+
+typedef IterTask = {
+    var name:String;
+    var iterable:Array<Dynamic>;
+    var func:Dynamic->Dynamic;
+    var ?throwOnError:Bool;
+}
+
+typedef MapIterTask = {
+    var name:String;
+    var map:Map<Dynamic, Dynamic>;
+    var func:(Dynamic, Dynamic)->Dynamic; // key, value -> result
+    var ?throwOnError:Bool;
+}
+
+enum ProgressTask {
+    Func(task:FuncTask);
+    Iter(task:IterTask);
+    MapIter(task:MapIterTask);
 }
 
 class GenericProgressSubstate extends MusicBeatSubstate {
@@ -36,13 +56,20 @@ class GenericProgressSubstate extends MusicBeatSubstate {
     var isAnimating:Bool = false;
     var isCanceled:Bool = false;
 
+    // For IterTask and MapIterTask progress tracking
+    var currentIterIndex:Int = 0;
+    var totalIterItems:Int = 0;
+    var isIterating:Bool = false;
+    var mapKeys:Array<Dynamic> = [];
+
     var taskFunctions:Array<ProgressTask>;
     var results:Array<Dynamic> = [];
     var onComplete:Array<Dynamic>->Void;
     var onError:(String, Bool)->Void;
     var onCancel:Void->Void;
+    var cancelButtonEnabled:Bool = true;
 
-    public function new(title:String, tasks:OneOrMore<ProgressTask>, ?onComplete:Array<Dynamic>->Void, ?onError:(String, Bool)->Void, ?onCancel:Void->Void) {
+    public function new(title:String, tasks:OneOrMore<ProgressTask>, ?onComplete:Array<Dynamic>->Void, ?onError:(String, Bool)->Void, ?onCancel:Void->Void, ?cancelButtonEnabled:Bool = true) {
         super();
 
         this.taskFunctions = tasks;
@@ -53,6 +80,7 @@ class GenericProgressSubstate extends MusicBeatSubstate {
             if (shouldThrow) throw new Exception(error);
         };
         this.onCancel = onCancel != null ? onCancel : function() {};
+        this.cancelButtonEnabled = cancelButtonEnabled;
 
         setupVisuals(title);
         setupAnimations();
@@ -97,11 +125,11 @@ class GenericProgressSubstate extends MusicBeatSubstate {
         add(progressText);
 
         cancelButton = new FlxSprite(panel.x + (panel.width - 120) / 2, panel.y + panel.height - 60);
-        cancelButton.makeGraphic(120, 40, FlxColor.RED);
+        cancelButton.makeGraphic(120, 40, cancelButtonEnabled ? FlxColor.RED : FlxColor.GRAY);
         add(cancelButton);
 
         cancelButtonText = new FlxText(cancelButton.x, cancelButton.y + 10, cancelButton.width, "CANCEL", 16);
-        cancelButtonText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        cancelButtonText.setFormat(Paths.font("vcr.ttf"), 16, cancelButtonEnabled ? FlxColor.WHITE : FlxColor.GRAY, CENTER, OUTLINE, FlxColor.BLACK);
         cancelButtonText.borderSize = 1;
         add(cancelButtonText);
     }
@@ -165,7 +193,6 @@ class GenericProgressSubstate extends MusicBeatSubstate {
     function animateOut(?onCompleteCallback:Void->Void) {
         if (isAnimating) return;
         isAnimating = true;
-
         FlxTween.tween(panel, {"scale.x": 0.7, "scale.y": 0.7, alpha: 0}, 0.3, {
             ease: FlxEase.backIn,
             onComplete: function(_) {
@@ -184,38 +211,145 @@ class GenericProgressSubstate extends MusicBeatSubstate {
         }
 
         var task = taskFunctions[currentStep];
-        statusText.text = task.name;
-        updateProgress();
 
-        try {
-            var result = task.func(results);
-            results.push(result);
-            currentStep++;
+        switch (task) {
+            case Func(funcTask):
+                statusText.text = funcTask.name;
+                updateProgress();
 
-            new FlxTimer().start(0.1, function(_) {
-                if (!isCanceled) executeNextTask();
-            });
+                try {
+                    var result = funcTask.func(results);
+                    results.push(result);
+                    currentStep++;
 
-        } catch (e:Exception) {
-            var errorMsg = 'Error in step "${task.name}": ${e.message}';
-            var shouldThrow = task.throwOnError != null ? task.throwOnError : false;
+                    new FlxTimer().start(0.1, function(_) {
+                        if (!isCanceled) executeNextTask();
+                    });
 
-            onError(errorMsg, shouldThrow);
+                } catch (e:Exception) {
+                    handleTaskError(funcTask.name, e, funcTask.throwOnError);
+                }
 
-            if (!shouldThrow) {
-                statusText.text = "Error: " + e.message;
-                statusText.color = FlxColor.RED;
-                FlxFlicker.flicker(statusText, 2, 0.1);
+            case Iter(iterTask):
+                if (!isIterating) {
+                    // Start iteration
+                    isIterating = true;
+                    currentIterIndex = 0;
+                    totalIterItems = iterTask.iterable.length;
+                    var iterResults:Array<Dynamic> = [];
+                    results.push(iterResults); // Push the result array for this iter task
+                }
 
-                new FlxTimer().start(3, function(_) {
-                    animateOut();
+                if (currentIterIndex >= totalIterItems) {
+                    // Iteration complete
+                    isIterating = false;
+                    currentStep++;
+                    new FlxTimer().start(0.1, function(_) {
+                        if (!isCanceled) executeNextTask();
+                    });
+                    return;
+                }
+
+                // Update status with iteration progress
+                statusText.text = iterTask.name + ' (${currentIterIndex}/${totalIterItems})';
+                updateProgress();
+
+                try {
+                    var item = iterTask.iterable[currentIterIndex];
+                    var result = iterTask.func(item);
+
+                    // Add result to the current iteration's result array
+                    var iterResults:Array<Dynamic> = results[results.length - 1];
+                    iterResults.push(result);
+
+                    currentIterIndex++;
+
+                    new FlxTimer().start(0.05, function(_) {
+                        if (!isCanceled) executeNextTask();
+                    });
+
+                } catch (e:Exception) {
+                    handleTaskError(iterTask.name + ' (item ${currentIterIndex})', e, iterTask.throwOnError);
+                }
+
+            case MapIter(mapTask):
+                if (!isIterating) {
+                    // Start map iteration
+                    isIterating = true;
+                    currentIterIndex = 0;
+                    mapKeys = [for (key in mapTask.map.keys()) key];
+                    totalIterItems = mapKeys.length;
+                    var iterResults:Array<Dynamic> = [];
+                    results.push(iterResults); // Push the result array for this map iter task
+                }
+
+                if (currentIterIndex >= totalIterItems) {
+                    // Map iteration complete
+                    isIterating = false;
+                    mapKeys = [];
+                    currentStep++;
+                    new FlxTimer().start(0.1, function(_) {
+                        if (!isCanceled) executeNextTask();
+                    });
+                    return;
+                }
+
+                // Update status with iteration progress
+                statusText.text = mapTask.name + ' (${currentIterIndex}/${totalIterItems})';
+                updateProgress();
+
+                try {
+                    var key = mapKeys[currentIterIndex];
+                    var value = mapTask.map.get(key);
+                    var result = mapTask.func(key, value);
+
+                    // Add result to the current iteration's result array
+                    var iterResults:Array<Dynamic> = results[results.length - 1];
+                    iterResults.push(result);
+
+                    currentIterIndex++;
+
+                    new FlxTimer().start(0.05, function(_) {
+                        if (!isCanceled) executeNextTask();
+                    });
+
+                } catch (e:Exception) {
+                    handleTaskError(mapTask.name + ' (item ${currentIterIndex})', e, mapTask.throwOnError);
+                }
+        }
+    }
+
+    function handleTaskError(taskName:String, e:Exception, ?throwOnError:Bool) {
+        var errorMsg = 'Error in step "${taskName}"\n\n${e.message}';
+        var shouldThrow = throwOnError != null ? throwOnError : false;
+
+
+        trace('Progress error trace: ${e.stack}');
+
+        if (!shouldThrow) {
+            statusText.text = "Error: " + e.message;
+            statusText.color = FlxColor.RED;
+            FlxFlicker.flicker(statusText, 2, 0.1);
+
+            new FlxTimer().start(3, function(_) {
+                animateOut(() -> {
+                            onError(errorMsg, shouldThrow);
                 });
-            }
+            });
         }
     }
 
     function updateProgress() {
-        var progress = currentStep / totalSteps;
+        var progress:Float;
+
+        if (isIterating && totalIterItems > 0) {
+            // Calculate progress within current iteration
+            var iterProgress = currentIterIndex / totalIterItems;
+            progress = (currentStep + iterProgress) / totalSteps;
+        } else {
+            progress = currentStep / totalSteps;
+        }
+
         var fillWidth = Std.int((progressBar.width - 4) * progress);
 
         // Update progress fill by recreating the graphic with the correct width
@@ -263,17 +397,23 @@ class GenericProgressSubstate extends MusicBeatSubstate {
 
         if (isAnimating || isCanceled) return;
 
-        if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
-            cancel();
-        }
-
-        if (FlxG.mouse.overlaps(cancelButton)) {
-            cancelButton.color = FlxColor.fromRGB(255, 150, 150);
-            if (FlxG.mouse.justPressed) {
+        // Only allow cancel input if cancel button is enabled
+        if (cancelButtonEnabled) {
+            if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
                 cancel();
             }
+
+            if (FlxG.mouse.overlaps(cancelButton)) {
+                cancelButton.color = FlxColor.fromRGB(255, 150, 150);
+                if (FlxG.mouse.justPressed) {
+                    cancel();
+                }
+            } else {
+                cancelButton.color = FlxColor.RED;
+            }
         } else {
-            cancelButton.color = FlxColor.RED;
+            // Keep the button gray when disabled and don't respond to hover/click
+            cancelButton.color = FlxColor.GRAY;
         }
     }
 
@@ -287,10 +427,28 @@ class GenericProgressSubstate extends MusicBeatSubstate {
     }
 
     public static function createTask(name:String, func:Array<Dynamic>->Dynamic, ?throwOnError:Bool = false):ProgressTask {
-        return {
+        return Func({
             name: name,
             func: func,
             throwOnError: throwOnError
-        };
+        });
+    }
+
+    public static function createIterTask(name:String, iterable:Array<Dynamic>, func:Dynamic->Dynamic, ?throwOnError:Bool = false):ProgressTask {
+        return Iter({
+            name: name,
+            iterable: iterable,
+            func: func,
+            throwOnError: throwOnError
+        });
+    }
+
+    public static function createMapIterTask(name:String, map:Map<Dynamic, Dynamic>, func:(Dynamic, Dynamic)->Dynamic, ?throwOnError:Bool = false):ProgressTask {
+        return MapIter({
+            name: name,
+            map: map,
+            func: func,
+            throwOnError: throwOnError
+        });
     }
 }

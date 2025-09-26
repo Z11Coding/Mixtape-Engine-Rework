@@ -96,11 +96,20 @@ class NamedArrayI<T> {
 
     /**
      * Push an item to the end of the array
+     * If name already exists, replace the existing named object instead of throwing
      */
     public function push(object:T, ?name:String):Int {
         // Check for duplicate names (null names are allowed)
         if (name != null && containsName(name)) {
-            throw 'NamedArrayI: Name "${name}" already exists';
+            // Replace the existing named object instead of throwing
+            var existingIndex = indexOfName(name);
+            if (existingIndex != -1) {
+                _array[existingIndex] = {
+                    name: name,
+                    object: object
+                };
+                return existingIndex; // Return the index where it was replaced
+            }
         }
 
         return _array.push({
@@ -119,11 +128,20 @@ class NamedArrayI<T> {
 
     /**
      * Insert an item at a specific position using Grabber
+     * If name already exists, replace the existing named object instead of throwing
      */
     public function insert(position:Grabber, object:T, ?name:String):Void {
         // Check for duplicate names (null names are allowed)
         if (name != null && containsName(name)) {
-            throw 'NamedArrayI: Name "${name}" already exists';
+            // Replace the existing named object instead of throwing
+            var existingIndex = indexOfName(name);
+            if (existingIndex != -1) {
+                _array[existingIndex] = {
+                    name: name,
+                    object: object
+                };
+                return; // Exit early since we replaced existing
+            }
         }
 
         var index:Int = switch (position.type) {

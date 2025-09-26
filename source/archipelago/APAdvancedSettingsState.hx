@@ -17,6 +17,7 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxGradient;
 import flixel.util.FlxSave;
 import flixel.util.FlxTimer;
+import haxe.Exception;
 import haxe.crypto.Base64;
 import openfl.geom.Rectangle;
 import options.*;
@@ -25,6 +26,7 @@ import substates.Prompt;
 import substates.SongSelectSubState;
 import yaml.Renderer;
 import yaml.Yaml;
+import yutautil.GenericProgressSubstate;
 
 using yutautil.CollectionUtils;
 
@@ -103,6 +105,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     var rightArrow:FlxSprite;
     var closeButton:FlxSprite;
     var exportButton:FlxSprite;
+    var importButton:FlxSprite;
 
     // Animation elements
     var particles:FlxTypedGroup<FlxSprite>;
@@ -179,6 +182,15 @@ class APAdvancedSettingsState extends MusicBeatState {
     var currentContextMenu:ContextMenuType;
     var contextMenuTarget:String; // Which option is showing the context menu
 
+    // YAML import system
+    var pendingYamlImport:archipelago.APYaml = null;
+
+    // Constructors
+    public function new(?yaml:archipelago.APYaml = null) {
+        super();
+        pendingYamlImport = yaml;
+    }
+
     override function create() {
         super.create();
 
@@ -220,6 +232,14 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         // Setup particle system
         setupParticles();
+
+        // Handle pending YAML import if one was provided
+        if (pendingYamlImport != null) {
+            // Delay the import to allow UI to fully initialize
+            new FlxTimer().start(0.5, function(_) {
+                importYamlData(pendingYamlImport);
+            });
+        }
     }
 
     function setupBackground() {
@@ -267,6 +287,96 @@ class APAdvancedSettingsState extends MusicBeatState {
 
     function createEditContextMenu(editCallback:Void->Void):ContextMenuType {
         return EDIT_VALUE(editCallback);
+    }
+
+    function importYamlData(yaml:archipelago.APYaml) {
+        // Create import tasks for visual feedback
+        var yamlFields = Reflect.fields(yaml.settings);
+
+        var tasks = [
+            GenericProgressSubstate.createTask("Preparing YAML import", function(results:Array<Dynamic>) {
+                return "Import initialized";
+            }),
+            GenericProgressSubstate.createIterTask("Importing YAML settings", yamlFields, function(field:String) {
+                if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
+                    var value:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
+                    Reflect.setField(APEntryState.gameSettings.FNF, field, value);
+
+                    // Map YAML settings to local variables
+                    switch (field) {
+                        case "progression_balancing": progression_balancing = Std.string(value);
+                        case "accessibility": accessibility = Std.string(value);
+                        case "unlock_type": unlockType = Std.string(value);
+                        case "unlock_method": unlockMethod = Std.string(value);
+                        case "grade_requirement" | "graderequirement": gradeRequirement = Std.string(value);
+                        case "accuracy_requirement" | "accrequirement": accRequirement = Std.string(value);
+                        case "allow_mods" | "mods_enabled": allowMods = value == true;
+                        case "include_secrets": includeSecrets = value == true;
+                        case "include_vanilla": includeVanilla = value == true;
+                        case "starting_song": startingSong = Std.string(value);
+                        case "victory_song": victorySong = Std.string(value);
+                        case "deathlink": deathlink = value == true;
+                        case "ticket_percent" | "ticket_percentage": ticketPercent = value;
+                        case "ticket_win_percent" | "ticket_win_percentage": ticketWinPercent = value;
+                        case "chart_modifier_chance" | "chart_modifier_change_chance": chartmodifierchance = value;
+                        case "trap_amount" | "trapAmount": trapAmount = value;
+                        case "song_limit": songLimit = value;
+                        // Filler weight settings
+                        case "bbcWeight": bbcWeight = value;
+                        case "ghostChatWeight": ghostChatWeight = value;
+                        case "tutorialWeight": tutorialWeight = value;
+                        case "svcWeight": svcWeight = value;
+                        case "fakeTransWeight": fakeTransWeight = value;
+                        case "shieldWeight": shieldWeight = value;
+                        case "MHPWeight": MHPWeight = value;
+                        // Handle any other potential fields that might exist
+                        default:
+                            trace('Unknown YAML field during import: $field = $value');
+                    }
+                }
+                return field + " imported";
+            }),
+            GenericProgressSubstate.createTask("Applying player name", function(results:Array<Dynamic>) {
+                playerName = yaml.name;
+                APEntryState.gameSettings.name = yaml.name;
+                return "Player name set to: " + playerName;
+            }),
+            GenericProgressSubstate.createTask("Refreshing UI", function(results:Array<Dynamic>) {
+                // Refresh the current page to show imported values
+                loadPage(currentPage);
+                return "UI refreshed";
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Importing YAML Configuration",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On completion
+                var successPrompt = new InfoPanelSubstate(
+                    "YAML Import Complete",
+                    "YAML configuration has been successfully imported!\n\nPlayer: " + playerName + "\nSettings have been applied to the current configuration.",
+                    FlxColor.LIME
+                );
+                openSubState(successPrompt);
+                pendingYamlImport = null; // Clear the pending import
+            },
+            function(error:String, shouldThrow:Bool) {
+                var errorPrompt = new InfoPanelSubstate(
+                    "YAML Import Error",
+                    error,
+                    FlxColor.RED
+                );
+                openSubState(errorPrompt);
+                pendingYamlImport = null; // Clear the pending import even on error
+            },
+            function() {
+                // On cancel
+                pendingYamlImport = null; // Clear the pending import
+            }
+        );
+
+        openSubState(progressSubstate);
     }
 
     function setupPages() {
@@ -439,7 +549,7 @@ class APAdvancedSettingsState extends MusicBeatState {
                 contextMenu: createEditContextMenu(() -> adjustSVCWeight())
             },
             {
-                name: "Fake Trans Weight",
+                name: "Fake Transition Weight",
                 description: "Weight for Fake Trans filler items (0-10)",
                 callback: () -> adjustFakeTransWeight(),
                 locked: false,
@@ -541,21 +651,35 @@ class APAdvancedSettingsState extends MusicBeatState {
         }
         add(rightArrow);
 
-        // Bottom buttons
-        exportButton = new FlxSprite(Std.int(FlxG.width / 2) - 200, Std.int(FlxG.height - 80));
-        exportButton.makeGraphic(180, 50, FlxColor.GREEN);
+        // Bottom buttons - reorganize to make room for import button
+        var buttonWidth = 120;
+        var buttonSpacing = 20;
+        var totalWidth = (buttonWidth * 3) + (buttonSpacing * 2);
+        var startX = Std.int((FlxG.width - totalWidth) / 2);
+
+        exportButton = new FlxSprite(startX, Std.int(FlxG.height - 80));
+        exportButton.makeGraphic(buttonWidth, 50, FlxColor.GREEN);
         add(exportButton);
 
-        var exportText = new FlxText(exportButton.x, exportButton.y + 10, exportButton.width, "EXPORT YAML", 16);
-        exportText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        var exportText = new FlxText(exportButton.x, exportButton.y + 10, exportButton.width, "EXPORT YAML", 14);
+        exportText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         exportText.borderSize = 1;
         add(exportText);
 
-        closeButton = new FlxSprite(Std.int(FlxG.width / 2) + 20, Std.int(FlxG.height - 80));
-        closeButton.makeGraphic(180, 50, FlxColor.RED);
+        importButton = new FlxSprite(startX + buttonWidth + buttonSpacing, Std.int(FlxG.height - 80));
+        importButton.makeGraphic(buttonWidth, 50, FlxColor.BLUE);
+        add(importButton);
+
+        var importText = new FlxText(importButton.x, importButton.y + 10, importButton.width, "IMPORT YAML", 14);
+        importText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        importText.borderSize = 1;
+        add(importText);
+
+        closeButton = new FlxSprite(startX + (buttonWidth + buttonSpacing) * 2, Std.int(FlxG.height - 80));
+        closeButton.makeGraphic(buttonWidth, 50, FlxColor.RED);
         add(closeButton);
 
-        var closeText = new FlxText(closeButton.x, closeButton.y + 10, closeButton.width, "CLOSE", 16);
+        var closeText = new FlxText(closeButton.x, closeButton.y + 10, closeButton.width, "CLOSE", 14);
         closeText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         closeText.borderSize = 1;
         add(closeText);
@@ -1814,6 +1938,131 @@ class APAdvancedSettingsState extends MusicBeatState {
         return comment;
     }
 
+    function importYAMLPrompt() {
+        FlxG.sound.play(Paths.sound('confirmMenu'));
+
+        var yamlPrompt = new Prompt("Import YAML Configuration\n\nThis will load settings from a YAML file and override current configuration.", 0, function() {
+            // Proceed with import
+            importYAMLFile();
+        }, function() {
+            // Cancel import
+        }, 'Import', 'Cancel');
+
+        openSubState(yamlPrompt);
+    }
+
+    function importYAMLFile() {
+        var tasks = [
+            GenericProgressSubstate.createTask("Opening file dialog", function(results:Array<Dynamic>) {
+                var yamlContent = yutautil.ImprovedFileHandling.loadFile("Import YAML", [{ext: "yaml", desc: "FNF AP YAML File"}], Text);
+                if (yamlContent == null) {
+                    throw new Exception("No file selected or file could not be loaded");
+                }
+                return yamlContent;
+            }),
+            GenericProgressSubstate.createTask("Parsing YAML structure", function(results:Array<Dynamic>) {
+                var content:String = results[0];
+                return new archipelago.APYaml(content);
+            }),
+            GenericProgressSubstate.createTask("Processing YAML content", function(results:Array<Dynamic>) {
+                var content:String = results[0];
+                var yamlLines = content.split('\n');
+                // Process lines to show some progress
+                var processedLines = 0;
+                for (line in yamlLines) {
+                    if (line.trim().length > 0) {
+                        processedLines++;
+                    }
+                }
+                return 'Processed $processedLines lines';
+            }),
+            GenericProgressSubstate.createTask("Applying settings", function(results:Array<Dynamic>) {
+                var yaml:archipelago.APYaml = results[1];
+
+                // Apply settings to the current state
+                playerName = yaml.name;
+                APEntryState.gameSettings.name = yaml.name;
+
+                for (field in Reflect.fields(yaml.settings)) {
+                    if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
+                        var value:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
+                        Reflect.setField(APEntryState.gameSettings.FNF, field, value);
+
+                        // Map YAML settings to local variables
+                        switch (field) {
+                            case "progression_balancing": progression_balancing = Std.string(value);
+                            case "accessibility": accessibility = Std.string(value);
+                            case "unlock_type": unlockType = Std.string(value);
+                            case "unlock_method": unlockMethod = Std.string(value);
+                            case "grade_requirement" | "graderequirement": gradeRequirement = Std.string(value);
+                            case "accuracy_requirement" | "accrequirement": accRequirement = Std.string(value);
+                            case "allow_mods" | "mods_enabled": allowMods = value == true;
+                            case "include_secrets": includeSecrets = value == true;
+                            case "include_vanilla": includeVanilla = value == true;
+                            case "starting_song": startingSong = Std.string(value);
+                            case "victory_song": victorySong = Std.string(value);
+                            case "deathlink": deathlink = value == true;
+                            case "ticket_percent" | "ticket_percentage": ticketPercent = value;
+                            case "ticket_win_percent" | "ticket_win_percentage": ticketWinPercent = value;
+                            case "chart_modifier_chance" | "chart_modifier_change_chance": chartmodifierchance = value;
+                            case "trap_amount" | "trapAmount": trapAmount = value;
+                            case "song_limit": songLimit = value;
+                            // Filler weight settings
+                            case "bbcWeight": bbcWeight = value;
+                            case "ghostChatWeight": ghostChatWeight = value;
+                            case "tutorialWeight": tutorialWeight = value;
+                            case "svcWeight": svcWeight = value;
+                            case "fakeTransWeight": fakeTransWeight = value;
+                            case "shieldWeight": shieldWeight = value;
+                            case "MHPWeight": MHPWeight = value;
+                            // Handle any other potential fields that might exist
+                            default:
+                                trace('Unknown YAML field during import: $field = $value');
+                        }
+                    }
+                }
+
+                return "Settings applied successfully";
+            }),
+            GenericProgressSubstate.createTask("Refreshing UI", function(results:Array<Dynamic>) {
+                // Refresh the current page to show imported values
+                loadPage(currentPage);
+                return "UI refreshed";
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Importing YAML Configuration",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On completion
+                var yaml:archipelago.APYaml = results[1];
+                var successPrompt = new InfoPanelSubstate(
+                    "YAML Import Complete",
+                    "YAML configuration has been successfully imported!\n\nPlayer: " + playerName + "\nSettings have been applied to the current configuration.",
+                    FlxColor.LIME
+                );
+                openSubState(successPrompt);
+            },
+            function(error:String, shouldThrow:Bool) {
+                if (error.indexOf("No file selected") == -1) {
+                    var errorPrompt = new InfoPanelSubstate(
+                        "YAML Import Error",
+                        error,
+                        FlxColor.RED
+                    );
+                    openSubState(errorPrompt);
+                }
+                // If no file selected, just silently cancel
+            },
+            function() {
+                // On cancel - do nothing
+            }
+        );
+
+        openSubState(progressSubstate);
+    }
+
     override function update(elapsed:Float) {
         super.update(elapsed);
 
@@ -1973,6 +2222,10 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Check bottom buttons
         if (FlxG.mouse.overlaps(exportButton) && FlxG.mouse.justPressed) {
             exportYAML();
+        }
+
+        if (FlxG.mouse.overlaps(importButton) && FlxG.mouse.justPressed) {
+            importYAMLPrompt();
         }
 
         if (FlxG.mouse.overlaps(closeButton) && FlxG.mouse.justPressed) {

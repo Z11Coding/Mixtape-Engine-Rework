@@ -136,6 +136,10 @@ class Client {
 	/** The current client tags. **/
 	public var tags(get, set):Array<String>;
 
+	/** Tags manager for easier tag manipulation **/
+	public var tagsManager(get, never):APTagsManager;
+	private var _tagsManager:APTagsManager;
+
 	/** Information about player slots in this multiworld. **/
 	private var _slotInfo:Map<Int, NetworkSlot>;
 
@@ -455,6 +459,10 @@ class Client {
 		this.uuid = uuid;
 		this.game = game;
 		_dataPackage = {games: new DynamicAccess<GameData>()};
+
+		// Initialize tags manager
+		_tagsManager = new APTagsManager(this);
+
 		connect_socket();
 	}
 
@@ -510,10 +518,16 @@ class Client {
 	// }
 
 	public function sendDeathLink(COD:String) {
-		if (state == State.SLOT_CONNECTED && !APPlayState.deathByLink && ClientPrefs.data.deathlink)
+		// Only send death link if connected, not already dying from a death link, and death link is enabled
+		if (state == State.SLOT_CONNECTED && !APPlayState.deathByLink && ClientPrefs.data.deathlink) {
+			trace('Sending death link: $COD');
 			InternalSend(OutgoingPacket.Bounce(null,null,['DeathLink'], {time: Timer.stamp(), cause: slot + ": " + COD, source: slot}));
+		} else {
+			trace('Death link not sent - state: $state, deathByLink: ${APPlayState.deathByLink}, deathlink enabled: ${ClientPrefs.data.deathlink}');
+		}
 
-		toggleDeathLink(ClientPrefs.data.deathlink);
+		// Removed the redundant toggleDeathLink call here as it may cause unexpected tag changes
+		// The death link state should only be toggled when explicitly changing settings, not when sending
 	}
 
 
@@ -526,21 +540,16 @@ class Client {
 	}
 
 	public function updateLinkTags(deathLink:Bool, trapLink:Bool) {
-		var tags = ['AP', 'Testing'];
-		if (deathLink) tags.push('DeathLink');
-		if (trapLink) tags.push('TrapLink');
-		set_tags(tags);
+		// Use tags manager for cleaner tag management
+		tagsManager.set(['AP', 'Testing']);
+		if (deathLink) tagsManager.add('DeathLink');
+		if (trapLink) tagsManager.add('TrapLink');
 	}
 
 	public function changeTags(tags:Array<String>) {
-		var defaultTags = ['AP', 'Testing'];
-		for (tag in tags) {
-			if (defaultTags.indexOf(tag) == -1) {
-				defaultTags.push(tag);
-			}
-		}
-		tags = defaultTags;
-		set_tags(tags);
+		// Start with default tags and add new ones
+		tagsManager.set(['AP', 'Testing']);
+		tagsManager.add(tags);
 	}
 
 	public inline function get_server_time()
@@ -551,8 +560,21 @@ class Client {
 	inline function get_tags()
 		return currentTags;
 
+	inline function get_tagsManager():APTagsManager {
+		if (_tagsManager == null) {
+			_tagsManager = new APTagsManager(this);
+		}
+		return _tagsManager;
+	}
+
 	public function set_tags(tags) {
 		currentTags = tags;
+
+		// Keep tags manager in sync when tags are set directly
+		if (_tagsManager != null) {
+			_tagsManager.syncFromClient();
+		}
+
 		ConnectUpdate(null, tags);
 		return tags;
 	}
@@ -562,20 +584,11 @@ class Client {
 	}
 
 	public function add_tag(tag:String) {
-		if (currentTags.indexOf(tag) == -1) {
-			var t = currentTags.copy();
-			t.push(tag);
-			set_tags(t);
-		}
+		tagsManager.add(tag);
 	}
 
 	public function remove_tag(tag:String) {
-		var i = currentTags.indexOf(tag);
-		if (i >= 0) {
-			var t = currentTags.copy();
-			t.splice(i, 1);
-			set_tags(t);
-		}
+		tagsManager.remove(tag);
 	}
 
 	public function add_tags(tags:Array<String>) {

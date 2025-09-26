@@ -888,6 +888,7 @@ class CommandPrompt
 		this.variables = new Map();
 		// Initialize debug system
 		debug.DebugManager.initialize();
+		instance = this;
 	}
 
 	/**
@@ -979,7 +980,7 @@ class CommandPrompt
 			// print("\nInput enabled.");
 			if (!active)
 			{
-				print("Commands disabled.\nTO re-enable, restart the game.");
+				print('Commands disabled.\nTO re-enable, restart the game, or restart the command prompt with ${backend.ClientPrefs.keyBinds['console'].toString()}.');
 				instance = null;
 				break;
 			}
