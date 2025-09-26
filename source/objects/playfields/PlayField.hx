@@ -64,6 +64,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	function set_playerId(v) {
 		playerId = v;
 		setDefaultBaseXPositions();
+		setDefaultBaseYPositions();
 		return playerId;
 	}
 
@@ -129,6 +130,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}
 
 		setDefaultBaseXPositions();
+		setDefaultBaseYPositions();
 
 		return keyCount = cnt;
 	}
@@ -167,12 +169,24 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var isHolding:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false];
 
 	public var baseXPositions:Array<Float> = [];
+	public var baseYPositions:Array<Float> = [];
 	public function setDefaultBaseXPositions() {
 		for (i in 0...this.keyCount)
 			this.baseXPositions[i] = modManager.getBaseX(i, this.playerId, keyCount);
 	}
+	public function setDefaultBaseYPositions() {
+		var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+		for (i in 0...this.keyCount)
+			this.baseYPositions[i] = strumLineY;
+	}
 	public inline function getBaseX(direction:Int)
 		return baseXPositions[direction];
+	public inline function getBaseY(direction:Int)
+		return baseYPositions[direction];
+
+	public function updateBaseYPosition(direction:Int, newY:Float) {
+		baseYPositions[direction] = newY;
+	}
 
 	public function new(modMgr:ModManager, ?keyCount:Int){
 		super();
@@ -826,6 +840,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			insert(0, babyArrow);
 			babyArrow.x = getBaseX(i);
 			babyArrow.y = strumLineY;
+			// Store the initial Y position as base Y position
+			baseYPositions[i] = strumLineY;
 			babyArrow.handleRendering = false; // NoteField handles rendering
 			babyArrow.cameras = cameras;
 			@:privateAccess

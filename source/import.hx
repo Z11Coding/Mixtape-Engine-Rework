@@ -86,6 +86,7 @@ using yutautil.GenericObject;
 using yutautil.KonamiTracker;
 using yutautil.MacroTypeUtils;
 using yutautil.MetaData;
+using yutautil.NamedArray;
 using yutautil.Num;
 using yutautil.PointerTools;
 using yutautil.PyScript;

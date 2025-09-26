@@ -1306,6 +1306,7 @@ class PlayState extends MusicBeatState
 		renderedTxt.scrollFactor.set();
 		renderedTxt.borderSize = 1.25;
 		renderedTxt.cameras = [camHUD];
+		renderedTxt.visible = ClientPrefs.data.showRenderedText && !ClientPrefs.data.hideHud;
 
 		if (ClientPrefs.data.downScroll) renderedTxt.y = healthBar.y + 50;
 		uiGroup.add(renderedTxt);
@@ -1571,6 +1572,12 @@ class PlayState extends MusicBeatState
 		rank.screenCenter(XY);
 		rank.y = 640 - rank.height;
 		rank.x = FlxG.width/2 - 590;
+
+		// Apply downscroll positioning for RankingManager
+		if (ClientPrefs.data.downScroll) {
+			rank.y = 50; // Move to top for downscroll
+		}
+
 		uiGroup.add(rank);
 
 		if (mechanicsMod != null) {
@@ -9783,7 +9790,7 @@ class PlayState extends MusicBeatState
 							if (directChange) {
 								// Directly change the x, y, angle, and alpha of the strumNote in the field
 								strumNote.x = field.baseXPositions[i];
-								strumNote.y = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+								strumNote.y = field.getBaseY(i);
 								strumNote.angle = modManager.getValue('localRotate${i}', field.playerId);
 								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
 							} else {
@@ -9793,9 +9800,18 @@ class PlayState extends MusicBeatState
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position
-								var baseY = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+								var baseY = field.getBaseY(i);
 								var offsetY = strumNote.y - baseY;
-								modManager.setValue('transform${i}Y', offsetY - ((strumNote.downScroll || (strumNote.direction % 360) >= 180) ? 520 : 0), field.playerId);
+
+								// Only sync if the strum is close to its expected position
+								// This prevents overriding custom positions set by scripts
+								if (Math.abs(offsetY) < 100) { // Allow some tolerance for modchart transforms
+									modManager.setValue('transform${i}Y', offsetY, field.playerId);
+								} else {
+									// If the strum has been moved significantly, update the base position
+									trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
+									field.updateBaseYPosition(i, strumNote.y);
+								}
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
@@ -9839,7 +9855,7 @@ class PlayState extends MusicBeatState
 				trace('Legacy Script -> Modchart: Strum ${noteData} X changed: base=${baseX}, new=${value}, transform=${offsetX - currentAltValue}');
 
 			case "y":
-				var baseY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
+				var baseY:Float = field.getBaseY(noteData);
 				var offsetY = value - baseY;
 
 				var currentAltValue = modManager.getValue('transform${noteData}Y-a', player);

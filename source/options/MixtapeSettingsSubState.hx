@@ -520,6 +520,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		perfOpt = option;
 
+		var option:Option = new Option('Show Rendered Text',
+			"If checked, debug information about rendered objects will be displayed during gameplay.",
+			'showRenderedText',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Ignore Tween Errors',
 			"Disables the error message that appears when a tween is called on a non-existent object.",
 			'ignoreTweenErrors',
