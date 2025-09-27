@@ -1196,14 +1196,17 @@ class Note extends NoteObject
 	}
 
 	function loadPixelNoteAnims() {
-		for (i in 0...gfxLetter.length)
-		{
+		// Optimize Anim Loading.
+		var colorIndex:Int = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData];
+		var animName:String = gfxLetter[noteData];
+
+		if (animName != null) {
 			var graphic = Paths.image(publicTexture);
-			animation.add(gfxLetter[i], [i + pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]]);
+			animation.add(animName, [colorIndex + pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]]);
 			if (isSustainNote)
 			{
-				animation.add(gfxLetter[i] + ' hold', [i]);
-				animation.add(gfxLetter[i] + ' tail', [i + (pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
+				animation.add(animName + ' hold', [colorIndex]);
+				animation.add(animName + ' tail', [colorIndex + (pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
 			}
 		}
 	}

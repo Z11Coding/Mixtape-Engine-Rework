@@ -1828,6 +1828,7 @@ class PlayState extends MusicBeatState
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 	public function addTextToDebug(text:String, color:FlxColor) {
+		if (!ClientPrefs.data.disableDebugTraces) {
 		var newText:psychlua.DebugLuaText = luaDebugGroup.recycle(psychlua.DebugLuaText);
 		newText.text = text;
 		newText.color = color;
@@ -1841,6 +1842,7 @@ class PlayState extends MusicBeatState
 		luaDebugGroup.add(newText);
 
 		Sys.println(text);
+	}
 	}
 	#end
 

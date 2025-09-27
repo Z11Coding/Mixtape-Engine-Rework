@@ -352,6 +352,16 @@ class Main extends Sprite
 		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(psychlua.CallbackHandler.call)); #end
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
+
+		// Override trace function to respect haxe traces setting
+			"Overriding haxe.Log.trace to respect 'Disable Haxe Traces' setting in the options menu.".NativeComment();
+		var originalTrace = haxe.Log.trace;
+		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
+			if (!backend.ClientPrefs.data.disableHaxeTraces) {
+				originalTrace(v, infos);
+			}
+		};
+
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
 		@:privateAccess
@@ -398,6 +408,8 @@ class Main extends Sprite
 		#if DISCORD_ALLOWED
 		DiscordClient.prepare();
 		#end
+
+		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu.".log();
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 

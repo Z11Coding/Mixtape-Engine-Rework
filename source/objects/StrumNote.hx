@@ -1,13 +1,11 @@
 package objects;
 
 import backend.animation.PsychAnimationController;
-
-import flixel.addons.plugin.FlxMouseControl;
-
-import shaders.RGBPalette;
-import shaders.RGBPalette.RGBShaderReference;
 import backend.math.Vector3;
+import flixel.addons.plugin.FlxMouseControl;
 import objects.playfields.PlayField;
+import shaders.RGBPalette.RGBShaderReference;
+import shaders.RGBPalette;
 
 class StrumNote extends NoteObject
 {
@@ -24,7 +22,7 @@ class StrumNote extends NoteObject
 
 	public static var ogStrumPosX:Array<Null<Float>> = [];
 	public static var ogStrumPosY:Array<Null<Float>> = [];
-	
+
 	public var animationArray:Array<String> = ['static', 'pressed', 'confirm'];
 	public var static_anim(default, set):String = "static";
 	public var pressed_anim(default, set):String = "pressed"; // in case you would use this on lua
@@ -63,7 +61,7 @@ class StrumNote extends NoteObject
 		}
 		return value;
 	}
-	
+
 	public var texture(default, set):String = null;
 	private function set_texture(value:String):String {
 		if(texture != value) {
@@ -77,11 +75,15 @@ class StrumNote extends NoteObject
 	public var useRGBShader:Bool = true;
 	public function new(x:Float, y:Float, leData:Int, ?playField:PlayField) {
 		animation = new PsychAnimationController(this);
-		
+
 		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
 		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData]];
-		if(PlayState.instance != null && PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData]];
+		// Use colArray for color indexing on non-pixel stages, pixelAnimIndex for pixel stages
+		var colorIndex:Int = (PlayState.instance != null && PlayState.isPixelStage) ?
+			Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData] :
+			Note.keysShit.get(PlayState.mania).get('colArray')[leData];
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[colorIndex];
+		if(PlayState.instance != null && PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[colorIndex];
 		if(leData <= arr.length)
 		{
 			@:bypassAccessor
@@ -99,7 +101,7 @@ class StrumNote extends NoteObject
 		field = playField;
 		this.noteData = leData;
 		positionData = noteData;
-		this.ID = noteData; 
+		this.ID = noteData;
 
 		texture = ''; //Load texture and anims
 		scrollFactor.set();
@@ -164,6 +166,11 @@ class StrumNote extends NoteObject
 			antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
 
+			// Get the appropriate animation name for this column from the mania mapping
+			var strumAnim:String = animationArray[0]; // This is the strumAnims value
+			var letterAnim:String = animationArray[1]; // This is the letters value
+
+			// First try the hardcoded switch for traditional 4K animations (backwards compatibility)
 			switch (Math.abs(column))
 			{
 				case 0:
@@ -184,9 +191,21 @@ class StrumNote extends NoteObject
 					attemptToAddAnimationByPrefix('confirm', 'right confirm');
 			}
 
-			attemptToAddAnimationByPrefix('static', 'arrow' + animationArray[0], 24, true);
-			attemptToAddAnimationByPrefix('pressed', animationArray[1] + ' press');
-			attemptToAddAnimationByPrefix('confirm', animationArray[1] + ' confirm');
+			// Then try using the mania-specific animations (for extended mania support)
+			// First try with the original strumAnim, only fall back to UP if SPACE animation doesn't exist
+			var staticAdded:Bool = attemptToAddAnimationByPrefix('static', 'arrow' + strumAnim, 24, true);
+			if (!staticAdded && strumAnim == 'SPACE') {
+				// If SPACE animation doesn't exist, fall back to UP for visual consistency
+				attemptToAddAnimationByPrefix('static', 'arrow' + 'UP', 24, true);
+			}
+			attemptToAddAnimationByPrefix('pressed', letterAnim + ' press');
+			attemptToAddAnimationByPrefix('confirm', letterAnim + ' confirm');
+
+			// For noteskins that only have 4K support, try using the proper directional confirm animations
+			// based on the strumAnim value instead of letterAnim
+			var confirmDirection:String = strumAnim.toLowerCase();
+			if (confirmDirection == 'space') confirmDirection = 'up'; // Handle SPACE -> UP mapping
+			attemptToAddAnimationByPrefix('confirm', confirmDirection + ' confirm');
 		}
 		defScale.copyFrom(scale);
 		updateHitbox();
@@ -209,9 +228,10 @@ class StrumNote extends NoteObject
 		var animFrames = [];
 		@:privateAccess
 		animation.findByPrefix(animFrames, prefix); // adds valid frames to animFrames
-		if(animFrames.length < 1) return;
+		if(animFrames.length < 1) return false;
 
 		animation.addByPrefix(name, prefix, framerate, doLoop);
+		return true;
 	}
 
 	public function playerPosition()
@@ -225,7 +245,7 @@ class StrumNote extends NoteObject
 		}
 
 		x += Note.xtra[PlayState.mania];
-	
+
 		x += 50;
 		x += ((FlxG.width / 2) * 1);
 		x -= Note.posRest[PlayState.mania];
@@ -242,9 +262,9 @@ class StrumNote extends NoteObject
 		}
 
 		if(animation.curAnim != null){
-			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) 
+			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage)
 				centerOrigin();
-			
+
 		}
 
 		super.update(elapsed);

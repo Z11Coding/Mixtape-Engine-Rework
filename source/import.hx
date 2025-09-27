@@ -83,6 +83,7 @@ using yutautil.CUMacroTools;
 using yutautil.CollectionUtils;
 using yutautil.FieldMap;
 using yutautil.GenericObject;
+using yutautil.HxTrace;
 using yutautil.KonamiTracker;
 using yutautil.MacroTypeUtils;
 using yutautil.MetaData;

@@ -459,6 +459,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		addOption(option);
 
+		var option:Option = new Option('Disable Debug Traces',
+			"If checked, debug trace outputs will be disabled for better performance.",
+			'disableDebugTraces',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Disable Haxe Traces',
+			"If checked, Haxe trace() function calls will be disabled for better performance.",
+			'disableHaxeTraces',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,
 			['hide', 'fps', 'fps-mem', 'fps-mem-peak']);
 		addOption(option);
