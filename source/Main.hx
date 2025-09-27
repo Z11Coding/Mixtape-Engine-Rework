@@ -409,7 +409,7 @@ class Main extends Sprite
 		DiscordClient.prepare();
 		#end
 
-		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu.".log();
+		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu, except for when using 'HxTrace.log()' via Yutautil.".log();
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
