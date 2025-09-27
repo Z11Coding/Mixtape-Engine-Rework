@@ -23,7 +23,9 @@ class MasterEditorMenu extends MusicBeatState
 		'XML Editor',
 		'Minigame Menu',
 		'UNO Test',
-		'Debug State Menu'
+		'Debug State Menu',
+		'Debug Main Menu',
+		'Song Selector Debug'
 	];
 	private var grpTexts:FlxTypedGroup<Alphabet>;
 	private var directories:Array<String> = [null];
@@ -145,6 +147,10 @@ class MasterEditorMenu extends MusicBeatState
 					MusicBeatState.switchState(new games.uno.UnoTestState());
 				case 'Debug State Menu':
 					MusicBeatState.switchState(new states.DebugStateMenu());
+				case 'Debug Main Menu':
+					MusicBeatState.switchState(new debug.DebugMainMenuState());
+				case 'Song Selector Debug':
+					MusicBeatState.switchState(new debug.SongSelectorDebugState());
 			}
 			FlxG.sound.music.volume = 0;
 			if (FreeplayManager.instance != null) FreeplayManager.instance.destroyFreeplayVocals();

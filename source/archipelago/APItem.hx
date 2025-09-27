@@ -137,6 +137,7 @@ class APItem {
     public static var hasPocketLens:Bool = false;
     public static var overloadHP:Int = 0; // Adds extra health which can go over the max HP.
     public static var extaLives:Int = 0; // Used for the "Extralives" item.
+    public static var pendingDamage:Float = 0.0; // Damage that will be applied when conditions are met
     public static var extraItemInventory:Array<CustomModItem> = [];
 
     private var toSync:Bool = true;
@@ -254,6 +255,54 @@ class APItem {
                 });
             case "Pong Challenge":
                 return new APPongTrap();
+            case "Math Problem Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    // Initialize pending damage system if not already done
+                    initializePendingDamageSystem();
+
+                    // Generate random math problem
+                    var num1 = FlxG.random.int(1, 20);
+                    var num2 = FlxG.random.int(1, 20);
+                    var operation = FlxG.random.getObject(['+', '-', '*']);
+                    var correctAnswer:Int;
+                    var problemText:String;
+
+                    switch(operation) {
+                        case '+':
+                            correctAnswer = num1 + num2;
+                            problemText = '$num1 + $num2 = ?';
+                        case '-':
+                            correctAnswer = num1 - num2;
+                            problemText = '$num1 - $num2 = ?';
+                        case '*':
+                            correctAnswer = num1 * num2;
+                            problemText = '$num1 × $num2 = ?';
+                        default:
+                            correctAnswer = num1 + num2;
+                            problemText = '$num1 + $num2 = ?';
+                    }
+
+                    popup('Solve this math problem or take damage!', 'Math Problem Trap');
+
+                    // Create and open math problem substate
+                    var mathSubstate = new APMathProblemSubstate(problemText, correctAnswer, function(success:Bool) {
+                        if (!success) {
+                            // Add pending damage that will be applied later
+                            var damageAmount = FlxG.random.float(0.2, 0.8); // Random damage between 0.2-0.8
+                            pendingDamage += damageAmount;
+                            popup('Wrong answer! You will take ${Math.round(damageAmount * 100)/100} damage.', 'Math Problem Failed!');
+                        } else {
+                            popup('Correct! No damage taken.', 'Math Problem Solved!');
+                        }
+                        // Apply pending damage will be handled automatically by the update system
+                    });
+
+                    if (Std.is(FlxG.state, MusicBeatState)) {
+                        cast(FlxG.state, MusicBeatState).openSubState(mathSubstate);
+                    }
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    t.isTrap = true;
+                });
             case "UNO Challenge":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
@@ -1227,6 +1276,9 @@ class APItem {
     }
 
     public static function createItems():Void {
+        // Initialize the pending damage system
+        initializePendingDamageSystem();
+
         var itemNames:Array<String> = [
             "Blue Balls Curse",
             "Fake Transition",
@@ -1240,6 +1292,7 @@ class APItem {
             "Resistance Trap",
             "UNO Challenge",
             "Pong Challenge",
+            "Math Problem Trap",
             "Pocket Lens",
             "Nothing"
         ];
@@ -1262,6 +1315,7 @@ class APItem {
 
     public static function doCheck():Void {
         allItems.checkAndTrigger();
+        applyPendingDamage();
     }
     public static function checkAndTrigger(items:Array<APItem>):Void {
         // Put the next item into the activeItems, if it isn't already filled by something.
@@ -1282,9 +1336,167 @@ class APItem {
                 }
             }
         }
-}
+    }
 
+    /**
+     * Apply any pending damage to the player if conditions are met
+     */
+    public static function applyPendingDamage():Void {
+        if (pendingDamage <= 0) return;
 
+        // Check if we're in APPlayState and can apply damage
+        if (Std.is(FlxG.state, archipelago.APPlayState)) {
+            var playState = cast(FlxG.state, archipelago.APPlayState);
+            if (playState != null && playState.startedCountdown && !playState.endingSong && !playState.paused) {
+                // Check if shields are available
+                if (shields > 0 && pendingDamage >= 0.15) { // Only use shields for significant damage
+                    shields--;
+                    popup('Shield absorbed ${Math.round(pendingDamage * 100)/100} damage! Shields left: $shields', "Shield Used!", true);
+                    trace('Shield absorbed pending damage: $pendingDamage. Shields left: $shields');
+                    pendingDamage = 0;
+                    return;
+                }
+
+                // Apply the damage
+                var oldHealth = playState.health;
+                playState.health -= pendingDamage;
+                trace('Applied pending damage: $pendingDamage. Health: $oldHealth -> ${playState.health}');
+
+                // Visual feedback
+                if (playState.boyfriend != null && pendingDamage > 0.1) {
+                    playState.boyfriend.animation.play('hurt', true);
+                    playState.boyfriend.specialAnim = true;
+                }
+
+                // Show damage popup if significant
+                if (pendingDamage >= 0.1) {
+                    popup('Took ${Math.round(pendingDamage * 100)/100} damage!', "Damage Applied!", true);
+                }
+
+                // Clear pending damage
+                pendingDamage = 0;
+            }
+        }
+    }
+
+    /**
+     * Initialize the pending damage system by adding it to APPlayState updateFunctions
+     */
+    public static function initializePendingDamageSystem():Void {
+        // Check if already initialized to avoid duplicates
+        var alreadyExists = false;
+        for (func in archipelago.APPlayState.updateFunctions) {
+            if (Reflect.compareMethods(func.func, applyPendingDamage)) {
+                alreadyExists = true;
+                break;
+            }
+        }
+
+        if (!alreadyExists) {
+            archipelago.APPlayState.updateFunctions.push({
+                func: applyPendingDamage,
+                keepOnRestart: true
+            });
+        }
+    }
+
+    /**
+     * Comprehensive cleanup of all AP-related data and systems
+     * Called when quitting AP mode to prevent issues with non-AP games
+     */
+    public static function cleanupAllAPData():Void {
+        trace('APItem.cleanupAllAPData() - Starting comprehensive cleanup...');
+
+        // Clear active items using an iter task for safety
+        // Clear the activeItem reference
+        activeItem = null;
+
+        // Clear all items from the ActiveArray
+        if (allItems != null) {
+            var items = allItems.getItems();
+            for (item in items) {
+            if (item != null) {
+                // Mark item as triggered to prevent any further actions
+                item.triggered = true;
+                // Clear the item's trigger function to prevent accidental calls
+                item.onTrigger = function() {};
+            }
+            }
+            // Clear the items array completely
+            for (item in 0...allItems.getItems().length) {
+                trace('Removing item from allItems: ' + allItems.pop());
+            }
+            allItems = new ActiveArray([]);
+        }
+
+        trace('Active items cleared successfully');
+        // Reset all static variables to default values
+        shields = 0;
+        maxHPUp = 0;
+        hasPocketLens = false;
+        overloadHP = 0;
+        extaLives = 0;
+        pendingDamage = 0.0;
+        frozenInput = 0;
+
+        // Clear inventory and item counts
+        extraItemInventory = [];
+        nonSongItemCounts.clear();
+
+        // Clear APPlayState updateFunctions that contain APItem references
+        try {
+            if (archipelago.APPlayState.updateFunctions != null) {
+                // Remove pending damage function and any other APItem-related functions
+                var functionsToRemove = [];
+                for (func in archipelago.APPlayState.updateFunctions) {
+                    if (func != null && (Reflect.compareMethods(func.func, applyPendingDamage))) {
+                        functionsToRemove.push(func);
+                    }
+                }
+
+                for (func in functionsToRemove) {
+                    archipelago.APPlayState.updateFunctions.remove(func);
+                }
+            }
+        } catch (e) {
+            trace('Error cleaning up APPlayState updateFunctions: $e');
+        }
+
+        // Clear any pending Pong trap queues
+        try {
+            APPongTrap.clearQueue();
+        } catch (e) {
+            trace('Error clearing Pong trap queue: $e');
+        }
+
+        // Reset April Fools state
+        try {
+            // Use reflection to access private static variables if needed
+            var aprilFoolsClass = Type.resolveClass('archipelago.APItem.APrilFools');
+            if (aprilFoolsClass != null) {
+                // Reset static variables via reflection if accessible
+                Reflect.setField(aprilFoolsClass, 'initialized', false);
+                if (Reflect.hasField(aprilFoolsClass, 'options')) {
+                    var options = Reflect.field(aprilFoolsClass, 'options');
+                    if (options != null && Reflect.hasField(options, 'clear')) {
+                        Reflect.callMethod(options, Reflect.field(options, 'clear'), []);
+                    }
+                }
+            }
+        } catch (e) {
+            trace('Error cleaning up April Fools data: $e');
+        }
+
+        // Put Chart Modifier back to normal
+        try {
+            ClientPrefs.data.gameplaySettings.set("chartModifier", "None");
+            ClientPrefs.data.gameplaySettings.set("convertMania", 4-1);
+        } catch (e) {
+            trace('Error resetting Chart Modifier: $e');
+        }
+
+        trace('APItem comprehensive cleanup completed');
+    }
 
 }
 

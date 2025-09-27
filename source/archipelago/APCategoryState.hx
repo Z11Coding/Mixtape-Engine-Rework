@@ -86,6 +86,17 @@ class APCategoryState extends states.CategoryState {
                     }
                 }, false), // Don't throw on error - this is less critical
 
+                GenericProgressSubstate.createTask("Clearing AP Items and data...", function(results) {
+                    try {
+                        archipelago.APItem.cleanupAllAPData();
+                        trace('AP Items and data cleaned up successfully');
+                        return "apitem_cleanup_success";
+                    } catch (e) {
+                        trace('Error cleaning up AP Items and data: ' + e);
+                        return "apitem_cleanup_error";
+                    }
+                }, false), // Don't throw on error - continue even if cleanup fails
+
                 GenericProgressSubstate.createTask("Disconnecting from Archipelago server...", function(results) {
                     try {
                         if (AP != null) {
@@ -183,6 +194,10 @@ class APCategoryState extends states.CategoryState {
                         archipelago.APGameState.instance = null;
                         AP = null;
                         gameState = null;
+
+                        // Clean up AP Items and data
+                        archipelago.APItem.cleanupAllAPData();
+
                         trace('Emergency cleanup completed during error handling');
                     } catch (cleanupError) {
                         trace('Error during emergency cleanup: ' + cleanupError);
@@ -266,6 +281,9 @@ class APCategoryState extends states.CategoryState {
                 archipelago.APStyledEntryState.apGame = null;
                 archipelago.APStyledEntryState.ap = null;
                 archipelago.APGameState.instance = null;
+
+                // Clean up AP Items and data
+                archipelago.APItem.cleanupAllAPData();
             } catch (e) {
                 trace('Error nullifying references during emergency cleanup: ' + e);
             }

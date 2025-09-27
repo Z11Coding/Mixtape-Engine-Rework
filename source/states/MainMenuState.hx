@@ -585,6 +585,14 @@ class MainMenuState extends MusicBeatState
 				FlxG.mouse.visible = false;
 				MusicBeatState.switchState(new DebugStateMenu());
 			}
+
+			// Debug Main Menu access with F4 or Ctrl+D
+			if (FlxG.keys.justPressed.F4 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.D))
+			{
+				selectedSomethin = true;
+				FlxG.mouse.visible = false;
+				MusicBeatState.switchState(new debug.DebugMainMenuState());
+			}
 			#end
 		}
 

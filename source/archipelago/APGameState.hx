@@ -1170,6 +1170,9 @@ class APGameState
 		// Clean up temporary weeks when manually disconnecting
 		cleanupTemporaryWeeks();
 
+		// Clean up AP Items and related data
+		archipelago.APItem.cleanupAllAPData();
+
 		_ap.disconnect_socket();
 		_ap = null;
 		if (APEntryState.ap != null)
@@ -2555,6 +2558,16 @@ class APGameState
 						return "cleanup_error";
 					}
 				}, false),
+				GenericProgressSubstate.createTask("Cleaning up AP items and data...", function(results) {
+					try {
+						APItem.cleanupAllAPData();
+						trace('AP items and data cleaned up successfully during disconnect');
+						return "ap_cleanup_success";
+					} catch (e) {
+						trace('Error cleaning up AP items and data during disconnect: ' + e);
+						return "ap_cleanup_error";
+					}
+				}, false),
 				   GenericProgressSubstate.createTask("Gathering Offline Queue...", function(results) {
 					   try {
 						   if (gameStateInstance._ap != null && gameStateInstance._ap._offlineQueue != null) {
@@ -2771,6 +2784,9 @@ class APGameState
 	{
 		// Clean up temporary weeks when canceling/exiting AP mode
 		cleanupTemporaryWeeks();
+
+		// Clean up AP Items and related data
+		archipelago.APItem.cleanupAllAPData();
 
 		// Clear reconnection callback state
 		pendingReconnection = false;
