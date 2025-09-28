@@ -152,7 +152,7 @@ class APMathProblemSubstate extends MusicBeatSubstate {
 
         // Handle number input
         var pressedKey = FlxG.keys.firstJustPressed();
-        if (pressedKey != null) {
+        if (pressedKey != FlxKey.NONE) {
             var keyName = FlxKey.toStringMap.get(pressedKey);
 
             // Handle number keys (0-9)
