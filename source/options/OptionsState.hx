@@ -19,9 +19,9 @@ class OptionsState extends MusicBeatState
 		"Legacy Lua Settings"
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
-	private static var curSelected:Int = 0;
+	private var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
-	public static var onPlayState:Bool = false;
+	public var onPlayState:Bool = false;
 
 	function openSelectedSubstate(label:String) {
 		switch(label)
@@ -55,6 +55,12 @@ class OptionsState extends MusicBeatState
 
 	var selectorLeft:Alphabet;
 	var selectorRight:Alphabet;
+
+	public function new(?onPlayState:Bool = false)
+	{
+		this.onPlayState = onPlayState;
+		super();
+	}
 
 	override function create()
 	{

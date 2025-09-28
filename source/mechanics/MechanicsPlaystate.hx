@@ -1,12 +1,12 @@
 package mechanics;
 
+import flixel.math.FlxVelocity;
+import flixel.util.FlxArrayUtil;
+import flixel.util.FlxStringUtil;
+import objects.AttachedSprite;
 import objects.Bar;
 import objects.Note;
 import objects.StrumNote;
-import objects.AttachedSprite;
-import flixel.util.FlxArrayUtil;
-import flixel.util.FlxStringUtil;
-import flixel.math.FlxVelocity;
 
 class MechanicsPlaystate {
 
@@ -89,7 +89,9 @@ class MechanicsPlaystate {
 					var time:Float = 3100;
 					if (PlayState.instance.songSpeed < 1)
 						time /= PlayState.instance.songSpeed;
-					var restoreNote:Note = new Note(Conductor.songPosition + time, FlxG.random.int(0, 3), null);
+					var restoreNote:Note = backend.ClientPrefs.data.useExperimentalNotePool ?
+						managers.NotePoolManager.createNote(Conductor.songPosition + time, FlxG.random.int(0, 3), null, false, false, PlayState.instance) :
+						new Note(Conductor.songPosition + time, FlxG.random.int(0, 3), null);
 
 					restoreNote.mustPress = restoreNote.formerPress = true;
 					restoreNote.scrollSpeed = PlayState.instance.songSpeed;
@@ -147,7 +149,7 @@ class MechanicsPlaystate {
 				PlayState.instance.notes.remove(restoreNote, true);
 			if (PlayState.instance.unspawnNotes.contains(restoreNote))
 				PlayState.instance.unspawnNotes.remove(restoreNote);
-            
+
             restoreNote.field.removeNote(restoreNote);
 		}
 
@@ -349,7 +351,7 @@ class MechanicsPlaystate {
 		if (PlayState.instance.mechanicsResult[11] != null)
 			PlayState.instance.mechanicsResult[11].value += 1;
 	}
-    
+
     public var ghostCursor:FlxSprite;
 	public var cursorValue:Float = 0;
 	public var cursorTimer:FlxTimer;

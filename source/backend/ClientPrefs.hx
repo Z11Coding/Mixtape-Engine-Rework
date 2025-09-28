@@ -193,6 +193,9 @@ import states.TitleState;
 
 	public var garbageCollection:Bool = true;
 
+	// Experimental Settings
+	public var useExperimentalNotePool:Bool = false;
+
 	// UNO game settings
 	public var unoCustomColors:Array<{color:Int, name:String}> = [];
 

@@ -865,10 +865,15 @@ class Note extends NoteObject
 		// trace('set alpha: ' + Alpha);
 		return super.set_alpha(Alpha);
 	}
-
-	public function new(?strumTime:Float, ?noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null)
+	public var isNotePool:Bool = false;
+	/**
+	 * Reference to the note pool that created this note (if any)
+	 */
+	public var notePool:objects.NotePool = null;
+	public function new(?strumTime:Float, ?noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?inNotePool:Bool = false)
 	{
 		super();
+		isNotePool = inNotePool;
 
 		animation = new PsychAnimationController(this);
 
@@ -887,6 +892,8 @@ class Note extends NoteObject
 		this.moves = false;
 		this.beat = Conductor.getBeat(strumTime);
 
+		if (inNotePool) return;
+
 		if (isSustainNote && prevNote != null) {
 			parentNote = prevNote;
 			while (parentNote.parentNote != null)
@@ -903,7 +910,7 @@ class Note extends NoteObject
 		this.strumTime = strumTime;
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
-			visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+			visualTime = PlayState.getNoteInitialTime(this.strumTime);
 		}
 
 		this.noteData = noteData;
@@ -1272,8 +1279,36 @@ class Note extends NoteObject
 
 	override public function destroy()
 	{
+		if (isNotePool && notePool != null) {
+			// Return to pool instead of destroying
+			notePool.returnNote(this);
+			return;
+		}
 		super.destroy();
 		_lastValidChecked = '';
+	}
+
+	/**
+	 * Force destroy this note, removing it from the pool if necessary
+	 */
+	public function forceDestroy():Void
+	{
+		// Temporarily disable pool protection
+		var wasPooled = isNotePool;
+		isNotePool = false;
+
+		// Actually destroy the note
+		super.destroy();
+		_lastValidChecked = '';
+
+		// Check for note in the pool and remove it if found
+		if (wasPooled && notePool != null) {
+			notePool.removeNote(this);
+		}
+
+		// Clear pool reference
+
+		notePool = null;
 	}
 
 	public function followStrumNote(myStrum:StrumNote, fakeCrochet:Float, songSpeed:Float = 1)

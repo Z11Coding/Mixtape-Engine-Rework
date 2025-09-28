@@ -542,7 +542,7 @@ class MainMenuState extends MusicBeatState
 							MusicBeatState.switchState(new CreditsState());
 						case 'options':
 							MusicBeatState.switchState(new OptionsState());
-							OptionsState.onPlayState = false;
+							// OptionsState.onPlayState = false;
 							if (PlayState.SONG != null)
 							{
 								PlayState.SONG.arrowSkin = null;

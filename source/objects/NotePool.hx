@@ -1,12 +1,13 @@
 package objects;
 
+import backend.ClientPrefs;
+import flixel.FlxBasic;
+import flixel.group.FlxGroup;
+import flixel.util.FlxDestroyUtil;
 import objects.Note;
 import objects.StrumNote;
 import objects.playfields.PlayField;
 import shaders.RGBPalette.RGBShaderReference;
-import flixel.FlxBasic;
-import flixel.group.FlxGroup;
-import flixel.util.FlxDestroyUtil;
 
 /**
  * A pool system for managing Note objects to reduce memory allocations and improve performance.
@@ -18,63 +19,79 @@ class NotePool extends FlxBasic
 	 * The maximum number of notes to keep in the pool when not in use
 	 */
 	public static var MAX_POOL_SIZE:Int = 200;
-	
+
 	/**
 	 * The minimum number of notes to keep in the pool for immediate reuse
 	 */
 	public static var MIN_POOL_SIZE:Int = 50;
-	
+
+	/**
+	 * Optimal pool size - target size for normal operation
+	 */
+	public static var OPTIMAL_POOL_SIZE:Int = 72;
+
+	/**
+	 * Current demand level - tracks how many notes are needed simultaneously
+	 */
+	private var _currentDemand:Int = 0;
+
+	/**
+	 * Peak demand level - tracks the highest simultaneous note count
+	 */
+	private var _peakDemand:Int = 0;
+
 	/**
 	 * Pool for regular notes
 	 */
 	private var _notePool:Array<Note>;
-	
+
 	/**
 	 * Pool for sustain notes
 	 */
 	private var _sustainPool:Array<Note>;
-	
+
 	/**
 	 * Array of all active notes currently in use
 	 */
 	private var _activeNotes:Array<Note>;
-	
+
 	/**
 	 * Array of all active sustain notes currently in use
 	 */
 	private var _activeSustains:Array<Note>;
-	
+
 	/**
 	 * Total number of notes created by this pool
 	 */
 	public var totalCreated:Int = 0;
-	
+
 	/**
 	 * Total number of notes reused from the pool
 	 */
 	public var totalReused:Int = 0;
-	
+
 	/**
 	 * Whether the pool is currently enabled
 	 */
 	public var enabled:Bool = true;
-	
+
 	public function new()
 	{
 		super();
-		
+
 		// Initialize pools
 		_notePool = [];
 		_sustainPool = [];
-		
+
 		// Initialize active arrays
 		_activeNotes = [];
 		_activeSustains = [];
-		
+
 		// Pre-populate pools with minimum notes
 		prePopulatePool();
+		trace('NotePool initialized with $totalCreated notes.');
 	}
-	
+
 	/**
 	 * Pre-populate the pools with minimum required notes
 	 */
@@ -86,7 +103,7 @@ class NotePool extends FlxBasic
 			var note:Note = createNote();
 			_notePool.push(note);
 		}
-		
+
 		// Pre-create minimum sustain notes
 		for (i in 0...MIN_POOL_SIZE)
 		{
@@ -94,32 +111,34 @@ class NotePool extends FlxBasic
 			_sustainPool.push(sustain);
 		}
 	}
-	
+
 	/**
 	 * Create a new regular note for the pool
 	 */
 	private function createNote():Note
 	{
 		totalCreated++;
-		return new Note(0, 0, null, false, false);
+		trace('Creating new note. Total created: $totalCreated');
+		return new Note(0, 0, null, false, false, null, true);
 	}
-	
+
 	/**
 	 * Create a new sustain note for the pool
 	 */
 	private function createSustainNote():Note
 	{
 		totalCreated++;
-		return new Note(0, 0, null, true, false);
+		trace('Creating new sustain note. Total created: $totalCreated');
+		return new Note(0, 0, null, true, false, null, true);
 	}
-	
+
 	/**
 	 * Reset a regular note when returning it to the pool
 	 */
 	private function resetNote(note:Note):Void
 	{
 		if (note == null) return;
-		
+
 		// Reset all note properties to default values
 		note.strumTime = 0;
 		note.noteData = 0;
@@ -145,7 +164,10 @@ class NotePool extends FlxBasic
 		note.lateHitMult = 1;
 		note.lowPriority = false;
 		note.offsetAngle = 0;
+		try {
 		note.multSpeed = 1;
+		} catch (e:Dynamic) {
+		}
 		note.beat = 0;
 		note.copyX = true;
 		note.copyY = true;
@@ -199,17 +221,24 @@ class NotePool extends FlxBasic
 		note.hitsoundChartEditor = true;
 		note.hitsoundForce = false;
 		note.hitsound = 'hitsound';
-		
+
 		// Reset position and visual properties
 		note.x = 0;
 		note.y = -2000;
 		note.alpha = 1;
 		note.angle = 0;
+		try {
 		note.scale.set(1, 1);
+		} catch (e:Dynamic) {
+		}
 		note.visible = true;
 		note.active = true;
 		note.exists = true;
-		
+		note.alive = true;
+
+		// Revive the note to ensure FlxObject state is properly reset
+		if (!note.alive) note.revive();
+
 		// Clear relationships
 		note.prevNote = null;
 		note.nextNote = null;
@@ -220,10 +249,10 @@ class NotePool extends FlxBasic
 		note.unhitTail = [];
 		note.childs = [];
 		note.rootNote = null;
-		
+
 		// Stop any tweens
 		// Note: posTween is private, so we can't access it directly
-		
+
 		// Reset Archipelago-specific properties
 		note.isMine = false;
 		note.isAlert = false;
@@ -234,17 +263,22 @@ class NotePool extends FlxBasic
 		note.specialNote = false;
 		note.ignoreMiss = false;
 		note.spinAmount = 0;
-		
+		@:privateAccess
+		note.isCheck = false;
+
 		// Reset extra data
 		if (note.extraData != null)
 		{
 			note.extraData.clear();
 			note.extraData = null;
 		}
-		
+
 		// Note: group management should be handled by the calling code
+
+		// This shouldn't be reset, since it should always know where it's at.
+		// note.notePool = null;
 	}
-	
+
 	/**
 	 * Reset a sustain note when returning it to the pool
 	 */
@@ -258,7 +292,7 @@ class NotePool extends FlxBasic
 		note.istail = true;
 		note.earlyHitMult = 0;
 	}
-	
+
 	/**
 	 * Get a note from the pool
 	 * @param strumTime The time when the note should be hit
@@ -276,19 +310,38 @@ class NotePool extends FlxBasic
 			// If pool is disabled, create new note normally
 			return new Note(strumTime, noteData, prevNote, sustainNote, inEditor, createdFrom);
 		}
-		
+
 		var note:Note;
-		
+
+		// Track current demand
+		_currentDemand++;
+		if (_currentDemand > _peakDemand)
+		{
+			_peakDemand = _currentDemand;
+			trace('New peak demand: $_peakDemand notes');
+		}
+
 		if (sustainNote)
 		{
 			if (_sustainPool.length > 0)
 			{
 				note = _sustainPool.pop();
 				totalReused++;
+				trace('Reusing sustain note from pool. Pool size: ${_sustainPool.length}, Demand: $_currentDemand');
 			}
 			else
 			{
-				note = createSustainNote();
+				// Only create if we haven't exceeded reasonable limits
+				if (_activeSustains.length < MAX_POOL_SIZE)
+				{
+					note = createSustainNote();
+					trace('Created new sustain note. Active: ${_activeSustains.length + 1}');
+				}
+				else
+				{
+					trace('WARNING: Sustain note pool limit reached! Falling back to regular creation.');
+					return new Note(strumTime, noteData, prevNote, sustainNote, inEditor, createdFrom);
+				}
 			}
 			_activeSustains.push(note);
 		}
@@ -298,27 +351,41 @@ class NotePool extends FlxBasic
 			{
 				note = _notePool.pop();
 				totalReused++;
+				trace('Reusing note from pool. Pool size: ${_notePool.length}, Demand: $_currentDemand');
 			}
 			else
 			{
-				note = createNote();
+				// Only create if we haven't exceeded reasonable limits
+				if (_activeNotes.length < MAX_POOL_SIZE)
+				{
+					note = createNote();
+					trace('Created new note. Active: ${_activeNotes.length + 1}');
+				}
+				else
+				{
+					trace('WARNING: Note pool limit reached! Falling back to regular creation.');
+					return new Note(strumTime, noteData, prevNote, sustainNote, inEditor, createdFrom);
+				}
 			}
 			_activeNotes.push(note);
 		}
-		
+
+		// Set pool reference for note
+		note.notePool = this;
+
 		// Re-initialize the note with new parameters
 		initializeNote(note, strumTime, noteData, prevNote, sustainNote, inEditor, createdFrom);
-		
+
 		return note;
 	}
-	
+
 	/**
 	 * Initialize a pooled note with new parameters
 	 */
 	private function initializeNote(note:Note, strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null):Void
 	{
 		if (createdFrom == null) createdFrom = PlayState.instance;
-		
+
 		// Set basic properties
 		note.strumTime = strumTime;
 		note.noteData = noteData;
@@ -329,7 +396,7 @@ class NotePool extends FlxBasic
 		note.moves = false;
 		note.beat = Conductor.getBeat(strumTime);
 		note.objType = NOTE;
-		
+
 		// Handle sustain note relationships
 		if (sustainNote && prevNote != null)
 		{
@@ -342,18 +409,18 @@ class NotePool extends FlxBasic
 		{
 			note.parentNote = null;
 		}
-		
+
 		// Set position
 		note.x = (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
 		if (!sustainNote) note.y = -2000;
-		
+
 		// Apply note offset
 		if (!inEditor)
 		{
 			note.strumTime += ClientPrefs.data.noteOffset;
-			note.visualTime = PlayState.instance.getNoteInitialTime(note.strumTime);
+			note.visualTime = PlayState.getNoteInitialTime(note.strumTime);
 		}
-		
+
 		// Set up RGB shader and texture
 		if (noteData > -1)
 		{
@@ -361,15 +428,15 @@ class NotePool extends FlxBasic
 				note.rgbShader = new RGBShaderReference(note, Note.initializeGlobalRGBShader(noteData));
 			else
 				note.rgbShader.parent = Note.initializeGlobalRGBShader(noteData);
-				
+
 			if (PlayState.SONG != null && PlayState.SONG.disableNoteRGB)
 				note.rgbShader.enabled = false;
 			else
 				note.rgbShader.enabled = true;
-				
+
 			note.texture = '';
 			note.x += Note.swagWidth * (noteData % Note.ammo[PlayState.mania]);
-			
+
 			// Play animation
 			if (!sustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer)
 			{
@@ -383,11 +450,11 @@ class NotePool extends FlxBasic
 				}
 			}
 		}
-		
+
 		// Link to previous note
 		if (prevNote != null)
 			prevNote.nextNote = note;
-		
+
 		// Handle sustain note specific setup
 		if (sustainNote && prevNote != null)
 		{
@@ -395,9 +462,9 @@ class NotePool extends FlxBasic
 			note.multAlpha = 0.6;
 			note.hitsoundDisabled = true;
 			if (ClientPrefs.data.downScroll) note.flipY = true;
-			
+
 			note.istail = true;
-			
+
 			// Set up sustain animations
 			var animToPlay:String = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
 			if (!note.hasAnimation(animToPlay))
@@ -405,10 +472,10 @@ class NotePool extends FlxBasic
 				animToPlay = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
 			}
 			note.animation.play(animToPlay);
-			
+
 			note.updateHitbox();
 			note.centerOffsets();
-			
+
 			// Handle previous note sustain setup
 			if (prevNote.isSustainNote)
 			{
@@ -418,11 +485,11 @@ class NotePool extends FlxBasic
 					animToPlay2 = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
 				}
 				prevNote.animation.play(animToPlay2);
-				
+
 				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
 				if (createdFrom != null && createdFrom.songSpeed != null)
 					prevNote.scale.y *= createdFrom.songSpeed;
-				
+
 				if (PlayState.isPixelStage)
 				{
 					prevNote.scale.y *= 1.19;
@@ -431,7 +498,7 @@ class NotePool extends FlxBasic
 				prevNote.updateHitbox();
 				prevNote.centerOffsets();
 			}
-			
+
 			if (PlayState.isPixelStage)
 			{
 				note.scale.y *= PlayState.daPixelZoom;
@@ -447,7 +514,7 @@ class NotePool extends FlxBasic
 			note.centerOffsets();
 		}
 	}
-	
+
 	/**
 	 * Return a note to the pool
 	 * @param note The note to return
@@ -455,28 +522,57 @@ class NotePool extends FlxBasic
 	public function returnNote(note:Note):Void
 	{
 		if (!enabled || note == null) return;
-		
-		// Remove from active arrays
+
+		trace('Returning note to pool. isSustainNote: ${note.isSustainNote}');
+
+		// Decrease demand
+		_currentDemand = Std.int(Math.max(0, _currentDemand - 1));
+
+		// Remove from active arrays and return to pool
 		if (note.isSustainNote)
 		{
 			_activeSustains.remove(note);
 			resetSustainNote(note);
-			if (_sustainPool.length < MAX_POOL_SIZE)
+
+			// Only add back to pool if we're not over capacity
+			if (_sustainPool.length < getTargetPoolSize())
 			{
 				_sustainPool.push(note);
+				trace('Sustain note added to pool. Pool size: ${_sustainPool.length}');
+			}
+			else
+			{
+				// Pool is full, destroy excess note
+				trace('Sustain pool full, destroying excess note. Pool size: ${_sustainPool.length}');
+				note.forceDestroy();
 			}
 		}
 		else
 		{
 			_activeNotes.remove(note);
 			resetNote(note);
-			if (_notePool.length < MAX_POOL_SIZE)
+
+			// Only add back to pool if we're not over capacity
+			if (_notePool.length < getTargetPoolSize())
 			{
 				_notePool.push(note);
+				trace('Regular note added to pool. Pool size: ${_notePool.length}');
+			}
+			else
+			{
+				// Pool is full, destroy excess note
+				trace('Note pool full, destroying excess note. Pool size: ${_notePool.length}');
+				note.forceDestroy();
 			}
 		}
+
+		// Periodically clean up excess notes
+		if (Math.random() < 0.1) // 10% chance per return
+		{
+			cleanupExcessNotes();
+		}
 	}
-	
+
 	/**
 	 * Return multiple notes to the pool
 	 * @param notes Array of notes to return
@@ -484,60 +580,195 @@ class NotePool extends FlxBasic
 	public function returnNotes(notes:Array<Note>):Void
 	{
 		if (!enabled || notes == null) return;
-		
+
 		for (note in notes)
 		{
 			returnNote(note);
 		}
 	}
-	
+
+	/**
+	 * Get the target pool size based on current demand and performance settings
+	 */
+	private function getTargetPoolSize():Int
+	{
+		// Base size on peak demand, but don't go below minimum or above optimal
+		var targetSize = Std.int(Math.max(MIN_POOL_SIZE, Math.min(OPTIMAL_POOL_SIZE, _peakDemand * 1.2)));
+
+		// Adjust for performance settings
+		if (ClientPrefs.data.lowQuality || ClientPrefs.data.trashMode)
+		{
+			targetSize = Std.int(targetSize * 0.7); // 70% size for low-end devices
+		}
+
+		return targetSize;
+	}
+
+	/**
+	 * Clean up excess notes from the pools
+	 */
+	private function cleanupExcessNotes():Void
+	{
+		var targetSize = getTargetPoolSize();
+
+		// Clean up regular note pool
+		while (_notePool.length > targetSize)
+		{
+			var note = _notePool.pop();
+			if (note != null)
+			{
+				note.forceDestroy();
+				trace('Cleaned up excess regular note. Pool size now: ${_notePool.length}');
+			}
+		}
+
+		// Clean up sustain note pool
+		while (_sustainPool.length > targetSize)
+		{
+			var note = _sustainPool.pop();
+			if (note != null)
+			{
+				note.forceDestroy();
+				trace('Cleaned up excess sustain note. Pool size now: ${_sustainPool.length}');
+			}
+		}
+	}
+
+	/**
+	 * Force aggressive cleanup - used when exiting PlayState
+	 */
+	/**
+	 * Clear all active notes and return them to the pool
+	 */
+	public function forceCleanup():Void
+	{
+		if (!enabled) return;
+
+		trace('Forcing aggressive pool cleanup...');
+
+		// Return all active notes to pools first
+		clearActiveNotes();
+
+		// Keep only minimum required notes
+		while (_notePool.length > MIN_POOL_SIZE)
+		{
+			var note = _notePool.pop();
+			if (note != null) {
+				note.forceDestroy();
+			}
+		}
+
+		while (_sustainPool.length > MIN_POOL_SIZE)
+		{
+			var note = _sustainPool.pop();
+			if (note != null) {
+				note.forceDestroy();
+			}
+		}
+
+		// Reset demand tracking
+		_currentDemand = 0;
+		_peakDemand = 0;
+
+		killNulls();
+
+		trace('Aggressive cleanup complete. Note pool: ${_notePool.length}, Sustain pool: ${_sustainPool.length}');
+	}
+
+	/**
+	 * Reset demand tracking (useful for new songs)
+	 */
+	public function resetDemandTracking():Void
+	{
+		_currentDemand = 0;
+		_peakDemand = 0;
+		trace('Demand tracking reset');
+	}
+
 	/**
 	 * Clear all active notes and return them to the pool
 	 */
 	public function clearActiveNotes():Void
 	{
 		if (!enabled) return;
-		
-		// Return all active notes to pool
+
+		var targetSize = getTargetPoolSize();
+
+		// Return all active notes to pool (respecting capacity)
 		for (note in _activeNotes)
 		{
 			resetNote(note);
-			if (_notePool.length < MAX_POOL_SIZE)
+			if (_notePool.length < targetSize)
 			{
 				_notePool.push(note);
 			}
+			else
+			{
+				// Pool is full, destroy excess
+				note.forceDestroy();
+			}
 		}
 		_activeNotes = [];
-		
-		// Return all active sustains to pool
+
+		// Return all active sustains to pool (respecting capacity)
 		for (note in _activeSustains)
 		{
 			resetSustainNote(note);
-			if (_sustainPool.length < MAX_POOL_SIZE)
+			if (_sustainPool.length < targetSize)
 			{
 				_sustainPool.push(note);
 			}
+			else
+			{
+				// Pool is full, destroy excess
+				note.forceDestroy();
+			}
 		}
 		_activeSustains = [];
+
+		// Reset current demand
+		_currentDemand = 0;
 	}
-	
+
 	/**
 	 * Get pool statistics
 	 * @return Object containing pool statistics
 	 */
 	public function getStats():Dynamic
 	{
+		var targetSize = getTargetPoolSize();
+		var totalActive = _activeNotes.length + _activeSustains.length;
+		var totalPooled = _notePool.length + _sustainPool.length;
+		var efficiency = totalReused > 0 ? (totalReused / (totalCreated + totalReused)) * 100 : 0;
+		var poolUtilization = targetSize > 0 ? (totalPooled / (targetSize * 2)) * 100 : 0;
+
 		return {
 			totalCreated: totalCreated,
 			totalReused: totalReused,
 			activeNotes: _activeNotes.length,
 			activeSustains: _activeSustains.length,
+			totalActive: totalActive,
 			pooledNotes: _notePool.length,
 			pooledSustains: _sustainPool.length,
-			efficiency: totalReused > 0 ? (totalReused / (totalCreated + totalReused)) * 100 : 0
+			totalPooled: totalPooled,
+			currentDemand: _currentDemand,
+			peakDemand: _peakDemand,
+			targetPoolSize: targetSize,
+			efficiency: efficiency,
+			poolUtilization: poolUtilization,
+			memoryPressure: totalActive + totalPooled > OPTIMAL_POOL_SIZE * 2
 		};
 	}
-	
+
+	/**
+	 * Get extended pool statistics (alias for getStats for compatibility)
+	 * @return Object containing pool statistics
+	 */
+	public function getExtendedStats():Dynamic
+	{
+		return getStats();
+	}
+
 	/**
 	 * Enable or disable the pool
 	 * @param enabled Whether to enable the pool
@@ -545,14 +776,14 @@ class NotePool extends FlxBasic
 	public function setEnabled(enabled:Bool):Void
 	{
 		this.enabled = enabled;
-		
+
 		if (!enabled)
 		{
 			// Clear the pool if disabled
 			clearActiveNotes();
 		}
 	}
-	
+
 	/**
 	 * Resize the pool capacity
 	 * @param maxSize New maximum pool size
@@ -563,39 +794,79 @@ class NotePool extends FlxBasic
 		// Note: FlxPool doesn't have a direct resize method, so we'll just update the static value
 		// New pools will use this size
 	}
-	
+
 	/**
 	 * Clean up the pool
 	 */
 	override public function destroy():Void
 	{
 		clearActiveNotes();
-		
+
 		// Clear the pools
 		if (_notePool != null)
 		{
 			for (note in _notePool)
 			{
-				if (note != null) note.destroy();
+				if (note != null) {
+					note.forceDestroy();
+				}
 			}
 			_notePool = null;
 		}
-		
+
 		if (_sustainPool != null)
 		{
 			for (note in _sustainPool)
 			{
-				if (note != null) note.destroy();
+				if (note != null) {
+					note.forceDestroy();
+				}
 			}
 			_sustainPool = null;
 		}
-		
+
 		_activeNotes = null;
 		_activeSustains = null;
-		
+
 		super.destroy();
 	}
-	
+
+	public function killNulls():Void
+	{
+		if (_notePool != null)
+		{
+			_notePool = _notePool.filter(function(n) return n != null);
+		}
+
+		if (_sustainPool != null)
+		{
+			_sustainPool = _sustainPool.filter(function(n) return n != null);
+		}
+
+		if (_activeNotes != null)
+		{
+			_activeNotes = _activeNotes.filter(function(n) return n != null);
+		}
+
+		if (_activeSustains != null)
+		{
+			_activeSustains = _activeSustains.filter(function(n) return n != null);
+		}
+	}
+
+	public function removeNote(note:Note):Void
+	{
+		if (note == null) return;
+
+		// Remove from all arrays it is present in.
+		_activeNotes.remove(note);
+		_activeSustains.remove(note);
+		_notePool.remove(note);
+		_sustainPool.remove(note);
+
+
+	}
+
 	/**
 	 * Get the number of active notes
 	 * @return Total number of active notes
@@ -604,7 +875,7 @@ class NotePool extends FlxBasic
 	{
 		return _activeNotes.length + _activeSustains.length;
 	}
-	
+
 	/**
 	 * Get the number of pooled notes
 	 * @return Total number of pooled notes
@@ -629,7 +900,7 @@ class NoteTemplate
 	public var eventVal1:String;
 	public var eventVal2:String;
 	public var customData:Map<String, Dynamic>;
-	
+
 	public function new(strumTime:Float, noteData:Int, ?sustainNote:Bool = false, ?noteType:String = null, ?mustPress:Bool = false)
 	{
 		this.strumTime = strumTime;
@@ -642,7 +913,7 @@ class NoteTemplate
 		this.eventVal2 = '';
 		this.customData = new Map<String, Dynamic>();
 	}
-	
+
 	/**
 	 * Set custom data for this note template
 	 */
@@ -651,7 +922,7 @@ class NoteTemplate
 		customData.set(key, value);
 		return this;
 	}
-	
+
 	/**
 	 * Set event data for this note template
 	 */
@@ -662,31 +933,31 @@ class NoteTemplate
 		this.eventVal2 = val2;
 		return this;
 	}
-	
+
 	/**
 	 * Apply this template to a note from the pool
 	 */
 	public function applyToNote(note:Note):Void
 	{
 		if (note == null) return;
-		
+
 		// Apply template properties
 		note.strumTime = strumTime;
 		note.noteData = noteData;
 		note.column = noteData;
 		note.isSustainNote = sustainNote;
 		note.mustPress = mustPress;
-		
+
 		if (noteType != null && noteType.length > 0)
 			note.noteType = noteType;
-		
+
 		if (eventName.length > 0)
 		{
 			note.eventName = eventName;
 			note.eventVal1 = eventVal1;
 			note.eventVal2 = eventVal2;
 		}
-		
+
 		// Apply custom data
 		for (key in customData.keys())
 		{
@@ -701,7 +972,7 @@ class NoteTemplate
 			}
 		}
 	}
-	
+
 	/**
 	 * Create a copy of this template
 	 */
@@ -711,13 +982,13 @@ class NoteTemplate
 		template.eventName = eventName;
 		template.eventVal1 = eventVal1;
 		template.eventVal2 = eventVal2;
-		
+
 		// Copy custom data
 		for (key in customData.keys())
 		{
 			template.customData.set(key, customData.get(key));
 		}
-		
+
 		return template;
 	}
 }
@@ -786,7 +1057,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		this = notes != null ? notes : [];
 	}
-	
+
 	/**
 	 * Create from an array of regular Notes
 	 */
@@ -794,16 +1065,16 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	public static function fromNoteArray(notes:Array<Note>):AbstractNoteArray
 	{
 		var templates:Array<NoteTemplate> = [];
-		
+
 		for (note in notes)
 		{
 			if (note == null) continue;
-			
+
 			var template = new NoteTemplate(note.strumTime, note.noteData, note.isSustainNote, note.noteType, note.mustPress);
 			template.eventName = note.eventName;
 			template.eventVal1 = note.eventVal1;
 			template.eventVal2 = note.eventVal2;
-			
+
 			// Copy important properties
 			template.setCustomData('gfNote', note.gfNote);
 			template.setCustomData('botNote', note.botNote);
@@ -820,7 +1091,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 			template.setCustomData('hitsound', note.hitsound);
 			template.setCustomData('hitsoundVolume', note.hitsoundVolume);
 			template.setCustomData('hitsoundDisabled', note.hitsoundDisabled);
-			
+
 			// Copy Archipelago-specific properties
 			template.setCustomData('isMine', note.isMine);
 			template.setCustomData('isAlert', note.isAlert);
@@ -829,13 +1100,13 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 			template.setCustomData('isFakeHeal', note.isFakeHeal);
 			template.setCustomData('specialNote', note.specialNote);
 			template.setCustomData('ignoreMiss', note.ignoreMiss);
-			
+
 			templates.push(template);
 		}
-		
+
 		return new AbstractNoteArray(templates);
 	}
-	
+
 	/**
 	 * Add a note template to the pool
 	 */
@@ -844,7 +1115,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 		this.push(template);
 		return cast this;
 	}
-	
+
 	/**
 	 * Add multiple note templates to the pool
 	 */
@@ -856,7 +1127,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 		}
 		return cast this;
 	}
-	
+
 	/**
 	 * Remove a note template from the pool
 	 */
@@ -885,6 +1156,31 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
         return this.push(new NoteTemplate(note.strumTime, note.noteData, note.isSustainNote, note.noteType, note.mustPress));
     }
 
+		public function indexOf(template:NoteTemplate, ?fromIndex:Int = 0):Int
+	{
+		return this.indexOf(template, fromIndex);
+	}
+
+	public function lastIndexOf(template:NoteTemplate, ?fromIndex:Int = -1):Int
+	{
+		return this.lastIndexOf(template, fromIndex);
+	}
+
+	public function contains(template:NoteTemplate):Bool
+	{
+		return this.contains(template);
+	}
+
+	public function has(template:NoteTemplate):Bool
+	{
+		return this.contains(template);
+	}
+
+	public function insert(index:Int, template:NoteTemplate):Void
+	{
+		this.insert(index, template);
+	}
+
 
 
 	/**
@@ -894,7 +1190,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		this.splice(0, this.length);
 	}
-	
+
 	/**
 	 * Get the number of note templates in the pool
 	 */
@@ -903,7 +1199,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		return this.length;
 	}
-	
+
 	/**
 	 * Check if the pool is empty
 	 */
@@ -911,7 +1207,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		return this.length == 0;
 	}
-	
+
 	/**
 	 * Get a note template by index
 	 */
@@ -919,7 +1215,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		return this[index];
 	}
-	
+
 	/**
 	 * Set a note template at a specific index
 	 */
@@ -927,7 +1223,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		this[index] = template;
 	}
-	
+
 	/**
 	 * Get the next note template and remove it from the pool
 	 */
@@ -935,7 +1231,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		return this.length > 0 ? this.shift() : null;
 	}
-	
+
 	/**
 	 * Peek at the next note template without removing it
 	 */
@@ -943,7 +1239,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		return this.length > 0 ? this[0] : null;
 	}
-	
+
 	/**
 	 * Get all note templates with a specific note type
 	 */
@@ -959,7 +1255,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Get all note templates within a time range
 	 */
@@ -975,7 +1271,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Sort note templates by strum time
 	 */
@@ -987,7 +1283,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 		});
 		return cast this;
 	}
-	
+
 	/**
 	 * Create actual notes from templates using a note pool
 	 */
@@ -995,19 +1291,19 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 	{
 		var notes:Array<Note> = [];
 		var prevNote:Note = null;
-		
+
 		for (template in this)
 		{
 			var note:Note = pool.getNote(template.strumTime, template.noteData, prevNote, template.sustainNote, inEditor, createdFrom);
 			template.applyToNote(note);
 			notes.push(note);
-			
+
 			if (!template.sustainNote)
 			{
 				prevNote = note;
 			}
 		}
-		
+
 		return notes;
 	}
 
@@ -1023,7 +1319,7 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
         }
         return notes;
     }
-	
+
 	/**
 	 * Iterator support
 	 */
@@ -1032,9 +1328,9 @@ abstract AbstractNoteArray(Array<NoteTemplate>) from Array<NoteTemplate> to Arra
 		return this.iterator();
 	}
 
-	public inline function splice():Iterator<NoteTemplate>
+	public inline function splice(index:Int, deleteCount:Int = 1):Array<NoteTemplate>
 	{
-		return this.iterator();
+		return this.splice(index, deleteCount);
 	}
 }
 
@@ -1130,8 +1426,8 @@ abstract NoteArray(AbstractNoteArray) from AbstractNoteArray to AbstractNoteArra
 		return this.indexOf(note);
 	}
 
-	public function splice(note:NoteTemplate, index:Int) {
-		return this.splice(note, index);
+	public function splice(index:Int, deleteCount:Int = 1):Array<NoteTemplate> {
+		return this.splice(index, deleteCount);
 	}
 }
 
@@ -1145,29 +1441,29 @@ class NoteQueue
 	 * The underlying nested array structure - one array per column
 	 */
 	private var _columns:Array<AbstractNoteArray>;
-	
+
 	/**
 	 * Reference to the note pool for creating notes
 	 */
 	private var _notePool:NotePool;
-	
+
 	/**
 	 * Maximum number of columns supported
 	 */
 	public static var MAX_COLUMNS:Int = 18;
-	
+
 	public function new(?notePool:NotePool)
 	{
 		_notePool = notePool != null ? notePool : new NotePool();
 		_columns = [];
-		
+
 		// Initialize all columns as empty arrays
 		for (i in 0...MAX_COLUMNS)
 		{
 			_columns[i] = new AbstractNoteArray();
 		}
 	}
-	
+
 	/**
 	 * Array access for getting a column
 	 */
@@ -1178,7 +1474,7 @@ class NoteQueue
 			return new AbstractNoteArray(); // Return empty array for invalid columns
 		return _columns[column];
 	}
-	
+
 	/**
 	 * Array access for setting a column
 	 */
@@ -1188,7 +1484,7 @@ class NoteQueue
 		if (column >= 0 && column < _columns.length)
 			_columns[column] = notes;
 	}
-	
+
 	/**
 	 * Push a note template to a specific column
 	 */
@@ -1200,7 +1496,7 @@ class NoteQueue
 			_columns[column].sortByTime();
 		}
 	}
-	
+
 	/**
 	 * Push a regular Note to a specific column (converts to template)
 	 */
@@ -1212,19 +1508,19 @@ class NoteQueue
 			template.eventName = note.eventName;
 			template.eventVal1 = note.eventVal1;
 			template.eventVal2 = note.eventVal2;
-			
+
 			// Copy important properties
 			template.setCustomData('gfNote', note.gfNote);
 			template.setCustomData('botNote', note.botNote);
 			template.setCustomData('hitCausesMiss', note.hitCausesMiss);
 			template.setCustomData('lowPriority', note.lowPriority);
 			template.setCustomData('ignoreNote', note.ignoreNote);
-			
+
 			_columns[column].add(template);
 			_columns[column].sortByTime();
 		}
 	}
-	
+
 	/**
 	 * Remove a template from a specific column
 	 */
@@ -1234,7 +1530,7 @@ class NoteQueue
 			return _columns[column].remove(template);
 		return false;
 	}
-	
+
 	/**
 	 * Get the first template from a column and remove it
 	 */
@@ -1244,7 +1540,7 @@ class NoteQueue
 			return _columns[column].getNext();
 		return null;
 	}
-	
+
 	/**
 	 * Peek at the first template in a column without removing it
 	 */
@@ -1254,7 +1550,7 @@ class NoteQueue
 			return _columns[column].peekNext();
 		return null;
 	}
-	
+
 	/**
 	 * Get the length of a specific column
 	 */
@@ -1264,7 +1560,7 @@ class NoteQueue
 			return _columns[column].length;
 		return 0;
 	}
-	
+
 	/**
 	 * Check if a column is empty
 	 */
@@ -1274,7 +1570,7 @@ class NoteQueue
 			return _columns[column].isEmpty();
 		return true;
 	}
-	
+
 	/**
 	 * Clear a specific column
 	 */
@@ -1283,7 +1579,7 @@ class NoteQueue
 		if (column >= 0 && column < _columns.length)
 			_columns[column].clear();
 	}
-	
+
 	/**
 	 * Clear all columns
 	 */
@@ -1292,7 +1588,7 @@ class NoteQueue
 		for (column in _columns)
 			column.clear();
 	}
-	
+
 	/**
 	 * Sort a specific column by time
 	 */
@@ -1301,7 +1597,7 @@ class NoteQueue
 		if (column >= 0 && column < _columns.length)
 			_columns[column].sortByTime();
 	}
-	
+
 	/**
 	 * Sort all columns by time
 	 */
@@ -1310,7 +1606,7 @@ class NoteQueue
 		for (column in _columns)
 			column.sortByTime();
 	}
-	
+
 	/**
 	 * Create actual notes from templates in a specific column
 	 */
@@ -1320,20 +1616,21 @@ class NoteQueue
 			return _columns[column].createNotes(_notePool, inEditor, createdFrom);
 		return [];
 	}
-	
+
 	/**
 	 * Create a single note from the next template in a column
 	 */
 	public function createNextNote(column:Int, ?prevNote:Note, ?inEditor:Bool = false, ?createdFrom:Dynamic = null):Note
 	{
 		var template = shift(column);
-		if (template != null)
+		if (template != null) {
 			var note = _notePool.getNote(template.strumTime, template.noteData, prevNote, template.sustainNote, inEditor, createdFrom);
 			template.applyToNote(note);
 			return note;
+		}
 		return null;
 	}
-	
+
 	/**
 	 * Get templates in a specific time range for a column
 	 */
@@ -1343,7 +1640,7 @@ class NoteQueue
 			return _columns[column].getByTimeRange(startTime, endTime);
 		return [];
 	}
-	
+
 	/**
 	 * Get templates by note type for a column
 	 */
@@ -1353,7 +1650,7 @@ class NoteQueue
 			return _columns[column].getByType(noteType);
 		return [];
 	}
-	
+
 	/**
 	 * Convert to the old Array<Array<Note>> format for compatibility
 	 */
@@ -1367,7 +1664,7 @@ class NoteQueue
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Create from an existing Array<Array<Note>> structure
 	 */
@@ -1375,7 +1672,7 @@ class NoteQueue
 	public static function fromNoteArrays(noteArrays:Array<Array<Note>>):NoteQueue
 	{
 		var queue = new NoteQueue();
-		
+
 		for (column in 0...noteArrays.length)
 		{
 			if (noteArrays[column] != null)
@@ -1387,10 +1684,10 @@ class NoteQueue
 				}
 			}
 		}
-		
+
 		return queue;
 	}
-	
+
 	/**
 	 * Get total number of templates across all columns
 	 */
@@ -1401,7 +1698,7 @@ class NoteQueue
 			total += column.length;
 		return total;
 	}
-	
+
 	/**
 	 * Get statistics for the queue
 	 */
@@ -1409,20 +1706,20 @@ class NoteQueue
 	{
 		var columnCounts:Array<Int> = [];
 		var totalNotes = 0;
-		
+
 		for (i in 0..._columns.length)
 		{
 			columnCounts[i] = _columns[i].length;
 			totalNotes += columnCounts[i];
 		}
-		
+
 		return {
 			totalNotes: totalNotes,
 			columnCounts: columnCounts,
 			poolStats: _notePool.getExtendedStats()
 		};
 	}
-	
+
 	/**
 	 * Set the note pool to use
 	 */
@@ -1430,7 +1727,7 @@ class NoteQueue
 	{
 		_notePool = pool;
 	}
-	
+
 	/**
 	 * Get the note pool being used
 	 */
@@ -1438,7 +1735,7 @@ class NoteQueue
 	{
 		return _notePool;
 	}
-	
+
 	/**
 	 * Iterator support for iterating over all columns
 	 */
@@ -1458,25 +1755,38 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 	{
 		this = new NoteQueue(notePool);
 	}
-	
+
+	// var length(get, never):Int;
+	// function get_length():Int
+	// {
+	// 	return this.getTotalCount();
+	// }
+
+	var _columns(get, never):Array<AbstractNoteArray>;
+	function get__columns():Array<AbstractNoteArray>
+	{
+		@:privateAccess
+		return this._columns;
+	}
+
 	/**
 	 * Array access - get a column as AbstractNoteArray
 	 */
 	@:arrayAccess
 	public function get(column:Int):AbstractNoteArray
 	{
-		return this[column];
+		return _columns[column];
 	}
-	
+
 	/**
 	 * Array access - set a column
 	 */
 	@:arrayAccess
 	public function set(column:Int, notes:AbstractNoteArray):Void
 	{
-		this[column] = notes;
+		_columns[column] = notes;
 	}
-	
+
 	/**
 	 * Convert from existing Array<Array<Note>> structure
 	 */
@@ -1485,7 +1795,7 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 	{
 		return NoteQueue.fromNoteArrays(noteArrays);
 	}
-	
+
 	/**
 	 * Convert to Array<Array<Note>> for compatibility
 	 */
@@ -1494,7 +1804,7 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 	{
 		return this.toNoteArrays();
 	}
-	
+
 	/**
 	 * Push a note to a specific column (compatibility method)
 	 */
@@ -1502,17 +1812,17 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 	{
 		this.pushNote(column, note);
 	}
-	
+
 	/**
 	 * Remove a note from a specific column (finds by matching properties)
 	 */
 	public function remove(column:Int, note:Note):Bool
 	{
-		var templates = this[column];
+		var templates = _columns[column];
 		for (template in templates)
 		{
-			if (template.strumTime == note.strumTime && 
-				template.noteData == note.noteData && 
+			if (template.strumTime == note.strumTime &&
+				template.noteData == note.noteData &&
 				template.sustainNote == note.isSustainNote)
 			{
 				return this.remove(column, template);
@@ -1520,7 +1830,7 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Sort a column by strum time
 	 */
@@ -1531,13 +1841,13 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 		else
 		{
 			// Custom sort function support
-			var columnArray = this[column];
+			var columnArray = _columns[column];
 			// Note: AbstractNoteArray would need a custom sort method for this to work fully
 			// For now, just use the default time sort
 			this.sort(column);
 		}
 	}
-	
+
 	/**
 	 * Get length of a specific column
 	 */
@@ -1545,7 +1855,7 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 	{
 		return this.length(column);
 	}
-	
+
 	/**
 	 * Check if empty
 	 */
@@ -1553,7 +1863,7 @@ abstract PlayFieldNoteQueue(NoteQueue) from NoteQueue to NoteQueue
 	{
 		return this.isEmpty(column);
 	}
-	
+
 	/**
 	 * Clear all columns
 	 */

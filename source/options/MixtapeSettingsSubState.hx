@@ -451,6 +451,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			(YOU MUST HAVE ARTEMIS INSTALLED AND THE PROFILE SET TO MIXTAPE FOR IT TO WORK!)\n
 			(YOU WILL BE SENT TO THE TITLE SCREEN WHEN YOU LEAVE IF THIS IS ON!)", 'enableArtemis', BOOL);
 		//addOption(option); maybe one day
+		var option:Option = new Option('---EXPERIMENTAL---',
+			"These settings are experimental and may not work correctly!",
+			'',
+			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Use Experimental Note Pool',
+			"If checked, all notes will be generated and managed through an optimized NotePool system for better performance.\nWARNING: This is experimental and may cause issues!",
+			'useExperimentalNotePool',
+			BOOL);
+		addOption(option);
+		option.onChange = onChangeExperimentalNotePool;
 
 		var option:Option = new Option('---DEBUG---',
 			"",
@@ -458,6 +470,8 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 
 		addOption(option);
+
+
 
 		var option:Option = new Option('Disable Debug Traces',
 			"If checked, debug trace outputs will be disabled for better performance.",
@@ -686,6 +700,17 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
 			ease: FlxEase.quadOut
 		});
+	}
+
+	function onChangeExperimentalNotePool()
+	{
+		if (ClientPrefs.data.useExperimentalNotePool) {
+			// Update pool settings when enabled
+			managers.NotePoolManager.updatePoolSettings();
+			trace('Experimental NotePool enabled');
+		} else {
+			trace('Experimental NotePool disabled');
+		}
 	}
 
 	override function destroy() {

@@ -1811,7 +1811,9 @@ class APPlayState extends PlayState {
 				pickData = specificData % Note.ammo[PlayState.mania];
 			}
 		}
-		var swagNote:Note = new Note(pickTime, pickData);
+		var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
+			managers.NotePoolManager.createNote(pickTime, pickData, null, false, false, this) :
+			new Note(pickTime, pickData);
 		switch (type)
 		{
 			case 1:

@@ -1,11 +1,11 @@
 package options;
 
+import objects.Alphabet;
+import objects.Note;
+import objects.NoteSplash;
+import objects.StrumNote;
 import objects.charting.ChartingNote;
 import objects.charting.ChartingStrumNote;
-import objects.Note;
-import objects.StrumNote;
-import objects.NoteSplash;
-import objects.Alphabet;
 
 class VisualsSettingsSubState extends BaseOptionsMenu
 {
@@ -26,7 +26,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			var note:ChartingStrumNote = new ChartingStrumNote(370 + (560 / ChartingNote.colArray.length) * i, -200, i, 0);
 			changeNoteSkin(note);
 			notes.add(note);
-			
+
 			var splash:NoteSplash = new NoteSplash(0, 0, NoteSplash.defaultNoteSplash + NoteSplash.getSplashSkinPostfix());
 			splash.inEditor = true;
 			splash.babyArrowCharting = note;
@@ -52,7 +52,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			option.onChange = onChangeNoteSkin;
 			noteOptionID = optionsArray.length - 1;
 		}
-		
+
 		var noteSplashes:Array<String> = Mods.mergeAllTextsNamed('images/noteSplashes/list.txt');
 		if(noteSplashes.length > 0)
 		{
@@ -86,7 +86,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			'hideHud',
 			BOOL);
 		addOption(option);
-		
+
 		var option:Option = new Option('Time Bar:',
 			"What should the Time Bar display?",
 			'timeBarType',
@@ -122,7 +122,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		option.changeValue = 0.1;
 		option.decimals = 1;
 		addOption(option);
-		
+
 		#if !mobile
 		var option:Option = new Option('FPS Counter',
 			'If unchecked, hides FPS Counter.',
@@ -131,7 +131,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeFPSCounter;
 		#end
-		
+
 		#if CHECK_FOR_UPDATES
 		var option:Option = new Option('Check for Updates',
 			'On Release builds, turn this on to check for updates when you start the game.',
@@ -163,7 +163,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	override function changeSelection(change:Int = 0)
 	{
 		super.changeSelection(change);
-		
+
 		switch(curOption.variable)
 		{
 			case 'noteSkin', 'splashSkin', 'splashAlpha':
@@ -179,7 +179,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 				if(curOption.variable.startsWith('splash') && Math.abs(notes.members[0].y - noteY) < 25) playNoteSplashes();
 
 			default:
-				if(notesShown) 
+				if(notesShown)
 				{
 					for (note in notes.members)
 					{
@@ -276,7 +276,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	override function destroy()
 	{
-		if(changedMusic && !OptionsState.onPlayState) MusicManager.playMenuMusic();
+		if(changedMusic) MusicManager.playMenuMusic();
 		Note.globalRgbShaders = [];
 		super.destroy();
 	}
