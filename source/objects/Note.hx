@@ -528,7 +528,6 @@ class Note extends NoteObject
 	public var rgbShader:RGBShaderReference;
 	public static var globalRgbShaders:Array<RGBPalette> = [];
 	public var inEditor:Bool = false;
-	public var inPreload:Bool = false;
 
 	public var animSuffix:String = '';
 	public var gfNote:Bool = false;
@@ -871,7 +870,7 @@ class Note extends NoteObject
 	 * Reference to the note pool that created this note (if any)
 	 */
 	public var notePool:objects.NotePool = null;
-	public function new(?strumTime:Float, ?noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?inNotePool:Bool = false, ?inPreload:Bool = false)
+	public function new(?strumTime:Float, ?noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?inNotePool:Bool = false)
 	{
 		super();
 		isNotePool = inNotePool;
@@ -890,7 +889,6 @@ class Note extends NoteObject
 		this.prevNote = prevNote;
 		isSustainNote = sustainNote;
 		this.inEditor = inEditor;
-		this.inPreload = inPreload;
 		this.moves = false;
 		this.beat = Conductor.getBeat(strumTime);
 
@@ -912,10 +910,7 @@ class Note extends NoteObject
 		this.strumTime = strumTime;
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
-			if (inPreload)
-				visualTime = LoadingState.getNoteInitialTime(this.strumTime);
-			else
-				visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+			PlayState.getNoteInitialTime(this.strumTime);
 		}
 
 		this.noteData = noteData;

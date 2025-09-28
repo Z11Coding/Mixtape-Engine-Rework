@@ -439,7 +439,7 @@ class NoteOffsetState extends MusicBeatState
 
 			persistentUpdate = false;
 			MusicBeatState.switchState(new options.OptionsState());
-			if(OptionsState.onPlayState) MusicManager.playPauseMenuMusic(1);
+			if(OptionsState.fromPlayState) MusicManager.playPauseMenuMusic(1);
 			else MusicManager.playMenuMusic();
 			FlxG.mouse.visible = false;
 		}

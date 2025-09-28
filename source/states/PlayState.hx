@@ -3839,18 +3839,9 @@ class PlayState extends MusicBeatState
 						{
 							oldNote = allNotes[Std.int(allNotes.length - 1)];
 
-						var sustainNote:Note = ClientPrefs.data.useExperimentalNotePool ?
-							NotePoolManager.createNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, this) :
-							noteManager.getNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
-						sustainNote.mustPress = sustainNote.mustPress = gottaHitNote;
-						sustainNote.gfNote = swagNote.gfNote;
-						sustainNote.exNote = swagNote.exNote;
-						sustainNote.animSuffix = swagNote.animSuffix;
-						sustainNote.noteType = swagNote.noteType;
-						sustainNote.noteIndex = swagNote.noteIndex;
-						if (chartModifier == 'Amalgam' && currentModifier == 11)
-						{
-							sustainNote.multSpeed = swagNote.multSpeed;
+							var sustainNote:Note = ClientPrefs.data.useExperimentalNotePool ?
+								NotePoolManager.createNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, this) :
+								noteManager.getNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
 							sustainNote.mustPress = sustainNote.mustPress = gottaHitNote;
 							sustainNote.gfNote = swagNote.gfNote;
 							sustainNote.exNote = swagNote.exNote;

@@ -22,6 +22,7 @@ class OptionsState extends MusicBeatState
 	private var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
 	public var onPlayState:Bool = false;
+	public static var fromPlayState:Bool = false;
 
 	function openSelectedSubstate(label:String) {
 		switch(label)
@@ -59,6 +60,7 @@ class OptionsState extends MusicBeatState
 	public function new(?onPlayState:Bool = false)
 	{
 		this.onPlayState = onPlayState;
+		fromPlayState = onPlayState;
 		super();
 	}
 
@@ -132,6 +134,7 @@ class OptionsState extends MusicBeatState
 				StageData.loadDirectory(PlayState.SONG);
 				LoadingState.loadAndSwitchState(new PlayState());
 				FlxG.sound.music.volume = 0;
+				fromPlayState = false;
 			}
 			else MusicBeatState.switchState(new MainMenuState());
 		}
