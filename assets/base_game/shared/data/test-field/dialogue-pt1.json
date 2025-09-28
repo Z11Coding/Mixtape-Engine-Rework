@@ -1,0 +1,44 @@
+{
+	"dialogue": [
+		{
+			"sound": "ohagi_d",
+			"speed": 0.05,
+			"portrait": "ohagi",
+			"boxState": "normal",
+			"expression": "close",
+			"text": "la la la..."
+		},
+		{
+			"sound": "ohagi_d",
+			"speed": 0.05,
+			"portrait": "ohagi",
+			"boxState": "normal",
+			"expression": "close",
+			"text": "la la la la ... (jammin')"
+		},
+		{
+			"sound": "ohagi_d",
+			"speed": 0.05,
+			"portrait": "ohagi",
+			"boxState": "normal",
+			"expression": "smile",
+			"text": "Man, singin' in a chill spot while checkin' out the night view is the bomb."
+		},
+		{
+			"sound": "ohagi_d",
+			"speed": 0.05,
+			"portrait": "ohagi",
+			"boxState": "normal",
+			"expression": "smile",
+			"text": "Makes me wanna sing all night long!"
+		},
+		{
+			"sound": "ohagi_d",
+			"speed": 0.05,
+			"portrait": "ohagi",
+			"boxState": "normal",
+			"expression": "talk",
+			"text": "Oh?"
+		}
+	]
+}

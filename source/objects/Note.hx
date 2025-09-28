@@ -528,6 +528,7 @@ class Note extends NoteObject
 	public var rgbShader:RGBShaderReference;
 	public static var globalRgbShaders:Array<RGBPalette> = [];
 	public var inEditor:Bool = false;
+	public var inPreload:Bool = false;
 
 	public var animSuffix:String = '';
 	public var gfNote:Bool = false;
@@ -870,7 +871,7 @@ class Note extends NoteObject
 	 * Reference to the note pool that created this note (if any)
 	 */
 	public var notePool:objects.NotePool = null;
-	public function new(?strumTime:Float, ?noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?inNotePool:Bool = false)
+	public function new(?strumTime:Float, ?noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?createdFrom:Dynamic = null, ?inNotePool:Bool = false, ?inPreload:Bool = false)
 	{
 		super();
 		isNotePool = inNotePool;
@@ -889,6 +890,7 @@ class Note extends NoteObject
 		this.prevNote = prevNote;
 		isSustainNote = sustainNote;
 		this.inEditor = inEditor;
+		this.inPreload = inPreload;
 		this.moves = false;
 		this.beat = Conductor.getBeat(strumTime);
 
@@ -910,7 +912,10 @@ class Note extends NoteObject
 		this.strumTime = strumTime;
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
-			visualTime = PlayState.getNoteInitialTime(this.strumTime);
+			if (inPreload)
+				visualTime = LoadingState.getNoteInitialTime(this.strumTime);
+			else
+				visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
 		}
 
 		this.noteData = noteData;
@@ -1066,12 +1071,12 @@ class Note extends NoteObject
 		}
 
 		var animName:String = null;
-		if(animation.curAnim != null) {
+		if(animation != null && animation.curAnim != null) {
 			animName = animation.curAnim.name;
 		}
 
 		var skinPixel:String = skin;
-		var lastScaleY:Float = scale.y;
+		var lastScaleY:Float = (scale != null ? scale.y : 0.7);
 		var skinPostfix:String = getNoteSkinPostfix();
 		var customSkin:String = skin + skinPostfix;
 		var path:String = PlayState.isPixelStage ? 'pixelUI/' : '';

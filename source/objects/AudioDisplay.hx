@@ -13,6 +13,9 @@ class AudioDisplay extends FlxSpriteGroup
     var _height:Int;
     var line:Int;
 
+    public var colorLeft:FlxColor = FlxColor.BLACK;
+    public var colorRight:FlxColor = FlxColor.WHITE;
+
     public function new(snd:FlxSound = null, X:Float = 0, Y:Float = 0, Width:Int, Height:Int, line:Int, gap:Int, Color:FlxColor)
     {
       super(X, Y);
@@ -77,6 +80,8 @@ class AudioDisplay extends FlxSpriteGroup
     function updateLine(elapsed:Float) {
         if (getValues == null) return;
 
+        var colorArr = FlxColor.gradient(colorLeft, colorRight, members.length);
+
         for (i in 0...members.length)
         {
           if (flipY) {
@@ -96,6 +101,9 @@ class AudioDisplay extends FlxSpriteGroup
             if (members[i].scale.y < _height / 40) members[i].scale.y = _height / 40;
             members[i].y = this.y -members[i].scale.y / 2;
           }
+
+          members[i].color = colorArr[i];
+
         }
     }
 

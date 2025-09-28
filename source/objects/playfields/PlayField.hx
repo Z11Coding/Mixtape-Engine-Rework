@@ -9,6 +9,8 @@ import flixel.util.FlxSort;
 import lime.app.Event;
 import objects.notes.*;
 import states.PlayState;
+import sys.thread.FixedThreadPool;
+import sys.thread.Mutex;
 
 /*
 The system is seperated into 3 classes:
@@ -95,6 +97,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	public var x:Float = 0;
 	public var y:Float = 0;
+
+	static var mutex:Mutex;
+	static var threadPool:FixedThreadPool = null;
 
 	function set_keyCount(cnt:Int){
 		if (cnt < 0)
@@ -208,6 +213,15 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		////
 		noteField = new NoteField(this, modMgr);
+
+		#if MULTITHREADED_LOADING
+		// Due to the Main thread and Discord thread, we decrease it by 2.
+		var threadCount:Int = Std.int(Math.max(1, LoadingState.getCPUThreadsCount() - #if DISCORD_ALLOWED 2 #else 1 #end));
+		#else
+		var threadCount:Int = 1;
+		#end
+		threadPool = new FixedThreadPool(threadCount);
+		mutex = new Mutex();
 	}
 
 	// Anything that is static/used by both strums but cant be double-initialized can be placed here
@@ -305,6 +319,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		noteSpawned.dispatch(note, this);
 		spawnedNotes.push(note);
+		/*initThread(() -> function() {
+			spawnedNotes.push(note);
+		}, "spawnNote");*/
 		note.handleRendering = false;
 		note.spawned = true;
 
@@ -958,7 +975,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						}
 					}
 				}
-				if (PlayState.instance?.mechanicsMod?.restoreActivated
+				if (PlayState.mechanicsMod?.restoreActivated
 					&& (column[0].noteType != null || column[0].noteType.length == 0)
 					&& FlxG.random.bool(30)
 					&& column[0].mustPress
@@ -1335,6 +1352,36 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		noteRemoved.removeAll();
 		noteRemoved.cancel();
 
+		if (threadPool != null) threadPool.shutdown(); // kill all workers safely
+		threadPool = null;
+		mutex = null;
+
 		return super.destroy();
+	}
+
+	static function initThread(func:Void->Dynamic, traceData:String)
+	{
+		// trace('scheduled $func in threadPool');
+		#if debug
+		var threadSchedule = Sys.time();
+		#end
+		threadPool.run(() -> {
+			#if debug
+			var threadStart = Sys.time();
+			trace('$traceData took ${threadStart - threadSchedule}s to start preloading');
+			#end
+
+			try {
+				if (func() != null) {
+					#if debug
+					var diff = Sys.time() - threadStart;
+					trace('finished preloading $traceData in ${diff}s');
+					#end
+				} else trace('ERROR! fail on preloading $traceData ');
+			}
+			catch(e:Dynamic) {
+				trace('ERROR! fail on preloading $traceData: $e');
+			}
+		});
 	}
 }

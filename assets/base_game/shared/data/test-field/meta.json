@@ -1,0 +1,14 @@
+{
+  "song": {
+    "name": "Test Field",
+    "artist": "Z11Gaming",
+    "charter": "Z11Gaming",
+    "mod": "Modpack Mixup"
+  },
+
+  "freeplay": {
+    "bg": "menuBGBlue",
+    "album": "",
+    "ratings": { "easy": 0, "normal": 5, "hard": 0 }
+  }
+}

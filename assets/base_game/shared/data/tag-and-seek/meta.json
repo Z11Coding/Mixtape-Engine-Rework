@@ -1,8 +1,14 @@
 {
-    "song": {
-        "name":"Tag & Seek",
-        "artist":"Z11Gaming",
-        "charter":"Z11Gaming",
-        "mod":"Mixtape Madness"
-    }
+  "song": {
+    "name": "Tag & Seek",
+    "artist": "Z11Gaming",
+    "charter": "Z11Gaming",
+    "mod": "Mixtape Madness"
+  },
+
+  "freeplay": {
+    "bg": "menuBGBlue",
+    "album": "",
+    "ratings": { "easy": 0, "normal": 5, "hard": 0 }
+  }
 }

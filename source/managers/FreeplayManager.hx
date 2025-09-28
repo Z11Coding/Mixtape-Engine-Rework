@@ -246,8 +246,8 @@ class FreeplayManager {
                             charter: "???",
                             artist: "???"
                         },
-                        freeplay: {
-                            ratings: [],
+                        freeplay: { // cover the defaults and pray to god the custom ones figure themselves out
+                            ratings: ['easy' => pMetadataFile.songRating, 'normal' => pMetadataFile.songRating, 'hard' => pMetadataFile.songRating, 'erect' => pMetadataFile.songRating, 'nightmare' => pMetadataFile.songRating],
                             bg: "menuDesat",
                             album: pMetadataFile.albumId
                         },
@@ -347,13 +347,13 @@ class FreeplayManager {
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
                 addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
-                addSong('Test Field', 8, "ohagi", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
-                addSong('Rawr', 8, "michael", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
                 addSong('Fightback', 8, "z12", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
-                addSong('Funky Fanta', 8, "fanta", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+                addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
                 addSong('Tag And Seek', 8, "sillyexe", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")

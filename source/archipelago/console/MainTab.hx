@@ -1,22 +1,22 @@
 package archipelago.console;
 
-import openfl.events.TextEvent;
-import openfl.Lib;
-import haxe.io.BytesOutput;
-import haxe.io.Bytes;
-import haxe.crypto.Base64;
-import openfl.display.Bitmap;
-import openfl.text.TextField;
 import flash.display.BitmapData;
-import openfl.events.KeyboardEvent;
-import openfl.events.MouseEvent;
+import haxe.crypto.Base64;
+import haxe.io.Bytes;
+import haxe.io.BytesOutput;
+import openfl.Lib;
+import openfl.display.Bitmap;
 import openfl.display.Sprite;
 import openfl.events.Event;
+import openfl.events.KeyboardEvent;
+import openfl.events.MouseEvent;
+import openfl.events.TextEvent;
+import openfl.text.TextField;
 
 class MainTab extends TabSprite {
-	var nickname:TextField;	
-	var info:TextField;	
-    var chatBg:Bitmap;
+	var nickname:TextField;
+	var info:TextField;
+  var chatBg:Bitmap;
 	var chatInput:TextField;
 	static var messages:Array<TextField> = [];
 	var msgSprite:Sprite;
@@ -126,7 +126,7 @@ class MainTab extends TabSprite {
 			else {
 				addMessage("Not connected to the server!");
 			}
-			
+
 			chatInput.text = '';
 			chatInput.dispatchEvent(new Event(Event.CHANGE, true));
 		}
@@ -149,7 +149,7 @@ class MainTab extends TabSprite {
 
 	override function onShow() {
 		nickname.text = APEntryState.inArchipelagoMode ? APEntryState.ap.slot : "Archipelago Not Active!";
-		info.text = 
+		info.text =
 		  "Song Needed for Completion: "+APEntryState.victorySong
 		+ "\nDeathLink: "+APEntryState.deathLink
 		+ "\nTotal Song Amount: "+APEntryState.fullSongCount
@@ -172,5 +172,5 @@ class MainTab extends TabSprite {
 		Cursor.hide();
 	}
 
-		
+
 }

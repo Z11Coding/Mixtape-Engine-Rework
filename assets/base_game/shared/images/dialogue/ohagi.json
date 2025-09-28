@@ -1,0 +1,63 @@
+{
+	"dialogue_pos": "left",
+	"position": [
+		90,
+		-70
+	],
+	"scale": 1.05,
+	"animations": [
+		{
+			"anim": "talk",
+			"loop_offsets": [
+				0,
+				0
+			],
+			"idle_offsets": [
+				-1,
+				0
+			],
+			"loop_name": "normal",
+			"idle_name": "normal0005"
+		},
+		{
+			"loop_name": "smile",
+			"idle_offsets": [
+				5,
+				2
+			],
+			"idle_name": "smile0005",
+			"anim": "smile",
+			"loop_offsets": [
+				5,
+				2
+			]
+		},
+		{
+			"loop_name": "grin",
+			"idle_offsets": [
+				-1,
+				11
+			],
+			"idle_name": "grin0005",
+			"anim": "grin",
+			"loop_offsets": [
+				-1,
+				12
+			]
+		},
+		{
+			"loop_name": "close",
+			"idle_offsets": [
+				0,
+				3
+			],
+			"idle_name": "close0005",
+			"anim": "close",
+			"loop_offsets": [
+				0,
+				4
+			]
+		}
+	],
+	"image": "ohagi_d"
+}

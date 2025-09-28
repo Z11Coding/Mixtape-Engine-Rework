@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="ohagi_d.png">
+	<!-- Created with Adobe Animate version 22.0.10.305 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="close0000" x="2234" y="0" width="723" height="571" frameX="-5" frameY="0" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="close0001" x="2234" y="0" width="723" height="571" frameX="-5" frameY="0" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="close0002" x="2964" y="0" width="733" height="562" frameX="0" frameY="-9" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="close0003" x="2964" y="0" width="733" height="562" frameX="0" frameY="-9" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="close0004" x="1468" y="569" width="733" height="561" frameX="0" frameY="-10" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="close0005" x="1468" y="569" width="733" height="561" frameX="0" frameY="-10" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="grin0000" x="740" y="568" width="721" height="571" frameX="-6" frameY="0" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="grin0001" x="740" y="568" width="721" height="571" frameX="-6" frameY="0" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="grin0002" x="0" y="576" width="731" height="562" frameX="-1" frameY="-9" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="grin0003" x="0" y="576" width="731" height="562" frameX="-1" frameY="-9" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="grin0004" x="2964" y="569" width="733" height="561" frameX="0" frameY="-10" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="grin0005" x="2964" y="569" width="733" height="561" frameX="0" frameY="-10" frameWidth="733" frameHeight="571"/>
+	<SubTexture name="normal0000" x="2914" y="1137" width="691" height="567" frameX="-4" frameY="0" frameWidth="700" frameHeight="567"/>
+	<SubTexture name="normal0001" x="2914" y="1137" width="691" height="567" frameX="-4" frameY="0" frameWidth="700" frameHeight="567"/>
+	<SubTexture name="normal0002" x="2208" y="578" width="699" height="562" frameX="0" frameY="-5" frameWidth="700" frameHeight="567"/>
+	<SubTexture name="normal0003" x="2208" y="578" width="699" height="562" frameX="0" frameY="-5" frameWidth="700" frameHeight="567"/>
+	<SubTexture name="normal0004" x="1468" y="1137" width="700" height="561" frameX="0" frameY="-6" frameWidth="700" frameHeight="567"/>
+	<SubTexture name="normal0005" x="1468" y="1137" width="700" height="561" frameX="0" frameY="-6" frameWidth="700" frameHeight="567"/>
+	<SubTexture name="smile0000" x="0" y="0" width="733" height="569" frameX="-4" frameY="0" frameWidth="741" frameHeight="569"/>
+	<SubTexture name="smile0001" x="0" y="0" width="733" height="569" frameX="-4" frameY="0" frameWidth="741" frameHeight="569"/>
+	<SubTexture name="smile0002" x="1488" y="0" width="739" height="562" frameX="-1" frameY="-7" frameWidth="741" frameHeight="569"/>
+	<SubTexture name="smile0003" x="1488" y="0" width="739" height="562" frameX="-1" frameY="-7" frameWidth="741" frameHeight="569"/>
+	<SubTexture name="smile0004" x="740" y="0" width="741" height="561" frameX="0" frameY="-8" frameWidth="741" frameHeight="569"/>
+	<SubTexture name="smile0005" x="740" y="0" width="741" height="561" frameX="0" frameY="-8" frameWidth="741" frameHeight="569"/>
+</TextureAtlas>

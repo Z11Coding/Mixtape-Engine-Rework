@@ -1,0 +1,95 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [0, 0],
+			"anim": "danceLeft",
+			"fps": 24,
+			"name": "idle",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+		},
+		{
+			"loop": false,
+			"offsets": [-1, 53],
+			"anim": "danceRight",
+			"fps": 24,
+			"name": "idle alt",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-22, 4],
+			"anim": "singLEFT",
+			"fps": 24,
+			"name": "left0",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [16, -34],
+			"anim": "singRIGHT",
+			"fps": 24,
+			"name": "right0",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [28, -41],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "down0",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [4, -20],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "up0",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-22, 29],
+			"anim": "singLEFT-alt",
+			"fps": 24,
+			"name": "left alt",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [16, -9],
+			"anim": "singRIGHT-alt",
+			"fps": 24,
+			"name": "right alt",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [27, -22],
+			"anim": "singDOWN-alt",
+			"fps": 24,
+			"name": "down alt",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [4, -7],
+			"anim": "singUP-alt",
+			"fps": 24,
+			"name": "up alt",
+			"indices": []
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"image": "characters/Zenetta_assets-cowbell",
+	"position": [20, 70],
+	"healthicon": "z12",
+	"flip_x": false,
+	"healthbar_colors": [235, 135, 0],
+	"camera_position": [80, 40],
+	"sing_duration": 6.1,
+	"scale": 1,
+	"_editor_isPlayer": true
+}

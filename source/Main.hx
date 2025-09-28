@@ -95,12 +95,14 @@ class Main extends Sprite
 	public static var cmdArgs:Array<String> = Sys.args();
 
 	public static var fpsVar:FPSCounter;
+	public static var flxSignalCrash:Bool = false;
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
 
 	public static function main():Void
 	{
 
+		flxSignalCrash = false;
 		try
 		{
 			trace(3.forceCast(Type.ValueType.TFloat));
@@ -688,6 +690,8 @@ class Main extends Sprite
 			Application.current.window.alert(alertMsg, isUnexpectedCrash ? "Unexpected Crash!" : "Error!");
 		}
 
+		if (flxSignalCrash) FlxG.resetGame(); // Don't even bother to try and fix it just restart
+
 		backend.MusicBeatState.playErrorSound = true;
 		trace("Crash caused in: " + Type.getClassName(Type.getClass(FlxG.state)));
 		// Handle different states
@@ -837,6 +841,7 @@ class Main extends Sprite
 					dummy();
 			}
 		}
+
 		//FlxG.switchState(TransitionState.requiredTransition.targetState);
 	}
 	#end

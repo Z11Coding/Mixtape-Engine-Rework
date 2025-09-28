@@ -1,19 +1,15 @@
 package states.editors;
 
 import flixel.graphics.FlxGraphic;
-
 import flixel.system.debug.interaction.tools.Pointer.GraphicCursorCross;
 import flixel.util.FlxDestroyUtil;
-
-import openfl.net.FileReference;
-import openfl.events.Event;
-import openfl.events.IOErrorEvent;
-import openfl.utils.Assets;
-
+import objects.Bar;
 import objects.Character;
 import objects.HealthIcon;
-import objects.Bar;
-
+import openfl.events.Event;
+import openfl.events.IOErrorEvent;
+import openfl.net.FileReference;
+import openfl.utils.Assets;
 import states.editors.content.Prompt;
 import states.editors.content.PsychJsonPrinter;
 
@@ -1225,7 +1221,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			fps: 24,
 			anim: anim,
 			indices: [],
-			name: name
+			name: name,
+			prefix: name
 		};
 	}
 

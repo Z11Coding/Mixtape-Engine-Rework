@@ -1,0 +1,111 @@
+{
+  "animations": [
+    {
+      "offsets": [0, 0],
+      "loop": false,
+      "fps": 24,
+      "anim": "idle",
+      "indices": [],
+      "name": "Z_idle"
+    },
+    {
+      "offsets": [-46, 27],
+      "loop": false,
+      "fps": 24,
+      "anim": "singDOWN",
+      "indices": [],
+      "name": "Z_down"
+    },
+    {
+      "offsets": [-88, 45],
+      "loop": false,
+      "fps": 24,
+      "anim": "singUP",
+      "indices": [],
+      "name": "Z_up"
+    },
+    {
+      "offsets": [-45, -39],
+      "loop": false,
+      "fps": 24,
+      "anim": "idle-alt",
+      "indices": [],
+      "name": "alt_Z_idle"
+    },
+    {
+      "offsets": [62, -22],
+      "loop": false,
+      "fps": 24,
+      "anim": "singDOWN-alt",
+      "indices": [],
+      "name": "alt_Z_down"
+    },
+    {
+      "offsets": [161, 52],
+      "loop": false,
+      "fps": 24,
+      "anim": "singUP-alt",
+      "indices": [],
+      "name": "alt_Z_up"
+    },
+    {
+      "offsets": [-32, 11],
+      "loop": false,
+      "fps": 24,
+      "anim": "singLEFT",
+      "indices": [],
+      "name": "Z_right"
+    },
+    {
+      "offsets": [-126, 30],
+      "loop": false,
+      "fps": 24,
+      "anim": "singRIGHT",
+      "indices": [],
+      "name": "Z_left"
+    },
+    {
+      "offsets": [420, -22],
+      "loop": false,
+      "fps": 24,
+      "anim": "singLEFT-alt",
+      "indices": [],
+      "name": "alt_Z_right"
+    },
+    {
+      "offsets": [328, -27],
+      "loop": false,
+      "fps": 24,
+      "anim": "singRIGHT-alt",
+      "indices": [],
+      "name": "alt_Z_left"
+    },
+    {
+      "offsets": [0, 0],
+      "indices": [],
+      "fps": 24,
+      "anim": "speedup",
+      "loop": false,
+      "name": "Ztalk1"
+    },
+    {
+      "offsets": [0, 0],
+      "indices": [],
+      "fps": 24,
+      "anim": "outofbreath",
+      "loop": false,
+      "name": "Ztalk2"
+    }
+  ],
+  "vocals_file": "",
+  "no_antialiasing": false,
+  "image": "characters/Z_assest, characters/Z11Talking1, characters/Z11Talking2",
+  "position": [-60, -50],
+  "healthicon": "Z_icon",
+  "flip_x": false,
+  "healthbar_colors": [95, 60, 155],
+  "camera_position": [0, -220],
+  "sing_duration": 6.1,
+  "scale": 1.7,
+  "_editor_isPlayer": true
+}

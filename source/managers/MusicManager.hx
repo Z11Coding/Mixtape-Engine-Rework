@@ -17,8 +17,8 @@ class MusicManager {
         * Modded Music (TBA)
     */
     // Basically, if it's related to audio, it'll be ran through here.
-   
-    // Music specific to the Main Menu/Main Menus (Freeplay, Story Mode, etc.) 
+
+    // Music specific to the Main Menu/Main Menus (Freeplay, Story Mode, etc.)
     public static function playMenuMusic(?volume:Float, ?daSong:String, ?BPM:Float) { //It's a float because custom songs can be weird
         if (daSong != null) {
             FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/$daSong')), volume);
@@ -48,7 +48,7 @@ class MusicManager {
                 setEditorMusic(ClientPrefs.data.editorMusic, null, volume, true);
             }
         } else {
-            
+
         }
     }
 
@@ -117,35 +117,36 @@ class MusicManager {
         switch (daSong) {
             //dont question it
             case 'None':
-                        Conductor.bpm = 0;
-                    case 'Breakfast':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[1];
-                    case 'Breakfast (Pixel)':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[2];
-                    case 'Breakfast (Pico)':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[3];
-                    case 'girlfriendsRingtone':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[4];
-                    case 'stayFunky':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[5];
-                    case 'Tea Time':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[6];
-                    case 'Celebration':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[7];
-                    case 'Drippy Genesis':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[8];
-                    case 'Reglitch':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[9];
-                    case 'False Memory':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[10];
-                    case 'Funky Genesis':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[11];
-                    case 'Late Night Cafe':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[12];
-                    case 'Late Night Jersey':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[13];
-                    case 'Silly Little Sample Song':
-                        Conductor.bpm = MixtapeSettingsSubState.curBPMList[14];
+                Conductor.bpm = 0;
+                FlxG.sound.music.volume = 0;
+            case 'Breakfast':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[1];
+            case 'Breakfast (Pixel)':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[2];
+            case 'Breakfast (Pico)':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[3];
+            case 'girlfriendsRingtone':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[4];
+            case 'stayFunky':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[5];
+            case 'Tea Time':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[6];
+            case 'Celebration':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[7];
+            case 'Drippy Genesis':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[8];
+            case 'Reglitch':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[9];
+            case 'False Memory':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[10];
+            case 'Funky Genesis':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[11];
+            case 'Late Night Cafe':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[12];
+            case 'Late Night Jersey':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[13];
+            case 'Silly Little Sample Song':
+                Conductor.bpm = MixtapeSettingsSubState.curBPMList[14];
             default:
                 if (playMusic) FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('pauseMusic/$daSong')), volume);
                 Conductor.bpm = BPM;

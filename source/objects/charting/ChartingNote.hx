@@ -13,6 +13,7 @@ import shaders.RGBPalette;
  * The note object used as a data structure to spawn and manage notes during gameplay.
  *
  * If you want to make a custom note type, you should search for: "function set_noteType"
+ * or make a script like a normal person
 **/
 class ChartingNote extends FlxSprite
 {

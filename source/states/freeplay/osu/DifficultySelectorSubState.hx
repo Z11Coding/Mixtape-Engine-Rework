@@ -76,12 +76,14 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         PlayState.storyWeek = song.week;
         switch (song.songName)
         {
-            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
-                Difficulty.list = ['Hard'];
+            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta':
+                    Difficulty.list = ['Hard'];
+            case 'Rise' | 'Test Field':
+                    Difficulty.list = ['Normal'];
             case "Beat Battle":
-                Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                    Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
             default:
-                Difficulty.loadFromWeek();
+                    Difficulty.loadFromWeek();
         }
         listLength = Difficulty.list.length;
         WeekData.setDirectoryFromWeek();
@@ -142,7 +144,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                     return;
                 }
                 LoadingState.prepareToSong();
-                LoadingState.loadAndSwitchState(new PlayState());
+                LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
             }
             if (FlxG.keys.firstJustPressed() != FlxKey.NONE && missingText.visible)
 			{

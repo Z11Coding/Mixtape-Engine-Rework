@@ -66,7 +66,7 @@ class UnoTestState extends MusicBeatState {
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
 
-    var randomGenericNames:Array<String> = [
+    public static var randomGenericNames:Array<String> = [
         "Ansley Conner",
         "Giovanni Duncan",
         "Levi Carroll",
@@ -116,6 +116,7 @@ class UnoTestState extends MusicBeatState {
         normalMus.looped = true;
         FlxG.sound.list.add(normalMus);
         FlxG.sound.list.add(lastcardMus);
+        if (FlxG.sound.music != null && FlxG.sound.music.playing) FlxG.sound.music.pause();
 
         idleTimer = new FlxTimer();
         refreshTimer = new FlxTimer();
@@ -304,6 +305,7 @@ class UnoTestState extends MusicBeatState {
             // Create UNO game with custom cards
             unoGame = new UnoGame(null, true, customCards.length > 0 ? customCards : null);
 
+            UnoRules.WINNING_SCORE = 500;
             setupGameEvents();
 
             trace("UNO game initialized successfully");

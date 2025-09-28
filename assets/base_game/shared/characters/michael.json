@@ -1,0 +1,56 @@
+{
+	"animations": [
+		{
+			"offsets": [87, -329],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFT",
+			"indices": [],
+			"name": "MICHAEL LEFT"
+		},
+		{
+			"offsets": [60, -309],
+			"loop": false,
+			"fps": 24,
+			"anim": "singDOWN",
+			"indices": [],
+			"name": "michael down"
+		},
+		{
+			"offsets": [54, -230],
+			"loop": false,
+			"fps": 24,
+			"anim": "singUP",
+			"indices": [],
+			"name": "MICHAEL UP"
+		},
+		{
+			"offsets": [30, -323],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHT",
+			"indices": [],
+			"name": "MICHAEL RIGHT"
+		},
+		{
+			"offsets": [70, -250],
+			"loop": false,
+			"fps": 24,
+			"anim": "idle",
+			"indices": [],
+			"name": "MICHAEL IDLE"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": true,
+	"score_name": "Michael",
+	"image": "characters/michael_assets",
+	"position": [0, 0],
+	"healthicon": "michael",
+	"flip_x": false,
+	"healthbar_colors": [240, 180, 115],
+	"camera_position": [50, 280],
+	"sing_duration": 6.1,
+	"scale": 1,
+	"_editor_isPlayer": false
+}

@@ -33,7 +33,7 @@ class PongUnoSubstate extends MusicBeatSubstate {
     private var gameEnded:Bool = false;
     private var leftPlayerScore:Int = 0;
     private var rightPlayerScore:Int = 0;
-    private var ballSpeed:Float = 200;
+    private var ballSpeed:Float = 700;
     private var paddleSpeed:Float = 300;
 
     // Players

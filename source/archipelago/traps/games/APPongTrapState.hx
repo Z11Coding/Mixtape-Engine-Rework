@@ -9,6 +9,7 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import stages.StageData;
 import yutautil.KonamiTracker;
 import yutautil.games.pong.PongGameState;
 import yutautil.games.pong.backend.PongGame.PongPlayer;
@@ -21,9 +22,9 @@ import yutautil.games.pong.backend.PongPaddle.PongAIDifficulty;
  */
 class APPongTrapState extends PongGameState {
     // Trap-specific properties
-    private var previousState:MusicBeatState;
+    private var previousState:Class<MusicBeatState>;
     private var trapDifficulty:Int = 2; // 1-5 scale
-    private var requiredScore:Int = 5;
+    private var requiredScore:Int = 2;
     private var trapInfoText:FlxText;
     private var speedEscalationTimer:FlxTimer;
     private var escalationActive:Bool = true;
@@ -31,7 +32,7 @@ class APPongTrapState extends PongGameState {
     private var isAPTrapMode:Bool = true;
 
     public function new(?previousState:MusicBeatState = null, ?difficulty:Int = 2) {
-        this.previousState = previousState;
+        this.previousState = Type.getClass(previousState);
         this.trapDifficulty = difficulty != null ? difficulty : 2;
         super();
     }
@@ -175,7 +176,7 @@ class APPongTrapState extends PongGameState {
     private function addTrapWarningUI():Void {
         // Add prominent trap warning at the top
         var difficultyName = getTrapDifficultyName(trapDifficulty);
-        trapInfoText = new FlxText(10, 10, FlxG.width - 20,
+        trapInfoText = new FlxText(10, 30, FlxG.width - 20,
             "⚠️ ARCHIPELAGO PONG TRAP ⚠️\n" +
             "Difficulty: " + difficultyName + "\n" +
             "Score " + requiredScore + " points to survive! Losing means DEATH!", 16);
@@ -205,9 +206,10 @@ class APPongTrapState extends PongGameState {
                     new FlxTimer().start(2.0, function(timer) {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
                         if (previousState != null) {
-                            MusicBeatState.switchState(previousState);
+                            LoadingState.loadAndSwitchState(Type.createInstance(previousState, []));
                         } else {
-                            MusicBeatState.switchState(new states.MainMenuState());
+                            StageData.loadDirectory(PlayState.SONG);
+                            LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                         }
                     });
                 } else {
@@ -215,7 +217,7 @@ class APPongTrapState extends PongGameState {
                     updateInstructionText("AI WINS! PREPARE TO DIE!");
                     new FlxTimer().start(2.0, function(timer) {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
-                        TrapDeathHandler.forceDeath("Lost Pong Challenge", previousState, previousState);
+                        TrapDeathHandler.forceDeath("Lost Pong Challenge", Type.createInstance(previousState, []), Type.createInstance(previousState, []));
                     });
                 }
             };

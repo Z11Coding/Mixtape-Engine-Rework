@@ -6,11 +6,14 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import games.uno.UnoTestState;
+import games.uno.backend.*;
+import games.uno.backend.UnoCPU.UnoDifficulty;
 import games.uno.backend.UnoCard.UnoColor;
 import games.uno.backend.UnoCard;
 import games.uno.backend.UnoGame;
 import games.uno.backend.UnoPlayer;
 import games.uno.backend.UnoRules;
+import stages.StageData;
 
 /**
  * Archipelago UNO Trap State
@@ -21,11 +24,11 @@ import games.uno.backend.UnoRules;
 class APUnoTrapState extends UnoTestState {
 
     // Trap-specific properties
-    private var previousState:MusicBeatState;
+    private var previousState:Class<MusicBeatState>;
     private var trapInfoText:FlxText;
 
     public function new(?previousState:MusicBeatState = null) {
-        this.previousState = previousState;
+        this.previousState = Type.getClass(previousState);
         super();
     }
 
@@ -75,16 +78,17 @@ class APUnoTrapState extends UnoTestState {
                         updateInstructionText("YOU WON THE UNO TRAP! Returning to game...");
                         new FlxTimer().start(2.0, function(timer) {
                             if (previousState != null) {
-                                MusicBeatState.switchState(previousState);
+                                LoadingState.loadAndSwitchState(Type.createInstance(previousState, []));
                             } else {
-                                MusicBeatState.switchState(new states.MainMenuState());
+                                StageData.loadDirectory(PlayState.SONG);
+							    LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                             }
                         });
                     } else {
                         // Player lost - force death
                         updateInstructionText("AI WINS UNO! PREPARE TO DIE!");
                         new FlxTimer().start(2.0, function(timer) {
-                            TrapDeathHandler.forceDeath("Lost UNO Challenge", previousState, previousState);
+                            TrapDeathHandler.forceDeath("Lost UNO Challenge", Type.createInstance(previousState, []), Type.createInstance(previousState, []));
                         });
                     }
                 };
@@ -101,11 +105,12 @@ class APUnoTrapState extends UnoTestState {
         // Randomly enable/disable various UNO rules for challenge
         UnoRules.ALLOW_STACKING = FlxG.random.bool(60); // 60% chance for stacking
         UnoRules.ALLOW_JUMP_IN = FlxG.random.bool(30); // 30% chance for jump-in
-        UnoRules.DRAW_UNTIL_PLAYABLE = FlxG.random.bool(70); // 70% chance must play if possible
+        UnoRules.DRAW_UNTIL_PLAYABLE = false; // 0% chance because OH MY GOD is this awful sometimes
         UnoRules.PROGRESSIVE_UNO = FlxG.random.bool(20); // 20% chance for progressive UNO
         UnoRules.SEVEN_ZERO_RULE = FlxG.random.bool(40); // 40% chance for 7-0 rule
         UnoRules.WILD_DRAW_FOUR_CHALLENGE = FlxG.random.bool(80); // 80% chance for challenges
         UnoRules.ALLOW_ANY_PLUS_STACK = FlxG.random.bool(50); // 50% chance for any plus stacking
+        UnoRules.WINNING_SCORE = 1; // First to get any amount of points wins
 
         trace("APUnoTrap: Randomized rules - Stacking:" + UnoRules.ALLOW_STACKING +
               " JumpIn:" + UnoRules.ALLOW_JUMP_IN +
@@ -121,14 +126,40 @@ class APUnoTrapState extends UnoTestState {
 
         // Modify existing UI colors to warning theme
         if (bgSprite != null) {
-            bgSprite.color = FlxColor.fromRGB(25, 15, 15); // Dark red tint
+            bgSprite.color = FlxColor.fromRGB(75, 15, 15); // Dark red tint
         }
     }
 
     private function startTrapGame():Void {
         if (unoGame != null) {
+
+            // Add human player
+            var humanPlayer = new UnoPlayer("human", '${APEntryState.ap.slot} (You)', true);
+            unoGame.addPlayer(humanPlayer);
+
+            var diffArray = [UnoDifficulty.EASY, UnoDifficulty.NORMAL, UnoDifficulty.HARD, UnoDifficulty.EXPERT];
+
+            // Add CPU players with proper difficulty distribution
+            var difficulties = [diffArray[FlxG.random.int(0, diffArray.length-1)], diffArray[FlxG.random.int(0, diffArray.length-1)], diffArray[FlxG.random.int(0, diffArray.length-1)]];
+            for (i in 1...4) { // Add 3 CPU players
+                var difficulty = difficulties[(i - 1) % difficulties.length];
+                var diffName = switch (difficulty) {
+                    case EASY: "Easy";
+                    case NORMAL: "Normal";
+                    case HARD: "Hard";
+                    case EXPERT: "Expert";
+                }
+                var cpu = new UnoCPU('cpu$i', UnoTestState.randomGenericNames[FlxG.random.int(0, UnoTestState.randomGenericNames.length)], difficulty);
+                unoGame.addPlayer(cpu);
+            }
             // Start the UNO game immediately
             unoGame.startGame();
+            selectedCardIndex = -1;
+            isFirstCardPlayed = false; // Reset first card animation
+            resetCardSelection(); // Clear any card selection
+            previousHandCards = []; // Reset hand tracking
+            isPlayingCard = false; // Reset animation state
+            updateDisplay();
             updateInstructionText("TRAP ACTIVE! Win this round with randomized rules or die!");
         }
     }

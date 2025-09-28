@@ -1,14 +1,14 @@
 package stages;
 
-import stages.PicoCapableStage;
+import cutscenes.CutsceneHandler;
 import flixel.FlxSubState;
+import flxanimate.motion.AdjustColor;
+import objects.Character;
+import shaders.AdjustColorShader;
+import stages.PicoCapableStage;
 import stages.objects.PhillyLights;
 import stages.objects.PhillyTrain;
 import stages.objects.PicoDopplegangerSprite;
-import shaders.AdjustColorShader;
-import flxanimate.motion.AdjustColor;
-import cutscenes.CutsceneHandler;
-import objects.Character;
 
 class PhillyTrainErect extends BaseStage
 {
@@ -52,12 +52,12 @@ class PhillyTrainErect extends BaseStage
 
 		phillyStreet = new BGSprite('philly/erect/street', -40, 50);
 		add(phillyStreet);
-		
 
-		if(!seenCutscene 
-			&& PlayState.SONG.player1 == "pico-playable" 
+
+		if(!seenCutscene
+			&& PlayState.SONG.player1 == "pico-playable"
 			&& PlayState.SONG.player2 == "pico") setStartCallback(ughIntro);
-		
+
 		new PhillyLights(phillyStreet,phillyWindow.x,phillyWindow.y,phillyLightsColors);
 	}
 
@@ -99,6 +99,10 @@ class PhillyTrainErect extends BaseStage
 		super.update(elapsed);
 	}
 
+	override function startSong() {
+		cutsceneHandler.destroy();
+	}
+
 	override function beatHit()
 	{
 		phillyTrain.beatHit(curBeat);
@@ -119,6 +123,7 @@ class PhillyTrainErect extends BaseStage
 		}
 		super.openSubState(SubState);
 	}
+
 	function doFlash()
 	{
 		var color:FlxColor = FlxColor.WHITE;
@@ -182,17 +187,17 @@ class PhillyTrainErect extends BaseStage
 					else dad.visible = true;
 				}
 			else boyfriend.visible = dad.visible = true;
-			
+
 			camHUD.visible = true;
 
 			//Crear callbacks
 			boyfriend.animation.finishCallback = null;
 			gf.animation.finishCallback = null;
-	
+
 			if (audioPlaying != null) audioPlaying.stop();
 			pico.cancelSounds();
 			imposterPico.cancelSounds();
-			
+
 			if (explode)
 			{
 				if(playerShoots){
@@ -227,7 +232,7 @@ class PhillyTrainErect extends BaseStage
 						{
 							note.ignoreNote = true;
 						}
-					} 
+					}
 				}
 			}
 			//Dance!

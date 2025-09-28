@@ -1,0 +1,32 @@
+{
+	"dialogue": [
+		{
+			"speed": 0.035,
+			"portrait": "bf",
+			"boxState": "normal",
+			"expression": "pissed",
+			"text": "boop!?"
+		},
+		{
+			"speed": 0.25,
+			"portrait": "michael",
+			"boxState": "normal",
+			"expression": "talk",
+			"text": "meow..."
+		},
+		{
+			"speed": 0.05,
+			"portrait": "bf",
+			"boxState": "normal",
+			"expression": "talk",
+			"text": "boop...            :)"
+		},
+		{
+			"speed": 0.05,
+			"portrait": "michael",
+			"boxState": "angry",
+			"expression": "talk",
+			"text": "M  E  O  W  ."
+		}
+	]
+}

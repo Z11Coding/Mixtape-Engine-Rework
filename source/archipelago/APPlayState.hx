@@ -5,6 +5,7 @@ import flixel.FlxObject;
 import flixel.input.keyboard.FlxKey;
 import flixel.tweens.misc.NumTween;
 import flixel.util.FlxDestroyUtil;
+import objects.*;
 import objects.Character;
 import objects.Note;
 import objects.playfields.PlayField;
@@ -118,6 +119,11 @@ class APPlayState extends PlayState {
 
 	var effectendsin:FlxText;
 
+    var resistanceBar:Bar;
+    var zenetta:Character;
+    var resistanceAmount:Float = 0;
+
+
     function generateGibberish(length:Int, exclude:String):String
 	{
 		var alphabet:String = "abcdefghijklmnopqrstuvwxyz";
@@ -141,8 +147,9 @@ class APPlayState extends PlayState {
 
     override public function create()
     {
+        allowDebugKeys = false;
         if (ghostChat) triggerGhostChat();
-
+        if (releasethebeast) startResisting();
 
         instance = this; // For traps and items
         if (APEntryState.inArchipelagoMode)
@@ -166,7 +173,7 @@ class APPlayState extends PlayState {
             trace("Scrolling changed to " + (effectiveDownScroll ? "down" : "up") + ", as for some reason, it wasn't before.");
         }
 
-        currentMod = backend.WeekData.getCurrentWeek().folder;
+        currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
 
         if (!APEntryState.inArchipelagoMode)
         {
@@ -1149,6 +1156,10 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.SONG = PlayState.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
+                                FlxG.save.data.score = comboManager.songScore;
+                                FlxG.save.data.rating = comboManager.ratingPercent;
+                                FlxG.save.data.misses = comboManager.songMisses;
+                                FlxG.save.data.health = health;
                                 FlxG.save.flush();
 
                                 Difficulty.list = Difficulty.defaultList.copy();
@@ -1392,6 +1403,20 @@ class APPlayState extends PlayState {
         } else {
             trace('CPU Controlled: ' + 'showcase allowed');
         }
+
+        resistanceBar = new Bar(FlxG.width - 340, 400, 'mechanics/general/resistancebarv1', function() return resistanceAmount);
+        resistanceBar.scrollFactor.set();
+        resistanceBar.cameras = [camHUD];
+        resistanceBar.visible = false;
+        resistanceBar.angle = 270;
+        add(resistanceBar);
+        resistanceBar.setColors(0xFFFFFFFF, 0xFFFD00A9);
+
+        zenetta = new Character(boyfriendGroup.x + dadGroup.x, boyfriendGroup.y, 'Zenetta-cowbell-p', true, BF);
+        zenetta.scrollFactor.set(0.95, 0.95);
+        zenetta.alpha = 0.0000000001;
+        zenetta.cameras = [camGame];
+        add(zenetta);
     }
 
     public function addEffect(e:String)
@@ -1484,6 +1509,16 @@ class APPlayState extends PlayState {
         Sys.println('');*/
         super.startCountdown();
         return true;
+    }
+
+    var releasethebeast:Bool = false;
+    public function startResisting()
+    {
+        if (resistanceBar != null) resistanceBar.visible = true;
+        resistanceAmount = 0;
+        releasethebeast = true;
+        FlxG.sound.play(Paths.sound('streamervschat/releasethebeast'), 1, false);
+        trace("RESISTANCE MODE ACTIVATED!");
     }
 
     public static var ghostChat:Bool = false;
@@ -2137,7 +2172,30 @@ class APPlayState extends PlayState {
 
         if (bfAscend) boyfriendGroup.y += 0.01;
 
+        if (releasethebeast) {
+            if (resistanceAmount > 1) resistanceAmount = 1;
+            if (resistanceAmount <= 0) resistanceAmount = 0;
+            if (resistanceAmount == 1) health -= (0.00051 / (60 / ClientPrefs.data.framerate)) * dmgMultiplier;
+
+            zenetta.alpha = resistanceAmount;
+            boyfriend.alpha = (1.0000000001 - resistanceAmount);
+            zenetta.x = boyfriend.x;
+            zenetta.y = boyfriend.y - 280;
+            bfkilledcheck = true;
+        }
+
         super.update(elapsed);
+    }
+
+    override function opponentNoteHit(note:Note, field:PlayField):Void {
+        super.opponentNoteHit(note, field);
+
+        if (releasethebeast) {
+            if (FlxG.sound.music.time > (FlxG.sound.music.length/2))
+                if (resistanceAmount < 1) resistanceAmount += 0.009;
+            else
+                if (resistanceAmount < 1) resistanceAmount += 0.005;
+        }
     }
 
     public var bfAscend:Bool = false;
@@ -2195,8 +2253,6 @@ class APPlayState extends PlayState {
         if (((((((archipelago.APItem.activeItem != null))))))) // Why was this GONE???
             archipelago.APItem.activeItem = null;
 
-
-
 		ClientPrefs.data.downScroll = ogScroll;
 
         if (FlxG.save.data.manualOverride)
@@ -2224,7 +2280,7 @@ class APPlayState extends PlayState {
         if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
             ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
 
-
+        ghostChat = false;
         super.endSong();
 
 
@@ -2398,6 +2454,14 @@ class APPlayState extends PlayState {
                 }
             });
         }
+
+        super.noteMiss(daNote, field);
+
+        if (releasethebeast) {
+            if (daNote.noteType == '')
+                if (resistanceAmount < 1)
+                    resistanceAmount += 0.053;
+        }
     }
 
     public var check:Int = 0;
@@ -2417,6 +2481,22 @@ class APPlayState extends PlayState {
         }
 
         super.goodNoteHit(note, field);
+
+        if (releasethebeast && !note.gfNote) {
+            if (resistanceAmount > 0) resistanceAmount -= 0.0080;
+            if (note.noteType == 'Anti-Horny Note') resistanceAmount -= 0.03;
+            if (note.noteType == 'Bat Note') resistanceAmount -= 0.5;
+
+            var animToPlay:String = Note.keysShit.get(PlayState.mania).get('singAnims')[note.noteData] + "-alt";
+            if(note.isSustainNote)
+            {
+                var holdAnim:String = animToPlay + '-hold';
+                if(zenetta.animation.exists(holdAnim)) animToPlay = holdAnim;
+            }
+
+            zenetta.playAnim(animToPlay, true);
+            zenetta.holdTimer = 0;
+        }
     }
 
     function specialNoteHit(note:Note, field:PlayField):Void
@@ -2565,6 +2645,13 @@ class APPlayState extends PlayState {
 				terminateMessage.visible = false;
 		}
         super.beatHit();
+
+        if (releasethebeast) {
+            if (resistanceAmount < 1) resistanceAmount += 0.005;
+            var anim:String = zenetta.getAnimationName();
+            if (curBeat % zenetta.danceEveryNumBeats == 0 && !zenetta.stunned)
+                zenetta.dance();
+        }
     }
 
     override function closeSubState()

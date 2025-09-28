@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="michael_assets.png">
+	<!-- Created with Adobe Animate version 21.0.7.42652 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="MICHAEL IDLE0000" x="0" y="0" width="512" height="432" frameX="0" frameY="-77" frameWidth="512" frameHeight="512"/>
+	<SubTexture name="MICHAEL IDLE0001" x="0" y="0" width="512" height="432" frameX="0" frameY="-77" frameWidth="512" frameHeight="512"/>
+	<SubTexture name="MICHAEL IDLE0002" x="512" y="0" width="512" height="471" frameX="0" frameY="-39" frameWidth="512" frameHeight="512"/>
+	<SubTexture name="MICHAEL IDLE0003" x="512" y="0" width="512" height="471" frameX="0" frameY="-39" frameWidth="512" frameHeight="512"/>
+	<SubTexture name="MICHAEL IDLE0004" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0005" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0006" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0007" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0008" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0009" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0010" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0011" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL IDLE0012" x="1024" y="0" width="512" height="512"/>
+	<SubTexture name="MICHAEL LEFT0000" x="1536" y="0" width="497" height="421" frameX="0" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0001" x="1536" y="0" width="497" height="421" frameX="0" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0002" x="0" y="512" width="447" height="421" frameX="-47" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0003" x="0" y="512" width="447" height="421" frameX="-47" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0004" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0005" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0006" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0007" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0008" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0009" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0010" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0011" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL LEFT0012" x="447" y="512" width="440" height="421" frameX="-60" frameY="0" frameWidth="500" frameHeight="421"/>
+	<SubTexture name="MICHAEL RIGHT0000" x="887" y="512" width="504" height="424"/>
+	<SubTexture name="MICHAEL RIGHT0001" x="887" y="512" width="504" height="424"/>
+	<SubTexture name="MICHAEL RIGHT0002" x="1391" y="512" width="481" height="424" frameX="-1" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0003" x="1391" y="512" width="481" height="424" frameX="-1" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0004" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0005" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0006" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0007" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0008" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0009" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0010" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0011" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL RIGHT0012" x="0" y="936" width="449" height="424" frameX="-3" frameY="0" frameWidth="504" frameHeight="424"/>
+	<SubTexture name="MICHAEL UP0000" x="449" y="936" width="492" height="524" frameX="0" frameY="0" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0001" x="449" y="936" width="492" height="524" frameX="0" frameY="0" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0002" x="941" y="936" width="492" height="512" frameX="-1" frameY="-12" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0003" x="941" y="936" width="492" height="512" frameX="-1" frameY="-12" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0004" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0005" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0006" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0007" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0008" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0009" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0010" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0011" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="MICHAEL UP0012" x="1433" y="936" width="492" height="480" frameX="-1" frameY="-44" frameWidth="493" frameHeight="524"/>
+	<SubTexture name="michael down0000" x="0" y="1460" width="528" height="407" frameX="-2" frameY="-33" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0001" x="0" y="1460" width="528" height="407" frameX="-2" frameY="-33" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0002" x="528" y="1460" width="540" height="423" frameX="0" frameY="-17" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0003" x="528" y="1460" width="540" height="423" frameX="0" frameY="-17" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0004" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0005" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0006" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0007" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0008" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0009" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0010" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0011" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+	<SubTexture name="michael down0012" x="1068" y="1460" width="542" height="442" frameX="-1" frameY="0" frameWidth="543" frameHeight="442"/>
+</TextureAtlas>

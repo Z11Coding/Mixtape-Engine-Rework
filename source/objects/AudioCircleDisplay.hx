@@ -8,19 +8,14 @@ import shapeEx.Rect;
 class AudioCircleDisplay extends FlxSpriteGroup
 {
 	public var analyzer:SpectralAnalyzer;
-
 	public var snd:FlxSound;
-
-	public var inRelax:Bool = false;
 
 	var _height:Int;
 	public var line:Int;
 
 	public var Radius:Float = 0;
-
 	public var symmetry:Bool = true;
 	public var Number:Int = 1;
-
 	public var Rotate:Bool = false;
 	public var RotateSpeed:Float = 1;
 	public var FluentMode:Bool = true;
@@ -65,13 +60,8 @@ class AudioCircleDisplay extends FlxSpriteGroup
 		@:privateAccess
 		if (snd != null)
 		{
-		    if(!inRelax){
-    			analyzer = new SpectralAnalyzer(snd._channel.__audioSource, Std.int(line * 1 + Math.abs(0.05 * (4 - ClientPrefs.data.audioDisplayQuality))), 1, 5);
-    			analyzer.fftN = 256 * ClientPrefs.data.audioDisplayQuality;
-    		}else{
-    		    analyzer = new SpectralAnalyzer(snd._channel.__audioSource, Std.int(line * 1 + Math.abs(0.05 * (10 - ClientPrefs.data.RelaxAudioDisplayQuality))), 1, 5);
-    			analyzer.fftN = 256 * ClientPrefs.data.RelaxAudioDisplayQuality;
-    		}
+			analyzer = new SpectralAnalyzer(snd._channel.__audioSource, Std.int(line * 1 + Math.abs(0.05 * (4 - ClientPrefs.data.audioDisplayQuality))), 1, 5);
+			analyzer.fftN = 256 * ClientPrefs.data.audioDisplayQuality;
 		}
 	}
 
@@ -110,18 +100,18 @@ class AudioCircleDisplay extends FlxSpriteGroup
 
 		amplitude = Helpamplitude / 5;
 
-        if (Rotate){
-		    for (newLine in 0...(members.length - 1)){
-		        if (FluentMode){
-		            members[newLine].angle += elapsed * RotateSpeed * 20;
-		        }
-    		    var correctedAngle = members[newLine].angle - 90;
-    			var radians = correctedAngle * Math.PI / 180;
-    			var moveX = Math.cos(radians) * Radius;
-    			var moveY = Math.sin(radians) * Radius;
-    			members[newLine].x = LineX + moveX;
-    			members[newLine].y = LineY + moveY;
-    	    }
+		if (Rotate){
+			for (newLine in 0...(members.length - 1)){
+				if (FluentMode){
+						members[newLine].angle += elapsed * RotateSpeed * 20;
+				}
+				var correctedAngle = members[newLine].angle - 90;
+				var radians = correctedAngle * Math.PI / 180;
+				var moveX = Math.cos(radians) * Radius;
+				var moveY = Math.sin(radians) * Radius;
+				members[newLine].x = LineX + moveX;
+				members[newLine].y = LineY + moveY;
+			}
 		}
 
 		super.update(elapsed);
@@ -139,12 +129,12 @@ class AudioCircleDisplay extends FlxSpriteGroup
 
 	var animFrame:Int = 0;
 
-    var rotationOffset:Float = 0;      // 自动旋转的偏移量
-    var rotationSpeed:Float = 20;      // 基础旋转速度（可调快）
-    var stepSize:Int = 5;             // 每次跳跃的频段数
+	var rotationOffset:Float = 0;      // 自动旋转的偏移量
+	var rotationSpeed:Float = 20;      // 基础旋转速度（可调快）
+	var stepSize:Int = 5;             // 每次跳跃的频段数
 
-    function updateLine(elapsed:Float) {
-        if (getValues == null) return;
+	function updateLine(elapsed:Float) {
+		if (getValues == null) return;
 
 		if (!FluentMode){
 			rotationOffset = (rotationOffset + rotationSpeed * elapsed) % line;
@@ -173,7 +163,7 @@ class AudioCircleDisplay extends FlxSpriteGroup
 					}
 				}
 			}
-		}else{
+		} else {
 			for (i in 0...line)
 			{
 				if (i >= line / 2 && symmetry)
@@ -196,8 +186,7 @@ class AudioCircleDisplay extends FlxSpriteGroup
 				}
 			}
 		}
-
-    }
+	}
 
 	public function changeAnalyzer(snd:FlxSound)
 	{
@@ -215,5 +204,4 @@ class AudioCircleDisplay extends FlxSpriteGroup
 			members[i].y = this.y - members[i].scale.y / 2;
 		}
 	}
-
 }

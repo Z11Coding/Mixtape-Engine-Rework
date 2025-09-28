@@ -29,8 +29,8 @@ class RankingSubstate extends MusicBeatSubstate
 	var comboRankLimit:Int = 0;
 	var accRankLimit:Int = 0;
 
-	public static var comboRankSetLimit:Int = APInfo.comboRankSetLimit;
-	public static var accRankSetLimit:Int = APInfo.accRankSetLimit;
+	var comboRankSetLimit:Int = APInfo.comboRankSetLimit;
+	var accRankSetLimit:Int = APInfo.accRankSetLimit;
 	public function new()
 	{
 		super();
@@ -132,6 +132,7 @@ class RankingSubstate extends MusicBeatSubstate
 		} else {
 			trace("in AP");
 			if (accRankSetLimit != 0 || comboRankSetLimit != 0) {
+				hint.text = '';
 				var percent:Float = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 4);
 				if (accRankLimit > accRankSetLimit) hint.text = 'Accuracy Rank not high enough! (${accuracyNeeded - percent}% off.)';
 				if (comboRankLimit > comboRankSetLimit) hint.text += '\nCombo Rank not high enough! (${comboRankLimit - comboRankSetLimit} ranks off.)';
@@ -199,7 +200,9 @@ class RankingSubstate extends MusicBeatSubstate
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 
-					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+					trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
+					trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
+					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
 						trace("Sending checks for all checked notes...");
 						for (note in APPlayState.instance.checkedNotes) {
 							trace("Sending check for note: " + note);
@@ -214,8 +217,6 @@ class RankingSubstate extends MusicBeatSubstate
 
 
 						var locationId = (PlayState.SONG.song);
-						trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
-						trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
 						if (APInfo.unlockMethod != "Note Checks") {
 							trace(archipelago.APPlayState.currentMod);
 							// if (archipelago.APPlayState.currentMod.trim() != "")
@@ -472,7 +473,7 @@ class RankingSubstate extends MusicBeatSubstate
 					ranking = "F";
 				break;
 			}
-			accuracyNeeded = accConditions[accRankSetLimit];
+			accuracyNeeded = accConditions[accRankSetLimit-1];
 		}
 		return ranking;
 	}

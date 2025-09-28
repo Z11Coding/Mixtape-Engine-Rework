@@ -45,26 +45,30 @@ typedef APSettings =
 
 typedef APOptions =
 {
-    var	progression_balancing:String;
-    var	accessibility:String;
-    var	mods_enabled:Bool;
-    var	deathlink:Bool;
-    var	unlock_type:String;
-    var	unlock_method:String;
+	var	progression_balancing:String;
+	var	accessibility:String;
+	var	mods_enabled:Bool;
+	var	deathlink:Bool;
+	var	unlock_type:String;
+	var	unlock_method:String;
 	var	graderequirement:String;
 	var	accrequirement:String;
-    var	songList:Array<String>;
-    var	ticket_percentage:Int;
-    var	ticket_win_percentage:Int;
-    var	chart_modifier_change_chance:Int;
-    var	trapAmount:Int;
-    var	bbcWeight:Int;
-    var	ghostChatWeight:Int;
-    var	svcWeight:Int;
-    var	tutorialWeight:Int;
-    var	fakeTransWeight:Int;
-    var	shieldWeight:Int;
-    var	MHPWeight:Int;
+	var	songList:Array<String>;
+	var	ticket_percentage:Int;
+	var	ticket_win_percentage:Int;
+	var	chart_modifier_change_chance:Int;
+	var	trapAmount:Int;
+	var	bbcWeight:Int;
+	var	ghostChatWeight:Int;
+	var	svcWeight:Int;
+	var	tutorialWeight:Int;
+	var songswitchWeight:Int;
+	var resistanceWeight:Int;
+	var unoWeight:Int;
+	var pongWeight:Int;
+	var	fakeTransWeight:Int;
+	var	shieldWeight:Int;
+	var	MHPWeight:Int;
 	var	song_limit:Int;
 	// New settings for APAdvancedSettingsState
 	var	include_secrets:Bool;
@@ -162,19 +166,23 @@ class APEntryState extends MusicBeatState
 			ticket_win_percentage: 15,
 			chart_modifier_change_chance: 15,
 			trapAmount: 15,
-			bbcWeight: 15,
-			ghostChatWeight: 15,
-			svcWeight: 15,
-			tutorialWeight: 15,
-			fakeTransWeight: 15,
-			shieldWeight: 15,
-			MHPWeight: 15,
-			song_limit: 320,
+			bbcWeight: 5,
+			ghostChatWeight: 5,
+			svcWeight: 5,
+			tutorialWeight: 5,
+			songswitchWeight: 5,
+			resistanceWeight: 5,
+			unoWeight: 5,
+			pongWeight: 5,
+			fakeTransWeight: 5,
+			shieldWeight: 5,
+			MHPWeight: 5,
+			song_limit: 5,
 			// New settings for APAdvancedSettingsState
 			include_secrets: true,
 			include_vanilla: true,
 			starting_song: "Tutorial",
-			victory_song: "Tutorial"
+			victory_song: "Bopeebo"
 		}
 	};
 
@@ -464,7 +472,7 @@ class APEntryState extends MusicBeatState
 		fullSongCount = slotData.fullSongCount;
 		APInfo.ticketWinCount = slotData.ticketWinCount;
 		APInfo.ticketCount = 0;
-		APInfo.grabLimits(slotData.gradeNeeded, slotData.accuracyNeeded);
+		APInfo.grabLimits(slotData.gradeNeeded[0], slotData.accuracyNeeded[0]);
 		APInfo.unlockMethod = slotData.locationType;
 		//APInfo.unlockType = slotData.locationMethod;
 		FlxG.save.flush();
@@ -775,6 +783,14 @@ var uri = '${#if sys (_hostInput.text == "localhost" || _hostInput.text == "127.
 				+ gameSettings.FNF.svcWeight
 				+ "\nTutorial Weight: "
 				+ gameSettings.FNF.tutorialWeight
+				+ "\nSong Switch Weight: "
+				+ gameSettings.FNF.songswitchWeight
+				+ "\nResistance Weight: "
+				+ gameSettings.FNF.resistanceWeight
+				+ "\nUno Weight: "
+				+ gameSettings.FNF.unoWeight
+				+ "\nPong Weight: "
+				+ gameSettings.FNF.pongWeight
 				+ "\nFake Transition Weight: "
 				+ gameSettings.FNF.fakeTransWeight
 				+ "\nShield Weight: "

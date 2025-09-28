@@ -3,6 +3,7 @@ import archipelago.APEntryState;
 import backend.WeekData;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.input.keyboard.FlxKey;
+import objects.AudioCircleDisplay;
 import yutautil.ChanceSelector.Chance;
 
 using yutautil.CollectionUtils;
@@ -15,6 +16,8 @@ typedef Category = {
 
 class CategoryState extends MusicBeatState
 {
+	var circleoffun:AudioCircleDisplay;
+
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
@@ -146,6 +149,7 @@ class CategoryState extends MusicBeatState
 	override function create()
 	{
 		MemoryUtil.clearMajor();
+
 		menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
 		FlxTransitionableState.skipNextTransOut = false;
 
@@ -253,6 +257,17 @@ class CategoryState extends MusicBeatState
 		bg.color = FlxColor.PURPLE;
 		bg.scrollFactor.set();
 		add(bg);
+
+		circleoffun = new AudioCircleDisplay(FlxG.sound.music, FlxG.width/2, FlxG.height/2, Std.int(FlxG.width/2), Std.int(FlxG.height/2), 420, 5, FlxColor.PURPLE, 80, true, 1);
+		circleoffun.scrollFactor.set();
+		circleoffun.Rotate = true;
+		//circleoffun.screenCenter();
+		//circleoffun.y += 3000;
+		add(circleoffun);
+		/*FlxTween.tween(circleoffun, {y: circleoffun.y - 3000}, Conductor.crochet / 1300, {
+			startDelay: 5,
+			ease: FlxEase.quadOut
+		});*/
 
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);

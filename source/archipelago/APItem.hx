@@ -254,7 +254,19 @@ class APItem {
                     t.isTrap = true;
                 });
             case "Pong Challenge":
-                return new APPongTrap();
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Ok but can you beat the Pong Master?', "APItem: Pong Challenge", true);
+                    APPlayState.instance.paused = true;
+                    APPlayState.instance.canResync = false;
+                    FlxG.camera.followLerp = 0;
+                    LoadingState.noteCache = [];
+                    states.PlayState.curChart = [];
+                    MusicBeatState.allowNuke = true;
+                    FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Math Problem Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     // Initialize pending damage system if not already done
@@ -306,7 +318,13 @@ class APItem {
             case "UNO Challenge":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
-                    TrapGameManager.launchUnoTrap(states.PlayState.instance);
+                    APPlayState.instance.paused = true;
+                    APPlayState.instance.canResync = false;
+                    FlxG.camera.followLerp = 0;
+                    LoadingState.noteCache = [];
+                    states.PlayState.curChart = [];
+                    MusicBeatState.allowNuke = true;
+                    FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -392,38 +410,16 @@ class APItem {
                 }, true, true);
 
             case "Song Switch Trap":
-                return new APItem(name, ConditionHelper.Everywhere().funcAndReturn(function(c) {
+                return new APItem(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true;
                     });
                 }), function() {
-                    if (FlxG.random.bool(50)) {
+                    popup('I don\'t like this song. Lets play something else.', "APItem: Song Switch Trap", true);
+                    /*if (FlxG.random.bool(50)) {
                         trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
-                        if (!FlxG.save.data.manualOverride) {
-                            FlxG.save.data.manualOverride = true;
-                            FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
-                            FlxG.save.data.difficulties = Difficulty.list; // just in case
-                            FlxG.save.data.SONG = states.PlayState.SONG;
-                            FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
-                            FlxG.save.data.songPos = FlxG.sound.music.time;
-                            FlxG.save.flush();
 
-                            var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
-                            var curSong = FlxG.random.int(0, specialSongList.length-1);
-                            Difficulty.list = Difficulty.defaultList.copy();
-                            states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
-                            states.PlayState.storyWeek = -1;
-                            Mods.currentModDirectory = '';
-                            states.PlayState.storyDifficulty = Difficulty.list.length-1;
-                            FlxG.save.flush();
-
-                            if (Std.is(FlxG.state, APPlayState)) {
-                                MusicBeatState.resetState();
-                            } else {
-                                FlxG.switchState(new APPlayState());
-                            }
-                        }
                     } else {
                         trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
                         if (!FlxG.save.data.manualOverride) {
@@ -446,8 +442,98 @@ class APItem {
                             Difficulty.loadFromWeek(leWeek);
                             MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
                         }
+                    }*/
+                    if (!FlxG.save.data.manualOverride) {
+                        FlxG.save.data.manualOverride = true;
+                        FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+                        FlxG.save.data.difficulties = Difficulty.list; // just in case
+                        FlxG.save.data.SONG = states.PlayState.SONG;
+                        FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
+                        FlxG.save.data.songPos = FlxG.sound.music.time;
+                        FlxG.save.flush();
+
+                        var specialSongList = ['Rise', 'Zeventeen', /*'Pack-A-Punch', 'Driller',*/ 'Test Field', 'Rawr', /*'Fightback',*/ 'Funky Fanta', /*'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'*/];
+                        var curSong = FlxG.random.int(0, specialSongList.length-1);
+                        switch (specialSongList[curSong])
+                        {
+                            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr':
+                                Difficulty.list = ['Hard'];
+                            case 'Rise' | 'Test Field':
+                                Difficulty.list = ['Normal'];
+                            case "Beat Battle":
+                                Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                            default:
+                                Difficulty.list = Difficulty.defaultList.copy();
+                        }
+                        states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                        states.PlayState.storyWeek = -1;
+                        Mods.currentModDirectory = '';
+                        states.PlayState.storyDifficulty = Difficulty.list.length-1;
+                        FlxG.save.flush();
+
+                        if (Std.is(FlxG.state, APPlayState)) {
+                            MusicBeatState.resetState();
+                        } else {
+                            FlxG.switchState(new APPlayState());
+                        }
                     }
                 }, true, true);
+
+            case "Opponent Mode Trap":
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    popup('Freaky Friday! Now YOU\'RE the opponent!', 'Opponent Mode Trap');
+                    states.PlayState.instance.opponentmode = true;
+                    states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
+                    states.PlayState.instance.playerField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit;
+                    states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
+                    states.PlayState.instance.dadField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit;
+                    FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Both Play Trap":
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    popup('Ever wanted to play both strums at once?\nNow you have to!', 'Both Play Trap');
+                    states.PlayState.instance.bothMode = true;
+                    states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
+                    states.PlayState.instance.playerField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit;
+                    states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
+                    states.PlayState.instance.dadField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit;
+                    FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Resistance Trap":
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    popup('Oh god no here she comes', "Resistance Trap", true);
+                    APPlayState.instance.startResisting();
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
 
             case "Nothing":
                 popup('...For now...', "APItem: Nothing");
@@ -1289,6 +1375,8 @@ class APItem {
             "Max HP Up",
             "Tutorial Trap",
             "Song Switch Trap",
+            "Opponent Mode Trap",
+            "Both Play Trap",
             "Resistance Trap",
             "UNO Challenge",
             "Pong Challenge",

@@ -89,6 +89,7 @@ import states.TitleState;
 	public var comboStacking:Bool = true;
 	public var loadingState:String = 'Song Only';
 	public var loadingScreenTheme:String = 'Mixtape';
+	public var chartPreload:String = 'Off';
 	public var apCompressed:Bool = false;
 	public var gameplaySettings:Map<String, Dynamic> = [
 		'scrollspeed' => 1.0,
@@ -190,7 +191,7 @@ import states.TitleState;
 	public var showKeybindsOnStart:Bool = false;
 	public var allowEvents:Bool = true;
 	public var menuTheme:String = 'Light';
-
+	public var showRenderText:Bool = false;
 	public var garbageCollection:Bool = true;
 
 	// Experimental Settings

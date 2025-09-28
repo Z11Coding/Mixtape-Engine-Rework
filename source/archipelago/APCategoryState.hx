@@ -39,7 +39,7 @@ class APCategoryState extends states.CategoryState {
         // Static menu with "Items" option moved after "Unplayed" and before "Options"
         var menuOptions = ['All', 'Hinted', 'Unlocked', 'Unplayed', 'Items', 'Options', 'Quit'];
 
-        super(menuOptions, false, false, true, false, false);
+        super(menuOptions, false, false, true, false, false, false);
 
         // Initialize locks array - "Items" is locked based on hasPocketLens.
         menuLocks = [false, false, false, false, !archipelago.APItem.hasPocketLens, false, false];

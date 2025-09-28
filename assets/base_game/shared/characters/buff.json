@@ -1,0 +1,56 @@
+{
+	"animations": [
+		{
+			"offsets": [270, 101],
+			"loop": false,
+			"fps": 24,
+			"anim": "idle",
+			"indices": [],
+			"name": "micheal_idle"
+		},
+		{
+			"loop": false,
+			"offsets": [377, 141],
+			"anim": "singLEFT",
+			"fps": 24,
+			"name": "micheal_left",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [320, -19],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "micheal_down",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [234, 450],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "micheal_up",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [320, 147],
+			"anim": "singRIGHT",
+			"fps": 24,
+			"name": "micheal_right",
+			"indices": []
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"score_name": "Michael (Buff)",
+	"image": "characters/Michael_buff",
+	"position": [0, 0],
+	"healthicon": "angyman",
+	"flip_x": false,
+	"healthbar_colors": [255, 140, 135],
+	"camera_position": [70, 0],
+	"sing_duration": 6.1,
+	"scale": 0.8,
+	"_editor_isPlayer": false
+}

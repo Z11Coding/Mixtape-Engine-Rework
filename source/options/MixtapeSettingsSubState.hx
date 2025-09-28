@@ -46,6 +46,35 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('Icon Bop',
+			"How do you prefer the icons to bop",
+			'iconBounce',
+			STRING,
+			[
+				"Base",
+				"Mixtape",
+				"Dave and Bambi",
+				"Old Psych",
+				"Strident Crisis",
+				"Plank Engine",
+				"Golden Apple",
+				"VS Steve",
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('Chart Preload',
+			"How do you prefer the charts load?",
+			'chartPreload',
+			STRING,
+			[
+				"Off",
+				"No Threadding",
+				"On"
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('Input System',
 		"The input system you wish to use.",
 		'inputSystem',
@@ -141,6 +170,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Start Hidden',
 			"If checked, the hud will be invisible during the countdown.",
 			'startHidden',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show Rendered Text',
+			"If checked, adds text that shows\nthe amount of notes loaded currently/Max amount of notes loaded total/Max amount of notes currently in the notes array.",
+			'showRenderText',
 			BOOL);
 		addOption(option);
 

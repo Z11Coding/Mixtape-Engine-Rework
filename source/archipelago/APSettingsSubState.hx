@@ -1,21 +1,22 @@
 package archipelago;
 
-import substates.RankingSubstate;
-import backend.ui.*;
 import archipelago.APEntryState;
 import archipelago.APInfo;
 import archipelago.CustomAPLogic;
-import flixel.util.FlxGradient;
-import yaml.Yaml;
-import yaml.Renderer;
-import substates.Prompt;
 import backend.WeekData;
+import backend.ui.*;
+import flixel.util.FlxGradient;
+import substates.Prompt;
+import substates.RankingSubstate;
+import yaml.Renderer;
+import yaml.Yaml;
+
 using yutautil.CollectionUtils;
 
 
 class APSettingsSubState extends MusicBeatSubstate {
     public static var globalSongList:Array<String> = [];
-    
+
     var box:PsychUIBox;
     var progression_balancing:PsychUIDropDownMenu;
     var accessibility:PsychUIDropDownMenu;
@@ -31,6 +32,10 @@ class APSettingsSubState extends MusicBeatSubstate {
     var trapAmount:PsychUISlider;
     var bbcWeight:PsychUISlider;
     var ghostChatWeight:PsychUISlider;
+    var songswitchWeight:PsychUISlider;
+    var resistanceWeight:PsychUISlider;
+    var unoWeight:PsychUISlider;
+    var pongWeight:PsychUISlider;
     var tutorialWeight:PsychUISlider;
     var svcWeight:PsychUISlider;
     var fakeTransWeight:PsychUISlider;
@@ -42,8 +47,6 @@ class APSettingsSubState extends MusicBeatSubstate {
     public static function generateSongList() {
         globalSongList = APInfo.baseGame.concat(APInfo.baseErect).concat(APInfo.basePico).concat(APInfo.secrets);
 
-
-    
         var tempSongList:Map<String, Bool> = new Map();
                     // trace("Mods present: " + Mods.parseList().enabled);
                     // trace("Weeks present: " + WeekData.weeksList);
@@ -66,11 +69,11 @@ class APSettingsSubState extends MusicBeatSubstate {
             }
         }
 
-    
+
         for (song in globalSongList) {
             tempSongList.set(song, false);
         }
-    
+
         globalSongList = [];
         for (songName in tempSongList.keys()) {
             if (tempSongList.get(songName)) {
@@ -129,7 +132,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         accRequirement.list = APInfo.accuracyList;
 
         setDefaults();
-        
+
         super.create();
     }
 
@@ -148,13 +151,17 @@ class APSettingsSubState extends MusicBeatSubstate {
         bbcWeight.value = APEntryState.gameSettings.FNF.bbcWeight;
         ghostChatWeight.value = APEntryState.gameSettings.FNF.ghostChatWeight;
         tutorialWeight.value = APEntryState.gameSettings.FNF.tutorialWeight;
+        songswitchWeight.value = APEntryState.gameSettings.FNF.songswitchWeight;
+        resistanceWeight.value = APEntryState.gameSettings.FNF.resistanceWeight;
+        unoWeight.value = APEntryState.gameSettings.FNF.unoWeight;
+        pongWeight.value = APEntryState.gameSettings.FNF.pongWeight;
         svcWeight.value = APEntryState.gameSettings.FNF.svcWeight;
         chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
         shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
         MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
         songLimit.value = APEntryState.gameSettings.FNF.song_limit;
     }
-    
+
     function addMainSettings()
     {
         var tab_group = box.getTab('Main Settings').menu;
@@ -184,7 +191,7 @@ class APSettingsSubState extends MusicBeatSubstate {
 
         objY += 70;
         deathlink = new PsychUICheckBox(objX, objY, 'DeathLink', 100, function() APEntryState.gameSettings.FNF.deathlink = deathlink.checked);
-        
+
         objY += 50;
         ticketPercent = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ticket_percentage = Std.int(v));
         ticketPercent.decimals = 0;
@@ -218,8 +225,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         var objX = 10;
         var objY = 10;
 
-        allowMods = new PsychUICheckBox(objX, objY, 'Allow Mods', 100, 
-        function() 
+        allowMods = new PsychUICheckBox(objX, objY, 'Allow Mods', 100,
+        function()
         {
             APEntryState.gameSettings.FNF.mods_enabled = allowMods.checked;
             generateSongList();
@@ -232,14 +239,14 @@ class APSettingsSubState extends MusicBeatSubstate {
         gradeRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, grade:String)
         {
             APEntryState.gameSettings.FNF.graderequirement = grade;
-            trace(id); 
+            trace(id);
         });
 
         objX += 150;
         accRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, accuracy:String)
         {
             APEntryState.gameSettings.FNF.accrequirement = accuracy;
-            trace(id); 
+            trace(id);
         });
 
         objX -= 150;
@@ -288,6 +295,30 @@ class APSettingsSubState extends MusicBeatSubstate {
         tutorialWeight.decimals = 0;
 
         objY += 40;
+        songswitchWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.songswitchWeight = Std.int(v));
+        songswitchWeight.min = 0;
+        songswitchWeight.max = 10;
+        songswitchWeight.decimals = 0;
+
+        objY += 40;
+        resistanceWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.resistanceWeight = Std.int(v));
+        resistanceWeight.min = 0;
+        resistanceWeight.max = 10;
+        resistanceWeight.decimals = 0;
+
+        objY += 40;
+        unoWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.unoWeight = Std.int(v));
+        unoWeight.min = 0;
+        unoWeight.max = 10;
+        unoWeight.decimals = 0;
+
+        objY += 40;
+        pongWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.pongWeight = Std.int(v));
+        pongWeight.min = 0;
+        pongWeight.max = 10;
+        pongWeight.decimals = 0;
+
+        objY += 40;
         svcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.svcWeight = Std.int(v));
         svcWeight.min = 0;
         svcWeight.max = 10;
@@ -323,6 +354,10 @@ class APSettingsSubState extends MusicBeatSubstate {
         tab_group.add(new FlxText(bbcWeight.x, bbcWeight.y - 15, 300, 'Blue Balls Curse Trap Weight:'));
         tab_group.add(new FlxText(ghostChatWeight.x, ghostChatWeight.y - 15, 300, 'Ghost Chat Trap Weight:'));
         tab_group.add(new FlxText(tutorialWeight.x, tutorialWeight.y - 15, 300, 'Tutorial Trap Weight:'));
+        tab_group.add(new FlxText(songswitchWeight.x, songswitchWeight.y - 15, 300, 'Song Switch Trap Weight:'));
+        tab_group.add(new FlxText(resistanceWeight.x, resistanceWeight.y - 15, 300, 'Resistance Trap Weight:'));
+        tab_group.add(new FlxText(unoWeight.x, unoWeight.y - 15, 300, 'UNO Challenge Trap Weight:'));
+        tab_group.add(new FlxText(pongWeight.x, pongWeight.y - 15, 300, 'Pong Challenge Trap Weight:'));
         tab_group.add(new FlxText(svcWeight.x, svcWeight.y - 15, 300, 'Streamer Vs. Chat Trap Weight:'));
         tab_group.add(new FlxText(fakeTransWeight.x, fakeTransWeight.y - 15, 300, 'Fake Transition Trap Weight:'));
         tab_group.add(new FlxText(shieldWeight.x, shieldWeight.y - 15, 300, 'Shield Item Weight:'));
@@ -332,6 +367,10 @@ class APSettingsSubState extends MusicBeatSubstate {
         tab_group.add(bbcWeight);
         tab_group.add(ghostChatWeight);
         tab_group.add(tutorialWeight);
+        tab_group.add(songswitchWeight);
+        tab_group.add(resistanceWeight);
+        tab_group.add(unoWeight);
+        tab_group.add(pongWeight);
         tab_group.add(svcWeight);
         tab_group.add(fakeTransWeight);
         tab_group.add(shieldWeight);
@@ -344,7 +383,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         // Process CustomAPLogic scripts before generating YAML
         trace('Processing CustomAPLogic scripts...');
         CustomAPLogic.APHScriptProcessor.processAllMods();
-        
+
         var yamlThing = {}
         for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
         {
@@ -478,9 +517,9 @@ class APSettingsSubState extends MusicBeatSubstate {
 
         #if sys
         sys.io.File.saveContent("PlayerSettings/" + APEntryState.yamlName + ".yaml", finalDocument);
-        
+
         // Generate and save the Python file for CustomAPLogic
-        if (CustomAPLogic.APDataStore.items.length > 0 || CustomAPLogic.APDataStore.locations.length > 0 || 
+        if (CustomAPLogic.APDataStore.items.length > 0 || CustomAPLogic.APDataStore.locations.length > 0 ||
             CustomAPLogic.APDataStore.customWeeks.length > 0 || Lambda.count(CustomAPLogic.APDataStore.customData) > 0) {
             trace('Generating Python file for CustomAPLogic...');
             var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
@@ -513,7 +552,7 @@ class APSettingsSubState extends MusicBeatSubstate {
 				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
 			}
 		}
-        if (FlxG.keys.justPressed.ESCAPE) 
+        if (FlxG.keys.justPressed.ESCAPE)
         {
             trace(globalSongList);
             onGenYaml();

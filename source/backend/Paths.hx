@@ -2,9 +2,11 @@ package backend;
 
 import flash.media.Sound;
 import flixel.addons.display.FlxRuntimeShader;
+import flixel.animation.FlxAnimationController;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
+import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets;
 import haxe.Json;
@@ -207,6 +209,9 @@ class Paths
 		@:privateAccess
 		var cache = FlxG.bitmap._cache;
 		Paths.currentTrackedAssets.clear();
+		Paths.currentTrackedFrames.clear();
+		Paths.currentTrackedAnims.clear();
+		Paths.currentTrackedBitmaps.clear();
 		for (key => val in cache){
 			if(	key.toLowerCase().contains("transitionswag") ||
 				key.contains("bg_graphic_") ||
@@ -666,6 +671,9 @@ class Paths
 	}
 
 	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
+	public static var currentTrackedFrames:Map<String, FlxFramesCollection> = [];
+	public static var currentTrackedAnims:Map<String, FlxAnimationController> = [];
+	public static var currentTrackedBitmaps:Map<String, BitmapData> = [];
 	inline public static function cacheGraphic(path:String):Null<FlxGraphic>
 		return getGraphic(path, true);
 

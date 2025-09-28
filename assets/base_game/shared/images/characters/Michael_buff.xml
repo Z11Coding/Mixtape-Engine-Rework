@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="Michael_buff.png">
+	<!-- Created with Adobe Animate version 21.0.7.42652 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="micheal_down0000" x="0" y="0" width="1143" height="770" frameX="0" frameY="-68" frameWidth="1143" frameHeight="839"/>
+	<SubTexture name="micheal_down0001" x="1143" y="0" width="1014" height="839" frameX="-65" frameY="0" frameWidth="1143" frameHeight="839"/>
+	<SubTexture name="micheal_down0002" x="2157" y="0" width="1077" height="794" frameX="-34" frameY="-45" frameWidth="1143" frameHeight="839"/>
+	<SubTexture name="micheal_down0003" x="3234" y="0" width="1064" height="804" frameX="-40" frameY="-34" frameWidth="1143" frameHeight="839"/>
+	<SubTexture name="micheal_down0004" x="4298" y="0" width="1064" height="804" frameX="-40" frameY="-34" frameWidth="1143" frameHeight="839"/>
+	<SubTexture name="micheal_idle0000" x="5362" y="0" width="878" height="973"/>
+	<SubTexture name="micheal_idle0001" x="6240" y="0" width="878" height="973"/>
+	<SubTexture name="micheal_idle0002" x="7118" y="0" width="878" height="973"/>
+	<SubTexture name="micheal_idle0003" x="0" y="973" width="878" height="973"/>
+	<SubTexture name="micheal_idle0004" x="878" y="973" width="878" height="973"/>
+	<SubTexture name="micheal_idle0005" x="1756" y="973" width="878" height="973"/>
+	<SubTexture name="micheal_idle0006" x="2634" y="973" width="878" height="973"/>
+	<SubTexture name="micheal_left0000" x="3512" y="973" width="984" height="1009" frameX="0" frameY="-29" frameWidth="984" frameHeight="1041"/>
+	<SubTexture name="micheal_left0001" x="4496" y="973" width="882" height="1041" frameX="-64" frameY="0" frameWidth="984" frameHeight="1041"/>
+	<SubTexture name="micheal_left0002" x="5378" y="973" width="902" height="1037" frameX="-66" frameY="-3" frameWidth="984" frameHeight="1041"/>
+	<SubTexture name="micheal_left0003" x="6280" y="973" width="915" height="1029" frameX="-64" frameY="-11" frameWidth="984" frameHeight="1041"/>
+	<SubTexture name="micheal_left0004" x="7195" y="973" width="915" height="1029" frameX="-64" frameY="-11" frameWidth="984" frameHeight="1041"/>
+	<SubTexture name="micheal_right0000" x="0" y="2014" width="1120" height="1033" frameX="0" frameY="-25" frameWidth="1120" frameHeight="1059"/>
+	<SubTexture name="micheal_right0001" x="1120" y="2014" width="965" height="1059" frameX="-54" frameY="0" frameWidth="1120" frameHeight="1059"/>
+	<SubTexture name="micheal_right0002" x="2085" y="2014" width="1007" height="1047" frameX="-38" frameY="-11" frameWidth="1120" frameHeight="1059"/>
+	<SubTexture name="micheal_right0003" x="3092" y="2014" width="1007" height="1047" frameX="-38" frameY="-11" frameWidth="1120" frameHeight="1059"/>
+	<SubTexture name="micheal_right0004" x="4099" y="2014" width="1007" height="1047" frameX="-38" frameY="-11" frameWidth="1120" frameHeight="1059"/>
+	<SubTexture name="micheal_up0000" x="5106" y="2014" width="713" height="1451" frameX="-44" frameY="0" frameWidth="802" frameHeight="1451"/>
+	<SubTexture name="micheal_up0001" x="5819" y="2014" width="802" height="1399" frameX="0" frameY="-51" frameWidth="802" frameHeight="1451"/>
+	<SubTexture name="micheal_up0002" x="6621" y="2014" width="740" height="1416" frameX="-30" frameY="-34" frameWidth="802" frameHeight="1451"/>
+	<SubTexture name="micheal_up0003" x="7361" y="2014" width="740" height="1416" frameX="-30" frameY="-34" frameWidth="802" frameHeight="1451"/>
+	<SubTexture name="micheal_up0004" x="0" y="3465" width="740" height="1416" frameX="-30" frameY="-34" frameWidth="802" frameHeight="1451"/>
+</TextureAtlas>

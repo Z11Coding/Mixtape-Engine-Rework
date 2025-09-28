@@ -167,7 +167,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				neneKnife.animation.finishCallback = function(_)
 				{
 					remove(neneKnife);
-					neneKnife.destroy();
+					//neneKnife.destroy();
 				}
 				insert(0, neneKnife);
 				neneKnife.animation.play('anim', true);
@@ -179,7 +179,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		deathbysquare.x += 800;
 		deathbysquare.y -= 100;
 		deathbysquare.alpha = 0.3;
-		deathbysquare.cameras = [PlayState.instance.camCOD];
+		deathbysquare.cameras = [(PlayState.instance != null ? PlayState.instance.camCOD : FlxG.cameras.list[FlxG.cameras.list.length-1])];
 		add(deathbysquare);
 
 		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -191,7 +191,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 		}
-		causeofdeath.cameras = [PlayState.instance.camCOD];
+		causeofdeath.cameras = [(PlayState.instance != null ? PlayState.instance.camCOD : FlxG.cameras.list[FlxG.cameras.list.length-1])];
 		add(causeofdeath);
 
 		super.create();
@@ -201,7 +201,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		super.update(elapsed);
 
-		PlayState.instance.callOnScripts('onUpdate', [elapsed]);
+		PlayState.instance?.callOnScripts('onUpdate', [elapsed]);
 
 		var justPlayedLoop:Bool = false;
 		if (!boyfriend.isAnimationNull() && boyfriend.getAnimationName() == 'firstDeath' && boyfriend.isAnimationFinished())
@@ -242,7 +242,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				}
 
 				MusicManager.playMenuMusic();
-				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
+				PlayState.instance?.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop)
 			{
@@ -271,7 +271,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				Conductor.songPosition = FlxG.sound.music.time;
 			}
 		}
-		PlayState.instance.callOnScripts('onUpdatePost', [elapsed]);
+		PlayState.instance?.callOnScripts('onUpdatePost', [elapsed]);
 	}
 
 	var isEnding:Bool = false;
@@ -335,7 +335,7 @@ class GameOverSubstate extends MusicBeatSubstate
 						}
 					});
 				});
-				PlayState.instance.callOnScripts('onGameOverConfirm', [true]);
+				PlayState.instance?.callOnScripts('onGameOverConfirm', [true]);
 			}
 		}
 	}
@@ -357,7 +357,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			video.updateHitbox();
 			video.screenCenter();
 			video.antialiasing = true;
-			video.cameras = [PlayState.instance.camOther];
+			video.cameras = [(PlayState.instance != null ? PlayState.instance.camOther : FlxG.cameras.list[FlxG.cameras.list.length-1])];
 		});
 		video.addCallback('onEnd',()->{
 			FlxG.resetState();

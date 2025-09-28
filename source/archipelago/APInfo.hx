@@ -268,61 +268,63 @@ class APInfo {
 	];
 
 	// TODO: Make this better lol
-    public static function grabLimits(grade:String, accuracy:String) {
-        switch (grade) {
-            case 'Any':
-                comboRankSetLimit = 0;
-            case "MFC":
-                comboRankSetLimit = 1;
-            case "SFC":
-                comboRankSetLimit = 2;
-            case "GFC":
-                comboRankSetLimit = 3;
-            case "AFC":
-                comboRankSetLimit = 4;
-            case "FC":
-                comboRankSetLimit = 5;
-            case "SDCB":
-                comboRankSetLimit = 6;
-        }
+	public static function grabLimits(grade:String, accuracy:String) {
+		switch (grade) {
+				case 'Any':
+					comboRankSetLimit = 0;
+				case "MFC":
+					comboRankSetLimit = 1;
+				case "SFC":
+					comboRankSetLimit = 2;
+				case "GFC":
+					comboRankSetLimit = 3;
+				case "AFC":
+					comboRankSetLimit = 4;
+				case "FC":
+					comboRankSetLimit = 5;
+				case "SDCB":
+					comboRankSetLimit = 6;
+		}
 
-        switch (accuracy) {
-            case "Any":
-                accRankSetLimit = 0;
-            case "P":
-                accRankSetLimit = 1;
-            case "X":
-                accRankSetLimit = 2;
-            case "X-":
-                accRankSetLimit = 3;
-            case "SS+":
-                accRankSetLimit = 4;
-            case "SS":
-                accRankSetLimit = 5;
-            case "SS-":
-                accRankSetLimit = 6;
-            case "S+":
-                accRankSetLimit = 7;
-            case "S":
-                accRankSetLimit = 8;
-            case "S-":
-                accRankSetLimit = 9;
-            case "A+":
-                accRankSetLimit = 10;
-            case "A":
-                accRankSetLimit = 11;
-            case "A-":
-                accRankSetLimit = 12;
-            case "B":
-                accRankSetLimit = 13;
-            case "C":
-                accRankSetLimit = 14;
-            case "D":
-                accRankSetLimit = 15;
-            case "E":
-                accRankSetLimit = 16;
-        }
-    }
+		switch (accuracy) {
+				case "Any":
+					accRankSetLimit = 0;
+				case "P":
+					accRankSetLimit = 1;
+				case "X":
+					accRankSetLimit = 2;
+				case "X-":
+					accRankSetLimit = 3;
+				case "SS+":
+					accRankSetLimit = 4;
+				case "SS":
+					accRankSetLimit = 5;
+				case "SS-":
+					accRankSetLimit = 6;
+				case "S+":
+					accRankSetLimit = 7;
+				case "S":
+					accRankSetLimit = 8;
+				case "S-":
+					accRankSetLimit = 9;
+				case "A+":
+					accRankSetLimit = 10;
+				case "A":
+					accRankSetLimit = 11;
+				case "A-":
+					accRankSetLimit = 12;
+				case "B":
+					accRankSetLimit = 13;
+				case "C":
+					accRankSetLimit = 14;
+				case "D":
+					accRankSetLimit = 15;
+				case "E":
+					accRankSetLimit = 16;
+		}
+
+		trace('Combo Minimum: $comboRankSetLimit\nAccuacy Minimum: $accRankSetLimit');
+	}
 
 
 }

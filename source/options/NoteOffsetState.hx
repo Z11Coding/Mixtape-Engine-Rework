@@ -182,7 +182,7 @@ class NoteOffsetState extends MusicBeatState
 
 	var holdTime:Float = 0;
 	var onComboMenu:Bool = true;
-	var holdingObjectType:Null<Bool> = null;
+	var holdingObjectType:Null<Int> = null;
 
 	var startMousePos:FlxPoint = new FlxPoint();
 	var startComboOffset:FlxPoint = new FlxPoint();
@@ -335,7 +335,7 @@ class NoteOffsetState extends MusicBeatState
 				if (startMousePos.x - comboNums.x >= 0 && startMousePos.x - comboNums.x <= comboNums.width &&
 					startMousePos.y - comboNums.y >= 0 && startMousePos.y - comboNums.y <= comboNums.height)
 				{
-					holdingObjectType = true;
+					holdingObjectType = 2;
 					startComboOffset.x = ClientPrefs.data.comboOffset[2];
 					startComboOffset.y = ClientPrefs.data.comboOffset[3];
 					//trace('yo bro');
@@ -343,7 +343,7 @@ class NoteOffsetState extends MusicBeatState
 				else if (startMousePos.x - rating.x >= 0 && startMousePos.x - rating.x <= rating.width &&
 						 startMousePos.y - rating.y >= 0 && startMousePos.y - rating.y <= rating.height)
 				{
-					holdingObjectType = false;
+					holdingObjectType = 0;
 					startComboOffset.x = ClientPrefs.data.comboOffset[0];
 					startComboOffset.y = ClientPrefs.data.comboOffset[1];
 					//trace('heya');
@@ -351,10 +351,10 @@ class NoteOffsetState extends MusicBeatState
 				else if (startMousePos.x - combo.x >= 0 && startMousePos.x - combo.x <= combo.width &&
 						 startMousePos.y - combo.y >= 0 && startMousePos.y - combo.y <= combo.height)
 				{
-					holdingObjectType = false;
+					holdingObjectType = 4;
 					startComboOffset.x = ClientPrefs.data.comboOffset[4];
 					startComboOffset.y = ClientPrefs.data.comboOffset[5];
-					//trace('heya');
+					//trace('hi');
 				}
 			}
 			if(FlxG.mouse.justReleased || gamepadReleased) {
@@ -372,7 +372,7 @@ class NoteOffsetState extends MusicBeatState
 					else
 						mousePos = controllerPointer.getScreenPosition(camHUD);
 
-					var addNum:Int = holdingObjectType ? 2 : 0;
+					var addNum:Int = holdingObjectType;
 					ClientPrefs.data.comboOffset[addNum + 0] = Math.round((mousePos.x - startMousePos.x) + startComboOffset.x);
 					ClientPrefs.data.comboOffset[addNum + 1] = -Math.round((mousePos.y - startMousePos.y) - startComboOffset.y);
 					repositionCombo();
@@ -439,13 +439,7 @@ class NoteOffsetState extends MusicBeatState
 
 			persistentUpdate = false;
 			MusicBeatState.switchState(new options.OptionsState());
-			// if(OptionsState.onPlayState)
-			{
-				if(ClientPrefs.data.pauseMusic != 'None')
-					FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(ClientPrefs.data.pauseMusic)));
-				else
-					FlxG.sound.music.volume = 0;
-			}
+			if(OptionsState.onPlayState) MusicManager.playPauseMenuMusic(1);
 			else MusicManager.playMenuMusic();
 			FlxG.mouse.visible = false;
 		}
@@ -502,13 +496,13 @@ class NoteOffsetState extends MusicBeatState
 		rating.x = coolText.x - 40 + ClientPrefs.data.comboOffset[0];
 		rating.y -= 60 + ClientPrefs.data.comboOffset[1];
 
-		combo.screenCenter();
-		combo.x = coolText.x - 40 + ClientPrefs.data.comboOffset[4];
-		combo.y -= 60 + ClientPrefs.data.comboOffset[5];
-
 		comboNums.screenCenter();
 		comboNums.x = coolText.x - 90 + ClientPrefs.data.comboOffset[2];
 		comboNums.y += 80 - ClientPrefs.data.comboOffset[3];
+
+		combo.screenCenter();
+		combo.x = coolText.x - 40 + ClientPrefs.data.comboOffset[4];
+		combo.y -= 60 + ClientPrefs.data.comboOffset[5];
 		reloadTexts();
 	}
 

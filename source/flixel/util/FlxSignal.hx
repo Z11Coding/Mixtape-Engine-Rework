@@ -137,7 +137,7 @@ private class FlxBaseSignal<T> implements IFlxSignal<T>
 			}
 		}
 	}
-	
+
 	inline function removeHandler(handler:FlxSignalHandler<T>):Void
 	{
 		if (processingListeners)
@@ -174,9 +174,15 @@ private class FlxBaseSignal<T> implements IFlxSignal<T>
 
 		if (handler == null)
 		{
-			handler = new FlxSignalHandler<T>(listener, dispatchOnce);
-			handlers.push(handler);
-			return handler;
+			try {
+				handler = new FlxSignalHandler<T>(listener, dispatchOnce);
+				handlers.push(handler);
+				return handler;
+			} catch(e) {
+				trace("FlxSignal died! Resetting game just in case!");
+				Main.flxSignalCrash = true;
+				return null;
+			}
 		}
 		else
 		{
@@ -191,13 +197,16 @@ private class FlxBaseSignal<T> implements IFlxSignal<T>
 
 	function getHandler(listener:T):FlxSignalHandler<T>
 	{
-		for (handler in handlers)
-		{
-			if (#if (neko || hl) // simply comparing the functions doesn't do the trick on these targets
-				Reflect.compareMethods(handler.listener, listener) #else handler.listener == listener #end)
+		if (handlers != null && handlers.length > 0) {
+			for (handler in handlers)
 			{
-				return handler; // Listener was already registered.
+				if (#if (neko || hl) // simply comparing the functions doesn't do the trick on these targets
+					Reflect.compareMethods(handler.listener, listener) #else handler.listener == listener #end)
+				{
+					return handler; // Listener was already registered.
+				}
 			}
+			return null; // Listener not yet registered.
 		}
 		return null; // Listener not yet registered.
 	}

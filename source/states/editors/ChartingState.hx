@@ -127,7 +127,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	public static var keysArray:Array<FlxKey> = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT]; //Used for Vortex Editor
 	public static var SHOW_EVENT_COLUMN = true;
-	public static var GRID_COLUMNS_PER_PLAYER = 4;
+	public static var GRID_COLUMNS_PER_PLAYER = Note.ammo[PlayState.mania];
 	public static var GRID_PLAYERS = 2;
 	public static var GRID_SIZE = 40;
 	final BACKUP_EXT = '.bkp';
@@ -463,10 +463,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var lilBuddiesOn:Bool = false;
 	var lilStage:FlxSprite;
 	var lilBf:FlxSprite;
+	var lilBf2:FlxSprite;
 	var lilOpp:FlxSprite;
+	var lilOpp2:FlxSprite;
 	var lilPlayer:Character;
 	var lilPlayer2:Character;
 	var lilOpponent:Character;
+	var lilOpponent2:Character;
 	var lilGf:Character;
 	var gfSpeed:Int = 1;
 	var singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
@@ -572,6 +575,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			remove(lilPlayer);
 			remove(lilPlayer2);
 			remove(lilOpponent);
+			remove(lilOpponent2);
 			remove(lilGf);
 		}
 
@@ -786,10 +790,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		// CHARACTERS FOR THE DROP DOWNS
 		var gameOverCharacters:Array<String> = loadFileList('characters/', 'data/characterList.txt');
 		var characterList:Array<String> = gameOverCharacters.filter((name:String) -> (!name.endsWith('-dead') && !name.endsWith('-death')));
-		characterList.insert(0, null);
+		characterList.insert(0, '');
 		playerDropDown.list = characterList;
 		player2DropDown.list = characterList;
 		opponentDropDown.list = characterList;
+		opponent2DropDown.list = characterList;
 		girlfriendDropDown.list = characterList;
 
 		gameOverCharacters.insert(0, '');
@@ -869,6 +874,47 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+	}
+
+	function changeMania()
+	{
+		createGrids();
+		strumLineNotes.clear();
+
+		eventLockOverlay.x = gridBg.x;
+		eventLockOverlay.scrollFactor.x = 0;
+		eventLockOverlay.scale.x = GRID_SIZE;
+		eventLockOverlay.updateHitbox();
+		add(eventLockOverlay);
+
+		timeLine.x = gridBg.x;
+		timeLine.setGraphicSize(Std.int(gridBg.width), 4);
+		timeLine.updateHitbox();
+		timeLine.screenCenter(Y);
+		timeLine.scrollFactor.set();
+		add(timeLine);
+
+		var startX:Float = gridBg.x;
+		var startY:Float = FlxG.height/2;
+		vortexIndicator.visible = strumLineNotes.visible = strumLineNotes.active = vortexEnabled;
+		if(SHOW_EVENT_COLUMN) startX += GRID_SIZE;
+		for (i in 0...Std.int(GRID_PLAYERS * GRID_COLUMNS_PER_PLAYER))
+		{
+			var note:ChartingStrumNote = new ChartingStrumNote(startX + (GRID_SIZE * i), startY, i % GRID_COLUMNS_PER_PLAYER, i);
+			note.scrollFactor.set();
+			note.playAnim('static');
+			note.alpha = 0.4;
+			note.updateHitbox();
+			if(note.width > note.height)
+				note.setGraphicSize(GRID_SIZE);
+			else
+				note.setGraphicSize(0, GRID_SIZE);
+
+			note.updateHitbox();
+			note.x += GRID_SIZE/2 - note.width/2;
+			note.y += GRID_SIZE/2 - note.height/2;
+			strumLineNotes.add(note);
+		}
 	}
 
 	function setReverseScroll(enabled:Bool) {
@@ -1008,7 +1054,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		//customFunctions
 		//shows actual characters (From Moon's Modded Psych Engine)
-		if(name != null) {
+		if(name != null && name != '') {
 			lilPlayer = new Character(0, 0, name, false);
 			lilPlayer.scrollFactor.set();
 			lilPlayer.screenCenter();
@@ -1025,12 +1071,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 	}
 
-	function createLilPlayer2(name:String = 'bf')
+	function createLilPlayer2(name:String = '')
 	{
 		//customFunctions
 		//shows actual characters (From Moon's Modded Psych Engine)
 		if(name != null && name != "" && name != " " && name != "null") {
 			lilPlayer2 = new Character(0, 0, name, false);
+			lilPlayer2.visible = false;
 			lilPlayer2.scrollFactor.set();
 			lilPlayer2.screenCenter();
 			lilPlayer2.x += lilPlayer2DP[0];
@@ -1043,41 +1090,67 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				lilPlayer2.animOffsets[key][1] *= lilPlayer2.scale.y;
 			}
 			lilPlayer2.dance();
+		} else {
+			lilPlayer2 = new Character(0, 0, 'bf', false);
+			lilPlayer2.visible = false;
 		}
 	}
 
-	function createLilOpponent(name:String = 'bf-opponent')
+	function createLilOpponent(name:String = 'dad')
 	{
-		if(name != null)
-		lilOpponent = new Character(0, 0, name, false);
-		lilOpponent.scrollFactor.set();
-		lilOpponent.screenCenter();
-		lilOpponent.x += lilOpponentDP[0];
-		lilOpponent.y += lilOpponentDP[1];
-		lilOpponent.setGraphicSize(Std.int(lilOpponent.width * 0.4));
-		add(lilOpponent);
-		for (keyt in lilOpponent.animOffsets.keys()) {
-			lilOpponent.animOffsets[keyt][0] *= lilOpponent.scale.x;
-			lilOpponent.animOffsets[keyt][1] *= lilOpponent.scale.y;
+		if(name != null && name != '') {
+			lilOpponent = new Character(0, 0, name, false);
+			lilOpponent.scrollFactor.set();
+			lilOpponent.screenCenter();
+			lilOpponent.x += lilOpponentDP[0];
+			lilOpponent.y += lilOpponentDP[1];
+			lilOpponent.setGraphicSize(Std.int(lilOpponent.width * 0.4));
+			add(lilOpponent);
+			for (keyt in lilOpponent.animOffsets.keys()) {
+				lilOpponent.animOffsets[keyt][0] *= lilOpponent.scale.x;
+				lilOpponent.animOffsets[keyt][1] *= lilOpponent.scale.y;
+			}
+			lilOpponent.dance();
 		}
-		lilOpponent.dance();
+	}
+
+	function createLilOpponent2(name:String = '')
+	{
+		if(name != null && name != '') {
+			lilOpponent2 = new Character(0, 0, name, false);
+			lilOpponent2.scrollFactor.set();
+			lilOpponent2.screenCenter();
+			lilOpponent2.x += lilOpponentDP[0];
+			lilOpponent2.y += lilOpponentDP[1];
+			lilOpponent2.setGraphicSize(Std.int(lilOpponent2.width * 0.4));
+			add(lilOpponent2);
+			for (keyt in lilOpponent2.animOffsets.keys()) {
+				lilOpponent2.animOffsets[keyt][0] *= lilOpponent2.scale.x;
+				lilOpponent2.animOffsets[keyt][1] *= lilOpponent2.scale.y;
+			}
+			lilOpponent2.dance();
+		} else {
+			lilOpponent2 = new Character(0, 0, '', false);
+			lilOpponent2.visible = false;
+		}
 	}
 
 	function createLilGirlfriend(name:String = 'gf')
 	{
-		if (name != null)
-		lilGf = new Character(0, 0, name, false); //50, 335
-		lilGf.scrollFactor.set();
-		lilGf.screenCenter();
-		lilGf.x += lilGfDP[0];
-		lilGf.y += lilGfDP[1];
-		lilGf.setGraphicSize(Std.int(lilGf.width * 0.4));
-		add(lilGf);
-		for (keyt in lilGf.animOffsets.keys()) {
-			lilGf.animOffsets[keyt][0] *= lilGf.scale.x;
-			lilGf.animOffsets[keyt][1] *= lilGf.scale.y;
+		if (name != null && name != '') {
+			lilGf = new Character(0, 0, name, false); //50, 335
+			lilGf.scrollFactor.set();
+			lilGf.screenCenter();
+			lilGf.x += lilGfDP[0];
+			lilGf.y += lilGfDP[1];
+			lilGf.setGraphicSize(Std.int(lilGf.width * 0.4));
+			add(lilGf);
+			for (keyt in lilGf.animOffsets.keys()) {
+				lilGf.animOffsets[keyt][0] *= lilGf.scale.x;
+				lilGf.animOffsets[keyt][1] *= lilGf.scale.y;
+			}
+			lilGf.dance();
 		}
-		lilGf.dance();
 	}
 
 	function reloadLilBuddies(id:Int = 6) //id 1 is for the player, id 2 is for the opponent, id 3 is for Girlfriend (or middle), id 5 is for the player2, id 6 is for all
@@ -1085,6 +1158,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var character1 = PlayState.SONG.player1;
 		var character2 = PlayState.SONG.player2;
 		var character3 = PlayState.SONG.gfVersion;
+		var character4 = PlayState.SONG.player4;
 		var character5 = PlayState.SONG.player5;
 
 		if(id == 1 || id == 6)//Reload The Player
@@ -1096,7 +1170,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(id == 3 || id == 6) //Reload The Girlfriend
 			remove(lilGf);
 			createLilGirlfriend(character3);
-		if(PlayState.SONG.player5 != null && (id == 5 || id == 6))//Reload The Player
+		if(PlayState.SONG.player4 != null && (id == 4 || id == 6))//Reload The Other Opponent
+			remove(lilOpponent2);
+			createLilOpponent2(character4);
+		if(PlayState.SONG.player5 != null && (id == 5 || id == 6))//Reload The Other Player
 			remove(lilPlayer2);
 			createLilPlayer2(character5);
 	}
@@ -1162,6 +1239,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		songNameInputText.text = PlayState.SONG.song;
 		allowVocalsCheckBox.checked = (PlayState.SONG.needsVoices != false); //If the song for some reason does not have this value, it will be set to true
 
+		maniaStepper.value = PlayState.SONG.mania;
+		startManiaStepper.value = PlayState.SONG.startMania;
+		GRID_COLUMNS_PER_PLAYER = Note.ammo[PlayState.SONG.mania];
+		GRID_SIZE = Note.gridSizes[PlayState.SONG.mania];
+		changeMania();
+
 		bpmStepper.value = PlayState.SONG.bpm;
 		scrollSpeedStepper.value = PlayState.SONG.speed;
 		audioOffsetStepper.value = Reflect.hasField(PlayState.SONG, 'offset') ? PlayState.SONG.offset : 0;
@@ -1170,6 +1253,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		playerDropDown.selectedLabel = PlayState.SONG.player1;
 		player2DropDown.selectedLabel = PlayState.SONG.player5;
 		opponentDropDown.selectedLabel = PlayState.SONG.player2;
+		opponent2DropDown.selectedLabel = PlayState.SONG.player4;
 		girlfriendDropDown.selectedLabel = PlayState.SONG.gfVersion;
 		stageDropDown.selectedLabel = PlayState.SONG.stage;
 		StageData.loadDirectory(PlayState.SONG);
@@ -2091,6 +2175,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilOpponent.dance();
 		}
 
+		if (curBeat % lilOpponent2.danceEveryNumBeats == 0 && !lilOpponent2.getAnimationName().startsWith('sing')) {
+			lilOpponent2.dance();
+		}
+
 		if (curBeat % Math.round(gfSpeed * lilGf.danceEveryNumBeats) == 0 && !lilGf.getAnimationName().startsWith('sing')) {
 			lilGf.dance();
 		}
@@ -2107,6 +2195,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var playerShouldSing:Bool = false;
 		var player2ShouldSing:Bool = false;
 		var opponentShouldSing:Bool = false;
+		var opponent2ShouldSing:Bool = false;
 
 		var sec = getCurChartSection(); //this is to detect the sections
 		if(sec != null) sec.gfSection = gfSectionCheckBox.checked;
@@ -2127,7 +2216,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				gfShouldSing = true;
 			} else {
 				if(sec.mustHitSection) {
-					opponentShouldSing = !note.mustPress;
+					opponentShouldSing = (!note.mustPress && !note.exNote);
+					opponent2ShouldSing = (!note.mustPress && note.exNote);
 				} else {
 					player2ShouldSing = (note.mustPress && note.exNote);
 					playerShouldSing = (note.mustPress && !note.exNote);
@@ -2142,30 +2232,39 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				else
 					playerShouldSing = true;
 			} else {
-				opponentShouldSing = true;
+				if (note.exNote)
+					opponent2ShouldSing = true;
+				else
+					opponentShouldSing = true;
 			}
 		}
 
 		if(playerShouldSing) {
-			lilPlayer.playAnim(singAnimations[note.noteData], true);
+			lilPlayer.playAnim(singAnimations[note.noteData] + note.animSuffix, true);
 			lilPlayer.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
 			playerHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate; // now it holds on long notes yay
 		}
 
 		if(player2ShouldSing) {
-			lilPlayer2.playAnim(singAnimations[note.noteData], true);
+			lilPlayer2.playAnim(singAnimations[note.noteData] + note.animSuffix, true);
 			lilPlayer2.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
 			player2HoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate; // now it holds on long notes yay
 		}
 
 		if(opponentShouldSing) {
-			lilOpponent.playAnim(singAnimations[note.noteData], true);
+			lilOpponent.playAnim(singAnimations[note.noteData] + note.animSuffix, true);
 			lilOpponent.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
 			opponentHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate;
 		}
 
+		if(opponent2ShouldSing) {
+			lilOpponent2.playAnim(singAnimations[note.noteData] + note.animSuffix, true);
+			lilOpponent2.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
+			opponentHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate;
+		}
+
 		if(gfShouldSing) {
-			lilGf.playAnim(singAnimations[note.noteData], true);
+			lilGf.playAnim(singAnimations[note.noteData] + note.animSuffix, true);
 			lilGf.holdTimer = -Math.max(Conductor.stepCrochet * 1.25, note.sustainLength) / 1000 / playbackRate;
 			gfHoldTime = ((Conductor.stepCrochet * 1.25) + note.sustainLength) / 1000 / playbackRate;
 		}
@@ -2335,7 +2434,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			diffY = Math.abs(diffY);
 			selectionBox.y -= diffY;
 		}
-		selectionBox.scale.set(diffX, diffY);
+		selectionBox.scale.set(diffX/Note.ammo[PlayState.SONG.mania], diffY/Note.ammo[PlayState.SONG.mania]);
 		selectionBox.updateHitbox();
 	}
 
@@ -2692,11 +2791,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var daNoteData:Int = Std.int(note[1] % GRID_COLUMNS_PER_PLAYER);
 		var gottaHitNote:Bool = (note[1] < GRID_COLUMNS_PER_PLAYER);
 		try {
+			var isAlt: Bool = section.altAnim && !gottaHitNote;
 			var swagNote:MetaNote = new MetaNote(daStrumTime, daNoteData, note);
+			swagNote.changeNoteData(daNoteData);
 			swagNote.reverseScroll = reverseScroll; // Set reverse scroll state
 			swagNote.mustPress = gottaHitNote;
 			swagNote.setSustainLength(note[2], cachedSectionCrochets[secNum] / 4, curZoom, reverseScroll);
 			swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
+			swagNote.animSuffix = isAlt ? "-alt" : "";
 			swagNote.noteType = note[3];
 			swagNote.scrollFactor.x = 0;
 			var txt:FlxText = swagNote.findNoteTypeText(swagNote.noteType != null ? noteTypes.indexOf(swagNote.noteType) : 0);
@@ -4191,7 +4293,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var playerDropDown:PsychUIDropDownMenu;
 	var player2DropDown:PsychUIDropDownMenu;
 	var opponentDropDown:PsychUIDropDownMenu;
+	var opponent2DropDown:PsychUIDropDownMenu;
 	var girlfriendDropDown:PsychUIDropDownMenu;
+
+	var maniaStepper:PsychUINumericStepper;
+	var startManiaStepper:PsychUINumericStepper;
 
 	function addSongTab()
 	{
@@ -4288,12 +4394,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			//switchCharacters(character, false); //TODO: Get this working properly
 			trace('selected $character');
 		});
-		stageDropDown = new PsychUIDropDownMenu(objX + 140, objY, [''], function(id:Int, stage:String)
-		{
-			PlayState.SONG.stage = stage;
-			StageData.loadDirectory(PlayState.SONG);
-			trace('selected $stage');
-		});
 
 		opponentDropDown = new PsychUIDropDownMenu(objX, objY + 40, [''], function(id:Int, character:String)
 		{
@@ -4307,7 +4407,19 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			trace('selected $character');
 		});
 
-		player2DropDown = new PsychUIDropDownMenu(objX + 140, objY + 40, [''], function(id:Int, character:String)
+		opponent2DropDown = new PsychUIDropDownMenu(objX + 140, objY + 40, [''], function(id:Int, character:String)
+		{
+			PlayState.SONG.player4 = character;
+			remove(lilOpponent2);
+			createLilOpponent2(character);
+			updateJsonData();
+			updateHeads(true);
+			loadMusic();
+			//switchCharacters(character, true); //TODO: Get this working properly
+			trace('selected $character');
+		});
+
+		player2DropDown = new PsychUIDropDownMenu(objX + 140, objY, [''], function(id:Int, character:String)
 		{
 			if (character != null && character != "") {
 				PlayState.SONG.player5 = character;
@@ -4329,10 +4441,37 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			trace('selected $character');
 		});
 
+		stageDropDown = new PsychUIDropDownMenu(objX + 140, objY + 80, [''], function(id:Int, stage:String)
+		{
+			PlayState.SONG.stage = stage;
+			StageData.loadDirectory(PlayState.SONG);
+			trace('selected $stage');
+		});
+
+		maniaStepper = new PsychUINumericStepper(objX + 140, objY + 120, 1, 3, 0, 17, 0);
+		maniaStepper.onValueChange = function()
+		{
+			PlayState.SONG.mania = Std.int(maniaStepper.value);
+			PlayState.mania = Std.int(maniaStepper.value);
+			GRID_COLUMNS_PER_PLAYER = Note.ammo[PlayState.mania];
+			GRID_SIZE = Note.gridSizes[PlayState.mania];
+			changeMania();
+		};
+
+		startManiaStepper = new PsychUINumericStepper(objX, objY + 120, 1, 3, 0, 17, 0);
+		startManiaStepper.onValueChange = function()
+		{
+			PlayState.SONG.startMania = Std.int(startManiaStepper.value);
+		};
+
 		tab_group.add(new FlxText(bpmStepper.x, bpmStepper.y - 15, 50, 'BPM:'));
+		tab_group.add(new FlxText(maniaStepper.x, maniaStepper.y - 15, 50, 'Mania:'));
+		tab_group.add(new FlxText(startManiaStepper.x, startManiaStepper.y - 15, 80, 'Start Mania:'));
 		tab_group.add(new FlxText(scrollSpeedStepper.x, scrollSpeedStepper.y - 15, 80, 'Scroll Speed:'));
 		tab_group.add(new FlxText(audioOffsetStepper.x, audioOffsetStepper.y - 15, 100, 'Audio Offset (ms):'));
 		tab_group.add(bpmStepper);
+		tab_group.add(maniaStepper);
+		tab_group.add(startManiaStepper);
 		tab_group.add(scrollSpeedStepper);
 		tab_group.add(audioOffsetStepper);
 
@@ -4341,10 +4480,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(new FlxText(playerDropDown.x, playerDropDown.y - 15, 80, 'Player:'));
 		tab_group.add(new FlxText(player2DropDown.x, player2DropDown.y - 15, 80, 'Player 2:'));
 		tab_group.add(new FlxText(opponentDropDown.x, opponentDropDown.y - 15, 80, 'Opponent:'));
+		tab_group.add(new FlxText(opponent2DropDown.x, opponent2DropDown.y - 15, 80, 'Opponent 2:'));
 		tab_group.add(new FlxText(girlfriendDropDown.x, girlfriendDropDown.y - 15, 80, 'Girlfriend:'));
 		tab_group.add(stageDropDown);
 		tab_group.add(girlfriendDropDown);
 		tab_group.add(opponentDropDown);
+		tab_group.add(opponent2DropDown);
 		tab_group.add(playerDropDown);
 		tab_group.add(player2DropDown);
 	}
@@ -5358,7 +5499,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilStage.visible = lilBf.visible = lilOpp.visible = lilStage.active = lilBf.active = lilOpp.active = lilBuddiesOn;
 			lilBuddiesBoxButton.text.text = lilBuddiesOn ? '  Lil Buddies ON' : '  Lil Buddies OFF';
 			if (!lilBuddiesOn) reloadLilBuddies();
-			else lilPlayer.visible = lilPlayer2.visible = lilOpponent.visible = lilGf.visible = false;
+			else lilPlayer.visible = lilPlayer2.visible = lilOpponent.visible = lilOpponent2.visible = lilGf.visible = false;
 		}, btnWid);
 		lilBuddiesBoxButton.text.alignment = LEFT;
 		tab_group.add(lilBuddiesBoxButton);
