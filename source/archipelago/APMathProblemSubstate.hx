@@ -4,6 +4,7 @@ import backend.MusicBeatSubstate;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.input.keyboard.FlxKey;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
@@ -47,7 +48,11 @@ class APMathProblemSubstate extends MusicBeatSubstate {
         if (Std.is(FlxG.state, states.PlayState)) {
             var playState = cast(FlxG.state, states.PlayState);
             playState.paused = true;
-            playState.vocals.pause();
+            playState.vocals?.pause();
+            // Pause any other sounds
+            playState.gfVocals?.pause();
+            playState.opponentVocals?.pause();
+
             if (FlxG.sound.music != null) {
                 FlxG.sound.music.pause();
             }
@@ -148,7 +153,7 @@ class APMathProblemSubstate extends MusicBeatSubstate {
         // Handle number input
         var pressedKey = FlxG.keys.firstJustPressed();
         if (pressedKey != null) {
-            var keyName = pressedKey.toString();
+            var keyName = FlxKey.toStringMap.get(pressedKey);
 
             // Handle number keys (0-9)
             if (keyName.length == 1 && keyName >= "0" && keyName <= "9") {
@@ -158,12 +163,12 @@ class APMathProblemSubstate extends MusicBeatSubstate {
                 }
             }
             // Handle negative numbers (minus sign)
-            else if (pressedKey == FlxG.keys.MINUS && inputAnswer.length == 0) {
+            else if (pressedKey == FlxKey.MINUS && inputAnswer.length == 0) {
                 inputAnswer = "-";
                 updateAnswerDisplay();
             }
             // Handle backspace
-            else if (pressedKey == FlxG.keys.BACKSPACE && inputAnswer.length > 0) {
+            else if (pressedKey == FlxKey.BACKSPACE && inputAnswer.length > 0) {
                 inputAnswer = inputAnswer.substr(0, inputAnswer.length - 1);
                 updateAnswerDisplay();
             }
@@ -197,7 +202,10 @@ class APMathProblemSubstate extends MusicBeatSubstate {
         if (Std.is(FlxG.state, states.PlayState)) {
             var playState = cast(FlxG.state, states.PlayState);
             playState.paused = false;
-            playState.vocals.resume();
+            playState.vocals?.resume();
+            // Resume any other sounds
+            playState.gfVocals?.resume();
+            playState.opponentVocals?.resume();
             if (FlxG.sound.music != null) {
                 FlxG.sound.music.resume();
             }
