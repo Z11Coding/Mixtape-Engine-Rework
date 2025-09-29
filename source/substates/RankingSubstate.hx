@@ -202,7 +202,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 					trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
 					trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
-					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
+					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
 						trace("Sending checks for all checked notes...");
 						for (note in APPlayState.instance.checkedNotes) {
 							trace("Sending check for note: " + note);
@@ -333,7 +333,7 @@ class RankingSubstate extends MusicBeatSubstate
 						if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
 							archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
 								trace("Goal achievement popup triggered.");
-								FlxG.sound.playMusic(Paths.sound('victory'));
+								FlxG.sound.playMusic(Paths.sound('You Win'));
 							});
 						}
 					}

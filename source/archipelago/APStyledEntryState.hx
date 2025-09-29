@@ -752,22 +752,22 @@ class APStyledEntryState extends MusicBeatState {
     function onConnectionSuccess(client:Client, slotData:Dynamic) {
         // Connection successful, prepare for AP mode with special animation
         ap = client;
-        gonnaRunSync = true;
+        APEntryState.gonnaRunSync = true;
 
         // Remove ap callbacks since APGameState will take over
         // Note: The connection-specific callbacks (onRoomInfo, onSlotRefused, etc.)
         // are already cleaned up by the ConnectionSubstate
 
-        deathLink = slotData.deathlink == 0 ? false : true;
-        victorySong = slotData.victoryLocation;
-        fullSongCount = slotData.fullSongCount;
+        APEntryState.deathLink = slotData.deathlink == 0 ? false : true;
+        APEntryState.victorySong = slotData.victoryLocation;
+        APEntryState.fullSongCount = slotData.fullSongCount;
         APInfo.ticketWinCount = slotData.ticketWinCount;
         APInfo.ticketCount = 0;
         APInfo.grabLimits(slotData.gradeNeeded, slotData.accuracyNeeded);
         APInfo.unlockMethod = slotData.locationType;
 
         FlxG.save.flush();
-        inArchipelagoMode = true;
+        APEntryState.inArchipelagoMode = true;
 
         // Save last game settings
         var FNF = new FlxSave();

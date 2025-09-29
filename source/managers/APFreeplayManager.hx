@@ -195,7 +195,7 @@ class APFreeplayManager extends FreeplayManager {
         unplayedList = [];
 
         // Preform a separate check for these 3 because they're not an actual file
-        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument"]) {
+        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument", "GeoStar"]) {
             var songName:String = '';
             var modName:String = '';
             var locationId:Array<Int> = [];
@@ -587,6 +587,8 @@ class APFreeplayManager extends FreeplayManager {
 					addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 					addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'geostar'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
+					addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 			}
 		}
 		else
@@ -598,10 +600,12 @@ class APFreeplayManager extends FreeplayManager {
 					addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle 2'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
 					addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'geostar'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('GeoStar').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+					addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 			}
 		}
 
-        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument"]) {
+        for (song in ["Beat Battle", "Beat Battle 2", "Small Argument", "GeoStar"]) {
             try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
             catch(e) {
                 //trace("can't.");

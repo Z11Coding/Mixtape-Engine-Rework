@@ -876,9 +876,17 @@ class APGameState
 		{
 			APItem.maxHPUp = _saveData.getItem("MaxHP");
 		}
+		if (_saveData.hasItem("Lives"))
+		{
+			APPlayState.livecount = _saveData.getItem("Lives");
+		}
 		if (_saveData.hasItem("hasPocketLens"))
 		{
 			APItem.hasPocketLens = _saveData.getItem("hasPocketLens");
+		}
+		if (_saveData.hasItem("hasDashMechanic"))
+		{
+			APItem.hasDashMechanic = _saveData.getItem("hasDashMechanic");
 		}
 		_saveData.save();
 	}
@@ -900,7 +908,9 @@ class APGameState
 		_saveData.addItem("tickets", APInfo.ticketCount);
 		_saveData.addItem("shields", APItem.shields);
 		_saveData.addItem("MaxHP", APItem.maxHPUp);
+		_saveData.addItem("Lives", APPlayState.livecount);
 		_saveData.addItem("hasPocketLens", APItem.hasPocketLens);
+		_saveData.addItem("hasDashMechanic", APItem.hasDashMechanic);
 		_saveData.save();
 		trace("Save data updated!");
 	}

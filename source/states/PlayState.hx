@@ -424,7 +424,7 @@ class PlayState extends MusicBeatState
 
 	// Thank you mic'ed up engine, for making my life SO much easier lol
 	public var hearts:FlxTypedGroup<FlxSprite>;
-	var lives:Int = 1;
+	public var lives:Int = 1;
 
 	//THE MANAGERS
 	public var comboManager:ComboManager;
@@ -565,8 +565,12 @@ class PlayState extends MusicBeatState
 			setOnScripts("healthMode", curHealthMode);
 			callOnScripts("onSetHealthMode", [curHealthMode]);
 
-			if (archipelago.APEntryState.inArchipelagoMode)
-				curHealthMode = "Mixtape";
+			if (archipelago.APEntryState.inArchipelagoMode) {
+				if (archipelago.APPlayState.livecount > 1)
+					curHealthMode = "Lives + Mixtape";
+				else
+					curHealthMode = "Mixtape";
+			}
 		}
 
 		if (SONG == null) {
@@ -1104,7 +1108,7 @@ class PlayState extends MusicBeatState
 		add(hearts);
 		add(noteGroup);
 
-		if (curHealthMode == "Lives" || curHealthMode == "Lives + HealthBar" || curHealthMode == "Amalgam")
+		if (curHealthMode == "Lives" || curHealthMode == "Lives + HealthBar" || curHealthMode == "Lives + Mixtape" || curHealthMode == "Amalgam")
 			hearts.visible = true;
 		else
 			hearts.visible = false;
@@ -1210,6 +1214,7 @@ class PlayState extends MusicBeatState
 
 		if (curHealthMode == 'Lives' || curHealthMode == "Amalgam") lives = 10;
 		else if (curHealthMode == 'Lives + HealthBar') lives = 3;
+		else if (curHealthMode == 'Lives + Mixtape') lives = 1+archipelago.APPlayState.livecount;
 
 		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
 		healthBar.screenCenter(X);
@@ -1552,7 +1557,7 @@ class PlayState extends MusicBeatState
 		lyrics.text = '';
 		add(lyrics);
 
-		for (i in 0...lives)
+		for (i in 1...lives)
 		{
 			var heartSprite:FlxSprite = new FlxSprite(healthBar.width + 5 + (40 * i), 20);
 			heartSprite.frames = Paths.getSparrowAtlas('mechanics/general/heartUI');
@@ -3841,7 +3846,7 @@ class PlayState extends MusicBeatState
 
 							var sustainNote:Note = ClientPrefs.data.useExperimentalNotePool ?
 								NotePoolManager.createNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, this) :
-								noteManager.getNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
+								new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, null, false);
 							sustainNote.mustPress = sustainNote.mustPress = gottaHitNote;
 							sustainNote.gfNote = swagNote.gfNote;
 							sustainNote.exNote = swagNote.exNote;
@@ -6743,6 +6748,29 @@ class PlayState extends MusicBeatState
 				&& !practiceMode
 				&& !isDead
 				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				if (inArchipelagoMode && archipelago.APPlayState.livecount > 0) archipelago.APPlayState.livecount -= 1;
+				else if (lives > 0 && health <= 0 )
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			case "Lives + Mixtape":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				if (inArchipelagoMode && archipelago.APPlayState.livecount > 0) archipelago.APPlayState.livecount -= 1;
 				else if (lives > 0 && health <= 0 )
 				{
 					lives -= 1;

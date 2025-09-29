@@ -135,6 +135,7 @@ class APItem {
     public static var shields:Int = 0;
     public static var maxHPUp:Int = 0;
     public static var hasPocketLens:Bool = false;
+    public static var hasDashMechanic:Bool = false;
     public static var overloadHP:Int = 0; // Adds extra health which can go over the max HP.
     public static var extaLives:Int = 0; // Used for the "Extralives" item.
     public static var pendingDamage:Float = 0.0; // Damage that will be applied when conditions are met
@@ -309,9 +310,8 @@ class APItem {
                         // Apply pending damage will be handled automatically by the update system
                     });
 
-                    if (Std.is(FlxG.state, MusicBeatState)) {
-                        cast(FlxG.state, MusicBeatState).openSubState(mathSubstate);
-                    }
+                    states.PlayState.instance.canPause = false;
+                    FlxG.state.openSubState(mathSubstate);
                 }, true, false).funcAndReturn(function(t:APItem) {
                     t.isTrap = true;
                 });
@@ -360,10 +360,31 @@ class APItem {
                 });
             case "Extra Life":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    extaLives++;
-                    trace("Extra life acquired! Current extra lives: " + extaLives);
-                    popup('Extra Lives Left: $extaLives', "You got an extra life!");
-                    // Add PlayState Logic here, Z11.
+                    APPlayState.livecount++;
+                    if (APPlayState.APInstance() != null) {
+                        states.PlayState.instance.lives = archipelago.APPlayState.livecount+1;
+                        if (APPlayState.livecount > 1) {
+                            states.PlayState.instance.hearts.visible = true;
+                            states.PlayState.instance.hearts.clear();
+                            for (i in 1...states.PlayState.instance.lives)
+                            {
+                                var heartSprite:FlxSprite = new FlxSprite(states.PlayState.instance.healthBar.width + 5 + (40 * i), 20);
+                                heartSprite.frames = Paths.getSparrowAtlas('mechanics/general/heartUI');
+                                heartSprite.antialiasing = false;
+                                heartSprite.updateHitbox();
+                                heartSprite.y = states.PlayState.instance.healthBar.y + states.PlayState.instance.healthBar.height + 10;
+                                heartSprite.scrollFactor.set();
+                                heartSprite.animation.addByPrefix('Idle', "Hearts", 24, true);
+                                heartSprite.ID = i;
+                                if (ClientPrefs.data.downScroll)
+                                    heartSprite.y = states.PlayState.instance.healthBar.y - heartSprite.height - 10;
+                                heartSprite.animation.play('Idle');
+                                states.PlayState.instance.hearts.add(heartSprite);
+                            }
+                        }
+                    }
+                    trace("Extra life acquired! Current extra lives: " + APPlayState.livecount);
+                    popup('Extra Lives Left: ${APPlayState.livecount}', "You got an extra life!");
                 }, true, true);
             case "Tutorial Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
@@ -407,6 +428,19 @@ class APItem {
                     if (Std.is(FlxG.state, archipelago.APItemsViewerState)) {
                         FlxG.resetState();
                     }
+                }, true, true);
+
+            case "PONG Dash Mechanic":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    trace("PONG Dash Mechanic acquired! You can now dash in pong :)");
+                    popup('You can now dash in pong!', "You got the Dash Mechanic!");
+                    hasDashMechanic = true;
+                }, true, true);
+
+            case "UNO Color Filler":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('You got an UNO color!', "You got an UNO Color Filler!");
+
                 }, true, true);
 
             case "Song Switch Trap":
@@ -1522,6 +1556,7 @@ class APItem {
         shields = 0;
         maxHPUp = 0;
         hasPocketLens = false;
+        hasDashMechanic = false;
         overloadHP = 0;
         extaLives = 0;
         pendingDamage = 0.0;

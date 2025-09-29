@@ -146,7 +146,7 @@ class MinigameMenuState extends MusicBeatState {
 
         for (i in 0...availableGames.length) {
             var game = availableGames[i];
-            var menuItem = new Alphabet(listX, listY + (i * 80), game.displayName, true);
+            var menuItem = new Alphabet(listX, listY + (i * 20), game.displayName, true);
             menuItem.isMenuItem = true;
             menuItem.targetY = i;
             menuItem.ID = i;
@@ -378,7 +378,7 @@ class MinigameMenuState extends MusicBeatState {
      */
     private function createUnoPreview():Void {
         var previewX = previewBackground.x + 50;
-        var previewY = previewBackground.y + 120;
+        var previewY = previewBackground.y + 200;
 
         // Create card representations
         var cardColors = [FlxColor.RED, FlxColor.YELLOW, FlxColor.BLUE, FlxColor.GREEN];

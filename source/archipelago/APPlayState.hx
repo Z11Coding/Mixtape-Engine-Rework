@@ -80,6 +80,7 @@ class APPlayState extends PlayState {
 	var picked:Int = 0;
     var wordList:Array<String> = [];
 	var nonoLetters:String = "";
+    public static var livecount:Int = 0;
 	public var effectArray:Array<String> = [
 		'colorblind', 'blur', 'lag', 'mine', 'warning', 'heal', 'spin', 'songslower', 'songfaster', 'scrollswitch', 'scrollfaster', 'scrollslower', 'rainbow',
 		'cover', 'ghost', 'flashbang', 'nostrum', 'jackspam', 'spam', 'sever', 'shake', 'poison', 'dizzy', 'noise', 'flip', 'invuln',
@@ -148,8 +149,7 @@ class APPlayState extends PlayState {
     override public function create()
     {
         allowDebugKeys = false;
-        if (ghostChat) triggerGhostChat();
-        if (releasethebeast) startResisting();
+        lives = livecount;
 
         instance = this; // For traps and items
         if (APEntryState.inArchipelagoMode)
@@ -1970,7 +1970,7 @@ class APPlayState extends PlayState {
             if (!alreadyKilledByLink) {
                 alreadyKilledByLink = true;
                 die();
-            } else {FlxG.switchState(new substates.GameOverSubstate(boyfriend));}
+            } else {FlxG.state.openSubState(new substates.GameOverSubstate(boyfriend));}
             trace("Triggering DeathLink!");
         }
         #if cpp

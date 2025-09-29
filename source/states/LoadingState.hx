@@ -1438,7 +1438,9 @@ class LoadingState extends MusicBeatState
 				else
 					oldNote = null;
 
-				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote, false, false, null, true);
+				var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
+					NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, null) :
+					new Note(spawnTime, noteColumn, oldNote, false, false, null, false);
 				swagNote.noteIndex = Std.int(noteCache.length);
 				swagNote.formerPress = swagNote.mustPress = gottaHitNote;
 
@@ -1500,7 +1502,9 @@ class LoadingState extends MusicBeatState
 					{
 						oldNote = noteCache[Std.int(noteCache.length - 1)];
 
-						var sustainNote:Note = new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, null, true);
+						var sustainNote:Note = ClientPrefs.data.useExperimentalNotePool ?
+								NotePoolManager.createNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, null) :
+								new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, null, true);
 						sustainNote.mustPress = sustainNote.mustPress = gottaHitNote;
 						sustainNote.gfNote = swagNote.gfNote;
 						sustainNote.exNote = swagNote.exNote;

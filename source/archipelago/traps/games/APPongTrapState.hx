@@ -241,6 +241,9 @@ class APPongTrapState extends PongGameState {
 
             // Set required score for trap
             pongGame.maxScore = requiredScore;
+
+            pongGame.leftPaddle.dashEnabled = APItem.hasDashMechanic;
+            pongGame.rightPaddle.dashEnabled = APItem.hasDashMechanic;
         }
     }
 
