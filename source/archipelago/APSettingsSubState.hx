@@ -41,9 +41,13 @@ class APSettingsSubState extends MusicBeatSubstate {
     var fakeTransWeight:PsychUISlider;
     var shieldWeight:PsychUISlider;
     var MHPWeight:PsychUISlider;
+    var MHPDWeight:PsychUISlider;
+    var exLifeWeight:PsychUISlider;
     var songLimit:PsychUISlider;
+
     var gradientBar:FlxSprite;
     var dim:FlxSprite;
+
     public static function generateSongList() {
         globalSongList = APInfo.baseGame.concat(APInfo.baseErect).concat(APInfo.basePico).concat(APInfo.secrets);
 
@@ -159,6 +163,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
         shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
         MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
+        MHPDWeight.value = APEntryState.gameSettings.FNF.MHPDWeight;
+        exLifeWeight.value = APEntryState.gameSettings.FNF.exLifeWeight;
         songLimit.value = APEntryState.gameSettings.FNF.song_limit;
     }
 
@@ -349,6 +355,18 @@ class APSettingsSubState extends MusicBeatSubstate {
         MHPWeight.max = 10;
         MHPWeight.decimals = 0;
 
+        objY += 40;
+        MHPDWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.MHPDWeight = Std.int(v));
+        MHPDWeight.min = 0;
+        MHPDWeight.max = 10;
+        MHPDWeight.decimals = 0;
+
+        objY += 40;
+        exLifeWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.exLifeWeight = Std.int(v));
+        exLifeWeight.min = 0;
+        exLifeWeight.max = 10;
+        exLifeWeight.decimals = 0;
+
         tab_group.add(new FlxText(chartmodifierchance.x, chartmodifierchance.y - 15, 300, 'Chart Modifier Chance:'));
         tab_group.add(new FlxText(trapAmount.x, trapAmount.y - 15, 300, 'Trap Amount:'));
         tab_group.add(new FlxText(bbcWeight.x, bbcWeight.y - 15, 300, 'Blue Balls Curse Trap Weight:'));
@@ -360,8 +378,10 @@ class APSettingsSubState extends MusicBeatSubstate {
         tab_group.add(new FlxText(pongWeight.x, pongWeight.y - 15, 300, 'Pong Challenge Trap Weight:'));
         tab_group.add(new FlxText(svcWeight.x, svcWeight.y - 15, 300, 'Streamer Vs. Chat Trap Weight:'));
         tab_group.add(new FlxText(fakeTransWeight.x, fakeTransWeight.y - 15, 300, 'Fake Transition Trap Weight:'));
+        tab_group.add(new FlxText(MHPDWeight.x, MHPDWeight.y - 15, 300, 'Max HP Down Trap Weight:'));
         tab_group.add(new FlxText(shieldWeight.x, shieldWeight.y - 15, 300, 'Shield Item Weight:'));
-        tab_group.add(new FlxText(MHPWeight.x, MHPWeight.y - 15, 300, 'Hax HP Item Weight:'));
+        tab_group.add(new FlxText(MHPWeight.x, MHPWeight.y - 15, 300, 'Max HP Item Weight:'));
+        tab_group.add(new FlxText(exLifeWeight.x, exLifeWeight.y - 15, 300, 'Extra Life Item Weight:'));
         tab_group.add(chartmodifierchance);
         tab_group.add(trapAmount);
         tab_group.add(bbcWeight);
@@ -375,6 +395,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         tab_group.add(fakeTransWeight);
         tab_group.add(shieldWeight);
         tab_group.add(MHPWeight);
+        tab_group.add(MHPDWeight);
+        tab_group.add(exLifeWeight);
     }
 
     var testMap:Map<String, Dynamic>;

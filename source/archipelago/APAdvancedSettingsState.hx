@@ -134,7 +134,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     var playerName:String = "Player";
     // Song selection settings with proper defaults
     var startingSong:String = "Tutorial";
-    var victorySong:String = "Tutorial";
+    var victorySong:String = "Bopeebo";
 
     // Additional song data for display (icons, etc)
     var startingSongData:Dynamic = null;
@@ -147,8 +147,14 @@ class APAdvancedSettingsState extends MusicBeatState {
     var tutorialWeight:Int = 3;
     var svcWeight:Int = 3;
     var fakeTransWeight:Int = 3;
+    var songswitchWeight:Int = 3;
+    var resistanceWeight:Int = 3;
+    var unoWeight:Int = 3;
+    var pongWeight:Int = 3;
     var shieldWeight:Int = 3;
+    var exLifeWeight:Int = 3;
     var MHPWeight:Int = 3;
+    var MHPDWeight:Int = 3;
 
     // Navigation cooldown
     var navigationCooldown:Float = 0;
@@ -156,7 +162,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     var ticketPercent:Int = 25;
     var ticketWinPercent:Int = 75;
     var chartmodifierchance:Int = 5;
-    var trapAmount:Int = 30;
+    var trapAmount:Int = 50;
     var songLimit:Int = 50;
 
     // Animation state
@@ -325,10 +331,16 @@ class APAdvancedSettingsState extends MusicBeatState {
                         case "bbcWeight": bbcWeight = value;
                         case "ghostChatWeight": ghostChatWeight = value;
                         case "tutorialWeight": tutorialWeight = value;
+                        case "songswitchWeight": songswitchWeight = value;
+                        case "resistanceWeight": resistanceWeight = value;
+                        case "unoWeight": unoWeight = value;
+                        case "pongWeight": pongWeight = value;
                         case "svcWeight": svcWeight = value;
                         case "fakeTransWeight": fakeTransWeight = value;
                         case "shieldWeight": shieldWeight = value;
+                        case "exLifeWeight": exLifeWeight = value;
                         case "MHPWeight": MHPWeight = value;
+                        case "MHPDWeight": MHPDWeight = value;
                         // Handle any other potential fields that might exist
                         default:
                             trace('Unknown YAML field during import: $field = $value');
@@ -522,35 +534,70 @@ class APAdvancedSettingsState extends MusicBeatState {
         var fillerWeightsOptions:Array<SettingsOption> = [
             {
                 name: "BBC Weight",
-                description: "Weight for Blue Balls Curse trap (0-10)",
+                description: "Weight for Blue Balls Curse Trap (0-10)",
                 callback: () -> adjustBBCWeight(),
                 locked: false,
                 contextMenu: createEditContextMenu(() -> adjustBBCWeight())
             },
             {
                 name: "Ghost Chat Weight",
-                description: "Weight for Ghost Chat trap (0-10)",
+                description: "Weight for Ghost Chat Trap (0-10)",
                 callback: () -> adjustGhostChatWeight(),
                 locked: false,
                 contextMenu: createEditContextMenu(() -> adjustGhostChatWeight())
             },
             {
-                name: "Tutorial Weight",
-                description: "Weight for Tutorial filler items (0-10)",
+                name: "Tutorial Trap Weight",
+                description: "Weight for the Tutorial Trap items (0-10)",
                 callback: () -> adjustTutorialWeight(),
                 locked: false,
                 contextMenu: createEditContextMenu(() -> adjustTutorialWeight())
             },
             {
+                name: "Song Switch Trap Weight",
+                description: "Weight for the Song Switch Trap items (0-10)",
+                callback: () -> adjustSongSwitchWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustSongSwitchWeight())
+            },
+            {
+                name: "Resistance Trap Weight",
+                description: "Weight for the Resistance Trap items (0-10)",
+                callback: () -> adjustResistanceWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustResistanceWeight())
+            },
+            {
+                name: "UNO Challenge Trap Weight",
+                description: "Weight for the UNO Challenge Trap items (0-10)",
+                callback: () -> adjustUNOWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustUNOWeight())
+            },
+            {
+                name: "Pong Challenge Trap Weight",
+                description: "Weight for the Pong Challenge Trap items (0-10)",
+                callback: () -> adjustPongWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustPongWeight())
+            },
+            {
+                name: "Extra Life Weight",
+                description: "Weight for Extra Life items (0-10)",
+                callback: () -> adjustexLifeWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustexLifeWeight())
+            },
+            {
                 name: "SVC Weight",
-                description: "Weight for SVC filler items (0-10)",
+                description: "Weight for Streamer Vs. Chat items (0-10)",
                 callback: () -> adjustSVCWeight(),
                 locked: false,
                 contextMenu: createEditContextMenu(() -> adjustSVCWeight())
             },
             {
                 name: "Fake Transition Weight",
-                description: "Weight for Fake Trans filler items (0-10)",
+                description: "Weight for Fake Transition items (0-10)",
                 callback: () -> adjustFakeTransWeight(),
                 locked: false,
                 contextMenu: createEditContextMenu(() -> adjustFakeTransWeight())
@@ -563,11 +610,18 @@ class APAdvancedSettingsState extends MusicBeatState {
                 contextMenu: createEditContextMenu(() -> adjustShieldWeight())
             },
             {
-                name: "MHP Weight",
-                description: "Weight for MHP filler items (0-10)",
+                name: "Max HP Up Weight",
+                description: "Weight for Max HP Up filler items (0-10)",
                 callback: () -> adjustMHPWeight(),
                 locked: false,
                 contextMenu: createEditContextMenu(() -> adjustMHPWeight())
+            },
+            {
+                name: "Max HP Down Weight",
+                description: "Weight for Max HP Down filler items (0-10)",
+                callback: () -> adjustMHPDWeight(),
+                locked: false,
+                contextMenu: createEditContextMenu(() -> adjustMHPDWeight())
             }
         ];
 
@@ -606,7 +660,7 @@ class APAdvancedSettingsState extends MusicBeatState {
                 color: FlxColor.ORANGE
             },
             {
-                name: "FILLER WEIGHTS",
+                name: "FILLER/ITEM/TRAP WEIGHTS",
                 description: "Configure item and trap generation weights",
                 options: fillerWeightsOptions,
                 stateOptions: [],
@@ -623,7 +677,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         add(titleText);
 
         // Description
-        descriptionText = new FlxText(50, 90, FlxG.width - 100, "", 20);
+        descriptionText = new FlxText(50, 110, FlxG.width - 100, "", 20);
         descriptionText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.GRAY, CENTER, OUTLINE, FlxColor.BLACK);
         descriptionText.borderSize = 1;
         add(descriptionText);
@@ -1126,11 +1180,17 @@ class APAdvancedSettingsState extends MusicBeatState {
             case "Song Limit": Std.string(songLimit);
             case "BBC Weight": Std.string(bbcWeight);
             case "Ghost Chat Weight": Std.string(ghostChatWeight);
-            case "Tutorial Weight": Std.string(tutorialWeight);
+            case "Tutorial Trap Weight": Std.string(tutorialWeight);
+            case "Song Switch Trap Weight": Std.string(songswitchWeight);
+            case "Resistance Trap Weight": Std.string(resistanceWeight);
+            case "UNO Challenge Trap Weight": Std.string(unoWeight);
+            case "Pong Challenge Trap Weight": Std.string(pongWeight);
             case "SVC Weight": Std.string(svcWeight);
-            case "Fake Trans Weight": Std.string(fakeTransWeight);
+            case "Fake Transition Weight": Std.string(fakeTransWeight);
             case "Shield Weight": Std.string(shieldWeight);
-            case "MHP Weight": Std.string(MHPWeight);
+            case "Max HP Up Weight": Std.string(MHPWeight);
+            case "Max HP Down Weight": Std.string(MHPDWeight);
+            case "Extra Life Weight": Std.string(exLifeWeight);
             default: "";
         }
     }
@@ -1297,7 +1357,7 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function adjustTrapAmount() {
-        openSliderControl("Trap Amount", trapAmount, 0, 60, 5, function(value:Float) {
+        openSliderControl("Trap Amount", trapAmount, 0, 100, 50, function(value:Float) {
             trapAmount = Std.int(value);
             refreshCurrentPage();
         });
@@ -1334,50 +1394,92 @@ class APAdvancedSettingsState extends MusicBeatState {
     }
 
     function adjustBBCWeight() {
-        openSliderControl("BBC Weight", bbcWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("BBC Trap Weight", bbcWeight, 0, 10, 1, function(value:Float) {
             bbcWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
 
     function adjustGhostChatWeight() {
-        openSliderControl("Ghost Chat Weight", ghostChatWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("Ghost Chat Trap Weight", ghostChatWeight, 0, 10, 1, function(value:Float) {
             ghostChatWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
 
     function adjustShieldWeight() {
-        openSliderControl("Shield Weight", shieldWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("Shield Item Weight", shieldWeight, 0, 10, 1, function(value:Float) {
             shieldWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
 
     function adjustTutorialWeight() {
-        openSliderControl("Tutorial Weight", tutorialWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("Tutorial Trap Weight", tutorialWeight, 0, 10, 1, function(value:Float) {
             tutorialWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
 
+    function adjustSongSwitchWeight() {
+        openSliderControl("Song Switch Trap Weight", songswitchWeight, 0, 10, 1, function(value:Float) {
+            songswitchWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustResistanceWeight() {
+        openSliderControl("Resistance Trap Weight", resistanceWeight, 0, 10, 1, function(value:Float) {
+            resistanceWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustUNOWeight() {
+        openSliderControl("UNO Challenge Trap Weight", unoWeight, 0, 10, 1, function(value:Float) {
+            unoWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustPongWeight() {
+        openSliderControl("Pong Challenge Trap Weight", pongWeight, 0, 10, 1, function(value:Float) {
+            pongWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustexLifeWeight() {
+        openSliderControl("Extra Life Weight", exLifeWeight, 0, 10, 1, function(value:Float) {
+            exLifeWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
     function adjustSVCWeight() {
-        openSliderControl("SVC Weight", svcWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("Streamer Vs. Chat Weight", svcWeight, 0, 10, 1, function(value:Float) {
             svcWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
 
     function adjustFakeTransWeight() {
-        openSliderControl("Fake Trans Weight", fakeTransWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("Fake Transition Weight", fakeTransWeight, 0, 10, 1, function(value:Float) {
             fakeTransWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
 
     function adjustMHPWeight() {
-        openSliderControl("MHP Weight", MHPWeight, 0, 10, 1, function(value:Float) {
+        openSliderControl("Max HP Up Weight", MHPWeight, 0, 10, 1, function(value:Float) {
             MHPWeight = Std.int(value);
+            refreshCurrentPage();
+        });
+    }
+
+    function adjustMHPDWeight() {
+        openSliderControl("Max HP Down Weight", MHPDWeight, 0, 10, 1, function(value:Float) {
+            MHPDWeight = Std.int(value);
             refreshCurrentPage();
         });
     }
@@ -1707,10 +1809,16 @@ class APAdvancedSettingsState extends MusicBeatState {
             bbcWeight = settings.bbcWeight;
             ghostChatWeight = settings.ghostChatWeight;
             tutorialWeight = settings.tutorialWeight;
+            songswitchWeight = settings.songswitchWeight;
+            resistanceWeight = settings.resistanceWeight;
+            unoWeight = settings.unoWeight;
+            pongWeight = settings.pongWeight;
             svcWeight = settings.svcWeight;
             fakeTransWeight = settings.fakeTransWeight;
             shieldWeight = settings.shieldWeight;
             MHPWeight = settings.MHPWeight;
+            MHPDWeight = settings.MHPDWeight;
+            exLifeWeight = settings.exLifeWeight;
 
             // New settings with defaults if they don't exist
             includeSecrets = Reflect.hasField(settings, "include_secrets") ? settings.include_secrets : true;
@@ -1748,10 +1856,16 @@ class APAdvancedSettingsState extends MusicBeatState {
             settings.bbcWeight = bbcWeight;
             settings.ghostChatWeight = ghostChatWeight;
             settings.tutorialWeight = tutorialWeight;
+            settings.songswitchWeight = songswitchWeight;
+            settings.resistanceWeight = resistanceWeight;
+            settings.unoWeight = unoWeight;
+            settings.pongWeight = pongWeight;
             settings.svcWeight = svcWeight;
             settings.fakeTransWeight = fakeTransWeight;
             settings.shieldWeight = shieldWeight;
             settings.MHPWeight = MHPWeight;
+            settings.MHPDWeight = MHPDWeight;
+            settings.exLifeWeight = exLifeWeight;
         }
     }
 
@@ -2011,10 +2125,16 @@ class APAdvancedSettingsState extends MusicBeatState {
                             case "bbcWeight": bbcWeight = value;
                             case "ghostChatWeight": ghostChatWeight = value;
                             case "tutorialWeight": tutorialWeight = value;
+                            case "songswitchWeight": songswitchWeight = value;
+                            case "resistanceWeight": resistanceWeight = value;
+                            case "unoWeight": unoWeight = value;
+                            case "pongWeight": pongWeight = value;
                             case "svcWeight": svcWeight = value;
                             case "fakeTransWeight": fakeTransWeight = value;
                             case "shieldWeight": shieldWeight = value;
                             case "MHPWeight": MHPWeight = value;
+                            case "MHPDWeight": MHPDWeight = value;
+                            case "exLifeWeight": exLifeWeight = value;
                             // Handle any other potential fields that might exist
                             default:
                                 trace('Unknown YAML field during import: $field = $value');
@@ -2274,10 +2394,16 @@ class APAdvancedSettingsState extends MusicBeatState {
             bbcWeight: bbcWeight,
             ghostChatWeight: ghostChatWeight,
             tutorialWeight: tutorialWeight,
+            songswitchWeight: songswitchWeight,
+            resistanceWeight: resistanceWeight,
+            unoWeight: unoWeight,
+            pongWeight: pongWeight,
             svcWeight: svcWeight,
             fakeTransWeight: fakeTransWeight,
             shieldWeight: shieldWeight,
-            MHPWeight: MHPWeight
+            MHPWeight: MHPWeight,
+            MHPDWeight: MHPDWeight,
+            exLifeWeight: exLifeWeight
         };
 
         if (tempSave != null) {
@@ -2317,10 +2443,15 @@ class APAdvancedSettingsState extends MusicBeatState {
             if (Reflect.hasField(data, "bbcWeight")) bbcWeight = data.bbcWeight;
             if (Reflect.hasField(data, "ghostChatWeight")) ghostChatWeight = data.ghostChatWeight;
             if (Reflect.hasField(data, "tutorialWeight")) tutorialWeight = data.tutorialWeight;
+            if (Reflect.hasField(data, "songswitchWeight")) songswitchWeight = data.songswitchWeight;
+            if (Reflect.hasField(data, "unoWeight")) unoWeight = data.unoWeight;
+            if (Reflect.hasField(data, "pongWeight")) pongWeight = data.pongWeight;
             if (Reflect.hasField(data, "svcWeight")) svcWeight = data.svcWeight;
             if (Reflect.hasField(data, "fakeTransWeight")) fakeTransWeight = data.fakeTransWeight;
             if (Reflect.hasField(data, "shieldWeight")) shieldWeight = data.shieldWeight;
             if (Reflect.hasField(data, "MHPWeight")) MHPWeight = data.MHPWeight;
+            if (Reflect.hasField(data, "MHPDWeight")) MHPDWeight = data.MHPDWeight;
+            if (Reflect.hasField(data, "exLifeWeight")) exLifeWeight = data.exLifeWeight;
         }
     }
 
@@ -2429,6 +2560,7 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         var isDragging = false;
         var currentVal = currentValue;
+        var lastVal:Float = -1;
 
         // Create the update function and assign it
         sliderUpdateFunc = function(elapsed:Float) {
@@ -2443,7 +2575,10 @@ class APAdvancedSettingsState extends MusicBeatState {
                 currentVal = minValue + (normalizedX * (maxValue - minValue));
                 currentVal = Math.round(currentVal / stepSize) * stepSize;
                 updateSlider(currentVal);
-                FlxG.sound.play(Paths.sound('scrollMenu'), 0.3);
+                if (currentVal != lastVal) {
+                    FlxG.sound.play(Paths.sound('scrollMenu'), 0.3);
+                    lastVal = currentVal;
+                }
             }
 
             if (!FlxG.mouse.pressed) {
@@ -2549,10 +2684,15 @@ class APAdvancedSettingsState extends MusicBeatState {
             if (Reflect.hasField(data, "bbcWeight")) state.bbcWeight = data.bbcWeight;
             if (Reflect.hasField(data, "ghostChatWeight")) state.ghostChatWeight = data.ghostChatWeight;
             if (Reflect.hasField(data, "tutorialWeight")) state.tutorialWeight = data.tutorialWeight;
+            if (Reflect.hasField(data, "songswitchWeight")) state.songswitchWeight = data.songswitchWeight;
+            if (Reflect.hasField(data, "unoWeight")) state.unoWeight = data.unoWeight;
+            if (Reflect.hasField(data, "pongWeight")) state.pongWeight = data.pongWeight;
             if (Reflect.hasField(data, "svcWeight")) state.svcWeight = data.svcWeight;
             if (Reflect.hasField(data, "fakeTransWeight")) state.fakeTransWeight = data.fakeTransWeight;
             if (Reflect.hasField(data, "shieldWeight")) state.shieldWeight = data.shieldWeight;
             if (Reflect.hasField(data, "MHPWeight")) state.MHPWeight = data.MHPWeight;
+            if (Reflect.hasField(data, "MHPDWeight")) state.MHPDWeight = data.MHPDWeight;
+            if (Reflect.hasField(data, "exLifeWeight")) state.exLifeWeight = data.exLifeWeight;
         }
         return state;
     }

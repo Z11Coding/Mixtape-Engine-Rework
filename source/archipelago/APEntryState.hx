@@ -69,6 +69,8 @@ typedef APOptions =
 	var	fakeTransWeight:Int;
 	var	shieldWeight:Int;
 	var	MHPWeight:Int;
+	var	MHPDWeight:Int;
+	var	exLifeWeight:Int;
 	var	song_limit:Int;
 	// New settings for APAdvancedSettingsState
 	var	include_secrets:Bool;
@@ -177,6 +179,8 @@ class APEntryState extends MusicBeatState
 			fakeTransWeight: 5,
 			shieldWeight: 5,
 			MHPWeight: 5,
+			MHPDWeight: 5,
+			exLifeWeight: 5,
 			song_limit: 5,
 			// New settings for APAdvancedSettingsState
 			include_secrets: true,
@@ -797,6 +801,10 @@ var uri = '${#if sys (_hostInput.text == "localhost" || _hostInput.text == "127.
 				+ gameSettings.FNF.shieldWeight
 				+ "\nMax HP Weight: "
 				+ gameSettings.FNF.MHPWeight
+				+ "\nMax HP Down Weight: "
+				+ gameSettings.FNF.MHPDWeight
+				+ "\nExtra Life Weight: "
+				+ gameSettings.FNF.exLifeWeight
 				+ "\nSong Limit: "
 				+ gameSettings.FNF.song_limit;
 		} catch (e:Dynamic) {
