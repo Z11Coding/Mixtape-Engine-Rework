@@ -71,7 +71,7 @@ class APUnoTrapState extends UnoTestState {
             var usableColors:Array<UnoColor> = [];
 
 
-            usableColors = (UnoCard.UnoColor.createCustomColorsFromObjects(unoColorsWithInt));
+            usableColors = (UnoCard.createCustomColorsFromObjects(unoColorsWithInt));
 
             // If none unlocked, use gray.
             if (usableColors.length == 0) {
