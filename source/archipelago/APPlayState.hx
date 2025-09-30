@@ -2649,7 +2649,7 @@ class APPlayState extends PlayState {
         if (releasethebeast) {
             if (resistanceAmount < 1) resistanceAmount += 0.005;
             var anim:String = zenetta.getAnimationName();
-            if (curBeat % zenetta.danceEveryNumBeats == 0 && !zenetta.stunned)
+            if(zenetta.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * zenetta.singDuration && anim.startsWith('sing') && !anim.endsWith('miss'))
                 zenetta.dance();
         }
     }

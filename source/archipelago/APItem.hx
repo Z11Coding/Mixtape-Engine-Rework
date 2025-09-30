@@ -503,7 +503,6 @@ class APItem {
                         states.PlayState.storyWeek = -1;
                         Mods.currentModDirectory = '';
                         states.PlayState.storyDifficulty = Difficulty.list.length-1;
-                        FlxG.save.flush();
 
                         if (Std.is(FlxG.state, APPlayState)) {
                             MusicBeatState.resetState();
@@ -1064,7 +1063,7 @@ class APItem {
             case "Animal Bonus Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('We\'re gonna go someplace SPECIAL!', 'TrapLink: Animal Bonus Trap');
-                    var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
+                    var specialSongList = ['Rise', 'Zeventeen', /*'Pack-A-Punch', 'Driller',*/ 'Test Field', 'Rawr', /*'Fightback',*/ 'Funky Fanta', /*'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'*/];
                     FlxTween.num(APPlayState.instance.playbackRate, 0, 0.5, {
                         onComplete: function(e) {
                             APPlayState.instance.paused = false;
@@ -1080,13 +1079,22 @@ class APItem {
                                     FlxG.save.data.songPos = FlxG.sound.music.time;
                                     FlxG.save.flush();
 
-                                    Difficulty.list = Difficulty.defaultList.copy();
-                                    states.PlayState.storyDifficulty = 1;
-                                    var num = FlxG.random.int(0, specialSongList.length-1);
-                                    states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[num].toLowerCase(), 1), specialSongList[num].toLowerCase());
-                                    states.PlayState.storyWeek = 0;
+                                    var curSong = FlxG.random.int(0, specialSongList.length-1);
+                                    switch (specialSongList[curSong])
+                                    {
+                                        case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr':
+                                            Difficulty.list = ['Hard'];
+                                        case 'Rise' | 'Test Field':
+                                            Difficulty.list = ['Normal'];
+                                        case "Beat Battle":
+                                            Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                                        default:
+                                            Difficulty.list = Difficulty.defaultList.copy();
+                                    }
+                                    states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                                    states.PlayState.storyWeek = -1;
                                     Mods.currentModDirectory = '';
-                                    FlxG.save.flush();
+                                    states.PlayState.storyDifficulty = Difficulty.list.length-1;
 
                                     if (Std.is(FlxG.state, APPlayState)) {
                                         MusicBeatState.resetState();
