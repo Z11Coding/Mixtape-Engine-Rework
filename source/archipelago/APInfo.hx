@@ -23,7 +23,8 @@ typedef APSlotDataType = {
 	selectedSongs: Array<String>,
 	songData: Map<String, SongDetailData>,
 	?custom_weeks: Dynamic, // Custom weeks data from HScript processing
-	?song_modifications: Dynamic // Song additions/exclusions data
+	?song_modifications: Dynamic, // Song additions/exclusions data
+	?unoColorsUsed:{name:String, color:String} // Uno mod colors used in the slot
 }
 
 abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {

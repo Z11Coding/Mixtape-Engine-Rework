@@ -143,8 +143,8 @@
 
 	<!--Mixtape stuff needed-->
 	<haxelib name="openfl" /> <!-- Game engine backend -->
-	<haxelib name="openflCamera" />
-	<haxelib name="openflMicrophone" />
+	<!-- <haxelib name="openflCamera" />
+	<haxelib name="openflMicrophone" /> -->
 	<haxelib name="haxeui-core" /> <!-- UI framework -->
 	<haxelib name="haxeui-flixel" /> <!-- Integrate HaxeUI with Flixel -->
 	<haxelib name="flixel-text-input" /> <!-- Improved text field rendering for HaxeUI -->

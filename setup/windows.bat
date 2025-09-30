@@ -20,6 +20,7 @@ haxelib install actuate 1.9.0
 haxelib install flixel-ui 2.6.1
 haxelib install hscript 2.5.0
 haxelib install noisehx 0.0.1
+haxelib install deflatex
 haxelib install haxeui-core 1.7.0
 haxelib install haxeui-flixel 1.7.0
 haxelib install funkin-modchart 1.2.3
