@@ -283,8 +283,14 @@ class FreeplayState extends MusicBeatState
 
 		// if(curSelected >= songs.length) curSelected = -1;
 		try {
-			bg.color = fpManager.songList[curSelected].color[1][0];
-			intendedColor = bg.color;
+			// Use default color if songs are hidden to avoid identifying the song
+			if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+				bg.color = FlxColor.fromString('#FD719B'); // Default pink color
+				intendedColor = bg.color;
+			} else {
+				bg.color = fpManager.songList[curSelected].color[1][0];
+				intendedColor = bg.color;
+			}
 		}
 		catch(e)
 		{
@@ -435,13 +441,14 @@ class FreeplayState extends MusicBeatState
 				if (APEntryState.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+					var displayName = archipelago.APItem.unknownSongs ? "Unknown" : songName;
 					songText = APFreeplayManager.isVictorySong(songName, modName) ?
 						(isMissing ?
 							(someLocationsNotMissing ?
-								new DynamicColoredAlphabet(90, 320, songName, true, bronzeOrOrangeColor, true)
-								: new VictorySong(90, 320, songName, color, true))
-							: new DynamicColoredAlphabet(90, 320, songName, true, 0xFFFFD700, true))
-						: new DynamicColoredAlphabet(90, 320, songName, true, color, true);
+								new DynamicColoredAlphabet(90, 320, displayName, true, bronzeOrOrangeColor, true)
+								: new VictorySong(90, 320, displayName, color, true))
+							: new DynamicColoredAlphabet(90, 320, displayName, true, 0xFFFFD700, true))
+						: new DynamicColoredAlphabet(90, 320, displayName, true, color, true);
 				} else {
 					songText = new DynamicAlphabet(90, 320, fpManager.songList[i].songName, true, true);
 				}
@@ -466,7 +473,8 @@ class FreeplayState extends MusicBeatState
 				songText.visible = songText.active = songText.isMenuItem = false;
 
 				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
-				var icon:HealthIcon = new HealthIcon(isLock ? "lock" : fpManager.songList[i].songCharacter);
+				var iconName = isLock ? "lock" : (archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
+				var icon:HealthIcon = new HealthIcon(iconName);
 				icon.sprTracker = songText;
 				icon.visible = icon.active = false;
 				iconArray.push(icon);
@@ -1167,7 +1175,10 @@ class FreeplayState extends MusicBeatState
 				if (curSelected >= fpManager.songList.length)
 					curSelected = -1;
 
-				var newColor:Int = curSelected != -1 ? fpManager.songList[curSelected].color[1][0] : FlxColor.fromString('#FD719B');
+				var newColor:Int = FlxColor.fromString('#FD719B'); // Default color
+				if (!APEntryState.inArchipelagoMode || !archipelago.APItem.unknownSongs) {
+					newColor = curSelected != -1 ? fpManager.songList[curSelected].color[1][0] : FlxColor.fromString('#FD719B');
+				}
 				if(newColor != intendedColor) {
 					if(colorTween != null) {
 						colorTween.cancel();
@@ -1294,7 +1305,8 @@ class FreeplayState extends MusicBeatState
 		}
 
 		if (metadata != null && metadata.freeplay != null) {
-			if (metadata.freeplay.bg != null && metadata.freeplay.bg != '') {
+			// Always use default background if songs are hidden
+			if (!archipelago.APItem.unknownSongs && metadata.freeplay.bg != null && metadata.freeplay.bg != '') {
 				bg.loadGraphic(Paths.image(metadata.freeplay.bg));
 				bg.screenCenter();
 			} else {
@@ -1303,7 +1315,8 @@ class FreeplayState extends MusicBeatState
 			}
 
 			if (albumPhoto != null) {
-				if (metadata.freeplay.album != null && metadata.freeplay.album != '') {
+				// Always use default album if songs are hidden
+				if (!archipelago.APItem.unknownSongs && metadata.freeplay.album != null && metadata.freeplay.album != '') {
 					albumPhoto.loadGraphic(Paths.image('albums/${Std.string(metadata.freeplay.album)}'));
 					albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
 					albumPhoto.screenCenter(Y);

@@ -143,6 +143,8 @@ class APItem {
 
     public static var unoColorsUnlocked:Array<{name:String, color:String}> = [];
 
+    public static var unknownSongs:Bool = false; // If true, songs are unknown.
+
     private var toSync:Bool = true;
     public var triggered:Bool = false;
 
@@ -1348,6 +1350,37 @@ class APItem {
                         MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
                     }
                 }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Ultimate Confusion Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    unknownSongs = true;
+                    popup('Huh? Where am I?', "Ultimate Confusion Trap");
+
+                    // Set a timer to revert after 5 minutes (300000 milliseconds)
+                    haxe.Timer.delay(function() {
+                        unknownSongs = false;
+                        popup('The confusion has worn off!', "Clarity Restored");
+
+                        // Reload freeplay to refresh the display
+                        if (APEntryState.inArchipelagoMode) {
+                            if (states.freeplay.FreeplayState.instance != null)
+                                states.freeplay.FreeplayState.instance.reloadSongs(true);
+                            if (states.freeplay.OsuFreeplayState.instance != null)
+                                @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                        }
+                    }, 300000); // 5 minutes = 300000 milliseconds
+
+                    // Reload freeplay immediately to show the confusion
+                    if (APEntryState.inArchipelagoMode) {
+                        if (states.freeplay.FreeplayState.instance != null)
+                            states.freeplay.FreeplayState.instance.reloadSongs(true);
+                        if (states.freeplay.OsuFreeplayState.instance != null)
+                            @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                    }
+                }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });

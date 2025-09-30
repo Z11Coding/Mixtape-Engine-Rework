@@ -728,6 +728,41 @@ class CollectionUtils
 		return false;
 	}
 
+	public static function arrayContainsHowMany<T>(arr:Array<T>, obj:T):Int
+	{
+		var count = 0;
+		for (item in arr)
+		{
+			if (compareObjects(item, obj)) count++;
+		}
+		return count;
+	}
+
+	public static function arrayContainsDuplicates<T>(arr:Array<T>):Bool
+	{
+		// Compare each item with every other item.
+		for (i in 0...arr.length)
+		{
+			for (j in 0...arr.length)
+			{
+				if (i != j && compareObjects(arr[i], arr[j])) return true;
+			}
+		}
+		return false;
+	}
+
+	public static function arrayRemoveDuplicates<T>(arr:Array<T>):Array<T>
+	{
+		var result = new Array<T>();
+		for (item in arr)
+		{
+			if (!arrayContainsObject(result, item))
+			{
+				result.push(item);
+			}
+		}
+		return result;
+	}
 
 	public static inline function truthy(input:Dynamic):Bool
 	{

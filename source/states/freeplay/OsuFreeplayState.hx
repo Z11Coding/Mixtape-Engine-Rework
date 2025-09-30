@@ -723,7 +723,8 @@ class OsuFreeplayState extends MusicBeatState
 			this.songBox.add(songBox);
 
 			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
-			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : fpManager.songList[i].songCharacter, false);
+			var iconName = isLock ? "lock" : (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
+			var icon:HealthIcon = new HealthIcon(iconName, false);
 			icon.setPosition(320, 100);
 			icon.ID = i;
 			icon.setGraphicSize(Std.int(icon.width / 1.7), Std.int(icon.height / 1.7));
@@ -733,10 +734,15 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			if (metadata != null)
-				text.text = fpManager.songList[i].songName + '\nBy ${metadata.song.artist}';
-			else
-				text.text = fpManager.songList[i].songName + '\nBy Unknown';
+			var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
+			var displayArtist = "Unknown";
+			
+			// Only show real artist if songs are not hidden
+			if (!archipelago.APItem.unknownSongs && metadata != null) {
+				displayArtist = metadata.song.artist;
+			}
+			
+			text.text = displayName + '\nBy ${displayArtist}';
 			text.alignment = 'left';
 			text.ID = i;
 			textGrp.add(text);
@@ -809,10 +815,15 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			if (metadata != null)
-				text.text = fpManager.songList[i].songName + '\nBy ${metadata.song.artist}';
-			else
-				text.text = fpManager.songList[i].songName + '\nBy Unknown';
+			var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
+			var displayArtist = "Unknown";
+			
+			// Only show real artist if songs are not hidden
+			if (!archipelago.APItem.unknownSongs && metadata != null) {
+				displayArtist = metadata.song.artist;
+			}
+			
+			text.text = displayName + '\nBy ${displayArtist}';
 			text.alignment = 'left';
 			text.ID = i + trueInt;
 			textGrp.add(text);
@@ -843,7 +854,8 @@ class OsuFreeplayState extends MusicBeatState
 					catch(e) {metadata = null;}
 
 					var text:FlxText = new FlxText(0, 0, 500, '', 20);
-					text.text = fpManager.songList[i].songName + '\n' + Difficulty.list[j];
+					var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
+					text.text = displayName + '\n' + Difficulty.list[j];
 					text.alignment = 'left';
 					text.ID = trueInt;
 					this.textGrp.add(text);

@@ -192,10 +192,15 @@ class ArchPopup extends openfl.display.Sprite {
 		{
 			var songName = daSong.song;
 			var modName = daSong.mod;
-			var title = (modName != null && modName != "")
-				? '$songName (from $modName)'
-				: songName;
-			var newPop:ArchPopup = new ArchPopup('New Song!', title, songName, image, endFunc);
+			
+			// Hide song name if unknownSongs is true
+			var displaySongName = archipelago.APItem.unknownSongs ? "Unknown Song" : songName;
+			var displayModName = archipelago.APItem.unknownSongs ? "" : modName;
+			
+			var title = (displayModName != null && displayModName != "")
+				? '$displaySongName (from $displayModName)'
+				: displaySongName;
+			var newPop:ArchPopup = new ArchPopup('New Song!', title, displaySongName, image, endFunc);
 			_popups.push(newPop);
 
 			var time:Int = openfl.Lib.getTimer();

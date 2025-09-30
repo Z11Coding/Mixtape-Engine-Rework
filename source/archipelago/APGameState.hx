@@ -1164,7 +1164,9 @@ class APGameState
 	}
 
 	function sendMessageSimple(text:Dynamic)
+	{
 		archipelago.console.MainTab.addMessage(text);
+	}
 
 	public function disconnectAP()
 	{

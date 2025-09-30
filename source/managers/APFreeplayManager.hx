@@ -346,10 +346,16 @@ class APFreeplayManager extends FreeplayManager {
 		APEntryState.apGame.info().poll();
 	}
 
+    var songsHidden:Bool = archipelago.APItem.unknownSongs;
 	override public function reloadFreeplay(refresh:Bool = false, searchText:String = '')
     {
         trace("Reloading Songs!");
         songs = [];
+        songsHidden = archipelago.APItem.unknownSongs;
+
+        // Check all current allowed songs and make sure there's no duplicates.
+        if (curUnlocked != null)
+            curUnlocked = curUnlocked.arrayRemoveDuplicates();
 
         for (i in 0...WeekData.weeksList.length) {
             if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
