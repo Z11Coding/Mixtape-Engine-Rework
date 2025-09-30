@@ -74,6 +74,8 @@ typedef APOptions =
 	var	song_limit:Int;
 	// New settings for APAdvancedSettingsState
 	var	include_secrets:Bool;
+	var	include_pico:Bool;
+	var	include_erect:Bool;
 	var	include_vanilla:Bool;
 	var	starting_song:String;
 	var	victory_song:String;
@@ -184,6 +186,8 @@ class APEntryState extends MusicBeatState
 			song_limit: 5,
 			// New settings for APAdvancedSettingsState
 			include_secrets: true,
+			include_pico: true,
+			include_erect: true,
 			include_vanilla: true,
 			starting_song: "Tutorial",
 			victory_song: "Bopeebo"

@@ -129,6 +129,8 @@ class APAdvancedSettingsState extends MusicBeatState {
     var accRequirement:String = "Any";
     var allowMods:Bool = false;
     var includeSecrets:Bool = true;
+    var includePico:Bool = true;
+    var includeErect:Bool = true;
     var includeVanilla:Bool = true;
     // Player name setting
     var playerName:String = "Player";
@@ -318,6 +320,8 @@ class APAdvancedSettingsState extends MusicBeatState {
                         case "accuracy_requirement" | "accrequirement": accRequirement = Std.string(value);
                         case "allow_mods" | "mods_enabled": allowMods = value == true;
                         case "include_secrets": includeSecrets = value == true;
+                        case "include_pico": includePico = value == true;
+                        case "include_erect": includeErect = value == true;
                         case "include_vanilla": includeVanilla = value == true;
                         case "starting_song": startingSong = Std.string(value);
                         case "victory_song": victorySong = Std.string(value);
@@ -453,6 +457,20 @@ class APAdvancedSettingsState extends MusicBeatState {
                 callback: () -> { includeSecrets = !includeSecrets; updateSongStats(); },
                 locked: false,
                 contextMenu: createBoolContextMenu(includeSecrets, (value) -> { includeSecrets = value; updateSongStats(); })
+            },
+            {
+                name: "Include Pico Mix",
+                description: "Include pico mixes in the pool",
+                callback: () -> { includePico = !includePico; updateSongStats(); },
+                locked: false,
+                contextMenu: createBoolContextMenu(includePico, (value) -> { includePico = value; updateSongStats(); })
+            },
+            {
+                name: "Include Erect",
+                description: "Include erect mixes in the pool",
+                callback: () -> { includeErect = !includeErect; updateSongStats(); },
+                locked: false,
+                contextMenu: createBoolContextMenu(includeErect, (value) -> { includeErect = value; updateSongStats(); })
             },
             {
                 name: "Include Vanilla",
@@ -628,7 +646,7 @@ class APAdvancedSettingsState extends MusicBeatState {
         // Example state options (you can add actual complex settings states here)
         var exampleStateOptions:Array<StateOption> = [
             createStateOption(
-                "Song Selection",
+                "Song Selection (DO NOT CLICK!)",
                 "Open advanced song selection interface",
                 cast states.freeplay.FreeplayState, // Example: open freeplay for song selection
                 [], // No constructor args
@@ -1168,6 +1186,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             case "DeathLink": deathlink ? "ON" : "OFF";
             case "Allow Mods": allowMods ? "ON" : "OFF";
             case "Include Secrets": includeSecrets ? "ON" : "OFF";
+            case "Include Pico Mix": includePico ? "ON" : "OFF";
+            case "Include Erect": includeErect ? "ON" : "OFF";
             case "Include Vanilla": includeVanilla ? "ON" : "OFF";
             case "Starting Song": startingSong != null ? startingSong : "RANDOM";
             case "Victory Song": victorySong != null ? victorySong : "RANDOM";
@@ -1541,6 +1561,12 @@ class APAdvancedSettingsState extends MusicBeatState {
             case "Include Secrets":
                 includeSecrets = cast(value, Bool);
                 updateSongStats();
+            case "Include Pico Mix":
+                includePico = cast(value, Bool);
+                updateSongStats();
+            case "Include Erect":
+                includeErect = cast(value, Bool);
+                updateSongStats();
             case "Include Vanilla":
                 includeVanilla = cast(value, Bool);
                 updateSongStats();
@@ -1554,6 +1580,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             case "DeathLink": deathlink;
             case "Allow Mods": allowMods;
             case "Include Secrets": includeSecrets;
+            case "Include Pico Mix": includePico;
+            case "Include Erect": includeErect;
             case "Include Vanilla": includeVanilla;
             default: false;
         }
@@ -1669,7 +1697,17 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         // Base game songs
         if (includeVanilla) {
-            totalSongs += APInfo.baseGame.length + APInfo.baseErect.length + APInfo.basePico.length;
+            totalSongs += APInfo.baseGame.length;
+        }
+
+        // Secret songs
+        if (includePico) {
+            totalSongs += APInfo.basePico.length;
+        }
+
+        // Secret songs
+        if (includeErect) {
+            totalSongs += APInfo.baseErect.length;
         }
 
         // Secret songs
@@ -1708,6 +1746,8 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         statsString += "Content Included:\n";
         statsString += "• Vanilla: " + (includeVanilla ? "YES" : "NO") + "\n";
+        statsString += "• Erect: " + (includeErect ? "YES" : "NO") + "\n";
+        statsString += "• Pico: " + (includePico ? "YES" : "NO") + "\n";
         statsString += "• Secrets: " + (includeSecrets ? "YES" : "NO") + "\n";
         statsString += "• Mods: " + (allowMods ? "YES" : "NO") + "\n\n";
 
@@ -1822,6 +1862,8 @@ class APAdvancedSettingsState extends MusicBeatState {
 
             // New settings with defaults if they don't exist
             includeSecrets = Reflect.hasField(settings, "include_secrets") ? settings.include_secrets : true;
+            includePico = Reflect.hasField(settings, "include_pico") ? settings.include_pico : true;
+            includeErect = Reflect.hasField(settings, "include_erect") ? settings.include_erect : true;
             includeVanilla = Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true;
             startingSong = settings.starting_song != null ? settings.starting_song : "Tutorial";
             victorySong = settings.victory_song != null ? settings.victory_song : "Tutorial";
@@ -1848,6 +1890,8 @@ class APAdvancedSettingsState extends MusicBeatState {
 
             // Save new settings
             settings.include_secrets = includeSecrets;
+            settings.include_pico = includePico;
+            settings.include_erect = includeErect;
             settings.include_vanilla = includeVanilla;
             settings.starting_song = startingSong;
             settings.victory_song = victorySong;
@@ -1946,6 +1990,8 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         // Add new settings
         Reflect.setField(yamlThing, "include_secrets", includeSecrets);
+        Reflect.setField(yamlThing, "include_pico", includePico);
+        Reflect.setField(yamlThing, "include_erect", includeErect);
         Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
         if (startingSong != null) {
             Reflect.setField(yamlThing, "starting_song", startingSong);
@@ -2017,6 +2063,31 @@ class APAdvancedSettingsState extends MusicBeatState {
             Reflect.field(yamlThing, "songList").length : 0;
 
         comment += "# Songs in pool: " + songCount + "\n";
+        var modCount = Mods.parseList().enabled.length;
+        var modComment = "";
+        if (modCount == 0) {
+            modComment = "No mods? Vanilla enjoyer detected!";
+        } else if (modCount == 1) {
+            modComment = "Just one mod? Testing the waters, huh?";
+        } else if (modCount <= 3) {
+            modComment = modCount + " mods. A modest modder!";
+        } else if (modCount <= 7) {
+            modComment = modCount + " mods. Getting spicy!";
+        } else if (modCount <= 15) {
+            modComment = modCount + " mods. Mod connoisseur!";
+        } else if (modCount <= 30) {
+            modComment = modCount + " mods. How do you even keep track?";
+        } else if (modCount <= 50) {
+            modComment = modCount + " mods. You must be insane...";
+        } else if (modCount <= 100) {
+            modComment = modCount + " mods. You are a madman! The Engine might not like this...";
+        } else if (modCount <= 200) {
+            modComment = modCount + " mods. Are you trying to break the game?!";
+        } else {
+            modComment = modCount + " mods. This is beyond all reason!";
+        }
+        comment += " # (" + modComment + ")\n";
+        comment += "\n";
         comment += "# Song limit: " + songLimit + "\n";
 
         var totalChecks = switch (unlockMethod) {
@@ -2031,6 +2102,8 @@ class APAdvancedSettingsState extends MusicBeatState {
 
         comment += "# Content includes:\n";
         comment += "#   - Vanilla songs: " + (includeVanilla ? "YES" : "NO") + "\n";
+        comment += "#   - Erect songs: " + (includeErect ? "YES" : "NO") + "\n";
+        comment += "#   - Pico songs: " + (includePico ? "YES" : "NO") + "\n";
         comment += "#   - Secret songs: " + (includeSecrets ? "YES" : "NO") + "\n";
         comment += "#   - Modded songs: " + (allowMods ? "YES" : "NO") + "\n";
 
@@ -2112,6 +2185,8 @@ class APAdvancedSettingsState extends MusicBeatState {
                             case "accuracy_requirement" | "accrequirement": accRequirement = Std.string(value);
                             case "allow_mods" | "mods_enabled": allowMods = value == true;
                             case "include_secrets": includeSecrets = value == true;
+                            case "include_pico": includePico = value == true;
+                            case "include_erect": includeErect = value == true;
                             case "include_vanilla": includeVanilla = value == true;
                             case "starting_song": startingSong = Std.string(value);
                             case "victory_song": victorySong = Std.string(value);
@@ -2378,7 +2453,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             gradeRequirement: gradeRequirement,
             accRequirement: accRequirement,
             allowMods: allowMods,
-            includeSecrets: includeSecrets,
+            includePico: includePico,
+            includeErect: includeErect,
             includeVanilla: includeVanilla,
             startingSong: startingSong,
             victorySong: victorySong,
@@ -2422,7 +2498,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             gradeRequirement = data.gradeRequirement;
             accRequirement = data.accRequirement;
             allowMods = data.allowMods;
-            includeSecrets = data.includeSecrets;
+            includePico = data.includePico;
+            includeErect = data.includeErect;
             includeVanilla = data.includeVanilla;
             startingSong = data.startingSong;
             victorySong = data.victorySong;
@@ -2647,7 +2724,13 @@ class APAdvancedSettingsState extends MusicBeatState {
     function calculateMaxAvailableSongs():Int {
         var total = 0;
         if (includeVanilla) {
-            total += APInfo.baseGame.length + APInfo.baseErect.length + APInfo.basePico.length;
+            total += APInfo.baseGame.length;
+        }
+        if (includeErect) {
+            total += APInfo.baseErect.length;
+        }
+        if (includePico) {
+            total += APInfo.basePico.length;
         }
         if (includeSecrets) {
             total += APInfo.secrets.length;
@@ -2670,6 +2753,8 @@ class APAdvancedSettingsState extends MusicBeatState {
             state.accRequirement = data.accRequirement;
             state.allowMods = data.allowMods;
             state.includeSecrets = data.includeSecrets;
+            state.includePico = data.includePico;
+            state.includeErect = data.includeErect;
             state.includeVanilla = data.includeVanilla;
             state.startingSong = data.startingSong;
             state.victorySong = data.victorySong;
