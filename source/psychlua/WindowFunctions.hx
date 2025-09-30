@@ -9,6 +9,7 @@ class WindowFunctions
 		var lua = funk.lua;
 		var game:PlayState = PlayState.instance;
 
+		#if windows
 		Lua_helper.add_callback(lua, "setWindowOppacity", function(num:Float) {
 			CppAPI.setWindowOppacity(num);
 		});
@@ -40,7 +41,7 @@ class WindowFunctions
 		Lua_helper.add_callback(lua, "windowX", function() {
 			return Window.x;
 		});
-		
+
 		Lua_helper.add_callback(lua, "windowY", function() {
 			return Window.y;
 		});
@@ -56,12 +57,12 @@ class WindowFunctions
 		Lua_helper.add_callback(lua, "windowTitle", function() {
 			return Window.title;
 		});
-		
+
 		Lua_helper.add_callback(lua, "windowReset", function() {
 			WindowUtils.resetTitle();
 			Window.reset();
 		});
-		
+
 		Lua_helper.add_callback(lua, "windowSetPos", function(x:Int, y:Int) {
 			Window.setPos(x, y);
 		});
@@ -89,5 +90,6 @@ class WindowFunctions
 		Lua_helper.add_callback(lua, "setTransparency", function(color:Int, ?winName:String) {
 			CppAPI.setTransparency(winName, color);
 		});
+		#end
 	}
 }
