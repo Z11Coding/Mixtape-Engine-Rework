@@ -689,6 +689,16 @@ class CollectionUtils
 		}
 	}
 
+	public static function isType(ob:Dynamic, type:Class, ?NoSupers:Bool)
+	{
+		var c = type;
+		var o = ob;
+		if (!NoSupers)
+			return Std.is(o, c);
+
+		return type == Type.getClass(ob) && Std.is(o, type);
+	}
+
 
 	public static inline function truthy(input:Dynamic):Bool
 	{
