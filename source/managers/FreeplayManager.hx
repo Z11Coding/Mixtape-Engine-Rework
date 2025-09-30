@@ -77,6 +77,7 @@ class FreeplayManager {
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
     public static function loadFPManager(?ensureLoaded:Bool = false) {
+        trace("FP in Arch Mode: " + APEntryState.inArchipelagoMode);
         #if ARCHIPELAGO_ALLOWED
         return switch (APEntryState.inArchipelagoMode) {
             case true:
