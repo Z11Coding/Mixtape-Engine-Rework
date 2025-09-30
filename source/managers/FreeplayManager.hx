@@ -101,8 +101,6 @@ class FreeplayManager {
         }
         #else
         return switch (instance != null && instance.isType(FreeplayManager, true)) {
-
-            eaww
             case true:
                 trace("Using existing FreeplayManager instance.");
                 if (ensureLoaded) instance.reloadFreeplay(true);
