@@ -61,8 +61,25 @@ class APUnoTrapState extends UnoTestState {
                 trace("Added 4 Pong-UNO cards to AP trap deck!");
             }
 
+            // Get any custom UNO colors from AP slot data
+            var unoColors = APItem.unoColorsUnlocked;
+
+            var unoColorsWithInt = [for (colorInfo in unoColors) {
+                var colorInt = FlxColor.fromString(colorInfo.color);
+                {name: colorInfo.name, color: colorInt};
+            }];
+            var usableColors:Array<UnoColor> = [];
+
+
+            usableColors = (UnoCard.UnoColor.createCustomColorsFromObjects(unoColorsWithInt));
+
+            // If none unlocked, use gray.
+            if (usableColors.length == 0) {
+                usableColors = [UnoColor.CUSTOM(FlxColor.GRAY, "Gray")];
+            }
+
             // Create UNO game with custom cards
-            unoGame = new UnoGame(null, true, customCards.length > 0 ? customCards : null);
+            unoGame = new UnoGame(usableColors, false, customCards.length > 0 ? customCards : null);
 
             // Randomize UNO rules for the trap
             randomizeUnoRules();

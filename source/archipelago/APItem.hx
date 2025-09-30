@@ -141,6 +141,8 @@ class APItem {
     public static var pendingDamage:Float = 0.0; // Damage that will be applied when conditions are met
     public static var extraItemInventory:Array<CustomModItem> = [];
 
+    public static var unoColorsUnlocked:Array<{name:String, color:String}> = [];
+
     private var toSync:Bool = true;
     public var triggered:Bool = false;
 
@@ -440,6 +442,17 @@ class APItem {
             case "UNO Color Filler":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     popup('You got an UNO color!', "You got an UNO Color Filler!");
+                    // Get a random color from APInfo's SlotData that isn't already unlocked.
+                    var availableColors = APInfo.slotData.unoColorsUsed.filter(function(c) {
+                        return !unoColorsUnlocked.exists(function(uc) { return uc.name == c.name; });
+                    });
+                    if (availableColors.length > 0) {
+                        var color = FlxG.random.choice(availableColors);
+                        unoColorsUnlocked.push(color);
+                        popup('You got the color ${color.name}!', "You got an UNO Color!");
+                    } else {
+                        popup('You already have all available colors!', "UNO Color Filler");
+                    }
 
                 }, true, true);
 
