@@ -689,7 +689,7 @@ class CollectionUtils
 		}
 	}
 
-	public static function isType(ob:Dynamic, type:Class, ?NoSupers:Bool)
+	public static function isType(ob:Dynamic, type:Class<Dynamic>, ?NoSupers:Bool)
 	{
 		var c = type;
 		var o = ob;
