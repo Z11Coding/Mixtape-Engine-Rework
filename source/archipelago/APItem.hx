@@ -261,12 +261,14 @@ class APItem {
             case "Pong Challenge":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Ok but can you beat the Pong Master?', "APItem: Pong Challenge", true);
-                    APPlayState.instance.paused = true;
-                    APPlayState.instance.canResync = false;
-                    FlxG.camera.followLerp = 0;
-                    LoadingState.noteCache = [];
-                    states.PlayState.curChart = [];
-                    MusicBeatState.allowNuke = true;
+                    if (MusicBeatState.getState() == APPlayState.instance) {
+                        APPlayState.instance.paused = true;
+                        APPlayState.instance.canResync = false;
+                        FlxG.camera.followLerp = 0;
+                        LoadingState.noteCache = [];
+                        states.PlayState.curChart = [];
+                        MusicBeatState.allowNuke = true;
+                    }
                     FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -322,13 +324,15 @@ class APItem {
             case "UNO Challenge":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
-                    APPlayState.instance.paused = true;
-                    APPlayState.instance.canResync = false;
-                    FlxG.camera.followLerp = 0;
-                    LoadingState.noteCache = [];
-                    states.PlayState.curChart = [];
-                    MusicBeatState.allowNuke = true;
-                    FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
+                    if (MusicBeatState.getState() == APPlayState.instance) {
+                        APPlayState.instance.paused = true;
+                        APPlayState.instance.canResync = false;
+                        FlxG.camera.followLerp = 0;
+                        LoadingState.noteCache = [];
+                        states.PlayState.curChart = [];
+                        MusicBeatState.allowNuke = true;
+                    }
+                    FlxG.switchState(new archipelago.traps.games.APUnoTrapState(MusicBeatState.getState()));
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
