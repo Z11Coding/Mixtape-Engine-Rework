@@ -1942,6 +1942,11 @@ class APPlayState extends PlayState {
             return;
         }
 
+        if (zenetta.holdTimer > Conductor.stepCrochet * 0.001 * zenetta.singDuration
+            && zenetta.animation.curAnim.name.startsWith('sing')
+            && !zenetta.animation.curAnim.name.endsWith('miss'))
+            zenetta.dance();
+
         // if (archipelago.APItem.activeItem is archipelago.APItem.APChartModifier && cast(archipealgo.APItem.activeItem:archipelago.APItem.APChartModifier).chartModifier != chartModifier)
         //
         if ((startedCountdown && !(inCutscene || (function()
@@ -2177,8 +2182,8 @@ class APPlayState extends PlayState {
             if (resistanceAmount <= 0) resistanceAmount = 0;
             if (resistanceAmount == 1) health -= (0.00051 / (60 / ClientPrefs.data.framerate)) * dmgMultiplier;
 
-            zenetta.alpha = resistanceAmount;
-            boyfriend.alpha = (1.0000000001 - resistanceAmount);
+            zenetta.alpha = 0.0000000001 + resistanceAmount;
+            boyfriend.alpha = (1 - resistanceAmount);
             zenetta.x = boyfriend.x;
             zenetta.y = boyfriend.y - 280;
             bfkilledcheck = true;
@@ -2644,14 +2649,14 @@ class APPlayState extends PlayState {
 			case -1:
 				terminateMessage.visible = false;
 		}
-        super.beatHit();
-
         if (releasethebeast) {
             if (resistanceAmount < 1) resistanceAmount += 0.005;
-            var anim:String = zenetta.getAnimationName();
-            if(zenetta.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * zenetta.singDuration && anim.startsWith('sing') && !anim.endsWith('miss'))
+
+            if (curBeat % zenetta.danceEveryNumBeats == 0 && !zenetta.getAnimationName().endsWith('-alt')) {
                 zenetta.dance();
+            }
         }
+        super.beatHit();
     }
 
     override function closeSubState()
