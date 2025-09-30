@@ -689,7 +689,7 @@ class CollectionUtils
 		}
 	}
 
-	public static function isType(ob:Dynamic, type:Class<Dynamic>, ?NoSupers:Bool)
+	public static inline function isType(ob:Dynamic, type:Class<Dynamic>, ?NoSupers:Bool)
 	{
 		var c = type;
 		var o = ob;
@@ -697,6 +697,35 @@ class CollectionUtils
 			return Std.is(o, c);
 
 		return type == Type.getClass(ob) && Std.is(o, type);
+	}
+
+	public static function compareObjects(obj1:Dynamic, obj2:Dynamic):Bool
+	{
+		if (obj1 == null || obj2 == null) return obj1 == obj2;
+		var fields1 = Reflect.fields(obj1);
+		var fields2 = Reflect.fields(obj2);
+		if (fields1.length != fields2.length) return false;
+		for (field in fields1)
+		{
+			if (!Reflect.hasField(obj2, field)) return false;
+			var val1 = Reflect.field(obj1, field);
+			var val2 = Reflect.field(obj2, field);
+			if (Std.is(val1, Dynamic) && Std.is(val2, Dynamic))
+			{
+				if (!compareObjects(val1, val2)) return false;
+			}
+			else if (val1 != val2) return false;
+		}
+		return true;
+	}
+
+	public static function arrayContainsObject<T>(arr:Array<T>, obj:T):Bool
+	{
+		for (item in arr)
+		{
+			if (compareObjects(item, obj)) return true;
+		}
+		return false;
 	}
 
 

@@ -444,10 +444,10 @@ class APItem {
                     popup('You got an UNO color!', "You got an UNO Color Filler!");
                     // Get a random color from APInfo's SlotData that isn't already unlocked.
                     var availableColors = APInfo.slotData.unoColorsUsed.filter(function(c) {
-                        return !unoColorsUnlocked.exists(function(uc) { return uc.name == c.name; });
+                        return !unoColorsUnlocked.arrayContainsObject(c);
                     });
                     if (availableColors.length > 0) {
-                        var color = FlxG.random.choice(availableColors);
+                        var color = FlxG.random.getObject(availableColors);
                         unoColorsUnlocked.push(color);
                         popup('You got the color ${color.name}!', "You got an UNO Color!");
                     } else {
