@@ -99,7 +99,7 @@ class FreeplayManager {
                 }
         }
         #else
-        return switch (instance != null && Std.isOfType(instance, FreeplayManager)) {
+        return switch (instance != null && instance.isType(FreeplayManager, true)) {
             case true:
                 trace("Using existing FreeplayManager instance.");
                 if (ensureLoaded) instance.reloadFreeplay(true);
