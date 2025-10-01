@@ -59,7 +59,13 @@ class UnoDeck {
         }
 
         while (cards.length < 108) {
-                        for (i in 1...10) {
+            // Fill remaining cards with number cards to reach 108 cards
+            // This is just to ensure the deck has 108 cards if colors are small.
+        for (color in colors) {
+            // Add one 0 card for each color
+            cards.push(new UnoCard(color, NUMBER, 0));
+
+            for (i in 1...10) {
                 cards.push(new UnoCard(color, NUMBER, i));
                 cards.push(new UnoCard(color, NUMBER, i));
             }
