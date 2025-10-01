@@ -1,9 +1,10 @@
 package games.uno.backend;
 
-using Math;
-import games.uno.backend.UnoCard;
-import games.uno.backend.UnoCard.UnoColor;
 import games.uno.backend.UnoCard.UnoCardType;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCard;
+
+using Math;
 
 /**
  * Represents a deck of UNO cards with shuffling and dealing capabilities
@@ -11,38 +12,37 @@ import games.uno.backend.UnoCard.UnoCardType;
 class UnoDeck {
     public var cards:Array<UnoCard>;
     public var discardPile:Array<UnoCard>;
-    
+
     public function new() {
         cards = [];
         discardPile = [];
         initializeDeck();
         shuffle();
     }
-    
+
     /**
      * Initialize a standard UNO deck
      */
     private function initializeDeck():Void {
         initializeDeckWithColors(UnoCard.getStandardColors(), null);
     }
-    
+
     /**
      * Initialize deck with custom colors and custom cards
      */
     public function initializeDeckWithColors(colors:Array<UnoColor>, ?customCards:Array<UnoCard>):Void {
         cards = [];
-        
+
         // Add number cards (0-9 for each color, with 0 appearing once and 1-9 appearing twice)
         for (color in colors) {
             // Add one 0 card for each color
             cards.push(new UnoCard(color, NUMBER, 0));
-            
-            // Add two of each number card 1-9 for each color
+
             for (i in 1...10) {
                 cards.push(new UnoCard(color, NUMBER, i));
                 cards.push(new UnoCard(color, NUMBER, i));
             }
-            
+
             // Add two of each action card for each color
             cards.push(new UnoCard(color, SKIP));
             cards.push(new UnoCard(color, SKIP));
@@ -51,13 +51,20 @@ class UnoDeck {
             cards.push(new UnoCard(color, DRAW_TWO));
             cards.push(new UnoCard(color, DRAW_TWO));
         }
-        
+
         // Add wild cards (4 of each)
         for (i in 0...4) {
             cards.push(new UnoCard(WILD, WILD));
             cards.push(new UnoCard(WILD, WILD_DRAW_FOUR));
         }
-        
+
+        while (cards.length < 108) {
+                        for (i in 1...10) {
+                cards.push(new UnoCard(color, NUMBER, i));
+                cards.push(new UnoCard(color, NUMBER, i));
+            }
+        }
+
         // Add custom cards if provided
         if (customCards != null) {
             for (customCard in customCards) {
@@ -65,8 +72,8 @@ class UnoDeck {
             }
         }
     }
-    
-    
+
+
     /**
      * Shuffle the deck using Fisher-Yates algorithm
      */
@@ -78,7 +85,7 @@ class UnoDeck {
             cards[j] = temp;
         }
     }
-    
+
     /**
      * Draw a card from the deck
      */
@@ -86,14 +93,14 @@ class UnoDeck {
         if (cards.length == 0) {
             reshuffleFromDiscard();
         }
-        
+
         if (cards.length == 0) {
             throw "No cards available to draw!";
         }
-        
+
         return cards.pop();
     }
-    
+
     /**
      * Draw multiple cards from the deck
      */
@@ -104,14 +111,14 @@ class UnoDeck {
         }
         return drawnCards;
     }
-    
+
     /**
      * Add a card to the discard pile
      */
     public function discard(card:UnoCard):Void {
         discardPile.push(card);
     }
-    
+
     /**
      * Get the top card of the discard pile without removing it
      */
@@ -121,7 +128,7 @@ class UnoDeck {
         }
         return discardPile[discardPile.length - 1];
     }
-    
+
     /**
      * Reshuffle the discard pile back into the deck (keeping the top card)
      */
@@ -129,38 +136,38 @@ class UnoDeck {
         if (discardPile.length <= 1) {
             return; // Can't reshuffle if there's only the top card or no cards
         }
-        
+
         // Keep the top card in the discard pile
         var topCard = discardPile.pop();
-        
+
         // Move all other cards back to the deck
         cards = cards.concat(discardPile);
         discardPile = [topCard];
-        
+
         // Reset wild card colors in the deck
         for (card in cards) {
             if (card.isWildCard()) {
                 card.color = WILD;
             }
         }
-        
+
         shuffle();
     }
-    
+
     /**
      * Get the number of cards remaining in the deck
      */
     public function getRemainingCards():Int {
         return cards.length;
     }
-    
+
     /**
      * Get the number of cards in the discard pile
      */
     public function getDiscardPileSize():Int {
         return discardPile.length;
     }
-    
+
     /**
      * Reset the deck to its initial state
      */
