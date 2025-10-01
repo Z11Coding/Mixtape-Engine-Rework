@@ -1155,7 +1155,7 @@ class PlayState extends MusicBeatState
 			playerField.noteField.isEditor = false;
 			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
 			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || playAsGF;
-			playerField.noteHitCallback = opponentmode ? opponentNoteHit : goodNoteHit;
+			playerField.noteHitCallback = goodNoteHit;
 		}
 
 		//trace("Making DadField!");
@@ -1165,7 +1165,7 @@ class PlayState extends MusicBeatState
 			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
 			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || playAsGF) || (bothMode && cpuControlled);
 			dadField.AIPlayer = AIMode;
-			dadField.noteHitCallback = opponentmode ? goodNoteHit : opponentNoteHit;
+			dadField.noteHitCallback = opponentNoteHit;
 		}
 
 		PlayField.initExtras();
