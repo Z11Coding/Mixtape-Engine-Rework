@@ -504,6 +504,7 @@ class APItem {
                     }*/
                     if (!FlxG.save.data.manualOverride) {
                         FlxG.save.data.manualOverride = true;
+                        FlxG.save.data.storyWeek = states.PlayState.storyWeek;
                         FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                         FlxG.save.data.difficulties = Difficulty.list; // just in case
                         FlxG.save.data.SONG = states.PlayState.SONG;
