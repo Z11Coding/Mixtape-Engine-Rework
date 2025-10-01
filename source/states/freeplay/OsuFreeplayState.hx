@@ -736,12 +736,12 @@ class OsuFreeplayState extends MusicBeatState
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
 			var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
 			var displayArtist = "Unknown";
-			
+
 			// Only show real artist if songs are not hidden
 			if (!archipelago.APItem.unknownSongs && metadata != null) {
 				displayArtist = metadata.song.artist;
 			}
-			
+
 			text.text = displayName + '\nBy ${displayArtist}';
 			text.alignment = 'left';
 			text.ID = i;
@@ -817,12 +817,12 @@ class OsuFreeplayState extends MusicBeatState
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
 			var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
 			var displayArtist = "Unknown";
-			
+
 			// Only show real artist if songs are not hidden
 			if (!archipelago.APItem.unknownSongs && metadata != null) {
 				displayArtist = metadata.song.artist;
 			}
-			
+
 			text.text = displayName + '\nBy ${displayArtist}';
 			text.alignment = 'left';
 			text.ID = i + trueInt;

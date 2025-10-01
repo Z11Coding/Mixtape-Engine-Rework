@@ -751,7 +751,7 @@ class CollectionUtils
 		return false;
 	}
 
-	public static function arrayRemoveDuplicates<T>(arr:Array<T>):Array<T>
+	public static function arrayRemoveDuplicateObjects<T>(arr:Array<T>):Array<T>
 	{
 		var result = new Array<T>();
 		for (item in arr)

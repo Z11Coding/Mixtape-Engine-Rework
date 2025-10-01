@@ -1995,9 +1995,13 @@ class APAdvancedSettingsState extends MusicBeatState {
         Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
         if (startingSong != null) {
             Reflect.setField(yamlThing, "starting_song", startingSong);
+        } else {
+            Reflect.deleteField(yamlThing, "starting_song");
         }
         if (victorySong != null) {
             Reflect.setField(yamlThing, "victory_song", victorySong);
+        } else {
+            Reflect.deleteField(yamlThing, "victory_song");
         }
 
         // Generate and compress Python script for CustomAPLogic (ALWAYS compressed as Base64)
