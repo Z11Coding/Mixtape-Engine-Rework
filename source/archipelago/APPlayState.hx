@@ -175,6 +175,11 @@ class APPlayState extends PlayState {
 
         currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
 
+        if (Mods.currentModDirectory != currentMod)
+        {
+            Mods.currentModDirectory = currentMod;
+        }
+
         if (!APEntryState.inArchipelagoMode)
         {
             FlxG.switchState(new PlayState());
