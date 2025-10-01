@@ -61,8 +61,8 @@ class APFreeplayManager extends FreeplayManager {
 	public static var curMissing:Array<{song:String, mod:String}> = [];
 	public static var curHinted:Array<{song:String, mod:String}> = [];
 	public static var hintTable:Map<String, String> = new Map<String, String>();
-	public static var trueMissing:Array<String> = [];
-	public static var unplayedList:Array<String> = [];
+	public static var trueMissing:Array<{song:String, mod:String}> = [];
+	public static var unplayedList:Array<{song:String, mod:String}> = [];
     public static var callVictory:Bool = false;
     var apSongData = archipelago.APInfo.apGame?.getSongsAndModsFromArray(archipelago.APInfo.slotData.selectedSongs).map(function(songData):{song:String, mod:String} {
         return if (songData.mod == null) {
@@ -234,13 +234,13 @@ class APFreeplayManager extends FreeplayManager {
                 {
                     if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
                         color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-                        unplayedList.push(songName);
+                        unplayedList.push(songObj);
                     }
                 }
 
-                if (!unplayedList.contains(songName) && isMissing) {
+                if (!unplayedList.arrayContainsObject({song: songName, mod: modName}) && isMissing) {
                     color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-                    trueMissing.push(songName);
+                    trueMissing.push({song: songName, mod: modName});
                 }
             }
 
@@ -283,12 +283,12 @@ class APFreeplayManager extends FreeplayManager {
                     {
                         if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
                             color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-                            unplayedList.push(songName);
+                            unplayedList.push(songObj);
                         }
                     }
 
-                    if (!unplayedList.contains(songName) && isMissing) {
-                        trueMissing.push(songName);
+                    if (!unplayedList.arrayContainsObject({song: songName, mod: modName}) && isMissing) {
+                        trueMissing.push({song: songName, mod: modName});
                     }
                 }
 
