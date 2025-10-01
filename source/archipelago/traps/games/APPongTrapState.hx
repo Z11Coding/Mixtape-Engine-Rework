@@ -205,6 +205,7 @@ class APPongTrapState extends PongGameState {
                     updateInstructionText("YOU SURVIVED THE PONG TRAP! Returning to game...");
                     new FlxTimer().start(2.0, function(timer) {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
+                        archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                         if (previousState != null) {
                             LoadingState.loadAndSwitchState(Type.createInstance(previousState, []));
                         } else {
@@ -217,6 +218,7 @@ class APPongTrapState extends PongGameState {
                     updateInstructionText("AI WINS! PREPARE TO DIE!");
                     new FlxTimer().start(2.0, function(timer) {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
+                        archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                         TrapDeathHandler.forceDeath("Lost Pong Challenge", Type.createInstance(previousState, []), Type.createInstance(previousState, []));
                     });
                 }

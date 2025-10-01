@@ -94,6 +94,7 @@ class APUnoTrapState extends UnoTestState {
                         // Player won - return to previous state
                         updateInstructionText("YOU WON THE UNO TRAP! Returning to game...");
                         new FlxTimer().start(2.0, function(timer) {
+                            archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                             if (previousState != null) {
                                 LoadingState.loadAndSwitchState(Type.createInstance(previousState, []));
                             } else {
@@ -105,6 +106,7 @@ class APUnoTrapState extends UnoTestState {
                         // Player lost - force death
                         updateInstructionText("AI WINS UNO! PREPARE TO DIE!");
                         new FlxTimer().start(2.0, function(timer) {
+                            archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                             TrapDeathHandler.forceDeath("Lost UNO Challenge", Type.createInstance(previousState, []), Type.createInstance(previousState, []));
                         });
                     }
