@@ -366,8 +366,17 @@ class APFreeplayManager extends FreeplayManager {
         songsHidden = archipelago.APItem.unknownSongs;
 
         // Check all current allowed songs and make sure there's no duplicates.
-        if (curUnlocked != null)
-            curUnlocked = curUnlocked.arrayRemoveDuplicates();
+        if (curUnlocked != null) {
+            var seen = new Map<String, Bool>();
+            curUnlocked = curUnlocked.filter(function(songObj) {
+                var key = songObj.song + "|" + songObj.mod;
+                if (!seen.exists(key)) {
+                    seen.set(key, true);
+                    return true;
+                }
+                return false;
+            });
+        }
 
         for (i in 0...WeekData.weeksList.length) {
             if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
