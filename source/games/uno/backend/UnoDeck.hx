@@ -70,6 +70,7 @@ class UnoDeck {
                 cards.push(new UnoCard(color, NUMBER, i));
             }
         }
+    }
 
         // Add custom cards if provided
         if (customCards != null) {
