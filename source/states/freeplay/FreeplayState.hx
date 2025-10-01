@@ -848,7 +848,7 @@ class FreeplayState extends MusicBeatState
 					return;
 				}
 
-				if (APFreeplayManager.trueMissing.contains(fpManager.songList[curSelected].songName) && !APFreeplayManager.unplayedList.contains(fpManager.songList[curSelected].songName)) {
+				if (APFreeplayManager.trueMissing.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder}) && !APFreeplayManager.unplayedList.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder})) {
 					trace('Song is locked!');
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);

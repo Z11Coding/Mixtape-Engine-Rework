@@ -441,7 +441,7 @@ class OsuFreeplayState extends MusicBeatState
 					return;
 				}
 
-				if (APFreeplayManager.trueMissing.contains(fpManager.songList[curSelected].songName) && !APFreeplayManager.unplayedList.contains(fpManager.songList[curSelected].songName)) {
+				if (APFreeplayManager.trueMissing.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder}) && !APFreeplayManager.unplayedList.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder})) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
 					var ogColor = songBox.members[curSelected].color;
@@ -804,7 +804,7 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.ID = i + trueInt;
 			this.songBox.add(songBox);
 
-			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
+			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains({song: songName, mod: modName});
 			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : fpManager.songList[i].songCharacter, false);
 			icon.setPosition(320, 100);
 			icon.ID = i + trueInt;
