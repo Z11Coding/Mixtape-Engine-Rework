@@ -1,5 +1,6 @@
 package archipelago.traps.games;
 
+import archipelago.substates.InfoPanelSubstate;
 import archipelago.traps.TrapDeathHandler;
 import flixel.FlxG;
 import flixel.text.FlxText;
@@ -33,6 +34,10 @@ class APUnoTrapState extends UnoTestState {
     }
 
     override function create() {
+
+        if (!archipelago.APEntryState.inArchipelagoMode)
+            throw "Error: APUnoTrapState can only be used in Archipelago mode!";
+
         super.create();
 
         // Add trap warning UI
@@ -114,6 +119,10 @@ class APUnoTrapState extends UnoTestState {
             }
 
             trace("AP UNO trap game initialized successfully with randomized rules");
+
+            // Show rules info after setup is complete
+            showRulesInfoPanel();
+
         } catch (e:Dynamic) {
             trace("Error initializing AP UNO trap game: " + e);
             updateInstructionText("Error initializing trap game: " + Std.string(e));
@@ -124,7 +133,7 @@ class APUnoTrapState extends UnoTestState {
         // Randomly enable/disable various UNO rules for challenge
         UnoRules.ALLOW_STACKING = FlxG.random.bool(60); // 60% chance for stacking
         UnoRules.ALLOW_JUMP_IN = FlxG.random.bool(30); // 30% chance for jump-in
-        UnoRules.DRAW_UNTIL_PLAYABLE = false; // 0% chance because OH MY GOD is this awful sometimes
+        UnoRules.DRAW_UNTIL_PLAYABLE = FlxG.random.bool(1); // 1% chance because OH MY GOD is this awful sometimes
         UnoRules.PROGRESSIVE_UNO = FlxG.random.bool(20); // 20% chance for progressive UNO
         UnoRules.SEVEN_ZERO_RULE = FlxG.random.bool(40); // 40% chance for 7-0 rule
         UnoRules.WILD_DRAW_FOUR_CHALLENGE = FlxG.random.bool(80); // 80% chance for challenges
@@ -181,5 +190,38 @@ class APUnoTrapState extends UnoTestState {
             updateDisplay();
             updateInstructionText("TRAP ACTIVE! Win this round with randomized rules or die!");
         }
+    }
+
+    private function showRulesInfoPanel():Void {
+        // Build rules information string
+        var rulesInfo = "RANDOMIZED UNO RULES FOR THIS TRAP:\n\n";
+
+        rulesInfo += "• Stacking: " + (UnoRules.ALLOW_STACKING ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (Play stacking force draw cards.)\n\n";
+
+        rulesInfo += "• Jump-In: " + (UnoRules.ALLOW_JUMP_IN ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (Play identical card out of turn)\n\n";
+
+        rulesInfo += "• Draw Until Playable: " + (UnoRules.DRAW_UNTIL_PLAYABLE ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (Keep drawing until you can play)\n\n";
+
+        rulesInfo += "• Progressive UNO: " + (UnoRules.PROGRESSIVE_UNO ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (Must keep saying 'UNO' when down to one card)\n\n";
+
+        rulesInfo += "• Seven-Zero Rule: " + (UnoRules.SEVEN_ZERO_RULE ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (7=swap hands, 0=rotate hands)\n\n";
+
+        rulesInfo += "• Wild Draw Four Challenge: " + (UnoRules.WILD_DRAW_FOUR_CHALLENGE ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (Challenge illegal Wild Draw Four plays)\n\n";
+
+        rulesInfo += "• Any Plus Stacking: " + (UnoRules.ALLOW_ANY_PLUS_STACK ? "ENABLED" : "DISABLED") + "\n";
+        rulesInfo += "  (Stack any draw cards together)\n\n";
+
+        rulesInfo += "Winning Score: " + UnoRules.WINNING_SCORE + " points\n\n";
+        rulesInfo += "Remember: You MUST win to survive this trap!";
+
+        // Create and open the info panel
+        var infoPanel = new InfoPanelSubstate("UNO TRAP RULES", rulesInfo, FlxColor.RED);
+        openSubState(infoPanel);
     }
 }

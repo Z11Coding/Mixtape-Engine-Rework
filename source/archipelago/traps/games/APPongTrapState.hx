@@ -38,6 +38,10 @@ class APPongTrapState extends PongGameState {
     }
 
     override function create() {
+
+        if (!archipelago.APEntryState.inArchipelagoMode)
+            throw "Error: APPongTrapState can only be used in Archipelago mode!";
+
         super.create();
 
         // Configure trap-specific settings

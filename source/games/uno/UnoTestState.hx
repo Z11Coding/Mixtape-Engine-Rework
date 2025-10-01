@@ -473,11 +473,11 @@ class UnoTestState extends MusicBeatState {
             updatePlayerInfoDisplay();
 
             var oneCardLeft:Int = 0;
-            for (player in unoGame.players) {
-                if (player.hand.cards.length == 1) {
+
+                if (unoGame.gameState.hasPlayerCloseToWinning()) {
                     oneCardLeft++;
                 }
-            }
+
             if (oneCardLeft > 0 && !onLastCard) {
                 FlxTween.num(1, 0, 1, {ease: FlxEase.sineInOut}, function(value:Float)
                 {
