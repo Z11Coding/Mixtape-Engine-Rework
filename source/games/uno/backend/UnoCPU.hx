@@ -1,9 +1,9 @@
 package games.uno.backend;
 
-using Math;
-
-import games.uno.backend.UnoRules.UnoGameState;
 import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoRules.UnoGameState;
+
+using Math;
 
 /**
  * AI player implementation for UNO with different difficulty levels
@@ -11,13 +11,13 @@ import games.uno.backend.UnoCard.UnoColor;
 class UnoCPU extends UnoPlayer {
     public var difficulty:UnoDifficulty;
     public var thinkingTime:Float; // Delay to simulate thinking
-    
+
     public function new(id:String, name:String, difficulty:UnoDifficulty = NORMAL) {
         super(id, name, false);
         this.difficulty = difficulty;
         this.thinkingTime = getDifficultyThinkingTime(difficulty);
     }
-    
+
     /**
      * Get thinking time based on difficulty
      */
@@ -29,17 +29,17 @@ class UnoCPU extends UnoPlayer {
             case EXPERT: 1.5;
         }
     }
-    
+
     /**
      * CPU chooses a card to play
      */
     public function chooseCard(topCard:UnoCard, gameState:UnoGameState):Int {
         var playableCards = getPlayableCards(topCard);
-        
+
         if (playableCards.length == 0) {
             return -1; // No playable cardsdr
         }
-        
+
         return switch(difficulty) {
             case EASY: chooseCardEasy(playableCards, topCard, gameState);
             case NORMAL: chooseCardNormal(playableCards, topCard, gameState);
@@ -47,7 +47,7 @@ class UnoCPU extends UnoPlayer {
             case EXPERT: chooseCardExpert(playableCards, topCard, gameState);
         }
     }
-    
+
     /**
      * Easy AI - Random card selection
      */
@@ -55,7 +55,7 @@ class UnoCPU extends UnoPlayer {
         var randomCard = playableCards[Math.floor(Math.random() * playableCards.length)];
         return hand.cards.indexOf(randomCard);
     }
-    
+
     /**
      * Normal AI - Basic strategy
      */
@@ -66,25 +66,25 @@ class UnoCPU extends UnoPlayer {
                 return hand.cards.indexOf(card);
             }
         }
-        
+
         // Then number cards
         for (card in playableCards) {
             if (card.type == NUMBER) {
                 return hand.cards.indexOf(card);
             }
         }
-        
+
         // Finally wild cards
         return hand.cards.indexOf(playableCards[0]);
     }
-    
+
     /**
      * Hard AI - Strategic play
      */
     private function chooseCardHard(playableCards:Array<UnoCard>, topCard:UnoCard, gameState:UnoGameState):Int {
         var nextPlayer = gameState.getNextPlayer();
         var isNextPlayerClose = nextPlayer.getHandSize() <= 3;
-        
+
         // If next player is close to winning, try to disrupt them
         if (isNextPlayerClose) {
             // Use action cards to disrupt
@@ -94,7 +94,7 @@ class UnoCPU extends UnoPlayer {
                 }
             }
         }
-        
+
         // Save wild cards for later unless necessary
         var nonWildCards = [];
         for (card in playableCards) {
@@ -109,32 +109,32 @@ class UnoCPU extends UnoPlayer {
                     return hand.cards.indexOf(card);
                 }
             }
-            
+
             // Then highest value number cards
             nonWildCards.sort(function(a, b) return b.value - a.value);
             return hand.cards.indexOf(nonWildCards[0]);
         }
-        
+
         return hand.cards.indexOf(playableCards[0]);
     }
-    
+
     /**
      * Expert AI - Advanced strategy
      */
     private function chooseCardExpert(playableCards:Array<UnoCard>, topCard:UnoCard, gameState:UnoGameState):Int {
         var cardScores = [];
-        
+
         for (card in playableCards) {
             var score = evaluateCardPlay(card, topCard, gameState);
             cardScores.push({card: card, score: score});
         }
-        
+
         // Sort by score (highest first)
         cardScores.sort(function(a, b) return Math.round(b.score - a.score));
-        
+
         return hand.cards.indexOf(cardScores[0].card);
     }
-    
+
     /**
      * Evaluate the strategic value of playing a card
      */
@@ -142,10 +142,10 @@ class UnoCPU extends UnoPlayer {
         var score = 0.0;
         var nextPlayer = gameState.getNextPlayer();
         var isNextPlayerClose = nextPlayer.getHandSize() <= 3;
-        
+
         // Basic card value
         score += card.getPointValue() * 0.1;
-        
+
         // Action card bonuses
         switch(card.type) {
             case SKIP:
@@ -165,29 +165,29 @@ class UnoCPU extends UnoPlayer {
             case CUSTOM(name, points, cpuImportance, action):
                 score += cpuImportance;
         }
-        
+
         // Color strategy (including custom colors)
         var colorCount = hand.getCardsByColor(card.color).length;
         if (!card.isWildCard()) {
             score += colorCount * 2; // Prefer playing colors we have more of
         }
-        
+
         // Custom color bonus - slightly prefer custom colors if we have many
         switch(card.color) {
             case CUSTOM(color, name):
                 score += colorCount > 2 ? 3 : 1; // Small bonus for custom colors
             case _: // Standard colors get no bonus
         }
-        
+
         // End game strategy
         if (hand.getSize() <= 2) {
             // Prioritize getting rid of high-value cards
             score += card.getPointValue() * 0.5;
         }
-        
+
         return score;
     }
-    
+
     /**
      * CPU chooses a color for wild cards (including custom colors)
      */
@@ -195,7 +195,7 @@ class UnoCPU extends UnoPlayer {
         // If no colors are specified, use standard colors plus any custom colors found in hand
         if (availableColors == null) {
             availableColors = UnoCard.getStandardColors();
-            
+
             // Add any custom colors found in the hand
             for (card in hand.cards) {
                 switch(card.color) {
@@ -214,7 +214,7 @@ class UnoCPU extends UnoPlayer {
                 }
             }
         }
-        
+
         var colorCounts = [];
         for (color in availableColors) {
             if (color != WILD) { // Don't count wild as a choosable color
@@ -224,10 +224,12 @@ class UnoCPU extends UnoPlayer {
                 });
             }
         }
-        
+
         // Sort by count (highest first)
         colorCounts.sort(function(a, b) return b.count - a.count);
-        
+
+        colorCounts = colorCounts.filter(function(c) return c.count > 0);
+
         // Add some randomness for lower difficulties
         var randomFactor = switch(difficulty) {
             case EASY: Math.random() < 0.5;
@@ -235,15 +237,15 @@ class UnoCPU extends UnoPlayer {
             case HARD: Math.random() < 0.1;
             case EXPERT: false;
         }
-        
+
         if (randomFactor && colorCounts.length > 1) {
             return colorCounts[1].color; // Choose second best sometimes
         }
-        
+
         // Return the color with the most cards, or a random standard color if no cards
         return colorCounts.length > 0 ? colorCounts[0].color : UnoColor.RED;
     }
-    
+
     /**
      * CPU decides whether to challenge a Wild Draw Four
      */
@@ -251,18 +253,18 @@ class UnoCPU extends UnoPlayer {
         if (difficulty == EASY) {
             return Math.random() < 0.1; // 10% chance
         }
-        
+
         if (difficulty == NORMAL) {
             return Math.random() < 0.3; // 30% chance
         }
-        
+
         // Hard and Expert: Strategic decision based on game state
         var handSize = previousPlayer.getHandSize();
         var challengeProbability = handSize <= 2 ? 0.7 : 0.4; // More likely to challenge if they're close to winning
-        
+
         return Math.random() < challengeProbability;
     }
-    
+
     /**
      * CPU automatically calls UNO when appropriate
      */
@@ -274,7 +276,7 @@ class UnoCPU extends UnoPlayer {
                 case HARD: 0.95;
                 case EXPERT: 1.0; // Never forgets
             }
-            
+
             if (Math.random() < callProbability) {
                 callUno();
             }

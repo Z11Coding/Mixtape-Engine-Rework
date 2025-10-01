@@ -190,6 +190,18 @@ class APFreeplayManager extends FreeplayManager {
 		}
 	}
 
+
+    public static function cleanup() {
+        curUnlocked = [];
+        curMissing = [];
+        curHinted = [];
+        hintTable = new Map<String, String>();
+        trueMissing = [];
+        unplayedList = [];
+        callVictory = false;
+        trace("APFreeplayManager cleaned up.");
+    }
+
     public static function checkSongStatus() {
         trueMissing = [];
         unplayedList = [];

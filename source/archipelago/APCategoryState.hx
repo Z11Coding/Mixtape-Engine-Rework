@@ -156,6 +156,14 @@ class APCategoryState extends states.CategoryState {
                             archipelago.APGameState.instance = null;
                         }
 
+                        // AP Freeplay references
+                        if (managers.FreeplayManager.instance is APFreeplayManager) {
+                            managers.FreeplayManager.instance = null;
+                            managers.APFreeplayManager.cleanup();
+                        }
+
+
+
                         // Clean up local references in this state
                         AP = null;
                         gameState = null;
@@ -194,6 +202,8 @@ class APCategoryState extends states.CategoryState {
                         archipelago.APGameState.instance = null;
                         AP = null;
                         gameState = null;
+                        managers.FreeplayManager.instance = null;
+                        managers.APFreeplayManager.cleanup();
 
                         // Clean up AP Items and data
                         archipelago.APItem.cleanupAllAPData();
@@ -281,6 +291,8 @@ class APCategoryState extends states.CategoryState {
                 archipelago.APStyledEntryState.apGame = null;
                 archipelago.APStyledEntryState.ap = null;
                 archipelago.APGameState.instance = null;
+                managers.FreeplayManager.instance = null;
+                managers.APFreeplayManager.cleanup();
 
                 // Clean up AP Items and data
                 archipelago.APItem.cleanupAllAPData();
