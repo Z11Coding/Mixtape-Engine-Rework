@@ -75,7 +75,7 @@ function onCreate()
 }
 
 function doIntro() {
-    startVideo('fanta_cutscene_wip_lol', true);
+    game.startVideo('fanta_cutscene_wip_lol', true);
 }
 
 /*
