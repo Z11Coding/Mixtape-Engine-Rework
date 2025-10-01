@@ -695,7 +695,7 @@ class OsuFreeplayState extends MusicBeatState
 					}
 				}
 
-				if (!APFreeplayManager.unplayedList.contains(songName) && isMissing) {
+				if (!APFreeplayManager.unplayedList.contains({song: songName, mod: modName}) && isMissing) {
 					color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
 				}
 			}
@@ -722,7 +722,7 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.ID = i;
 			this.songBox.add(songBox);
 
-			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
+			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains({song: songName, mod: modName});
 			var iconName = isLock ? "lock" : (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
 			var icon:HealthIcon = new HealthIcon(iconName, false);
 			icon.setPosition(320, 100);

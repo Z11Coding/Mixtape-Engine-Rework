@@ -186,6 +186,22 @@ class APPlayState extends PlayState {
             return;
         }
 
+        if (archipelago.APInfo.inMinigame != None)
+        {
+            switch (archipelago.APInfo.inMinigame) {
+                case Uno:
+                    FlxG.switchState(new archipelago.traps.games.APUnoTrapState());
+                    return;
+                case Pong:
+                    FlxG.switchState(new archipelago.traps.games.APPongTrapState());
+                    return;
+                case None:
+            }
+        }
+        {
+
+        }
+
         MaxHP += archipelago.APItem.maxHPUp / 2;
 
         for (func in updateFunctions)

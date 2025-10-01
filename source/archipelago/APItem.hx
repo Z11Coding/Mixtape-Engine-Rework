@@ -322,7 +322,12 @@ class APItem {
                     t.isTrap = true;
                 });
             case "UNO Challenge":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                return new APTrap(name, ConditionHelper.Everywhere().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return archipelago.APInfo.inMinigame == archipelago.APInfo.APMinigame.None;
+                    });
+                }), function() {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
                     if (MusicBeatState.getState() == APPlayState.instance) {
                         APPlayState.instance.paused = true;
@@ -331,6 +336,7 @@ class APItem {
                         LoadingState.noteCache = [];
                         states.PlayState.curChart = [];
                         MusicBeatState.allowNuke = true;
+                        archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Uno;
                     }
                     FlxG.switchState(new archipelago.traps.games.APUnoTrapState(MusicBeatState.getState()));
                 }, true, false).funcAndReturn(function(t:APItem) {
@@ -1721,7 +1727,12 @@ class APPongTrap extends APTrap {
         // If no difficulty specified, use random 1-3 (reasonable range)
         this.difficulty = difficulty != null ? difficulty : (1 + Std.random(3));
 
-        super("Pong Challenge (" + getDifficultyName(this.difficulty) + ")", ConditionHelper.Everywhere(), function() {
+        super("Pong Challenge (" + getDifficultyName(this.difficulty) + ")", ConditionHelper.Everywhere().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return archipelago.APInfo.inMinigame == archipelago.APInfo.APMinigame.None;
+                    });
+                }), function() {
             // If already in a pong trap, queue this difficulty
             if (activeTrapState != null) {
                 difficultyQueue.push(this.difficulty);
@@ -1734,6 +1745,7 @@ class APPongTrap extends APTrap {
             if (Std.isOfType(currentState, MusicBeatState)) {
                 var previousState = cast(currentState, MusicBeatState);
                 activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, this.difficulty);
+                archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Pong;
                 MusicBeatState.switchState(activeTrapState);
                 APItem.popup("Pong Challenge (" + getDifficultyName(this.difficulty) + ") activated!");
             }

@@ -431,7 +431,7 @@ class FreeplayState extends MusicBeatState
 						}
 					}
 
-					if (!APFreeplayManager.unplayedList.contains(songName) && isMissing) {
+					if (!APFreeplayManager.unplayedList.contains({song: songName, mod: modName}) && isMissing) {
 						color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
 					}
 				}
@@ -472,7 +472,7 @@ class FreeplayState extends MusicBeatState
 
 				songText.visible = songText.active = songText.isMenuItem = false;
 
-				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains(songName);
+				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains({song: songName, mod: modName}) && !someLocationsNotMissing;
 				var iconName = isLock ? "lock" : (archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
 				var icon:HealthIcon = new HealthIcon(iconName);
 				icon.sprTracker = songText;

@@ -68,6 +68,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	override function create()
 	{
+
 		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		if(PlayState.chartingMode)
 		{
@@ -87,6 +88,12 @@ class PauseSubState extends MusicBeatSubstate
 
 		if (archipelago.APEntryState.inArchipelagoMode)
 			menuItemsOG.insert(3, 'Skip Check');
+
+		if (archipelago.APEntryState.inArchipelagoMode && archipelago.APInfo.inSongTrap)
+		{
+			menuItemsOG.remove('Exit to menu');
+			menuItemsOG.remove('Skip Check');
+		}
 
 		for (i in 0...Difficulty.list.length) {
 			var diff:String = Difficulty.getString(i);

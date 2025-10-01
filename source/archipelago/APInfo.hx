@@ -88,6 +88,13 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 		return Reflect.hasField(this, key);
 	}
 }
+
+enum APMinigame {
+	None;
+	Uno;
+	Pong;
+}
+
 class APInfo {
 	public static var ap:Client;
 	public static var apGame:APGameState;
@@ -105,6 +112,12 @@ class APInfo {
 	public static var hasSongChecks(get, never):Bool;
 	public static var hintPoints(get, never):Int;
 	public static var hintCost(get, never):Int;
+	public static var inMinigame:APMinigame = None;
+
+	public static var inSongTrap(get, never):Bool;
+	public static function get_inSongTrap():Bool {
+		return FlxG.save.data.manualOverride == true;
+	}
 
 	public static var slotData(get, never):APSlotData;
 	public static function get_slotData():APSlotData {
