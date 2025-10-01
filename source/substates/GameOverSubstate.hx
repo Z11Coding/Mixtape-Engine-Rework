@@ -246,23 +246,27 @@ class GameOverSubstate extends MusicBeatSubstate
 			}
 			else if (justPlayedLoop)
 			{
-				switch(PlayState.SONG.stage)
-				{
-					case 'tank':
-						coolStartDeath(0.2);
+				if (PlayState.SONG != null) {
+					switch(PlayState.SONG.stage)
+					{
+						case 'tank':
+							coolStartDeath(0.2);
 
-						var exclude:Array<Int> = [];
-						//if(!ClientPrefs.cursing) exclude = [1, 3, 8, 13, 17, 21];
+							var exclude:Array<Int> = [];
+							//if(!ClientPrefs.cursing) exclude = [1, 3, 8, 13, 17, 21];
 
-						FlxG.sound.play(Paths.sound('jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude)), 1, false, null, true, function() {
-							if(!isEnding)
-							{
-								FlxG.sound.music.fadeIn(0.2, 1, 4);
-							}
-						});
+							FlxG.sound.play(Paths.sound('jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude)), 1, false, null, true, function() {
+								if(!isEnding)
+								{
+									FlxG.sound.music.fadeIn(0.2, 1, 4);
+								}
+							});
 
-					default:
-						coolStartDeath();
+						default:
+							coolStartDeath();
+					}
+				} else {
+					coolStartDeath();
 				}
 			}
 

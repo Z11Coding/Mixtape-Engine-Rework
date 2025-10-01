@@ -489,7 +489,7 @@ class APFreeplayManager extends FreeplayManager {
                             }
                             for (songObj in curUnlocked)
                             {
-                                if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod)
+                                if (songObj.song.trim().toLowerCase().replace('-', ' ') == songNameThing.trim().toLowerCase().replace('-', ' ') && leWeek.folder == songObj.mod && !isMissing)
                                     addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
                             }
                         }
@@ -596,6 +596,7 @@ class APFreeplayManager extends FreeplayManager {
         }
 
 
+        Mods.currentModDirectory = '';
         if (refresh)
 		{
 			for (songObj in APFreeplayManager.curUnlocked) {
