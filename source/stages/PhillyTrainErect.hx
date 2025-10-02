@@ -6,6 +6,7 @@ import flxanimate.motion.AdjustColor;
 import objects.Character;
 import shaders.AdjustColorShader;
 import stages.PicoCapableStage;
+import stages.cutscenes.TwoPicos;
 import stages.objects.PhillyLights;
 import stages.objects.PhillyTrain;
 import stages.objects.PicoDopplegangerSprite;
@@ -17,6 +18,8 @@ class PhillyTrainErect extends BaseStage
 	var phillyStreet:BGSprite;
 	var phillyTrain:PhillyTrain;
 	var curLight:Int = -1;
+
+	var cutsceneObj:TwoPicos;
 
 	var curLightEvent:Int = -1;
 	var colorShader:AdjustColorShader;
@@ -54,9 +57,10 @@ class PhillyTrainErect extends BaseStage
 		add(phillyStreet);
 
 
-		if(!seenCutscene
-			&& PlayState.SONG.player1 == "pico-playable"
-			&& PlayState.SONG.player2 == "pico") setStartCallback(ughIntro);
+		if (!seenCutscene && PlayState.SONG.player1 == "pico-playable" && PlayState.SONG.player2 == "pico"){
+			cutsceneObj = new TwoPicos(this, colorShader);
+			setStartCallback(cutsceneObj.startCutscene);
+		}
 
 		new PhillyLights(phillyStreet,phillyWindow.x,phillyWindow.y,phillyLightsColors);
 	}
@@ -99,10 +103,6 @@ class PhillyTrainErect extends BaseStage
 		super.update(elapsed);
 	}
 
-	override function startSong() {
-		cutsceneHandler.destroy();
-	}
-
 	override function beatHit()
 	{
 		phillyTrain.beatHit(curBeat);
@@ -131,248 +131,5 @@ class PhillyTrainErect extends BaseStage
 			color.alphaFloat = 0.5;
 
 		FlxG.camera.flash(color, 0.15, null, true);
-	}
-
-	// Cutscenes
-	var cutsceneHandler:CutsceneHandler;
-	var imposterPico:PicoDopplegangerSprite;
-	var pico:PicoDopplegangerSprite;
-	var bloodPool:FlxAnimate;
-	var cigarette:FlxSprite;
-	var audioPlaying:FlxSound;
-
-	var playerShoots:Bool;
-	var explode:Bool;
-	var seenOutcome:Bool;
-
-	function prepareCutscene()
-	{
-		cutsceneHandler = new CutsceneHandler();
-
-		boyfriend.visible = dad.visible = false;
-		camHUD.visible = false;
-		// inCutscene = true; //this would stop the camera movement, oops
-
-		imposterPico = new PicoDopplegangerSprite(dad.x + 82, dad.y + 400);
-		imposterPico.showPivot = false;
-		imposterPico.antialiasing = ClientPrefs.data.antialiasing;
-		cutsceneHandler.push(imposterPico);
-
-		pico = new PicoDopplegangerSprite(boyfriend.x + 48.5, boyfriend.y + 400);
-		pico.showPivot = false;
-		pico.antialiasing = ClientPrefs.data.antialiasing;
-		cutsceneHandler.push(pico);
-
-		bloodPool = new FlxAnimate(0, 0);
-		bloodPool.visible = false;
-		Paths.loadAnimateAtlas(bloodPool, "philly/erect/cutscenes/bloodPool");
-
-		cigarette = new FlxSprite();
-		cigarette.frames = Paths.getSparrowAtlas('philly/erect/cutscenes/cigarette');
-		cigarette.animation.addByPrefix('cigarette spit', 'cigarette spit', 24, false);
-		cigarette.visible = false;
-
-		cutsceneHandler.finishCallback = function()
-		{
-			seenCutscene = true;
-			//Restore camera
-			var timeForStuff:Float = Conductor.crochet / 1000 * 4.5;
-			FlxG.sound.music.fadeOut(timeForStuff);
-			FlxTween.tween(FlxG.camera, {zoom: defaultCamZoom}, timeForStuff, {ease: FlxEase.quadInOut});
-
-			//Show still alive chars
-			if (explode)
-				{
-					if (playerShoots) boyfriend.visible = true;
-					else dad.visible = true;
-				}
-			else boyfriend.visible = dad.visible = true;
-
-			camHUD.visible = true;
-
-			//Crear callbacks
-			boyfriend.animation.finishCallback = null;
-			gf.animation.finishCallback = null;
-
-			if (audioPlaying != null) audioPlaying.stop();
-			pico.cancelSounds();
-			imposterPico.cancelSounds();
-
-			if (explode)
-			{
-				if(playerShoots){
-					if (seenOutcome)
-						imposterPico.playAnimation("loopOpponent", true, true, true);
-					else
-					{
-						imposterPico.kill();
-						game.remove(imposterPico);
-						imposterPico.destroy();
-						dad.visible = true;
-					}
-				}
-				else{
-
-					if(seenOutcome){
-						pico.playAnimation("loopPlayer", true, true, true);
-						endSong();
-					}
-					else{
-						pico.kill();
-						game.remove(pico);
-						pico.destroy();
-						boyfriend.visible = true;
-					}
-				}
-				if(seenOutcome && playerShoots){
-					game.camZooming = true;
-					game.opponentVocals = new FlxSound();
-					for (note in game.unspawnNotes){
-						if (!note.mustPress && note.eventName == "")
-						{
-							note.ignoreNote = true;
-						}
-					}
-				}
-			}
-			//Dance!
-			dad.dance();
-			boyfriend.dance();
-			gf.dance();
-
-			FlxTween.cancelTweensOf(FlxG.camera);
-			FlxTween.cancelTweensOf(camFollow);
-			@:privateAccess
-			game.moveCameraSection();
-			FlxG.camera.scroll.set(camFollow.x - FlxG.width / 2, camFollow.y - FlxG.height / 2);
-			FlxG.camera.zoom = defaultCamZoom;
-			if(!explode || playerShoots) startCountdown();
-		};
-		cutsceneHandler.skipCallback = function()
-		{
-			cutsceneHandler.finishCallback();
-		};
-		camFollow_set(dad.x + 280, dad.y + 170);
-	}
-
-	function ughIntro()
-	{
-		prepareCutscene();
-		seenOutcome = false;
-		// 50/50 chance for who shoots
-		if (FlxG.random.bool(50))
-		{
-			playerShoots = true;
-		}
-		else
-		{
-			playerShoots = false;
-		}
-		if (FlxG.random.bool(8))
-		{
-			explode = true;
-		}
-		else
-		{
-			explode = false;
-		}
-		cutsceneHandler.endTime = 13;
-		cutsceneHandler.music = playerShoots ? 'cutscene/cutscene2' : 'cutscene/cutscene';
-		Paths.sound('cutscene/picoCigarette');
-		Paths.sound('cutscene/picoExplode');
-		Paths.sound('cutscene/picoShoot');
-		Paths.sound('cutscene/picoSpin');
-		Paths.sound('cutscene/picoCigarette2');
-		Paths.sound('cutscene/picoGasp');
-
-		var cigarettePos:Array<Float> = [];
-		var shooterPos:Array<Float> = [];
-		if (playerShoots == true)
-		{
-			cigarette.flipX = true;
-
-			addBehindBF(cigarette);
-			addBehindBF(bloodPool);
-			addBehindBF(imposterPico);
-			addBehindBF(pico);
-
-			cigarette.setPosition(boyfriend.x - 143.5, boyfriend.y + 210);
-			bloodPool.setPosition(dad.x - 1487, dad.y - 173);
-
-			shooterPos = cameraPos(boyfriend, game.boyfriendCameraOffset);
-			cigarettePos = cameraPos(dad, [250, 0]);
-		}
-		else
-		{
-			addBehindDad(cigarette);
-			addBehindDad(bloodPool);
-			addBehindDad(pico);
-			addBehindDad(imposterPico);
-			bloodPool.setPosition(boyfriend.x - 788.5, boyfriend.y - 173);
-			cigarette.setPosition(boyfriend.x - 478.5, boyfriend.y + 205);
-
-			cigarettePos = cameraPos(boyfriend, game.boyfriendCameraOffset);
-			shooterPos = cameraPos(dad, [250, 0]);
-		}
-		var midPoint:Array<Float> = [(shooterPos[0] + cigarettePos[0]) / 2, (shooterPos[1] + cigarettePos[1]) / 2];
-
-		// Allw picos to set their cutscene timers
-		imposterPico.doAnim("Opponent", !playerShoots, explode, cutsceneHandler);
-		pico.doAnim("Player", playerShoots, explode, cutsceneHandler);
-
-		camFollow_set(midPoint[0], midPoint[1]);
-
-		if (ClientPrefs.data.shaders)
-		{
-			cutsceneHandler.timer(0.01, () ->
-			{
-				pico.shader = colorShader;
-				imposterPico.shader = colorShader;
-				bloodPool.shader = colorShader;
-			});
-		}
-
-		cutsceneHandler.timer(4, () ->
-		{
-			camFollow_set(cigarettePos[0], cigarettePos[1]);
-		});
-
-		cutsceneHandler.timer(6.3, () ->
-		{
-			camFollow_set(shooterPos[0], shooterPos[1]);
-		});
-
-		cutsceneHandler.timer(8.75, () ->
-		{
-			seenOutcome = true;
-			// cutting off skipping here. really dont think its needed after this point and it saves problems from happening
-			camFollow_set(cigarettePos[0], cigarettePos[1]);
-		});
-
-		cutsceneHandler.timer(11.2, () ->
-		{
-			if (explode == true)
-			{
-				bloodPool.visible = true;
-				bloodPool.anim.play("bloodPool", true);
-			}
-		});
-
-		cutsceneHandler.timer(11.5, () ->
-		{
-			if (explode == false)
-			{
-				cigarette.visible = true;
-				cigarette.animation.play('cigarette spit');
-			}
-		});
-	}
-
-	function cameraPos(char:Character, camOffset:Array<Float>)
-	{
-		var point = new FlxPoint(char.getMidpoint().x - 100, char.getMidpoint().y - 100);
-		point.x -= char.cameraPosition[0] - camOffset[0];
-		point.y += char.cameraPosition[1] + camOffset[1];
-		return [point.x, point.y];
 	}
 }

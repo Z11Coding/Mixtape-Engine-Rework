@@ -333,7 +333,7 @@ class GenericProgressSubstate extends MusicBeatSubstate {
 
             new FlxTimer().start(3, function(_) {
                 animateOut(() -> {
-                            onError(errorMsg, shouldThrow);
+                    onError(errorMsg, shouldThrow);
                 });
             });
         }
