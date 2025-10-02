@@ -138,6 +138,8 @@ class APCategoryState extends states.CategoryState {
                             archipelago.APInfo.ap = null;
                         }
 
+                        archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
+
                         // APPlayState references
                         if (archipelago.APPlayState.apGame != null) {
                             archipelago.APPlayState.apGame = null;

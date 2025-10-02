@@ -70,7 +70,7 @@ class APUnoTrapState extends UnoTestState {
             var unoColors = APItem.unoColorsUnlocked;
 
             var unoColorsWithInt = [for (colorInfo in unoColors) {
-                var colorInt = FlxColor.fromString('${colorInfo.color_code}');
+                var colorInt = FlxColor.fromString('#${colorInfo.color_code}');
                 {name: colorInfo.name, color: colorInt};
             }];
             var usableColors:Array<UnoColor> = [];

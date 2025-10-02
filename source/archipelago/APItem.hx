@@ -1627,6 +1627,8 @@ class APItem {
         extaLives = 0;
         pendingDamage = 0.0;
         frozenInput = 0;
+        unknownSongs = false;
+        unoColorsUnlocked = [];
 
         // Clear inventory and item counts
         extraItemInventory = [];
