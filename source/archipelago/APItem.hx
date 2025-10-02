@@ -46,7 +46,7 @@ class ConditionHelper {
     public static inline function Everywhere():Condition {
         return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere);
     }
-    public static inline function PlayState():Condition {
+    public static inline function PlayState(?oneAtATime:Bool = false):Condition {
         return ConditionHelper.create(function(item:APItem):Bool {
             if (!Std.is(FlxG.state, states.PlayState)) return false;
             var playState = states.PlayState.instance;

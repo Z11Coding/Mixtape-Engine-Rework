@@ -198,9 +198,11 @@ class APCategoryState extends states.CategoryState {
                         archipelago.APEntryState.ap = null;
                         archipelago.APInfo.apGame = null;
                         archipelago.APInfo.ap = null;
+                        archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                         archipelago.APPlayState.apGame = null;
                         archipelago.APStyledEntryState.apGame = null;
                         archipelago.APStyledEntryState.ap = null;
+                        // archipelago.APGameState.instance?.updateSaveData();
                         archipelago.APGameState.instance = null;
                         AP = null;
                         gameState = null;
@@ -232,7 +234,7 @@ class APCategoryState extends states.CategoryState {
                     // Cancel callback - user canceled the shutdown
                     trace('User canceled the shutdown process');
                     // Stay in the current state
-                }
+                }, true // Normally, you should not be able to cancel quitting.
             );
 
             openSubState(progressDialog);
