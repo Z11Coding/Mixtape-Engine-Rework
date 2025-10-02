@@ -895,7 +895,7 @@ class APGameState
 		if (_saveData.hasItem("unlockedUnoColors"))
 		{
 			var colors:Array<String> = _saveData.getItem("unlockedUnoColors");
-			archipelago.APItem.unlockedUnoColors = colors;
+			archipelago.APItem.unoColorsUnlocked = colors;
 		}
 		_saveData.save();
 	}
@@ -920,7 +920,7 @@ class APGameState
 		_saveData.addItem("Lives", APPlayState.livecount);
 		_saveData.addItem("hasPocketLens", APItem.hasPocketLens);
 		_saveData.addItem("hasDashMechanic", APItem.hasDashMechanic);
-		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unlockedUnoColors);
+		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
 		_saveData.save();
 		trace("Save data updated!");
 	}
