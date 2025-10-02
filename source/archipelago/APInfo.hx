@@ -59,7 +59,7 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	public var songData(get, never):Map<String, SongDetailData>;
 	public var custom_weeks(get, never):Dynamic;
 	public var song_modifications(get, never):Dynamic;
-	public var unoColorsUsed(get, never):Array<{name:String, color:String}>;
+	public var unoColorsUsed(get, never):Array<{name:String, color_code:String}>;
 
 	private function get_deathLink():Bool return this.deathLink;
 	private function get_fullSongCount():Int return this.fullSongCount;
