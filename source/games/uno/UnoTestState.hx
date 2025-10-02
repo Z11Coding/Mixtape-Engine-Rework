@@ -796,50 +796,46 @@ class UnoTestState extends MusicBeatState {
             return;
         }
 
-        try {
-            var currentPlayer = unoGame.turnManager.getCurrentPlayer();
-            if (currentPlayer == null || currentPlayer.isHuman) {
-                //trace("Current player is null or human, skipping CPU turn");
-                updatePlayerInfoDisplay();
+        var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+        if (currentPlayer == null || currentPlayer.isHuman) {
+            //trace("Current player is null or human, skipping CPU turn");
+            updatePlayerInfoDisplay();
+            return;
+        }
+
+        if (Std.isOfType(currentPlayer, UnoCPU)) {
+            var cpuPlayer = cast(currentPlayer, UnoCPU);
+
+            // Get top card safely
+            var topCard = unoGame.deck != null ? unoGame.deck.getTopCard() : null;
+            if (topCard == null) {
+                trace("Cannot process CPU turn: top card is null");
                 return;
             }
 
-            if (Std.isOfType(currentPlayer, UnoCPU)) {
-                var cpuPlayer = cast(currentPlayer, UnoCPU);
+            var playableCards = cpuPlayer.getPlayableCards(topCard);
 
-                // Get top card safely
-                var topCard = unoGame.deck != null ? unoGame.deck.getTopCard() : null;
-                if (topCard == null) {
-                    trace("Cannot process CPU turn: top card is null");
-                    return;
-                }
+            if (playableCards.length > 0) {
+                var cardIndex = cpuPlayer.chooseCard(topCard, unoGame.gameState);
+                if (cardIndex >= 0 && cardIndex < cpuPlayer.hand.cards.length) {
+                    var card = cpuPlayer.hand.cards[cardIndex];
+                    var chosenColor:UnoColor = null;
 
-                var playableCards = cpuPlayer.getPlayableCards(topCard);
+                    if (card.isWildCard()) {
+                        chosenColor = cpuPlayer.chooseWildColor();
+                    }
 
-                if (playableCards.length > 0) {
-                    var cardIndex = cpuPlayer.chooseCard(topCard, unoGame.gameState);
-                    if (cardIndex >= 0 && cardIndex < cpuPlayer.hand.cards.length) {
-                        var card = cpuPlayer.hand.cards[cardIndex];
-                        var chosenColor:UnoColor = null;
-
-                        if (card.isWildCard()) {
-                            chosenColor = cpuPlayer.chooseWildColor();
-                        }
-
-                        var success = unoGame.playCard(cpuPlayer, cardIndex, chosenColor);
-                        if (!success) {
-                            // If card couldn't be played, draw instead
-                            unoGame.drawCards(cpuPlayer, 1);
-                        }
-                    } else {
+                    var success = unoGame.playCard(cpuPlayer, cardIndex, chosenColor);
+                    if (!success) {
+                        // If card couldn't be played, draw instead
                         unoGame.drawCards(cpuPlayer, 1);
                     }
                 } else {
                     unoGame.drawCards(cpuPlayer, 1);
                 }
+            } else {
+                unoGame.drawCards(cpuPlayer, 1);
             }
-        } catch (e:Dynamic) {
-            trace("Error processing CPU turn: " + e);
         }
     }
 
