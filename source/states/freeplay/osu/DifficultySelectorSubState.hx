@@ -77,13 +77,15 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         switch (song.songName)
         {
             case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta':
-                    Difficulty.list = ['Hard'];
-            case 'Rise' | 'Test Field':
-                    Difficulty.list = ['Normal'];
+                Difficulty.list = ['Hard'];
+            case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
+                Difficulty.list = ['Normal'];
             case "Beat Battle":
-                    Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+            case "Testimony":
+				Difficulty.list = ["4K", "Canon"];
             default:
-                    Difficulty.loadFromWeek();
+                Difficulty.loadFromWeek();
         }
         listLength = Difficulty.list.length;
         WeekData.setDirectoryFromWeek();

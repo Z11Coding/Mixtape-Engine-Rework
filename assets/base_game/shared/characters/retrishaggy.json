@@ -1,0 +1,112 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [165, -114],
+			"fps": 30,
+			"anim": "singLEFT",
+			"indices": [],
+			"name": "shaggy_left"
+		},
+		{
+			"loop": false,
+			"offsets": [-10, -160],
+			"fps": 30,
+			"anim": "singDOWN",
+			"indices": [],
+			"name": "shaggy_down"
+		},
+		{
+			"loop": false,
+			"offsets": [-16, 27],
+			"fps": 30,
+			"anim": "singUP",
+			"indices": [],
+			"name": "shaggy_up"
+		},
+		{
+			"loop": false,
+			"offsets": [-11, -38],
+			"fps": 30,
+			"anim": "singRIGHT",
+			"indices": [],
+			"name": "shaggy_right"
+		},
+		{
+			"loop": false,
+			"offsets": [-17, 10],
+			"fps": 30,
+			"anim": "idle_s",
+			"indices": [],
+			"name": "shaggy_super_idle0"
+		},
+		{
+			"loop": false,
+			"offsets": [-19, 23],
+			"fps": 24,
+			"anim": "powerup",
+			"indices": [],
+			"name": "shaggy_powerup"
+		},
+		{
+			"loop": false,
+			"offsets": [160, -110],
+			"anim": "singLEFT-alt",
+			"fps": 30,
+			"name": "shaggy_sleft",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [0, -153],
+			"anim": "singDOWN-alt",
+			"fps": 30,
+			"name": "shaggy_sdown",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-6, -25],
+			"anim": "singRIGHT-alt",
+			"fps": 30,
+			"name": "shaggy_sright",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [-19, 35],
+			"anim": "singUP-alt",
+			"fps": 30,
+			"name": "shaggy_sup2",
+			"indices": []
+		},
+		{
+			"offsets": [0, 0],
+			"loop": false,
+			"fps": 30,
+			"anim": "danceLeft",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"name": "shaggy_idle"
+		},
+		{
+			"offsets": [0, 0],
+			"loop": false,
+			"fps": 30,
+			"anim": "danceRight",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"name": "shaggy_idle2"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"score_name": "Shaggy (Retribution)",
+	"image": "characters/retrishaggy",
+	"position": [0, 0],
+	"healthicon": "retshaggy",
+	"flip_x": false,
+	"healthbar_colors": [255, 255, 255],
+	"camera_position": [-280, 50],
+	"sing_duration": 6.1,
+	"scale": 1,
+	"_editor_isPlayer": false
+}

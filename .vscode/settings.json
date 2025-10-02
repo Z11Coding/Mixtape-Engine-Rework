@@ -134,5 +134,6 @@
     "coverage.xml",
     "jacoco.xml",
     "coverage.cobertura.xml"
-  ]
+  ],
+  "commentTranslate.hover.enabled": true
 }

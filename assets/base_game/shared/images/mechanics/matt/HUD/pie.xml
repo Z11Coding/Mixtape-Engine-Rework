@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TextureAtlas imagePath="pie.png">
+<SubTexture name="health 1 0000" x="440" y="440" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 2 0000" x="220" y="0" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 3 0000" x="0" y="220" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 4 0000" x="220" y="220" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 5 0000" x="440" y="0" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 6 0000" x="440" y="220" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 7 0000" x="0" y="440" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 8 0000" x="220" y="440" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 9 0000" x="0" y="0" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 10 0000" x="660" y="0" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 11 0000" x="660" y="220" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+<SubTexture name="health 12 0000" x="660" y="440" width="220" height="220" frameX="0" frameY="0" frameWidth="220" frameHeight="220" />
+</TextureAtlas>

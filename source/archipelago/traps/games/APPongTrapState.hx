@@ -211,7 +211,7 @@ class APPongTrapState extends PongGameState {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                         if (previousState != null) {
-                            LoadingState.loadAndSwitchState(Type.createInstance(previousState, []));
+                            FlxG.switchState(Type.createInstance(previousState, []));
                         } else {
                             StageData.loadDirectory(PlayState.SONG);
                             LoadingState.loadAndSwitchState(new archipelago.APPlayState());

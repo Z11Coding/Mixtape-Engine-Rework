@@ -1266,10 +1266,12 @@ class FreeplayState extends MusicBeatState
         {
 					case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta':
 							Difficulty.list = ['Hard'];
-					case 'Rise' | 'Test Field':
+					case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
 							Difficulty.list = ['Normal'];
 					case "Beat Battle":
 							Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+					case "Testimony":
+						Difficulty.list = ["4K", "Canon"];
 					default:
 							Difficulty.loadFromWeek();
         }
