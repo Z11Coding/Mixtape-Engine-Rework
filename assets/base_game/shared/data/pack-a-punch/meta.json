@@ -1,0 +1,15 @@
+{
+  "song": {
+    "name": "Pack-A-Punch",
+    "artist": "Z11Gaming",
+    "charter": "Z11Gaming",
+    "mod": "Modpack Mixup"
+  },
+  "freeplay": {
+    "ratings": {
+      "hard": 8
+    },
+    "album": "NoCover",
+    "bg": "menuBGBlue"
+  }
+}

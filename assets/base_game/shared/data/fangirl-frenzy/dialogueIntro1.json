@@ -1,0 +1,52 @@
+{
+	"dialogue": [
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "sky",
+			"text": "IT WORKED!!",
+			"shake": true,
+			"boxAnimPrefix": "normal",
+			"speed": 0.05,
+			"dialogueSound": "dialogue",
+			"sound": "defB",
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "sky",
+			"text": "THE SHIFT WORKED!!!",
+			"shake": true,
+			"boxAnimPrefix": "normal",
+			"speed": 0.05,
+			"dialogueSound": "dialogue",
+			"sound": "defB",
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "sky",
+			"text": "Now we can be",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"speed": 0.05,
+			"dialogueSound": "dialogue",
+			"sound": "defB",
+			"skipDis": true
+		}
+	],
+	"boxSkin": "dialogue/boxes/ds_dialogue_box",
+	"size": 50,
+	"outlineColor": "#000000",
+	"handEnable": true,
+	"color": "#000000",
+	"outlineSize": 1.5,
+	"handSkin": "Empty",
+	"outlineEnable": false,
+	"font": "comboFont.ttf",
+	"dropTextEnable": false,
+	"clickSound": "dialogueClose",
+	"dropTextColor": "#757575"
+}

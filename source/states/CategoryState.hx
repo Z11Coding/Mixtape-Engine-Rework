@@ -258,16 +258,20 @@ class CategoryState extends MusicBeatState
 		bg.scrollFactor.set();
 		add(bg);
 
-		circleoffun = new AudioCircleDisplay(FlxG.sound.music, FlxG.width/2, FlxG.height/2, Std.int(FlxG.width/2), Std.int(FlxG.height/2), 420, 5, FlxColor.PURPLE, 80, true, 1);
-		circleoffun.scrollFactor.set();
-		circleoffun.Rotate = true;
-		//circleoffun.screenCenter();
-		//circleoffun.y += 3000;
-		add(circleoffun);
-		/*FlxTween.tween(circleoffun, {y: circleoffun.y - 3000}, Conductor.crochet / 1300, {
-			startDelay: 5,
-			ease: FlxEase.quadOut
-		});*/
+		try {
+			circleoffun = new AudioCircleDisplay(FlxG.sound.music, FlxG.width/2, FlxG.height/2, Std.int(FlxG.width/2), Std.int(FlxG.height/2), 420, 5, FlxColor.PURPLE, 80, true, 1);
+			circleoffun.scrollFactor.set();
+			circleoffun.Rotate = true;
+			//circleoffun.screenCenter();
+			//circleoffun.y += 3000;
+			add(circleoffun);
+			/*FlxTween.tween(circleoffun, {y: circleoffun.y - 3000}, Conductor.crochet / 1300, {
+				startDelay: 5,
+				ease: FlxEase.quadOut
+			});*/
+		} catch(e:Dynamic) {
+			trace("Failed to load AudioCircleDisplay, skipping...");
+		}
 
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);

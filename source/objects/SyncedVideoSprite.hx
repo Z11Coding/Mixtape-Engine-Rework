@@ -17,7 +17,6 @@ class SyncedVideoSprite extends FlxSpriteGroup {
 	public var holdingTime:Float = 0;
 	public var videoSprite:FlxVideoSprite;
 	public var skipSprite:FlxPieDial;
-	public var cover:FlxSprite;
 	public var canSkip(default, set):Bool = false;
 
 	private var videoName:String;
@@ -48,16 +47,6 @@ class SyncedVideoSprite extends FlxSpriteGroup {
 		} else {
 			// Start immediately, but still track timing for sync
 			targetStartTime = creationTime;
-		}
-
-		if (!waiting) {
-			// Add cover for non-waiting videos
-			cover = new FlxSprite();
-			cover.makeGraphic(1, 1, FlxColor.BLACK);
-			cover.scale.set(FlxG.width + 100, FlxG.height + 100);
-			cover.screenCenter();
-			cover.scrollFactor.set();
-			add(cover);
 		}
 
 		// Initialize sprites
@@ -96,6 +85,8 @@ class SyncedVideoSprite extends FlxSpriteGroup {
 				// We're late, seek to the appropriate position
 				videoSprite.bitmap.time = timeDiff;
 			}
+
+			videoSprite.play();
 		}
 	}
 
@@ -109,10 +100,6 @@ class SyncedVideoSprite extends FlxSpriteGroup {
 		if (alreadyDestroyed) return;
 
 		trace('SyncedVideo destroyed');
-		if (cover != null) {
-			remove(cover);
-			cover.destroy();
-		}
 
 		if (finishCallback != null) finishCallback();
 		onSkip = null;

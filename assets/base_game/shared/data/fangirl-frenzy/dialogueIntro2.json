@@ -1,0 +1,112 @@
+{
+	"dialogue": [
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-right",
+			"text": "There you are, BF!",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "bf",
+			"text": "beep",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "bfBeep",
+			"dialogueSound": "voice/bfBeep",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-right",
+			"text": "Where the heck did you",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "voice/Z11Talk",
+			"speed": 0.05,
+			"skipDis": true
+		},
+		{
+			"expression": "pissed",
+			"disableFadeBG": false,
+			"portrait": "skyannoyed",
+			"text": "Who are you?",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "defB",
+			"dialogueSound": "voice/dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-right",
+			"text": "Hmm..?",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "voice/Z11Talk",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-right",
+			"text": "Oh. That's where we are.",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "voice/Z11Talk",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "pissed",
+			"disableFadeBG": false,
+			"portrait": "skyannoyed",
+			"text": "???",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "defB",
+			"dialogueSound": "voice/dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "pissed",
+			"disableFadeBG": false,
+			"portrait": "empty-right",
+			"text": "Wait...",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		}
+	],
+	"boxSkin": "dialogue/boxes/ds_dialogue_box",
+	"size": 50,
+	"outlineColor": "#000000",
+	"handEnable": true,
+	"color": "#000000",
+	"outlineSize": 1.5,
+	"handSkin": "Empty",
+	"outlineEnable": false,
+	"font": "comboFont.ttf",
+	"dropTextEnable": false,
+	"clickSound": "dialogueClose",
+	"dropTextColor": "#757575"
+}

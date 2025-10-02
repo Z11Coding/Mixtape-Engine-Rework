@@ -2138,7 +2138,7 @@ class PlayState extends MusicBeatState
 					if (!isDead && generatedMusic && PlayState.SONG.notes[Std.int(curStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
 					{
 						moveCameraSection();
-						FlxG.camera.snapToTarget();
+						if (FlxG.camera != null) FlxG.camera.snapToTarget();
 					}
 					videoCutscene = null;
 					canPause = true;
@@ -4788,6 +4788,8 @@ class PlayState extends MusicBeatState
 					note.animation.play(animToPlay);
 				}
 			}
+
+			note.defaultRGB();
 
 			// Like set_noteType()
 		}

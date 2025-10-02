@@ -1,0 +1,133 @@
+{
+	"dialogue": [
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "gf",
+			"text": "Hi everyone!",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "gf",
+			"dialogueSound": "voice/gf",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "bf",
+			"text": "Beep! >:D",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "bfBeep",
+			"dialogueSound": "voice/bfBeep",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-tight",
+			"text": "Hi GF!",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "voice/Z11Talk",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"sound": "ZenettaTalk",
+			"speed": 0.05,
+			"portrait": "empty-left",
+			"boxState": "normal",
+			"expression": "talk",
+			"skipDis": false,
+			"text": "Hey girl~"
+		},
+		{
+			"expression": "pissed",
+			"disableFadeBG": false,
+			"portrait": "skyannoyed",
+			"text": "...",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "defB",
+			"dialogueSound": "dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "sky",
+			"text": "That's fine.",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "defB",
+			"dialogueSound": "voice/dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "sky",
+			"text": "I'll just win your heart by beating you in a rap battle!",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "",
+			"dialogueSound": "voice/dialogue",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-right",
+			"text": "Fine. Then i'll back BF.",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "Z11Talk",
+			"dialogueSound": "voice/Z11Talk",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "empty-left",
+			"text": "Well if you're helping him, then i'll help her.",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "ZenettaTalk",
+			"dialogueSound": "voice/ZenettaTalk",
+			"speed": 0.05,
+			"skipDis": false
+		},
+		{
+			"expression": "talk",
+			"disableFadeBG": false,
+			"portrait": "gf",
+			"text": "This'll be fun.",
+			"shake": false,
+			"boxAnimPrefix": "normal",
+			"sound": "gf",
+			"dialogueSound": "voice/gf",
+			"speed": 0.05,
+			"skipDis": false
+		}
+	],
+	"boxSkin": "dialogue/boxes/ds_dialogue_box",
+	"size": 50,
+	"outlineColor": "#000000",
+	"handEnable": true,
+	"color": "#000000",
+	"outlineSize": 1.5,
+	"handSkin": "Empty",
+	"outlineEnable": false,
+	"font": "comboFont.ttf",
+	"dropTextEnable": false,
+	"clickSound": "dialogueClose",
+	"dropTextColor": "#757575"
+}

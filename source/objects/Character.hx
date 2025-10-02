@@ -101,6 +101,8 @@ class Character extends FlxSprite
 	// This is literally only for the dropshadow shader
 	public var charType:CharType = OTHER;
 
+	public static var animationsLoaded:Bool = false;
+
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?chType:CharType = OTHER)
 	{
 		super(x, y);
@@ -128,6 +130,19 @@ class Character extends FlxSprite
 				playAnim("shoot1");
 			case 'pico-blazin', 'darnell-blazin':
 				skipDance = true;
+		}
+
+		if (PlayState.instance != null)
+		{
+			switch(Paths.formatToSongPath(Song.loadedSongName))
+			{
+				case 'fangirl-frenzy':
+					if ((curCharacter == "Zenetta" || curCharacter == "Z11-true-player") && !animationsLoaded)
+					{
+						trace("Load FF");
+						loadMappedAnimsFF();
+					}
+			}
 		}
 	}
 
@@ -463,6 +478,46 @@ class Character extends FlxSprite
 				if(isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
 		}
 
+		if (PlayState.instance != null)
+		{
+			switch(Paths.formatToSongPath(Song.loadedSongName))
+			{
+				case 'fangirl-frenzy':
+					switch (curCharacter)
+					{
+						case 'Z11-true-player':
+							if (animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
+							{
+								var noteData:Int = -1;
+								noteData = Std.int(animationNotes[0][1] % 4);
+								var animToPlay:String = Note.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
+								playAnim(animToPlay, true);
+								holdTimer = 0;
+								animationNotes.shift();
+
+								trace('Z11 Played anim: $animToPlay');
+								trace('Z11 Note data: ${animationNotes[0][1]}');
+							}
+							//if (isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
+
+						case "Zenetta":
+							if (animationNotes.length > 0 && Conductor.songPosition > animationNotes[0][0])
+							{
+								var noteData:Int = 1;
+								noteData = Std.int(animationNotes[0][1] % 4);
+								var animToPlay:String = Note.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
+								playAnim(animToPlay, true);
+								holdTimer = 0;
+								animationNotes.shift();
+
+								trace('Zenetta Played anim: $animToPlay');
+								trace('Zenetta Note data: ${animationNotes[0][1]}');
+							}
+							//if (isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
+					}
+			}
+		}
+
 		if (getAnimationName().startsWith('sing')) holdTimer += elapsed;
 		else if(isPlayer) holdTimer = 0;
 
@@ -582,6 +637,17 @@ class Character extends FlxSprite
 			if (AnimName == 'singUP' || AnimName == 'singDOWN')
 				danced = !danced;
 		}
+
+		if (Paths.formatToSongPath(Song.loadedSongName) == 'fangirl-frenzy')
+		{
+			switch (curCharacter)
+			{
+				case 'Z11-true-player':
+					if (animation.curAnim.name != 'idle') PlayState.instance.health += 0.023 * ClientPrefs.getGameplaySetting('healthgain', 1);
+				case "Zenetta":
+					if (!animation.curAnim.name.contains('dance')) PlayState.instance.health -= 0.023 * ClientPrefs.getGameplaySetting('healthloss', 1);
+			}
+		}
 	}
 
 	function loadMappedAnims():Void
@@ -598,6 +664,28 @@ class Character extends FlxSprite
 			animationNotes.sort(sortAnims);
 		}
 		catch(e:Dynamic) {}
+	}
+
+	function loadMappedAnimsFF():Void
+	{
+		trace("Loaded FF");
+		try
+		{
+			var songData:SwagSong = Song.getChart('fangirl-frenzy-other', Paths.formatToSongPath(Song.loadedSongName));
+			if(songData != null)
+				for (section in songData.notes)
+					for (songNotes in section.sectionNotes) {
+						switch (curCharacter) {
+							case 'Z11-true-player':
+								if (songNotes[1] > 3) continue; // only player notes
+							case "Zenetta":
+								if (songNotes[1] < 4) continue; // only opponent notes
+						}
+						animationNotes.push(songNotes);
+					}
+			animationNotes.sort(sortAnims);
+		}
+		catch(e:Dynamic) {trace("Failed To Load FF!");}
 	}
 
 	function sortAnims(Obj1:Array<Dynamic>, Obj2:Array<Dynamic>):Int

@@ -1,0 +1,168 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [14, 18],
+			"anim": "hurt",
+			"fps": 24,
+			"name": "BF hit",
+			"indices": []
+		},
+		{
+			"offsets": [7, 19],
+			"loop": false,
+			"fps": 24,
+			"anim": "singUPmiss",
+			"indices": [],
+			"name": "bf miss"
+		},
+		{
+			"offsets": [7, 19],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"indices": [],
+			"name": "bf miss"
+		},
+		{
+			"offsets": [7, 19],
+			"loop": false,
+			"fps": 24,
+			"anim": "singDOWNmiss",
+			"indices": [],
+			"name": "bf miss"
+		},
+		{
+			"offsets": [7, 19],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"indices": [],
+			"name": "bf miss"
+		},
+		{
+			"offsets": [-3, -8],
+			"loop": false,
+			"fps": 24,
+			"anim": "dodge",
+			"indices": [],
+			"name": "BF dodge"
+		},
+		{
+			"offsets": [20, -58],
+			"loop": false,
+			"fps": 24,
+			"anim": "duck",
+			"indices": [],
+			"name": "Duck"
+		},
+		{
+			"offsets": [-3, -14],
+			"loop": false,
+			"fps": 24,
+			"anim": "blockLEFT",
+			"indices": [],
+			"name": "bf block left"
+		},
+		{
+			"offsets": [-2, -19],
+			"loop": false,
+			"fps": 24,
+			"anim": "blockDOWN",
+			"indices": [],
+			"name": "bf block down"
+		},
+		{
+			"offsets": [-2, -19],
+			"loop": false,
+			"fps": 24,
+			"anim": "blockRIGHT",
+			"indices": [],
+			"name": "bf block right"
+		},
+		{
+			"offsets": [-2, -23],
+			"loop": false,
+			"fps": 24,
+			"anim": "blockUP",
+			"indices": [],
+			"name": "bf block up"
+		},
+		{
+			"offsets": [-5, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "idle",
+			"indices": [],
+			"name": "BF idle dance"
+		},
+		{
+			"offsets": [228, 47],
+			"loop": true,
+			"fps": 24,
+			"anim": "stand",
+			"indices": [],
+			"name": "bf stando"
+		},
+		{
+			"offsets": [50, 3],
+			"loop": false,
+			"fps": 24,
+			"anim": "prepare",
+			"indices": [],
+			"name": "images that precede unfortunate events"
+		},
+		{
+			"offsets": [160, 158],
+			"loop": true,
+			"fps": 24,
+			"anim": "ora",
+			"indices": [],
+			"name": "ora"
+		},
+		{
+			"offsets": [169, 12],
+			"loop": false,
+			"fps": 24,
+			"anim": "punchLEFT",
+			"indices": [],
+			"name": "BF NOTE LEFT0"
+		},
+		{
+			"offsets": [160, -50],
+			"loop": false,
+			"fps": 24,
+			"anim": "punchDOWN",
+			"indices": [],
+			"name": "BF NOTE DOWN0"
+		},
+		{
+			"offsets": [144, -9],
+			"loop": false,
+			"fps": 24,
+			"anim": "punchUP",
+			"indices": [],
+			"name": "BF NOTE UP0"
+		},
+		{
+			"offsets": [199, -7],
+			"loop": false,
+			"fps": 24,
+			"anim": "punchRIGHT",
+			"indices": [],
+			"name": "BF NOTE RIGHT0"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"score_name": "Boyfriend",
+	"image": "characters/BOYFRIENDMIIBOX",
+	"position": [0, 350],
+	"healthicon": "bf",
+	"flip_x": true,
+	"healthbar_colors": [49, 176, 209],
+	"camera_position": [0, 0],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": true
+}

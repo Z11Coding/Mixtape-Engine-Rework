@@ -1,8 +1,8 @@
 package stages;
 
-import substates.StickerSubState;
-import stages.*;
 import haxe.ds.List;
+import stages.*;
+import substates.StickerSubState;
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
 #end
@@ -37,16 +37,17 @@ class VSliceLoader extends BaseStage {
 			case 'tank': new Tank();								//Week 7 - Ugh, Guns, Stress
             case 'phillyStreets': new PhillyStreets(); 				//Weekend 1 - Darnell, Lit Up, 2Hot
 			case 'phillyBlazin': new PhillyBlazin();				//Weekend 1 - Blazin
-            case 'mainStageErect': new MainStageErect();			//Week 1 Special 
-			case 'spookyMansionErect': new SpookyMansionErect();	//Week 2 Special 
-			case 'phillyTrainErect': new PhillyTrainErect();  		//Week 3 Special 
-			case 'limoRideErect': new LimoRideErect();  			//Week 4 Special 
-			case 'mallXmasErect': new MallXmasErect(); 				//Week 5 Special 
+            case 'mainStageErect': new MainStageErect();			//Week 1 Special
+			case 'spookyMansionErect': new SpookyMansionErect();	//Week 2 Special
+			case 'phillyTrainErect': new PhillyTrainErect();  		//Week 3 Special
+			case 'limoRideErect': new LimoRideErect();  			//Week 4 Special
+			case 'mallXmasErect': new MallXmasErect(); 				//Week 5 Special
 			case 'schoolErect': new SchoolErect();					//Week 6 Special - Erect Mode
 			case 'schoolPico': new SchoolErect();					//Week 6 Special - Pico
 			case 'schoolEvilErect': new SchoolEvilErect();			//Week 6 Special - Thorns
 			case 'tankmanBattlefieldErect': new TankErect();		//Week 7 Special
-			case 'phillyStreetsErect': new PhillyStreetsErect(); 	//Weekend 1 Special 
+			case 'phillyStreetsErect': new PhillyStreetsErect(); 	//Weekend 1 Special
+            case 'portal': new Portal(); 	                        //Testimony Stage
             default: addNene = false;
 		}
         if(addNene && PicoCapableStage.instance == null) {
@@ -55,5 +56,5 @@ class VSliceLoader extends BaseStage {
             game.stages.remove(pico);
             game.stages.insert(game.stages.length-2, pico);
         }
-    } 
+    }
 }

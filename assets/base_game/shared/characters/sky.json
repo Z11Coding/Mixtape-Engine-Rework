@@ -1,0 +1,64 @@
+{
+	"animations": [
+		{
+			"offsets": [0, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "danceLeft",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7],
+			"name": "sky idle"
+		},
+		{
+			"offsets": [0, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "danceRight",
+			"indices": [8, 9, 10, 11, 12, 13, 14, 15],
+			"name": "sky idle"
+		},
+		{
+			"offsets": [10, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFT",
+			"indices": [],
+			"name": "sky left"
+		},
+		{
+			"offsets": [7, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "singDOWN",
+			"indices": [],
+			"name": "sky down"
+		},
+		{
+			"offsets": [0, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "singUP",
+			"indices": [],
+			"name": "sky up"
+		},
+		{
+			"offsets": [11, -1],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHT",
+			"indices": [],
+			"name": "sky right"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"score_name": "Sky",
+	"image": "characters/sky_assets",
+	"position": [-170, 110],
+	"healthicon": "sky",
+	"flip_x": false,
+	"healthbar_colors": [140, 120, 255],
+	"camera_position": [-20, 30],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": false
+}
