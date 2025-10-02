@@ -894,7 +894,7 @@ class APGameState
 		}
 		if (_saveData.hasItem("unlockedUnoColors"))
 		{
-			var colors:Array<String> = _saveData.getItem("unlockedUnoColors");
+			var colors:Array<{name:String, color:String}> = _saveData.getItem("unlockedUnoColors");
 			archipelago.APItem.unoColorsUnlocked = colors;
 		}
 		_saveData.save();
