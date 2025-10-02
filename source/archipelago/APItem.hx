@@ -141,7 +141,7 @@ class APItem {
     public static var pendingDamage:Float = 0.0; // Damage that will be applied when conditions are met
     public static var extraItemInventory:Array<CustomModItem> = [];
 
-    public static var unoColorsUnlocked:Array<{name:String, color:String}> = [];
+    public static var unoColorsUnlocked:Array<{name:String, color_code:String}> = [];
 
     public static var unknownSongs:Bool = false; // If true, songs are unknown.
 
@@ -462,7 +462,7 @@ class APItem {
                         var color = FlxG.random.getObject(availableColors);
                         unoColorsUnlocked.push(color);
                         popup('You got the color ${color.name}!', "You got an UNO Color!");
-                        trace('UNO Color acquired: ${color.name} (${color.color})');
+                        trace('UNO Color acquired: ${color.name} (${color.color_code})');
                     } else {
                         popup('You already have all available colors!', "UNO Color Filler");
                     }

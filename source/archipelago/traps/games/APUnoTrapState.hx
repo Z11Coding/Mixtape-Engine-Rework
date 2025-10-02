@@ -70,7 +70,7 @@ class APUnoTrapState extends UnoTestState {
             var unoColors = APItem.unoColorsUnlocked;
 
             var unoColorsWithInt = [for (colorInfo in unoColors) {
-                var colorInt = Std.parseInt('0x${colorInfo.color}');
+                var colorInt = FlxColor.fromString('${colorInfo.color_code}');
                 {name: colorInfo.name, color: colorInt};
             }];
             var usableColors:Array<UnoColor> = [];
@@ -101,7 +101,7 @@ class APUnoTrapState extends UnoTestState {
                         new FlxTimer().start(2.0, function(timer) {
                             archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                             if (previousState != null) {
-                                FlxG.switchState(Type.createInstance(previousState, []));
+                                LoadingState.loadAndSwitchState(Type.createInstance(previousState, []));
                             } else {
                                 StageData.loadDirectory(PlayState.SONG);
 							    LoadingState.loadAndSwitchState(new archipelago.APPlayState());

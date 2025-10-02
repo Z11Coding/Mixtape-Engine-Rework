@@ -24,7 +24,7 @@ typedef APSlotDataType = {
 	songData: Map<String, SongDetailData>,
 	?custom_weeks: Dynamic, // Custom weeks data from HScript processing
 	?song_modifications: Dynamic, // Song additions/exclusions data
-	?unoColorsUsed:Array<{name:String, color:String}> // Uno mod colors used in the slot
+	?unoColorsUsed:Array<{name:String, color_code:String}> // Uno mod colors used in the slot
 }
 
 abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
@@ -74,7 +74,7 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	private function get_songData():Map<String, SongDetailData> return this.songData;
 	private function get_custom_weeks():Dynamic return this.custom_weeks;
 	private function get_song_modifications():Dynamic return this.song_modifications;
-	private function get_unoColorsUsed():Array<{name:String, color:String}> return this.unoColorsUsed;
+	private function get_unoColorsUsed():Array<{name:String, color_code:String}> return this.unoColorsUsed;
 
 	public function get(key:String):Dynamic {
 		return Reflect.field(this, key);
