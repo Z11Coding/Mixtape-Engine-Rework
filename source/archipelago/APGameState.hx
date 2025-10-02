@@ -883,6 +883,10 @@ class APGameState
 		if (_saveData.hasItem("hasPocketLens"))
 		{
 			APItem.hasPocketLens = _saveData.getItem("hasPocketLens");
+			if (APItem.hasPocketLens && !APItem.getItems().exists(item -> item.name == "Pocket Lens"))
+			{
+				archipelago.APItem.createItemByName("Pocket Lens");
+			}
 		}
 		if (_saveData.hasItem("hasDashMechanic"))
 		{

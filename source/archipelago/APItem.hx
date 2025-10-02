@@ -438,8 +438,8 @@ class APItem {
                     trace("Pocket Lens acquired! Player can now view AP items.");
                     popup('You can now view your AP items and stats!', "You got a Pocket Lens!");
 
-                    // If currently in APItemsViewerState, reset it to refresh with new data
-                    if (Std.is(FlxG.state, archipelago.APItemsViewerState)) {
+                    // If currently in APCategoryState, reset it to refresh with new data
+                    if (Std.is(FlxG.state, archipelago.APCategoryState)) {
                         FlxG.resetState();
                     }
                 }, true, true);

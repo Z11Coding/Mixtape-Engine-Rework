@@ -80,9 +80,9 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 		return Reflect.field(this, key);
 	}
 
-	public function set(key:String, value:Dynamic):Void {
-		Reflect.setField(this, key, value);
-	}
+	// public function set(key:String, value:Dynamic):Void {
+	// 	Reflect.setField(this, key, value);
+	// }
 
 	public function hasKey(key:String):Bool {
 		return Reflect.hasField(this, key);
