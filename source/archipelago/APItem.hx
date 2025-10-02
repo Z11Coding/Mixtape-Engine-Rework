@@ -462,6 +462,7 @@ class APItem {
                         var color = FlxG.random.getObject(availableColors);
                         unoColorsUnlocked.push(color);
                         popup('You got the color ${color.name}!', "You got an UNO Color!");
+                        trace('UNO Color acquired: ${color.name} (${color.color})');
                     } else {
                         popup('You already have all available colors!', "UNO Color Filler");
                     }
