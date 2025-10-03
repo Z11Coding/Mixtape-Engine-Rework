@@ -238,7 +238,7 @@ class TwoPicos
 		}
 		cutsceneHandler.timer(0.3, () ->
 		{
-			FlxG.sound.play(Paths.sound('cutscene/picoGasp'), 1.0, false, true, true);
+			FlxG.sound.play(Paths.sound('cutscene/picoGasp'), 1.0);
 		});
 
 		cutsceneHandler.timer(4, () ->
