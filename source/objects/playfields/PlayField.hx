@@ -172,10 +172,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	// Performance optimization fields
 	private var sustainUpdateCounter:Int = 0;
-	private static inline var SUSTAIN_UPDATE_INTERVAL:Int = 2; // Update sustains every 2 frames
+	private var dynamicSustainInterval:Int = 2; // Adaptive sustain update interval
 	private var heldNotes:Array<Note> = []; // Cache of currently held notes
 	private var receptorAnimStates:Array<String> = []; // Track receptor animation states
 	private var lastSustainUpdate:Float = 0;
+	private var frameTimeAccumulator:Float = 0;
+	private var lastFrameTime:Float = 0;
+	private var avgFrameTime:Float = 0.0167; // Start assuming 60 FPS
+	private var frameCounter:Int = 0;
 
 	public var keysPressed:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false]; // what keys are pressed rn
 	public var isHolding:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false];
@@ -1002,8 +1006,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 				}
 
-				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time)
+				// Limit note spawning per frame at high framerates to prevent spikes
+				var maxSpawnsPerFrame = dynamicSustainInterval == 4 ? 2 : (dynamicSustainInterval == 3 ? 3 : 5);
+				var spawned = 0;
+				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time && spawned < maxSpawnsPerFrame) {
 					((column[0].spawned) ? column.remove(column[0]) : spawnNote(column[0]));
+					spawned++;
+				}
 			}
 		}
 
@@ -1012,9 +1021,31 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		for(obj in strumNotes)
 			modManager.updateObject(curDecBeat, obj, modNumber);
 
-		// Performance optimization: Update sustains less frequently
+		// Adaptive performance optimization based on framerate
+		var currentTime = haxe.Timer.stamp();
+		if (lastFrameTime > 0) {
+			var frameTime = currentTime - lastFrameTime;
+			frameTimeAccumulator += frameTime;
+			frameCounter++;
+
+			// Update average every 30 frames for stability
+			if (frameCounter >= 30) {
+				avgFrameTime = frameTimeAccumulator / frameCounter;
+				var fps = 1.0 / avgFrameTime;
+
+				// Adaptive intervals: Higher FPS = less frequent heavy updates
+				if (fps > 100) dynamicSustainInterval = 4;
+				else if (fps > 80) dynamicSustainInterval = 3;
+				else dynamicSustainInterval = 2;
+
+				frameTimeAccumulator = 0;
+				frameCounter = 0;
+			}
+		}
+		lastFrameTime = currentTime;
+
 		sustainUpdateCounter++;
-		var shouldUpdateSustains = sustainUpdateCounter >= SUSTAIN_UPDATE_INTERVAL;
+		var shouldUpdateSustains = sustainUpdateCounter >= dynamicSustainInterval;
 		if (shouldUpdateSustains) {
 			sustainUpdateCounter = 0;
 			lastSustainUpdate = Conductor.songPosition;
@@ -1073,9 +1104,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							receptorAnimStates[daNote.column] = "static";
 						}
 
-						// Only update heavy sustain logic periodically
+						// Only update heavy sustain logic periodically with adaptive timing
 						if (shouldUpdateSustains) {
-							updateHeldNoteLogic(daNote, elapsed * SUSTAIN_UPDATE_INTERVAL);
+							updateHeldNoteLogic(daNote, elapsed * dynamicSustainInterval);
 						}
 					} else {
 						// Note finished or was never held
@@ -1477,9 +1508,10 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	{
 		if (daNote.unhitTail.length == 0) return;
 
-		// Process tails with batching to avoid frame spikes
+		// Adaptive tail processing based on framerate
 		var processedCount = 0;
-		var maxProcessPerFrame = 3; // Limit processing to avoid frame spikes
+		// Reduce batch size at higher framerates to spread work across more frames
+		var maxProcessPerFrame = dynamicSustainInterval == 4 ? 1 : (dynamicSustainInterval == 3 ? 2 : 3);
 
 		// Process from beginning each time (simpler but still efficient for small arrays)
 		for (i in 0...daNote.unhitTail.length) {
