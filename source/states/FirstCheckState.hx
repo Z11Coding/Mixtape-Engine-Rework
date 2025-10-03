@@ -59,19 +59,20 @@ class FirstCheckState extends MusicBeatState
         return response != null || response == '';
     }
 
-	override public function create()
+	override function create()
 	{
 		//backend.window.Priority.setPriority(0);
+		if (!Paths.exists(Paths.imagePath('fred'))) {
+			NativeAPI.showMessageBox('WHERE IS HE!?!?', "WHERE'S FRED???\nYOU CAN'T COME HERE WITHOUT FRED!", MSG_ERROR);
+			Sys.exit(1);
+		}
+
 		if (!relaunch) {
 			COD.initCOD();
 			ClientPrefs.loadPrefs();
 			MemoryUtil.init();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
-			if (!Paths.exists(Paths.imagePath('fred'))) {
-				NativeAPI.showMessageBox('WHERE IS HE!?!?', "WHERE'S FRED???\nYOU CAN'T COME HERE WITHOUT FRED!", MSG_ERROR);
-				Sys.exit(1);
-			}
 
 			// Initialize crash tracking system early
 			#if !debug

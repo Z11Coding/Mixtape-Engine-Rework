@@ -340,29 +340,29 @@ class FreeplayManager {
                 addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 
             // Special
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Fightback', 8, "z12", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Tag And Seek', 8, "sillyexe", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Testimony', 8, "shaggy", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Fangirl Frenzy', 8, "sky", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all")
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Slowdown', 8, "sky", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
         }
         else
