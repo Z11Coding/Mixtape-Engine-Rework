@@ -1170,7 +1170,7 @@ class MixtapeChartEditorState extends MusicBeatState
         var pos = 'Step: $curStep | Beat: $curBeat | Section: $curSection';
         var songInfo = 'Song: ${PlayState.SONG?.song} | BPM: $bpm';
 
-        infoText.text = '$songInfo\\n$pos\\nTime: ${Math.round(time)}ms';
+        infoText.text = '$songInfo\n$pos\nTime: ${Math.round(time)}ms';
     }
 
     function handleInput():Void
