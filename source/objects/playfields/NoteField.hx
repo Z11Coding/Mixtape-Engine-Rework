@@ -39,6 +39,14 @@ class NoteField extends FieldBase
 	public var optimizeHolds = false; //ClientPrefs.optimizeHolds;
 	public var defaultShader:FlxShader = new FlxShader();
 
+	// Framerate-adaptive performance variables
+	private var frameTimeAccumulator:Float = 0;
+	private var frameCounter:Int = 0;
+	private var avgFrameTime:Float = 0.0167; // Start assuming 60 FPS
+	private var lastFrameTime:Float = 0;
+	private var adaptiveSubdivisions:Int = 16;
+	private var noteRenderSkipCounter:Int = 0;
+
 	public function new(field:PlayField, modManager:ModManager)
 	{
 		super(0, 0);
@@ -112,6 +120,35 @@ class NoteField extends FieldBase
 	// does all the drawing logic, best not to touch unless you know what youre doing
 	override function preDraw()
 	{
+		// Framerate detection and adaptive subdivision adjustment
+		var currentTime = haxe.Timer.stamp();
+		if (lastFrameTime > 0) {
+			var frameTime = currentTime - lastFrameTime;
+			frameTimeAccumulator += frameTime;
+			frameCounter++;
+
+			// Update adaptive settings every 30 frames
+			if (frameCounter >= 30) {
+				avgFrameTime = frameTimeAccumulator / frameCounter;
+				var fps = 1.0 / avgFrameTime;
+
+				// Adaptive subdivision scaling based on FPS
+				if (fps > 120) {
+					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.25)); // 25% subdivisions at 120+ FPS
+				} else if (fps > 100) {
+					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.4)); // 40% subdivisions at 100+ FPS
+				} else if (fps > 80) {
+					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.6)); // 60% subdivisions at 80+ FPS
+				} else {
+					adaptiveSubdivisions = holdSubdivisions; // Full subdivisions at lower FPS
+				}
+
+				frameTimeAccumulator = 0;
+				frameCounter = 0;
+			}
+		}
+		lastFrameTime = currentTime;
+
 		drawQueue = [];
 		if (field == null) return;
 		if ((!exists || !visible) && !forcePreDraw) return;
@@ -371,10 +408,11 @@ class NoteField extends FieldBase
 			return null;
 
 		var simpleDraw = !hold.copyX && !hold.copyY;
-		// TODO: make simpleDraw reduce the amount of subdivisions used by the hold
+		// Use adaptive subdivisions for performance (minimum 1)
+		var currentSubdivisions:Num = optimizeHolds ? Math.max(1, adaptiveSubdivisions) : adaptiveSubdivisions;
 
-		var vertices = new Vector<Float>(8 * holdSubdivisions, true);
-		var uvData = new Vector<Float>(8 * holdSubdivisions, true);
+		var vertices = new Vector<Float>(8 * currentSubdivisions, true);
+		var uvData = new Vector<Float>(8 * currentSubdivisions, true);
 		var alphas:Array<Float> = [];
 		var glows:Array<Float> = [];
 		var lastMe = null;
@@ -417,11 +455,11 @@ class NoteField extends FieldBase
 		var useSpiralHolds = modManager.getValue("spiralHolds", modNumber) != 0;
 
 
-		for (sub in 0...holdSubdivisions)
+		for (sub in 0...currentSubdivisions)
 		{
-			var prog = sub / (holdSubdivisions + 1);
-			var nextProg = (sub + 1) / (holdSubdivisions + 1);
-			var strumSub = (crotchet / holdSubdivisions);
+			var prog = sub / (currentSubdivisions + 1);
+			var nextProg = (sub + 1) / (currentSubdivisions + 1);
+			var strumSub = (crotchet / currentSubdivisions);
 			var strumOff = (strumSub * sub);
 			strumSub *= sv;
 			strumOff *= sv;
@@ -511,7 +549,7 @@ class NoteField extends FieldBase
 			vertices[subIndex + 6] = bot[1].x;
 			vertices[subIndex + 7] = bot[1].y;
 
-			appendUV(hold, uvData, false, sub);
+			appendUV(hold, uvData, false, sub, currentSubdivisions);
 		}
 
 		var shader = hold.shader != null ? hold.shader : defaultShader;
@@ -536,14 +574,16 @@ class NoteField extends FieldBase
 		}
 	}
 
-	private function appendUV(sprite:FlxSprite, uv:Vector<Float>, flipY:Bool, sub:Int)
+	private function appendUV(sprite:FlxSprite, uv:Vector<Float>, flipY:Bool, sub:Int, ?currentSubdivisions:Int)
 	{
+		if (currentSubdivisions == null) currentSubdivisions = adaptiveSubdivisions;
+
 		var subIndex = sub * 8;
 		var frameRect = sprite.frame.uv;
 
 		if (!flipY)
-			sub = (holdSubdivisions - 1) - sub;
-		var uvSub = 1.0 / holdSubdivisions;
+			sub = (currentSubdivisions - 1) - sub;
+		var uvSub = 1.0 / currentSubdivisions;
 		var uvOffset = uvSub * sub;
 
 		var top = 0.0;
@@ -772,6 +812,9 @@ class NoteField extends FieldBase
 
 	function set_holdSubdivisions(to:Int)
 	{
+		// Clamp subdivisions: minimum 1, maximum is the client setting
+		to = Std.int(Math.max(1, Math.min(to, ClientPrefs.data.holdSubdivs)));
+
 		HOLD_INDICES.length = (to * 6);
 		for (sub in 0...to)
 		{
@@ -783,6 +826,7 @@ class NoteField extends FieldBase
 			HOLD_INDICES[intIndex + 1] = vertIndex + 1; // RT
 			HOLD_INDICES[intIndex + 4] = vertIndex + 2; // LB
 		}
+		adaptiveSubdivisions = to; // Initialize adaptive subdivisions
 		return holdSubdivisions = to;
 	}
 }
