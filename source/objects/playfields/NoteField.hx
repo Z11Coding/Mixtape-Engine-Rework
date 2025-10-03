@@ -134,13 +134,13 @@ class NoteField extends FieldBase
 
 				// Adaptive subdivision scaling based on FPS
 				if (fps > 120) {
-					adaptiveSubdivisions = Std.int(Math.max(1, Std.int(holdSubdivisions * 0.25))); // 25% subdivisions at 120+ FPS
+					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.25)); // 25% subdivisions at 120+ FPS
 				} else if (fps > 100) {
-					adaptiveSubdivisions = Std.int(Math.max(1, Std.int(holdSubdivisions * 0.4))); // 40% subdivisions at 100+ FPS
+					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.4)); // 40% subdivisions at 100+ FPS
 				} else if (fps > 80) {
-					adaptiveSubdivisions = Std.int(Math.max(1, Std.int(holdSubdivisions * 0.6))); // 60% subdivisions at 80+ FPS
+					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.6)); // 60% subdivisions at 80+ FPS
 				} else {
-					adaptiveSubdivisions = Std.int(holdSubdivisions); // Full subdivisions at lower FPS
+					adaptiveSubdivisions = holdSubdivisions; // Full subdivisions at lower FPS
 				}
 
 				frameTimeAccumulator = 0;
