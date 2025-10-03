@@ -218,12 +218,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '< %v >';
 
 		var option:Option = new Option('Chart Editor Style',
-			"Choose the style of the chart editor.",
+			"Choose the style of the chart editor.\nNew: Modern Psych Engine editor\nOld: Original chart editor\nMixtape: Advanced editor with Archipelago-style UI, animations, and analytics",
 			'chartEditorStyle',
 			STRING,
 			[
 				'New',
-				'Old'
+				'Old',
+				'Mixtape'
 			]);
 		addOption(option);
 		option.displayFormat = '< %v >';

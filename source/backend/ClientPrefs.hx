@@ -472,11 +472,12 @@ class ClientPrefs {
 				states.editors.ChartingState;
 			case "Old":
 				states.editors.ChartingStateOG;
+			case "Mixtape":
+				states.editors.MixtapeChartEditorState;
 			default:
 				FlxG.log.error("Invalid Chart Editor Style: " + ClientPrefs.data.chartEditorStyle);
 				states.editors.ChartingState;
-		}
-		return states.editors.ChartingState;
+		};
 	}
 
 	public static function getBGImage(?yellow:Bool = false, ?blue:Bool = false):String

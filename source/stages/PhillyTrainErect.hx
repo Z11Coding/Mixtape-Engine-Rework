@@ -100,7 +100,7 @@ class PhillyTrainErect extends BaseStage
 	}
 
 	override function startSong() {
-		cutsceneHandler.destroy();
+		cutsceneHandler?.destroy();
 	}
 
 	override function beatHit()

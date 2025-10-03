@@ -551,7 +551,6 @@ class Main extends Sprite
 		{
 			pressedOnce = true;
 			// Set the closing flag to disable controls
-			backend.MusicBeatState.isClosing = true;
 
 			switch (Type.getClassName(Type.getClass(FlxG.state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(FlxG.state)).split(".")) - 1])
 			{
@@ -561,6 +560,8 @@ class Main extends Sprite
 				default:
 					// Default behavior: close the window
 					FlxG.autoPause = false;
+								backend.MusicBeatState.isClosing = true;
+
 					TransitionState.transitionState(states.ExitState, {transitionType: "transparent close"});
 			}
 		}

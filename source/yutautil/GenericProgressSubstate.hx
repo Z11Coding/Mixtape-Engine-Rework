@@ -193,15 +193,25 @@ class GenericProgressSubstate extends MusicBeatSubstate {
     function animateOut(?onCompleteCallback:Void->Void) {
         if (isAnimating) return;
         isAnimating = true;
-        FlxTween.tween(panel, {"scale.x": 0.7, "scale.y": 0.7, alpha: 0}, 0.3, {
+        try {
+            FlxTween.tween(panel, {"scale.x": 0.7, "scale.y": 0.7, alpha: 0}, 0.3, {
             ease: FlxEase.backIn,
             onComplete: function(_) {
                 if (onCompleteCallback != null) onCompleteCallback();
                 close();
             }
-        });
+            });
+        } catch (e:Dynamic) {
+            // If tweening fails, force close immediately
+            if (onCompleteCallback != null) onCompleteCallback();
+            close();
+        }
 
-        FlxTween.tween(background, {alpha: 0}, 0.3, {ease: FlxEase.sineIn});
+        try {
+            FlxTween.tween(background, {alpha: 0}, 0.3, {ease: FlxEase.sineIn});
+        } catch (e:Dynamic) {
+            if (background != null) background.alpha = 0;
+        }
     }
 
     function executeNextTask() {
@@ -375,7 +385,11 @@ class GenericProgressSubstate extends MusicBeatSubstate {
         FlxFlicker.flicker(titleText, 1, 0.1);
 
         new FlxTimer().start(0.5, function(_) {
-            onComplete(results);
+            if (onComplete != null) {
+                onComplete(results);
+            } else {
+                trace("onComplete was null in finishProgress!\n" + haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+            }
             animateOut();
         });
     }

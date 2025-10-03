@@ -293,7 +293,7 @@ class CUMacroTools
     /**
      * Checks if a variable matches a flixel.util.typeLimit (OneOfTwo, OneOfThree, OneOfFour),
      * including nested ones, and optionally executes code based on the matched type.
-     * 
+     *
      * @param varExpr The variable expression to check.
      * @param typeDef The typeLimit type (OneOfTwo, OneOfThree, OneOfFour, possibly nested).
      * @param cases   (Optional) A map of type names to expressions to execute if matched.
@@ -412,7 +412,7 @@ class CUMacroTools
      */
     /**
      * Emits C++ inline assembly using __cpp__.
-     * 
+     *
      * @param lines Array of assembly code lines. Use {0}, {1}, ... as placeholders for variables.
      * @param vars  (Optional) Array of variable expressions to substitute into the assembly code.
      */
@@ -474,7 +474,7 @@ class CUMacroTools
 
     /**
      * Declares multiple variables of the same type in a single statement.
-     * 
+     *
      * @param type The type of the variables to declare (e.g., String, Int).
      * @param vars An array of expressions representing the variable names to declare.
      * @return An expression that declares the variables in a single statement.
@@ -521,7 +521,7 @@ class CUMacroTools
 
     /**
      * Emits a C++ comment using __cpp__.
-     * 
+     *
      * @param comment The comment text to emit.
      * @return An expression that emits the comment in C++ code.
      */

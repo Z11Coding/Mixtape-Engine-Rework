@@ -170,6 +170,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var holdFinished:Event<NoteCallback> = new Event<NoteCallback>(); // event that gets called every time a hold is finished
 	public var holdUpdated:Event<(Note, PlayField, Float) -> Void> = new Event<(Note, PlayField, Float) -> Void>(); // event that gets called every time a hold is updated
 
+	// Performance optimization fields
+	private var sustainUpdateCounter:Int = 0;
+	private static inline var SUSTAIN_UPDATE_INTERVAL:Int = 2; // Update sustains every 2 frames
+	private var heldNotes:Array<Note> = []; // Cache of currently held notes
+	private var receptorAnimStates:Array<String> = []; // Track receptor animation states
+	private var lastSustainUpdate:Float = 0;
+
 	public var keysPressed:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false]; // what keys are pressed rn
 	public var isHolding:Array<Bool> = [false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false];
 
@@ -222,6 +229,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		#end
 		threadPool = new FixedThreadPool(threadCount);
 		mutex = new Mutex();
+
+		// Initialize receptor animation states
+		for (i in 0...this.keyCount) {
+			receptorAnimStates.push("static");
+		}
 	}
 
 	// Anything that is static/used by both strums but cant be double-initialized can be placed here
@@ -1000,6 +1012,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		for(obj in strumNotes)
 			modManager.updateObject(curDecBeat, obj, modNumber);
 
+		// Performance optimization: Update sustains less frequently
+		sustainUpdateCounter++;
+		var shouldUpdateSustains = sustainUpdateCounter >= SUSTAIN_UPDATE_INTERVAL;
+		if (shouldUpdateSustains) {
+			sustainUpdateCounter = 0;
+			lastSustainUpdate = Conductor.songPosition;
+		}
+
 		//spawnedNotes.sort(sortByOrderNote);
 
 		var garbage:Array<Note> = [];
@@ -1019,10 +1039,18 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 				if(daNote.holdingTime < daNote.sustainLength && inControl && !daNote.blockHit){
 					if(!daNote.tooLate && daNote.wasGoodHit){
+						// Add to held notes cache for optimized processing
+						if (heldNotes.indexOf(daNote) == -1) {
+							heldNotes.push(daNote);
+						}
+
+						// Always update input state and animations (every frame)
 						var isHeld:Bool = autoPlayed || keysPressed[daNote.column];
 						var wasHeld:Bool = daNote.isHeld;
 						daNote.isHeld = isHeld;
 						isHolding[daNote.column] = true;
+
+						// Handle input state changes
 						if(wasHeld != isHeld){
 							if(isHeld){
 								if(holdPressCallback != null)
@@ -1031,64 +1059,37 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 								holdReleaseCallback(daNote, this);
 						}
 
+						// Update receptor animations (every frame for responsiveness)
 						var receptor = strumNotes[daNote.column];
-						var oldSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
-						var lastTime:Float = daNote.holdingTime;
-						daNote.holdingTime = Conductor.songPosition - daNote.strumTime;
-						if (daNote.holdingTime > daNote.sustainLength)
-							daNote.holdingTime = daNote.sustainLength;
-						var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
-						if(oldSteps < currentSteps)
-							if(holdStepCallback != null)
-								holdStepCallback(daNote, this);
-						holdUpdated.dispatch(daNote, this, daNote.holdingTime - lastTime);
-
 						if(isHeld && !daNote.isRoll){
-							if(daNote.unhitTail.length > 0)
-								if (receptor.animation.finished || receptor.animation.curAnim.name != "confirm")
-									receptor.playAnim("confirm", true, daNote);
-
-							daNote.tripProgress = 1.0;
-						}else
-							daNote.tripProgress -= elapsed / (daNote.maxReleaseTime * 1);
-
-						if(daNote.isRoll && autoPlayed && daNote.tripProgress <= 0.5)
-							holdPressCallback(daNote, this); // would set tripProgress back to 1 but idk maybe the roll script wants to do its own shit
-
-						if(daNote.tripProgress <= 0){
-							holdDropped.dispatch(daNote, this);
-							daNote.tripProgress = 0;
-							daNote.tooLate=true;
-							daNote.wasGoodHit=false;
-							for(tail in daNote.unhitTail){
-								tail.tooLate = true;
-								tail.blockHit = true;
-								tail.ignoreNote = true;
+							var currentAnimName = receptor.animation.curAnim?.name ?? "static";
+							if (receptorAnimStates[daNote.column] != "confirm" ||
+								(receptor.animation.finished || currentAnimName != "confirm")) {
+								receptor.playAnim("confirm", true, daNote);
+								receptorAnimStates[daNote.column] = "confirm";
 							}
-							isHolding[daNote.column] = false;
-							if (!isHeld)
-								receptor.playAnim("static", true);
-
-						}else{
-							for (tail in daNote.unhitTail)
-							{
-								if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
-									noteHitCallback(tail, this);
-								}
-							}
-
-							if (daNote.holdingTime >= daNote.sustainLength)
-							{
-								//trace("finished hold");
-								holdFinished.dispatch(daNote, this);
-								daNote.holdingTime = daNote.sustainLength;
-								isHolding[daNote.column] = false;
-								if (!isHeld)
-									receptor.playAnim("static", true);
-							}
-
+						} else if (!isHeld && receptorAnimStates[daNote.column] != "static") {
+							receptor.playAnim("static", true);
+							receptorAnimStates[daNote.column] = "static";
 						}
+
+						// Only update heavy sustain logic periodically
+						if (shouldUpdateSustains) {
+							updateHeldNoteLogic(daNote, elapsed * SUSTAIN_UPDATE_INTERVAL);
+						}
+					} else {
+						// Note finished or was never held
+						heldNotes.remove(daNote);
 					}
+				} else {
+					// note is done being held
+					isHolding[daNote.column] = false;
+					heldNotes.remove(daNote);
+				}
+			} else {
+				// also set sustain notes to being held
+				if(daNote.parent != null){
+					daNote.isHeld = daNote.parent.isHeld;
 				}
 			}
 
@@ -1383,5 +1384,118 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				trace('ERROR! fail on preloading $traceData: $e');
 			}
 		});
+	}
+
+	/**
+	 * Optimized function to handle heavy sustain note logic less frequently
+	 * This reduces CPU usage by updating sustain timing, events, and tail processing periodically
+	 */
+	private function updateHeldNoteLogic(daNote:Note, deltaTime:Float):Void
+	{
+		if (daNote == null || !daNote.alive || daNote.isSustainNote) return;
+
+		// Update holding time and step tracking
+		var oldSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
+		var lastTime:Float = daNote.holdingTime;
+		daNote.holdingTime = Conductor.songPosition - daNote.strumTime;
+		if (daNote.holdingTime > daNote.sustainLength)
+			daNote.holdingTime = daNote.sustainLength;
+
+		var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
+		if(oldSteps < currentSteps)
+			if(holdStepCallback != null)
+				holdStepCallback(daNote, this);
+
+		// Throttled event dispatching (reduce event spam)
+		var timeDiff = daNote.holdingTime - lastTime;
+		if (Math.abs(timeDiff) > 0.1) { // Only dispatch significant changes
+			holdUpdated.dispatch(daNote, this, timeDiff);
+		}
+
+		var isHeld = daNote.isHeld;
+
+		// Update trip progress
+		if(isHeld && !daNote.isRoll){
+			daNote.tripProgress = 1.0;
+		}else
+			daNote.tripProgress -= deltaTime / (daNote.maxReleaseTime * 1);
+
+		// Handle roll notes
+		if(daNote.isRoll && autoPlayed && daNote.tripProgress <= 0.5)
+			holdPressCallback(daNote, this);
+
+		// Check if hold was dropped
+		if(daNote.tripProgress <= 0){
+			holdDropped.dispatch(daNote, this);
+			daNote.tripProgress = 0;
+			daNote.tooLate = true;
+			daNote.wasGoodHit = false;
+
+			// Efficiently mark all tails as missed
+			for(tail in daNote.unhitTail){
+				tail.tooLate = true;
+				tail.blockHit = true;
+				tail.ignoreNote = true;
+			}
+
+			isHolding[daNote.column] = false;
+			heldNotes.remove(daNote);
+			receptorAnimStates[daNote.column] = "static";
+
+		}else{
+			// Optimized tail processing with caching
+			processSustainTails(daNote);
+
+			// Check if hold is finished
+			if (daNote.holdingTime >= daNote.sustainLength)
+			{
+				holdFinished.dispatch(daNote, this);
+				daNote.holdingTime = daNote.sustainLength;
+				isHolding[daNote.column] = false;
+				heldNotes.remove(daNote);
+
+				// Only update animation if no other notes are being held on this column
+				var hasOtherHolds = false;
+				for (otherNote in heldNotes) {
+					if (otherNote.column == daNote.column && otherNote != daNote) {
+						hasOtherHolds = true;
+						break;
+					}
+				}
+
+				if (!hasOtherHolds && daNote.unhitTail.length == 0) {
+					receptorAnimStates[daNote.column] = "static";
+				}
+			}
+		}
+	}
+
+	/**
+	 * Efficiently process sustain note tails with batching to avoid frame spikes
+	 */
+	private function processSustainTails(daNote:Note):Void
+	{
+		if (daNote.unhitTail.length == 0) return;
+
+		// Process tails with batching to avoid frame spikes
+		var processedCount = 0;
+		var maxProcessPerFrame = 3; // Limit processing to avoid frame spikes
+
+		// Process from beginning each time (simpler but still efficient for small arrays)
+		for (i in 0...daNote.unhitTail.length) {
+			if (processedCount >= maxProcessPerFrame) break;
+
+			var tail = daNote.unhitTail[i];
+
+			if ((tail.strumTime - 25) <= Conductor.songPosition) {
+				if (!tail.wasGoodHit && !tail.tooLate) {
+					noteHitCallback(tail, this);
+					processedCount++;
+				}
+			} else {
+				// No more tails ready to process (they're in chronological order)
+				break;
+			}
+		}
 	}
 }

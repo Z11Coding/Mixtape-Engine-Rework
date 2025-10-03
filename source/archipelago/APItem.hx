@@ -473,7 +473,7 @@ class APItem {
                 return new APItem(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
-                        return states.PlayState.instance?.startedSong == true;
+                        return states.PlayState.instance?.startedSong == true && FlxG.save.data.manualOverride == false;
                     });
                 }), function() {
                     popup('I don\'t like this song. Lets play something else.', "APItem: Song Switch Trap", true);

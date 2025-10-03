@@ -193,6 +193,8 @@
 	<section if="MULTICORE_LOADING false">
 		<define name="traceLoading"/>
 		<define name="loadBenchmark"/>
+
+
 	</section>
 
 	<haxedef name="HXCPP_ALIGN_ALLOC"/>

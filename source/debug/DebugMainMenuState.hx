@@ -65,7 +65,7 @@ class DebugMainMenuState extends MusicBeatState
 
         // Editor Debug Options
         addOption("Chart Editor", "Edit song charts", function() {
-            LoadingState.loadAndSwitchState(new states.editors.ChartingState());
+            ClientPrefs.openChartEditor();
         });
 
         addOption("Character Editor", "Create and edit characters", function() {
