@@ -134,13 +134,13 @@ class NoteField extends FieldBase
 
 				// Adaptive subdivision scaling based on FPS
 				if (fps > 120) {
-					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.25)); // 25% subdivisions at 120+ FPS
+					adaptiveSubdivisions = new Num(Math.max(1, Std.int(holdSubdivisions * 0.25))); // 25% subdivisions at 120+ FPS
 				} else if (fps > 100) {
-					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.4)); // 40% subdivisions at 100+ FPS
+					adaptiveSubdivisions = new Num(Math.max(1, Std.int(holdSubdivisions * 0.4))); // 40% subdivisions at 100+ FPS
 				} else if (fps > 80) {
-					adaptiveSubdivisions = Math.max(1, Std.int(holdSubdivisions * 0.6)); // 60% subdivisions at 80+ FPS
+					adaptiveSubdivisions = new Num(Math.max(1, Std.int(holdSubdivisions * 0.6))); // 60% subdivisions at 80+ FPS
 				} else {
-					adaptiveSubdivisions = holdSubdivisions; // Full subdivisions at lower FPS
+					adaptiveSubdivisions = new Num(holdSubdivisions); // Full subdivisions at lower FPS
 				}
 
 				frameTimeAccumulator = 0;
@@ -411,8 +411,8 @@ class NoteField extends FieldBase
 		// Use adaptive subdivisions for performance (minimum 1)
 		var currentSubdivisions:Num = optimizeHolds ? Math.max(1, adaptiveSubdivisions) : adaptiveSubdivisions;
 
-		var vertices = new Vector<Float>(8 * currentSubdivisions, true);
-		var uvData = new Vector<Float>(8 * currentSubdivisions, true);
+		var vertices = new Vector<Float>(8 * cast currentSubdivisions, true);
+		var uvData = new Vector<Float>(8 * cast currentSubdivisions, true);
 		var alphas:Array<Float> = [];
 		var glows:Array<Float> = [];
 		var lastMe = null;
@@ -457,9 +457,9 @@ class NoteField extends FieldBase
 
 		for (sub in 0...currentSubdivisions)
 		{
-			var prog = sub / (currentSubdivisions + 1);
-			var nextProg = (sub + 1) / (currentSubdivisions + 1);
-			var strumSub = (crotchet / currentSubdivisions);
+			var prog = sub / (cast currentSubdivisions + 1);
+			var nextProg = (sub + 1) / (cast currentSubdivisions + 1);
+			var strumSub = (crotchet / cast currentSubdivisions);
 			var strumOff = (strumSub * sub);
 			strumSub *= sv;
 			strumOff *= sv;
