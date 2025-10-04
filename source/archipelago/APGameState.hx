@@ -934,6 +934,8 @@ class APGameState
 	{
 		trace("Bounce packet received: " + haxe.Json.stringify(data));
 
+		info()?.tagsManager?.syncToClient();
+
 		// Check for TrapLink packet first
 		if (Reflect.hasField(data, "trap_name"))
 		{
@@ -1208,7 +1210,8 @@ class APGameState
 		{
 			APEntryState.ap = null;
 		}
-	}		public function getSongAndMod(songName:String):{song:String, ?mod:String}
+	}
+	public function getSongAndMod(songName:String):{song:String, ?mod:String}
 		{
 			var input = songName;
 			var modName = "";

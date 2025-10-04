@@ -526,8 +526,7 @@ class Client {
 			trace('Death link not sent - state: $state, deathByLink: ${APPlayState.deathByLink}, deathlink enabled: ${ClientPrefs.data.deathlink}');
 		}
 
-		// Removed the redundant toggleDeathLink call here as it may cause unexpected tag changes
-		// The death link state should only be toggled when explicitly changing settings, not when sending
+		tagsManager.syncToClient();
 	}
 
 
@@ -558,7 +557,7 @@ class Client {
 	var currentTags:Array<String> = [];
 
 	inline function get_tags()
-		return currentTags;
+		return _tags;
 
 	inline function get_tagsManager():APTagsManager {
 		if (_tagsManager == null) {
@@ -1076,6 +1075,10 @@ class Client {
 		}
 		if (_ws != null)
 			process_queue();
+
+		if (_tags != currentTags) {
+			tagsManager.syncToClient();
+		}
 
 
 		// var needDataPackage = if (_gotDataPackage) false else true;

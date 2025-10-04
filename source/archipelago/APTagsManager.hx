@@ -265,6 +265,22 @@ class APTagsManager {
         }
     }
 
+    // public function emergencySync():Void {
+    //     // Only sync if tags differ between manager and client
+    //     if (client != null) {
+    //         var clientTags = client.tags != null ? client.tags : [];
+    //         var tagsMatch = _tags.length == clientTags.length && _tags.map(function(tag, i) return tag == clientTags[i]);
+    //         if (!tagsMatch) {
+    //             syncToClient();
+    //             trace('APTagsManager: Emergency sync performed (tags differed)');
+    //         } else {
+    //             trace('APTagsManager: Emergency sync skipped (tags already match)');
+    //         }
+    //     } else {
+    //         trace('APTagsManager: Emergency sync failed (client is null)');
+    //     }
+    // }
+
     /**
      * Sync from the client to update internal state
      * Call this if the client's tags were modified externally
