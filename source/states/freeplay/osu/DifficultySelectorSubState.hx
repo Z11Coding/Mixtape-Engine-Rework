@@ -149,8 +149,8 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                 LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
 					@:privateAccess
                     {
-                    archipelago.APPlayState.currentSong = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.instance.curSelected].songName;
-					archipelago.APPlayState.currentMod = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.instance.curSelected].folder;
+                    archipelago.APPlayState.currentSong = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].songName;
+					archipelago.APPlayState.currentMod = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].folder;
                     }
 				}) : new states.PlayState());
             }
