@@ -797,6 +797,26 @@ class FreeplayState extends MusicBeatState
 						return;
 					}
 
+					if (archipelago.APItem.unknownSongs && APEntryState.inArchipelagoMode) {
+						FlxG.camera.shake(0.005, 0.5);
+						// 1 in 20 chance to play metal_pipe instead of badnoise
+						FlxG.sound.play(
+							FlxG.random.int(1, 20) == 1
+								? Paths.sound("metal_pipe")
+								: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+							1
+						);
+						grpSongs.forEach(function(item:FlxSprite)
+						{
+							if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						});
+						grpLocks.forEach(function(item:FlxSprite)
+						{
+							if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						});
+						return;
+					}
+
 					searchBar.hasFocus = false;
 					fpManager.destroyFreeplayVocals();
 					FlxG.sound.music.volume = 0;
