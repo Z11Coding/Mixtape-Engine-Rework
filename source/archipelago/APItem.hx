@@ -8,7 +8,9 @@ import cutscenes.DialogueBoxPsych;
 import flixel.addons.display.FlxRuntimeShader;
 import flixel.util.FlxDestroyUtil;
 import haxe.ds.StringMap;
+import objects.VideoSprite;
 import openfl.filters.ShaderFilter;
+import substates.GameOverSubstate;
 import yutautil.GenericProgressSubstate;
 
 typedef Condition = {
@@ -469,14 +471,14 @@ class APItem {
 
                 }, true, true);
 
-            case "Song Switch Trap":
+            case "Song Switch Trap" | "Swap Trap":
                 return new APItem(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true && FlxG.save.data.manualOverride == false;
                     });
                 }), function() {
-                    popup('I don\'t like this song. Lets play something else.', "APItem: Song Switch Trap", true);
+                    popup('I don\'t like this song. Lets play something else.', (name == "Song Switch Trap" ? "APItem: Song Switch Trap" : "TrapLink: Swap Trap"), true);
                     /*if (FlxG.random.bool(50)) {
                         trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
 
@@ -595,9 +597,55 @@ class APItem {
                     t.isTrap = true;
                 });
 
+            case "Ultimate Confusion Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    unknownSongs = true;
+                    popup('Huh? Where am I?', "Ultimate Confusion Trap");
+
+                    // Set a timer to revert after 5 minutes (300000 milliseconds)
+                    haxe.Timer.delay(function() {
+                        unknownSongs = false;
+                        popup('The confusion has worn off!', "Clarity Restored");
+
+                        // Reload freeplay to refresh the display
+                        if (APEntryState.inArchipelagoMode) {
+                            if (states.freeplay.FreeplayState.instance != null)
+                                states.freeplay.FreeplayState.instance.reloadSongs(true);
+                            if (states.freeplay.OsuFreeplayState.instance != null)
+                                @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                        }
+                    }, 300000); // 5 minutes = 300000 milliseconds
+
+                    // Reload freeplay immediately to show the confusion
+                    if (APEntryState.inArchipelagoMode) {
+                        if (states.freeplay.FreeplayState.instance != null)
+                            states.freeplay.FreeplayState.instance.reloadSongs(true);
+                        if (states.freeplay.OsuFreeplayState.instance != null)
+                            @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                    }
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
             case "Nothing":
                 popup('...For now...', "APItem: Nothing");
                 return null;
+
+            case "PowerPoint Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Average Nintendo Switch 2 Chatroom Camera Feed:', 'TrapLink: PowerPoint Trap');
+                    FlxG.updateFramerate = 15;
+                    FlxG.drawFramerate = 15;
+                    new FlxTimer().start(30, function(tmr:FlxTimer)
+                    {
+                        FlxG.updateFramerate = ClientPrefs.data.framerate;
+                        FlxG.drawFramerate = ClientPrefs.data.framerate;
+                    });
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
 
             case "Ghost":
                 return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
@@ -698,14 +746,14 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            case 'Ice Trap':
+            case 'Ice Trap' | 'Ice Floor Trap':
                 return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true;
                     });
                 }), function() {
-                    popup('Effect: Ice Notes', "TrapLink: Ice Trap", true);
+                    popup('Effect: Ice Notes', 'TrapLink: $name', true);
                     APPlayState.instance.doEffect('icebutmoreagressive');
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1333,65 +1381,102 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            case "Swap Trap":
+            case "Cutscene Trap":
+                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                    popup('We\'ll be right back after this comercial break!', 'TrapLink: Cutscene Trap');
+                    backend.MusicBeatState.revokeControls = true;
+                    FlxG.sound.music.pause();
+                    if (APPlayState.APInstance() != null) {
+                        APPlayState.instance.inCutscene = true;
+                        APPlayState.instance.canPause = true;
+                    }
+                    var videoList:Array<String> = Paths.crawlDirectory('assets/videos', '.mp4').concat(Paths.crawlDirectory('mods/videos', '.mp4'));
+
+                    for(mod in Mods.parseList().enabled) {
+                        var modVideoPath = 'mods/' + mod + '/videos';
+                        if (sys.FileSystem.exists(modVideoPath)) {
+                            videoList = videoList.concat(Paths.crawlDirectory(modVideoPath, '.mp4'));
+                        }
+                    }
+
+                    var featurePresentation:VideoSprite;
+                    featurePresentation = new VideoSprite(videoList[FlxG.random.int(0, videoList.length-1)], false, false, false);
+                    function onVideoEnd()
+                    {
+                        FlxG.sound.music.play();
+                        featurePresentation = null;
+                        backend.MusicBeatState.revokeControls = false;
+                        if (APPlayState.APInstance() != null) {
+                            APPlayState.instance.canPause = true;
+                            APPlayState.instance.inCutscene = false;
+                        }
+                        FlxG.state.remove(featurePresentation);
+                    }
+                    featurePresentation.finishCallback = onVideoEnd;
+                    featurePresentation.screenCenter();
+                    if (GameOverSubstate.instance != null) GameOverSubstate.instance.add(featurePresentation);
+			        else FlxG.state.add(featurePresentation);
+                    featurePresentation.play();
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Depletion Trap":
                 return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true;
                     });
                 }), function() {
-                    popup('I\'m bored. Play a different song.', 'TrapLink: Swap Trap');
-                    if (!FlxG.save.data.manualOverride) {
-                        FlxG.save.data.manualOverride = true;
-                        FlxG.save.data.storyWeek = states.PlayState.storyWeek;
-                        FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
-                        FlxG.save.data.difficulties = Difficulty.list; // just in case
-                        FlxG.save.data.SONG = states.PlayState.SONG;
-                        FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
-                        FlxG.save.data.songPos = FlxG.sound.music.time;
-                        FlxG.save.flush();
-
-                        var freeplayState = cast FreeplayManager.getFreeplay();
-                        var theManager = freeplayState.instance.fpManager;
-                        var pickedSong = FlxG.random.int(0, Std.int(theManager.songList.length-1));
-                        var song = theManager.songList[pickedSong];
-                        var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[song.week]);
-                        Mods.currentModDirectory = song.folder;
-                        states.PlayState.storyWeek = song.week;
-                        Difficulty.loadFromWeek(leWeek);
-                        MusicBeatState.switchSong(song.songName, Difficulty.list.length, "FlxG");
-                    }
-                }, true, true).funcAndReturn(function(t:APItem) {
+                    popup('Oh god no here she comes', "Depletion Trap", true);
+                    APPlayState.instance.startResisting();
+                }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
 
-            case "Ultimate Confusion Trap":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    unknownSongs = true;
-                    popup('Huh? Where am I?', "Ultimate Confusion Trap");
+            case "Flip Trap" | "Screen Flip Trap":
+                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return states.PlayState.instance?.startedSong == true;
+                    });
+                }), function() {
+                    if (Std.is(FlxG.state, states.PlayState)) {
+                        var playState:states.PlayState = cast FlxG.state;
+                        var randomChance = Std.random(100);
+                        var targetAngle = 180;
 
-                    // Set a timer to revert after 5 minutes (300000 milliseconds)
-                    haxe.Timer.delay(function() {
-                        unknownSongs = false;
-                        popup('The confusion has worn off!', "Clarity Restored");
-
-                        // Reload freeplay to refresh the display
-                        if (APEntryState.inArchipelagoMode) {
-                            if (states.freeplay.FreeplayState.instance != null)
-                                states.freeplay.FreeplayState.instance.reloadSongs(true);
-                            if (states.freeplay.OsuFreeplayState.instance != null)
-                                @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                        if (randomChance < 10) { // 10% chance to overflip or underflip
+                            targetAngle = 180 + (Std.random(3) - 1) * 360;
+                        } else if (randomChance < 20) { // 10% chance to invert the screen
+                            targetAngle = 0;
                         }
-                    }, 300000); // 5 minutes = 300000 milliseconds
 
-                    // Reload freeplay immediately to show the confusion
-                    if (APEntryState.inArchipelagoMode) {
-                        if (states.freeplay.FreeplayState.instance != null)
-                            states.freeplay.FreeplayState.instance.reloadSongs(true);
-                        if (states.freeplay.OsuFreeplayState.instance != null)
-                            @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                        flixel.FlxG.camera.angle = 0;
+                        flixel.tweens.FlxTween.num(0, targetAngle, 1, function(value:Float) {
+                            flixel.FlxG.camera.angle = value;
+                        });
+                        archipelago.APItem.popup("The screen is flipped!", 'TrapLink: $name');
                     }
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Pong Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Ok but can you beat the Pong Master?', "TrapLink: Pong Trap", true);
+                    if (MusicBeatState.getState() == APPlayState.instance) {
+                        APPlayState.instance.paused = true;
+                        APPlayState.instance.canResync = false;
+                        FlxG.camera.followLerp = 0;
+                        LoadingState.noteCache = [];
+                        states.PlayState.curChart = [];
+                        MusicBeatState.allowNuke = true;
+                    }
+                    FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;

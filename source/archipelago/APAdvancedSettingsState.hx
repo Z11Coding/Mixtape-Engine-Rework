@@ -150,7 +150,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	var victorySongData:Dynamic = null;
 	var deathlink:Bool = false;
 
-	// Filler weight settings
+	// Filler/Trap weight settings
 	var bbcWeight:Int = 3;
 	var ghostChatWeight:Int = 3;
 	var tutorialWeight:Int = 3;
@@ -160,6 +160,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	var resistanceWeight:Int = 3;
 	var unoWeight:Int = 3;
 	var pongWeight:Int = 3;
+	var ultConfusionWeight:Int = 3;
 	var shieldWeight:Int = 3;
 	var exLifeWeight:Int = 3;
 	var MHPWeight:Int = 3;
@@ -388,6 +389,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							unoWeight = value;
 						case "pongWeight":
 							pongWeight = value;
+						case "ultConfusionWeight":
+							ultConfusionWeight = value;
 						case "svcWeight":
 							svcWeight = value;
 						case "fakeTransWeight":
@@ -699,6 +702,13 @@ class APAdvancedSettingsState extends MusicBeatState
 				callback: () -> adjustPongWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustPongWeight())
+			},
+			{
+				name: "Ultimate Confusion Trap Weight",
+				description: "Weight for the Ultimate Confusion Trap items (0-10)",
+				callback: () -> adjustConfusionWeight(),
+				locked: false,
+				contextMenu: createEditContextMenu(() -> adjustConfusionWeight())
 			},
 			{
 				name: "Extra Life Weight",
@@ -1365,6 +1375,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Resistance Trap Weight": Std.string(resistanceWeight);
 			case "UNO Challenge Trap Weight": Std.string(unoWeight);
 			case "Pong Challenge Trap Weight": Std.string(pongWeight);
+			case "Ultimate Confusion Trap Weight": Std.string(ultConfusionWeight);
 			case "SVC Weight": Std.string(svcWeight);
 			case "Fake Transition Weight": Std.string(fakeTransWeight);
 			case "Shield Weight": Std.string(shieldWeight);
@@ -1677,6 +1688,15 @@ class APAdvancedSettingsState extends MusicBeatState
 		openSliderControl("Pong Challenge Trap Weight", pongWeight, 0, 10, 1, function(value:Float)
 		{
 			pongWeight = Std.int(value);
+			refreshCurrentPage();
+		});
+	}
+
+	function adjustConfusionWeight()
+	{
+		openSliderControl("Ultimate Confusion Trap Weight", ultConfusionWeight, 0, 10, 1, function(value:Float)
+		{
+			ultConfusionWeight = Std.int(value);
 			refreshCurrentPage();
 		});
 	}
@@ -2111,6 +2131,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			resistanceWeight = settings.resistanceWeight;
 			unoWeight = settings.unoWeight;
 			pongWeight = settings.pongWeight;
+			ultConfusionWeight = settings.ultConfusionWeight;
 			svcWeight = settings.svcWeight;
 			fakeTransWeight = settings.fakeTransWeight;
 			shieldWeight = settings.shieldWeight;
@@ -2164,6 +2185,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			settings.resistanceWeight = resistanceWeight;
 			settings.unoWeight = unoWeight;
 			settings.pongWeight = pongWeight;
+			settings.ultConfusionWeight = ultConfusionWeight;
 			settings.svcWeight = svcWeight;
 			settings.fakeTransWeight = fakeTransWeight;
 			settings.shieldWeight = shieldWeight;
@@ -2558,6 +2580,8 @@ class APAdvancedSettingsState extends MusicBeatState
 								unoWeight = value;
 							case "pongWeight":
 								pongWeight = value;
+							case "ultConfusionWeight":
+								ultConfusionWeight = value;
 							case "svcWeight":
 								svcWeight = value;
 							case "fakeTransWeight":
@@ -2875,6 +2899,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			resistanceWeight: resistanceWeight,
 			unoWeight: unoWeight,
 			pongWeight: pongWeight,
+			ultConfusionWeight: ultConfusionWeight,
 			svcWeight: svcWeight,
 			fakeTransWeight: fakeTransWeight,
 			shieldWeight: shieldWeight,
@@ -2934,6 +2959,8 @@ class APAdvancedSettingsState extends MusicBeatState
 				unoWeight = data.unoWeight;
 			if (Reflect.hasField(data, "pongWeight"))
 				pongWeight = data.pongWeight;
+			if (Reflect.hasField(data, "ultConfusionWeight"))
+				ultConfusionWeight = data.ultConfusionWeight;
 			if (Reflect.hasField(data, "svcWeight"))
 				svcWeight = data.svcWeight;
 			if (Reflect.hasField(data, "fakeTransWeight"))
@@ -3210,6 +3237,8 @@ class APAdvancedSettingsState extends MusicBeatState
 				state.unoWeight = data.unoWeight;
 			if (Reflect.hasField(data, "pongWeight"))
 				state.pongWeight = data.pongWeight;
+			if (Reflect.hasField(data, "ultConfusionWeight"))
+				state.ultConfusionWeight = data.ultConfusionWeight;
 			if (Reflect.hasField(data, "svcWeight"))
 				state.svcWeight = data.svcWeight;
 			if (Reflect.hasField(data, "fakeTransWeight"))

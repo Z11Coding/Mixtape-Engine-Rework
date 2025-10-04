@@ -66,6 +66,7 @@ typedef APOptions =
 	var resistanceWeight:Int;
 	var unoWeight:Int;
 	var pongWeight:Int;
+	var ultConfusionWeight:Int;
 	var	fakeTransWeight:Int;
 	var	shieldWeight:Int;
 	var	MHPWeight:Int;
@@ -178,6 +179,7 @@ class APEntryState extends MusicBeatState
 			resistanceWeight: 5,
 			unoWeight: 5,
 			pongWeight: 5,
+			ultConfusionWeight: 5,
 			fakeTransWeight: 5,
 			shieldWeight: 5,
 			MHPWeight: 5,
@@ -799,6 +801,8 @@ var uri = '${#if sys (_hostInput.text == "localhost" || _hostInput.text == "127.
 				+ gameSettings.FNF.unoWeight
 				+ "\nPong Weight: "
 				+ gameSettings.FNF.pongWeight
+				+ "\nUltimate Confusion Trap: "
+				+ gameSettings.FNF.ultConfusionWeight
 				+ "\nFake Transition Weight: "
 				+ gameSettings.FNF.fakeTransWeight
 				+ "\nShield Weight: "

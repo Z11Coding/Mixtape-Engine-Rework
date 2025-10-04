@@ -160,7 +160,7 @@ class Controls
 	public static var instance:Controls;
 	public function new()
 	{
-		keyboardBinds = if (!MusicBeatState.revokeControls) ClientPrefs.keyBinds else null;
-		gamepadBinds = if (!MusicBeatState.revokeControls) ClientPrefs.gamepadBinds else null;
+		keyboardBinds = if (!MusicBeatState.revokeControls) ClientPrefs.keyBinds else [];
+		gamepadBinds = if (!MusicBeatState.revokeControls) ClientPrefs.gamepadBinds else [];
 	}
 }

@@ -9195,10 +9195,10 @@ class PlayState extends MusicBeatState
 		}
 		else if(!note.noAnimation)
 		{
-			var char:Character = dad;
+			var char:Character = (opponentmode ? boyfriend : dad);
 			var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[note.noteData] + note.animSuffix;
 			if(note.gfNote) char = gf;
-			if (note.exNote && !note.gfNote) char = dad2;
+			if (note.exNote && !note.gfNote) char = (opponentmode ? bf2 : dad2);
 
 			if (!note.exNote && !note.gfNote && note.noteType == 'GF Duet') {
 				if(gf != null)
@@ -9294,9 +9294,9 @@ class PlayState extends MusicBeatState
 			{
 				var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[note.noteData] + note.animSuffix;
 
-				var char:Character = boyfriend;
+				var char:Character = (opponentmode ? dad : boyfriend);
 				var animCheck:String = 'hey';
-				if (note.exNote && !note.gfNote && note.noteType != 'GF Duet') char = bf2;
+				if (note.exNote && !note.gfNote && note.noteType != 'GF Duet') char = (opponentmode ? dad2 : bf2);
 				if(note.gfNote)
 				{
 					char = gf;

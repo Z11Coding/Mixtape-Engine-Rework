@@ -36,6 +36,7 @@ class APSettingsSubState extends MusicBeatSubstate {
     var resistanceWeight:PsychUISlider;
     var unoWeight:PsychUISlider;
     var pongWeight:PsychUISlider;
+    var ultConfusionWeight:PsychUISlider;
     var tutorialWeight:PsychUISlider;
     var svcWeight:PsychUISlider;
     var fakeTransWeight:PsychUISlider;
@@ -159,6 +160,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         resistanceWeight.value = APEntryState.gameSettings.FNF.resistanceWeight;
         unoWeight.value = APEntryState.gameSettings.FNF.unoWeight;
         pongWeight.value = APEntryState.gameSettings.FNF.pongWeight;
+        ultConfusionWeight.value = APEntryState.gameSettings.FNF.ultConfusionWeight;
         svcWeight.value = APEntryState.gameSettings.FNF.svcWeight;
         chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
         shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
@@ -323,6 +325,13 @@ class APSettingsSubState extends MusicBeatSubstate {
         pongWeight.min = 0;
         pongWeight.max = 10;
         pongWeight.decimals = 0;
+
+        objX += 40;
+        objY = 20;
+        ultConfusionWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.pongWeight = Std.int(v));
+        ultConfusionWeight.min = 0;
+        ultConfusionWeight.max = 10;
+        ultConfusionWeight.decimals = 0;
 
         objY += 40;
         svcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.svcWeight = Std.int(v));
@@ -561,6 +570,21 @@ class APSettingsSubState extends MusicBeatSubstate {
 
     override function update(elapsed:Float) {
         super.update(elapsed);
+
+        if (box != null && box.tabs.length > 0) {
+            switch (box.selectedName) {
+                case 'Main Settings':
+                    box.setSize(300, 480);
+                case 'Songs':
+                    box.setSize(300, 300);
+                case 'Traps':
+                    box.setSize(400, 600);
+                default:
+                    box.setSize(300, 480);
+            }
+        }
+
+        // Apply a lowpass filter to the music to make it sound muffled
 
         if(FlxG.sound.music != null && FlxG.sound.music.playing)
 		{

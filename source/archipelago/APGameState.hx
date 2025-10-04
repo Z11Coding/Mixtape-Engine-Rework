@@ -1109,9 +1109,16 @@ class APGameState
 					archipelago.APItem.createItemByName("Pixellation Trap").fromTrapLink = true;
 				case "Swap Trap":
 					archipelago.APItem.createItemByName("Swap Trap").fromTrapLink = true;
+				case "Cutscene Trap":
+					archipelago.APItem.createItemByName("Cutscene Trap").fromTrapLink = true;
 				default:
-					// If it's not a known trap, we can just log it.
-					trace("Unknown trap link received: " + trapName + ".");
+					try {
+						archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+						trace("TrapLink processed by fallback: " + trapName);
+					} catch (e:Dynamic) {
+						// If it's not a known trap, we can just log it.
+						trace("Unknown trap link received: " + trapName + ".");
+					}
 			}
 		}
 	}
