@@ -3,10 +3,12 @@ package archipelago.substates;
 import backend.MusicBeatSubstate;
 import backend.ui.*;
 import flixel.effects.FlxFlicker;
+import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
+import lime.system.Clipboard;
 
 /**
  * Specialized port number input substate with validation and presets
@@ -33,9 +35,11 @@ class PortInputSubstate extends MusicBeatSubstate {
     var preset38281Button:FlxSprite;
     var preset38282Button:FlxSprite;
     var preset80Button:FlxSprite;
+    var clipboardButton:FlxSprite;
     var preset38281Text:FlxText;
     var preset38282Text:FlxText;
     var preset80Text:FlxText;
+    var clipboardText:FlxText;
 
     // Animation elements
     var glowEffect:FlxSprite;
@@ -49,6 +53,7 @@ class PortInputSubstate extends MusicBeatSubstate {
     // Visual state
     var isAnimating:Bool = false;
     var hasError:Bool = false;
+    var clipboardPort:String = null;
 
     public function new(
         currentVal:String,
@@ -157,7 +162,7 @@ class PortInputSubstate extends MusicBeatSubstate {
         var presetY = panel.y + 220;
         var presetWidth = 120;
         var presetHeight = 35;
-        var spacing = (panel.width - (presetWidth * 3)) / 4;
+        var spacing = (panel.width - (presetWidth * 4)) / 5; // Updated for 4 buttons
 
         // 38281 preset (most common)
         preset38281Button = new FlxSprite(panel.x + spacing, presetY);
@@ -179,8 +184,18 @@ class PortInputSubstate extends MusicBeatSubstate {
         preset38282Text.borderSize = 1;
         add(preset38282Text);
 
+        // Clipboard button (between 38282 and 80)
+        clipboardButton = new FlxSprite(panel.x + spacing * 3 + presetWidth * 2, presetY);
+        clipboardButton.makeGraphic(presetWidth, presetHeight, FlxColor.GRAY);
+        add(clipboardButton);
+
+        clipboardText = new FlxText(clipboardButton.x, clipboardButton.y + 8, presetWidth, "Clipboard\n(Empty)", 12);
+        clipboardText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        clipboardText.borderSize = 1;
+        add(clipboardText);
+
         // 80 preset (HTTP)
-        preset80Button = new FlxSprite(panel.x + spacing * 3 + presetWidth * 2, presetY);
+        preset80Button = new FlxSprite(panel.x + spacing * 4 + presetWidth * 3, presetY);
         preset80Button.makeGraphic(presetWidth, presetHeight, FlxColor.fromRGB(128, 64, 0));
         add(preset80Button);
 
@@ -336,6 +351,41 @@ class PortInputSubstate extends MusicBeatSubstate {
         FlxG.sound.play(Paths.sound('confirmMenu'));
     }
 
+    function checkClipboard() {
+        try {
+            var clipboardText = Clipboard.text;
+            if (clipboardText != null) {
+                // Remove any whitespace and non-digit characters
+                var cleanText = clipboardText.trim();
+                var portRegex = ~/^\d+$/;
+
+                if (portRegex.match(cleanText)) {
+                    var port = Std.parseInt(cleanText);
+                    if (port != null && port >= 1 && port <= 65535) {
+                        clipboardPort = cleanText;
+                        clipboardButton.color = FlxColor.GREEN;
+                        clipboardText = port + "\n(from clipboard)";
+                        this.clipboardText.text = clipboardText;
+                        return;
+                    }
+                }
+            }
+        } catch (e:haxe.Exception) {
+            // Clipboard access might fail, ignore silently
+        }
+
+        // No valid port found
+        clipboardPort = null;
+        clipboardButton.color = FlxColor.GRAY;
+        clipboardText.text = "Clipboard\n(Empty)";
+    }
+
+    function setClipboardPort() {
+        if (clipboardPort != null) {
+            setPreset(clipboardPort);
+        }
+    }
+
     function confirm() {
         if (hasError || currentValue.length == 0) {
             FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -357,6 +407,9 @@ class PortInputSubstate extends MusicBeatSubstate {
         super.update(elapsed);
 
         if (isAnimating) return;
+
+        // Check clipboard for valid ports
+        checkClipboard();
 
         // Handle keyboard input using the same pattern as TextInputSubstate
         var keys = FlxG.keys.justPressed;
@@ -440,6 +493,18 @@ class PortInputSubstate extends MusicBeatSubstate {
             if (FlxG.mouse.justPressed) setPreset("38282");
         } else {
             preset38282Button.color = FlxColor.PURPLE;
+        }
+
+        // Clipboard button
+        if (FlxG.mouse.overlaps(clipboardButton)) {
+            if (clipboardPort != null) {
+                clipboardButton.color = FlxColor.fromRGB(150, 255, 150);
+                if (FlxG.mouse.justPressed) setClipboardPort();
+            } else {
+                clipboardButton.color = FlxColor.fromRGB(150, 150, 150);
+            }
+        } else {
+            clipboardButton.color = clipboardPort != null ? FlxColor.GREEN : FlxColor.GRAY;
         }
 
         if (FlxG.mouse.overlaps(preset80Button)) {
