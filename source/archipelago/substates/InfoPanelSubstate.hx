@@ -173,12 +173,6 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         infoText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         infoText.borderSize = 1;
         add(infoText);
-
-        // Calculate max scroll offset
-        var tempText = new FlxText(0, 0, panelWidth - 60, getCurrentPageContent(), 14);
-        tempText.setFormat(Paths.font("vcr.ttf"), 14);
-        maxScrollOffset = Math.max(0, tempText.textField.textHeight - contentHeight);
-        tempText.destroy();
     }
 
     function setupNavigationButtons():Void {
@@ -257,6 +251,12 @@ class InfoPanelSubstate extends MusicBeatSubstate {
     function updateContentDisplay():Void {
         infoText.text = getCurrentPageContent();
         infoText.y = panel.y + 60 - currentScrollOffset;
+
+        // Recalculate max scroll offset for current page content
+        var tempText = new FlxText(0, 0, panelWidth - 60, getCurrentPageContent(), 14);
+        tempText.setFormat(Paths.font("vcr.ttf"), 14);
+        maxScrollOffset = Math.max(0, tempText.textField.textHeight - maxContentHeight);
+        tempText.destroy();
 
         // Update page info
         if (contentPages.length > 1) {

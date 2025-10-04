@@ -246,8 +246,12 @@ class APItem {
                 }, true, true);
             case "SvC Effect":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    popup('Effect: ${APPlayState.instance.effectArray[APPlayState.instance.curEffect]}', "APItem: SvC Effect", true);
-                    APPlayState.instance.doEffect(APPlayState.instance.effectArray[APPlayState.instance.curEffect]);
+                    // Pick a random effect from the effectArray
+                    var effects = APPlayState.instance.effectArray;
+                    var randomIndex = FlxG.random.int(0, effects.length - 1);
+                    var effect = effects[randomIndex];
+                    popup('Effect: $effect', "APItem: SvC Effect", true);
+                    APPlayState.instance.doEffect(effect);
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
