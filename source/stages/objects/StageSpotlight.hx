@@ -14,7 +14,7 @@ class StageSpotlight extends BaseStage{
         this.X = X;
         this.Y = Y;
     }
-    
+
     override function eventPushed(event:objects.Note.EventNote)
 	{
 		switch(event.event)
@@ -39,40 +39,40 @@ class StageSpotlight extends BaseStage{
 	}
 
     override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
+    {
+        switch(eventName)
         {
-            switch(eventName)
-            {
-                case "Dadbattle Spotlight":
-                    if(flValue1 == null) flValue1 = 0;
-                    var val:Int = Math.round(flValue1);
-    
-                    switch(val)
-                    {
-                        case 1, 2, 3: //enable and target dad
-                            if(val == 1) //enable
-                            {
-                                dadbattleBlack.visible = true;
-                                dadbattleLight.visible = true;
-                                dadbattleFog.visible = true;
-                                defaultCamZoom += 0.12;
-                            }
-    
-                            var who:Character = dad;
-                            if(val > 2) who = boyfriend;
-                            //2 only targets dad
-                            dadbattleLight.alpha = 0;
-                            new FlxTimer().start(0.12, function(tmr:FlxTimer) {
-                                dadbattleLight.alpha = 0.375;
-                            });
-                            dadbattleLight.setPosition(who.getGraphicMidpoint().x - dadbattleLight.width / 2, who.y + who.height - dadbattleLight.height + 50);
-                            FlxTween.tween(dadbattleFog, {alpha: 0.7}, 1.5, {ease: FlxEase.quadInOut});
-    
-                        default:
-                            dadbattleBlack.visible = false;
-                            dadbattleLight.visible = false;
-                            defaultCamZoom -= 0.12;
-                            FlxTween.tween(dadbattleFog, {alpha: 0}, 0.7, {onComplete: function(twn:FlxTween) dadbattleFog.visible = false});
-                    }
-            }
+            case "Dadbattle Spotlight":
+                if(flValue1 == null) flValue1 = 0;
+                var val:Int = Math.round(flValue1);
+
+                switch(val)
+                {
+                    case 1, 2, 3: //enable and target dad
+                        if(val == 1) //enable
+                        {
+                            dadbattleBlack.visible = true;
+                            dadbattleLight.visible = true;
+                            dadbattleFog.visible = true;
+                            defaultCamZoom += 0.12;
+                        }
+
+                        var who:Character = dad;
+                        if(val > 2) who = boyfriend;
+                        //2 only targets dad
+                        dadbattleLight.alpha = 0;
+                        new FlxTimer().start(0.12, function(tmr:FlxTimer) {
+                            dadbattleLight.alpha = 0.375;
+                        });
+                        dadbattleLight.setPosition(who.getGraphicMidpoint().x - dadbattleLight.width / 2, who.y + who.height - dadbattleLight.height + 50);
+                        FlxTween.tween(dadbattleFog, {alpha: 0.7}, 1.5, {ease: FlxEase.quadInOut});
+
+                    default:
+                        dadbattleBlack.visible = false;
+                        dadbattleLight.visible = false;
+                        defaultCamZoom -= 0.12;
+                        FlxTween.tween(dadbattleFog, {alpha: 0}, 0.7, {onComplete: function(twn:FlxTween) dadbattleFog.visible = false});
+                }
         }
+    }
 }

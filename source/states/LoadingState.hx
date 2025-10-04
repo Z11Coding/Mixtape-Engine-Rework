@@ -75,6 +75,9 @@ class LoadingState extends MusicBeatState
 	var curPercent:Float = 0;
 	var stateChangeDelay:Float = 0;
 
+	static var lastSong:String = '';
+	static var lastMod:String = '';
+
 	#if PSYCH_WATERMARKS
 	var logo:FlxSprite;
 	var pessy:FlxSprite;
@@ -474,7 +477,10 @@ class LoadingState extends MusicBeatState
 			return;
 		}
 
-		MusicBeatState.allowNuke = (ClientPrefs.data.chartPreload == 'Off');
+		MusicBeatState.allowNuke = (ClientPrefs.data.chartPreload == 'Off' || ClientPrefs.data.chartPreload == 'Song Only' && lastSong != PlayState.SONG.song || ClientPrefs.data.loadingState == 'Everything' && lastMod != Mods.currentModDirectory);
+
+		lastSong = PlayState.SONG.song;
+		lastMod = Mods.currentModDirectory;
 
 		if(PlayState.SONG != null) {
 			trace('Preloading Chart');

@@ -513,7 +513,7 @@ class APItem {
                         FlxG.save.data.songPos = FlxG.sound.music.time;
                         FlxG.save.flush();
 
-                        var specialSongList = ['Rise', 'Zeventeen', /*'Pack-A-Punch', 'Driller',*/ 'Test Field', 'Rawr', /*'Fightback',*/ 'Funky Fanta', /*'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'*/];
+                        var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
                         var curSong = FlxG.random.int(0, specialSongList.length-1);
                         switch (specialSongList[curSong])
                         {

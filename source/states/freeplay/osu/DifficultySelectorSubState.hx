@@ -76,7 +76,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         PlayState.storyWeek = song.week;
         switch (song.songName)
         {
-            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta':
+            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown':
                 Difficulty.list = ['Hard'];
             case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
                 Difficulty.list = ['Normal'];
@@ -149,8 +149,8 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                 LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
 					@:privateAccess
                     {
-                    archipelago.APPlayState.currentSong = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].songName;
-					archipelago.APPlayState.currentMod = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].folder;
+                        archipelago.APPlayState.currentSong = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].songName;
+                        archipelago.APPlayState.currentMod = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].folder;
                     }
 				}) : new states.PlayState());
             }

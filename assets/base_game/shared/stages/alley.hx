@@ -71,11 +71,12 @@ function onCreate()
 
     resetCar(true, true);
 
+    if game.songName
     game.startCallback = doIntro;
 }
 
 function doIntro() {
-    game.startVideo('fanta_cutscene_wip_lol', true);
+    game.startVideo('fanta_cutscene_wip_lol', false);
 }
 
 /*
