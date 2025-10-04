@@ -216,7 +216,9 @@ class RankingSubstate extends MusicBeatSubstate
 						var attempts = 0;
 
 
-						var locationId = (PlayState.SONG.song);
+						var locationId = (archipelago.APPlayState.currentSong != null && archipelago.APPlayState.currentSong.trim() != "")
+							? archipelago.APPlayState.currentSong
+							: PlayState.SONG.song;
 						if (APInfo.unlockMethod != "Note Checks") {
 							trace(archipelago.APPlayState.currentMod);
 							// if (archipelago.APPlayState.currentMod.trim() != "")

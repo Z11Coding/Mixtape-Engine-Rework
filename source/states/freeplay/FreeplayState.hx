@@ -988,7 +988,10 @@ class FreeplayState extends MusicBeatState
 							alreadyClicked = true;
 							MusicBeatState.reopen = false; //Fix a sticker bug
 							LoadingState.prepareToSong();
-							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
+								archipelago.APPlayState.currentSong = fpManager.songList[curSelected].songName;
+								archipelago.APPlayState.currentMod = fpManager.songList[curSelected].folder;
+							}) : new PlayState());
 						}
 						#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 						stopMusicPlay = true;

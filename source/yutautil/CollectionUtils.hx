@@ -663,6 +663,12 @@ class CollectionUtils
 		return null;
 	}
 
+	public static inline function global<O>(input:O):Class<O>
+	{
+		return Type.getClass(input) != null ? Type.getClass(input) : throw "Input has no class (null)";
+	}
+
+
 	public static inline function objectDynamic<T>(input:Dynamic):Dynamic
 	{
 		if (Std.is(input, Array))

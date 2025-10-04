@@ -146,7 +146,13 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                     return;
                 }
                 LoadingState.prepareToSong();
-                LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+                LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
+					@:privateAccess
+                    {
+                    archipelago.APPlayState.currentSong = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.instance.curSelected].songName;
+					archipelago.APPlayState.currentMod = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.instance.curSelected].folder;
+                    }
+				}) : new states.PlayState());
             }
             if (FlxG.keys.firstJustPressed() != FlxKey.NONE && missingText.visible)
 			{

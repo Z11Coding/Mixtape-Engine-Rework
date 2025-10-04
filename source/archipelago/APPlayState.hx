@@ -32,6 +32,7 @@ class APPlayState extends PlayState {
     public var checkedNotes:Array<Note> = new Array<Note>();
 
     public static var currentMod = "";
+    public static var currentSong = "";
     public static var deathLinkPacket:Dynamic;
     public static var effectiveScrollSpeed:Float;
 	public static var effectiveDownScroll:Bool;
