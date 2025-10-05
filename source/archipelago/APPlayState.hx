@@ -1985,7 +1985,96 @@ class APPlayState extends PlayState {
         })())) && deathByLink) {
             var cause:String = "";
             try {
-                if (deathLinkPacket.cause != null && (deathLinkPacket.cause != "" || deathLinkPacket.cause != " ")) cause = deathLinkPacket.cause + "\n[pause:0.5](Sounds like a skill issue...)";
+                var extraMessages = [
+                    "Sounds like a skill issue...",
+                    "They must suck...",
+                    "At least they tried...",
+                    "What a noob...",
+                    "At least you aren't that bad... [pause:0.5]Or are you?",
+                    "Maybe next time...",
+                    "You can always try again...",
+                    "This doesn't affect you, right?",
+                    "What a shame...",
+                    "Better luck next time...",
+                    'Eh, you can always play ${PlayState.SONG.song} again...',
+                    "Dang...",
+                    "RIP..."
+                ];
+
+                // Find player ID from name and add game-specific messages
+                if (apGame?.info() != null && deathLinkPacket?.source != null) {
+                    var playerID:Int = -1;
+                    var apClient = apGame.info();
+
+                    // Find player ID by name - iterate through _slotInfo
+                    @:privateAccess
+                    for (id in apClient._slotInfo.keys()) {
+                        if (apClient._slotInfo.get(id).name == deathLinkPacket.source) {
+                            playerID = id;
+                            break;
+                        }
+                    }
+
+                    // Get player's game and add game-specific messages
+                    if (playerID != -1) {
+                        var playerGame = apClient.get_player_game(playerID);
+
+                        switch (playerGame.toLowerCase()) {
+                            case "friday night funkin'", "fnf":
+                                extraMessages = extraMessages.concat([
+                                    "Skill issue detected...",
+                                    "They couldn't hit the notes...",
+                                    "Rhythm game more like skill issue game...",
+                                    "Maybe they should practice on easy mode...",
+                                    "Beep boop beep... FAIL!"
+                                ]);
+                            case "minecraft":
+                                extraMessages = extraMessages.concat([
+                                    "They got creeper'd...",
+                                    "Fell into lava, didn't they?",
+                                    "Should have brought more torches...",
+                                    "Respawning in 3... 2... 1...",
+                                    "At least they didn't lose their diamonds... right?"
+                                ]);
+                            case "the legend of zelda: a link to the past":
+                                extraMessages = extraMessages.concat([
+                                    "Link has fallen...",
+                                    "The princess will have to wait...",
+                                    "Game Over! Press Start to continue...",
+                                    "Even the Master Sword couldn't save them...",
+                                    "Ganon laughs in the distance..."
+                                ]);
+                            case "super metroid":
+                                extraMessages = extraMessages.concat([
+                                    "Samus has lost all energy...",
+                                    "The mission has failed...",
+                                    "Planet Zebes claims another victim...",
+                                    "Should have collected more energy tanks...",
+                                    "The last Metroid is still in captivity..."
+                                ]);
+                            case "super mario world":
+                                extraMessages = extraMessages.concat([
+                                    "Mario has lost a life...",
+                                    "Game Over! Thank you Mario!",
+                                    "Bowser wins this round...",
+                                    "Should have grabbed that mushroom...",
+                                    "Mamma mia! That's-a gonna hurt!"
+                                ]);
+                            default:
+                                extraMessages = extraMessages.concat([
+                                    "They failed at " + playerGame + "...",
+                                    "Game over in " + playerGame + "!",
+                                    "Apparently " + playerGame + " is harder than it looks...",
+                                    "RIP to another " + playerGame + " player..."
+                                ]);
+                        }
+                    }
+                }
+
+                if (deathLinkPacket.cause != null && (deathLinkPacket.cause != "" || deathLinkPacket.cause != " ")) {
+                    var randomMsg = extraMessages[FlxG.random.int(0, extraMessages.length - 1)];
+                    cause = deathLinkPacket.cause + "\n[pause:0.5](" + randomMsg + ")";
+                }
             }
             catch(e) {trace('DEATHLINKPACK WAS NULL!');}
             try {

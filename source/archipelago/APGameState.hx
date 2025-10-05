@@ -526,6 +526,12 @@ class APGameState
 		modName = (modName != null && modName != "") ? modName.trim() : "";
 		var info = info();
 		var locations = locationData(songName, modName).concat(noteData(songName, modName));
+
+		if (locations == null || locations.length == 0)
+		{
+			trace("No locations found for song: " + songName + " with mod: " + modName);
+			return false;
+		}
 		for (location in locations)
 		{
 			if (info.missingLocations.contains(location))
