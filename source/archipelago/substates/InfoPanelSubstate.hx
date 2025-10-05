@@ -71,6 +71,10 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         animateIn();
     }
 
+    public static function show(title:String, content:String, ?themeColor:FlxColor, ?onClose:Void->Void) {
+        FlxG.state.openSubState(new InfoPanelSubstate(title, content, themeColor, onClose));
+    }
+
     function calculateOptimalSize(title:String, content:String):Void {
         // Create temporary text objects to measure content
         var tempTitle = new FlxText(0, 0, 0, title, 24);

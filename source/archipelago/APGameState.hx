@@ -530,12 +530,18 @@ class APGameState
 		if (info.missingLocations.length == 0 && info.checkedLocations.length == 0)
 			{
 			trace("AP is not ready yet - no locations checked or missing.");
-
+				archipelago.APItem.popup("AP ERROR: Location data doesn't exist for song: " + songName + " with mod: " + modName, "Archipelago", true);
+				archipelago.substates.InfoPanelSubstate.show("AP ERROR", "Location data doesn't exist for song: " + songName + " with mod: " + modName
+					+ ". This usually means the Archipelago server is not ready yet. Please wait a moment and try again.", 0xFF0000, null);
+			return false;
 			}
 
 		if (locations == null || locations.length == 0)
 		{
 			trace("No locations found for song: " + songName + " with mod: " + modName);
+			archipelago.APItem.popup("No locations found for song: " + songName + " with mod: " + modName, "Archipelago", true);
+			archipelago.substates.InfoPanelSubstate.show("Victory Song Missing", "No locations found for song: " + songName + " with mod: " + modName
+				+ ".\n\nMake sure that the song is added to your game, or the mod for this song is enabled.", 0xFF0000, null);
 			return false;
 		}
 		for (location in locations)
