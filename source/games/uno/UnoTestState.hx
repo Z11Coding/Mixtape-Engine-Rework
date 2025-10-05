@@ -376,7 +376,7 @@ class UnoTestState extends MusicBeatState {
                     trace("Hand swap already in progress, ignoring additional request");
                     return;
                 }
-                
+
                 // Prevent rapid successive hand swaps (within 1 second)
                 var currentTime = haxe.Timer.stamp();
                 if (currentTime - lastHandSwapTime < 1.0) {
@@ -384,18 +384,18 @@ class UnoTestState extends MusicBeatState {
                     return;
                 }
                 lastHandSwapTime = currentTime;
-                
+
                 // Set waiting flag to prevent turn advancement
                 waitingForHandSwap = true;
-                
+
                 // Open the hand swap substate for player selection
                 var handSwapSubstate = new HandSwapSubstate(currentPlayer, availablePlayers, function(selectedPlayer:UnoPlayer) {
                     // Reset waiting flag first
                     waitingForHandSwap = false;
-                    
+
                     // Perform the actual hand swap through the rules system
                     performHandSwap(selectedPlayer);
-                    
+
                     // Update UI after swap is complete
                     if (selectedPlayer != null) {
                         updateInstructionText('${currentPlayer.name} swapped hands with ${selectedPlayer.name}!', true);
@@ -948,7 +948,7 @@ class UnoTestState extends MusicBeatState {
         // Store the selected card and index
         selectedCardIndex = cardIndex;
         selectedCard = card;
-        
+
         // Immediately stop hover effects and clear selection states
         isPlayingCard = true;
         resetCardSelection();
@@ -1157,14 +1157,14 @@ class UnoTestState extends MusicBeatState {
         }
 
         waitingForColorChoice = true;
-        
+
         // Get available colors
         availableColors = (unoGame.customColors != null && unoGame.customColors.length > 0 ? unoGame.customColors : UnoCard.getStandardColors());
 
         // Open the stylish color choice substate
         var colorChoiceSubstate = new ColorChoiceSubstate(unoGame.turnManager.getCurrentPlayer(), availableColors, function(selectedColor:UnoColor) {
             waitingForColorChoice = false;
-            
+
             if (selectedColor != null) {
                 // Play the selected card with the chosen color
                 playSelectedCard(selectedColor);
@@ -1203,7 +1203,7 @@ class UnoTestState extends MusicBeatState {
                 break;
             }
         }
-        
+
         if (currentCardIndex == -1) {
             trace("Selected card no longer in hand");
             selectedCardIndex = -1;
@@ -1216,7 +1216,7 @@ class UnoTestState extends MusicBeatState {
 
         // Get the card sprite for animation
         var cardSprite = (currentCardIndex < playerHandGroup.length) ? playerHandGroup.members[currentCardIndex] : null;
-        
+
         if (cardSprite != null) {
             // Cancel any existing animations on this sprite
             if (cardAnimations.exists(cardSprite)) {
@@ -1238,7 +1238,7 @@ class UnoTestState extends MusicBeatState {
                     case CUSTOM(color, _): color;
                     case _: FlxColor.WHITE;
                 };
-                
+
                 // Animate color change before playing
                 FlxTween.color(cardSprite, 0.2, FlxColor.WHITE, targetColor, {
                     ease: FlxEase.sineOut,

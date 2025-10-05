@@ -168,30 +168,30 @@ class UnoRules {
             if (onSevenRuleHandSwap != null) {
                 var currentPlayer = players[currentPlayerIndex];
                 var availablePlayers = players.filter(p -> p != currentPlayer);
-                
+
                 // Create a callback that performs the actual swap
                 var doHandSwap = function(selectedPlayer:UnoPlayer):Void {
                     if (selectedPlayer != null && availablePlayers.contains(selectedPlayer)) {
                         trace('Performing hand swap between ${currentPlayer.name} and ${selectedPlayer.name}');
-                        
+
                         // Perform the hand swap
                         var currentHand = currentPlayer.hand.getCards().copy();
                         var selectedHand = selectedPlayer.hand.getCards().copy();
-                        
+
                         trace('Before swap: ${currentPlayer.name} has ${currentHand.length} cards, ${selectedPlayer.name} has ${selectedHand.length} cards');
-                        
+
                         currentPlayer.hand.clear();
                         selectedPlayer.hand.clear();
-                        
+
                         currentPlayer.hand.addCards(selectedHand);
                         selectedPlayer.hand.addCards(currentHand);
-                        
+
                         trace('After swap: ${currentPlayer.name} has ${currentPlayer.hand.getCards().length} cards, ${selectedPlayer.name} has ${selectedPlayer.hand.getCards().length} cards');
                     } else {
                         trace('Hand swap cancelled or invalid selection');
                     }
                 };
-                
+
                 // Call the UI callback with our swap function
                 onSevenRuleHandSwap(currentPlayer, availablePlayers, doHandSwap);
             }

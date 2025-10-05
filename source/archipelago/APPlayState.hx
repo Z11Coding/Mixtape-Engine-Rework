@@ -176,7 +176,6 @@ class APPlayState extends PlayState {
                 songNotUnlocked = true;
                 // Show info panel immediately
                 showUnlockInfoPanel();
-                return;
             }
         }
 

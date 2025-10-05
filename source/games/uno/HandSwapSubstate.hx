@@ -57,25 +57,25 @@ class HandSwapSubstate extends MusicBeatSubstate {
         } catch(e:Dynamic) {
             trace("Error in setupBackground: " + e);
         }
-        
+
         try {
             setupUI();
         } catch(e:Dynamic) {
             trace("Error in setupUI: " + e);
         }
-        
+
         try {
             setupPlayerOptions();
         } catch(e:Dynamic) {
             trace("Error in setupPlayerOptions: " + e);
         }
-        
+
         try {
             setupParticles();
         } catch(e:Dynamic) {
             trace("Error in setupParticles: " + e);
         }
-        
+
         try {
             animateIn();
         } catch(e:Dynamic) {
@@ -122,7 +122,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         trace("Error in immediate CPU fallback: " + e2);
                     }
                 }
-                
+
                 try {
                     Cursor.hide();
                 } catch(e:Dynamic) {
@@ -313,7 +313,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                     for (i in 0...playerButtons.length) {
                         try {
                             var button = null, text = null, cards = null;
-                            
+
                             // Safely get elements
                             try { button = (i < playerButtons.members.length) ? playerButtons.members[i] : null; } catch(e:Dynamic) button = null;
                             try { text = (i < playerTexts.members.length) ? playerTexts.members[i] : null; } catch(e:Dynamic) text = null;
@@ -431,7 +431,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
         try {
             var selectedPlayer = availablePlayers[index];
             var button = null;
-            
+
             // Safely get the button with error handling
             try {
                 button = (index < playerButtons.members.length) ? playerButtons.members[index] : null;
@@ -549,7 +549,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                             trace("Error: No available players for CPU selection");
                             return;
                         }
-                        
+
                         var bestChoice = availablePlayers[0];
                         try {
                             for (player in availablePlayers) {
@@ -562,7 +562,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                             // Use first available player as fallback
                             bestChoice = availablePlayers[0];
                         }
-                        
+
                         try {
                             var bestIndex = availablePlayers.indexOf(bestChoice);
                             if (bestIndex >= 0) {
@@ -636,7 +636,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         } catch(e:Dynamic) {
                             trace("Error getting previous button: " + e);
                         }
-                        
+
                         if (prevButton != null) {
                             try {
                                 FlxTween.cancelTweensOf(prevButton);
@@ -645,7 +645,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                                 trace("Error removing hover effect: " + e);
                             }
                         }
-                        
+
                         try {
                             if (glowEffect != null) {
                                 glowEffect.visible = false;
@@ -669,7 +669,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         } catch(e:Dynamic) {
                             trace("Error getting new button: " + e);
                         }
-                        
+
                         if (button != null) {
                             try {
                                 FlxTween.cancelTweensOf(button);
