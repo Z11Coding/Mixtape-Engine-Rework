@@ -136,8 +136,8 @@ class FreeplayState extends MusicBeatState
 		// Check if the Victory Song is cleared.
 		if (APEntryState.inArchipelagoMode) {
 			trace(APEntryState.victorySong);
-			APFreeplayManager.checkVictory();
 			APFreeplayManager.updateArchFreeplay();
+			APFreeplayManager.checkVictory();
 		}
 
 		Highscore.reloadModifiers();
