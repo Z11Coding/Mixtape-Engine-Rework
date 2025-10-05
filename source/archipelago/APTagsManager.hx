@@ -1,5 +1,6 @@
 package archipelago;
 
+import helder.Set;
 import yutautil.TypeUtils.OneOrMore;
 
 /**
@@ -80,6 +81,10 @@ class APTagsManager {
         if (newTags == null) newTags = [];
 
         _tags = newTags.copy();
+
+        // Remove duplicates and trim whitespace
+
+
         syncToClient();
         trace('APTagsManager: Set tags to: ${_tags.join(", ")}');
     }

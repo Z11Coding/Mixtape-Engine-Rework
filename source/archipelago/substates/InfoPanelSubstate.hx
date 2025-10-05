@@ -48,6 +48,8 @@ class InfoPanelSubstate extends MusicBeatSubstate {
     var themeColor:FlxColor;
     var maxContentHeight:Int;
 
+    var dCamera:FlxCamera;
+
     // Constants
     static inline var MIN_WIDTH:Int = 400;
     static inline var MIN_HEIGHT:Int = 300;
@@ -64,6 +66,9 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         this.onCloseCallback = onClose;
         this.fullContent = content;
 
+        // Set up dedicated camera for the info panel to avoid game camera interference
+        setupInfoCamera();
+
         calculateOptimalSize(title, content);
         processContent(content);
         setupBackground();
@@ -73,6 +78,13 @@ class InfoPanelSubstate extends MusicBeatSubstate {
 
     public static function show(title:String, content:String, ?themeColor:FlxColor, ?onClose:Void->Void) {
         FlxG.state.openSubState(new InfoPanelSubstate(title, content, themeColor, onClose));
+    }
+
+    function setupInfoCamera():Void {
+        // Create a dedicated camera for the info panel that won't be affected by game camera modifications
+        dCamera = new FlxCamera();
+        dCamera.bgColor.alpha = 0; // Transparent background
+        FlxG.cameras.add(dCamera, false); // Add as overlay camera
     }
 
     function calculateOptimalSize(title:String, content:String):Void {
@@ -145,6 +157,7 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         // Semi-transparent background that covers the entire screen
         background = new FlxSprite(0, 0);
         background.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 160));
+        background.cameras = [dCamera]; // Use dedicated camera
         add(background);
     }
 
@@ -154,12 +167,14 @@ class InfoPanelSubstate extends MusicBeatSubstate {
             [FlxColor.fromRGB(30, 30, 50), FlxColor.fromRGB(20, 20, 40)], 1, 90);
         panel.x = (FlxG.width - panelWidth) / 2;
         panel.y = (FlxG.height - panelHeight) / 2;
+        panel.cameras = [dCamera];
         add(panel);
 
         // Title
         titleText = new FlxText(panel.x + 20, panel.y + 20, panelWidth - 40, title, 24);
         titleText.setFormat(Paths.font("vcr.ttf"), 24, themeColor, CENTER, OUTLINE, FlxColor.BLACK);
         titleText.borderSize = 2;
+        titleText.cameras = [dCamera];
         add(titleText);
 
         setupContentArea();
@@ -176,6 +191,7 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         infoText = new FlxText(panel.x + 20, contentY, panelWidth - 60, "", 14);
         infoText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         infoText.borderSize = 1;
+        infoText.cameras = [dCamera];
         add(infoText);
     }
 
@@ -185,37 +201,44 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         // Previous page button
         prevButton = new FlxSprite(panel.x + 20, buttonY);
         prevButton.makeGraphic(60, 30, themeColor);
+        prevButton.cameras = [dCamera];
         add(prevButton);
 
         prevButtonText = new FlxText(prevButton.x, prevButton.y + 5, prevButton.width, "PREV", 12);
         prevButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.BLACK, CENTER, OUTLINE, FlxColor.WHITE);
         prevButtonText.borderSize = 1;
+        prevButtonText.cameras = [dCamera];
         add(prevButtonText);
 
         // Next page button
         nextButton = new FlxSprite(panel.x + 90, buttonY);
         nextButton.makeGraphic(60, 30, themeColor);
+        nextButton.cameras = [dCamera];
         add(nextButton);
 
         nextButtonText = new FlxText(nextButton.x, nextButton.y + 5, nextButton.width, "NEXT", 12);
         nextButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.BLACK, CENTER, OUTLINE, FlxColor.WHITE);
         nextButtonText.borderSize = 1;
+        nextButtonText.cameras = [dCamera];
         add(nextButtonText);
 
         // Page info
         pageInfo = new FlxText(panel.x + 160, buttonY + 5, 120, "", 12);
         pageInfo.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         pageInfo.borderSize = 1;
+        pageInfo.cameras = [dCamera];
         add(pageInfo);
 
         // Close button
         closeButton = new FlxSprite(panel.x + panelWidth - 80, buttonY);
         closeButton.makeGraphic(60, 30, themeColor);
+        closeButton.cameras = [dCamera];
         add(closeButton);
 
         closeButtonText = new FlxText(closeButton.x, closeButton.y + 5, closeButton.width, "CLOSE", 12);
         closeButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.BLACK, CENTER, OUTLINE, FlxColor.WHITE);
         closeButtonText.borderSize = 1;
+        closeButtonText.cameras = [dCamera];
         add(closeButtonText);
     }
 
@@ -226,24 +249,29 @@ class InfoPanelSubstate extends MusicBeatSubstate {
         // Scroll up button
         scrollUpButton = new FlxSprite(scrollX, scrollStartY);
         scrollUpButton.makeGraphic(20, 20, themeColor);
+        scrollUpButton.cameras = [dCamera];
         add(scrollUpButton);
 
         scrollUpText = new FlxText(scrollUpButton.x, scrollUpButton.y + 2, scrollUpButton.width, "↑", 12);
         scrollUpText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.BLACK, CENTER);
+        scrollUpText.cameras = [dCamera];
         add(scrollUpText);
 
         // Scroll down button
         scrollDownButton = new FlxSprite(scrollX, panel.y + panelHeight - 90);
         scrollDownButton.makeGraphic(20, 20, themeColor);
+        scrollDownButton.cameras = [dCamera];
         add(scrollDownButton);
 
         scrollDownText = new FlxText(scrollDownButton.x, scrollDownButton.y + 2, scrollDownButton.width, "↓", 12);
         scrollDownText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.BLACK, CENTER);
+        scrollDownText.cameras = [dCamera];
         add(scrollDownText);
 
         // Scroll indicator
         scrollIndicator = new FlxSprite(scrollX + 2, scrollStartY + 25);
         scrollIndicator.makeGraphic(16, 10, FlxColor.YELLOW);
+        scrollIndicator.cameras = [dCamera];
         add(scrollIndicator);
     }
 
@@ -517,6 +545,7 @@ class InfoPanelSubstate extends MusicBeatSubstate {
             currentPage--;
             currentScrollOffset = 0;
             updateContentDisplay();
+            animateVisibleElements();
         }
     }
 
@@ -525,6 +554,7 @@ class InfoPanelSubstate extends MusicBeatSubstate {
             currentPage++;
             currentScrollOffset = 0;
             updateContentDisplay();
+            animateVisibleElements();
         }
     }
 
@@ -557,5 +587,15 @@ class InfoPanelSubstate extends MusicBeatSubstate {
             onCloseCallback();
         }
         super.close();
+    }
+
+    override function destroy() {
+        // Clean up the dedicated camera
+        if (dCamera != null) {
+            FlxG.cameras.remove(dCamera);
+            dCamera.destroy();
+            dCamera = null;
+        }
+        super.destroy();
     }
 }

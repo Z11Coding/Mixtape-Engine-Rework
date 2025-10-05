@@ -7,7 +7,7 @@ import haxe.macro.Type;
 class CUMacroTools
 {
     // Static maps: "Class.method" -> array of tags/gotos
-    static var tags:Map<String, Array<String>> = new Map();
+    static var tags:Map<String, Array<{tag:String, pos:Position}>> = new Map();
     static var gotos:Map<String, Array<{tag:String, pos:Position}>> = new Map();
 
     public static var validate:Bool = true; // Set manually to enable validation
@@ -47,15 +47,65 @@ class CUMacroTools
             Context.onAfterGenerate(function() {
                 // Only run on C++ targets and if validation is needed
                 if (!Context.defined("cpp") || !needsValidation) return;
-
                 var errors:Array<{err:String, pos:Position}> = [];
+                var warnings:Array<{warn:String, pos:Position}> = [];
+                // Validate that all gotos have a corresponding tag
+                trace("CUMacroTools: Running aditional validation...");
                 for (key in gotos.keys()) {
                     var gotosArr = gotos.get(key);
                     var tagsArr = tags.get(key);
                     for (goto in gotosArr) {
-                        if (tagsArr == null || tagsArr.indexOf(goto.tag) == -1) {
+                        var tagFound = false;
+                        if (tagsArr != null) {
+                            for (tagObj in tagsArr) {
+                                if (tagObj.tag == goto.tag) {
+                                    tagFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!tagFound) {
                             var err = "Expected an existing goto tag in this method: '" + goto.tag + "' (" + key + ")";
                             errors.push({err: err, pos: goto.pos});
+                        }
+                    }
+                }
+                // Validate that no tags are defined without a goto (warn, not error).
+                for (key in tags.keys()) {
+                    var tagsArr = tags.get(key);
+                    var gotosArr = gotos.get(key);
+                    if (gotosArr == null) {
+                        for (tagObj in tagsArr) {
+                            var warn = "Tag defined but never used in a goto: '" + tagObj.tag + "' (" + key + ")";
+                            warnings.push({warn: warn, pos: tagObj.pos});
+                        }
+                    } else {
+                        for (tagObj in tagsArr) {
+                            var found = false;
+                            for (goto in gotosArr) {
+                                if (goto.tag == tagObj.tag) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                var warn = "Tag defined but never used in a goto: '" + tagObj.tag + "' (" + key + ")";
+                                warnings.push({warn: warn, pos: tagObj.pos});
+                            }
+                        }
+                    }
+                }
+
+                // Validate there is no duplicate tags in the same method
+                for (key in tags.keys()) {
+                    var tagsArr = tags.get(key);
+                    var seen:Map<String, Position> = new Map();
+                    for (tagObj in tagsArr) {
+                        if (seen.exists(tagObj.tag)) {
+                            var err = "Duplicate tag defined in the same method: '" + tagObj.tag + "' (" + key + ")";
+                            errors.push({err: err, pos: tagObj.pos});
+                        } else {
+                            seen.set(tagObj.tag, tagObj.pos);
                         }
                     }
                 }
@@ -64,7 +114,8 @@ class CUMacroTools
                     var info = "CUMacroTools Debug Info:\n";
                     info += "Registered tags:\n";
                     for (key in tags.keys()) {
-                        info += "  " + key + ": " + tags.get(key) + "\n";
+                        var tagNames = [for (tagObj in tags.get(key)) tagObj.tag];
+                        info += "  " + key + ": " + tagNames.join(", ") + "\n";
                     }
                     info += "Registered gotos:\n";
                     for (key in gotos.keys()) {
@@ -80,12 +131,27 @@ class CUMacroTools
                     for (_ in tags.keys()) tagCount++;
                     info += "Total tags: " + tagCount + "\n";
                     if (errors.length > 0) {
-                        info += "Errors:\n" + [for (e in errors) e.err].join("\n") + "\n";
+                        info += "Errors:\n";
+                        for (e in errors) {
+                            var posInfo = Context.getPosInfos(e.pos);
+                            info += e.err + " (at " + posInfo.file + ":" + posInfo.min + ")\n";
+                        }
                     }
+                    if (warnings.length > 0) {
+                        info += "Warnings:\n";
+                        for (e in warnings) {
+                            var posInfo = Context.getPosInfos(e.pos);
+                            info += e.warn + " (at " + posInfo.file + ":" + posInfo.min + ")\n";
+                        }
+                    }
+                    info += "Warning: Error/Warning Positions may be inaccurate due to macro transformations.\n";
                     Context.info(info, Context.currentPos());
                 }
 
                 // Now report errors after debug info
+                for (w in warnings) {
+                    Context.warning(w.warn, w.pos);
+                }
                 for (e in errors) {
                     Context.error(e.err, e.pos);
                 }
@@ -110,14 +176,27 @@ class CUMacroTools
             return className + "." + methodName;
         }
 
+        var pos = Context.currentPos();
         var key = getMethodKey();
         var tagArr = tags.get(key);
         if (tagArr == null) {
             tagArr = [];
             tags.set(key, tagArr);
         }
-        if (tagArr.indexOf(tag) == -1) tagArr.push(tag) else {
-            Context.error("CUMacroTools.GoToTag: Tag '" + tag + "' already exists in method '" + key + "'." + "You cannot have the same tag twice.", Context.currentPos());
+
+        // Check if tag already exists
+        var tagExists = false;
+        for (tagObj in tagArr) {
+            if (tagObj.tag == tag) {
+                tagExists = true;
+                break;
+            }
+        }
+
+        if (!tagExists) {
+            tagArr.push({tag: tag, pos: pos});
+        } else {
+            Context.error("CUMacroTools.GoToTag: Tag '" + tag + "' already exists in method '" + key + "'." + "You cannot have the same tag twice.", pos);
         }
 
         Context.warning("CUMacroTools.GoToTag: Using C++ labels is not portable and may lead to unexpected behavior. Use with caution.", Context.currentPos());

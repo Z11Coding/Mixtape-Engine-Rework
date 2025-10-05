@@ -210,6 +210,8 @@ class APPongTrapState extends PongGameState {
                     new FlxTimer().start(2.0, function(timer) {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
+                        // Save AP Data.
+                            APEntryState.apGame.updateSaveData();
                         if (previousState != null) {
                             FlxG.switchState(Type.createInstance(previousState, []));
                         } else {

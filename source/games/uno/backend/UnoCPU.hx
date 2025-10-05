@@ -243,7 +243,11 @@ class UnoCPU extends UnoPlayer {
         }
 
         // Return the color with the most cards, or a random standard color if no cards
-        return colorCounts.length > 0 ? colorCounts[0].color : colorCounts[Math.floor(Math.random() * colorCounts.length)].color;
+        return colorCounts.length > 0
+            ? colorCounts[0].color
+            : (availableColors.length > 0
+            ? availableColors[Math.floor(Math.random() * availableColors.length)]
+            : null);
     }
 
     /**

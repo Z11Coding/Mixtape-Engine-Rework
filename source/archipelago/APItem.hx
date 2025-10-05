@@ -266,8 +266,20 @@ class APItem {
                     t.isTrap = true;
                 });
             case "Pong Challenge":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                return new APTrap(name, ConditionHelper.Everywhere().funcAndReturn(function(c) {
+                    // Only allow if not already in a minigame
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        return archipelago.APInfo.inMinigame == archipelago.APInfo.APMinigame.None;
+                    });
+                }), function() {
                     popup('Ok but can you beat the Pong Master?', "APItem: Pong Challenge", true);
+
+                    // Save current state before switching to minigame
+                    if (APEntryState.apGame != null) {
+                        APEntryState.apGame.updateSaveData();
+                    }
+
                     if (MusicBeatState.getState() == APPlayState.instance) {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
@@ -336,6 +348,12 @@ class APItem {
                     });
                 }), function() {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
+
+                    // Save current state before switching to minigame
+                    if (APEntryState.apGame != null) {
+                        APEntryState.apGame.updateSaveData();
+                    }
+
                     if (MusicBeatState.getState() == APPlayState.instance) {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
@@ -1484,6 +1502,12 @@ class APItem {
             case "Pong Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Ok but can you beat the Pong Master?', "TrapLink: Pong Trap", true);
+
+                    // Save current state before switching to minigame
+                    if (APEntryState.apGame != null) {
+                        APEntryState.apGame.updateSaveData();
+                    }
+
                     if (MusicBeatState.getState() == APPlayState.instance) {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
@@ -1849,6 +1873,12 @@ class APPongTrap extends APTrap {
             var currentState = FlxG.state;
             if (Std.isOfType(currentState, MusicBeatState)) {
                 var previousState = cast(currentState, MusicBeatState);
+
+                // Save current state before switching to minigame
+                if (APEntryState.apGame != null) {
+                    APEntryState.apGame.updateSaveData();
+                }
+
                 activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, this.difficulty);
                 archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Pong;
                 MusicBeatState.switchState(activeTrapState);
@@ -1883,6 +1913,12 @@ class APPongTrap extends APTrap {
                 var currentState = FlxG.state;
                 if (Std.isOfType(currentState, MusicBeatState)) {
                     var previousState = cast(currentState, MusicBeatState);
+
+                    // Save current state before switching to minigame
+                    if (APEntryState.apGame != null) {
+                        APEntryState.apGame.updateSaveData();
+                    }
+
                     activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, nextDifficulty);
                     MusicBeatState.switchState(activeTrapState);
                     APItem.popup("Pong Challenge (" + getTrapDifficultyName(nextDifficulty) + ") activated from queue!");

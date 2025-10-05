@@ -4,7 +4,9 @@ import backend.Song;
 import flixel.FlxObject;
 import flixel.input.keyboard.FlxKey;
 import flixel.tweens.misc.NumTween;
+import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
+import managers.FreeplayManager;
 import objects.*;
 import objects.Character;
 import objects.Note;
@@ -14,6 +16,9 @@ import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
 import shaders.MosaicEffect;
 import stages.StageData;
+import states.PlayState;
+import states.freeplay.FreeplayState;
+import states.freeplay.OsuFreeplayState;
 import streamervschat.*;
 
 using yutautil.Table;
@@ -52,6 +57,9 @@ class APPlayState extends PlayState {
     private var lastDifficultyName:String = '';
     private var invulnCount:Int = 0;
     private var debugKeysDodge:Array<FlxKey>;
+
+    // Song unlock system
+    private var songNotUnlocked:Bool = false;
 	// private var unBlurShaderRestore:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
     var curDifficulty:Int = -1;
     var effectsActive:Map<String, Int> = new Map<String, Int>();
@@ -152,6 +160,64 @@ class APPlayState extends PlayState {
         allowDebugKeys = false;
         lives = livecount;
 
+        // Check if the current song/mod is unlocked; if not, set flag and show info panel
+        if (APEntryState.inArchipelagoMode)
+        {
+            var found = false;
+            for (entry in APFreeplayManager.curUnlocked)
+            {
+            if (entry.song == currentSong && entry.mod == currentMod)
+            {
+                found = true;
+                break;
+            }
+            }
+            if (!found) {
+                songNotUnlocked = true;
+                // Show info panel immediately
+                showUnlockInfoPanel();
+                return;
+            }
+        }
+
+        if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride)
+        {
+            // When manual override is active, ensure we're playing the correct saved song
+            trace('Manual Override detected - verifying song consistency');
+
+            var savedSong = FlxG.save.data.SONG;
+            var currentSong = PlayState.SONG;
+
+            // Check if the current song matches the saved song
+            if (savedSong != null && currentSong != null) {
+                var songMismatch = (savedSong.song != currentSong.song ||
+                                  FlxG.save.data.storyWeek != PlayState.storyWeek ||
+                                  FlxG.save.data.currentModDirectory != Mods.currentModDirectory ||
+                                  FlxG.save.data.storyDifficulty != PlayState.storyDifficulty);
+
+                if (songMismatch) {
+                    trace('Song mismatch detected during manual override');
+                    trace('Expected: ' + savedSong.song + ' (Week: ' + FlxG.save.data.storyWeek + ', Mod: ' + FlxG.save.data.currentModDirectory + ')');
+                    trace('Current: ' + currentSong.song + ' (Week: ' + PlayState.storyWeek + ', Mod: ' + Mods.currentModDirectory + ')');
+
+                    // Restore the correct song state and force a reset
+                    PlayState.storyWeek = FlxG.save.data.storyWeek;
+                    Mods.currentModDirectory = FlxG.save.data.currentModDirectory;
+                    Difficulty.list = FlxG.save.data.difficulties;
+                    curDifficulty = FlxG.save.data.curDifficulty;
+                    PlayState.SONG = FlxG.save.data.SONG;
+                    PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
+
+
+
+                    trace('Song state corrected - resetting APPlayState');
+                    StageData.loadDirectory(PlayState.SONG);
+                    MusicBeatState.resetState();
+                    return;
+                }
+            }
+        }
+
         instance = this; // For traps and items
         if (APEntryState.inArchipelagoMode)
         {
@@ -187,18 +253,7 @@ class APPlayState extends PlayState {
             return;
         }
 
-        if (archipelago.APInfo.inMinigame != None)
-        {
-            switch (archipelago.APInfo.inMinigame) {
-                case Uno:
-                    FlxG.switchState(new archipelago.traps.games.APUnoTrapState());
-                    return;
-                case Pong:
-                    FlxG.switchState(new archipelago.traps.games.APPongTrapState());
-                    return;
-                case None:
-            }
-        }
+
         {
 
         }
@@ -1458,6 +1513,12 @@ class APPlayState extends PlayState {
 
     override public function startCountdown():Bool
     {
+        // Prevent countdown if song is not unlocked
+        if (songNotUnlocked) {
+            // trace("Countdown blocked: Song not unlocked");
+            return false;
+        }
+
         if (PlayState.SONG.player1.toLowerCase().contains('zenetta') || PlayState.SONG.player2.toLowerCase().contains('zenetta') || PlayState.SONG.gfVersion.toLowerCase().contains('zenetta'))
         {
             itemAmount = 69;
@@ -1568,6 +1629,27 @@ class APPlayState extends PlayState {
                 }
             }
         }
+    }
+
+    function showUnlockInfoPanel() {
+        var songDisplayName = currentSong != null && currentSong != "" ? currentSong : "this song";
+        var modDisplayName = currentMod != null && currentMod != "" ? " from " + currentMod : "";
+
+        var content = "You haven't unlocked " + songDisplayName + modDisplayName + " yet.\\n\\n" +
+                     "Complete more checks in the Archipelago\\nmultiworld to unlock new songs!\\n\\n" +
+                     "Press ESC or ENTER to return to Freeplay.";
+
+        archipelago.substates.InfoPanelSubstate.show(
+            "SONG LOCKED",
+            content,
+            FlxColor.RED,
+            returnToFreeplay
+        );
+    }
+
+    function returnToFreeplay() {
+        // Use FreeplayManager's built-in method to return to freeplay
+        FreeplayManager.openFreeplay();
     }
 
     override function destroy()
@@ -1950,24 +2032,42 @@ class APPlayState extends PlayState {
 	var doRandomize:Bool = false;
     override public function update(elapsed:Float)
     {
+
+                if (archipelago.APInfo.inMinigame != None)
+        {
+            // Save current state before switching to minigame
+            if (APEntryState.apGame != null) {
+                APEntryState.apGame.updateSaveData();
+            }
+
+            switch (archipelago.APInfo.inMinigame) {
+                case Uno:
+                    FlxG.switchState(new archipelago.traps.games.APUnoTrapState());
+                    return;
+                case Pong:
+                    FlxG.switchState(new archipelago.traps.games.APPongTrapState());
+                    return;
+                case None:
+            }
+        }
         // If Legacy Lua settings are being edited, don't allow AP PlayState during gameplay
         // This prevents conflicts but doesn't interrupt mid-song
         if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode && !startedCountdown) {
             // Only switch if we haven't started the song yet to avoid interrupting gameplay
-            FlxG.switchState(new states.PlayState());
+            FlxG.switchState(new PlayState());
             return;
         }
 
         // If we're in Legacy Lua testing mode, switch to regular PlayState
-        if (states.PlayState.isLegacyLuaTest && !startedCountdown) {
-            FlxG.switchState(new states.PlayState());
+        if (PlayState.isLegacyLuaTest && !startedCountdown) {
+            FlxG.switchState(new PlayState());
             return;
         }
 
-        if (zenetta.holdTimer > Conductor.stepCrochet * 0.001 * zenetta.singDuration
-            && zenetta.animation.curAnim.name.startsWith('sing')
-            && !zenetta.animation.curAnim.name.endsWith('miss'))
-            zenetta.dance();
+        if (zenetta?.holdTimer > Conductor.stepCrochet * 0.001 * zenetta?.singDuration
+            && zenetta?.animation.curAnim.name.startsWith('sing')
+            && !zenetta?.animation.curAnim.name.endsWith('miss'))
+            zenetta?.dance();
 
         // if (archipelago.APItem.activeItem is archipelago.APItem.APChartModifier && cast(archipealgo.APItem.activeItem:archipelago.APItem.APChartModifier).chartModifier != chartModifier)
         //
@@ -2614,11 +2714,12 @@ class APPlayState extends PlayState {
             if(note.isSustainNote)
             {
                 var holdAnim:String = animToPlay + '-hold';
-                if(zenetta.animation.exists(holdAnim)) animToPlay = holdAnim;
+                if(zenetta?.animation.exists(holdAnim)) animToPlay = holdAnim;
             }
 
-            zenetta.playAnim(animToPlay, true);
+            zenetta?.playAnim(animToPlay, true);
             zenetta.holdTimer = 0;
+              "e".GoToTag();
         }
     }
 
@@ -2770,8 +2871,8 @@ class APPlayState extends PlayState {
         if (releasethebeast) {
             if (resistanceAmount < 1) resistanceAmount += 0.005;
 
-            if (curBeat % zenetta.danceEveryNumBeats == 0 && !zenetta.getAnimationName().endsWith('-alt')) {
-                zenetta.dance();
+            if (curBeat % zenetta?.danceEveryNumBeats == 0 && !zenetta?.getAnimationName().endsWith('-alt')) {
+                zenetta?.dance();
             }
         }
         super.beatHit();

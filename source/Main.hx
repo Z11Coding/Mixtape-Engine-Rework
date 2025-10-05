@@ -292,6 +292,9 @@ class Main extends Sprite
 		// "NativeTrace works with double quotes too!".NativeTrace(true);
 		// testArray.NativeTrace(true, false);
 
+							backend.window.CppAPI.setWindowOpacity(1);
+
+
 
 		yutautil.Threader.runInThread(commandPrompt.start(), 0, "cmd", true, 0);
 		#if HSCRIPT_ALLOWED

@@ -539,16 +539,20 @@ class Client {
 	}
 
 	public function updateLinkTags(deathLink:Bool, trapLink:Bool) {
-		// Use tags manager for cleaner tag management
-		tagsManager.set(['AP', 'Testing']);
-		if (deathLink) tagsManager.add('DeathLink');
-		if (trapLink) tagsManager.add('TrapLink');
+		// Set all tags at once for cleaner tag management
+		var tags = ['AP', 'Testing'];
+		if (deathLink) tags.push('DeathLink');
+		if (trapLink) tags.push('TrapLink');
+		tagsManager.set(tags);
 	}
 
 	public function changeTags(tags:Array<String>) {
 		// Start with default tags and add new ones
-		tagsManager.set(['AP', 'Testing']);
-		tagsManager.add(tags);
+		var newTags = ['AP', 'Testing'];
+		for (tag in tags) {
+			if (!newTags.contains(tag)) newTags.push(tag);
+		}
+		tagsManager.set(newTags);
 	}
 
 	public inline function get_server_time()
@@ -565,12 +569,12 @@ class Client {
 		}
 		return _tagsManager;
 	}
-
+	var allowDirectTagSet:Bool = false;
 	public function set_tags(tags) {
 		currentTags = tags;
 
 		// Keep tags manager in sync when tags are set directly
-		if (_tagsManager != null) {
+		if (_tagsManager != null && allowDirectTagSet) {
 			_tagsManager.syncFromClient();
 		}
 

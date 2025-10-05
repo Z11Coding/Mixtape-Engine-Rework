@@ -541,7 +541,7 @@ class APGameState
 			trace("No locations found for song: " + songName + " with mod: " + modName);
 			archipelago.APItem.popup("No locations found for song: " + songName + " with mod: " + modName, "Archipelago", true);
 			archipelago.substates.InfoPanelSubstate.show("Victory Song Missing", "No locations found for song: " + songName + " with mod: " + modName
-				+ ".\n\nMake sure that the song is added to your game, or the mod for this song is enabled.", 0xFF0000, null);
+				+ ".\n\nMake sure that the song is added to your game, or the mod for this song is enabled.\n\nIf it is installed correctly, this may be a false error. This is here to prevent auto-goaling from ending your run early.", 0xFF0000, null);
 			return false;
 		}
 		for (location in locations)
@@ -699,7 +699,7 @@ class APGameState
 
 	function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void
 	{
-		//trace("Retrieved packet: " + retrievedPacket);
+		trace("Retrieved packet: " + retrievedPacket);
 		for (key in retrievedPacket.keys())
 		{
 			var value = retrievedPacket.get(key);
@@ -915,6 +915,21 @@ class APGameState
 			var colors:Array<{name:String, color_code:String}> = _saveData.getItem("unlockedUnoColors");
 			archipelago.APItem.unoColorsUnlocked = colors;
 		}
+		@:privateAccess
+		if (_saveData.hasItem("confusionStacks"))
+		{
+			APItem.confusionStack = _saveData.getItem("confusionStacks");
+		}
+		if (_saveData.hasItem("currentMinigame"))
+		{
+			var minigameValue:Int = _saveData.getItem("currentMinigame");
+			switch (minigameValue) {
+				case 0: APInfo.inMinigame = None;
+				case 1: APInfo.inMinigame = Uno;
+				case 2: APInfo.inMinigame = Pong;
+				default: APInfo.inMinigame = None;
+			}
+		}
 		_saveData.save();
 	}
 
@@ -939,6 +954,17 @@ class APGameState
 		_saveData.addItem("hasPocketLens", APItem.hasPocketLens);
 		_saveData.addItem("hasDashMechanic", APItem.hasDashMechanic);
 		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
+		@:privateAccess
+		_saveData.addItem("confusionStack", APItem.confusionStack);
+
+		// Save current minigame state
+		var minigameValue:Int = switch (APInfo.inMinigame) {
+			case None: 0;
+			case Uno: 1;
+			case Pong: 2;
+		};
+		_saveData.addItem("currentMinigame", minigameValue);
+
 		_saveData.save();
 		trace("Save data updated!");
 	}

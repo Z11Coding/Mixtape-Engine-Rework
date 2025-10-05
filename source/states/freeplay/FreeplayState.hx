@@ -410,33 +410,32 @@ class FreeplayState extends MusicBeatState
 				var color:FlxColor = 0xFFFFFFFF;
 				var someLocationsNotMissing:Bool = false;
 
-				if (APEntryState.inArchipelagoMode) {
-					songName = fpManager.songList[i].songName;
-					modName = fpManager.songList[i].folder;
-					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+			if (APEntryState.inArchipelagoMode) {
+				songName = fpManager.songList[i].songName;
+				modName = fpManager.songList[i].folder;
+				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
-					// Check if song is unlocked
-					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
+				// Check if song is unlocked (in curUnlocked)
+				var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
 
-					// Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
-					color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
-
-					someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
-
-					for (songObj in APFreeplayManager.curUnlocked)
-					{
-						if (((songName.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && modName == songObj.mod) && isMissing) {
-							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-						}
-					}
-
-					if (!APFreeplayManager.unplayedList.contains({song: songName, mod: modName}) && isMissing) {
+				// Color logic based on requirements:
+				// RED = not unlocked (locked)
+				// WHITE = unlocked with all locations missing
+				// GRAY = unlocked with some locations missing
+				// GREEN = unlocked with no locations missing (completed)
+				if (!isUnlocked) {
+					color = FlxColor.RED; // Locked song
+				} else {
+					if (!isMissing) {
+						color = FlxColor.GREEN; // Fully completed
+					} else {
+						// Check if some locations are not missing (partially completed)
+						someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 						color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
 					}
 				}
-
-
+			}
 				var songText:Alphabet = null;
 				if (APEntryState.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
@@ -472,8 +471,18 @@ class FreeplayState extends MusicBeatState
 
 				songText.visible = songText.active = songText.isMenuItem = false;
 
-				var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains({song: songName, mod: modName}) && !someLocationsNotMissing;
-				var iconName = isLock ? "lock" : (archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
+				var isLock:Bool = false;
+				var iconName:String = "";
+
+				if (APEntryState.inArchipelagoMode) {
+					// Song is locked if it's not in curUnlocked
+					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+					isLock = !isUnlocked;
+					iconName = isLock ? "lock" : (archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
+				} else {
+					iconName = fpManager.songList[i].songCharacter;
+				}
+
 				var icon:HealthIcon = new HealthIcon(iconName);
 				icon.sprTracker = songText;
 				icon.visible = icon.active = false;
@@ -871,6 +880,25 @@ class FreeplayState extends MusicBeatState
 						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
 					});
 					FlxTween.color(ticketCounter, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					return;
+				}
+
+				// Check if song is locked (not in curUnlocked)
+				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == fpManager.songList[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == fpManager.songList[curSelected].folder].contains(true);
+				var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
+
+				if (isLocked) {
+					trace('Song is locked (not in curUnlocked)!');
+					FlxG.camera.shake(0.005, 0.5);
+					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
+					grpSongs.forEach(function(item:FlxSprite)
+					{
+						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					});
+					grpLocks.forEach(function(item:FlxSprite)
+					{
+						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+					});
 					return;
 				}
 

@@ -69,8 +69,16 @@ class UnoDeck {
                     cards.push(new UnoCard(color, NUMBER, i));
                     cards.push(new UnoCard(color, NUMBER, i));
                 }
-            }
+
+            // Add two of each action card for each color
+            cards.push(new UnoCard(color, SKIP));
+            cards.push(new UnoCard(color, SKIP));
+            cards.push(new UnoCard(color, REVERSE));
+            cards.push(new UnoCard(color, REVERSE));
+            cards.push(new UnoCard(color, DRAW_TWO));
+            cards.push(new UnoCard(color, DRAW_TWO));
         }
+    }
 
         // Add custom cards if provided
         if (customCards != null) {
