@@ -71,8 +71,8 @@ class OsuFreeplayState extends MusicBeatState
 
 		// Check if the Victory Song is cleared.
 		{
-			APFreeplayManager.checkVictory();
 			APFreeplayManager.updateArchFreeplay();
+			APFreeplayManager.checkVictory();
 		}
 
 		Highscore.reloadModifiers();
