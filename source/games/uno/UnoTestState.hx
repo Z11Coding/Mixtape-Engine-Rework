@@ -19,6 +19,7 @@ import games.uno.backend.*;
 import games.uno.backend.UnoCPU.UnoDifficulty;
 import games.uno.backend.UnoCard.UnoCardType;
 import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoPlayer;
 import lime.media.openal.AL;
 import lime.media.openal.ALEffect;
 import objects.Alphabet;
@@ -49,7 +50,10 @@ class UnoTestState extends MusicBeatState {
 
     // Game state
     private var selectedCardIndex:Int = -1;
+    private var selectedCard:UnoCard; // Store the selected card reference
     private var waitingForColorChoice:Bool = false;
+    private var waitingForHandSwap:Bool = false;
+    private var lastHandSwapTime:Float = 0; // Track when last hand swap was initiated
     private var availableColors:Array<UnoColor>;
     private var colorChoiceGroup:FlxTypedGroup<FlxSprite>;
     var instructionFade:FlxTween;
@@ -363,6 +367,49 @@ class UnoTestState extends MusicBeatState {
             waitingForColorChoice = false;
             updateDisplay();
         };
+
+        // Set up hand swap event handler
+        if (unoGame.onSevenRuleHandSwap == null) {
+            unoGame.onSevenRuleHandSwap = function(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, performHandSwap:UnoPlayer->Void):Void {
+                // Prevent multiple simultaneous hand swaps
+                if (waitingForHandSwap) {
+                    trace("Hand swap already in progress, ignoring additional request");
+                    return;
+                }
+                
+                // Prevent rapid successive hand swaps (within 1 second)
+                var currentTime = haxe.Timer.stamp();
+                if (currentTime - lastHandSwapTime < 1.0) {
+                    trace("Hand swap called too soon after previous one, ignoring");
+                    return;
+                }
+                lastHandSwapTime = currentTime;
+                
+                // Set waiting flag to prevent turn advancement
+                waitingForHandSwap = true;
+                
+                // Open the hand swap substate for player selection
+                var handSwapSubstate = new HandSwapSubstate(currentPlayer, availablePlayers, function(selectedPlayer:UnoPlayer) {
+                    // Reset waiting flag first
+                    waitingForHandSwap = false;
+                    
+                    // Perform the actual hand swap through the rules system
+                    performHandSwap(selectedPlayer);
+                    
+                    // Update UI after swap is complete
+                    if (selectedPlayer != null) {
+                        updateInstructionText('${currentPlayer.name} swapped hands with ${selectedPlayer.name}!', true);
+                        // Force display update to show new hands
+                        updateDisplay();
+                    } else {
+                        updateInstructionText("Hand swap cancelled", true);
+                    }
+                });
+
+                openSubState(handSwapSubstate);
+            };
+
+        }
 
         unoGame.afterCardPlayed = (player, card) -> {
             if (card != null) {
@@ -796,6 +843,12 @@ class UnoTestState extends MusicBeatState {
             return;
         }
 
+        // Don't process CPU turns while waiting for hand swap or color choice
+        if (waitingForHandSwap || waitingForColorChoice) {
+            trace("Waiting for hand swap or color choice, delaying CPU turn");
+            return;
+        }
+
         var currentPlayer = unoGame.turnManager.getCurrentPlayer();
         if (currentPlayer == null || currentPlayer.isHuman) {
             //trace("Current player is null or human, skipping CPU turn");
@@ -840,6 +893,11 @@ class UnoTestState extends MusicBeatState {
     }
 
     private function handleCardClick(cardIndex:Int):Void {
+        // Prevent interactions during waiting states
+        if (waitingForColorChoice || waitingForHandSwap) {
+            return;
+        }
+
         if (!isGameStarted || unoGame == null || unoGame.turnManager == null) {
             trace("Cannot handle card click: game not ready");
             Cursor.cursorMode = Default;
@@ -887,51 +945,21 @@ class UnoTestState extends MusicBeatState {
             return;
         }
 
+        // Store the selected card and index
+        selectedCardIndex = cardIndex;
+        selectedCard = card;
+        
         // Immediately stop hover effects and clear selection states
         isPlayingCard = true;
         resetCardSelection();
         Cursor.cursorMode = Default;
 
-        selectedCardIndex = cardIndex;
-
         if (card.isWildCard()) {
-            // Show color choice
-            showColorChoice();
+            // Show color choice using substate
+            showColorChoiceSubstate();
         } else {
             // Play the card directly with animation
-            var cardSprite = (cardIndex < playerHandGroup.length) ? playerHandGroup.members[cardIndex] : null;
-            if (cardSprite != null) {
-                // Cancel any existing animations on this sprite
-                if (cardAnimations.exists(cardSprite)) {
-                    cardAnimations.get(cardSprite).cancel();
-                    cardAnimations.remove(cardSprite);
-                }
-
-                // Reset sprite to base state before animation
-                cardSprite.color = FlxColor.WHITE;
-                cardSprite.angle = 0;
-
-                animateCardPlay(cardSprite, function() {
-                    // The card play happens after animation completes
-                    var success = unoGame.playCard(currentPlayer, cardIndex);
-                    if (success) {
-                        selectedCardIndex = -1;
-                        isPlayingCard = false;
-                    } else {
-                        updateInstructionText("Failed to play card!", true);
-                        isPlayingCard = false;
-                    }
-                });
-            } else {
-                // Fallback if no sprite
-                var success = unoGame.playCard(currentPlayer, cardIndex);
-                if (success) {
-                    selectedCardIndex = -1;
-                } else {
-                    updateInstructionText("Failed to play card!", true);
-                }
-                isPlayingCard = false;
-            }
+            playSelectedCard(null);
         }
     }
 
@@ -1122,79 +1150,87 @@ class UnoTestState extends MusicBeatState {
         FlxTween.color(cardSprite, 0.4, FlxColor.RED, originalColor);
     }
 
-    private function showColorChoice():Void {
+    private function showColorChoiceSubstate():Void {
         if (unoGame == null || unoGame.turnManager == null) {
             trace("Cannot show color choice: missing game components");
             return;
         }
 
         waitingForColorChoice = true;
-        colorChoiceGroup.clear();
-
-        // Get available colors (standard colors only for simplicity)
+        
+        // Get available colors
         availableColors = (unoGame.customColors != null && unoGame.customColors.length > 0 ? unoGame.customColors : UnoCard.getStandardColors());
 
-        // Remove WILD from choosable colors
-        availableColors = availableColors.filter(function(color) return color != WILD);
+        // Open the stylish color choice substate
+        var colorChoiceSubstate = new ColorChoiceSubstate(unoGame.turnManager.getCurrentPlayer(), availableColors, function(selectedColor:UnoColor) {
+            waitingForColorChoice = false;
+            
+            if (selectedColor != null) {
+                // Play the selected card with the chosen color
+                playSelectedCard(selectedColor);
+            } else {
+                // Color choice was cancelled
+                selectedCardIndex = -1;
+                selectedCard = null;
+                isPlayingCard = false;
+                resetCardSelection();
+                updateInstructionText("Color choice cancelled");
+            }
+        });
 
-        // Create color choice buttons
-        var startX = FlxG.width * 0.5 - (availableColors.length * 30);
-        var y = 300;
+        openSubState(colorChoiceSubstate);
+    }
 
-        for (i in 0...availableColors.length) {
-            var colorButton = new FlxSprite(startX + (i * 60), y);
-            var buttonColor = switch(availableColors[i]) {
-                case RED: FlxColor.RED;
-                case BLUE: FlxColor.BLUE;
-                case GREEN: FlxColor.GREEN;
-                case YELLOW: FlxColor.YELLOW;
-                case CUSTOM(color, _): color;
-                case _: FlxColor.WHITE;
-            };
-            colorButton.makeGraphic(50, 50, buttonColor);
-
-            // Add a border
-            var border = new FlxSprite();
-            border.makeGraphic(46, 46, FlxColor.WHITE);
-            colorButton.stamp(border, 2, 2);
-
-            // Add color text
-            var colorName = switch(availableColors[i]) {
-                case RED: "RED";
-                case BLUE: "BLUE";
-                case GREEN: "GREEN";
-                case YELLOW: "YELLOW";
-                case CUSTOM(_, name): name != null ? name.substr(0, 6) : "CUSTOM";
-                case _: "?";
-            };
-
-            var colorText = new FlxText(0, 0, 50, colorName, 8);
-            colorText.setFormat(Paths.font("vcr.ttf"), 8, FlxColor.BLACK, CENTER);
-            colorText.y = 21; // Center vertically
-            colorButton.stamp(colorText, 0, 0);
-
-            colorChoiceGroup.add(colorButton);
+    private function playSelectedCard(chosenColor:UnoColor):Void {
+        if (selectedCard == null) {
+            trace("No card selected to play");
+            isPlayingCard = false;
+            return;
         }
 
-        updateInstructionText("Choose a color by clicking on it");
+        var currentPlayer = unoGame.turnManager.getCurrentPlayer();
+        if (currentPlayer == null || !currentPlayer.isHuman) {
+            trace("Invalid player state");
+            isPlayingCard = false;
+            return;
+        }
 
-        /*try {
-            waitingForColorChoice = true;
-            colorChoiceGroup.clear();
+        // Find the current index of the selected card (in case hand was reordered)
+        var currentCardIndex = -1;
+        for (i in 0...currentPlayer.hand.cards.length) {
+            if (currentPlayer.hand.cards[i] == selectedCard) {
+                currentCardIndex = i;
+                break;
+            }
+        }
+        
+        if (currentCardIndex == -1) {
+            trace("Selected card no longer in hand");
+            selectedCardIndex = -1;
+            selectedCard = null;
+            isPlayingCard = false;
+            resetCardSelection();
+            updateInstructionText("Card is no longer available!", true);
+            return;
+        }
 
-            // Get available colors (standard colors only for simplicity)
-            availableColors = unoGame.customColors;
+        // Get the card sprite for animation
+        var cardSprite = (currentCardIndex < playerHandGroup.length) ? playerHandGroup.members[currentCardIndex] : null;
+        
+        if (cardSprite != null) {
+            // Cancel any existing animations on this sprite
+            if (cardAnimations.exists(cardSprite)) {
+                cardAnimations.get(cardSprite).cancel();
+                cardAnimations.remove(cardSprite);
+            }
 
-            // Remove WILD from choosable colors
-            availableColors = availableColors.filter(function(color) return color != WILD);
+            // Reset sprite to base state before animation
+            cardSprite.color = FlxColor.WHITE;
+            cardSprite.angle = 0;
 
-            // Create color choice buttons
-            var startX = FlxG.width * 0.5 - (availableColors.length * 30);
-            var y = 500;
-
-            for (i in 0...availableColors.length) {
-                var colorButton = new FlxSprite(startX + (i * 60), y);
-                var buttonColor = switch(availableColors[i]) {
+            // If it's a wild card and we have a chosen color, update sprite color
+            if (selectedCard.isWildCard() && chosenColor != null) {
+                var targetColor = switch(chosenColor) {
                     case RED: FlxColor.RED;
                     case BLUE: FlxColor.BLUE;
                     case GREEN: FlxColor.GREEN;
@@ -1202,108 +1238,46 @@ class UnoTestState extends MusicBeatState {
                     case CUSTOM(color, _): color;
                     case _: FlxColor.WHITE;
                 };
-                colorButton.makeGraphic(50, 50, buttonColor);
-
-                // Add a border
-                var border = new FlxSprite();
-                border.makeGraphic(46, 46, FlxColor.WHITE);
-                colorButton.stamp(border, 2, 2);
-
-                // Add color text
-                var colorName = switch(availableColors[i]) {
-                    case RED: "RED";
-                    case BLUE: "BLUE";
-                    case GREEN: "GREEN";
-                    case YELLOW: "YELLOW";
-                    case CUSTOM(_, name): name != null ? name.substr(0, 6) : "CUSTOM";
-                    case _: "?";
-                };
-
-                var colorText = new FlxText(0, 0, 50, colorName, 8);
-                colorText.setFormat(Paths.font("vcr.ttf"), 8, FlxColor.BLACK, CENTER);
-                colorText.y = 21; // Center vertically
-                colorButton.stamp(colorText, 0, 0);
-
-                colorChoiceGroup.add(colorButton);
+                
+                // Animate color change before playing
+                FlxTween.color(cardSprite, 0.2, FlxColor.WHITE, targetColor, {
+                    ease: FlxEase.sineOut,
+                    onComplete: function(_) {
+                        // Now animate the card play
+                        animateCardPlay(cardSprite, function() {
+                            // Play the card after animation completes
+                            var success = unoGame.playCard(currentPlayer, currentCardIndex, chosenColor);
+                            finishCardPlay(success, chosenColor);
+                        });
+                    }
+                });
+            } else {
+                // Regular card or wild without color - just animate play
+                animateCardPlay(cardSprite, function() {
+                    // Play the card after animation completes
+                    var success = unoGame.playCard(currentPlayer, currentCardIndex, chosenColor);
+                    finishCardPlay(success, chosenColor);
+                });
             }
-
-            updateInstructionText("Choose a color by clicking on it");
-        } catch (e:Dynamic) {
-            trace("Error showing color choice: " + new DetailedException(e));
-            waitingForColorChoice = false;
-        }*/
+        } else {
+            // Fallback if no sprite
+            var success = unoGame.playCard(currentPlayer, currentCardIndex, chosenColor);
+            finishCardPlay(success, chosenColor);
+        }
     }
 
-    private function handleColorChoice(colorIndex:Int):Void {
-        if (!waitingForColorChoice || availableColors == null || colorIndex >= availableColors.length) {
-            trace("Invalid color choice: " + colorIndex);
-            Cursor.cursorMode = Default;
-            return;
-        }
-
-        try {
-            var chosenColor = availableColors[colorIndex];
-            if (unoGame != null && unoGame.turnManager != null) {
-                var humanPlayer = unoGame.turnManager.getCurrentPlayer();
-                if (humanPlayer != null && humanPlayer.isHuman) {
-                    // Set playing flag to prevent hover interference
-                    isPlayingCard = true;
-
-                    // Animate the wild card being played
-                    var cardSprite = (selectedCardIndex >= 0 && selectedCardIndex < playerHandGroup.length) ?
-                                    playerHandGroup.members[selectedCardIndex] : null;
-
-                    if (cardSprite != null) {
-                        // Cancel any existing animations and reset sprite
-                        if (cardAnimations.exists(cardSprite)) {
-                            cardAnimations.get(cardSprite).cancel();
-                            cardAnimations.remove(cardSprite);
-                        }
-                        cardSprite.color = FlxColor.WHITE;
-                        cardSprite.angle = 0;
-
-                        animateCardPlay(cardSprite, function() {
-                            // Play the card after animation
-                            var success = unoGame.playCard(humanPlayer, selectedCardIndex, chosenColor);
-                            if (success) {
-                                selectedCardIndex = -1;
-                                waitingForColorChoice = false;
-                                colorChoiceGroup.clear();
-                                resetCardSelection();
-                                updateInstructionText("Color Picked: "+chosenColor, true);
-                            } else {
-                                updateInstructionText("Failed to play wild card!", true);
-                                waitingForColorChoice = false;
-                                colorChoiceGroup.clear();
-                            }
-                            isPlayingCard = false;
-                        });
-                    } else {
-                        // Fallback if no sprite
-                        var success = unoGame.playCard(humanPlayer, selectedCardIndex, chosenColor);
-                        if (success) {
-                            selectedCardIndex = -1;
-                            waitingForColorChoice = false;
-                            colorChoiceGroup.clear();
-                            resetCardSelection();
-                            updateInstructionText("Color Picked: "+chosenColor, true);
-                        } else {
-                            updateInstructionText("Failed to play wild card!", true);
-                            waitingForColorChoice = false;
-                            colorChoiceGroup.clear();
-                        }
-                        isPlayingCard = false;
-                        Cursor.cursorMode = Default;
-                    }
-                }
+    private function finishCardPlay(success:Bool, chosenColor:UnoColor):Void {
+        if (success) {
+            selectedCardIndex = -1;
+            selectedCard = null;
+            if (chosenColor != null) {
+                updateInstructionText("Color Picked: " + chosenColor, true);
             }
-        } catch (e:Dynamic) {
-            trace("Error handling color choice: " + e);
-            waitingForColorChoice = false;
-            colorChoiceGroup.clear();
-            isPlayingCard = false;
-            Cursor.cursorMode = Default;
+        } else {
+            updateInstructionText("Failed to play card!", true);
         }
+        isPlayingCard = false;
+        resetCardSelection();
     }    private function updateInstructionText(text:String, ?doFade:Bool = false):Void {
         var originalText = instructionText.text;
         if (instructionText != null) {
@@ -1428,18 +1402,8 @@ class UnoTestState extends MusicBeatState {
         }
 
         // Handle mouse clicks
-        if (FlxG.mouse.justPressed && isGameStarted) {
-            if (waitingForColorChoice) {
-                // Check color choice clicks
-                for (i in 0...colorChoiceGroup.length) {
-                    var colorButton = colorChoiceGroup.members[i];
-                    if (colorButton != null && FlxG.mouse.overlaps(colorButton)) {
-                        Cursor.cursorMode = Pointer;
-                        handleColorChoice(i);
-                        break;
-                    }
-                }
-            } else if (unoGame != null && unoGame.turnManager != null) {
+        if (FlxG.mouse.justPressed && isGameStarted && !waitingForColorChoice && !waitingForHandSwap) {
+            if (unoGame != null && unoGame.turnManager != null) {
                 var currentPlayer = unoGame.turnManager.getCurrentPlayer();
                 if (currentPlayer != null && currentPlayer.isHuman) {
                     // Check card clicks
@@ -1456,9 +1420,9 @@ class UnoTestState extends MusicBeatState {
         }
 
         // Handle mouse hover effects for card selection
-        if (isGameStarted && unoGame != null && unoGame.turnManager != null && !isPlayingCard) {
+        if (isGameStarted && unoGame != null && unoGame.turnManager != null && !isPlayingCard && !waitingForColorChoice && !waitingForHandSwap) {
             var currentPlayer = unoGame.turnManager.getCurrentPlayer();
-            if (currentPlayer != null && currentPlayer.isHuman && !waitingForColorChoice) {
+            if (currentPlayer != null && currentPlayer.isHuman) {
                 var foundHover = false;
 
                 for (i in 0...playerHandGroup.length) {

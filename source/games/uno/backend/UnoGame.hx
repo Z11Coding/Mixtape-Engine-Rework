@@ -20,6 +20,7 @@ class UnoGame {
     public var lastPlayedCard:UnoCard;
     public var customColors:Array<UnoColor>; // Optional custom colors for the deck
     public var customCards:Array<UnoCard>; // Optional custom cards for the deck
+    private var handSwapProcessed:Bool = false; // Track if hand swap has been processed this turn
 
     // Events
     public var onGameStart:Void->Void;
@@ -35,6 +36,7 @@ class UnoGame {
     public var onPlayerSkipped:UnoPlayer->Void;
     public var onWildColorChosen:UnoColor->Void;
     public var onChallenge:UnoPlayer->UnoPlayer->Bool->Void;
+    public var onSevenRuleHandSwap:(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void)->Void;
 
     public function new(?customColors:Array<UnoColor>, ?includeBaseColors:Bool = true, ?customCards:Array<UnoCard>) {
         deck = new UnoDeck();
@@ -243,6 +245,7 @@ class UnoGame {
         afterCardPlayed(player, playedCard);
 
         // Next turn
+        handSwapProcessed = false; // Reset for next turn
         turnManager.nextTurn();
         updateGameState();
 
@@ -290,7 +293,12 @@ class UnoGame {
                 }
 
             case NUMBER:
-                UnoRules.applySevenZeroRule(card, players, turnManager.currentPlayerIndex);
+                if (!handSwapProcessed) {
+                    UnoRules.applySevenZeroRule(card, players, turnManager.currentPlayerIndex, onSevenRuleHandSwap);
+                    if (card.value == 7) {
+                        handSwapProcessed = true; // Mark as processed to prevent multiple triggers
+                    }
+                }
 
             case WILD:
                 // No additional effect beyond color change
@@ -319,6 +327,7 @@ class UnoGame {
 
         // If player drew due to no playable cards, advance turn
         if (turnManager.getCurrentPlayer() == player && !UnoRules.mustPlayIfPossible()) {
+            handSwapProcessed = false; // Reset for next turn
             turnManager.nextTurn();
             updateGameState();
         }

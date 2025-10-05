@@ -46,30 +46,98 @@ class HandSwapSubstate extends MusicBeatSubstate {
     }
 
     override function create() {
-        super.create();
+        try {
+            super.create();
+        } catch(e:Dynamic) {
+            trace("Error in super.create: " + e);
+        }
 
-        setupBackground();
-        setupUI();
-        setupPlayerOptions();
-        setupParticles();
-        animateIn();
+        try {
+            setupBackground();
+        } catch(e:Dynamic) {
+            trace("Error in setupBackground: " + e);
+        }
+        
+        try {
+            setupUI();
+        } catch(e:Dynamic) {
+            trace("Error in setupUI: " + e);
+        }
+        
+        try {
+            setupPlayerOptions();
+        } catch(e:Dynamic) {
+            trace("Error in setupPlayerOptions: " + e);
+        }
+        
+        try {
+            setupParticles();
+        } catch(e:Dynamic) {
+            trace("Error in setupParticles: " + e);
+        }
+        
+        try {
+            animateIn();
+        } catch(e:Dynamic) {
+            trace("Error in animateIn: " + e);
+            // Fallback: mark animation as complete
+            animationComplete = true;
+        }
 
         // Handle CPU players automatically
-        if (!currentPlayer.isHuman) {
-            cpuThinkingTimer = new FlxTimer().start(1.5, function(_) {
-                // CPU chooses player with smallest hand (most beneficial)
-                var bestChoice = availablePlayers[0];
-                for (player in availablePlayers) {
-                    if (player.getHandSize() < bestChoice.getHandSize()) {
-                        bestChoice = player;
+        try {
+            if (currentPlayer != null && !currentPlayer.isHuman) {
+                // Wait for animation to complete, then start CPU thinking
+                try {
+                    new FlxTimer().start(1.5, function(_) {
+                        try {
+                            if (animationComplete) {
+                                startCPUSelection();
+                            } else {
+                                // If animation isn't complete yet, wait a bit more
+                                try {
+                                    new FlxTimer().start(0.2, function(_) {
+                                        startCPUSelection();
+                                    });
+                                } catch(e:Dynamic) {
+                                    trace("Error in CPU backup timer: " + e);
+                                    startCPUSelection();
+                                }
+                            }
+                        } catch(e:Dynamic) {
+                            trace("Error in CPU timer callback: " + e);
+                            try {
+                                startCPUSelection();
+                            } catch(e2:Dynamic) {
+                                trace("Error in CPU fallback: " + e2);
+                            }
+                        }
+                    });
+                } catch(e:Dynamic) {
+                    trace("Error starting CPU timer: " + e);
+                    // Immediate fallback
+                    try {
+                        startCPUSelection();
+                    } catch(e2:Dynamic) {
+                        trace("Error in immediate CPU fallback: " + e2);
                     }
                 }
-                selectPlayer(availablePlayers.indexOf(bestChoice));
-            });
-            Cursor.hide();
-        } else {
-            Cursor.show();
-            Cursor.cursorMode = Default;
+                
+                try {
+                    Cursor.hide();
+                } catch(e:Dynamic) {
+                    trace("Error hiding cursor: " + e);
+                }
+            } else {
+                try {
+                    Cursor.show();
+                    Cursor.cursorMode = Default;
+                } catch(e:Dynamic) {
+                    trace("Error showing cursor: " + e);
+                }
+            }
+        } catch(e:Dynamic) {
+            trace("Error in CPU/cursor setup: " + e);
         }
     }
 
@@ -205,55 +273,114 @@ class HandSwapSubstate extends MusicBeatSubstate {
     }
 
     private function animateIn():Void {
-        // Fade in background
-        FlxTween.tween(bgOverlay, {alpha: 1}, 0.5, {ease: FlxEase.sineOut});
+        try {
+            // Fade in background
+            try {
+                if (bgOverlay != null) {
+                    FlxTween.tween(bgOverlay, {alpha: 1}, 0.5, {ease: FlxEase.sineOut});
+                }
+            } catch(e:Dynamic) {
+                trace("Error animating background: " + e);
+            }
 
-        // Animate title
-        FlxTween.tween(titleText, {alpha: 1, y: titleText.y + 50}, 0.6, {
-            ease: FlxEase.backOut,
-            startDelay: 0.2
-        });
+            // Animate title
+            try {
+                if (titleText != null) {
+                    FlxTween.tween(titleText, {alpha: 1, y: titleText.y + 50}, 0.6, {
+                        ease: FlxEase.backOut,
+                        startDelay: 0.2
+                    });
+                }
+            } catch(e:Dynamic) {
+                trace("Error animating title: " + e);
+            }
 
-        // Animate instruction
-        FlxTween.tween(instructionText, {alpha: 1, y: instructionText.y + 30}, 0.6, {
-            ease: FlxEase.backOut,
-            startDelay: 0.4
-        });
+            // Animate instruction
+            try {
+                if (instructionText != null) {
+                    FlxTween.tween(instructionText, {alpha: 1, y: instructionText.y + 30}, 0.6, {
+                        ease: FlxEase.backOut,
+                        startDelay: 0.4
+                    });
+                }
+            } catch(e:Dynamic) {
+                trace("Error animating instruction: " + e);
+            }
 
-        // Animate player options with stagger
-        for (i in 0...playerButtons.length) {
-            var button = playerButtons.members[i];
-            var text = playerTexts.members[i];
-            var cards = playerCards.members[i];
+            // Animate player options with stagger
+            try {
+                if (playerButtons != null && playerTexts != null && playerCards != null) {
+                    for (i in 0...playerButtons.length) {
+                        try {
+                            var button = null, text = null, cards = null;
+                            
+                            // Safely get elements
+                            try { button = (i < playerButtons.members.length) ? playerButtons.members[i] : null; } catch(e:Dynamic) button = null;
+                            try { text = (i < playerTexts.members.length) ? playerTexts.members[i] : null; } catch(e:Dynamic) text = null;
+                            try { cards = (i < playerCards.members.length) ? playerCards.members[i] : null; } catch(e:Dynamic) cards = null;
 
-            if (button == null || text == null || cards == null) continue;
+                            if (button == null || text == null || cards == null) {
+                                trace("Skipping animation for index " + i + " - missing elements");
+                                continue;
+                            }
 
-            var delay = 0.6 + (i * 0.1);
+                            var delay = 0.6 + (i * 0.1);
 
-            // Scale in button
-            FlxTween.tween(button.scale, {x: 1, y: 1}, 0.4, {
-                ease: FlxEase.backOut,
-                startDelay: delay
-            });
+                            // Scale in button
+                            try {
+                                if (button.scale != null) {
+                                    FlxTween.tween(button.scale, {x: 1, y: 1}, 0.4, {
+                                        ease: FlxEase.backOut,
+                                        startDelay: delay
+                                    });
+                                }
+                                FlxTween.tween(button, {alpha: 1}, 0.3, {
+                                    startDelay: delay
+                                });
+                            } catch(e:Dynamic) {
+                                trace("Error animating button " + i + ": " + e);
+                            }
 
-            FlxTween.tween(button, {alpha: 1}, 0.3, {
-                startDelay: delay
-            });
+                            // Fade in text and cards
+                            try {
+                                FlxTween.tween(text, {alpha: 1}, 0.3, {
+                                    startDelay: delay + 0.2
+                                });
+                            } catch(e:Dynamic) {
+                                trace("Error animating text " + i + ": " + e);
+                            }
 
-            // Fade in text and cards
-            FlxTween.tween(text, {alpha: 1}, 0.3, {
-                startDelay: delay + 0.2
-            });
+                            try {
+                                FlxTween.tween(cards, {alpha: 1}, 0.3, {
+                                    startDelay: delay + 0.3
+                                });
+                            } catch(e:Dynamic) {
+                                trace("Error animating cards " + i + ": " + e);
+                            }
+                        } catch(e:Dynamic) {
+                            trace("Error in player option animation " + i + ": " + e);
+                        }
+                    }
+                }
+            } catch(e:Dynamic) {
+                trace("Error in player options animation loop: " + e);
+            }
 
-            FlxTween.tween(cards, {alpha: 1}, 0.3, {
-                startDelay: delay + 0.3
-            });
-        }
-
-        // Mark animation complete
-        new FlxTimer().start(1.5, function(_) {
+            // Mark animation complete
+            try {
+                new FlxTimer().start(1.5, function(_) {
+                    animationComplete = true;
+                });
+            } catch(e:Dynamic) {
+                trace("Error starting animation timer: " + e);
+                // Fallback: set animation complete immediately
+                animationComplete = true;
+            }
+        } catch(e:Dynamic) {
+            trace("Critical error in animateIn: " + e);
+            // Emergency fallback
             animationComplete = true;
-        });
+        }
     }
 
     private function animateOut(onComplete:Void->Void):Void {
@@ -266,9 +393,10 @@ class HandSwapSubstate extends MusicBeatSubstate {
 
         for (i in 0...playerButtons.length) {
             // Get members safely with null checks
-            var button = (i < playerButtons.members.length) ? playerButtons.members[i] : null;
-            var text = (i < playerTexts.members.length) ? playerTexts.members[i] : null;
-            var cards = (i < playerCards.members.length) ? playerCards.members[i] : null;
+            var button = null, text = null, cards = null;
+            try { button = (i < playerButtons.members.length) ? playerButtons.members[i] : null; } catch(e:Dynamic) button = null;
+            try { text = (i < playerTexts.members.length) ? playerTexts.members[i] : null; } catch(e:Dynamic) text = null;
+            try { cards = (i < playerCards.members.length) ? playerCards.members[i] : null; } catch(e:Dynamic) cards = null;
 
             var delay = i * 0.05;
 
@@ -300,118 +428,378 @@ class HandSwapSubstate extends MusicBeatSubstate {
     private function selectPlayer(index:Int):Void {
         if (!animationComplete || index < 0 || index >= availablePlayers.length) return;
 
-        var selectedPlayer = availablePlayers[index];
-        var button = playerButtons.members[index];
+        try {
+            var selectedPlayer = availablePlayers[index];
+            var button = null;
+            
+            // Safely get the button with error handling
+            try {
+                button = (index < playerButtons.members.length) ? playerButtons.members[index] : null;
+            } catch(e:Dynamic) {
+                trace("Error getting button at index " + index + ": " + e);
+                button = null;
+            }
 
-        // Play selection sound
-        FlxG.sound.play(Paths.sound('confirmMenu'), 0.8);
+            // Play selection sound
+            try {
+                FlxG.sound.play(Paths.sound('confirmMenu'), 0.8);
+            } catch(e:Dynamic) {
+                trace("Error playing selection sound: " + e);
+            }
 
-        // Flash effect
-        FlxTween.color(button, 0.2, button.color, FlxColor.YELLOW, {
-            type: PINGPONG,
-            onComplete: function(_) {
-                animateOut(function() {
-                    close();
-                    if (onPlayerSelected != null) {
-                        onPlayerSelected(selectedPlayer);
+            // Flash effect (only if button exists)
+            if (button != null) {
+                try {
+                    FlxTween.color(button, 0.2, button.color, FlxColor.YELLOW, {
+                        type: PINGPONG,
+                        onComplete: function(_) {
+                            try {
+                                animateOut(function() {
+                                    try {
+                                        close();
+                                        if (onPlayerSelected != null) {
+                                            onPlayerSelected(selectedPlayer);
+                                        }
+                                    } catch(e:Dynamic) {
+                                        trace("Error in close/callback: " + e);
+                                        // Force close even if callback fails
+                                        try { close(); } catch(e2:Dynamic) { trace("Force close failed: " + e2); }
+                                    }
+                                });
+                            } catch(e:Dynamic) {
+                                trace("Error in animateOut: " + e);
+                                // Fallback: force close without animation
+                                try {
+                                    close();
+                                    if (onPlayerSelected != null) {
+                                        onPlayerSelected(selectedPlayer);
+                                    }
+                                } catch(e2:Dynamic) {
+                                    trace("Fallback close failed: " + e2);
+                                }
+                            }
+                        }
+                    });
+                } catch(e:Dynamic) {
+                    trace("Error in FlxTween.color: " + e);
+                    // Fallback: skip animation and close directly
+                    try {
+                        animateOut(function() {
+                            close();
+                            if (onPlayerSelected != null) {
+                                onPlayerSelected(selectedPlayer);
+                            }
+                        });
+                    } catch(e2:Dynamic) {
+                        trace("Fallback animateOut failed: " + e2);
+                        // Last resort: close immediately
+                        try {
+                            close();
+                            if (onPlayerSelected != null) {
+                                onPlayerSelected(selectedPlayer);
+                            }
+                        } catch(e3:Dynamic) {
+                            trace("Emergency close failed: " + e3);
+                        }
+                    }
+                }
+            } else {
+                trace("Warning: Button is null for index " + index + ", skipping flash animation");
+                // No button animation, but still proceed with selection
+                try {
+                    animateOut(function() {
+                        close();
+                        if (onPlayerSelected != null) {
+                            onPlayerSelected(selectedPlayer);
+                        }
+                    });
+                } catch(e:Dynamic) {
+                    trace("Error in no-button animateOut: " + e);
+                    try {
+                        close();
+                        if (onPlayerSelected != null) {
+                            onPlayerSelected(selectedPlayer);
+                        }
+                    } catch(e2:Dynamic) {
+                        trace("No-button emergency close failed: " + e2);
+                    }
+                }
+            }
+        } catch(e:Dynamic) {
+            trace("Critical error in selectPlayer: " + e);
+            // Emergency fallback
+            try {
+                close();
+            } catch(e2:Dynamic) {
+                trace("Emergency close in selectPlayer failed: " + e2);
+            }
+        }
+    }
+
+    private function startCPUSelection():Void {
+        try {
+            if (!animationComplete || currentPlayer.isHuman) return;
+
+            // Start CPU thinking timer after animation is complete
+            try {
+                cpuThinkingTimer = new FlxTimer().start(1.5, function(_) {
+                    try {
+                        // CPU chooses player with smallest hand (most beneficial)
+                        if (availablePlayers == null || availablePlayers.length == 0) {
+                            trace("Error: No available players for CPU selection");
+                            return;
+                        }
+                        
+                        var bestChoice = availablePlayers[0];
+                        try {
+                            for (player in availablePlayers) {
+                                if (player != null && player.getHandSize() < bestChoice.getHandSize()) {
+                                    bestChoice = player;
+                                }
+                            }
+                        } catch(e:Dynamic) {
+                            trace("Error finding best choice: " + e);
+                            // Use first available player as fallback
+                            bestChoice = availablePlayers[0];
+                        }
+                        
+                        try {
+                            var bestIndex = availablePlayers.indexOf(bestChoice);
+                            if (bestIndex >= 0) {
+                                selectPlayer(bestIndex);
+                            } else {
+                                trace("Error: Best choice not found in available players");
+                                // Fallback: select first player
+                                selectPlayer(0);
+                            }
+                        } catch(e:Dynamic) {
+                            trace("Error in CPU selectPlayer call: " + e);
+                            // Last resort: try to select first player
+                            try {
+                                selectPlayer(0);
+                            } catch(e2:Dynamic) {
+                                trace("CPU selection complete failure: " + e2);
+                            }
+                        }
+                    } catch(e:Dynamic) {
+                        trace("Error in CPU thinking timer callback: " + e);
                     }
                 });
+            } catch(e:Dynamic) {
+                trace("Error starting CPU thinking timer: " + e);
+                // Fallback: immediate selection
+                try {
+                    if (availablePlayers != null && availablePlayers.length > 0) {
+                        selectPlayer(0);
+                    }
+                } catch(e2:Dynamic) {
+                    trace("CPU immediate selection fallback failed: " + e2);
+                }
             }
-        });
+        } catch(e:Dynamic) {
+            trace("Critical error in startCPUSelection: " + e);
+        }
     }
 
     private function updateHover():Void {
         if (!animationComplete || !currentPlayer.isHuman) return; // Skip hover for CPU players
 
-        var hoveredIndex = -1;
+        try {
+            var hoveredIndex = -1;
 
-        for (i in 0...playerButtons.length) {
-            var button = playerButtons.members[i];
-            if (button != null && FlxG.mouse.overlaps(button)) {
-                hoveredIndex = i;
-                break;
-            }
-        }
-
-        if (hoveredIndex != selectedIndex) {
-            // Remove previous hover effect
-            if (selectedIndex >= 0 && selectedIndex < playerButtons.length) {
-                var prevButton = playerButtons.members[selectedIndex];
-                if (prevButton != null) {
-                    FlxTween.cancelTweensOf(prevButton);
-                    FlxTween.tween(prevButton, {y: prevButton.y + 5}, 0.2, {ease: FlxEase.sineOut});
+            // Safely check for hovered buttons
+            try {
+                if (playerButtons != null && playerButtons.members != null) {
+                    for (i in 0...playerButtons.length) {
+                        try {
+                            var button = (i < playerButtons.members.length) ? playerButtons.members[i] : null;
+                            if (button != null && FlxG.mouse.overlaps(button)) {
+                                hoveredIndex = i;
+                                break;
+                            }
+                        } catch(e:Dynamic) {
+                            trace("Error checking button hover " + i + ": " + e);
+                        }
+                    }
                 }
-                glowEffect.visible = false;
+            } catch(e:Dynamic) {
+                trace("Error in hover detection loop: " + e);
             }
 
-            selectedIndex = hoveredIndex;
-
-            // Add new hover effect
-            if (selectedIndex >= 0 && selectedIndex < playerButtons.length) {
-                var button = playerButtons.members[selectedIndex];
-                if (button != null) {
-                    FlxTween.cancelTweensOf(button);
-                FlxTween.tween(button, {y: button.y - 5}, 0.2, {ease: FlxEase.sineOut});
-
-                // Show glow effect
-                glowEffect.x = button.x - 10;
-                glowEffect.y = button.y - 10;
-                glowEffect.visible = true;
-                glowEffect.alpha = 0.3;
-
-                // Pulse glow
-                FlxTween.tween(glowEffect, {alpha: 0.1}, 0.8, {
-                    type: PINGPONG,
-                    ease: FlxEase.sineInOut
-                });
-
-                    Cursor.cursorMode = Pointer;
+            if (hoveredIndex != selectedIndex) {
+                // Remove previous hover effect
+                try {
+                    if (selectedIndex >= 0 && selectedIndex < playerButtons.length && playerButtons.members != null) {
+                        var prevButton = null;
+                        try {
+                            prevButton = (selectedIndex < playerButtons.members.length) ? playerButtons.members[selectedIndex] : null;
+                        } catch(e:Dynamic) {
+                            trace("Error getting previous button: " + e);
+                        }
+                        
+                        if (prevButton != null) {
+                            try {
+                                FlxTween.cancelTweensOf(prevButton);
+                                FlxTween.tween(prevButton, {y: prevButton.y + 5}, 0.2, {ease: FlxEase.sineOut});
+                            } catch(e:Dynamic) {
+                                trace("Error removing hover effect: " + e);
+                            }
+                        }
+                        
+                        try {
+                            if (glowEffect != null) {
+                                glowEffect.visible = false;
+                            }
+                        } catch(e:Dynamic) {
+                            trace("Error hiding glow effect: " + e);
+                        }
+                    }
+                } catch(e:Dynamic) {
+                    trace("Error in removing previous hover: " + e);
                 }
-            } else {
-                Cursor.cursorMode = Default;
+
+                selectedIndex = hoveredIndex;
+
+                // Add new hover effect
+                try {
+                    if (selectedIndex >= 0 && selectedIndex < playerButtons.length && playerButtons.members != null) {
+                        var button = null;
+                        try {
+                            button = (selectedIndex < playerButtons.members.length) ? playerButtons.members[selectedIndex] : null;
+                        } catch(e:Dynamic) {
+                            trace("Error getting new button: " + e);
+                        }
+                        
+                        if (button != null) {
+                            try {
+                                FlxTween.cancelTweensOf(button);
+                                FlxTween.tween(button, {y: button.y - 5}, 0.2, {ease: FlxEase.sineOut});
+                            } catch(e:Dynamic) {
+                                trace("Error adding hover animation: " + e);
+                            }
+
+                            // Show glow effect
+                            try {
+                                if (glowEffect != null) {
+                                    glowEffect.x = button.x - 10;
+                                    glowEffect.y = button.y - 10;
+                                    glowEffect.visible = true;
+                                    glowEffect.alpha = 0.3;
+
+                                    // Pulse glow
+                                    FlxTween.tween(glowEffect, {alpha: 0.1}, 0.8, {
+                                        type: PINGPONG,
+                                        ease: FlxEase.sineInOut
+                                    });
+                                }
+                            } catch(e:Dynamic) {
+                                trace("Error showing glow effect: " + e);
+                            }
+
+                            try {
+                                Cursor.cursorMode = Pointer;
+                            } catch(e:Dynamic) {
+                                trace("Error setting cursor to pointer: " + e);
+                            }
+                        }
+                    } else {
+                        try {
+                            Cursor.cursorMode = Default;
+                        } catch(e:Dynamic) {
+                            trace("Error setting cursor to default: " + e);
+                        }
+                    }
+                } catch(e:Dynamic) {
+                    trace("Error in adding new hover: " + e);
+                }
             }
+        } catch(e:Dynamic) {
+            trace("Critical error in updateHover: " + e);
         }
     }
 
     override function update(elapsed:Float) {
-        super.update(elapsed);
+        try {
+            super.update(elapsed);
+        } catch(e:Dynamic) {
+            trace("Error in super.update: " + e);
+        }
 
-        updateHover();
+        try {
+            updateHover();
+        } catch(e:Dynamic) {
+            trace("Error in updateHover: " + e);
+        }
 
         // Handle input only for human players
-        if (currentPlayer.isHuman) {
-            if (FlxG.mouse.justPressed && selectedIndex >= 0) {
-                selectPlayer(selectedIndex);
-            }
+        try {
+            if (currentPlayer != null && currentPlayer.isHuman) {
+                try {
+                    if (FlxG.mouse.justPressed && selectedIndex >= 0) {
+                        selectPlayer(selectedIndex);
+                    }
+                } catch(e:Dynamic) {
+                    trace("Error in mouse click handling: " + e);
+                }
 
-            if (FlxG.keys.justPressed.ESCAPE) {
-                FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
-                animateOut(function() {
-                    close();
-                });
-            }
+                try {
+                    if (FlxG.keys.justPressed.ESCAPE) {
+                        try {
+                            FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
+                        } catch(e:Dynamic) {
+                            trace("Error playing cancel sound: " + e);
+                        }
+                        try {
+                            animateOut(function() {
+                                close();
+                            });
+                        } catch(e:Dynamic) {
+                            trace("Error in escape animateOut: " + e);
+                            try {
+                                close();
+                            } catch(e2:Dynamic) {
+                                trace("Error in escape close: " + e2);
+                            }
+                        }
+                    }
+                } catch(e:Dynamic) {
+                    trace("Error in escape key handling: " + e);
+                }
 
-            // Number key shortcuts
-            for (i in 0...Std.int(Math.min(availablePlayers.length, 9))) {
-            var keyPressed = false;
-            switch(i) {
-                case 0: keyPressed = FlxG.keys.justPressed.ONE;
-                case 1: keyPressed = FlxG.keys.justPressed.TWO;
-                case 2: keyPressed = FlxG.keys.justPressed.THREE;
-                case 3: keyPressed = FlxG.keys.justPressed.FOUR;
-                case 4: keyPressed = FlxG.keys.justPressed.FIVE;
-                case 5: keyPressed = FlxG.keys.justPressed.SIX;
-                case 6: keyPressed = FlxG.keys.justPressed.SEVEN;
-                case 7: keyPressed = FlxG.keys.justPressed.EIGHT;
-                case 8: keyPressed = FlxG.keys.justPressed.NINE;
-            }
+                // Number key shortcuts
+                try {
+                    if (availablePlayers != null) {
+                        for (i in 0...Std.int(Math.min(availablePlayers.length, 9))) {
+                            try {
+                                var keyPressed = false;
+                                switch(i) {
+                                    case 0: keyPressed = FlxG.keys.justPressed.ONE;
+                                    case 1: keyPressed = FlxG.keys.justPressed.TWO;
+                                    case 2: keyPressed = FlxG.keys.justPressed.THREE;
+                                    case 3: keyPressed = FlxG.keys.justPressed.FOUR;
+                                    case 4: keyPressed = FlxG.keys.justPressed.FIVE;
+                                    case 5: keyPressed = FlxG.keys.justPressed.SIX;
+                                    case 6: keyPressed = FlxG.keys.justPressed.SEVEN;
+                                    case 7: keyPressed = FlxG.keys.justPressed.EIGHT;
+                                    case 8: keyPressed = FlxG.keys.justPressed.NINE;
+                                }
 
-            if (keyPressed) {
-                selectPlayer(i);
-                break;
+                                if (keyPressed) {
+                                    selectPlayer(i);
+                                    break;
+                                }
+                            } catch(e:Dynamic) {
+                                trace("Error in number key " + i + " handling: " + e);
+                            }
+                        }
+                    }
+                } catch(e:Dynamic) {
+                    trace("Error in number key shortcuts: " + e);
+                }
             }
+        } catch(e:Dynamic) {
+            trace("Error in human player input handling: " + e);
         }
-        } // End human player input check
     }
 
     override function destroy() {

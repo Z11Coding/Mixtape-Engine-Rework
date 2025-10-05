@@ -160,12 +160,41 @@ class UnoRules {
     /**
      * Apply seven-zero rule effects
      */
-    public static function applySevenZeroRule(card:UnoCard, players:Array<UnoPlayer>, currentPlayerIndex:Int):Void {
+    public static function applySevenZeroRule(card:UnoCard, players:Array<UnoPlayer>, currentPlayerIndex:Int, ?onSevenRuleHandSwap:(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void)->Void):Void {
         if (!SEVEN_ZERO_RULE || card.type != NUMBER) return;
 
         if (card.value == 7) {
             // Player who played 7 swaps hands with another player of their choice
-            // This would need to be handled by the game logic with user input
+            if (onSevenRuleHandSwap != null) {
+                var currentPlayer = players[currentPlayerIndex];
+                var availablePlayers = players.filter(p -> p != currentPlayer);
+                
+                // Create a callback that performs the actual swap
+                var doHandSwap = function(selectedPlayer:UnoPlayer):Void {
+                    if (selectedPlayer != null && availablePlayers.contains(selectedPlayer)) {
+                        trace('Performing hand swap between ${currentPlayer.name} and ${selectedPlayer.name}');
+                        
+                        // Perform the hand swap
+                        var currentHand = currentPlayer.hand.getCards().copy();
+                        var selectedHand = selectedPlayer.hand.getCards().copy();
+                        
+                        trace('Before swap: ${currentPlayer.name} has ${currentHand.length} cards, ${selectedPlayer.name} has ${selectedHand.length} cards');
+                        
+                        currentPlayer.hand.clear();
+                        selectedPlayer.hand.clear();
+                        
+                        currentPlayer.hand.addCards(selectedHand);
+                        selectedPlayer.hand.addCards(currentHand);
+                        
+                        trace('After swap: ${currentPlayer.name} has ${currentPlayer.hand.getCards().length} cards, ${selectedPlayer.name} has ${selectedPlayer.hand.getCards().length} cards');
+                    } else {
+                        trace('Hand swap cancelled or invalid selection');
+                    }
+                };
+                
+                // Call the UI callback with our swap function
+                onSevenRuleHandSwap(currentPlayer, availablePlayers, doHandSwap);
+            }
         } else if (card.value == 0) {
             // All players pass their hands in the direction of play
             var hands = [];
