@@ -2020,7 +2020,7 @@ class APPlayState extends PlayState {
                         var playerGame = apClient.get_player_game(playerID);
 
                         switch (playerGame.toLowerCase()) {
-                            case "friday night funkin'", "fnf":
+                            case "friday night funkin":
                                 extraMessages = extraMessages.concat([
                                     "Skill issue detected...",
                                     "They couldn't hit the notes...",
@@ -2059,6 +2059,12 @@ class APPlayState extends PlayState {
                                     "Bowser wins this round...",
                                     "Should have grabbed that mushroom...",
                                     "Mamma mia! That's-a gonna hurt!"
+                                ]);
+                            case "flipwitch forbidden sex hex":
+                                extraMessages = extraMessages.concat([
+                                    "Sounds like they had fun...",
+                                    "Wow, they get more game than you!",
+                                    "Stop getting fucked, maybe you'll win next time..."
                                 ]);
                             default:
                                 extraMessages = extraMessages.concat([

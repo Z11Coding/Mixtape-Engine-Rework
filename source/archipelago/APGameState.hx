@@ -527,6 +527,12 @@ class APGameState
 		var info = info();
 		var locations = locationData(songName, modName).concat(noteData(songName, modName));
 
+		if (info.missingLocations.length == 0 && info.checkedLocations.length == 0)
+			{
+			trace("AP is not ready yet - no locations checked or missing.");
+
+			}
+
 		if (locations == null || locations.length == 0)
 		{
 			trace("No locations found for song: " + songName + " with mod: " + modName);
@@ -2673,6 +2679,10 @@ class APGameState
 
 							// Validate that the death link state was restored correctly
 							gameStateInstance.validateDeathLinkState();
+
+										APEntryState.gonnaRunSync = true; // Force sync on next update
+										client.Sync();
+
 
 							// Inject offline queue into new client if available
 							if (_tempOfflineQueue != null && _tempOfflineQueue.length > 0) {
