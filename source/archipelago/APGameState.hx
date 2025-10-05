@@ -1170,14 +1170,21 @@ class APGameState
 				var receivingPlayerName = _ap.get_player_alias(receivingPlayer);
 
 				// If sending to self, show special message
-				if (receivingPlayer == _ap.slotnr && archipelago.APItem.hasPocketLens)
+				if (type == "ItemSend")
 				{
-					archipelago.APItem.popup('Got yourself "$itemName"!', "Item Got!", false);
+					if (receivingPlayer == _ap.slotnr && (archipelago.APItem.hasPocketLens && !archipelago.APItem.unknownSongs))
+					{
+						archipelago.APItem.popup('Got yourself "$itemName"!', "Item Got!", false);
+					}
+					else
+					{
+						// Show popup notification that we sent an item
+						archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName!', "Item Sent!", false);
+					}
 				}
-				else
+				else if (type == "ItemCheat")
 				{
-					// Show popup notification that we sent an item
-					archipelago.APItem.popup('Sent "$itemName" to $receivingPlayerName!', "Item Sent!", false);
+					archipelago.APItem.popup('Cheated in "$itemName" for $receivingPlayerName!', "Item Cheated!", false);
 				}
 			}
 		}

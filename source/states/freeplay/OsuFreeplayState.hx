@@ -204,8 +204,8 @@ class OsuFreeplayState extends MusicBeatState
 			});
 		}
 
-		if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
-			archipelago.APItem.activeItem = null;
+		// if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
+		// 	archipelago.APItem.activeItem = null;
 
 		super.create();
 
@@ -580,7 +580,7 @@ class OsuFreeplayState extends MusicBeatState
 				}
 
 				if (albumPhoto != null) {
-					if (metadata.freeplay.album != null && metadata.freeplay.album != '') {
+					if (metadata.freeplay.album != null && metadata.freeplay.album != '' && !archipelago.APItem.unknownSongs) {
 						albumPhoto.loadGraphic(Paths.image('albums/${Std.string(metadata.freeplay.album)}'));
 						albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
 						albumPhoto.screenCenter(Y);

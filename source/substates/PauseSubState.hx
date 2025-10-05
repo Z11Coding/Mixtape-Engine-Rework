@@ -94,11 +94,13 @@ class PauseSubState extends MusicBeatSubstate
 			menuItemsOG.remove('Exit to menu');
 			menuItemsOG.remove('Skip Check');
 		}
-
+		if (!archipelago.APItem.unknownSongs)
 		for (i in 0...Difficulty.list.length) {
 			var diff:String = Difficulty.getString(i);
 			difficultyChoices.push(diff);
 		}
+		else
+			difficultyChoices.push('???');
 		difficultyChoices.push('BACK');
 
 		pauseMusic = new FlxSound();
@@ -206,6 +208,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	var holdTime:Float = 0;
 	var cantUnpause:Float = 0.1;
+	var noControls:Bool = false;
 	override function update(elapsed:Float)
 	{
 		cantUnpause -= elapsed;
@@ -213,13 +216,12 @@ class PauseSubState extends MusicBeatSubstate
 			pauseMusic.volume += 0.01 * elapsed;
 
 		super.update(elapsed);
-
 		if(controls.BACK)
 		{
 			close();
 			return;
 		}
-
+		if (!noControls)
 		if(FlxG.keys.justPressed.F5)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
@@ -229,16 +231,20 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		updateSkipTextStuff();
+		if (!noControls)
 		if (controls.UI_UP_P)
 		{
 			changeSelection(-1);
 		}
+
+		if (!noControls)
 		if (controls.UI_DOWN_P)
 		{
 			changeSelection(1);
 		}
 
 		var daSelected:String = menuItems[curSelected];
+		if (!noControls)
 		switch (daSelected)
 		{
 			case 'Skip Time':
@@ -268,11 +274,39 @@ class PauseSubState extends MusicBeatSubstate
 					updateSkipTimeText();
 				}
 		}
-
+		if (!noControls)
 		if (controls.ACCEPT && (cantUnpause <= 0 || !controls.controllerMode))
 		{
 			if (menuItems == difficultyChoices)
 			{
+				if ((difficultyChoices[curSelected] == '???') || archipelago.APItem.unknownSongs)
+				{
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+					// Rarely allow changing difficulty, but make it a random choice.
+					if (FlxG.random.int(1, 20) == 1 && Difficulty.list.length > 1)
+					{
+						var newDiff = curSelected;
+						difficultyChoices = [];
+						for (i in 0...Difficulty.list.length) {
+							difficultyChoices.push(Difficulty.getString(i));
+						}
+						while (newDiff == curSelected)
+							newDiff = FlxG.random.int(0, Difficulty.list.length - 1);
+						curSelected = newDiff;
+						PlayState.storyDifficulty = newDiff;
+						PlayState.changedDifficulty = true;
+						menuItems = difficultyChoices;
+						noControls = true;
+						new flixel.util.FlxTimer().start(0.8, function(tmr:FlxTimer)
+						{
+							FlxG.sound.music.volume = 0;
+							PlayState.instance.vocals.volume = 0;
+							MusicBeatState.resetState();
+						});
+						regenMenu();
+						FlxG.sound.play(Paths.sound('confirmMenu'));
+					} else return;
+				}
 				var songLowercase:String = Paths.formatToSongPath(PlayState.SONG.song);
 				var poop:String = Highscore.formatSong(songLowercase, curSelected);
 				try

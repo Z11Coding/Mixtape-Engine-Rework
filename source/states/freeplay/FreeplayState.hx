@@ -350,14 +350,14 @@ class FreeplayState extends MusicBeatState
 			});
 		}
 
-		if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
-			archipelago.APItem.activeItem = null;
+	// 	if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
+	// 		archipelago.APItem.activeItem = null;
 	}
 
 	public function setDifficultyStars(?difficulty:Int):Void
 	{
 		if (difficulty == null) return;
-		difficultyStars.setNumber(difficulty);
+		difficultyStars.setNumber(archipelago.APItem.unknownSongs ? 100 : difficulty);
 		showStars();
 	}
 
@@ -717,14 +717,20 @@ class FreeplayState extends MusicBeatState
 
 			if (controls.UI_LEFT_P)
 			{
-				changeDiff(-1);
-				_updateSongLastDifficulty();
+				// Block difficulty navigation if unknown songs is active
+				if (!(APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
+					changeDiff(-1);
+					_updateSongLastDifficulty();
+				}
 				searchBar.hasFocus = false;
 			}
 			else if (controls.UI_RIGHT_P)
 			{
-				changeDiff(1);
-				_updateSongLastDifficulty();
+				// Block difficulty navigation if unknown songs is active
+				if (!(APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
+					changeDiff(1);
+					_updateSongLastDifficulty();
+				}
 				searchBar.hasFocus = false;
 			}
 		}
@@ -886,7 +892,45 @@ class FreeplayState extends MusicBeatState
 				searchBar.hasFocus = false;
 				persistentUpdate = false;
 				var songLowercase:String = Paths.formatToSongPath(fpManager.songList[curSelected].songName);
-				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);
+
+				var actualDifficulty:Int = curDifficulty;
+
+				// If unknownSongs is active, randomly select an actual difficulty
+				if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+					var availableDifficulties:Array<Int> = [];
+					// Try each difficulty to see which ones are valid
+					for (i in 0...Difficulty.list.length) {
+						try {
+							var testPoop:String = Highscore.formatSong(songLowercase, i);
+							// Test if the chart exists by trying to load it
+							var testSong = Song.loadFromJson(testPoop, songLowercase);
+							if (testSong != null) {
+								availableDifficulties.push(i);
+							}
+						} catch (e:Dynamic) {
+							// This difficulty doesn't exist, skip it
+							continue;
+						}
+					}
+
+					if (availableDifficulties.length > 0) {
+						// Randomly pick from available difficulties
+						actualDifficulty = availableDifficulties[FlxG.random.int(0, availableDifficulties.length - 1)];
+						trace('Unknown Songs: Randomly selected difficulty ${Difficulty.list[actualDifficulty]} (index $actualDifficulty)');
+					} else {
+						// If no difficulties are available, show a generic error
+						missingText.text = 'ERROR:\nUnable to load song data.';
+						missingText.screenCenter(Y);
+						missingText.visible = true;
+						missingTextBG.visible = true;
+						FlxG.sound.play(Paths.sound('cancelMenu'));
+						updateTexts(elapsed);
+						super.update(elapsed);
+						return;
+					}
+				}
+
+				var poop:String = Highscore.formatSong(songLowercase, actualDifficulty);
 				trace(poop);
 				//ill softcode this eventually
 				switch(songLowercase)
@@ -976,7 +1020,7 @@ class FreeplayState extends MusicBeatState
 
 							Song.loadFromJson(poop, songLowercase);
 							PlayState.isStoryMode = false;
-							PlayState.storyDifficulty = curDifficulty;
+							PlayState.storyDifficulty = actualDifficulty;
 							Mods.currentModDirectory = FreeplayManager.instance.songList[curSelected].folder;
 
 
@@ -987,8 +1031,15 @@ class FreeplayState extends MusicBeatState
 					{
 						trace('ERROR! $e');
 
-						var errorStr:String = e.toString();
-						if(errorStr.startsWith('[file_contents,assets/data/')) errorStr = 'Missing file: ' + errorStr.substring(34, errorStr.length-1); //Missing chart
+						var errorStr:String;
+						// If unknownSongs is active, show anonymous error message
+						if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+							errorStr = 'Unable to load song data.';
+						} else {
+							errorStr = e.toString();
+							if(errorStr.startsWith('[file_contents,assets/data/')) errorStr = 'Missing file: ' + errorStr.substring(34, errorStr.length-1); //Missing chart
+						}
+
 						missingText.text = 'ERROR WHILE LOADING CHART:\n$errorStr';
 						missingText.screenCenter(Y);
 						missingText.visible = true;
@@ -1117,6 +1168,14 @@ class FreeplayState extends MusicBeatState
 		if (player.playingMusic)
 			return;
 
+		// If unknownSongs trap is active, don't allow difficulty navigation
+		if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+			// Keep difficulty at 0 and update display to show "Unknown"
+			curDifficulty = 0;
+			updateUnknownDifficultyDisplay();
+			return;
+		}
+
 		curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
 
 		if (fpManager.songList[curSelected] == null)
@@ -1161,6 +1220,24 @@ class FreeplayState extends MusicBeatState
 			diffText.text = '< ' + displayDiff.toUpperCase() + ' >';
 		else
 			diffText.text = displayDiff.toUpperCase();
+
+		positionHighscore();
+		missingText.visible = false;
+		missingTextBG.visible = false;
+	}
+
+	function updateUnknownDifficultyDisplay()
+	{
+		// Update difficulty text to show "Unknown"
+		lastDifficultyName = "Unknown";
+
+		// Update UI to show "Unknown" difficulty
+		diffText.text = '< UNKNOWN >';
+
+		// Hide difficulty stars since we don't want to give away difficulty info
+		if (difficultyStars != null) {
+			difficultyStars.visible = false;
+		}
 
 		positionHighscore();
 		missingText.visible = false;

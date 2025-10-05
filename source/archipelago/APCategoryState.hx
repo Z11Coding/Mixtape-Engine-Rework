@@ -311,6 +311,9 @@ class APCategoryState extends states.CategoryState {
         if (!states.ExitState.cleanupFunctions.contains(cleanupFunc)) {
             states.ExitState.addExitCallback(cleanupFunc);
         }
+        if (!states.ExitState.cleanupFunctions.contains(quitFunc)) {
+            states.ExitState.addExitCallback(quitFunc);
+        }
     }
 
     override function create()

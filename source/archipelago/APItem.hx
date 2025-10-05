@@ -197,6 +197,7 @@ class APItem {
     }
 
     static var frozenInput:Int = 0;
+    static var confusionStack:Int = 0;
     public static function createItemByName(name:String):APItem {
         switch (name) {
             case "Blue Balls Curse":
@@ -604,12 +605,23 @@ class APItem {
             case "Ultimate Confusion Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     unknownSongs = true;
+                    if (confusionStack > 0) {
+                        confusionStack++;
+                        popup('The confusion deepens!', "Ultimate Confusion Trap");
+                        return;
+                    }
                     popup('Huh? Where am I?', "Ultimate Confusion Trap");
-
+                    confusionStack++;
                     // Set a timer to revert after 5 minutes (300000 milliseconds)
-                    haxe.Timer.delay(function() {
-                        unknownSongs = false;
+                    haxe.Timer.delay(function confusion() {
+                        confusionStack--;
+                        if (confusionStack > 0) {
+                            // Do it again for the next stack
+                            haxe.Timer.delay(confusion, 300000);
+                            return;
+                        }
                         popup('The confusion has worn off!', "Clarity Restored");
+                        unknownSongs = false;
 
                         // Reload freeplay to refresh the display
                         if (APEntryState.inArchipelagoMode) {
