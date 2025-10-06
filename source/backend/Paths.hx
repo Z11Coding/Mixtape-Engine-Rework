@@ -957,6 +957,22 @@ class Paths
 		return (OpenFlAssets.exists(getPath(key, type, parentFolder, false)));
 	}
 
+	public static function fileExistsInMods(key:String, type:AssetType, ?ignoreMods:Bool = false, ?parentFolder:String = null)
+	{
+		#if MODS_ALLOWED
+		var modKey:String = key;
+		if(parentFolder == 'songs') modKey = 'songs/$key';
+
+		for(mod in Mods.getGlobalMods())
+			if (FileSystem.exists(mods('$mod/$modKey')))
+				return true;
+
+		if (FileSystem.exists(mods(Mods.currentModDirectory + '/' + modKey)) || FileSystem.exists(mods(modKey)))
+			return true;
+		#end
+		return false;
+	}
+
 	static public function getAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
 	{
 		var useMod = false;

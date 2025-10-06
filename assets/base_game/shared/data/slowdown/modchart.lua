@@ -205,7 +205,3 @@ function onBeatHit()
         end
     end
 end
-
-function onDestroy()
-
-end

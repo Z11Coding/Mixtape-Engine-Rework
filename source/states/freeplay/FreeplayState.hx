@@ -1391,18 +1391,18 @@ class FreeplayState extends MusicBeatState
 				PlayState.storyWeek = fpManager.songList[curSelected].week;
 
 				switch (fpManager.songList[curSelected].songName)
-        {
-					case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta':
-							Difficulty.list = ['Hard'];
+				{
+					case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown' | 'Pack-A-Punch' | 'Slowdown':
+						Difficulty.list = ['Hard'];
 					case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
-							Difficulty.list = ['Normal'];
+						Difficulty.list = ['Normal'];
 					case "Beat Battle":
-							Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+						Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
 					case "Testimony":
 						Difficulty.list = ["4K", "Canon"];
 					default:
-							Difficulty.loadFromWeek();
-        }
+						Difficulty.loadFromWeek();
+				}
 				var savedDiff:String = fpManager.songList[curSelected].lastDifficulty;
 				var lastDiff:Int = Difficulty.list.indexOf(lastDifficultyName);
 				if(fpManager.songList[curSelected].songName != 'SONG NOT FOUND') savedDiff = WeekData.getCurrentWeek().difficulties.trim(); //Fuck you HTML5

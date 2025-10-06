@@ -117,16 +117,17 @@ class StrumNote extends NoteObject
 		var skin:String = texture + postfix;
 		if(texture.length < 1)
 		{
-			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
+			skin = (PlayState.SONG != null ? PlayState.SONG.arrowSkin : (texture + postfix));
 			if (skin == null || skin.length < 1) {
 				if (postfix == null || postfix.length < 1)
 					skin = "noteSkins/strums";
 				else
 					skin = "noteSkins/NOTE_assets" + postfix;
 			}
-			if (PlayState.isPixelStage)
-				rgbShader.enabled = false;
 		}
+
+		if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution')
+			rgbShader.enabled = false;
 
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;

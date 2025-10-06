@@ -71,8 +71,8 @@ function onCreate()
 
     resetCar(true, true);
 
-    if game.songName
-    game.startCallback = doIntro;
+    if (game.songName == "Funky Fanta")
+        game.startCallback = doIntro;
 }
 
 function doIntro() {
@@ -292,7 +292,7 @@ function driveCar(sprite:FlxSprite){
 
 function driveCarBack(sprite:FlxSprite){
     car2Interruptable = false;
-    FlxTween.cancelTweensOf(sprite);
+    try{FlxTween.cancelTweensOf(sprite);}catch(e){}
     var variant:Int = FlxG.random.int(1,4);
     sprite.animation.play('car' + variant);
     // setting an offset here because the current implementation of stage prop offsets was not working at all for me
