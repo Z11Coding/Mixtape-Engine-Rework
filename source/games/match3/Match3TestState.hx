@@ -239,11 +239,13 @@ class Match3TestState extends MusicBeatState {
             // Create CPU grid background
             cpuGridBackground = new FlxSprite(cpuGridOffsetX - 5, cpuGridOffsetY - 5);
             cpuGridBackground.makeGraphic((gridSize * tileSize) + 10, (gridSize * tileSize) + 10, 0xFF222222);
-            add(cpuGridBackground);
+            // add(cpuGridBackground);
 
             // Add CPU grid background before CPU pieces so pieces appear on top
             remove(cpuGridGroup);
             add(cpuGridGroup);
+
+
 
             // Set up CPU callbacks
             cpuGame.onScoreChanged = function(player:Int, newScore:Int) {

@@ -2202,6 +2202,22 @@ class APAdvancedSettingsState extends MusicBeatState
 		// Save current settings
 		saveCurrentSettings();
 
+		// Show styled export location choice dialog
+		var exportChoiceSubstate = new ExportChoiceSubstate(function()
+		{
+			// User chose default location
+			performYAMLExportToDefault();
+		}, function()
+		{
+			// User chose custom location
+			performYAMLExportWithDialog();
+		});
+
+		openSubState(exportChoiceSubstate);
+	}
+
+	function performYAMLExportToDefault()
+	{
 		// Show export animation
 		FlxFlicker.flicker(exportButton, 0.5, 0.1);
 
@@ -2215,15 +2231,15 @@ class APAdvancedSettingsState extends MusicBeatState
 		FlxTween.tween(exportDialog, {alpha: 1}, 0.3, {
 			onComplete: function(_)
 			{
-				// Perform actual export (using similar logic to original)
+				// Perform actual export to default location
 				try
 				{
-					performYAMLExport();
+					performYAMLExport(true); // true = use default location
 
-					exportDialog.text = "EXPORT COMPLETED!";
+					exportDialog.text = "EXPORT COMPLETED!\nSaved to: PlayerSettings/" + playerName + ".yaml";
 					exportDialog.color = FlxColor.GREEN;
 
-					new FlxTimer().start(1.5, function(_)
+					new FlxTimer().start(2, function(_)
 					{
 						FlxTween.tween(exportDialog, {alpha: 0}, 0.5, {
 							onComplete: function(_)
@@ -2253,7 +2269,61 @@ class APAdvancedSettingsState extends MusicBeatState
 		});
 	}
 
-	function performYAMLExport()
+	function performYAMLExportWithDialog()
+	{
+		// Show export animation
+		FlxFlicker.flicker(exportButton, 0.5, 0.1);
+
+		// Create animated dialog
+		var exportDialog = new FlxText(Std.int(FlxG.width / 2) - 200, Std.int(FlxG.height / 2) - 50, 400, "EXPORTING YAML...", 24);
+		exportDialog.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		exportDialog.borderSize = 2;
+		exportDialog.alpha = 0;
+		add(exportDialog);
+
+		FlxTween.tween(exportDialog, {alpha: 1}, 0.3, {
+			onComplete: function(_)
+			{
+				// Perform actual export with file dialog
+				try
+				{
+					performYAMLExport(false); // false = use file dialog
+
+					exportDialog.text = "EXPORT COMPLETED!";
+					exportDialog.color = FlxColor.GREEN;
+
+					new FlxTimer().start(1.5, function(_)
+					{
+						FlxTween.tween(exportDialog, {alpha: 0}, 0.5, {
+							onComplete: function(_)
+							{
+								remove(exportDialog);
+							}
+						});
+					});
+				}
+				catch (e:Dynamic)
+				{
+					var errorMessage = Std.string(e);
+					exportDialog.text = "EXPORT FAILED!\n" + errorMessage;
+					exportDialog.color = FlxColor.RED;
+					trace('Export error: $e');
+
+					new FlxTimer().start(2, function(_)
+					{
+						FlxTween.tween(exportDialog, {alpha: 0}, 0.5, {
+							onComplete: function(_)
+							{
+								remove(exportDialog);
+							}
+						});
+					});
+				}
+			}
+		});
+	}
+
+	function performYAMLExport(useDefaultLocation:Bool = false)
 	{
 		var checks = 0;
 
@@ -2360,12 +2430,31 @@ class APAdvancedSettingsState extends MusicBeatState
 		trace('YAML export generated for player: ' + playerName);
 		trace('YAML export content:\n' + finalDocument);
 
-		#if sys
-		if (!sys.FileSystem.exists("./PlayerSettings/"))
-			sys.FileSystem.createDirectory("./PlayerSettings/");
+		if (useDefaultLocation)
+		{
+			// Save to default PlayerSettings location
+			#if sys
+			if (!sys.FileSystem.exists("./PlayerSettings/"))
+				sys.FileSystem.createDirectory("./PlayerSettings/");
 
-		sys.io.File.saveContent("PlayerSettings/" + playerName + ".yaml", finalDocument);
-		#end
+			sys.io.File.saveContent("PlayerSettings/" + playerName + ".yaml", finalDocument);
+			#end
+		}
+		else
+		{
+			// Use ImprovedFileHandling to save the file with user-chosen location
+			var defaultFileName = playerName + ".yaml";
+			var success = yutautil.ImprovedFileHandling.saveOperation("Export YAML Configuration",
+				{ext: "yaml", desc: "FNF AP YAML File"},
+				Text,
+				finalDocument,
+				true);
+
+			if (!success)
+			{
+				throw new Exception("Export was cancelled or failed");
+			}
+		}
 	}
 
 	function generateYAMLComment(yamlThing:Dynamic):String
@@ -3657,4 +3746,320 @@ class EnumSelectionSubstate extends MusicBeatSubstate
 
 	function c()
 		super.close();
+}
+
+/**
+ * A styled substate for choosing export location (default vs custom)
+ */
+class ExportChoiceSubstate extends MusicBeatSubstate
+{
+	var background:FlxSprite;
+	var panel:FlxSprite;
+	var titleText:FlxText;
+	var descriptionText:FlxText;
+	var defaultButton:FlxSprite;
+	var customButton:FlxSprite;
+	var defaultButtonText:FlxText;
+	var customButtonText:FlxText;
+	var defaultDescText:FlxText;
+	var customDescText:FlxText;
+	var cancelButton:FlxSprite;
+	var cancelButtonText:FlxText;
+
+	var onDefaultChoice:Void->Void;
+	var onCustomChoice:Void->Void;
+	var isAnimating:Bool = false;
+	var isClosing:Bool = false;
+
+	var dCamera:FlxCamera;
+
+	public function new(onDefault:Void->Void, onCustom:Void->Void)
+	{
+		super();
+		onDefaultChoice = onDefault;
+		onCustomChoice = onCustom;
+
+		setupCamera();
+		setupBackground();
+		setupPanel();
+		animateIn();
+	}
+
+	function setupCamera():Void
+	{
+		dCamera = new FlxCamera();
+		dCamera.bgColor.alpha = 0;
+		FlxG.cameras.add(dCamera, false);
+	}
+
+	function setupBackground()
+	{
+		background = new FlxSprite(0, 0);
+		background.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 160));
+		background.cameras = [dCamera];
+		add(background);
+	}
+
+	function setupPanel()
+	{
+		var panelWidth = 500;
+		var panelHeight = 400;
+
+		// Main panel with gradient
+		panel = FlxGradient.createGradientFlxSprite(panelWidth, panelHeight,
+			[FlxColor.fromRGB(30, 30, 50), FlxColor.fromRGB(20, 20, 40)], 1, 90);
+		panel.x = (FlxG.width - panelWidth) / 2;
+		panel.y = (FlxG.height - panelHeight) / 2;
+		panel.cameras = [dCamera];
+		add(panel);
+
+		// Title
+		titleText = new FlxText(panel.x + 20, panel.y + 20, panelWidth - 40, "Export YAML Configuration", 24);
+		titleText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
+		titleText.borderSize = 2;
+		titleText.cameras = [dCamera];
+		add(titleText);
+
+		// Description
+		descriptionText = new FlxText(panel.x + 20, panel.y + 70, panelWidth - 40, "Choose where to save your YAML configuration:", 16);
+		descriptionText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		descriptionText.borderSize = 1;
+		descriptionText.cameras = [dCamera];
+		add(descriptionText);
+
+		// Default location button
+		defaultButton = new FlxSprite(panel.x + 40, panel.y + 120);
+		defaultButton.makeGraphic(Std.int(panelWidth - 80), 80, FlxColor.fromRGB(60, 100, 60));
+		defaultButton.cameras = [dCamera];
+		add(defaultButton);
+
+		defaultButtonText = new FlxText(defaultButton.x + 10, defaultButton.y + 10, defaultButton.width - 20, "Default Location", 18);
+		defaultButtonText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		defaultButtonText.borderSize = 1;
+		defaultButtonText.cameras = [dCamera];
+		add(defaultButtonText);
+
+		defaultDescText = new FlxText(defaultButton.x + 10, defaultButton.y + 35, defaultButton.width - 20, "Save to PlayerSettings folder\n(Quick and automatic)", 12);
+		defaultDescText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.LIME, CENTER, OUTLINE, FlxColor.BLACK);
+		defaultDescText.borderSize = 1;
+		defaultDescText.cameras = [dCamera];
+		add(defaultDescText);
+
+		// Custom location button
+		customButton = new FlxSprite(panel.x + 40, panel.y + 220);
+		customButton.makeGraphic(Std.int(panelWidth - 80), 80, FlxColor.fromRGB(60, 60, 100));
+		customButton.cameras = [dCamera];
+		add(customButton);
+
+		customButtonText = new FlxText(customButton.x + 10, customButton.y + 10, customButton.width - 20, "Choose Location", 18);
+		customButtonText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		customButtonText.borderSize = 1;
+		customButtonText.cameras = [dCamera];
+		add(customButtonText);
+
+		customDescText = new FlxText(customButton.x + 10, customButton.y + 35, customButton.width - 20, "Open file dialog to choose\ncustom save location", 12);
+		customDescText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
+		customDescText.borderSize = 1;
+		customDescText.cameras = [dCamera];
+		add(customDescText);
+
+		// Cancel button
+		cancelButton = new FlxSprite(panel.x + panelWidth - 80, panel.y + panelHeight - 50);
+		cancelButton.makeGraphic(60, 30, FlxColor.fromRGB(100, 60, 60));
+		cancelButton.cameras = [dCamera];
+		add(cancelButton);
+
+		cancelButtonText = new FlxText(cancelButton.x, cancelButton.y + 5, cancelButton.width, "CANCEL", 12);
+		cancelButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		cancelButtonText.borderSize = 1;
+		cancelButtonText.cameras = [dCamera];
+		add(cancelButtonText);
+	}
+
+	function animateIn()
+	{
+		isAnimating = true;
+
+		// Hide all elements initially
+		var allElements = [panel, titleText, descriptionText, defaultButton, customButton,
+			defaultButtonText, customButtonText, defaultDescText, customDescText, cancelButton, cancelButtonText];
+
+		for (element in allElements)
+		{
+			if (element != null)
+			{
+				element.alpha = 0;
+			}
+		}
+
+		// Scale panel for animation
+		panel.scale.set(0.5, 0.5);
+
+		// Animate panel
+		FlxTween.tween(panel, {"scale.x": 1, "scale.y": 1, alpha: 1}, 0.4, {
+			ease: FlxEase.backOut
+		});
+
+		// Animate title
+		FlxTween.tween(titleText, {alpha: 1}, 0.5, {
+			ease: FlxEase.sineOut,
+			startDelay: 0.1
+		});
+
+		// Animate description
+		FlxTween.tween(descriptionText, {alpha: 1}, 0.5, {
+			ease: FlxEase.sineOut,
+			startDelay: 0.2
+		});
+
+		// Animate buttons
+		var buttonElements = [defaultButton, defaultButtonText, defaultDescText];
+		for (i in 0...buttonElements.length)
+		{
+			FlxTween.tween(buttonElements[i], {alpha: 1}, 0.3, {
+				ease: FlxEase.sineOut,
+				startDelay: 0.3 + (i * 0.05)
+			});
+		}
+
+		var customElements = [customButton, customButtonText, customDescText];
+		for (i in 0...customElements.length)
+		{
+			FlxTween.tween(customElements[i], {alpha: 1}, 0.3, {
+				ease: FlxEase.sineOut,
+				startDelay: 0.45 + (i * 0.05)
+			});
+		}
+
+		// Animate cancel button
+		FlxTween.tween(cancelButton, {alpha: 1}, 0.3, {
+			ease: FlxEase.sineOut,
+			startDelay: 0.6
+		});
+
+		FlxTween.tween(cancelButtonText, {alpha: 1}, 0.3, {
+			ease: FlxEase.sineOut,
+			startDelay: 0.6,
+			onComplete: function(_)
+			{
+				isAnimating = false;
+			}
+		});
+	}
+
+	function animateOut(onComplete:Void->Void)
+	{
+		if (isAnimating)
+			return;
+		isAnimating = true;
+
+		FlxTween.tween(panel, {"scale.x": 0.5, "scale.y": 0.5, alpha: 0}, 0.3, {
+			ease: FlxEase.backIn,
+			onComplete: function(_)
+			{
+				onComplete();
+			}
+		});
+
+		FlxTween.tween(background, {alpha: 0}, 0.3, {ease: FlxEase.sineIn});
+	}
+
+	override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+
+		// Don't handle input while animating
+		if (isAnimating)
+			return;
+
+		// Close on escape
+		if (controls.BACK || FlxG.keys.justPressed.ESCAPE)
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			closePanel();
+			return;
+		}
+
+		// Handle button interactions
+		handleButtonInteraction(defaultButton, defaultButtonText, function()
+		{
+			FlxG.sound.play(Paths.sound('confirmMenu'));
+			closePanel(function()
+			{
+				if (onDefaultChoice != null)
+					onDefaultChoice();
+			});
+		});
+
+		handleButtonInteraction(customButton, customButtonText, function()
+		{
+			FlxG.sound.play(Paths.sound('confirmMenu'));
+			closePanel(function()
+			{
+				if (onCustomChoice != null)
+					onCustomChoice();
+			});
+		});
+
+		handleButtonInteraction(cancelButton, cancelButtonText, function()
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			closePanel();
+		});
+
+		// Click outside to cancel
+		if (FlxG.mouse.justPressed && !FlxG.mouse.overlaps(panel))
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			closePanel();
+		}
+	}
+
+	function handleButtonInteraction(button:FlxSprite, buttonText:FlxText, onClick:Void->Void)
+	{
+		if (FlxG.mouse.overlaps(button))
+		{
+			button.color = FlxColor.WHITE;
+			buttonText.color = FlxColor.BLACK;
+			if (FlxG.mouse.justPressed)
+			{
+				onClick();
+			}
+		}
+		else
+		{
+			button.color = FlxColor.WHITE;
+			buttonText.color = FlxColor.WHITE;
+		}
+	}
+
+	function closePanel(?onComplete:Void->Void)
+	{
+		if (isClosing)
+			return;
+		isClosing = true;
+
+		animateOut(function()
+		{
+			if (onComplete != null)
+				onComplete();
+			forceClose();
+		});
+	}
+
+	function forceClose()
+	{
+		super.close();
+	}
+
+	override function destroy()
+	{
+		if (dCamera != null)
+		{
+			FlxG.cameras.remove(dCamera);
+			dCamera.destroy();
+			dCamera = null;
+		}
+		super.destroy();
+	}
 }
