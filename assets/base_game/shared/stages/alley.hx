@@ -71,8 +71,8 @@ function onCreate()
 
     resetCar(true, true);
 
-    if game.songName
-    game.startCallback = doIntro;
+    if (game.songName == "Funky Fanta")
+        game.startCallback = doIntro;
 }
 
 function doIntro() {
