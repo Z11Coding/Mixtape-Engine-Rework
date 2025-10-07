@@ -492,11 +492,8 @@ class Character extends FlxSprite
 								noteData = Std.int(animationNotes[0][1] % 4);
 								var animToPlay:String = Note.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
 								playAnim(animToPlay, true);
-								holdTimer = 0;
+								holdTimer = -Math.max(Conductor.stepCrochet * 1.25, (FlxG.sound.music.time - animationNotes[0][0])) / 1000 / PlayState.instance?.playbackRate;
 								animationNotes.shift();
-
-								trace('Z11 Played anim: $animToPlay');
-								trace('Z11 Note data: ${animationNotes[0][1]}');
 							}
 							//if (isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
 
@@ -507,11 +504,8 @@ class Character extends FlxSprite
 								noteData = Std.int(animationNotes[0][1] % 4);
 								var animToPlay:String = Note.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
 								playAnim(animToPlay, true);
-								holdTimer = 0;
+								holdTimer = -Math.max(Conductor.stepCrochet * 1.25, (FlxG.sound.music.time - animationNotes[0][0])) / 1000 / PlayState.instance?.playbackRate;
 								animationNotes.shift();
-
-								trace('Zenetta Played anim: $animToPlay');
-								trace('Zenetta Note data: ${animationNotes[0][1]}');
 							}
 							//if (isAnimationFinished()) playAnim(getAnimationName(), false, false, animation.curAnim.frames.length - 3);
 					}

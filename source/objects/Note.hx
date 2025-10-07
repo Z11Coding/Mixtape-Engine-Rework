@@ -921,6 +921,9 @@ class Note extends NoteObject
 			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
 			texture = '';
 
+			if (PlayState.isPixelStage || getNoteSkinPostfix().toLowerCase() == '-retribution')
+				rgbShader.enabled = false;
+
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
 				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
@@ -1062,9 +1065,6 @@ class Note extends NoteObject
 			if (skin == null || skin.length < 1)
 				skin = "noteSkins/NOTE_assets" + postfix;
 		}
-
-		if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution')
-			rgbShader.enabled = false;
 
 		var animName:String = null;
 		if(animation != null && animation.curAnim != null) {

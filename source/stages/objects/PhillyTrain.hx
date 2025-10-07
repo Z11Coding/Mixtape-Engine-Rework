@@ -33,11 +33,11 @@ class PhillyTrain extends BGSprite
 					startedMoving = true;
 					if (PlayState.instance.gf != null)
 					{
-						PlayState.instance.gf.playAnim('hairBlow');
-						PlayState.instance.gf.specialAnim = true;
+						PlayState.instance.gf.idleSuffix = '-wind';
+						PlayState.instance.gf.recalculateDanceIdle();
 					}
 				}
-		
+
 				if (startedMoving)
 				{
 					x -= 400;
@@ -70,7 +70,7 @@ class PhillyTrain extends BGSprite
 			start();
 		}
 	}
-	
+
 	public function start():Void
 	{
 		moving = true;
@@ -82,9 +82,8 @@ class PhillyTrain extends BGSprite
 	{
 		if(PlayState.instance.gf != null)
 		{
-			PlayState.instance.gf.danced = false; //Makes she bop her head to the correct side once the animation ends
-			PlayState.instance.gf.playAnim('hairFall');
-			PlayState.instance.gf.specialAnim = true;
+			PlayState.instance.gf.idleSuffix = '';
+			PlayState.instance.gf.recalculateDanceIdle();
 		}
 		x = FlxG.width + 200;
 		moving = false;

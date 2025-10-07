@@ -89,7 +89,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             // Normal difficulty loading
             switch (song.songName)
             {
-                case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown' | 'Pack-A-Punch' | 'Slowdown':
+                case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown' | 'Pack-A-Punch':
                     Difficulty.list = ['Hard'];
                 case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
                     Difficulty.list = ['Normal'];

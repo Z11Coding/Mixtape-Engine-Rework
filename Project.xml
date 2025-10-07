@@ -223,6 +223,8 @@
 	<!--Disable the Flixel sound management code-->
 	<!--<haxedef name="FLX_NO_SOUND_SYSTEM" />-->
 
+	<haxedef name="analyzer-optimize" unless="debug" />
+
 	<!--Optimise inputs, be careful you will get null errors if you don't use conditionals in your game-->
 	<haxedef name="FLX_NO_TOUCH" if="desktop" />
 
@@ -240,11 +242,12 @@
 
 	<!--Used for Izzy Engine's crash handler-->
 	<section if="cpp">
+		<haxedef name="HXCPP_M32" if="32bit" />
+		<haxedef name="HXCPP_DEBUG_LINK" if="debug" />
 		<haxedef name="HXCPP_CHECK_POINTER" />
 		<haxedef name="HXCPP_STACK_LINE" />
 		<haxedef name="HXCPP_STACK_TRACE" />
 		<haxedef name="HXCPP_CATCH_SEGV" />
-		<haxedef name="HXCPP_GC_DISABLE" />
 	</section>
 
 	<section if="desktop">
