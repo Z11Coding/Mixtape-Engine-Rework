@@ -1136,6 +1136,22 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		healthColorStepperB.value = character.healthColorArray[2];
 		healthBar.leftBar.color = healthBar.rightBar.color = FlxColor.fromRGB(character.healthColorArray[0], character.healthColorArray[1], character.healthColorArray[2]);
 		healthIcon.changeIcon(character.healthIcon, false);
+		switch (healthIcon.type) {
+			case SINGLE:
+				healthIcon.animation.curAnim.curFrame = 0;
+			case WINNING:
+				healthIcon.animation.curAnim.curFrame = 2;
+			case ANIMSINGLE:
+				healthIcon.animation.play('idle', true);
+			case ANIMDEFAULT:
+				healthIcon.animation.play('normal', true);
+			case ANIMWINNING:
+				healthIcon.animation.play('winning', true);
+			case ANIMSINGING:
+				healthIcon.animation.play('idle', true);
+			default:
+				healthIcon.animation.curAnim.curFrame = 0;
+		}
 		updatePresence();
 	}
 

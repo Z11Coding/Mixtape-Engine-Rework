@@ -394,7 +394,8 @@ class UnoTestState extends MusicBeatState {
                     waitingForHandSwap = false;
 
                     // Perform the actual hand swap through the rules system
-                    performHandSwap(selectedPlayer);
+                    if (performHandSwap != null)
+                        performHandSwap(selectedPlayer);
 
                     // Update UI after swap is complete
                     if (selectedPlayer != null) {
@@ -404,9 +405,18 @@ class UnoTestState extends MusicBeatState {
                     } else {
                         updateInstructionText("Hand swap cancelled", true);
                     }
+                    performHandSwap = null;
+                    unoGame.onSevenRuleHandSwap = null; // Clear the handler to prevent reuse
+                    return;
+                }, function(selectedPlayer:UnoPlayer) {
+                    // Reset waiting flag first
+                    waitingForHandSwap = false;
+
+                    updateInstructionText("Hand swap cancelled", true);
                 });
 
                 openSubState(handSwapSubstate);
+                return;
             };
 
         }
@@ -1343,6 +1353,18 @@ class UnoTestState extends MusicBeatState {
             if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
                 updateInstructionText("NO ESCAPE! You must win or die!");
                 return;
+            }
+        }
+
+        if (subState != null) {
+            if (subState is games.uno.HandSwapSubstate) {
+                @:privateAccess {
+                    if (cast(subState, games.uno.HandSwapSubstate).shouldBeClosed) {
+                        waitingForHandSwap = false;
+                        isPlayingCard = false;
+                        closeSubState();
+                    }
+                }
             }
         }
 

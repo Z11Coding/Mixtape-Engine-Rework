@@ -19,6 +19,12 @@ import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 
+#if cpp
+import cpp.vm.Gc;
+#elseif hl
+import hl.Gc;
+#end
+
 #if MODS_ALLOWED
 import backend.Mods;
 #end
@@ -223,21 +229,57 @@ class Paths
 	}
 
 	// The "If All Else Fails" option
-	public static function nukeMemory(){
-		try {
+	// The "If All Else Fails" option
+	public static function nukeMemory(?useAlt:Bool = true){
+		if (useAlt) {
 			clearStoredWithoutStickers();
-			freeGraphicsFromMemory();
-			Paths.clearStoredMemory();
-			Paths.clearUnusedMemory();
-			//MemoryUtilBase.compact();
-			//MemoryUtilBase.collect(true);
-			currentTrackedSounds.clear();
-			@:privateAccess {
-				for (key => asset in FlxG.bitmap._cache)
-					asset.destroy();
+
+			#if cpp
+			var killZombies:Bool = true;
+
+			while (killZombies)
+			{
+				var zombie = Gc.getNextZombie();
+
+				if (zombie == null)
+				{
+					killZombies = false;
+				} else {
+					var closeMethod = Reflect.field(zombie, "close");
+
+					if (closeMethod != null && Reflect.isFunction(closeMethod))
+						closeMethod.call(zombie, []);
+				}
 			}
-		} catch(e) {
-			trace('ERROR: Couldn\'t' );
+
+			Gc.run(true);
+			Gc.compact();
+			#end
+
+			#if hl
+			Gc.major();
+			#end
+
+			FlxG.bitmap.clearUnused();
+			FlxG.bitmap.clearCache();
+
+			//super.destroy();
+		} else {
+			try {
+				clearStoredWithoutStickers();
+				freeGraphicsFromMemory();
+				Paths.clearStoredMemory();
+				Paths.clearUnusedMemory();
+				//MemoryUtilBase.compact();
+				//MemoryUtilBase.collect(true);
+				currentTrackedSounds.clear();
+				@:privateAccess {
+					for (key => asset in FlxG.bitmap._cache)
+						asset.destroy();
+				}
+			} catch(e) {
+				trace('ERROR: Couldn\'t' );
+			}
 		}
 	}
 

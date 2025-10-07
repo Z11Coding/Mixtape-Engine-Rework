@@ -351,6 +351,8 @@ class LoadingState extends MusicBeatState
 		if (stopMusic && FlxG.sound.music != null)
 			FlxG.sound.music.stop();
 
+		MusicBeatState.allowNuke = false;
+
 		FlxG.camera.visible = false;
 		MusicBeatState.switchState(target);
 		transitioning = true;
@@ -476,8 +478,6 @@ class LoadingState extends MusicBeatState
 			isIntrusive = false;
 			return;
 		}
-
-		MusicBeatState.allowNuke = (ClientPrefs.data.chartPreload == 'Off' || ClientPrefs.data.chartPreload == 'Song Only' && lastSong != PlayState.SONG.song || ClientPrefs.data.loadingState == 'Everything' && lastMod != Mods.currentModDirectory);
 
 		lastSong = PlayState.SONG.song;
 		lastMod = Mods.currentModDirectory;

@@ -41,6 +41,8 @@ class RankingSubstate extends MusicBeatSubstate
 
 		if (!PlayState.instance.cpuControlled)
 			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
+
+		MusicBeatState.allowNuke = true;
 	}
 
 	function getPauseSong()

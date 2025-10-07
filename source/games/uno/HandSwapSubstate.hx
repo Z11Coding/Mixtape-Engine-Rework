@@ -19,6 +19,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
     private var availablePlayers:Array<UnoPlayer>;
     private var currentPlayer:UnoPlayer;
     private var onPlayerSelected:UnoPlayer->Void;
+    private var onPlayerCancel:UnoPlayer->Void;
 
     // UI Elements
     private var bgOverlay:FlxSprite;
@@ -34,12 +35,15 @@ class HandSwapSubstate extends MusicBeatSubstate {
     private var animationComplete:Bool = false;
     private var particles:FlxTypedGroup<FlxSprite>;
     private var cpuThinkingTimer:FlxTimer;
+    private var shouldBeClosed:Bool = false;
 
-    public function new(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void) {
+
+    public function new(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void, onPlayerCancel:UnoPlayer->Void) {
         super();
         this.currentPlayer = currentPlayer;
         this.availablePlayers = availablePlayers.copy();
         this.onPlayerSelected = onPlayerSelected;
+        this.onPlayerCancel = onPlayerCancel;
 
         // Remove current player from available choices
         this.availablePlayers.remove(currentPlayer);
@@ -423,6 +427,8 @@ class HandSwapSubstate extends MusicBeatSubstate {
         new FlxTimer().start(0.6, function(_) {
             onComplete();
         });
+        shouldBeClosed = true;
+        close();
     }
 
     private function selectPlayer(index:Int):Void {
@@ -449,60 +455,18 @@ class HandSwapSubstate extends MusicBeatSubstate {
 
             // Flash effect (only if button exists)
             if (button != null) {
-                try {
-                    FlxTween.color(button, 0.2, button.color, FlxColor.YELLOW, {
-                        type: PINGPONG,
-                        onComplete: function(_) {
-                            try {
-                                animateOut(function() {
-                                    try {
-                                        close();
-                                        if (onPlayerSelected != null) {
-                                            onPlayerSelected(selectedPlayer);
-                                        }
-                                    } catch(e:Dynamic) {
-                                        trace("Error in close/callback: " + e);
-                                        // Force close even if callback fails
-                                        try { close(); } catch(e2:Dynamic) { trace("Force close failed: " + e2); }
-                                    }
-                                });
-                            } catch(e:Dynamic) {
-                                trace("Error in animateOut: " + e);
-                                // Fallback: force close without animation
-                                try {
-                                    close();
-                                    if (onPlayerSelected != null) {
-                                        onPlayerSelected(selectedPlayer);
-                                    }
-                                } catch(e2:Dynamic) {
-                                    trace("Fallback close failed: " + e2);
-                                }
-                            }
-                        }
-                    });
-                } catch(e:Dynamic) {
-                    trace("Error in FlxTween.color: " + e);
-                    // Fallback: skip animation and close directly
-                    try {
+                FlxTween.color(button, 0.2, button.color, FlxColor.YELLOW, {
+                    type: PINGPONG,
+                    onComplete: function(_) {
                         animateOut(function() {
                             close();
                             if (onPlayerSelected != null) {
                                 onPlayerSelected(selectedPlayer);
                             }
+                            onPlayerSelected = null; // Prevent multiple calls
                         });
-                    } catch(e2:Dynamic) {
-                        trace("Fallback animateOut failed: " + e2);
-                        // Last resort: close immediately
-                        try {
-                            close();
-                            if (onPlayerSelected != null) {
-                                onPlayerSelected(selectedPlayer);
-                            }
-                        } catch(e3:Dynamic) {
-                            trace("Emergency close failed: " + e3);
-                        }
                     }
-                }
+                });
             } else {
                 trace("Warning: Button is null for index " + index + ", skipping flash animation");
                 // No button animation, but still proceed with selection
@@ -512,6 +476,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         if (onPlayerSelected != null) {
                             onPlayerSelected(selectedPlayer);
                         }
+                        onPlayerSelected = null; // Prevent multiple calls
                     });
                 } catch(e:Dynamic) {
                     trace("Error in no-button animateOut: " + e);
@@ -520,6 +485,7 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         if (onPlayerSelected != null) {
                             onPlayerSelected(selectedPlayer);
                         }
+                        onPlayerSelected = null; // Prevent multiple calls
                     } catch(e2:Dynamic) {
                         trace("No-button emergency close failed: " + e2);
                     }
@@ -751,11 +717,13 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         }
                         try {
                             animateOut(function() {
+                                onPlayerCancel(currentPlayer);
                                 close();
                             });
                         } catch(e:Dynamic) {
                             trace("Error in escape animateOut: " + e);
                             try {
+                                onPlayerCancel(currentPlayer);
                                 close();
                             } catch(e2:Dynamic) {
                                 trace("Error in escape close: " + e2);
