@@ -394,27 +394,24 @@ class UnoTestState extends MusicBeatState {
                         // Reset waiting flag first
                         waitingForHandSwap = false;
 
-                    // Perform the actual hand swap through the rules system
-                    if (performHandSwap != null)
+                        // Perform the actual hand swap through the rules system
                         performHandSwap(selectedPlayer);
 
-                    // Update UI after swap is complete
-                    if (selectedPlayer != null) {
-                        updateInstructionText('${currentPlayer.name} swapped hands with ${selectedPlayer.name}!', true);
-                        // Force display update to show new hands
-                        updateDisplay();
-                    } else {
-                        updateInstructionText("Hand swap cancelled", true);
+                        // Update UI after swap is complete
+                        if (selectedPlayer != null) {
+                            updateInstructionText('${currentPlayer.name} swapped hands with ${selectedPlayer.name}!', true);
+                            // Force display update to show new hands
+                            updateDisplay();
+                        } else {
+                            updateInstructionText("Hand swap cancelled", true);
+                        }
+                    } catch (e:Dynamic) {
+                        trace("Error in hand swap callback: " + e);
+                        // Ensure flags are reset even if an error occurs
+                        waitingForHandSwap = false;
+                        UnoRules.resetHandSwapFlag();
+                        updateInstructionText("Hand swap failed", true);
                     }
-                    performHandSwap = null;
-                    unoGame.onSevenRuleHandSwap = null; // Clear the handler to prevent reuse
-                    return;
-                }
-                }, function(selectedPlayer:UnoPlayer) {
-                    // Reset waiting flag first
-                    waitingForHandSwap = false;
-
-                    updateInstructionText("Hand swap cancelled", true);
                 });
 
                 openSubState(handSwapSubstate);

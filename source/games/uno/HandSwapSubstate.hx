@@ -427,8 +427,6 @@ class HandSwapSubstate extends MusicBeatSubstate {
         new FlxTimer().start(0.6, function(_) {
             onComplete();
         });
-        shouldBeClosed = true;
-        close();
         meantToClose = true;
     }
     var meantToClose:Bool = false;
