@@ -205,7 +205,11 @@ class Main extends Sprite
 	public static var changeID:Int = 0;
 	public function new()
 	{
+
+											backend.window.CppAPI.setWindowOpacity(0);
+
 		super();
+
 
 		#if (cpp && windows)
 		backend.window.Native.fixScaling();
@@ -292,7 +296,6 @@ class Main extends Sprite
 		// "NativeTrace works with double quotes too!".NativeTrace(true);
 		// testArray.NativeTrace(true, false);
 
-							backend.window.CppAPI.setWindowOpacity(1);
 
 
 

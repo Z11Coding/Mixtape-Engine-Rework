@@ -2417,6 +2417,12 @@ class APPlayState extends PlayState {
             else
                 if (resistanceAmount < 1) resistanceAmount += 0.005;
         }
+
+        @:privateAccess
+        if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
+            ArchPopup.startPopupCustom('You Found A Check!', '...while not even playing that side.', 'archColor'); // test
+            checkedNotes.push(note);
+        }
     }
 
     public var bfAscend:Bool = false;
