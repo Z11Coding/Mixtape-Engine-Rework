@@ -292,7 +292,9 @@ class Main extends Sprite
 		// "NativeTrace works with double quotes too!".NativeTrace(true);
 		// testArray.NativeTrace(true, false);
 
-							backend.window.CppAPI.setWindowOpacity(1);
+		#if windows
+		backend.window.CppAPI.setWindowOpacity(1);
+		#end
 
 
 
