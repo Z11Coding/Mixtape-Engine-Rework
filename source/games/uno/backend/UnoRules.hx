@@ -157,6 +157,9 @@ class UnoRules {
                (playerCard.type != NUMBER || playerCard.value == topCard.value);
     }
 
+    // Static flag to prevent multiple simultaneous hand swaps
+    private static var handSwapInProgress:Bool = false;
+
     /**
      * Apply seven-zero rule effects
      */
@@ -165,7 +168,8 @@ class UnoRules {
 
         if (card.value == 7) {
             // Player who played 7 swaps hands with another player of their choice
-            if (onSevenRuleHandSwap != null) {
+            if (onSevenRuleHandSwap != null && !handSwapInProgress) {
+                handSwapInProgress = true; // Set flag to prevent concurrent swaps
                 var currentPlayer = players[currentPlayerIndex];
                 var availablePlayers = players.filter(p -> p != currentPlayer);
 
@@ -190,6 +194,9 @@ class UnoRules {
                     } else {
                         trace('Hand swap cancelled or invalid selection');
                     }
+                    
+                    // Always reset the flag when swap is complete (or cancelled)
+                    handSwapInProgress = false;
                 };
 
                 // Call the UI callback with our swap function
@@ -208,6 +215,13 @@ class UnoRules {
                 players[i].hand.addCards(hands[nextIndex]);
             }
         }
+    }
+
+    /**
+     * Reset hand swap progress flag (for recovery from errors)
+     */
+    public static function resetHandSwapFlag():Void {
+        handSwapInProgress = false;
     }
 
     /**

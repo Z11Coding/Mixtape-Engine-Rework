@@ -138,6 +138,8 @@ class UnoGame {
         roundNumber++;
         isRoundActive = true;
         drawStack = 0;
+        handSwapProcessed = false; // Reset hand swap flag for new round
+        UnoRules.resetHandSwapFlag(); // Reset static flag as well
 
         // Reset deck and hands
         deck.reset(customColors, customCards);
@@ -244,8 +246,7 @@ class UnoGame {
         // After eveything is done
         afterCardPlayed(player, playedCard);
 
-        // Next turn
-        handSwapProcessed = false; // Reset for next turn
+        // Next turn (handSwapProcessed will be reset when turn actually starts)
         turnManager.nextTurn();
         updateGameState();
 

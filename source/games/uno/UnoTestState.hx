@@ -390,8 +390,9 @@ class UnoTestState extends MusicBeatState {
 
                 // Open the hand swap substate for player selection
                 var handSwapSubstate = new HandSwapSubstate(currentPlayer, availablePlayers, function(selectedPlayer:UnoPlayer) {
-                    // Reset waiting flag first
-                    waitingForHandSwap = false;
+                    try {
+                        // Reset waiting flag first
+                        waitingForHandSwap = false;
 
                     // Perform the actual hand swap through the rules system
                     if (performHandSwap != null)
@@ -408,6 +409,7 @@ class UnoTestState extends MusicBeatState {
                     performHandSwap = null;
                     unoGame.onSevenRuleHandSwap = null; // Clear the handler to prevent reuse
                     return;
+                }
                 }, function(selectedPlayer:UnoPlayer) {
                     // Reset waiting flag first
                     waitingForHandSwap = false;
@@ -1288,7 +1290,7 @@ class UnoTestState extends MusicBeatState {
         }
         isPlayingCard = false;
         resetCardSelection();
-    }    private function updateInstructionText(text:String, ?doFade:Bool = false):Void {
+    }       private function updateInstructionText(text:String, ?doFade:Bool = false):Void {
         var originalText = instructionText.text;
         if (instructionText != null) {
             instructionText.text = text;
@@ -1327,6 +1329,14 @@ class UnoTestState extends MusicBeatState {
     var refreshTimer:FlxTimer;
     override function update(elapsed:Float) {
         super.update(elapsed);
+
+        // Safety check: Reset stuck hand swap flag after 10 seconds
+        if (waitingForHandSwap && haxe.Timer.stamp() - lastHandSwapTime > 10.0 && subState == null) {
+            trace("Hand swap taking too long, resetting flags");
+            waitingForHandSwap = false;
+            UnoRules.resetHandSwapFlag();
+            updateInstructionText("Hand swap timeout - continuing game", true);
+        }
 
         // Handle CPU turns
         if (unoGame != null && unoGame.turnManager != null && unoGame.turnManager.getCurrentPlayer() != null) {

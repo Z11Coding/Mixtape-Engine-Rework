@@ -429,10 +429,12 @@ class HandSwapSubstate extends MusicBeatSubstate {
         });
         shouldBeClosed = true;
         close();
+        meantToClose = true;
     }
+    var meantToClose:Bool = false;
 
     private function selectPlayer(index:Int):Void {
-        if (!animationComplete || index < 0 || index >= availablePlayers.length) return;
+        if (!animationComplete || index < 0 || index >= availablePlayers.length || meantToClose) return;
 
         try {
             var selectedPlayer = availablePlayers[index];
