@@ -139,7 +139,7 @@ class APUnoTrapState extends UnoTestState {
         UnoRules.ALLOW_JUMP_IN = FlxG.random.bool(30); // 30% chance for jump-in
         UnoRules.DRAW_UNTIL_PLAYABLE = FlxG.random.bool(1); // 1% chance because OH MY GOD is this awful sometimes
         UnoRules.PROGRESSIVE_UNO = FlxG.random.bool(20); // 20% chance for progressive UNO
-        UnoRules.SEVEN_ZERO_RULE = FlxG.random.bool(40); // 40% chance for 7-0 rule
+        UnoRules.SEVEN_ZERO_RULE = FlxG.random.bool(0); // 0% chance for 7-0 rule, as it's currently  broken.
         UnoRules.WILD_DRAW_FOUR_CHALLENGE = FlxG.random.bool(80); // 80% chance for challenges
         UnoRules.ALLOW_ANY_PLUS_STACK = FlxG.random.bool(50); // 50% chance for any plus stacking
         UnoRules.WINNING_SCORE = 1; // First to get any amount of points wins

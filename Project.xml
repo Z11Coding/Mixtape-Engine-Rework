@@ -274,6 +274,7 @@
 	<haxeflag name="--macro" value="yutautil.VoidFall.randomFailure()" />
 
 	<haxeflag name="--resource" value="assets/embed/apworld/fridaynightfunkin.apworld@apworld" />
+	<haxeflag name="--resource" value="example_mods/modTemplate.zip@modTemp" />
 
 	<section if="HSCRIPT_ALLOWED">
 		<haxedef name="hscriptPos" if="HSCRIPT_ALLOWED" />

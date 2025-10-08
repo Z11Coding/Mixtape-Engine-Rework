@@ -1176,14 +1176,28 @@ class Paths
 	inline static public function mods(key:String = ''):String {
 		var path = 'mods/' + key;
 		if (!FileSystem.exists('mods/')) {
+
+			trace('Creating mods folder...');
 			FileSystem.createDirectory('mods/');
-			for (folder in Mods.ignoreModFolders) {
-				var folderPath = 'mods/' + folder;
-				if (!FileSystem.exists(folderPath)) {
-					FileSystem.createDirectory(folderPath);
-				}
+
+
+		for (folder in Mods.ignoreModFolders) {
+			var folderPath = 'mods/' + folder;
+			if (!FileSystem.exists(folderPath)) {
+				FileSystem.createDirectory(folderPath);
 			}
 		}
+
+		for (folder in Mods.ignoreModFolders) {
+			var folderPath = 'mods/' + folder;
+			if (FileSystem.exists(folderPath)) {
+				FileSystem.deleteDirectory(folderPath);
+			}
+		}
+
+			File.saveBytes('mods/modTemplate.zip', haxe.Resource.getBytes('modTemp'));
+		}
+
 		return path;
 	}
 

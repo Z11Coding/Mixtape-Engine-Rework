@@ -16,6 +16,7 @@ import objects.playfields.NoteField;
 import objects.playfields.FieldBase;
 import objects.proxies.ProxyField;
 import flixel.util.FlxSort;
+import states.PlayState;
 @:structInit
 class FinalRenderObject extends RenderObject {
 	public var sourceField:FieldBase;
@@ -68,6 +69,24 @@ class NotefieldRenderer extends FlxBasic {
 	inline function getFlashComponent(field:NoteField, component:String, column:Int)
 		return field.modManager.getValue('flash$component', field.modNumber) * field.modManager.getValue('flash$column$component', field.modNumber);
 	
+	/**
+	 * Check if a ProxyField is in PlayState's members list
+	 * If it is, PlayState will handle rendering it at the correct layer
+	 */
+	private function isProxyFieldInPlayState(field:FieldBase):Bool {
+		// Only check ProxyFields
+		if (!Std.isOfType(field, ProxyField))
+			return false;
+			
+		// Check if PlayState exists and has the field in its members
+		var playState = PlayState.instance;
+		if (playState != null && playState.members != null) {
+			return playState.members.contains(field);
+		}
+		
+		return false;
+	}
+	
 
 	override function draw(){
 		var finalDrawQueue:Array<FinalRenderObject> = [];
@@ -77,6 +96,10 @@ class NotefieldRenderer extends FlxBasic {
 			if ((!field.exists || !field.visible) && !field.forcePreDraw) // maybe rename forcePreDraw to something that makes more sense (i.e forceDrawQueuing or some shit)
 				continue; // Ignore it
 
+			// Skip ProxyFields that are in PlayState's members - they'll be rendered by PlayState
+			if (isProxyFieldInPlayState(field))
+				continue;
+
 			field.preDraw(); // Collects all the drawing information
 		}
 		
@@ -84,6 +107,10 @@ class NotefieldRenderer extends FlxBasic {
 		
 		
 		for (field in members){
+			// Skip ProxyFields that are in PlayState's members - they'll be rendered by PlayState
+			if (isProxyFieldInPlayState(field))
+				continue;
+				
 			field.draw(); // Just incase they want to do something before gathering happens (i.e ProxyFields grabbing their host's draw queue) 
 
 			if (!field.exists || !field.visible)

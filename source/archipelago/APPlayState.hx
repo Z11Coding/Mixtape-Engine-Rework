@@ -33,6 +33,13 @@ class APPlayState extends PlayState {
     public static var deathByLink:Bool = false;
     public static var deathByBlueBalls:Bool = false;
     public static var alreadyKilledByLink:Bool = false;
+    public var antiHornySpray:Bool = false;
+    public var noHorny(get, never):Bool;
+
+    function get_noHorny():Bool
+    {
+        return antiHornySpray || inCutscene;
+    }
 
     public var checkedNotes:Array<Note> = new Array<Note>();
 
@@ -2129,10 +2136,6 @@ class APPlayState extends PlayState {
                                 ]);
                             case "minecraft":
                                 extraMessages = extraMessages.concat([
-                                    "They got creeper'd...",
-                                    "Fell into lava, didn't they?",
-                                    "Should have brought more torches...",
-                                    "Respawning in 3... 2... 1...",
                                     "At least they didn't lose their diamonds... right?"
                                 ]);
                             case "the legend of zelda: a link to the past":
@@ -2164,6 +2167,54 @@ class APPlayState extends PlayState {
                                     "Sounds like they had fun...",
                                     "Wow, they get more game than you!",
                                     "Stop getting fucked, maybe you'll win next time..."
+                                ]);
+                            case "undertale":
+                                extraMessages = extraMessages.concat([
+                                    "They fell down...",
+                                    "Don't forget to save...",
+                                    "You idiot...",
+                                    "Hope they listen to Toriel next time...",
+                                    "The underground claims another soul..."
+                                ]);
+                            case "hollow knight":
+                                extraMessages = extraMessages.concat([
+                                    "They have been defeated...",
+                                    "The kingdom of Hallownest mourns another...",
+                                    "Should have listened to the Nailsmith...",
+                                    "Even the Radiance couldn't save them...",
+                                    "The void claims another..."
+                                ]);
+                            case "celeste":
+                                extraMessages = extraMessages.concat([
+                                    "They couldn't reach the summit...",
+                                    "Maybe next time they'll make it to the top...",
+                                    "Madeline needs a break...",
+                                    "The mountain claims another...",
+                                    "Breathe in, breathe out... and try again..."
+                                ]);
+                            case "dark souls":
+                                extraMessages = extraMessages.concat([
+                                    "They have been hollowed...",
+                                    "The bonfire fades to embers...",
+                                    "You Died. Try again, Undead...",
+                                    "Should have summoned a phantom...",
+                                    "Even the gods couldn't save them..."
+                                ]);
+                            case "stardew valley":
+                                extraMessages = extraMessages.concat([
+                                    "They passed out from exhaustion...",
+                                    "The farm will have to wait...",
+                                    "Should have eaten more food...",
+                                    "Even the Joja Corporation couldn't save them...",
+                                    "The valley claims another..."
+                                ]);
+                            case "deltarune":
+                                extraMessages = extraMessages.concat([
+                                    "They fell into the dark...",
+                                    "Don't forget to save...",
+                                    "Hope they listen to Ralsei next time...",
+                                    "Are they gonna go back to the light...?",
+                                    "Are they rebelling against their soul again?"
                                 ]);
                             default:
                                 extraMessages = extraMessages.concat([
@@ -2393,7 +2444,7 @@ class APPlayState extends PlayState {
 
         if (bfAscend) boyfriendGroup.y += 0.01;
 
-        if (releasethebeast) {
+        if (releasethebeast && !noHorny) {
             if (resistanceAmount > 1) resistanceAmount = 1;
             if (resistanceAmount <= 0) resistanceAmount = 0;
             if (resistanceAmount == 1) health -= (0.00051 / (60 / ClientPrefs.data.framerate)) * dmgMultiplier;
@@ -2402,7 +2453,11 @@ class APPlayState extends PlayState {
             boyfriend.alpha = (1 - resistanceAmount);
             zenetta.x = boyfriend.x;
             zenetta.y = boyfriend.y - 280;
-            bfkilledcheck = true;
+
+            if (resistanceAmount == 1 && health == 0)
+                die(true, "You have been...\n[pause:0.5] We shouldn't talk about it.\n[pause:0.5](Killed by Zenetta)");
+
+
         }
 
         super.update(elapsed);
@@ -2443,9 +2498,9 @@ class APPlayState extends PlayState {
         }
         if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
             alreadySent = true; // because indie cross likes to spam this every frame for some reason
-            APEntryState.apGame.info().sendDeathLink(COD.COD);
+            APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
         }
-        super.doDeathCheck();
+        super.doDeathCheck(skipHealthCheck);
         return true;
     }
 
@@ -2463,6 +2518,7 @@ class APPlayState extends PlayState {
 
     override public function endSong():Bool
     {
+        antiHornySpray = true;
         if (effectTimer != null && effectTimer.active)
 			effectTimer.cancel();
 
@@ -2481,6 +2537,23 @@ class APPlayState extends PlayState {
             archipelago.APItem.activeItem = null;
 
 		ClientPrefs.data.downScroll = ogScroll;
+
+        if (releasethebeast)
+        {
+            // Null checks before tweening
+            if (boyfriend != null)
+            FlxTween.tween(boyfriend, {alpha: 1}, 0.5);
+            if (zenetta != null)
+            {
+            FlxTween.tween(zenetta, {alpha: 0.0000000001}, 0.5);
+            FlxTween.tween(zenetta, {x: -2000, y: -2000}, 0.5);
+            }
+            FlxTween.num(resistanceAmount, 0, 0.5, {
+            onUpdate: function(tween) {
+                resistanceAmount = cast(tween, NumTween).value;
+            }
+            });
+        }
 
         if (FlxG.save.data.manualOverride)
         {

@@ -38,12 +38,16 @@ class HandSwapSubstate extends MusicBeatSubstate {
     private var shouldBeClosed:Bool = false;
 
 
-    public function new(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void, onPlayerCancel:UnoPlayer->Void) {
+    public function new(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void, ?onPlayerCancel:UnoPlayer->Void) {
         super();
         this.currentPlayer = currentPlayer;
         this.availablePlayers = availablePlayers.copy();
         this.onPlayerSelected = onPlayerSelected;
         this.onPlayerCancel = onPlayerCancel;
+
+        if (this.onPlayerCancel == null) {
+            this.onPlayerCancel = function(_) {};
+        }
 
         // Remove current player from available choices
         this.availablePlayers.remove(currentPlayer);

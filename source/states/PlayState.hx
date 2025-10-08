@@ -2532,6 +2532,13 @@ class PlayState extends MusicBeatState
 		return spr;
 	}
 
+	// public override function add(obj:FlxBasic):FlxBasic
+	// {
+	// 	if (GameOverSubstate.instance != null && isDead)
+	// 		return GameOverSubstate.instance.add(obj);
+	// 	return super.add(obj);
+	// }
+
 	public function addBehindGF(obj:FlxBasic)
 	{
 		insert(members.indexOf(gfGroup), obj);
@@ -5324,13 +5331,14 @@ class PlayState extends MusicBeatState
 		return event;
 	}
 
-	public function die(?trueKill:Bool = false):Void
+	public function die(?trueKill:Bool = false, ?cod:String):Void
 	{
 		bfkilledcheck = true;
 		health = 0;
 		if (trueKill) lives = 0;
-		else lives -= 1;
+		// else lives -= 1;
 		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
+		if (cod != null || cod.trim() != "") backend.COD.COD.COD = cod;
 		doDeathCheck(true);
 	}
 

@@ -2195,6 +2195,13 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 	}
 
+	function getTicketCount():Int
+	{
+		var ticketPercentFloat = ticketPercent / 100;
+		var ticketCount = Std.int(Math.ceil(songLimit * ticketPercentFloat));
+		return ticketCount;
+	}
+
 	function exportYAML()
 	{
 		FlxG.sound.play(Paths.sound('confirmMenu'));
