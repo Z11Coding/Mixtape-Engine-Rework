@@ -105,16 +105,17 @@ class StrumNote extends NoteObject
 
 		var skin:String = null;
 		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
-		else skin = Note.defaultNoteSkin;
 
-		if (Note.getNoteSkinPostfix() != '')
-		{
-			var customSkin:String = skin + Note.getNoteSkinPostfix();
-			if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
-		}
-		else {
-			var customSkin:String = skin = (PlayState.SONG != null ? PlayState.SONG.arrowSkin : 'NOTE_assets') + Note.getNoteSkinPostfix();
-			skin = (PlayState.isPixelStage ? customSkin : 'noteSkins/strums');
+		if (skin == null || skin == '') {
+			if (Note.getNoteSkinPostfix() != '')
+			{
+				var customSkin:String = skin + Note.getNoteSkinPostfix();
+				if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
+			}
+			else {
+				var customSkin:String = (PlayState.SONG != null && PlayState.SONG.arrowSkin != null ? PlayState.SONG.arrowSkin : 'NOTE_assets') + Note.getNoteSkinPostfix();
+				skin = (PlayState.isPixelStage ? customSkin : 'noteSkins/strums');
+			}
 		}
 
 		texture = skin; //Load texture and anims
@@ -128,6 +129,20 @@ class StrumNote extends NoteObject
 	public function reloadNote()
 	{
 		var postfix:String = Note.getNoteSkinPostfix();
+		var skin:String = texture + postfix;
+		if (!PlayState.isPixelStage) {
+			if(texture.length < 1 || skin == 'null')
+			{
+				skin = (PlayState.SONG != null ? PlayState.SONG.arrowSkin : (texture + postfix));
+				if (skin == null || skin.length < 1) {
+					if (postfix == null || postfix.length < 1)
+						skin = "noteSkins/strums";
+					else
+						skin = "noteSkins/NOTE_assets" + postfix;
+				}
+			}
+		}
+
 		if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution')
 			useRGBShader = false;
 
@@ -141,12 +156,12 @@ class StrumNote extends NoteObject
 
 		if(PlayState.isPixelStage)
 		{
-			loadGraphic(Paths.image('pixelUI/noteSkins/' + texture));
+			loadGraphic(Paths.image('pixelUI/noteSkins/' + skin));
 			pxDV = Note.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 			width = width / pxDV;
 			height = height / 5;
 			antialiasing = false;
-			loadGraphic(Paths.image('pixelUI/noteSkins/' + texture), true, Math.floor(width), Math.floor(height));
+			loadGraphic(Paths.image('pixelUI/noteSkins/' + skin), true, Math.floor(width), Math.floor(height));
 			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
 
 			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
@@ -161,18 +176,16 @@ class StrumNote extends NoteObject
 		{
 			var postfix:String = Note.getNoteSkinPostfix();
 			var skin:String = texture + postfix;
+			//trace("Skin: " + skin);
 			if(texture.length < 1)
 			{
 				skin = (PlayState.SONG != null ? PlayState.SONG.arrowSkin : (texture + postfix));
-				if (skin == null || skin.length < 1) {
-					if (postfix == null || postfix.length < 1)
-						skin = "noteSkins/strums";
-					else
-						skin = "noteSkins/NOTE_assets" + postfix;
+				if (skin == 'noteSkins/NOTE_assets') {
+					skin = "noteSkins/strums";
 				}
 			}
 
-			trace("Skin: " + skin);
+			//trace("Skin: " + skin);
 
 			frames = Paths.getSparrowAtlas(skin);
 			antialiasing = ClientPrefs.data.antialiasing;

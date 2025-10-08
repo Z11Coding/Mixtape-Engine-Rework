@@ -10257,7 +10257,7 @@ class PlayState extends MusicBeatState
 									modManager.setValue('transform${i}Y', offsetY, field.playerId);
 								} else {
 									// If the strum has been moved significantly, update the base position
-									trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
+									//trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
 									field.updateBaseYPosition(i, strumNote.y);
 								}
 								//strumNote.y = strumNote.y;

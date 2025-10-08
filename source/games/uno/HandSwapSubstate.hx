@@ -38,12 +38,11 @@ class HandSwapSubstate extends MusicBeatSubstate {
     private var shouldBeClosed:Bool = false;
 
 
-    public function new(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void, onPlayerCancel:UnoPlayer->Void) {
+    public function new(currentPlayer:UnoPlayer, availablePlayers:Array<UnoPlayer>, onPlayerSelected:UnoPlayer->Void) {
         super();
         this.currentPlayer = currentPlayer;
         this.availablePlayers = availablePlayers.copy();
         this.onPlayerSelected = onPlayerSelected;
-        this.onPlayerCancel = onPlayerCancel;
 
         // Remove current player from available choices
         this.availablePlayers.remove(currentPlayer);
@@ -717,13 +716,11 @@ class HandSwapSubstate extends MusicBeatSubstate {
                         }
                         try {
                             animateOut(function() {
-                                onPlayerCancel(currentPlayer);
                                 close();
                             });
                         } catch(e:Dynamic) {
                             trace("Error in escape animateOut: " + e);
                             try {
-                                onPlayerCancel(currentPlayer);
                                 close();
                             } catch(e2:Dynamic) {
                                 trace("Error in escape close: " + e2);

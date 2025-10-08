@@ -2445,7 +2445,7 @@ class APPlayState extends PlayState {
             alreadySent = true; // because indie cross likes to spam this every frame for some reason
             APEntryState.apGame.info().sendDeathLink(COD.COD);
         }
-        super.doDeathCheck();
+        super.doDeathCheck(skipHealthCheck);
         return true;
     }
 
