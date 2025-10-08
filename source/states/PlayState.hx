@@ -539,7 +539,6 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
-
 		#if MULTITHREADED_LOADING
 		// Due to the Main thread and Discord thread, we decrease it by 2.
 		var threadCount:Int = Std.int(Math.max(1, LoadingState.getCPUThreadsCount() - #if DISCORD_ALLOWED 2 #else 1 #end));
@@ -5333,13 +5332,15 @@ class PlayState extends MusicBeatState
 
 	public function die(?trueKill:Bool = false, ?cod:String):Void
 	{
-		bfkilledcheck = true;
-		health = 0;
-		if (trueKill) lives = 0;
-		// else lives -= 1;
-		noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
-		if (cod != null || cod.trim() != "") backend.COD.COD.COD = cod;
-		doDeathCheck(true);
+			if (cod != null || cod.trim() != "") backend.COD.COD.COD = cod;
+		if (trueKill)
+			doDeathCheck(true);
+		else {
+			bfkilledcheck = true;
+			health = 0;
+			noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
+			doDeathCheck();
+		}
 	}
 
 	// the void varient of the function above with trueKill set to true
@@ -6594,7 +6595,6 @@ class PlayState extends MusicBeatState
 
 		LoadingState.noteCache = [];
 		curChart = [];
-		MusicBeatState.allowNuke = true;
 
 		ClientPrefs.openChartEditor();
 	}
@@ -7944,7 +7944,6 @@ class PlayState extends MusicBeatState
 		{
 			LoadingState.noteCache = [];
 			curChart = [];
-			MusicBeatState.allowNuke = true;
 			#if !switch
 			var percent:Float = comboManager.ratingPercent;
 			if(Math.isNaN(percent)) percent = 0;
@@ -10266,7 +10265,7 @@ class PlayState extends MusicBeatState
 									modManager.setValue('transform${i}Y', offsetY, field.playerId);
 								} else {
 									// If the strum has been moved significantly, update the base position
-									trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
+									//trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
 									field.updateBaseYPosition(i, strumNote.y);
 								}
 								//strumNote.y = strumNote.y;
