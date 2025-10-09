@@ -2239,10 +2239,12 @@ class APPlayState extends PlayState {
                 cause = "???\n[pause:0.5](Someone died... somehow...)\n[pause:0.5](Unsure how...)";
             }
             COD.setCOD(null, cause);
-            if (!alreadyKilledByLink) {
+            if (alreadyKilledByLink) {
+                FlxG.switchState(new substates.GameOverSubstate(boyfriend, new PlayState()));
+            } else {
                 alreadyKilledByLink = true;
                 die();
-            } else {FlxG.state.openSubState(new substates.GameOverSubstate(boyfriend));}
+            }
             trace("Triggering DeathLink!");
         }
         #if cpp

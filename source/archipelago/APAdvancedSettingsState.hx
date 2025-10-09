@@ -1853,6 +1853,24 @@ class APAdvancedSettingsState extends MusicBeatState
 			if (songData.folder != null && songData.folder.length > 0)
 			{
 				formattedName = songData.songName + " (" + songData.folder + ")";
+
+				// Check if this is a modded song and mods are disabled
+				if (!allowMods)
+				{
+					allowMods = true;
+					startingSong = formattedName;
+					startingSongData = songData;
+					updateSongStats();
+					refreshCurrentPage();
+
+					// Show info notification about enabling mods
+					var infoPanel = new InfoPanelSubstate("Mods Auto-Enabled",
+						"Mods have been automatically enabled because you selected a modded song:\n\n" +
+						formattedName + "\n\nThis setting has been updated in your configuration.",
+						FlxColor.LIME);
+					openSubState(infoPanel);
+					return;
+				}
 			}
 
 			startingSong = formattedName;
@@ -1883,6 +1901,24 @@ class APAdvancedSettingsState extends MusicBeatState
 			if (songData.folder != null && songData.folder.length > 0)
 			{
 				formattedName = songData.songName + " (" + songData.folder + ")";
+
+				// Check if this is a modded song and mods are disabled
+				if (!allowMods)
+				{
+					allowMods = true;
+					victorySong = formattedName;
+					victorySongData = songData;
+					updateSongStats();
+					refreshCurrentPage();
+
+					// Show info notification about enabling mods
+					var infoPanel = new InfoPanelSubstate("Mods Auto-Enabled",
+						"Mods have been automatically enabled because you selected a modded song:\n\n" +
+						formattedName + "\n\nThis setting has been updated in your configuration.",
+						FlxColor.LIME);
+					openSubState(infoPanel);
+					return;
+				}
 			}
 
 			victorySong = formattedName;

@@ -149,6 +149,10 @@ class PlayState extends MusicBeatState
 	// 	generateSong();
 	// }
 
+	// Save Settings...
+
+	public var clientSaveData = yutautil.save.ObjectSerializer.deepClone(ClientPrefs.data);
+
 	public var BF_X:Float = 770;
 	public var BF_Y:Float = 100;
 	public var BF2_X:Float = 770;
@@ -2538,6 +2542,12 @@ class PlayState extends MusicBeatState
 	// 	return super.add(obj);
 	// }
 
+	public function addBehind(obj:FlxBasic, behind:FlxBasic):FlxBasic
+	{
+		insert(members.indexOf(behind), obj);
+		return obj;
+	}
+
 	public function addBehindGF(obj:FlxBasic)
 	{
 		insert(members.indexOf(gfGroup), obj);
@@ -2561,6 +2571,49 @@ class PlayState extends MusicBeatState
 	public function addBehindHUD(obj:FlxBasic)
 	{
 		insert(members.indexOf(uiGroup), obj);
+	}
+
+	public function addAbove(obj:FlxBasic, above:FlxBasic):FlxBasic
+	{
+		insert(members.indexOf(above) + 1, obj);
+		return obj;
+	}
+
+	public function addAboveGF(obj:FlxBasic)
+	{
+		insert(members.indexOf(gfGroup) + 1, obj);
+	}
+
+	public function addAboveBF(obj:FlxBasic)
+	{
+		insert(members.indexOf(boyfriendGroup) + 1, obj);
+	}
+
+	public function addAboveDad(obj:FlxBasic)
+	{
+		insert(members.indexOf(dadGroup) + 1, obj);
+	}
+
+	public function addAboveBF2(obj:FlxBasic)
+	{
+		insert(members.indexOf(boyfriendGroup2) + 1, obj);
+	}
+
+	public function addAboveDad2(obj:FlxBasic)
+	{
+		insert(members.indexOf(dadGroup2) + 1, obj);
+	}
+
+	public function addAboveGF(obj:FlxBasic)
+	{
+		insert(members.indexOf(gfGroup) + 1, obj);
+	}
+
+	public function addNoteToField(note:Note, ?field:Int = 0)
+	{
+		if (field < 0 || field >= playfields.length)
+			field = if (note.mustPress) 0 else 1;
+		playfields[field].addNote(note);
 	}
 
 	public function clearNotesBefore(time:Float)
@@ -9658,6 +9711,11 @@ class PlayState extends MusicBeatState
 		endingSong = true;
 		//Paths.clearStoredWithoutStickers();
 
+		// Reload the save data as proper.
+		if (clientSaveData != null) {
+			ClientPrefs.data = clientSaveData;
+			clientSaveData = null;
+		}
 	}
 
 	var lastStepHit:Int = -1;

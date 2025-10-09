@@ -1,5 +1,5 @@
 package objects.playfields;
-/* 
+/*
 	if ((FlxG.state is PlayState))
 		PlayState.instance.callOnHScripts("notefieldDraw", [this], ["drawQueue" => drawQueue]); // lets you do custom rendering in scripts, if needed
 
@@ -8,14 +8,14 @@ package objects.playfields;
 	var glowB = modManager.getValue("flashB", modNumber);
  */
 
-import flixel.util.FlxDestroyUtil;
 import flixel.math.FlxPoint;
-import openfl.geom.ColorTransform;
 import flixel.util.FlxColor;
-import objects.playfields.NoteField;
-import objects.playfields.FieldBase;
-import objects.proxies.ProxyField;
+import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxSort;
+import objects.playfields.FieldBase;
+import objects.playfields.NoteField;
+import objects.proxies.ProxyField;
+import openfl.geom.ColorTransform;
 import states.PlayState;
 @:structInit
 class FinalRenderObject extends RenderObject {
@@ -36,7 +36,7 @@ class NotefieldRenderer extends FlxBasic {
 		if (members.contains(field))
 			members.remove(field);
 	}
-	
+
 	static inline function zindexSort(Order:Int, Obj1:FinalRenderObject, Obj2:FinalRenderObject):Int {
 		var result:Int = 0;
 		var Value1:Float = Obj1.zIndex;
@@ -63,12 +63,12 @@ class NotefieldRenderer extends FlxBasic {
 	static function drawQueueSort(Obj1:FinalRenderObject, Obj2:FinalRenderObject) {
 		return zindexSort(FlxSort.ASCENDING, Obj1, Obj2);
 	}
-	
+
 	var point:FlxPoint = FlxPoint.get(0, 0);
-	
+
 	inline function getFlashComponent(field:NoteField, component:String, column:Int)
 		return field.modManager.getValue('flash$component', field.modNumber) * field.modManager.getValue('flash$column$component', field.modNumber);
-	
+
 	/**
 	 * Check if a ProxyField is in PlayState's members list
 	 * If it is, PlayState will handle rendering it at the correct layer
@@ -77,16 +77,16 @@ class NotefieldRenderer extends FlxBasic {
 		// Only check ProxyFields
 		if (!Std.isOfType(field, ProxyField))
 			return false;
-			
+
 		// Check if PlayState exists and has the field in its members
 		var playState = PlayState.instance;
 		if (playState != null && playState.members != null) {
 			return playState.members.contains(field);
 		}
-		
+
 		return false;
 	}
-	
+
 
 	override function draw(){
 		var finalDrawQueue:Array<FinalRenderObject> = [];
@@ -102,27 +102,27 @@ class NotefieldRenderer extends FlxBasic {
 
 			field.preDraw(); // Collects all the drawing information
 		}
-		
+
 		// Now that the main draw queues should have been populated, it's time to push them into the final draw queue for sorting
-		
-		
+
+
 		for (field in members){
 			// Skip ProxyFields that are in PlayState's members - they'll be rendered by PlayState
 			if (isProxyFieldInPlayState(field))
 				continue;
-				
-			field.draw(); // Just incase they want to do something before gathering happens (i.e ProxyFields grabbing their host's draw queue) 
+
+			field.draw(); // Just incase they want to do something before gathering happens (i.e ProxyFields grabbing their host's draw queue)
 
 			if (!field.exists || !field.visible)
 				continue;
-			
+
 			var realField:NoteField = field.getNotefield();
 
 			var queue:Array<RenderObject> = field.drawQueue;
 			for (object in queue){
 				var glowColour = realField.modManager == null ? FlxColor.WHITE : FlxColor.fromRGBFloat(getFlashComponent(realField, 'R', object.column),
 					getFlashComponent(realField, 'G', object.column), getFlashComponent(realField, 'B', object.column));
-					
+
 				finalDrawQueue.push({
 					graphic: object.graphic,
 					shader: object.shader,
@@ -180,7 +180,7 @@ class NotefieldRenderer extends FlxBasic {
 						continue;
 					for (shit in transforms)
 						shit.alphaMultiplier *= camera.alpha;
-					
+
 					object.sourceField.getScreenPosition(point, camera);
 					var drawItem = camera.startTrianglesBatch(graphic, object.antialiasing, true, null, true, shader);
 					@:privateAccess
@@ -197,7 +197,7 @@ class NotefieldRenderer extends FlxBasic {
 
 	override function update(elapsed:Float){
 		super.update(elapsed);
-		
+
 		for(field in members)
 			field.update(elapsed);
 	}
@@ -207,8 +207,8 @@ class NotefieldRenderer extends FlxBasic {
 		super.destroy();
 
 		while (members.length > 0)
-			members.pop().destroy(); 
-		
+			members.pop().destroy();
+
 		members = null;
 	}
 }

@@ -193,6 +193,7 @@ import states.TitleState;
 	public var menuTheme:String = 'Light';
 	public var showRenderText:Bool = false;
 	public var garbageCollection:Bool = true;
+	public var dontAllowScriptOverride:Bool = true;
 
 	// Experimental Settings
 	public var useExperimentalNotePool:Bool = false;
