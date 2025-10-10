@@ -2260,7 +2260,7 @@ class APPlayState extends PlayState {
 			add(lowpassVocal);
 
             lowpass.applyFilter(FlxG.sound.music);
-            lowpassVocal.applyFilter(vocal);
+            lowpassVocal.applyFilter(vocals);
             lowpassVocal.applyFilter(opponentVocals);
         }
 
