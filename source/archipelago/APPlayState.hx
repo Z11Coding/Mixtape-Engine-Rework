@@ -2036,10 +2036,12 @@ class APPlayState extends PlayState {
 
 	public var isFrozen:Bool = false;
 	var doRandomize:Bool = false;
+    var lowpass:FlxSoundFilter;
+    var lowpassVocal:FlxSoundFilter;
     override public function update(elapsed:Float)
     {
 
-                if (archipelago.APInfo.inMinigame != None)
+        if (archipelago.APInfo.inMinigame != None)
         {
             // Save current state before switching to minigame
             if (APEntryState.apGame != null) {
@@ -2255,43 +2257,30 @@ class APPlayState extends PlayState {
             }
             trace("Triggering DeathLink!");
         }
+
+        if (lowpass == null) {
+			lowpass = new FlxSoundFilter();
+			lowpass.filterType = FlxSoundFilterType.LOWPASS;
+			add(lowpass);
+
+            lowpassVocal = new FlxSoundFilter();
+			lowpassVocal.filterType = FlxSoundFilterType.LOWPASS;
+			add(lowpassVocal);
+
+            lowpass.applyFilter(FlxG.sound.music);
+            lowpassVocal.applyFilter(vocals);
+            lowpassVocal.applyFilter(opponentVocals);
+        }
+
         #if cpp
 		if(FlxG.sound.music != null && FlxG.sound.music.playing)
-		{
-			@:privateAccess
-			{
-				var af = lime.media.openal.AL.createFilter(); // create AudioFilter
-				lime.media.openal.AL.filteri( af, lime.media.openal.AL.FILTER_TYPE, lime.media.openal.AL.FILTER_LOWPASS ); // set filter type
-				lime.media.openal.AL.filterf( af, lime.media.openal.AL.LOWPASS_GAIN, 1 ); // set gain
-				lime.media.openal.AL.filterf( af, lime.media.openal.AL.LOWPASS_GAINHF, lowFilterAmount ); // set gainhf
-				lime.media.openal.AL.sourcei( FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.DIRECT_FILTER, af ); // apply filter to source (handle)
-				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
-			}
-		}
+            lowpass.gainHF = lowFilterAmount;
+
 		if(vocals != null && vocals.playing)
-		{
-			@:privateAccess
-			{
-				var af = lime.media.openal.AL.createFilter(); // create AudioFilter
-				lime.media.openal.AL.filteri( af, lime.media.openal.AL.FILTER_TYPE, lime.media.openal.AL.FILTER_LOWPASS ); // set filter type
-				lime.media.openal.AL.filterf( af, lime.media.openal.AL.LOWPASS_GAIN, 1 ); // set gain
-				lime.media.openal.AL.filterf( af, lime.media.openal.AL.LOWPASS_GAINHF, vocalLowFilterAmount ); // set gainhf
-				lime.media.openal.AL.sourcei( vocals._channel.__audioSource.__backend.handle, lime.media.openal.AL.DIRECT_FILTER, af ); // apply filter to source (handle)
-				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
-			}
-		}
+            lowpassVocal.gainHF = vocalLowFilterAmount;
+
 		if(opponentVocals != null && opponentVocals.playing)
-		{
-			@:privateAccess
-			{
-				var af = lime.media.openal.AL.createFilter(); // create AudioFilter
-				lime.media.openal.AL.filteri( af, lime.media.openal.AL.FILTER_TYPE, lime.media.openal.AL.FILTER_LOWPASS ); // set filter type
-				lime.media.openal.AL.filterf( af, lime.media.openal.AL.LOWPASS_GAIN, 1 ); // set gain
-				lime.media.openal.AL.filterf( af, lime.media.openal.AL.LOWPASS_GAINHF, vocalLowFilterAmount ); // set gainhf
-				lime.media.openal.AL.sourcei( opponentVocals._channel.__audioSource.__backend.handle, lime.media.openal.AL.DIRECT_FILTER, af ); // apply filter to source (handle)
-				//lime.media.openal.AL.sourcef(FlxG.sound.music._channel.__audioSource.__backend.handle, lime.media.openal.AL.HIGHPASS_GAIN, 0);
-			}
-		}
+            lowpassVocal.gainHF = vocalLowFilterAmount;
 
         /*if(gfVocals != null && gfVocals.playing)
 		{
@@ -2322,6 +2311,7 @@ class APPlayState extends PlayState {
 			}
 		}*/
 		#end
+
         curEffect = FlxG.random.int(0, 38);
         if (isFrozen) boyfriend.stunned = true;
         if (notes != null)
