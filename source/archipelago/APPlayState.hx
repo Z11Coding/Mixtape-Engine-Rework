@@ -2216,6 +2216,14 @@ class APPlayState extends PlayState {
                                     "Are they gonna go back to the light...?",
                                     "Are they rebelling against their soul again?"
                                 ]);
+                            case "glover":
+                                extraMessages = extraMessages.concat([
+                                    "They dropped the ball...",
+                                    "The world of Glover spins on without them...",
+                                    "Even the magical glove couldn't save them...",
+                                    "Seems they lost their balls too!",
+                                    "Mr. Tip says: [pause:0.5]'Try not dying!'"
+                                    ]);
                             default:
                                 extraMessages = extraMessages.concat([
                                     "They failed at " + playerGame + "...",

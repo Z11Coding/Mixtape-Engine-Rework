@@ -8,7 +8,7 @@ The Mixtape Engine supports HScript-based Archipelago integration through the Cu
 
 1. **Create the AP folder**: In your mod directory, create an `ap/` folder
 2. **Add HScript files**: Create `.hx` files containing your Archipelago logic
-3. **Define your content**: Use the available functions to add items, locations, and customize songs
+3. **Define your content**: Use the available functions to add items, locations, song requirements, and customize songs
 4. **Test and iterate**: The system provides automatic validation and helpful error messages
 
 ### Basic Example
@@ -21,11 +21,15 @@ addItem("Song Unlock Key");
 addItem("Difficulty Modifier");
 addItem("Special Effect");
 
+// Make certain songs require items to be accessible
+addSimpleSongRequirement("Boss Battle", null, ["Song Unlock Key"]);
+addSimpleSongRequirement("Final Boss", null, ["Song Unlock Key", "Difficulty Modifier"]);
+
 // Create locations based on your mod's songs
 for (song in songList) {
     // Simple location requiring just the unlock key
     addSimpleLocation(song + " Clear", song, null, ["Song Unlock Key"], true);
-    
+
     // Advanced location requiring multiple items
     addLocationWithCounts(song + " Perfect", song, null, [
         { name: "Song Unlock Key", count: 1 },
@@ -46,6 +50,7 @@ mods/
     ap/
       items.hx          # Define your items
       locations.hx      # Define your locations
+      song_requirements.hx # Define song access requirements
       traps.hx          # Define trap items
       special.hx        # Any other AP logic
     data/
@@ -65,7 +70,7 @@ mods/
 When your HScript runs, these variables are automatically available:
 
 - `modName`: String - Display name of your mod
-- `modFolderName`: String - Folder name of your mod  
+- `modFolderName`: String - Folder name of your mod
 - `songList`: Array<String> - List of songs in your mod
 - `availableMods`: Array<ModInfo> - Information about all available mods
 - `playerSettings`: Dynamic - All player settings from the YAML generation (APEntryState.gameSettings.FNF)
@@ -82,15 +87,15 @@ Can also simply be used for people used to having a callback method to execute c
 function onGenYAML() {
     // This runs after all mods have been processed and the final song list is generated
     trace("Final validation for " + modName);
-    
+
     var finalSongs = getFinalSongList();
     trace("Final song count: " + finalSongs.length);
-    
+
     // Perform any final adjustments or validation
     if (finalSongs.length == 0) {
         trace("Warning: No songs available for mod " + modName);
     }
-    
+
     // Final opportunity to add conditional content
     if (finalSongs.length >= 10) {
         addItem("Song Collection Master");
@@ -106,12 +111,12 @@ Called after the complete generation process, including all processing and data 
 function onAfterGen() {
     // This runs after everything is complete, including all data processing
     trace("Generation complete for " + modName);
-    
+
     // Log final statistics or perform cleanup
     if (hasDataValue("debug_mode")) {
         trace("Debug info: " + getDataValue("debug_mode"));
     }
-    
+
     // Final summary
     trace("Total items added: " + getDataValue("item_count", 0));
     trace("Total locations added: " + getDataValue("location_count", 0));
@@ -231,6 +236,89 @@ excludeSong("Local Song", ""); // Removes from base game
 - Songs from other mods that this mod references
 - Custom challenge tracks
 
+## Song Requirements
+
+The system supports making songs require specific items to be accessible. This allows you to gate certain songs behind progression requirements, creating a more structured experience where players must earn access to different content.
+
+### Basic Song Requirements
+
+```haxe
+// Make a song require a single item to access
+addSimpleSongRequirement("Boss Battle", null, ["Power Boost"]);
+
+// Make a song require multiple items
+addSimpleSongRequirement("Final Boss", null, ["Magic Key", "Super Shield"]);
+
+// Make a base game song require items from your mod
+addSimpleSongRequirement("Roses", "", ["Thorns Protection"]);
+
+// Make a song from another mod require your items
+if (isModEnabled("Other Mod")) {
+    addSimpleSongRequirement("Cross Mod Song", "Other Mod", ["Special Item"]);
+}
+```
+
+### Advanced Song Requirements
+
+```haxe
+// Require specific quantities of items
+var ultimateRequirements = [
+    { name: "Energy Crystal", count: 3 },
+    { name: "Master Key", count: 1 }
+];
+addSongRequirementWithCounts("Ultimate Challenge", null, ultimateRequirements);
+
+// Create progressive song unlocking chains
+addSimpleSongRequirement("Tutorial Plus", null, ["Basic Training"]);
+addSimpleSongRequirement("Beginner Challenge", null, ["Basic Training", "Tutorial Plus Access"]);
+addSimpleSongRequirement("Advanced Test", null, ["Basic Training", "Advanced Techniques"]);
+```
+
+### Song Requirement Utilities
+
+```haxe
+// Check if a song has requirements
+if (hasSongRequirement("Boss Battle", null)) {
+    trace("Boss Battle is locked behind items");
+}
+
+// Get the full requirement details
+var requirement = getSongRequirement("Boss Battle", null);
+if (requirement != null) {
+    trace("Boss Battle requires " + requirement.accessRule.requiredItems.length + " items");
+}
+```
+
+### Integration with Game Logic
+
+Song requirements integrate with the randomizer and game client in several ways:
+
+1. **Randomizer Logic**: The AP world generator uses song requirements to ensure proper item distribution
+2. **Client Integration**: The game client can lock/unlock songs based on received items
+3. **Progression Tracking**: Requirements help create logical progression paths through content
+
+### Use Cases
+
+**Progressive Difficulty**: Lock harder songs behind easier ones plus skill items
+```haxe
+addSimpleSongRequirement("Expert Mode", null, ["Rhythm Master", "Perfect Timing"]);
+```
+
+**Story Progression**: Gate story songs behind narrative items
+```haxe
+addSimpleSongRequirement("Chapter 2", null, ["Chapter 1 Complete", "Story Key"]);
+```
+
+**Cross-Mod Integration**: Make collaboration songs require items from multiple mods
+```haxe
+addSimpleSongRequirement("Crossover Battle", null, ["Mod A Token", "Mod B Token"]);
+```
+
+**Challenge Modes**: Lock special modes behind achievement items
+```haxe
+addSimpleSongRequirement("Nightmare Mode", null, ["Courage", "Determination", "Skill"]);
+```
+
 ## Available Functions
 
 ### Item Management
@@ -253,6 +341,36 @@ addTrapItem("Speed Trap", "Target Mod");
 // Add trap items that work across multiple mods
 addTrapItem("Universal Freeze", ""); // Empty string = affects base game
 addTrapItem("Mod-Specific Chaos", "Psych Engine"); // Only affects Psych Engine
+```
+
+### Song Requirement Management
+```haxe
+// Make a song require specific items to be accessible
+addSimpleSongRequirement("Boss Battle", null, ["Power Boost"]);
+addSimpleSongRequirement("Final Boss", null, ["Magic Key", "Super Shield"]);
+
+// Song requirements with specific item counts
+addSongRequirementWithCounts("Ultimate Challenge", null, [
+    { name: "Energy Crystal", count: 3 },
+    { name: "Master Key", count: 1 }
+]);
+
+// Cross-mod song requirements
+addSimpleSongRequirement("Cross Mod Song", "Other Mod", ["Special Item"]);
+
+// Base game song requirements
+addSimpleSongRequirement("Roses", "", ["Thorns Protection"]);
+
+// Check if a song has requirements
+if (hasSongRequirement("Boss Battle", null)) {
+    trace("Boss Battle is locked");
+}
+
+// Get requirement details
+var requirement = getSongRequirement("Boss Battle", null);
+if (requirement != null) {
+    trace("Requirements: " + requirement.accessRule.requiredItems.length + " items");
+}
 ```
 
 ### Location Management
@@ -327,7 +445,7 @@ defineCustomWeek("AP Special Week", ["song1", "song2", "song3"]);
 defineCustomWeek("Cross-Mod Week", ["base-song", "mod-song"], "Cross Mod");
 
 // Enhanced custom week with metadata
-defineCustomWeek("Boss Week", ["Boss1", "Boss2"], "MyMod", 
+defineCustomWeek("Boss Week", ["Boss1", "Boss2"], "MyMod",
     ["hard", "expert"],  // Custom difficulties
     "boss",              // Default icon for songs
     [255, 0, 0]         // Default color for songs
@@ -385,7 +503,7 @@ addSong("Expert Song", "MyMod", "boss", [255, 0, 0], ["hard", "expert"]);
 
 // Results in optimized weeks:
 // - ap_custom_MyMod_easy (contains "Easy Song")
-// - ap_custom_MyMod_easy_normal (contains "Normal Song") 
+// - ap_custom_MyMod_easy_normal (contains "Normal Song")
 // - ap_custom_MyMod_hard (contains "Hard Song")
 // - ap_custom_MyMod_hard_expert (contains "Expert Song")
 ```
@@ -468,7 +586,7 @@ addSongsWithMetadata([
 // Strategy 3: Conditional content based on other mods
 if (isModEnabled("Expansion Mod")) {
     addSongs(["expansion-collab-1", "expansion-collab-2"], null, "collab", [100, 200, 255]);
-    addSimpleLocation("Expansion Crossover", "expansion-collab-1", "Expansion Mod", 
+    addSimpleLocation("Expansion Crossover", "expansion-collab-1", "Expansion Mod",
                      ["Crossover Item"], true);
 }
 
@@ -488,21 +606,21 @@ function setupEnhancedContent() {
     // Individual songs with full metadata
     addSong("Tutorial Song", "MyMod", "tutorial", [0, 255, 0], ["easy"]);
     addSong("Boss Fight", "MyMod", "boss", [255, 0, 0], ["hard", "expert"]);
-    
+
     // Batch songs with shared metadata
     addSongs(["Chapter1", "Chapter2"], "MyMod", "story", [0, 100, 200], ["normal"]);
-    
+
     // Songs with individual metadata (auto-optimized by difficulty)
     addSongsWithMetadata([
         {name: "Calm Intro", icon: "calm", color: [100, 200, 255], difficulties: ["easy"]},
         {name: "Epic Finale", icon: "epic", color: [255, 100, 0], difficulties: ["hard"]},
         {name: "Secret Track", icon: "secret", color: [128, 0, 128], difficulties: ["secret"]}
     ], "MyMod");
-    
+
     // Basic custom week with defaults
-    defineCustomWeek("Standard Week", ["Normal1", "Normal2"], "MyMod", 
+    defineCustomWeek("Standard Week", ["Normal1", "Normal2"], "MyMod",
         ["easy", "normal"], "face", [146, 113, 253]);
-    
+
     // Advanced custom week with per-song metadata
     defineCustomWeekWithSongMetadata("Story Mode", [
         {name: "Prologue", icon: "start", color: [0, 255, 0]},
@@ -510,7 +628,7 @@ function setupEnhancedContent() {
         {name: "Climax", icon: "boss", color: [255, 0, 0]},
         {name: "Resolution", icon: "end", color: [0, 0, 255]}
     ], "MyMod", ["story"]);
-    
+
     // Add corresponding locations with proper access rules
     addSimpleLocation("Tutorial Complete", "Tutorial Song", "MyMod", ["Basic Training"], true);
     addSimpleLocation("Boss Defeated", "Boss Fight", "MyMod", ["Boss Key", "Power Upgrade"], true);
@@ -659,6 +777,10 @@ addItem("BF Skin Unlock");
 addItem("GF Costume");
 addItem("Special Background");
 
+// Create song requirements for progression
+addSimpleSongRequirement("Hard Song", null, ["BF Skin Unlock"]);
+addSimpleSongRequirement("Final Boss", null, ["BF Skin Unlock", "GF Costume"]);
+
 // Create locations for each song in the mod
 for (song in songList) {
     addSimpleLocation(song + " Completion", song, null, ["BF Skin Unlock"], true);
@@ -683,9 +805,9 @@ for (mod in compatibleMods) {
     if (isModEnabled(mod)) {
         addItem("Collaboration with " + mod);
         addTrapItem(mod + " Style Chaos", mod);
-        
+
         // Add locations that reference the other mod's content
-        addSimpleLocation(mod + " Crossover Achievement", "crossover-song", mod, 
+        addSimpleLocation(mod + " Crossover Achievement", "crossover-song", mod,
                          ["Collaboration with " + mod], false);
     }
 }
@@ -809,7 +931,7 @@ addItem("Cross Mod Item", "Missing Mod");
 Split your AP logic into multiple files for better organization:
 
 - `items.hx` - All item definitions
-- `locations.hx` - All location definitions  
+- `locations.hx` - All location definitions
 - `cross-mod.hx` - Content that depends on other mods
 - `special.hx` - Advanced or conditional logic
 
@@ -848,4 +970,8 @@ if (otherModCount > 5) {
 
 ## Example Files
 
-See `docs/HScript_AP_Example.hx` for a complete example showing all available features.
+See the following files for complete examples:
+- `docs/HScript_AP_Example.hx` - Basic AP integration features
+- `docs/SongRequirements_AP_Example.hx` - Song requirements system usage
+- `docs/Song_Requirements_Documentation.md` - Complete song requirements guide
+- `TestSongRequirements_customFNFData.py` - Python implementation example
