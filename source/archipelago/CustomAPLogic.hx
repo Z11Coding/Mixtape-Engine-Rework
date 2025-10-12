@@ -41,6 +41,8 @@ typedef ModInfo = {
     folderName: String,
     enabled: Bool,
     songList: Array<String>,
+    settings: Map<String, Dynamic>, // Raw settings data from save
+    options: Map<String, options.Option>, // Option objects for each setting
     // Add other mod-related info as needed
 };
 
@@ -90,6 +92,8 @@ class APHScriptContext {
     public var items:Array<APRequiredItem>;
     public var locations:Array<APLocation>;
     public var availableMods:Array<ModInfo>;
+    public var currentModSettings:Map<String, Dynamic>; // Current mod's raw settings
+    public var currentModOptions:Map<String, options.Option>; // Current mod's Option objects
 
     // Song modification arrays (processed after script execution)
     public var excludedSongs:Array<String>;
@@ -115,6 +119,8 @@ class APHScriptContext {
         this.items = [];
         this.locations = [];
         this.availableMods = allMods.copy();
+        this.currentModSettings = modInfo.settings.copy(); // Copy current mod's raw settings
+        this.currentModOptions = modInfo.options.copy(); // Copy current mod's Option objects
         this.excludedSongs = [];
         this.addedSongs = [];
         this.songAdditions = [];
@@ -147,7 +153,9 @@ class APHScriptContext {
                 name: "",
                 folderName: "",
                 enabled: true,
-                songList: [] // Base game songs would be handled separately
+                songList: [], // Base game songs would be handled separately
+                settings: new Map<String, Dynamic>(), // Base game has no settings
+                options: new Map<String, options.Option>() // Base game has no options
             };
         }
 
@@ -157,6 +165,204 @@ class APHScriptContext {
             }
         }
         return null;
+    }
+
+    // Mod settings helper functions (available in HScript)
+
+    /**
+     * Get a setting value from the current mod's settings (calls Option.getValue())
+     * @param key The setting key to retrieve
+     * @param defaultValue Default value if setting doesn't exist
+     * @return The setting value or default value
+     */
+    public function getModSetting(key:String, ?defaultValue:Dynamic):Dynamic {
+        if (currentModOptions.exists(key)) {
+            var option = currentModOptions.get(key);
+            return option.getValue();
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Check if a setting Option exists in the current mod
+     * @param key The setting key to check
+     * @return true if the Option exists, false otherwise
+     */
+    public function hasModSetting(key:String):Bool {
+        return currentModOptions.exists(key);
+    }
+
+    /**
+     * Get all available mod setting keys
+     * @return Array of setting keys that have Option objects
+     */
+    public function getModSettingKeys():Array<String> {
+        var keys:Array<String> = [];
+        for (key in currentModOptions.keys()) {
+            keys.push(key);
+        }
+        return keys;
+    }
+
+    /**
+     * Get the number of mod settings
+     * @return Number of Option objects
+     */
+    public function getModSettingCount():Int {
+        var count = 0;
+        for (key in currentModOptions.keys()) {
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Get the Option object for a setting (for advanced access)
+     * @param key The setting key
+     * @return The Option object or null if not found
+     */
+    public function getModSettingOption(key:String):options.Option {
+        return currentModOptions.get(key);
+    }
+
+    /**
+     * Get the display name of a setting option
+     * @param key The setting key
+     * @return The display name or the key if option not found
+     */
+    public function getModSettingDisplayName(key:String):String {
+        var option = currentModOptions.get(key);
+        return option != null ? option.name : key;
+    }
+
+    /**
+     * Get the description of a setting option
+     * @param key The setting key
+     * @return The description or empty string if option not found
+     */
+    public function getModSettingDescription(key:String):String {
+        var option = currentModOptions.get(key);
+        return option != null ? option.description : "";
+    }
+
+    /**
+     * Get the type of a setting option
+     * @param key The setting key
+     * @return The OptionType as string or "UNKNOWN" if option not found
+     */
+    public function getModSettingType(key:String):String {
+        var option = currentModOptions.get(key);
+        if (option == null) return "UNKNOWN";
+        return switch(option.type) {
+            case BOOL: "BOOL";
+            case INT: "INT";
+            case FLOAT: "FLOAT";
+            case PERCENT: "PERCENT";
+            case STRING: "STRING";
+            case KEYBIND: "KEYBIND";
+        }
+    }
+
+    /**
+     * Get the default value of a setting option
+     * @param key The setting key
+     * @return The default value or null if option not found
+     */
+    public function getModSettingDefaultValue(key:String):Dynamic {
+        var option = currentModOptions.get(key);
+        return option != null ? option.defaultValue : null;
+    }
+
+    /**
+     * Get the minimum value of a numeric setting option
+     * @param key The setting key
+     * @return The minimum value or null if option not found or not numeric
+     */
+    public function getModSettingMinValue(key:String):Dynamic {
+        var option = currentModOptions.get(key);
+        return option != null ? option.minValue : null;
+    }
+
+    /**
+     * Get the maximum value of a numeric setting option
+     * @param key The setting key
+     * @return The maximum value or null if option not found or not numeric
+     */
+    public function getModSettingMaxValue(key:String):Dynamic {
+        var option = currentModOptions.get(key);
+        return option != null ? option.maxValue : null;
+    }
+
+    /**
+     * Get the available options for a STRING type setting
+     * @param key The setting key
+     * @return Array of available options or empty array if option not found
+     */
+    public function getModSettingOptions(key:String):Array<String> {
+        var option = currentModOptions.get(key);
+        return option != null && option.options != null ? option.options : [];
+    }
+
+    /**
+     * Get a boolean setting value with proper type checking
+     * @param key The setting key to retrieve
+     * @param defaultValue Default value if setting doesn't exist (defaults to false)
+     * @return The boolean setting value or default value
+     */
+    public function getBoolModSetting(key:String, defaultValue:Bool = false):Bool {
+        var value = getModSetting(key, defaultValue);
+        if (Std.isOfType(value, Bool)) {
+            return cast(value, Bool);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Get an integer setting value with proper type checking
+     * @param key The setting key to retrieve
+     * @param defaultValue Default value if setting doesn't exist (defaults to 0)
+     * @return The integer setting value or default value
+     */
+    public function getIntModSetting(key:String, defaultValue:Int = 0):Int {
+        var value = getModSetting(key, defaultValue);
+        if (Std.isOfType(value, Int)) {
+            return cast(value, Int);
+        }
+        if (Std.isOfType(value, Float)) {
+            return Std.int(cast(value, Float));
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Get a float setting value with proper type checking
+     * @param key The setting key to retrieve
+     * @param defaultValue Default value if setting doesn't exist (defaults to 0.0)
+     * @return The float setting value or default value
+     */
+    public function getFloatModSetting(key:String, defaultValue:Float = 0.0):Float {
+        var value = getModSetting(key, defaultValue);
+        if (Std.isOfType(value, Float)) {
+            return cast(value, Float);
+        }
+        if (Std.isOfType(value, Int)) {
+            return cast(value, Int);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Get a string setting value with proper type checking
+     * @param key The setting key to retrieve
+     * @param defaultValue Default value if setting doesn't exist (defaults to "")
+     * @return The string setting value or default value
+     */
+    public function getStringModSetting(key:String, defaultValue:String = ""):String {
+        var value = getModSetting(key, defaultValue);
+        if (value == null) {
+            return defaultValue;
+        }
+        return Std.string(value);
     }
 
     // Add item function (available in HScript)
@@ -714,15 +920,194 @@ class APHScriptProcessor {
         // Get song list for this mod
         var songList = getModSongList(folderName);
 
+        // Load mod settings
+        var modSettings = loadModSettings(folderName);
+
+        // Load mod options (create Option objects like ModSettingsSubState)
+        var modOptions = loadModOptions(folderName, modSettings);
+
         return {
             name: modName,
             folderName: folderName,
             enabled: enabled,
-            songList: songList
+            songList: songList,
+            settings: modSettings,
+            options: modOptions
         };
         #else
         return null;
         #end
+    }
+
+    /**
+     * Load mod settings from save data
+     * @param modFolder The mod folder name
+     * @return Map containing mod settings
+     */
+    static function loadModSettings(modFolder:String):Map<String, Dynamic> {
+        var settings = new Map<String, Dynamic>();
+
+        #if MODS_ALLOWED
+        try {
+            // Load mod settings exactly like ModSettingsSubState does
+            if (FlxG.save.data.modSettings == null) {
+                FlxG.save.data.modSettings = new Map<String, Dynamic>();
+            } else {
+                var saveMap:Map<String, Dynamic> = FlxG.save.data.modSettings;
+                var modSaveData = saveMap[modFolder];
+                if (modSaveData != null) {
+                    // The save data contains the raw values, but we need to access them like Option objects do
+                    // Copy the save data directly - these are the actual setting values
+                    if (Std.isOfType(modSaveData, Map)) {
+                        var modMap:Map<String, Dynamic> = cast modSaveData;
+                        for (key in modMap.keys()) {
+                            settings.set(key, modMap.get(key));
+                        }
+                    } else {
+                        // Handle case where it might be stored as a dynamic object
+                        var fields = Reflect.fields(modSaveData);
+                        for (field in fields) {
+                            settings.set(field, Reflect.field(modSaveData, field));
+                        }
+                    }
+                }
+            }
+
+        } catch (e:Dynamic) {
+            trace('Error loading settings for mod ${modFolder}: ${e}');
+        }
+        #end
+
+        return settings;
+    }
+
+    /**
+     * Load mod options and create Option objects like ModSettingsSubState does
+     * @param modFolder The mod folder name
+     * @param save The mod's save data
+     * @return Map containing Option objects
+     */
+    static function loadModOptions(modFolder:String, save:Map<String, Dynamic>):Map<String, options.Option> {
+        var options = new Map<String, options.Option>();
+
+        #if MODS_ALLOWED
+        try {
+            // Try to load the mod's options definition file
+            var optionsPath = Paths.mods(modFolder + '/data/options.json');
+            if (FileSystem.exists(optionsPath)) {
+                var optionsContent = File.getContent(optionsPath);
+                var optionsData:Array<Dynamic> = haxe.Json.parse(optionsContent);
+
+                if (optionsData != null) {
+                    // Create Option objects like ModSettingsSubState does
+                    for (optionData in optionsData) {
+                        var newOption = new options.Option(
+                            optionData.name != null ? optionData.name : optionData.save,
+                            optionData.description != null ? optionData.description : 'No description provided.',
+                            optionData.save,
+                            convertOptionType(optionData.type),
+                            optionData.options,
+                            optionData.translation_key
+                        );
+
+                        // Set up the option like ModSettingsSubState does
+                        switch(newOption.type) {
+                            case KEYBIND:
+                                // Handle keybind setup
+                                var keyboardStr:String = optionData.keyboard;
+                                var gamepadStr:String = optionData.gamepad;
+                                if(keyboardStr == null) keyboardStr = 'NONE';
+                                if(gamepadStr == null) gamepadStr = 'NONE';
+
+                                newOption.defaultKeys.keyboard = keyboardStr;
+                                newOption.defaultKeys.gamepad = gamepadStr;
+
+                                @:privateAccess {
+                                    newOption.getValue = function() {
+                                        var data = save.get(newOption.variable);
+                                        if(data == null) return 'NONE';
+                                        return !backend.Controls.instance.controllerMode ? data.keyboard : data.gamepad;
+                                    };
+                                    newOption.setValue = function(value:Dynamic) {
+                                        var data = save.get(newOption.variable);
+                                        if(data == null) data = {keyboard: 'NONE', gamepad: 'NONE'};
+
+                                        if(!backend.Controls.instance.controllerMode) data.keyboard = value;
+                                        else data.gamepad = value;
+                                        save.set(newOption.variable, data);
+                                    };
+                                }
+
+                            default:
+                                if(optionData.value != null)
+                                    newOption.defaultValue = optionData.value;
+
+                                @:privateAccess {
+                                    newOption.getValue = function() return save.get(newOption.variable);
+                                    newOption.setValue = function(value:Dynamic) save.set(newOption.variable, value);
+                                }
+                        }
+
+                        // Set option properties like ModSettingsSubState does
+                        if(optionData.type != "KEYBIND") {
+                            if(optionData.format != null) newOption.displayFormat = optionData.format;
+                            if(optionData.min != null) newOption.minValue = optionData.min;
+                            if(optionData.max != null) newOption.maxValue = optionData.max;
+                            if(optionData.step != null) newOption.changeValue = optionData.step;
+                            if(optionData.scroll != null) newOption.scrollSpeed = optionData.scroll;
+                            if(optionData.decimals != null) newOption.decimals = optionData.decimals;
+
+                            // Set initial value
+                            var myValue:Dynamic = null;
+                            if(save.get(optionData.save) != null) {
+                                myValue = save.get(optionData.save);
+                                if(newOption.type != KEYBIND) newOption.setValue(myValue);
+                            } else {
+                                myValue = newOption.getValue();
+                                if(myValue == null) myValue = newOption.defaultValue;
+                            }
+
+                            switch(newOption.type) {
+                                case STRING:
+                                    var num:Int = newOption.options.indexOf(myValue);
+                                    if(num > -1) newOption.curOption = num;
+                                default:
+                            }
+
+                            save.set(optionData.save, myValue);
+                        }
+
+                        options.set(optionData.save, newOption);
+                    }
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('Error loading options for mod ${modFolder}: ${e}');
+        }
+        #end
+
+        return options;
+    }
+
+    /**
+     * Convert string option type to OptionType enum (like ModSettingsSubState does)
+     */
+    static function convertOptionType(str:String):options.Option.OptionType {
+        switch(str.toLowerCase().trim()) {
+            case 'bool':
+                return BOOL;
+            case 'int', 'integer':
+                return INT;
+            case 'float', 'fl':
+                return FLOAT;
+            case 'percent':
+                return PERCENT;
+            case 'string', 'str':
+                return STRING;
+            case 'keybind', 'key':
+                return KEYBIND;
+        }
+        return BOOL;
     }
 
     static function getModSongList(modFolder:String):Array<String> {
@@ -826,6 +1211,10 @@ class APHScriptProcessor {
         // Add player settings access
         interpreter.variables.set("playerSettings", archipelago.APEntryState.gameSettings.FNF);
 
+        // Add mod settings access
+        interpreter.variables.set("currentModSettings", context.currentModSettings);
+        interpreter.variables.set("currentModOptions", context.currentModOptions);
+
         function addModItem(name:String, ?mod:String)
         {
             if (name != null || name.trim() != "") {
@@ -855,6 +1244,24 @@ class APHScriptProcessor {
         interpreter.variables.set("addLocationWithCounts", context.addLocationWithCounts);
         interpreter.variables.set("isModEnabled", context.isModEnabled);
         interpreter.variables.set("getModInfo", context.getModInfo);
+
+        // Add mod settings helper functions
+        interpreter.variables.set("getModSetting", context.getModSetting);
+        interpreter.variables.set("hasModSetting", context.hasModSetting);
+        interpreter.variables.set("getModSettingKeys", context.getModSettingKeys);
+        interpreter.variables.set("getModSettingCount", context.getModSettingCount);
+        interpreter.variables.set("getModSettingOption", context.getModSettingOption);
+        interpreter.variables.set("getModSettingDisplayName", context.getModSettingDisplayName);
+        interpreter.variables.set("getModSettingDescription", context.getModSettingDescription);
+        interpreter.variables.set("getModSettingType", context.getModSettingType);
+        interpreter.variables.set("getModSettingDefaultValue", context.getModSettingDefaultValue);
+        interpreter.variables.set("getModSettingMinValue", context.getModSettingMinValue);
+        interpreter.variables.set("getModSettingMaxValue", context.getModSettingMaxValue);
+        interpreter.variables.set("getModSettingOptions", context.getModSettingOptions);
+        interpreter.variables.set("getBoolModSetting", context.getBoolModSetting);
+        interpreter.variables.set("getIntModSetting", context.getIntModSetting);
+        interpreter.variables.set("getFloatModSetting", context.getFloatModSetting);
+        interpreter.variables.set("getStringModSetting", context.getStringModSetting);
 
         // Add enhanced song modification functions
         interpreter.variables.set("excludeSong", context.excludeSong);
@@ -1410,6 +1817,24 @@ class APPythonGenerator {
         pythonContent += "#   - targetMod: The mod that provides this location (None = base game)\n";
         pythonContent += "#   - accessRule: Logic for what items are needed to check this location\n";
         pythonContent += "#   - Location will be skipped if originSong gets removed by song limits\n";
+        pythonContent += "# \n";
+        pythonContent += "# MOD SETTINGS FUNCTIONS:\n";
+        pythonContent += "# \n";
+        pythonContent += "# currentModSettings (variable):\n";
+        pythonContent += "#   - Map containing all settings for the current mod\n";
+        pythonContent += "#   - Automatically loaded from save data\n";
+        pythonContent += "#   - Access directly: currentModSettings.get(\"setting_key\")\n";
+        pythonContent += "# \n";
+        pythonContent += "# getModSetting(key, defaultValue=null):\n";
+        pythonContent += "#   - Get a setting value with optional default\n";
+        pythonContent += "#   - Returns the setting value or default if not found\n";
+        pythonContent += "#   - Example: getModSetting(\"enable_archipelago\", false)\n";
+        pythonContent += "# \n";
+        pythonContent += "# CONDITIONAL ARCHIPELAGO FEATURES EXAMPLE:\n";
+        pythonContent += "# if (getBoolModSetting(\"enable_archipelago_integration\", true)) {\n";
+        pythonContent += "#     addItem(\"Custom Power-Up\");\n";
+        pythonContent += "#     addSimpleLocation(\"Secret Area\", \"Boss Fight\", null, [\"Custom Power-Up\"]);\n";
+        pythonContent += "# }\n";
         pythonContent += "# \n";
         pythonContent += "# IMPORTANT NOTES:\n";
         pythonContent += "# - Song modifications are processed during world generation\n";
