@@ -1611,7 +1611,11 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function adjustSongLimit()
 	{
-		var maxSongs = calculateMaxAvailableSongs();
+		// First save current settings and regenerate song list to get accurate count
+		saveCurrentSettings();
+		APSettingsSubState.generateSongList();
+		var maxSongs = Std.int(Math.max(5, APSettingsSubState.globalSongList.length));
+
 		openSliderControl("Song Limit", songLimit, 5, maxSongs, 1, function(value:Float)
 		{
 			songLimit = Std.int(value);
@@ -1993,39 +1997,34 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function updateSongStats()
 	{
-		// Calculate song counts and stats
-		var totalSongs = 0;
+		// First save the current settings so the song list generation can use them
+		saveCurrentSettings();
+
+		// Regenerate the song list with current settings
+		APSettingsSubState.generateSongList();
+
+		// Calculate song counts and stats using the actual generated list
+		var totalSongs = APSettingsSubState.globalSongList.length;
 		var totalChecks = 0;
 		var modCount = backend.Mods.parseList().enabled.length;
 
-		// Base game songs
+		// Calculate base song count from actual included categories
+		var baseSongCount = 0;
 		if (includeVanilla)
 		{
-			totalSongs += APInfo.baseGame.length;
+			baseSongCount += APInfo.baseGame.length;
 		}
-
-		// Secret songs
 		if (includePico)
 		{
-			totalSongs += APInfo.basePico.length;
+			baseSongCount += APInfo.basePico.length;
 		}
-
-		// Secret songs
 		if (includeErect)
 		{
-			totalSongs += APInfo.baseErect.length;
+			baseSongCount += APInfo.baseErect.length;
 		}
-
-		// Secret songs
 		if (includeSecrets)
 		{
-			totalSongs += APInfo.secrets.length;
-		}
-
-		// Mod songs (approximate)
-		if (allowMods)
-		{
-			totalSongs += modCount * 3; // Rough estimate
+			baseSongCount += APInfo.secrets.length;
 		}
 
 		// Calculate checks based on unlock method
@@ -2048,7 +2047,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 
 		var statsString = "=== CURRENT STATS ===\n\n";
-		statsString += "Available Songs: " + totalSongs + "\n";
+		statsString += "Total Songs Generated: " + totalSongs + "\n";
+		statsString += "Base Songs Included: " + baseSongCount + "\n";
 		statsString += "Song Limit: " + songLimit + "\n";
 		statsString += "Expected Checks: " + totalChecks + "\n";
 		statsString += "Trap Items: " + trapAmount + "\n";
@@ -2374,6 +2374,15 @@ class APAdvancedSettingsState extends MusicBeatState
 		{
 			APSettingsSubState.generateSongList();
 			checks++;
+			if (checks >= 20)
+			{
+				openSubState(new InfoPanelSubstate(
+					"YAML Export Error",
+					"No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.",
+					FlxColor.RED
+				));
+				return;
+			}
 		}
 		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
 
@@ -2384,6 +2393,15 @@ class APAdvancedSettingsState extends MusicBeatState
 				APSettingsSubState.generateSongList();
 				checks++;
 				APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+				if (checks >= 20)
+				{
+					openSubState(new InfoPanelSubstate(
+						"YAML Export Error",
+						"No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.",
+						FlxColor.RED
+					));
+					return;
+				}
 			}
 		}
 
@@ -3328,6 +3346,114 @@ class APAdvancedSettingsState extends MusicBeatState
 			total += backend.Mods.parseList().enabled.length * 3;
 		}
 		return Std.int(Math.max(5, total));
+	}
+
+	/**
+	 * Test function to validate that song filtering is working correctly
+	 * Call this in the console to test the filtering functionality
+	 */
+	public static function testSongFiltering():Void
+	{
+		trace("=== TESTING SONG FILTERING ===");
+
+		// Store original settings
+		var originalSettings = null;
+		if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null) {
+			var settings = APEntryState.gameSettings.FNF;
+			originalSettings = {
+				include_vanilla: Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true,
+				include_erect: Reflect.hasField(settings, "include_erect") ? settings.include_erect : true,
+				include_pico: Reflect.hasField(settings, "include_pico") ? settings.include_pico : true,
+				include_secrets: Reflect.hasField(settings, "include_secrets") ? settings.include_secrets : true,
+				mods_enabled: settings.mods_enabled
+			};
+		}
+
+		// Initialize settings if they don't exist
+		if (APEntryState.gameSettings == null) {
+			trace("Warning: APEntryState.gameSettings is null - cannot test filtering");
+			return;
+		}
+		if (APEntryState.gameSettings.FNF == null) {
+			trace("Warning: APEntryState.gameSettings.FNF is null - cannot test filtering");
+			return;
+		}
+
+		var settings = APEntryState.gameSettings.FNF;
+
+		// Test 1: Only Vanilla songs
+		trace("Test 1: Only Vanilla songs");
+		settings.include_vanilla = true;
+		settings.include_erect = false;
+		settings.include_pico = false;
+		settings.include_secrets = false;
+		settings.mods_enabled = false;
+		APSettingsSubState.generateSongList();
+		trace("Expected: " + APInfo.baseGame.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+
+		// Test 2: Only Erect songs
+		trace("Test 2: Only Erect songs");
+		settings.include_vanilla = false;
+		settings.include_erect = true;
+		settings.include_pico = false;
+		settings.include_secrets = false;
+		settings.mods_enabled = false;
+		APSettingsSubState.generateSongList();
+		trace("Expected: " + APInfo.baseErect.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+
+		// Test 3: Only Pico songs
+		trace("Test 3: Only Pico songs");
+		settings.include_vanilla = false;
+		settings.include_erect = false;
+		settings.include_pico = true;
+		settings.include_secrets = false;
+		settings.mods_enabled = false;
+		APSettingsSubState.generateSongList();
+		trace("Expected: " + APInfo.basePico.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+
+		// Test 4: Only Secrets
+		trace("Test 4: Only Secrets");
+		settings.include_vanilla = false;
+		settings.include_erect = false;
+		settings.include_pico = false;
+		settings.include_secrets = true;
+		settings.mods_enabled = false;
+		APSettingsSubState.generateSongList();
+		trace("Expected: " + APInfo.secrets.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+
+		// Test 5: All base content
+		trace("Test 5: All base content");
+		settings.include_vanilla = true;
+		settings.include_erect = true;
+		settings.include_pico = true;
+		settings.include_secrets = true;
+		settings.mods_enabled = false;
+		APSettingsSubState.generateSongList();
+		var expectedTotal = APInfo.baseGame.length + APInfo.baseErect.length + APInfo.basePico.length + APInfo.secrets.length;
+		trace("Expected: " + expectedTotal + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+
+		// Test 6: Nothing included (should have 0 base songs, but might have mods)
+		trace("Test 6: Nothing included");
+		settings.include_vanilla = false;
+		settings.include_erect = false;
+		settings.include_pico = false;
+		settings.include_secrets = false;
+		settings.mods_enabled = false;
+		APSettingsSubState.generateSongList();
+		trace("Expected: 0 base songs, Generated: " + APSettingsSubState.globalSongList.length);
+
+		// Restore original settings
+		if (originalSettings != null) {
+			trace("Restoring original settings...");
+			settings.include_vanilla = originalSettings.include_vanilla;
+			settings.include_erect = originalSettings.include_erect;
+			settings.include_pico = originalSettings.include_pico;
+			settings.include_secrets = originalSettings.include_secrets;
+			settings.mods_enabled = originalSettings.mods_enabled;
+			APSettingsSubState.generateSongList();
+		}
+
+		trace("=== SONG FILTERING TEST COMPLETE ===");
 	}
 
 	public static function restoreFromTemp():APAdvancedSettingsState

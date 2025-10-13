@@ -260,6 +260,7 @@ class APHScriptContext {
             case PERCENT: "PERCENT";
             case STRING: "STRING";
             case KEYBIND: "KEYBIND";
+            case LABEL: "LABEL";
         }
     }
 
@@ -958,7 +959,7 @@ class APHScriptProcessor {
                 if (modSaveData != null) {
                     // The save data contains the raw values, but we need to access them like Option objects do
                     // Copy the save data directly - these are the actual setting values
-                    if (Std.isOfType(modSaveData, Map)) {
+                    if (modSaveData.isMap()) {
                         var modMap:Map<String, Dynamic> = cast modSaveData;
                         for (key in modMap.keys()) {
                             settings.set(key, modMap.get(key));

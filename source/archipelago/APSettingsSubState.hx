@@ -50,7 +50,50 @@ class APSettingsSubState extends MusicBeatSubstate {
     var dim:FlxSprite;
 
     public static function generateSongList() {
-        globalSongList = APInfo.baseGame.concat(APInfo.baseErect).concat(APInfo.basePico).concat(APInfo.secrets);
+        // Initialize with empty array and add song categories based on settings
+        globalSongList = [];
+
+        // Check if the filtering settings exist, if not default to including everything
+        var includeVanilla = true;
+        var includeErect = true;
+        var includePico = true;
+        var includeSecrets = true;
+
+        // Try to get the filtering settings from the game settings
+        if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null) {
+            var settings = APEntryState.gameSettings.FNF;
+
+            // Use the settings if they exist, otherwise default to true
+            if (Reflect.hasField(settings, "include_vanilla")) {
+                includeVanilla = settings.include_vanilla;
+            }
+            if (Reflect.hasField(settings, "include_erect")) {
+                includeErect = settings.include_erect;
+            }
+            if (Reflect.hasField(settings, "include_pico")) {
+                includePico = settings.include_pico;
+            }
+            if (Reflect.hasField(settings, "include_secrets")) {
+                includeSecrets = settings.include_secrets;
+            }
+        }
+
+        // Add song categories based on settings
+        if (includeVanilla) {
+            globalSongList = globalSongList.concat(APInfo.baseGame);
+        }
+        if (includeErect) {
+            globalSongList = globalSongList.concat(APInfo.baseErect);
+        }
+        if (includePico) {
+            globalSongList = globalSongList.concat(APInfo.basePico);
+        }
+        if (includeSecrets) {
+            globalSongList = globalSongList.concat(APInfo.secrets);
+        }
+
+        trace('Song filtering applied: Vanilla=$includeVanilla, Erect=$includeErect, Pico=$includePico, Secrets=$includeSecrets');
+        trace('Base songs added to list: ${globalSongList.length} songs');
 
         var tempSongList:Map<String, Bool> = new Map();
                     // trace("Mods present: " + Mods.parseList().enabled);

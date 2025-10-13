@@ -2604,10 +2604,6 @@ class PlayState extends MusicBeatState
 		insert(members.indexOf(dadGroup2) + 1, obj);
 	}
 
-	public function addAboveGF(obj:FlxBasic)
-	{
-		insert(members.indexOf(gfGroup) + 1, obj);
-	}
 
 	public function addNoteToField(note:Note, ?field:Int = 0)
 	{
