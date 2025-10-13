@@ -2,7 +2,6 @@ package psychlua;
 
 import Type.ValueType;
 import haxe.Constraints;
-
 import substates.GameOverSubstate;
 
 //
@@ -33,6 +32,7 @@ class ReflectionFunctions
 		});
 		Lua_helper.add_callback(lua, "getPropertyFromClass", function(classVar:String, variable:String, ?allowMaps:Bool = false) {
 			var trueVar:String = variable;
+			if (trueVar == "globalAntialiasing") trueVar = "antialiasing";
 			switch(classVar) {
 				case "PlayState":
 					classVar = "states.PlayState";
@@ -40,7 +40,7 @@ class ReflectionFunctions
 					classVar = "backend.ClientPrefs";
 					variable = 'data.$trueVar';
 			}
-			
+
 			var myClass:Dynamic = Type.resolveClass(classVar);
 			if(myClass == null)
 			{
@@ -67,7 +67,7 @@ class ReflectionFunctions
 					classVar = "backend.ClientPrefs";
 					variable = 'data.$trueVar';
 			}
-			
+
 			var myClass:Dynamic = Type.resolveClass(classVar);
 			if(myClass == null)
 			{
@@ -214,7 +214,7 @@ class ReflectionFunctions
 					if(destroy) obj.destroy();
 			}
 		});
-		
+
 		Lua_helper.add_callback(lua, "callMethod", function(funcToRun:String, ?args:Array<Dynamic>) {
 			var parent:Dynamic = PlayState.instance;
 			var split:Array<String> = funcToRun.split('.');
@@ -224,13 +224,13 @@ class ReflectionFunctions
 				funcToRun = split.join('.').trim();
 				parent = varParent;
 			}
-			
+
 			if(funcToRun.length > 0) {
 				return callMethodFromObject(parent, funcToRun, parseInstances(args));
 			}
 			return Reflect.callMethod(null, parent, parseInstances(args));
 		});
-		
+
 		Lua_helper.add_callback(lua, "callMethodFromClass", function(className:String, funcToRun:String, ?args:Array<Dynamic>) {
 			return callMethodFromObject(Type.resolveClass(className), funcToRun, parseInstances(args));
 		});
@@ -242,7 +242,7 @@ class ReflectionFunctions
 			{
 				if(args == null) args = [];
 				var myType:Dynamic = Type.resolveClass(className);
-		
+
 				if(myType == null)
 				{
 					FunkinLua.luaTrace('createInstance: Class $className not found', false, false, FlxColor.RED);
@@ -292,7 +292,7 @@ class ReflectionFunctions
 		// 		obj = LuaUtils.getVarInArray(LuaUtils.getTargetInstance(), variable);
 		// 	cpp.Pointer.addressOf(obj);
 		// 	#if cpp
-		// 	return cpp.RawPointer.addressOf(obj); 
+		// 	return cpp.RawPointer.addressOf(obj);
 		// 	#else
 		// 	return obj;
 		// 	#end
@@ -300,7 +300,7 @@ class ReflectionFunctions
 		// Lua_helper.add_callback(lua, "getPointerRef", function(pointer:Dynamic) {
 		// 	if(pointer == null) return null;
 		// 	#if cpp
-		// 	return cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(pointer)).ref; 
+		// 	return cpp.Pointer.fromRaw(cpp.RawPointer.addressOf(pointer)).ref;
 		// 	#else
 		// 	return pointer;
 		// 	#end
@@ -308,7 +308,7 @@ class ReflectionFunctions
 		// Lua_helper.add_callback(lua, "getRefromPointer", function(pointer:Dynamic) {
 		// 	if(pointer == null) return null;
 		// 	#if cpp
-		// 	return cpp.Pointer.fromRaw((pointer)).ref; 
+		// 	return cpp.Pointer.fromRaw((pointer)).ref;
 		// 	#else
 		// 	return pointer;
 		// 	#end
@@ -317,13 +317,13 @@ class ReflectionFunctions
 		Lua_helper.add_callback(lua, "newInstance", function(className:String, ?args:Array<Dynamic>) {
 			if (!Std.isOfType(args, Array)) args = [];
 			var myType:Dynamic = Type.resolveClass(className);
-	
+
 			if(myType == null)
 			{
 				FunkinLua.luaTrace('newInstance: Class $className not found', false, false, FlxColor.RED);
 				return null;
 			}
-	
+
 			var obj:Dynamic = null;
 			try {
 				obj = Type.createInstance(myType, parseInstances(args));
@@ -334,7 +334,7 @@ class ReflectionFunctions
 				return instArray[instArray.push(obj) - 1];
 			else
 				FunkinLua.luaTrace('newInstance: Failed to create instance of $className, arguments are possibly wrong.', false, false, FlxColor.RED);
-	
+
 			return null;
 		});
 	}
@@ -349,7 +349,7 @@ class ReflectionFunctions
 	}
 	public static function parseInstances(arg:Dynamic):Dynamic {
 		if (arg == null) return null;
-		
+
 		if (Std.isOfType(arg, Array)) {
 			return parseInstanceArray(arg);
 		} else {

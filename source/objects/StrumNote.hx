@@ -143,6 +143,15 @@ class StrumNote extends NoteObject
 			}
 		}
 
+		//Now lets do a psych 0.6.x and below check to see if the notes ARE there, just not in a noteSkins folder
+		var pixelFolder:String = PlayState.isPixelStage ? 'pixelUI/' : '';
+		var skinPostfix:String = Note.getNoteSkinPostfix();
+		if (Paths.fileExists('images/$pixelFolder$texture$skinPostfix.png', IMAGE)) { // If a varient of a skin exists and is selected, load it
+			skin = texture + skinPostfix;
+		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
+			skin = 'noteSkins/$texture$skinPostfix';
+		}
+
 		if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution')
 			useRGBShader = false;
 
@@ -156,12 +165,12 @@ class StrumNote extends NoteObject
 
 		if(PlayState.isPixelStage)
 		{
-			loadGraphic(Paths.image('pixelUI/noteSkins/' + skin));
+			loadGraphic(Paths.image('pixelUI/' + skin));
 			pxDV = Note.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 			width = width / pxDV;
 			height = height / 5;
 			antialiasing = false;
-			loadGraphic(Paths.image('pixelUI/noteSkins/' + skin), true, Math.floor(width), Math.floor(height));
+			loadGraphic(Paths.image('pixelUI/' + skin), true, Math.floor(width), Math.floor(height));
 			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
 
 			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
