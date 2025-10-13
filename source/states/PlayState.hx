@@ -2613,7 +2613,7 @@ class PlayState extends MusicBeatState
 	{
 		if (field < 0 || field >= playfields.length)
 			field = if (note.mustPress) 0 else 1;
-		playfields[field].addNote(note);
+		playfields.members[field].queue(note);
 	}
 
 	public function clearNotesBefore(time:Float)
