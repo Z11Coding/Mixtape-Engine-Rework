@@ -765,7 +765,7 @@ class Note extends NoteObject
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/KILLNOTE_assets');
 					noteSplashData.texture = 'noteSplashes/HURTnoteSplashes';
-					doRGBShader = false;
+					rgbShader.enabled = false;
 					missHealth = FlxMath.MAX_VALUE_FLOAT;
 					lowPriority = true;
 					hitCausesMiss = true;
@@ -773,7 +773,7 @@ class Note extends NoteObject
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/BURSTNOTE_assets');
 					noteSplashData.disabled = true;
-					doRGBShader = false;
+					rgbShader.enabled = false;
 					if (isSustainNote)
 					{
 						missHealth = 0.0475 / 2;
@@ -788,7 +788,7 @@ class Note extends NoteObject
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/SLEEPYNOTE_assets');
 					noteSplashData.disabled = true;
-					doRGBShader = false;
+					rgbShader.enabled = false;
 					if (isSustainNote)
 					{
 						missHealth = 0.0475 / 2;
