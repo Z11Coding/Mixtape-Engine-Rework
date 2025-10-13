@@ -16,6 +16,48 @@ import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import substates.StickerSubState;
 
+abstract TransitionableState(Dynamic) from FlxState to FlxState {
+    public inline function new(?state:Dynamic) {
+        if (state == null) {
+            this = new FlxState();
+        } else if (Std.is(state, FlxState)) {
+            // Already an instance, use as-is (preserves arguments)
+            this = cast(state, FlxState);
+        } else if (Std.is(state, Class)) {
+            // Store the class to be created later
+            this = state;
+        } else {
+            this = new FlxState();
+        }
+    }
+
+    // Implicit conversion from Class<FlxState>
+    @:from
+    public static inline function fromClass(stateClass:Class<FlxState>):TransitionableState {
+        return cast stateClass;
+    }
+
+    // Helper method to create instance with arguments
+    public static inline function create(state:Dynamic, ?args:Array<Dynamic>):FlxState {
+        if (state == null) {
+            return new FlxState();
+        } else if (Std.is(state, FlxState)) {
+            // Already an instance, return as-is (preserves arguments)
+            return cast(state, FlxState);
+        } else if (Std.is(state, Class)) {
+            // Create new instance from class with arguments
+            return Type.createInstance(cast(state, Class<Dynamic>), args != null ? args : []);
+        } else {
+            return new FlxState();
+        }
+    }
+
+    // Get the underlying FlxState instance
+    public inline function getInstance(?args:Array<Dynamic>):FlxState {
+        return create(this, args);
+    }
+}
+
 class TransitionState {
     public static var stickers:FlxTypedGroup<StickerSprite>;
     public static var currenttransition:Dynamic;
@@ -28,7 +70,7 @@ class TransitionState {
     };
     public static var requiredTransition:Dynamic;
 
-    static function switchState(targetState:Class<FlxState>, ?onComplete:Dynamic, ?stateArgs:Array<Dynamic> = null):Void {
+    static function switchState(targetState:TransitionableState, ?onComplete:Dynamic, ?stateArgs:Array<Dynamic> = null):Void {
 
         timers.transition.start(5, function(timer:FlxTimer) {
             if (currenttransition != null) {
@@ -53,7 +95,7 @@ class TransitionState {
         if (!Reflect.isFunction(onComplete) && onComplete != null) {
             trace("onComplete is not a function: " + onComplete);
         }
-        trace("Switched to state: " + Type.getClassName(targetState));
+        trace("Switched to state: " + Type.getClassName(Type.getClass(targetState)));
         currenttransition = null;
         trace("Switch complete.");
         isTransitioning = false;
@@ -61,31 +103,42 @@ class TransitionState {
             trace("Target state is null. Cancelling switch.");
             targetState = Type.getClass(FlxG.state);
         }
-        FlxG.switchState(Type.createInstance(targetState, stateArgs != null ? stateArgs : []));
+        var stateInstance:FlxState = TransitionableState.create(targetState, stateArgs);
+        FlxG.switchState(stateInstance);
     }
 
-    public static function transitionState(targetState:Class<FlxState>, options:Dynamic = null, ?args:Array<Dynamic>, ?required:Bool = false):Void {
+    public static function transitionState(targetState:TransitionableState, options:Dynamic = null, ?args:Array<Dynamic>, ?required:Bool = false):Void {
         isTransitioning = true;
         if (required)
             requiredTransition = { targetState: targetState, options: options, args: args, required: true };
-
-        if (targetState == states.ExitState && targetState == null)
-        {
-            trace("Exit state was null! (somehow)\nTriggering Emergency Exit!");
-            Main.closeGame();
-        }
 
         if (targetState == null) {
             trace("Target state is null. Ignoring transition request.");
             return;
         }
 
-        if (targetState == Type.getClass(FlxG.state)) {
+        // Get the class to compare
+        var targetClass:Class<FlxState> = null;
+        var targetStateRaw:Dynamic = cast targetState; // Get the underlying value
+        if (Std.is(targetStateRaw, Class)) {
+            targetClass = cast targetStateRaw;
+        } else if (Std.is(targetStateRaw, FlxState)) {
+            targetClass = Type.getClass(cast(targetStateRaw, FlxState));
+        }
+
+        // Check for exit state conditions - if ExitState is somehow null, emergency exit
+        if (targetClass == states.ExitState && states.ExitState == null)
+        {
+            trace("Exit state was null! (somehow)\nTriggering Emergency Exit!");
+            Main.closeGame();
+        }
+
+        if (targetClass == Type.getClass(FlxG.state)) {
             trace("Target state is the same as current state. Ignoring transition request.");
             return;
         }
 
-        if (targetState == states.ExitState) {
+        if (targetClass == states.ExitState) {
             trace("Preparing to exit game...");
             // Try to switch to ExitState first
             requiredTransition = { targetState: targetState, options: options, args: args, required: true };
@@ -251,7 +304,7 @@ class TransitionState {
 
             case "stickers":
                 //trace("Opening sticker substate...");
-                FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> Type.createInstance(targetState, args != null ? args : [])));
+                FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> TransitionableState.create(targetState, args)));
             case "melt":
                 // Take a proper screenshot of the current state
                 var screenCopy = new BitmapData(FlxG.width, FlxG.height, false, FlxColor.BLACK);
@@ -364,7 +417,7 @@ class TransitionState {
         }
     }
 
-    static function slideScreen(x:Float, y:Float, duration:Float, targetState:Class<FlxState>, onComplete:Dynamic, ?args:Array<Dynamic>):Void {
+    static function slideScreen(x:Float, y:Float, duration:Float, targetState:TransitionableState, onComplete:Dynamic, ?args:Array<Dynamic>):Void {
         FlxTween.tween(FlxG.camera.scroll, { x: x, y: y }, duration, {
             onComplete: function(_) {
                 switchState(targetState, onComplete, args);

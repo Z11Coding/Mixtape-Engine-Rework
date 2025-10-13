@@ -7,9 +7,11 @@ import archipelago.Client;
 import archipelago.PacketTypes.JSONMessagePart;
 import archipelago.PacketTypes.NetworkItem;
 import archipelago.substates.ConnectionSubstate;
+import archipelago.substates.ExportAPWorldChoiceSubstate;
 import archipelago.substates.InfoPanelSubstate;
 import archipelago.substates.PortInputSubstate;
 import archipelago.substates.TextInputSubstate;
+import archipelago.substates.YAMLOptionsSubstate;
 import backend.MusicBeatState;
 import backend.ui.*;
 import flixel.FlxG;
@@ -25,12 +27,15 @@ import flixel.util.FlxSave;
 import flixel.util.FlxTimer;
 import haxe.Exception;
 import haxe.Timer;
-import states.editors.content.FileDialogHandler;
 import substates.Prompt;
 import yutautil.GenericProgressSubstate;
 import yutautil.modules.SyncUtils;
 
 using yutautil.CollectionUtils;
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
 
 #if sys
 import sys.FileSystem;
@@ -84,6 +89,8 @@ class APStyledEntryState extends MusicBeatState {
     // Buttons and actions
     var settingsButton:FlxSprite;
     var yamlButton:FlxSprite;
+    var refreshYAMLButton:FlxSprite;
+    var exportAPWorldButton:FlxSprite;
     var installButton:FlxSprite;
 
     // Pages system
@@ -408,9 +415,29 @@ class APStyledEntryState extends MusicBeatState {
         yamlText.borderSize = 1;
         add(yamlText);
 
+        // Refresh YAML button
+        refreshYAMLButton = new FlxSprite(connectionPanel.x + connectionPanel.width + 20, buttonY + buttonSpacing * 2);
+        refreshYAMLButton.makeGraphic(120, 40, FlxColor.LIME);
+        add(refreshYAMLButton);
+
+        var refreshYAMLText = new FlxText(refreshYAMLButton.x, refreshYAMLButton.y + 10, refreshYAMLButton.width, "REFRESH\nYAML", 10);
+        refreshYAMLText.setFormat(Paths.font("vcr.ttf"), 10, FlxColor.BLACK, CENTER, OUTLINE, FlxColor.WHITE);
+        refreshYAMLText.borderSize = 1;
+        add(refreshYAMLText);
+
         #if sys
+        // Export APWorld button
+        exportAPWorldButton = new FlxSprite(connectionPanel.x + connectionPanel.width + 20, buttonY + buttonSpacing * 3);
+        exportAPWorldButton.makeGraphic(120, 40, FlxColor.ORANGE);
+        add(exportAPWorldButton);
+
+        var exportAPWorldText = new FlxText(exportAPWorldButton.x, exportAPWorldButton.y + 10, exportAPWorldButton.width, "EXPORT\nAPWORLD", 10);
+        exportAPWorldText.setFormat(Paths.font("vcr.ttf"), 10, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        exportAPWorldText.borderSize = 1;
+        add(exportAPWorldText);
+
         // Install button
-        installButton = new FlxSprite(connectionPanel.x + connectionPanel.width + 20, buttonY + buttonSpacing * 2);
+        installButton = new FlxSprite(connectionPanel.x + connectionPanel.width + 20, buttonY + buttonSpacing * 4);
         var installText = FileSystem.exists(currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld") ? "UPDATE" : "INSTALL";
         installButton.makeGraphic(120, 40, FlxColor.PURPLE);
         add(installButton);
@@ -711,7 +738,15 @@ class APStyledEntryState extends MusicBeatState {
             openYAMLOptions();
         }
 
+        if (refreshYAMLButton != null && FlxG.mouse.overlaps(refreshYAMLButton) && FlxG.mouse.justPressed) {
+            refreshYAML();
+        }
+
         #if sys
+        if (exportAPWorldButton != null && FlxG.mouse.overlaps(exportAPWorldButton) && FlxG.mouse.justPressed) {
+            exportAPWorld();
+        }
+
         if (installButton != null && FlxG.mouse.overlaps(installButton) && FlxG.mouse.justPressed) {
             handleAPWorldInstall();
         }
@@ -884,15 +919,22 @@ class APStyledEntryState extends MusicBeatState {
     function openYAMLOptions() {
         FlxG.sound.play(Paths.sound('confirmMenu'));
 
-        var yamlPrompt = new Prompt("YAML Options\n\nWhat would you like to do?", 0, function() {
-            // Generate YAML
-            openSettings(); // This will lead to YAML generation
-        }, function() {
-            // Import YAML
-            importYAML();
-        }, 'Generate', 'Import');
+        var yamlSubstate = new YAMLOptionsSubstate(
+            function() {
+                // Generate YAML - go to settings
+                openSettings();
+            },
+            function() {
+                // Refresh YAML - import and immediately export
+                refreshYAML();
+            },
+            function() {
+                // Import YAML only
+                importYAML();
+            }
+        );
 
-        openSubState(yamlPrompt);
+        openSubState(yamlSubstate);
     }
 
     function importYAML() {
@@ -1084,6 +1126,154 @@ class APStyledEntryState extends MusicBeatState {
                     openSubState(errorPrompt);
                 }
                 // If no folder selected, just silently cancel
+            },
+            function() {
+                // On cancel - do nothing
+            }
+        );
+
+        openSubState(progressSubstate);
+    }
+
+    function refreshYAML() {
+        // Import a YAML using the same method as importYAML, but then force export to original location
+        var stuff = null;
+        var yamlPathToExportTo:String = null;
+
+        var tasks = [
+            GenericProgressSubstate.createTask("Opening file dialog", function(results:Array<Dynamic>) {
+                // Use loadFile to get content and then access lastPath for the file path
+                var yamlContent = yutautil.ImprovedFileHandling.loadFile("Select YAML to Refresh", [{ext: "yaml", desc: "FNF AP YAML File"}, {ext: "yml", desc: "FNF AP YAML File"}], yutautil.ReadType.Text);
+                if (yamlContent == null) {
+                    throw new Exception("No file selected");
+                }
+                // Get the path from lastPath after loading
+                yamlPathToExportTo = yutautil.ImprovedFileHandling.lastPath;
+                return yamlContent;
+            }),
+            GenericProgressSubstate.createTask("Parsing YAML structure", function(results:Array<Dynamic>) {
+                var content:String = results[0];
+                return new archipelago.APYaml(content);
+            }),
+            GenericProgressSubstate.createTask("Processing YAML content", function(results:Array<Dynamic>) {
+                var content:String = results[0];
+                var yamlLines = content.split('\n');
+                // Process lines to show some progress
+                var processedLines = 0;
+                for (line in yamlLines) {
+                    if (line.trim().length > 0) {
+                        processedLines++;
+                    }
+                }
+                return 'Processed $processedLines lines';
+            }),
+            GenericProgressSubstate.createTask("Applying settings", function(results:Array<Dynamic>) {
+                var yaml:archipelago.APYaml = results[1];
+                APEntryState.gameSettings.name = yaml.name;
+                slotValue = yaml.name;
+                trace('YAML Slot Name: $slotValue');
+                if (slotValue.isEmpty()) slotValue = "Player";
+                if (slotText != null && slotValue?.trim() != '') slotText.text = slotValue;
+
+                try {
+                    for (field in Reflect.fields(yaml.settings)) {
+                        if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
+                            var fieldValue:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
+                            Reflect.setField(APEntryState.gameSettings.FNF, field, fieldValue);
+                        }
+                    }
+                } catch (e:Dynamic) {
+                    trace('Error applying YAML settings: $e');
+                }
+                return "Settings applied successfully";
+            }),
+            GenericProgressSubstate.createIterTask("Validating...", Reflect.fields(APEntryState.gameSettings.FNF), function(results:Dynamic) {
+                // Simulate validation delay
+                Sys.sleep(0.1);
+                trace('Validated setting: ' + results);
+                return 'validated ' + results;
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Refreshing YAML Configuration",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On completion, go to Advanced Settings and force export to original path
+                FlxG.sound.play(Paths.sound('confirmMenu'));
+                var yaml:archipelago.APYaml = results[1];
+
+                // Create Advanced Settings state with the imported YAML and force export path
+                var advancedState = new APAdvancedSettingsState(yaml);
+                advancedState.forceExportPath = yamlPathToExportTo; // Set the path to export to
+                MusicBeatState.switchState(advancedState);
+            },
+            function(error:String, shouldThrow:Bool) {
+                trace('YAML refresh error: $error');
+                if (error.indexOf("No file selected") == -1) {
+                    var errorPrompt = new InfoPanelSubstate("YAML Refresh Error", error, FlxColor.RED);
+                    openSubState(errorPrompt);
+                }
+                // If no file selected, just silently cancel
+            },
+            function() {
+                // On cancel - do nothing
+            }
+        );
+
+        openSubState(progressSubstate);
+    }
+
+    function exportAPWorld() {
+        var choiceSubstate = new ExportAPWorldChoiceSubstate(
+            function() {
+                // Export to default location (root folder)
+                performAPWorldExport("./fridaynightfunkin.apworld");
+            },
+            function() {
+                // Let user choose location
+                var savePath = yutautil.ImprovedFileHandling.saveFile("Export APWorld", {ext: "apworld", desc: "APWorld Files"});
+                if (savePath != null) {
+                    performAPWorldExport(savePath);
+                }
+            }
+        );
+        openSubState(choiceSubstate);
+    }
+
+    function performAPWorldExport(targetPath:String) {
+        // Show progress while exporting APWorld
+        var tasks = [
+            GenericProgressSubstate.createTask("Copying APWorld file", function(results:Array<Dynamic>) {
+                try {
+                    // Copy the APWorld file from the Archipelago installation
+                    var sourcePath = currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld";
+                    if (FileSystem.exists(sourcePath)) {
+                        File.copy(sourcePath, targetPath);
+                        return "APWorld exported successfully";
+                    } else {
+                        throw new Exception("APWorld not found at: " + sourcePath);
+                    }
+                } catch (e:Exception) {
+                    throw e;
+                }
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Exporting APWorld...",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On success
+                openSubState(new InfoPanelSubstate("Export Complete",
+                    "APWorld file exported successfully to:\n" + targetPath,
+                    FlxColor.GREEN));
+            },
+            function(error:String, shouldThrow:Bool) {
+                // On error
+                openSubState(new InfoPanelSubstate("Export Error",
+                    "Failed to export APWorld:\n" + error,
+                    FlxColor.RED));
             },
             function() {
                 // On cancel - do nothing

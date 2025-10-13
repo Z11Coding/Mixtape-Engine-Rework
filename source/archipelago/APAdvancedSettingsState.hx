@@ -201,6 +201,8 @@ class APAdvancedSettingsState extends MusicBeatState
 	// YAML import system
 	var pendingYamlImport:archipelago.APYaml = null;
 
+	// Force export path for refresh functionality
+	public var forceExportPath:String = null;
 	// Constructors
 	public function new(?yaml:archipelago.APYaml = null)
 	{
@@ -261,6 +263,13 @@ class APAdvancedSettingsState extends MusicBeatState
 			new FlxTimer().start(0.5, function(_)
 			{
 				importYamlData(pendingYamlImport);
+			});
+		}
+		else if (forceExportPath != null)
+		{
+			// Force export without import (shouldn't happen in refresh scenario)
+			new FlxTimer().start(0.5, function(_) {
+				performYAMLExportToPath(forceExportPath);
 			});
 		}
 	}
@@ -427,10 +436,19 @@ class APAdvancedSettingsState extends MusicBeatState
 		var progressSubstate = new GenericProgressSubstate("Importing YAML Configuration", tasks, function(results:Array<Dynamic>)
 		{
 			// On completion
-			var successPrompt = new InfoPanelSubstate("YAML Import Complete",
-				"YAML configuration has been successfully imported!\n\nPlayer: " + playerName + "\nSettings have been applied to the current configuration.",
-				FlxColor.LIME);
-			openSubState(successPrompt);
+			if (forceExportPath != null)
+			{
+				// This is a refresh operation - immediately trigger export to the forced path
+				performYAMLExportToPath(forceExportPath);
+			}
+			else
+			{
+				// Regular import - show success message
+				var successPrompt = new InfoPanelSubstate("YAML Import Complete",
+					"YAML configuration has been successfully imported!\n\nPlayer: " + playerName + "\nSettings have been applied to the current configuration.",
+					FlxColor.LIME);
+				openSubState(successPrompt);
+			}
 			pendingYamlImport = null; // Clear the pending import
 		}, function(error:String, shouldThrow:Bool)
 		{
@@ -1615,6 +1633,18 @@ class APAdvancedSettingsState extends MusicBeatState
 		saveCurrentSettings();
 		APSettingsSubState.generateSongList();
 		var maxSongs = Std.int(Math.max(5, APSettingsSubState.globalSongList.length));
+		var count = 0;
+		for (song in APSettingsSubState.globalSongList)
+		{
+			count++;
+		}
+
+		if (maxSongs != count)
+		{
+			trace("Discrepancy in song count! Counted: " + count + ", Length: " + maxSongs);
+			maxSongs = count;
+		}
+
 
 		openSliderControl("Song Limit", songLimit, 5, maxSongs, 1, function(value:Float)
 		{
@@ -2366,6 +2396,186 @@ class APAdvancedSettingsState extends MusicBeatState
 		});
 	}
 
+	function performYAMLExportToPath(forcePath:String)
+	{
+		// Save current settings
+		saveCurrentSettings();
+
+		// Show export animation
+		FlxFlicker.flicker(exportButton, 0.5, 0.1);
+
+		// Create animated dialog
+		var exportDialog = new FlxText(Std.int(FlxG.width / 2) - 200, Std.int(FlxG.height / 2) - 50, 400, "REFRESHING YAML...", 24);
+		exportDialog.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		exportDialog.borderSize = 2;
+		exportDialog.alpha = 0;
+		add(exportDialog);
+
+		FlxTween.tween(exportDialog, {alpha: 1}, 0.3, {
+			onComplete: function(_)
+			{
+				// Perform actual export to the specified path
+				try
+				{
+					performYAMLExportToSpecificPath(forcePath);
+
+					exportDialog.text = "YAML REFRESHED!\nSaved to: " + forcePath;
+					exportDialog.color = FlxColor.GREEN;
+
+					new FlxTimer().start(2, function(_)
+					{
+						FlxTween.tween(exportDialog, {alpha: 0}, 0.5, {
+							onComplete: function(_)
+							{
+								remove(exportDialog);
+								// After refresh is complete, return to APStyledEntryState
+								FlxG.switchState(new APStyledEntryState());
+							}
+						});
+					});
+				}
+				catch (e:Dynamic)
+				{
+					var errorMessage = Std.string(e);
+					exportDialog.text = "REFRESH FAILED!\n" + errorMessage;
+					exportDialog.color = FlxColor.RED;
+					trace('Refresh export error: $e');
+
+					new FlxTimer().start(2, function(_)
+					{
+						FlxTween.tween(exportDialog, {alpha: 0}, 0.5, {
+							onComplete: function(_)
+							{
+								remove(exportDialog);
+							}
+						});
+					});
+				}
+			}
+		});
+	}
+
+	function performYAMLExportToSpecificPath(targetPath:String)
+	{
+		var checks = 0;
+
+		while (APSettingsSubState.globalSongList.length == 0)
+		{
+			APSettingsSubState.generateSongList();
+			checks++;
+			if (checks >= 20)
+			{
+				throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
+			}
+		}
+		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+
+		if (APEntryState.gameSettings.FNF.songList.length == 0)
+		{
+			while (APEntryState.gameSettings.FNF.songList.length == 0)
+			{
+				APSettingsSubState.generateSongList();
+				checks++;
+				APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+				if (checks >= 20)
+				{
+					throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
+				}
+			}
+		}
+
+		// Process CustomAPLogic scripts before generating YAML
+		trace('Processing CustomAPLogic scripts...');
+		CustomAPLogic.APHScriptProcessor.processAllMods();
+
+		var yamlThing = {};
+		for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
+		{
+			Reflect.setField(yamlThing, thing, Reflect.field(APEntryState.gameSettings.FNF, thing));
+		}
+
+		// Add new settings
+		Reflect.setField(yamlThing, "include_secrets", includeSecrets);
+		Reflect.setField(yamlThing, "include_pico", includePico);
+		Reflect.setField(yamlThing, "include_erect", includeErect);
+		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
+		if (startingSong != null)
+		{
+			Reflect.setField(yamlThing, "starting_song", startingSong);
+		}
+		else
+		{
+			Reflect.deleteField(yamlThing, "starting_song");
+		}
+		if (victorySong != null)
+		{
+			Reflect.setField(yamlThing, "victory_song", victorySong);
+		}
+		else
+		{
+			Reflect.deleteField(yamlThing, "victory_song");
+		}
+
+		// Generate and compress Python script for CustomAPLogic (ALWAYS compressed as Base64)
+		if (CustomAPLogic.APDataStore.items.length > 0
+			|| CustomAPLogic.APDataStore.locations.length > 0
+			|| CustomAPLogic.APDataStore.customWeeks.length > 0
+			|| Lambda.count(CustomAPLogic.APDataStore.customData) > 0)
+		{
+			trace('Generating Python script for CustomAPLogic...');
+
+			// Process all mods first to ensure data is up to date
+			CustomAPLogic.APHScriptProcessor.processAllMods();
+
+			// Generate the Python script content using the same method as APSettingsSubState
+			var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
+
+			if (pythonContent != null && pythonContent.length > 0)
+			{
+				// ALWAYS compress the Python script using Base64 encoding (NOT optional)
+				var compressedPythonScript = Base64.encode(haxe.io.Bytes.ofString(pythonContent));
+
+				// Embed as modData in the YAML
+				Reflect.setField(yamlThing, "modData", compressedPythonScript);
+				trace('Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
+			}
+			else
+			{
+				trace('Warning: Python script generation returned empty content');
+			}
+		}
+
+		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+		FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
+
+		var mainSettings = {
+			name: playerName,
+			description: APEntryState.gameSettings.description,
+			game: APEntryState.gameSettings.game
+		};
+
+		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
+
+		// Create enhanced comment with stats
+		var comment = generateYAMLComment(yamlThing);
+
+		var yamlString = "Friday Night Funkin:\n";
+		for (key in Reflect.fields(yamlThing))
+		{
+			yamlString += "  " + key + ": " + Reflect.field(yamlThing, key) + "\n";
+		}
+
+		var finalDocument = document + comment + yamlString;
+
+		trace('YAML refresh export generated for player: ' + playerName);
+		trace('YAML refresh export content:\n' + finalDocument);
+
+		// Save to the specific target path
+		#if sys
+		sys.io.File.saveContent(targetPath, finalDocument);
+		#end
+	}
+
 	function performYAMLExport(useDefaultLocation:Bool = false)
 	{
 		var checks = 0;
@@ -2788,6 +2998,11 @@ class APAdvancedSettingsState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+
+		if (forceExportPath != null)
+		{
+			return; // Skip input handling during forced export refresh
+		}
 
 		// Update navigation cooldown
 		if (navigationCooldown > 0)
