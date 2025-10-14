@@ -1696,14 +1696,18 @@ abstract Assertion(() -> Bool) {
 }
 
 /**
- * Result<T, E> is an abstract type representing either a successful result of type T or an error of type E.
- * It can be implicitly cast to T, but will throw an error if the Result is an error.
+ * ResultData is a private enum used internally by the Result abstract type.
+ * It has two constructors: Ok(value:T) for successful results and Err(error:E) for errors.
  */
 private enum ResultData<T, E> {
     Ok(value:T);
     Err(error:E);
 }
 
+/**
+ * Result<T, E> is an abstract type representing either a successful result of type T or an error of type E.
+ * It can be implicitly cast to T, but will throw an error if the Result is an error.
+ */
 abstract Result<T, E>(ResultData<T, E>) {
     public inline function new(value:ResultData<T, E>) {
         this = value;
@@ -1757,7 +1761,7 @@ abstract Result<T, E>(ResultData<T, E>) {
     }
 
     public inline function unwrap():T {
-        return this;
+        return cast this;
     }
 
     public inline function unwrapErr():E {
