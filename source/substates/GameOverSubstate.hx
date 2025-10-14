@@ -5,6 +5,8 @@ import backend.WeekData;
 import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.math.FlxPoint;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import objects.Character;
 import objects.FNFWeeklyVideoSprite;
 import states.StoryMenuState;
@@ -176,17 +178,20 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		deathbysquare = new FlxSprite().makeGraphic(500, 300, 0xFFFFFFFF);
 		deathbysquare.scrollFactor.set();
-		deathbysquare.x += 800;
-		deathbysquare.y -= 100;
+		// Start off-screen to the right
+		deathbysquare.x = FlxG.width + 100;
+		deathbysquare.y = -100;
 		deathbysquare.alpha = 0.3;
+		deathbysquare.visible = false; // Start invisible
 		deathbysquare.cameras = [(PlayState.instance != null ? PlayState.instance.camCOD : FlxG.cameras.list[FlxG.cameras.list.length-1])];
 		add(deathbysquare);
 
 		var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-		causeofdeath = new UnderTextParser(deathbysquare.x, deathbysquare.y + 125, Std.int(deathbysquare.width), "", 32);
+		causeofdeath = new UnderTextParser(0, 0, Std.int(deathbysquare.width), "", 32);
 		causeofdeath.scrollFactor.set();
 		causeofdeath.font = Paths.font("fnf1.ttf");
         causeofdeath.color = 0xFFFFFFFF;
+		causeofdeath.visible = false; // Start invisible
 		for (letter in alphabet) {
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
@@ -284,8 +289,29 @@ class GameOverSubstate extends MusicBeatSubstate
 		if (!isVideo) {
 			FlxG.sound.music.play(true);
 			FlxG.sound.music.volume = volume;
-			causeofdeath.resetText(COD.getCOD());
-			causeofdeath.start(0.05, true);
+
+			// Make elements visible and tween them into position
+			deathbysquare.visible = true;
+			causeofdeath.visible = true;
+
+			// Calculate final positions
+			var finalSquareX = FlxG.width - deathbysquare.width - 100;
+			var finalSquareY = -100;
+			var finalTextX = finalSquareX;
+			var finalTextY = finalSquareY + 125;
+
+			// Tween the square into position
+			FlxTween.tween(deathbysquare, {x: finalSquareX, y: finalSquareY}, 1, {
+				ease: FlxEase.cubeInOut,
+				onComplete: function(tween:FlxTween) {
+					// Only start the text after the tween finishes
+					causeofdeath.resetText(COD.getCOD());
+					causeofdeath.start(0.05, true);
+				}
+			});
+
+			// Tween the text to follow the square
+			FlxTween.tween(causeofdeath, {x: finalTextX, y: finalTextY}, 1, {ease: FlxEase.cubeInOut});
 		} else {
 			causeofdeath.visible = false;
 			deathbysquare.visible = false;

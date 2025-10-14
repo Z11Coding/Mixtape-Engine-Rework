@@ -1695,80 +1695,92 @@ abstract Assertion(() -> Bool) {
     }
 }
 
-// abstract Result<T>({ fn:haxe.Constraints.Function, args:Array<Dynamic> }) {
-//     public inline function new(value:Dynamic) {
-//         // Accepts:
-//         // - { fn:Function, args:Array<Dynamic> }
-//         // - Function (with no args)
-//         // - { fn:Function, args:haxe.extern.Rest<Dynamic> }
-//         // - Tuple: [Function, Array<Dynamic>]
-//         // - Anything that has both 'fn' and 'args' fields
-//         if (value == null) throw 'Result cannot be constructed with null value';
+/**
+ * Result<T, E> is an abstract type representing either a successful result of type T or an error of type E.
+ * It can be implicitly cast to T, but will throw an error if the Result is an error.
+ */
+private enum ResultData<T, E> {
+    Ok(value:T);
+    Err(error:E);
+}
 
-//         var fn:Dynamic = null;
-//         var args:Array<Dynamic> = [];
+abstract Result<T, E>(ResultData<T, E>) {
+    public inline function new(value:ResultData<T, E>) {
+        this = value;
+    }
 
-//         if (Reflect.isFunction(value)) {
-//             fn = value;
-//         } else if (Std.isOfType(value, Array) && value.length == 2 && Reflect.isFunction(value[0])) {
-//             fn = value[0];
-//             args = value[1];
-//         } else if (Reflect.hasField(value, "fn") && Reflect.isFunction(Reflect.field(value, "fn"))) {
-//             fn = Reflect.field(value, "fn");
-//             if (Reflect.hasField(value, "args")) {
-//                 args = Reflect.field(value, "args");
-//             }
-//         } else if (Reflect.hasField(value, "function") && Reflect.isFunction(Reflect.field(value, "function"))) {
-//             fn = Reflect.field(value, "function");
-//             if (Reflect.hasField(value, "arguments")) {
-//                 args = Reflect.field(value, "arguments");
-//             }
-//         } else {
-//             throw 'Result: value must be a function, or an object/array with function and arguments';
-//         }
+    public static inline function ok<T, E>(value:T):Result<T, E> {
+        return new Result(Ok(value));
+    }
 
-//         this = { fn: fn, args: args };
-//     }
+    public static inline function err<T, E>(error:E):Result<T, E> {
+        return new Result(Err(error));
+    }
 
-//     // Whenever this is accessed, run the function with the arguments
-//     @:to
-//     public inline function toValue():T {
-//         var fn = Reflect.field(this, "fn");
-//         var args = Reflect.field(this, "args");
-//         return Reflect.callMethod(null, fn, args);
-//     }
+    @:from
+    public static inline function fromReturn<T, E>(v:T):Result<T, E> {
+        return ok(v);
+    }
 
-//     @:from
-//     public static inline function fromValue<T>(value:T):Result<T> {
-//         return new Result(value);
-//     }
+    @:from
+    public static inline function fromThrow<T, E>(e:E):Result<T, E> {
+        return err(e);
+    }
 
-//     @:to
-//     public inline function toDynamic():Dynamic {
-//         return this;
-//     }
+    @:from
+    public static inline function fromOk<T, E>(value:T):Result<T, E> {
+        return ok(value);
+    }
 
-//     // Field access triggers function call
-//     @:op(a.b)
-//     public inline function opFieldAccessGet(field:String):Dynamic {
-//         return this.fn();
-//     }
+    @:from
+    public static inline function fromErr<T, E>(error:E):Result<T, E> {
+        return err(error);
+    }
 
-//     // Array access triggers function call
-//     @:arrayAccess
-//     public inline function arrayRead(idx:Dynamic):Dynamic {
-//         return this.fn();
-//     }
+    @:to
+    public inline function toValue():T {
+        return switch (this) {
+            case Ok(v): v;
+            case Err(e): throw 'Result: Attempted to access value, but was error: ' + Std.string(e);
+        }
+    }
 
-//     // Call operator triggers function call (with optional override args)
-//     @:op(a())
-//     public inline function opCall(args:haxe.extern.Rest<Dynamic>):Dynamic {
-//         var fn = Reflect.field(this, "fn");
-//         var origArgs = Reflect.field(this, "args");
-//         var callArgs = (args.length > 0) ? args : origArgs;
-//         return Reflect.callMethod(null, fn, callArgs);
-//     }
-// }
+    public inline function isOk():Bool {
+        return switch (this) {
+            case Ok(_): true;
+            case Err(_): false;
+        }
+    }
+
+    public inline function isErr():Bool {
+        return !isOk();
+    }
+
+    public inline function unwrap():T {
+        return this;
+    }
+
+    public inline function unwrapErr():E {
+        return switch (this) {
+            case Ok(_): throw 'Result: Attempted to access error, but was Ok';
+            case Err(e): e;
+        }
+    }
+
+    public inline function map<U>(f:T->U):Result<U, E> {
+        return switch (this) {
+            case Ok(v): Result.ok(f(v));
+            case Err(e): Result.err(e);
+        }
+    }
+
+    public inline function mapErr<F>(f:E->F):Result<T, F> {
+        return switch (this) {
+            case Ok(v): Result.ok(v);
+            case Err(e): Result.err(f(e));
+        }
+    }
+}
 
 abstract Immutable<T>(Dynamic) {
     public inline function new(value:Dynamic) {
