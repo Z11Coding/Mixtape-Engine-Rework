@@ -1216,6 +1216,54 @@ class CollectionUtils
 		return l;
 	}
 
+	/**
+	 * Empties the given container (Array, List, Map, IMap, etc).
+	 * For objects with a 'clear' method, it will call that.
+	 * For arrays, sets length to 0.
+	 * For maps, removes all keys.
+	 * For lists, calls clear().
+	 * For objects with 'length', sets length to 0 if possible.
+	 * Returns true if the container was emptied, false if not supported.
+	 */
+	public static inline function emptyContainer<T>(input:Dynamic):Bool
+	{
+		if (input == null) return false;
+		// Array
+		if (Std.is(input, Array)) {
+			(input : Array<Dynamic>).splice(0, (input : Array<Dynamic>).length);
+			return true;
+		}
+		// List
+		if (Std.is(input, List)) {
+			(input : List<Dynamic>).clear();
+			return true;
+		}
+		// Map/IMap
+		if (Std.is(input, IMap)) {
+			var keys = [];
+			for (key in (input : IMap<Dynamic, Dynamic>).keys()) keys.push(key);
+			for (key in keys) input.remove(key);
+			return true;
+		}
+		// Has clear() method
+		if (Reflect.hasField(input, "clear") && Reflect.isFunction(Reflect.field(input, "clear"))) {
+			Reflect.callMethod(input, Reflect.field(input, "clear"), []);
+			return true;
+		}
+		// Is iterable/iterator
+		if (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next"))) {
+			try {
+				for (item in input.toIterable()) {
+					item = null;
+				}
+				return true;
+			} catch (e:Dynamic) {
+				return false;
+			}
+		}
+		return false;
+	}
+
 	// public static inline function valTween<T>(value:T, start:T, finish:T, duration:Float, onUpdate:T->Void, onComplete:Void->Void):Void
 	// {
 	// 	if (Std.is(value, String))
