@@ -61,7 +61,7 @@ class NoteSplash extends NoteObject
 		rgbShader = new PixelSplashShaderRef();
 		shader = rgbShader.shader;
 
-		this.objtype = SPLASH;
+		this.objType = SPLASH;
 
 		loadSplash(splash);
 	}
