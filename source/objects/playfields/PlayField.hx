@@ -59,6 +59,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			strumLine.cameras = to;
 
 		noteField.cameras = to;
+		grpNoteSplashes.cameras = to;
+
+		#if debug
+		trace('PlayField: Set cameras for grpNoteSplashes to: $to');
+		#end
 
 		return super.set_cameras(to);
 	}
@@ -921,30 +926,46 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	public function spawnSplash(note:Note, ?splashSkin:String):NoteSplash {
 		if (note == null) return null;
-		
+
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
 		if (splash == null) {
 			splash = new NoteSplash();
 			grpNoteSplashes.add(splash);
 		}
-		
-		// Set position based on the strum/note position
+
+		// Ensure splash uses the same cameras as the playfield
+		splash.cameras = this.cameras;
+
+		#if debug
+		trace('NoteSplash: Set splash cameras to: ${splash.cameras}');
+		#end
+
+		// Set position to match the exact strum note position
 		var strumX:Float = 0;
 		var strumY:Float = 0;
 		if (note.column < strumNotes.length) {
 			var strum = strumNotes[note.column];
 			if (strum != null) {
+				// Use the exact strum position - the splash will handle its own centering via offsets
 				strumX = strum.x;
 				strumY = strum.y;
+
+				#if debug
+				trace('NoteSplash: Spawning splash for note column ${note.column} at strum position ($strumX, $strumY)');
+				#end
 			}
+		} else {
+			#if debug
+			trace('NoteSplash: Warning - note.column ${note.column} >= strumNotes.length ${strumNotes.length}');
+			#end
 		}
-		
+
 		splash.spawnSplashNote(strumX, strumY, note.noteData, note);
 		splash.handleRendering = false;
-		
+
 		return splash;
 	}
-	
+
 	public function spawnNoteSplashOnNote(note:Note):NoteSplash {
 		return spawnSplash(note);
 	}

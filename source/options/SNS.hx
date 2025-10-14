@@ -1,9 +1,9 @@
 package options;
 
-package objects;
-
 import backend.animation.PsychAnimationController;
 import flixel.system.FlxAssets.FlxShader;
+import objects.Note;
+import objects.StrumNote;
 import objects.charting.ChartingStrumNote;
 import shaders.RGBPalette;
 

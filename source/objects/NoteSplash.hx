@@ -1,15 +1,15 @@
 package objects;
 
 import backend.animation.PsychAnimationController;
-import shaders.RGBPalette;
-import flixel.system.FlxAssets.FlxShader;
-import objects.charting.ChartingStrumNote;
 import flixel.FlxSprite;
 import flixel.animation.FlxBaseAnimation;
 import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
-import shaders.ColorSwap.ColorSwap;
 import objects.NoteObject;
+import objects.charting.ChartingStrumNote;
+import shaders.ColorSwap.ColorSwap;
+import shaders.RGBPalette;
 
 typedef RGB = {
 	r:Null<Int>,
@@ -60,6 +60,8 @@ class NoteSplash extends NoteObject
 
 		rgbShader = new PixelSplashShaderRef();
 		shader = rgbShader.shader;
+
+		this.objtype = SPLASH;
 
 		loadSplash(splash);
 	}
@@ -117,8 +119,23 @@ class NoteSplash extends NoteObject
 				{
 					var anim:NoteSplashAnim = Reflect.field(config.animations, i);
 					tempConfig.animations.set(i, anim);
-					if (anim.noteData % 4 == 0)
-						maxAnims++;
+				}
+
+				// Calculate maxAnims properly for JSON configs
+				// Count how many different animation variants we have per key
+				var animsPerKey:Map<Int, Int> = new Map();
+				for (anim in tempConfig.animations) {
+					var baseKey = anim.noteData % 4; // Get base key (0-3)
+					var variant = Math.floor(anim.noteData / 4) + 1; // Get variant number (1, 2, 3...)
+					if (!animsPerKey.exists(baseKey) || animsPerKey.get(baseKey) < variant) {
+						animsPerKey.set(baseKey, variant);
+					}
+				}
+
+				// maxAnims should be the highest variant number
+				maxAnims = 0;
+				for (key => variants in animsPerKey) {
+					if (variants > maxAnims) maxAnims = variants;
 				}
 
 				this.config = tempConfig;
@@ -172,7 +189,7 @@ class NoteSplash extends NoteObject
 		} else if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length) {
 			keyCount = Note.ammo[PlayState.mania];
 		}
-		
+
 		// Get the appropriate color array for the current key count
 		var colArray:Array<String> = [];
 		if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length && Note.keysShit.exists(PlayState.mania)) {
@@ -182,7 +199,7 @@ class NoteSplash extends NoteObject
 				colArray = letters.map(letter -> letter.toLowerCase()); // Convert to lowercase for consistency
 			}
 		}
-		
+
 		// Fallback to default if no proper key data found
 		if (colArray.length == 0) {
 			colArray = Note.colArray.copy();
@@ -191,7 +208,7 @@ class NoteSplash extends NoteObject
 				colArray.push('key${colArray.length}');
 			}
 		}
-		
+
 		var failedToFind:Bool = false;
 		while (true)
 		{
@@ -240,11 +257,24 @@ class NoteSplash extends NoteObject
 
 		setPosition(x, y);
 
-		if (babyArrow != null)
-			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth); // To prevent it from being misplaced for one game tick
+		#if debug
+		trace('NoteSplash: Initial position set to ($x, $y)');
+		#end
 
-		if (babyArrowCharting != null)
-			setPosition(babyArrowCharting.x - Note.swagWidth * 0.95, babyArrowCharting.y - Note.swagWidth); // Specifically so that the VisualSettingsSubstate stops crying
+		// Only use babyArrow positioning if we're in editor mode or no position was provided
+		if (babyArrow != null && (inEditor || (x == 0 && y == 0))) {
+			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth);
+			#if debug
+			trace('NoteSplash: Using babyArrow position: (${babyArrow.x - Note.swagWidth * 0.95}, ${babyArrow.y - Note.swagWidth})');
+			#end
+		}
+
+		if (babyArrowCharting != null && (inEditor || (x == 0 && y == 0))) {
+			setPosition(babyArrowCharting.x - Note.swagWidth * 0.95, babyArrowCharting.y - Note.swagWidth);
+			#if debug
+			trace('NoteSplash: Using babyArrowCharting position');
+			#end
+		}
 
 		if (note != null)
 			noteData = note.noteData;
@@ -252,13 +282,13 @@ class NoteSplash extends NoteObject
 		// Get current key count for proper noteData calculation
 		var keyCount:Int = 4; // Default fallback
 		var colArray:Array<String> = Note.colArray.copy();
-		
+
 		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
 			keyCount = PlayState.instance.playfields.members[0].keyCount;
 		} else if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length) {
 			keyCount = Note.ammo[PlayState.mania];
 		}
-		
+
 		// Get the appropriate color array for the current key count
 		if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length && Note.keysShit.exists(PlayState.mania)) {
 			var keyData = Note.keysShit.get(PlayState.mania);
@@ -267,7 +297,7 @@ class NoteSplash extends NoteObject
 				colArray = letters.map(letter -> letter.toLowerCase());
 			}
 		}
-		
+
 		// Extend color array if needed
 		while (colArray.length < keyCount) {
 			colArray.push('key${colArray.length}');
@@ -277,7 +307,36 @@ class NoteSplash extends NoteObject
 			noteData = noteData % colArray.length + (FlxG.random.int(0, maxAnims - 1) * colArray.length);
 
 		this.noteData = noteData;
+
+		// Make sure the splash is visible and properly positioned
+		alpha = 0;
+		visible = true;
+
 		var anim:String = playDefaultAnim();
+
+		// Apply config-based offset if animation was found
+		if (anim != null && config != null && config.animations.exists(anim)) {
+			var animData = config.animations.get(anim);
+			if (animData.offsets != null && animData.offsets.length >= 2) {
+				offset.set(animData.offsets[0], animData.offsets[1]);
+				#if debug
+				trace('NoteSplash: Applied animation offset (${animData.offsets[0]}, ${animData.offsets[1]}) for anim: $anim');
+				#end
+			} else {
+				offset.set(0, 0);
+				#if debug
+				trace('NoteSplash: No offset data for anim: $anim');
+				#end
+			}
+		} else {
+			#if debug
+			trace('NoteSplash: No animation or config found for offset application');
+			#end
+		}
+
+		#if debug
+		trace('NoteSplash: Final position after spawn: (${this.x}, ${this.y}) with offset (${offset.x}, ${offset.y})');
+		#end
 
 		var tempShader:RGBPalette = null;
 		if (config.allowRGB)
@@ -301,7 +360,7 @@ class NoteSplash extends NoteObject
 							// Ensure we don't go out of bounds for RGB arrays
 							if (rgbIndex < ClientPrefs.data.arrowRGB.length) {
 								arr = ClientPrefs.data.arrowRGB[rgbIndex];
-								if (PlayState.isPixelStage && rgbIndex < ClientPrefs.data.arrowRGBPixel.length) 
+								if (PlayState.isPixelStage && rgbIndex < ClientPrefs.data.arrowRGBPixel.length)
 									arr = ClientPrefs.data.arrowRGBPixel[rgbIndex];
 							} else {
 								// Fallback to default RGB values for extended keys
@@ -317,7 +376,7 @@ class NoteSplash extends NoteObject
 								continue;
 							}
 
-							var r:Null<Int> = rgb.r; 
+							var r:Null<Int> = rgb.r;
 							var g:Null<Int> = rgb.g;
 							var b:Null<Int> = rgb.b;
 
@@ -385,12 +444,29 @@ class NoteSplash extends NoteObject
 
 		spawned = true;
 	}
-	
+
 	public function playDefaultAnim()
 	{
 		var anim:String = noteDataMap.get(noteData);
-		if (anim != null && animation.exists(anim))
+		#if debug
+		trace('NoteSplash: Trying to play animation for noteData $noteData, found: $anim');
+		trace('NoteSplash: Available animations in noteDataMap: ${[for (k => v in noteDataMap) '$k=>$v']}');
+		#end
+
+		if (anim != null && animation.exists(anim)) {
 			animation.play(anim, true);
+			alpha = ClientPrefs.data.splashAlpha;
+			spawned = true;
+
+			#if debug
+			trace('NoteSplash: Successfully playing animation: $anim');
+			#end
+		} else {
+			#if debug
+			trace('NoteSplash: Failed to play animation - anim: $anim, exists: ${anim != null ? animation.exists(anim) : false}');
+			trace('NoteSplash: Available animations: ${animation.getNameList()}');
+			#end
+		}
 
 		return anim;
 	}
@@ -411,14 +487,18 @@ class NoteSplash extends NoteObject
 		if (spawned)
 		{
 			aliveTime += elapsed;
-			if (animation.curAnim == null && aliveTime >= buggedKillTime)
-			{
+
+			// Check if animation finished or if it's taking too long
+			if (animation.curAnim != null && animation.curAnim.finished) {
+				kill();
+				spawned = false;
+			} else if (animation.curAnim == null && aliveTime >= buggedKillTime) {
 				kill();
 				spawned = false;
 			}
 		}
 
-		if (babyArrow != null)
+		if (babyArrow != null && inEditor)
 		{
 			if (copyX)
 				x = babyArrow.x - Note.swagWidth * 0.95;
@@ -427,7 +507,7 @@ class NoteSplash extends NoteObject
 				y = babyArrow.y - Note.swagWidth;
 		}
 
-		if (babyArrowCharting != null)
+		if (babyArrowCharting != null && inEditor)
 		{
 			if (copyX)
 				x = babyArrowCharting.x - Note.swagWidth * 0.95;
@@ -466,7 +546,7 @@ class NoteSplash extends NoteObject
 		return config;
 	}
 
-	function set_config(value:NoteSplashConfig):NoteSplashConfig 
+	function set_config(value:NoteSplashConfig):NoteSplashConfig
 	{
 		if (value == null) value = createConfig();
 
@@ -479,12 +559,27 @@ class NoteSplash extends NoteObject
 			var key:String = i.name;
 			if (i.prefix.length > 0 && key != null && key.length > 0)
 			{
+				// Use the appropriate FPS - either the single value or the first value from array
+				var animFPS:Int = 24; // Default FPS
+				if (i.fps != null && i.fps.length > 0) {
+					animFPS = i.fps[0]; // Use first FPS value for consistent animation speed
+					if (i.fps.length > 1) {
+						// If there are two FPS values, use a random value between them
+						animFPS = FlxG.random.int(i.fps[0], i.fps[1]);
+					}
+				}
+
 				if (i.indices != null && i.indices.length > 0)
-					animation.addByIndices(key, i.prefix, i.indices, "", i.fps[1], false);
+					animation.addByIndices(key, i.prefix, i.indices, "", animFPS, false);
 				else
-					animation.addByPrefix(key, i.prefix, i.fps[1], false);
+					animation.addByPrefix(key, i.prefix, animFPS, false);
 
 				noteDataMap.set(i.noteData, key);
+
+				// Debug output to verify animations are being loaded
+				#if debug
+				trace('NoteSplash: Added animation "$key" with prefix "${i.prefix}" for noteData ${i.noteData} at ${animFPS}fps');
+				#end
 			}
 		}
 
@@ -503,7 +598,7 @@ class NoteSplash extends NoteObject
 	}
 }
 
-class PixelSplashShaderRef 
+class PixelSplashShaderRef
 {
 	public var shader:PixelSplashShader = new PixelSplashShader();
 	public var enabled(default, set):Bool = true;
