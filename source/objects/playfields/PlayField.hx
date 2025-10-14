@@ -216,11 +216,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		strumAttachments.visible = false;
 		add(strumAttachments);
 
-		/*var splash:NoteSplash = new NoteSplash(100, 100, 0);
-		splash.handleRendering = false;
-		grpNoteSplashes.add(splash);
-		grpNoteSplashes.visible = false; // so they dont get drawn
-		splash.alpha = 0.0;*/
+		// Pre-allocate a few note splashes for better performance
+		for (i in 0...4) {
+			var splash:NoteSplash = new NoteSplash();
+			splash.handleRendering = false;
+			splash.alpha = 0.0;
+			splash.kill(); // Start them as killed objects in the pool
+			grpNoteSplashes.add(splash);
+		}
 
 		////
 		noteField = new NoteField(this, modMgr);
@@ -916,33 +919,35 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	// spawns a notesplash w/ specified skin. optional note to derive the skin and colours from.
 
-	/*public function spawnSplash(note:Note, splashSkin:String){
-		var skin:String;
-		var hue:Float;
-		var sat:Float;
-		var brt:Float;
-
-		if (note != null) {
-			skin = note.noteSplashTexture;
-			hue = note.noteSplashHue;
-			sat = note.noteSplashSat;
-			brt = note.noteSplashBrt;
-		}else{
-			skin = splashSkin;
-			hue = sat = brt = 0.0;
-
-			/*var hsb = ClientPrefs.arrowHSV[note.column % 4];
-			hue = hsb[0] / 360;
-			sat = hsb[1] / 100;
-			brt = hsb[2] / 100;
-		}
-
+	public function spawnSplash(note:Note, ?splashSkin:String):NoteSplash {
+		if (note == null) return null;
+		
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.setupNoteSplash(0, 0, note.column, skin, hue, sat, brt, note);
+		if (splash == null) {
+			splash = new NoteSplash();
+			grpNoteSplashes.add(splash);
+		}
+		
+		// Set position based on the strum/note position
+		var strumX:Float = 0;
+		var strumY:Float = 0;
+		if (note.column < strumNotes.length) {
+			var strum = strumNotes[note.column];
+			if (strum != null) {
+				strumX = strum.x;
+				strumY = strum.y;
+			}
+		}
+		
+		splash.spawnSplashNote(strumX, strumY, note.noteData, note);
 		splash.handleRendering = false;
-		grpNoteSplashes.add(splash);
+		
 		return splash;
-	}*/
+	}
+	
+	public function spawnNoteSplashOnNote(note:Note):NoteSplash {
+		return spawnSplash(note);
+	}
 
 	// spawns notes, deals w/ hold inputs, etc.
 	override public function update(elapsed:Float){

@@ -278,7 +278,7 @@ class NoteField extends FieldBase
 
 
 		// draw notesplashes
-		/*for (obj in field.grpNoteSplashes.members)
+		for (obj in field.grpNoteSplashes.members)
 		{
 			if (!obj.exists || !obj.visible)
 				continue;
@@ -290,7 +290,7 @@ class NoteField extends FieldBase
 			object.zIndex += 0.5;
 			lookupMap.set(obj, object);
 			drawQueue.push(object);
-		}*/
+		}
 
 		// draw strumattachments
 		for (obj in field.strumAttachments.members)
