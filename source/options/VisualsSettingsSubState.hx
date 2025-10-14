@@ -2,16 +2,16 @@ package options;
 
 import objects.Alphabet;
 import objects.Note;
-import objects.NoteSplash;
 import objects.StrumNote;
 import objects.charting.ChartingNote;
 import objects.charting.ChartingStrumNote;
+import options.SNS;
 
 class VisualsSettingsSubState extends BaseOptionsMenu
 {
 	var noteOptionID:Int = -1;
 	var notes:FlxTypedGroup<ChartingStrumNote>;
-	var splashes:FlxTypedGroup<NoteSplash>;
+	var splashes:FlxTypedGroup<SNS.NoteSplash>;
 	var noteY:Float = 90;
 	public function new()
 	{
@@ -20,14 +20,14 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 		// for note skins and splash skins
 		notes = new FlxTypedGroup<ChartingStrumNote>();
-		splashes = new FlxTypedGroup<NoteSplash>();
+		splashes = new FlxTypedGroup<SNS.NoteSplash>();
 		for (i in 0...ChartingNote.colArray.length)
 		{
 			var note:ChartingStrumNote = new ChartingStrumNote(370 + (560 / ChartingNote.colArray.length) * i, -200, i, 0);
 			changeNoteSkin(note);
 			notes.add(note);
 
-			var splash:NoteSplash = new NoteSplash(0, 0, NoteSplash.defaultNoteSplash + NoteSplash.getSplashSkinPostfix());
+			var splash:SNS.NoteSplash = new SNS.NoteSplash(0, 0, SNS.NoteSplash.defaultNoteSplash + SNS.NoteSplash.getSplashSkinPostfix());
 			splash.inEditor = true;
 			splash.babyArrowCharting = note;
 			splash.ID = i;
@@ -224,7 +224,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	function onChangeSplashSkin()
 	{
-		var skin:String = NoteSplash.defaultNoteSplash + NoteSplash.getSplashSkinPostfix();
+		var skin:String = SNS.NoteSplash.defaultNoteSplash + SNS.NoteSplash.getSplashSkinPostfix();
 		for (splash in splashes)
 			splash.loadSplash(skin);
 
