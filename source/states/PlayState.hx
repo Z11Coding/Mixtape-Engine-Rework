@@ -8150,8 +8150,8 @@ class PlayState extends MusicBeatState
 		note.rating = daRating.name;
 		score = daRating.score;
 
-		if(daRating.noteSplash && !note.noteSplashData.disabled && !note.isSustainNote)
-			note.field.spawnNoteSplashOnNote(note);
+		//if(daRating.noteSplash && !note.noteSplashData.disabled)
+			//note.field.spawnNoteSplashOnNote(note);
 
 		if(!cpuControlled) {
 			comboManager.songScore += Math.ceil(score * MechanicManager.multiplier);
@@ -8330,8 +8330,8 @@ class PlayState extends MusicBeatState
 		note.rating = daRating.name;
 		score = daRating.score;
 
-		if(daRating.noteSplash && !note.noteSplashData.disabled && !note.isSustainNote)
-			note.field.spawnNoteSplashOnNote(note);
+		//if(daRating.noteSplash && !note.noteSplashData.disabled)
+			//note.field.spawnNoteSplashOnNote(note);
 
 		if(!cpuControlled) {
 			comboManager.songScore += score;

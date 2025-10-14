@@ -4,12 +4,6 @@ import backend.animation.PsychAnimationController;
 import shaders.RGBPalette;
 import flixel.system.FlxAssets.FlxShader;
 import objects.charting.ChartingStrumNote;
-import flixel.FlxSprite;
-import flixel.animation.FlxBaseAnimation;
-import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.util.FlxColor;
-import shaders.ColorSwap.ColorSwap;
-import objects.NoteObject;
 
 typedef RGB = {
 	r:Null<Int>,
@@ -34,13 +28,14 @@ typedef NoteSplashConfig = {
 	rgb:Array<Null<RGB>>
 }
 
-class NoteSplash extends NoteObject
+class NoteSplash extends FlxSprite
 {
 	public var rgbShader:PixelSplashShaderRef;
 	public var texture:String;
 	public var config(default, set):NoteSplashConfig;
 	public var babyArrow:StrumNote;
 	public var babyArrowCharting:ChartingStrumNote;
+	public var noteData:Int = 0;
 
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
@@ -165,37 +160,10 @@ class NoteSplash extends NoteObject
 			}
 		}
 
-		// Get current key count from PlayState or default to 4
-		var keyCount:Int = 4; // Default fallback
-		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
-			keyCount = PlayState.instance.playfields.members[0].keyCount;
-		} else if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length) {
-			keyCount = Note.ammo[PlayState.mania];
-		}
-		
-		// Get the appropriate color array for the current key count
-		var colArray:Array<String> = [];
-		if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length && Note.keysShit.exists(PlayState.mania)) {
-			var keyData = Note.keysShit.get(PlayState.mania);
-			if (keyData.exists("letters") && keyData.get("letters") is Array) {
-				var letters:Array<String> = cast keyData.get("letters");
-				colArray = letters.map(letter -> letter.toLowerCase()); // Convert to lowercase for consistency
-			}
-		}
-		
-		// Fallback to default if no proper key data found
-		if (colArray.length == 0) {
-			colArray = Note.colArray.copy();
-			// Extend if we need more keys
-			while (colArray.length < keyCount) {
-				colArray.push('key${colArray.length}');
-			}
-		}
-		
 		var failedToFind:Bool = false;
 		while (true)
 		{
-			for (v in colArray)
+			for (v in Note.colArray)
 			{
 				if (!checkForAnim('$anim $v ${maxAnims+1}'))
 				{
@@ -209,9 +177,9 @@ class NoteSplash extends NoteObject
 
 		for (animNum in 0...maxAnims)
 		{
-			for (i => col in colArray)
+			for (i => col in Note.colArray)
 			{
-				var data:Int = i % colArray.length + (animNum * colArray.length);
+				var data:Int = i % Note.colArray.length + (animNum * Note.colArray.length);
 				var name:String = animNum > 0 ? '$col' + (animNum + 1) : col;
 				var offset:Array<Float> = offsets[FlxMath.wrap(data, 0, Std.int(offsets.length-1))];
 				addAnimationToConfig(tempConfig, 1, name, '$anim $col ${animNum + 1}', fps, offset, [], data);
@@ -249,32 +217,8 @@ class NoteSplash extends NoteObject
 		if (note != null)
 			noteData = note.noteData;
 
-		// Get current key count for proper noteData calculation
-		var keyCount:Int = 4; // Default fallback
-		var colArray:Array<String> = Note.colArray.copy();
-		
-		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
-			keyCount = PlayState.instance.playfields.members[0].keyCount;
-		} else if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length) {
-			keyCount = Note.ammo[PlayState.mania];
-		}
-		
-		// Get the appropriate color array for the current key count
-		if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length && Note.keysShit.exists(PlayState.mania)) {
-			var keyData = Note.keysShit.get(PlayState.mania);
-			if (keyData.exists("letters") && keyData.get("letters") is Array) {
-				var letters:Array<String> = cast keyData.get("letters");
-				colArray = letters.map(letter -> letter.toLowerCase());
-			}
-		}
-		
-		// Extend color array if needed
-		while (colArray.length < keyCount) {
-			colArray.push('key${colArray.length}');
-		}
-
 		if (randomize && maxAnims > 1)
-			noteData = noteData % colArray.length + (FlxG.random.int(0, maxAnims - 1) * colArray.length);
+			noteData = noteData % Note.colArray.length + (FlxG.random.int(0, maxAnims - 1) * Note.colArray.length);
 
 		this.noteData = noteData;
 		var anim:String = playDefaultAnim();
@@ -282,7 +226,7 @@ class NoteSplash extends NoteObject
 		var tempShader:RGBPalette = null;
 		if (config.allowRGB)
 		{
-			Note.initializeGlobalRGBShader(noteData % colArray.length);
+			Note.initializeGlobalRGBShader(noteData % Note.colArray.length);
 			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB))
 			{
 				tempShader = new RGBPalette();
@@ -296,17 +240,8 @@ class NoteSplash extends NoteObject
 						{
 							if (i > 2) break;
 
-							var rgbIndex = noteData % colArray.length;
-							var arr:Array<FlxColor> = null;
-							// Ensure we don't go out of bounds for RGB arrays
-							if (rgbIndex < ClientPrefs.data.arrowRGB.length) {
-								arr = ClientPrefs.data.arrowRGB[rgbIndex];
-								if (PlayState.isPixelStage && rgbIndex < ClientPrefs.data.arrowRGBPixel.length) 
-									arr = ClientPrefs.data.arrowRGBPixel[rgbIndex];
-							} else {
-								// Fallback to default RGB values for extended keys
-								arr = [FlxColor.WHITE, FlxColor.WHITE, FlxColor.WHITE];
-							}
+							var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData % Note.colArray.length];
+							if (PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData % Note.colArray.length];
 
 							var rgb = colors[i];
 							if (rgb == null)
