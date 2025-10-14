@@ -207,7 +207,7 @@ import states.TitleState;
 
 	// Debug Settings
 	public var debugTypeAnalysis:Bool = true;
-	public var showProgressInCMD:Bool = true;
+	public var showProgressInCMD:Bool = false;
 	public var modchartDebugInfo:Bool = false;
 	public var disableDebugTraces:Bool = false;
 	public var disableHaxeTraces:Bool = false;
