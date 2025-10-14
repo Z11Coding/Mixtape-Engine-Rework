@@ -1196,6 +1196,8 @@ class APHScriptProcessor {
             return;
         }
 
+        trace('Executing AP script: ${scriptPath} for mod: ${modInfo.name}');
+
         var scriptContent = File.getContent(scriptPath);
         var parser = new Parser();
         var interpreter = new Interp();
