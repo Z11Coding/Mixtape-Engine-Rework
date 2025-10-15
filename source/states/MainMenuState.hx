@@ -586,6 +586,22 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new DebugStateMenu());
 			}
 
+			// Dev Release Tool access with F5 (only in livereload mode)
+			if (FlxG.keys.justPressed.F5 && Sys.args().indexOf('-livereload') != -1)
+			{
+				selectedSomethin = true;
+				FlxG.mouse.visible = false;
+				MusicBeatState.switchState(new DevReleaseToolState());
+			}
+
+			// Release Selection access with F6 or Ctrl+U
+			if (FlxG.keys.justPressed.F6 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.U))
+			{
+				selectedSomethin = true;
+				FlxG.mouse.visible = false;
+				MusicBeatState.switchState(new ReleaseSelectionState());
+			}
+
 			// Debug Main Menu access with F4 or Ctrl+D
 			if (FlxG.keys.justPressed.F4 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.D))
 			{

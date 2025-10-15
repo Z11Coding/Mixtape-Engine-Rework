@@ -51,7 +51,7 @@ private function keyPressed(key:Int, player:Int = -1)
         if (endingSong) continue;
 
         var note:Note = null;
-        
+
         // Optimize script callback - only call if scripts exist and return early if stopped
         if (luaArray.length > 0 || hscriptArray.length > 0) {
             var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
@@ -94,7 +94,7 @@ private function keyPressed(key:Int, player:Int = -1)
 
     // Restore conductor position ONCE
     Conductor.songPosition = lastTime;
-    
+
     // Final script callback - only if scripts exist
     if (luaArray.length > 0 || hscriptArray.length > 0) {
         callOnScripts('onKeyPress', [key]);
@@ -117,17 +117,17 @@ private function keysCheck():Void
         var holdArray = _cachedHoldArray;
         var pressArray = _cachedPressArray;
         var releaseArray = _cachedReleaseArray;
-        
+
         // Clear and resize arrays efficiently
         holdArray.splice(0, holdArray.length);
         pressArray.splice(0, pressArray.length);
         releaseArray.splice(0, releaseArray.length);
-        
+
         var keyArrayLength = keysArray[mania].length;
         holdArray.resize(keyArrayLength);
         pressArray.resize(keyArrayLength);
         releaseArray.resize(keyArrayLength);
-        
+
         // Use direct indexing instead of push
         for (i in 0...keyArrayLength) {
             var key = keysArray[mania][i];
@@ -154,7 +154,7 @@ private function keysCheck():Void
                     break;
                 }
             }
-            
+
             if (!hasHoldInput && !endingSong) {
                 playerDance();
             }
@@ -177,7 +177,7 @@ private function keysCheck():Void
         // Existing alternative input system code...
         var parsedHoldArray:Array<Bool> = parseKeys();
         pressedGameplayKeys = parsedHoldArray;
-        
+
         if (startedCountdown && !boyfriend.stunned && generatedMusic) {
             notes.forEachAlive(function(daNote:Note) {
                 if (parsedHoldArray.contains(true) && !endingSong) {
@@ -276,7 +276,7 @@ override function destroy() {
         legacyLuaArray = [];
         legacyLuaArray = null;
     }
-    
+
     if (FunkinLua.customFunctions != null) {
         FunkinLua.customFunctions.clear();
     }
@@ -335,7 +335,7 @@ override function destroy() {
     }
 
     // Reset audio properties
-    #if FLX_PITCH 
+    #if FLX_PITCH
     if (FlxG.sound.music != null) {
         FlxG.sound.music.pitch = 1;
     }
@@ -372,7 +372,7 @@ override function destroy() {
     moveStrumSections = null;
     variables = null;
     keysArray = null;
-    
+
     // Reset state variables
     mania = 3;
     instance = null;
@@ -380,7 +380,7 @@ override function destroy() {
 
     // Call parent destroy LAST
     super.destroy();
-    
+
     // Force garbage collection hint
     #if cpp
     cpp.vm.Gc.run(true);
@@ -456,7 +456,7 @@ public function callOnScripts(funcName:String, args:Array<Dynamic> = null):Dynam
     if (!hasLuaScripts && !hasHScripts) {
         return LuaUtils.Function_Continue; // Early exit if no scripts
     }
-    
+
     // Rest of callOnScripts implementation...
 }
 ```
@@ -484,13 +484,13 @@ private function updateMemoryMonitor(elapsed:Float):Void {
     lastMemoryCheck += elapsed;
     if (lastMemoryCheck >= 1.0) { // Check every second
         lastMemoryCheck = 0;
-        
+
         #if cpp
         var memUsage = cpp.vm.Gc.memInfo64(cpp.vm.Gc.MEM_INFO_USAGE);
         var memReserved = cpp.vm.Gc.memInfo64(cpp.vm.Gc.MEM_INFO_RESERVED);
-        
+
         memoryMonitor.text = 'Memory: ${Math.round(memUsage / 1024 / 1024)}MB / ${Math.round(memReserved / 1024 / 1024)}MB';
-        
+
         // Warning if memory usage is high
         if (memUsage > 500 * 1024 * 1024) { // 500MB warning
             memoryMonitor.color = FlxColor.RED;

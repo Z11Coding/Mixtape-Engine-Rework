@@ -1,44 +1,48 @@
 package states;
-import openfl.display.BlendMode;
-import flixel.util.FlxAxes;
+import backend.GitHubAPI.GitHubAsset;
+import backend.GitHubAPI.GitHubRelease;
+import backend.GitHubAPI;
+import backend.util.JSEZip;
+import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.addons.display.FlxBackdrop;
-import substates.Prompt;
-import lime.app.Application;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import flixel.math.FlxMath;
+import flixel.text.FlxText;
+import flixel.ui.FlxBar;
+import flixel.util.FlxAxes;
+import flixel.util.FlxColor;
+import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
+import haxe.Http;
 import haxe.zip.Compress;
 import haxe.zip.Entry;
 import haxe.zip.Reader;
-import backend.util.JSEZip;
 import haxe.zip.Uncompress;
-import sys.io.File;
-import openfl.utils.ByteArray;
-import lime.utils.Bytes;
-import openfl.net.URLRequest;
+import haxe.zip.Writer;
+import lime.app.Application;
 import lime.app.Event;
+import lime.utils.Bytes;
+import openfl.display.BlendMode;
 import openfl.events.ProgressEvent;
 import openfl.net.URLLoader;
-import haxe.zip.Writer;
-import flixel.math.FlxMath;
+import openfl.net.URLRequest;
+import openfl.utils.ByteArray;
+import substates.Prompt;
 import sys.FileSystem;
-import haxe.Http;
-import flixel.ui.FlxBar;
-import flixel.FlxG;
-import flixel.util.FlxColor;
-import flixel.text.FlxText;
-import flixel.FlxSprite;
+import sys.io.File;
 import sys.io.Process;
-import flixel.util.FlxGradient;
-import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
 class UpdateState extends MusicBeatState
 {
+	// Static variables to store selected release info from ReleaseSelectionState
+	public static var selectedRelease:GitHubRelease = null;
+	public static var selectedAsset:GitHubAsset = null;
 	var progressText:FlxText;
 	var progBar_bg:FlxSprite;
 	var progressBar:FlxBar;
 	var entire_progress:Float = 0; // 0 to 100;
 	var download_info:FlxText;
-
-	public var online_url:String = "";
 
 	var downloadedSize:Float = 0;
 	var content:String = "";
@@ -54,15 +58,15 @@ class UpdateState extends MusicBeatState
     var h = 550;
 
 	var listoSongs:Array<String> = [
-		'Breakfast', 
-		'Tea Time', 
-		'Celebration', 
-		'Drippy Genesis', 
-		'Reglitch', 
-		'False Memory', 
-		'Funky Genesis', 
-		'Late Night Cafe', 
-		'Late Night Jersey', 
+		'Breakfast',
+		'Tea Time',
+		'Celebration',
+		'Drippy Genesis',
+		'Reglitch',
+		'False Memory',
+		'Funky Genesis',
+		'Late Night Cafe',
+		'Late Night Jersey',
 		'Silly Little Sample Song'
 	];
 
@@ -72,6 +76,14 @@ class UpdateState extends MusicBeatState
 
 	public override function create() {
 		super.create();
+
+		// Check if we have a selected release and asset
+		if (selectedRelease == null || selectedAsset == null) {
+			trace("No release selected, going back to release selection");
+			FlxG.switchState(new ReleaseSelectionState());
+			return;
+		}
+
 		FlxG.autoPause = false;
 
 		FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(listoSongs[FlxG.random.int(0, 10)])), 0);
@@ -98,11 +110,11 @@ class UpdateState extends MusicBeatState
 		add(checker);
 		checker.scrollFactor.set(0, 0.07);
 
-		text = new FlxText(0, 0, 0, "Updating Your Mixtape...", 18);
+		text = new FlxText(0, 0, 0, "Downloading: " + selectedRelease.name, 18);
 		text.setFormat(Paths.font('funkin.ttf'), 18, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-		//add(text);
 		text.screenCenter(X);
 		text.y = 290;
+		add(text);
 
 		loadingL = new FlxSprite(337.60, 27.30).loadGraphic(Paths.image("loading_screen/loading"));
 		loadingL.antialiasing = true;
@@ -116,7 +128,7 @@ class UpdateState extends MusicBeatState
         loading.screenCenter(X);
         loading.antialiasing = true;
         add(loading);
-		
+
 		progBar_bg = new FlxSprite(FlxG.width / 2, text.y + 50).makeGraphic(500, 20, FlxColor.BLACK);
 		add(progBar_bg);
 		progBar_bg.x -= 250;
@@ -139,7 +151,6 @@ class UpdateState extends MusicBeatState
 		zip.addEventListener(ProgressEvent.PROGRESS, onDownloadProgress);
 		zip.addEventListener(openfl.events.Event.COMPLETE, onDownloadComplete);
 
-		getUpdateLink();
 		prepareUpdate();
 		startDownload();
 	}
@@ -190,7 +201,7 @@ class UpdateState extends MusicBeatState
 				download_info.text = currentFile;
 				download_info.x = (progBar_bg.x + progBar_bg.width) - download_info.width;
 		}
-		
+
 		super.update(elapsed);
 	}
 
@@ -213,15 +224,6 @@ class UpdateState extends MusicBeatState
 		#end
 	}
 
-	inline function getUpdateLink()
-	{
-		trace(FirstCheckState.betaVersion);
-		trace(FirstCheckState.updateVersion);
-		var fileEnd = #if android 'apk' #else 'zip' #end;
-		online_url = 'https://github.com/Z11Coding/Mixtape-Engine-Rework/releases/download/${FirstCheckState.betaVersion != null ? FirstCheckState.betaVersion : FirstCheckState.updateVersion}/Mixtape-Engine-${getPlatform()}.$fileEnd';
-		trace("update url: " + online_url);
-	}
-
 	function prepareUpdate()
 	{
 		trace("preparing update...");
@@ -241,38 +243,14 @@ class UpdateState extends MusicBeatState
 	}
 
 	var httpHandler:Http;
-	var fatalError:Bool = false;
 
 	public function startDownload()
 	{
 		trace("starting download process...");
+		trace("downloading: " + selectedAsset.name);
+		trace("download url: " + selectedAsset.browser_download_url);
 
-		final url:String = requestUrl(online_url);
-		if (url != null && url.indexOf('Not Found') != -1)
-		{
-			trace('File not found error!');
-			fatalError = true;
-		}
-
-		zip.load(new URLRequest(online_url));
-		if (fatalError)
-		{
-			// trace('File size is small! Assuming it couldn\'t find the url!');
-			lime.app.Application.current.window.alert('Couldn\'t find the URL for the file! Cancelling download!');
-			FlxG.resetGame();
-			return;
-		}
-
-		/*var aa = new Http(online_url);
-			aa.request();
-			trace(aa.responseHeaders);
-			trace(aa.responseHeaders.get("size"));
-
-			maxFileSize = Std.parseInt(aa.responseHeaders.get("size")); 
-
-			content = requestUrl(online_url);
-			sys.io.File.write(path, true).writeString(content);
-			trace(content.length + " bytes downloaded"); */
+		zip.load(new URLRequest(selectedAsset.browser_download_url));
 	}
 
 	public function requestUrl(url:String):String
@@ -286,7 +264,6 @@ class UpdateState extends MusicBeatState
 		httpHandler.onError = function(e)
 		{
 			trace("error while downloading file, error: " + e);
-			fatalError = true;
 		}
 		httpHandler.request(false);
 		return r;
@@ -346,10 +323,10 @@ class UpdateState extends MusicBeatState
 		var fileBytes:Bytes = cast(zip.data, ByteArray);
 		text.text = "Update downloaded successfully, saving update file...";
 		text.screenCenter(X);
-		File.saveBytes(path + "Mixtape Engine v" + FirstCheckState.updateVersion + ".zip", fileBytes);
+		File.saveBytes(path + selectedAsset.name, fileBytes);
 		text.text = "Unpacking update file...";
 		text.screenCenter(X);
-		JSEZip.unzip(path + "Mixtape Engine v" + FirstCheckState.updateVersion + ".zip", "./update/raw/");
+		JSEZip.unzip(path + selectedAsset.name, "./update/raw/");
 		text.text = "Update has finished! The update will be installed shortly..";
 		text.screenCenter(X);
 

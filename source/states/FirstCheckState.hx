@@ -200,7 +200,8 @@ class FirstCheckState extends MusicBeatState
 								if (curVersionNum < updateVersionNum && ClientPrefs.data.checkForUpdates)
 								{
 									trace('versions arent matching!');
-									MusicBeatState.switchState(new states.OutdatedState());
+									// Use new release selection system instead of OutdatedState
+									MusicBeatState.switchState(new states.ReleaseSelectionState());
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
@@ -314,7 +315,8 @@ class FirstCheckState extends MusicBeatState
 					if (curVersionNum < updateVersionNum && ClientPrefs.data.checkForUpdates)
 					{
 						trace('versions arent matching!');
-						MusicBeatState.switchState(new states.OutdatedState());
+						// Use new release selection system instead of OutdatedState
+						MusicBeatState.switchState(new states.ReleaseSelectionState());
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
