@@ -1764,6 +1764,18 @@ class Client {
 
 						// Try multiple decompression approaches
 						var approaches = [
+							function():String {
+								trace("Approach 0: Inflater.");
+								try {
+									var inflater = new Inflater();
+									var output = inflater.decompress(haxe.io.Bytes.ofString(content));
+									return output.toString();
+								} catch (e:Dynamic) {
+									trace("Inflater failed: " + e);
+									return null;
+								}
+							},
+
 							// Approach 1: Try as-is if it looks like JSON
 							function():String {
 								trace("Approach 1: Direct parsing");
@@ -1849,7 +1861,17 @@ class Client {
 
 									// Check if result looks like valid JSON
 									var trimmedResult = StringTools.trim(result);
-									if (trimmedResult.startsWith("[") || trimmedResult.startsWith("{")) {
+
+									if ((function(str:String):Bool {
+										try {
+											return str != null && (
+												str.startsWith("[") || str.startsWith("{")
+												|| (TJson.parse(str) != null)
+											);
+										} catch (e:Dynamic) {
+											return false;
+										}
+									})(result)) {
 										trace("Approach " + (i + 1) + " produced valid JSON!");
 										decompressedContent = result;
 										break;

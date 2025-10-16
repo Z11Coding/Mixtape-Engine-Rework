@@ -10,6 +10,7 @@ import states.freeplay.FreeplayState;
 
 #if ARCHIPELAGO_ALLOWED
 import archipelago.*;
+import archipelago.HighQualityTrapManager;
 import archipelago.PacketTypes.ClientStatus;
 #end
 
@@ -309,6 +310,45 @@ class APFreeplayManager extends FreeplayManager {
             trace("Victory song is cleared!");
     }
 
+    #if ARCHIPELAGO_ALLOWED
+    /**
+     * Get available difficulties for a specific song, considering SiivaGunner trap
+     */
+    public static function getAvailableDifficultiesForSong(songName:String, modName:String):Array<String> {
+        if (HighQualityTrapManager.isTrapActive()) {
+            var siivaDiffs = HighQualityTrapManager.getAvailableDifficulties(songName, modName);
+            if (siivaDiffs != null && siivaDiffs.length > 0) {
+                return siivaDiffs.copy();
+            }
+        }
+
+        // Fallback to default difficulties
+        return backend.Difficulty.defaultList.copy();
+    }
+
+    /**
+     * Check if a difficulty is available for a specific song, considering SiivaGunner trap
+     */
+    public static function isDifficultyAvailableForSong(songName:String, modName:String, difficulty:String):Bool {
+        if (HighQualityTrapManager.isTrapActive()) {
+            return HighQualityTrapManager.isDifficultyAvailable(songName, modName, difficulty);
+        }
+
+        return true; // If trap is not active, all difficulties are available
+    }
+
+    /**
+     * Get the actual song name to use (considering SiivaGunner replacements)
+     */
+    public static function getActualSongName(originalSong:String, modName:String):String {
+        if (HighQualityTrapManager.isTrapActive()) {
+            return HighQualityTrapManager.getReplacementSong(originalSong, modName);
+        }
+
+        return originalSong;
+    }
+    #end
+
     public static function updateArchFreeplay() {
         if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
 			var checker = archipelago.APGameState.instance?.info();
@@ -410,6 +450,53 @@ class APFreeplayManager extends FreeplayManager {
                     }
                 }
             }];
+
+            #if ARCHIPELAGO_ALLOWED
+            // Apply High Quality Trap filtering if active
+            if (HighQualityTrapManager.isTrapActive()) {
+                var originalSongs = allowedSongs.copy();
+
+                // Convert allowedSongs format to {song:String, mod:String} format for filtering
+                var convertedSongs:Array<{song:String, mod:String}> = [];
+                for (song in originalSongs) {
+                    convertedSongs.push({song: song[0], mod: leWeek.folder});
+                }
+
+                var filteredSongs = HighQualityTrapManager.filterUnlockedSongsForSiiva(convertedSongs);
+
+                // Convert back to original format
+                allowedSongs = [];
+                for (songData in filteredSongs) {
+                    // Find the original song data to preserve format
+                    for (originalSong in originalSongs) {
+                        if (originalSong[0] == songData.song) {
+                            allowedSongs.push(originalSong);
+                            break;
+                        }
+                    }
+                }
+
+                // If no songs remain after filtering, try to get a random SiivaGunner song
+                if (allowedSongs.length == 0 && originalSongs.length > 0) {
+                    var randomSiivaSong = HighQualityTrapManager.getRandomSiivaSong();
+                    if (randomSiivaSong != null) {
+                        // Convert to the expected format: [songName, icon, colors]
+                        allowedSongs = [[randomSiivaSong.song, "bf", [146, 113, 253]]];
+                    }
+                }
+
+                // Also set up difficulty list for the week if SiivaGunner content is available
+                if (allowedSongs.length > 0 && HighQualityTrapManager.hasSiivaContentForMod(leWeek.folder)) {
+                    // Update week difficulties to SiivaGunner difficulties
+                    var firstSong = allowedSongs[0][0];
+                    var siivaDiffs = HighQualityTrapManager.getAvailableDifficulties(firstSong, leWeek.folder);
+                    if (siivaDiffs != null && siivaDiffs.length > 0) {
+                        // Create a temporary difficulties string for this week
+                        leWeek.difficulties = siivaDiffs.join(',');
+                    }
+                }
+            }
+            #end
 
             for (song in allowedSongs)
             {
@@ -606,9 +693,30 @@ class APFreeplayManager extends FreeplayManager {
 
 
         Mods.currentModDirectory = '';
+
+        #if ARCHIPELAGO_ALLOWED
+        // Apply High Quality Trap filtering to curUnlocked if active
+        var processedUnlocked = APFreeplayManager.curUnlocked.copy();
+        if (HighQualityTrapManager.isTrapActive()) {
+            var originalUnlocked = processedUnlocked.copy();
+            processedUnlocked = HighQualityTrapManager.filterUnlockedSongsForSiiva(processedUnlocked);
+
+            // If no songs remain after filtering, try to get a random SiivaGunner song
+            if (processedUnlocked.length == 0 && originalUnlocked.length > 0) {
+                var randomSiivaSong = HighQualityTrapManager.getRandomSiivaSong();
+                if (randomSiivaSong != null) {
+                    // Convert the random song to the expected format
+                    processedUnlocked = [{song: randomSiivaSong.song, mod: randomSiivaSong.mod}];
+                }
+            }
+        }
+        #else
+        var processedUnlocked = APFreeplayManager.curUnlocked.copy();
+        #end
+
         if (refresh)
 		{
-			for (songObj in APFreeplayManager.curUnlocked) {
+			for (songObj in processedUnlocked) {
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
 					addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '')
@@ -621,7 +729,7 @@ class APFreeplayManager extends FreeplayManager {
 		}
 		else
 		{
-			for (songObj in APFreeplayManager.curUnlocked) {
+			for (songObj in processedUnlocked) {
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'small argument'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
 					addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
 				if (songObj.song.trim().toLowerCase().replace('-', ' ') == 'beat battle'.trim().toLowerCase().replace('-', ' ') && songObj.mod == '' && Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))

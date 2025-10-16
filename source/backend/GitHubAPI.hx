@@ -1,12 +1,23 @@
 package backend;
 
+import backend.util.JSEZip;
 import haxe.Http;
 import haxe.Json;
 import haxe.crypto.Base64;
 import lime.utils.Bytes;
+import openfl.events.Event;
+import openfl.events.IOErrorEvent;
+import openfl.events.ProgressEvent;
+import openfl.events.SecurityErrorEvent;
+import openfl.net.URLLoader;
+import openfl.net.URLLoaderDataFormat;
+import openfl.net.URLRequest;
+import openfl.net.URLRequestHeader;
 import openfl.utils.ByteArray;
 import sys.FileSystem;
 import sys.io.File;
+import yutautil.DualProgressSubstate;
+import yutautil.TypeUtils.OneOrMore;
 
 typedef GitHubRelease = {
 	var id:Int;
@@ -19,6 +30,7 @@ typedef GitHubRelease = {
 	var published_at:String;
 	var assets:Array<GitHubAsset>;
 	var html_url:String;
+	var author:GitHubUser;
 }
 
 typedef GitHubAsset = {
@@ -45,6 +57,73 @@ typedef GitHubCreateRelease = {
 	var body:String;
 	var draft:Bool;
 	var prerelease:Bool;
+}
+
+// New typedefs for file/repo operations
+typedef GitHubFileContent = {
+	var name:String;
+	var path:String;
+	var sha:String;
+	var size:Int;
+	var url:String;
+	var html_url:String;
+	var git_url:String;
+	var download_url:String;
+	var type:String; // "file" or "dir"
+	var content:String; // Base64 encoded for files
+	var encoding:String; // "base64" for files
+}
+
+typedef GitHubRepository = {
+	var id:Int;
+	var name:String;
+	var full_name:String;
+	var isPrivate:Bool;
+	var owner:GitHubUser;
+	var html_url:String;
+	var description:String;
+	var fork:Bool;
+	var created_at:String;
+	var updated_at:String;
+	var pushed_at:String;
+	var clone_url:String;
+	var ssh_url:String;
+	var size:Int;
+	var language:String;
+	var default_branch:String;
+}
+
+typedef GitHubTree = {
+	var sha:String;
+	var url:String;
+	var tree:Array<GitHubTreeItem>;
+	var truncated:Bool;
+}
+
+typedef GitHubTreeItem = {
+	var path:String;
+	var mode:String;
+	var type:String; // "blob" (file) or "tree" (directory)
+	var sha:String;
+	var size:Int;
+	var url:String;
+}
+
+typedef GitHubArchive = {
+	var url:String;
+	var ref:String; // branch/tag name
+	var format:String; // "zipball" or "tarball"
+}
+
+typedef DownloadConfig = {
+	var repo:String; // "owner/repo" format
+	var ?branch:String; // defaults to default branch
+	var ?files:OneOrMore<String>; // specific files/paths to download
+	var ?destination:String; // local destination path
+	var ?onProgress:(current:Int, total:Int, fileName:String)->Void;
+	var ?onFileProgress:(progress:Float, fileName:String)->Void;
+	var ?onComplete:(downloadedFiles:Array<String>)->Void;
+	var ?onError:(error:String)->Void;
 }
 
 class GitHubAPI {
@@ -326,5 +405,518 @@ class GitHubAPI {
 		#else
 		return '';
 		#end
+	}
+
+	// ========================================================================
+	// NEW: Generic GitHub file/repo download functionality
+	// ========================================================================
+
+	/**
+	 * Get repository information
+	 */
+	public static function getRepository(repoPath:String, callback:GitHubRepository->Void, errorCallback:String->Void):Void {
+		var http = new Http('$API_BASE/repos/$repoPath');
+
+		http.onData = function(data:String) {
+			try {
+				var repo:GitHubRepository = Json.parse(data);
+				callback(repo);
+			} catch (e:Dynamic) {
+				errorCallback("Failed to parse repository data: " + e);
+			}
+		};
+
+		http.onError = function(error:String) {
+			errorCallback("Failed to fetch repository: " + error);
+		};
+
+		http.addHeader("User-Agent", "Mixtape-Engine-Downloader");
+		if (isAuthenticated()) {
+			http.addHeader("Authorization", "Bearer " + authToken);
+		}
+		http.request();
+	}
+
+	/**
+	 * Get file/directory contents from a repository
+	 */
+	public static function getContents(repoPath:String, path:String, ?branch:String, callback:Array<GitHubFileContent>->Void, errorCallback:String->Void):Void {
+		var encodedPath = StringTools.urlEncode(path);
+		var url = '$API_BASE/repos/$repoPath/contents/$encodedPath';
+		if (branch != null) url += '?ref=' + StringTools.urlEncode(branch);
+
+		var http = new Http(url);
+
+		http.onData = function(data:String) {
+			try {
+				var contents:Array<GitHubFileContent> = Json.parse(data);
+				callback(contents);
+			} catch (e:Dynamic) {
+				errorCallback("Failed to parse contents data: " + e);
+			}
+		};
+
+		http.onError = function(error:String) {
+			errorCallback("Failed to fetch contents: " + error);
+		};
+
+		http.addHeader("User-Agent", "Mixtape-Engine-Downloader");
+		if (isAuthenticated()) {
+			http.addHeader("Authorization", "Bearer " + authToken);
+		}
+		http.request();
+	}
+
+	/**
+	 * Get repository tree (recursive directory listing)
+	 */
+	public static function getTree(repoPath:String, ?branch:String, ?recursive:Bool = true, callback:GitHubTree->Void, errorCallback:String->Void):Void {
+		// First get the repo to find the default branch if not specified
+		if (branch == null) {
+			getRepository(repoPath, function(repo) {
+				getTree(repoPath, repo.default_branch, recursive, callback, errorCallback);
+			}, errorCallback);
+			return;
+		}
+
+		var url = '$API_BASE/repos/$repoPath/git/trees/$branch';
+		if (recursive) url += '?recursive=1';
+
+		var http = new Http(url);
+
+		http.onData = function(data:String) {
+			try {
+				var tree:GitHubTree = Json.parse(data);
+				callback(tree);
+			} catch (e:Dynamic) {
+				errorCallback("Failed to parse tree data: " + e);
+			}
+		};
+
+		http.onError = function(error:String) {
+			errorCallback("Failed to fetch tree: " + error);
+		};
+
+		http.addHeader("User-Agent", "Mixtape-Engine-Downloader");
+		if (isAuthenticated()) {
+			http.addHeader("Authorization", "Bearer " + authToken);
+		}
+		http.request();
+	}
+
+	/**
+	 * Download a single file from a repository
+	 */
+	public static function downloadFile(repoPath:String, filePath:String, localPath:String, ?branch:String,
+		?progressCallback:(progress:Float)->Void, callback:String->Void, errorCallback:String->Void):Void {
+
+		// Properly encode the file path for URL
+		var encodedFilePath = StringTools.urlEncode(filePath);
+
+		// Get file content first
+		var url = '$API_BASE/repos/$repoPath/contents/$encodedFilePath';
+		if (branch != null) url += '?ref=' + StringTools.urlEncode(branch);
+
+		var http = new Http(url);
+
+		http.onData = function(data:String) {
+			try {
+				var fileContent:GitHubFileContent = Json.parse(data);
+
+				if (fileContent.type != "file") {
+					errorCallback("Path is not a file: " + filePath);
+					return;
+				}
+
+				// Decode base64 content
+				// Remove newlines from base64 content before decoding
+				var base64Content = fileContent.content.replace("\n", "").replace("\r", "");
+				var decodedBytes = Base64.decode(base64Content);
+
+				// Ensure directory exists
+				var dir = haxe.io.Path.directory(localPath);
+				if (dir != "" && !FileSystem.exists(dir)) {
+					FileSystem.createDirectory(dir);
+				}
+
+				// Write file
+				File.saveBytes(localPath, decodedBytes);
+
+				if (progressCallback != null) progressCallback(1.0);
+				callback(localPath);
+
+			} catch (e:Dynamic) {
+				errorCallback("Failed to download file: " + e);
+			}
+		};
+
+		http.onError = function(error:String) {
+			errorCallback("Failed to fetch file: " + error);
+		};
+
+		http.addHeader("User-Agent", "Mixtape-Engine-Downloader");
+		if (isAuthenticated()) {
+			http.addHeader("Authorization", "Bearer " + authToken);
+		}
+		http.request();
+	}
+
+	/**
+	 * Download multiple files from a repository with progress tracking
+	 */
+	public static function downloadFiles(config:DownloadConfig):Void {
+		var repoPath = config.repo;
+		var branch = config.branch;
+		var files:Array<String> = config.files;
+		var destination = config.destination != null ? config.destination : "./downloads";
+
+		if (!FileSystem.exists(destination)) {
+			FileSystem.createDirectory(destination);
+		}
+
+		var downloadedFiles:Array<String> = [];
+		var currentIndex = 0;
+		var totalFiles = files.length;
+
+		function downloadNextFile():Void {
+			if (currentIndex >= totalFiles) {
+				if (config.onComplete != null) config.onComplete(downloadedFiles);
+				return;
+			}
+
+			var filePath = files[currentIndex];
+			var fileName = haxe.io.Path.withoutDirectory(filePath);
+			var localPath = haxe.io.Path.join([destination, fileName]);
+
+			if (config.onProgress != null) {
+				config.onProgress(currentIndex, totalFiles, fileName);
+			}
+
+			downloadFile(repoPath, filePath, localPath, branch,
+				function(progress:Float) {
+					if (config.onFileProgress != null) {
+						config.onFileProgress(progress, fileName);
+					}
+				},
+				function(path:String) {
+					downloadedFiles.push(path);
+					currentIndex++;
+					downloadNextFile();
+				},
+				function(error:String) {
+					if (config.onError != null) {
+						config.onError('Failed to download $fileName: $error');
+					}
+				}
+			);
+		}
+
+		downloadNextFile();
+	}
+
+	/**
+	 * Download an entire repository as a ZIP archive using GitHub API zipball
+	 */
+	public static function downloadRepository(repoPath:String, localPath:String, ?branch:String,
+		?progressCallback:(progress:Float)->Void, callback:String->Void, errorCallback:String->Void):Void {
+
+		// If no branch specified, get the default branch
+		if (branch == null) {
+			getRepository(repoPath, function(repo) {
+				downloadRepository(repoPath, localPath, repo.default_branch, progressCallback, callback, errorCallback);
+			}, errorCallback);
+			return;
+		}
+
+		// Use GitHub API zipball endpoint for better reliability and authentication
+		var encodedRef = StringTools.urlEncode(branch);
+		var url = '$API_BASE/repos/$repoPath/zipball/$encodedRef';
+
+		// Use URLLoader for proper binary data handling (same as UpdateState)
+		var loader = new openfl.net.URLLoader();
+		loader.dataFormat = openfl.net.URLLoaderDataFormat.BINARY;
+
+		loader.addEventListener(openfl.events.ProgressEvent.PROGRESS, function(event:openfl.events.ProgressEvent) {
+			if (progressCallback != null) {
+				var progress = event.bytesLoaded / event.bytesTotal;
+				progressCallback(progress);
+			}
+		});
+
+		loader.addEventListener(openfl.events.Event.COMPLETE, function(event:openfl.events.Event) {
+			try {
+				// Ensure directory exists
+				var dir = haxe.io.Path.directory(localPath);
+				if (dir != "" && !FileSystem.exists(dir)) {
+					FileSystem.createDirectory(dir);
+				}
+
+				// Get binary data from loader
+				var fileBytes:Bytes = cast(loader.data, ByteArray);
+				File.saveBytes(localPath, fileBytes);
+
+				if (progressCallback != null) progressCallback(1.0);
+				callback(localPath);
+
+			} catch (e:Dynamic) {
+				errorCallback("Failed to save repository archive: " + e);
+			}
+		});
+
+		loader.addEventListener(openfl.events.IOErrorEvent.IO_ERROR, function(event:openfl.events.IOErrorEvent) {
+			errorCallback("Failed to download repository: " + event.text);
+		});
+
+		loader.addEventListener(openfl.events.SecurityErrorEvent.SECURITY_ERROR, function(event:openfl.events.SecurityErrorEvent) {
+			errorCallback("Security error downloading repository: " + event.text);
+		});
+
+		// Create request with proper headers
+		var request = new openfl.net.URLRequest(url);
+		request.userAgent = "Mixtape-Engine-Downloader";
+		request.requestHeaders = [
+			new openfl.net.URLRequestHeader("Accept", "application/vnd.github+json"),
+			new openfl.net.URLRequestHeader("X-GitHub-Api-Version", "2022-11-28")
+		];
+
+		if (isAuthenticated()) {
+			request.requestHeaders.push(new openfl.net.URLRequestHeader("Authorization", "Bearer " + authToken));
+		}
+
+		loader.load(request);
+	}
+
+	/**
+	 * Clone repository (download and extract to folder structure)
+	 * Uses GitHub API zipball for much faster downloads
+	 */
+	public static function cloneRepository(repoPath:String, localFolder:String, ?branch:String,
+		?progressCallback:(current:Int, total:Int, fileName:String)->Void,
+		?fileProgressCallback:(progress:Float, fileName:String)->Void,
+		callback:String->Void, errorCallback:String->Void):Void {
+
+		// Create temporary file for the ZIP
+		var tempZipPath = haxe.io.Path.join([Sys.getCwd(), "temp_repo_download.zip"]);
+
+		if (progressCallback != null) {
+			progressCallback(0, 3, "Starting download...");
+		}
+
+		// Download the repository as a ZIP file
+		downloadRepository(repoPath, tempZipPath, branch,
+			function(progress:Float) {
+				if (fileProgressCallback != null) {
+					fileProgressCallback(progress * 0.7, "Downloading repository...");
+				}
+			},
+			function(zipPath:String) {
+				if (progressCallback != null) {
+					progressCallback(1, 3, "Download complete, extracting...");
+				}
+
+				// Extract the ZIP file
+				try {
+					extractZipFile(zipPath, localFolder, function(progress:Float, fileName:String) {
+						if (fileProgressCallback != null) {
+							fileProgressCallback(0.7 + (progress * 0.3), "Extracting: " + fileName);
+						}
+					}, function(extractedPath:String) {
+						// Clean up temporary ZIP file
+						if (FileSystem.exists(tempZipPath)) {
+							try {
+								FileSystem.deleteFile(tempZipPath);
+							} catch (e:Dynamic) {
+								trace("Warning: Could not delete temporary file: " + e);
+							}
+						}
+
+						if (progressCallback != null) {
+							progressCallback(3, 3, "Clone complete!");
+						}
+
+						callback(extractedPath);
+					}, errorCallback);
+
+				} catch (e:Dynamic) {
+					// Clean up on error
+					if (FileSystem.exists(tempZipPath)) {
+						try {
+							FileSystem.deleteFile(tempZipPath);
+						} catch (cleanupError:Dynamic) {
+							trace("Warning: Could not delete temporary file after error: " + cleanupError);
+						}
+					}
+					errorCallback("Failed to extract repository: " + e);
+				}
+			},
+			function(error:String) {
+				// Clean up on download error
+				if (FileSystem.exists(tempZipPath)) {
+					try {
+						FileSystem.deleteFile(tempZipPath);
+					} catch (cleanupError:Dynamic) {
+						trace("Warning: Could not delete temporary file after download error: " + cleanupError);
+					}
+				}
+				errorCallback("Failed to download repository: " + error);
+			}
+		);
+	}
+
+	/**
+	 * Extract ZIP file to destination folder using JSEZip (same as UpdateState)
+	 */
+	private static function extractZipFile(zipPath:String, destinationFolder:String,
+		?progressCallback:(progress:Float, fileName:String)->Void,
+		callback:String->Void, errorCallback:String->Void):Void {
+
+		if (!FileSystem.exists(zipPath)) {
+			errorCallback("ZIP file not found: " + zipPath);
+			return;
+		}
+
+		if (!FileSystem.exists(destinationFolder)) {
+			FileSystem.createDirectory(destinationFolder);
+		}
+
+		try {
+			if (progressCallback != null) {
+				progressCallback(0.1, "Starting extraction...");
+			}
+
+			// Use JSEZip.unzip with ignoreRootFolder parameter to skip GitHub's root folder
+			// GitHub zipballs have a root folder like "reponame-branchname-sha" that we want to ignore
+			JSEZip.unzip(zipPath, destinationFolder, "github_root");
+
+			if (progressCallback != null) {
+				progressCallback(1.0, "Extraction complete");
+			}
+
+			callback(destinationFolder);
+
+		} catch (e:Dynamic) {
+			errorCallback("Failed to extract ZIP file: " + e);
+		}
+	}
+
+	/**
+	 * Download files/repo with dual progress bars using DualProgressSubstate
+	 */
+	public static function downloadWithProgress(config:DownloadConfig, title:String = "Downloading Files"):Void {
+		var progressSubstate:DualProgressSubstate;
+
+		var tasks = [];
+
+		if (config.files != null) {
+			// Download specific files
+			var files:Array<String> = config.files;
+
+			for (i in 0...files.length) {
+				var filePath = files[i];
+				var fileName = haxe.io.Path.withoutDirectory(filePath);
+
+				tasks.push(DualProgressSubstate.createTask(
+					'Download $fileName',
+					function(results:Array<Dynamic>):Dynamic {
+						var destination = config.destination != null ? config.destination : "./downloads";
+						var localPath = haxe.io.Path.join([destination, fileName]);
+
+						// This is a synchronous wrapper - in a real implementation you'd want
+						// to make this properly async or use a different approach
+						var completed = false;
+						var result:String = null;
+						var error:String = null;
+
+						downloadFile(config.repo, filePath, localPath, config.branch,
+							function(progress:Float) {
+								// Update current file progress
+								if (progressSubstate != null) {
+									progressSubstate.updateCurrentFileProgress(progress, fileName);
+								}
+							},
+							function(path:String) {
+								result = path;
+								completed = true;
+							},
+							function(err:String) {
+								error = err;
+								completed = true;
+							}
+						);
+
+						// Wait for completion (this is a simple blocking approach)
+						while (!completed) {
+							Sys.sleep(0.01);
+						}
+
+						if (error != null) throw new haxe.Exception(error);
+						return result;
+					}
+				));
+			}
+		} else {
+			// Download entire repository
+			tasks.push(DualProgressSubstate.createTask(
+				'Clone Repository',
+				function(results:Array<Dynamic>):Dynamic {
+					var destination = config.destination != null ? config.destination : "./downloads";
+					var completed = false;
+					var result:String = null;
+					var error:String = null;
+
+					cloneRepository(config.repo, destination, config.branch,
+						function(current:Int, total:Int, fileName:String) {
+							if (progressSubstate != null) {
+								var progress = current / total;
+								progressSubstate.updateCurrentFileProgress(progress, fileName);
+							}
+						},
+						function(progress:Float, fileName:String) {
+							if (progressSubstate != null) {
+								progressSubstate.updateCurrentFileProgress(progress, fileName);
+							}
+						},
+						function(path:String) {
+							result = path;
+							completed = true;
+						},
+						function(err:String) {
+							error = err;
+							completed = true;
+						}
+					);
+
+					while (!completed) {
+						Sys.sleep(0.01);
+					}
+
+					if (error != null) throw new haxe.Exception(error);
+					return result;
+				}
+			));
+		}
+
+		var progressConfig = DualProgressSubstate.createConfig(title, tasks);
+		progressConfig.onComplete = function(results:Array<Dynamic>) {
+			if (config.onComplete != null) {
+				var downloadedFiles:Array<String> = [];
+				for (result in results) {
+					if (Std.isOfType(result, String)) {
+						downloadedFiles.push(result);
+					}
+				}
+				config.onComplete(downloadedFiles);
+			}
+		};
+		progressConfig.onError = function(error:String, shouldThrow:Bool) {
+			if (config.onError != null) {
+				config.onError(error);
+			}
+		};
+		progressConfig.currentFileLabel = "Current File";
+		progressConfig.overallLabel = "Overall Progress";
+
+		progressSubstate = new DualProgressSubstate(progressConfig);
+		flixel.FlxG.state.openSubState(progressSubstate);
 	}
 }

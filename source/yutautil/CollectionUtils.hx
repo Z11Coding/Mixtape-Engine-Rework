@@ -617,7 +617,7 @@ class DynamicMap<K, V>
 
 enum Size
 {
-	Bytes;
+	B;
 	KB;
 	MB;
 	Auto;
@@ -998,7 +998,7 @@ class CollectionUtils
 
 		return switch (accuracy)
 		{
-			case Size.Bytes: size;
+			case Size.B: size;
 			case Size.KB: Math.round(size / 1024 * 100) / 100; // Round to 2 decimal places
 			case Size.MB: Math.round(size / (1024 * 1024) * 100) / 100; // Round to 2 decimal places
 			case Size.Auto:

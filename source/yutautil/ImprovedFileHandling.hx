@@ -12,7 +12,7 @@ import sys.io.FileOutput;
 enum ReadType
 {
 	Text;
-	Bytes;
+	ByteData;
 }
 
 abstract Filter(FileFilter) from FileFilter to FileFilter
@@ -110,7 +110,7 @@ class ImprovedFileHandling
 		{
 			lastPath = filePath;
 			return
-				operation != null ? operation(readType == ReadType.Bytes ? File.getBytes(filePath) : File.getContent(filePath)) : (readType == ReadType.Bytes ? File.getBytes(filePath) : File.getContent(filePath));
+				operation != null ? operation(readType == ReadType.ByteData ? File.getBytes(filePath) : File.getContent(filePath)) : (readType == ReadType.ByteData ? File.getBytes(filePath) : File.getContent(filePath));
 		}
 		return null;
 	}
@@ -138,7 +138,7 @@ class ImprovedFileHandling
 					filePath += ext;
 				}
 			}
-			writeType == ReadType.Bytes ? File.saveBytes(filePath, data) : File.saveContent(filePath, data);
+			writeType == ReadType.ByteData ? File.saveBytes(filePath, data) : File.saveContent(filePath, data);
 			lastPath = filePath;
 		}
 		return filePath != null && filePath != "" && FileSystem.exists(filePath); // Return if not cancelled, and saved.
@@ -148,7 +148,7 @@ class ImprovedFileHandling
 	 * Saves multiple files. The first file is the main file, and extra files are objects with {name, data}.
 	 * @param title Dialog title
 	 * @param filter File filter
-	 * @param writeType ReadType.Bytes or ReadType.Text
+	 * @param writeType ReadType.ByteData or ReadType.Text
 	 * @param mainData Main file data
 	 * @param extraFiles Array of {name:String, data:Dynamic} for extra files
 	 * @param preserve_cwd Preserve current working directory
@@ -181,7 +181,7 @@ class ImprovedFileHandling
 					mainFilePath += ext;
 				}
 			}
-			writeType == ReadType.Bytes ? File.saveBytes(mainFilePath, mainData) : File.saveContent(mainFilePath, mainData);
+			writeType == ReadType.ByteData ? File.saveBytes(mainFilePath, mainData) : File.saveContent(mainFilePath, mainData);
 			lastPath = mainFilePath;
 			filePaths.push(mainFilePath);
 
@@ -203,7 +203,7 @@ class ImprovedFileHandling
 							extraPath += ext;
 						}
 					}
-					writeType == ReadType.Bytes ? File.saveBytes(extraPath, extra.data) : File.saveContent(extraPath, extra.data);
+					writeType == ReadType.ByteData ? File.saveBytes(extraPath, extra.data) : File.saveContent(extraPath, extra.data);
 					filePaths.push(extraPath);
 				}
 			}

@@ -1,7 +1,7 @@
 package backend.modules;
 
-import flixel.FlxBasic;
 import cutscenes.DialogueBoxPsych;
+import flixel.FlxBasic;
 
 /**
  * A plugin which adds functionality to press `F4` to immediately transition to the main menu.
@@ -25,6 +25,12 @@ class EvacuateDebugPlugin extends FlxBasic
 
     if (!FlxG.keys.pressed.ALT && FlxG.keys.justPressed.F4)
     {
+      // Don't allow F4 evacuation during trap testing mode
+      @:privateAccess
+      if (backend.MusicBeatState._trapTestingMode) {
+        return;
+      }
+
       FlxG.switchState(new states.MainMenuState());
     }
 

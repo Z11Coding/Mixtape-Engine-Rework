@@ -1,6 +1,7 @@
 package archipelago;
 
 import archipelago.APInfo;
+import archipelago.HighQualityTrapManager;
 import backend.Mods;
 import backend.Paths;
 import backend.WeekData;
@@ -73,6 +74,28 @@ typedef APCustomWeek = {
     ?songMetadata: Array<{name:String, ?icon:String, ?color:Array<Int>}> // Optional per-song metadata
 };
 
+// Error tracking structures
+typedef APProcessingError = {
+    modName: String,
+    scriptPath: String,
+    errorType: String, // "parsing", "execution", "validation", etc.
+    errorMessage: String,
+    timestamp: String
+};
+
+typedef APProcessingSuccess = {
+    modName: String,
+    scriptPath: String,
+    itemsAdded: Int,
+    locationsAdded: Int,
+    songsAdded: Int,
+    songsExcluded: Int,
+    customWeeksAdded: Int,
+    songRequirementsAdded: Int,
+    customDataEntries: Int,
+    timestamp: String
+};
+
 class APDataStore {
     public static var items:Array<APRequiredItem> = [];
     public static var locations:Array<APLocation> = [];
@@ -82,6 +105,31 @@ class APDataStore {
     public static var customData:Map<String, Dynamic> = new Map<String, Dynamic>();
     public static var customWeeks:Array<APCustomWeek> = [];
     public static var songRequirements:Array<APSongRequirement> = [];
+
+    // Error and success tracking
+    public static var processingErrors:Array<APProcessingError> = [];
+    public static var processingSuccesses:Array<APProcessingSuccess> = [];
+
+    // Summary data for export info
+    public static function getTotalCustomContent():Int {
+        return items.length + locations.length + songAdditions.length +
+               songExclusions.length + customWeeks.length + songRequirements.length +
+               Lambda.count(customData);
+    }
+
+    // Clear all data including errors and successes
+    public static function clearAll():Void {
+        items = [];
+        locations = [];
+        songAdditions = [];
+        songExclusions = [];
+        customData = new Map<String, Dynamic>();
+        customWeeks = [];
+        songRequirements = [];
+        processingErrors = [];
+        processingSuccesses = [];
+        availableMods = [];
+    }
 }
 
 // HScript execution context for each mod
@@ -112,6 +160,27 @@ class APHScriptContext {
     // Song requirement tracking
     public var songRequirements:Array<APSongRequirement>;
 
+    // Current script path being executed (for error reporting)
+    public var currentScriptPath:String;
+
+    // Helper function to record specific errors within this script context
+    private function recordError(functionName:String, errorMessage:String, ?details:String):Void {
+        var fullMessage = 'Function ${functionName}: ${errorMessage}';
+        if (details != null && details != "") {
+            fullMessage += ' - Details: ${details}';
+        }
+
+        var error:APProcessingError = {
+            modName: modName,
+            scriptPath: currentScriptPath != null ? currentScriptPath : modFolderName + '/ap/unknown.hx',
+            errorType: "function_failure",
+            errorMessage: fullMessage,
+            timestamp: DateTools.format(Date.now(), "%Y-%m-%d %H:%M:%S")
+        };
+        APDataStore.processingErrors.push(error);
+        trace('AP Script Error in ${modName}: ${fullMessage}');
+    }
+
     public function new(modInfo:ModInfo, allMods:Array<ModInfo>) {
         this.modName = modInfo.name;
         this.modFolderName = modInfo.folderName;
@@ -128,6 +197,7 @@ class APHScriptContext {
         this.customData = new Map<String, Dynamic>();
         this.customWeeks = [];
         this.songRequirements = [];
+        this.currentScriptPath = null; // Will be set during script execution
     }
 
     // Helper function to check if a mod exists and is enabled
@@ -368,10 +438,26 @@ class APHScriptContext {
 
     // Add item function (available in HScript)
     public function addItem(name:String, ?requiredMod:String):Void {
+        // Validate item name
+        if (name == null || name.trim() == "") {
+            recordError("addItem", "Item name cannot be null or empty", 'Attempted name: "${name}"');
+            return;
+        }
+
         // Empty or null mod name refers to base game (always available)
         if (requiredMod != null && requiredMod != "" && !isModEnabled(requiredMod)) {
-            trace('Warning: Cannot add item "${name}" - required mod "${requiredMod}" is not enabled or does not exist');
+            recordError("addItem", 'Cannot add item "${name}" - required mod "${requiredMod}" is not enabled or does not exist',
+                       'Available mods: ${[for (mod in availableMods) if (mod.enabled) mod.name].join(", ")}');
             return;
+        }
+
+        // Check for duplicate items
+        for (existingItem in items) {
+            if (existingItem.name == name && existingItem.mod == requiredMod) {
+                recordError("addItem", 'Duplicate item "${name}" already exists',
+                           'Original mod: ${existingItem.mod}, Attempted mod: ${requiredMod}');
+                return;
+            }
         }
 
         var item:APRequiredItem = {
@@ -385,15 +471,24 @@ class APHScriptContext {
 
         items.push(item);
         APDataStore.items.push(item);
+        trace('Successfully added item: ${name}' + (requiredMod != null && requiredMod != "" ? ' (mod: ${requiredMod})' : ' (base game)'));
     }
 
     // Add trap item function (available in HScript)
     public function addTrapItem(name:String, ?targetMod:String):Void {
         // Validate trap item name
         if (name == null || name.trim() == "") {
-            var errorMsg = 'Invalid trap item name: Trap item name cannot be null or empty';
-            trace(errorMsg);
-            throw new haxe.Exception(errorMsg);
+            recordError("addTrapItem", "Trap item name cannot be null or empty", 'Attempted name: "${name}"');
+            return;
+        }
+
+        // Check for duplicate trap items
+        for (existingItem in items) {
+            if (existingItem.name == name && existingItem.isTrap == true && existingItem.targetMod == targetMod) {
+                recordError("addTrapItem", 'Duplicate trap item "${name}" already exists',
+                           'Original target mod: ${existingItem.targetMod}, Attempted target mod: ${targetMod}');
+                return;
+            }
         }
 
         // Target mod is optional for trap items and doesn't need to be validated for existence
@@ -409,16 +504,27 @@ class APHScriptContext {
 
         items.push(item);
         APDataStore.items.push(item);
-        trace('Added trap item: ${name}' + (targetMod != null && targetMod != "" ? ' (target mod: ${targetMod})' : ''));
+        trace('Successfully added trap item: ${name}' + (targetMod != null && targetMod != "" ? ' (target mod: ${targetMod})' : ' (no specific target)'));
     }
 
     // Add location function with boolean mod requirement (available in HScript)
     public function addLocation(name:String, originSong:String, ?targetMod:String, accessRule:APAccessRule, requireTargetMod:Bool = true):Void {
         // Validate location name
         if (name == null || name.trim() == "") {
-            var errorMsg = 'Invalid location name: Location name cannot be null or empty';
-            trace(errorMsg);
-            throw new haxe.Exception(errorMsg);
+            recordError("addLocation", "Location name cannot be null or empty", 'Attempted name: "${name}"');
+            return;
+        }
+
+        // Validate origin song
+        if (originSong == null || originSong.trim() == "") {
+            recordError("addLocation", 'Location "${name}" has invalid origin song', 'Origin song cannot be null or empty');
+            return;
+        }
+
+        // Validate access rule
+        if (accessRule == null || accessRule.requiredItems == null) {
+            recordError("addLocation", 'Location "${name}" has invalid access rule', 'Access rule or required items cannot be null');
+            return;
         }
 
         // Use current mod as target if not specified
@@ -426,12 +532,20 @@ class APHScriptContext {
             targetMod = modFolderName;
         }
 
-        // Validate origin song and check if it's available in the target mod during generation
-        validateOriginSongForGeneration(originSong, name, targetMod);
+        // Validate access rule items
+        for (i in 0...accessRule.requiredItems.length) {
+            var reqItem = accessRule.requiredItems[i];
+            if (reqItem == null || reqItem.name == null || reqItem.name.trim() == "") {
+                recordError("addLocation", 'Location "${name}" has invalid required item at index ${i}',
+                           'Required item name cannot be null or empty');
+                return;
+            }
+        }
 
         // Check if the origin song is actually available in the target mod's song pool
         if (!isSongAvailableForGeneration(originSong, targetMod)) {
-            trace('Warning: Cannot add location "${name}" - origin song "${originSong}" is not available in target mod "${targetMod}"');
+            recordError("addLocation", 'Cannot add location "${name}" - origin song "${originSong}" is not available in target mod "${targetMod}"',
+                       'Available songs in ${targetMod}: ${getAvailableSongsInMod(targetMod).join(", ")}');
             return;
         }
 
@@ -442,8 +556,20 @@ class APHScriptContext {
 
         // If mod requirement is enabled and targetMod is not empty, check if the target mod exists and is enabled
         if (requireTargetMod && targetMod != "" && !isModEnabled(targetMod)) {
-            trace('Warning: Cannot add location "${name}" - target mod "${targetMod}" is not enabled or does not exist');
+            recordError("addLocation", 'Cannot add location "${name}" - target mod "${targetMod}" is not enabled or does not exist',
+                       'Available enabled mods: ${[for (mod in availableMods) if (mod.enabled) mod.name].join(", ")}');
             return;
+        }
+
+        // Check for duplicate locations
+        var locationKey = name + '_' + originSong + '_' + targetMod;
+        for (existingLocation in locations) {
+            var existingKey = existingLocation.name + '_' + existingLocation.originSong + '_' + existingLocation.targetMod;
+            if (existingKey == locationKey) {
+                recordError("addLocation", 'Duplicate location "${name}" already exists',
+                           'Origin song: ${originSong}, Target mod: ${targetMod}');
+                return;
+            }
         }
 
         var location:APLocation = {
@@ -455,6 +581,42 @@ class APHScriptContext {
 
         locations.push(location);
         APDataStore.locations.push(location);
+        trace('Successfully added location: ${name} (song: ${originSong}, mod: ${targetMod}, requires: ${accessRule.requiredItems.length} items)');
+    }
+
+    // Helper function to get available songs in a mod for error reporting
+    private function getAvailableSongsInMod(targetMod:String):Array<String> {
+        var songs:Array<String> = [];
+
+        if (targetMod == null || targetMod == "") {
+            // Base game songs
+            songs = songs.concat(APInfo.baseGame);
+            songs = songs.concat(APInfo.baseErect);
+            songs = songs.concat(APInfo.basePico);
+            songs = songs.concat(APInfo.secrets);
+        } else {
+            // Mod songs
+            var modInfo = getModInfo(targetMod);
+            if (modInfo != null) {
+                songs = modInfo.songList.copy();
+            }
+        }
+
+        // Add songs that were added via addSong
+        for (addition in songAdditions) {
+            if (addition.targetMod == targetMod && !songs.contains(addition.name)) {
+                songs.push(addition.name);
+            }
+        }
+
+        // Remove songs that were excluded via excludeSong
+        for (exclusion in songExclusions) {
+            if (exclusion.targetMod == targetMod) {
+                songs.remove(exclusion.name);
+            }
+        }
+
+        return songs;
     }
 
     // Simple location helper (available in HScript)
@@ -477,14 +639,35 @@ class APHScriptContext {
     public function addSongRequirement(songName:String, ?targetMod:String, accessRule:APAccessRule, requireTargetMod:Bool = true):Void {
         // Validate song name
         if (songName == null || songName.trim() == "") {
-            var errorMsg = 'Invalid song name for requirement: Song name cannot be null or empty';
-            trace(errorMsg);
-            throw new haxe.Exception(errorMsg);
+            recordError("addSongRequirement", "Song name cannot be null or empty", 'Attempted song name: "${songName}"');
+            return;
         }
 
         // Use current mod as target if not specified
         if (targetMod == null) {
             targetMod = modFolderName;
+        }
+
+        // Validate access rule
+        if (accessRule == null || accessRule.requiredItems == null) {
+            recordError("addSongRequirement", 'Song requirement for "${songName}" has invalid access rule',
+                       'Access rule or required items cannot be null');
+            return;
+        }
+
+        // Validate each required item in the access rule
+        for (i in 0...accessRule.requiredItems.length) {
+            var reqItem = accessRule.requiredItems[i];
+            if (reqItem == null || reqItem.name == null || reqItem.name.trim() == "") {
+                recordError("addSongRequirement", 'Song requirement for "${songName}" has invalid required item at index ${i}',
+                           'Required item name cannot be null or empty');
+                return;
+            }
+            if (reqItem.count == null || reqItem.count < 1) {
+                recordError("addSongRequirement", 'Song requirement for "${songName}" has invalid count for item "${reqItem.name}"',
+                           'Count must be at least 1, got: ${reqItem.count}');
+                return;
+            }
         }
 
         // Empty string means base game (always available)
@@ -494,14 +677,27 @@ class APHScriptContext {
 
         // If mod requirement is enabled and targetMod is not empty, check if the target mod exists and is enabled
         if (requireTargetMod && targetMod != "" && !isModEnabled(targetMod)) {
-            trace('Warning: Cannot add song requirement for "${songName}" - target mod "${targetMod}" is not enabled or does not exist');
+            recordError("addSongRequirement", 'Cannot add song requirement for "${songName}" - target mod "${targetMod}" is not enabled or does not exist',
+                       'Available enabled mods: ${[for (mod in availableMods) if (mod.enabled) mod.name].join(", ")}');
             return;
         }
 
         // Check if the song is actually available in the target mod during generation
         if (!isSongAvailableForGeneration(songName, targetMod)) {
-            trace('Warning: Cannot add song requirement for "${songName}" - song is not available in target mod "${targetMod}"');
+            recordError("addSongRequirement", 'Cannot add song requirement for "${songName}" - song is not available in target mod "${targetMod}"',
+                       'Available songs in ${targetMod}: ${getAvailableSongsInMod(targetMod).join(", ")}');
             return;
+        }
+
+        // Check for duplicate requirements (only within this mod's context)
+        var requirementKey = songName + '_' + targetMod;
+        for (existingReq in songRequirements) {
+            var existingKey = existingReq.songName + '_' + existingReq.targetMod;
+            if (existingKey == requirementKey) {
+                recordError("addSongRequirement", 'Duplicate song requirement for "${songName}" already exists',
+                           'Target mod: ${targetMod}');
+                return;
+            }
         }
 
         var songRequirement:APSongRequirement = {
@@ -512,7 +708,7 @@ class APHScriptContext {
 
         songRequirements.push(songRequirement);
         APDataStore.songRequirements.push(songRequirement);
-        trace('Added song requirement: "${songName}" in mod "${targetMod}" requires ${accessRule.requiredItems.length} items');
+        trace('Successfully added song requirement: "${songName}" in mod "${targetMod}" requires ${accessRule.requiredItems.length} items');
     }
 
     // Simple song requirement helper (available in HScript)
@@ -563,50 +759,114 @@ class APHScriptContext {
 
     // Song modification functions (available in HScript)
     public function excludeSong(songName:String, ?targetMod:String):Void {
+        // Validate song name
+        if (songName == null || songName.trim() == "") {
+            recordError("excludeSong", "Song name cannot be null or empty", 'Attempted song name: "${songName}"');
+            return;
+        }
+
         // Use current mod as default target if not specified
         if (targetMod == null) {
             targetMod = modName;
         }
 
-        var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
-        if (!excludedSongs.contains(formattedName)) {
-            excludedSongs.push(formattedName);
-            songExclusions.push({name: songName, targetMod: targetMod});
-            APDataStore.songExclusions.push({name: songName, targetMod: targetMod});
-            trace('Excluded song: ${songName} from mod ${targetMod}');
+        // Validate target mod if specified
+        if (targetMod != "" && !isModEnabled(targetMod)) {
+            recordError("excludeSong", 'Cannot exclude song "${songName}" - target mod "${targetMod}" is not enabled or does not exist',
+                       'Available enabled mods: ${[for (mod in availableMods) if (mod.enabled) mod.name].join(", ")}');
+            return;
         }
+
+        // Check if the song actually exists in the target mod
+        if (!isSongAvailableForGeneration(songName, targetMod)) {
+            recordError("excludeSong", 'Cannot exclude song "${songName}" - song is not available in target mod "${targetMod}"',
+                       'Available songs in ${targetMod}: ${getAvailableSongsInMod(targetMod).join(", ")}');
+            return;
+        }
+
+        var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
+
+        // Check for duplicates
+        if (excludedSongs.contains(formattedName)) {
+            recordError("excludeSong", 'Song "${songName}" is already excluded',
+                       'Target mod: ${targetMod}');
+            return;
+        }
+
+        excludedSongs.push(formattedName);
+        songExclusions.push({name: songName, targetMod: targetMod});
+        APDataStore.songExclusions.push({name: songName, targetMod: targetMod});
+        trace('Successfully excluded song: ${songName} from mod ${targetMod}');
     }
 
     public function addSong(songName:String, ?targetMod:String, ?icon:String, ?color:Array<Int>, ?difficulties:Array<String>):Void {
+        // Validate song name
+        if (songName == null || songName.trim() == "") {
+            recordError("addSong", "Song name cannot be null or empty", 'Attempted song name: "${songName}"');
+            return;
+        }
+
         // Use current mod as default target if not specified
         if (targetMod == null) {
             targetMod = modFolderName;
         }
 
-        var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
-        if (!addedSongs.contains(formattedName)) {
-            addedSongs.push(formattedName);
-
-            // Create enhanced song addition with metadata
-            var songAddition:APSongAddition = {
-                name: songName,
-                targetMod: targetMod
-            };
-
-            if (icon != null) songAddition.icon = icon;
-            if (color != null) songAddition.color = color;
-            if (difficulties != null) {
-                // Convert to lowercase for consistency
-                songAddition.difficulties = [for (diff in difficulties) diff.toLowerCase()];
-            }
-
-            songAdditions.push(songAddition);
-            APDataStore.songAdditions.push(songAddition);
-            trace('Added song: ${songName} to mod ${targetMod}' +
-                  (icon != null ? ' with icon: ${icon}' : '') +
-                  (color != null ? ' with color: ${color}' : '') +
-                  (difficulties != null ? ' with difficulties: ${difficulties}' : ''));
+        // Validate target mod if specified
+        if (targetMod != "" && !isModEnabled(targetMod)) {
+            recordError("addSong", 'Cannot add song "${songName}" - target mod "${targetMod}" is not enabled or does not exist',
+                       'Available enabled mods: ${[for (mod in availableMods) if (mod.enabled) mod.name].join(", ")}');
+            return;
         }
+
+        // Validate difficulties if provided
+        if (difficulties != null) {
+            for (i in 0...difficulties.length) {
+                var diff = difficulties[i];
+                if (diff == null || diff.trim() == "") {
+                    recordError("addSong", 'Song "${songName}" has invalid difficulty at index ${i}',
+                               'Difficulty name cannot be null or empty');
+                    return;
+                }
+            }
+        }
+
+        // Validate color if provided
+        if (color != null && color.length != 3) {
+            recordError("addSong", 'Song "${songName}" has invalid color array',
+                       'Color must be an array of 3 integers [R, G, B], got: ${color}');
+            return;
+        }
+
+        var formattedName = songName + (if (targetMod != null && targetMod != "") '(${targetMod})' else "");
+
+        // Check for duplicates
+        if (addedSongs.contains(formattedName)) {
+            recordError("addSong", 'Duplicate song "${songName}" already added',
+                       'Target mod: ${targetMod}');
+            return;
+        }
+
+        addedSongs.push(formattedName);
+
+        // Create enhanced song addition with metadata
+        var songAddition:APSongAddition = {
+            name: songName,
+            targetMod: targetMod
+        };
+
+        if (icon != null) songAddition.icon = icon;
+        if (color != null) songAddition.color = color;
+        if (difficulties != null) {
+            // Convert to lowercase for consistency
+            songAddition.difficulties = [for (diff in difficulties) diff.toLowerCase()];
+        }
+
+        songAdditions.push(songAddition);
+        APDataStore.songAdditions.push(songAddition);
+        trace('Successfully added song: ${songName} to mod ${targetMod}' +
+              (icon != null ? ' with icon: ${icon}' : '') +
+              (color != null ? ' with color: ${color}' : '') +
+              (difficulties != null ? ' with difficulties: ${difficulties}' : ''));
     }
 
     // Helper to exclude multiple songs at once
@@ -669,23 +929,67 @@ class APHScriptContext {
 
     // Enhanced custom week definition functions (available in HScript)
     public function defineCustomWeek(weekName:String, songs:Array<String>, ?targetMod:String, ?difficulties:Array<String>, ?icon:String, ?color:Array<Int>):Void {
+        // Validate week name
+        if (weekName == null || weekName.trim() == "") {
+            recordError("defineCustomWeek", "Week name cannot be null or empty", 'Attempted week name: "${weekName}"');
+            return;
+        }
+
+        // Validate songs array
+        if (songs == null || songs.length == 0) {
+            recordError("defineCustomWeek", 'Custom week "${weekName}" has no songs',
+                       'Songs array cannot be null or empty');
+            return;
+        }
+
+        // Validate each song in the array
+        for (i in 0...songs.length) {
+            var songName = songs[i];
+            if (songName == null || songName.trim() == "") {
+                recordError("defineCustomWeek", 'Custom week "${weekName}" has invalid song at index ${i}',
+                           'Song name cannot be null or empty');
+                return;
+            }
+        }
+
         // Use current mod as default target if not specified
         if (targetMod == null) {
             targetMod = modName;
         }
 
-        // Validate week name
-        if (weekName == null || weekName.trim() == "") {
-            var errorMsg = 'Invalid custom week name: Week name cannot be null or empty';
-            trace(errorMsg);
-            throw new haxe.Exception(errorMsg);
+        // Validate target mod if specified
+        if (targetMod != "" && !isModEnabled(targetMod)) {
+            recordError("defineCustomWeek", 'Cannot define custom week "${weekName}" - target mod "${targetMod}" is not enabled or does not exist',
+                       'Available enabled mods: ${[for (mod in availableMods) if (mod.enabled) mod.name].join(", ")}');
+            return;
         }
 
-        // Validate songs array
-        if (songs == null || songs.length == 0) {
-            var errorMsg = 'Invalid custom week songs: Songs array cannot be null or empty';
-            trace(errorMsg);
-            throw new haxe.Exception(errorMsg);
+        // Validate difficulties if provided
+        if (difficulties != null) {
+            for (i in 0...difficulties.length) {
+                var diff = difficulties[i];
+                if (diff == null || diff.trim() == "") {
+                    recordError("defineCustomWeek", 'Custom week "${weekName}" has invalid difficulty at index ${i}',
+                               'Difficulty name cannot be null or empty');
+                    return;
+                }
+            }
+        }
+
+        // Validate color if provided
+        if (color != null && color.length != 3) {
+            recordError("defineCustomWeek", 'Custom week "${weekName}" has invalid color array',
+                       'Color must be an array of 3 integers [R, G, B], got: ${color}');
+            return;
+        }
+
+        // Check for duplicate week names
+        for (existingWeek in customWeeks) {
+            if (existingWeek.name == weekName && existingWeek.targetMod == targetMod) {
+                recordError("defineCustomWeek", 'Duplicate custom week "${weekName}" already exists',
+                           'Target mod: ${targetMod}');
+                return;
+            }
         }
 
         var customWeek:APCustomWeek = {
@@ -704,7 +1008,7 @@ class APHScriptContext {
 
         customWeeks.push(customWeek);
         APDataStore.customWeeks.push(customWeek);
-        trace('Defined custom week: ${weekName} with ${songs.length} songs for mod ${targetMod}' +
+        trace('Successfully defined custom week: ${weekName} with ${songs.length} songs for mod ${targetMod}' +
               (difficulties != null ? ' with difficulties: ${difficulties}' : '') +
               (icon != null ? ' with default icon: ${icon}' : '') +
               (color != null ? ' with default color: ${color}' : ''));
@@ -994,7 +1298,7 @@ class APHScriptProcessor {
         #if MODS_ALLOWED
         try {
             // Try to load the mod's options definition file
-            var optionsPath = Paths.mods(modFolder + '/data/options.json');
+            var optionsPath = Paths.mods(modFolder + '/data/settings.json');
             if (FileSystem.exists(optionsPath)) {
                 var optionsContent = File.getContent(optionsPath);
                 var optionsData:Array<Dynamic> = haxe.Json.parse(optionsContent);
@@ -1115,23 +1419,18 @@ class APHScriptProcessor {
         var songs:Array<String> = [];
 
         #if MODS_ALLOWED
-        // Only check for songs defined in weeks
-        var weeksPath = Paths.mods(modFolder + '/weeks/');
-        if (FileSystem.exists(weeksPath) && FileSystem.isDirectory(weeksPath)) {
-            for (file in FileSystem.readDirectory(weeksPath)) {
-                if (file.endsWith('.json')) {
-                    try {
-                        @:privateAccess
-                        var weekData = WeekData.getWeekFile(file.substr(0, file.length - 5));
-                        if (weekData != null && weekData.songs != null) {
-                            for (song in weekData.songs) {
-                                if (!songs.contains(song[0])) {
-                                    songs.push(song[0]);
-                                }
-                            }
-                        }
-                    } catch (e:Dynamic) {
-                        // Ignore invalid week files
+        // Use the proper WeekData system to get songs from the mod
+        // This ensures we use the same logic as the rest of the engine
+        for (i in 0...WeekData.weeksList.length) {
+            var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+
+            // Check if this week belongs to the specified mod
+            if (leWeek != null && leWeek.folder == modFolder) {
+                // Add all songs from this week
+                for (song in leWeek.songs) {
+                    var songName = song[0]; // Song name is the first element
+                    if (!songs.contains(songName)) {
+                        songs.push(songName);
                     }
                 }
             }
@@ -1142,14 +1441,19 @@ class APHScriptProcessor {
     }
 
     public static function processAllMods():Void {
-        // Clear existing data
-        APDataStore.items = [];
-        APDataStore.locations = [];
-        APDataStore.songAdditions = [];
-        APDataStore.songExclusions = [];
-        APDataStore.customData = new Map<String, Dynamic>();
-        APDataStore.customWeeks = [];
-        APDataStore.songRequirements = [];
+        // Clear existing data using the new centralized method
+        APDataStore.clearAll();
+
+        // Initialize High Quality Trap Manager
+        HighQualityTrapManager.initialize();
+
+        // Add the High Quality Trap item to the global pool
+        var highQualityTrapItem:APRequiredItem = {
+            name: "High Quality Trap",
+            isTrap: true,
+            targetMod: "base-game" // Can affect any mod
+        };
+        APDataStore.items.push(highQualityTrapItem);
 
         // Load available mods
         var availableMods = loadModData();
@@ -1186,6 +1490,16 @@ class APHScriptProcessor {
                 executeHScript(scriptPath, modInfo, allMods);
             } catch (e:Dynamic) {
                 trace('Error executing AP script ${scriptPath}: ${e}');
+
+                // Record error for scripts that fail during execution
+                var error:APProcessingError = {
+                    modName: modInfo.name,
+                    scriptPath: scriptPath,
+                    errorType: "execution",
+                    errorMessage: Std.string(e),
+                    timestamp: DateTools.format(Date.now(), "%Y-%m-%d %H:%M:%S")
+                };
+                APDataStore.processingErrors.push(error);
             }
         }
     }
@@ -1204,6 +1518,9 @@ class APHScriptProcessor {
 
         // Create context for this mod
         var context = new APHScriptContext(modInfo, allMods);
+
+        // Set the current script path for error reporting
+        context.currentScriptPath = scriptPath;
 
         // Set up interpreter variables and functions
         interpreter.variables.set("modName", context.modName);
@@ -1372,8 +1689,34 @@ class APHScriptProcessor {
                 trace('Stored ${Lambda.count(context.customData)} data values');
             }
             trace('Final song list (${finalSongList.length} songs): ${finalSongList.join(", ")}');
+
+            // Record success
+            var success:APProcessingSuccess = {
+                modName: modInfo.name,
+                scriptPath: scriptPath,
+                itemsAdded: context.items.length,
+                locationsAdded: context.locations.length,
+                songsAdded: context.addedSongs.length,
+                songsExcluded: context.excludedSongs.length,
+                customWeeksAdded: context.customWeeks.length,
+                songRequirementsAdded: context.songRequirements.length,
+                customDataEntries: Lambda.count(context.customData),
+                timestamp: DateTools.format(Date.now(), "%Y-%m-%d %H:%M:%S")
+            };
+            APDataStore.processingSuccesses.push(success);
+
         } catch (e:Dynamic) {
             trace('Error parsing/executing AP script ${scriptPath}: ${e}');
+
+            // Record error
+            var error:APProcessingError = {
+                modName: modInfo.name,
+                scriptPath: scriptPath,
+                errorType: "execution",
+                errorMessage: Std.string(e),
+                timestamp: DateTools.format(Date.now(), "%Y-%m-%d %H:%M:%S")
+            };
+            APDataStore.processingErrors.push(error);
         }
     }
 }

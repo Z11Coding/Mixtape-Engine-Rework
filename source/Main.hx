@@ -420,6 +420,11 @@ class Main extends Sprite
 		DiscordClient.prepare();
 		#end
 
+		// Clean up any leftover High Quality Trap temp files from previous sessions
+		#if ARCHIPELAGO_ALLOWED
+		archipelago.HighQualityTrapManager.onEngineExit();
+		#end
+
 		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu, except for when using 'HxTrace.log()' via Yutautil.".log();
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
@@ -1282,7 +1287,7 @@ class CommandPrompt
 					{
 						var arg = args[0].toLowerCase();
 						var sizeEnum = switch (arg) {
-							case "bytes": yutautil.CollectionUtils.Size.Bytes;
+							case "bytes": yutautil.CollectionUtils.Size.B;
 							case "kb": yutautil.CollectionUtils.Size.KB;
 							case "mb": yutautil.CollectionUtils.Size.MB;
 							case "auto": yutautil.CollectionUtils.Size.Auto;
@@ -1850,6 +1855,86 @@ class CommandPrompt
 							print("Unknown stateEdit command. Use 'stateEdit' for help.");
 					}
 				}
+
+			case "testTrap":
+				#if ARCHIPELAGO_ALLOWED
+				// Check if we're in a valid state for testing (not AP mode, not PlayState)
+				if (archipelago.APEntryState.inArchipelagoMode) {
+					print("Error: Cannot test High Quality Trap while in Archipelago mode.");
+					return;
+				}
+
+				if (Std.isOfType(FlxG.state, states.PlayState)) {
+					print("Error: Cannot test High Quality Trap while in PlayState.");
+					return;
+				}
+
+				if (args.length == 0) {
+					print("High Quality Trap Testing Commands:");
+					print("  testTrap start - Download SiivaGunner repo and enter testing mode");
+					print("  testTrap exit - Exit testing mode and return to normal engine");
+					print("  testTrap status - Show current trap status");
+					return;
+				}
+
+				switch (args[0].toLowerCase()) {
+					case "start":
+						print("Starting High Quality Trap testing mode...");
+
+						// Enter testing mode with state restrictions first
+						backend.MusicBeatState.enterTrapTestingMode();
+
+						backend.GitHubAPI.setAuthToken("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");
+
+						// Initialize the trap manager (but don't activate yet - let waiting state handle it)
+						archipelago.HighQualityTrapManager.initialize();
+
+						// Switch to waiting state which will handle the download
+						FlxG.switchState(new states.HighQualityTrapWaitingState());
+
+						print("High Quality Trap testing mode activated!");
+						print("Downloading repository... Please wait and do not press any keys.");
+						print("The testing interface will appear once download is complete.");
+						print("Use 'testTrap exit' to leave testing mode when done.");
+
+					case "exit":
+						if (!backend.MusicBeatState.isTrapTestingMode()) {
+							print("Error: Not currently in High Quality Trap testing mode.");
+							return;
+						}
+
+						print("Exiting High Quality Trap testing mode...");
+
+						// Deactivate trap and cleanup
+						archipelago.HighQualityTrapManager.deactivateTrap();
+
+						// Exit testing mode
+						backend.MusicBeatState.exitTrapTestingMode();
+
+						// Return to main menu
+						FlxG.switchState(new states.MainMenuState());
+						print("High Quality Trap testing mode exited. Returned to normal engine.");
+
+					case "status":
+						print(archipelago.HighQualityTrapManager.getStatusInfo());
+						if (backend.MusicBeatState.isTrapTestingMode()) {
+							print("Testing Mode: ACTIVE");
+							print("Allowed States: HighQualityTrapWaitingState, HighQualityTrapTestState, PlayState");
+							if (archipelago.HighQualityTrapManager.needsWaitingState()) {
+								print("Status: Downloading repository...");
+							} else {
+								print("Status: Ready for testing");
+							}
+						} else {
+							print("Testing Mode: INACTIVE");
+						}
+
+					default:
+						print("Unknown testTrap command. Use 'testTrap' for help.");
+				}
+				#else
+				print("Error: High Quality Trap testing requires ARCHIPELAGO_ALLOWED compilation flag.");
+				#end
 
 			default:
 				if (args.length == 2 && args[1] == '=')

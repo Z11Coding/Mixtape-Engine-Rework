@@ -2289,6 +2289,306 @@ class APAdvancedSettingsState extends MusicBeatState
 		openSubState(exportChoiceSubstate);
 	}
 
+	function generateCustomContentInfoText():String
+	{
+		var content = "";
+
+		// Summary
+		content += "CUSTOM CONTENT SUMMARY:\n";
+		content += "═══════════════════════\n\n";
+
+		var totalContent = CustomAPLogic.APDataStore.getTotalCustomContent();
+		content += "Total Custom Content Added: " + totalContent + "\n\n";
+
+		// Items
+		if (CustomAPLogic.APDataStore.items.length > 0) {
+			content += "ITEMS (" + CustomAPLogic.APDataStore.items.length + "):\n";
+			content += "─────────────────────────\n";
+			for (item in CustomAPLogic.APDataStore.items) {
+				var prefix = item.isTrap == true ? "[TRAP] " : "";
+				var modSuffix = item.mod != null && item.mod != "" ? " (from " + item.mod + ")" : "";
+				content += "• " + prefix + item.name + modSuffix + "\n";
+			}
+			content += "\n";
+		}
+
+		// Locations
+		if (CustomAPLogic.APDataStore.locations.length > 0) {
+			content += "LOCATIONS (" + CustomAPLogic.APDataStore.locations.length + "):\n";
+			content += "─────────────────────────\n";
+			for (location in CustomAPLogic.APDataStore.locations) {
+				content += "• " + location.name + "\n";
+				content += "  Song: " + location.originSong + " (Mod: " + location.targetMod + ")\n";
+				content += "  Requires: ";
+				var reqItems = [];
+				for (req in location.accessRule.requiredItems) {
+					var count = req.count != null && req.count > 1 ? req.count + "x " : "";
+					reqItems.push(count + req.name);
+				}
+				content += reqItems.join(", ") + "\n\n";
+			}
+		}
+
+		// Song Modifications
+		if (CustomAPLogic.APDataStore.songAdditions.length > 0) {
+			content += "SONG ADDITIONS (" + CustomAPLogic.APDataStore.songAdditions.length + "):\n";
+			content += "─────────────────────────\n";
+			for (song in CustomAPLogic.APDataStore.songAdditions) {
+				content += "• " + song.name + " (to " + song.targetMod + ")\n";
+			}
+			content += "\n";
+		}
+
+		if (CustomAPLogic.APDataStore.songExclusions.length > 0) {
+			content += "SONG EXCLUSIONS (" + CustomAPLogic.APDataStore.songExclusions.length + "):\n";
+			content += "─────────────────────────\n";
+			for (song in CustomAPLogic.APDataStore.songExclusions) {
+				content += "• " + song.name + " (from " + song.targetMod + ")\n";
+			}
+			content += "\n";
+		}
+
+		// Custom Weeks
+		if (CustomAPLogic.APDataStore.customWeeks.length > 0) {
+			content += "CUSTOM WEEKS (" + CustomAPLogic.APDataStore.customWeeks.length + "):\n";
+			content += "─────────────────────────\n";
+			for (week in CustomAPLogic.APDataStore.customWeeks) {
+				content += "• " + week.name + " (for " + week.targetMod + ")\n";
+				content += "  Songs: " + week.songs.join(", ") + "\n\n";
+			}
+		}
+
+		// Song Requirements - merge duplicate requirements and combine items
+		if (CustomAPLogic.APDataStore.songRequirements.length > 0) {
+			// Create a map to merge song requirements (one per song+targetMod combination)
+			var mergedRequirements = new Map<String, CustomAPLogic.APSongRequirement>();
+			for (req in CustomAPLogic.APDataStore.songRequirements) {
+				var key = req.songName + "_" + req.targetMod;
+				if (!mergedRequirements.exists(key)) {
+					// First requirement for this song+mod - copy it
+					var newReq:CustomAPLogic.APSongRequirement = {
+						songName: req.songName,
+						targetMod: req.targetMod,
+						accessRule: {
+							requiredItems: req.accessRule.requiredItems.copy()
+						}
+					};
+					mergedRequirements.set(key, newReq);
+				} else {
+					// Merge additional requirements into existing one
+					var existingReq = mergedRequirements.get(key);
+					var existingItems = existingReq.accessRule.requiredItems;
+
+					// Add new items that don't already exist (by name+mod combination)
+					for (newItem in req.accessRule.requiredItems) {
+						var itemExists = false;
+						for (existingItem in existingItems) {
+							if (existingItem.name == newItem.name &&
+								existingItem.mod == newItem.mod) {
+								// Item already exists - combine counts if needed
+								if (newItem.count != null && newItem.count > 1 &&
+									existingItem.count != null && existingItem.count > 1) {
+									existingItem.count = Std.int(Math.max(existingItem.count, newItem.count));
+								} else if (newItem.count != null && newItem.count > 1) {
+									existingItem.count = newItem.count;
+								}
+								itemExists = true;
+								break;
+							}
+						}
+
+						if (!itemExists) {
+							// Add new unique item
+							existingItems.push(newItem);
+						}
+					}
+				}
+			}
+
+			var uniqueCount = Lambda.count(mergedRequirements);
+			content += "SONG REQUIREMENTS (" + uniqueCount + "):\n";
+			content += "─────────────────────────\n";
+			for (req in mergedRequirements) {
+				content += "• " + req.songName + " (in " + req.targetMod + ")\n";
+				content += "  Requires: ";
+				var reqItems = [];
+				for (item in req.accessRule.requiredItems) {
+					var count = item.count != null && item.count > 1 ? item.count + "x " : "";
+					var modSuffix = item.mod != null && item.mod != "" ? " (" + item.mod + ")" : "";
+					reqItems.push(count + item.name + modSuffix);
+				}
+				content += reqItems.join(", ") + "\n\n";
+			}
+		}
+
+		// Custom Data
+		if (Lambda.count(CustomAPLogic.APDataStore.customData) > 0) {
+			content += "CUSTOM DATA (" + Lambda.count(CustomAPLogic.APDataStore.customData) + " entries):\n";
+			content += "─────────────────────────\n";
+			for (key in CustomAPLogic.APDataStore.customData.keys()) {
+				var value = CustomAPLogic.APDataStore.customData.get(key);
+				content += "• " + key + ": " + Std.string(value) + "\n";
+			}
+			content += "\n";
+		}
+
+		// Success details per mod
+		if (CustomAPLogic.APDataStore.processingSuccesses.length > 0) {
+			content += "PROCESSING SUCCESSES:\n";
+			content += "─────────────────────────\n";
+			for (success in CustomAPLogic.APDataStore.processingSuccesses) {
+				content += "✓ " + success.modName + "\n";
+				content += "  Script: " + success.scriptPath.split("/").pop() + "\n";
+				content += "  Added: " + success.itemsAdded + " items, " + success.locationsAdded + " locations\n";
+				content += "  Songs: +" + success.songsAdded + " added, -" + success.songsExcluded + " excluded\n";
+				content += "  Weeks: " + success.customWeeksAdded + " custom weeks\n";
+				content += "  Requirements: " + success.songRequirementsAdded + " song requirements\n";
+				content += "  Time: " + success.timestamp + "\n\n";
+			}
+		}
+
+		return content;
+	}
+
+	function generateErrorInfoText():String
+	{
+		var content = "";
+
+		content += "PROCESSING ERRORS:\n";
+		content += "═══════════════════\n\n";
+
+		// Get all errors and separate by type
+		var allErrors = CustomAPLogic.APDataStore.processingErrors;
+		var scriptErrors = [for (error in allErrors) if (error.errorType != "function_failure") error];
+		var functionErrors = [for (error in allErrors) if (error.errorType == "function_failure") error];
+
+		content += "Total Script Errors: " + scriptErrors.length + "\n";
+		content += "Total Function Errors: " + functionErrors.length + "\n\n";
+
+		// High-level script processing errors
+		if (scriptErrors.length > 0) {
+			content += "SCRIPT PROCESSING ERRORS:\n";
+			content += "─────────────────────────\n";
+			for (error in scriptErrors) {
+				content += "❌ " + error.modName + "\n";
+				content += "   Script: " + error.scriptPath.split("/").pop() + "\n";
+				content += "   Type: " + error.errorType + "\n";
+				content += "   Error: " + error.errorMessage + "\n";
+				content += "   Time: " + error.timestamp + "\n\n";
+			}
+		}
+
+		// Detailed function-level errors
+		if (functionErrors.length > 0) {
+			content += "FUNCTION ERRORS:\n";
+			content += "───────────────\n";
+
+			// Group errors by function type for better organization
+			var groupedErrors = new Map<String, Array<APProcessingError>>();
+			for (error in functionErrors) {
+				// Extract function name from error message
+				var functionName = "Unknown";
+				if (error.errorMessage.indexOf("Function ") == 0) {
+					var colonIndex = error.errorMessage.indexOf(":");
+					if (colonIndex > 0) {
+						functionName = error.errorMessage.substring(9, colonIndex); // Skip "Function "
+					}
+				}
+
+				if (!groupedErrors.exists(functionName)) {
+					groupedErrors.set(functionName, []);
+				}
+				groupedErrors.get(functionName).push(error);
+			}
+
+			// Display errors grouped by function
+			for (functionName in groupedErrors.keys()) {
+				var functionErrorList = groupedErrors.get(functionName);
+				content += '${functionName.toUpperCase()} (${functionErrorList.length} errors):\n';
+
+				for (i in 0...functionErrorList.length) {
+					var error = functionErrorList[i];
+					// Extract the actual error message after "Function functionName: "
+					var displayMessage = error.errorMessage;
+					var functionPrefix = 'Function ${functionName}: ';
+					if (displayMessage.indexOf(functionPrefix) == 0) {
+						displayMessage = displayMessage.substring(functionPrefix.length);
+					}
+					content += '  ${i + 1}. ${displayMessage}\n';
+					content += '     Script: ${error.scriptPath.split("/").pop()}\n';
+					content += '\n';
+				}
+			}
+		}
+
+		content += "TROUBLESHOOTING:\n";
+		content += "───────────────\n";
+		content += "• Check script syntax in HScript files\n";
+		content += "• Ensure mod names are correct and enabled\n";
+		content += "• Verify song names exist in target mods\n";
+		content += "• Check for typos in item/location names\n";
+		content += "• Avoid duplicate items, locations, or requirements\n";
+		content += "• Ensure color arrays have exactly 3 values [R, G, B]\n";
+		content += "• Verify difficulty names are not empty\n";
+		content += "• Consult engine documentation for HScript AP integration\n";
+
+		return content;
+	}
+
+	function showExportResults()
+	{
+		// Only show export results if mods are allowed
+		if (!allowMods) {
+			// For refresh operations, return to entry state without showing results
+			if (forceExportPath != null) {
+				FlxG.switchState(new APStyledEntryState());
+			}
+			return;
+		}
+
+		var hasSuccesses = CustomAPLogic.APDataStore.getTotalCustomContent() > 0 || CustomAPLogic.APDataStore.processingSuccesses.length > 0;
+		var hasErrors = CustomAPLogic.APDataStore.processingErrors.length > 0;
+
+		if (hasSuccesses && !hasErrors) {
+			// Only successes - show green box
+			var successContent = generateCustomContentInfoText();
+			openSubState(new InfoPanelSubstate("Custom Content Export Success", successContent, FlxColor.LIME, function() {
+				// For refresh operations, return to entry state after showing results
+				if (forceExportPath != null) {
+					FlxG.switchState(new APStyledEntryState());
+				}
+			}));
+		}
+		else if (!hasSuccesses && hasErrors) {
+			// Only errors - show red box
+			var errorContent = generateErrorInfoText();
+			openSubState(new InfoPanelSubstate("Custom Content Processing Errors", errorContent, FlxColor.RED, function() {
+				// For refresh operations, return to entry state after showing results
+				if (forceExportPath != null) {
+					FlxG.switchState(new APStyledEntryState());
+				}
+			}));
+		}
+		else if (hasSuccesses && hasErrors) {
+			// Both - show success first, then error on close
+			var successContent = generateCustomContentInfoText();
+			openSubState(new InfoPanelSubstate("Custom Content Export Success", successContent, FlxColor.LIME, function() {
+				// On close of success box, show error box
+				var errorContent = generateErrorInfoText();
+				openSubState(new InfoPanelSubstate("Custom Content Processing Errors", errorContent, FlxColor.RED, function() {
+					// For refresh operations, return to entry state after showing all results
+					if (forceExportPath != null) {
+						FlxG.switchState(new APStyledEntryState());
+					}
+				}));
+			}));
+		}
+		else if (forceExportPath != null) {
+			// No custom content but this is a refresh - still return to entry state
+			FlxG.switchState(new APStyledEntryState());
+		}
+	}
+
 	function performYAMLExportToDefault()
 	{
 		// Show export animation
@@ -2318,6 +2618,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							onComplete: function(_)
 							{
 								remove(exportDialog);
+								// Show custom content info after export completes
+								showExportResults();
 							}
 						});
 					});
@@ -2371,6 +2673,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							onComplete: function(_)
 							{
 								remove(exportDialog);
+								// Show custom content info after export completes
+								showExportResults();
 							}
 						});
 					});
@@ -2428,8 +2732,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							onComplete: function(_)
 							{
 								remove(exportDialog);
-								// After refresh is complete, return to APStyledEntryState
-								FlxG.switchState(new APStyledEntryState());
+								// Show custom content info (which will handle returning to APStyledEntryState)
+								showExportResults();
 							}
 						});
 					});
@@ -2486,6 +2790,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		// Process CustomAPLogic scripts before generating YAML
 		trace('Processing CustomAPLogic scripts...');
+		if (allowMods)
 		CustomAPLogic.APHScriptProcessor.processAllMods();
 
 		var yamlThing = {};
@@ -2659,7 +2964,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			CustomAPLogic.APHScriptProcessor.processAllMods();
 
 			// Generate the Python script content using the same method as APSettingsSubState
-			var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
+			var pythonContent = allowMods ? CustomAPLogic.APPythonGenerator.generatePythonScript() : null;
 
 			if (pythonContent != null && pythonContent.length > 0)
 			{

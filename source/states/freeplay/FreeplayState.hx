@@ -1206,6 +1206,35 @@ class FreeplayState extends MusicBeatState
 
 		curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
 
+		#if ARCHIPELAGO_ALLOWED
+		// Validate that the selected difficulty is available for SiivaGunner content
+		if (archipelago.HighQualityTrapManager.isTrapActive() && fpManager.songList[curSelected] != null) {
+			var songName = fpManager.songList[curSelected].songName;
+			var modName = fpManager.songList[curSelected].folder;
+			var selectedDiff = Difficulty.getString(curDifficulty, false);
+
+			// If the selected difficulty is not available for this SiivaGunner song, find the next available one
+			if (!managers.APFreeplayManager.isDifficultyAvailableForSong(songName, modName, selectedDiff)) {
+				var availableDiffs = managers.APFreeplayManager.getAvailableDifficultiesForSong(songName, modName);
+				if (availableDiffs.length > 0) {
+					// Find the closest available difficulty
+					var targetIndex = change > 0 ? 0 : availableDiffs.length - 1;
+					for (i in 0...Difficulty.list.length) {
+						if (availableDiffs.contains(Difficulty.list[i])) {
+							if (change > 0 && i > curDifficulty) {
+								targetIndex = i;
+								break;
+							} else if (change < 0 && i < curDifficulty) {
+								targetIndex = i;
+							}
+						}
+					}
+					curDifficulty = targetIndex;
+				}
+			}
+		}
+		#end
+
 		if (fpManager.songList[curSelected] == null)
 			return;
 
@@ -1401,7 +1430,25 @@ class FreeplayState extends MusicBeatState
 					case "Testimony":
 						Difficulty.list = ["4K", "Canon"];
 					default:
+						#if ARCHIPELAGO_ALLOWED
+						// Check if SiivaGunner trap is active and load difficulties accordingly
+						if (archipelago.HighQualityTrapManager.isTrapActive()) {
+							var songName = fpManager.songList[curSelected].songName;
+							var modName = fpManager.songList[curSelected].folder;
+
+							// Try to get SiivaGunner specific difficulties
+							var siivaDiffs = managers.APFreeplayManager.getAvailableDifficultiesForSong(songName, modName);
+							if (siivaDiffs != null && siivaDiffs.length > 0) {
+								Difficulty.list = siivaDiffs.copy();
+							} else {
+								Difficulty.loadFromWeek();
+							}
+						} else {
+							Difficulty.loadFromWeek();
+						}
+						#else
 						Difficulty.loadFromWeek();
+						#end
 				}
 				var savedDiff:String = fpManager.songList[curSelected].lastDifficulty;
 				var lastDiff:Int = Difficulty.list.indexOf(lastDifficultyName);

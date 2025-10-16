@@ -29,6 +29,49 @@ class MusicBeatState extends FlxState
 	private static var closeTimer:FlxTimer;
 	private static var transitionTimeout:Float = 10.0; // 10 seconds timeout
 
+	// High Quality Trap Testing Mode
+	private static var _trapTestingMode:Bool = false;
+	private static var _allowedTestingStates:Array<String> = [
+		"states.HighQualityTrapWaitingState",
+		"states.HighQualityTrapTestState",
+		"states.PlayState",
+		"states.LoadingState",
+		"states.MixtapeLoadingScreen"
+	];
+
+	/**
+	 * Enter High Quality Trap testing mode with state restrictions
+	 */
+	public static function enterTrapTestingMode():Void {
+		_trapTestingMode = true;
+		trace("MusicBeatState: Entered High Quality Trap testing mode");
+	}
+
+	/**
+	 * Exit High Quality Trap testing mode
+	 */
+	public static function exitTrapTestingMode():Void {
+		_trapTestingMode = false;
+		trace("MusicBeatState: Exited High Quality Trap testing mode");
+	}
+
+	/**
+	 * Check if currently in trap testing mode
+	 */
+	public static function isTrapTestingMode():Bool {
+		return _trapTestingMode;
+	}
+
+	/**
+	 * Check if a state class is allowed during trap testing mode
+	 */
+	public static function isStateAllowedInTesting(stateClass:Class<FlxState>):Bool {
+		if (!_trapTestingMode) return true; // Not in testing mode, all states allowed
+
+		var className = Type.getClassName(stateClass);
+		return _allowedTestingStates.contains(className);
+	}
+
 	// Substate stacking system with ObjectSerializer for proper suspension/restoration
 	private var substateQueue:Array<MusicBeatSubstate> = [];
 	private var suspendedSubstateData:Array<{className:String, serializedData:Dynamic, originalSubstate:MusicBeatSubstate}> = [];
@@ -302,7 +345,7 @@ class MusicBeatState extends FlxState
 
 		if (ClientPrefs.data.showInitialMemoryUsage && Sys.args().indexOf('-livereload') != -1)
 		{
-			debug.FPSCounter.initMemory = this.sizeIn(yutautil.CollectionUtils.Size.Bytes, {
+			debug.FPSCounter.initMemory = this.sizeIn(yutautil.CollectionUtils.Size.B, {
 				verbose: ClientPrefs.data.showProgressInCMD,
 				showObjects: false,
 				showStack: false,
@@ -470,6 +513,13 @@ class MusicBeatState extends FlxState
 
 	override function update(elapsed:Float)
 	{
+		// Check trap testing mode restrictions
+		if (_trapTestingMode && !isStateAllowedInTesting(Type.getClass(FlxG.state))) {
+			trace("MusicBeatState: Attempted to switch to disallowed state during trap testing: " + Type.getClass(FlxG.state) + ". Returning to test state.");
+			FlxG.switchState(new states.HighQualityTrapTestState());
+			return;
+		}
+
 		// Update state tracking system
 		updateStateTracking(this);
 

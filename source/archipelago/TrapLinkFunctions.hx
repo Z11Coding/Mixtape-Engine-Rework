@@ -1,10 +1,11 @@
 package archipelago;
 
-import objects.charting.ChartingStrumNote as StrumNote;
-import objects.Note;
-import openfl.events.KeyboardEvent;
-import flixel.input.keyboard.FlxKey;
+import archipelago.HighQualityTrapManager;
 import archipelago.substates.UnownSubState;
+import flixel.input.keyboard.FlxKey;
+import objects.Note;
+import objects.charting.ChartingStrumNote as StrumNote;
+import openfl.events.KeyboardEvent;
 
 class TrapLinkFunctions {
     public static var bfPosition:Array<Float>;
@@ -15,13 +16,13 @@ class TrapLinkFunctions {
         }
 
         var curDirec:Int = 3;
-        
+
         if (random || direction == null) curDirec = FlxG.random.int(0, 3);
         if (direction != null) curDirec = direction;
 
         switch(curDirec) {
             case 0:
-                FlxTween.tween(APPlayState.instance.boyfriend, {x: (-1 * bfMaxPos[0])}, 0.6, {ease: FlxEase.expoIn, onComplete: 
+                FlxTween.tween(APPlayState.instance.boyfriend, {x: (-1 * bfMaxPos[0])}, 0.6, {ease: FlxEase.expoIn, onComplete:
                 function (twn:FlxTween)
                 {
                     FlxG.sound.play(Paths.sound("carCrash") ,2);
@@ -29,7 +30,7 @@ class TrapLinkFunctions {
                     FlxTween.tween(APPlayState.instance.boyfriend, {x: bfPosition[0]}, 2, {ease: FlxEase.expoOut});
                 }});
             case 1:
-                FlxTween.tween(APPlayState.instance.boyfriend, {y: bfMaxPos[1]}, 0.6, {ease: FlxEase.expoIn, onComplete: 
+                FlxTween.tween(APPlayState.instance.boyfriend, {y: bfMaxPos[1]}, 0.6, {ease: FlxEase.expoIn, onComplete:
                 function (twn:FlxTween)
                 {
                     FlxG.sound.play(Paths.sound("carCrash") ,2);
@@ -37,7 +38,7 @@ class TrapLinkFunctions {
                     FlxTween.tween(APPlayState.instance.boyfriend, {y: bfPosition[1]}, 2, {ease: FlxEase.expoOut});
                 }});
             case 2:
-                FlxTween.tween(APPlayState.instance.boyfriend, {y: (-1 * bfMaxPos[1])}, 0.6, {ease: FlxEase.expoIn, onComplete: 
+                FlxTween.tween(APPlayState.instance.boyfriend, {y: (-1 * bfMaxPos[1])}, 0.6, {ease: FlxEase.expoIn, onComplete:
                 function (twn:FlxTween)
                 {
                     FlxG.sound.play(Paths.sound("carCrash") ,2);
@@ -45,7 +46,7 @@ class TrapLinkFunctions {
                     FlxTween.tween(APPlayState.instance.boyfriend, {y: bfPosition[1]}, 2, {ease: FlxEase.expoOut});
                 }});
             case 3:
-                FlxTween.tween(APPlayState.instance.boyfriend, {x: bfMaxPos[0]}, 0.6, {ease: FlxEase.expoIn, onComplete: 
+                FlxTween.tween(APPlayState.instance.boyfriend, {x: bfMaxPos[0]}, 0.6, {ease: FlxEase.expoIn, onComplete:
                 function (twn:FlxTween)
                 {
                     FlxG.sound.play(Paths.sound("carCrash") ,2);
@@ -53,7 +54,7 @@ class TrapLinkFunctions {
                     FlxTween.tween(APPlayState.instance.boyfriend, {x: bfPosition[0]}, 2, {ease: FlxEase.expoOut});
                 }});
         }
-        
+
     }
 
     static var daCoolTween:FlxTween;
@@ -194,5 +195,60 @@ class TrapLinkFunctions {
     static function wonUnown():Void {
 		APPlayState.instance.canPause = true;
 		APPlayState.instance.boyfriend.stunned = false;
+	}
+
+	/**
+	 * High Quality Trap - activates SiivaGunner replacements for songs
+	 */
+	public static function doHighQualityTrap():Void {
+		trace("TrapLinkFunctions: Activating High Quality Trap!");
+
+		// Activate the trap manager
+		HighQualityTrapManager.activateTrap();
+
+		// Check if we need to show waiting state for mod installation
+		if (HighQualityTrapManager.needsWaitingState()) {
+			trace("TrapLinkFunctions: High Quality Trap needs mod installation, switching to waiting state");
+
+			// Get AP context from APInfo
+			if (APInfo.apGame != null && APInfo.ap != null) {
+				flixel.FlxG.switchState(new archipelago.states.HighQualityWaitingState(APInfo.apGame, APInfo.ap));
+			} else {
+				// Fallback: use the non-AP waiting state if not in AP context
+				flixel.FlxG.switchState(new states.HighQualityTrapWaitingState());
+			}
+			return;
+		}
+
+		// Show a notification to the player if mod is already installed
+		if (APPlayState.instance != null) {
+			// Create a temporary text notification
+			var notificationText = new flixel.text.FlxText(0, 50, flixel.FlxG.width, "HIGH QUALITY MUSIC ACTIVATED!", 32);
+			notificationText.setFormat(backend.Paths.font("vcr.ttf"), 32, flixel.util.FlxColor.YELLOW, flixel.text.FlxTextAlign.CENTER, flixel.text.FlxTextBorderStyle.OUTLINE, flixel.util.FlxColor.BLACK);
+			notificationText.borderSize = 2;
+			notificationText.cameras = [APPlayState.instance.camHUD];
+			APPlayState.instance.add(notificationText);
+
+			// Tween the notification
+			notificationText.alpha = 0;
+			flixel.tweens.FlxTween.tween(notificationText, {alpha: 1}, 0.5, {
+				ease: flixel.tweens.FlxEase.backOut,
+				onComplete: function(_) {
+					new flixel.util.FlxTimer().start(2.0, function(_) {
+						flixel.tweens.FlxTween.tween(notificationText, {alpha: 0, y: notificationText.y - 50}, 0.5, {
+							ease: flixel.tweens.FlxEase.backIn,
+							onComplete: function(_) {
+								notificationText.destroy();
+							}
+						});
+					});
+				}
+			});
+
+			// Play a sound effect
+			flixel.FlxG.sound.play(backend.Paths.sound('confirmMenu'), 0.7);
+		}
+
+		trace("TrapLinkFunctions: High Quality Trap activated successfully!");
 	}
 }

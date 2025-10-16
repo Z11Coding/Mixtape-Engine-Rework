@@ -16,9 +16,10 @@ import flixel.util.FlxColor;
 import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
 import openfl.display.BlendMode;
-import substates.Prompt;
-import substates.GitHubPromptSubstate;
 import substates.GitHubPromptSubstate.GitHubButtonStyle;
+import substates.GitHubPromptSubstate;
+import substates.Prompt;
+import substates.ReleaseInfoSubstate;
 
 class ReleaseSelectionState extends MusicBeatState {
 	private var releases:Array<GitHubRelease> = [];
@@ -41,6 +42,7 @@ class ReleaseSelectionState extends MusicBeatState {
 	override function create() {
 		super.create();
 
+		FlxG.mouse.visible = true; // Enable mouse cursor
 		MusicManager.playMenuMusic();
 
 		createBackground();
@@ -75,7 +77,7 @@ class ReleaseSelectionState extends MusicBeatState {
 		titleText.borderSize = 2;
 		add(titleText);
 
-		instructionsText = new FlxText(0, 80, FlxG.width, "Use UP/DOWN to navigate, ENTER to install, ESCAPE to go back", 16);
+		instructionsText = new FlxText(0, 80, FlxG.width, "Use UP/DOWN to navigate, ENTER to view details, ESCAPE to go back", 16);
 		instructionsText.setFormat(Paths.font('fnf1.ttf'), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
 		add(instructionsText);
 
@@ -211,10 +213,40 @@ class ReleaseSelectionState extends MusicBeatState {
 		if (selectedIndex < 0 || selectedIndex >= releases.length) return;
 
 		var selectedRelease = releases[selectedIndex];
-		var assets = GitHubAPI.getPlatformAssets(selectedRelease);
+
+		// Open detailed release info substate
+		var releaseInfo = new ReleaseInfoSubstate(selectedRelease, function(release:GitHubRelease) {
+			// Handle installation
+			installRelease(release);
+		}, function() {
+			// Handle back - nothing special needed as substate closes
+		});
+
+		openSubState(releaseInfo);
+	}
+
+	private function installRelease(release:GitHubRelease):Void {
+		// Check if this is an older version that doesn't support built-in updates
+		if (isOlderThanBeta13(release)) {
+			var prompt = new GitHubPromptSubstate("Warning: Older Version",
+				"This version (" + release.tag_name + ") is beta12 or lower and doesn't have a built-in way to upgrade the engine.\n\n" +
+				"You will need to manually download future updates or use external tools.\n\n" +
+				"Continue with installation?", [
+				{text: "Install Anyway", callback: function() { proceedWithInstall(release); }, style: GitHubButtonStyle.DANGER},
+				{text: "Cancel", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
+			]);
+			openSubState(prompt);
+			return;
+		}
+
+		proceedWithInstall(release);
+	}
+
+	private function proceedWithInstall(release:GitHubRelease):Void {
+		var assets = GitHubAPI.getPlatformAssets(release);
 
 		if (assets.length == 0) {
-			var prompt = new GitHubPromptSubstate("No Compatible Files", 
+			var prompt = new GitHubPromptSubstate("No Compatible Files",
 				"No compatible files found for your platform in this release.", [
 				{text: "OK", callback: function() {}, style: GitHubButtonStyle.DANGER}
 			]);
@@ -223,11 +255,84 @@ class ReleaseSelectionState extends MusicBeatState {
 		}
 
 		if (assets.length == 1) {
-			downloadRelease(selectedRelease, assets[0]);
+			downloadRelease(release, assets[0]);
 		} else {
 			// Multiple assets, let user choose
-			showAssetSelection(selectedRelease, assets);
+			showAssetSelection(release, assets);
 		}
+	}
+
+	private function isOlderThanBeta13(release:GitHubRelease):Bool {
+		// Try to use release date first (more reliable)
+		if (release.published_at != null && release.published_at.length > 0) {
+			try {
+				// Parse the ISO date format (YYYY-MM-DDTHH:MM:SSZ)
+				var dateStr = release.published_at.split('T')[0]; // Get just the date part
+				var parts = dateStr.split('-');
+				if (parts.length == 3) {
+					var year = Std.parseInt(parts[0]);
+					var month = Std.parseInt(parts[1]);
+					var day = Std.parseInt(parts[2]);
+
+					// Set cutoff date to October 15, 2025 (yesterday) for testing
+					// In a real scenario, this would be the date when beta13... existed.
+					var cutoffYear = 2025;
+					var cutoffMonth = 10;
+					var cutoffDay = 15;
+
+					if (year < cutoffYear) {
+						return true;
+					} else if (year == cutoffYear) {
+						if (month < cutoffMonth) {
+							return true;
+						} else if (month == cutoffMonth && day < cutoffDay) {
+							return true;
+						}
+					}
+
+					return false; // Release is newer than cutoff
+				}
+			} catch (e:Dynamic) {
+				// If date parsing fails, fall back to string checking
+				trace("Date parsing failed for " + release.tag_name + ": " + e);
+			}
+		}
+
+		// Fallback to string-based checking if date parsing fails
+		var tag = release.tag_name.toLowerCase();
+
+		// Remove 'v' prefix if present
+		if (tag.charAt(0) == 'v') {
+			tag = tag.substr(1);
+		}
+
+		// Check for beta versions
+		if (tag.indexOf('beta') != -1) {
+			var betaStr = tag.split('beta')[1];
+			if (betaStr != null && betaStr.length > 0) {
+				// Extract beta number
+				var betaNum = Std.parseInt(betaStr.split('-')[0].split('.')[0]);
+				if (betaNum != null && betaNum <= 12) {
+					return true;
+				}
+			}
+		}
+
+		// Check for alpha versions (all considered older)
+		if (tag.indexOf('alpha') != -1) {
+			return true;
+		}
+
+		// Check for very old version patterns like 0.x.x
+		var versionParts = tag.split('.');
+		if (versionParts.length >= 1) {
+			var major = Std.parseInt(versionParts[0]);
+			if (major != null && major == 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private function showAssetSelection(release:GitHubRelease, assets:Array<GitHubAsset>):Void {
@@ -239,7 +344,7 @@ class ReleaseSelectionState extends MusicBeatState {
 		// For now, we'll automatically select the first compatible asset
 		// TODO: Implement proper asset selection UI
 		if (assets.length == 1) {
-			var prompt = new GitHubPromptSubstate("Download Release", 
+			var prompt = new GitHubPromptSubstate("Download Release",
 				"Download " + assets[0].name + " (" + GitHubAPI.formatFileSize(assets[0].size) + ")?", [
 				{text: "Download", callback: function() { downloadRelease(release, assets[0]); }, style: GitHubButtonStyle.SUCCESS},
 				{text: "Cancel", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
@@ -247,8 +352,8 @@ class ReleaseSelectionState extends MusicBeatState {
 			openSubState(prompt);
 		} else {
 			// Multiple assets - show first one for now
-			var prompt = new GitHubPromptSubstate("Multiple Files Available", 
-				"Multiple compatible files found. Downloading: " + assets[0].name + 
+			var prompt = new GitHubPromptSubstate("Multiple Files Available",
+				"Multiple compatible files found. Downloading: " + assets[0].name +
 				" (" + GitHubAPI.formatFileSize(assets[0].size) + ")", [
 				{text: "Download", callback: function() { downloadRelease(release, assets[0]); }, style: GitHubButtonStyle.SUCCESS},
 				{text: "Cancel", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
@@ -315,9 +420,16 @@ class ReleaseItem extends FlxSpriteGroup {
 		dateText.setFormat(Paths.font('fnf1.ttf'), 14, FlxColor.GRAY, LEFT);
 		add(dateText);
 
-		// Body (description/changelog)
+		// Body (description/changelog) - add warning for older releases
+		var bodyContent = "";
+		if (isOlderThanBeta13(release)) {
+			bodyContent = "⚠️ WARNING: This release does not support manual updating and downgrading.\n\n";
+		}
+
 		var bodyPreview = release.body.length > 200 ? release.body.substring(0, 200) + "..." : release.body;
-		bodyText = new FlxText(100, 50, bg.width - 110, bodyPreview, 12);
+		bodyContent += bodyPreview;
+
+		bodyText = new FlxText(100, 50, bg.width - 110, bodyContent, 12);
 		bodyText.setFormat(Paths.font('fnf1.ttf'), 12, FlxColor.WHITE, LEFT);
 		add(bodyText);
 
@@ -332,6 +444,79 @@ class ReleaseItem extends FlxSpriteGroup {
 		assetsText = new FlxText(10, itemHeight - 25, bg.width - 20, assetInfo, 11);
 		assetsText.setFormat(Paths.font('fnf1.ttf'), 11, FlxColor.CYAN, LEFT);
 		add(assetsText);
+	}
+
+	private function isOlderThanBeta13(release:GitHubRelease):Bool {
+		// Try to use release date first (more reliable)
+		if (release.published_at != null && release.published_at.length > 0) {
+			try {
+				// Parse the ISO date format (YYYY-MM-DDTHH:MM:SSZ)
+				var dateStr = release.published_at.split('T')[0]; // Get just the date part
+				var parts = dateStr.split('-');
+				if (parts.length == 3) {
+					var year = Std.parseInt(parts[0]);
+					var month = Std.parseInt(parts[1]);
+					var day = Std.parseInt(parts[2]);
+
+					// Set cutoff date to October 15, 2025 (yesterday) for testing
+					// In a real scenario, this would be the date when beta13 was released
+					var cutoffYear = 2025;
+					var cutoffMonth = 10;
+					var cutoffDay = 15;
+
+					if (year < cutoffYear) {
+						return true;
+					} else if (year == cutoffYear) {
+						if (month < cutoffMonth) {
+							return true;
+						} else if (month == cutoffMonth && day < cutoffDay) {
+							return true;
+						}
+					}
+
+					return false; // Release is newer than cutoff
+				}
+			} catch (e:Dynamic) {
+				// If date parsing fails, fall back to string checking
+				trace("Date parsing failed for " + release.tag_name + ": " + e);
+			}
+		}
+
+		// Fallback to string-based checking if date parsing fails
+		var tag = release.tag_name.toLowerCase();
+
+		// Remove 'v' prefix if present
+		if (tag.charAt(0) == 'v') {
+			tag = tag.substr(1);
+		}
+
+		// Check for beta versions
+		if (tag.indexOf('beta') != -1) {
+			var betaStr = tag.split('beta')[1];
+			if (betaStr != null && betaStr.length > 0) {
+				// Extract beta number
+				var betaNum = Std.parseInt(betaStr.split('-')[0].split('.')[0]);
+				if (betaNum != null && betaNum <= 12) {
+					return true;
+				}
+			}
+		}
+
+		// Check for alpha versions (all considered older)
+		if (tag.indexOf('alpha') != -1) {
+			return true;
+		}
+
+		// Check for very old version patterns like 0.x.x
+		var versionParts = tag.split('.');
+		if (versionParts.length >= 1) {
+			var major = Std.parseInt(versionParts[0]);
+			if (major != null && major == 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function setSelected(selected:Bool):Void {

@@ -147,6 +147,7 @@ class HScript extends Iris
 				throw e;
 			}
 		}
+		trace('HScript: Initialized HScript interpreter for ${filePath != null && filePath != "" ? filePath : "inline code"}');
 	}
 
 	var varsToBring(default, set):Any = null;

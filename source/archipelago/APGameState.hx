@@ -1252,6 +1252,11 @@ class APGameState
 		// Clean up temporary weeks when manually disconnecting
 		cleanupTemporaryWeeks();
 
+		// Clean up High Quality Trap temporary files
+		#if ARCHIPELAGO_ALLOWED
+		archipelago.HighQualityTrapManager.onAPSessionEnd();
+		#end
+
 		// Clean up AP Items and related data
 		archipelago.APItem.cleanupAllAPData();
 
@@ -2871,6 +2876,11 @@ class APGameState
 	{
 		// Clean up temporary weeks when canceling/exiting AP mode
 		cleanupTemporaryWeeks();
+
+		// Clean up High Quality Trap temporary files
+		#if ARCHIPELAGO_ALLOWED
+		archipelago.HighQualityTrapManager.onAPSessionEnd();
+		#end
 
 		// Clean up AP Items and related data
 		archipelago.APItem.cleanupAllAPData();

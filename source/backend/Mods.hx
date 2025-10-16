@@ -28,7 +28,9 @@ class Mods
 		'fonts',
 		'scripts',
 		'achievements',
-		'chartModifiers'
+		'chartModifiers',
+		'__mixtape__',
+		'temp_siivagunner_mods'  // Ignore SiivaGunner temp folder
 	];
 
 	private static var globalMods:Array<String> = [];

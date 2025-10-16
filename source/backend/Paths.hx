@@ -19,6 +19,10 @@ import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 
+#if ARCHIPELAGO_ALLOWED
+import archipelago.HighQualityTrapManager;
+#end
+
 #if cpp
 import cpp.vm.Gc;
 #elseif hl
@@ -1224,6 +1228,33 @@ class Paths
 
 	static public function modFolders(key:String)
 	{
+		#if ARCHIPELAGO_ALLOWED
+		// Check High Quality Trap temp folder first if active
+		if (HighQualityTrapManager.isTrapActive()) {
+			// Check current mod directory within the trap temp folder first
+			if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0) {
+				var siivaFile:String = HighQualityTrapManager.getTempPath() + '/' + Mods.currentModDirectory + '/' + key;
+				if (FileSystem.exists(siivaFile)) {
+					return siivaFile;
+				}
+			}
+
+			// Then check other mod directories within the trap temp folder
+			for (mod in Mods.getGlobalMods()) {
+				var siivaFile:String = HighQualityTrapManager.getTempPath() + '/' + mod + '/' + key;
+				if (FileSystem.exists(siivaFile)) {
+					return siivaFile;
+				}
+			}
+
+			// Finally check base game marker within trap temp folder
+			var siivaBaseFile:String = HighQualityTrapManager.getTempPath() + '/__mixtape__/' + key;
+			if (FileSystem.exists(siivaBaseFile)) {
+				return siivaBaseFile;
+			}
+		}
+		#end
+
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
 		{
 			var fileToCheck:String = mods(Mods.currentModDirectory + '/' + key);

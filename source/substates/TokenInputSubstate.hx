@@ -28,6 +28,8 @@ class TokenInputSubstate extends MusicBeatSubstate {
 	override function create() {
 		super.create();
 
+		FlxG.mouse.visible = true; // Enable mouse cursor
+
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0.6;
 		add(bg);

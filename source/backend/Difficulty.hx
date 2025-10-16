@@ -28,6 +28,28 @@ class Difficulty
 		if(week == null) week = WeekData.getCurrentWeek();
 
 		var diffStr:String = week.difficulties;
+		function APD() {
+		#if ARCHIPELAGO_ALLOWED
+		// If High Quality Trap is active, check for SiivaGunner difficulties
+		if (archipelago.HighQualityTrapManager.isTrapActive())
+		{
+			// Get difficulties from SiivaGunner week data (not individual songs)
+			var siivaModName = week.folder;
+			if (siivaModName == null || siivaModName == '') siivaModName = archipelago.HighQualityTrapManager.BASE_GAME_MARKER;
+
+			var siivaDiffs = archipelago.HighQualityTrapManager.getWeekDifficulties(week.weekName, siivaModName);
+			if (siivaDiffs != null && siivaDiffs.length > 0)
+			{
+				list = siivaDiffs.copy();
+				trace('Difficulty: Using SiivaGunner week difficulties for "${week.weekName}": ${siivaDiffs.join(", ")}');
+				return true;
+			}
+		}
+		#end
+		return false;
+	}
+		if (APD()) return;
+
 		if(diffStr != null && diffStr.length > 0)
 		{
 			var diffs:Array<String> = diffStr.trim().split(',');
@@ -69,4 +91,38 @@ class Difficulty
 	{
 		return defaultDifficulty;
 	}
+
+	#if ARCHIPELAGO_ALLOWED
+	/**
+	 * Load difficulties specifically for a SiivaGunner song if trap is active
+	 */
+	inline public static function loadFromSiivaSong(songName:String, modName:String = null)
+	{
+		if (!archipelago.HighQualityTrapManager.isTrapActive()) return;
+
+		var siivaDiffs = archipelago.HighQualityTrapManager.getAvailableDifficulties(songName, modName);
+		if (siivaDiffs != null && siivaDiffs.length > 0)
+		{
+			list = siivaDiffs.copy();
+		}
+		else
+		{
+			resetList();
+		}
+	}
+
+	/**
+	 * Check if a difficulty is available for a specific song when SiivaGunner trap is active
+	 */
+	inline public static function isDifficultyAvailableForSong(songName:String, modName:String, difficulty:String):Bool
+	{
+		#if ARCHIPELAGO_ALLOWED
+		if (archipelago.HighQualityTrapManager.isTrapActive())
+		{
+			return archipelago.HighQualityTrapManager.isDifficultyAvailable(songName, modName, difficulty);
+		}
+		#end
+		return true; // If trap is not active, all difficulties are available
+	}
+	#end
 }

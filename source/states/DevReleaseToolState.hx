@@ -18,12 +18,12 @@ import haxe.io.BytesOutput;
 import haxe.zip.Entry;
 import haxe.zip.Writer;
 import openfl.display.BlendMode;
-import substates.Prompt;
-import substates.TokenInputSubstate;
 import substates.GitHubPromptSubstate;
-import substates.ReleaseCreationSubstate;
-import substates.ReleaseCreationSubstate.ReleaseCreationData;
 import substates.PackagingOptionsSubstate;
+import substates.Prompt;
+import substates.ReleaseCreationSubstate.ReleaseCreationData;
+import substates.ReleaseCreationSubstate;
+import substates.TokenInputSubstate;
 import sys.FileSystem;
 import sys.io.File;
 import sys.io.Process;
@@ -63,6 +63,7 @@ class DevReleaseToolState extends MusicBeatState {
 			return;
 		}
 
+		FlxG.mouse.visible = true; // Enable mouse cursor
 		MusicManager.playMenuMusic();
 
 		createBackground();
@@ -236,8 +237,8 @@ class DevReleaseToolState extends MusicBeatState {
 
 	private function authenticateWithGitHub():Void {
 		if (authenticated) {
-			var prompt = new GitHubPromptSubstate("Re-authenticate", 
-				"Already authenticated as " + (userInfo != null ? userInfo.login : "unknown") + 
+			var prompt = new GitHubPromptSubstate("Re-authenticate",
+				"Already authenticated as " + (userInfo != null ? userInfo.login : "unknown") +
 				"\nDo you want to re-authenticate?", [
 				{text: "Yes", callback: function() { clearAuthentication(); authenticateWithGitHub(); }, style: GitHubButtonStyle.DANGER},
 				{text: "No", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
@@ -248,7 +249,7 @@ class DevReleaseToolState extends MusicBeatState {
 
 		// For simplicity, we'll ask for a token. In a real implementation,
 		// you might want to implement OAuth flow
-		var prompt = new GitHubPromptSubstate("GitHub Authentication", 
+		var prompt = new GitHubPromptSubstate("GitHub Authentication",
 			"Enter GitHub Personal Access Token:\n(Create one at: github.com/settings/tokens)\n" +
 			"Required scopes: repo", [
 			{text: "OK", callback: function() {
@@ -333,7 +334,7 @@ class DevReleaseToolState extends MusicBeatState {
 			};
 
 			GitHubAPI.createRelease(createData, function(release) {
-				var prompt = new GitHubPromptSubstate("Success", 
+				var prompt = new GitHubPromptSubstate("Success",
 					"Release '" + release.name + "' created successfully!\nTag: " + release.tag_name, [
 					{text: "OK", callback: function() {}, style: GitHubButtonStyle.SUCCESS}
 				]);
@@ -393,9 +394,9 @@ class DevReleaseToolState extends MusicBeatState {
 			statusText.text = "Packaging completed (placeholder implementation)";
 			statusText.color = FlxColor.GREEN;
 			isProcessing = false;
-			
-			var prompt = new GitHubPromptSubstate("Packaging Complete", 
-				"Package created successfully!\nPlatform: " + options.platform + 
+
+			var prompt = new GitHubPromptSubstate("Packaging Complete",
+				"Package created successfully!\nPlatform: " + options.platform +
 				"\nExcluded: " + excludeFolders.join(", "), [
 				{text: "OK", callback: function() {}, style: GitHubButtonStyle.SUCCESS}
 			]);

@@ -1,13 +1,18 @@
 package debug;
 
-import haxe.Timer;
-import openfl.events.Event;
+import debug.FPSSprite;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
 import flash.text.TextFormat;
-import debug.FPSSprite;
+import flixel.FlxG;
+import flixel.FlxGame;
 import flixel.math.FlxMath;
+import flixel.util.FlxColor;
 import flixel.util.FlxStringUtil;
+import haxe.Timer;
+import openfl.Assets;
+import openfl.events.Event;
+import openfl.system.System;
 #if gl_stats
 import openfl.display._internal.stats.Context3DStats;
 import openfl.display._internal.stats.DrawCallContext;
@@ -15,14 +20,9 @@ import openfl.display._internal.stats.DrawCallContext;
 #if flash
 import openfl.Lib;
 #end
-import flixel.FlxG;
-import flixel.FlxGame;
-import flixel.util.FlxColor;
-import openfl.Assets;
 #if (openfl >= "8.0.0")
 import openfl.utils.AssetType;
 #end
-import openfl.system.System;
 
 /**
 	The FPS class provides an easy-to-use monitor to display
@@ -68,7 +68,7 @@ class FPSCounter extends TextField
 		this.x = x;
 		this.y = y;
 
-		initMemory = this.sizeIn(yutautil.CollectionUtils.Size.Bytes);
+		initMemory = this.sizeIn(yutautil.CollectionUtils.Size.B);
 
 		currentFPS = 0;
 		selectable = false;

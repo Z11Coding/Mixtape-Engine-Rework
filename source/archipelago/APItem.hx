@@ -239,6 +239,13 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
+            case "High Quality Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    TrapLinkFunctions.doHighQualityTrap();
+                }, false, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
             case "Ticket":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     archipelago.APInfo.ticketCount++;

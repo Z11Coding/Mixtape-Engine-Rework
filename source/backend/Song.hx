@@ -1,9 +1,13 @@
 package backend;
 
 import backend.Conductor;
+import flixel.FlxG;
 import haxe.Json;
 import lime.utils.Assets;
 import objects.Note;
+#if ARCHIPELAGO_ALLOWED
+import archipelago.HighQualityTrapManager;
+#end
 
 typedef SwagSong =
 {
@@ -192,11 +196,112 @@ class Song
 	public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
 	{
 		if(folder == null) folder = jsonInput;
+
+		#if ARCHIPELAGO_ALLOWED
+		// Check for High Quality Trap replacement
+		var originalSong = folder;
+		var replacementSong = HighQualityTrapManager.getReplacementSong(originalSong, backend.Mods.currentModDirectory);
+		if (replacementSong != originalSong) {
+			trace('Song.loadFromJson: High Quality Trap replacing "$originalSong" with "$replacementSong"');
+			folder = replacementSong;
+			// Also update jsonInput if it matches the original song name
+			if (Paths.formatToSongPath(jsonInput) == Paths.formatToSongPath(originalSong)) {
+				jsonInput = replacementSong;
+			}
+		}
+		#end
+
+		// Check for song variants before loading
+		var variantInfo = checkForSongVariants(folder, jsonInput);
+		if (variantInfo != null) {
+			trace('Song.loadFromJson: Using variant "${variantInfo.variantName}" for song "${folder}"');
+			folder = variantInfo.folderPath;
+			jsonInput = variantInfo.jsonInput;
+		}
+
 		PlayState.SONG = getChart(jsonInput, folder);
 		loadedSongName = folder;
 		chartPath = _lastPath.replace('/', '\\');
 		stages.StageData.loadDirectory(PlayState.SONG);
 		return PlayState.SONG;
+	}
+
+	/**
+	 * Check for song variants in the data folder
+	 * @param folder The song folder name
+	 * @param jsonInput The chart json name
+	 * @return Variant info if found, null otherwise
+	 */
+	private static function checkForSongVariants(folder:String, jsonInput:String):{folderPath:String, jsonInput:String, variantName:String}
+	{
+		#if MODS_ALLOWED
+		// Check for variants folder in the song's data directory
+		var songDataPath = Paths.getPath('data/$folder', TEXT, null, true);
+		var songDataDir = haxe.io.Path.directory(songDataPath);
+		var variantsDir = haxe.io.Path.join([songDataDir, 'variants']);
+
+		trace('Song.checkForSongVariants: Checking variants dir: $variantsDir');
+
+		if (sys.FileSystem.exists(variantsDir) && sys.FileSystem.isDirectory(variantsDir)) {
+			trace('Song.checkForSongVariants: Variants folder found!');
+
+			// Get all variant folders
+			var variantFolders:Array<String> = [];
+			try {
+				for (item in sys.FileSystem.readDirectory(variantsDir)) {
+					var itemPath = haxe.io.Path.join([variantsDir, item]);
+					if (sys.FileSystem.isDirectory(itemPath)) {
+						variantFolders.push(item);
+					}
+				}
+			} catch (e:Dynamic) {
+				trace('Song.checkForSongVariants: Error reading variants directory: $e');
+				return null;
+			}
+
+			if (variantFolders.length == 0) {
+				trace('Song.checkForSongVariants: No variant folders found');
+				return null;
+			}
+
+			trace('Song.checkForSongVariants: Found ${variantFolders.length} variant folders: ${variantFolders.join(", ")}');
+
+			// Shuffle the variants array for randomization
+			for (i in 0...variantFolders.length) {
+				var j = FlxG.random.int(0, variantFolders.length - 1);
+				var temp = variantFolders[i];
+				variantFolders[i] = variantFolders[j];
+				variantFolders[j] = temp;
+			}
+
+			trace('Song.checkForSongVariants: Shuffled variants: ${variantFolders.join(", ")}');
+
+			// Try each variant until we find one with the correct chart file
+			for (variantName in variantFolders) {
+				var variantPath = haxe.io.Path.join([variantsDir, variantName]);
+				var variantJsonPath = haxe.io.Path.join([variantPath, '$jsonInput.json']);
+
+				trace('Song.checkForSongVariants: Checking variant "$variantName" for chart: $variantJsonPath');
+
+				if (sys.FileSystem.exists(variantJsonPath)) {
+					trace('Song.checkForSongVariants: Found matching chart in variant "$variantName"');
+
+					// Return the variant information
+					return {
+						folderPath: haxe.io.Path.join([folder, 'variants', variantName]),
+						jsonInput: jsonInput,
+						variantName: variantName
+					};
+				}
+			}
+
+			trace('Song.checkForSongVariants: No variants had the correct chart file');
+		} else {
+			trace('Song.checkForSongVariants: No variants folder found');
+		}
+		#end
+
+		return null;
 	}
 
 	static var _lastPath:String;

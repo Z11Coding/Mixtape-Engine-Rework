@@ -1,8 +1,8 @@
 package states;
+import archipelago.APGameState;
 import flixel.FlxState;
 import flixel.text.FlxText;
 import haxe.ds.StringMap;
-import archipelago.APGameState;
 
 class ExitState extends FlxState
 {
@@ -37,10 +37,15 @@ class ExitState extends FlxState
 	{
 		// Clean up crash tracking (remove lock file for normal exit)
 		yutautil.CrashReporter.cleanupOnExit();
-		
+
 		// Clean up temporary Archipelago weeks before exit
 		APGameState.forceCleanupTemporaryWeeks();
-		
+
+		// Clean up High Quality Trap temporary files on engine exit
+		#if ARCHIPELAGO_ALLOWED
+		archipelago.HighQualityTrapManager.onEngineExit();
+		#end
+
 		// Execute cleanup functions
 		for (cleanupFunc in cleanupFunctions)
 		{
@@ -74,7 +79,7 @@ class ExitState extends FlxState
 			}
 		}
 
-		trace("Returns: " + returnResults); 
+		trace("Returns: " + returnResults);
 		Main.closeGame();
 	}
 }
