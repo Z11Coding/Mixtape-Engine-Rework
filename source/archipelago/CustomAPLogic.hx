@@ -1444,17 +1444,6 @@ class APHScriptProcessor {
         // Clear existing data using the new centralized method
         APDataStore.clearAll();
 
-        // Initialize High Quality Trap Manager
-        HighQualityTrapManager.initialize();
-
-        // Add the High Quality Trap item to the global pool
-        var highQualityTrapItem:APRequiredItem = {
-            name: "High Quality Trap",
-            isTrap: true,
-            targetMod: "base-game" // Can affect any mod
-        };
-        APDataStore.items.push(highQualityTrapItem);
-
         // Load available mods
         var availableMods = loadModData();
         APDataStore.availableMods = availableMods;
