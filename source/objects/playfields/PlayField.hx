@@ -222,13 +222,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		add(strumAttachments);
 
 		// Pre-allocate a few note splashes for better performance
-		for (i in 0...4) {
-			var splash:NoteSplash = new NoteSplash();
-			splash.handleRendering = false;
-			splash.alpha = 0.0;
-			splash.kill(); // Start them as killed objects in the pool
-			grpNoteSplashes.add(splash);
-		}
+		// No need, you only need one. It creates everything else for you
+		var splash:NoteSplash = new NoteSplash();
+		splash.handleRendering = false;
+		grpNoteSplashes.add(splash);
+		grpNoteSplashes.visible = false; // so they dont get drawn
+		splash.alpha = 0.0;
 
 		////
 		noteField = new NoteField(this, modMgr);
@@ -927,7 +926,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public function spawnSplash(note:Note, ?splashSkin:String):NoteSplash {
 		if (note == null) return null;
 
-		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
+		/*var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
 		if (splash == null) {
 			splash = new NoteSplash();
 			grpNoteSplashes.add(splash);
@@ -961,7 +960,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}
 
 		splash.spawnSplashNote(strumX, strumY, note.noteData, note);
+		splash.handleRendering = false;*/
+
+		// do it the way god (troll engine) intended
+		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
+		splash.setupNoteSplash(0, 0, note.column, splashSkin);
 		splash.handleRendering = false;
+		grpNoteSplashes.add(splash);
 
 		return splash;
 	}

@@ -162,7 +162,8 @@ class FunkinLua {
 
 			set('guitarHeroSustains', game.guitarHeroSustains);
 			set('instakillOnMiss', game.instakillOnMiss);
-			set('botPlay', game.cpuControlled || ClientPrefs.getGameplaySetting('showcase', false));
+			set('botPlay', game.cpuControlled);
+			set('botPlay', ClientPrefs.getGameplaySetting('showcase', false));
 			set('practice', game.practiceMode);
 			set('practice', PlayState.changedDifficulty);
 

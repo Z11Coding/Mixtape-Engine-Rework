@@ -1,10 +1,8 @@
 package options;
 
-import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
-
+import flixel.input.keyboard.FlxKey;
 import objects.Character;
-
 import options.Option.OptionType;
 
 class ModSettingsSubState extends BaseOptionsMenu
@@ -41,95 +39,97 @@ class ModSettingsSubState extends BaseOptionsMenu
 					option.translation_key
 				);
 
-				switch(newOption.type)
-				{
-					case KEYBIND:
-						//Defaulting and error checking
-						var keyboardStr:String = option.keyboard;
-						var gamepadStr:String = option.gamepad;
-						if(keyboardStr == null) keyboardStr = 'NONE';
-						if(gamepadStr == null) gamepadStr = 'NONE';
-
-						newOption.defaultKeys.keyboard = keyboardStr;
-						newOption.defaultKeys.gamepad = gamepadStr;
-						if(save.get(option.save) == null)
-						{
-							newOption.keys.keyboard = newOption.defaultKeys.keyboard;
-							newOption.keys.gamepad = newOption.defaultKeys.gamepad;
-							save.set(option.save, newOption.keys);
-						}
-
-						// getting inputs and checking
-						var keyboardKey:FlxKey = cast FlxKey.fromString(keyboardStr);
-						var gamepadKey:FlxGamepadInputID = cast FlxGamepadInputID.fromString(gamepadStr);
-						//trace('${keyboardStr}: $keyboardKey, ${gamepadStr}: $gamepadKey');
-
-						@:privateAccess
-						{
-							newOption.getValue = function() {
-								var data = save.get(newOption.variable);
-								if(data == null) return 'NONE';
-								return !Controls.instance.controllerMode ? data.keyboard : data.gamepad;
-							};
-							newOption.setValue = function(value:Dynamic) {
-								var data = save.get(newOption.variable);
-								if(data == null) data = {keyboard: 'NONE', gamepad: 'NONE'};
-
-								if(!controls.controllerMode) data.keyboard = value;
-								else data.gamepad = value;
-								save.set(newOption.variable, data);
-							};
-						}
-
-					default:
-						if(option.value != null)
-							newOption.defaultValue = option.value;
-
-						@:privateAccess
-						{
-							newOption.getValue = function() return save.get(newOption.variable);
-							newOption.setValue = function(value:Dynamic) save.set(newOption.variable, value);
-						}
-				}
-
-				if(option.type != KEYBIND)
-				{
-					if(option.format != null) newOption.displayFormat = option.format;
-					if(option.min != null) newOption.minValue = option.min;
-					if(option.max != null) newOption.maxValue = option.max;
-					if(option.step != null) newOption.changeValue = option.step;
-
-					if(option.scroll != null) newOption.scrollSpeed = option.scroll;
-					if(option.decimals != null) newOption.decimals = option.decimals;
-
-					var myValue:Dynamic = null;
-					if(save.get(option.save) != null)
-					{
-						myValue = save.get(option.save);
-						if(newOption.type != KEYBIND) newOption.setValue(myValue);
-						else newOption.setValue(!Controls.instance.controllerMode ? myValue.keyboard : myValue.gamepad);
-					}
-					else
-					{
-						myValue = newOption.getValue();
-						if(myValue == null) myValue = newOption.defaultValue;
-					}
-	
+				if (convertType(option.type) != LABEL) {
 					switch(newOption.type)
 					{
-						case STRING:
-							var num:Int = newOption.options.indexOf(myValue);
-							if(num > -1) newOption.curOption = num;
+						case KEYBIND:
+							//Defaulting and error checking
+							var keyboardStr:String = option.keyboard;
+							var gamepadStr:String = option.gamepad;
+							if(keyboardStr == null) keyboardStr = 'NONE';
+							if(gamepadStr == null) gamepadStr = 'NONE';
+
+							newOption.defaultKeys.keyboard = keyboardStr;
+							newOption.defaultKeys.gamepad = gamepadStr;
+							if(save.get(option.save) == null)
+							{
+								newOption.keys.keyboard = newOption.defaultKeys.keyboard;
+								newOption.keys.gamepad = newOption.defaultKeys.gamepad;
+								save.set(option.save, newOption.keys);
+							}
+
+							// getting inputs and checking
+							var keyboardKey:FlxKey = cast FlxKey.fromString(keyboardStr);
+							var gamepadKey:FlxGamepadInputID = cast FlxGamepadInputID.fromString(gamepadStr);
+							//trace('${keyboardStr}: $keyboardKey, ${gamepadStr}: $gamepadKey');
+
+							@:privateAccess
+							{
+								newOption.getValue = function() {
+									var data = save.get(newOption.variable);
+									if(data == null) return 'NONE';
+									return !Controls.instance.controllerMode ? data.keyboard : data.gamepad;
+								};
+								newOption.setValue = function(value:Dynamic) {
+									var data = save.get(newOption.variable);
+									if(data == null) data = {keyboard: 'NONE', gamepad: 'NONE'};
+
+									if(!controls.controllerMode) data.keyboard = value;
+									else data.gamepad = value;
+									save.set(newOption.variable, data);
+								};
+							}
 
 						default:
+							if(option.value != null)
+								newOption.defaultValue = option.value;
+
+							@:privateAccess
+							{
+								newOption.getValue = function() return save.get(newOption.variable);
+								newOption.setValue = function(value:Dynamic) save.set(newOption.variable, value);
+							}
 					}
-	
-					save.set(option.save, myValue);
+
+					if(option.type != KEYBIND)
+					{
+						if(option.format != null) newOption.displayFormat = option.format;
+						if(option.min != null) newOption.minValue = option.min;
+						if(option.max != null) newOption.maxValue = option.max;
+						if(option.step != null) newOption.changeValue = option.step;
+
+						if(option.scroll != null) newOption.scrollSpeed = option.scroll;
+						if(option.decimals != null) newOption.decimals = option.decimals;
+
+						var myValue:Dynamic = null;
+						if(save.get(option.save) != null)
+						{
+							myValue = save.get(option.save);
+							if(newOption.type != KEYBIND) newOption.setValue(myValue);
+							else newOption.setValue(!Controls.instance.controllerMode ? myValue.keyboard : myValue.gamepad);
+						}
+						else
+						{
+							myValue = newOption.getValue();
+							if(myValue == null) myValue = newOption.defaultValue;
+						}
+
+						switch(newOption.type)
+						{
+							case STRING:
+								var num:Int = newOption.options.indexOf(myValue);
+								if(num > -1) newOption.curOption = num;
+
+							default:
+						}
+
+						save.set(option.save, myValue);
+					}
 				}
 				addOption(newOption);
 				//updateTextFrom(newOption);
 			}
-			var mixtapeOptions = 
+			var mixtapeOptions =
 			[
 				new Option('Legacy Lua Mode', '(Exclusive to Mixtape Engine)\nIf you enable this, this mod will always use this Legacy Mode setting.', 'legacy_lua_mode', BOOL),
 				new Option('Legacy Version', '(Exclusive to Mixtape Engine)\nIf you enable this, this mod will always use this Legacy Version setting.', 'legacy_version', STRING, psychlua.LegacyFunkinLua.emulatableVersions, 'legacy_version')
@@ -173,6 +173,8 @@ class ModSettingsSubState extends BaseOptionsMenu
 				return STRING;
 			case 'keybind', 'key':
 				return KEYBIND;
+			case 'label', 'title':
+				return LABEL;
 		}
 		FlxG.log.error("Could not find option type: " + str);
 		return BOOL;

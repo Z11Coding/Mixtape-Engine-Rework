@@ -687,6 +687,8 @@ class Note extends NoteObject
 	public var hitsound:String = 'hitsound';
 	public var doRGBShader:Bool = true;
 
+	public var noteSplashTexture:String = "";
+
 	private function set_multSpeed(value:Float):Float {
 		resizeByRatio(value / multSpeed);
 		multSpeed = value;
@@ -874,6 +876,8 @@ class Note extends NoteObject
 	{
 		super();
 		isNotePool = inNotePool;
+
+		if (noteSplashTexture != '') noteSplashData.texture = noteSplashTexture;
 
 		animation = new PsychAnimationController(this);
 

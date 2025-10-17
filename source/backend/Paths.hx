@@ -178,6 +178,7 @@ class Paths
 					return;
 				}
 			}
+			catch(r) {}
 
 			//trace('check...');
 			try
@@ -189,7 +190,7 @@ class Paths
 					//trace('gfx added to the list successfully!');
 				}
 			}
-			//catch(haxe.Exception) {}
+			catch(r) {}
 		}
 
 		for (member in FlxG.state.members)
@@ -269,21 +270,22 @@ class Paths
 
 			//super.destroy();
 		} else {
-			try {
-				clearStoredWithoutStickers();
-				freeGraphicsFromMemory();
-				Paths.clearStoredMemory();
-				Paths.clearUnusedMemory();
-				//MemoryUtilBase.compact();
-				//MemoryUtilBase.collect(true);
-				currentTrackedSounds.clear();
-				@:privateAccess {
-					for (key => asset in FlxG.bitmap._cache)
-						asset.destroy();
-				}
+			clearStoredWithoutStickers();
+			freeGraphicsFromMemory();
+			MemoryUtilBase.compact();
+			MemoryUtilBase.collect(true);
+			Paths.clearStoredMemory();
+			Paths.clearUnusedMemory();
+			currentTrackedSounds.clear();
+			@:privateAccess {
+				for (key => asset in FlxG.bitmap._cache)
+					asset.destroy();
+			}
+			/*try {
+
 			} catch(e) {
 				trace('ERROR: Couldn\'t' );
-			}
+			}*/
 		}
 	}
 

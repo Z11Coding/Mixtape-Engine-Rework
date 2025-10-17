@@ -52,18 +52,43 @@ class NoteSplash extends NoteObject
 	public static var defaultNoteSplash(default, never):String = "noteSplashes/noteSplashes";
 	public static var configs:Map<String, NoteSplashConfig> = new Map();
 
-	public function new(?x:Float = 0, ?y:Float = 0, ?splash:String)
+	public function new(?x:Float = 0, ?y:Float = 0, ?strum:Int = 0, ?splash:String)
 	{
 		super(x, y);
+		this.objType = SPLASH;
 
 		animation = new PsychAnimationController(this);
 
 		rgbShader = new PixelSplashShaderRef();
 		shader = rgbShader.shader;
+		setupNoteSplash(x, y, strum, splash);
+		visible = false;
+	}
 
-		this.objType = SPLASH;
+	public var animationAmount:Int = 2;
+	public function setupNoteSplash(x:Float, y:Float, ?column:Int = 0, ?texture:String = null)
+	{
+		visible = true;
+		/*var doR:Bool = false;
+		if (note != null && note.genScript != null){
+			var ret:Dynamic = note.genScript.call("preSetupNoteSplash", [x, y, column, texture, hueColor, satColor, brtColor, note], ["this" => this, "noteData" => noteData, "column" => column]);
+			if(ret == Globals.Function_Stop) doR = true;
+		}
 
-		loadSplash(splash);
+		if (callOnHScripts("preSetupNoteSplash", [x, y, column, texture, hueColor, satColor, brtColor, note], ["this" => this, "noteData" => noteData, "column" => column]) == Globals.Function_Stop)
+			return;
+
+		if (doR)return;*/ //TODO: Psych-ify this later
+
+		loadSplash(texture);
+		setPosition(x, y);
+		animationAmount = 2;
+		alpha = 0.6;
+		scale.set(0.8, 0.8);
+		updateHitbox();
+
+		this.column = column;
+
 	}
 
 	public var maxAnims(default, set):Int = 0;
