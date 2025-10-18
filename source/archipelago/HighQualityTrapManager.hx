@@ -43,6 +43,7 @@ class HighQualityTrapManager {
     public static final BASE_GAME_MARKER:String = "__mixtape__"; // Marker for base game content
 
     private static var isActive:Bool = false;
+    private static var isUsing:Bool = false; // Separate flag for when trap is actively being used
     private static var isDownloaded:Bool = false;
     private static var downloadProgress:Float = 0.0;
     private static var isDownloading:Bool = false;
@@ -139,34 +140,69 @@ class HighQualityTrapManager {
     }
 
     /**
-     * Deactivate the High Quality Trap and cleanup temp folder
+     * Start using the High Quality Trap (for a specific song/session)
+     * This makes the trap actually replace songs - should be called when player receives the trap
      */
-    public static function deactivateTrap():Void {
-        trace("HighQualityTrapManager: Deactivating High Quality Trap");
-        isActive = false;
+    public static function startUsingTrap():Void {
+        if (!isActive) {
+            trace("HighQualityTrapManager: Cannot start using trap - not activated");
+            return;
+        }
 
-        // Clean up temporary folder when deactivating
-        cleanupTempFolder();
-        isDownloaded = false;
-        songReplacements.clear();
-        availableSiivaMods = [];
-        siivaBaseGameSongs = [];
-        siivaWeeks.clear();
+        trace("HighQualityTrapManager: Starting to use High Quality Trap");
+        isUsing = true;
     }
 
     /**
-     * Check if the trap is currently active
+     * Stop using the High Quality Trap (when song ends or trap effect should stop)
+     * This keeps the data available but stops replacing songs
+     */
+    public static function stopUsingTrap():Void {
+        trace("HighQualityTrapManager: Stopping use of High Quality Trap");
+        isUsing = false;
+    }
+
+    /**
+     * Deactivate the High Quality Trap (preserves temporary data for AP session)
+     * Only cleans up when explicitly requested or AP session ends
+     */
+    public static function deactivateTrap(?cleanup:Bool = false):Void {
+        trace("HighQualityTrapManager: Deactivating High Quality Trap" + (cleanup ? " with cleanup" : ""));
+        isActive = false;
+        isUsing = false;
+
+        // Only clean up temporary folder if explicitly requested or AP session is ending
+        if (cleanup) {
+            cleanupTempFolder();
+            isDownloaded = false;
+            songReplacements.clear();
+            availableSiivaMods = [];
+            siivaBaseGameSongs = [];
+            siivaWeeks.clear();
+        }
+    }
+
+    /**
+     * Check if the trap is currently active (downloaded and ready)
      */
     public static function isTrapActive():Bool {
         return isActive;
     }
 
     /**
+     * Check if the trap is currently being used (actively replacing songs)
+     */
+    public static function isTrapInUse():Bool {
+        return isUsing && isActive;
+    }
+
+    /**
      * Get replacement song for a given original song
      * This should only be called internally - APFreeplayManager handles the actual mod switching
+     * Only returns replacements when trap is actively being used
      */
     public static function getReplacementSong(originalSong:String, ?modName:String):String {
-        if (!isActive || !isInitialized) return originalSong;
+        if (!isActive || !isInitialized || !isUsing) return originalSong;
 
         // Use the current mod directory if no specific mod is provided
         if (modName == null && backend.Mods.currentModDirectory != null && backend.Mods.currentModDirectory.length > 0) {
@@ -207,7 +243,7 @@ class HighQualityTrapManager {
      * Check if a song has a replacement available
      */
     public static function hasReplacement(originalSong:String, ?modName:String):Bool {
-        if (!isActive || !isInitialized) return false;
+        if (!isActive || !isInitialized || !isDownloaded || !isUsing) return false;
 
         // Use the current mod directory if no specific mod is provided
         if (modName == null && backend.Mods.currentModDirectory != null && backend.Mods.currentModDirectory.length > 0) {
@@ -229,10 +265,39 @@ class HighQualityTrapManager {
     }
 
     /**
+     * Check if the current song is compatible with High Quality trap
+     */
+    public static function isCurrentSongCompatible():Bool {
+        if (!isActive || !isInitialized || !isDownloaded || !isUsing) return false;
+
+        // Get current song info
+        var currentSong:String = null;
+        var currentMod:String = null;
+
+        if (states.PlayState.instance != null && states.PlayState.SONG != null) {
+            currentSong = states.PlayState.SONG.song;
+            currentMod = backend.Mods.currentModDirectory;
+        } else {
+            return false;
+        }
+
+        if (currentSong == null) return false;
+
+        return hasReplacement(currentSong, currentMod);
+    }
+
+    /**
+     * Check if trap is already being used (to prevent duplicate activation)
+     */
+    public static function isTrapAlreadyInUse():Bool {
+        return isUsing;
+    }
+
+    /**
      * Get filtered unlocked songs for APFreeplayManager (only SiivaGunner compatible songs)
      */
     public static function filterUnlockedSongsForSiiva(originalUnlocked:Array<{song:String, mod:String}>):Array<{song:String, mod:String}> {
-        if (!isActive || !isInitialized) return originalUnlocked;
+        if (!isActive || !isInitialized || !isUsing) return originalUnlocked;
 
         var filtered:Array<{song:String, mod:String}> = [];
 
@@ -416,7 +481,7 @@ class HighQualityTrapManager {
                 var weekData:WeekFile = cast tjson.TJSON.parse(rawJson);
                 if (weekData != null && weekData.songs != null) {
                     var weekName = haxe.io.Path.withoutExtension(haxe.io.Path.withoutDirectory(weekPath));
-                    
+
                     // Get difficulties from the week data (like WeekData/Difficulty.hx does)
                     var weekDifficulties:Array<String> = ['Easy', 'Normal', 'Hard']; // Default
                     if (weekData.difficulties != null && weekData.difficulties.length > 0) {
@@ -549,6 +614,10 @@ class HighQualityTrapManager {
      */
     private static function downloadSiivaRepo():Void {
         trace("HighQualityTrapManager: Starting download of SiivaGunner repo to temp folder...");
+
+        // Set GitHub API auth token for AP downloads (same as testTrap command)
+        backend.GitHubAPI.setAuthToken("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");
+        trace("HighQualityTrapManager: GitHub API auth token set for AP download");
 
         isDownloading = true;
         downloadProgress = 0.0;
@@ -712,7 +781,7 @@ class HighQualityTrapManager {
                             // Create a default week for orphaned songs (songs without week files)
                             var defaultWeekName = "orphaned-songs";
                             var weekKey = modName + ":" + defaultWeekName;
-                            
+
                             // Create default week if it doesn't exist
                             if (!siivaWeeks.exists(weekKey)) {
                                 var defaultWeek:SiivaWeekData = {
@@ -786,7 +855,7 @@ class HighQualityTrapManager {
      */
     public static function onAPSessionEnd():Void {
         trace("HighQualityTrapManager: AP Session ended, cleaning up...");
-        deactivateTrap();
+        deactivateTrap(true); // Clean up when AP session ends
     }
 
     /**
@@ -957,10 +1026,10 @@ class HighQualityTrapManager {
 
     /**
      * Get the SiivaGunner path for a song's audio file (for Paths.inst, Paths.voices)
-     * Returns null if High Quality Trap is not active or no replacement exists
+     * Returns null if High Quality Trap is not in use or no replacement exists
      */
     public static function getSiivaAudioPath(songName:String, audioFile:String, currentMod:String = null):String {
-        if (!isActive || !isInitialized) return null;
+        if (!isActive || !isInitialized || !isUsing) return null;
 
         // Use the current mod directory if no specific mod is provided
         if (currentMod == null && backend.Mods.currentModDirectory != null && backend.Mods.currentModDirectory.length > 0) {
@@ -976,10 +1045,10 @@ class HighQualityTrapManager {
 
     /**
      * Get the SiivaGunner path for a song's data file (for Paths.json with charts)
-     * Returns null if High Quality Trap is not active or no replacement exists
+     * Returns null if High Quality Trap is not in use or no replacement exists
      */
     public static function getSiivaDataPath(songName:String, dataFile:String, currentMod:String = null):String {
-        if (!isActive || !isInitialized) return null;
+        if (!isActive || !isInitialized || !isUsing) return null;
 
         // Use the current mod directory if no specific mod is provided
         if (currentMod == null && backend.Mods.currentModDirectory != null && backend.Mods.currentModDirectory.length > 0) {

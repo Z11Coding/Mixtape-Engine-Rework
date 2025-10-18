@@ -668,6 +668,47 @@ class CollectionUtils
 		return Type.getClass(input) != null ? Type.getClass(input) : throw "Input has no class (null)";
 	}
 
+	public static inline function open<State:flixel.FlxState>(state:State):State
+	{
+		if (state is flixel.FlxSubState)
+			FlxG.state.openSubState(cast state);
+		else
+			FlxG.switchState(cast state);
+		return state;
+	}
+
+	public static inline function objectIterator(input:Dynamic):Iterator<{key:String, value:Dynamic}>
+	{
+		var result = [];
+		if (Std.is(input, Array))
+		{
+			for (i in 0...(input : Array<Dynamic>).length)
+			{
+				result.push({key: Std.string(i), value: input[i]});
+			}
+		}
+		else if (Std.is(input, IMap))
+		{
+			for (key in (input : Map<Dynamic, Dynamic>).keys())
+			{
+				result.push({key: key, value: input.get(key)});
+			}
+		}
+		else
+		{
+			for (key in Reflect.fields(input))
+			{
+				result.push({key: key, value: Reflect.field(input, key)});
+			}
+		}
+		return result.iterator();
+	}
+
+	// public static inline function objectKeyPairIterator(input:Dynamic):Iterator<{key:String, value:Dynamic}>
+	// {
+	// 	return new Temp<Map<String, Dynamic>>().iterator();
+	// }
+
 
 	public static inline function objectDynamic<T>(input:Dynamic):Dynamic
 	{

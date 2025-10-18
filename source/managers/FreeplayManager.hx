@@ -169,6 +169,19 @@ class FreeplayManager {
         return states.freeplay.FreeplayState.instance;
     }
 
+    public static inline function getNewFreeplayInstance():flixel.FlxState
+	{
+        return switch (ClientPrefs.data.freeplayMenu) {
+            case "Mixtape": //Why rename it when you're already here?
+                new states.freeplay.FreeplayState();
+            case "Osu":
+                new states.freeplay.OsuFreeplayState();
+            default:
+                FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
+                new states.freeplay.FreeplayState();
+        }
+	}
+
     public static inline function openFreeplay()
 	{
         if (CategoryState.loadWeekForce != null && !states.PlayState.Crashed) {
@@ -189,6 +202,22 @@ class FreeplayManager {
 		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
 	}
+
+    public function reloadFreeplayState(refresh:Bool = false, ?searchText:String = '') {
+        switch (ClientPrefs.data.freeplayMenu) {
+            case "Mixtape": //Why rename it when you're already here?
+                if (states.freeplay.FreeplayState.instance != null)
+                    states.freeplay.FreeplayState.instance.reloadSongs(refresh);
+            case "Osu":
+                @:privateAccess
+                if (states.freeplay.OsuFreeplayState.instance != null)
+                    states.freeplay.OsuFreeplayState.instance.loadSongArray(refresh, searchText);
+            default:
+                FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
+                if (states.freeplay.FreeplayState.instance != null)
+                    states.freeplay.FreeplayState.instance.reloadSongs(refresh);
+        }
+    }
 
     public function reloadFreeplay(refresh:Bool = false, ?searchText:String = '')
     {

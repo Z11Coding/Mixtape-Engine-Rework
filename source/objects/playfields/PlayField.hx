@@ -1416,6 +1416,50 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		noteMissed.cancel();
 		noteRemoved.removeAll();
 		noteRemoved.cancel();
+		holdDropped.removeAll();
+		holdDropped.cancel();
+		holdFinished.removeAll();
+		holdFinished.cancel();
+		holdUpdated.removeAll();
+		holdUpdated.cancel();
+
+		// Safely destroy all note splashes
+		if (grpNoteSplashes != null) {
+			grpNoteSplashes.forEachAlive(function(splash:NoteSplash) {
+				if (splash != null) {
+					splash.kill();
+					splash.destroy();
+				}
+			});
+			grpNoteSplashes.clear();
+			grpNoteSplashes.destroy();
+			grpNoteSplashes = null;
+		}
+
+		// Safely destroy strum attachments
+		if (strumAttachments != null) {
+			strumAttachments.forEachAlive(function(attachment:NoteObject) {
+				if (attachment != null) {
+					attachment.kill();
+					attachment.destroy();
+				}
+			});
+			strumAttachments.clear();
+			strumAttachments.destroy();
+			strumAttachments = null;
+		}
+
+		// Clear held notes cache
+		if (heldNotes != null) {
+			heldNotes.splice(0, heldNotes.length);
+			heldNotes = null;
+		}
+
+		// Clear receptor animation states
+		if (receptorAnimStates != null) {
+			receptorAnimStates.splice(0, receptorAnimStates.length);
+			receptorAnimStates = null;
+		}
 
 		if (threadPool != null) threadPool.shutdown(); // kill all workers safely
 		threadPool = null;

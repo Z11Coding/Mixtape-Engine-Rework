@@ -1,5 +1,9 @@
 package archipelago;
 
+import archipelago.APInfo;
+import backend.COD;
+import backend.ClientPrefs;
+import backend.CoolUtil;
 import backend.Difficulty;
 import backend.Highscore;
 import backend.MusicBeatSubstate;
@@ -15,60 +19,166 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import managers.APFreeplayManager;
 import objects.Character;
 import psychlua.FunkinLua;
-import states.FreeplayState;
 import states.MainMenuState;
 import states.PlayState;
 import states.StoryMenuState;
+import states.freeplay.FreeplayState;
 import substates.GameOverSubstate;
+import substates.RankingSubstate; // For accessing ranking logic
 
 using StringTools;
 
 /**
- * Fake death screen that shows at the end of a song but counts as a win.
- * Shows the rank and message after the death animation, then returns to appropriate state.
+ * High Quality Defeat Substate - shows when High Quality Trap is active
+ * Replaces the regular ranking substate with a "death" that shows the rank
+ * but treats it as a defeat from not being "high quality enough"
  */
 class APVictorySubstate extends GameOverSubstate
 {
-	// Ranking system
+	// Ranking system (same as RankingSubstate)
 	var rank:String = "?";
 	var rankMessage:String = "";
 	var rankColor:FlxColor = FlxColor.WHITE;
+	var rankingNum:Int = 15;
+	var comboRank:String = "NA";
 
 	// UI elements for ranking display
 	var rankPanel:FlxSprite;
 	var rankText:FlxText;
 	var rankMessageText:FlxText;
 
-	// Victory-specific behavior
-	var isVictoryMode:Bool = true;
+	// High Quality specific behavior
+	var isHighQualityDefeat:Bool = true;
 	var hasShownRank:Bool = false;
 
-	// Return destination tracking
-	var returnToState:String = "freeplay"; // "freeplay", "story", "main"
-
-	public function new(rank:String = "B", ?camera)
+	public function new(?leBoyfriend:Character)
 	{
-		// Calculate rank and message based on performance
-		this.rank = rank;
-		calculateRankMessage(rank);
+		// Set the cause of death for High Quality Trap
+		COD.COD = "You were not high quality enough.";
+
+		// Calculate actual rank using same logic as RankingSubstate
+		calculateActualRank();
 
 		// Determine where to return to
 		determineReturnState();
 
-		super(camera);
+		super(leBoyfriend, cast FreeplayManager.getNewFreeplayInstance(), cast FreeplayManager.getNewFreeplayInstance());
+
 	}
 
 	override function create()
 	{
-		super.create();
+		// Prevent Death Link from being sent for High Quality defeats
+		if (Std.is(PlayState.instance, APPlayState)) {
+			var apPlayState = cast(PlayState.instance, APPlayState);
+			// Temporarily disable death link for this "fake" death
+			var originalDeathByLink = APPlayState.deathByLink;
+			APPlayState.deathByLink = false;
+
+			super.create();
+
+			// Restore original state after creation
+			APPlayState.deathByLink = originalDeathByLink;
+		} else {
+			super.create();
+		}
 
 		// Set up the ranking display but keep it hidden initially
 		setupRankingDisplay();
 
-		// Override the default game over behavior
-		setupVictoryBehavior();
+
+
+	}
+
+	function calculateActualRank()
+	{
+		// Use the same ranking logic as RankingSubstate
+		var comboRankSetLimit:Int = APInfo.comboRankSetLimit;
+		var accRankSetLimit:Int = APInfo.accRankSetLimit;
+
+		// Calculate combo rank (same logic as RankingSubstate)
+		if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits == 0) // Perfect Full Combo (Only Sicks)
+			{ comboRank = "PFC"; }
+		else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 1) // Sick Full Combo (Only Sicks & Goods)
+			{ comboRank = "SFC"; }
+		else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 1) // Good Full Combo (Nothing but Goods & Sicks)
+			{ comboRank = "GFC"; }
+		else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits >= 1 && PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 0) // Alright Full Combo (Bads, Goods and Sicks)
+			{ comboRank = "AFC"; }
+		else if (PlayState.instance.comboManager.songMisses == 0) // Regular Full Combo
+			{ comboRank = "FC"; }
+		else if (PlayState.instance.comboManager.songMisses < 10) // Single Digit Combo Breaks
+			{ comboRank = "SDCB"; }
+		else { comboRank = "Clear"; } // Good enough
+
+		var acc = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 2);
+
+		// WIFE ranking system (same as RankingSubstate)
+		var wifeConditions:Array<Bool> = [
+			acc >= 99.9935, // P
+			acc >= 99.980, // X
+			acc >= 99.950, // X-
+			acc >= 99.90, // SS+
+			acc >= 99.80, // SS
+			acc >= 99.70, // SS-
+			acc >= 99.50, // S+
+			acc >= 99.25, // S
+			acc >= 99.00, // S-
+			acc >= 96.50, // A+
+			acc >= 93.00, // A
+			acc >= 90.00, // A-
+			acc >= 85.00, // B
+			acc >= 80.00, // C
+			acc >= 70.00, // D
+			acc >= 60.00, // D
+			true // E or F
+		];
+
+		for (i in 0...wifeConditions.length)
+		{
+			var b = wifeConditions[i];
+			if (b)
+			{
+				rankingNum = i;
+				switch (i)
+				{
+					case 0: rank = "P"; rankColor = FlxColor.YELLOW;
+					case 1: rank = "X"; rankColor = FlxColor.YELLOW;
+					case 2: rank = "X-"; rankColor = FlxColor.YELLOW;
+					case 3: rank = "SS+"; rankColor = FlxColor.WHITE;
+					case 4: rank = "SS"; rankColor = FlxColor.WHITE;
+					case 5: rank = "SS-"; rankColor = FlxColor.WHITE;
+					case 6: rank = "S+"; rankColor = FlxColor.YELLOW;
+					case 7: rank = "S"; rankColor = FlxColor.YELLOW;
+					case 8: rank = "S-"; rankColor = FlxColor.YELLOW;
+					case 9: rank = "A+"; rankColor = FlxColor.LIME;
+					case 10: rank = "A"; rankColor = FlxColor.LIME;
+					case 11: rank = "A-"; rankColor = FlxColor.LIME;
+					case 12: rank = "B"; rankColor = FlxColor.CYAN;
+					case 13: rank = "C"; rankColor = FlxColor.ORANGE;
+					case 14: rank = "D"; rankColor = FlxColor.RED;
+					case 15: rank = "D"; rankColor = FlxColor.RED;
+					case 16: rank = "E"; rankColor = FlxColor.RED;
+				}
+				break;
+			}
+		}
+
+		// Death penalty
+		if (PlayState.deathCounter >= 30 || acc == 0) {
+			rank = "F";
+			rankColor = FlxColor.RED;
+		}
+
+		// Calculate message based on rank but with High Quality context
+		calculateHighQualityMessage(rank);
+
+		// Save rank if not CPU controlled
+		if (!PlayState.instance.cpuControlled)
+			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
 	}
 
 	function setupRankingDisplay()
@@ -94,15 +204,38 @@ class APVictorySubstate extends GameOverSubstate
 		add(rankMessageText);
 	}
 
-	function setupVictoryBehavior()
+	function calculateHighQualityMessage(rank:String)
 	{
-		// Wait for the death animation to finish before showing rank
-		new FlxTimer().start(3.0, function(_) {
-			showRankingDisplay();
-		});
+		// High Quality themed messages
+		switch (rank.toUpperCase())
+		{
+			case "P" | "X" | "X-":
+				rankMessage = "HIGH\nQUALITY!\nBut not\nhigh enough...";
 
-		// Override the restart behavior to be return behavior
-		// We'll handle input differently in the update function
+			case "SS+" | "SS" | "SS-":
+				rankMessage = "VERY GOOD!\nAlmost\nhigh quality...";
+
+			case "S+" | "S" | "S-":
+				rankMessage = "GOOD!\nBut needs more\nquality...";
+
+			case "A+" | "A" | "A-":
+				rankMessage = "DECENT!\nStill not\nhigh quality...";
+
+			case "B":
+				rankMessage = "OKAY!\nFar from\nhigh quality...";
+
+			case "C":
+				rankMessage = "POOR!\nVery low\nquality...";
+
+			case "D":
+				rankMessage = "BAD!\nNo quality\nat all...";
+
+			case "E" | "F":
+				rankMessage = "TERRIBLE!\nZero quality\ndetected...";
+
+			default:
+				rankMessage = "NOT HIGH\nQUALITY\nENOUGH!";
+		}
 	}
 
 	function showRankingDisplay()
@@ -110,7 +243,7 @@ class APVictorySubstate extends GameOverSubstate
 		if (hasShownRank) return;
 		hasShownRank = true;
 
-		// Play a success sound
+		// Play a success sound (this happens when the GameOverSubstate allows interaction)
 		FlxG.sound.play(Paths.sound('confirmMenu'));
 
 		// Animate in the ranking display
@@ -128,172 +261,106 @@ class APVictorySubstate extends GameOverSubstate
 			startDelay: 0.4
 		});
 
-		// Show instructions after a delay
-		new FlxTimer().start(2.0, function(_) {
-			showReturnInstructions();
-		});
-	}
-
-	function showReturnInstructions()
-	{
-		// Add instruction text
-		var instructionText = new FlxText(0, FlxG.height - 50, FlxG.width, "Press ACCEPT to continue", 16);
-		instructionText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.YELLOW, CENTER, OUTLINE, FlxColor.BLACK);
-		instructionText.borderSize = 1;
-		instructionText.alpha = 0;
-		add(instructionText);
-
-		FlxTween.tween(instructionText, {alpha: 1}, 0.5);
-
-		// Make it blink
-		FlxFlicker.flicker(instructionText, 0, 0.5);
-	}
-
-	function calculateRankMessage(rank:String)
-	{
-		switch (rank.toUpperCase())
-		{
-			case "S":
-				rankMessage = "PERFECT!\nIncredible\nperformance!";
-				rankColor = FlxColor.GOLD;
-			case "A":
-				rankMessage = "EXCELLENT!\nGreat job!";
-				rankColor = FlxColor.LIME;
-			case "B":
-				rankMessage = "GOOD!\nNice work!";
-				rankColor = FlxColor.CYAN;
-			case "C":
-				rankMessage = "OKAY!\nYou did it!";
-				rankColor = FlxColor.YELLOW;
-			case "D":
-				rankMessage = "POOR!\nTry harder\nnext time!";
-				rankColor = FlxColor.ORANGE;
-			case "F":
-				rankMessage = "FAILED!\nKeep\npracticing!";
-				rankColor = FlxColor.RED;
-			default:
-				rankMessage = "COMPLETE!\nSong\nfinished!";
-				rankColor = FlxColor.WHITE;
-		}
+		// No need for separate instructions - GameOverSubstate handles input prompts
 	}
 
 	function determineReturnState()
 	{
-		// Check the current state context to determine where to return
-		if (PlayState.isStoryMode)
-		{
-			returnToState = "story";
-		}
-		else if (states.FreeplayState.vocals != null) // Freeplay context
-		{
-			returnToState = "freeplay";
-		}
-		else
-		{
-			returnToState = "main";
-		}
-
-		trace('APVictorySubstate: Will return to $returnToState');
+		// This is mainly for reference - GameOverSubstate will handle actual navigation
+		// But we can set up any freeplay-specific return logic here if needed
+		trace('APVictorySubstate: GameOverSubstate will handle navigation');
 	}
 
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
-		// Override the default game over input handling
-		if (hasShownRank && (controls.ACCEPT || controls.BACK))
+		// Check if this is APVictorySubstate and we're past the death animation
+		var canShowRanking = (!boyfriend.isAnimationNull() &&
+							  (boyfriend.getAnimationName() == 'deathLoop' ||
+							   (boyfriend.getAnimationName() == 'firstDeath' && boyfriend.isAnimationFinished())));
+
+		// Show ranking display when the death animation allows interaction
+		// This happens at the same time the music starts and inputs become available
+		if (canShowRanking && !hasShownRank)
 		{
-			returnToAppropriateState();
+			showRankingDisplay();
 		}
+
+		// The GameOverSubstate will handle all the input logic
+		// We just add our ranking UI on top of it
 	}
 
-	function returnToAppropriateState()
+	function sendArchipelagoLocationCheck()
 	{
-		FlxG.sound.play(Paths.sound('confirmMenu'));
-
-		// Animate out the ranking display
-		FlxTween.tween(rankPanel, {alpha: 0}, 0.3);
-		FlxTween.tween(rankText, {alpha: 0}, 0.3);
-		FlxTween.tween(rankMessageText, {alpha: 0}, 0.3);
-
-		// Handle the actual state transition after animation
-		new FlxTimer().start(0.5, function(_) {
-			performStateTransition();
-		});
-	}
-
-	function performStateTransition()
-	{
-		// Similar logic to ranking substate but adapted for AP context
-		switch (returnToState)
+		// Send location check using the same logic as normal victories
+		// This ensures progression continues even with High Quality "defeats"
+		if (Std.is(PlayState.instance, APPlayState))
 		{
-			case "story":
-				// Return to story mode - check if there are more songs
-				handleStoryModeReturn();
+			var apPlayState = cast(PlayState.instance, APPlayState);
+			var currentMod = APPlayState.currentMod;
+			var songName = APPlayState.currentSong;
 
-			case "freeplay":
-				// Return to freeplay
-				FlxG.switchState(new FreeplayState());
+			trace('APVictorySubstate: Checking ranking requirements for song: $songName, mod: $currentMod');
 
-			case "main":
-				// Return to main menu
-				FlxG.switchState(new MainMenuState());
+			// Use the same ranking requirements as RankingSubstate
+			var comboRankSetLimit:Int = APInfo.comboRankSetLimit;
+			var accRankSetLimit:Int = APInfo.accRankSetLimit;
 
-			default:
-				// Fallback to main menu
-				FlxG.switchState(new MainMenuState());
-		}
-	}
+			// Calculate current combo and accuracy ranks (same as RankingSubstate)
+			var comboRankLimit = rankingNum; // We already calculated this in calculateActualRank()
+			var accRankLimit = rankingNum;   // Same ranking system
 
-	function handleStoryModeReturn()
-	{
-		// Story mode logic - check if there are more songs in the week
-		var currentWeek = WeekData.getCurrentWeek();
+			trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
+			trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
 
-		if (PlayState.storyPlaylist.length > 0)
-		{
-			// More songs in the week, continue to next song
-			var difficulty:String = Difficulty.getFilePath();
+			// Always send note checks regardless of ranking requirements
+			trace("Sending checks for all checked notes (no ranking requirement)...");
+			for (note in apPlayState.checkedNotes) {
+				trace("Sending check for note: " + note);
+				@:privateAccess{
+					trace("Sending location: " + note.checkInfo.loc);
+					APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
+				}
+			}
+			trace("All note checks sent.");
 
-			PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + difficulty, PlayState.storyPlaylist[0].toLowerCase());
-			FlxG.switchState(new PlayState());
+			// Only send main song location check if ranking requirements are met
+			if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+				trace("Ranking requirements met! Sending main location check...");
+
+				// Send the main song location check (but don't force it - use the regular logic)
+				if (APInfo.unlockMethod != "Note Checks") {
+					trace("Sending main location check...");
+					var locationIdInts = APEntryState.apGame.locationData(songName.trim(), currentMod.trim());
+					trace('Location IDs: ' + locationIdInts);
+
+					for (locationIdInt in locationIdInts) {
+						if (locationIdInt != 0) {
+							trace("Sending location check: " + locationIdInt);
+							APPlayState.apGame.info().LocationChecks([locationIdInt]);
+						}
+					}
+				}
+			} else {
+				trace("Ranking requirements not met - main location check will not be sent");
+			}
 		}
 		else
 		{
-			// Week completed, return to story menu with completion logic
-			if (PlayState.storyWeek >= 0)
-			{
-				// Mark week as completed and save progress
-				StoryMenuState.weekCompleted.set(WeekData.weeksList[PlayState.storyWeek], true);
-				Highscore.saveWeekScore(WeekData.getWeekFileName(), PlayState.campaignScore, PlayState.storyWeek);
-
-				FlxG.save.data.weekCompleted = StoryMenuState.weekCompleted;
-				FlxG.save.flush();
-			}
-
-			FlxG.switchState(new StoryMenuState());
+			trace('APVictorySubstate: Not in APPlayState, skipping location check');
 		}
 	}
 
-	// Override the default game over restart behavior
-	override function doDeathActions()
-	{
-		// Don't call super() - we want to skip the default death actions
-		// Instead, just play the death animation without the restart logic
-
-		if (boyfriend.animOffsets.exists('firstDeath'))
-		{
-			boyfriend.playAnim('firstDeath');
-		}
-
-		// Play death sound
-		FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
-	}
-
-	// Override to prevent restarting
+	// Override to prevent normal restart behavior
 	override function endBullshit()
 	{
-		// Don't call super() - we don't want the default restart behavior
-		// The victory behavior will handle everything
+
+		// Stop using the High Quality Trap after showing the defeat
+		if (HighQualityTrapManager.isTrapInUse()) {
+			TrapLinkFunctions.stopHighQualityTrap();
+		}
+		sendArchipelagoLocationCheck();
+		super.endBullshit();
 	}
 }

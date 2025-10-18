@@ -203,7 +203,7 @@ class TrapLinkFunctions {
 	public static function doHighQualityTrap():Void {
 		trace("TrapLinkFunctions: Activating High Quality Trap!");
 
-		// Activate the trap manager
+		// Initialize and activate the trap manager (downloads if needed, but doesn't start using)
 		HighQualityTrapManager.activateTrap();
 
 		// Check if we need to show waiting state for mod installation
@@ -220,35 +220,20 @@ class TrapLinkFunctions {
 			return;
 		}
 
-		// Show a notification to the player if mod is already installed
-		if (APPlayState.instance != null) {
-			// Create a temporary text notification
-			var notificationText = new flixel.text.FlxText(0, 50, flixel.FlxG.width, "HIGH QUALITY MUSIC ACTIVATED!", 32);
-			notificationText.setFormat(backend.Paths.font("vcr.ttf"), 32, flixel.util.FlxColor.YELLOW, flixel.text.FlxTextAlign.CENTER, flixel.text.FlxTextBorderStyle.OUTLINE, flixel.util.FlxColor.BLACK);
-			notificationText.borderSize = 2;
-			notificationText.cameras = [APPlayState.instance.camHUD];
-			APPlayState.instance.add(notificationText);
-
-			// Tween the notification
-			notificationText.alpha = 0;
-			flixel.tweens.FlxTween.tween(notificationText, {alpha: 1}, 0.5, {
-				ease: flixel.tweens.FlxEase.backOut,
-				onComplete: function(_) {
-					new flixel.util.FlxTimer().start(2.0, function(_) {
-						flixel.tweens.FlxTween.tween(notificationText, {alpha: 0, y: notificationText.y - 50}, 0.5, {
-							ease: flixel.tweens.FlxEase.backIn,
-							onComplete: function(_) {
-								notificationText.destroy();
-							}
-						});
-					});
-				}
-			});
-
-			// Play a sound effect
-			flixel.FlxG.sound.play(backend.Paths.sound('confirmMenu'), 0.7);
-		}
-
+		// Trap is ready - no notification shown (hidden trap)
+		trace("TrapLinkFunctions: High Quality Trap is ready and active!");
 		trace("TrapLinkFunctions: High Quality Trap activated successfully!");
+	}
+
+	/**
+	 * Stop High Quality Trap - stops song replacements but keeps data available
+	 */
+	public static function stopHighQualityTrap():Void {
+		trace("TrapLinkFunctions: Stopping High Quality Trap!");
+
+		HighQualityTrapManager.stopUsingTrap();
+
+		// Trap stopped - no notification shown (hidden trap)
+		trace("TrapLinkFunctions: High Quality Trap stopped successfully!");
 	}
 }

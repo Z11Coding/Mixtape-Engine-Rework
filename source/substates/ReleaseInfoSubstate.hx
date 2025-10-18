@@ -36,6 +36,7 @@ class ReleaseInfoSubstate extends MusicBeatSubstate {
 
 	var installButton:PsychUIButton;
 	var backButton:PsychUIButton;
+	var viewOnlineButton:PsychUIButton;
 	var scrollIndicator:FlxText;
 
 	var release:GitHubRelease;
@@ -177,8 +178,13 @@ class ReleaseInfoSubstate extends MusicBeatSubstate {
 
 		// Description content
 		var description = release.body != null ? release.body : "No description provided.";
-		if (description.length > 2000) {
-			description = description.substring(0, 2000) + "...";
+		var originalLength = description.length;
+		var maxLength = 30000;
+		var wasTruncated = false;
+
+		if (description.length > maxLength) {
+			description = description.substring(0, maxLength) + "...";
+			wasTruncated = true;
 		}
 
 		descriptionText = new FlxText(box.x + 20, yPos, textWidth, description, 14);
@@ -186,6 +192,17 @@ class ReleaseInfoSubstate extends MusicBeatSubstate {
 		descriptionText.wordWrap = true;
 		add(descriptionText);
 		scrollableElements.push(descriptionText);
+
+		// Add truncation indicator if text was cut off
+		if (wasTruncated) {
+			var remainingChars = originalLength - maxLength;
+			var truncationText = new FlxText(box.x + 20, yPos + descriptionText.height + 5, textWidth,
+				"(" + remainingChars + " more characters - view online for full description)", 12);
+			truncationText.setFormat(Paths.font('fnf1.ttf'), 12, 0xff888888, LEFT);
+			truncationText.wordWrap = true;
+			add(truncationText);
+			scrollableElements.push(truncationText);
+		}
 	}
 
 	private function createButtons():Void {
@@ -193,15 +210,70 @@ class ReleaseInfoSubstate extends MusicBeatSubstate {
 		var buttonWidth = 120;
 		var buttonSpacing = 20;
 
-		// Install button
+		// View Online button (leftmost)
+		viewOnlineButton = new PsychUIButton(box.x + buttonSpacing, buttonY,
+			"View Online", function() {
+				var releaseUrl = release.html_url;
+				if (releaseUrl != null && releaseUrl != "") {
+					try {
+						// Use CoolUtil to open the URL in the default browser
+						CoolUtil.browserLoad(releaseUrl);
+						FlxG.sound.play(Paths.sound('confirmMenu'));
+					} catch (e:Dynamic) {
+						// If opening URL fails, show the URL in a dialog
+						var prompt = new GitHubPromptSubstate("Release URL",
+							"Visit this URL to view the release online:\n\n" + releaseUrl, [
+							{text: "OK", callback: function() {}, style: GitHubButtonStyle.PRIMARY}
+						]);
+						openSubState(prompt);
+					}
+				} else {
+					// No URL available
+					var prompt = new GitHubPromptSubstate("No URL Available",
+						"No online URL is available for this release.", [
+						{text: "OK", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
+					]);
+					openSubState(prompt);
+				}
+			}, buttonWidth);
+		add(viewOnlineButton);
+
+		// Install button (center)
 		installButton = new PsychUIButton(box.x + box.width - buttonWidth - buttonSpacing - buttonWidth - buttonSpacing, buttonY,
 			"Install", function() {
+				// Check if in livereload mode (compiler is running)
+				if (Sys.args().indexOf('-livereload') != -1) {
+					var prompt = new GitHubPromptSubstate("Cannot Update During Compilation",
+						"You can't update while using the compiler.\n\n" +
+						"Please stop the compilation process and try again.", [
+						{text: "OK", callback: function() {}, style: GitHubButtonStyle.PRIMARY}
+					]);
+					openSubState(prompt);
+					return;
+				}
+
+				// Check if this is an older version that doesn't support built-in updates
+				if (isOlderThanBeta13(release)) {
+					var prompt = new GitHubPromptSubstate("Warning: Older Version",
+						"This version (" + release.tag_name + ") is beta12 or lower and doesn't have a built-in way to upgrade the engine.\n\n" +
+						"You will need to manually download future updates or use external tools.\n\n" +
+						"Continue with installation?", [
+						{text: "Install Anyway", callback: function() {
+							close();
+							onInstall(release);
+						}, style: GitHubButtonStyle.DANGER},
+						{text: "Cancel", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
+					]);
+					openSubState(prompt);
+					return;
+				}
+
 				close();
 				onInstall(release);
 			}, buttonWidth);
 		add(installButton);
 
-		// Back button
+		// Back button (rightmost)
 		backButton = new PsychUIButton(box.x + box.width - buttonWidth - buttonSpacing, buttonY,
 			"Back", function() {
 				close();
@@ -255,6 +327,79 @@ class ReleaseInfoSubstate extends MusicBeatSubstate {
 			// Fallback to original string
 		}
 		return dateStr;
+	}
+
+	private function isOlderThanBeta13(release:GitHubRelease):Bool {
+		// Try to use release date first (more reliable)
+		if (release.published_at != null && release.published_at.length > 0) {
+			try {
+				// Parse the ISO date format (YYYY-MM-DDTHH:MM:SSZ)
+				var dateStr = release.published_at.split('T')[0]; // Get just the date part
+				var parts = dateStr.split('-');
+				if (parts.length == 3) {
+					var year = Std.parseInt(parts[0]);
+					var month = Std.parseInt(parts[1]);
+					var day = Std.parseInt(parts[2]);
+
+					// Set cutoff date to October 15, 2025 (yesterday) for testing
+					// In a real scenario, this would be the date when beta13 was released
+					var cutoffYear = 2025;
+					var cutoffMonth = 10;
+					var cutoffDay = 15;
+
+					if (year < cutoffYear) {
+						return true;
+					} else if (year == cutoffYear) {
+						if (month < cutoffMonth) {
+							return true;
+						} else if (month == cutoffMonth && day < cutoffDay) {
+							return true;
+						}
+					}
+
+					return false; // Release is newer than cutoff
+				}
+			} catch (e:Dynamic) {
+				// If date parsing fails, fall back to string checking
+				trace("Date parsing failed for " + release.tag_name + ": " + e);
+			}
+		}
+
+		// Fallback to string-based checking if date parsing fails
+		var tag = release.tag_name.toLowerCase();
+
+		// Remove 'v' prefix if present
+		if (tag.charAt(0) == 'v') {
+			tag = tag.substr(1);
+		}
+
+		// Check for beta versions
+		if (tag.indexOf('beta') != -1) {
+			var betaStr = tag.split('beta')[1];
+			if (betaStr != null && betaStr.length > 0) {
+				// Extract beta number
+				var betaNum = Std.parseInt(betaStr.split('-')[0].split('.')[0]);
+				if (betaNum != null && betaNum <= 12) {
+					return true;
+				}
+			}
+		}
+
+		// Check for alpha versions (all considered older)
+		if (tag.indexOf('alpha') != -1) {
+			return true;
+		}
+
+		// Check for very old version patterns like 0.x.x
+		var versionParts = tag.split('.');
+		if (versionParts.length >= 1) {
+			var major = Std.parseInt(versionParts[0]);
+			if (major != null && major == 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	override function update(elapsed:Float) {
@@ -334,6 +479,33 @@ class ReleaseInfoSubstate extends MusicBeatSubstate {
 		if (controls.ACCEPT) {
 			var assets = GitHubAPI.getPlatformAssets(release);
 			if (assets.length > 0) {
+				// Check if in livereload mode (compiler is running)
+				if (Sys.args().indexOf('-livereload') != -1) {
+					var prompt = new GitHubPromptSubstate("Cannot Update During Compilation",
+						"You can't update while using the compiler.\n\n" +
+						"Open the game in a normal instance to update.", [
+						{text: "OK", callback: function() {}, style: GitHubButtonStyle.PRIMARY}
+					]);
+					openSubState(prompt);
+					return;
+				}
+
+				// Check if this is an older version that doesn't support built-in updates
+				if (isOlderThanBeta13(release)) {
+					var prompt = new GitHubPromptSubstate("Warning: Older Version",
+						"This version (" + release.tag_name + ") is beta12 or lower and doesn't have a built-in way to upgrade the engine.\n\n" +
+						"You will need to manually download future updates or use external tools.\n\n" +
+						"Continue with installation?", [
+						{text: "Install Anyway", callback: function() {
+							close();
+							onInstall(release);
+						}, style: GitHubButtonStyle.DANGER},
+						{text: "Cancel", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
+					]);
+					openSubState(prompt);
+					return;
+				}
+
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				close();
 				onInstall(release);

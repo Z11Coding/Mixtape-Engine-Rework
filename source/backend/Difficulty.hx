@@ -30,8 +30,8 @@ class Difficulty
 		var diffStr:String = week.difficulties;
 		function APD() {
 		#if ARCHIPELAGO_ALLOWED
-		// If High Quality Trap is active, check for SiivaGunner difficulties
-		if (archipelago.HighQualityTrapManager.isTrapActive())
+		// If High Quality Trap is in use, check for SiivaGunner difficulties
+		if (archipelago.HighQualityTrapManager.isTrapInUse())
 		{
 			// Get difficulties from SiivaGunner week data (not individual songs)
 			var siivaModName = week.folder;
@@ -94,11 +94,11 @@ class Difficulty
 
 	#if ARCHIPELAGO_ALLOWED
 	/**
-	 * Load difficulties specifically for a SiivaGunner song if trap is active
+	 * Load difficulties specifically for a SiivaGunner song if trap is in use
 	 */
 	inline public static function loadFromSiivaSong(songName:String, modName:String = null)
 	{
-		if (!archipelago.HighQualityTrapManager.isTrapActive()) return;
+		if (!archipelago.HighQualityTrapManager.isTrapInUse()) return;
 
 		var siivaDiffs = archipelago.HighQualityTrapManager.getAvailableDifficulties(songName, modName);
 		if (siivaDiffs != null && siivaDiffs.length > 0)
@@ -112,17 +112,17 @@ class Difficulty
 	}
 
 	/**
-	 * Check if a difficulty is available for a specific song when SiivaGunner trap is active
+	 * Check if a difficulty is available for a specific song when SiivaGunner trap is in use
 	 */
 	inline public static function isDifficultyAvailableForSong(songName:String, modName:String, difficulty:String):Bool
 	{
 		#if ARCHIPELAGO_ALLOWED
-		if (archipelago.HighQualityTrapManager.isTrapActive())
+		if (archipelago.HighQualityTrapManager.isTrapInUse())
 		{
 			return archipelago.HighQualityTrapManager.isDifficultyAvailable(songName, modName, difficulty);
 		}
 		#end
-		return true; // If trap is not active, all difficulties are available
+		return true; // If trap is not in use, all difficulties are available
 	}
 	#end
 }

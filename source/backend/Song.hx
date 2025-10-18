@@ -198,7 +198,7 @@ class Song
 		if(folder == null) folder = jsonInput;
 
 		#if ARCHIPELAGO_ALLOWED
-		// Check for High Quality Trap replacement
+		// Check for High Quality Trap replacement - only if trap is actively being used
 		var originalSong = folder;
 		var replacementSong = HighQualityTrapManager.getReplacementSong(originalSong, backend.Mods.currentModDirectory);
 		if (replacementSong != originalSong) {
