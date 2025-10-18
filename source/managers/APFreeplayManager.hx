@@ -315,7 +315,7 @@ class APFreeplayManager extends FreeplayManager {
      * Get available difficulties for a specific song, considering SiivaGunner trap
      */
     public static function getAvailableDifficultiesForSong(songName:String, modName:String):Array<String> {
-        if (HighQualityTrapManager.isTrapActive()) {
+        if (HighQualityTrapManager.isTrapInUse()) {
             var siivaDiffs = HighQualityTrapManager.getAvailableDifficulties(songName, modName);
             if (siivaDiffs != null && siivaDiffs.length > 0) {
                 return siivaDiffs.copy();
@@ -330,18 +330,18 @@ class APFreeplayManager extends FreeplayManager {
      * Check if a difficulty is available for a specific song, considering SiivaGunner trap
      */
     public static function isDifficultyAvailableForSong(songName:String, modName:String, difficulty:String):Bool {
-        if (HighQualityTrapManager.isTrapActive()) {
+        if (HighQualityTrapManager.isTrapInUse()) {
             return HighQualityTrapManager.isDifficultyAvailable(songName, modName, difficulty);
         }
 
-        return true; // If trap is not active, all difficulties are available
+        return true; // If trap is not in use, all difficulties are available
     }
 
     /**
      * Get the actual song name to use (considering SiivaGunner replacements)
      */
     public static function getActualSongName(originalSong:String, modName:String):String {
-        if (HighQualityTrapManager.isTrapActive()) {
+        if (HighQualityTrapManager.isTrapInUse()) {
             return HighQualityTrapManager.getReplacementSong(originalSong, modName);
         }
 
@@ -393,6 +393,7 @@ class APFreeplayManager extends FreeplayManager {
 
     static function collectAndRelease()
 	{
+        trace("Do not actually do this in multiplayer lmao"); return;
 		APEntryState.apGame.info().Say("!release");
 		APEntryState.apGame.info().Say("!collect");
 		APEntryState.apGame.info().poll();
@@ -452,8 +453,8 @@ class APFreeplayManager extends FreeplayManager {
             }];
 
             #if ARCHIPELAGO_ALLOWED
-            // Apply High Quality Trap filtering if active
-            if (HighQualityTrapManager.isTrapActive()) {
+            // Apply High Quality Trap filtering if in use
+            if (HighQualityTrapManager.isTrapInUse()) {
                 var originalSongs = allowedSongs.copy();
 
                 // Convert allowedSongs format to {song:String, mod:String} format for filtering
@@ -695,9 +696,9 @@ class APFreeplayManager extends FreeplayManager {
         Mods.currentModDirectory = '';
 
         #if ARCHIPELAGO_ALLOWED
-        // Apply High Quality Trap filtering to curUnlocked if active
+        // Apply High Quality Trap filtering to curUnlocked if in use
         var processedUnlocked = APFreeplayManager.curUnlocked.copy();
-        if (HighQualityTrapManager.isTrapActive()) {
+        if (HighQualityTrapManager.isTrapInUse()) {
             var originalUnlocked = processedUnlocked.copy();
             processedUnlocked = HighQualityTrapManager.filterUnlockedSongsForSiiva(processedUnlocked);
 

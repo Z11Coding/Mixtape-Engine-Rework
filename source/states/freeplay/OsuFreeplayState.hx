@@ -75,6 +75,8 @@ class OsuFreeplayState extends MusicBeatState
 			APFreeplayManager.checkVictory();
 		}
 
+
+
 		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
 

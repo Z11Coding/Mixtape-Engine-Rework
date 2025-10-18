@@ -1229,28 +1229,31 @@ class Paths
 	static public function modFolders(key:String)
 	{
 		#if ARCHIPELAGO_ALLOWED
-		// Check High Quality Trap temp folder first if active
-		if (HighQualityTrapManager.isTrapActive()) {
+		// Check High Quality Trap temp folder first if actively in use
+		if (HighQualityTrapManager.isTrapInUse()) {
 			// Check current mod directory within the trap temp folder first
 			if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0) {
 				var siivaFile:String = HighQualityTrapManager.getTempPath() + '/' + Mods.currentModDirectory + '/' + key;
-				if (FileSystem.exists(siivaFile)) {
-					return siivaFile;
+				var result = checkForRandomFileInFolder(siivaFile);
+				if (result != null) {
+					return result;
 				}
 			}
 
 			// Then check other mod directories within the trap temp folder
 			for (mod in Mods.getGlobalMods()) {
 				var siivaFile:String = HighQualityTrapManager.getTempPath() + '/' + mod + '/' + key;
-				if (FileSystem.exists(siivaFile)) {
-					return siivaFile;
+				var result = checkForRandomFileInFolder(siivaFile);
+				if (result != null) {
+					return result;
 				}
 			}
 
 			// Finally check base game marker within trap temp folder
 			var siivaBaseFile:String = HighQualityTrapManager.getTempPath() + '/__mixtape__/' + key;
-			if (FileSystem.exists(siivaBaseFile)) {
-				return siivaBaseFile;
+			var result = checkForRandomFileInFolder(siivaBaseFile);
+			if (result != null) {
+				return result;
 			}
 		}
 		#end
@@ -1270,6 +1273,50 @@ class Paths
 		}
 		return 'mods/' + key;
 	}
+
+	#if ARCHIPELAGO_ALLOWED
+	/**
+	 * Checks if a path exists as a file or folder from High Quality Trap temp path.
+	 * If it's a folder, randomly selects a file from it.
+	 * If it's a file, returns it directly.
+	 * Returns null if neither exists.
+	 */
+	static function checkForRandomFileInFolder(path:String):Null<String>
+	{
+		if (FileSystem.exists(path)) {
+			if (FileSystem.isDirectory(path)) {
+				// It's a folder - get a random file from it
+				try {
+					var files = FileSystem.readDirectory(path);
+					// Filter out directories and hidden files
+					files = files.filter(function(file) {
+						var fullPath = path + '/' + file;
+						return !FileSystem.isDirectory(fullPath) && !file.startsWith('.');
+					});
+
+					if (files.length > 0) {
+						// Randomly select a file
+						var randomFile = files[FlxG.random.int(0, files.length - 1)];
+						var selectedPath = path + '/' + randomFile;
+						trace('High Quality Trap: Found folder at $path, randomly selected: $randomFile');
+						return selectedPath;
+					} else {
+						trace('High Quality Trap: Folder at $path exists but contains no valid files');
+						return null;
+					}
+				} catch (e:Dynamic) {
+					trace('High Quality Trap: Error reading directory $path: $e');
+					return null;
+				}
+			} else {
+				// It's a file - return it directly
+				return path;
+			}
+		}
+
+		return null;
+	}
+	#end
 	#end
 
 	#if flxanimate

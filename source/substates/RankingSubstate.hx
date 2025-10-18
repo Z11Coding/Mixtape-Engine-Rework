@@ -202,16 +202,21 @@ class RankingSubstate extends MusicBeatSubstate
 
 					trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
 					trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
-					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
-						trace("Sending checks for all checked notes...");
-						for (note in APPlayState.instance.checkedNotes) {
-							trace("Sending check for note: " + note);
-							@:privateAccess{
-								trace("Sending location: " + note.checkInfo.loc);
-								APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
-							}
+
+					// Always send note checks regardless of ranking requirements
+					trace("Sending checks for all checked notes (no ranking requirement)...");
+					for (note in APPlayState.instance.checkedNotes) {
+						trace("Sending check for note: " + note);
+						@:privateAccess{
+							trace("Sending location: " + note.checkInfo.loc);
+							APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
 						}
-						trace("All checks sent.");
+					}
+					trace("All note checks sent.");
+
+					// Only send main song location check if ranking requirements are met
+					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+						trace("Ranking requirements met! Sending main location check...");
 
 						var attempts = 0;
 
@@ -338,6 +343,8 @@ class RankingSubstate extends MusicBeatSubstate
 								FlxG.sound.playMusic(Paths.sound('You Win'));
 							});
 						}
+					} else {
+						trace("Ranking requirements not met - main location check will not be sent");
 					}
 					Mods.loadTopMod();
 			}

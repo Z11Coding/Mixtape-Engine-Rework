@@ -896,7 +896,15 @@ class APStyledEntryState extends MusicBeatState {
 
         APEntryState.apGame = apGame;
 
-        FlxG.switchState(new archipelago.APCategoryState(apGame, ap));
+        // Check if high quality content is expected and should be downloaded
+        if (slotData != null && slotData.highQualityExpected == true) {
+            // Go to existing high quality waiting state first
+            FlxG.switchState(new archipelago.states.HighQualityWaitingState(apGame, ap));
+        } else {
+            // Normal flow - go directly to AP category state
+            FlxG.switchState(new archipelago.APCategoryState(apGame, ap));
+        }
+
         backend.ClientPrefs.data.gameplaySettings.set("chartModifier", "Normal");
         backend.ClientPrefs.data.gameplaySettings.set("convertMania", 3);
     }

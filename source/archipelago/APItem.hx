@@ -146,6 +146,7 @@ class APItem {
     public static var unoColorsUnlocked:Array<{name:String, color_code:String}> = [];
 
     public static var unknownSongs:Bool = false; // If true, songs are unknown.
+    public static var queuedTrap:APItem = null; // Trap queued for execution when conditions are met
 
     private var toSync:Bool = true;
     public var triggered:Bool = false;
@@ -240,7 +241,68 @@ class APItem {
                     t.isTrap = true;
                 });
             case "High Quality Trap":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                return new APTrap(name, ConditionHelper.Special().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        // Check if trap is already being used to prevent duplicate activation
+                        if (archipelago.HighQualityTrapManager.isTrapAlreadyInUse()) {
+                            return false;
+                        }
+
+                        // If we're in PlayState, check if we're in a compatible song
+                        if (Std.is(FlxG.state, states.PlayState)) {
+                            var playState = states.PlayState.instance;
+                            if (playState != null && playState.startedSong) {
+                                // Check if current song is compatible with High Quality trap
+                                return archipelago.HighQualityTrapManager.isCurrentSongCompatible();
+                            }
+                            return false;
+                        }
+                        // If we're in Freeplay, we can always trigger (it will wait)
+                        if (Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
+                            return true;
+                        }
+                        return false;
+                    });
+                }), function() {
+                    // Check if we need to download repository content first
+                    if (APInfo.slotData != null && APInfo.slotData.highQualityExpected) {
+                        // If expected but not available, go to existing high quality waiting state
+                        if (APInfo.apGame != null && APInfo.ap != null) {
+                            FlxG.switchState(new archipelago.states.HighQualityWaitingState(APInfo.apGame, APInfo.ap));
+                        } else {
+                            // Fallback: use the non-AP waiting state if not in AP context
+                            FlxG.switchState(new states.HighQualityTrapWaitingState());
+                        }
+                        return;
+                    }
+
+                    // Start using the trap (activates song replacements)
+                    archipelago.HighQualityTrapManager.startUsingTrap();
+
+                    // If we're in PlayState and in a compatible song, reset the state
+                    if (Std.is(FlxG.state, states.PlayState)) {
+                        var playState = states.PlayState.instance;
+                        if (playState != null && playState.startedSong) {
+                            TrapLinkFunctions.doHighQualityTrap();
+                            // Reset the state to apply High Quality changes
+                            MusicBeatState.resetState();
+                            return;
+                        }
+                    }
+
+                    // If we're not in PlayState, wait until we're in Freeplay to do anything
+                    if (!Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
+                        // Create a queued trap that will execute the High Quality trap logic later
+                        APItem.queuedTrap = new APTrap("High Quality Trap - Queued", ConditionHelper.Everywhere(), function() {
+                            archipelago.HighQualityTrapManager.startUsingTrap();
+                            TrapLinkFunctions.doHighQualityTrap();
+                        }, false, false);
+                        // No popup - trap is silent and hidden
+                        return;
+                    }
+
+                    // We're in Freeplay, execute the trap
                     TrapLinkFunctions.doHighQualityTrap();
                 }, false, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -669,8 +731,8 @@ class APItem {
                     t.isTrap = true;
                 });
 
-            case "Nothing":
-                popup('...For now...', "APItem: Nothing");
+            case "Lonely Friday Night":
+                popup('Alone on a friday night? How pathetic...', "Lonely Friday Night", true);
                 return null;
 
             case "PowerPoint Trap":

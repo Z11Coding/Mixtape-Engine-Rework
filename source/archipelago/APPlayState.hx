@@ -188,35 +188,33 @@ class APPlayState extends PlayState {
 
         if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride)
         {
-            // When manual override is active, ensure we're playing the correct saved song
-            trace('Manual Override detected - verifying song consistency');
+            // When manual override is active, ensure we're playing the correct trap song
+            trace('Manual Override detected - verifying trap song consistency');
 
-            var savedSong = FlxG.save.data.SONG;
+            var intendedTrapSong = FlxG.save.data.trapSONG; // The song the trap wanted to play
             var currentSong = PlayState.SONG;
 
-            // Check if the current song matches the saved song
-            if (savedSong != null && currentSong != null) {
-                var songMismatch = (savedSong.song != currentSong.song ||
-                                  FlxG.save.data.storyWeek != PlayState.storyWeek ||
-                                  FlxG.save.data.currentModDirectory != Mods.currentModDirectory ||
-                                  FlxG.save.data.storyDifficulty != PlayState.storyDifficulty);
+            // Check if the current song matches the intended trap song
+            if (intendedTrapSong != null && currentSong != null) {
+                var songMismatch = (intendedTrapSong.song != currentSong.song ||
+                                  FlxG.save.data.trapStoryWeek != PlayState.storyWeek ||
+                                  FlxG.save.data.trapCurrentModDirectory != Mods.currentModDirectory ||
+                                  FlxG.save.data.trapStoryDifficulty != PlayState.storyDifficulty);
 
                 if (songMismatch) {
-                    trace('Song mismatch detected during manual override');
-                    trace('Expected: ' + savedSong.song + ' (Week: ' + FlxG.save.data.storyWeek + ', Mod: ' + FlxG.save.data.currentModDirectory + ')');
+                    trace('Trap song mismatch detected during manual override');
+                    trace('Expected trap song: ' + intendedTrapSong.song + ' (Week: ' + FlxG.save.data.trapStoryWeek + ', Mod: ' + FlxG.save.data.trapCurrentModDirectory + ')');
                     trace('Current: ' + currentSong.song + ' (Week: ' + PlayState.storyWeek + ', Mod: ' + Mods.currentModDirectory + ')');
 
-                    // Restore the correct song state and force a reset
-                    PlayState.storyWeek = FlxG.save.data.storyWeek;
-                    Mods.currentModDirectory = FlxG.save.data.currentModDirectory;
-                    Difficulty.list = FlxG.save.data.difficulties;
-                    curDifficulty = FlxG.save.data.curDifficulty;
-                    PlayState.SONG = FlxG.save.data.SONG;
-                    PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
+                    // Restore the correct trap song state and force a reset
+                    PlayState.storyWeek = FlxG.save.data.trapStoryWeek;
+                    Mods.currentModDirectory = FlxG.save.data.trapCurrentModDirectory;
+                    Difficulty.list = FlxG.save.data.trapDifficulties;
+                    curDifficulty = FlxG.save.data.trapCurDifficulty;
+                    PlayState.SONG = FlxG.save.data.trapSONG;
+                    PlayState.storyDifficulty = FlxG.save.data.trapStoryDifficulty;
 
-
-
-                    trace('Song state corrected - resetting APPlayState');
+                    trace('Trap song state corrected - resetting APPlayState');
                     StageData.loadDirectory(PlayState.SONG);
                     MusicBeatState.resetState();
                     return;
@@ -1232,6 +1230,7 @@ class APPlayState extends PlayState {
                             trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
                             if (!FlxG.save.data.manualOverride) {
                                 FlxG.save.data.manualOverride = true;
+                                // Save original song data for restoration later
                                 FlxG.save.data.storyWeek = PlayState.storyWeek;
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
@@ -1243,13 +1242,22 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.rating = comboManager.ratingPercent;
                                 FlxG.save.data.misses = comboManager.songMisses;
                                 FlxG.save.data.health = health;
-                                FlxG.save.flush();
 
+                                // Set up trap song
                                 Difficulty.list = Difficulty.defaultList.copy();
                                 PlayState.storyWeek = 0;
                                 Mods.currentModDirectory = 'week1';
                                 PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', Difficulty.list.length-1), Paths.formatToSongPath('tutorial'));
                                 PlayState.storyDifficulty = Difficulty.list.length-1;
+
+                                // Save trap song data for consistency checking
+                                FlxG.save.data.trapStoryWeek = PlayState.storyWeek;
+                                FlxG.save.data.trapCurrentModDirectory = Mods.currentModDirectory;
+                                FlxG.save.data.trapDifficulties = Difficulty.list;
+                                FlxG.save.data.trapCurDifficulty = curDifficulty;
+                                FlxG.save.data.trapSONG = PlayState.SONG;
+                                FlxG.save.data.trapStoryDifficulty = PlayState.storyDifficulty;
+
                                 FlxG.save.flush();
 
                                 if (Std.is(FlxG.state, APPlayState)) {
@@ -1272,6 +1280,7 @@ class APPlayState extends PlayState {
                             trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
                             if (!FlxG.save.data.manualOverride) {
                                 FlxG.save.data.manualOverride = true;
+                                // Save original song data for restoration later
                                 FlxG.save.data.storyWeek = PlayState.storyWeek;
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
@@ -1279,15 +1288,25 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.SONG = PlayState.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
-                                FlxG.save.flush();
 
                                 var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
                                 var curSong = FlxG.random.int(0, specialSongList.length-1);
+
+                                // Set up trap song
                                 Difficulty.list = Difficulty.defaultList.copy();
                                 PlayState.storyWeek = -1;
                                 Mods.currentModDirectory = '';
                                 PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
                                 PlayState.storyDifficulty = Difficulty.list.length-1;
+
+                                // Save trap song data for consistency checking
+                                FlxG.save.data.trapStoryWeek = PlayState.storyWeek;
+                                FlxG.save.data.trapCurrentModDirectory = Mods.currentModDirectory;
+                                FlxG.save.data.trapDifficulties = Difficulty.list;
+                                FlxG.save.data.trapCurDifficulty = curDifficulty;
+                                FlxG.save.data.trapSONG = PlayState.SONG;
+                                FlxG.save.data.trapStoryDifficulty = PlayState.storyDifficulty;
+
                                 FlxG.save.flush();
 
                                 if (Std.is(FlxG.state, APPlayState)) {
@@ -1790,7 +1809,7 @@ class APPlayState extends PlayState {
     {
         super.generateSong();
         if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap") return;
-        apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(PlayState.SONG.song, currentMod)));
+        apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
 
         for (field in playfields.members)
             field.clearStackedNotes();
@@ -2580,13 +2599,24 @@ class APPlayState extends PlayState {
         if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
             ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
 
+        if (archipelago.HighQualityTrapManager.isTrapInUse()) {
+            // Don't stop the trap here - let APVictorySubstate handle it
+            // Remove the stopHighQualityTrap call
+        }
+
         ghostChat = false;
         super.endSong();
 
 
         paused = true;
         APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(PlayState.SONG.song, currentMod);
-        openSubState(new substates.RankingSubstate());
+
+        // Use APVictorySubstate instead of RankingSubstate when High Quality Trap is active
+        if (archipelago.HighQualityTrapManager.isTrapInUse()) {
+            openSubState(new archipelago.APVictorySubstate(boyfriend));
+        } else {
+            openSubState(new substates.RankingSubstate());
+        }
 
         return true; //why does endsong need this?????
     }

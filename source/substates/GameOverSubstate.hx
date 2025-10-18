@@ -226,7 +226,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			{
 				endBullshit();
 			}
-			else if (controls.BACK)
+			else if (controls.BACK && !(this is archipelago.APVictorySubstate))
 			{
 				#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 				FlxG.camera.visible = false;

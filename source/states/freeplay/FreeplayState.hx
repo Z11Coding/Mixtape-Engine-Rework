@@ -140,6 +140,8 @@ class FreeplayState extends MusicBeatState
 			APFreeplayManager.checkVictory();
 		}
 
+
+
 		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
 
@@ -1208,7 +1210,7 @@ class FreeplayState extends MusicBeatState
 
 		#if ARCHIPELAGO_ALLOWED
 		// Validate that the selected difficulty is available for SiivaGunner content
-		if (archipelago.HighQualityTrapManager.isTrapActive() && fpManager.songList[curSelected] != null) {
+		if (archipelago.HighQualityTrapManager.isTrapInUse() && fpManager.songList[curSelected] != null) {
 			var songName = fpManager.songList[curSelected].songName;
 			var modName = fpManager.songList[curSelected].folder;
 			var selectedDiff = Difficulty.getString(curDifficulty, false);
@@ -1431,8 +1433,8 @@ class FreeplayState extends MusicBeatState
 						Difficulty.list = ["4K", "Canon"];
 					default:
 						#if ARCHIPELAGO_ALLOWED
-						// Check if SiivaGunner trap is active and load difficulties accordingly
-						if (archipelago.HighQualityTrapManager.isTrapActive()) {
+						// Check if SiivaGunner trap is in use and load difficulties accordingly
+						if (archipelago.HighQualityTrapManager.isTrapInUse()) {
 							var songName = fpManager.songList[curSelected].songName;
 							var modName = fpManager.songList[curSelected].folder;
 

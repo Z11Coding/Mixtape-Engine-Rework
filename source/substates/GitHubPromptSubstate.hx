@@ -107,6 +107,35 @@ class GitHubPromptSubstate extends MusicBeatSubstate {
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
+		// Mouse input for buttons
+		if (FlxG.mouse.justPressed) {
+			for (i in 0...buttonGroup.length) {
+				if (FlxG.mouse.overlaps(buttonGroup[i])) {
+					selectedButton = i;
+					updateButtonSelection();
+					FlxG.sound.play(Paths.sound('confirmMenu'));
+					buttonGroup[selectedButton].onClick();
+					close();
+					return;
+				}
+			}
+		}
+
+		// Mouse hover for buttons
+		var hoveredButton = -1;
+		for (i in 0...buttonGroup.length) {
+			if (FlxG.mouse.overlaps(buttonGroup[i])) {
+				hoveredButton = i;
+				break;
+			}
+		}
+
+		if (hoveredButton != -1 && hoveredButton != selectedButton) {
+			selectedButton = hoveredButton;
+			updateButtonSelection();
+			FlxG.sound.play(Paths.sound('scrollMenu'), 0.7);
+		}
+
 		if (controls.UI_LEFT_P && selectedButton > 0) {
 			selectedButton--;
 			updateButtonSelection();
