@@ -9902,15 +9902,6 @@ class PlayState extends MusicBeatState
 		variables = null;
 		keysArray = null;
 
-		// Force garbage collection to prevent memory leaks
-		#if cpp
-		cpp.vm.Gc.run(true);
-		#elseif hl
-		hl.Gc.major();
-		#elseif neko
-		neko.vm.Gc.run();
-		#end
-
 		super.destroy();
 		endingSong = true;
 		//Paths.clearStoredWithoutStickers();

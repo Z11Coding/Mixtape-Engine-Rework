@@ -1,20 +1,20 @@
 package states;
 
+import backend.cutscenes.DialogueBoxPsych;
 import backend.window.CppAPI;
+import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.FlxState;
 import flixel.addons.ui.FlxUIText;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
+import flixel.util.FlxSave;
 import flixel.util.FlxTimer;
+import lime.app.Application;
 import lime.app.Promise;
-import backend.cutscenes.DialogueBoxPsych;
-import flixel.FlxCamera;
 import openfl.filters.BitmapFilter;
 import openfl.utils.Assets as OpenFlAssets;
-import lime.app.Application;
-import flixel.util.FlxSave;
-import flixel.FlxState;
 #if windows
 import Sys;
 import sys.FileSystem;
@@ -30,20 +30,21 @@ class WelcomeToPain extends MusicBeatState
 	public var save:FlxSave = new FlxSave();
 	private var originalState:FlxState;
 	private var originalStateArgs:Array<Dynamic>;
-	public function new(originalState:FlxState = null, ?args:Array<Dynamic>, ?dialogue) 
+	public function new(originalState:FlxState = null, ?args:Array<Dynamic>, ?dialogue)
 	{
 		if (originalState == null)
 			originalState = new states.TitleState();
 		this.originalState = originalState;
 		super();
 	}
-	
-	override public function create():Void 
-	{   CppAPI.setWindowOpacity(1);
+
+	override public function create():Void
+	{
+		CppAPI.setWindowOpacity(1);
 		camMESSAGE = initPsychCamera();
 		super.create();
 		camMESSAGE.setFilters(camfilters);
-		camMESSAGE.filtersEnabled = true;	
+		camMESSAGE.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);
 		FlxG.sound.playMusic(Paths.music("hello"),1);
 		var daStatic:FlxSprite = new FlxSprite(0, 0);
@@ -60,7 +61,7 @@ class WelcomeToPain extends MusicBeatState
 		{
 			startDialogue(dialogueJson);
 		});
-		
+
 	}
 
 	var gotSecret:String = if (Achievements.isUnlocked('secretsuntold')) 'gsecret' else 'nsecret';
@@ -116,5 +117,5 @@ class WelcomeToPain extends MusicBeatState
 	{
 		//callOnLuas('onSkipDialogue', [dialogueCount]);
 	}
-	
+
 }

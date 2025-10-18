@@ -1676,7 +1676,7 @@ class APItem {
             "Pong Challenge",
             "Math Problem Trap",
             "Pocket Lens",
-            "Nothing"
+            "Lonely Friday Night"
         ];
         for (name in itemNames) {
             createItemByName(name);
@@ -2223,9 +2223,49 @@ class APrilFools extends APTrap {
                         "The void is coming."
                     ];
 
+                    var funnySpamMessages = [
+                        "I CAN [[I See You!]]...",
+                        "DID YOU [[Hearing-Aid]] THAT?",
+                        "DON'T LOOK [[RUN! RUN AWAY!]].",
+                        "YOUR [[Time is a valuable thing]] is [[Drifting Away]].",
+                        "IS SOMEONE [[watching from afar!]]?",
+                        "CHECK YOUR [[Surround-Sound Speaker System]].",
+                        "WHAT WAS [[Sound Around Town]]?",
+                        "ARE YOU [[all alone on a friday afternoon]]?",
+                        "SOMETHING [[FEEL YOUR]] [[Power Off]].",
+                        "WHY IS IT SO [[it's quiet. too quiet]]?",
+                        "YOUR [[Smart Device]] IS NOW [[Where am I? What is this??]]. JUST [[clowning around]]!",
+                        "WHY DID THE [[creator of all things technology]] [[GIVE UP!]]? THEY DIDN'T GET [[Group your strings into in array]].",
+                        "404: [[lucky number 9]] [[MISSING]].",
+                        "DID YOU JUST [[Feeling lucky]]? [[THE BOLD AND THE BRAVE]] move.",
+                        "YOUR [[TYPING MECHANIC]] IS [[I HATE YOU SO MUCH]].",
+                        "[[Congratulations!]] YOU'VE WON [[absolutely nothing]]!",
+                        "THIS IS NOT A [[hyperlink blocked]], IT'S A [[FEATURE PRESENTATION]].",
+                        "YOUR [[rodent]] JUST [[go of my own will]]. OR DID IT?",
+                        "DON'T WORRY, THE [[Spagetti Code]] IS 100% [[insect repellent]]. MAYBE.",
+                        "[[fun fact]]: [[The following message is]] [[what's the point to life]].",
+                        "YOUR [[LORD OF SCREENS]] IS NOW [[10% brighter on kids]]. JUST [[it was a joke calm down, CALM DOWN]]!",
+                        "[[Did you know?]] This message is [[it all feels like a waste of time]].",
+                        "Your [[CPU]] is [[STOP LAUGHING AT ME]].",
+                        "[[ERR]] 42: [[Life, the universe, and everything sweet]].",
+                        "Your [[Raw, Artifical Memory]] just said [[Hello, World!]].",
+                        "This is a [[testing, testing]]. [[Or is it?]]",
+                        "Your [[Projection Device]] wants [[a break from all of you]].",
+                        "[[GOD]] is [[I See You]].",
+                        "[[GOD]][[2]] is [[I See You]].",
+                        "[[GOD]][[2]] is [[I'm always watching]].",
+                        "[[GOD]] is [[I'm always watching]].",
+                        "[[GOD]][[2]] and [[GOD]] are [[I'm always watching]].",
+                        "[[GOD]][[2]] and [[GOD]] are [[you're adorable when you sleep!]].",
+                        "[[GOD]][[2]] and [[GOD]] are [[go play, children! I'll watch from here]].",
+                        "[[GOD]][[2]] and [[GOD]] are [[STOP LOOKING AT MY DECK YOU FILTHY CHEATER!]].",
+                        "[[the void is coming.]]"
+                    ];
+
                     var randomMessage = Std.random(100) < 20 // 20% chance for creepy messages
                         ? creepyMessages[Std.random(creepyMessages.length)]
                         : funnyMessages[Std.random(funnyMessages.length)];
+                    if FlxG.random.bool(1) randomMessage = funnySpamMessages[Std.random(funnySpamMessages.length)];
                     if (!PlatformUtil.sendWindowsNotification("Archipelago", randomMessage)) {
                         APItem.popup(randomMessage, "Archipelago", true);
                     }
