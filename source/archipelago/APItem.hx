@@ -2261,11 +2261,21 @@ class APrilFools extends APTrap {
                         "[[GOD]][[2]] and [[GOD]] are [[STOP LOOKING AT MY DECK YOU FILTHY CHEATER!]].",
                         "[[the void is coming.]]"
                     ];
-
-                    var randomMessage = Std.random(100) < 20 // 20% chance for creepy messages
-                        ? creepyMessages[Std.random(creepyMessages.length)]
-                        : funnyMessages[Std.random(funnyMessages.length)];
-                    if FlxG.random.bool(1) randomMessage = funnySpamMessages[Std.random(funnySpamMessages.length)];
+                    @:privateAccess
+                    var randomMessage:String = (FlxG.random.bool((APInfo.ap != null && APInfo.ap._players != null && (function():Bool {
+                        for (p in APInfo.ap._players) {
+                            try {
+                                if (APInfo.ap.get_player_game(p.slot) == "Deltarune") return true;
+                            } catch (e:Dynamic) {
+                                // ignore malformed entries
+                            }
+                        }
+                        return false;
+                    })()) ? 10 : 1))
+                        ? funnySpamMessages[Std.random(funnySpamMessages.length)]
+                        : (Std.random(100) < 20
+                            ? creepyMessages[Std.random(creepyMessages.length)]
+                            : funnyMessages[Std.random(funnyMessages.length)]);
                     if (!PlatformUtil.sendWindowsNotification("Archipelago", randomMessage)) {
                         APItem.popup(randomMessage, "Archipelago", true);
                     }
