@@ -223,11 +223,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		// Pre-allocate a few note splashes for better performance
 		// No need, you only need one. It creates everything else for you
-		var splash:NoteSplash = new NoteSplash();
-		splash.handleRendering = false;
-		grpNoteSplashes.add(splash);
-		grpNoteSplashes.visible = false; // so they dont get drawn
-		splash.alpha = 0.0;
+		if (ClientPrefs.data.noteSplashes) {
+			var splash:NoteSplash = new NoteSplash();
+			splash.handleRendering = false;
+			grpNoteSplashes.add(splash);
+			grpNoteSplashes.visible = false; // so they dont get drawn
+			splash.alpha = 0.0;
+		}
 
 		////
 		noteField = new NoteField(this, modMgr);
@@ -963,6 +965,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		splash.handleRendering = false;*/
 
 		// do it the way god (troll engine) intended
+		if (ClientPrefs.data.noteSplashes == false)
+			return null;
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
 		splash.setupNoteSplash(0, 0, note.column, splashSkin);
 		splash.handleRendering = false;

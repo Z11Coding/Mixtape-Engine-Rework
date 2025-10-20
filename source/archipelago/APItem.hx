@@ -266,10 +266,10 @@ class APItem {
                     });
                 }), function() {
                     // Check if we need to download repository content first
-                    if (APInfo.slotData != null && APInfo.slotData.highQualityExpected) {
+                    if (APInfo.slotData != null && APInfo.slotData.highQualityExpected && archipelago.HighQualityTrapManager.needsWaitingState()) {
                         // If expected but not available, go to existing high quality waiting state
                         if (APInfo.apGame != null && APInfo.ap != null) {
-                            FlxG.switchState(new archipelago.states.HighQualityWaitingState(APInfo.apGame, APInfo.ap));
+                            FlxG.switchState(new archipelago.states.HighQualityWaitingState(APInfo.apGame, APInfo.ap, true));
                         } else {
                             // Fallback: use the non-AP waiting state if not in AP context
                             FlxG.switchState(new states.HighQualityTrapWaitingState());
@@ -684,6 +684,7 @@ class APItem {
                 }), function() {
                     popup('Oh god no here she comes', "Resistance Trap", true);
                     APPlayState.instance.startResisting();
+                    APPlayState.resisting = true;
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;

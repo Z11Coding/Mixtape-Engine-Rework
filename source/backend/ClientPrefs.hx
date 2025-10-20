@@ -17,6 +17,7 @@ import states.TitleState;
 	public var noteSkin:String = 'Default';
 	public var splashSkin:String = 'Psych';
 	public var splashAlpha:Float = 0.6;
+	public var noteSplashes:Bool = false;
 	public var lowQuality:Bool = false;
 	public var trashMode:Bool = false;
 	public var ultratrashMode:Bool = false;

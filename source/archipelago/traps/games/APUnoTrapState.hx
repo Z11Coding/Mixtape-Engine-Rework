@@ -116,7 +116,7 @@ class APUnoTrapState extends UnoTestState {
                             archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                             // Save AP Data.
                                 APEntryState.apGame.updateSaveData();
-                            TrapDeathHandler.forceDeath("Lost UNO Challenge", Type.createInstance(previousState, []), Type.createInstance(previousState, []));
+                            TrapDeathHandler.forceDeath("Lost UNO Challenge");
                         });
                     }
                 };

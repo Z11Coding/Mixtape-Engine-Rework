@@ -531,6 +531,10 @@ class APStyledEntryState extends MusicBeatState {
         }
         FNF.destroy();
 
+
+        infoContent += "\n\nNote for Universal Tracker users: \n";
+        infoContent += "Ensure that when you connect with Universal Tracker, you have all of the YAML files of all players in your session placed in the Archipelago Players folder, so that all items and IDs can be properly synchronized.";
+
         openSubState(new InfoPanelSubstate(infoTitle, infoContent, FlxColor.CYAN));
     }
 
@@ -899,7 +903,7 @@ class APStyledEntryState extends MusicBeatState {
         // Check if high quality content is expected and should be downloaded
         if (slotData != null && slotData.highQualityExpected == true) {
             // Go to existing high quality waiting state first
-            FlxG.switchState(new archipelago.states.HighQualityWaitingState(apGame, ap));
+            FlxG.switchState(new archipelago.states.HighQualityWaitingState(apGame, ap, false));
         } else {
             // Normal flow - go directly to AP category state
             FlxG.switchState(new archipelago.APCategoryState(apGame, ap));

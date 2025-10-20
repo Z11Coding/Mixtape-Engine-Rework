@@ -33,6 +33,7 @@ class APPlayState extends PlayState {
     public static var deathByLink:Bool = false;
     public static var deathByBlueBalls:Bool = false;
     public static var alreadyKilledByLink:Bool = false;
+    public static var resisting:Bool = false;
     public var antiHornySpray:Bool = false;
     public var noHorny(get, never):Bool;
 
@@ -2556,6 +2557,12 @@ class APPlayState extends PlayState {
             archipelago.APItem.activeItem = null;
 
 		ClientPrefs.data.downScroll = ogScroll;
+
+        if (resisting)
+        {
+            resisting = false;
+            boyfriend.playAnim('Hey!', true);
+        }
 
         if (releasethebeast)
         {

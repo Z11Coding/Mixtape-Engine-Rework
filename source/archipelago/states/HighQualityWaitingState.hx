@@ -30,11 +30,13 @@ class HighQualityWaitingState extends MusicBeatState {
     private var loadingTimer:FlxTimer;
     private var _apGame:archipelago.APGameState;
     private var _apClient:archipelago.Client;
+    private var _useTrap:Bool;
 
-    public function new(apGame:archipelago.APGameState, apClient:archipelago.Client) {
+    public function new(apGame:archipelago.APGameState, apClient:archipelago.Client, ?useTrap:Bool = true) {
         super();
         _apGame = apGame;
         _apClient = apClient;
+        _useTrap = useTrap;
     }
 
     override function create():Void {
@@ -162,6 +164,10 @@ class HighQualityWaitingState extends MusicBeatState {
         new FlxTimer().start(1.5, function(timer:FlxTimer) {
             trace("HighQualityWaitingState: Transitioning to APCategoryState");
 
+            if (_useTrap) {
+                HighQualityTrapManager.startUsingTrap();
+            }
+
             // Get the current AP game state from APInfo
             var gameState = APInfo.apGame;
             if (gameState != null) {
@@ -177,10 +183,10 @@ class HighQualityWaitingState extends MusicBeatState {
         super.update(elapsed);
 
         // Allow manual skip with ESCAPE or ENTER (for testing)
-        if (FlxG.keys.justPressed.ESCAPE || FlxG.keys.justPressed.ENTER) {
-            trace("HighQualityWaitingState: Manual skip triggered");
-            completeInstallation();
-        }
+        // if (FlxG.keys.justPressed.ESCAPE || FlxG.keys.justPressed.ENTER) {
+        //     trace("HighQualityWaitingState: Manual skip triggered");
+        //     completeInstallation();
+        // }
     }
 
     override function destroy():Void {
@@ -192,6 +198,8 @@ class HighQualityWaitingState extends MusicBeatState {
             loadingTimer.cancel();
             loadingTimer = null;
         }
+
+        HighQualityTrapManager.activateTrap();
 
         super.destroy();
     }

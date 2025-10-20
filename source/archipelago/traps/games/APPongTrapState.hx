@@ -225,7 +225,7 @@ class APPongTrapState extends PongGameState {
                     new FlxTimer().start(2.0, function(timer) {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
-                        TrapDeathHandler.forceDeath("Lost Pong Challenge", Type.createInstance(previousState, []), Type.createInstance(previousState, []));
+                        TrapDeathHandler.forceDeath("Lost Pong Challenge");
                     });
                 }
             };

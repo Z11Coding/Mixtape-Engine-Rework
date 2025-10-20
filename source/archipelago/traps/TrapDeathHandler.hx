@@ -1,12 +1,13 @@
 package archipelago.traps;
 
-import backend.COD;
-import backend.MusicBeatState;
-import backend.ClientPrefs;
-import states.PlayState;
-import substates.GameOverSubstate;
 import archipelago.APEntryState;
 import archipelago.APPlayState;
+import backend.COD;
+import backend.ClientPrefs;
+import backend.MusicBeatState;
+import managers.FreeplayManager;
+import states.PlayState;
+import substates.GameOverSubstate;
 
 /**
  * Utility class for forcing death in AP trap games
@@ -37,7 +38,7 @@ class TrapDeathHandler {
         if (APEntryState.apGame != null && APEntryState.apGame.info() != null &&
             ClientPrefs.data.deathlink) {
             try {
-                APEntryState.apGame.info().sendDeathLink(COD.COD);
+                APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
                 trace("TrapDeathHandler: Death link sent with cause: " + COD.COD);
             } catch (e:Dynamic) {
                 trace("TrapDeathHandler: Failed to send death link: " + e);
@@ -51,6 +52,18 @@ class TrapDeathHandler {
             trace("TrapDeathHandler: Found boyfriend in PlayState.instance");
         } else {
             trace("TrapDeathHandler: No PlayState.instance or boyfriend found, GameOverSubstate will create default");
+        }
+
+        // If no custom return state is provided, use FreeplayState from APPlayState
+        if (customReturnState == null) {
+            customReturnState = cast FreeplayManager.getNewFreeplayInstance();
+            trace("TrapDeathHandler: Using FreeplayState as return state");
+        }
+
+        // If no custom back state is provided, use FreeplayState from APPlayState
+        if (customBackState == null) {
+            customBackState = cast FreeplayManager.getNewFreeplayInstance();
+            trace("TrapDeathHandler: Using FreeplayState as back state");
         }
 
         // Create GameOverSubstate with boyfriend and custom states

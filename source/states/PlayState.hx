@@ -2508,6 +2508,8 @@ class PlayState extends MusicBeatState
 							FlxTween.tween(camCredit, {alpha: 0, y: 1000}, 1, {ease: FlxEase.circInOut});
 						});
 						rank.doTween('in');
+						if (archipelago.APPlayState.resisting)
+						archipelago.APPlayState.instance?.startResisting();
 						tick = START;
 				}
 

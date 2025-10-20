@@ -1701,246 +1701,282 @@ class Client {
 		_ws.close();
 	}
 
+	var _isUsingCompression:Bool = false;
 	/**
 		Called when the websocket receives a message.
 		@param msg The message received.
 	**/
-	private function onmessage(msg:MessageType) {
-		trace("onmessage()");
-		switch (msg) {
-			case StrMessage(content):
-				_recvLock.execute(() -> {
-					try {
-						// Comprehensive debugging of the received data
-						trace("=== RAW MESSAGE ANALYSIS ===");
-						trace("Content length: " + content.length);
-						// trace("First 100 chars: " + content.substr(0, 100));
+private function onmessage(msg:MessageType) {
+	trace("onmessage()");
+	switch (msg) {
+		case StrMessage(content):
+			_recvLock.execute(() -> {
+				try {
+					trace("=== RAW MESSAGE ANALYSIS (String) ===");
+					trace("Content length: " + content.length);
 
-						// // Show character codes for first 20 characters
-						// var charCodes = [];
-						// for (i in 0...Std.int(Math.min(20, content.length))) {
-						// 	charCodes.push(content.charCodeAt(i));
-						// }
-						// trace("First 20 char codes: " + charCodes.join(", "));
+					var trimmed = StringTools.trim(content);
 
-						// // Convert to bytes and show hex
-						var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
-						// var hexBytes = [];
-						// for (i in 0...Std.int(Math.min(20, contentBytes.length))) {
-						// 	hexBytes.push(StringTools.hex(contentBytes.get(i), 2));
-						// }
-						// trace("First 20 bytes (hex): " + hexBytes.join(" "));
-
-						// Check if it's already valid JSON
-						var trimmed = StringTools.trim(content);
-						if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
-							trace("Data appears to be uncompressed JSON");
-							var newPackets:Array<IncomingPacket> = TJson.parse(content);
-							for (newPacket in newPackets)
-								_recvQueue.push(newPacket);
-							trace('=== END OF RAW MESSAGE ANALYSIS ===');
-							return;
-						}
-
-						// Check for common compression signatures
-						var first2Bytes = contentBytes.length >= 2 ? (contentBytes.get(0) << 8) | contentBytes.get(1) : 0;
-						trace("First 2 bytes as uint16: 0x" + StringTools.hex(first2Bytes, 4));
-
-						// Check for various compression formats
-						if (contentBytes.length >= 2) {
-							var b1 = contentBytes.get(0);
-							var b2 = contentBytes.get(1);
-
-							if (b1 == 0x78 && (b2 == 0x01 || b2 == 0x5E || b2 == 0x9C || b2 == 0xDA)) {
-								trace("Detected zlib header");
-							} else if (b1 == 0x1F && b2 == 0x8B) {
-								trace("Detected gzip header");
-							} else if (b1 == 0x08 || b1 == 0x01) {
-								trace("Possible deflate block header");
-							} else {
-								trace("Unknown compression format or uncompressed data");
-							}
-						}
-
-						// Try multiple decompression approaches
-						var approaches = [
-							function():String {
-								trace("Approach 0: Inflater.");
-								try {
-									var inflater = new Inflater();
-									var output = inflater.decompress(haxe.io.Bytes.ofString(content));
-									return output.toString();
-								} catch (e:Dynamic) {
-									trace("Inflater failed: " + e);
-									return null;
-								}
-							},
-
-							// Approach 1: Try as-is if it looks like JSON
-							function():String {
-								trace("Approach 1: Direct parsing");
-								if (content.indexOf('"') >= 0 || content.indexOf('[') >= 0 || content.indexOf('{') >= 0) {
-									return content;
-								}
-								return null;
-							},
-
-							// Approach 2: Our custom permessage-deflate
-							function():String {
-								trace("Approach 2: PermessageDeflate");
-								return PermessageDeflate.smartDecompress(content);
-							},
-
-							// Approach 3: Raw deflate with Haxe's implementation
-							function():String {
-								trace("Approach 3: Raw deflate");
-								try {
-									var input = new haxe.io.StringInput(content);
-									var inflater = new haxe.zip.InflateImpl(input, false, false);
-									var output = new haxe.io.BytesOutput();
-									@:privateAccess
-									inflater.output = output.getBytes();
-									var output = haxe.zip.InflateImpl.run(input);
-									return output.toString();
-								} catch (e:Dynamic) {
-									trace("Raw deflate failed: " + e);
-									return null;
-								}
-							},
-
-							// Approach 4: Try base64 decode first
-							function():String {
-								trace("Approach 4: Base64 decode");
-								try {
-									var decoded = haxe.crypto.Base64.decode(content);
-									return decoded.toString();
-								} catch (e:Dynamic) {
-									trace("Base64 decode failed: " + e);
-									return null;
-								}
-							},
-
-							// Approach 5: Try URL decode
-							function():String {
-								trace("Approach 5: URL decode");
-								try {
-									var decoded = StringTools.urlDecode(content);
-									if (decoded != content) {
-										return decoded;
-									}
-									return null;
-								} catch (e:Dynamic) {
-									trace("URL decode failed: " + e);
-									return null;
-								}
-							},
-
-							// Approach 6: Try treating each character as a byte
-							function():String {
-								trace("Approach 6: Character-to-byte conversion");
-								try {
-									var bytes = haxe.io.Bytes.alloc(content.length);
-									for (i in 0...content.length) {
-										bytes.set(i, content.charCodeAt(i) & 0xFF);
-									}
-									return bytes.toString();
-								} catch (e:Dynamic) {
-									trace("Char-to-byte failed: " + e);
-									return null;
-								}
-							}
-						];
-
-						var decompressedContent:String = null;
-						for (i in 0...approaches.length) {
-							try {
-								var result = approaches[i]();
-								if (result != null && result != content) {
-									trace("Approach " + (i + 1) + " produced different result (length: " + result.length + ")");
-									trace("Result preview: " + result.substr(0, 100));
-
-									// Check if result looks like valid JSON
-									var trimmedResult = StringTools.trim(result);
-
-									if ((function(str:String):Bool {
-										try {
-											return str != null && (
-												str.startsWith("[") || str.startsWith("{")
-												|| (TJson.parse(str) != null)
-											);
-										} catch (e:Dynamic) {
-											return false;
-										}
-									})(result)) {
-										trace("Approach " + (i + 1) + " produced valid JSON!");
-										decompressedContent = result;
-										break;
-									}
-								} else if (result != null) {
-									trace("Approach " + (i + 1) + " returned same content");
-								} else {
-									trace("Approach " + (i + 1) + " returned null");
-								}
-							} catch (e:Dynamic) {
-								trace("Approach " + (i + 1) + " failed: " + e);
-							}
-						}
-
-						// If nothing worked, use original content
-						if (decompressedContent == null) {
-							trace("All decompression approaches failed, using original content");
-							decompressedContent = content;
-						}
-
-						trace("Final content preview: " + decompressedContent.substr(0, 100));
-						trace("=== END ANALYSIS ===");
-
-						var newPackets:Array<IncomingPacket> = TJson.parse(decompressedContent);
-						for (newPacket in newPackets)
-							_recvQueue.push(newPacket);
-					} catch (e) {
-						trace("EXCEPTION onmessage: " + e);
-						_hOnThrow("onmessage", e);
-						trace("Content: " + content);
+					// Quick path: if it already looks like JSON, parse and return
+					if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+						trace("Data appears to be uncompressed JSON");
+						var newPackets:Array<IncomingPacket> = TJson.parse(content);
+						for (newPacket in newPackets) _recvQueue.push(newPacket);
+						trace("=== END RAW MESSAGE ANALYSIS ===");
+						return;
 					}
-				});
 
-			case BytesMessage(bytes):
-				_recvLock.execute(() -> {
-					try {
-						var rawBytes = bytes.readAllAvailableBytes();
-						var decompressedContent:String;
+					// Convert incoming string to raw bytes
+					var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
+					trace("Content bytes length: " + contentBytes.length);
 
+					// Helper that uses an instance of Uncompress (so we can set windowBits)
+					var tryUncompress = function(src:haxe.io.Bytes, windowBits:Int):haxe.io.Bytes {
+						var u:haxe.zip.Uncompress = null;
 						try {
-							// Try to decompress the bytes using our custom permessage-deflate handler
-							var uncompressed = PermessageDeflate.decompress(rawBytes);
-							if (uncompressed != null) {
-								decompressedContent = uncompressed.toString();
-								trace("Successfully decompressed bytes message using PermessageDeflate (length: " + rawBytes.length + " -> " + decompressedContent.length + ")");
-							} else {
-								// If our handler fails, treat as plain text
-								decompressedContent = rawBytes.toString();
-								trace("PermessageDeflate returned null, using raw bytes as string");
+							u = new haxe.zip.Uncompress(windowBits);
+							// Set synchronous flushing so execute returns properly
+							u.setFlushMode(haxe.zip.FlushMode.SYNC);
+							var pos = 0;
+							var tmp = haxe.io.Bytes.alloc(1 << 16); // 64KB temp buffer
+							var buf = new haxe.io.BytesBuffer();
+							while (true) {
+								var r = u.execute(src, pos, tmp, 0);
+								// r.read = input bytes consumed; r.write = bytes written into tmp; r.done = finished
+								if (r.write > 0) buf.addBytes(tmp, 0, r.write);
+								pos += r.read;
+								if (r.done) break;
+								// Defensive: if no progress, break to avoid infinite loop
+								if (r.read == 0 && r.write == 0) {
+									throw "inflate made no progress";
+								}
+							}
+							var out = buf.getBytes();
+							u.close();
+							return out;
+						} catch (e:Dynamic) {
+							// ensure we close the inflater on error
+							try {
+								if (u != null) u.close();
+							} catch (_:Dynamic) {}
+							return null;
+						} };
+
+					var decompressedBytes:haxe.io.Bytes = null;
+					var decompressed:String = null;
+
+					// Attempt 1: raw DEFLATE with appended RFC7692 trailer (recommended)
+					try {
+						trace("Attempt 1: raw inflate with appended RFC7692 trailer (windowBits = -15)");
+						var trailer = haxe.io.Bytes.alloc(4);
+						trailer.set(0, 0); trailer.set(1, 0); trailer.set(2, 255); trailer.set(3, 255);
+						var withTrailer = haxe.io.Bytes.alloc(contentBytes.length + 4);
+						withTrailer.blit(0, contentBytes, 0, contentBytes.length);
+						withTrailer.blit(contentBytes.length, trailer, 0, 4);
+
+						decompressedBytes = tryUncompress(withTrailer, -15);
+						if (decompressedBytes != null) {
+							decompressed = decompressedBytes.toString();
+							trace("Attempt 1 succeeded (len → " + decompressed.length + ")");
+						}
+					} catch (e:Dynamic) {
+						trace("Attempt 1 threw: " + e);
+						decompressed = null;
+						decompressedBytes = null;
+					}
+
+					// Attempt 2: raw DEFLATE without trailer
+					if (decompressed == null) {
+						try {
+							trace("Attempt 2: raw inflate without trailer (windowBits = -15)");
+							decompressedBytes = tryUncompress(contentBytes, -15);
+							if (decompressedBytes != null) {
+								decompressed = decompressedBytes.toString();
+								trace("Attempt 2 succeeded (len → " + decompressed.length + ")");
 							}
 						} catch (e:Dynamic) {
-							// If all decompression fails, treat as plain text
-							trace("All decompression failed for bytes message: " + e);
-							decompressedContent = rawBytes.toString();
+							trace("Attempt 2 threw: " + e);
+							decompressed = null;
+							decompressedBytes = null;
 						}
-
-						var newPackets:Array<IncomingPacket> = TJson.parse(decompressedContent);
-						// trace(newPackets);
-						for (newPacket in newPackets)
-							_recvQueue.push(newPacket);
-					} catch (e) {
-						trace("EXCEPTION onmessage: " + e);
-						_hOnThrow("onmessage", e);
 					}
-				});
 
-			default:
-		}
+					// Attempt 3: zlib-wrapped (header) as a fallback
+					if (decompressed == null) {
+						try {
+							trace("Attempt 3: zlib-wrapped inflate (windowBits = 15)");
+							decompressedBytes = tryUncompress(contentBytes, 15);
+							if (decompressedBytes != null) {
+								decompressed = decompressedBytes.toString();
+								trace("Attempt 3 succeeded (len → " + decompressed.length + ")");
+							}
+						} catch (e:Dynamic) {
+							trace("Attempt 3 threw: " + e);
+							decompressed = null;
+							decompressedBytes = null;
+						}
+					}
+
+					// If decompressed and looks like JSON, parse and enqueue
+					if (decompressed != null) {
+						var t = StringTools.trim(decompressed);
+						if (t.length > 0 && (t.startsWith("{") || t.startsWith("["))) {
+							trace("Decompressed content looks like JSON — enqueuing (len: " + decompressed.length + ")");
+							_isUsingCompression = true;
+							var newPackets:Array<IncomingPacket> = TJson.parse(decompressed);
+							for (newPacket in newPackets) _recvQueue.push(newPacket);
+							trace("=== END RAW MESSAGE ANALYSIS ===");
+							return;
+						} else {
+							trace("Decompressed content does not look like JSON — preview: " + decompressed.substr(0, new Num(Math.min(200, decompressed.length))));
+						}
+					} else {
+						trace("All uncompress attempts returned null for StrMessage.");
+					}
+
+					// Fallback: try to parse original content as JSON (maybe server sent non-deflate)
+					try {
+						trace("Falling back to raw content parsing");
+						var fallbackPackets:Array<IncomingPacket> = TJson.parse(content);
+						for (np in fallbackPackets) _recvQueue.push(np);
+					} catch (e:Dynamic) {
+						trace("Fallback JSON parsing failed: " + e);
+						_hOnThrow("onmessage", e);
+						trace("Content (raw): " + content);
+						trace("Content as Base64: " + haxe.crypto.Base64.encode(haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative)));
+						trace("Content as Hex: " + haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative).toHex());
+					}
+				} catch (e:Dynamic) {
+					trace("EXCEPTION onmessage (StrMessage outer): " + e);
+					_hOnThrow("onmessage", e);
+				}
+			});
+
+		case BytesMessage(bytes):
+			_recvLock.execute(() -> {
+				try {
+					trace("=== RAW MESSAGE ANALYSIS (Bytes) ===");
+					var rawBytes = bytes.readAllAvailableBytes();
+					trace("Raw bytes length: " + rawBytes.length);
+
+					// reuse tryUncompress logic but for bytes
+					var tryUncompressBytes = function(src:haxe.io.Bytes, windowBits:Int):haxe.io.Bytes {
+						var u:haxe.zip.Uncompress = null;
+						try {
+							u = new haxe.zip.Uncompress(windowBits);
+							u.setFlushMode(haxe.zip.FlushMode.SYNC);
+							var pos = 0;
+							var tmp = haxe.io.Bytes.alloc(1 << 16);
+							var buf = new haxe.io.BytesBuffer();
+							while (true) {
+								var r = u.execute(src, pos, tmp, 0);
+								if (r.write > 0) buf.addBytes(tmp, 0, r.write);
+								pos += r.read;
+								if (r.done) break;
+								if (r.read == 0 && r.write == 0) throw "inflate made no progress";
+							}
+							var out = buf.getBytes();
+							return out;
+						} catch (e:Dynamic) {
+							try { if (u != null) u.close(); } catch (_:Dynamic) {}
+							return null;
+						}
+					};
+
+					var decompressedBytes:haxe.io.Bytes = null;
+					var decompressed:String = null;
+
+					// 1) raw + trailer
+					try {
+						trace("Attempt 1 (bytes): raw inflate with appended RFC7692 trailer (windowBits = -15)");
+						var trailer = haxe.io.Bytes.alloc(4);
+						trailer.set(0, 0); trailer.set(1, 0); trailer.set(2, 255); trailer.set(3, 255);
+						var withTrailer = haxe.io.Bytes.alloc(rawBytes.length + 4);
+						withTrailer.blit(0, rawBytes, 0, rawBytes.length);
+						withTrailer.blit(rawBytes.length, trailer, 0, 4);
+
+						decompressedBytes = tryUncompressBytes(withTrailer, -15);
+						if (decompressedBytes != null) {
+							decompressed = decompressedBytes.toString();
+							trace("Attempt 1 (bytes) succeeded (len → " + decompressed.length + ")");
+						}
+					} catch (e:Dynamic) {
+						trace("Attempt 1 (bytes) threw: " + e);
+						decompressed = null;
+						decompressedBytes = null;
+					}
+
+					// 2) raw without trailer
+					if (decompressed == null) {
+						try {
+							trace("Attempt 2 (bytes): raw inflate without trailer (windowBits = -15)");
+							decompressedBytes = tryUncompressBytes(rawBytes, -15);
+							if (decompressedBytes != null) {
+								decompressed = decompressedBytes.toString();
+								trace("Attempt 2 (bytes) succeeded (len → " + decompressed.length + ")");
+							}
+						} catch (e:Dynamic) {
+							trace("Attempt 2 (bytes) threw: " + e);
+							decompressed = null;
+							decompressedBytes = null;
+						}
+					}
+
+					// 3) zlib-wrapped
+					if (decompressed == null) {
+						try {
+							trace("Attempt 3 (bytes): zlib-wrapped inflate (windowBits = 15)");
+							decompressedBytes = tryUncompressBytes(rawBytes, 15);
+							if (decompressedBytes != null) {
+								decompressed = decompressedBytes.toString();
+								trace("Attempt 3 (bytes) succeeded (len → " + decompressed.length + ")");
+							}
+						} catch (e:Dynamic) {
+							trace("Attempt 3 (bytes) threw: " + e);
+							decompressed = null;
+							decompressedBytes = null;
+						}
+					}
+
+					// If success and JSON-looking, enqueue
+					if (decompressed != null) {
+						var t = StringTools.trim(decompressed);
+						if (t.length > 0 && (t.startsWith("{") || t.startsWith("["))) {
+							trace("Decompressed bytes look like JSON — enqueuing (len: " + decompressed.length + ")");
+							_isUsingCompression = true;
+							var newPackets:Array<IncomingPacket> = TJson.parse(decompressed);
+							for (newPacket in newPackets) _recvQueue.push(newPacket);
+							trace("=== END RAW MESSAGE ANALYSIS ===");
+							return;
+						} else {
+							trace("Decompressed bytes do not look like JSON — preview: " + decompressed.substr(0, new Num(Math.min(200, decompressed.length))));
+						}
+					} else {
+						trace("All uncompress attempts failed for BytesMessage.");
+					}
+
+					// Fallback: parse raw bytes as string
+					try {
+						var fallbackStr:String = rawBytes.toString();
+						var fallbackPackets:Array<IncomingPacket> = TJson.parse(fallbackStr);
+						for (np in fallbackPackets) _recvQueue.push(np);
+						trace("Fallback bytes->string parse succeeded");
+					} catch (e:Dynamic) {
+						trace("Fallback bytes->string JSON parse failed: " + e);
+						_hOnThrow("onmessage", e);
+						trace("Raw bytes as Base64: " + haxe.crypto.Base64.encode(rawBytes));
+						trace("Raw bytes as Hex: " + rawBytes.toHex());
+					}
+				} catch (e:Dynamic) {
+					trace("EXCEPTION onmessage (BytesMessage outer): " + e);
+					_hOnThrow("onmessage", e);
+				}
+			});
+
+		default:
 	}
+}
+
 
 	/**
 		Called when the websocket encounters an error.
