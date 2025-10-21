@@ -679,7 +679,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
-                        return states.PlayState.instance?.startedSong == true;
+                        return states.PlayState.instance?.startedSong == true && APPlayState.resisting == false;
                     });
                 }), function() {
                     popup('Oh god no here she comes', "Resistance Trap", true);
@@ -689,6 +689,80 @@ class APItem {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
+
+            case "Mute Trap":
+                return new APTrap(name, ConditionHelper.Special(), function() {
+                    popup('...', "Mute Trap", true);
+                    // Random between 1 to 30 seconds
+                    var muteDuration = FlxG.random.int(1, 30);
+                    new FlxTimer().start(muteDuration, function(tmr:FlxTimer)
+                    {
+                        // Randomly choose between toggling mute or changing volume with a tween
+                        if (FlxG.random.bool(50)) {
+                            // Toggle mute immediately
+                            FlxG.sound.toggleMuted();
+                        } else {
+                        //     // Decide reduction target: usually reduce to 0, 1% chance to reduce by a random 0-1 amount
+                        //     var currentVol:Float = FlxG.sound.volume;
+                        //     var reduction:Float = if (FlxG.random.bool(1)) FlxG.random.float(0, 1) else currentVol;
+                        //     reduction = Math.min(reduction, currentVol); // never reduce below 0
+                        //     var duration:Float = FlxG.random.float(1, 2); // 1 to 2 seconds
+
+                        //     // First attempt: tween from 0 -> reduction and call changeVolume with the incremental negative delta
+                        //     var prev:Float = 0;
+                        //     flixel.tweens.FlxTween.num(0, reduction, duration, null, function(value:Float) {
+                        //         var delta:Float = value - prev;
+                        //         prev = value;
+                        //         try {
+                        //             FlxG.sound.changeVolume(-delta);
+                        //         } catch (e:Dynamic) {
+                        //             // ignore any errors calling changeVolume
+                        //         }
+                        //     }, { onComplete: function() {
+                        //         // If volume still not 0 because player fought it, try once more
+                        //         try {
+                        //             if (FlxG.sound.volume > 0) {
+                        //                 var currentVol2:Float = FlxG.sound.volume;
+                        //                 var reduction2:Float = if (FlxG.random.bool(1)) FlxG.random.float(0, 1) else currentVol2;
+                        //                 reduction2 = Math.min(reduction2, currentVol2);
+                        //                 var duration2:Float = FlxG.random.float(0.8, 1.6);
+
+                        //                 var prev2:Float = 0;
+                        //                 flixel.tweens.FlxTween.num(0, reduction2, duration2, function(value2:Float) {
+                        //                     var delta2:Float = value2 - prev2;
+                        //                     prev2 = value2;
+                        //                     try {
+                        //                         FlxG.sound.changeVolume(-delta2);
+                        //                     } catch (e:Dynamic) {
+                        //                         // ignore
+                        //                     }
+                        //                 }, { onComplete: function() {
+                        //                     // After second attempt, force volume to 0 by applying remaining negative delta
+                        //                     try {
+                        //                         var need:Float = FlxG.sound.volume;
+                        //                         if (need > 0) {
+                        //                             FlxG.sound.changeVolume(-need);
+                        //                         }
+                        //                     } catch (e:Dynamic) {
+                        //                         // ignore
+                        //                     }
+                        //                 }});
+                        //             } else {
+                        //                 // Already at 0, nothing to do
+                        //             }
+                        //         } catch (e:Dynamic) {
+                        //             // ignore any unexpected errors
+                        //         }
+                            // }});
+                        }
+
+                        FlxDestroyUtil.destroy(tmr);
+                    });
+                }, true, true).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
 
             case "Ultimate Confusion Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {

@@ -61,7 +61,7 @@ class APFreeplayManager extends FreeplayManager {
     public static var curUnlocked:Array<{song:String, mod:String}> = [];
 	public static var curMissing:Array<{song:String, mod:String}> = [];
 	public static var curHinted:Array<{song:String, mod:String}> = [];
-	public static var hintTable:Map<String, String> = new Map<String, String>();
+	public static var hintTable:Map<String, Array<String>> = new Map<String, Array<String>>();
 	public static var trueMissing:Array<{song:String, mod:String}> = [];
 	public static var unplayedList:Array<{song:String, mod:String}> = [];
     public static var callVictory:Bool = false;
@@ -83,6 +83,38 @@ class APFreeplayManager extends FreeplayManager {
 		var locationId = songName;
 		locationId += (modName.trim() != "") ? " (" + modName + ")" : "";
 		return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');
+	}
+
+	/**
+	 * Get hints for a specific song
+	 * @param songName The song name
+	 * @param modName The mod name (can be null or empty)
+	 * @return Array of hint strings, empty if no hints
+	 */
+	public static function getHintsForSong(songName:String, modName:String):Array<String> {
+		if (modName == null) modName = "";
+
+		// Create the full song identifier used in hint storage
+		var fullSongName = songName;
+		if (modName.trim() != "") {
+			fullSongName += " (" + modName + ")";
+		}
+
+		if (hintTable.exists(fullSongName)) {
+			return hintTable.get(fullSongName).copy(); // Return copy to prevent external modification
+		}
+
+		return []; // No hints found
+	}
+
+	/**
+	 * Check if a song has any hints available
+	 * @param songName The song name
+	 * @param modName The mod name (can be null or empty)
+	 * @return True if hints exist, false otherwise
+	 */
+	public static function hasHintsForSong(songName:String, modName:String):Bool {
+		return getHintsForSong(songName, modName).length > 0;
 	}
 
     // public static function addHint(song:String, item)
@@ -196,7 +228,7 @@ class APFreeplayManager extends FreeplayManager {
         curUnlocked = [];
         curMissing = [];
         curHinted = [];
-        hintTable = new Map<String, String>();
+        hintTable = new Map<String, Array<String>>();
         trueMissing = [];
         unplayedList = [];
         callVictory = false;

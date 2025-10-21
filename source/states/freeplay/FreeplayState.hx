@@ -871,18 +871,41 @@ class FreeplayState extends MusicBeatState
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
 				if (APFreeplayManager.isVictorySong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder) && !vicCheck) {
-					FlxG.camera.shake(0.005, 0.5);
-					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					grpSongs.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					});
-					grpLocks.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					});
-					FlxTween.color(ticketCounter, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					return;
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder);
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + fpManager.songList[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show the missing text
+								missingText.text = 'You don\'t have enough tickets to play this victory song.\n\nRequired: ${APInfo.ticketWinCount}\nYou have: ${APInfo.ticketCount}';
+								missingText.screenCenter(Y);
+								missingText.visible = true;
+								missingTextBG.visible = true;
+								FlxG.sound.play(Paths.sound('cancelMenu'));
+							}
+						);
+						return;
+					} else {
+						// No hints, show missing text immediately
+						missingText.text = 'You don\'t have enough tickets to play this victory song.\n\nRequired: ${APInfo.ticketWinCount}\nYou have: ${APInfo.ticketCount}';
+						missingText.screenCenter(Y);
+						missingText.visible = true;
+						missingTextBG.visible = true;
+						FlxG.sound.play(Paths.sound('cancelMenu'));
+						return;
+					}
 				}
 
 				// Check if song is locked (not in curUnlocked)
@@ -891,32 +914,80 @@ class FreeplayState extends MusicBeatState
 
 				if (isLocked) {
 					trace('Song is locked (not in curUnlocked)!');
-					FlxG.camera.shake(0.005, 0.5);
-					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					grpSongs.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					});
-					grpLocks.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					});
-					return;
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder);
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + fpManager.songList[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show the missing text
+								missingText.text = "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.";
+								missingText.screenCenter(Y);
+								missingText.visible = true;
+								missingTextBG.visible = true;
+								FlxG.sound.play(Paths.sound('cancelMenu'));
+							}
+						);
+						return;
+					} else {
+						// No hints, show missing text immediately
+						missingText.text = "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.";
+						missingText.screenCenter(Y);
+						missingText.visible = true;
+						missingTextBG.visible = true;
+						FlxG.sound.play(Paths.sound('cancelMenu'));
+						return;
+					}
 				}
 
 				if (APFreeplayManager.trueMissing.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder}) && !APFreeplayManager.unplayedList.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder})) {
 					trace('Song is locked!');
-					FlxG.camera.shake(0.005, 0.5);
-					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					grpSongs.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					});
-					grpLocks.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					});
-					return;
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder);
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + fpManager.songList[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show the missing text
+								missingText.text = "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.";
+								missingText.screenCenter(Y);
+								missingText.visible = true;
+								missingTextBG.visible = true;
+								FlxG.sound.play(Paths.sound('cancelMenu'));
+							}
+						);
+						return;
+					} else {
+						// No hints, show missing text immediately
+						missingText.text = "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.";
+						missingText.screenCenter(Y);
+						missingText.visible = true;
+						missingTextBG.visible = true;
+						FlxG.sound.play(Paths.sound('cancelMenu'));
+						return;
+					}
 				}
 
 				searchBar.hasFocus = false;

@@ -322,6 +322,9 @@ class RankingSubstate extends MusicBeatSubstate
 								FlxG.sound.playMusic(Paths.sound('secret'));
 							});
 
+						if (((((((archipelago.APItem.activeItem != null)))))))
+            archipelago.APItem.activeItem = null;
+
 							// for (locationIdInt in locationIdInts)
 							// {
 							// 	trace("Checking victory condition for Location ID: " + locationIdInt);

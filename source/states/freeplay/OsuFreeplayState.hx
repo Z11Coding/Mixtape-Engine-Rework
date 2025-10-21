@@ -432,15 +432,43 @@ class OsuFreeplayState extends MusicBeatState
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
 				if (APFreeplayManager.isVictorySong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder) && !vicCheck) {
-					FlxG.camera.shake(0.005, 0.5);
-					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					var ogColor = songBox.members[curSelected].color;
-					songBox.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
-					});
-					FlxTween.color(ticketCounterTop, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
-					return;
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder);
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + fpManager.songList[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show insufficient tickets message
+								archipelago.substates.InfoPanelSubstate.show(
+									"Insufficient Tickets",
+									'You don\'t have enough tickets to play this victory song.\n\nRequired: ${APInfo.ticketWinCount}\nYou have: ${APInfo.ticketCount}',
+									FlxColor.ORANGE,
+									null
+								);
+							}
+						);
+						return;
+					} else {
+						// No hints, show insufficient tickets message immediately
+						archipelago.substates.InfoPanelSubstate.show(
+							"Insufficient Tickets",
+							'You don\'t have enough tickets to play this victory song.\n\nRequired: ${APInfo.ticketWinCount}\nYou have: ${APInfo.ticketCount}',
+							FlxColor.ORANGE,
+							null
+						);
+						return;
+					}
 				}
 
 				// Check if song is locked (not in curUnlocked)
@@ -449,22 +477,83 @@ class OsuFreeplayState extends MusicBeatState
 
 				if (isLocked) {
 					trace('Song is locked (not in curUnlocked)!');
-					FlxG.camera.shake(0.005, 0.5);
-					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					var ogColor = songBox.members[curSelected].color;
-					FlxTween.color(songBox.members[curSelected], 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
-					return;
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder);
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + fpManager.songList[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show locked message
+								archipelago.substates.InfoPanelSubstate.show(
+									"Song Locked",
+									"This song is currently locked.",
+									FlxColor.RED,
+									null
+								);
+							}
+						);
+						return;
+					} else {
+						// No hints, show locked message immediately
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Locked",
+							"This song is currently locked.",
+							FlxColor.RED,
+							null
+						);
+						return;
+					}
 				}
 
 				if (APFreeplayManager.trueMissing.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder}) && !APFreeplayManager.unplayedList.contains({song: fpManager.songList[curSelected].songName, mod: fpManager.songList[curSelected].folder})) {
-					FlxG.camera.shake(0.005, 0.5);
-					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
-					var ogColor = songBox.members[curSelected].color;
-					songBox.forEach(function(item:FlxSprite)
-					{
-						if (item.ID == curSelected) FlxTween.color(item, 1, 0xffcc0002, ogColor, {ease: FlxEase.sineIn});
-					});
-					return;
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(fpManager.songList[curSelected].songName, fpManager.songList[curSelected].folder);
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + fpManager.songList[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show missing item message
+								archipelago.substates.InfoPanelSubstate.show(
+									"Missing Items",
+									"You are missing required items to play this song.",
+									FlxColor.ORANGE,
+									null
+								);
+							}
+						);
+						return;
+					} else {
+						// No hints, show missing item message immediately
+						archipelago.substates.InfoPanelSubstate.show(
+							"Missing Items",
+							"You are missing required items to play this song.",
+							FlxColor.ORANGE,
+							null
+						);
+						return;
+					}
 				}
 
 				//reloadSongArray();

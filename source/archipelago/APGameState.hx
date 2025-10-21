@@ -705,7 +705,10 @@ class APGameState
 			var value = retrievedPacket.get(key);
 			if (key.indexOf("_read_hints_") != -1)
 			{
-				APFreeplayManager.hintTable = new Map<String, String>();
+				// Initialize hint storage with better structure
+				APFreeplayManager.hintTable = new Map<String, Array<String>>();
+				APFreeplayManager.curHinted = [];
+
 				// value.mapToObject() contains multiple hints indexed by keys
 				var hintsObj:Dynamic = value.mapToObject();
 				for (hintKey in Reflect.fields(hintsObj))
@@ -785,15 +788,29 @@ class APGameState
 							message = "Hint: " + receivingPlayerName + " will find " + itemName + " in " + findingPlayerName + "'s World at " + locationName;
 						}
 
-						var songName = getFullNameFromSongAndMod(songName);
+						var fullSongName = getFullNameFromSongAndMod(songName);
 
-						if (APFreeplayManager.hintTable.exists(songName))
+						// Store hints in an array for better organization
+						if (!APFreeplayManager.hintTable.exists(fullSongName))
 						{
-							APFreeplayManager.hintTable.set(songName, APFreeplayManager.hintTable.get(songName) + "\n" + message);
+							APFreeplayManager.hintTable.set(fullSongName, []);
 						}
-						else
+						APFreeplayManager.hintTable.get(fullSongName).push(message);
+
+						// Add to hinted songs list if not already there
+						var hintSong = {song: songName.song, mod: songName.mod != null ? songName.mod : ""};
+						var isAlreadyHinted = false;
+						for (hinted in APFreeplayManager.curHinted)
 						{
-							APFreeplayManager.hintTable.set(songName, message);
+							if (hinted.song == hintSong.song && hinted.mod == hintSong.mod)
+							{
+								isAlreadyHinted = true;
+								break;
+							}
+						}
+						if (!isAlreadyHinted)
+						{
+							APFreeplayManager.curHinted.push(hintSong);
 						}
 					}
 					else
@@ -808,14 +825,16 @@ class APGameState
 				}
 			}
 		}
-		for (hint in APFreeplayManager.hintTable.keys())
+
+		// Debug output for stored hints
+		for (songName in APFreeplayManager.hintTable.keys())
 		{
-			APFreeplayManager.curHinted = [];
-			var message = APFreeplayManager.hintTable.get(hint);
-			trace("Hint: " + hint + " - " + message);
-			var hintSong = getSongAndMod(hint);
-			APFreeplayManager.curHinted.push({song: hintSong.song, mod: hintSong.mod != null ? hintSong.mod : ""});
-			trace(hintSong);
+			var hints = APFreeplayManager.hintTable.get(songName);
+			trace("Song: " + songName + " has " + hints.length + " hints:");
+			for (hint in hints)
+			{
+				trace("  - " + hint);
+			}
 		}
 	}
 

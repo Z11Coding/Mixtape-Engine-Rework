@@ -2553,8 +2553,7 @@ class APPlayState extends PlayState {
         if (ghostChat)
             ghostChat = false;
 
-        if (((((((archipelago.APItem.activeItem != null))))))) // Why was this GONE???
-            archipelago.APItem.activeItem = null;
+
 
 		ClientPrefs.data.downScroll = ogScroll;
 
@@ -2605,6 +2604,9 @@ class APPlayState extends PlayState {
 
         if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
             ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+
+        // Set chart modifier anyway, because it's bugging for some reason.
+        chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 
         if (archipelago.HighQualityTrapManager.isTrapInUse()) {
             // Don't stop the trap here - let APVictorySubstate handle it

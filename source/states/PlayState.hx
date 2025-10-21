@@ -10495,7 +10495,7 @@ class PlayState extends MusicBeatState
 	public var strumOffsetbcauseitsstupid:Float = 0;
 	public var strumOffsetspacebcauseitsstupid:Float = 0;
 
-	public var altNoteMove:Bool = false;
+	public var altNoteMove:Bool = true;
 	public var ModchartScrollType:Int = 0; // 0 = none, 1 = Downscroll, 3 = Rotate.
 	public var curDownscroll:Bool = ClientPrefs.data.downScroll; // Used to check if the downscroll has changed.
 	public function modchartSync(directChange:Bool = false):Void {

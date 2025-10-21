@@ -235,6 +235,7 @@ class Song
 	private static function checkForSongVariants(folder:String, jsonInput:String):{folderPath:String, jsonInput:String, variantName:String}
 	{
 		#if MODS_ALLOWED
+		if (!HighQualityTrapManager.isTrapInUse()) return null;
 		// Check for variants folder in the song's data directory
 		var songDataPath = Paths.getPath('data/$folder', TEXT, null, true);
 		var songDataDir = haxe.io.Path.directory(songDataPath);
