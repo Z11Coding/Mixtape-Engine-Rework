@@ -552,6 +552,8 @@ class ChartingNote extends FlxSprite
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
 	public var correctionOffset:Float = 0; //dont mess with this
+	public var publicTexture:String = '';
+	public var publicTextureSus:String = '';
 	public function reloadNote(texture:String = '', postfix:String = '') {
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
@@ -561,9 +563,8 @@ class ChartingNote extends FlxSprite
 		{
 			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
 			if(skin == null || skin.length < 1)
-				skin = "noteSkins/NOTE_assets";
+				skin = "noteSkins/NOTE_assets" + postfix;
 		}
-		else rgbShader.enabled = false;
 
 		var animName:String = null;
 		if(animation.curAnim != null) {
@@ -586,6 +587,8 @@ class ChartingNote extends FlxSprite
 		else skinPostfix = '';
 
 		if(PlayState.isPixelStage) {
+			publicTexture = 'pixelUI/' + skinPixel + skinPostfix;
+			publicTextureSus = 'pixelUI/' + skinPixel + 'ENDS' + skinPostfix;
 			if(isSustainNote) {
 				var graphic = Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix);
 				loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[1]), Math.floor(graphic.height / 2));
@@ -658,15 +661,19 @@ class ChartingNote extends FlxSprite
 	}
 
 	function loadPixelNoteAnims() {
-		if (colArray[noteData] == null)
-			return;
+		// Optimize Anim Loading.
+		var colorIndex:Int = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData];
+		var animName:String = gfxLetter[noteData];
 
-		var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
-		if(isSustainNote)
-		{
-			animation.add(colArray[noteData] + 'holdend', [daFrames[noteData] + 4], 24, true);
-			animation.add(colArray[noteData] + 'hold', [daFrames[noteData]], 24, true);
-		} else animation.add(colArray[noteData] + 'Scroll', [daFrames[noteData] + 4], 24, true);
+		if (animName != null) {
+			var graphic = Paths.image(publicTexture);
+			animation.add(animName, [colorIndex + pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]]);
+			if (isSustainNote)
+			{
+				animation.add(animName + ' hold', [colorIndex]);
+				animation.add(animName + ' tail', [colorIndex + (pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
+			}
+		}
 	}
 
 	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)

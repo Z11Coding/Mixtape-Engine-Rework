@@ -2163,7 +2163,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	function callBeatHit(curBeat)
 	{
-		if (curBeat % lilPlayer.danceEveryNumBeats == 0 && !lilPlayer.getAnimationName().startsWith('sing')) {
+		if (lilPlayer != null && curBeat % lilPlayer.danceEveryNumBeats == 0 && !lilPlayer.getAnimationName().startsWith('sing')) {
 			lilPlayer.dance();
 		}
 
@@ -2171,11 +2171,11 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			lilPlayer2.dance();
 		}
 
-		if (curBeat % lilOpponent.danceEveryNumBeats == 0 && !lilOpponent.getAnimationName().startsWith('sing')) {
+		if (lilOpponent != null && curBeat % lilOpponent.danceEveryNumBeats == 0 && !lilOpponent.getAnimationName().startsWith('sing')) {
 			lilOpponent.dance();
 		}
 
-		if (curBeat % lilOpponent2.danceEveryNumBeats == 0 && !lilOpponent2.getAnimationName().startsWith('sing')) {
+		if (PlayState.SONG.player4 != null && lilOpponent2 != null && curBeat % lilOpponent2.danceEveryNumBeats == 0 && !lilOpponent2.getAnimationName().startsWith('sing')) {
 			lilOpponent2.dance();
 		}
 
@@ -2352,7 +2352,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		isMovingNotes = true;
 		movingNotesLastY = lastY;
 		movingNotesLastData = noteData;
-		movingNotes.sort(cast PlayState.sortByTime);
+		//movingNotes.sort(sortByMetaTime);
 		addUndoAction(MOVE_NOTE, {originalNotes: originalNotes, originalEvents: originalEvents, movedNotes: movedNotes, movedEvents: movedEvents});
 		softReloadNotes();
 	}
@@ -5184,6 +5184,26 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(btn);
 
 		btnY += 20;
+		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Old Psych to New Psych...', function()
+		{
+			upperBox.isMinimized = true;
+			upperBox.bg.visible = false;
+
+			function doJsonStuff(fileDialog:String)
+			{
+				var chart:Dynamic = cast Json.parse(File.getContent(fileDialog));
+				var reloadedChart:SwagSong = Song.parseJSON(File.getContent(fileDialog), null, 'mixtape_v1');
+				loadChart(reloadedChart);
+				reloadNotesDropdowns();
+				prepareReload();
+			}
+			doJsonStuff(ImprovedFileHandling.openFile('Open an Old Psych Chart file', [{ext: "json", desc: "JSON File"}]));
+		},btnWid);
+		btn.text.alignment = LEFT;
+		tab_group.add(btn);
+
+
+		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Update (Legacy)...', function()
 		{
 			upperBox.isMinimized = true;
@@ -6940,4 +6960,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 	}
 	#end
+
+	public function sortByMetaTime(Obj1:MetaNote, Obj2:MetaNote):Int
+		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 }

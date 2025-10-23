@@ -46,7 +46,7 @@ class WelcomeToPain extends MusicBeatState
 		camMESSAGE.setFilters(camfilters);
 		camMESSAGE.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);
-		FlxG.sound.playMusic(Paths.music("hello"),1);
+		FlxG.sound.playMusic(Paths.music("hello"), 1);
 		var daStatic:FlxSprite = new FlxSprite(0, 0);
 		daStatic.frames = Paths.getSparrowAtlas('effects/static');
 		daStatic.setGraphicSize(FlxG.width, FlxG.height);
@@ -61,7 +61,6 @@ class WelcomeToPain extends MusicBeatState
 		{
 			startDialogue(dialogueJson);
 		});
-
 	}
 
 	var gotSecret:String = if (Achievements.isUnlocked('secretsuntold')) 'gsecret' else 'nsecret';

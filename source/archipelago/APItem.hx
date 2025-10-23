@@ -611,12 +611,14 @@ class APItem {
                         var curSong = FlxG.random.int(0, specialSongList.length-1);
                         switch (specialSongList[curSong])
                         {
-                            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr':
+                            case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Fightback' | 'Funky Fanta' | 'Fangirl Frenzy' | 'Slowdown':
                                 Difficulty.list = ['Hard'];
-                            case 'Rise' | 'Test Field':
+                            case 'Rise' | 'Test Field' | 'Driller' | 'Pack-A-Punch':
                                 Difficulty.list = ['Normal'];
                             case "Beat Battle":
                                 Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                            case "Testimony":
+                                Difficulty.list = ['4K', "Canon"];
                             default:
                                 Difficulty.list = Difficulty.defaultList.copy();
                         }
@@ -1316,7 +1318,7 @@ class APItem {
             case "Animal Bonus Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('We\'re gonna go someplace SPECIAL!', 'TrapLink: Animal Bonus Trap');
-                    var specialSongList = ['Rise', 'Zeventeen', /*'Pack-A-Punch', 'Driller',*/ 'Test Field', 'Rawr', /*'Fightback',*/ 'Funky Fanta', /*'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'*/];
+                    var specialSongList = ['Rise', 'Zeventeen', 'Pack-A-Punch', 'Driller', 'Test Field', 'Rawr', 'Fightback', 'Funky Fanta', 'Tag And Seek', 'Testimony', 'Fangirl Frenzy', 'Slowdown'];
                     FlxTween.num(APPlayState.instance.playbackRate, 0, 0.5, {
                         onComplete: function(e) {
                             APPlayState.instance.paused = false;
@@ -1335,12 +1337,14 @@ class APItem {
                                     var curSong = FlxG.random.int(0, specialSongList.length-1);
                                     switch (specialSongList[curSong])
                                     {
-                                        case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr':
+                                        case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Fightback' | 'Funky Fanta' | 'Fangirl Frenzy' | 'Slowdown':
                                             Difficulty.list = ['Hard'];
-                                        case 'Rise' | 'Test Field':
+                                        case 'Rise' | 'Test Field' | 'Driller' | 'Pack-A-Punch':
                                             Difficulty.list = ['Normal'];
                                         case "Beat Battle":
                                             Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+                                        case "Testimony":
+                                            Difficulty.list = ['4K', "Canon"];
                                         default:
                                             Difficulty.list = Difficulty.defaultList.copy();
                                     }

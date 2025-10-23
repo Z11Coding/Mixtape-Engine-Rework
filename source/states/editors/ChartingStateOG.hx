@@ -688,7 +688,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			#end
 			{
 				clearEvents();
-				var events:SwagSong = Song.loadFromJson('events', songName);
+				var events:SwagSong = Song.getChart('events', songName);
 				_song.events = events.events;
 				changeSection(curSec);
 			}
@@ -896,7 +896,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 				try
 				{
 					PlayState.storyDifficulty = 0;
-					PlayState.SONG = Song.loadFromJson(_song.song.toLowerCase() + '-' + Difficulty.list[Std.parseInt(difficulty)].toLowerCase(), _song.song.toLowerCase());
+					Song.loadFromJson(_song.song.toLowerCase() + '-' + Difficulty.list[Std.parseInt(difficulty)].toLowerCase(), _song.song.toLowerCase());
 					MusicBeatState.resetState();
 				}
 				catch (e:Any)
@@ -4336,16 +4336,16 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		{
 			if (Difficulty.getString() == null)
 			{
-				PlayState.SONG = Song.loadFromJson(song.toLowerCase(), song.toLowerCase());
+				Song.loadFromJson(song.toLowerCase(), song.toLowerCase());
 			}
 			else
 			{
-				PlayState.SONG = Song.loadFromJson(song.toLowerCase() + "-" + Difficulty.getString(), song.toLowerCase());
+				Song.loadFromJson(song.toLowerCase() + "-" + Difficulty.getString(), song.toLowerCase());
 			}
 		}
 		else
 		{
-			PlayState.SONG = Song.loadFromJson(song.toLowerCase(), song.toLowerCase());
+			Song.loadFromJson(song.toLowerCase(), song.toLowerCase());
 		}
 		MusicBeatState.resetState();
 	}
