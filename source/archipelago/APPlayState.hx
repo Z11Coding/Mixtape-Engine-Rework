@@ -1690,6 +1690,7 @@ class APPlayState extends PlayState {
 		if (randoTimer != null && randoTimer.active)
 			randoTimer.cancel();
 
+        instance != null;
 		super.destroy();
 	}
 

@@ -138,6 +138,12 @@ class Song
 			//trace("Song mania value is NULL, set to " + Note.defaultMania);
 		}
 
+		if (songJson.startMania == null)
+		{
+			songJson.startMania = Note.defaultMania;
+			//trace("Song mania value is NULL, set to " + Note.defaultMania);
+		}
+
 		if(songJson.events == null)
 		{
 			songJson.events = [];

@@ -1097,7 +1097,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			}
 			modManager.updateObject(curDecBeat, daNote, modNumber);
 
-			daNote.clipToStrumNote(strumNotes[daNote.column]);
+			//daNote.clipToStrumNote(strumNotes[daNote.column]);
 
 			// check for hold inputs
 			if(!daNote.isSustainNote){

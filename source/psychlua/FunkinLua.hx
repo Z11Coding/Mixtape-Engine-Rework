@@ -351,6 +351,7 @@ class FunkinLua {
 			}
 			luaTrace("addLuaScript: Script doesn't exist!", false, false, FlxColor.RED);
 		});
+
 		Lua_helper.add_callback(lua, "addHScript", function(scriptFile:String, ?ignoreAlreadyRunning:Bool = false) {
 			#if HSCRIPT_ALLOWED
 			var scriptPath:String = findScript(scriptFile, '.hx');
@@ -372,6 +373,7 @@ class FunkinLua {
 			luaTrace("addHScript: HScript is not supported on this platform!", false, false, FlxColor.RED);
 			#end
 		});
+
 		Lua_helper.add_callback(lua, "removeLuaScript", function(luaFile:String) {
 			var luaPath:String = findScript(luaFile);
 			if(luaPath != null)
@@ -392,6 +394,7 @@ class FunkinLua {
 			luaTrace('removeLuaScript: Script $luaFile isn\'t running!', false, false, FlxColor.RED);
 			return false;
 		});
+
 		Lua_helper.add_callback(lua, "removeHScript", function(scriptFile:String) {
 			#if HSCRIPT_ALLOWED
 			var scriptPath:String = findScript(scriptFile, '.hx');
@@ -459,6 +462,7 @@ class FunkinLua {
 				spr.loadGraphic(Paths.image(image), animated, gridX, gridY);
 			}
 		});
+
 		Lua_helper.add_callback(lua, "loadFrames", function(variable:String, image:String, spriteType:String = 'auto') {
 			var split:Array<String> = variable.split('.');
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(split[0]);
@@ -471,6 +475,7 @@ class FunkinLua {
 				LuaUtils.loadFrames(spr, image, spriteType);
 			}
 		});
+
 		Lua_helper.add_callback(lua, "loadMultipleFrames", function(variable:String, images:Array<String>) {
 			var split:Array<String> = variable.split('.');
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(split[0]);
@@ -514,6 +519,7 @@ class FunkinLua {
 			luaTrace('getObjectOrder: Object $obj doesn\'t exist!', false, false, FlxColor.RED);
 			return -1;
 		});
+
 		Lua_helper.add_callback(lua, "setObjectOrder", function(obj:String, position:Int, ?group:String = null) {
 			var leObj:FlxBasic = LuaUtils.getObjectDirectly(obj);
 			if(leObj != null)
@@ -1766,6 +1772,15 @@ class FunkinLua {
 
 		var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 		if(strumNote == null) return null;
+
+		for (field in PlayState.instance.playfields.members) {
+			if (field.strumNotes.contains(strumNote)) {
+				var i = field.strumNotes.indexOf(strumNote);
+				if (i != -1) {
+					strumNote = field.strumNotes[i];
+				}
+			}
+		}
 
 		if(tag != null)
 		{
