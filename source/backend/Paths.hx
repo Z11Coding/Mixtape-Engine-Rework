@@ -287,6 +287,7 @@ class Paths
 				trace('ERROR: Couldn\'t' );
 			}*/
 		}
+		FlxG.bitmap.dumpCache();
 	}
 
 	/** returns a FlxRuntimeShader but with file names lol **/

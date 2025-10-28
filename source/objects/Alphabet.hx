@@ -514,7 +514,7 @@ class DynamicAlphabet extends Alphabet
 		// 	if (jump != null)
 		// 		rainbowSettings.jump = jump;
 		// 	}
-	
+
 
 		// private function dynamicRainbowify(jump:Int = 1, ?startIndex:Int = 0):Void
 		// {

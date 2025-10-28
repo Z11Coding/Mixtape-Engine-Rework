@@ -2,6 +2,99 @@ package managers;
 
 import options.MixtapeSettingsSubState;
 
+// Abstract for handling both path and sound returns
+abstract MusicResource(Dynamic) {
+
+    public var path(get, never):String;
+    public var sound(get, never):FlxSound;
+
+    public inline function get_path():String {
+        return toString();
+    }
+
+    public inline function get_sound():FlxSound {
+        return toFlxSound();
+    }
+
+    public inline function new(value:Dynamic) {
+        this = value;
+    }
+
+    @:from static function fromString(path:String):MusicResource {
+        return new MusicResource(path);
+    }
+
+    @:from static function fromFlxSound(sound:FlxSound):MusicResource {
+        return new MusicResource(sound);
+    }
+    @:from static function fromSound(s:openfl.media.Sound):MusicResource {
+        var flxSound:FlxSound = new FlxSound();
+        flxSound.loadEmbedded(s, false, false);
+        return new MusicResource(flxSound);
+    }
+
+    @:to public function toString():String {
+        if (Std.isOfType(this, String)) {
+            return cast this;
+        } else if (Std.isOfType(this, FlxSound)) {
+            var sound:FlxSound = cast this;
+            @:privateAccess
+            return sound._sound != null ? sound._sound.url : "";
+        }
+        return "";
+    }
+
+    @:to public function toFlxSound():FlxSound {
+        if (Std.isOfType(this, FlxSound)) {
+            return cast this;
+        } else if (Std.isOfType(this, String)) {
+            var path:String = cast this;
+            return FlxG.sound.load(path, 1, false);
+        }
+        return null;
+    }
+
+    @:to public function toCompatible():flixel.util.typeLimit.OneOfThree<String, openfl.media.Sound, Class<openfl.media.Sound>> {
+        if (Std.isOfType(this, String)) {
+            return cast this;
+        }
+
+        if (Std.isOfType(this, FlxSound)) {
+            var sound:FlxSound = cast this;
+            @:privateAccess
+            if (sound._sound != null) return sound._sound;
+        }
+
+        if (Std.isOfType(this, openfl.media.Sound)) {
+            return cast this;
+        }
+
+        if (this.isClassOfType(openfl.media.Sound)) {
+            return cast this;
+        }
+
+        throw "MusicResource cannot be converted to a compatible type";
+    }
+
+    public function getPath():String {
+        return toString();
+    }
+
+    public function getSound(?volume:Float = 1.0):FlxSound {
+        return toFlxSound().funcAndReturn(function(snd:FlxSound) {
+            snd.volume = volume;
+        });
+    }
+
+    public function isPath():Bool {
+        return Std.isOfType(this, String);
+    }
+
+    public function isSound():Bool {
+        return Std.isOfType(this, FlxSound);
+    }
+}
+
 class MusicManager {
     // The place all things music are tracked.
     // As the engine expands, it's gonna get harder and harder to tell what plays what where
@@ -165,6 +258,109 @@ class MusicManager {
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}')), volume);
             default:
                 FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('editorMusic/${ClientPrefs.data.editorMusic}')), volume);
+        }
+    }
+
+    // GET MUSIC FUNCTIONS - Return FlxSound objects or paths instead of directly playing
+
+    // Get menu music as FlxSound or path
+    public static function getMenuMusic(?daSong:String, ?volume:Float = 1.0, ?returnPath:Bool = false):MusicResource {
+        var targetSong = daSong != null ? daSong : ClientPrefs.data.menuSong;
+        var musicPath:MusicResource;
+
+        switch (targetSong) {
+            case "None":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/empty'));
+            case "Panix Press":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/panixPress'));
+            case "TitleMania":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/titlemania'));
+            case "Base Game":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/freakyMenu'));
+            case "Freeplay Random":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/freeplayRandom'));
+            case "Pause Menu":
+                musicPath = Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'));
+            default:
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/$targetSong'));
+        }
+
+        return returnPath ? new MusicResource(musicPath).path : new MusicResource(new FlxSound().loadEmbedded(musicPath, false, false).funcAndReturn(function(snd:FlxSound) {
+            snd.volume = volume;
+        }));
+    }
+
+    // Get pause menu music as FlxSound or path
+    public static function getPauseMenuMusic(?daSong:String, ?volume:Float = 1.0, ?returnPath:Bool = false):MusicResource {
+        var targetSong = daSong != null ? daSong : ClientPrefs.data.pauseMusic;
+        var musicPath:MusicResource;
+
+        switch (targetSong) {
+            case 'None':
+                musicPath = Paths.music(Paths.formatToSongPath('pauseMusic/empty'));
+            default:
+                musicPath = Paths.music(Paths.formatToSongPath('pauseMusic/$targetSong'));
+        }
+
+        return returnPath ? new MusicResource(musicPath).path : new MusicResource(new FlxSound().loadEmbedded(musicPath, false, false).funcAndReturn(function(snd:FlxSound) {
+            snd.volume = volume;
+        }));
+    }
+
+    // Get editor music as FlxSound or path
+    public static function getEditorMusic(?daSong:String, ?volume:Float = 1.0, ?returnPath:Bool = false):MusicResource {
+        var targetSong = daSong != null ? daSong : ClientPrefs.data.editorMusic;
+        var musicPath:MusicResource;
+
+        switch (targetSong) {
+            case "None":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/empty'));
+            case "Pause Menu":
+                musicPath = Paths.music(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'));
+            case "Menu Music" | "Menu Menu":
+                musicPath = Paths.music(Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}'));
+            default:
+                musicPath = Paths.music(Paths.formatToSongPath('editorMusic/$targetSong'));
+        }
+
+        return returnPath ? new MusicResource(musicPath).path : new MusicResource(new FlxSound().loadEmbedded(musicPath, false, false).funcAndReturn(function(snd:FlxSound) {
+            snd.volume = volume;
+        }));
+    }
+
+    // Utility function to get BPM for a specific song
+    public static function getBPMForSong(songName:String, songType:String = "menu"):Float {
+        switch (songType) {
+            case "menu":
+                switch (songName) {
+                    case "None": return 0;
+                    case "Panix Press": return 150;
+                    case "TitleMania": return 100;
+                    case "Base Game": return 102;
+                    case "Freeplay Random": return 145;
+                    default: return 120; // Default BPM
+                }
+            case "pause":
+                switch (songName) {
+                    case 'None': return 0;
+                    case 'Breakfast': return MixtapeSettingsSubState.curBPMList[1];
+                    case 'Breakfast (Pixel)': return MixtapeSettingsSubState.curBPMList[2];
+                    case 'Breakfast (Pico)': return MixtapeSettingsSubState.curBPMList[3];
+                    case 'girlfriendsRingtone': return MixtapeSettingsSubState.curBPMList[4];
+                    case 'stayFunky': return MixtapeSettingsSubState.curBPMList[5];
+                    case 'Tea Time': return MixtapeSettingsSubState.curBPMList[6];
+                    case 'Celebration': return MixtapeSettingsSubState.curBPMList[7];
+                    case 'Drippy Genesis': return MixtapeSettingsSubState.curBPMList[8];
+                    case 'Reglitch': return MixtapeSettingsSubState.curBPMList[9];
+                    case 'False Memory': return MixtapeSettingsSubState.curBPMList[10];
+                    case 'Funky Genesis': return MixtapeSettingsSubState.curBPMList[11];
+                    case 'Late Night Cafe': return MixtapeSettingsSubState.curBPMList[12];
+                    case 'Late Night Jersey': return MixtapeSettingsSubState.curBPMList[13];
+                    case 'Silly Little Sample Song': return MixtapeSettingsSubState.curBPMList[14];
+                    default: return 120; // Default BPM
+                }
+            default:
+                return 120; // Default BPM
         }
     }
 }

@@ -252,6 +252,9 @@ class APPongTrapState extends PongGameState {
 
             pongGame.leftPaddle.dashEnabled = APItem.hasDashMechanic;
             pongGame.rightPaddle.dashEnabled = APItem.hasDashMechanic;
+
+                    updateDashBarsVisibility();
+
         }
     }
 
@@ -308,7 +311,7 @@ class APPongTrapState extends PongGameState {
             case 3: HARD;
             case 4: EXPERT;
             case 5: YES; // Map "Nightmare" to YES difficulty
-            default: NORMAL;
+            default: GOD;
         }
     }
 

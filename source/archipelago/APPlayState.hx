@@ -1690,6 +1690,8 @@ class APPlayState extends PlayState {
 		if (randoTimer != null && randoTimer.active)
 			randoTimer.cancel();
 
+        instance = null;
+
 		super.destroy();
 	}
 
@@ -2605,8 +2607,6 @@ class APPlayState extends PlayState {
         if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
             ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
 
-        // Set chart modifier anyway, because it's bugging for some reason.
-        chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 
         if (archipelago.HighQualityTrapManager.isTrapInUse()) {
             // Don't stop the trap here - let APVictorySubstate handle it

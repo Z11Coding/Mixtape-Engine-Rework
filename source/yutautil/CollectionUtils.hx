@@ -650,6 +650,11 @@ class CollectionUtils
 			})(input);
 	}
 
+	public static inline function isClassOfType<T>(input:Dynamic, type:Class<T>):Bool
+	{
+		return Type.getClass(input) == type;
+	}
+
 	public static inline function attempt(f:haxe.Constraints.Function, attempts:Int, args:haxe.Rest<Dynamic>):Dynamic
 	{
 		for (i in 0...attempts)

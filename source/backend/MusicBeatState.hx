@@ -16,7 +16,7 @@ import debug.DebugManager;
 // @:autoBuild(yutautil.CrashTracker.instrument())
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
-class MusicBeatState extends FlxState
+class MusicBeatState extends yutautil.SafeManagedState
 {
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;

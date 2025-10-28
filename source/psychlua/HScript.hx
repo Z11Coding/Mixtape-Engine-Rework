@@ -384,6 +384,7 @@ class HScript extends Iris
 		set("EaseEvent", backend.modchart.events.EaseEvent);
 		set("SetEvent", backend.modchart.events.SetEvent);
 		set("modManager", PlayState.instance.modManager);
+		set("Reflect", Reflect);
 
 		set("setPercent", function(modName:String, val:Float, player:Int = -1)
 		{

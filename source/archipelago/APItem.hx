@@ -357,7 +357,12 @@ class APItem {
                         states.PlayState.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
-                    FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
+                    // Set second argument (difficulty) to range 1-5, with 1% chance of 6 (GOD)
+                    var difficulty = FlxG.random.int(1, 5);
+                    if (FlxG.random.float() < 0.01) {
+                        difficulty = 6; // 1% chance for GOD difficulty
+                    }
+                    FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState(), difficulty));
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;

@@ -5426,7 +5426,10 @@ class PlayState extends MusicBeatState
 
 	public function die(?trueKill:Bool = false, ?cod:String):Void
 	{
-			if (cod != null || cod.trim() != "") backend.COD.COD.COD = cod;
+		'COD = $cod. backend.COD.COD.COD = ${backend.COD.COD.COD}'.log();
+			if (cod != null && cod.trim() != "") {
+				backend.COD.COD.COD = cod;
+			}
 		if (trueKill)
 			doDeathCheck(true);
 		else {
@@ -9917,6 +9920,7 @@ class PlayState extends MusicBeatState
 			ClientPrefs.data = clientSaveData;
 			clientSaveData = null;
 		}
+		trace("Done destroy.");
 	}
 
 	var lastStepHit:Int = -1;

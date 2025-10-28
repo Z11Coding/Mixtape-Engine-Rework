@@ -325,6 +325,11 @@ class RankingSubstate extends MusicBeatSubstate
 						if (((((((archipelago.APItem.activeItem != null)))))))
             archipelago.APItem.activeItem = null;
 
+						if (archipelago.APEntryState.inArchipelagoMode) {
+							ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+						}
+
+
 							// for (locationIdInt in locationIdInts)
 							// {
 							// 	trace("Checking victory condition for Location ID: " + locationIdInt);

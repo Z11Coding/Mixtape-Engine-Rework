@@ -1234,6 +1234,17 @@ class CommandPrompt
 				{
 					print("Error: secretCode requires exactly one argument.");
 				}
+			case "toggleTraces":
+				if (args.length == 0)
+				{
+					ClientPrefs.data.disableHaxeTraces = !ClientPrefs.data.disableHaxeTraces;
+					ClientPrefs.saveSettings();
+					print("Disable Haxe Traces is now set to: " + ClientPrefs.data.disableHaxeTraces);
+				}
+				else
+				{
+					print("Error: toggleHaxeTraces does not accept any arguments.");
+				}
 			case "exit":
 				this.active = false;
 				FlxG.autoPause = false;
