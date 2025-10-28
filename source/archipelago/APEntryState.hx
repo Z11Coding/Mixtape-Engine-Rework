@@ -80,6 +80,8 @@ typedef APOptions =
 	var	include_vanilla:Bool;
 	var	starting_song:String;
 	var	victory_song:String;
+	var	stagesanity:Bool;
+	var	charactersanity:Bool;
 }
 
 enum ComboRank {
@@ -192,7 +194,9 @@ class APEntryState extends MusicBeatState
 			include_erect: true,
 			include_vanilla: true,
 			starting_song: "Tutorial",
-			victory_song: "Bopeebo"
+			victory_song: "Bopeebo",
+			stagesanity: false,
+			charactersanity: false
 		}
 	};
 

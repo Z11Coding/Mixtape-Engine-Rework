@@ -9,6 +9,7 @@ import archipelago.substates.NumberInputSubstate;
 import archipelago.substates.TextInputSubstate;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
+import backend.Song;
 import backend.WeekData;
 import backend.ui.*;
 import flixel.effects.FlxFlicker;
@@ -24,11 +25,16 @@ import options.*;
 import states.*;
 import substates.Prompt;
 import substates.SongSelectSubState;
+import tjson.TJSON;
 import yaml.Renderer;
 import yaml.Yaml;
 import yutautil.GenericProgressSubstate;
 
 using yutautil.CollectionUtils;
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
 
 // Callback function type for settings options
 typedef SettingsCallback = Void->Void;
@@ -46,7 +52,7 @@ typedef ContextMenuOption =
 enum ContextMenuType
 {
 	ENUM_SELECT(options:Array<ContextMenuOption>);
-	BOOLEAN(trueLabel:String, falseLabel:String);
+	BOOLEAN(trueLabel:String, falseLabel:String, setValue:Bool->Void);
 	EDIT_VALUE(editCallback:Void->Void);
 }
 
@@ -149,6 +155,10 @@ class APAdvancedSettingsState extends MusicBeatState
 	var startingSongData:Dynamic = null;
 	var victorySongData:Dynamic = null;
 	var deathlink:Bool = false;
+
+	// Sanity settings
+	var stagesanity:Bool = false;
+	var charactersanity:Bool = false;
 
 	// Filler/Trap weight settings
 	var bbcWeight:Int = 3;
@@ -317,7 +327,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function createBoolContextMenu(currentValue:Bool, setValue:Bool->Void, trueLabel:String = "ON", falseLabel:String = "OFF"):ContextMenuType
 	{
-		return BOOLEAN(trueLabel, falseLabel);
+		return BOOLEAN(trueLabel, falseLabel, setValue);
 	}
 
 	function createEditContextMenu(editCallback:Void->Void):ContextMenuType
@@ -333,6 +343,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		var tasks = [
 			GenericProgressSubstate.createTask("Preparing YAML import", function(results:Array<Dynamic>)
 			{
+				victorySong = null;  // Reset victory song
+				startingSong = null; // Reset starting song
 				return "Import initialized";
 			}),
 			GenericProgressSubstate.createIterTask("Importing YAML settings", yamlFields, function(field:String)
@@ -368,9 +380,13 @@ class APAdvancedSettingsState extends MusicBeatState
 						case "include_vanilla":
 							includeVanilla = value == true;
 						case "starting_song":
-							startingSong = Std.string(value);
+							// Only set if the value is actually present in YAML and not empty
+							var songValue = Std.string(value);
+							startingSong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
 						case "victory_song":
-							victorySong = Std.string(value);
+							// Only set if the value is actually present in YAML and not empty
+							var songValue = Std.string(value);
+							victorySong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
 						case "deathlink":
 							deathlink = value == true;
 						case "ticket_percent" | "ticket_percentage":
@@ -772,6 +788,34 @@ class APAdvancedSettingsState extends MusicBeatState
 			}
 		];
 
+		// Sanity Options Page
+		var sanityOptions:Array<SettingsOption> = [
+			{
+				name: "Stagesanity",
+				description: "Enable stage-based items. Creates location checks for stages used in songs.",
+				callback: function() {
+					stagesanity = !stagesanity;
+					refreshCurrentPage();
+				},
+				locked: false,
+				contextMenu: createBoolContextMenu(stagesanity, function(value:Bool) {
+					stagesanity = value;
+				})
+			},
+			{
+				name: "Charactersanity",
+				description: "Enable character-based items. Creates location checks for characters used in songs.",
+				callback: function() {
+					charactersanity = !charactersanity;
+					refreshCurrentPage();
+				},
+				locked: false,
+				contextMenu: createBoolContextMenu(charactersanity, function(value:Bool) {
+					charactersanity = value;
+				})
+			}
+		];
+
 		// Example state options (you can add actual complex settings states here)
 		var exampleStateOptions:Array<StateOption> = [
 			createStateOption("Song Selection (DO NOT CLICK!)", "Open advanced song selection interface",
@@ -810,6 +854,13 @@ class APAdvancedSettingsState extends MusicBeatState
 				options: fillerWeightsOptions,
 				stateOptions: [],
 				color: FlxColor.PURPLE
+			},
+			{
+				name: "SANITY OPTIONS",
+				description: "Configure additional item types for stage and character checks",
+				options: sanityOptions,
+				stateOptions: [],
+				color: FlxColor.PINK
 			}
 		];
 	}
@@ -936,7 +987,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		{
 			case ENUM_SELECT(options):
 				createEnumSelectMenu(options, x, y);
-			case BOOLEAN(trueLabel, falseLabel):
+			case BOOLEAN(trueLabel, falseLabel, setValue):
 				createBooleanMenu(trueLabel, falseLabel, x, y);
 			case EDIT_VALUE(editCallback):
 				// For edit values, just call the callback directly
@@ -1083,7 +1134,7 @@ class APAdvancedSettingsState extends MusicBeatState
 								button.color = FlxColor.fromRGB(60, 60, 100);
 								text.color = FlxColor.WHITE;
 							}
-						case BOOLEAN(_, _):
+						case BOOLEAN(_, _, _):
 							if (i == 1)
 							{
 								button.color = FlxColor.fromRGB(60, 100, 60); // True button green
@@ -1142,24 +1193,12 @@ class APAdvancedSettingsState extends MusicBeatState
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 					refreshCurrentPage();
 				}
-			case BOOLEAN(trueLabel, falseLabel):
+			case BOOLEAN(trueLabel, falseLabel, setValue):
 				// buttonIndex 1 = true, 0 = false
 				var newValue = buttonIndex == 1;
-				// Find the option and update it
-				for (option in pages[currentPage].options)
-				{
-					if (option.name == contextMenuTarget)
-					{
-						// Update the boolean value (implementation depends on your data structure)
-						if (option.callback != null)
-						{
-							option.callback(); // This should toggle the boolean
-						}
-						FlxG.sound.play(Paths.sound('scrollMenu'));
-						refreshCurrentPage();
-						break;
-					}
-				}
+				setValue(newValue);
+				FlxG.sound.play(Paths.sound('scrollMenu'));
+				refreshCurrentPage();
 			case EDIT_VALUE(editCallback):
 				// This case shouldn't happen here as EDIT_VALUE calls callback directly
 		}
@@ -1400,6 +1439,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Max HP Up Weight": Std.string(MHPWeight);
 			case "Max HP Down Weight": Std.string(MHPDWeight);
 			case "Extra Life Weight": Std.string(exLifeWeight);
+			case "Stagesanity": stagesanity ? "ON" : "OFF";
+			case "Charactersanity": charactersanity ? "ON" : "OFF";
 			default: "";
 		}
 	}
@@ -1791,7 +1832,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		openSubState(enumSubstate);
 	}
 
-	function openBooleanSelectionPrompt(title:String, trueLabel:String, falseLabel:String)
+	function openBooleanSelectionPrompt(title:String, trueLabel:String, falseLabel:String, setValue:Bool->Void)
 	{
 		var boolOptions:Array<ContextMenuOption> = [
 			{
@@ -1810,9 +1851,9 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		var enumSubstate = new EnumSelectionSubstate(title, boolOptions, function(selectedOption:ContextMenuOption)
 		{
-			// Directly set the boolean value based on the selected option
+			// Use the setValue callback to set the boolean value
 			var boolValue = selectedOption.value == "true";
-			setOptionValue(title, boolValue);
+			setValue(boolValue);
 			refreshCurrentPage();
 		});
 		openSubState(enumSubstate);
@@ -1970,7 +2011,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	function initializeDefaultSongs()
 	{
 		// Set default category if CategoryState.loadWeekForce is null
-		if (states.CategoryState.loadWeekForce == null)
+		if (states.CategoryState.loadWeekForce != "all")
 		{
 			states.CategoryState.loadWeekForce = "all";
 		}
@@ -2107,6 +2148,303 @@ class APAdvancedSettingsState extends MusicBeatState
 	}
 
 	/**
+	 * Scan all accessible charts using engine systems and extract stage information for stagesanity
+	 * @return Map of stage names to arrays of song names that use them
+	 */
+	function scanStagesFromCharts():Map<String, Array<{song:String, ?mod:String}>>
+	{
+		var stageMap:Map<String, Array<{song:String, ?mod:String}>> = new Map();
+
+		// Set up category to get all songs
+		if (states.CategoryState.loadWeekForce == null)
+		{
+			states.CategoryState.loadWeekForce = "all";
+		}
+
+		// Reload week data to ensure everything is available
+		WeekData.reloadWeekFiles(false);
+
+		// Create FreeplayManager to get the song list
+		var fpManager = new managers.FreeplayManager(true);
+		fpManager.reloadFreeplay(true, ''); // Use refresh=true to get all songs
+
+		if (fpManager != null && fpManager.songList != null)
+		{
+			trace('Scanning ${fpManager.songList.length} songs for stage data...');
+
+			for (songData in fpManager.songList)
+			{
+				if (songData == null) continue;
+
+				var songName = songData.songName;
+				var modName = songData.folder;
+				var week = songData.week;
+
+				// Get the week data to set the proper directory
+				if (week >= 0 && week < WeekData.weeksList.length)
+				{
+					var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[week]);
+					if (leWeek != null)
+					{
+						WeekData.setDirectoryFromWeek(leWeek);
+
+						// Get available difficulties for this song
+						Difficulty.loadFromWeek(leWeek);
+						var difficulties = Difficulty.list.copy();
+
+						// Scan each difficulty for stage data
+						for (difficulty in difficulties)
+						{
+							try
+							{
+								// Use Song.getChart() which properly handles all chart formats
+								var chartName = songName + Difficulty.getFilePath(Difficulty.list.indexOf(difficulty));
+								var songData:SwagSong = Song.getChart(chartName, songName);
+
+								if (songData != null)
+								{
+									// Extract stage information
+									var stageName:String = songData.stage;
+
+									if (stageName != null && stageName.trim().length > 0)
+									{
+										if (!stageMap.exists(stageName))
+										{
+											stageMap.set(stageName, []);
+										}
+
+										// Create song object with optional mod field
+										var songObj:Dynamic = {
+											song: songName
+										};
+
+										// Only add mod field if it exists and is not empty
+										if (modName != null && modName.length > 0)
+										{
+											songObj.mod = modName;
+										}
+
+										// Check if this song is already in the list (compare by song and mod)
+										var alreadyExists = false;
+										for (existingSong in stageMap.get(stageName))
+										{
+											var existingMod = Reflect.hasField(existingSong, "mod") ? existingSong.mod : null;
+											var currentMod = Reflect.hasField(songObj, "mod") ? songObj.mod : null;
+
+											if (existingSong.song == songObj.song && existingMod == currentMod)
+											{
+												alreadyExists = true;
+												break;
+											}
+										}
+
+										if (!alreadyExists)
+										{
+											stageMap.get(stageName).push(songObj);
+										}
+									}
+								}
+							}
+							catch (e:Dynamic)
+							{
+								trace('Error scanning chart for song ${songName}: ${e}');
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			trace("Stage scanning failed - FreeplayManager or song list is null");
+		}
+
+		return stageMap;
+	}
+
+	/**
+	 * Scan all accessible charts using engine systems and extract character information for charactersanity
+	 * @return Map of character names to arrays of song names that use them
+	 */
+	function scanCharactersFromCharts():Map<String, Array<{song:String, ?mod:String}>>
+	{
+		var characterMap:Map<String, Array<{song:String, ?mod:String}>> = new Map();
+
+		// Set up category to get all songs
+		if (states.CategoryState.loadWeekForce == null)
+		{
+			states.CategoryState.loadWeekForce = "all";
+		}
+
+		// Reload week data to ensure everything is available
+		WeekData.reloadWeekFiles(false);
+
+		// Create FreeplayManager to get the song list
+		var fpManager = new managers.FreeplayManager(true);
+		fpManager.reloadFreeplay(true, ''); // Use refresh=true to get all songs
+
+		if (fpManager != null && fpManager.songList != null)
+		{
+			trace('Scanning ${fpManager.songList.length} songs for character data...');
+
+			for (songData in fpManager.songList)
+			{
+				if (songData == null) continue;
+
+				var songName = songData.songName;
+				var modName = songData.folder;
+				var week = songData.week;
+
+				// Get the week data to set the proper directory
+				if (week >= 0 && week < WeekData.weeksList.length)
+				{
+					var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[week]);
+					if (leWeek != null)
+					{
+						WeekData.setDirectoryFromWeek(leWeek);
+
+						// Get available difficulties for this song
+						Difficulty.loadFromWeek(leWeek);
+						var difficulties = Difficulty.list.copy();
+
+						// Scan each difficulty for character data
+						for (difficulty in difficulties)
+						{
+							try
+							{
+								// Use Song.getChart() which properly handles all chart formats
+								var chartName = songName + Difficulty.getFilePath(Difficulty.list.indexOf(difficulty));
+								var songData:SwagSong = Song.getChart(chartName, songName);
+
+								if (songData != null)
+								{
+									// Extract character information
+									var characters:Array<String> = [];
+
+									// Check for player1 (boyfriend)
+									if (songData.player1 != null && songData.player1.trim().length > 0)
+										characters.push(songData.player1);
+
+									// Check for player2 (opponent/dad)
+									if (songData.player2 != null && songData.player2.trim().length > 0)
+										characters.push(songData.player2);
+
+									// Check for player4 (second opponent)
+									if (songData.player4 != null && songData.player4.trim().length > 0)
+										characters.push(songData.player4);
+
+										if (songData.player5 != null && songData.player5.trim().length > 0)
+										characters.push(songData.player5);
+
+									// Add characters to the map
+									for (character in characters)
+									{
+										if (!characterMap.exists(character))
+										{
+											characterMap.set(character, []);
+										}
+
+										// Create song object with optional mod field
+										var songObj:Dynamic = {
+											song: songName
+										};
+
+										// Only add mod field if it exists and is not empty
+										if (modName != null && modName.length > 0)
+										{
+											songObj.mod = modName;
+										}
+
+										// Check if this song is already in the list (compare by song and mod)
+										var alreadyExists = false;
+										for (existingSong in characterMap.get(character))
+										{
+											var existingMod = Reflect.hasField(existingSong, "mod") ? existingSong.mod : null;
+											var currentMod = Reflect.hasField(songObj, "mod") ? songObj.mod : null;
+
+											if (existingSong.song == songObj.song && existingMod == currentMod)
+											{
+												alreadyExists = true;
+												break;
+											}
+										}
+
+										if (!alreadyExists)
+										{
+											characterMap.get(character).push(songObj);
+										}
+									}
+								}
+							}
+							catch (e:Dynamic)
+							{
+								trace('Error scanning chart for song ${songName}: ${e}');
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			trace("Character scanning failed - FreeplayManager or song list is null");
+		}
+
+		return characterMap;
+	}
+
+	/**
+	 * Generate the sanity data object for YAML export
+	 * @return Dynamic object containing stage and character data
+	 */
+	function generateSanityData():Dynamic
+	{
+		var sanityData:Dynamic = {};
+
+		if (stagesanity)
+		{
+			var stageMap = scanStagesFromCharts();
+			var stageArray:Array<Dynamic> = [];
+
+			for (stageName in stageMap.keys())
+			{
+				var songList = stageMap.get(stageName);
+				if (songList != null && songList.length > 0)
+				{
+					stageArray.push({
+						name: stageName,
+						songs: songList
+					});
+				}
+			}
+
+			sanityData.Stage = stageArray;
+		}
+
+		if (charactersanity)
+		{
+			var characterMap = scanCharactersFromCharts();
+			var characterArray:Array<Dynamic> = [];
+
+			for (characterName in characterMap.keys())
+			{
+				var songList = characterMap.get(characterName);
+				if (songList != null && songList.length > 0)
+				{
+					characterArray.push({
+						name: characterName,
+						songs: songList
+					});
+				}
+			}
+
+			sanityData.Character = characterArray;
+		}
+
+		return sanityData;
+	}
+
+	/**
 	 * Creates a state option that opens another state with proper tracking
 	 * @param name Display name for the option
 	 * @param description Description of what the option does
@@ -2212,6 +2550,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			includeVanilla = Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true;
 			startingSong = settings.starting_song != null ? settings.starting_song : "Tutorial";
 			victorySong = settings.victory_song != null ? settings.victory_song : "Tutorial";
+
+			// Sanity settings with defaults
+			stagesanity = Reflect.hasField(settings, "stagesanity") ? settings.stagesanity : false;
+			charactersanity = Reflect.hasField(settings, "charactersanity") ? settings.charactersanity : false;
 		}
 	}
 
@@ -2258,6 +2600,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			settings.MHPWeight = MHPWeight;
 			settings.MHPDWeight = MHPDWeight;
 			settings.exLifeWeight = exLifeWeight;
+
+			// Save sanity settings
+			settings.stagesanity = stagesanity;
+			settings.charactersanity = charactersanity;
 		}
 	}
 
@@ -2804,6 +3150,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "include_pico", includePico);
 		Reflect.setField(yamlThing, "include_erect", includeErect);
 		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
+		Reflect.setField(yamlThing, "stagesanity", stagesanity);
+		Reflect.setField(yamlThing, "charactersanity", charactersanity);
 		if (startingSong != null)
 		{
 			Reflect.setField(yamlThing, "starting_song", startingSong);
@@ -2847,6 +3195,22 @@ class APAdvancedSettingsState extends MusicBeatState
 			else
 			{
 				trace('Warning: Python script generation returned empty content');
+			}
+		}
+
+		// Add sanity data if any sanity options are enabled
+		if (stagesanity || charactersanity)
+		{
+			var sanityData = generateSanityData();
+			if (sanityData != null)
+			{
+				// Convert sanity data to JSON and encode in Base64
+				var sanityJson = haxe.Json.stringify(sanityData);
+				var compressedSanityData = Base64.encode(haxe.io.Bytes.ofString(sanityJson));
+
+				// Embed as sanity in the YAML
+				Reflect.setField(yamlThing, "sanity", compressedSanityData);
+				trace('Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
 			}
 		}
 
@@ -2935,6 +3299,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "include_pico", includePico);
 		Reflect.setField(yamlThing, "include_erect", includeErect);
 		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
+		Reflect.setField(yamlThing, "stagesanity", stagesanity);
+		Reflect.setField(yamlThing, "charactersanity", charactersanity);
 		if (startingSong != null)
 		{
 			Reflect.setField(yamlThing, "starting_song", startingSong);
@@ -2978,6 +3344,22 @@ class APAdvancedSettingsState extends MusicBeatState
 			else
 			{
 				trace('Warning: Python script generation returned empty content');
+			}
+		}
+
+		// Add sanity data if any sanity options are enabled
+		if (stagesanity || charactersanity)
+		{
+			var sanityData = generateSanityData();
+			if (sanityData != null)
+			{
+				// Convert sanity data to JSON and encode in Base64
+				var sanityJson = haxe.Json.stringify(sanityData);
+				var compressedSanityData = Base64.encode(haxe.io.Bytes.ofString(sanityJson));
+
+				// Embed as sanity in the YAML
+				Reflect.setField(yamlThing, "sanity", compressedSanityData);
+				trace('Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
 			}
 		}
 
@@ -3215,9 +3597,13 @@ class APAdvancedSettingsState extends MusicBeatState
 							case "include_vanilla":
 								includeVanilla = value == true;
 							case "starting_song":
-								startingSong = Std.string(value);
+								// Only set if the value is actually present in YAML and not empty
+								var songValue = Std.string(value);
+								startingSong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
 							case "victory_song":
-								victorySong = Std.string(value);
+								// Only set if the value is actually present in YAML and not empty
+								var songValue = Std.string(value);
+								victorySong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
 							case "deathlink":
 								deathlink = value == true;
 							case "ticket_percent" | "ticket_percentage":
@@ -3434,9 +3820,9 @@ class APAdvancedSettingsState extends MusicBeatState
 										case ENUM_SELECT(options):
 											// Show enum selection substate instead of context menu
 											openEnumSelectionPrompt(option.name, options);
-										case BOOLEAN(trueLabel, falseLabel):
+										case BOOLEAN(trueLabel, falseLabel, setValue):
 											// Show boolean selection substate
-											openBooleanSelectionPrompt(option.name, trueLabel, falseLabel);
+											openBooleanSelectionPrompt(option.name, trueLabel, falseLabel, setValue);
 										case EDIT_VALUE(editCallback):
 											// For edit values, keep the original callback behavior
 											option.callback();
@@ -3575,7 +3961,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			shieldWeight: shieldWeight,
 			MHPWeight: MHPWeight,
 			MHPDWeight: MHPDWeight,
-			exLifeWeight: exLifeWeight
+			exLifeWeight: exLifeWeight,
+			// Sanity settings
+			stagesanity: stagesanity,
+			charactersanity: charactersanity
 		};
 
 		if (tempSave != null)
@@ -3643,6 +4032,12 @@ class APAdvancedSettingsState extends MusicBeatState
 				MHPDWeight = data.MHPDWeight;
 			if (Reflect.hasField(data, "exLifeWeight"))
 				exLifeWeight = data.exLifeWeight;
+
+			// Load sanity settings
+			if (Reflect.hasField(data, "stagesanity"))
+				stagesanity = data.stagesanity;
+			if (Reflect.hasField(data, "charactersanity"))
+				charactersanity = data.charactersanity;
 		}
 	}
 
