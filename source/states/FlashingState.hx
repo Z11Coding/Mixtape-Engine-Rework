@@ -1,7 +1,6 @@
 package states;
 
 import flixel.FlxSubState;
-
 import flixel.effects.FlxFlicker;
 import lime.app.Application;
 
@@ -16,6 +15,11 @@ class FlashingState extends MusicBeatState
 	override function create()
 	{
 		super.create();
+
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Reading the Flashing Lights Warning", null);
+		#end
 
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		add(bg);

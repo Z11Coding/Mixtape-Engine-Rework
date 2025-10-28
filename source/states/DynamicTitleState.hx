@@ -37,7 +37,7 @@ typedef TitleData =
 	@:optional var idle:Bool;
 }
 
-class TitleState extends MusicBeatState
+class DynamicTitleState extends MusicBeatState
 {
 	public static var muteKeys:Array<FlxKey> = [FlxKey.ZERO];
 	public static var volumeDownKeys:Array<FlxKey> = [FlxKey.NUMPADMINUS, FlxKey.MINUS];
@@ -49,7 +49,7 @@ class TitleState extends MusicBeatState
 	private static var APBug:Bool = false;
 
 	public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
-		// trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
+		//trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
 	}, 30);
 
 
@@ -77,11 +77,6 @@ class TitleState extends MusicBeatState
 	var candance:Bool = true;
 	override public function create():Void
 	{
-		#if DISCORD_ALLOWED
-		// Updating Discord Rich Presence
-		DiscordClient.changePresence("Chilling on the Title Screen", null);
-		#end
-
 		MusicBeatState.allowNuke = true; // COMMENCE THE MEMORY CLEARAGE
 		// ticker.update(0);
 		trace(ticker.metadata());
@@ -636,6 +631,31 @@ class TitleState extends MusicBeatState
 		}
 	}
 
+	function createCoolColoredText(textArray:Array<String>, ?offset:Float = 0, ?color:FlxColor = FlxColor.WHITE)
+	{
+		for (i in 0...textArray.length)
+		{
+			var money:ColoredAlphabet = new ColoredAlphabet(0, 0, textArray[i], true, color);
+			money.screenCenter(X);
+			money.y += (i * 60) + 200 + offset;
+			if(credGroup != null && textGroup != null) {
+				credGroup.add(money);
+				textGroup.add(money);
+			}
+		}
+	}
+
+	function addMoreColoredText(text:String, ?offset:Float = 0, ?color:FlxColor = FlxColor.WHITE)
+	{
+		if(textGroup != null && credGroup != null) {
+			var coolText:ColoredAlphabet = new ColoredAlphabet(0, 0, text, true, color);
+			coolText.screenCenter(X);
+			coolText.y += (textGroup.length * 60) + 200 + offset;
+			credGroup.add(coolText);
+			textGroup.add(coolText);
+		}
+	}
+
 	function deleteCoolText()
 	{
 		while (textGroup.members.length > 0)
@@ -647,6 +667,7 @@ class TitleState extends MusicBeatState
 
 	private var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
 	public static var closedState:Bool = false;
+	public var updateDynamicEffects:Bool = false;
 	override function beatHit()
 	{
 		super.beatHit();
@@ -667,48 +688,7 @@ class TitleState extends MusicBeatState
 			else if(curBeat % 2 == 0) gfDance.animation.play('idle', true);
 		}
 
-		if(!closedState)
-		{
-			sickBeats++;
-			switch (sickBeats)
-			{
-				case 1:
-					//FlxG.sound.music.stop();
-					MusicManager.playMenuMusic(0);
-					FlxG.sound.music.fadeIn(4, 0, 0.7);
-				case 2:
-					createCoolText(['Mixtape Engine by'], 40);
-				case 4:
-					addMoreText('Z11Gaming', 40);
-					addMoreText('Yutamon', 40);
-				case 5:
-					deleteCoolText();
-				case 6:
-					createCoolText(['Not associated', 'with'], -40);
-				case 8:
-					addMoreText('newgrounds', -40);
-					ngSpr.visible = true;
-				case 9:
-					deleteCoolText();
-					ngSpr.visible = false;
-				case 10:
-					createCoolText([curWacky[0]]);
-				case 12:
-					addMoreText(curWacky[1]);
-				case 13:
-					deleteCoolText();
-				case 14:
-					curWacky = FlxG.random.getObject(get3IntroTextShit());
-					addMoreText(curWacky[0]);
-				case 15:
-					addMoreText(curWacky[1]);
-				case 16:
-					addMoreText(curWacky[2]); // credTextShit.text += '\nFunkin';
-
-				case 17:
-					skipIntro();
-			}
-		}
+		updateDynamicEffects = !closedState;
 	}
 
 	var skippedIntro:Bool = false;
@@ -732,17 +712,17 @@ class TitleState extends MusicBeatState
 	}
 
 	var box:FlxSprite;
-    var boxB:FlxSprite;
+  var boxB:FlxSprite;
 	var underText:UnderTextParser;
 	var daStatic:FlxSprite;
 	//Box Stuff
-    public var targetW:Float = 810;
-    public var targetH:Float = 200;
-    public var boxX:Float = (1280 / 2) - 25;
-    public var boxY:Float = (720 / 2) + 75;
-    var boxW:Float = 0;
-    var boxH:Float = 0;
-    public var boxA:Float = 1;
+	public var targetW:Float = 810;
+	public var targetH:Float = 200;
+	public var boxX:Float = (1280 / 2) - 25;
+	public var boxY:Float = (720 / 2) + 75;
+	var boxW:Float = 0;
+	var boxH:Float = 0;
+	public var boxA:Float = 1;
 	var curDial:Int = 0;
 
 	var inGasterEgg:Bool = false;
@@ -772,22 +752,23 @@ class TitleState extends MusicBeatState
 		add(daStatic);
 
 		boxB = new FlxSprite().loadGraphic(Paths.image('ut/boxBorder'));
-        box = new FlxSprite().loadGraphic(Paths.image('ut/box'));
+    box = new FlxSprite().loadGraphic(Paths.image('ut/box'));
 		boxB.screenCenter();
-        box.screenCenter();
+    box.screenCenter();
 		add(boxB);
-        add(box);
+    add(box);
 
 		underText = new UnderTextParser(300, 400, Std.int(FlxG.width * 0.6), '', 32);
-        underText.font = Paths.font("undertale-wingdings.ttf");
-        underText.color = 0xFFFFFFFF;
-        underText.prefix = '* ';
-        add(underText);
+		underText.font = Paths.font("undertale-wingdings.ttf");
+		underText.color = 0xFFFFFFFF;
+		underText.prefix = '* ';
+		add(underText);
 		for (letter in alphabet) {
 			underText.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			underText.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 		}
-        //underText.alpha = 0;
+
+		//underText.alpha = 0;
 		inGasterEgg = true;
 		FlxG.camera.setFilters(camfilters);
 		FlxG.camera.filtersEnabled = true;
@@ -795,29 +776,206 @@ class TitleState extends MusicBeatState
 	}
 
 	var daSpeed:Float = 0.015;
-    function typeFunc(?text:String = '', ?sound:String = 'uifont', ?speed:Float = 0.2, ?delayBetweenPause:Float = 1, hide:Bool = false)
-    {
-        var splitName:Array<String> = text.split("\n");
-        var trueText:String = splitName[0];
-        for (i in 0...splitName.length)
-        {
-            if (i > 0) trueText += '\n* ' + splitName[i];
-        }
+	function typeFunc(?text:String = '', ?sound:String = 'uifont', ?speed:Float = 0.2, ?delayBetweenPause:Float = 1, hide:Bool = false)
+	{
+		var splitName:Array<String> = text.split("\n");
+		var trueText:String = splitName[0];
+		for (i in 0...splitName.length)
+		{
+			if (i > 0) trueText += '\n* ' + splitName[i];
+		}
 
-        if (hide)
-        {
-            underText.alpha = 0;
-            underText.resetText('');
+		if (hide)
+		{
+			underText.alpha = 0;
+			underText.resetText('');
 			box.visible = false;
 			boxB.visible = false;
-        }
-        else
-        {
-            underText.alpha = 1;
-            underText.resetText(trueText);
-            underText.start(speed, true);
+		}
+		else
+		{
+			underText.alpha = 1;
+			underText.resetText(trueText);
+			underText.start(speed, true);
 			box.visible = true;
 			boxB.visible = true;
-        }
-    }
+		}
+	}
+
+	function doDynamicTitle(sickBeats) {
+		if (sickBeats == 0 && FlxG.sound.music != null) FlxG.sound.music.time = 0;
+		switch (ClientPrefs.data.menuSong) {
+			case "None":
+				skipIntro();
+
+			case "Panix Press":
+				switch (sickBeats)
+				{
+					case 1:
+						MusicManager.playMenuMusic(0);
+						FlxG.sound.music.fadeIn(4, 0, 0.7);
+						createCoolText(['Yall\' ready to get-'], 15);
+					case 3:
+						addMoreText('Yall\' ready to get-', 15);
+					case 5:
+						deleteCoolText();
+						createCoolText(['Yall\' ready to get-'], 15);
+					case 7:
+						addMoreText('Yall\' ready to get-', 15);
+					case 9:
+						deleteCoolText();
+						createCoolText(['Yall\' ready to get-'], 15);
+					case 11:
+						addMoreText('Yall\' ready to get-', 15);
+					case 12:
+						deleteCoolText();
+						createCoolText(['Yall\' ready to get funky?'], 15);
+					case 12.5:
+						addMoreText('gimme', 15);
+					case 13:
+						addMoreText('one of', 15);
+					case 14:
+						addMoreText('them', 15);
+					case 15:
+						deleteCoolText();
+						addMoreText('funky beats', 15);
+					case 15.8:
+						addMoreText('boi', 15);
+				}
+
+			case "TitleMania" | "Base Game":
+				switch (sickBeats)
+				{
+					case 1:
+						MusicManager.playMenuMusic(0);
+						FlxG.sound.music.fadeIn(4, 0, 0.7);
+					case 2:
+						createCoolText(['Mixtape Engine by'], 40);
+					case 4:
+						addMoreText('Z11Gaming', 40);
+						addMoreText('Yutamon', 40);
+					case 5:
+						deleteCoolText();
+					case 6:
+						createCoolText(['Not associated', 'with'], -40);
+					case 8:
+						addMoreText('newgrounds', -40);
+						ngSpr.visible = true;
+					case 9:
+						deleteCoolText();
+						ngSpr.visible = false;
+					case 10:
+						createCoolText([curWacky[0]]);
+					case 12:
+						addMoreText(curWacky[1]);
+					case 13:
+						deleteCoolText();
+					case 14:
+						curWacky = FlxG.random.getObject(get3IntroTextShit());
+						addMoreText(curWacky[0]);
+					case 15:
+						addMoreText(curWacky[1]);
+					case 16:
+						addMoreText(curWacky[2]);
+					case 17:
+						skipIntro();
+				}
+
+			case "Pause Menu":
+				switch (ClientPrefs.data.menuSong) {
+					case "None":
+						skipIntro();
+
+					case "Breakfast":
+						switch (sickBeats)
+						{
+							case 1:
+								MusicManager.playMenuMusic(0);
+								FlxG.sound.music.fadeIn(4, 0, 0.7);
+							case 2:
+								#if PSYCH_WATERMARKS
+								createCoolText(['Psych Engine by'], 15);
+								#else
+								createCoolText(['Mixtape Engine by'], 15);
+								#end
+							case 4:
+								#if PSYCH_WATERMARKS
+								addMoreText('Shadow Mario', 15);
+								addMoreText('RiverOaken', 15);
+								addMoreText('shubs', 15);
+								#else
+								addMoreText('Z11Gaming', 15);
+								#end
+							case 5:
+								deleteCoolText();
+
+							case 6:
+								#if PSYCH_WATERMARKS
+								createCoolText(['Not associated', 'with'], -40);
+								#else
+								createCoolText(["That\'s", 'right'], -40);
+								#end
+							case 8:
+								addMoreText('This Mofo', -40);
+								ngSpr.visible = true;
+							case 9:
+								deleteCoolText();
+								ngSpr.visible = false;
+
+							case 10:
+								createCoolText(['Alright']);
+							case 12:
+								addMoreText('Time For');
+							case 13:
+								deleteCoolText();
+
+							case 14:
+								addMoreText('Random');
+							case 15:
+								addMoreText('Breakfast');
+							case 16:
+								addMoreText('Quotes');
+							case 17:
+								deleteCoolText();
+
+							case 18:
+								createCoolText([curWacky[0]]);
+							case 20:
+								addMoreText(curWacky[1]);
+							case 21:
+								deleteCoolText();
+
+							case 22:
+								curWacky = FlxG.random.getObject(getIntroTextShit());
+								createCoolText([curWacky[0]]);
+							case 24:
+								addMoreText(curWacky[1]);
+							case 25:
+								deleteCoolText();
+
+							case 26:
+								curCrazy = FlxG.random.getObject(getMoreIntroTextShit());
+								addMoreText(curCrazy[0]);
+							case 27:
+								addMoreText(curCrazy[1]);
+							case 28:
+								addMoreText(curCrazy[2]);
+
+							case 29:
+								deleteCoolText();
+
+							case 30:
+								addMoreColoredText('FNF', 0, 0xFF33E0FF);
+							case 31:
+								addMoreColoredText('Mixtape', 0, 0x9A470099);
+							case 32:
+								addMoreColoredText('Engine', 0, 0xFFFF9900);
+
+							case 33:
+								deleteCoolText();
+								skipIntro();
+						}
+				}
+		}
+	}
 }

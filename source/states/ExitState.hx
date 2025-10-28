@@ -14,6 +14,11 @@ class ExitState extends FlxState
 	{
 		super.create();
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Closing the Game", null);
+		#end
+
 		// Display "Exiting Game..." text
 		var exitText:FlxText = new FlxText(0, 0, 0, "Exiting Game...", 32);
 		exitText.screenCenter();

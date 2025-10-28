@@ -1,14 +1,14 @@
 package backend.modchart.modifiers;
 
-import flixel.math.FlxAngle;
-import flixel.FlxSprite;
-import backend.ui.*;
-import backend.modchart.*;
-import flixel.math.FlxPoint;
-import flixel.math.FlxMath;
-import flixel.FlxG;
-import backend.math.Vector3;
 import backend.math.*;
+import backend.math.Vector3;
+import backend.modchart.*;
+import backend.ui.*;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.math.FlxAngle;
+import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
 import objects.playfields.NoteField;
 
 class RotateModifier extends NoteModifier { // this'll be rotateX in ModManager
@@ -23,11 +23,10 @@ class RotateModifier extends NoteModifier { // this'll be rotateX in ModManager
     }
     var daOrigin:Vector3;
     var prefix:String;
-	public function new(modMgr:ModManager, ?prefix:String = '', ?origin:Vector3, ?parent:Modifier){
-        this.prefix=prefix;
-        this.daOrigin=origin;
-        super(modMgr, parent);
-
+		public function new(modMgr:ModManager, ?prefix:String = '', ?origin:Vector3, ?parent:Modifier){
+			this.prefix=prefix;
+			this.daOrigin=origin;
+			super(modMgr, parent);
     }
 
 

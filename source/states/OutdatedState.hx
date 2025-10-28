@@ -16,6 +16,11 @@ class OutdatedState extends MusicBeatState
 	{
 		super.create();
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Running an Outdated Build", null);
+		#end
+
 		betaText = FirstCheckState.betaVersion != 'none' ? "\n(This is a beta update, so feel free to skip it)" : "(This is an actual update)";
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);

@@ -44,6 +44,11 @@ class MixtapeCrashSplash extends MusicBeatState {
     override public function create() {
         super.create();
 
+        #if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("In the Splash Screen", null);
+		#end
+
         // Mark game as initialized
         states.FirstCheckState.gameInitialized = true;
 

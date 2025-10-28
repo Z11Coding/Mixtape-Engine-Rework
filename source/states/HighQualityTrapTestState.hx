@@ -48,6 +48,11 @@ class HighQualityTrapTestState extends MusicBeatState
     {
         super.create();
 
+        #if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Testing the SilvaTrap", null);
+		#end
+
         trace("HighQualityTrapTestState: Starting creation...");
 
         // Check if we're in testing mode

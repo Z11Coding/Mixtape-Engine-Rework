@@ -40,6 +40,11 @@ class WelcomeToPain extends MusicBeatState
 
 	override public function create():Void
 	{
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("If you're reading this, they're somewhere they shouldn't be.", null);
+		#end
+
 		CppAPI.setWindowOpacity(1);
 		camMESSAGE = initPsychCamera();
 		super.create();

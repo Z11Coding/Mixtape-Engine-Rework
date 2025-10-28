@@ -150,6 +150,11 @@ class CategoryState extends MusicBeatState
 	{
 		MemoryUtil.clearMajor();
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Picking the Category", null);
+		#end
+
 		menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
 		FlxTransitionableState.skipNextTransOut = false;
 

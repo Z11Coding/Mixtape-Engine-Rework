@@ -42,6 +42,11 @@ class ReleaseSelectionState extends MusicBeatState {
 	override function create() {
 		super.create();
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Checking out the other versions of Mixtape Engine", null);
+		#end
+
 		FlxG.mouse.visible = true; // Enable mouse cursor
 		MusicManager.playMenuMusic();
 

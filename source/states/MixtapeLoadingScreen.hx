@@ -125,6 +125,11 @@ class MixtapeLoadingScreen extends MusicBeatState
 
 		super.create();
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Loading into a song Mixtape Style", null);
+		#end
+
 		// Check if we should do loading or skip it based on settings
 		if (ClientPrefs.data.loadingState == 'Everything' || ClientPrefs.data.loadingState == 'Song Only') {
 			if (stateChangeDelay <= 0 && checkLoaded())

@@ -33,6 +33,11 @@ class HighQualityTrapWaitingState extends backend.MusicBeatState
 	{
 		super.create();
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Loading some High Quality Rips", null);
+		#end
+
 		// Background
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(20, 20, 20));
 		add(bg);
