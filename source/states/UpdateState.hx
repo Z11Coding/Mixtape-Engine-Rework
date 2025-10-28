@@ -84,6 +84,11 @@ class UpdateState extends MusicBeatState
 			return;
 		}
 
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Updating the Engine", null);
+		#end
+
 		FlxG.autoPause = false;
 
 		FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(listoSongs[FlxG.random.int(0, 10)])), 0);

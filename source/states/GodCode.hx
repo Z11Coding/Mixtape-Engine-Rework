@@ -17,6 +17,11 @@ class GodCode extends MusicBeatState
 
 	override function create()
 	{
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("???", null);
+		#end
+
 		FlxG.camera.setFilters(camfilters);
 		FlxG.camera.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);

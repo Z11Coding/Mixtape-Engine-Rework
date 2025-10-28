@@ -2568,10 +2568,9 @@ class PlayState extends MusicBeatState
 	// 	return super.add(obj);
 	// }
 
-	public function addBehind(obj:FlxBasic, behind:FlxBasic):FlxBasic
+	public function addBehind(obj:FlxBasic, behind:FlxBasic)
 	{
 		insert(members.indexOf(behind), obj);
-		return obj;
 	}
 
 	public function addBehindGF(obj:FlxBasic)
@@ -3427,7 +3426,7 @@ class PlayState extends MusicBeatState
 
 					var gottaHitNote:Bool;
 					noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-					gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
+					gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[SONG.mania != null ? SONG.mania : 3]));
 
 					//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
 

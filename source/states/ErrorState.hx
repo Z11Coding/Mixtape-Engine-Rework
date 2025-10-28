@@ -19,6 +19,11 @@ class ErrorState extends MusicBeatState
 	public var errorText:FlxText;
 	override function create()
 	{
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Un Oh! Something broke!", null);
+		#end
+
 		var bg = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.color = FlxColor.GRAY;
 		bg.antialiasing = ClientPrefs.data.antialiasing;

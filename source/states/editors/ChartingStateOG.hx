@@ -389,8 +389,10 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	override function create()
 	{
 		states.editors.ChartEditorEvents.pushToArray(eventStuff);
-		if (PlayState.SONG != null)
+		if (PlayState.SONG != null) {
 			_song = PlayState.SONG;
+			_song.format = 'mixtape_v1';
+		}
 		else
 		{
 			Difficulty.resetList();

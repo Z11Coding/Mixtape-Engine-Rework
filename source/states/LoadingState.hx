@@ -99,6 +99,11 @@ class LoadingState extends MusicBeatState
 	#end
 	override function create()
 	{
+		#if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Loading into the song", null);
+		#end
+
 		persistentUpdate = true;
 		barGroup = new FlxSpriteGroup();
 		add(barGroup);

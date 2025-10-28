@@ -41,6 +41,11 @@ class ModchartEditor extends PlayState {
         // Initialize PlayState first
         super.create();
 
+        #if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("Creating a Modchart", null);
+		#end
+
         // Force all playfields to autoplay after PlayState is created
         for (field in playfields.members) {
             if (field != null) {

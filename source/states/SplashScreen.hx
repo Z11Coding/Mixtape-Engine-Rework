@@ -37,6 +37,10 @@ class SplashScreen extends MusicBeatState
     var isVideo:Bool = false;
     override public function create()
     {
+        #if DISCORD_ALLOWED
+		// Updating Discord Rich Presence
+		DiscordClient.changePresence("In the Splash Screen", null);
+		#end
         var currentDate = ExtendedDate.global();
         if (currentDate.getDate() == 5) {
             // Skip intro and show video
