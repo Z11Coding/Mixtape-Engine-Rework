@@ -1667,8 +1667,8 @@ class StateDebugOverlay extends MusicBeatSubstate {
      */
     private function exportCurrentStateAsJSON():Void {
         try {
-            var serialized = tjson.TJSON.encode(FlxG.state);
-            var jsonString = serialized;
+            var serialized = StateSerializer.createSerializableObject(FlxG.state);
+            var jsonString = tjson.TJSON.encode(serialized, true);
 
             #if sys
             var timestamp = Std.string(Date.now().getTime());
