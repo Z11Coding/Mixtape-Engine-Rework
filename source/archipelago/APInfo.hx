@@ -105,7 +105,7 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	private function get_highQualityExpected():Bool return this.highQualityExpected != null ? this.highQualityExpected : false;
 	private function get_sanityData():Map<String, SanityItemData> return this.sanityData != null ? this.sanityData : new Map<String, SanityItemData>();
 	private function get_sanityLocationData():Map<String, SanityLocationData> return this.sanityLocationData != null ? this.sanityLocationData : new Map<String, SanityLocationData>();
-	private function get_sanitySettings():SanitySettings return this.sanitySettings != null ? this.sanitySettings : {enable_sanity_locations: false, sanity_completion_type: "on_getting"};
+	private function get_sanitySettings():SanitySettings return this.sanitySettings != null ? this.sanitySettings : {enable_sanity_locations: false, sanity_completion_type: "on_getting", sanity_types: []};
 
 	public function get(key:String):Dynamic {
 		return Reflect.field(this, key);
