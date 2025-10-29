@@ -10,6 +10,24 @@ typedef SongDetailData = {
 	songName: String
 }
 
+typedef SanityItemData = {
+	id: Int,
+	type: String, // "stage" or "character"
+	songs: Array<String>,
+	player: String
+}
+
+typedef SanityLocationData = {
+	id: Int,
+	sanity_item: String
+}
+
+typedef SanitySettings = {
+	enable_sanity_locations: Bool,
+	sanity_completion_type: String, // "on_getting", "on_playing", or "on_beating"
+	sanity_types: Array<String> // What types of sanity items to check for ("Character", "Stage", etc.)
+}
+
 typedef APSlotDataType = {
 	deathLink: Bool,
 	fullSongCount: Int,
@@ -25,7 +43,10 @@ typedef APSlotDataType = {
 	?custom_weeks: Dynamic, // Custom weeks data from HScript processing
 	?song_modifications: Dynamic, // Song additions/exclusions data
 	?unoColorsUsed:Array<{name:String, color_code:String}>, // Uno mod colors used in the slot
-	?highQualityExpected: Bool // Whether high quality trap content is expected to be available
+	?highQualityExpected: Bool, // Whether high quality trap content is expected to be available
+	?sanityData: Map<String, SanityItemData>, // Sanity items for this player
+	?sanityLocationData: Map<String, SanityLocationData>, // Sanity locations for this player
+	?sanitySettings: SanitySettings // Sanity settings for this player
 }
 
 abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
@@ -63,6 +84,9 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	public var song_modifications(get, never):Dynamic;
 	public var unoColorsUsed(get, never):Array<{name:String, color_code:String}>;
 	public var highQualityExpected(get, never):Bool;
+	public var sanityData(get, never):Map<String, SanityItemData>;
+	public var sanityLocationData(get, never):Map<String, SanityLocationData>;
+	public var sanitySettings(get, never):SanitySettings;
 
 	private function get_deathLink():Bool return this.deathLink;
 	private function get_fullSongCount():Int return this.fullSongCount;
@@ -79,6 +103,9 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	private function get_song_modifications():Dynamic return this.song_modifications;
 	private function get_unoColorsUsed():Array<{name:String, color_code:String}> return this.unoColorsUsed;
 	private function get_highQualityExpected():Bool return this.highQualityExpected != null ? this.highQualityExpected : false;
+	private function get_sanityData():Map<String, SanityItemData> return this.sanityData != null ? this.sanityData : new Map<String, SanityItemData>();
+	private function get_sanityLocationData():Map<String, SanityLocationData> return this.sanityLocationData != null ? this.sanityLocationData : new Map<String, SanityLocationData>();
+	private function get_sanitySettings():SanitySettings return this.sanitySettings != null ? this.sanitySettings : {enable_sanity_locations: false, sanity_completion_type: "on_getting"};
 
 	public function get(key:String):Dynamic {
 		return Reflect.field(this, key);

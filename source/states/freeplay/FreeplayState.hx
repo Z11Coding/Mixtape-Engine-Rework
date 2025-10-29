@@ -1124,6 +1124,29 @@ class FreeplayState extends MusicBeatState
 							PlayState.storyDifficulty = actualDifficulty;
 							Mods.currentModDirectory = FreeplayManager.instance.songList[curSelected].folder;
 
+							// Check if required characters and stage are unlocked via sanity system
+							if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+								if (missingItems.length > 0) {
+									trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
+
+									var itemList = "";
+									for (i in 0...missingItems.length) {
+										itemList += "• " + missingItems[i];
+										if (i < missingItems.length - 1) itemList += "\n";
+									}
+
+									missingText.text = 'This song requires unlocked characters or stages:\n\n' + itemList + '\n\nPlay other songs to unlock these items!';
+									missingText.screenCenter(Y);
+									missingText.visible = true;
+									missingTextBG.visible = true;
+									FlxG.sound.play(Paths.sound('cancelMenu'));
+
+									updateTexts(elapsed);
+									super.update(elapsed);
+									return;
+								}
+							}
 
 							trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
 						}

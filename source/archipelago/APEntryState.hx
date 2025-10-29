@@ -80,6 +80,8 @@ typedef APOptions =
 	var	include_vanilla:Bool;
 	var	starting_song:String;
 	var	victory_song:String;
+	var	enable_sanity_locations:Bool;
+	var	sanity_completion_type:String;
 	var	stagesanity:Bool;
 	var	charactersanity:Bool;
 }
@@ -195,6 +197,8 @@ class APEntryState extends MusicBeatState
 			include_vanilla: true,
 			starting_song: "Tutorial",
 			victory_song: "Bopeebo",
+			enable_sanity_locations: false,
+			sanity_completion_type: "on_getting",
 			stagesanity: false,
 			charactersanity: false
 		}

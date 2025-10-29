@@ -1617,6 +1617,15 @@ class APPlayState extends PlayState {
         }
         Sys.println('');*/
         super.startCountdown();
+
+        // Check sanity locations on playing if enabled
+        if (APPlayState.apGame != null)
+        {
+            var songName = PlayState.SONG.song;
+            var modName = APPlayState.currentMod != null && APPlayState.currentMod.trim() != "" ? APPlayState.currentMod.trim() : null;
+            APPlayState.apGame.checkSanityLocationsOnPlaying(songName, modName);
+        }
+
         return true;
     }
 

@@ -329,6 +329,13 @@ class RankingSubstate extends MusicBeatSubstate
 							ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
 						}
 
+						// Check sanity locations on beating if enabled
+						if (archipelago.APEntryState.apGame != null)
+						{
+							var songName = PlayState.SONG.song;
+							var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
+							archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
+						}
 
 							// for (locationIdInt in locationIdInts)
 							// {

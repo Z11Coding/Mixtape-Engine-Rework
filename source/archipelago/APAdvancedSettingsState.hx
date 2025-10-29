@@ -159,6 +159,8 @@ class APAdvancedSettingsState extends MusicBeatState
 	// Sanity settings
 	var stagesanity:Bool = false;
 	var charactersanity:Bool = false;
+	var enable_sanity_locations:Bool = false;
+	var sanity_completion_type:String = "on_getting";
 
 	// Filler/Trap weight settings
 	var bbcWeight:Int = 3;
@@ -188,6 +190,12 @@ class APAdvancedSettingsState extends MusicBeatState
 	// Animation state
 	var isAnimating:Bool = false;
 	var transitionTime:Float = 0.3;
+
+	// Refresh queue system - waits for all tweens to complete
+	var refreshQueued:Bool = false;
+	var activeTweens:Array<FlxTween> = [];
+	var tweenCheckTimer:Float = 0;
+	var tweenCheckInterval:Float = 0.1; // Check every 100ms
 
 	// Temporary save system for state navigation
 	static var tempSave:FlxSave;
@@ -428,6 +436,21 @@ class APAdvancedSettingsState extends MusicBeatState
 							MHPWeight = value;
 						case "MHPDWeight":
 							MHPDWeight = value;
+						// Sanity settings
+						case "enable_sanity_locations":
+							enable_sanity_locations = value == true;
+						case "sanity_completion_type":
+							var completionType = Std.string(value);
+							if (["on_getting", "on_playing", "on_beating"].indexOf(completionType) != -1) {
+								sanity_completion_type = completionType;
+							} else {
+								trace('Invalid sanity_completion_type: $completionType, using default: on_getting');
+								sanity_completion_type = "on_getting";
+							}
+						case "stagesanity":
+							stagesanity = value == true;
+						case "charactersanity":
+							charactersanity = value == true;
 						// Handle any other potential fields that might exist
 						default:
 							trace('Unknown YAML field during import: $field = $value');
@@ -788,33 +811,60 @@ class APAdvancedSettingsState extends MusicBeatState
 			}
 		];
 
-		// Sanity Options Page
-		var sanityOptions:Array<SettingsOption> = [
-			{
-				name: "Stagesanity",
-				description: "Enable stage-based items. Creates location checks for stages used in songs.",
-				callback: function() {
-					stagesanity = !stagesanity;
-					refreshCurrentPage();
-				},
-				locked: false,
-				contextMenu: createBoolContextMenu(stagesanity, function(value:Bool) {
-					stagesanity = value;
-				})
+		// Sanity Options Page - dynamically build based on enabled sanity types
+		var sanityOptions:Array<SettingsOption> = [];
+
+		// Always show the individual sanity type toggles first
+		sanityOptions.push({
+			name: "Stagesanity",
+			description: "Enable stage-based items. Creates location checks for stages used in songs.",
+			callback: function() {
+				stagesanity = !stagesanity;
+				refreshCurrentPage();
 			},
-			{
-				name: "Charactersanity",
-				description: "Enable character-based items. Creates location checks for characters used in songs.",
-				callback: function() {
-					charactersanity = !charactersanity;
-					refreshCurrentPage();
-				},
-				locked: false,
-				contextMenu: createBoolContextMenu(charactersanity, function(value:Bool) {
-					charactersanity = value;
-				})
-			}
-		];
+			locked: false,
+			contextMenu: createBoolContextMenu(stagesanity, function(value:Bool) {
+				stagesanity = value;
+				// Don't refresh here - the main callback will handle it
+			})
+		});
+
+		sanityOptions.push({
+			name: "Charactersanity",
+			description: "Enable character-based items. Creates location checks for characters used in songs.",
+			callback: function() {
+				charactersanity = !charactersanity;
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(charactersanity, function(value:Bool) {
+				charactersanity = value;
+				// Don't refresh here - the main callback will handle it
+			})
+		});
+
+		// Always show location options (they control whether locations are created)
+		// The user should be able to configure these even if no sanity types are currently enabled
+		sanityOptions.push({
+			name: "Enable Sanity Locations",
+			description: "Enable or disable all sanity location types globally",
+			callback: function() {
+				enable_sanity_locations = !enable_sanity_locations;
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(enable_sanity_locations, function(value:Bool) {
+				enable_sanity_locations = value;
+			})
+		});
+
+		sanityOptions.push({
+			name: "Sanity Completion Type",
+			description: "How sanity locations are accessed: on_getting, on_playing, or on_beating",
+			callback: () -> cycleSanityCompletionType(),
+			locked: false,
+			contextMenu: createEnumContextMenu(["on_getting", "on_playing", "on_beating"], sanity_completion_type, (value) -> sanity_completion_type = value)
+		});
 
 		// Example state options (you can add actual complex settings states here)
 		var exampleStateOptions:Array<StateOption> = [
@@ -1439,6 +1489,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Max HP Up Weight": Std.string(MHPWeight);
 			case "Max HP Down Weight": Std.string(MHPDWeight);
 			case "Extra Life Weight": Std.string(exLifeWeight);
+			case "Enable Sanity Locations": enable_sanity_locations ? "ON" : "OFF";
+			case "Sanity Completion Type": sanity_completion_type;
 			case "Stagesanity": stagesanity ? "ON" : "OFF";
 			case "Charactersanity": charactersanity ? "ON" : "OFF";
 			default: "";
@@ -1490,17 +1542,18 @@ class APAdvancedSettingsState extends MusicBeatState
 					targetX = 100;
 				}
 
-				FlxTween.tween(button, {x: targetX}, transitionTime + (i * 0.05), {
+				trackTween(FlxTween.tween(button, {x: targetX}, transitionTime + (i * 0.05), {
 					ease: FlxEase.backOut,
-					onComplete: function(_)
+					onComplete: function(tween:FlxTween)
 					{
 						completedAnimations++;
+						activeTweens.remove(tween); // Remove from tracking when complete
 						if (completedAnimations == totalAnimations)
 						{
 							isAnimating = false;
 						}
 					}
-				});
+				}));
 			}
 		}
 
@@ -1546,9 +1599,9 @@ class APAdvancedSettingsState extends MusicBeatState
 					}
 				}
 
-				FlxTween.tween(text, {x: targetX}, transitionTime + (i * 0.05), {
+				trackTween(FlxTween.tween(text, {x: targetX}, transitionTime + (i * 0.05), {
 					ease: FlxEase.backOut
-				});
+				}));
 			}
 		}
 	}
@@ -1557,20 +1610,20 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		// Animate UI elements in
 		titleText.y = -100;
-		FlxTween.tween(titleText, {y: 30}, 0.8, {ease: FlxEase.backOut});
+		trackTween(FlxTween.tween(titleText, {y: 30}, 0.8, {ease: FlxEase.backOut}));
 
 		descriptionText.alpha = 0;
-		FlxTween.tween(descriptionText, {alpha: 1}, 1.2, {ease: FlxEase.sineOut});
+		trackTween(FlxTween.tween(descriptionText, {alpha: 1}, 1.2, {ease: FlxEase.sineOut}));
 
 		leftArrow.x = -100;
 		rightArrow.x = FlxG.width + 100;
-		FlxTween.tween(leftArrow, {x: 30}, 1, {ease: FlxEase.backOut});
-		FlxTween.tween(rightArrow, {x: FlxG.width - 80}, 1, {ease: FlxEase.backOut});
+		trackTween(FlxTween.tween(leftArrow, {x: 30}, 1, {ease: FlxEase.backOut}));
+		trackTween(FlxTween.tween(rightArrow, {x: FlxG.width - 80}, 1, {ease: FlxEase.backOut}));
 
 		exportButton.y = FlxG.height + 50;
 		closeButton.y = FlxG.height + 50;
-		FlxTween.tween(exportButton, {y: FlxG.height - 80}, 1.2, {ease: FlxEase.backOut});
-		FlxTween.tween(closeButton, {y: FlxG.height - 80}, 1.2, {ease: FlxEase.backOut});
+		trackTween(FlxTween.tween(exportButton, {y: FlxG.height - 80}, 1.2, {ease: FlxEase.backOut}));
+		trackTween(FlxTween.tween(closeButton, {y: FlxG.height - 80}, 1.2, {ease: FlxEase.backOut}));
 	}
 
 	// Settings adjustment functions
@@ -1615,6 +1668,14 @@ class APAdvancedSettingsState extends MusicBeatState
 		var options = APInfo.accuracyList;
 		var current = options.indexOf(accRequirement);
 		accRequirement = options[(current + 1) % options.length];
+	}
+
+	function cycleSanityCompletionType()
+	{
+		var options = ["on_getting", "on_playing", "on_beating"];
+		var current = options.indexOf(sanity_completion_type);
+		sanity_completion_type = options[(current + 1) % options.length];
+		refreshCurrentPage();
 	}
 
 	function openPlayerNameInput()
@@ -2055,11 +2116,31 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 	}
 
+	function trackTween(tween:FlxTween):FlxTween
+	{
+		activeTweens.push(tween);
+		return tween;
+	}
+
 	function refreshCurrentPage()
 	{
+		// Check if tweens are active or refresh already queued
+		if (activeTweens.length > 0)
+		{
+			if (!refreshQueued)
+			{
+				refreshQueued = true;
+				trace('Refresh queued - waiting for ${activeTweens.length} active tweens to complete');
+			}
+			return;
+		}
+
 		// Only refresh if UI has been set up
 		if (statsText == null)
 			return;
+
+		// Clear queue flag since we're executing now
+		refreshQueued = false;
 
 		loadPage(currentPage);
 		updateSongStats();
@@ -2552,6 +2633,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			victorySong = settings.victory_song != null ? settings.victory_song : "Tutorial";
 
 			// Sanity settings with defaults
+			enable_sanity_locations = Reflect.hasField(settings, "enable_sanity_locations") ? Reflect.field(settings, "enable_sanity_locations") : false;
+			sanity_completion_type = Reflect.hasField(settings, "sanity_completion_type") ? Reflect.field(settings, "sanity_completion_type") : "on_getting";
 			stagesanity = Reflect.hasField(settings, "stagesanity") ? settings.stagesanity : false;
 			charactersanity = Reflect.hasField(settings, "charactersanity") ? settings.charactersanity : false;
 		}
@@ -2602,6 +2685,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			settings.exLifeWeight = exLifeWeight;
 
 			// Save sanity settings
+			Reflect.setField(settings, "enable_sanity_locations", enable_sanity_locations);
+			Reflect.setField(settings, "sanity_completion_type", sanity_completion_type);
 			settings.stagesanity = stagesanity;
 			settings.charactersanity = charactersanity;
 		}
@@ -3150,6 +3235,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "include_pico", includePico);
 		Reflect.setField(yamlThing, "include_erect", includeErect);
 		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
+		Reflect.setField(yamlThing, "enable_sanity_locations", enable_sanity_locations);
+		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
 		Reflect.setField(yamlThing, "stagesanity", stagesanity);
 		Reflect.setField(yamlThing, "charactersanity", charactersanity);
 		if (startingSong != null)
@@ -3299,6 +3386,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "include_pico", includePico);
 		Reflect.setField(yamlThing, "include_erect", includeErect);
 		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
+		Reflect.setField(yamlThing, "enable_sanity_locations", enable_sanity_locations);
+		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
 		Reflect.setField(yamlThing, "stagesanity", stagesanity);
 		Reflect.setField(yamlThing, "charactersanity", charactersanity);
 		if (startingSong != null)
@@ -3701,6 +3790,25 @@ class APAdvancedSettingsState extends MusicBeatState
 			navigationCooldown -= elapsed;
 		}
 
+		// Check for completed tweens and manage refresh queue
+		tweenCheckTimer += elapsed;
+		if (tweenCheckTimer >= tweenCheckInterval)
+		{
+			tweenCheckTimer = 0;
+
+			// Remove completed tweens from tracking
+			activeTweens = activeTweens.filter(function(tween:FlxTween) {
+				return !tween.finished;
+			});
+
+			// If refresh is queued and no active tweens, execute refresh
+			if (refreshQueued && activeTweens.length == 0)
+			{
+				trace('All tweens completed - executing queued refresh');
+				refreshCurrentPage();
+			}
+		}
+
 		// Handle slider updates if one is active
 		if (isSliderActive && sliderUpdateFunc != null)
 		{
@@ -3963,6 +4071,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			MHPDWeight: MHPDWeight,
 			exLifeWeight: exLifeWeight,
 			// Sanity settings
+			enable_sanity_locations: enable_sanity_locations,
+			sanity_completion_type: sanity_completion_type,
 			stagesanity: stagesanity,
 			charactersanity: charactersanity
 		};
@@ -4034,6 +4144,10 @@ class APAdvancedSettingsState extends MusicBeatState
 				exLifeWeight = data.exLifeWeight;
 
 			// Load sanity settings
+			if (Reflect.hasField(data, "enable_sanity_locations"))
+				enable_sanity_locations = data.enable_sanity_locations;
+			if (Reflect.hasField(data, "sanity_completion_type"))
+				sanity_completion_type = data.sanity_completion_type;
 			if (Reflect.hasField(data, "stagesanity"))
 				stagesanity = data.stagesanity;
 			if (Reflect.hasField(data, "charactersanity"))

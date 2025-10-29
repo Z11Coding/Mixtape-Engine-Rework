@@ -115,34 +115,52 @@ class ImprovedFileHandling
 		return null;
 	}
 
-	public static function saveOperation(title:String, ?filter:Filter, writeType:ReadType, data:Dynamic, ?preserve_cwd:Bool = true):Bool
-	{
-		if (filter != null)
+		public static function saveOperation(title:String, ?filter:Filter, writeType:ReadType, data:Dynamic, ?preserve_cwd:Bool = true):Bool
 		{
-			var f:FileFilter = filter;
-			f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
-		}
-		var filePath = saveFile(title, filter, preserve_cwd);
-		if (filePath != null && filePath.trim() != "")
-		{
-			var f:FileFilter = filter;
-			var ext = "." + f.ext;
-			if (!filePath.endsWith(ext))
+			if (filter != null)
 			{
-				if (filePath.endsWith("."))
-				{
-					filePath += f.ext;
-				}
-				else
-				{
-					filePath += ext;
-				}
+				var f:FileFilter = filter;
+				f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
 			}
-			writeType == ReadType.ByteData ? File.saveBytes(filePath, data) : File.saveContent(filePath, data);
-			lastPath = filePath;
+			var filePath = saveFile(title, filter, preserve_cwd);
+			if (filePath != null && filePath.trim() != "")
+			{
+				var f:FileFilter = filter;
+				var ext = "." + f.ext;
+				if (!filePath.endsWith(ext))
+				{
+					if (filePath.endsWith("."))
+					{
+						filePath += f.ext;
+					}
+					else
+					{
+						filePath += ext;
+					}
+				}
+
+				// Check if file exists and compare content before writing
+				var existingData:Dynamic = null;
+				if (FileSystem.exists(filePath))
+				{
+					existingData = writeType == ReadType.ByteData ? File.getBytes(filePath) : File.getContent(filePath);
+				}
+
+				// Only write if data is different
+				var dataChanged:Bool = existingData == null || !compareData(writeType, existingData, data);
+				if (dataChanged)
+				{
+					writeType == ReadType.ByteData ? File.saveBytes(filePath, data) : File.saveContent(filePath, data);
+				}
+
+				lastPath = filePath;
+			}
+			return filePath != null && filePath != "" && FileSystem.exists(filePath) ? (FileSystem.exists(filePath) && (writeType == ReadType.ByteData ? haxe.crypto.Base64.encode(File.getBytes(filePath)) == haxe.crypto.Base64.encode(data) : File.getContent(filePath) == data)) : false;
 		}
-		return filePath != null && filePath != "" && FileSystem.exists(filePath); // Return if not cancelled, and saved.
-	}
+
+		static function compareData(writeType:ReadType, existing:Dynamic, newData:Dynamic):Bool
+			return writeType == ReadType.ByteData ? haxe.crypto.Base64.encode(existing) == haxe.crypto.Base64.encode(newData) : existing == newData;
+
 
 	/**
 	 * Saves multiple files. The first file is the main file, and extra files are objects with {name, data}.

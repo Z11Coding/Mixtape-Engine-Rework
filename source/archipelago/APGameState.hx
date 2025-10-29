@@ -22,6 +22,7 @@ package archipelago;
 
 import archipelago.APCategoryState;
 import archipelago.APDisconnectSubstate;
+import archipelago.APInfo;
 import archipelago.Client;
 import archipelago.PacketTypes;
 import archipelago.substates.ConnectionSubstate;
@@ -299,7 +300,8 @@ typedef ProcessedItemsResult =
 	nonSongs:Map<String, Int>,
 	nonSongsNames:Array<String>,
 	unlockedSongs:Array<{song:String, mod:String}>,
-	itemsToTrigger:Array<String>
+	itemsToTrigger:Array<String>,
+	sanityItems:Array<String>
 };
 
 class APGameState
@@ -320,6 +322,11 @@ class APGameState
 	public var APLocations:Array<Int> = [];
 	public var APItems:Map<String, Int> = new Map<String, Int>();
 	public var ItemIndex:Int = -1;
+
+	// Sanity-related variables
+	public var unlockedSanityItems:Map<String, SanityItemData> = new Map<String, SanityItemData>();
+	public var sanitySettings:SanitySettings = {enable_sanity_locations: false, sanity_completion_type: "on_getting", sanity_types: []};
+	public var sanityLocationIds:Map<String, Int> = new Map<String, Int>();
 
 	public function locationData(songName:String, modName:String):Array<Int>
 	{
@@ -521,6 +528,84 @@ class APGameState
 		return locationData(songName, modName).concat(noteData(songName, modName));
 	}
 
+	public function getSanityLocationsForSong(songName:String, ?modName:String):Array<Int>
+	{
+		var locations:Array<Int> = [];
+
+		if (!sanitySettings.enable_sanity_locations)
+			return locations;
+
+		// Check for stage sanity items that use this song
+		for (itemName => itemData in unlockedSanityItems)
+		{
+			if (itemData.type == "stage" || itemData.type == "character")
+			{
+				// Check if this sanity item's songs include the current song
+				var formattedSongName = songName;
+				if (modName != null && modName != "")
+					formattedSongName = songName + " (" + modName + ")";
+
+				if (itemData.songs.contains(formattedSongName) || itemData.songs.contains(songName))
+				{
+					var locationName = "Use " + itemName;
+					var locationId = sanityLocationIds.get(locationName);
+					if (locationId != null)
+					{
+						locations.push(locationId);
+					}
+				}
+			}
+		}
+
+		return locations;
+	}
+
+	public function getSanityLocationData(itemType:String, itemName:String):Array<Int>
+	{
+		try
+		{
+			if (!sanitySettings.enable_sanity_locations)
+				return [];
+
+			var matchingLocations:Array<Int> = [];
+			var apInfo = info();
+
+			// First try slot data lookup
+			if (_slotData != null && Reflect.hasField(_slotData, "sanityLocationData"))
+			{
+				var sanityLocationData:Map<String, SanityLocationData> = Reflect.field(_slotData, "sanityLocationData");
+				if (sanityLocationData != null)
+				{
+					var locationName = "Use " + itemType + ": " + itemName;
+					var sanityLocationInfo = sanityLocationData.get(locationName);
+					if (sanityLocationInfo != null)
+					{
+						return [sanityLocationInfo.id];
+					}
+				}
+			}
+
+			// Fallback to regex matching
+			var reg = new EReg("^Use " + EReg.escape(itemType + ": " + itemName) + "$", "");
+
+			for (location in APLocations)
+			{
+				var locationName = apInfo.get_location_name(location);
+				if (reg.match(locationName))
+				{
+					matchingLocations.push(location);
+				}
+			}
+
+			return matchingLocations;
+		}
+		catch (e:Dynamic)
+		{
+			trace("Error in getSanityLocationData for " + itemType + ": " + itemName + ". Reason: " + Std.string(e));
+			return [];
+		}
+	}
+
 	public function checkGoal(songName:String, ?modName:String):Bool
 	{
 		modName = (modName != null && modName != "") ? modName.trim() : "";
@@ -690,11 +775,52 @@ class APGameState
 		// _ap.onSlotConnected.add(onSlotConnected);
 		APPlayState.deathByLink = false;
 
+		// Initialize sanity data from slot data
+		initializeSanityData();
+
 		// Generate custom week files if they don't exist
 		// This processes slot data that contains information about:
 		// - Custom weeks defined in HScript files
 		// - Song modifications (additions/exclusions) from mod processing
 		generateCustomWeeks();
+	}
+
+	function initializeSanityData():Void
+	{
+		// Initialize sanity settings from slot data
+		if (_slotData != null && Reflect.hasField(_slotData, "sanitySettings"))
+		{
+			sanitySettings = Reflect.field(_slotData, "sanitySettings");
+
+			// Ensure sanity_types is always an array (for backward compatibility)
+			if (sanitySettings.sanity_types == null) {
+				sanitySettings.sanity_types = [];
+			}
+
+			trace("Loaded sanity settings from slot data: " + Std.string(sanitySettings));
+		}
+		else
+		{
+			trace("No sanity settings found in slot data, using defaults");
+		}
+
+		// Initialize sanity location IDs from slot data
+		if (_slotData != null && Reflect.hasField(_slotData, "sanityLocationData"))
+		{
+			var sanityLocationData:Map<String, SanityLocationData> = Reflect.field(_slotData, "sanityLocationData");
+			if (sanityLocationData != null)
+			{
+				for (locationName => locationData in sanityLocationData)
+				{
+					sanityLocationIds.set(locationName, locationData.id);
+				}
+				trace("Loaded " + Lambda.count(sanityLocationIds) + " sanity location IDs");
+			}
+		}
+
+		// Initialize unlocked sanity items (empty at start - will be populated as items are received)
+		unlockedSanityItems.clear();
+		trace("Sanity system initialized");
 	}
 
 	function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void
@@ -949,6 +1075,18 @@ class APGameState
 				default: APInfo.inMinigame = None;
 			}
 		}
+
+		// Load sanity data
+		if (_saveData.hasItem("unlockedSanityItems"))
+		{
+			var sanityItemsArray:Array<{name:String, data:SanityItemData}> = _saveData.getItem("unlockedSanityItems");
+			for (item in sanityItemsArray)
+			{
+				unlockedSanityItems.set(item.name, item.data);
+			}
+			trace("Loaded " + Lambda.count(unlockedSanityItems) + " unlocked sanity items from save");
+		}
+
 		_saveData.save();
 	}
 
@@ -983,6 +1121,9 @@ class APGameState
 			case Pong: 2;
 		};
 		_saveData.addItem("currentMinigame", minigameValue);
+
+		// Save sanity data
+		_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
 
 		_saveData.save();
 		trace("Save data updated!");
@@ -1465,6 +1606,7 @@ class APGameState
 			var nonSongsNames:Array<String> = [];
 			var unlockedSongs:Array<{song:String, mod:String}> = [];
 			var itemsToTrigger:Array<String> = [];
+			var sanityItems:Array<String> = []; // Track sanity items received
 
 			APFreeplayManager.curMissing = [];
 
@@ -1481,6 +1623,16 @@ class APGameState
 
 				// Use the realName function to convert special keywords back to actual brackets
 				itemName = APInfo.realName(itemName);
+
+				// Check if this is a sanity item
+				if (itemName.indexOf("Stage: ") == 0 || itemName.indexOf("Character: ") == 0)
+				{
+					// This is a sanity item - add to sanity tracking
+					sanityItems.push(itemName);
+					nonSongs.set(itemName, songName.index);
+					nonSongsNames.push(itemName);
+					continue;
+				}
 
 				var data = getSongAndMod(itemName);
 				// trace("Data: " + data.song + " - " + data.mod);
@@ -1529,7 +1681,8 @@ class APGameState
 				nonSongs: nonSongs,
 				nonSongsNames: nonSongsNames,
 				unlockedSongs: unlockedSongs,
-				itemsToTrigger: itemsToTrigger
+				itemsToTrigger: itemsToTrigger,
+				sanityItems: sanityItems // Add sanity items to result
 			};
 		}
 
@@ -1556,6 +1709,12 @@ class APGameState
 			if (info().casualSync && APInfo.ticketCount != result.tickets)
 			{
 				APInfo.ticketCount = result.tickets;
+			}
+
+			// Handle sanity items
+			for (sanityItemName in result.sanityItems)
+			{
+				handleSanityItemReceived(sanityItemName);
 			}
 
 			// Apply items in order
@@ -1585,6 +1744,149 @@ class APGameState
 			// Save state after everything is applied
 			trace("AP State Saving...");
 			updateSaveData();
+		}
+
+		function handleSanityItemReceived(itemName:String):Void
+		{
+			trace("Received sanity item: " + itemName);
+
+			// Get sanity item data from slot data
+			if (_slotData != null && Reflect.hasField(_slotData, "sanityData"))
+			{
+				var sanityData:Map<String, SanityItemData> = Reflect.field(_slotData, "sanityData");
+				if (sanityData != null && sanityData.exists(itemName))
+				{
+					var sanityItemData = sanityData.get(itemName);
+					unlockedSanityItems.set(itemName, sanityItemData);
+
+					trace("Added sanity item '" + itemName + "' to unlocked items");
+
+					// If completion type is "on_getting", immediately send the sanity location check
+					if (sanitySettings.sanity_completion_type == "on_getting")
+					{
+						sendSanityLocationCheck(itemName);
+					}
+
+					// Show popup notification
+					archipelago.APItem.popup("Sanity Item Unlocked", "Unlocked: " + itemName, false);
+				}
+				else
+				{
+					trace("Warning: Sanity item '" + itemName + "' not found in slot data");
+				}
+			}
+			else
+			{
+				trace("Warning: No sanity data found in slot data");
+			}
+		}
+
+		function sendSanityLocationCheck(itemName:String):Void
+		{
+			var locationName = "Use " + itemName;
+			var locationId = sanityLocationIds.get(locationName);
+
+			if (locationId != null)
+			{
+				trace("Sending sanity location check for: " + locationName + " (ID: " + locationId + ")");
+				info().LocationChecks([locationId]);
+			}
+			else
+			{
+				trace("Warning: Could not find location ID for sanity location: " + locationName);
+			}
+		}
+
+		public function checkSanityLocationsOnPlaying(songName:String, ?modName:String):Void
+		{
+			if (!sanitySettings.enable_sanity_locations || sanitySettings.sanity_completion_type != "on_playing")
+				return;
+
+			trace("Checking sanity locations on playing: " + songName + (modName != null ? " (" + modName + ")" : ""));
+
+			// Check all unlocked sanity items to see if any use this song
+			for (itemName => itemData in unlockedSanityItems)
+			{
+				var formattedSongName = songName;
+				if (modName != null && modName != "")
+					formattedSongName = songName + " (" + modName + ")";
+
+				if (itemData.songs.contains(formattedSongName) || itemData.songs.contains(songName))
+				{
+					sendSanityLocationCheck(itemName);
+				}
+			}
+		}
+
+		public function checkSanityLocationsOnBeating(songName:String, ?modName:String):Void
+		{
+			if (!sanitySettings.enable_sanity_locations || sanitySettings.sanity_completion_type != "on_beating")
+				return;
+
+			trace("Checking sanity locations on beating: " + songName + (modName != null ? " (" + modName + ")" : ""));
+
+			// Check all unlocked sanity items to see if any use this song
+			for (itemName => itemData in unlockedSanityItems)
+			{
+				var formattedSongName = songName;
+				if (modName != null && modName != "")
+					formattedSongName = songName + " (" + modName + ")";
+
+				if (itemData.songs.contains(formattedSongName) || itemData.songs.contains(songName))
+				{
+					sendSanityLocationCheck(itemName);
+				}
+			}
+		}
+
+		public function isSanityItemUnlocked(itemType:String, itemName:String):Bool
+		{
+			// If no sanity system exists at all, everything is unlocked
+			if (Lambda.count(unlockedSanityItems) == 0 && Lambda.count(sanityLocationIds) == 0) return true;
+
+
+
+			var key = itemType + ": " + itemName;
+			return unlockedSanityItems.exists(key);
+		}
+
+		public function checkSongCharactersAndStageUnlocked(song:backend.Song.SwagSong):Array<String>
+		{
+			// Check if sanity system exists at all (regardless of location settings)
+			if (Lambda.count(unlockedSanityItems) == 0 && Lambda.count(sanityLocationIds) == 0) return [];
+
+			var missingItems:Array<String> = [];
+
+			// Check what types of sanity items we should look for
+			var checkCharacters = sanitySettings.sanity_types.contains("characters");
+			var checkStages = sanitySettings.sanity_types.contains("stages");
+
+			// Check player1 character
+			if (checkCharacters && song.player1 != null && !isSanityItemUnlocked("Character", song.player1)) {
+				missingItems.push('Character: ${song.player1}');
+			}
+
+			// Check player2 character
+			if (checkCharacters && song.player2 != null && !isSanityItemUnlocked("Character", song.player2)) {
+				missingItems.push('Character: ${song.player2}');
+			}
+
+			// Check player4 character
+			if (checkCharacters && song.player4 != null && !isSanityItemUnlocked("Character", song.player4)) {
+				missingItems.push('Character: ${song.player4}');
+			}
+
+			// Check player5 character
+			if (checkCharacters && song.player5 != null && !isSanityItemUnlocked("Character", song.player5)) {
+				missingItems.push('Character: ${song.player5}');
+			}
+
+			// Check stage
+			if (checkStages && song.stage != null && !isSanityItemUnlocked("Stage", song.stage)) {
+				missingItems.push('Stage: ${song.stage}');
+			}
+
+			return missingItems;
 		}
 
 		// // Advanced processing with batch support and progress feedback
