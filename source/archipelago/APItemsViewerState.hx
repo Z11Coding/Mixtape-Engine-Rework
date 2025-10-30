@@ -227,6 +227,88 @@ class APItemsViewerState extends MusicBeatState {
             yPos += 22;
         }
 
+        yPos += 30;
+
+        // Sanity Items Section (if sanity system is active)
+        if (gameState != null && Lambda.count(gameState.unlockedSanityItems) > 0) {
+            var sanityTitle = new FlxText(50, yPos, FlxG.width - 100, "=== UNLOCKED SANITY ITEMS ===", 24);
+            sanityTitle.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.MAGENTA, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+            sanityTitle.borderSize = 1;
+            itemsGroup.add(sanityTitle);
+            yPos += 40;
+
+            // Get sanity settings to check what types to show
+            var sanitySettings = gameState.sanitySettings;
+            var showCharacters = sanitySettings.sanity_types.contains("characters");
+            var showStages = sanitySettings.sanity_types.contains("stages");
+
+            var sanityItemCount = 0;
+
+            // Show unlocked characters
+            if (showCharacters) {
+                var characterItems:Array<String> = [];
+                for (itemName => itemData in gameState.unlockedSanityItems) {
+                    if (itemData.type == "Character") {
+                        characterItems.push(itemName);
+                    }
+                }
+
+                if (characterItems.length > 0) {
+                    var charactersHeader = new FlxText(70, yPos, FlxG.width - 140, "Characters:", 18);
+                    charactersHeader.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.CYAN, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+                    charactersHeader.borderSize = 1;
+                    itemsGroup.add(charactersHeader);
+                    yPos += 25;
+
+                    for (characterItem in characterItems) {
+                        var characterText = new FlxText(90, yPos, FlxG.width - 160, "• " + characterItem, 16);
+                        characterText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.LIME, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+                        characterText.borderSize = 1;
+                        itemsGroup.add(characterText);
+                        yPos += 20;
+                        sanityItemCount++;
+                    }
+                    yPos += 10;
+                }
+            }
+
+            // Show unlocked stages
+            if (showStages) {
+                var stageItems:Array<String> = [];
+                for (itemName => itemData in gameState.unlockedSanityItems) {
+                    if (itemData.type == "Stage") {
+                        stageItems.push(itemName);
+                    }
+                }
+
+                if (stageItems.length > 0) {
+                    var stagesHeader = new FlxText(70, yPos, FlxG.width - 140, "Stages:", 18);
+                    stagesHeader.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.CYAN, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+                    stagesHeader.borderSize = 1;
+                    itemsGroup.add(stagesHeader);
+                    yPos += 25;
+
+                    for (stageItem in stageItems) {
+                        var stageText = new FlxText(90, yPos, FlxG.width - 160, "• " + stageItem, 16);
+                        stageText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.LIME, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+                        stageText.borderSize = 1;
+                        itemsGroup.add(stageText);
+                        yPos += 20;
+                        sanityItemCount++;
+                    }
+                    yPos += 10;
+                }
+            }
+
+            if (sanityItemCount == 0) {
+                var noSanityText = new FlxText(70, yPos, FlxG.width - 140, "No sanity items unlocked yet", 16);
+                noSanityText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.GRAY, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+                noSanityText.borderSize = 1;
+                itemsGroup.add(noSanityText);
+                yPos += 22;
+            }
+        }
+
         // Calculate max scroll offset
         maxScrollOffset = Math.max(0, yPos - (FlxG.height - 100));
 
