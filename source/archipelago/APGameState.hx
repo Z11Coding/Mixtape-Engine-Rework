@@ -545,7 +545,18 @@ class APGameState
 				if (modName != null && modName != "")
 					formattedSongName = songName + " (" + modName + ")";
 
-				if (itemData.songs.contains(formattedSongName) || itemData.songs.contains(songName))
+				// Check if any song in the array matches our song name
+				var songMatches = false;
+				for (songObj in itemData.songs)
+				{
+					if (songObj.song == songName || songObj.song == formattedSongName)
+					{
+						songMatches = true;
+						break;
+					}
+				}
+
+				if (songMatches)
 				{
 					var locationName = "Use " + itemName;
 					var locationId = sanityLocationIds.get(locationName);
@@ -735,10 +746,10 @@ class APGameState
 
 		// Set the ClientPrefs deathlink setting first based on slot data
 		var slotDeathLink:Bool = false;
-		if (slotData != null && Reflect.hasField(slotData, "deathlink"))
+		if (slotData != null && Reflect.hasField(slotData, "deathLink"))
 		{
 			// Handle both boolean and integer representations (0/1)
-			var deathLinkValue = Reflect.field(slotData, "deathlink");
+			var deathLinkValue = Reflect.field(slotData, "deathLink");
 			if (Std.isOfType(deathLinkValue, Bool)) {
 				slotDeathLink = deathLinkValue;
 			} else if (Std.isOfType(deathLinkValue, Bool)) {
@@ -1811,7 +1822,18 @@ class APGameState
 				if (modName != null && modName != "")
 					formattedSongName = songName + " (" + modName + ")";
 
-				if (itemData.songs.contains(formattedSongName) || itemData.songs.contains(songName))
+				// Check if any song in the array matches our song name
+				var songMatches = false;
+				for (songObj in itemData.songs)
+				{
+					if (songObj.song == songName || songObj.song == formattedSongName)
+					{
+						songMatches = true;
+						break;
+					}
+				}
+
+				if (songMatches)
 				{
 					sendSanityLocationCheck(itemName);
 				}
@@ -1832,7 +1854,21 @@ class APGameState
 				if (modName != null && modName != "")
 					formattedSongName = songName + " (" + modName + ")";
 
-				if (itemData.songs.contains(formattedSongName) || itemData.songs.contains(songName))
+				// Check if any song in the array matches our song name
+				var songMatches = false;
+				for (songObj in itemData.songs)
+				{
+					if (songObj.song == songName || songObj.song == formattedSongName)
+					{
+						songMatches = true;
+						break;
+					}
+				}
+
+				if (songMatches)
+				{
+					sendSanityLocationCheck(itemName);
+				}
 				{
 					sendSanityLocationCheck(itemName);
 				}

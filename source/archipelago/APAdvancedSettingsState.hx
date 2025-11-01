@@ -2230,11 +2230,11 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	/**
 	 * Scan all accessible charts using engine systems and extract stage information for stagesanity
-	 * @return Map of stage names to arrays of song names that use them
+	 * @return Map of stage names to arrays of song data with difficulties that use them
 	 */
-	function scanStagesFromCharts():Map<String, Array<{song:String, ?mod:String}>>
+	function scanStagesFromCharts():Map<String, Array<{song:String, ?mod:String, difficulties:Array<String>}>>
 	{
-		var stageMap:Map<String, Array<{song:String, ?mod:String}>> = new Map();
+		var stageMap:Map<String, Array<{song:String, ?mod:String, difficulties:Array<String>}>> = new Map();
 
 		// Set up category to get all songs
 		if (states.CategoryState.loadWeekForce == null)
@@ -2273,6 +2273,9 @@ class APAdvancedSettingsState extends MusicBeatState
 						Difficulty.loadFromWeek(leWeek);
 						var difficulties = Difficulty.list.copy();
 
+						// Track which difficulties use each stage for this song
+						var stageToDirectDifficulties:Map<String, Array<String>> = new Map();
+
 						// Scan each difficulty for stage data
 						for (difficulty in difficulties)
 						{
@@ -2289,46 +2292,74 @@ class APAdvancedSettingsState extends MusicBeatState
 
 									if (stageName != null && stageName.trim().length > 0)
 									{
-										if (!stageMap.exists(stageName))
+										if (!stageToDirectDifficulties.exists(stageName))
 										{
-											stageMap.set(stageName, []);
+											stageToDirectDifficulties.set(stageName, []);
 										}
-
-										// Create song object with optional mod field
-										var songObj:Dynamic = {
-											song: songName
-										};
-
-										// Only add mod field if it exists and is not empty
-										if (modName != null && modName.length > 0)
-										{
-											songObj.mod = modName;
-										}
-
-										// Check if this song is already in the list (compare by song and mod)
-										var alreadyExists = false;
-										for (existingSong in stageMap.get(stageName))
-										{
-											var existingMod = Reflect.hasField(existingSong, "mod") ? existingSong.mod : null;
-											var currentMod = Reflect.hasField(songObj, "mod") ? songObj.mod : null;
-
-											if (existingSong.song == songObj.song && existingMod == currentMod)
-											{
-												alreadyExists = true;
-												break;
-											}
-										}
-
-										if (!alreadyExists)
-										{
-											stageMap.get(stageName).push(songObj);
-										}
+										stageToDirectDifficulties.get(stageName).push(difficulty);
 									}
 								}
 							}
 							catch (e:Dynamic)
 							{
-								trace('Error scanning chart for song ${songName}: ${e}');
+								// trace('Failed to load chart for $songName ($difficulty): $e');
+								continue;
+							}
+						}
+
+						// Add songs to stage maps with their difficulties
+						for (stageName in stageToDirectDifficulties.keys())
+						{
+							var difficultiesForStage = stageToDirectDifficulties.get(stageName);
+
+							if (!stageMap.exists(stageName))
+							{
+								stageMap.set(stageName, []);
+							}
+
+							// Create song object with optional mod field
+							var songObj:Dynamic = {
+								song: songName,
+								difficulties: difficultiesForStage.copy()
+							};
+
+							// Only add mod field if it exists and is not empty
+							if (modName != null && modName.length > 0)
+							{
+								songObj.mod = modName;
+							}
+
+							// Check if this song is already in the list (merge difficulties if so)
+							var existingSongIndex = -1;
+							for (i in 0...stageMap.get(stageName).length)
+							{
+								var existingSong = stageMap.get(stageName)[i];
+								var existingMod = Reflect.hasField(existingSong, "mod") ? existingSong.mod : null;
+								var currentMod = Reflect.hasField(songObj, "mod") ? songObj.mod : null;
+
+								if (existingSong.song == songObj.song && existingMod == currentMod)
+								{
+									existingSongIndex = i;
+									break;
+								}
+							}
+
+							if (existingSongIndex >= 0)
+							{
+								// Merge difficulties
+								var existingSong = stageMap.get(stageName)[existingSongIndex];
+								for (diff in difficultiesForStage)
+								{
+									if (!existingSong.difficulties.contains(diff))
+									{
+										existingSong.difficulties.push(diff);
+									}
+								}
+							}
+							else
+							{
+								// Add new song
+								stageMap.get(stageName).push(songObj);
 							}
 						}
 					}
@@ -2340,6 +2371,123 @@ class APAdvancedSettingsState extends MusicBeatState
 			trace("Stage scanning failed - FreeplayManager or song list is null");
 		}
 
+		// Scan secret songs if includeSecrets is enabled
+		if (includeSecrets)
+		{
+			trace("Scanning secret songs for stage data...");
+
+			for (secretSong in APInfo.secrets)
+			{
+				try
+				{
+					// Set up difficulties for each secret song based on FreeplayState logic
+					var difficulties:Array<String> = [];
+					switch (secretSong)
+					{
+						case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
+							difficulties = ['Hard'];
+						case "Beat Battle":
+							difficulties = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+						default:
+							difficulties = ['Hard']; // Default for any other secret songs
+					}
+
+					// Scan each difficulty for stage data
+					for (difficulty in difficulties)
+					{
+						try
+						{
+							// Load the chart for this secret song and difficulty
+							var chartName = switch (secretSong)
+							{
+								case 'Small Argument': 'small-argument-hard';
+								case 'Beat Battle':
+									switch (difficulty.toLowerCase())
+									{
+										case 'normal': 'beat-battle-normal';
+										case 'reasonable': 'beat-battle-reasonable';
+										case 'unreasonable': 'beat-battle-unreasonable';
+										case 'semi-impossible': 'beat-battle-semi-impossible';
+										case 'impossible': 'beat-battle-impossible';
+										default: 'beat-battle-reasonable'; // Default fallback
+									}
+								case 'Beat Battle 2': 'beat-battle-2-hard';
+								case 'GeoStar': 'geostar-hard';
+								default: secretSong.toLowerCase() + '-' + difficulty.toLowerCase();
+							}
+
+							var folderName = switch (secretSong)
+							{
+								case 'Small Argument': 'small-argument';
+								case 'Beat Battle': 'beat-battle';
+								case 'Beat Battle 2': 'beat-battle-2';
+								case 'GeoStar': 'geostar';
+								default: secretSong.toLowerCase();
+							}
+
+							var songData:SwagSong = Song.getChart(chartName, folderName);
+
+							if (songData != null)
+							{
+								// Extract stage information
+								var stageName:String = songData.stage;
+
+								if (stageName != null && stageName.trim().length > 0)
+								{
+									if (!stageMap.exists(stageName))
+									{
+										stageMap.set(stageName, []);
+									}
+
+									// Create song object (no mod field for secret songs)
+									var songObj:Dynamic = {
+										song: secretSong,
+										difficulties: [difficulty]
+									};
+
+									// Check if this song is already in the list (merge difficulties if so)
+									var existingSongIndex = -1;
+									for (i in 0...stageMap.get(stageName).length)
+									{
+										var existingSong = stageMap.get(stageName)[i];
+										if (existingSong.song == secretSong)
+										{
+											existingSongIndex = i;
+											break;
+										}
+									}
+
+									if (existingSongIndex >= 0)
+									{
+										// Merge difficulties
+										var existingSong = stageMap.get(stageName)[existingSongIndex];
+										if (!existingSong.difficulties.contains(difficulty))
+										{
+											existingSong.difficulties.push(difficulty);
+										}
+									}
+									else
+									{
+										// Add new song
+										stageMap.get(stageName).push(songObj);
+									}
+								}
+							}
+						}
+						catch (e:Dynamic)
+						{
+							// trace('Failed to load chart for secret song $secretSong ($difficulty): $e');
+							continue;
+						}
+					}
+				}
+				catch (e:Dynamic)
+				{
+					trace('Error scanning secret song ${secretSong}: ${e}');
+				}
+			}
+		}
+
 		return stageMap;
 	}
 
@@ -2347,9 +2495,9 @@ class APAdvancedSettingsState extends MusicBeatState
 	 * Scan all accessible charts using engine systems and extract character information for charactersanity
 	 * @return Map of character names to arrays of song names that use them
 	 */
-	function scanCharactersFromCharts():Map<String, Array<{song:String, ?mod:String}>>
+	function scanCharactersFromCharts():Map<String, Array<{song:String, ?mod:String, difficulties:Array<String>}>>
 	{
-		var characterMap:Map<String, Array<{song:String, ?mod:String}>> = new Map();
+		var characterMap:Map<String, Array<{song:String, ?mod:String, difficulties:Array<String>}>> = new Map();
 
 		// Set up category to get all songs
 		if (states.CategoryState.loadWeekForce == null)
@@ -2388,6 +2536,9 @@ class APAdvancedSettingsState extends MusicBeatState
 						Difficulty.loadFromWeek(leWeek);
 						var difficulties = Difficulty.list.copy();
 
+						// Track which difficulties use each character for this song
+						var characterToDifficulties:Map<String, Array<String>> = new Map();
+
 						// Scan each difficulty for character data
 						for (difficulty in difficulties)
 						{
@@ -2414,52 +2565,81 @@ class APAdvancedSettingsState extends MusicBeatState
 									if (songData.player4 != null && songData.player4.trim().length > 0)
 										characters.push(songData.player4);
 
-										if (songData.player5 != null && songData.player5.trim().length > 0)
+									// Check for player5 (third opponent)
+									if (songData.player5 != null && songData.player5.trim().length > 0)
 										characters.push(songData.player5);
 
-									// Add characters to the map
+									// Track which difficulty uses which characters
 									for (character in characters)
 									{
-										if (!characterMap.exists(character))
+										if (!characterToDifficulties.exists(character))
 										{
-											characterMap.set(character, []);
+											characterToDifficulties.set(character, []);
 										}
-
-										// Create song object with optional mod field
-										var songObj:Dynamic = {
-											song: songName
-										};
-
-										// Only add mod field if it exists and is not empty
-										if (modName != null && modName.length > 0)
-										{
-											songObj.mod = modName;
-										}
-
-										// Check if this song is already in the list (compare by song and mod)
-										var alreadyExists = false;
-										for (existingSong in characterMap.get(character))
-										{
-											var existingMod = Reflect.hasField(existingSong, "mod") ? existingSong.mod : null;
-											var currentMod = Reflect.hasField(songObj, "mod") ? songObj.mod : null;
-
-											if (existingSong.song == songObj.song && existingMod == currentMod)
-											{
-												alreadyExists = true;
-												break;
-											}
-										}
-
-										if (!alreadyExists)
-										{
-											characterMap.get(character).push(songObj);
-										}
+										characterToDifficulties.get(character).push(difficulty);
 									}
 								}
 							}
 							catch (e:Dynamic)
 							{
-								trace('Error scanning chart for song ${songName}: ${e}');
+								// trace('Failed to load chart for $songName ($difficulty): $e');
+								continue;
+							}
+						}
+
+						// Add songs to character maps with their difficulties
+						for (character in characterToDifficulties.keys())
+						{
+							var difficultiesForCharacter = characterToDifficulties.get(character);
+
+							if (!characterMap.exists(character))
+							{
+								characterMap.set(character, []);
+							}
+
+							// Create song object with optional mod field
+							var songObj:Dynamic = {
+								song: songName,
+								difficulties: difficultiesForCharacter.copy()
+							};
+
+							// Only add mod field if it exists and is not empty
+							if (modName != null && modName.length > 0)
+							{
+								songObj.mod = modName;
+							}
+
+							// Check if this song is already in the list (merge difficulties if so)
+							var existingSongIndex = -1;
+							for (i in 0...characterMap.get(character).length)
+							{
+								var existingSong = characterMap.get(character)[i];
+								var existingMod = Reflect.hasField(existingSong, "mod") ? existingSong.mod : null;
+								var currentMod = Reflect.hasField(songObj, "mod") ? songObj.mod : null;
+
+								if (existingSong.song == songObj.song && existingMod == currentMod)
+								{
+									existingSongIndex = i;
+									break;
+								}
+							}
+
+							if (existingSongIndex >= 0)
+							{
+								// Merge difficulties
+								var existingSong = characterMap.get(character)[existingSongIndex];
+								for (diff in difficultiesForCharacter)
+								{
+									if (!existingSong.difficulties.contains(diff))
+									{
+										existingSong.difficulties.push(diff);
+									}
+								}
+							}
+							else
+							{
+								// Add new song
+								characterMap.get(character).push(songObj);
 							}
 						}
 					}
@@ -2469,6 +2649,158 @@ class APAdvancedSettingsState extends MusicBeatState
 		else
 		{
 			trace("Character scanning failed - FreeplayManager or song list is null");
+		}
+
+		// Scan secret songs if includeSecrets is enabled
+		if (includeSecrets)
+		{
+			trace("Scanning secret songs for character data...");
+
+			for (secretSong in APInfo.secrets)
+			{
+				try
+				{
+					// Set up difficulties for each secret song based on FreeplayState logic
+					var difficulties:Array<String> = [];
+					switch (secretSong)
+					{
+						case 'Small Argument' | 'Beat Battle 2' | 'GeoStar':
+							difficulties = ['Hard'];
+						case "Beat Battle":
+							difficulties = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+						default:
+							difficulties = ['Hard']; // Default for any other secret songs
+					}
+
+					// Track which difficulties use each character for this song
+					var characterToDifficulties:Map<String, Array<String>> = new Map();
+
+					// Scan each difficulty for character data
+					for (difficulty in difficulties)
+					{
+						try
+						{
+							// Load the chart for this secret song and difficulty
+							var chartName = switch (secretSong)
+							{
+								case 'Small Argument': 'small-argument-hard';
+								case 'Beat Battle':
+									switch (difficulty.toLowerCase())
+									{
+										case 'normal': 'beat-battle-normal';
+										case 'reasonable': 'beat-battle-reasonable';
+										case 'unreasonable': 'beat-battle-unreasonable';
+										case 'semi-impossible': 'beat-battle-semi-impossible';
+										case 'impossible': 'beat-battle-impossible';
+										default: 'beat-battle-reasonable'; // Default fallback
+									}
+								case 'Beat Battle 2': 'beat-battle-2-hard';
+								case 'GeoStar': 'geostar-hard';
+								default: secretSong.toLowerCase() + '-' + difficulty.toLowerCase();
+							}
+
+							var folderName = switch (secretSong)
+							{
+								case 'Small Argument': 'small-argument';
+								case 'Beat Battle': 'beat-battle';
+								case 'Beat Battle 2': 'beat-battle-2';
+								case 'GeoStar': 'geostar';
+								default: secretSong.toLowerCase();
+							}
+
+							var songData:SwagSong = Song.getChart(chartName, folderName);
+
+							if (songData != null)
+							{
+								// Extract character information
+								var characters:Array<String> = [];
+
+								// Check for player1 (boyfriend)
+								if (songData.player1 != null && songData.player1.trim().length > 0)
+									characters.push(songData.player1);
+
+								// Check for player2 (opponent/dad)
+								if (songData.player2 != null && songData.player2.trim().length > 0)
+									characters.push(songData.player2);
+
+								// Check for player4 (second opponent)
+								if (songData.player4 != null && songData.player4.trim().length > 0)
+									characters.push(songData.player4);
+
+								// Check for player5 (third opponent)
+								if (songData.player5 != null && songData.player5.trim().length > 0)
+									characters.push(songData.player5);
+
+								// Track which difficulty uses which characters
+								for (character in characters)
+								{
+									if (!characterToDifficulties.exists(character))
+									{
+										characterToDifficulties.set(character, []);
+									}
+									characterToDifficulties.get(character).push(difficulty);
+								}
+							}
+						}
+						catch (e:Dynamic)
+						{
+							// trace('Failed to load chart for secret song $secretSong ($difficulty): $e');
+							continue;
+						}
+					}
+
+					// Add songs to character maps with their difficulties
+					for (character in characterToDifficulties.keys())
+					{
+						var difficultiesForCharacter = characterToDifficulties.get(character);
+
+						if (!characterMap.exists(character))
+						{
+							characterMap.set(character, []);
+						}
+
+						// Create song object (no mod field for secret songs)
+						var songObj:Dynamic = {
+							song: secretSong,
+							difficulties: difficultiesForCharacter.copy()
+						};
+
+						// Check if this song is already in the list (merge difficulties if so)
+						var existingSongIndex = -1;
+						for (i in 0...characterMap.get(character).length)
+						{
+							var existingSong = characterMap.get(character)[i];
+							if (existingSong.song == secretSong)
+							{
+								existingSongIndex = i;
+								break;
+							}
+						}
+
+						if (existingSongIndex >= 0)
+						{
+							// Merge difficulties
+							var existingSong = characterMap.get(character)[existingSongIndex];
+							for (diff in difficultiesForCharacter)
+							{
+								if (!existingSong.difficulties.contains(diff))
+								{
+									existingSong.difficulties.push(diff);
+								}
+							}
+						}
+						else
+						{
+							// Add new song
+							characterMap.get(character).push(songObj);
+						}
+					}
+				}
+				catch (e:Dynamic)
+				{
+					trace('Error scanning secret song ${secretSong}: ${e}');
+				}
+			}
 		}
 
 		return characterMap;
@@ -3648,6 +3980,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			GenericProgressSubstate.createTask("Applying settings", function(results:Array<Dynamic>)
 			{
 				var yaml:archipelago.APYaml = results[1];
+
+				// Reset victory and starting songs before applying new settings
+				victorySong = null;
+				startingSong = null;
 
 				// Apply settings to the current state
 				playerName = yaml.name;

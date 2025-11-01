@@ -10520,7 +10520,7 @@ class PlayState extends MusicBeatState
 								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
 							} else {
 								// Sync X position
-								var offsetX = strumNote.x - field.baseXPositions[i];
+								var offsetX = strumNote.x - field.getBaseX(i);
 								modManager.setValue('transform${i}X', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 

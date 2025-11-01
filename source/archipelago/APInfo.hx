@@ -13,7 +13,7 @@ typedef SongDetailData = {
 typedef SanityItemData = {
 	id: Int,
 	type: String, // "stage" or "character"
-	songs: Array<String>,
+	songs: Array<{song: String, difficulties: Array<String>}>, // Array of songs with their difficulties
 	player: String
 }
 

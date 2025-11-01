@@ -193,6 +193,24 @@ class APFreeplayManager extends FreeplayManager {
 		}
 		trace("Current song in PlayState: " + PlayState.SONG.song);
 
+		// Check and send sanity item location checks related to this song
+		#if ARCHIPELAGO_ALLOWED
+		trace("Checking for sanity item location checks...");
+		var sanityLocationIds = APEntryState.apGame.getSanityLocationsForSong(songName.trim(), modName.trim());
+		if (sanityLocationIds != null && sanityLocationIds.length > 0) {
+			trace("Found " + sanityLocationIds.length + " sanity location checks for this song");
+			for (sanityLocationId in sanityLocationIds) {
+				if (sanityLocationId != 0) {
+					trace("Sending sanity location check: " + sanityLocationId);
+					trace("Sanity location name: " + APEntryState.apGame.info().get_location_name(sanityLocationId));
+					APEntryState.apGame.info().LocationChecks([sanityLocationId]);
+				}
+			}
+		} else {
+			trace("No sanity location checks found for this song");
+		}
+		#end
+
 		archipelago.ArchPopup.startPopupCustom("You've sent " + APEntryState.apGame.info().get_location_name(locationIdInts[0]) + " to Archipelago!", "Good Job!", "archColor", function() {
 			trace("Popup triggered for sending location to Archipelago.");
 			FlxG.sound.playMusic(Paths.sound('secret'));
