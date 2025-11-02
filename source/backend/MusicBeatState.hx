@@ -379,6 +379,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 			// Execute the reconnection callback
 			archipelago.APGameState.reconnectionCallback();
+			archipelago.APItem.waitingForTransition = false;
 		}
 	}
 }

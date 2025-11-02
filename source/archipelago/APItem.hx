@@ -129,9 +129,10 @@ class APItem {
     public static var allowedToTrigger(get, never):Bool;
     public var fromTrapLink:Bool = false; // Used for traps that are sent from TrapLink.
     public var isTrap:Bool = false;
+    public static var waitingForTransition:Bool = false;
 
     static function get_allowedToTrigger():Bool {
-        return true;
+        return !waitingForTransition;
     }
     public static var activeItem:APItem;
     public static var shields:Int = 0;

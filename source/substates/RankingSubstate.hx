@@ -162,6 +162,8 @@ class RankingSubstate extends MusicBeatSubstate
 			}
 		}
 
+		archipelago.APItem.waitingForTransition = true;
+
 		hint.screenCenter(X);
 
 		hint.alpha = press.alpha = 0;
