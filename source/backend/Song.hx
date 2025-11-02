@@ -119,7 +119,7 @@ class Song
 		}
 		if (songJson.startMania == null)
 		{
-			songJson.startMania = Note.defaultMania;
+			songJson.startMania = songJson.mania;
 			//trace("Song mania value is NULL, set to " + Note.defaultMania);
 		}
 	}
