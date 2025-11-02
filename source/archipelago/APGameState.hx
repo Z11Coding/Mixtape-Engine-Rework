@@ -1203,7 +1203,7 @@ class APGameState
 			}
 			else
 			{
-				archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+				archipelago.APItem.createItemByName(trapName, true);
 			}
 			trace("TrapLink processed: " + trapName);
 		}
@@ -1240,97 +1240,97 @@ class APGameState
 					};
 					waitForPlayState();
 				case "Instant Death Trap":
-					archipelago.APItem.createItemByName("Blue Balls Curse").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Blue Balls Curse", true);
 					backend.COD.COD.COD = "Killed by Blue Balls Curse.\n(Instant Death TrapLink)";
 				case "Ghost":
-					archipelago.APItem.createItemByName("Ghost").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Ghost", true);
 				case "My Turn! Trap":
-					archipelago.APItem.createItemByName("My Turn! Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("My Turn! Trap", true);
 				case "Paralyze Trap":
-					archipelago.APItem.createItemByName("Paralyze Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Paralyze Trap", true);
 				case "Phone Trap" | "Literature Trap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Home Trap":
-					archipelago.APItem.createItemByName("Tutorial Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Tutorial Trap", true);
 				case "Ice Trap":
-					archipelago.APItem.createItemByName("Ice Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Ice Trap", true);
 				case "Freeze Trap" | "Frozen Trap" | "Bubble Trap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Army Trap" | "Police Trap" | "Buyon Trap" | "OmoTrap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Damage Trap":
-					archipelago.APItem.createItemByName('Damage Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Damage Trap', true);
 				case "Chaos Control Trap":
-					archipelago.APItem.createItemByName("Chaos Control Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Chaos Control Trap", true);
 				case "Confuse Trap":
-					archipelago.APItem.createItemByName("Confuse Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Confuse Trap", true);
 				case "Eject Ability":
-					archipelago.APItem.createItemByName("Eject Ability").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Eject Ability", true);
 				case "Whoops! Trap":
-					archipelago.APItem.createItemByName("Whoops! Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Whoops! Trap", true);
 				case "Zoom Trap":
-					archipelago.APItem.createItemByName("Zoom Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Zoom Trap", true);
 				case "Posession Trap":
-					archipelago.APItem.createItemByName("Posession Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Posession Trap", true);
 				case "Poison Trap" | "Poison Mushroom":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Confound Trap":
-					archipelago.APItem.createItemByName("Confound Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Confound Trap", true);
 				case "Fast Trap":
-					archipelago.APItem.createItemByName("Fast Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Fast Trap", true);
 				case "Slow Trap" | "Slowness Trap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Deisometric Trap" | "Camera Rotate Trap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Push Trap":
-					archipelago.APItem.createItemByName('Push Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Push Trap', true);
 				case "Input Sequence Trap":
-					archipelago.APItem.createItemByName('Input Sequence Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Input Sequence Trap', true);
 				case "Pokemon Trivia Trap":
-					archipelago.APItem.createItemByName('Pokemon Trivia Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Pokemon Trivia Trap', true);
 				case "Thwimp Trap":
-					archipelago.APItem.createItemByName('Thwimp Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Thwimp Trap', true);
 				case "Tiny Trap":
-					archipelago.APItem.createItemByName('Tiny Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Tiny Trap', true);
 				case "Bonk Trap":
-					archipelago.APItem.createItemByName('Bonk Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Bonk Trap', true);
 				case "Bald Trap":
-					archipelago.APItem.createItemByName('Bald Trap').fromTrapLink = true;
+					archipelago.APItem.createItemByName('Bald Trap', true);
 				case "Bomb" | "TNT Barrel Trap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Controller Drift Trap":
-					archipelago.APItem.createItemByName("Controller Drift Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Controller Drift Trap", true);
 				case "Timer Trap":
-					archipelago.APItem.createItemByName("Timer Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Timer Trap", true);
 				case "Jump Trap" | "Spring Trap":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Animal Bonus Trap":
-					archipelago.APItem.createItemByName("Animal Bonus Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Animal Bonus Trap", true);
 				case "Hiccup Trap":
-					archipelago.APItem.createItemByName("Hiccup Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Hiccup Trap", true);
 				case "Gooey Bag":
-					archipelago.APItem.createItemByName("Gooey Bag").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Gooey Bag", true);
 				case "Nut Trap":
-					archipelago.APItem.createItemByName("Nut Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Nut Trap", true);
 				case "Pokemon Count Trap":
-					archipelago.APItem.createItemByName("Pokemon Count Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Pokemon Count Trap", true);
 				case "Exposition Trap":
-					archipelago.APItem.createItemByName("Exposition Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Exposition Trap", true);
 				case "Double Damage":
-					archipelago.APItem.createItemByName("Double Damage").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Double Damage", true);
 				case "Instant Crystal Trap" | "One Hit KO":
-					archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+					archipelago.APItem.createItemByName(trapName, true);
 				case "Mirror Trap":
-					archipelago.APItem.createItemByName("Mirror Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Mirror Trap", true);
 				case "Pixellation Trap":
-					archipelago.APItem.createItemByName("Pixellation Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Pixellation Trap", true);
 				case "Swap Trap":
-					archipelago.APItem.createItemByName("Swap Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Swap Trap", true);
 				case "Cutscene Trap":
-					archipelago.APItem.createItemByName("Cutscene Trap").fromTrapLink = true;
+					archipelago.APItem.createItemByName("Cutscene Trap", true);
 				default:
 					try {
-						archipelago.APItem.createItemByName(trapName).fromTrapLink = true;
+						archipelago.APItem.createItemByName(trapName, true);
 						trace("TrapLink processed by fallback: " + trapName);
 					} catch (e:Dynamic) {
 						// If it's not a known trap, we can just log it.

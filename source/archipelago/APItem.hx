@@ -158,12 +158,13 @@ class APItem {
 
     private static var allItems:ActiveArray = new ActiveArray([]);
 
-    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false) {
+    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false, ?fromTrapLink:Bool = false) {
         this.name = name;
         this.condition = condition;
         this.onTrigger = onTrigger;
         this.isException = isException;
         this.toSync = toSync;
+        this.fromTrapLink = fromTrapLink;
         // If trap, make it so.
         this.isTrap = (this is APTrap);
 
@@ -199,7 +200,7 @@ class APItem {
 
     static var frozenInput:Int = 0;
     static var confusionStack:Int = 0;
-    public static function createItemByName(name:String):APItem {
+    public static function createItemByName(name:String, ?fromTrapLink:Bool = false):APItem {
         switch (name) {
             case "Blue Balls Curse":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
@@ -231,12 +232,12 @@ class APItem {
                             haxe.Timer.delay(checkCountdown, 100);
                         }
                     }, 100);
-                }, false, false).funcAndReturn(function(t:APItem) {
+                }, false, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
             case "Fake Transition":
-                return new APTrap(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false).funcAndReturn(function(t:APItem) {
+                return new APTrap(name, ConditionHelper.Special(), function() TransitionState.fakeTransition({transitionType:"transparent close"}), true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -297,14 +298,14 @@ class APItem {
                         APItem.queuedTrap = new APTrap("High Quality Trap - Queued", ConditionHelper.Everywhere(), function() {
                             archipelago.HighQualityTrapManager.startUsingTrap();
                             TrapLinkFunctions.doHighQualityTrap();
-                        }, false, false);
+                        }, false, false, false, true); // Always true for internal queued traps to prevent recursive trap links
                         // No popup - trap is silent and hidden
                         return;
                     }
 
                     // We're in Freeplay, execute the trap
                     TrapLinkFunctions.doHighQualityTrap();
-                }, false, false).funcAndReturn(function(t:APItem) {
+                }, false, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -313,7 +314,7 @@ class APItem {
                     archipelago.APInfo.ticketCount++;
                     if (!archipelago.APGameState.instance.info().casualSync)
                     popup(archipelago.APInfo.ticketCount > archipelago.APInfo.ticketWinCount ? "Not that you needed it..." : archipelago.APInfo.ticketCount == archipelago.APInfo.ticketWinCount ? "You have all you need!" : "One step closer...", "You got a ticket!");
-                }, true, true);
+                }, true, true, false, fromTrapLink);
             case "SvC Effect":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     // Pick a random effect from the effectArray
@@ -322,7 +323,7 @@ class APItem {
                     var effect = effects[randomIndex];
                     popup('Effect: $effect', "APItem: SvC Effect", true);
                     APPlayState.instance.doEffect(effect);
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -330,7 +331,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     popup('May the chat be merciful on you...', "APItem: Ghost Chat", true);
                     APPlayState.instance.triggerGhostChat();
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -363,7 +364,7 @@ class APItem {
                         difficulty = 6; // 1% chance for GOD difficulty
                     }
                     FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState(), difficulty));
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -411,7 +412,7 @@ class APItem {
 
                     states.PlayState.instance.canPause = false;
                     FlxG.state.openSubState(mathSubstate);
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     t.isTrap = true;
                 });
             case "UNO Challenge":
@@ -438,7 +439,7 @@ class APItem {
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Uno;
                     }
                     FlxG.switchState(new archipelago.traps.games.APUnoTrapState(MusicBeatState.getState()));
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -447,7 +448,7 @@ class APItem {
                     shields++;
                     trace("Shield acquired! Current shields: " + shields);
                     popup('Shields Left: $shields', "You got a shield!");
-                }, true, true);
+                }, true, true, false, fromTrapLink);
             case "Max HP Up":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     maxHPUp++;
@@ -456,7 +457,7 @@ class APItem {
                     if (APPlayState.APInstance() != null) {
                         APPlayState.APInstance().MaxHP += 0.5;
                     }
-                }, true, true);
+                }, true, true, false, fromTrapLink);
             case 'Max HP Down':
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     maxHPUp--;
@@ -468,7 +469,7 @@ class APItem {
                             APPlayState.APInstance().health = APPlayState.APInstance().MaxHP;
                         }
                     }
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     t.isTrap = true;
                 });
             case "Extra Life":
@@ -498,7 +499,7 @@ class APItem {
                     }
                     trace("Extra life acquired! Current extra lives: " + APPlayState.livecount);
                     popup('Extra Lives Left: ${APPlayState.livecount}', "You got an extra life!");
-                }, true, true);
+                }, true, true, false, fromTrapLink);
             case "Tutorial Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     // Wait for PlayState's startedCountdown to become active
@@ -515,18 +516,18 @@ class APItem {
                                 APPlayState.instance.playfields.forEach(function(pf) {
                                     pf.autoPlayed = true;
                                 });
-                            }, false, false, true);
+                            }, false, false, true, true);
                         } else {
                             // Retry after a short delay if countdown hasn't started
                             haxe.Timer.delay(checkCountdown, 100);
                         }
                     }, 100);
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
             case "Chart Modifier Trap":
-                return new APChartModifier().funcAndReturn(function(t:APItem) {
+                return new APChartModifier(null, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -541,14 +542,14 @@ class APItem {
                     if (Std.is(FlxG.state, archipelago.APCategoryState)) {
                         FlxG.resetState();
                     }
-                }, true, true);
+                }, true, true, false, fromTrapLink);
 
             case "PONG Dash Mechanic":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     trace("PONG Dash Mechanic acquired! You can now dash in pong :)");
                     popup('You can now dash in pong!', "You got the Dash Mechanic!");
                     hasDashMechanic = true;
-                }, true, true);
+                }, true, true, false, fromTrapLink);
 
             case "UNO Color Filler":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
@@ -566,7 +567,7 @@ class APItem {
                         popup('You already have all available colors!', "UNO Color Filler");
                     }
 
-                }, true, true);
+                }, true, true, false, fromTrapLink);
 
             case "Song Switch Trap" | "Swap Trap":
                 return new APItem(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
@@ -638,7 +639,7 @@ class APItem {
                             FlxG.switchState(new APPlayState());
                         }
                     }
-                }, true, true);
+                }, true, true, false, fromTrapLink);
 
             case "Opponent Mode Trap":
                 return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
@@ -656,7 +657,7 @@ class APItem {
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
                     states.PlayState.instance.dadField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit;
                     FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -677,7 +678,7 @@ class APItem {
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
                     states.PlayState.instance.dadField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit;
                     FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -692,7 +693,7 @@ class APItem {
                     popup('Oh god no here she comes', "Resistance Trap", true);
                     APPlayState.instance.startResisting();
                     APPlayState.resisting = true;
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -765,7 +766,7 @@ class APItem {
 
                         FlxDestroyUtil.destroy(tmr);
                     });
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -808,7 +809,7 @@ class APItem {
                         if (states.freeplay.OsuFreeplayState.instance != null)
                             @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
                     }
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -920,13 +921,13 @@ class APItem {
                                     pf.autoPlayed = true;
                                     pf.inControl = false;
                                 });
-                            }, false, false, true);
+                            }, false, false, true, true);
                         } else {
                             // Retry after a short delay if countdown hasn't started
                             haxe.Timer.delay(checkCountdown, 100);
                         }
                     }, 100);
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -940,7 +941,7 @@ class APItem {
                 }), function() {
                     popup('Effect: Ice Notes', 'TrapLink: $name', true);
                     APPlayState.instance.doEffect('icebutmoreagressive');
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -976,7 +977,7 @@ class APItem {
                         }
                         FlxDestroyUtil.destroy(timer);
                     });
-                }, true, false).funcAndReturn(function(t:APItem) {
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -991,7 +992,7 @@ class APItem {
                 }), function() {
                     APPlayState.instance.doEffect('insanespam');
                     popup('WATCH OUT!', 'TrapLink: $name');
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1037,7 +1038,7 @@ class APItem {
                         APPlayState.instance.health -= 0.4;
                     }
                     popup('That looked like it hurt', "TrapLink: Damage Trap");
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1046,7 +1047,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     APPlayState.instance.doEffect('freeze');
                     popup('CHAOS! CONTROL!', "TrapLink: Chaos Control Trap");
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1055,7 +1056,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     APPlayState.instance.doEffect('cover');
                     popup('What\'s going on here?', "TrapLink: Confuse Trap");
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1064,7 +1065,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
                     APPlayState.instance.doEffect('permasever');
                     popup('Eh, you weren\'t using that strum anyways.', "TrapLink: Eject Ability");
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1080,7 +1081,7 @@ class APItem {
                     flixel.tweens.FlxTween.num(pers.xrot, 0.45, 1, function(value:Float) {
                         pers.xrot = value;
                     });
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1091,7 +1092,7 @@ class APItem {
                     popup('You go bye bye now :)', "TrapLink: Push Trap");
                     TrapLinkFunctions.bfPosition = [APPlayState.instance.boyfriend.x ,APPlayState.instance.boyfriend.y];
                     TrapLinkFunctions.doCarCrash(true);
-                }, true, true).funcAndReturn(function(t:APItem) {
+                }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
                 });
@@ -1775,8 +1776,8 @@ class APItem {
         return newItems;
     }
 
-    public static function createCustomItem(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false):APItem {
-        return new APItem(name, condition, onTrigger, isException);
+    public static function createCustomItem(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, ?fromTrapLink:Bool = false):APItem {
+        return new APItem(name, condition, onTrigger, isException, false, false, fromTrapLink);
     }
 
     public static function doCheck():Void {
@@ -1972,7 +1973,7 @@ class APItem {
 class APChartModifier extends APTrap {
     public var chartModifier:String;
 
-    public function new(?chartModifier:String) {
+    public function new(?chartModifier:String, ?fromTrapLink:Bool = false) {
         var modifiers = chartModifier != null ? [chartModifier] : ["Random", "RandomBasic", "RandomComplex", "Flip", "Pain", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"];
         if (yutautil.AprilFools.allowAF) {
             modifiers.push("SpeedRando");
@@ -1992,7 +1993,7 @@ class APChartModifier extends APTrap {
             if (archipelago.APPlayState.instance?.startingSong) {
                 MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
             }
-        }, false, false);
+        }, false, false, false, fromTrapLink);
     }
 
     public static function restoreFromSave(modifier:String):APChartModifier {
@@ -2005,7 +2006,7 @@ class APPongTrap extends APTrap {
     private static var activeTrapState:archipelago.traps.games.APPongTrapState = null;
     private static var difficultyQueue:Array<Int> = [];
 
-    public function new(?difficulty:Int = null) {
+    public function new(?difficulty:Int = null, ?fromTrapLink:Bool = false) {
         // If no difficulty specified, use random 1-3 (reasonable range)
         this.difficulty = difficulty != null ? difficulty : (1 + Std.random(3));
 
@@ -2037,7 +2038,7 @@ class APPongTrap extends APTrap {
                 MusicBeatState.switchState(activeTrapState);
                 APItem.popup("Pong Challenge (" + getDifficultyName(this.difficulty) + ") activated!");
             }
-        }, false, false);
+        }, false, false, false, fromTrapLink);
     }
 
     private function getDifficultyName(diff:Int):String {
@@ -2090,9 +2091,9 @@ class APPongTrap extends APTrap {
 }
 
 class APTrap extends APItem {
-    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false) {
+    public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false, ?fromTrapLink:Bool = false) {
         this.isTrap = true; // Automatically set as trap
-        super(name, condition, onTrigger, isException, toSync, activeOnly);
+        super(name, condition, onTrigger, isException, toSync, activeOnly, fromTrapLink);
         this.isTrap = true; // Automatically set as trap... again. Just to be sure.
     }
 }
@@ -2378,7 +2379,7 @@ class APrilFools extends APTrap {
     //     //trace("April Fools item triggered.");
     // }
 
-        public function new() {
+        public function new(?fromTrapLink:Bool = false) {
             super("April Fools", ConditionHelper.Special(), function() {
                 // trace("April Fools item triggered.");
                 if (!initialized) {
@@ -2403,6 +2404,6 @@ class APrilFools extends APTrap {
                 } else {
                     // trace("No action found for choice: " + randomChoice);
                 }
-            }, false, false);
+            }, false, false, false, fromTrapLink);
         }
     }
