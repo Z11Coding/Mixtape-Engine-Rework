@@ -2267,7 +2267,7 @@ class APPlayState extends PlayState {
                     }
                 }
 
-                if (deathLinkPacket.cause != null && (deathLinkPacket.cause != "" || deathLinkPacket.cause != " ")) {
+                if (deathLinkPacket.cause != null && (deathLinkPacket.cause.trim() != "" || deathLinkPacket.cause != " ")) {
                     var randomMsg = extraMessages[FlxG.random.int(0, extraMessages.length - 1)];
                     cause = deathLinkPacket.cause + "\n[pause:0.5](" + randomMsg + ")";
                 }
