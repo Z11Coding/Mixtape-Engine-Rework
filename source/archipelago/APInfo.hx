@@ -39,13 +39,13 @@ typedef APSlotDataType = {
 	locationType: String,
 	locationMethod: String,
 	selectedSongs: Array<String>,
-	songData: Map<String, SongDetailData>,
+	songData: haxe.DynamicAccess<SongDetailData>,
 	?custom_weeks: Dynamic, // Custom weeks data from HScript processing
 	?song_modifications: Dynamic, // Song additions/exclusions data
 	?unoColorsUsed:Array<{name:String, color_code:String}>, // Uno mod colors used in the slot
 	?highQualityExpected: Bool, // Whether high quality trap content is expected to be available
-	?sanityData: Map<String, SanityItemData>, // Sanity items for this player
-	?sanityLocationData: Map<String, SanityLocationData>, // Sanity locations for this player
+	?sanityData: haxe.DynamicAccess<SanityItemData>, // Sanity items for this player
+	?sanityLocationData: haxe.DynamicAccess<SanityLocationData>, // Sanity locations for this player
 	?sanitySettings: SanitySettings // Sanity settings for this player
 }
 
@@ -62,7 +62,7 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 			locationType: "Song Completion",
 			locationMethod: "Per Song",
 			selectedSongs: [],
-			songData: new Map<String, SongDetailData>(),
+			songData: new haxe.DynamicAccess<SongDetailData>(),
 			custom_weeks: null,
 			song_modifications: null,
 			highQualityExpected: false
@@ -79,13 +79,13 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	public var locationType(get, never):String;
 	public var locationMethod(get, never):String;
 	public var selectedSongs(get, never):Array<String>;
-	public var songData(get, never):Map<String, SongDetailData>;
+	public var songData(get, never):haxe.DynamicAccess<SongDetailData>;
 	public var custom_weeks(get, never):Dynamic;
 	public var song_modifications(get, never):Dynamic;
 	public var unoColorsUsed(get, never):Array<{name:String, color_code:String}>;
 	public var highQualityExpected(get, never):Bool;
-	public var sanityData(get, never):Map<String, SanityItemData>;
-	public var sanityLocationData(get, never):Map<String, SanityLocationData>;
+	public var sanityData(get, never):haxe.DynamicAccess<SanityItemData>;
+	public var sanityLocationData(get, never):haxe.DynamicAccess<SanityLocationData>;
 	public var sanitySettings(get, never):SanitySettings;
 
 	private function get_deathLink():Bool return this.deathLink;
@@ -98,13 +98,13 @@ abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	private function get_locationType():String return this.locationType;
 	private function get_locationMethod():String return this.locationMethod;
 	private function get_selectedSongs():Array<String> return this.selectedSongs;
-	private function get_songData():Map<String, SongDetailData> return this.songData;
+	private function get_songData():haxe.DynamicAccess<SongDetailData> return this.songData;
 	private function get_custom_weeks():Dynamic return this.custom_weeks;
 	private function get_song_modifications():Dynamic return this.song_modifications;
 	private function get_unoColorsUsed():Array<{name:String, color_code:String}> return this.unoColorsUsed;
 	private function get_highQualityExpected():Bool return this.highQualityExpected != null ? this.highQualityExpected : false;
-	private function get_sanityData():Map<String, SanityItemData> return this.sanityData != null ? this.sanityData : new Map<String, SanityItemData>();
-	private function get_sanityLocationData():Map<String, SanityLocationData> return this.sanityLocationData != null ? this.sanityLocationData : new Map<String, SanityLocationData>();
+	private function get_sanityData():haxe.DynamicAccess<SanityItemData> return this.sanityData != null ? this.sanityData : new haxe.DynamicAccess<SanityItemData>();
+	private function get_sanityLocationData():haxe.DynamicAccess<SanityLocationData> return this.sanityLocationData != null ? this.sanityLocationData : new haxe.DynamicAccess<SanityLocationData>();
 	private function get_sanitySettings():SanitySettings return this.sanitySettings != null ? this.sanitySettings : {enable_sanity_locations: false, sanity_completion_type: "on_getting", sanity_types: []};
 
 	public function get(key:String):Dynamic {

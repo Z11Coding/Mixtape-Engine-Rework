@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="NOTE_assets.png">
+	<!-- Created with Adobe Animate version 22.0.0.93 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="ap0000" x="100" y="0" width="137" height="142"/>
+	<SubTexture name="ap hold end0000" x="0" y="0" width="50" height="64"/>
+	<SubTexture name="ap hold piece0000" x="50" y="0" width="50" height="44"/>
+	<SubTexture name="arrowAP0000" x="237" y="0" width="137" height="142"/>
+</TextureAtlas>

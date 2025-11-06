@@ -2046,8 +2046,8 @@ class APChartModifier extends APTrap {
         }, false, false, false, fromTrapLink);
     }
 
-    public static function restoreFromSave(modifier:String):APChartModifier {
-        return new APChartModifier(modifier);
+    public static function restoreFromSave(modifier:String, ?fromTrapLink:Bool):APChartModifier {
+        return new APChartModifier(modifier, fromTrapLink);
     }
 }
 

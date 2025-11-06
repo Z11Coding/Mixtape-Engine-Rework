@@ -706,6 +706,11 @@ class Note extends NoteObject
 	}
 
 	private function set_texture(value:String):String {
+		// If this is an AP check note, override the texture
+		if(isCheck && value != 'noteSkins/ap_assets/AP_NOTE') {
+			value = 'noteSkins/ap_assets/AP_NOTE';
+		}
+
 		if(texture != value) reloadNote(value);
 
 		texture = value;

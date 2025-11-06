@@ -297,7 +297,7 @@ typedef SetNotifyPacket =
 typedef ProcessedItemsResult =
 {
 	tickets:Int,
-	nonSongs:Map<String, Int>,
+	nonSongs:haxe.DynamicAccess<Int>,
 	nonSongsNames:Array<String>,
 	unlockedSongs:Array<{song:String, mod:String}>,
 	itemsToTrigger:Array<String>,
@@ -326,7 +326,7 @@ class APGameState
 	// Sanity-related variables
 	public var unlockedSanityItems:Map<String, SanityItemData> = new Map<String, SanityItemData>();
 	public var sanitySettings:SanitySettings = {enable_sanity_locations: false, sanity_completion_type: "on_getting", sanity_types: []};
-	public var sanityLocationIds:Map<String, Int> = new Map<String, Int>();
+	public var sanityLocationIds:haxe.DynamicAccess<Int> = new haxe.DynamicAccess<Int>();
 
 	public function locationData(songName:String, modName:String):Array<Int>
 	{
@@ -532,8 +532,6 @@ class APGameState
 	{
 		var locations:Array<Int> = [];
 
-		trace('is setting on: ${sanitySettings.enable_sanity_locations}');
-
 		if (!sanitySettings.enable_sanity_locations)
 			return locations;
 
@@ -586,7 +584,7 @@ class APGameState
 			// First try slot data lookup
 			if (_slotData != null && Reflect.hasField(_slotData, "sanityLocationData"))
 			{
-				var sanityLocationData:Map<String, SanityLocationData> = Reflect.field(_slotData, "sanityLocationData");
+				var sanityLocationData:haxe.DynamicAccess<SanityLocationData> = Reflect.field(_slotData, "sanityLocationData");
 				if (sanityLocationData != null)
 				{
 					var locationName = "Use " + itemType + ": " + itemName;
@@ -820,19 +818,19 @@ class APGameState
 		// Initialize sanity location IDs from slot data
 		if (_slotData != null && Reflect.hasField(_slotData, "sanityLocationData"))
 		{
-			var sanityLocationData:Map<String, SanityLocationData> = Reflect.field(_slotData, "sanityLocationData");
+			var sanityLocationData:haxe.DynamicAccess<SanityLocationData> = Reflect.field(_slotData, "sanityLocationData");
 			if (sanityLocationData != null)
 			{
 				for (locationName => locationData in sanityLocationData)
 				{
 					sanityLocationIds.set(locationName, locationData.id);
 				}
-				trace("Loaded " + Lambda.count(sanityLocationIds) + " sanity location IDs");
+				trace("Loaded " + [for (key in sanityLocationIds.keys()) key].length + " sanity location IDs");
 			}
 		}
 
 		// Initialize unlocked sanity items (empty at start - will be populated as items are received)
-		unlockedSanityItems.clear();
+		unlockedSanityItems = new Map<String, SanityItemData>();
 		trace("Sanity system initialized");
 	}
 
@@ -1097,7 +1095,7 @@ class APGameState
 			{
 				unlockedSanityItems.set(item.name, item.data);
 			}
-			trace("Loaded " + Lambda.count(unlockedSanityItems) + " unlocked sanity items from save");
+			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
 
 		_saveData.save();
@@ -1201,7 +1199,7 @@ class APGameState
 			if (reg.match(trapName))
 			{
 				var modifier = reg.matched(1);
-				archipelago.APItem.APChartModifier.restoreFromSave(modifier).fromTrapLink = true;
+				archipelago.APItem.APChartModifier.restoreFromSave(modifier, true).fromTrapLink = true;
 			}
 			else
 			{
@@ -1552,7 +1550,7 @@ class APGameState
 					specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
 				}
 			}
-			//trace("Special Items: " + specialItems);
+			trace("Special Items: " + specialItems);
 
 			return specialItems;
 		}
@@ -1615,7 +1613,7 @@ class APGameState
 		function processItemsSync(songs:Array<NetworkItem>):ProcessedItemsResult
 		{
 			var tickets = 0;
-			var nonSongs:Map<String, Int> = [];
+			var nonSongs:haxe.DynamicAccess<Int> = new haxe.DynamicAccess<Int>();
 			var nonSongsNames:Array<String> = [];
 			var unlockedSongs:Array<{song:String, mod:String}> = [];
 			var itemsToTrigger:Array<String> = [];
@@ -1637,8 +1635,25 @@ class APGameState
 				// Use the realName function to convert special keywords back to actual brackets
 				itemName = APInfo.realName(itemName);
 
-				// Check if this is a sanity item
-				if (itemName.indexOf("Stage: ") == 0 || itemName.indexOf("Character: ") == 0)
+				// Check if this is a sanity item by ID instead of name
+				var isSanityItem = false;
+				if (_slotData != null && _slotData.sanityData != null)
+				{
+					// Check if the item ID exists in the sanity data
+					for (sanityItemName in _slotData.sanityData.keys())
+					{
+						var sanityItemData = _slotData.sanityData.get(sanityItemName);
+						if (sanityItemData != null && sanityItemData.id == songName.item)
+						{
+							isSanityItem = true;
+							// Use the sanity item name from slot data for consistency
+							itemName = sanityItemName;
+							break;
+						}
+					}
+				}
+
+				if (isSanityItem)
 				{
 					// This is a sanity item - add to sanity tracking
 					sanityItems.push(itemName);
@@ -1727,7 +1742,6 @@ class APGameState
 			// Handle sanity items
 			for (sanityItemName in result.sanityItems)
 			{
-				trace('Sanity Item: $sanityItemName');
 				handleSanityItemReceived(sanityItemName);
 			}
 
@@ -1767,8 +1781,7 @@ class APGameState
 			// Get sanity item data from slot data
 			if (_slotData != null && Reflect.hasField(_slotData, "sanityData"))
 			{
-				var sanityData:DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
-				trace('SlotData: $_slotData\nSanityData: $sanityData');
+				var sanityData:haxe.DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
 				if (sanityData != null && sanityData.exists(itemName))
 				{
 					var sanityItemData = sanityData.get(itemName);
@@ -1881,14 +1894,24 @@ class APGameState
 
 		public function isSanityItemUnlocked(itemType:String, itemName:String):Bool
 		{
+			// If no sanity system exists at all, everything is unlocked
+			var unlockedSanityCount = [for (key in unlockedSanityItems.keys()) key].length;
+			var sanityLocationCount = [for (key in sanityLocationIds.keys()) key].length;
+			if (unlockedSanityCount == 0 && sanityLocationCount == 0) return true;
+
+
+
 			var key = itemType + ": " + itemName;
 			return unlockedSanityItems.exists(key);
 		}
 
 		public function checkSongCharactersAndStageUnlocked(song:backend.Song.SwagSong):Array<String>
 		{
-			trace('Unlocked Sanity Items: $unlockedSanityItems\nSanity Location ID\'s: $sanityLocationIds');
 			// Check if sanity system exists at all (regardless of location settings)
+			var unlockedSanityCount = [for (key in unlockedSanityItems.keys()) key].length;
+			var sanityLocationCount = [for (key in sanityLocationIds.keys()) key].length;
+			if (unlockedSanityCount == 0 && sanityLocationCount == 0) return [];
+
 			var missingItems:Array<String> = [];
 
 			// Check what types of sanity items we should look for

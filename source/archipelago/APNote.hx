@@ -1,6 +1,7 @@
 package archipelago;
 
 import archipelago.PacketTypes.NetworkItem;
+import objects.Note;
 
 class APNote extends objects.Note {
     var APItem:NetworkItem;
@@ -12,10 +13,11 @@ class APNote extends objects.Note {
         this.ignoreNote = note.ignoreNote;
         this.noteType = note.noteType;
         this.isCheck = true;
-        // Set a unique RGBShader color for APNotes
-        this.rgbShader.r = 0x3380CC; 
-        this.rgbShader.g = 0x3380CC; 
-        this.rgbShader.b = 0x3380CC; 
+        // Set a unique RGBShader color for APNotes (matching the replaceInQueue method)
+        this.rgbShader.enabled = true;
+        this.rgbShader.r = 0xFF313131;
+        this.rgbShader.g = 0xFFFFFFFF;
+        this.rgbShader.b = 0xFFB4B4B4;
         // Copy the properties from the original note to this new note, via reflection
         trace("Copying properties from original note to new note...");
         for (field in Reflect.fields(note)) {
@@ -34,6 +36,46 @@ class APNote extends objects.Note {
         APItemLocation = location;
 
         this.checkInfo = {note: this, loc: location}; // Set the checkInfo for the new note
+
+        // Set up AP note texture and animations
+        this.texture = 'noteSkins/ap_assets/AP_NOTE';
+
+        // Set up lane-based animations like standard notes
+        // Create animations for each lane using the same 'ap' prefix since there's only one AP texture
+        for (i in 0...Note.gfxLetter.length) {
+            // Regular note animations for each lane (A, B, C, D, etc.)
+            this.animation.addByPrefix(Note.gfxLetter[i], 'ap0', 24, false);
+
+            // Sustain note animations if this is a sustain note
+            if (this.isSustainNote) {
+                this.animation.addByPrefix(Note.gfxLetter[i] + ' hold', 'ap hold piece', 24, true);
+                this.animation.addByPrefix(Note.gfxLetter[i] + ' tail', 'ap hold end', 24, false);
+            }
+        }
+
+        // Play the appropriate animation based on note data
+        if (this.noteData >= 0 && this.noteData < Note.gfxLetter.length) {
+            if (this.isSustainNote) {
+                if (this.prevNote != null && this.prevNote.isSustainNote) {
+                    this.animation.play(Note.gfxLetter[this.noteData] + ' hold');
+                } else {
+                    this.animation.play(Note.gfxLetter[this.noteData] + ' tail');
+                }
+            } else {
+                this.animation.play(Note.gfxLetter[this.noteData]);
+            }
+        } else {
+            // Fallback to first animation
+            if (this.isSustainNote) {
+                if (this.prevNote != null && this.prevNote.isSustainNote) {
+                    this.animation.play(Note.gfxLetter[0] + ' hold');
+                } else {
+                    this.animation.play(Note.gfxLetter[0] + ' tail');
+                }
+            } else {
+                this.animation.play(Note.gfxLetter[0]);
+            }
+        }
     }
 
     // Replace notes with a certain amount of locations.
@@ -69,9 +111,10 @@ class APNote extends objects.Note {
             newNotes.push(apNote);
 
             // Replace the original note with the APNote
-            notes[randomIndices[i]].rgbShader.r = 0x3380CC; 
-            notes[randomIndices[i]].rgbShader.g = 0x3380CC; 
-            notes[randomIndices[i]].rgbShader.b = 0x3380CC; 
+            notes[randomIndices[i]].rgbShader.enabled = true;
+            notes[randomIndices[i]].rgbShader.r = 0xFF313131;
+            notes[randomIndices[i]].rgbShader.g = 0xFFFFFFFF;
+            notes[randomIndices[i]].rgbShader.b = 0xFFB4B4B4;
             notes[randomIndices[i]] = apNote;
 
             apNote.index = i; // Set the index for the new note
@@ -170,11 +213,58 @@ class APNote extends objects.Note {
             @:privateAccess{
                 notes[lane][index].isCheck = true;
                 notes[lane][index].checkInfo = {note: notes[lane][index], loc: location};
-                notes[lane][index].texture = ''; // For consistancy sake
-                notes[lane][index].rgbShader.enabled = true; // because mods sometimes turn this off for their noteskins
+                notes[lane][index].rgbShader.enabled = false;
                 notes[lane][index].rgbShader.r = 0xFF313131;
                 notes[lane][index].rgbShader.g = 0xFFFFFFFF;
                 notes[lane][index].rgbShader.b = 0xFFB4B4B4;
+                notes[lane][index].texture = 'noteSkins/ap_assets/AP_NOTE'; // Set the texture to the APNote texture
+                // Set child notes to the same texture
+                var children = notes[lane][index].childrenNotes;
+                for (child in children) {
+                    child.texture = 'noteSkins/ap_assets/AP_NOTE';
+                    child.rgbShader.enabled = false;
+                    child.rgbShader.r = 0xFF313131;
+                    child.rgbShader.g = 0xFFFFFFFF;
+                    child.rgbShader.b = 0xFFB4B4B4;
+                }
+
+                // Set up lane-based animations like standard notes
+                // Create animations for each lane using the same 'ap' prefix since there's only one AP texture
+                for (j in 0...Note.gfxLetter.length) {
+                    // Regular note animations for each lane (A, B, C, D, etc.)
+                    notes[lane][index].animation.addByPrefix(Note.gfxLetter[j], 'ap0', 24, false);
+
+                    // Sustain note animations if this is a sustain note
+                    if (notes[lane][index].isSustainNote) {
+                        notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' hold', 'ap hold piece', 24, true);
+                        notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' tail', 'ap hold end', 24, false);
+                    }
+                }
+
+                // Play the appropriate animation based on note data
+                var noteData = notes[lane][index].noteData;
+                if (noteData >= 0 && noteData < Note.gfxLetter.length) {
+                    if (notes[lane][index].isSustainNote) {
+                        if (notes[lane][index].prevNote != null && notes[lane][index].prevNote.isSustainNote) {
+                            notes[lane][index].animation.play(Note.gfxLetter[noteData] + ' hold');
+                        } else {
+                            notes[lane][index].animation.play(Note.gfxLetter[noteData] + ' tail');
+                        }
+                    } else {
+                        notes[lane][index].animation.play(Note.gfxLetter[noteData]);
+                    }
+                } else {
+                    // Fallback to first animation
+                    if (notes[lane][index].isSustainNote) {
+                        if (notes[lane][index].prevNote != null && notes[lane][index].prevNote.isSustainNote) {
+                            notes[lane][index].animation.play(Note.gfxLetter[0] + ' hold');
+                        } else {
+                            notes[lane][index].animation.play(Note.gfxLetter[0] + ' tail');
+                        }
+                    } else {
+                        notes[lane][index].animation.play(Note.gfxLetter[0]);
+                    }
+                }
             }
         }
         trace("Successfully generated [" + randomIndices.length + "] APNotes.");
