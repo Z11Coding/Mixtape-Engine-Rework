@@ -709,6 +709,7 @@ class Note extends NoteObject
 		// If this is an AP check note, override the texture
 		if(isCheck && value != 'noteSkins/ap_assets/AP_NOTE') {
 			value = 'noteSkins/ap_assets/AP_NOTE';
+			this.shader = null; // no shader please :D
 		}
 
 		if(texture != value) reloadNote(value);

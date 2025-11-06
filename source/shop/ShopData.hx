@@ -103,11 +103,11 @@ class ShopData {
             items.set('h?', ['h?', 100, 'unknownMod', false, false]);
         }*/
         //Test Item
-        items.set('Fanta Can', ['(Insert dylan line here)', 100, 'emptyAchievement', false, false]);
-        items.set('h?', ['h?', 100, 'unknownMod', false, false]);
-        items.set('Test A', ['Space Test 1', 100, 'unknownMod', false, false]);
-        items.set('Test B', ['Space Test 2', 100, 'unknownMod', false, false]);
-        items.set('Test C', ['Space Test 3', 100, 'unknownMod', false, false]);
+        items.set('Fanta Can', ['(Insert dylan line here)', 100, 'defaultItem', false, false]);
+        items.set('h?', ['h?', 100, 'defaultTrap', false, false]);
+        items.set('Test A', ['Space Test 1', 100, 'defaultTrap', false, false]);
+        items.set('Test B', ['Space Test 2', 100, 'defaultItem', false, false]);
+        items.set('Test C', ['Space Test 3', 100, 'unknownItem', false, false]);
     }
 
     public static function saveShop() {
