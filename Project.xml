@@ -273,6 +273,9 @@
 	<haxeflag name="--macro" value="yutautil.RuntimeTypedef.processTypedef()" />
 	<haxeflag name="--macro" value="yutautil.VoidFall.randomFailure()" />
 
+	<!-- Patched type system - enable field validation on all classes -->
+	<!-- <haxeflag name="--macro" value="yutautil.Patched.PatchedMacro.init()" /> -->
+
 	<haxeflag name="--resource" value="assets/embed/apworld/fridaynightfunkin.apworld@apworld" />
 	<haxeflag name="--resource" value="example_mods/modTemplate.zip@modTemp" />
 
