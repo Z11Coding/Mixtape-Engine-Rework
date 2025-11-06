@@ -1080,7 +1080,7 @@ class Client {
 		if (_ws != null)
 			process_queue();
 
-		if (_tags != currentTags) {
+		if (currentTags != _tagsManager.tags) {
 			tagsManager.syncToClient();
 		}
 
