@@ -211,6 +211,9 @@ class Keybinds
 				ClientPrefs.keyBinds.get('note_ate16').copy(),
 				ClientPrefs.keyBinds.get('note_ate17').copy(),
 				ClientPrefs.keyBinds.get('note_ate18').copy(),
+			],
+			[
+				[-4, -5] //Mouse Controls
 			]
 		];
     }

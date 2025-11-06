@@ -13,7 +13,7 @@ typedef SongDetailData = {
 typedef SanityItemData = {
 	id: Int,
 	type: String, // "stage" or "character"
-	songs: Array<{song: String, difficulties: Array<String>}>, // Array of songs with their difficulties
+	songs: Array<{song: String, mod:String, difficulties: Array<String>}>, // Array of songs with their difficulties
 	player: String
 }
 
@@ -154,6 +154,14 @@ class APInfo {
 	public static function get_slotData():APSlotData {
 		return apGame?._slotData;
 	}
+
+
+	//Debuff Variables
+	public static var soreThroat:Bool = false;
+	public static var backwardsSinging:Bool = false;
+	public static var blindness:Bool = false;
+	public static var fivenightsatmechanicsmod:Bool = false;
+	public static var unstableSpeed:Bool = false;
 
 	public static var gradeList:Array<String> =
 	[

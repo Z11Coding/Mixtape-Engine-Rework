@@ -21,6 +21,14 @@ import sys.io.*;
 import js.html.*;
 #end
 
+#if ARCHIPELAGO_ALLOWED
+import archipelago.*;
+import archipelago.console.*;
+import archipelago.states.*;
+import archipelago.substates.*;
+import archipelago.traps.*;
+#end
+
 import backend.COD;
 import backend.ClientPrefs;
 import backend.Conductor;

@@ -178,6 +178,12 @@ class APAdvancedSettingsState extends MusicBeatState
 	var MHPWeight:Int = 3;
 	var MHPDWeight:Int = 3;
 
+	// Z11's Optional Hell
+	var starter_debuff:Bool = false;
+	var perma_traps:Bool = false;
+	var hard_mode:Bool = false;
+	var enable_shop:Bool = false;
+
 	// Navigation cooldown
 	var navigationCooldown:Float = 0;
 	var navigationDelay:Float = 0.15; // 150ms delay between navigation inputs
@@ -451,6 +457,14 @@ class APAdvancedSettingsState extends MusicBeatState
 							stagesanity = value == true;
 						case "charactersanity":
 							charactersanity = value == true;
+						case "starter_debuff":
+							starter_debuff = value == true;
+						case "perma_traps":
+							perma_traps = value == true;
+						case "hard_mode":
+							hard_mode = value == true;
+						case "enable_shop":
+							enable_shop = value == true;
 						// Handle any other potential fields that might exist
 						default:
 							trace('Unknown YAML field during import: $field = $value');
@@ -876,6 +890,83 @@ class APAdvancedSettingsState extends MusicBeatState
 			)
 		];
 
+
+		// Z11 Options Page - things you can but probably shouldn't turn on
+		var z11Options:Array<SettingsOption> = [];
+
+		z11Options.push({
+			name: "Starter Debuffs",
+			description: "Inflicts you with four near-perminant debuffs (SEE WIKI PAGE FOR DEBUFF DETAILS)",
+			callback: function() {
+				starter_debuff = !starter_debuff;
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(starter_debuff, function(value:Bool) {
+				starter_debuff = value;
+				// Don't refresh here - the main callback will handle it
+			})
+		});
+
+		z11Options.push({
+			name: "Perma-Traps",
+			description: "Makes the starting debuffs Trap Items instead (SEE WIKI PAGE FOR DEBUFF DETAILS)",
+			callback: function() {
+				perma_traps = !perma_traps;
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(perma_traps, function(value:Bool) {
+				perma_traps = value;
+				// Don't refresh here - the main callback will handle it
+			})
+		});
+
+		z11Options.push({
+			name: "HARD MODE",
+			description: "Huh? You don't want to be able to play the game right off the bat? No problem! (SEE WIKI PAGE FOR HARD MODE DETAILS)",
+			callback: function() {
+				hard_mode = !hard_mode;
+				if (hard_mode) FlxG.sound.play(Paths.sound('mus-mode'), 2);
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(hard_mode, function(value:Bool) {
+				hard_mode = value;
+				if (hard_mode) FlxG.sound.play(Paths.sound('mus-mode'), 2);
+				// Don't refresh here - the main callback will handle it
+			})
+		});
+
+		z11Options.push({
+			name: "Enable Shop",
+			description: "Hey there. Heard you wanted to buy things from me. (SEE WIKI PAGE FOR SHOP DETAILS)",
+			callback: function() {
+				enable_shop = !enable_shop;
+				if (enable_shop) FlxG.sound.play(Paths.sound('uh oh'), 2);
+				else FlxG.sound.play(Paths.sound('ok nevermind were good'), 2);
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(enable_shop, function(value:Bool) {
+				enable_shop = value;
+				if (enable_shop) FlxG.sound.play(Paths.sound('uh oh'), 2);
+				else FlxG.sound.play(Paths.sound('ok nevermind were good'), 2);
+				// Don't refresh here - the main callback will handle it
+			})
+		});
+
+		z11Options.push({
+			name: "???",
+			description: "Oh me? Don't worry about why i'm here. Not yet, at least~",
+			callback: function() {
+				FlxG.sound.play(Paths.sound('mus-wawa'));
+				refreshCurrentPage();
+			},
+			locked: true,
+			contextMenu: createEditContextMenu(() -> giveNotice())
+		});
+
 		pages = [
 			{
 				name: "MAIN SETTINGS",
@@ -911,6 +1002,13 @@ class APAdvancedSettingsState extends MusicBeatState
 				options: sanityOptions,
 				stateOptions: [],
 				color: FlxColor.PINK
+			},
+			{
+				name: "Z11'S OPTIONAL HELL",
+				description: "Fun(?) things I decided to add for those looking for something more than the usual >:)",
+				options: z11Options,
+				stateOptions: [],
+				color: FlxColor.WHITE
 			}
 		];
 	}
@@ -1337,7 +1435,9 @@ class APAdvancedSettingsState extends MusicBeatState
 		pageIndicator.text = '${currentPage + 1} / ${pages.length} - ${page.name}';
 
 		// Change title color based on page
-		titleText.color = page.color;
+		if (page.name == "Z11'S OPTIONAL HELL") {
+			rainbowText = true;
+		} else {rainbowText = false; titleText.color = page.color;}
 		if (glowEffect != null)
 		{
 			glowEffect.color = page.color;
@@ -1493,6 +1593,11 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Sanity Completion Type": sanity_completion_type;
 			case "Stagesanity": stagesanity ? "ON" : "OFF";
 			case "Charactersanity": charactersanity ? "ON" : "OFF";
+			case "Starter Debuffs": starter_debuff ? "ON" : "OFF";
+			case "Perma-Traps": perma_traps ? "ON" : "OFF";
+			case "HARD MODE": hard_mode ? "ON" : "OFF";
+			case "Enable Shop": enable_shop ? "ON" : "OFF";
+			case "???": true ? "Not Yet..." : "Not Yet...";
 			default: "";
 		}
 	}
@@ -1919,6 +2024,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		});
 		openSubState(enumSubstate);
 	}
+
+	function giveNotice() openSubState(new Prompt("Give it time, hun.\nWe'll get to know each other soon enough,\nI promise~ ", 0, null, null, false, "Wait What", "Who the heck-"));
 
 	function setOptionValue(optionName:String, value:Dynamic)
 	{
@@ -2969,6 +3076,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			sanity_completion_type = Reflect.hasField(settings, "sanity_completion_type") ? Reflect.field(settings, "sanity_completion_type") : "on_getting";
 			stagesanity = Reflect.hasField(settings, "stagesanity") ? settings.stagesanity : false;
 			charactersanity = Reflect.hasField(settings, "charactersanity") ? settings.charactersanity : false;
+			starter_debuff = Reflect.hasField(settings, "starter_debuff") ? settings.starter_debuff : false;
+			hard_mode = Reflect.hasField(settings, "hard_mode") ? settings.hard_mode : false;
+			enable_shop = Reflect.hasField(settings, "enable_shop") ? settings.enable_shop : false;
+			perma_traps = Reflect.hasField(settings, "perma_traps") ? settings.perma_traps : false;
 		}
 	}
 
@@ -3021,6 +3132,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			Reflect.setField(settings, "sanity_completion_type", sanity_completion_type);
 			settings.stagesanity = stagesanity;
 			settings.charactersanity = charactersanity;
+			settings.starter_debuff = starter_debuff;
+			settings.perma_traps = perma_traps;
+			settings.hard_mode = hard_mode;
+			settings.enable_shop = enable_shop;
 		}
 	}
 
@@ -3571,6 +3686,10 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
 		Reflect.setField(yamlThing, "stagesanity", stagesanity);
 		Reflect.setField(yamlThing, "charactersanity", charactersanity);
+		Reflect.setField(yamlThing, "starter_debuff", starter_debuff);
+		Reflect.setField(yamlThing, "perma_traps", perma_traps);
+		Reflect.setField(yamlThing, "hard_mode", hard_mode);
+		Reflect.setField(yamlThing, "enable_shop", enable_shop);
 		if (startingSong != null)
 		{
 			Reflect.setField(yamlThing, "starting_song", startingSong);
@@ -3722,6 +3841,10 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
 		Reflect.setField(yamlThing, "stagesanity", stagesanity);
 		Reflect.setField(yamlThing, "charactersanity", charactersanity);
+		Reflect.setField(yamlThing, "starter_debuff", starter_debuff);
+		Reflect.setField(yamlThing, "perma_traps", perma_traps);
+		Reflect.setField(yamlThing, "hard_mode", hard_mode);
+		Reflect.setField(yamlThing, "enable_shop", enable_shop);
 		if (startingSong != null)
 		{
 			Reflect.setField(yamlThing, "starting_song", startingSong);
@@ -4111,9 +4234,15 @@ class APAdvancedSettingsState extends MusicBeatState
 		openSubState(progressSubstate);
 	}
 
+	var pubE:Float = 0;
+	var rainbowText:Bool = false;
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		if (rainbowText) {
+			titleText.color = FlxColor.fromHSL(((elapsed / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
+			if (glowEffect != null) glowEffect.color = FlxColor.fromHSL(((elapsed / 2.5) / 300 * 360) % 360, 1.0, 0.5*1.0);
+		}
 
 		if (forceExportPath != null)
 		{
@@ -4286,6 +4415,10 @@ class APAdvancedSettingsState extends MusicBeatState
 							}
 							else
 							{
+								if (option.name == "???") {
+									FlxG.sound.play(Paths.sound('mus-wawa'), 5);
+									giveNotice();
+								}
 								FlxG.sound.play(Paths.sound('cancelMenu'));
 								FlxG.camera.shake(0.01, 0.2);
 							}
@@ -4410,7 +4543,11 @@ class APAdvancedSettingsState extends MusicBeatState
 			enable_sanity_locations: enable_sanity_locations,
 			sanity_completion_type: sanity_completion_type,
 			stagesanity: stagesanity,
-			charactersanity: charactersanity
+			charactersanity: charactersanity,
+			starter_debuff: starter_debuff,
+			perma_traps: perma_traps,
+			hard_mode: hard_mode,
+			enable_shop: enable_shop
 		};
 
 		if (tempSave != null)
@@ -4488,6 +4625,16 @@ class APAdvancedSettingsState extends MusicBeatState
 				stagesanity = data.stagesanity;
 			if (Reflect.hasField(data, "charactersanity"))
 				charactersanity = data.charactersanity;
+
+			// Load Z11's Optional Hell
+			if (Reflect.hasField(data, "starter_debuff"))
+				starter_debuff = data.starter_debuff;
+			if (Reflect.hasField(data, "perma_traps"))
+				perma_traps = data.perma_traps;
+			if (Reflect.hasField(data, "hard_mode"))
+				hard_mode = data.hard_mode;
+			if (Reflect.hasField(data, "enable_shop"))
+				enable_shop = data.enable_shop;
 		}
 	}
 

@@ -532,6 +532,8 @@ class APGameState
 	{
 		var locations:Array<Int> = [];
 
+		trace('is setting on: ${sanitySettings.enable_sanity_locations}');
+
 		if (!sanitySettings.enable_sanity_locations)
 			return locations;
 
@@ -1550,7 +1552,7 @@ class APGameState
 					specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
 				}
 			}
-			trace("Special Items: " + specialItems);
+			//trace("Special Items: " + specialItems);
 
 			return specialItems;
 		}
@@ -1725,6 +1727,7 @@ class APGameState
 			// Handle sanity items
 			for (sanityItemName in result.sanityItems)
 			{
+				trace('Sanity Item: $sanityItemName');
 				handleSanityItemReceived(sanityItemName);
 			}
 
@@ -1764,7 +1767,8 @@ class APGameState
 			// Get sanity item data from slot data
 			if (_slotData != null && Reflect.hasField(_slotData, "sanityData"))
 			{
-				var sanityData:Map<String, SanityItemData> = Reflect.field(_slotData, "sanityData");
+				var sanityData:DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
+				trace('SlotData: $_slotData\nSanityData: $sanityData');
 				if (sanityData != null && sanityData.exists(itemName))
 				{
 					var sanityItemData = sanityData.get(itemName);
@@ -1877,20 +1881,14 @@ class APGameState
 
 		public function isSanityItemUnlocked(itemType:String, itemName:String):Bool
 		{
-			// If no sanity system exists at all, everything is unlocked
-			if (Lambda.count(unlockedSanityItems) == 0 && Lambda.count(sanityLocationIds) == 0) return true;
-
-
-
 			var key = itemType + ": " + itemName;
 			return unlockedSanityItems.exists(key);
 		}
 
 		public function checkSongCharactersAndStageUnlocked(song:backend.Song.SwagSong):Array<String>
 		{
+			trace('Unlocked Sanity Items: $unlockedSanityItems\nSanity Location ID\'s: $sanityLocationIds');
 			// Check if sanity system exists at all (regardless of location settings)
-			if (Lambda.count(unlockedSanityItems) == 0 && Lambda.count(sanityLocationIds) == 0) return [];
-
 			var missingItems:Array<String> = [];
 
 			// Check what types of sanity items we should look for

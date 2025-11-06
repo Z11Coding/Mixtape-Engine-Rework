@@ -84,6 +84,10 @@ typedef APOptions =
 	var	sanity_completion_type:String;
 	var	stagesanity:Bool;
 	var	charactersanity:Bool;
+	var	starter_debuff:Bool;
+	var	hard_mode:Bool;
+	var	enable_shop:Bool;
+	var	perma_traps:Bool;
 }
 
 enum ComboRank {
@@ -200,7 +204,11 @@ class APEntryState extends MusicBeatState
 			enable_sanity_locations: false,
 			sanity_completion_type: "on_getting",
 			stagesanity: false,
-			charactersanity: false
+			charactersanity: false,
+			starter_debuff: false,
+			perma_traps: false,
+			hard_mode: false,
+			enable_shop: false
 		}
 	};
 

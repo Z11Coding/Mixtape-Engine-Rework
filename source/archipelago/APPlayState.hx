@@ -1231,6 +1231,7 @@ class APPlayState extends PlayState {
                             trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
                             if (!FlxG.save.data.manualOverride) {
                                 FlxG.save.data.manualOverride = true;
+
                                 // Save original song data for restoration later
                                 FlxG.save.data.storyWeek = PlayState.storyWeek;
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
@@ -3001,6 +3002,14 @@ class APPlayState extends PlayState {
             }
         }
         super.beatHit();
+
+        if (curBeat % 32 == 0 && APInfo.unstableSpeed && !songAboutToLoop)
+		{
+			// goes up to 5x speed cuz screw you thats why
+			var randomSpeed = FlxG.random.float(0.45, 5);
+			var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
+			lerpSongSpeed(randomShit, 1);
+		}
     }
 
     override function closeSubState()
@@ -3030,6 +3039,34 @@ class APPlayState extends PlayState {
 			}
 		});
 	}
+
+    //Removes the Throat Notes
+    public function removeThroatNotes() {
+        for (note in allNotes) {
+            if (note.noteType == "Throat Note")
+                invalidateNote(note);
+        }
+    }
+
+    //Adjust the note's alpha
+    public function adjustSight() {
+        if (APInfo.blindness) {
+            for (field in playfields.members) {
+                for (strum in field.strumNotes) {
+                    strum.multAlpha = 0.3;
+                }
+            }
+            for (note in allNotes) {
+                note.multAlpha = 0.3;
+            }
+        }
+    }
+
+    //remove the mechanics and restart the song
+    public function removeLeMechanics() {
+        triggerEvent("Save Song Posititon", '', '');
+        FlxG.resetState();
+    }
 }
 
 class TerminateTimestamp extends FlxObject

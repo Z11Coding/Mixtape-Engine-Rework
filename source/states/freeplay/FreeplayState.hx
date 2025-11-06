@@ -1126,6 +1126,7 @@ class FreeplayState extends MusicBeatState
 
 							// Check if required characters and stage are unlocked via sanity system
 							if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+								trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG)}');
 								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
 								if (missingItems.length > 0) {
 									trace('Song requires unlocked sanity items: ' + missingItems.join(", "));

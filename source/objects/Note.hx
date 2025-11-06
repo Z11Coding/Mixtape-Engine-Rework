@@ -849,6 +849,9 @@ class Note extends NoteObject
 				case 'Botplay Note':
 					botNote = true;
 					hitsoundChartEditor = false;
+				case "Throat Note":
+					hitCausesMiss = true;
+					missHealth = 0.0475;
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof

@@ -18,6 +18,7 @@ class StrumNote extends NoteObject
 	public var sustainReduce:Bool = true;
 	public var formerPosition:FlxPoint = FlxPoint.get();
 	public var positionData:Int = 0;
+	public var multAlpha:Float = 1;
 	private var player:Int;
 
 	public static var ogStrumPosX:Array<Null<Float>> = [];
@@ -300,6 +301,8 @@ class StrumNote extends NoteObject
 				centerOrigin();
 
 		}
+
+		alpha *= multAlpha;
 
 		super.update(elapsed);
 	}

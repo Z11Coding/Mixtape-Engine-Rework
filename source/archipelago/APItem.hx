@@ -815,6 +815,55 @@ class APItem {
                     t.isTrap = true;
                 });
 
+            case "Throat Medicine":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Much Better.', "APItem: Throat Medicine");
+                    APInfo.soreThroat = false;
+                    APPlayState.instance.removeThroatNotes();
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Voice Inverter":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Now you can stop singing backwards!', "APItem: Voice Inverter");
+                    APInfo.backwardsSinging = false;
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Contact Lenses":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Oh so THATS where I put the notes!', "APItem: Contact Lenses");
+                    APInfo.blindness = false;
+                    if (APPlayState.instance != null) APPlayState.instance.adjustSight();
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "The Simplifier 3000":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('#NoMoreMechanics', "APItem: The Simplifier 3000");
+                    APInfo.fivenightsatmechanicsmod = false;
+                    if (APPlayState.instance != null) APPlayState.instance.removeLeMechanics();
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Metronome Stabilizer":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Speed Module has been fixed', "APItem: Metronome Stabilizer");
+                    APInfo.unstableSpeed = false;
+                    states.PlayState.instance.lerpSongSpeed(1, 1);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
             case "Lonely Friday Night":
                 popup('Alone on a friday night? How pathetic...', "Lonely Friday Night", true);
                 return null;

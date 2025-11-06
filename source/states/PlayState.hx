@@ -613,6 +613,17 @@ class PlayState extends MusicBeatState
 		Language.reloadPhrases();
 		nextReloadAll = false;
 
+		var fiveMechanicsAtMixtape:Int = 0;
+		for (mechanic in MechanicManager.mechanics) {
+			if (inArchipelagoMode && APInfo.fivenightsatmechanicsmod) {
+				if (FlxG.random.bool(25)) {
+					mechanic.points = FlxG.random.int(0, 30);
+					fiveMechanicsAtMixtape++;
+				}
+				if (fiveMechanicsAtMixtape == 4) break; //We only want 5 mechanics max at one time
+			}
+		}
+
 		for (mechanic in MechanicManager.mechanics) {
 			if (mechanic.points > 0) {
 				mechanicsMod = new mechanics.MechanicsPlaystate();
@@ -2650,7 +2661,7 @@ class PlayState extends MusicBeatState
 			if (daNote.strumTime - 350 < time)
 			{
 				daNote.ignoreNote = true;
-				for (field in playfields)
+				for (field in playfields.members)
 					field.removeNote(daNote);
 			}
 			--i;
@@ -2957,6 +2968,31 @@ class PlayState extends MusicBeatState
 			vocals.pause();
 			opponentVocals.pause();
 			gfVocals.pause();
+
+			PlayState.storyWeek = FlxG.save.data.storyWeek;
+			Mods.currentModDirectory = FlxG.save.data.currentModDirectory;
+			Difficulty.list = FlxG.save.data.difficulties; // just in case
+			PlayState.SONG = FlxG.save.data.SONG;
+			PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
+			FlxG.sound.music.time = FlxG.save.data.songPos;
+			comboManager.songScore = FlxG.save.data.score;
+			comboManager.ratingPercent = FlxG.save.data.rating;
+			comboManager.songMisses = FlxG.save.data.misses;
+			health = FlxG.save.data.health;
+
+			FlxG.save.data.storyWeek = null;
+			FlxG.save.data.currentModDirectory = null;
+			FlxG.save.data.difficulties = null; // just in case
+			FlxG.save.data.SONG = null;
+			FlxG.save.data.storyDifficulty = null;
+			FlxG.save.data.songPos = null;
+			FlxG.save.data.score = null;
+			FlxG.save.data.rating = null;
+			FlxG.save.data.misses = null;
+			FlxG.save.data.health = null;
+
+			FlxG.save.flush();
+
 			trace('Saved Time: $savedTime');
 			clearNotesBefore(savedTime);
 			FlxG.sound.music.time = Conductor.songPosition;
@@ -3019,6 +3055,7 @@ class PlayState extends MusicBeatState
 
 			}
 		}
+		if (inArchipelagoMode) reverseNoteRules = APInfo.backwardsSinging;
 		startedSong = true;
 
 		if (MechanicManager.mechanics['mouse_follower'].points > 0)
@@ -4132,6 +4169,46 @@ class PlayState extends MusicBeatState
 						{
 							moveStrumSections[sectionLoopCount] = false;
 							weightedChances[7] += FlxG.random.float(FlxMath.remapToRange(strumSwapPoints, 0, 20, 0, 0.4));
+						}
+
+						if (archipelago.APInfo.soreThroat) {
+							for (j in [false, true])
+							{
+								var hitSectionMulti:Float = 1;
+
+								if (section.mustHitSection != j)
+								{
+									hitSectionMulti = 0.2;
+								}
+								if (section.sectionNotes.length < 8)
+									hitSectionMulti = 0.04;
+
+								for (i in 0...16)
+								{
+									var placeNote:Note = placeNote(25, "Throat Note", [
+										sectionStartTime + (Conductor.stepCrochet * i),
+										FlxG.random.int(0, 3),
+										j,
+										hitSectionMulti
+									]);
+
+									var placePlayfield:PlayField = placeNote.field;
+									if (placePlayfield == null && playfields.length > 0) {
+										if (placeNote.fieldIndex == -1) placeNote.fieldIndex = placeNote.mustPress ? 0 : 1;
+
+										if (playfields.members[placeNote.fieldIndex] != null) {
+											placePlayfield = playfields.members[placeNote.fieldIndex];
+											placeNote.field = placePlayfield;
+										}
+									}
+
+									if (placePlayfield != null)
+									{
+										placePlayfield.queue(placeNote);
+										allNotes.push(placeNote);
+									}
+								}
+							}
 						}
 						sectionLoopCount += 1;
 					}
@@ -5591,13 +5668,12 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		for (field in playfields)
-			field.noteField.songSpeed = songSpeed;
-
 		for (playfield in playfields.members)
 		{
 			if (playfield.isPlayer)
 				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || (archipelago.APItem.activeItem?.name == 'Tutorial Trap' && _cachedSongName != 'tutorial');
+
+			playfield.noteField.songSpeed = songSpeed;
 		}
 
 		if(botplayTxt != null && botplayTxt.visible) {
@@ -7569,6 +7645,17 @@ class PlayState extends MusicBeatState
 			case 'Save Song Posititon':
 				trace(Conductor.songPosition);
 				savedTime = Conductor.songPosition;
+				FlxG.save.data.storyWeek = PlayState.storyWeek;
+				FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
+				FlxG.save.data.difficulties = Difficulty.list; // just in case
+				FlxG.save.data.SONG = PlayState.SONG;
+				FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
+				FlxG.save.data.songPos = FlxG.sound.music.time;
+				FlxG.save.data.score = comboManager.songScore;
+				FlxG.save.data.rating = comboManager.ratingPercent;
+				FlxG.save.data.misses = comboManager.songMisses;
+				FlxG.save.data.health = health;
+				FlxG.save.flush();
 
 			case 'Change Stage':
 				var stageName = value1;
@@ -8562,7 +8649,7 @@ class PlayState extends MusicBeatState
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
 
-		if (AprilFools.allowAF && reverseNoteRules) {
+		if (reverseNoteRules) {
 			if (pressed.contains(eventKey))
 				pressed.remove(eventKey);
 
@@ -8775,7 +8862,7 @@ class PlayState extends MusicBeatState
 	private function onMousePress(key:Int):Void {
 		var keyDirection:Int = getMouseFromEvent(key);
 
-		if (AprilFools.allowAF && reverseNoteRules) {
+		if (reverseNoteRules) {
 			if (keyDirection != -1) strumKeyUp(keyDirection);
 		} else {
 			if (ClientPrefs.data.inputSystem == "Native-old") {
@@ -8796,7 +8883,7 @@ class PlayState extends MusicBeatState
 
 					if (strumsBlocked[keyDirection]) return;
 					if (callOnScripts("onKeyPress", [keyDirection]) == LuaUtils.Function_Stop) return;
-					for (field in playfields.members)
+					for (field in playfields)
 					{
 						if (!field.autoPlayed && field.isPlayer && field.inControl)
 						{
@@ -8838,7 +8925,7 @@ class PlayState extends MusicBeatState
 	private function onMouseRelease(key:Int):Void
 	{
 		var direction:Int = getMouseFromEvent(key);
-		if (AprilFools.allowAF && reverseNoteRules) {
+		if (reverseNoteRules) {
 			if (paused || !startedCountdown || inCutscene) return;
 			if (callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
 
@@ -8895,7 +8982,7 @@ class PlayState extends MusicBeatState
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
 		//if(!controls.controllerMode && key > -1) keyReleased(key);
-		if (AprilFools.allowAF && reverseNoteRules) {
+		if (reverseNoteRules) {
 			#if debug
 			//Prevents crash specifically on debug without needing to try catch shit
 			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
@@ -9238,6 +9325,24 @@ class PlayState extends MusicBeatState
 					mechanicsResult[1].value += 20;
 			case 'Swap Note':
 				COD.setCOD(null, 'Failed to tell the difference between your notes and you opponents.');
+			case 'Throat Note':
+				FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
+					onComplete: function(n) {
+						for (curNote in allNotes) {
+							if (curNote.column == note.column)
+								note.blockHit = true;
+						}
+						new FlxTimer().start(FlxG.random.float(3, 10), function(tmr:FlxTimer)
+						{
+							FlxTween.tween(note.field.strumNotes[note.column], {alpha: 1}, 1);
+							for (curNote in allNotes) {
+								if (curNote.column == note.column)
+									note.blockHit = false;
+							}
+						});
+					}
+				});
+				COD.setCOD(null, "Couldn't Clear your throat. (Have you tried Throat Medicine?)");
 		}
 
 		bfkilledcheck = true;
@@ -9793,11 +9898,13 @@ class PlayState extends MusicBeatState
 		}
 
 		if (notes != null) {
-			notes.forEachAlive(function(note:Note) {
-				if (note != null) note.destroy();
-			});
-			notes.clear();
-			notes = null;
+			try {
+				notes.forEachAlive(function(note:Note) {
+					if (note != null) note.destroy();
+				});
+				notes.clear();
+				notes = null;
+			} catch(e) {} //Assume the notes are already destroyed if you can't destroy them
 		}
 
 		// Clear strum note references
@@ -9936,12 +10043,19 @@ class PlayState extends MusicBeatState
 		callOnScripts('onStepHit');
 	}
 
+	var ssLerpTween:FlxTween = null;
 	public function lerpSongSpeed(num:Float, time:Float, ?staticLines:Bool = true):Void
 	{
-		FlxTween.num(playbackRate, num, time, {ease: FlxEase.sineInOut}, function(value:Float)
+		if (ssLerpTween != null) {
+			ssLerpTween.cancel();
+			ssLerpTween.destroy();
+		}
+
+		ssLerpTween = FlxTween.num(playbackRate, num, time, {ease: FlxEase.sineInOut}, function(value:Float)
 		{
 			playbackRate = value * currentRate;
 			resyncVocals();
+			ssLerpTween.destroy();
 		});
 
 		if (staticLines) {
