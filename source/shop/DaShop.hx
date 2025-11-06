@@ -71,12 +71,18 @@ class DaShop extends MusicBeatState
 		descBG.scrollFactor.set(1,1);
         add(descBG);
 
+        var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
         desc = new undertale.UnderTextParser(250, descBG.y + 30, Std.int(FlxG.width * 0.6), '', 20);
         desc.font = Paths.font("fnf1.ttf");
-        desc.sounds = [FlxG.sound.load(Paths.sound('ut/monsterfont'), 0.6)];
+        for (letter in alphabet) {
+			desc.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+			desc.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+		}
         desc.alignment = CENTER;
         desc.scrollFactor.set(1,1);
         add(desc);
+
+
 
         super.create();
     }
