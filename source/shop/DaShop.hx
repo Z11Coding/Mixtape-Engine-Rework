@@ -77,6 +77,7 @@ class DaShop extends MusicBeatState
         desc.alignment = CENTER;
         desc.scrollFactor.set(1,1);
         add(desc);
+
         super.create();
     }
 
