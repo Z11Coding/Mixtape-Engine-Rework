@@ -1098,6 +1098,16 @@ class APGameState
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
 
+		// Load shop
+		if (_saveData.hasItem("apShopItems"))
+		{
+			var apShopItems:Array<MiniItem> = _saveData.getItem("apShopItems");
+			for (item in apShopItems)
+				ShopData.items.set(item.name, Item.makeItemFromMini(item));
+
+			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
+		}
+
 		_saveData.save();
 	}
 
@@ -1135,6 +1145,13 @@ class APGameState
 
 		// Save sanity data
 		_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
+
+		// put everything in the array to grab later
+		var shopItems:Array<MiniItem> = [];
+		for (item in ShopData.items.keys())
+			shopItems.push(Item.makeMiniItemFromItem(ShopData.items.get(item)));
+
+		_saveData.addItem("apShopItems", shopItems);
 
 		_saveData.save();
 		trace("Save data updated!");
