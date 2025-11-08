@@ -7,6 +7,7 @@ import android.content.Context;
 import backend.Highscore;
 import backend.modules.*;
 import backend.modules.SSPlugin as ScreenShotPlugin;
+import backend.modules.TraceManager;
 import debug.FPSCounter;
 import flixel.FlxGame;
 import flixel.FlxState;
@@ -364,12 +365,28 @@ class Main extends Sprite
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 
-		// Override trace function to respect haxe traces setting
-			"Overriding haxe.Log.trace to respect 'Disable Haxe Traces' setting in the options menu.".NativeComment();
+		// Override trace function to support enhanced tracing system
+			"Overriding haxe.Log.trace to support Console/Game/Both modes with in-game viewer.".NativeComment();
 		var originalTrace = haxe.Log.trace;
 		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
-			if (!backend.ClientPrefs.data.disableHaxeTraces) {
-				originalTrace(v, infos);
+			if (backend.ClientPrefs.data.disableHaxeTraces) {
+				return; // Traces disabled completely
+			}
+
+			var traceMode = backend.ClientPrefs.data.traceMode;
+			switch (traceMode) {
+				case "CONSOLE":
+					originalTrace(v, infos);
+				case "GAME":
+					// Only send to in-game viewer
+					TraceManager.addTrace(Std.string(v), infos);
+				case "BOTH":
+					// Send to both console and in-game viewer
+					originalTrace(v, infos);
+					TraceManager.addTrace(Std.string(v), infos);
+				default:
+					// Fallback to console for unknown modes
+					originalTrace(v, infos);
 			}
 		};
 
@@ -497,6 +514,7 @@ class Main extends Sprite
 		MemoryGCPlugin.initialize();
 		FullScreenPlugin.initialize();
 		ConsolePlugin.initialize();
+		TraceViewerPlugin.initialize();
 		new ScreenShotPlugin();
 
 

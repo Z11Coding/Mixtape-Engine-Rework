@@ -1,0 +1,24 @@
+{
+  "song": {
+    "song": "Example Dynamic",
+    "notes": [
+      {
+        "lengthInSteps": 16,
+        "bpm": 120,
+        "changeBPM": false,
+        "mustHitSection": false,
+        "sectionNotes": []
+      }
+    ],
+    "events": [],
+    "bpm": 120,
+    "needsVoices": true,
+    "speed": 1,
+    "stage": "stage",
+    "player1": "bf",
+    "player2": "dad",
+    "gfVersion": "gf",
+    "arrowSkin": "",
+    "splashSkin": ""
+  }
+}

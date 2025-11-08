@@ -1,0 +1,25 @@
+{
+  "format": "mixtape_section_v1",
+  "sectionName": "outro",
+  "notes": [
+    [0, 1, 1000, ""],
+    [1500, 2, 1000, ""],
+    [3000, 3, 1000, ""],
+    [4500, 4, 1000, ""],
+    [6000, 5, 2000, ""],
+    [8500, 6, 0, ""],
+    [9000, 7, 0, ""],
+    [9500, 8, 0, ""]
+  ],
+  "events": [
+    [0, [["Camera Follow Pos", "800", "450"]]],
+    [3000, [["Change Scroll Speed", "0.7", "3"]]],
+    [6000, [["Fade", "1", "3", "black"]]],
+    [8000, [["Play Animation", "gf", "cheer", "false"]]],
+    [8500, [["Play Animation", "dad", "idle", "false"]]],
+    [9000, [["Play Animation", "bf", "idle", "false"]]]
+  ],
+  "bpm": 120,
+  "offset": 0,
+  "duration": 10000
+}

@@ -121,11 +121,9 @@ class FreeplayManager {
                 states.freeplay.FreeplayState;
             case "Osu":
                 states.freeplay.OsuFreeplayState;
+            case "Base Game":
+                states.freeplay.VSliceFreeplayState;
             default:
-                if (ClientPrefs.data.freeplayMenu == "Base Game") {
-                    FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
-                    return states.freeplay.FreeplayState;
-                }
                 new states.freeplay.CustomFreeplayState(Paths.mods(ClientPrefs.data.freeplayMenu));
                 states.freeplay.CustomFreeplayState;
         }
@@ -145,11 +143,9 @@ class FreeplayManager {
                 states.freeplay.FreeplayState;
             case "Osu":
                 states.freeplay.OsuFreeplayState;
+            case "Base Game":
+                states.freeplay.VSliceFreeplayState;
             default:
-                if (ClientPrefs.data.freeplayMenu == "Base Game") {
-                    FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
-                    return states.freeplay.FreeplayState;
-                }
                 states.freeplay.CustomFreeplayState;
         }
         return states.freeplay.FreeplayState;
@@ -162,6 +158,8 @@ class FreeplayManager {
                 states.freeplay.FreeplayState.instance;
             case "Osu":
                 states.freeplay.OsuFreeplayState.instance;
+            case "Base Game":
+                states.freeplay.VSliceFreeplayState.instance;
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 states.freeplay.FreeplayState.instance;
@@ -176,6 +174,8 @@ class FreeplayManager {
                 new states.freeplay.FreeplayState();
             case "Osu":
                 new states.freeplay.OsuFreeplayState();
+            case "Base Game":
+                new states.freeplay.VSliceFreeplayState();
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 new states.freeplay.FreeplayState();
@@ -212,6 +212,9 @@ class FreeplayManager {
                 @:privateAccess
                 if (states.freeplay.OsuFreeplayState.instance != null)
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(refresh, searchText);
+            case "Base Game":
+                if (states.freeplay.VSliceFreeplayState.instance != null)
+                    states.freeplay.VSliceFreeplayState.instance.reloadSongs(refresh);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)
@@ -465,6 +468,9 @@ class FreeplayManager {
                 @:privateAccess
                 if (states.freeplay.OsuFreeplayState.instance != null)
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+            case "Base Game":
+                if (states.freeplay.VSliceFreeplayState.instance != null)
+                    states.freeplay.VSliceFreeplayState.instance.reloadSongs(true);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)

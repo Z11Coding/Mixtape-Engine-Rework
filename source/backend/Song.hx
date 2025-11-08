@@ -4,6 +4,7 @@ import backend.Conductor;
 import flixel.FlxG;
 import haxe.Json;
 import lime.utils.Assets;
+import managers.DynamicSongManager;
 import objects.Note;
 #if ARCHIPELAGO_ALLOWED
 import archipelago.HighQualityTrapManager;
@@ -42,6 +43,11 @@ typedef SwagSong =
 
 	@:optional var arrowSkin:String;
 	@:optional var splashSkin:String;
+
+	// Dynamic song fields
+	@:optional var isDynamic:Bool;
+	@:optional var sectionSequence:Array<String>;
+	@:optional var dynamicAudio:Dynamic; // Contains stitched FlxSound objects
 }
 
 typedef SwagSection =
@@ -58,6 +64,83 @@ typedef SwagSection =
 	@:optional var changeBPM:Bool;
 	@:optional var startBPM:Float;
 	@:optional var endBPM:Float;
+}
+
+// Dynamic Song System Types
+typedef DynamicSection =
+{
+	var chartFile:String;
+	var audioFiles:DynamicAudioFiles;
+	var duration:Float; // Duration in milliseconds
+	@:optional var canRepeat:Bool;
+	@:optional var weight:Float; // Selection weight for random sections
+}
+
+typedef DynamicAudioFiles =
+{
+	var inst:String;
+	@:optional var vocals:String; // Legacy single vocals file
+	@:optional var vocalsPlayer:String; // New multi-track vocals
+	@:optional var vocalsOpponent:String;
+	@:optional var vocalsGF:String;
+}
+
+typedef DynamicTransition =
+{
+	var next:Array<String>; // Available next sections
+	var selection:String; // "random", "weighted", "script", "sequence", "end"
+	@:optional var script:String; // Script function name for custom selection
+	@:optional var condition:String; // Optional condition for transition
+}
+
+typedef DynamicFlow =
+{
+	var generationMode:String; // "programmatic", "simple_random", "custom"
+	@:optional var generator:String; // Function name for programmatic generation
+	@:optional var simpleRandom:DynamicSimpleRandom; // Config for simple random mode
+}
+
+typedef DynamicSimpleRandom =
+{
+	var startSection:String;
+	var endSection:String;
+	var middleSections:Array<String>;
+	var middleCount:Int; // -1 for all sections
+}
+
+typedef DynamicFallback =
+{
+	var mainChart:String;
+	var audioFiles:DynamicAudioFiles;
+}
+
+typedef DynamicMetadata =
+{
+	@:optional var totalVariations:Int;
+	@:optional var averageDuration:Float;
+	@:optional var scriptingEnabled:Bool;
+	@:optional var description:String;
+}
+
+typedef DynamicSongConfig =
+{
+	var format:String; // "mixtape_dynamic_v1"
+	var songName:String;
+	var sections:Map<String, DynamicSection>;
+	var flow:DynamicFlow;
+	@:optional var fallback:DynamicFallback;
+	@:optional var metadata:DynamicMetadata;
+}
+
+typedef DynamicSectionChart =
+{
+	var format:String; // "mixtape_section_v1"
+	var sectionName:String;
+	var notes:Array<Dynamic>;
+	var events:Array<Dynamic>;
+	var bpm:Float;
+	var offset:Float;
+	var duration:Float; // Section duration in milliseconds
 }
 
 class Song
@@ -216,6 +299,38 @@ class Song
 			}
 		}
 		#end
+
+		// Check for dynamic song first
+		if (DynamicSongManager.isDynamicSong(folder)) {
+			trace('Song.loadFromJson: Loading dynamic song: $folder');
+
+			// Initialize dynamic song manager if not already done
+			if (DynamicSongManager.instance == null) {
+				new DynamicSongManager();
+			}
+
+			// Load the dynamic song
+			if (DynamicSongManager.instance.loadDynamicSong(folder)) {
+				PlayState.SONG = DynamicSongManager.instance.getStitchedSong();
+				loadedSongName = folder;
+				chartPath = 'dynamic:$folder';
+				stages.StageData.loadDirectory(PlayState.SONG);
+				trace('Song.loadFromJson: Successfully loaded dynamic song with ${DynamicSongManager.instance.currentSections.length} sections');
+				return PlayState.SONG;
+			} else {
+				trace('Song.loadFromJson: Dynamic song loading failed, trying fallback');
+				// Try to load fallback song
+				var fallbackSong = DynamicSongManager.instance.getFallbackSong();
+				if (fallbackSong != null) {
+					PlayState.SONG = fallbackSong;
+					loadedSongName = folder;
+					chartPath = 'dynamic_fallback:$folder';
+					stages.StageData.loadDirectory(PlayState.SONG);
+					return PlayState.SONG;
+				}
+				trace('Song.loadFromJson: Dynamic song fallback also failed, proceeding with normal loading');
+			}
+		}
 
 		// Check for song variants before loading
 		var variantInfo = checkForSongVariants(folder, jsonInput);

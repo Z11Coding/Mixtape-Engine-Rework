@@ -252,9 +252,9 @@
 
 	<section if="desktop">
 		<!--Enable Handle Error-->
-		<haxedef name="openfl_enable_handle_error" if="${openfl &ge; 9.4.0}" />
+		<haxedef name="openfl_enable_handle_error" if="${openfl >= 9.4.0}" />
 		<!--Undefinitions-->
-		<undefine name="openfl-disable-handle-error" if="debug" unless="${openfl &ge; 9.4.0}" />
+		<undefine name="openfl-disable-handle-error" if="debug" unless="${openfl >= 9.4.0}" />
 	</section>
 
 	<!--Allow working memory greater than 1 Gig-->

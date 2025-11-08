@@ -825,6 +825,9 @@ class APFreeplayManager extends FreeplayManager {
                 @:privateAccess
                 if (states.freeplay.OsuFreeplayState.instance != null)
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+            case "Base Game":
+                if (states.freeplay.VSliceFreeplayState.instance != null)
+                    states.freeplay.VSliceFreeplayState.instance.reloadSongs(true);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)

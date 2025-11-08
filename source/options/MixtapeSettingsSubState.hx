@@ -210,12 +210,24 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game'];
 		//for (theme in Mods.mergeAllTextsNamed('menus/'))
 		var option:Option = new Option('Freeplay Menu:',
-			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBASE GAME DOES NOTHING FOR NOW!",
+			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBase Game: V-Slice style menu with enhanced features",
 			'freeplayMenu',
 			STRING,
 			freemenus);
 		addOption(option);
 		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('V-Slice Character Filtering',
+			"Enable character-specific song filtering in Base Game freeplay.\n(Only works with Base Game freeplay menu)\nPress F in freeplay to cycle through character filters.",
+			'vsliceCharacterFiltering',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Freeplay Song Previews',
+			"Enable automatic song previews in freeplay menus.\nPlays a preview of the selected song.",
+			'freeplaySongPreviews',
+			BOOL);
+		addOption(option);
 
 		var option:Option = new Option('Chart Editor Style',
 			"Choose the style of the chart editor.\nNew: Modern Psych Engine editor\nOld: Original chart editor\nMixtape: Advanced editor with Archipelago-style UI, animations, and analytics",
@@ -519,6 +531,26 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"If checked, Haxe trace() function calls will be disabled for better performance.",
 			'disableHaxeTraces',
 			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Trace Mode',
+			"Choose where traces appear: Console (traditional), Game (in-game viewer), or Both",
+			'traceMode',
+			STRING,
+			['CONSOLE', 'GAME', 'BOTH']);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('Max In-Game Traces',
+			"Maximum number of traces to keep in the in-game viewer (higher = more memory)",
+			'maxInGameTraces',
+			INT
+		);
+		option.displayFormat = '%v traces';
+		option.changeValue = 10;
+		option.minValue = 50;
+		option.maxValue = 500;
+		option.scrollSpeed = 20;
 		addOption(option);
 
 		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,

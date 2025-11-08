@@ -1,0 +1,105 @@
+{
+  "format": "mixtape_dynamic_v1",
+  "songName": "example-dynamic",
+  "sections": {
+    "intro": {
+      "chartFile": "sections/intro.json",
+      "audioFiles": {
+        "inst": "sections/intro-Inst.ogg",
+        "vocals": "sections/intro-Vocals.ogg"
+      },
+      "duration": 8000,
+      "canRepeat": false,
+      "weight": 1.0
+    },
+    "verse_easy": {
+      "chartFile": "sections/verse_easy.json",
+      "audioFiles": {
+        "inst": "sections/verse_easy-Inst.ogg",
+        "vocalsPlayer": "sections/verse_easy-Player.ogg",
+        "vocalsOpponent": "sections/verse_easy-Opponent.ogg"
+      },
+      "duration": 16000,
+      "canRepeat": false,
+      "weight": 1.0
+    },
+    "verse_normal": {
+      "chartFile": "sections/verse_normal.json",
+      "audioFiles": {
+        "inst": "sections/verse_normal-Inst.ogg",
+        "vocalsPlayer": "sections/verse_normal-Player.ogg",
+        "vocalsOpponent": "sections/verse_normal-Opponent.ogg"
+      },
+      "duration": 16000,
+      "canRepeat": false,
+      "weight": 1.0
+    },
+    "verse_hard": {
+      "chartFile": "sections/verse_hard.json",
+      "audioFiles": {
+        "inst": "sections/verse_hard-Inst.ogg",
+        "vocalsPlayer": "sections/verse_hard-Player.ogg",
+        "vocalsOpponent": "sections/verse_hard-Opponent.ogg"
+      },
+      "duration": 16000,
+      "canRepeat": false,
+      "weight": 1.0
+    },
+    "chorus": {
+      "chartFile": "sections/chorus.json",
+      "audioFiles": {
+        "inst": "sections/chorus-Inst.ogg",
+        "vocals": "sections/chorus-Vocals.ogg"
+      },
+      "duration": 12000,
+      "canRepeat": true,
+      "weight": 1.0
+    },
+    "bridge": {
+      "chartFile": "sections/bridge.json",
+      "audioFiles": {
+        "inst": "sections/bridge-Inst.ogg",
+        "vocals": "sections/bridge-Vocals.ogg"
+      },
+      "duration": 8000,
+      "canRepeat": false,
+      "weight": 1.0
+    },
+    "solo": {
+      "chartFile": "sections/solo.json",
+      "audioFiles": {
+        "inst": "sections/solo-Inst.ogg"
+      },
+      "duration": 10000,
+      "canRepeat": false,
+      "weight": 1.0
+    },
+    "outro": {
+      "chartFile": "sections/outro.json",
+      "audioFiles": {
+        "inst": "sections/outro-Inst.ogg",
+        "vocals": "sections/outro-Vocals.ogg"
+      },
+      "duration": 6000,
+      "canRepeat": false,
+      "weight": 1.0
+    }
+  },
+  "flow": {
+    "generationMode": "programmatic",
+    "generator": "generateExampleSections"
+  },
+  "fallback": {
+    "mainChart": "example-dynamic.json",
+    "audioFiles": {
+      "inst": "Inst.ogg",
+      "vocals": "Vocals.ogg"
+    }
+  },
+  "metadata": {
+    "totalVariations": 8,
+    "averageDuration": 90000,
+    "scriptingEnabled": true,
+    "description": "Example dynamic song with difficulty-based verse selection and random bridge/solo choice"
+  }
+}

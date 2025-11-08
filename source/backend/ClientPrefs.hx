@@ -174,6 +174,8 @@ import states.TitleState;
 	public var pauseBPM:Int = 102;
 	public var aprilFools:Bool = true;
 	public var freeplayMenu:String = 'Mixtape';
+	public var vsliceCharacterFiltering:Bool = false;
+	public var freeplaySongPreviews:Bool = true;
 	public var showMods:Bool = false;
 	public var checkAPWorld:Bool = true;
 	public var skipMode:String = 'First Note';
@@ -212,6 +214,8 @@ import states.TitleState;
 	public var modchartDebugInfo:Bool = false;
 	public var disableDebugTraces:Bool = false;
 	public var disableHaxeTraces:Bool = false;
+	public var traceMode:String = "CONSOLE"; // CONSOLE, GAME, or BOTH
+	public var maxInGameTraces:Int = 100; // Maximum traces to keep in memory for in-game viewer
 }
 
 class ClientPrefs {
@@ -433,6 +437,7 @@ class ClientPrefs {
 		'fullscreen'	=> [F11],
 		'screenshot'	=> [F2],
 		'console'		=> [F6],
+		'traceviewer'	=> [F3],
 
 		'sidebar'		=> [GRAVEACCENT],
 	];

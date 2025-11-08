@@ -21,6 +21,8 @@ import lime.media.openal.AL;
 import lime.media.openal.ALAuxiliaryEffectSlot;
 import lime.media.openal.ALEffect;
 import lime.utils.Assets;
+import managers.DynamicSongManager;
+import managers.DynamicSongScripting;
 import managers.NotePoolManager;
 import mechanics.MechanicsPlaystate;
 import mechanics.objects.Shape;
@@ -1505,6 +1507,9 @@ class PlayState extends MusicBeatState
 			for (event in eventNotes) event.strumTime -= eventEarlyTrigger(event);
 			eventNotes.sort(sortByTime);
 		}
+
+		// Register dynamic song scripting functions after all scripts are loaded
+		registerDynamicSongScripting();
 
 		startCallback();
 		comboManager.RecalculateRating(false, false);
@@ -3288,68 +3293,92 @@ class PlayState extends MusicBeatState
 		opponentVocals = new FlxSound();
 		gfVocals = new FlxSound();
 		var usable = Paths.isAssetInMod;
-		try
+
+		// Check if this is a dynamic song and use stitched audio
+		if (songData.isDynamic != null && songData.isDynamic && songData.dynamicAudio != null)
 		{
-			if (songData.needsVoices)
+			trace('PlayState: Loading dynamic song audio');
+
+			// Use stitched audio from DynamicAudioManager
+			var dynamicAudio = songData.dynamicAudio;
+
+			if (dynamicAudio.vocals != null)
+				vocals = dynamicAudio.vocals;
+			if (dynamicAudio.vocalsPlayer != null)
+				vocals = dynamicAudio.vocalsPlayer; // Use player vocals if available
+			if (dynamicAudio.vocalsOpponent != null)
+				opponentVocals = dynamicAudio.vocalsOpponent;
+			if (dynamicAudio.vocalsGF != null)
+				gfVocals = dynamicAudio.vocalsGF;
+
+			trace('PlayState: Dynamic audio loaded successfully');
+		}
+		else
+		{
+			// Standard audio loading logic
+			try
 			{
-				var currentMod = "";
-				if (backend.WeekData.getCurrentWeek() != null)
-					currentMod = backend.WeekData.getCurrentWeek().folder; //istg this is somehow the root cause to all my problems ong
-				if (currentMod != null && currentMod != "")
+				if (songData.needsVoices)
 				{
-					var generalVocals = Paths.voices(songData.song);
-					if (generalVocals != null && generalVocals.length > 0)
+					var currentMod = "";
+					if (backend.WeekData.getCurrentWeek() != null)
+						currentMod = backend.WeekData.getCurrentWeek().folder; //istg this is somehow the root cause to all my problems ong
+					if (currentMod != null && currentMod != "")
 					{
-						vocals.loadEmbedded(generalVocals);
+						var generalVocals = Paths.voices(songData.song);
+						if (generalVocals != null && generalVocals.length > 0)
+						{
+							vocals.loadEmbedded(generalVocals);
 
-						// Check for the other vocals as well
-						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							// Check for the other vocals as well
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
-						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
+						else
+						{
+							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
 					}
 					else
 					{
-						var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+						var generalVocals = Paths.voices(songData.song);
+						if (generalVocals != null && generalVocals.length > 0)
+						{
+							vocals.loadEmbedded(generalVocals);
 
-						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							// Check for the other vocals as well
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
-						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-					}
-				}
-				else
-				{
-					var generalVocals = Paths.voices(songData.song);
-					if (generalVocals != null && generalVocals.length > 0)
-					{
-						vocals.loadEmbedded(generalVocals);
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
+						else
+						{
+							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
 
-						// Check for the other vocals as well
-						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
-						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-					}
-					else
-					{
-						var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-						vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-
-						var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-						if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-						var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-						if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
 					}
 				}
 			}
+			catch (e:Dynamic) {trace("Vocals Broke.");}
 		}
-		catch (e:Dynamic) {trace("Vocals Broke.");}
 
 		#if FLX_PITCH
 		vocals.pitch = playbackRate;
@@ -3361,11 +3390,34 @@ class PlayState extends MusicBeatState
 		FlxG.sound.list.add(gfVocals);
 
 		inst = new FlxSound();
-		try
+
+		// Check if this is a dynamic song and use stitched inst
+		if (songData.isDynamic != null && songData.isDynamic && songData.dynamicAudio != null)
 		{
-			inst.loadEmbedded(Paths.inst(songData.song));
+			if (songData.dynamicAudio.inst != null)
+			{
+				inst = songData.dynamicAudio.inst;
+				trace('PlayState: Using stitched inst audio from dynamic song');
+			}
+			else
+			{
+				// Fallback to standard inst loading
+				try
+				{
+					inst.loadEmbedded(Paths.inst(songData.song));
+				}
+				catch (e:Dynamic) {}
+			}
 		}
-		catch (e:Dynamic) {}
+		else
+		{
+			// Standard inst loading logic
+			try
+			{
+				inst.loadEmbedded(Paths.inst(songData.song));
+			}
+			catch (e:Dynamic) {}
+		}
 		FlxG.sound.list.add(inst);
 
 		notes = new FlxTypedGroup<Note>();
@@ -5562,6 +5614,9 @@ class PlayState extends MusicBeatState
 			// Don't auto-switch PlayState when in Legacy Lua settings mode - let the Legacy Lua system handle it
 			// This prevents conflicts between the systems
 		}
+
+		// Update dynamic song system
+		updateDynamicSong();
 
 		if(!inCutscene && !paused && !freezeCamera) {
 			FlxG.camera.followLerp = 0.04 * cameraSpeed * playbackRate;
@@ -10938,6 +10993,49 @@ class PlayState extends MusicBeatState
 				trace('ERROR! fail on preloading $traceData: $e');
 			}
 		});
+	}
+
+	/**
+	 * Register dynamic song scripting functions with loaded scripts
+	 */
+	function registerDynamicSongScripting():Void
+	{
+		#if LUA_ALLOWED
+		// Register functions with all Lua scripts
+		for (script in luaArray)
+		{
+			DynamicSongScripting.registerLuaFunctions(script);
+		}
+		for (script in legacyLuaArray)
+		{
+			// For legacy scripts, we'll need to manually add the functions
+			// This is a simplified approach
+			script.set("isDynamicSong", function():Bool {
+				return DynamicSongManager.instance != null && DynamicSongManager.instance.isActive;
+			});
+		}
+		#end
+
+		#if HSCRIPT_ALLOWED
+		// Register functions with all HScript scripts
+		for (script in hscriptArray)
+		{
+			DynamicSongScripting.registerHScriptFunctions(script);
+		}
+		#end
+
+		trace('PlayState: Registered dynamic song scripting functions with ${luaArray != null ? luaArray.length : 0} Lua scripts and ${hscriptArray != null ? hscriptArray.length : 0} HScript scripts');
+	}
+
+	/**
+	 * Update dynamic song manager if active
+	 */
+	function updateDynamicSong():Void
+	{
+		if (DynamicSongManager.instance != null && DynamicSongManager.instance.isActive)
+		{
+			DynamicSongManager.instance.update(Conductor.songPosition);
+		}
 	}
 } //
 typedef MechanicResults =
