@@ -80,6 +80,7 @@ import objects.AudioDisplay;
 import objects.BGSprite;
 import objects.FlxAtlasSprite;
 import shaders.*;
+import shop.*;
 import stages.BaseStage;
 import states.LoadingState;
 import states.PlayState;

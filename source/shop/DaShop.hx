@@ -103,10 +103,12 @@ class DaShop extends MusicBeatState
                 image.ID = max;
                 icons.add(image);
                 max++;
+
                 var text:FlxText = new FlxText(image.x + 50, image.y + 150, 0, ShopData.items.get(i)[1], 15);
                 text.setFormat(Paths.font("comboFont.ttf"), 25, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
                 text.ID = max-1;
                 icons.add(text);
+
                 itemArray.push([i, ShopData.items.get(i)[0], ShopData.items.get(i)[1], ShopData.items.get(i)[2], ShopData.items.get(i)[3], ShopData.items.get(i)[4]]);
             }
         }
@@ -189,8 +191,6 @@ class DaShop extends MusicBeatState
 			curItem = max-1;
 		if (curItem >= max)
 			curItem = 0;
-
-
 
         if (itemArray[curItem] != null)
         {

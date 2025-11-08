@@ -1,5 +1,7 @@
 package shop;
 
+import shop.*;
+
 class MoneyPopup extends FlxSpriteGroup {
 	public var onFinish:Void->Void = null;
 	var alphaTween:FlxTween;
@@ -91,7 +93,7 @@ class MoneyPopup extends FlxSpriteGroup {
 }
 
 class ShopData {
-    public static var items:Map<String, Dynamic> = new Map<String, Dynamic>();
+    public static var items:Map<String, Item> = new Map<String, Item>();
     public static function initShop()
     {
         //items.set('Item Name', ['Description', Cost (Int), 'Image Name', Is Hidden (Bool), Is Bought (Bool)]);
