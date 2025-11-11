@@ -1,15 +1,9 @@
 package states.freeplay.vslice.capsule;
 
-import backend.ClientPrefs;
-import backend.Paths;
-import flixel.FlxSprite;
+import backend.pslice.Scoring.ScoringRank;
 import openfl.display.BlendMode;
-import states.freeplay.vslice.obj.SngCapsuleData.ScoringRank;
 
-/**
- * Rank display component for freeplay capsules
- * Adapted from P-Slice for Mixtape Engine
- */
+
 class FreeplayRank extends FlxSprite
 {
 	public var rank(default, set):Null<ScoringRank> = null;
@@ -26,17 +20,8 @@ class FreeplayRank extends FlxSprite
 		{
 			this.visible = true;
 
-			// Convert rank to animation name
-			var animName = switch(val) {
-				case SHIT: 'LOSS';
-				case GOOD: 'GOOD';
-				case GREAT: 'GREAT';
-				case EXCELLENT: 'EXCELLENT';
-				case PERFECT: 'PERFECT';
-				case PERFECT_GOLD: 'PERFECTSICK';
-			}
+			animation.play(val.getFreeplayRankIconAsset(), true, false);
 
-			animation.play(animName, true, false);
 			centerOffsets(false);
 
 			switch (val)
@@ -72,27 +57,22 @@ class FreeplayRank extends FlxSprite
 	{
 		super(x, y);
 
-		frames = Paths.getSparrowAtlas('freeplay/rankbadges', 'vslice');
+		frames = Paths.getSparrowAtlas('freeplay/rankbadges');
 
-		// Create fallback if frames don't exist
-		if (frames == null) {
-			makeGraphic(50, 50, 0xFF888888);
-		} else {
-			animation.addByPrefix('PERFECT', 'PERFECT rank0', 24, false);
-			animation.addByPrefix('EXCELLENT', 'EXCELLENT rank0', 24, false);
-			animation.addByPrefix('GOOD', 'GOOD rank0', 24, false);
-			animation.addByPrefix('PERFECTSICK', 'PERFECT rank GOLD', 24, false);
-			animation.addByPrefix('GREAT', 'GREAT rank0', 24, false);
-			animation.addByPrefix('LOSS', 'LOSS rank0', 24, false);
-		}
+		animation.addByPrefix('PERFECT', 'PERFECT rank0', 24, false);
+		animation.addByPrefix('EXCELLENT', 'EXCELLENT rank0', 24, false);
+		animation.addByPrefix('GOOD', 'GOOD rank0', 24, false);
+		animation.addByPrefix('PERFECTSICK', 'PERFECT rank GOLD', 24, false);
+		animation.addByPrefix('GREAT', 'GREAT rank0', 24, false);
+		animation.addByPrefix('LOSS', 'LOSS rank0', 24, false);
 
 		blend = BlendMode.ADD;
-		antialiasing = ClientPrefs.data.antialiasing;
+
 		this.rank = null;
 
+		// setGraphicSize(Std.int(width * 0.9));
 		scale.set(0.9, 0.9);
 		updateHitbox();
 	}
 }
-
 

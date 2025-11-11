@@ -1,117 +1,246 @@
 package states.freeplay.vslice.obj;
 
-import backend.ClientPrefs;
-import backend.Paths;
+import backend.pslice.SortUtil;
 import flixel.FlxSprite;
-import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.group.FlxSpriteGroup;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxSort;
+import flixel.util.FlxTimer;
+import objects.FunkinSprite;
+import states.freeplay.vslice.DifficultyStars;
+import states.freeplay.vslice.obj.Album;
+import states.freeplay.vslice.obj.AlbumRegistry;
+import states.freeplay.vslice.obj.FlxAtlasSprite;
 
 /**
- * Album roll display for V-Slice freeplay
- * Shows album artwork for the currently selected song
+ * The graphic for the album roll in the FreeplayState.
+ * Simply set `albumID` to fetch the required data and update the textures.
  */
-class AlbumRoll extends FlxSprite
+class AlbumRoll extends FlxSpriteGroup
 {
-    public var albumArt:FlxSprite;
+  /**
+   * The ID of the album to display.
+   * Modify this value to automatically update the album art and title.
+   */
+  public var albumId(default, set):Null<String>;
 
-    public function new(x:Float = 0, y:Float = 0)
+  function set_albumId(value:Null<String>):Null<String>
+  {
+    if (this.albumId != value)
     {
-        super(x, y);
-
-        setupAlbumRoll();
+      this.albumId = value;
+      updateAlbum();
     }
 
-    private function setupAlbumRoll():Void
+    return value;
+  }
+
+  var newAlbumArt:FlxAtlasSprite;
+  var albumTitle:FunkinSprite;
+
+  var difficultyStars:DifficultyStars;
+  var _exitMovers:Null<VSliceFreeplayState.ExitMoverData>;
+  var _exitMoversCharSel:Null<VSliceFreeplayState.ExitMoverData>;
+
+  var albumData:Album;
+
+  public function new()
+  {
+    super();
+
+    newAlbumArt = new FlxAtlasSprite((FlxG.width - 640) - MobileScaleMode.gameNotchSize.x, 360, "freeplay/albumRoll/freeplayAlbum");
+    newAlbumArt.visible = false;
+    newAlbumArt.onAnimationComplete.add(onAlbumFinish);
+
+    add(newAlbumArt);
+
+    difficultyStars = new DifficultyStars((FlxG.width - 1140) - MobileScaleMode.gameNotchSize.x, 39);
+    difficultyStars.visible = false;
+    add(difficultyStars);
+
+    buildAlbumTitle("freeplay/albumRoll/volume1-text");
+    albumTitle.visible = false;
+
+     newAlbumArt.onAnimationComplete.add(onAlbumFinish);
+  }
+
+  function onAlbumFinish(animName:String):Void
+  {
+    // Play the idle animation for the current album.
+    if (animName != "idle")
     {
-        // Load album roll frames
-        var rollFrames = Paths.getSparrowAtlas('freeplay/albumRoll/albumRoll', 'vslice');
-        if (rollFrames != null) {
-            frames = rollFrames;
-            animation.addByPrefix('idle', 'albumRoll idle', 24, true);
-            animation.addByPrefix('rollLeft', 'albumRoll rollLeft', 24, false);
-            animation.addByPrefix('rollRight', 'albumRoll rollRight', 24, false);
-            animation.play('idle');
-        } else {
-            // Fallback graphic
-            makeGraphic(120, 120, 0xFF9271FD);
-        }
+      newAlbumArt.playAnimation('idle', true);
+    }
+  }
 
-        antialiasing = ClientPrefs.data.antialiasing;
-
-        // Setup album art
-        albumArt = new FlxSprite();
-        albumArt.makeGraphic(100, 100, 0xFFFFFFFF);
-        albumArt.antialiasing = ClientPrefs.data.antialiasing;
+  /**
+   * Load the album data by ID and update the textures.
+   */
+  function updateAlbum():Void
+  {
+    if (albumId == null)
+    {
+      this.visible = false;
+      difficultyStars.stars.visible = false;
+      return;
+    }
+    else
+    {
+      this.visible = true;
     }
 
-    public function setAlbum(albumId:String):Void
+    albumData = AlbumRegistry.instance.fetchEntry(albumId);
+
+    if (albumData == null || !Paths.exists("images/"+albumData.getAlbumArtAssetKey()+".png")) //? changed this section
     {
-        // Try to load specific album art
-        var albumPath = 'freeplay/albums/$albumId';
-        var albumGraphic = Paths.image(albumPath, 'vslice');
+      if(albumId != ''){
+        FlxG.log.warn('Could not find album data for album ID: ${albumId}');
+        trace('Could not find album data for album ID: ${albumId}');
+      }
 
-        if (albumGraphic != null) {
-            albumArt.loadGraphic(albumGraphic);
-        } else {
-            // Default album art
-            albumArt.loadGraphic(Paths.image('freeplay/albums/default', 'vslice'));
-            if (albumArt.graphic == null) {
-                albumArt.makeGraphic(100, 100, 0xFF9271FD);
-            }
-        }
+      this.visible = false;
+      difficultyStars.stars.visible = false;
+      return;
+    };
 
-        // Position album art within the roll
-        albumArt.setPosition(x + 10, y + 10);
+    // Update the album art.
+    var albumGraphic = Paths.image(albumData.getAlbumArtAssetKey(), null, false);
+    newAlbumArt.replaceFrameGraphic(0, albumGraphic);
+
+    buildAlbumTitle(albumData.getAlbumTitleAssetKey());
+
+    applyExitMovers();
+
+    refresh();
+  }
+
+  public function refresh():Void
+  {
+    sort(SortUtil.byZIndex, FlxSort.ASCENDING);
+  }
+
+  /**
+   * Apply exit movers for the album roll.
+   * @param exitMovers The exit movers to apply.
+   */
+  public function applyExitMovers(?exitMovers:VSliceFreeplayState.ExitMoverData, ?exitMoversCharSel:VSliceFreeplayState.ExitMoverData):Void
+  {
+    if (exitMovers == null)
+    {
+      exitMovers = _exitMovers;
+    }
+    else
+    {
+      _exitMovers = exitMovers;
     }
 
-    public function rollLeft():Void
+    if (exitMovers == null) return;
+
+    if (exitMoversCharSel == null)
     {
-        if (animation.curAnim != null) {
-            animation.play('rollLeft');
-            animation.finishCallback = function(name:String) {
-                animation.play('idle');
-                animation.finishCallback = null;
-            };
-        }
+      exitMoversCharSel = _exitMoversCharSel;
+    }
+    else
+    {
+      _exitMoversCharSel = exitMoversCharSel;
     }
 
-    public function rollRight():Void
+    if (exitMoversCharSel == null) return;
+
+    exitMovers.set([newAlbumArt, difficultyStars],
+      {
+        x: FlxG.width,
+        speed: 0.4,
+        wait: 0
+      });
+
+    exitMoversCharSel.set([newAlbumArt, difficultyStars],
+      {
+        y: -175,
+        speed: 0.8,
+        wait: 0.1
+      });
+  }
+
+  var titleTimer:Null<FlxTimer> = null;
+
+  /**
+   * Play the intro animation on the album art.
+   */
+  public function playIntro():Void
+  {
+    albumTitle.visible = false;
+    newAlbumArt.visible = true;
+    newAlbumArt.playAnimation('intro', true);
+
+    difficultyStars.visible = false;
+    new FlxTimer().start(0.75, function(_) {
+      showTitle();
+      showStars();
+      albumTitle.animation.play('switch');
+    });
+  }
+
+  public function skipIntro():Void
+  {
+    // Weird workaround
+    newAlbumArt.playAnimation('switch', true);
+    albumTitle.animation.play('switch');
+  }
+
+  public function showTitle():Void
+  {
+    albumTitle.visible = true;
+  }
+
+  public function buildAlbumTitle(assetKey:String):Void
+  {
+    if (albumTitle != null)
     {
-        if (animation.curAnim != null) {
-            animation.play('rollRight');
-            animation.finishCallback = function(name:String) {
-                animation.play('idle');
-                animation.finishCallback = null;
-            };
-        }
+      remove(albumTitle);
+      albumTitle = null;
     }
 
-    override function update(elapsed:Float):Void
-    {
-        super.update(elapsed);
+    albumTitle = FunkinSprite.createSparrow((FlxG.width - 355) - MobileScaleMode.gameNotchSize.x, 500, assetKey);
+    albumTitle.visible = albumTitle.frames != null && newAlbumArt.visible;
+    albumTitle.animation.addByPrefix('idle', 'idle0', 24, true);
+    albumTitle.animation.addByPrefix('switch', 'switch0', 24, false);
+    add(albumTitle);
 
-        // Update album art position if it exists
-        if (albumArt != null) {
-            albumArt.setPosition(x + 10, y + 10);
-        }
-    }
+    albumTitle.animation.finishCallback = (function(name) {
+      if (name == 'switch') albumTitle.animation.play('idle');
+    });
+    albumTitle.animation.play('idle');
 
-    override function draw():Void
-    {
-        super.draw();
+    albumTitle.zIndex = 1000;
 
-        // Draw album art if it exists
-        if (albumArt != null && albumArt.visible) {
-            albumArt.draw();
-        }
-    }
+    if (_exitMovers != null) _exitMovers.set([albumTitle],
+      {
+        x: FlxG.width,
+        speed: 0.4,
+        wait: 0
+      });
 
-    override function destroy():Void
-    {
-        if (albumArt != null) {
-            albumArt.destroy();
-            albumArt = null;
-        }
+    if (_exitMoversCharSel != null) _exitMoversCharSel.set([albumTitle],
+      {
+        y: -190,
+        speed: 0.8,
+        wait: 0.1
+      });
+  }
 
-        super.destroy();
-    }
+  public function setDifficultyStars(?difficulty:Int):Void
+  {
+    if (difficulty == null) return;
+    difficultyStars.difficulty = difficulty;
+  }
+
+  /**
+   * Make the album stars visible.
+   */
+  public function showStars():Void
+  {
+    difficultyStars.visible = true; // true;
+    difficultyStars.flameCheck();
+  }
 }

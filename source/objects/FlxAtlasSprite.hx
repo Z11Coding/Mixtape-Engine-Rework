@@ -1,18 +1,18 @@
 package objects;
 
 import flixel.graphics.FlxGraphic;
-import haxe.macro.Expr.Catch;
-import flixel.graphics.frames.FlxFramesCollection;
-import flixel.util.FlxSignal.FlxTypedSignal;
-import flxanimate.FlxAnimate;
-import flxanimate.FlxAnimate.Settings;
-import flxanimate.frames.FlxAnimateFrames;
 import flixel.graphics.frames.FlxFrame;
+import flixel.graphics.frames.FlxFramesCollection;
+import flixel.math.FlxPoint;
 import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.util.FlxSignal.FlxTypedSignal;
+import flxanimate.FlxAnimate.Settings;
+import flxanimate.FlxAnimate;
+import flxanimate.animate.FlxKeyFrame;
+import flxanimate.frames.FlxAnimateFrames;
+import haxe.macro.Expr.Catch;
 import openfl.display.BitmapData;
 import openfl.utils.Assets;
-import flixel.math.FlxPoint;
-import flxanimate.animate.FlxKeyFrame;
 
 /**
  * A sprite which provides convenience functions for rendering a texture atlas with animations.
@@ -81,7 +81,7 @@ class FlxAtlasSprite extends PsychFlxAnimate
     #if sys
     try{
       trace(path);
-      super.loadAtlasEx(Paths.image('$path/spritemap1.png'),
+      super.loadAtlasEx(Paths.image('$path/spritemap1'),
       File.getContent('$path/spritemap1.json'),
         File.getContent('$path/Animation.json')
         );
@@ -91,7 +91,7 @@ class FlxAtlasSprite extends PsychFlxAnimate
       trace('Failed to load "$path" via EXtended loader: $x');
     }
     #end
-    
+
   }
   /**
    * @return A list of all the animations this sprite has available.

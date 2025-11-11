@@ -1,13 +1,7 @@
 package states.freeplay.vslice.capsule;
 
-import flixel.FlxG;
-import flixel.math.FlxMath;
-import flixel.util.FlxTimer;
+import backend.pslice.MathUtil;
 
-/**
- * Animation control system for capsules
- * Adapted from P-Slice for Mixtape Engine
- */
 class CustomAnimControl {
    	public var doLerp:Bool = false;
 	public var doJumpIn:Bool = false;
@@ -104,12 +98,13 @@ class CustomAnimControl {
 				capsule.scale.y *= realScaled;
 
 				frameInTypeBeat += 1;
-
-				// Simplified positioning for Mixtape Engine
-				if (host.targetPos.x <= 320) {
+				final shiftx:Float = 0 * 320;
+				final widescreenMult:Float = (FlxG.width / 1.5) * 0.75;
+				// Move the targetPos set to the if statement below if you want them to shift to their target positions after jumping in instead
+				// I have no idea why this if instead of frameInTypeBeat == xFrames.length works even though they're the same thing
+				 if (host.targetPos.x <= shiftx)
                     @:privateAccess
-				 	host.targetPos.x = host.intendedX(host.ID + 1) + 100;
-				}
+				 	host.targetPos.x = host.intendedX(host.ID+1-VSliceFreeplayState.instance.curSelectedFractal) + widescreenMult;
 			}
 			else if (frameInTypeBeat == xFrames.length)
 			{
@@ -142,9 +137,9 @@ class CustomAnimControl {
 
 		if (doLerp)
 		{
-			// Use FlxMath.lerp for Mixtape Engine compatibility
-			host.x = FlxMath.lerp(host.x, host.targetPos.x, elapsed * 8);
-			host.y = FlxMath.lerp(host.y, host.targetPos.y, elapsed * 10);
+			host.x = MathUtil.smoothLerp(host.x, host.targetPos.x, elapsed, 0.3); // ? update lerping for lower FPS
+			host.y = MathUtil.smoothLerp(host.y, host.targetPos.y, elapsed, 0.4); // ? kinda cool tbh
+			// TODO capsule.visible = songData?.isFav;
 		}
 
 	}

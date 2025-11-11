@@ -207,7 +207,13 @@ class Main extends Sprite
 	public function new()
 	{
 
-											backend.window.CppAPI.setWindowOpacity(0);
+		#if HXCPP_TRACY
+		trace("Starting tracy");
+		cpp.vm.tracy.TracyProfiler.messageAppInfo(backend.window.Native.buildSystemInfo());
+		cpp.vm.tracy.TracyProfiler.setThreadName("main");
+		#end
+
+		backend.window.CppAPI.setWindowOpacity(0);
 
 		super();
 

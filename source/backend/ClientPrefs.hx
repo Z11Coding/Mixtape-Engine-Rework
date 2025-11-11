@@ -198,6 +198,12 @@ import states.TitleState;
 	public var garbageCollection:Bool = true;
 	public var dontAllowScriptOverride:Bool = true;
 
+	// P-Slice things
+	public var favSongIds:Array<String> = [];
+	public var djCharacter:String = 'bf';
+	public var wideScreen:Bool = false;
+	public var ranking:String = 'Mixtape';
+
 	// Experimental Settings
 	public var useExperimentalNotePool:Bool = false;
 
@@ -438,6 +444,10 @@ class ClientPrefs {
 		'screenshot'	=> [F2],
 		'console'		=> [F6],
 		'traceviewer'	=> [F3],
+
+		'favorite'		=> [F],
+		'bar_left'		=> [Q],
+		'bar_right'		=> [E],
 
 		'sidebar'		=> [GRAVEACCENT],
 	];

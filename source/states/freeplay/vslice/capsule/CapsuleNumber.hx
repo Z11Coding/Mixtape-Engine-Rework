@@ -1,13 +1,5 @@
 package states.freeplay.vslice.capsule;
 
-import backend.ClientPrefs;
-import backend.Paths;
-import flixel.FlxSprite;
-
-/**
- * Number display component for capsules
- * Adapted from P-Slice for Mixtape Engine
- */
 class CapsuleNumber extends FlxSprite
 {
 	public var digit(default, set):Int = 0;
@@ -46,28 +38,20 @@ class CapsuleNumber extends FlxSprite
 	{
 		super(x, y);
 
-		// Load number frames based on size
-		var framesPath = big ? 'freeplay/freeplayCapsule/bignumbers' : 'freeplay/freeplayCapsule/smallnumbers';
-		frames = Paths.getSparrowAtlas(framesPath, 'vslice');
+		if (big)
+			frames = SongCapsuleGroup.BIG_NUMBER_FRAMES;
+		else
+			frames = SongCapsuleGroup.SMALL_NUMBER_FRAMES;
 
-		// Create fallback if frames don't exist
-		if (frames == null) {
-			// Create a simple colored rectangle as fallback
-			makeGraphic(big ? 30 : 15, big ? 40 : 20, 0xFFFFFFFF);
-		} else {
-			for (i in 0...10)
-			{
-				var stringNum:String = numToString[i];
-				animation.addByPrefix(stringNum, '$stringNum', 24, false);
-			}
+		for (i in 0...10)
+		{
+			var stringNum:String = numToString[i];
+			animation.addByPrefix(stringNum, '$stringNum', 24, false);
 		}
 
-		antialiasing = ClientPrefs.data.antialiasing;
 		this.digit = initDigit;
 
-		if (frames != null) {
-			animation.play(numToString[initDigit], true);
-		}
+		animation.play(numToString[initDigit], true);
 
 		setGraphicSize(Std.int(width * 0.9));
 		updateHitbox();

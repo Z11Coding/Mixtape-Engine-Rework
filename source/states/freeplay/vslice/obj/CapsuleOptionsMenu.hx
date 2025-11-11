@@ -1,12 +1,14 @@
-package mikolka.vslice.freeplay.obj;
+package states.freeplay.vslice.obj;
 
+import objects.FunkinSprite;
 import shaders.PureColor;
-using mikolka.funkin.utils.StringTools;
+
+// using mikolka.funkin.utils.StringTools;
 
 class CapsuleOptionsMenu extends FlxSpriteGroup
 {
   var capsuleMenuBG:FunkinSprite;
-  var parent:FreeplayState;
+  var parent:VSliceFreeplayState;
 
   var queueDestroy:Bool = false;
   var busy:Bool = false;
@@ -19,7 +21,7 @@ class CapsuleOptionsMenu extends FlxSpriteGroup
   var leftArrow:InstrumentalSelector;
   var rightArrow:InstrumentalSelector;
 
-  public function new(parent:FreeplayState, x:Float = 0, y:Float = 0, instIds:Array<String>):Void
+  public function new(parent:VSliceFreeplayState, x:Float = 0, y:Float = 0, instIds:Array<String>):Void
   {
     super(x, y);
 
@@ -36,8 +38,10 @@ class CapsuleOptionsMenu extends FlxSpriteGroup
     currentInstrumental.setFormat(Paths.font("vcr.ttf"), 40, FlxTextAlign.CENTER, true);
 
     final PAD = 4;
-    leftArrow = new InstrumentalSelector(parent, PAD, 30, false, parent.getControls());
-    rightArrow = new InstrumentalSelector(parent, capsuleMenuBG.width - leftArrow.width - PAD, 30, true, parent.getControls());
+    @:privateAccess {
+      leftArrow = new InstrumentalSelector(parent, PAD, 30, false, parent.get_controls());
+      rightArrow = new InstrumentalSelector(parent, capsuleMenuBG.width - leftArrow.width - PAD, 30, true, parent.get_controls());
+    }
 
     var label:FlxText = new FlxText(0, 5, capsuleMenuBG.width, 'INSTRUMENTAL');
     label.setFormat(Paths.font("vcr.ttf"), 24, FlxTextAlign.CENTER, true);
@@ -63,8 +67,9 @@ class CapsuleOptionsMenu extends FlxSpriteGroup
       destroy();
       return;
     }
+
     @:privateAccess
-    if ((parent.controls.BACK #if TOUCH_CONTROLS_ALLOWED || parent.touchPad?.buttonB.justPressed #end)&& !busy)
+    if (parent.controls.BACK && !busy)
     {
       busy = true;
       close();
@@ -72,19 +77,21 @@ class CapsuleOptionsMenu extends FlxSpriteGroup
     }
 
     var changedInst = false;
-    if (parent.getControls().UI_LEFT_P || (TouchUtil.overlapsComplex(leftArrow) && TouchUtil.justPressed))
+    @:privateAccess
+    if (parent.get_controls().UI_LEFT_P)
     {
       currentInstrumentalIndex = (currentInstrumentalIndex + 1) % instrumentalIds.length;
       changedInst = true;
       if (leftArrow != null) leftArrow.setPress(true);
     }
-    if (parent.getControls().UI_RIGHT_P || (TouchUtil.overlapsComplex(rightArrow) && TouchUtil.justPressed))
+    @:privateAccess
+    if (parent.get_controls().UI_RIGHT_P)
     {
       currentInstrumentalIndex = (currentInstrumentalIndex - 1 + instrumentalIds.length) % instrumentalIds.length;
       changedInst = true;
       if (rightArrow != null) rightArrow.setPress(true);
     }
-    if (leftArrow != null && rightArrow != null && TouchUtil.justReleased)
+    if (leftArrow != null && rightArrow != null)
 		{
 			rightArrow.setPress(false);
 			leftArrow.setPress(false);
@@ -102,7 +109,8 @@ class CapsuleOptionsMenu extends FlxSpriteGroup
         if (currentInstrumental.text == '') currentInstrumental.text = 'Default';
     }
 
-    if ((parent.getControls().ACCEPT #if TOUCH_CONTROLS_ALLOWED || parent.touchPad?.buttonA.justPressed #end) && !busy)
+    @:privateAccess
+    if (parent.get_controls().ACCEPT && !busy)
     {
       busy = true;
       onConfirm(instrumentalIds[currentInstrumentalIndex] ?? '');
@@ -144,11 +152,11 @@ class InstrumentalSelector extends FunkinSprite
   var controls:Controls;
   var whiteShader:PureColor;
 
-  var parent:FreeplayState;
+  var parent:VSliceFreeplayState;
 
   var baseScale:Float = 0.6;
 
-  public function new(parent:FreeplayState, x:Float, y:Float, flipped:Bool, controls:Controls)
+  public function new(parent:VSliceFreeplayState, x:Float, y:Float, flipped:Bool, controls:Controls)
   {
     super(x, y);
 

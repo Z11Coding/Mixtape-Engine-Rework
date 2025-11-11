@@ -74,10 +74,16 @@ class Controls
 
 	// Pressed buttons (others)
 	public var ACCEPT(get, never):Bool;
+	public var FAVORITE(get, never):Bool;
+	public var BAR_LEFT(get, never):Bool;
+	public var BAR_RIGHT(get, never):Bool;
 	public var BACK(get, never):Bool;
 	public var PAUSE(get, never):Bool;
 	public var RESET(get, never):Bool;
 	private function get_ACCEPT() return justPressed('accept');
+	private function get_FAVORITE() return justPressed('favorite');
+	private function get_BAR_LEFT() return justPressed('bar_left');
+	private function get_BAR_RIGHT() return justPressed('bar_right');
 	private function get_BACK() return justPressed('back');
 	private function get_PAUSE() return justPressed('pause');
 	private function get_RESET() return justPressed('reset');
@@ -156,8 +162,19 @@ class Controls
 		return false;
 	}
 
+	@:noCompletion
+	private function get_requestedInstance():Dynamic
+	{
+		if (isInSubstate)
+			return MusicBeatSubstate.instance;
+		else
+			return MusicBeatState.getState();
+	}
+
 	// IGNORE THESE
 	public static var instance:Controls;
+	public var isInSubstate:Bool = false; // don't worry about this it becomes true and false on it's own in MusicBeatSubstate
+	public var requestedInstance(get, default):Dynamic; // is set to MusicBeatState or MusicBeatSubstate when the constructor is called
 	public function new()
 	{
 		keyboardBinds = if (!MusicBeatState.revokeControls) ClientPrefs.keyBinds else [];

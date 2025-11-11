@@ -1,8 +1,6 @@
-package mikolka.vslice.freeplay;
+package states.freeplay.vslice;
 
-import mikolka.compatibility.VsliceOptions;
 import flixel.graphics.FlxGraphic;
-import mikolka.compatibility.funkin.FunkinPath as Paths;
 
 /**
  * The sprite for the difficulty
@@ -29,16 +27,16 @@ class DifficultySprite extends FlxSprite
 			frames = Paths.getSparrowAtlas('freeplay/freeplayDifficulties/freeplay' + diffId,false);
 			animation.addByPrefix('idle', 'idle0', 24, true);
 			widthOffset = (frames.frames[0].frame.width / 2) - 20; // Animated offset
-			if (VsliceOptions.FLASHBANG)
+			if (ClientPrefs.data.flashing)
 				this.animation.play('idle');
 		}
 		else
 		{
-			tex = Paths.noGpuImage('freeplay/freeplayDifficulties/freeplay' + diffId);
+			tex = Paths.image('freeplay/freeplayDifficulties/freeplay' + diffId, null, false);
 			if (tex != null) widthOffset = (tex.width / 2) - 20; // standard offset
 			if (tex == null)
 			{
-				tex = Paths.noGpuImage('menudifficulties/' + diffId);
+				tex = Paths.image('menudifficulties/' + diffId, null, false);
 				if (tex != null)
 					widthOffset = (tex.width / 2) - 80; // story texture offset
 			}

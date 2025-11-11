@@ -1,8 +1,8 @@
-package mikolka.vslice.freeplay;
+package states.freeplay.vslice;
 
+import flixel.math.FlxPoint;
 import flixel.text.FlxText;
 import flixel.util.FlxSort;
-import flixel.math.FlxPoint;
 
 // its kinda like marqeee html lol!
 @:nullSafety

@@ -1,16 +1,13 @@
 package states.freeplay.vslice.obj;
 
-import backend.ClientPrefs;
-import backend.Paths;
 import flixel.FlxSprite;
-import openfl.utils.AssetType;
+import states.freeplay.vslice.obj.FlxFilteredSprite;
 
 /**
  * The icon that gets used for Freeplay capsules and char select
- * Adapted from P-Slice for Mixtape Engine
  * NOT to be confused with the CharIcon class, which is for the in-game icons
  */
-class PixelatedIcon extends FlxSprite
+class PixelatedIcon extends FlxFilteredSprite
 {
   private inline static final ICON_FRAMERATE = 10;
 	public var type:IconType;
@@ -24,14 +21,50 @@ class PixelatedIcon extends FlxSprite
 
   public function setCharacter(char:String):Void
   {
-    if (char.startsWith("icon-")) char = char.replace("icon-","");
+    //? rewrote this to allow for cuistom character icons
+    //60, 10
+    //trace(char);
+    if(char.startsWith("icon-")) char = char.replace("icon-","");
+    type = IconType.LEGACY;
+    if(Paths.exists('images/freeplay/icons/${char}pixel.png')){
+      if(Paths.exists('images/freeplay/icons/${char}pixel.xml')) type = ANIMATED;
+      else type = PIXEL;
+    }
+    switch (type){
+      case LEGACY:
+        // Legacy FNF icon (no freeplay one)
+        var charPath:String = "icons/";
+        charPath += "icon-";
+        charPath += '${char}';
 
-    // First try V-Slice style pixel icons
-    var vslicePixelPath = 'freeplay/icons/${char}pixel';
-    if (Paths.fileExists('images/${vslicePixelPath}.xml', AssetType.TEXT, false, 'vslice')) {
-        // Animated V-Slice icon
-        type = ANIMATED;
-        frames = Paths.getSparrowAtlas(vslicePixelPath, 'vslice');
+
+        var image = Paths.image(charPath);
+
+        if (image == null) //TODO
+        {
+          trace('[WARN] Character ${char} has no freeplay icon.');
+          image = Paths.image("icons/icon-face");
+        }
+        this.loadGraphic(image,true,Math.floor(image.width / 2), Math.floor(image.height));
+        animation.add("idle",[0],ICON_FRAMERATE,false);
+        animation.add("confirm",[1],ICON_FRAMERATE,false);
+        this.scale.x = this.scale.y = 0.58;
+        this.updateHitbox();
+        this.origin.x = 100;
+        //animation.play("idle");
+      case PIXEL:
+        // legacy P-Slice freeplay icons
+        var image = Paths.image('freeplay/icons/${char}pixel');
+        this.loadGraphic(image);
+        this.scale.x = this.scale.y = 2;
+        this.updateHitbox();
+        animation.add("idle",[0],ICON_FRAMERATE,false);
+        animation.add("confirm",[0],ICON_FRAMERATE,false);
+        this.origin.x = 25;
+        if(char == "parents") this.origin.x = 55;
+      case ANIMATED:
+        // NEW freeplay animated icon
+        frames = Paths.getSparrowAtlas('freeplay/icons/${char}pixel');
         this.active = true;
         this.scale.x = this.scale.y = 2;
         this.updateHitbox();
@@ -39,42 +72,21 @@ class PixelatedIcon extends FlxSprite
         this.animation.addByPrefix('confirm', 'confirm0', ICON_FRAMERATE, false);
         this.animation.addByPrefix('confirm-hold', 'confirm-hold0', ICON_FRAMERATE, true);
 
+        //? If 'idle' has one frame, we don't want to loop over it
+        var idleAnim = this.animation.getByName('idle');
+        #if !LEGACY_PSYCH
+        if(idleAnim?.numFrames == 1) idleAnim.looped = false;
+        #end
+
         this.animation.finishCallback = function(name:String):Void {
+          trace('Finish pixel animation: ${name}');
           if (name == 'confirm') this.animation.play('confirm-hold');
         };
         this.origin.x = 25;
+        if(char == "parents") this.origin.x = 55;
     }
-    else if (Paths.fileExists('images/${vslicePixelPath}.png', IMAGE, false, 'vslice')) {
-        // Static V-Slice pixel icon
-        type = PIXEL;
-        var image = Paths.image(vslicePixelPath, 'vslice');
-        this.loadGraphic(image);
-        this.scale.x = this.scale.y = 2;
-        this.updateHitbox();
-        animation.add("idle",[0],ICON_FRAMERATE,false);
-        animation.add("confirm",[0],ICON_FRAMERATE,false);
-        this.origin.x = 25;
-    }
-    else {
-        // Fallback to legacy FNF icon
-        type = LEGACY;
-        var charPath = 'icons/icon-${char}';
-        var image = Paths.image(charPath);
+      animation.play("idle");
 
-        if (image == null) {
-          trace('[WARN] Character ${char} has no freeplay icon.');
-          image = Paths.image("icons/icon-face");
-        }
-
-        this.loadGraphic(image, true, Math.floor(image.width / 2), Math.floor(image.height));
-        animation.add("idle",[0],ICON_FRAMERATE,false);
-        animation.add("confirm",[1],ICON_FRAMERATE,false);
-        this.scale.x = this.scale.y = 0.58;
-        this.updateHitbox();
-        this.origin.x = 100;
-    }
-
-    animation.play("idle");
   }
 }
 enum IconType {

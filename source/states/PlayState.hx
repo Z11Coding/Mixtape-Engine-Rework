@@ -7,6 +7,9 @@ import backend.Song;
 import backend.WeekData;
 import backend.modchart.ModManager;
 import backend.modchart.Modifier;
+import backend.pslice.Scoring.ScoringRank;
+import backend.pslice.Scoring;
+import backend.pslice.Tallies.SaveScoreData;
 import cutscenes.DialogueBoxPsych;
 import flixel.FlxBasic;
 import flixel.FlxObject;
@@ -46,6 +49,7 @@ import states.editors.ChartingState;
 import states.playbits.*; // All the bits
 import substates.GameOverSubstate;
 import substates.PauseSubState;
+import substates.StickerSubState;
 import sys.thread.FixedThreadPool;
 import sys.thread.Mutex;
 import yutautil.AprilFools;
@@ -557,6 +561,8 @@ class PlayState extends MusicBeatState
 
 	static var threadPool:FixedThreadPool = null;
 	static var mutex:Mutex;
+
+	//P-Slice
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -8174,14 +8180,26 @@ class PlayState extends MusicBeatState
 		{
 			LoadingState.noteCache = [];
 			curChart = [];
-			#if !switch
-			var percent:Float = comboManager.ratingPercent;
-			if(Math.isNaN(percent)) percent = 0;
-			Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
-			#end
 			deathCounter = 0; // set it to 0 AFTER it's been saved
 			playbackRate = 1;
 			savedTime = 0;
+
+			var accPts = comboManager.ratingPercent * comboManager.totalPlayed;
+			var tempActiveTallises = {
+				score: comboManager.songScore,
+				accPoints: accPts,
+
+				marv: comboManager.ratingsData[0].hits,
+				sick: comboManager.ratingsData[1].hits,
+				good: comboManager.ratingsData[2].hits,
+				bad: comboManager.ratingsData[3].hits,
+				shit: comboManager.ratingsData[4].hits,
+				missed: comboManager.songMisses,
+				combo: comboManager.combo,
+				maxCombo: comboManager.combo,
+				totalNotesHit: comboManager.totalPlayed,
+				totalNotes: 69,
+			};
 
 			if (chartingMode)
 			{
@@ -8217,6 +8235,12 @@ class PlayState extends MusicBeatState
 					{
 						camHUD.alpha -= 1 / 10;
 					}, 10);
+
+					#if !switch
+					var percent:Float = comboManager.ratingPercent;
+					if(Math.isNaN(percent)) percent = 0;
+					Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					#end
 					openSubState(new substates.RankingSubstate());
 				}
 				else
@@ -8232,7 +8256,11 @@ class PlayState extends MusicBeatState
 
 					Song.loadFromJson(PlayState.storyPlaylist[0] + difficulty, PlayState.storyPlaylist[0]);
 					FlxG.sound.music.stop();
-
+					#if !switch
+					var percent:Float = comboManager.ratingPercent;
+					if(Math.isNaN(percent)) percent = 0;
+					Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					#end
 					canResync = false;
 					LoadingState.prepareToSong();
 					LoadingState.loadAndSwitchState(new PlayState(), false, false);
@@ -8251,11 +8279,172 @@ class PlayState extends MusicBeatState
 				{
 					camHUD.alpha -= 1 / 10;
 				}, 10);
-				openSubState(new substates.RankingSubstate());
+
+				if (ClientPrefs.data.ranking == "Mixtape") {
+					openSubState(new substates.RankingSubstate());
+					#if !switch
+					var percent:Float = comboManager.ratingPercent;
+					if(Math.isNaN(percent)) percent = 0;
+					Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					#end
+				} else if (ClientPrefs.data.ranking == "V-Slice") {
+					var wasFC = Highscore.getFCState(curSong, PlayState.storyDifficulty);
+					var prevScore = Highscore.getScore(curSong, PlayState.storyDifficulty);
+					var prevAcc = Highscore.getRating(curSong, PlayState.storyDifficulty);
+
+					var prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
+
+					zoomIntoResultsScreen(prevScore < tempActiveTallises.score, tempActiveTallises, prevRank);
+
+					#if !switch
+					var percent:Float = comboManager.ratingPercent;
+					if(Math.isNaN(percent)) percent = 0;
+					Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					#end
+				}
 			}
 			transitioning = true;
 		}
 		return true;
+	}
+	/**
+	 * Play the camera zoom animation and then move to the results screen once it's done.
+	 */
+	function zoomIntoResultsScreen(isNewHighscore:Bool, scoreData:SaveScoreData, prevScoreRank:ScoringRank):Void
+	{
+		var botplay = ClientPrefs.getGameplaySetting('botplay');
+		if (botplay)
+		{
+			var resultingAccuracy = Math.min(1, scoreData.accPoints / scoreData.totalNotesHit);
+			var fpRank:ScoringRank = Scoring.calculateRankFromData(scoreData.score, resultingAccuracy, scoreData.missed == 0) ?? SHIT;
+			if (isNewHighscore && !isStoryMode)
+			{
+				camOther.fade(FlxColor.BLACK, 0.6, false, () ->
+				{
+					FlxTransitionableState.skipNextTransOut = true;
+					FlxG.switchState(() -> states.freeplay.VSliceFreeplayState.build({
+						{
+							fromResults: {
+								oldRank: prevScoreRank,
+								newRank: fpRank,
+								songId: curSong,
+								difficultyId: Difficulty.getString(),
+								playRankAnim: !botplay
+							}
+						}
+					}));
+				});
+			}
+			else if (!isStoryMode)
+			{
+				openSubState(new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build({
+					{
+						fromResults: {
+							oldRank: null,
+							playRankAnim: false,
+							newRank: fpRank,
+							songId: curSong,
+							difficultyId: Difficulty.getString()
+						}
+					}
+				}, sticker)));
+			}
+			else
+			{
+				openSubState(new StickerSubState(null, (sticker) -> new states.StoryMenuState()));
+			}
+			return;
+		}
+		trace('WENT TO RESULTS SCREEN!');
+
+		// If the opponent is GF, zoom in on the opponent.
+		// Else, if there is no GF, zoom in on BF.
+		// Else, zoom in on GF.
+		var targetDad:Bool = dad != null && dad.curCharacter == 'gf';
+		var targetBF:Bool = gf == null && !targetDad;
+
+		if (targetBF)
+		{
+			FlxG.camera.follow(boyfriend, null, 0.05);
+		}
+		else if (targetDad)
+		{
+			FlxG.camera.follow(dad, null, 0.05);
+		}
+		else
+		{
+			FlxG.camera.follow(gf, null, 0.05);
+		}
+
+		// TODO: Make target offset configurable.
+		// In the meantime, we have to replace the zoom animation with a fade out.
+		FlxG.camera.targetOffset.y -= 350;
+		FlxG.camera.targetOffset.x += 20;
+
+		// Replace zoom animation with a fade out for now.
+		FlxG.camera.fade(FlxColor.BLACK, 0.6);
+
+		FlxTween.tween(camHUD, {alpha: 0}, 0.6, {
+			onComplete: function(_)
+			{
+				moveToResultsScreen(isNewHighscore, scoreData, prevScoreRank);
+			}
+		});
+
+		// Zoom in on Girlfriend (or BF if no GF)
+		new FlxTimer().start(0.8, function(_)
+		{
+			if (targetBF)
+			{
+				boyfriend.animation.play('hey');
+			}
+			else if (targetDad)
+			{
+				dad.animation.play('cheer');
+			}
+			else
+			{
+				gf.animation.play('cheer');
+			}
+
+			// Zoom over to the Results screen.
+			// TODO: Re-enable this.
+			/*
+								FlxTween.tween(FlxG.camera, {zoom: 1200}, 1.1,
+					{
+						ease: FlxEase.expoIn,
+					});
+				*/
+		});
+	}
+
+	/**
+		 * Move to the results screen right goddamn now.
+		 */
+	function moveToResultsScreen(isNewHighscore:Bool, scoreData:SaveScoreData, prevScoreRank:ScoringRank):Void
+	{
+		persistentUpdate = false;
+
+		var modManifest = Mods.getPack();
+		var fpText = modManifest != null ? '${curSong} from ${modManifest.name}' : curSong;
+		// Mods.loadTopMod();
+
+		vocals.stop();
+		camHUD.alpha = 1;
+
+		/*var res:ResultState = new ResultState({
+			storyMode: isStoryMode,
+			songId: curSong,
+			difficultyId: Difficulty.getString(),
+			title: isStoryMode ? ('${storyCampaignTitle}') : fpText,
+			scoreData: scoreData,
+			prevScoreRank: prevScoreRank,
+			isNewHighscore: isNewHighscore,
+			characterId: SONG.player1
+		});*/
+		this.persistentDraw = false;
+		FreeplayManager.openFreeplay();
+		//openSubState(res);
 	}
 
 	public function KillNotes()

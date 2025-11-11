@@ -1,15 +1,16 @@
-package mikolka.vslice.freeplay.backcards;
+package states.freeplay.vslice.backcards;
 
-import mikolka.compatibility.VsliceOptions;
-import mikolka.vslice.freeplay.FreeplayState;
+import backend.pslice.BitmapUtil;
 import flixel.FlxSprite;
+import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
-import mikolka.funkin.players.PlayableCharacter;
+import objects.FunkinSprite;
 import openfl.display.BlendMode;
-import flixel.group.FlxSpriteGroup;
-import mikolka.compatibility.funkin.FunkinPath as Paths;
+import states.freeplay.VSliceFreeplayState;
+import states.freeplay.vslice.PlayableCharacter;
+import states.freeplay.vslice.obj.FlxAtlasSprite;
 
 /**
  * A class for the backing cards so they dont have to be part of freeplayState......
@@ -25,31 +26,31 @@ class BackingCard extends FlxSpriteGroup
   public var confirmTextGlow:FlxSprite;
   public var cardGlow:FlxSprite;
 
-  var _exitMovers:Null<FreeplayState.ExitMoverData>;
-  var _exitMoversCharSel:Null<FreeplayState.ExitMoverData>;
+  var _exitMovers:Null<VSliceFreeplayState.ExitMoverData>;
+  var _exitMoversCharSel:Null<VSliceFreeplayState.ExitMoverData>;
 
-  public var instance:FreeplayState;
+  public var instance:VSliceFreeplayState;
 
-  public function new(currentCharacter:PlayableCharacter, ?_instance:FreeplayState)
+  public function new(currentCharacter:PlayableCharacter, ?_instance:VSliceFreeplayState)
   {
     super();
 
     if (_instance != null) instance = _instance;
 
-    var bitmap = BitmapUtil.scalePartByWidth(Paths.noGpuImage('freeplay/cardGlow').bitmap, FreeplayState.CUTOUT_WIDTH);
+    var bitmap = BitmapUtil.scalePartByWidth(Paths.image('freeplay/cardGlow', null, false).bitmap, VSliceFreeplayState.CUTOUT_WIDTH);
     cardGlow = new FlxSprite(-30, -30).loadGraphic(bitmap);
 
-    confirmGlow = new FlxSprite((FreeplayState.CUTOUT_WIDTH * FreeplayState.DJ_POS_MULTI)-30, 240).loadGraphic(Paths.image('freeplay/confirmGlow'));
-    confirmTextGlow = new FlxSprite((FreeplayState.CUTOUT_WIDTH * FreeplayState.DJ_POS_MULTI) -8, 115).loadGraphic(Paths.image('freeplay/glowingText'));
+    confirmGlow = new FlxSprite((VSliceFreeplayState.CUTOUT_WIDTH * VSliceFreeplayState.DJ_POS_MULTI)-30, 240).loadGraphic(Paths.image('freeplay/confirmGlow'));
+    confirmTextGlow = new FlxSprite((VSliceFreeplayState.CUTOUT_WIDTH * VSliceFreeplayState.DJ_POS_MULTI) -8, 115).loadGraphic(Paths.image('freeplay/glowingText'));
 
-    var bitmap = BitmapUtil.scalePartByWidth(Paths.noGpuImage('freeplay/pinkBack').bitmap, FreeplayState.CUTOUT_WIDTH);
+    var bitmap = BitmapUtil.scalePartByWidth(Paths.image('freeplay/pinkBack', null, false).bitmap, VSliceFreeplayState.CUTOUT_WIDTH);
     pinkBack = new FunkinSprite();
     pinkBack.loadGraphic(bitmap);
 
     orangeBackShit = new FunkinSprite(84, 440).makeSolidColor(Std.int(pinkBack.width), 75, 0xFFFEDA00);
     alsoOrangeLOL = new FunkinSprite(0, orangeBackShit.y).makeSolidColor(100, Std.int(orangeBackShit.height), 0xFFFFD400);
     confirmGlow2 = new FlxSprite(confirmGlow.x, confirmGlow.y).loadGraphic(Paths.image('freeplay/confirmGlow2'));
-    backingTextYeah = new FlxAtlasSprite((FreeplayState.CUTOUT_WIDTH * FreeplayState.DJ_POS_MULTI)+640, 370, "freeplay/backing-text-yeah",
+    backingTextYeah = new FlxAtlasSprite((VSliceFreeplayState.CUTOUT_WIDTH * VSliceFreeplayState.DJ_POS_MULTI)+640, 370, "freeplay/backing-text-yeah",
       {
         FrameRate: 24.0,
         Reversed: false,
@@ -67,7 +68,7 @@ class BackingCard extends FlxSpriteGroup
    * Apply exit movers for the pieces of the backing card.
    * @param exitMovers The exit movers to apply.
    */
-  public function applyExitMovers(?exitMovers:FreeplayState.ExitMoverData, ?exitMoversCharSel:FreeplayState.ExitMoverData):Void
+  public function applyExitMovers(?exitMovers:VSliceFreeplayState.ExitMoverData, ?exitMoversCharSel:VSliceFreeplayState.ExitMoverData):Void
   {
     if (exitMovers == null)
     {
@@ -166,7 +167,7 @@ class BackingCard extends FlxSpriteGroup
    */
   public function introDone():Void
   {
-    if(!VsliceOptions.ALLOW_COLORING) pinkBack.color = 0xFFFFD863;
+    /*if(!VsliceOptions.ALLOW_COLORING)*/ pinkBack.color = 0xFFFFD863;
     orangeBackShit.visible = true;
     alsoOrangeLOL.visible = true;
     cardGlow.visible = true;

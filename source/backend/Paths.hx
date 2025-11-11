@@ -1,5 +1,6 @@
 package backend;
 
+import backend.NativeFileSystem;
 import flash.media.Sound;
 import flixel.addons.display.FlxRuntimeShader;
 import flixel.animation.FlxAnimationController;
@@ -743,6 +744,7 @@ class Paths
 			case DATA | TEXT: "txt";
 			case LUA: "lua";
 			case HSCRIPT: "hx";
+			case SONGS: SOUND_EXT;
 			default: IMAGE_EXT;
 		};
 
@@ -756,6 +758,7 @@ class Paths
 			case TEXT: "data";
 			case LUA: "scripts";
 			case HSCRIPT: "scripts";
+			case SONGS: "songs";
 			default: "images";
 		};
 
@@ -769,6 +772,7 @@ class Paths
 			case TEXT: AssetType.TEXT;
 			case LUA: AssetType.TEXT;
 			case HSCRIPT: AssetType.TEXT;
+			case SONGS: SOUND;
 			default: IMAGE;
 		};
 
@@ -1153,6 +1157,11 @@ class Paths
 		return getPath('$path/$key.$SOUND_EXT');
 	}
 
+	inline public static function soundP(key:String)
+	{
+		return getPath('sounds/$key.$SOUND_EXT');
+	}
+
 	public static function returnSoundCache(path:String, key:String, ?library:String)
 	{
 		var gottenPath:String = soundPath(path, key, library);
@@ -1180,33 +1189,8 @@ class Paths
 	}
 
 	#if MODS_ALLOWED
-	inline static public function mods(key:String = ''):String {
-		var path = 'mods/' + key;
-		if (!FileSystem.exists('mods/')) {
-
-			trace('Creating mods folder...');
-			FileSystem.createDirectory('mods/');
-
-
-		for (folder in Mods.ignoreModFolders) {
-			var folderPath = 'mods/' + folder;
-			if (!FileSystem.exists(folderPath)) {
-				FileSystem.createDirectory(folderPath);
-			}
-		}
-
-		for (folder in Mods.ignoreModFolders) {
-			var folderPath = 'mods/' + folder;
-			if (FileSystem.exists(folderPath)) {
-				FileSystem.deleteDirectory(folderPath);
-			}
-		}
-
-			File.saveBytes('mods/modTemplate.zip', haxe.Resource.getBytes('modTemp'));
-		}
-
-		return path;
-	}
+	inline static public function mods(key:String = '')
+		return 'mods/' + key;
 
 	inline static public function modsJson(key:String)
 		return modFolders('data/' + key + '.json');
@@ -1261,20 +1245,33 @@ class Paths
 		}
 		#end
 
-		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
 		{
-			var fileToCheck:String = mods(Mods.currentModDirectory + '/' + key);
-			if(FileSystem.exists(fileToCheck))
+			var fileToCheck:String = checkNamedModPath(key, Mods.currentModDirectory);
+			if (NativeFileSystem.exists(fileToCheck))
 				return fileToCheck;
 		}
 
-		for(mod in Mods.getGlobalMods())
+		for (mod in Mods.getGlobalMods())
 		{
-			var fileToCheck:String = mods(mod + '/' + key);
-			if(FileSystem.exists(fileToCheck))
+			var fileToCheck:String = checkNamedModPath(key, mod);
+			if (NativeFileSystem.exists(fileToCheck))
 				return fileToCheck;
 		}
-		return 'mods/' + key;
+		return checkNamedModPath(key, '');
+	}
+
+	private static function checkNamedModPath(key:String, modName:String):Null<String>
+	{
+		var basePath = key != "" ? '$modName/$currentLevel/' : '';
+		// Load from level folder in a mod
+		if (currentLevel != null && currentLevel != 'shared')
+		{
+			var levelPath = mods(basePath + key);
+			if (NativeFileSystem.exists(levelPath))
+				return levelPath;
+		}
+		return mods('$modName/$key');
 	}
 
 	#if ARCHIPELAGO_ALLOWED

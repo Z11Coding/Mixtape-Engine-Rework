@@ -1,9 +1,8 @@
-package mikolka.vslice.freeplay.obj;
+package states.freeplay.vslice.obj;
 
-import flixel.group.FlxSpriteGroup;
 import flixel.FlxSprite;
+import flixel.group.FlxSpriteGroup;
 import flixel.util.FlxTimer;
-import mikolka.funkin.custom.mobile.MobileScaleMode;
 
 class FreeplayFlames extends FlxSpriteGroup
 {

@@ -10,6 +10,8 @@ import metadata.STMetaFile.MetadataFile;
 import states.CategoryState;
 import states.PlayState;
 import states.StoryMenuState;
+import states.freeplay.*; // WHY DIDN'T I DO THIS EARLIER????
+import states.freeplay.vslice.FreeplaySongData;
 import yutautil.AprilFools;
 
 #if ARCHIPELAGO_ALLOWED
@@ -45,6 +47,12 @@ class FreeplayManager {
 	public var songList(get, never):Array<GlobalSongMetadata>;
 	public function get_songList():Array<GlobalSongMetadata> {
 		return songs;
+	}
+
+    var vsliceSongs:Array<FreeplaySongData> = [];
+	public var vsliceSongList(get, never):Array<FreeplaySongData>;
+	public function get_vsliceSongList():Array<FreeplaySongData> {
+		return vsliceSongs;
 	}
 
     public var metadata:Map<String, MetadataFile> = new Map<String, MetadataFile>();
@@ -182,19 +190,54 @@ class FreeplayManager {
         }
 	}
 
-    public static inline function openFreeplay()
+    public static inline function openFreeplay(?fromCategory:Bool = false)
 	{
-        if (CategoryState.loadWeekForce != null && !states.PlayState.Crashed) {
+        if (ClientPrefs.data.freeplayMenu == "Base Game") { //Base game opens a little differently
+            if (fromCategory) {
+                var curState = MusicBeatState.getState();
+                curState.persistentDraw = true;
+                curState.persistentUpdate = false;
+                // Freeplay has its own custom transition
+                FlxTransitionableState.skipNextTransIn = true;
+                FlxTransitionableState.skipNextTransOut = true;
+
+                curState.openSubState(new states.freeplay.VSliceFreeplayState());
+            } else FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> VSliceFreeplayState.build(null, sticker)));
+        } else if (CategoryState.loadWeekForce != null && !states.PlayState.Crashed) {
             MusicBeatState.preloadAndSwitchState(Type.createInstance(getFreeplay(), []));
-    } else if (CategoryState.loadWeekForce != null && states.PlayState.Crashed) {
+        } else if (CategoryState.loadWeekForce != null && states.PlayState.Crashed) {
             FlxG.switchState(Type.createInstance(getFreeplay(), []));
-    }
+        }
         else //You cant play a song without picking a category first!
             FlxG.switchState(new states.CategoryState());
 
         if (FlxG.sound.music == null || !FlxG.sound.music.playing)
             MusicManager.playMenuMusic();
 	}
+
+    public static function getPSliceMetadata(songName:String):FreeplayMetaJSON {
+        try {
+        var psliceMetadataFile:FreeplayMetaJSON = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(songName.toLowerCase()) + '/metadata')));
+        return psliceMetadataFile;
+        } catch(e:Dynamic) {trace(e);}
+        return null;
+    }
+
+    public static function getMixtapeMetadata(songName:String):MetadataFile {
+        if (loadFPManager().metadata.get(songName) != null) return loadFPManager().metadata.get(songName);
+        else {
+            trace("No preloaded metadata for this song found! Using direct load...");
+            try {
+                var mixtapeMetadataFile:MetadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(songName.toLowerCase()) + '/meta')));
+                return mixtapeMetadataFile;
+            }
+            catch(e) {
+                trace("No Metadata found!");
+                return null;
+            }
+        }
+        return null;
+    }
 
     //Public things
 
@@ -214,7 +257,7 @@ class FreeplayManager {
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(refresh, searchText);
             case "Base Game":
                 if (states.freeplay.VSliceFreeplayState.instance != null)
-                    states.freeplay.VSliceFreeplayState.instance.reloadSongs(refresh);
+                    states.freeplay.VSliceFreeplayState.instance.generateSongList(null, false);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)
@@ -225,123 +268,110 @@ class FreeplayManager {
     public function reloadFreeplay(refresh:Bool = false, ?searchText:String = '')
     {
         trace("Reloading Songs!");
-        songs = [];
+        if (ClientPrefs.data.freeplayMenu != "Base Game") {
+            songs = [];
 
-        for (i in 0...WeekData.weeksList.length) {
-            if(weekIsLocked(WeekData.weeksList[i])) continue;
-            var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+            for (i in 0...WeekData.weeksList.length) {
+                if(weekIsLocked(WeekData.weeksList[i])) continue;
+                var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 
-            function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
-                if (array == null || array.length == 0) {
-                    return null;
-                }
-                return array;
-            }
-
-            WeekData.setDirectoryFromWeek(leWeek);
-            for (song in leWeek.songs)
-            {
-                var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?
-                    (cast leWeek.category:String).split(',').map(function(cat:String):String {
-                        return cat.trim().toLowerCase();
-                    }) : Std.isOfType(leWeek.category, Array) ?
-                    (cast leWeek.category:Array<String>).map(function(cat:String):String {
-                        return cat.trim().toLowerCase();
-                    }) :
-                    [(cast leWeek.category:String)].map(function(cat:String):String {
-                        return cat.trim().toLowerCase();
-                    });
-
-                if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
-                    categoryWhaat = [];
+                function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
+                    if (array == null || array.length == 0) {
+                        return null;
+                    }
+                    return array;
                 }
 
-                // trace("CategoryWhaat2: " + categoryWhaat);
-                var colors:Array<Int> = song[2];
-                if(colors == null || colors.length < 3)
+                WeekData.setDirectoryFromWeek(leWeek);
+                for (song in leWeek.songs)
                 {
-                    colors = [146, 113, 253];
-                }
+                    var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?
+                        (cast leWeek.category:String).split(',').map(function(cat:String):String {
+                            return cat.trim().toLowerCase();
+                        }) : Std.isOfType(leWeek.category, Array) ?
+                        (cast leWeek.category:Array<String>).map(function(cat:String):String {
+                            return cat.trim().toLowerCase();
+                        }) :
+                        [(cast leWeek.category:String)].map(function(cat:String):String {
+                            return cat.trim().toLowerCase();
+                        });
 
+                    if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
+                        categoryWhaat = [];
+                    }
 
-                try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
-                catch(e) {
-                    //trace("can't.");
-                    metadataFile = null;
-                }
-
-                try {
-                    pMetadataFile = new FreeplayMetaJSON().mergeWithJson(Json.parse(Paths.getTextFromFile('data/${Paths.formatToSongPath(song[0].toLowerCase())}/metadata.json')));
-                    metadataFile = {
-                        song: {
-                            name: song[0],
-                            mod: pMetadataFile.freeplayWeekName,
-                            charter: "???",
-                            artist: "???"
-                        },
-                        freeplay: { // cover the defaults and pray to god the custom ones figure themselves out
-                            ratings: ['easy' => pMetadataFile.songRating, 'normal' => pMetadataFile.songRating, 'hard' => pMetadataFile.songRating, 'erect' => pMetadataFile.songRating, 'nightmare' => pMetadataFile.songRating],
-                            bg: "menuDesat",
-                            album: pMetadataFile.albumId
-                        },
-                    };
-                    var diffStr:String = leWeek.difficulties;
-                    if(diffStr != null && diffStr.length > 0)
+                    // trace("CategoryWhaat2: " + categoryWhaat);
+                    var colors:Array<Int> = song[2];
+                    if(colors == null || colors.length < 3)
                     {
-                        var diffs:Array<String> = diffStr.trim().split(',');
-                        for (diff in diffs) {
-                            if(diff != null)
-                            {
-                                diff = diff.trim();
-                                if(diff.length < 1) diffs.remove(diff);
+                        colors = [146, 113, 253];
+                    }
+
+
+                    try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
+                    catch(e) {
+                        //trace("can't.");
+                        metadataFile = null;
+                    }
+
+                    try {
+                        pMetadataFile = new FreeplayMetaJSON().mergeWithJson(Json.parse(Paths.getTextFromFile('data/${Paths.formatToSongPath(song[0].toLowerCase())}/metadata.json')));
+                        metadataFile = {
+                            song: {
+                                name: song[0],
+                                mod: pMetadataFile.freeplayWeekName,
+                                charter: "???",
+                                artist: "???"
+                            },
+                            freeplay: { // cover the defaults and pray to god the custom ones figure themselves out
+                                ratings: ['easy' => pMetadataFile.songRating, 'normal' => pMetadataFile.songRating, 'hard' => pMetadataFile.songRating, 'erect' => pMetadataFile.songRating, 'nightmare' => pMetadataFile.songRating],
+                                bg: "menuDesat",
+                                album: pMetadataFile.albumId
+                            },
+                        };
+                        var diffStr:String = leWeek.difficulties;
+                        if(diffStr != null && diffStr.length > 0)
+                        {
+                            var diffs:Array<String> = diffStr.trim().split(',');
+                            for (diff in diffs) {
+                                if(diff != null)
+                                {
+                                    diff = diff.trim();
+                                    if(diff.length < 1) diffs.remove(diff);
+                                }
+                                metadataFile.freeplay.ratings.set(diff, pMetadataFile.songRating);
                             }
-                            metadataFile.freeplay.ratings.set(diff, pMetadataFile.songRating);
                         }
                     }
-                }
-                catch(e) {
-                    //trace("can't.");
-                    pMetadataFile = null;
-                }
+                    catch(e) {
+                        //trace("can't.");
+                        pMetadataFile = null;
+                    }
 
-                try
-                {
-                    metadata.set(song[0].toLowerCase(), cast metadataFile);
-                    //trace("Found metadata for " + song[0].toLowerCase());
-                }
-                catch (e)
-                {
-                    /*try
+                    try
                     {
-                        trace("No metadata for " + song[0].toLowerCase());
+                        metadata.set(song[0].toLowerCase(), cast metadataFile);
+                        //trace("Found metadata for " + song[0].toLowerCase());
                     }
                     catch (e)
                     {
-                        trace("No metadata found. No song either apparently.");
-                    }*/
-                }
-
-                if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (searchText == null || searchText == '') && (leWeek.folder != '' || leWeek.folder != null)))
-                {
-                    addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
-                }
-                else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || (CategoryState.loadWeekForce == "all"))
-                {
-                    if (refresh)
-                    {
-                        var colors:Array<Int> = song[2];
-                        if(colors == null || colors.length < 3)
+                        /*try
                         {
-                            colors = [146, 113, 253];
+                            trace("No metadata for " + song[0].toLowerCase());
                         }
-
-                        if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
-                            addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
-
+                        catch (e)
+                        {
+                            trace("No metadata found. No song either apparently.");
+                        }*/
                     }
-                    else
+
+                    if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (searchText == null || searchText == '') && (leWeek.folder != '' || leWeek.folder != null)))
                     {
-                        if (Std.string(song[0]).toLowerCase().trim().contains(searchText.toLowerCase().trim()))
+                        addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+                    }
+                    else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || (CategoryState.loadWeekForce == "all"))
+                    {
+                        if (refresh)
                         {
                             var colors:Array<Int> = song[2];
                             if(colors == null || colors.length < 3)
@@ -351,114 +381,365 @@ class FreeplayManager {
 
                             if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
                                 addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+
                         }
+                        else
+                        {
+                            if (Std.string(song[0]).toLowerCase().trim().contains(searchText.toLowerCase().trim()))
+                            {
+                                var colors:Array<Int> = song[2];
+                                if(colors == null || colors.length < 3)
+                                {
+                                    colors = [146, 113, 253];
+                                }
+
+                                if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
+                                    addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            Mods.currentModDirectory = '';
+            if (refresh)
+            {
+                // Secrets
+                if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
+                if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+
+                // Special
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            }
+            else
+            {
+                if (Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
+                if (Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('GeoStar').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+
+                // Special
+                if (Std.string('Rise').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Zeventeen').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
+                if (Std.string('Pack-A-Punch').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Driller').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Test Field').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
+                if (Std.string('Rawr').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
+                if (Std.string('Fightback').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
+                if (Std.string('Funky Fanta').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
+                if (Std.string('Tag And Seek').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
+                if (Std.string('Testimony').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
+                if (Std.string('Fangirl Frenzy').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
+                if (Std.string('Slowdown').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            }
+
+            for (song in weeklessSongs) {
+                try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
+                catch(e) {
+                    //trace("can't.");
+                    metadataFile = null;
+                }
+
+                try
+                {
+                    metadata.set(song.toLowerCase(), cast metadataFile);
+                    //trace("Found metadata for " + song.toLowerCase());
+                }
+                catch (e)
+                {
+                    try
+                    {
+                        //trace("No metadata for " + song.toLowerCase());
+                    }
+                    catch (e)
+                    {
+                        //trace("No metadata found. No song either apparently.");
+                    }
+                }
+            }
+        } else {
+            vsliceSongs = [];
+
+            for (i in 0...WeekData.weeksList.length) {
+                if(weekIsLocked(WeekData.weeksList[i])) continue;
+                var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+
+                function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
+                    if (array == null || array.length == 0) {
+                        return null;
+                    }
+                    return array;
+                }
+
+                WeekData.setDirectoryFromWeek(leWeek);
+                for (song in leWeek.songs)
+                {
+                    var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?
+                        (cast leWeek.category:String).split(',').map(function(cat:String):String {
+                            return cat.trim().toLowerCase();
+                        }) : Std.isOfType(leWeek.category, Array) ?
+                        (cast leWeek.category:Array<String>).map(function(cat:String):String {
+                            return cat.trim().toLowerCase();
+                        }) :
+                        [(cast leWeek.category:String)].map(function(cat:String):String {
+                            return cat.trim().toLowerCase();
+                        });
+
+                    if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
+                        categoryWhaat = [];
+                    }
+
+                    // trace("CategoryWhaat2: " + categoryWhaat);
+                    var colors:Array<Int> = song[2];
+                    if(colors == null || colors.length < 3)
+                    {
+                        colors = [146, 113, 253];
+                    }
+
+
+                    try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
+                    catch(e) {
+                        //trace("can't.");
+                        metadataFile = null;
+                    }
+
+                    try {
+                        pMetadataFile = new FreeplayMetaJSON().mergeWithJson(Json.parse(Paths.getTextFromFile('data/${Paths.formatToSongPath(song[0].toLowerCase())}/metadata.json')));
+                        metadataFile = {
+                            song: {
+                                name: song[0],
+                                mod: pMetadataFile.freeplayWeekName,
+                                charter: "???",
+                                artist: "???"
+                            },
+                            freeplay: { // cover the defaults and pray to god the custom ones figure themselves out
+                                ratings: ['easy' => pMetadataFile.songRating, 'normal' => pMetadataFile.songRating, 'hard' => pMetadataFile.songRating, 'erect' => pMetadataFile.songRating, 'nightmare' => pMetadataFile.songRating],
+                                bg: "menuDesat",
+                                album: pMetadataFile.albumId
+                            },
+                        };
+                        var diffStr:String = leWeek.difficulties;
+                        if(diffStr != null && diffStr.length > 0)
+                        {
+                            var diffs:Array<String> = diffStr.trim().split(',');
+                            for (diff in diffs) {
+                                if(diff != null)
+                                {
+                                    diff = diff.trim();
+                                    if(diff.length < 1) diffs.remove(diff);
+                                }
+                                metadataFile.freeplay.ratings.set(diff, pMetadataFile.songRating);
+                            }
+                        }
+                    }
+                    catch(e) {
+                        //trace("can't.");
+                        pMetadataFile = null;
+                    }
+
+                    try
+                    {
+                        metadata.set(song[0].toLowerCase(), cast metadataFile);
+                        //trace("Found metadata for " + song[0].toLowerCase());
+                    }
+                    catch (e)
+                    {
+                        /*try
+                        {
+                            trace("No metadata for " + song[0].toLowerCase());
+                        }
+                        catch (e)
+                        {
+                            trace("No metadata found. No song either apparently.");
+                        }*/
+                    }
+
+                    if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (searchText == null || searchText == '') && (leWeek.folder != '' || leWeek.folder != null)))
+                    {
+                        addVsliceSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+                    }
+                    else if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || (CategoryState.loadWeekForce == "all"))
+                    {
+                        if (refresh)
+                        {
+                            var colors:Array<Int> = song[2];
+                            if(colors == null || colors.length < 3)
+                            {
+                                colors = [146, 113, 253];
+                            }
+
+                            if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
+                                addVsliceSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+
+                        }
+                        else
+                        {
+                            if (Std.string(song[0]).toLowerCase().trim().contains(searchText.toLowerCase().trim()))
+                            {
+                                var colors:Array<Int> = song[2];
+                                if(colors == null || colors.length < 3)
+                                {
+                                    colors = [146, 113, 253];
+                                }
+
+                                if (categoryWhaat.indexOf(CategoryState.loadWeekForce.toLowerCase()) != -1 || (CategoryState.loadWeekForce == "mods" && categoryWhaat.isEmpty()) || CategoryState.loadWeekForce == "all")
+                                    addVsliceSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            Mods.currentModDirectory = '';
+            if (refresh)
+            {
+                // Secrets
+                if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
+                if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+
+                // Special
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
+                if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                    addVsliceSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            }
+            else
+            {
+                if (Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
+                if (Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('GeoStar').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+                    addVsliceSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+
+                // Special
+                if (Std.string('Rise').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Zeventeen').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
+                if (Std.string('Pack-A-Punch').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Driller').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+                if (Std.string('Test Field').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
+                if (Std.string('Rawr').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
+                if (Std.string('Fightback').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
+                if (Std.string('Funky Fanta').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
+                if (Std.string('Tag And Seek').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
+                if (Std.string('Testimony').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
+                if (Std.string('Fangirl Frenzy').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
+                if (Std.string('Slowdown').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                    addVsliceSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            }
+
+            for (song in weeklessSongs) {
+                try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
+                catch(e) {
+                    //trace("can't.");
+                    metadataFile = null;
+                }
+
+                try
+                {
+                    metadata.set(song.toLowerCase(), cast metadataFile);
+                    //trace("Found metadata for " + song.toLowerCase());
+                }
+                catch (e)
+                {
+                    try
+                    {
+                        //trace("No metadata for " + song.toLowerCase());
+                    }
+                    catch (e)
+                    {
+                        //trace("No metadata found. No song either apparently.");
                     }
                 }
             }
         }
 
-
-        Mods.currentModDirectory = '';
-        if (refresh)
-        {
-            // Secrets
-            if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-            if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
-
-            // Special
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
-            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
-                addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
-        }
-        else
-        {
-            if (Std.string('Small Argument').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
-            if (Std.string('Beat Battle').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (Std.string('Beat Battle 2').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (Std.string('GeoStar').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
-                addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
-
-            // Special
-            if (Std.string('Rise').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (Std.string('Zeventeen').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
-            if (Std.string('Pack-A-Punch').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (Std.string('Driller').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
-            if (Std.string('Test Field').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
-            if (Std.string('Rawr').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
-            if (Std.string('Fightback').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
-            if (Std.string('Funky Fanta').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
-            if (Std.string('Tag And Seek').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
-            if (Std.string('Testimony').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
-            if (Std.string('Fangirl Frenzy').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
-            if (Std.string('Slowdown').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
-                addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
-        }
-
-        for (song in weeklessSongs) {
-            try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
-            catch(e) {
-                //trace("can't.");
-                metadataFile = null;
-            }
-
-            try
-            {
-                metadata.set(song.toLowerCase(), cast metadataFile);
-                //trace("Found metadata for " + song.toLowerCase());
-            }
-            catch (e)
-            {
-                try
-                {
-                    //trace("No metadata for " + song.toLowerCase());
-                }
-                catch (e)
-                {
-                    //trace("No metadata found. No song either apparently.");
-                }
-            }
-        }
 
         switch (ClientPrefs.data.freeplayMenu) {
             case "Mixtape": //Why rename it when you're already here?
@@ -470,7 +751,7 @@ class FreeplayManager {
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
             case "Base Game":
                 if (states.freeplay.VSliceFreeplayState.instance != null)
-                    states.freeplay.VSliceFreeplayState.instance.reloadSongs(true);
+                    states.freeplay.VSliceFreeplayState.instance.generateSongList(null, false);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)
@@ -481,6 +762,15 @@ class FreeplayManager {
     public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Array<Array<Dynamic>>, ?charter:String = "???", ?artist:String = "???")
 	{
 		songs.push(new GlobalSongMetadata(songName, weekNum, songCharacter, color, charter, artist));
+	}
+
+    public function addVsliceSong(songName:String, weekNum:Int, songCharacter:String, color:Array<Array<Dynamic>>)
+	{
+		var sngCard = new FreeplaySongData(weekNum, songName, songCharacter, FlxColor.fromRGB(color[1][0], color[1][1], color[1][2]));
+        // songName, weekNum, songCharacter, color
+        if (sngCard.songDifficulties.length == 0)
+            return;
+        vsliceSongs.push(sngCard);
 	}
 
     public function isModName(name:String):Bool {

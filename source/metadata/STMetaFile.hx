@@ -55,9 +55,9 @@ class FreeplayMetaJSON {
     public var songRating:Int = -1;
     public var allowNewTag:Bool = false;
     public var allowErectVariants:Bool = false;
-    public var freeplayPrevStart:Float = 0; // those are in seconds btw
-    public var freeplayPrevEnd:Float = 0.2;// and this too
-    public var freeplaySongLength:Float = 1;// and this too
+    public var freeplayPrevStart:Float = 0.0; // those are in seconds btw
+    public var freeplayPrevEnd:Float = 10.0;// and this too
+    public var freeplaySongLength:Float = 10;// and this too
     public var freeplayCharacter:String = "";
     public var albumId:String = "";
     public var altInstrumentalSongs:String = "";

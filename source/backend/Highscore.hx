@@ -5,6 +5,7 @@ class Highscore
 	public static var weekScores:Map<String, Int> = new Map();
 	public static var songScores:Map<String, Int> = new Map<String, Int>();
 	public static var songRating:Map<String, Float> = new Map<String, Float>();
+	public static var songFCs:Map<String, Bool> = new Map<String, Bool>();
 	public static var songMisses:Map<String, Int> = new Map<String, Int>();
 	public static var songRanks:Map<String, Int> = new Map<String, Int>();
 	public static var songDeaths:Map<String, Int> = new Map<String, Int>();
@@ -131,7 +132,7 @@ class Highscore
 	{
 		// Reminder that I don't need to format this song, it should come formatted!
 		songRanks.set(song, score);
-		FlxG.save.data.songRanks = songRanks;	
+		FlxG.save.data.songRanks = songRanks;
 		FlxG.save.flush();
 	}
 
@@ -187,6 +188,14 @@ class Highscore
 		FlxG.save.flush();
 	}
 
+	static function setFC(song:String, isFC:Bool):Void
+	{
+		// Reminder that I don't need to format this song, it should come formatted!
+		songFCs.set(song, isFC);
+		FlxG.save.data.songFCs = songFCs;
+		FlxG.save.flush();
+	}
+
 	public static function formatSong(song:String, diff:Int):String
 	{
 		return Paths.formatToSongPath(song) + Difficulty.getFilePath(diff);
@@ -217,8 +226,8 @@ class Highscore
 		var daSong:String = formatSong(song, diff);
 		var songMod:String = daSong+saveMod;
 		if (!songMisses.exists(songMod))
-			setMisses(songMod, 0);	
-	
+			setMisses(songMod, 0);
+
 		return songMisses.get(songMod);
 	}
 
@@ -230,6 +239,15 @@ class Highscore
 			setScore(songMod, 0);
 
 		return songScores.get(songMod);
+	}
+
+	public static function getFCState(song:String, diff:Int):Bool
+	{
+		var daSong:String = formatSong(song, diff);
+		if (!songFCs.exists(daSong))
+			setFC(daSong, false);
+
+		return songFCs.get(daSong);
 	}
 
 	public static function getRating(song:String, diff:Int):Float
@@ -256,7 +274,7 @@ class Highscore
 	{
 		saveMod = "";
 		var playAsGF:Bool = ClientPrefs.getGameplaySetting('gfMode', false);
-		var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');		
+		var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 		var opponentmode:Bool = ClientPrefs.getGameplaySetting('opponentplay', false);
 		var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
 		var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
@@ -300,11 +318,14 @@ class Highscore
 
 		if (FlxG.save.data.songMisses != null)
 			songMisses = FlxG.save.data.songMisses;
-		
+
 		if (FlxG.save.data.songRanks != null)
 			songRanks = FlxG.save.data.songRanks;
-		
+
 		if (FlxG.save.data.songDeaths != null)
 			songDeaths = FlxG.save.data.songDeaths;
+
+		if (FlxG.save.data.songFCs != null)
+			songFCs = FlxG.save.data.songFCs;
 	}
 }

@@ -83,6 +83,8 @@ class FirstCheckState extends MusicBeatState
 
 		super.create();
 
+		FlxG.scaleMode = new MobileScaleMode(ClientPrefs.data.wideScreen);
+
 		// // Colored Text Test
 		// // var text = new MarkdownFlxText(0, 0, FlxG.width, "This is a **bold** text with _italic_ and {#FF0000}color{#0000FF} formatting.");
 

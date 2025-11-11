@@ -8,7 +8,7 @@ import substates.RankingSubstate;
  * ya know, for consistancy sake
  * that and it beats having to make a new one every time.
  * Here's what this manager does:
- 
+
   ** Manages the image that displays the ranking
   ** saves and loads the ranking
   ** can be either big (RankingSubState) or small (Freeplay)
@@ -18,7 +18,7 @@ import substates.RankingSubstate;
 class RankingManager extends FlxSprite {
     public static var instance:RankingManager;
     public var rankTable:Array<String> = [
-		'P', 'X', 'X-', 'SS+', 'SS-', 'SS-', 'S+', 'S', 'S-', 'A+', 'A', 'A-', 'B', 'C', 'D', 'E', 'NA', 'F'
+		'P', 'X', 'X-', 'SS+', 'SS-', 'S+', 'S', 'S-', 'A+', 'A', 'A-', 'B', 'C', 'D', 'E', 'NA', 'F'
 	];
 
     var size:String = 'small';
@@ -30,7 +30,7 @@ class RankingManager extends FlxSprite {
 
         switch (size) {
             case "small":
-                loadGraphic(Paths.image('rankings/$defalutRank-small'));    
+                loadGraphic(Paths.image('rankings/$defalutRank-small'));
                 scale.x = scale.y = 80 / height;
                 updateHitbox();
                 antialiasing = true;
@@ -116,7 +116,7 @@ class RankingManager extends FlxSprite {
                 screenCenter();
         }
     }
-    
+
     public function setRank(rankNum:Int, ?instant:Bool = false) {
         rankOverride = true;
         intendedRating = rankNum;

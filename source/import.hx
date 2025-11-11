@@ -38,12 +38,14 @@ import backend.CoolUtil;
 import backend.Cursor;
 import backend.CustomFadeTransition;
 import backend.Difficulty;
+import backend.FunkinSound;
 import backend.Language;
 import backend.Mods;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
 import backend.Paths;
 import backend.TransitionState;
+import backend.pslice.ScaleMode as MobileScaleMode; // too lazy + its 3 in the morning lol
 import backend.ui.*; // Psych-UI
 import backend.util.*;
 import backend.window.Window;
@@ -79,6 +81,7 @@ import objects.Alphabet;
 import objects.AudioDisplay;
 import objects.BGSprite;
 import objects.FlxAtlasSprite;
+import objects.FunkinSprite;
 import shaders.*;
 import shop.*;
 import stages.BaseStage;
@@ -112,7 +115,4 @@ import flxanimate.*;
 import flxanimate.PsychFlxAnimate as FlxAnimate;
 #end
 
-// Moonchart my belovid
-//Mechanics Mod
-//Flixel
 #end

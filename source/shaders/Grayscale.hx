@@ -20,10 +20,10 @@ class Grayscale extends FlxShader
             gl_FragColor = vec4(mix(color.rgb, vec3(gray), amount), color.a);
         }')
 
-    public function new()
+    public function new(amount:Float)
     {
         super();
-        setAmount(0.0);
+        setAmount(amount);
     }
 
     public function setAmount(value:Float):Void

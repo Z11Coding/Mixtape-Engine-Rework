@@ -1,11 +1,11 @@
-package mikolka.vslice.freeplay;
+package states.freeplay.vslice;
 
-import mikolka.funkin.players.PlayerData.PlayerFreeplayDJData;
-import mikolka.compatibility.funkin.FunkinPath as Paths;
-
+import backend.FunkinSound;
 import flixel.FlxSprite;
 import flixel.util.FlxSignal;
 import flixel.util.FlxTimer;
+import states.freeplay.vslice.PlayerData.PlayerFreeplayDJData;
+import states.freeplay.vslice.obj.FlxAtlasSprite;
 
 class FreeplayDJ extends FlxAtlasSprite
 {
@@ -44,7 +44,7 @@ class FreeplayDJ extends FlxAtlasSprite
       {
         if (number == playableCharData.getCartoonSoundClickFrame())
         {
-          FunkinSound.playOnce(Paths.sound('remote_click'));
+          FunkinSound.playOnce(Paths.soundP('remote_click'));
         }
         if (number == playableCharData.getCartoonSoundCartoonFrame())
         {
@@ -240,7 +240,7 @@ class FreeplayDJ extends FlxAtlasSprite
       onIntroDone.dispatch();
     }
     else if (name == playableCharData.getAnimationPrefix('idle'))
-    {    
+    {
         if (timeIdling >= IDLE_EGG_PERIOD && !seenIdleEasterEgg) //? check this BEFORE we loop
         {
           currentState = IdleEasterEgg;
@@ -327,14 +327,14 @@ class FreeplayDJ extends FlxAtlasSprite
     if (cartoonSnd == null)
     {
       // tv is OFF, but getting turned on
-      FunkinSound.playOnce(Paths.sound('tv_on'), 1.0, function() {
+      FunkinSound.playOnce(Paths.soundP('tv_on'), 1.0, function() {
         loadCartoon();
       });
     }
     else
     {
       // plays it smidge after the click
-      FunkinSound.playOnce(Paths.sound('channel_switch'), 1.0, function() {
+      FunkinSound.playOnce(Paths.soundP('channel_switch'), 1.0, function() {
         cartoonSnd.destroy();
         loadCartoon();
       });
@@ -354,7 +354,7 @@ class FreeplayDJ extends FlxAtlasSprite
     FlxG.sound.music.fadeOut(1.0, 0.1);
 
     // Play the cartoon at a random time between the start and 5 seconds from the end.
-    cartoonSnd.time = FlxG.random.float(0, Math.max(cartoonSnd.length - (5 * Constants.MS_PER_SEC), 0.0));
+    cartoonSnd.time = FlxG.random.float(0, Math.max(cartoonSnd.length - (5 * 1000), 0.0));
   }
   //? cartoons are in "assets/shared/sounds"
   final cartoonList:Array<String> = openfl.utils.Assets.list().filter(function(path) return path.startsWith("assets/shared/sounds/cartoons/"));
@@ -482,7 +482,7 @@ class FreeplayDJ extends FlxAtlasSprite
         yValue += offsetY;
       }
 
-      trace('Successfully applied offset ($AnimName): ' + xValue + ', ' + yValue);
+      //trace('Successfully applied offset ($AnimName): ' + xValue + ', ' + yValue);
       offset.set(xValue, yValue);
     }
     else

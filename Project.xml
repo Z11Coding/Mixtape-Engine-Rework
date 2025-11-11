@@ -31,6 +31,7 @@
 	<define name="ARCHIPELAGO_ALLOWED"/>
 	<define name="CHECK_FOR_UPDATES"/>
 	<define name="TITLE_SCREEN_EASTER_EGG"/>
+	<define name="NATIVE_LOOKUP"/>
 
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY"/>
@@ -272,6 +273,7 @@
 	<haxeflag name="--macro" value="include('my.pack')" />
 	<haxeflag name="--macro" value="yutautil.RuntimeTypedef.processTypedef()" />
 	<haxeflag name="--macro" value="yutautil.VoidFall.randomFailure()" />
+	<haxeflag name="--macro" value="addMetadata('@:build(backend.macro.pslice.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')" />
 
 	<!-- Patched type system - enable field validation on all classes -->
 	<!-- <haxeflag name="--macro" value="yutautil.Patched.PatchedMacro.init()" /> -->

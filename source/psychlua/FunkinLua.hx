@@ -1730,7 +1730,7 @@ class FunkinLua {
 		if(lua == null) {
 			return;
 		}
-		Lua.close(lua);
+		try{Lua.close(lua);}catch(e){trace("ERROR:"+e+"\nI'm just gonna assume it's closed anyways...");}
 		lua = null;
 		#if HSCRIPT_ALLOWED
 		if(hscript != null)

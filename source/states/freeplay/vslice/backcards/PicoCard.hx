@@ -1,18 +1,16 @@
-package mikolka.vslice.freeplay.backcards;
+package states.freeplay.vslice.backcards;
 
-import flixel.addons.display.FlxBackdrop;
-import mikolka.compatibility.freeplay.FreeplayHelpers;
-import mikolka.vslice.freeplay.FreeplayState;
-import mikolka.funkin.custom.mobile.MobileScaleMode;
-import flixel.math.FlxMath;
+import backend.pslice.BitmapUtil;
 import flixel.FlxSprite;
+import flixel.addons.display.FlxBackdrop;
+import flixel.group.FlxSpriteGroup;
+import flixel.math.FlxMath;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
 import openfl.display.BlendMode;
-import flixel.group.FlxSpriteGroup;
-
-import mikolka.compatibility.funkin.FunkinPath as Paths;
+import states.freeplay.VSliceFreeplayState;
+import states.freeplay.vslice.FreeplayHelpers;
 
 class PicoCard extends BackingCard
 {
@@ -35,7 +33,7 @@ class PicoCard extends BackingCard
     FlxTween.tween(scrollMiddle.velocity, {x: 0}, 0.8, {ease: FlxEase.sineIn});
   }
 
-  public override function applyExitMovers(?exitMovers:FreeplayState.ExitMoverData, ?exitMoversCharSel:FreeplayState.ExitMoverData):Void
+  public override function applyExitMovers(?exitMovers:VSliceFreeplayState.ExitMoverData, ?exitMoversCharSel:VSliceFreeplayState.ExitMoverData):Void
   {
     super.applyExitMovers(exitMovers, exitMoversCharSel);
     if (exitMovers == null || exitMoversCharSel == null) return;
@@ -131,7 +129,7 @@ class PicoCard extends BackingCard
     glowDark.blend = BlendMode.MULTIPLY;
     add(glowDark);
 
-    glow = new FlxSprite((FreeplayState.CUTOUT_WIDTH * FreeplayState.DJ_POS_MULTI) + -300, 330).loadGraphic(Paths.image('freeplay/backingCards/pico/glow'));
+    glow = new FlxSprite((VSliceFreeplayState.CUTOUT_WIDTH * VSliceFreeplayState.DJ_POS_MULTI) + -300, 330).loadGraphic(Paths.image('freeplay/backingCards/pico/glow'));
     glow.blend = BlendMode.ADD;
     add(glow);
 

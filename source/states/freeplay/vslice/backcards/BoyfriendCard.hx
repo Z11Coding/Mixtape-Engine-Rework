@@ -1,13 +1,12 @@
-package mikolka.vslice.freeplay.backcards;
+package states.freeplay.vslice.backcards;
 
-import mikolka.compatibility.freeplay.FreeplayHelpers;
-import mikolka.compatibility.VsliceOptions;
-import mikolka.vslice.freeplay.pslice.FreeplayColorTweener;
 import flixel.FlxSprite;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxSpriteUtil;
 import openfl.display.BlendMode;
+import states.freeplay.vslice.FreeplayColorTweener;
+import states.freeplay.vslice.FreeplayHelpers;
 
 class BoyfriendCard extends BackingCard
 {
@@ -22,49 +21,54 @@ class BoyfriendCard extends BackingCard
   var glow:FlxSprite;
   var glowDark:FlxSprite;
 
-  public override function applyExitMovers(?exitMovers:FreeplayState.ExitMoverData, ?exitMoversCharSel:FreeplayState.ExitMoverData):Void
+  public override function applyExitMovers(?exitMovers:VSliceFreeplayState.ExitMoverData, ?exitMoversCharSel:VSliceFreeplayState.ExitMoverData):Void
   {
     super.applyExitMovers(exitMovers, exitMoversCharSel);
     if (exitMovers == null || exitMoversCharSel == null) return;
     exitMovers.set([moreWays],
-      {
-        x: FlxG.width * 2,
-        speed: 0.4,
-      });
+    {
+      x: FlxG.width * 2,
+      speed: 0.4,
+    });
+
     exitMovers.set([funnyScroll],
-      {
-        x: -funnyScroll.width * 2,
-        y: funnyScroll.y,
-        speed: 0.4,
-        wait: 0
-      });
+    {
+      x: -funnyScroll.width * 2,
+      y: funnyScroll.y,
+      speed: 0.4,
+      wait: 0
+    });
+
     exitMovers.set([txtNuts],
-      {
-        x: FlxG.width * 2,
-        speed: 0.4,
-      });
+    {
+      x: FlxG.width * 2,
+      speed: 0.4,
+    });
+
     exitMovers.set([funnyScroll2],
-      {
-        x: -funnyScroll2.width * 2,
-        speed: 0.5,
-      });
+    {
+      x: -funnyScroll2.width * 2,
+      speed: 0.5,
+    });
+
     exitMovers.set([moreWays2],
-      {
-        x: FlxG.width * 2,
-        speed: 0.4
-      });
+    {
+      x: FlxG.width * 2,
+      speed: 0.4
+    });
+
     exitMovers.set([funnyScroll3],
-      {
-        x: -funnyScroll3.width * 2,
-        speed: 0.3
-      });
+    {
+      x: -funnyScroll3.width * 2,
+      speed: 0.3
+    });
 
     exitMoversCharSel.set([moreWays, funnyScroll, txtNuts, funnyScroll2, moreWays2, funnyScroll3],
-      {
-        y: -60,
-        speed: 0.8,
-        wait: 0.1
-      });
+    {
+      y: -60,
+      speed: 0.8,
+      wait: 0.1
+    });
   }
 
   public override function enterCharSel():Void
@@ -80,7 +84,7 @@ class BoyfriendCard extends BackingCard
   public override function new(currentCharacter:PlayableCharacter)
   {
     super(currentCharacter);
-    if(VsliceOptions.ALLOW_COLORING) colorEngine = new FreeplayColorTweener(this); 
+    /*if(VsliceOptions.ALLOW_COLORING)*/ colorEngine = new FreeplayColorTweener(this);
 
     funnyScroll = new BGScrollingText(0, 220, currentCharacter.getFreeplayDJText(1), FlxG.width / 2, false, 60);
     funnyScroll2 = new BGScrollingText(0, 335, currentCharacter.getFreeplayDJText(1), FlxG.width / 2, false, 60);
@@ -218,7 +222,7 @@ class BoyfriendCard extends BackingCard
   public override function disappear():Void
   {
     //While exiting make sure that we aren't tweeneng a color rn
-		colorEngine?.cancelTween();	
+		colorEngine?.cancelTween();
 
     super.disappear();
     moreWays.visible = false;

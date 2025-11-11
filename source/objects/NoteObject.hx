@@ -1,9 +1,8 @@
 package objects;
 
-import flixel.util.FlxDestroyUtil;
-import flixel.math.FlxPoint;
 import backend.math.Vector3;
-
+import flixel.math.FlxPoint;
+import flixel.util.FlxDestroyUtil;
 import shaders.NoteColorSwap;
 
 enum abstract ObjectType(#if cpp cpp.UInt8 #else Int #end)
@@ -15,7 +14,7 @@ enum abstract ObjectType(#if cpp cpp.UInt8 #else Int #end)
 }
 
 class NoteObject extends FlxSprite {
-	public var zIndex:Float = 0;
+	//public var zIndex:Float = 0;
 	public var objType:ObjectType = UNKNOWN;
 
 	public var extraData:Map<String, Dynamic> = [];
@@ -35,7 +34,7 @@ class NoteObject extends FlxSprite {
 	public var handleRendering:Bool = true;
 
 	public var vec3Cache:Vector3 = new Vector3(); // for vector3 operations in modchart code
-	
+
 	override function toString()
 	{
 		return '(column: $column | visible: $visible)';

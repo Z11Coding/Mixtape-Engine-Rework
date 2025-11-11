@@ -1,9 +1,9 @@
-package mikolka.vslice.freeplay;
+package states.freeplay.vslice;
 
-import mikolka.compatibility.VsliceOptions;
-import shaders.HSVShader;
-import mikolka.vslice.freeplay.obj.FreeplayFlames;
 import flixel.group.FlxSpriteGroup;
+import shaders.HSVShader;
+import states.freeplay.vslice.obj.FlxAtlasSprite;
+import states.freeplay.vslice.obj.FreeplayFlames;
 
 class DifficultyStars extends FlxSpriteGroup
 {
@@ -29,21 +29,21 @@ class DifficultyStars extends FlxSpriteGroup
   {
     super(x, y);
 
-    
-    
+
+
     flames = new FreeplayFlames(0, 0);
     add(flames);
-    
+
     //? Using base FlxAnimate to sideload JSON obj "freeplay/freeplayStars
     stars = new FlxAtlasSprite(0, 0, "freeplay/freeplayStars");
 
     stars.anim.play("diff stars");
     add(stars);
-    if(VsliceOptions.SHADERS){
+    if(ClientPrefs.data.shaders){
 
       hsvShader = new HSVShader();
       stars.shader = hsvShader;
-      
+
       for (memb in flames.members)
         memb.shader = hsvShader;
     }

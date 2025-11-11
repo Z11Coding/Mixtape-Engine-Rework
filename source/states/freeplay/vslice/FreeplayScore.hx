@@ -1,8 +1,8 @@
-package mikolka.vslice.freeplay;
+package states.freeplay.vslice;
 
-import mikolka.funkin.freeplay.FreeplayStyle;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import states.freeplay.vslice.FreeplayStyle;
 
 //? Native
 class FreeplayScore extends FlxTypedSpriteGroup<ScoreNum>
@@ -52,11 +52,11 @@ class FreeplayScore extends FlxTypedSpriteGroup<ScoreNum>
     {
       if (styleData == null)
       {
-        add(new ScoreNum( (45 * i), y, 0));
+        add(new ScoreNum((45 * i), y, 0));
       }
       else
       {
-        add(new ScoreNum( (45 * i), y, 0, styleData));
+        add(new ScoreNum((45 * i), y, 0, styleData));
       }
     }
 
@@ -107,7 +107,6 @@ class ScoreNum extends FlxSprite
   public var baseX:Float = 0;
 
   var numToString:Array<String> = ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE"];
-
   public function new(x:Float, y:Float, ?initDigit:Int = 0, ?styleData:FreeplayStyle)
   {
     super(x, y);

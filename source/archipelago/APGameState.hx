@@ -1101,9 +1101,9 @@ class APGameState
 		// Load shop
 		if (_saveData.hasItem("apShopItems"))
 		{
-			var apShopItems:Array<MiniItem> = _saveData.getItem("apShopItems");
+			var apShopItems:Array<shop.Item.MiniItem> = _saveData.getItem("apShopItems");
 			for (item in apShopItems)
-				ShopData.items.set(item.name, Item.makeItemFromMini(item));
+				ShopData.items.set(item.name, shop.Item.makeItemFromMini(item));
 
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
@@ -1147,9 +1147,9 @@ class APGameState
 		_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
 
 		// put everything in the array to grab later
-		var shopItems:Array<MiniItem> = [];
+		var shopItems:Array<shop.Item.MiniItem> = [];
 		for (item in ShopData.items.keys())
-			shopItems.push(Item.makeMiniItemFromItem(ShopData.items.get(item)));
+			shopItems.push(shop.Item.makeMiniItemFromItem(ShopData.items.get(item)));
 
 		_saveData.addItem("apShopItems", shopItems);
 

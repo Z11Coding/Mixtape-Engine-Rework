@@ -1,7 +1,7 @@
-package mikolka.vslice.freeplay;
+package states.freeplay.vslice;
 
-import mikolka.funkin.freeplay.FreeplayStyle;
 import shaders.PureColor;
+import states.freeplay.vslice.FreeplayStyle;
 
 /**
  * The difficulty selector arrows to the left and right of the difficulty.
@@ -11,9 +11,9 @@ class DifficultySelector extends FlxSprite
 	var controls:Controls;
 	var whiteShader:PureColor;
 
-	var parent:FreeplayState;
+	var parent:VSliceFreeplayState;
 
-	public function new(parent:FreeplayState, x:Float, y:Float, flipped:Bool, controls:Controls, ?styleData:FreeplayStyle = null)
+	public function new(parent:VSliceFreeplayState, x:Float, y:Float, flipped:Bool, controls:Controls, ?styleData:FreeplayStyle = null)
 	{
 		super(x, y);
 
@@ -54,7 +54,7 @@ class DifficultySelector extends FlxSprite
 			offset.y -= 5;
 			shader = whiteShader;
 			scale.x = scale.y = 0.5;
-			
+
 		}
 	}
 

@@ -419,6 +419,7 @@ class CategoryState extends MusicBeatState
 	}
 
 	var inDialogue:Bool = false;
+	public var inFreeplay:Bool = false;
 	override function update(elapsed:Float)
 	{
 		// If Legacy Lua settings are being edited, switch to Legacy Lua version
@@ -478,7 +479,7 @@ class CategoryState extends MusicBeatState
 				changeSelection(shiftMult);
 			}
 
-			if (FlxG.keys.justPressed.CONTROL)
+			if (FlxG.keys.justPressed.CONTROL && !inFreeplay)
 			{
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				this.openSubState(new options.CategoriesSubstate());
@@ -549,7 +550,7 @@ class CategoryState extends MusicBeatState
 				}
 				else
 				{
-					FreeplayManager.openFreeplay();
+					FreeplayManager.openFreeplay(true);
 				}
 			}
 		}

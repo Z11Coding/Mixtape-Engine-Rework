@@ -1,4 +1,8 @@
+
 package backend;
+
+import openfl.filters.BitmapFilter;
+import openfl.filters.ShaderFilter;
 
 // PsychCamera handles followLerp based on elapsed
 // and stops camera from snapping at higher framerates
@@ -58,7 +62,7 @@ class PsychCamera extends FlxCamera
 				{
 					_scrollTarget.y -= viewHeight;
 				}
-				
+
 				// without this we see weird behavior when switching to SCREEN_BY_SCREEN at arbitrary scroll positions
 				bindScrollPos(_scrollTarget);
 			}
@@ -106,9 +110,12 @@ class PsychCamera extends FlxCamera
 		scroll.y += (_scrollTarget.y - scroll.y) * mult;
 		//trace('lerp on this frame: $mult');
 	}
-
-	override function set_followLerp(value:Float)
-	{
-		return followLerp = value;
+	// Fixes some scripts assuming we are on the filxel 5.6.2
+	override public function setFilters(newShaders:Array<BitmapFilter>):Void {
+		this.filters = cast newShaders;
 	}
+	// override function set_followLerp(value:Float)
+	// {
+	// 	return followLerp = value;
+	// }
 }

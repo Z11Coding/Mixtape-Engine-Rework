@@ -1,1 +1,0 @@
-Put the Week name image here (Examples inside assets/base_game/shared/images/storymenu)

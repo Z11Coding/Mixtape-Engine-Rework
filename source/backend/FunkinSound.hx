@@ -1,10 +1,12 @@
 package backend;
 
-import openfl.media.Sound;
-import funkin.util.flixel.sound.FlxPartialSound;
-import haxe.exceptions.NotImplementedException;
-import openfl.media.SoundMixer;
+import backend.FlxPartialSound;
+import backend.Paths;
 import flixel.system.FlxAssets.FlxSoundAsset;
+import haxe.exceptions.NotImplementedException;
+import openfl.media.Sound;
+import openfl.media.SoundMixer;
+import openfl.utils.AssetType;
 
 class FunkinSound extends FlxSound
 {
@@ -80,23 +82,33 @@ class FunkinSound extends FlxSound
 	public static function playMusic(key:String, params:FunkinSoundPlayMusicParams):Bool {
 		if(params.pathsFunction == INST){
 			var instPath = "";
-			
+
 			try{
 				//key = songData.songId
 
+				// we can assume to just use the
 				instPath = 'assets/songs/${Paths.formatToSongPath(key)}/Inst.${Paths.SOUND_EXT}';
 				#if MODS_ALLOWED
 				var modsInstPath = Paths.modFolders('songs/${Paths.formatToSongPath(key)}/Inst.${Paths.SOUND_EXT}');
-				if(FileSystem.exists(modsInstPath)) instPath = modsInstPath;
+				trace('Modded Song Path: $modsInstPath');
+				var real_modSngPath = NativeFileSystem.getPathLike(modsInstPath);
+				trace('Real Modded Song Path: $real_modSngPath');
+				#if mac
+				if(real_modSngPath != null) instPath = haxe.io.Path.join([StorageUtil.getStorageDirectory(),real_modSngPath]);
+				#else
+				if(real_modSngPath != null) instPath = real_modSngPath;
 				#end
-				
+				#end
+
+				trace('Using Song Path: $instPath');
+
 				var future = FlxPartialSound.partialLoadFromFile(instPath,params.partialParams.start,params.partialParams.end);
 				if(future == null){
 					trace('Internal failure loading instrumentals for ${key} "${instPath}"');
 					return false;
 				}
 				future.future.onComplete(function(sound:Sound)
-				{	
+				{
 					trace("Playing preview!");
 					FlxG.sound.playMusic(sound,0);
 					params.onLoad();
@@ -105,11 +117,15 @@ class FunkinSound extends FlxSound
 			}
 			catch (x){
 				var targetPath = instPath == "" ? "" : "from "+instPath;
-				trace('Failed to parialy load instrumentals for ${key} ${targetPath}');
+				trace('Failed to parialy load instrumentals for ${key} ${targetPath}: $x');
 				return false;
 			}
-		}
-		else{
+		} else if(params.pathsFunction == BASE) {
+			var targetPath = 'menuMusic/$key';
+			FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(targetPath)),params.startingVolume,params.loop);
+			if(params.onLoad!= null)params.onLoad();
+			return true;
+		}else{
 			var targetPath = key+"/"+key;
 			if(key == "freakyMenu") targetPath = "freakyMenu";
 			FlxG.sound.playMusic(Paths.music(targetPath),params.startingVolume,params.loop);
@@ -129,45 +145,45 @@ class FunkinSound extends FlxSound
 	* @default `1.0`
 	*/
    var ?startingVolume:Float;
- 
+
    /**
 	* The suffix of the music file to play. Usually for "-erect" tracks when loading an INST file
 	* @default ``
 	*/
    var ?suffix:String;
- 
+
    /**
 	* Whether to override music if a different track is already playing.
 	* @default `false`
 	*/
    var ?overrideExisting:Bool;
- 
+
    /**
 	* Whether to override music if the same track is already playing.
 	* @default `false`
 	*/
    var ?restartTrack:Bool;
- 
+
    /**
 	* Whether the music should loop or play once.
 	* @default `true`
 	*/
    var ?loop:Bool;
- 
+
    /**
 	* Whether to check for `SongMusicData` to update the Conductor with.
 	* @default `true`
 	*/
    var ?mapTimeChanges:Bool;
- 
+
    /**
 	* Which Paths function to use to load a song
 	* @default `MUSIC`
 	*/
    var ?pathsFunction:PathsFunction;
- 
+
    var ?partialParams:PartialSoundParams;
- 
+
    var ?onComplete:Void->Void;
    var ?onLoad:Void->Void;
  }
@@ -185,4 +201,5 @@ enum abstract PathsFunction(String)
   var INST;
   var VOICES;
   var SOUND;
+	var BASE;
 }

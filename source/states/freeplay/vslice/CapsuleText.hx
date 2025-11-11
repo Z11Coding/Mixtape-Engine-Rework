@@ -11,7 +11,7 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import openfl.display.BlendMode;
-import states.freeplay.vslice.obj.SngCapsuleData.FreeplayStyle;
+import states.freeplay.vslice.FreeplayStyle;
 
 #if !html5
 import openfl.filters.BitmapFilterQuality;

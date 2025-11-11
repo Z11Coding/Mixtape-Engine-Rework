@@ -1,7 +1,9 @@
 package shop;
 
-typedef MiniItem {
+typedef MiniItem = {
   var icon:FlxSprite;
+  var name:String;
+  var image:String;
   var desc:String;
   var price:Int;
   var isHidden:Bool;
@@ -21,7 +23,9 @@ typedef MiniItem {
 
 class Item extends FlxObject {
     //Per-Item Variables
+    public var name:String;
     public var icon:FlxSprite;
+    public var image:String;
     public var desc:String;
     public var price:Int;
     public var isHidden:Bool = false;
@@ -29,15 +33,16 @@ class Item extends FlxObject {
     public var inShop(default, set):Bool = false;
     public var amountOwned:Int = 0;
     public var extraData:Map<String, Dynamic> = [];
+    public var alpha:Float = 1;
 
     private function set_inShop(value:Bool):Bool {
       if (!value && priceTxt != null) {
-        remove(priceTxt);
+        FlxG.state.remove(priceTxt);
         priceTxt.destroy();
       } else {
-        priceTxt = new FlxText(x + 50, y + 150, 0, price, 15);
+        priceTxt = new FlxText(x + 50, y + 150, 0, "$"+price, 15);
         priceTxt.setFormat(Paths.font("comboFont.ttf"), 25, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-        add(priceTxt);
+        FlxG.state.add(priceTxt);
       }
       return value;
     }
@@ -49,6 +54,8 @@ class Item extends FlxObject {
     public var category:String = 'base';
     public var priceTxt:FlxText;
     public var amountAllowedToBuy:Int = 1;
+    public var posX:Int;
+    public var posY:Int;
 
     //AP-Specific Variables
     public var apItemID:Int;
@@ -59,7 +66,10 @@ class Item extends FlxObject {
     public function new(name:String, desc:String, price:Int, image:String, ?isHidden:Bool) {
       super();
 
-      icon = new FlxSprite().loadGraphic(Paths.image('shop/'+image));
+      icon = new FlxSprite().loadGraphic(Paths.image('shop/'+(image != null ? image : 'unknownItem')));
+      FlxG.state.add(icon);
+      this.image = image;
+      this.name = name;
       this.desc = desc;
       this.price = price;
       this.isHidden = isHidden;
@@ -81,22 +91,32 @@ class Item extends FlxObject {
     }
 
     public static function makeMiniItemFromItem(item:Item):MiniItem {
-      var newMiniItem = new MiniItem();
-      newMiniItem.name = item.name;
-      newMiniItem.desc = item.desc;
-      newMiniItem.price = item.price;
-      newMiniItem.image = item.image;
-      newMiniItem.isHidden = item.isHidden;
-      newMiniItem.isBought = miniItem.isBought;
-      newMiniItem.amountOwned = miniItem.amountOwned;
-      newMiniItem.extraData = miniItem.extraData;
-      newMiniItem.category = miniItem.category;
-      newMiniItem.priceTxt = miniItem.priceTxt;
-      newMiniItem.amountAllowedToBuy = miniItem.amountAllowedToBuy;
-      newMiniItem.apItemID = miniItem.apItemID;
-      newMiniItem.apItemName = miniItem.apItemName;
-      newMiniItem.apLocID = miniItem.apLocID;
-      newMiniItem.apLocName = miniItem.apLocName;
+      var newMiniItem:MiniItem = {
+        name: item.name,
+        desc: item.desc,
+        price: item.price,
+        icon: item.icon,
+        isHidden: item.isHidden,
+        isBought: item.isBought,
+        amountOwned: item.amountOwned,
+        extraData: item.extraData,
+        category: item.category,
+        priceTxt: item.priceTxt,
+        amountAllowedToBuy: item.amountAllowedToBuy,
+        apItemID: item.apItemID,
+        apItemName: item.apItemName,
+        apLocID: item.apLocID,
+        apLocName: item.apLocName,
+        inShop: item.inShop,
+        image: item.image,
+        globalEXData: globalEXData,
+      };
       return newMiniItem;
+    }
+
+    override function update(elapsed:Float) {
+      super.update(elapsed);
+      icon.alpha = alpha;
+      if (priceTxt != null) priceTxt.alpha = alpha;
     }
 }

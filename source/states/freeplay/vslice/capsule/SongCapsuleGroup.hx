@@ -1,20 +1,20 @@
-package mikolka.vslice.freeplay.capsule;
+package states.freeplay.vslice.capsule;
 
-import mikolka.vslice.freeplay.capsule.SongMenuItem.SongCapsuleAnim;
-import mikolka.vslice.freeplay.capsule.CustomAnimControl;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.util.FlxSignal.FlxTypedSignal;
-import mikolka.compatibility.freeplay.FreeplaySongData;
-import mikolka.funkin.freeplay.FreeplayStyle;
+import states.freeplay.vslice.FreeplaySongData;
+import states.freeplay.vslice.FreeplayStyle;
+import states.freeplay.vslice.capsule.CustomAnimControl;
+import states.freeplay.vslice.capsule.SongMenuItem.SongCapsuleAnim;
 
 // This is not a sprite group!
 class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 
-    @:allow(mikolka.vslice.freeplay.capsule.CapsuleNumber)
+    @:allow(states.freeplay.vslice.capsule.CapsuleNumber)
     static var BIG_NUMBER_FRAMES:FlxAtlasFrames;
-    @:allow(mikolka.vslice.freeplay.capsule.CapsuleNumber)
+    @:allow(states.freeplay.vslice.capsule.CapsuleNumber)
     static var SMALL_NUMBER_FRAMES:FlxAtlasFrames;
-    
+
     public final onRandomSelected:FlxTypedSignal<SongMenuItem -> Void> = new FlxTypedSignal<SongMenuItem -> Void>();
     public final onSongSelected:FlxTypedSignal<SongMenuItem -> Void> = new FlxTypedSignal<SongMenuItem -> Void>();
 	final randomCapsule:SongMenuItem;
@@ -23,29 +23,29 @@ class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 
     var styleData:FreeplayStyle;
     public function new(styleData:FreeplayStyle) {
-        super();
-        this.styleData = styleData;
-		randomCapsule = new SongMenuItem(FlxG.width,0,styleData);
-		randomCapsule.onConfirm = function()
-		{
-			onRandomSelected.dispatch(randomCapsule);
-		};
-		randomCapsule.applySongData(null);
-		randomCapsule.alpha = 0;
-		randomCapsule.songText.visible = false;
-		randomCapsule.hsvShader = SongMenuItem.static_hsvShader;
+			super();
+			this.styleData = styleData;
+			randomCapsule = new SongMenuItem(FlxG.width,0,styleData);
+			randomCapsule.onConfirm = function()
+			{
+				onRandomSelected.dispatch(randomCapsule);
+			};
+			randomCapsule.applySongData(null);
+			randomCapsule.alpha = 0;
+			randomCapsule.songText.visible = false;
+			randomCapsule.hsvShader = SongMenuItem.static_hsvShader;
 
-		add(randomCapsule);
+			add(randomCapsule);
 
-        BIG_NUMBER_FRAMES = Paths.getSparrowAtlas('freeplay/freeplayCapsule/bignumbers');
-        SMALL_NUMBER_FRAMES = Paths.getSparrowAtlas('freeplay/freeplayCapsule/smallnumbers');
+			BIG_NUMBER_FRAMES = Paths.getSparrowAtlas('freeplay/freeplayCapsule/bignumbers');
+			SMALL_NUMBER_FRAMES = Paths.getSparrowAtlas('freeplay/freeplayCapsule/smallnumbers');
     }
 
 
     override function destroy() {
-        BIG_NUMBER_FRAMES = null;
-        SMALL_NUMBER_FRAMES = null;
-        super.destroy();
+			BIG_NUMBER_FRAMES = null;
+			SMALL_NUMBER_FRAMES = null;
+			super.destroy();
     }
 
     public function updateSongDifficulties(currentDifficulty:String) {
@@ -71,7 +71,7 @@ class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 	 */
 	public function generateFullSongList(songList:Array<Null<FreeplaySongData>>,currentDifficulty:String,animation:SongCapsuleAnim,randomAnimation:SongCapsuleAnim):Void
 	{
-		
+
 		for (cap in members)
 		{
 			if(cap.songData == null) continue; // Exclude "Random" card from cleanup
@@ -86,7 +86,7 @@ class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 		randomCapsule.ID = 0;
 		randomCapsule.targetPos.x = randomCapsule.x;
 		randomCapsule.setCapsuleAnimation(randomAnimation);
-		
+
 		activeSongItems.push(randomCapsule);
 		add(randomCapsule);
 
@@ -107,7 +107,7 @@ class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 				funnyMenu.initPosition(FlxG.width,0);
 				funnyMenu.applySongData(tempSong);
 				// This actually protects from adding the card twice!
-				add(funnyMenu); 
+				add(funnyMenu);
 			}
 			else{
 				funnyMenu.refreshDisplayDifficulty();
@@ -117,23 +117,23 @@ class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 				onSongSelected.dispatch(funnyMenu);
 			};
 			funnyMenu.targetPos.x = funnyMenu.x; // This is target position on X
-			funnyMenu.y = funnyMenu.intendedY(i + 1) + 10; 
+			funnyMenu.y = funnyMenu.intendedY(i + 1) + 10;
 			funnyMenu.ID = i;
 			funnyMenu.capsule.alpha = 0.5;
 			funnyMenu.songText.visible = false;
 			funnyMenu.hsvShader = SongMenuItem.static_hsvShader;
 			funnyMenu.checkClip();
-			
+
 			funnyMenu.setCapsuleAnimation(animation);
 
 			activeSongItems.push(funnyMenu);
-			
+
 		}
 	}
 
 	/**
 	 * Sets initial positions for all cards.
-	 * 
+	 *
 	 * Useful after setting their target positions via "targetPos" property
 	 */
 	inline public function setInitialAnimPosition() {

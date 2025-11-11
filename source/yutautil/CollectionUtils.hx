@@ -3029,6 +3029,95 @@ class CollectionUtils
 		return target;
 	}
 
+	public static function pushMany<T>(input:Array<T>, items:Array<T>):Array<T>
+  {
+    for(x in items){
+      input.push(x);
+    }
+    return input;
+  }
+
+	/**
+		It returns the index of the first element of the array that matches the predicate function.
+		If none is found it returns `-1`.
+	**/
+	public static function findIndex<T>(array:Array<T>, predicate:T->Bool):Int {
+		for (i in 0...array.length)
+			if (predicate(array[i]))
+				return i;
+		return -1;
+	}
+
+	/**
+   * Converts a string to title case. For example, "hello world" becomes "Hello World".
+     *
+   * @param value The string to convert.
+   * @return The converted string.
+   */
+  public static function toTitleCase(value:String):String
+  {
+    var words:Array<String> = value.split(' ');
+    var result:String = '';
+    for (i in 0...words.length)
+    {
+      var word:String = words[i];
+      result += word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+      if (i < words.length - 1)
+      {
+        result += ' ';
+      }
+    }
+    return result;
+  }
+
+	public static function extractWeeks(text:String)
+	{
+		if (text == null)
+			return [];
+		var baseStr = text.trim();
+		if (baseStr == "")
+			return [];
+		var base_weeks = baseStr.split(",").map(s -> s.trim().toLowerCase());
+		return base_weeks;
+	}
+
+	/**
+	 * Sets whethever or not this sprite is visible (and pauses animations)
+	 */
+	public static function setVisibility(spr:FlxSprite,state:Bool) {
+		spr.visible = state;
+		spr.animation.paused = state;
+	}
+
+	/**
+   * Return true only if both arrays contain the same elements (possibly in a different order).
+   * @param a The first array to compare.
+   * @param b The second array to compare.
+   * @return Weather both arrays contain the same elements.
+   */
+  public static function isEqualUnordered<T>(a:Array<T>, b:Array<T>):Bool
+  {
+    if (a.length != b.length) return false;
+    for (element in a)
+    {
+      if (!b.contains(element)) return false;
+    }
+    for (element in b)
+    {
+      if (!a.contains(element)) return false;
+    }
+    return true;
+  }
+
+	/**
+   * Remove all elements from the array, without creating a new array.
+   * @param array The array to clear.
+   */
+  public inline static function clear<T>(array:Array<T>):Void
+  {
+    // This method is faster than array.splice(0, array.length)
+    array.resize(0);
+  }
 
 	public static function createTestData():Void
 	{

@@ -7,8 +7,12 @@ import flixel.FlxSubState;
 @:autoBuild(yutautil.CrashTracker.instrument())
 class MusicBeatSubstate extends FlxSubState
 {
+	public static var instance:MusicBeatSubstate;
+
 	public function new()
 	{
+		instance = this;
+		//controls.isInSubstate = true;
 		super();
 	}
 

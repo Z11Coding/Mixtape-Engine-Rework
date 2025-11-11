@@ -4,6 +4,8 @@ import archipelago.*;
 import archipelago.APEntryState;
 import backend.Song;
 import backend.WeekData;
+import backend.pslice.Scoring.ScoringRank;
+import backend.pslice.Scoring;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.transition.FlxTransitionableState;
@@ -51,8 +53,15 @@ class RankingSubstate extends MusicBeatSubstate
 		return (formattedSongName != '') ? formattedSongName : formattedPauseMusic;
 	}
 
+	var wasFC = false;
+	var prevScore = 0;
+	var prevAcc = 0.0;
+
 	override function create()
 	{
+		wasFC = backend.Highscore.getFCState(PlayState.SONG.song, PlayState.storyDifficulty);
+		prevScore = backend.Highscore.getScore(PlayState.SONG.song, PlayState.storyDifficulty);
+		prevAcc = backend.Highscore.getRating(PlayState.SONG.song, PlayState.storyDifficulty);
 		pauseMusic = new FlxSound();
 		try
 		{
@@ -195,7 +204,20 @@ class RankingSubstate extends MusicBeatSubstate
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
-					TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
+					var prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
+					var accPts = PlayState.instance.comboManager.ratingPercent * PlayState.instance.comboManager.totalPlayed;
+					var fpRank:ScoringRank = Scoring.calculateRankFromData(PlayState.instance.comboManager.songScore, Math.min(1, accPts / PlayState.instance.comboManager.totalPlayed), PlayState.instance.comboManager.songMisses == 0) ?? SHIT;
+					openSubState(new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build({
+						{
+							fromResults: {
+								oldRank: prevRank,
+								playRankAnim: PlayState.instance.comboManager.ratingPercent > prevAcc,
+								newRank: fpRank,
+								songId: PlayState.SONG.song,
+								difficultyId: Difficulty.getString()
+							}
+						}
+					}, sticker)));
 					//MusicManager.playMenuMusic();
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');

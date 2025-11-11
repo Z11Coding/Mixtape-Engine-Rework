@@ -1,36 +1,28 @@
 package states.freeplay.vslice.capsule;
 
-import backend.ClientPrefs;
-import backend.Paths;
-import flixel.FlxG;
+import backend.pslice.Scoring.ScoringRank;
 import flixel.FlxSprite;
 import flixel.addons.effects.FlxTrail;
 import flixel.group.FlxGroup;
 import flixel.group.FlxSpriteGroup;
-import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
-import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import objects.FunkinSprite;
 import openfl.display.BlendMode;
-import shaders.Grayscale;
-import states.freeplay.vslice.obj.PixelatedIcon;
-import states.freeplay.vslice.obj.SngCapsuleData.FreeplaySongData;
-import states.freeplay.vslice.obj.SngCapsuleData.FreeplayStyle;
-import states.freeplay.vslice.obj.SngCapsuleData.ScoringRank;
-
-#if !html5
 import shaders.GaussianBlurShader;
 import shaders.Grayscale;
 import shaders.HSVShader;
-#end
+import states.freeplay.vslice.FreeplaySongData;
+import states.freeplay.vslice.FreeplayStyle;
+import states.freeplay.vslice.obj.AtlasText.AtlasFont;
+import states.freeplay.vslice.obj.AtlasText;
+import states.freeplay.vslice.obj.PixelatedIcon;
 
-/**
- * Song menu item for V-Slice freeplay system
- * Adapted from P-Slice for Mixtape Engine
- */
+// ? Documented
+// changed FunkinSprite to FlxSprite
 class SongMenuItem extends FlxSpriteGroup
 {
 	public var capsule:FlxSprite;
@@ -44,6 +36,13 @@ class SongMenuItem extends FlxSpriteGroup
 	public var songData(default, null):Null<FreeplaySongData> = null;
 
 	public var selected(default, set):Bool;
+	function set_selected(value:Bool):Bool
+	{
+		// cute one liners, lol!
+		selected = value;
+		updateSelected();
+		return selected;
+	}
 
 	public var doLerp(null, set):Bool;
 	function set_doLerp(value:Bool):Bool {
@@ -63,16 +62,14 @@ class SongMenuItem extends FlxSpriteGroup
 	var fakeRanking:FreeplayRank;
 	var fakeBlurredRanking:FreeplayRank;
 
-	public var txtWeek:states.freeplay.vslice.AtlasText;
+	public var txtWeek:AtlasText;
 
 	public var targetPos:FlxPoint = FlxPoint.get();
 
 	public var onConfirm:Void->Void;
-
-	#if !html5
 	public var grayscaleShader:Grayscale;
+
 	public var hsvShader(default, set):HSVShader;
-	#end
 
 	// var diffRatingSprite:FlxSprite;
 	public var bpmText:FlxSprite;
@@ -86,7 +83,8 @@ class SongMenuItem extends FlxSpriteGroup
 
 	public var smallNumbers:Array<CapsuleNumber> = [];
 
-	var impactThing:FlxSprite;
+	// public var weekNumbers:Array<CapsuleNumber> = [];
+	var impactThing:FunkinSprite;
 	var grpHide:FlxGroup;
 	public var sparkle:FlxSprite;
 
@@ -94,15 +92,12 @@ class SongMenuItem extends FlxSpriteGroup
 
 	var currentFpStyle:Null<FreeplayStyle> = null;
 
-	#if !html5
 	static var gaussianBlur:GaussianBlurShader = null;
 	static var gaussianBlur_12:GaussianBlurShader = null;
 	public static var static_hsvShader:HSVShader = null;
-	#end
 
 	public static function reloadGlobalItemData()
 	{
-		#if !html5
 		if (ClientPrefs.data.shaders)
 		{
 			static_hsvShader = new HSVShader();
@@ -115,11 +110,6 @@ class SongMenuItem extends FlxSpriteGroup
 			gaussianBlur = null;
 			gaussianBlur_12 = null;
 		}
-		#else
-		static_hsvShader = null;
-		gaussianBlur = null;
-		gaussianBlur_12 = null;
-		#end
 	}
 
 	public function new(x:Float, y:Float, styleData:FreeplayStyle)
@@ -129,40 +119,23 @@ class SongMenuItem extends FlxSpriteGroup
 
 		capsule = new FlxSprite();
 		initFreeplayStyle(styleData);
+		// capsule.animation
 		add(capsule);
 
-		bpmText = new FlxSprite(144, 87);
-		var bpmImg = Paths.image('freeplay/freeplayCapsule/bpmtext', 'vslice');
-		if (bpmImg != null) {
-			bpmText.loadGraphic(bpmImg);
-			bpmText.setGraphicSize(Std.int(bpmText.width * 0.9));
-		} else {
-			bpmText.makeGraphic(50, 20, 0xFF666666);
-		}
-		bpmText.antialiasing = ClientPrefs.data.antialiasing;
+		bpmText = new FlxSprite(144, 87).loadGraphic(Paths.image('freeplay/freeplayCapsule/bpmtext'));
+		bpmText.setGraphicSize(Std.int(bpmText.width * 0.9));
 		add(bpmText);
 
-		difficultyText = new FlxSprite(414, 87);
-		var diffImg = Paths.image('freeplay/freeplayCapsule/difficultytext', 'vslice');
-		if (diffImg != null) {
-			difficultyText.loadGraphic(diffImg);
-			difficultyText.setGraphicSize(Std.int(difficultyText.width * 0.9));
-		} else {
-			difficultyText.makeGraphic(50, 20, 0xFF666666);
-		}
-		difficultyText.antialiasing = ClientPrefs.data.antialiasing;
+		difficultyText = new FlxSprite(414, 87).loadGraphic(Paths.image('freeplay/freeplayCapsule/difficultytext'));
+		difficultyText.setGraphicSize(Std.int(difficultyText.width * 0.9));
 		add(difficultyText);
 
 		newText = new FlxSprite(454, 9);
-		newText.frames = Paths.getSparrowAtlas('freeplay/freeplayCapsule/new', 'vslice');
-		if (newText.frames != null) {
-			newText.animation.addByPrefix('newAnim', 'NEW notif', 24, true);
-			newText.animation.play('newAnim', true);
-			newText.setGraphicSize(Std.int(newText.width * 0.9));
-		} else {
-			newText.makeGraphic(30, 15, 0xFFFF0000);
-		}
-		newText.antialiasing = ClientPrefs.data.antialiasing;
+		newText.frames = Paths.getSparrowAtlas('freeplay/freeplayCapsule/new');
+		newText.animation.addByPrefix('newAnim', 'NEW notif', 24, true);
+		newText.animation.play('newAnim', true);
+		newText.setGraphicSize(Std.int(newText.width * 0.9));
+
 		add(newText);
 
 		for (i in 0...2)
@@ -188,37 +161,24 @@ class SongMenuItem extends FlxSpriteGroup
 		add(ranking);
 
 		blurredRanking = new FreeplayRank(420, 41);
-		#if !html5
-		if (gaussianBlur != null) {
-			blurredRanking.shader = gaussianBlur;
-		}
-		#end
+		blurredRanking.shader = gaussianBlur;
 		add(blurredRanking);
 
 		sparkle = new FlxSprite(ranking.x, ranking.y);
-		sparkle.frames = Paths.getSparrowAtlas('freeplay/sparkle', 'vslice');
-		if (sparkle.frames != null) {
-			sparkle.animation.addByPrefix('sparkle', 'sparkle Export0', 24, false);
-			sparkle.animation.play('sparkle', true);
-		} else {
-			sparkle.makeGraphic(30, 30, 0xFFFFFFFF);
-		}
+		sparkle.frames = Paths.getSparrowAtlas('freeplay/sparkle');
+		sparkle.animation.addByPrefix('sparkle', 'sparkle Export0', 24, false);
+		sparkle.animation.play('sparkle', true);
 		sparkle.scale.set(0.8, 0.8);
 		sparkle.blend = BlendMode.ADD;
-		sparkle.antialiasing = ClientPrefs.data.antialiasing;
 
 		sparkle.visible = false;
 		sparkle.alpha = 0.7;
 
 		add(sparkle);
 
-        #if !html5
-        if (ClientPrefs.data.shaders) {
-            grayscaleShader = new Grayscale();
-        }
-        #end
+		grayscaleShader = new Grayscale(1);
 
-		songText = new states.freeplay.vslice.CapsuleText(capsule.width * 0.26, 45, 'Random', Std.int(40 * animBox.realScaled));
+		songText = new CapsuleText(capsule.width * 0.26, 45, 'Random', Std.int(40 * animBox.realScaled));
 		songText.applyStyle(styleData);
 		add(songText);
 		grpHide.add(songText);
@@ -231,37 +191,23 @@ class SongMenuItem extends FlxSpriteGroup
 		grpHide.add(pixelIcon);
 
 		favIconBlurred = new FlxSprite(380, 40);
-		favIconBlurred.frames = Paths.getSparrowAtlas('freeplay/favHeart', 'vslice');
-		if (favIconBlurred.frames != null) {
-			favIconBlurred.animation.addByPrefix('fav', 'favorite heart', 24, false);
-			favIconBlurred.animation.play('fav');
-		} else {
-			favIconBlurred.makeGraphic(50, 50, 0xFFFF69B4);
-		}
+		favIconBlurred.frames = Paths.getSparrowAtlas('freeplay/favHeart');
+		favIconBlurred.animation.addByPrefix('fav', 'favorite heart', 24, false);
+		favIconBlurred.animation.play('fav');
 
 		favIconBlurred.setGraphicSize(50, 50);
 		favIconBlurred.blend = BlendMode.ADD;
-		favIconBlurred.antialiasing = ClientPrefs.data.antialiasing;
-		#if !html5
-		if (gaussianBlur_12 != null) {
-			favIconBlurred.shader = gaussianBlur_12;
-		}
-		#end
+		favIconBlurred.shader = gaussianBlur_12;
 		favIconBlurred.visible = false;
 		add(favIconBlurred);
 
 		favIcon = new FlxSprite(favIconBlurred.x, favIconBlurred.y);
-		favIcon.frames = Paths.getSparrowAtlas('freeplay/favHeart', 'vslice');
-		if (favIcon.frames != null) {
-			favIcon.animation.addByPrefix('fav', 'favorite heart', 24, false);
-			favIcon.animation.play('fav');
-		} else {
-			favIcon.makeGraphic(50, 50, 0xFFFF69B4);
-		}
+		favIcon.frames = Paths.getSparrowAtlas('freeplay/favHeart');
+		favIcon.animation.addByPrefix('fav', 'favorite heart', 24, false);
+		favIcon.animation.play('fav');
 		favIcon.setGraphicSize(50, 50);
 		favIcon.visible = false;
 		favIcon.blend = BlendMode.ADD;
-		favIcon.antialiasing = ClientPrefs.data.antialiasing;
 		add(favIcon);
 
 		setVisibleGrp(false);
@@ -389,17 +335,20 @@ class SongMenuItem extends FlxSpriteGroup
 
 	public function fadeAnim():Void
 	{
-		impactThing = new FlxSprite(0, 0);
+		impactThing = new FunkinSprite(0, 0);
 		impactThing.frames = capsule.frames;
 		impactThing.frame = capsule.frame;
 		impactThing.updateHitbox();
 
 		impactThing.alpha = 0;
+		impactThing.zIndex = capsule.zIndex - 3;
 		add(impactThing);
 		FlxTween.tween(impactThing.scale, {x: 2.5, y: 2.5}, 0.5);
+		// FlxTween.tween(impactThing, {alpha: 0}, 0.5);
 
 		evilTrail = new FlxTrail(impactThing, null, 15, 2, 0.01, 0.069);
 		evilTrail.blend = BlendMode.ADD;
+		evilTrail.zIndex = capsule.zIndex - 5;
 		FlxTween.tween(evilTrail, {alpha: 0}, 0.6, {
 			ease: FlxEase.quadOut,
 			onComplete: function(_)
@@ -467,14 +416,14 @@ class SongMenuItem extends FlxSpriteGroup
 			blurredRanking.visible = false;
 			favIcon.visible = false;
 			favIconBlurred.visible = false;
-			newText.visible = false;
+			newText.setVisibility(false);
 		}
 		else
 		{
 			updateBPM(Std.int(songData.songStartingBpm) ?? 0);
 			updateDifficultyRating(songData.difficultyRating ?? 0);
 			updateScoringRank(songData.scoringRank);
-			newText.visible = songData.isNew;
+			newText.setVisibility(songData.isNew);
 			if (newText.visible)
 			{
 				newText.animation.play('newAnim', true);
@@ -487,16 +436,8 @@ class SongMenuItem extends FlxSpriteGroup
 		updateSelected();
 
 		// I think this ends the "favorite" anim early
-		try {
-			favIcon.animation.curAnim.curFrame = favIcon.animation.curAnim.numFrames - 1;
-		} catch (e:Dynamic) {
-			// Animation not available or not initialized
-		}
-		try {
-			favIconBlurred.animation.curAnim.curFrame = favIconBlurred.animation.curAnim.numFrames - 1;
-		} catch (e:Dynamic) {
-			// Animation not available or not initialized
-		}
+		favIcon.animation.curAnim.curFrame = favIcon.animation.curAnim.numFrames - 1;
+		favIconBlurred.animation.curAnim.curFrame = favIconBlurred.animation.curAnim.numFrames - 1;
 	}
 
 	/**
@@ -514,7 +455,7 @@ class SongMenuItem extends FlxSpriteGroup
 		}
 		if (newText == "")
 			return;
-		txtWeek = new states.freeplay.vslice.AtlasText(298, 91, newText, states.freeplay.vslice.AtlasText.AtlasFont.CAPSULE_TEXT);
+		txtWeek = new AtlasText(298, 91, newText, AtlasFont.CAPSULE_TEXT);
 		add(txtWeek);
 	}
 
@@ -583,17 +524,14 @@ class SongMenuItem extends FlxSpriteGroup
 		checkClip();
 	}
 
-	#if !html5
 	function set_hsvShader(value:HSVShader):HSVShader
 	{
 		this.hsvShader = value;
-		if (ClientPrefs.data.shaders) {
-			capsule.shader = hsvShader;
-			songText.shader = hsvShader;
-		}
+		capsule.shader = hsvShader;
+		songText.shader = hsvShader;
+
 		return value;
 	}
-	#end
 
 	function textAppear():Void
 	{
@@ -661,20 +599,13 @@ class SongMenuItem extends FlxSpriteGroup
 
 		currentFpStyle = styleData;
 
-		capsule.frames = Paths.getSparrowAtlas(styleData.getCapsuleAssetKey(), 'vslice');
-
-		// Create fallback if frames don't exist
-		if (capsule.frames == null) {
-			capsule.makeGraphic(500, 100, 0xFF666666);
-		} else {
-			// This applies new style in case we change it
-			capsule.animation.addByPrefix('selected', 'mp3 capsule w backing0', 24);
-			capsule.animation.addByPrefix('unselected', 'mp3 capsule w backing NOT SELECTED', 24);
-		}
-
-		capsule.antialiasing = ClientPrefs.data.antialiasing;
+		capsule.frames = Paths.getSparrowAtlas(styleData.getCapsuleAssetKey());
+		// This applies new style in case we change it
+		capsule.animation.addByPrefix('selected', 'mp3 capsule w backing0', 24);
+		capsule.animation.addByPrefix('unselected', 'mp3 capsule w backing NOT SELECTED', 24);
 
 		songText?.applyStyle(styleData);
+		//
 	}
 
 	var capsuleAnimation:SongCapsuleAnim = JUMPIN;
@@ -748,30 +679,13 @@ class SongMenuItem extends FlxSpriteGroup
 		return 270 + (60 * (FlxMath.fastSin(index)));
 	}
 
-	function set_selected(value:Bool):Bool
-	{
-		// cute one liners, lol!
-		selected = value;
-		updateSelected();
-		return selected;
-	}
-
 	function updateSelected():Void
 	{
-		#if !html5
-		if (grayscaleShader != null) {
-			grayscaleShader.setAmount(this.selected ? 0 : 0.8);
-		}
-		#end
-
+		grayscaleShader.setAmount(this.selected ? 0 : 0.8);
 		songText.alpha = this.selected ? 1 : 0.6;
 		songText.blurredText.visible = this.selected ? true : false;
 		capsule.offset.x = this.selected ? 0 : -5;
-
-		if (capsule.animation != null) {
-			capsule.animation.play(this.selected ? "selected" : "unselected");
-		}
-
+		capsule.animation.play(this.selected ? "selected" : "unselected");
 		ranking.alpha = this.selected ? 1 : 0.7;
 		favIcon.alpha = this.selected ? 1 : 0.6;
 		favIconBlurred.alpha = this.selected ? 1 : 0;

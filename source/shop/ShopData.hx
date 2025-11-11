@@ -97,22 +97,29 @@ class ShopData {
     public static function initShop()
     {
         //items.set('Item Name', ['Description', Cost (Int), 'Image Name', Is Hidden (Bool), Is Bought (Bool)]);
-        /*if (FlxG.save.data.shopItems != null) items = FlxG.save.data.shopItems;
+        if (FlxG.save.data.shopItems != null) items = FlxG.save.data.shopItems;
         else
         {
             //Test Item
-            items.set('Test', ['This is literally just to test the items description', 100, 'emptyAchievement', false, false]);
-            items.set('h?', ['h?', 100, 'unknownMod', false, false]);
-        }*/
+            items.set('Fanta Can', makeShopItem('Fanta Can', 'Fanta In My System', 100, 'defaultItem'));
+            items.set('h?', makeShopItem('h?', 'h?', 100));
+        }
         //Test Item
-        items.set('Fanta Can', ['(Insert dylan line here)', 100, 'defaultItem', false, false]);
+        /*items.set('Fanta Can', ['(Insert dylan line here)', 100, 'defaultItem', false, false]);
         items.set('h?', ['h?', 100, 'defaultTrap', false, false]);
         items.set('Test A', ['Space Test 1', 100, 'defaultTrap', false, false]);
         items.set('Test B', ['Space Test 2', 100, 'defaultItem', false, false]);
-        items.set('Test C', ['Space Test 3', 100, 'unknownItem', false, false]);
+        items.set('Test C', ['Space Test 3', 100, 'unknownItem', false, false]);*/
     }
 
     public static function saveShop() {
         FlxG.save.data.shopItems = items;
+    }
+
+    public static function makeShopItem(name:String, desc:String, price:Int, ?image:String, ?isHidden:Bool = false, ?amount:Int = 1):Item {
+        var shopItem = new Item(name, desc, price, image, isHidden);
+        shopItem.inShop = true;
+        shopItem.amountAllowedToBuy = amount;
+        return shopItem;
     }
 }
