@@ -11,6 +11,7 @@ import states.CategoryState;
 import states.PlayState;
 import states.StoryMenuState;
 import states.freeplay.*; // WHY DIDN'T I DO THIS EARLIER????
+import states.freeplay.VSliceFreeplayState.FreeplayStateParams;
 import states.freeplay.vslice.FreeplaySongData;
 import yutautil.AprilFools;
 
@@ -190,7 +191,7 @@ class FreeplayManager {
         }
 	}
 
-    public static inline function openFreeplay(?fromCategory:Bool = false)
+    public static inline function openFreeplay(?fromCategory:Bool = false, ?freeplayPrams:FreeplayStateParams)
 	{
         if (ClientPrefs.data.freeplayMenu == "Base Game") { //Base game opens a little differently
             if (fromCategory) {
@@ -202,7 +203,7 @@ class FreeplayManager {
                 FlxTransitionableState.skipNextTransOut = true;
 
                 curState.openSubState(new states.freeplay.VSliceFreeplayState());
-            } else FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> VSliceFreeplayState.build(null, sticker)));
+            } else FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> VSliceFreeplayState.build(freeplayPrams, sticker)));
         } else if (CategoryState.loadWeekForce != null && !states.PlayState.Crashed) {
             MusicBeatState.preloadAndSwitchState(Type.createInstance(getFreeplay(), []));
         } else if (CategoryState.loadWeekForce != null && states.PlayState.Crashed) {

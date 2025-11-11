@@ -4,6 +4,7 @@ import backend.WeekData;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.input.keyboard.FlxKey;
 import objects.AudioCircleDisplay;
+import states.freeplay.VSliceFreeplayState.FreeplayStateParams;
 import yutautil.ChanceSelector.Chance;
 
 using yutautil.CollectionUtils;
@@ -49,6 +50,8 @@ class CategoryState extends MusicBeatState
 	public static var legacyLuaMode:options.legacylua.LegacyLuaCategoryState.LegacyLuaSettingsMode = null;
 
 	private static var curSelected:Int = 0;
+	public static var instaFreeplay:Bool = false;
+	public static var freeplayStuff:FreeplayStateParams = {fromResults: null, fromCharSelect: null};
 
 	//if you have em, put em here
 	//and yes, this is the exact code from titlestate, and?
@@ -315,6 +318,12 @@ class CategoryState extends MusicBeatState
 		changeSelection();
 
 		super.create();
+
+		if (instaFreeplay) {
+			FreeplayManager.openFreeplay(true, freeplayStuff);
+			instaFreeplay = false;
+			freeplayStuff = {fromResults: null, fromCharSelect: null};
+		}
 	}
 
 	function createMenuItem(name:String, x:Float, y:Float):FlxSprite

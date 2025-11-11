@@ -1515,7 +1515,7 @@ class PlayState extends MusicBeatState
 		}
 
 		// Register dynamic song scripting functions after all scripts are loaded
-		registerDynamicSongScripting();
+		//registerDynamicSongScripting();
 
 		startCallback();
 		comboManager.RecalculateRating(false, false);

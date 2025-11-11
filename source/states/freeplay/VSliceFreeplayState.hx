@@ -233,8 +233,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	var fromCharSelect:Null<Bool> = null;
 
-    //Mixtape things
-    public var fpManager:FreeplayManager;
+	//Mixtape things
+	public var fpManager:FreeplayManager;
 
 	public function new(?params:FreeplayStateParams, ?stickers:StickerSubState)
 	{

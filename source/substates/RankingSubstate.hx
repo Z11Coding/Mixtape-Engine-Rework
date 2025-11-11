@@ -56,6 +56,10 @@ class RankingSubstate extends MusicBeatSubstate
 	var wasFC = false;
 	var prevScore = 0;
 	var prevAcc = 0.0;
+	var prevRank:ScoringRank;
+	var accPts = 0.0;
+	var fpRank:ScoringRank;
+	var acc = 0.0;
 
 	override function create()
 	{
@@ -185,6 +189,11 @@ class RankingSubstate extends MusicBeatSubstate
 		FlxTween.tween(hint, {alpha: 1, y: 645 - hint.height}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+
+		prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
+		accPts = PlayState.instance.comboManager.ratingPercent * PlayState.instance.comboManager.totalPlayed;
+		fpRank = Scoring.calculateRankFromData(PlayState.instance.comboManager.songScore, Math.min(1, accPts / PlayState.instance.comboManager.totalPlayed), PlayState.instance.comboManager.songMisses == 0) ?? SHIT;
+		acc = PlayState.instance.comboManager.ratingPercent;
 	}
 
 	override function update(elapsed:Float)
@@ -204,20 +213,15 @@ class RankingSubstate extends MusicBeatSubstate
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
-					var prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
-					var accPts = PlayState.instance.comboManager.ratingPercent * PlayState.instance.comboManager.totalPlayed;
-					var fpRank:ScoringRank = Scoring.calculateRankFromData(PlayState.instance.comboManager.songScore, Math.min(1, accPts / PlayState.instance.comboManager.totalPlayed), PlayState.instance.comboManager.songMisses == 0) ?? SHIT;
-					openSubState(new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build({
-						{
-							fromResults: {
-								oldRank: prevRank,
-								playRankAnim: PlayState.instance.comboManager.ratingPercent > prevAcc,
-								newRank: fpRank,
-								songId: PlayState.SONG.song,
-								difficultyId: Difficulty.getString()
-							}
-						}
-					}, sticker)));
+					states.CategoryState.instaFreeplay = true;
+					states.CategoryState.freeplayStuff.fromResults = {
+						oldRank: prevRank,
+						playRankAnim: acc > prevAcc,
+						newRank: fpRank,
+						songId: PlayState.SONG.song,
+						difficultyId: Difficulty.getString()
+					};
+					TransitionState.transitionState(states.CategoryState, {transitionType: "stickers"});
 					//MusicManager.playMenuMusic();
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');

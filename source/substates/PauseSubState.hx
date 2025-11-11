@@ -413,8 +413,10 @@ class PauseSubState extends MusicBeatSubstate
 						// Return to Legacy Lua settings system
 						PlayState.isLegacyLuaTest = false;
 						MusicBeatState.switchState(new options.legacylua.LegacyLuaFreeplayState());
-					} else
-						FreeplayManager.openFreeplay();
+					} else {
+						states.CategoryState.instaFreeplay = true;
+						FlxG.switchState(new states.CategoryState());
+					}
 
 					MusicManager.playMenuMusic();
 					PlayState.changedDifficulty = false;
