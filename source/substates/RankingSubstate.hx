@@ -214,14 +214,16 @@ class RankingSubstate extends MusicBeatSubstate
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
 					states.CategoryState.instaFreeplay = true;
-					states.CategoryState.freeplayStuff.fromResults = {
-						oldRank: prevRank,
-						playRankAnim: acc > prevAcc,
-						newRank: fpRank,
-						songId: PlayState.SONG.song,
-						difficultyId: Difficulty.getString()
-					};
-					TransitionState.transitionState(states.CategoryState, {transitionType: "stickers"});
+					TransitionState.transitionState(states.freeplay.VSliceFreeplayState.build(
+					{
+						fromResults: {
+							oldRank: prevRank,
+							playRankAnim: acc > prevAcc,
+							newRank: fpRank,
+							songId: PlayState.SONG.song,
+							difficultyId: Difficulty.getString()
+						}
+					}), {transitionType: "stickers"});
 					//MusicManager.playMenuMusic();
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');

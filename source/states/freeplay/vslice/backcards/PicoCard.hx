@@ -11,6 +11,7 @@ import flixel.util.FlxSpriteUtil;
 import openfl.display.BlendMode;
 import states.freeplay.VSliceFreeplayState;
 import states.freeplay.vslice.FreeplayHelpers;
+import states.freeplay.vslice.obj.FlxAtlasSprite;
 
 class PicoCard extends BackingCard
 {
@@ -39,39 +40,39 @@ class PicoCard extends BackingCard
     if (exitMovers == null || exitMoversCharSel == null) return;
 
     exitMoversCharSel.set([scrollTop],
-      {
-        y: -90,
-        speed: 0.8,
-        wait: 0.1
-      });
+    {
+      y: -90,
+      speed: 0.8,
+      wait: 0.1
+    });
 
     exitMoversCharSel.set([scrollMiddle],
-      {
-        y: -80,
-        speed: 0.8,
-        wait: 0.1
-      });
+    {
+      y: -80,
+      speed: 0.8,
+      wait: 0.1
+    });
 
     exitMoversCharSel.set([blueBar],
-      {
-        y: -70,
-        speed: 0.8,
-        wait: 0.1
-      });
+    {
+      y: -70,
+      speed: 0.8,
+      wait: 0.1
+    });
 
     exitMoversCharSel.set([scrollLower],
-      {
-        y: -60,
-        speed: 0.8,
-        wait: 0.1
-      });
+    {
+      y: -60,
+      speed: 0.8,
+      wait: 0.1
+    });
 
     exitMoversCharSel.set([scrollBack],
-      {
-        y: -50,
-        speed: 0.8,
-        wait: 0.1
-      });
+    {
+      y: -50,
+      speed: 0.8,
+      wait: 0.1
+    });
   }
 
   public override function init():Void

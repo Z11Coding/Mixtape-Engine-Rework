@@ -322,7 +322,6 @@ class CategoryState extends MusicBeatState
 		if (instaFreeplay) {
 			FreeplayManager.openFreeplay(true, freeplayStuff);
 			instaFreeplay = false;
-			freeplayStuff = {fromResults: null, fromCharSelect: null};
 		}
 	}
 
@@ -559,6 +558,7 @@ class CategoryState extends MusicBeatState
 				}
 				else
 				{
+					inFreeplay = true;
 					FreeplayManager.openFreeplay(true);
 				}
 			}

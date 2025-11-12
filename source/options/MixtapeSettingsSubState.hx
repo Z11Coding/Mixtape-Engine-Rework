@@ -1,5 +1,5 @@
 package options;
-
+import states.freeplay.vslice.PlayerRegistry;
 class MixtapeSettingsSubState extends BaseOptionsMenu
 {
 	public static var curBPMList:Array<Int> =  [0, 160, 160, 88, 160, 90, 105, 130, 100, 160, 180, 100, 125, 170, 140];
@@ -201,7 +201,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		//addOption(option);
 		option.displayFormat = '< %v >';
 
-		var option:Option = new Option('---MENUS---',
+		var option:Option = new Option('---FREEPLAY---',
 			"",
 			'',
 			LABEL);
@@ -217,16 +217,19 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
-		var option:Option = new Option('V-Slice Character Filtering',
-			"Enable character-specific song filtering in Base Game freeplay.\n(Only works with Base Game freeplay menu)\nPress F in freeplay to cycle through character filters.",
-			'vsliceCharacterFiltering',
-			BOOL);
+		var playerIds:Array<String> = PlayerRegistry.instance.listEntryIds();
+		var option:Option = new Option('DJ Character:',
+			"Which freeplay DJ do you prefer?\n(This has no effect on Archipelago Mode)",
+			'djCharacter',
+			STRING,
+			playerIds);
 		addOption(option);
+		option.displayFormat = '< %v >';
 
-		var option:Option = new Option('Freeplay Song Previews',
-			"Enable automatic song previews in freeplay menus.\nPlays a preview of the selected song.",
-			'freeplaySongPreviews',
-			BOOL);
+		var option:Option = new Option('---MENUS---',
+			"",
+			'',
+			LABEL);
 		addOption(option);
 
 		var option:Option = new Option('Chart Editor Style',
@@ -319,6 +322,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"",
 			'',
 			LABEL);
+		addOption(option);
+
+		var option = new Option('Wide Screen Mode',
+			'If checked, The game will stetch to fill your whole screen. (WARNING: Can result in bad visuals & break some mods that resizes the game/cameras)',
+			'wideScreen', BOOL);
+		option.onChange = () -> MobileScaleMode.enabled = ClientPrefs.data.wideScreen;
 		addOption(option);
 
 		var option:Option = new Option('Enable Garbage Collection',

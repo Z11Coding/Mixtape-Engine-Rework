@@ -316,7 +316,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			APFreeplayManager.checkVictory();
 		}
 
-        Highscore.reloadModifiers();
+    Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
 
 		albumRoll = new AlbumRoll();
@@ -1652,16 +1652,6 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			// FlxTween.color(backingImage, 0.33, 0xFFFFFFFF, 0xFF555555, {ease: FlxEase.quadOut});
 			backingCard?.disappear();
 
-			#if TOUCH_CONTROLS_ALLOWED
-			touchPad.forEachAlive(function(button:TouchButton)
-			{
-				if (button.tag == 'UP' || button.tag == 'DOWN')
-					FlxTween.tween(button, {x: button.x - 350}, 1.2, {ease: FlxEase.backOut});
-				else
-					FlxTween.tween(button, {x: button.x + 450}, 1.2, {ease: FlxEase.backOut});
-			});
-			#end
-
 			for (grpSpr in exitMovers.keys())
 			{
 				var moveData:Null<MoveData> = exitMovers.get(grpSpr);
@@ -1704,7 +1694,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				if (Type.getClass(_parentState) == CategoryState)
 				{
 					FunkinSound.playMusic('freakyMenu', {
-                        pathsFunction: BASE,
+            pathsFunction: BASE,
 						overrideExisting: true,
 						restartTrack: false
 					});
@@ -1730,7 +1720,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		if (dj != null) {
 			@:privateAccess {
 				var animPrefix = dj.playableCharData.getAnimationPrefix('idle');
-				if (dj.currentState == Idle)
+				if (dj.currentState == Idle && curBeat % 2 == 0)
 				{
 					dj.playFlashAnimation(animPrefix, true, false, false);
 				}
@@ -1794,13 +1784,13 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			var diffId = daSong.loadAndGetDiffId(); // 12
 			var songScore:Int = Highscore.getScore(daSong.getNativeSongId(), diffId); // Save.instance.getSongScore(curCapsule.songData.songId, suffixedDifficulty);
 
-			intendedScore = songScore ?? 0;
+			intendedScore = songScore;
 			intendedCompletion = Highscore.getRating(daSong.getNativeSongId(), diffId);
 		}
 		else
 		{
-			intendedScore = 0;
-			intendedCompletion = 0.0;
+			intendedScore = Highscore.getScore(fpManager.vsliceSongList[curSelected].songName, currentDifficultyIndex);
+			intendedCompletion = Highscore.getRating(fpManager.vsliceSongList[curSelected].songName, currentDifficultyIndex);
 		}
 		rememberedDifficulty = currentDifficulty;
 		if (intendedCompletion == Math.POSITIVE_INFINITY || intendedCompletion == Math.NEGATIVE_INFINITY || Math.isNaN(intendedCompletion))
@@ -2152,7 +2142,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				return;
 			}
 
-		Mods.currentModDirectory = fpManager.vsliceSongList[curSelected].folder;
+		Mods.currentModDirectory = fpManager.vsliceSongList[curSelected].folder ?? '';
 		PlayState.storyWeek = fpManager.vsliceSongList[curSelected].levelId;
 
 		// alternitive if the above doesn't work: WeekData.setDirectoryFromWeek();
@@ -2265,6 +2255,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		result.persistentUpdate = false;
 		result.persistentDraw = true;
 		result.inFreeplay = true;
+		CategoryState.freeplayStuff = {fromResults: null, fromCharSelect: null};
 		return result;
 	}
 }
