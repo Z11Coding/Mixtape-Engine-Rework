@@ -255,6 +255,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
     var result = PlayerRegistry.instance.fetchEntry(currentCharacterId);
 		if (result == null)
 		{
+			trace('ERROR: COULDN\'T FIND $currentCharacterId!');
 			currentCharacterId = 'bf';
 			result = PlayerRegistry.instance.fetchEntry('bf');
 		}

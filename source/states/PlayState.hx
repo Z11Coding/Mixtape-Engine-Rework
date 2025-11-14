@@ -1385,7 +1385,7 @@ class PlayState extends MusicBeatState
 		renderedTxt.scrollFactor.set();
 		renderedTxt.borderSize = 1.25;
 		renderedTxt.cameras = [camHUD];
-		renderedTxt.visible = ClientPrefs.data.showRenderedText && !ClientPrefs.data.hideHud;
+		renderedTxt.visible = ClientPrefs.data.showRenderText && !ClientPrefs.data.hideHud;
 
 		if (ClientPrefs.data.downScroll) renderedTxt.y = healthBar.y + 50;
 		if (ClientPrefs.data.showRenderText) uiGroup.add(renderedTxt);

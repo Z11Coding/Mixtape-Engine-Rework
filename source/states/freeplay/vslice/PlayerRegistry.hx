@@ -52,6 +52,21 @@ class PlayerRegistry extends PsliceRegistry{
       else return listJsons();
     }
 
+    // return ALL characters avaliable
+    public function listAllEntryIds():Array<String> {
+      var allJsons:Array<String> = [];
+      var registry_mods = Mods.getModsWithPlayersRegistry();
+      var allMods = Mods.parseList().enabled.filter(s -> registry_mods.contains(s));
+      for(mod in allMods){
+        Mods.loadModDir(mod);
+        allJsons.pushMany(listJsons());
+      }
+      Mods.loadModDir("");
+      var basedCharFiles = NativeFileSystem.readDirectory("assets/shared/registry/players");
+      allJsons.pushMany(basedCharFiles.filter(s -> s.endsWith(".json")).map(s -> s.substr(0,s.length-5)));
+      return allJsons;
+    }
+
     // This is only used to check if we should allow the player to open charSelect
     public function countUnlockedCharacters():Int {
       return 2;

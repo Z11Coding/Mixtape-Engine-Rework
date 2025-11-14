@@ -217,7 +217,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
-		var playerIds:Array<String> = PlayerRegistry.instance.listEntryIds();
+		var playerIds:Array<String> = PlayerRegistry.instance.listAllEntryIds();
 		var option:Option = new Option('DJ Character:',
 			"Which freeplay DJ do you prefer?\n(This has no effect on Archipelago Mode)",
 			'djCharacter',

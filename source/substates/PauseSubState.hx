@@ -405,6 +405,18 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.deathCounter = 0;
 					PlayState.seenCutscene = false;
 
+					FlxG.save.data.storyWeek = null;
+					FlxG.save.data.currentModDirectory = null;
+					FlxG.save.data.difficulties = null; // just in case
+					FlxG.save.data.SONG = null;
+					FlxG.save.data.storyDifficulty = null;
+					FlxG.save.data.songPos = null;
+					FlxG.save.data.score = null;
+					FlxG.save.data.rating = null;
+					FlxG.save.data.misses = null;
+					FlxG.save.data.health = null;
+					FlxG.save.flush();
+
 					PlayState.instance.canResync = false;
 					Mods.loadTopMod();
 					if(PlayState.isStoryMode)

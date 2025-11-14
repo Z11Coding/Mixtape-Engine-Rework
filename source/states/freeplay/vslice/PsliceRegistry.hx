@@ -9,7 +9,7 @@ class PsliceRegistry {
         regPath = 'registry/$registryName';
     }
     function readJson(id:String):Dynamic {
-        var char_path = Paths.getPath('$regPath/$id.json');
+        var char_path = Paths.getPath('$regPath/$id.json', TEXT);
         if(!NativeFileSystem.exists(char_path)) return null;
         var text = NativeFileSystem.getContent(char_path);
 

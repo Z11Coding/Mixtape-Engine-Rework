@@ -284,6 +284,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		daNote.kill();
 		spawnedNotes.remove(daNote);
+		aliveNoteCount--;
 		if (spawnedByData[daNote.column] != null)
 			spawnedByData[daNote.column].remove(daNote);
 
@@ -344,6 +345,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		noteSpawned.dispatch(note, this);
 		spawnedNotes.push(note);
+		aliveNoteCount++;
 		/*initThread(() -> function() {
 			spawnedNotes.push(note);
 		}, "spawnNote");*/
@@ -979,7 +981,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return spawnSplash(note);
 	}
 
+	// Limit note spawning per frame at high framerates to prevent spikes
+	// moved here so it doesn't immediently reset rendering it useless
+	var spawned = 0;
 	// spawns notes, deals w/ hold inputs, etc.
+	var aliveNoteCount:Int = 0;
+	var aliveNoteLimiter:Int = 20;
 	override public function update(elapsed:Float){
 		noteField.modNumber = modNumber;
 		noteField.cameras = cameras;
@@ -1003,6 +1010,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}
 		var curDecBeat = curDecStep / 4;
 
+		var maxSpawnsPerFrame = (dynamicSustainInterval == 4 ? 2 : (dynamicSustainInterval == 3 ? 3 : 5));
 		for (data => column in noteQueue)
 		{
 			if (column[0] != null)
@@ -1041,10 +1049,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 				}
 
-				// Limit note spawning per frame at high framerates to prevent spikes
-				var maxSpawnsPerFrame = dynamicSustainInterval == 4 ? 2 : (dynamicSustainInterval == 3 ? 3 : 5);
-				var spawned = 0;
-				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time && spawned < maxSpawnsPerFrame) {
+				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time && (spawned < maxSpawnsPerFrame || aliveNoteCount <= aliveNoteLimiter)) {
 					((column[0].spawned) ? column.remove(column[0]) : spawnNote(column[0]));
 					spawned++;
 				}
