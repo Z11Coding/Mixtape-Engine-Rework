@@ -90,20 +90,20 @@ abstract class SngCapsuleData{
 				allowErect = false;
 				freeplayPrevStart = 0;
 				freeplayPrevEnd = 0.2;
-				songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){0;}
+				songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){1;}
 				albumId = meta.freeplay?.album ?? '';
 				instVariants = [];
 
 				songPlayer = 'bf';
 				songWeekName = '';
 			} else {
-				trace("NO METADATA COULD BE LOADED :(\nUSING DEFAULTS SO FREEPLAY DOESN'T HAVE A STROKE AND DIE");
+				//trace("NO METADATA COULD BE LOADED :(\nUSING DEFAULTS SO FREEPLAY DOESN'T HAVE A STROKE AND DIE");
 				difficultyRating = -1;
 				metaAllowNew = true;
 				allowErect = false;
 				freeplayPrevStart = 0;
 				freeplayPrevEnd = 0.2;
-				songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){0;}
+				songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){1;}
 				albumId = 'noCover';
 				instVariants = [];
 
