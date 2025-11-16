@@ -98,6 +98,8 @@ class TitleState extends MusicBeatState
 				trace("Type: " + Type.getClassName(Type.resolveClass(classthing)));
 			}
 
+		setStateScript();
+
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		trace(cpp.vm.Gc.trace(FlxSprite));
@@ -165,6 +167,8 @@ class TitleState extends MusicBeatState
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
 			MusicManager.setMenuMusic(ClientPrefs.data.menuSong, null, 0, true);
+
+		StateScriptHandler.callOnScripts("onStartIntroPre", []);
 
 		loadJsonData();
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
@@ -279,6 +283,8 @@ class TitleState extends MusicBeatState
 			skipIntro();
 		else
 			initialized = true;
+
+		StateScriptHandler.callOnScripts("onStartIntro", []);
 
 		// credGroup.add(credTextShit);
 	}

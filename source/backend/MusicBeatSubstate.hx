@@ -32,6 +32,13 @@ class MusicBeatSubstate extends FlxSubState
 	inline function get_controls():Controls
 		return Controls.instance;
 
+	function setSubStateScript(?name:String) {
+		if (name == null)
+			SubStateScriptHandler.setState(Type.getClassName(Type.getClass(this)).split('.').pop(), this);
+		else
+			SubStateScriptHandler.setState(name, this);
+	}
+
 	override function update(elapsed:Float)
 	{
 		//everyStep();

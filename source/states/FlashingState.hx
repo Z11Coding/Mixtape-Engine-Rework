@@ -21,6 +21,8 @@ class FlashingState extends MusicBeatState
 		DiscordClient.changePresence("Reading the Flashing Lights Warning", null);
 		#end
 
+		setStateScript();
+
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		add(bg);
 
@@ -61,6 +63,7 @@ class FlashingState extends MusicBeatState
 			FlxG.sound.play(Paths.sound("scrollMenu"), 0.7);
 			isYes = !isYes;
 			updateItems();
+			StateScriptHandler.callOnScripts("onChangeSelection", []);
 		}
 		if (controls.ACCEPT || back) {
 			leftState = true;

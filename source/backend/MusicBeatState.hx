@@ -219,6 +219,89 @@ class MusicBeatState extends yutautil.SafeManagedState
 		// This can be added to the state that needs it, and handle any files dropped.
 	}
 
+	function setStateScript(?name:String) {
+		if (name == null)
+			StateScriptHandler.setState(Type.getClassName(Type.getClass(this)).split('.').pop(), this);
+		else
+			StateScriptHandler.setState(name, this);
+	}
+
+	#if (!flash && sys)
+	public var runtimeShaders:Map<String, Array<String>> = new Map<String, Array<String>>();
+	#end
+	public function createRuntimeShader(shaderName:String):ErrorHandledRuntimeShader
+	{
+		#if (!flash && sys)
+		if(!ClientPrefs.data.shaders) return new ErrorHandledRuntimeShader(shaderName);
+
+		if(!runtimeShaders.exists(shaderName) && !initLuaShader(shaderName))
+		{
+			FlxG.log.warn('Shader $shaderName is missing!');
+			return new ErrorHandledRuntimeShader(shaderName);
+		}
+
+		var arr:Array<String> = runtimeShaders.get(shaderName);
+		return new ErrorHandledRuntimeShader(shaderName, arr[0], arr[1]);
+		#else
+		FlxG.log.warn("Platform unsupported for Runtime Shaders!");
+		return null;
+		#end
+	}
+
+	public function initLuaShader(name:String, ?glslVersion:Int = 120)
+	{
+		if(!ClientPrefs.data.shaders) return false;
+
+		#if (!flash && sys)
+		if(runtimeShaders.exists(name))
+		{
+			FlxG.log.warn('Shader $name was already initialized!');
+			return true;
+		}
+
+		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'shaders/'))
+		{
+			var frag:String = folder + name + '.frag';
+			var vert:String = folder + name + '.vert';
+			var found:Bool = false;
+			if(FileSystem.exists(frag))
+			{
+				frag = File.getContent(frag);
+				found = true;
+			}
+			else frag = null;
+
+			if(FileSystem.exists(vert))
+			{
+				vert = File.getContent(vert);
+				found = true;
+			}
+			else vert = null;
+
+			if(found)
+			{
+				runtimeShaders.set(name, [frag, vert]);
+				//trace('Found shader $name!');
+				return true;
+			}
+		}
+			FlxG.log.warn('Missing shader $name .frag AND .vert files!');
+		#else
+		FlxG.log.warn('This platform doesn\'t support Runtime Shaders!');
+		#end
+		return false;
+	}
+
+	override function add(basic:FlxBasic):FlxBasic {
+		StateScriptHandler.callOnScripts("onLoaded", [basic]); // idk why
+		return super.add(basic);
+	}
+
+	override function remove(basic:FlxBasic, splice:Bool = false):FlxBasic {
+		StateScriptHandler.callOnScripts("onRemove", [basic, splice]); // idk why pt2
+		return super.remove(basic, splice);
+	}
+
 	override public function destroy()
 	{
 		// Clean up suspended substate data
@@ -259,6 +342,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		if (!_psychCameraInitialized)
 			initPsychCamera();
+
+		StateScriptHandler.callOnScripts("onCreate", []);
 
 		super.create();
 
@@ -369,8 +454,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 			afm.addEffect(badqualitymic);
 
 			effectArray.push(afm);
+		}
 
-			// Check for pending Archipelago reconnection
+		// Check for pending Archipelago reconnection
 		if (archipelago.APEntryState.inArchipelagoMode &&
 			archipelago.APGameState.pendingReconnection &&
 			archipelago.APGameState.reconnectionCallback != null) {
@@ -381,8 +467,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 			archipelago.APGameState.reconnectionCallback();
 			archipelago.APItem.waitingForTransition = false;
 		}
+
+		StateScriptHandler.callOnScripts("onCreatePost", []);
 	}
-}
 
 	public static var firstRun:Bool = true;
 	public static var emergencyOpacityFix:Bool = false;
@@ -589,6 +676,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		updateCurStep();
 		updateBeat();
+		StateScriptHandler.callOnScripts("onUpdate", [elapsed]);
 
 		if (archipelago.APEntryState.inArchipelagoMode)
 			archipelago.APItem.doCheck();
@@ -649,6 +737,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
 			APEntryState.apGame.info()?.poll();
+
+		StateScriptHandler.callOnScripts("onUpdatePost", [elapsed]);
 	}
 
 	private function updateSection():Void
@@ -948,6 +1038,10 @@ class MusicBeatState extends yutautil.SafeManagedState
 			stage.stepHit();
 		});
 
+		StateScriptHandler.setOnScripts("curStep", curStep);
+		StateScriptHandler.setOnScripts("curDecStep", curDecStep);
+		StateScriptHandler.callOnScripts("onStepHit", []);
+
 		if (curStep % 4 == 0)
 			beatHit();
 	}
@@ -963,6 +1057,10 @@ class MusicBeatState extends yutautil.SafeManagedState
 			stage.curDecBeat = curDecBeat;
 			stage.beatHit();
 		});
+
+		StateScriptHandler.setOnScripts("curBeat", curBeat);
+		StateScriptHandler.setOnScripts("curDecBeat", curDecBeat);
+		StateScriptHandler.callOnScripts("onBeatHit", []);
 	}
 
 	public function sectionHit():Void
@@ -973,6 +1071,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 			stage.curSection = curSection;
 			stage.sectionHit();
 		});
+
+		StateScriptHandler.setOnScripts("curSection", curSection);
+		StateScriptHandler.callOnScripts("onSectionHit", []);
 	}
 
 	function stagesFunc(func:BaseStage->Void)

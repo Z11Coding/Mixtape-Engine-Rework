@@ -22,6 +22,8 @@ class GodCode extends MusicBeatState
 		DiscordClient.changePresence("???", null);
 		#end
 
+		setStateScript('SecretState');
+
 		FlxG.camera.setFilters(camfilters);
 		FlxG.camera.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);

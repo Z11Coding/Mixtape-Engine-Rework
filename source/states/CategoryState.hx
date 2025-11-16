@@ -158,6 +158,8 @@ class CategoryState extends MusicBeatState
 		DiscordClient.changePresence("Picking the Category", null);
 		#end
 
+		setStateScript();
+
 		menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
 		FlxTransitionableState.skipNextTransOut = false;
 
@@ -605,6 +607,8 @@ class CategoryState extends MusicBeatState
 				// item.setGraphicSize(Std.int(item.width));
 			}
 		}
+
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
 	}
 
 	function handleLegacyLuaOverride():Void

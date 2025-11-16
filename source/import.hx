@@ -82,6 +82,8 @@ import objects.AudioDisplay;
 import objects.BGSprite;
 import objects.FlxAtlasSprite;
 import objects.FunkinSprite;
+import psychlua.StateScriptHandler;
+import psychlua.SubStateScriptHandler;
 import shaders.*;
 import shop.*;
 import stages.BaseStage;

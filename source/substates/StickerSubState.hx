@@ -1,22 +1,22 @@
 package substates;
 
-import states.MainMenuState;
-import flixel.FlxSprite;
-import haxe.Json;
-import lime.utils.Assets;
-// import flxtyped group
-import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.util.FlxTimer;
 import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.FlxState;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
-import flixel.addons.transition.FlxTransitionableState;
-import openfl.display.BitmapData;
-import openfl.geom.Matrix;
-import openfl.display.Sprite;
-import openfl.display.Bitmap;
-import flixel.FlxState;
+import flixel.util.FlxTimer;
+// import flxtyped group
+import haxe.Json;
+import lime.utils.Assets;
 import objects.FunkinSprite;
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.Sprite;
+import openfl.geom.Matrix;
+import states.MainMenuState;
 
 using Lambda;
 using StringTools;
@@ -47,6 +47,8 @@ class StickerSubState extends MusicBeatSubstate
   public function new(?oldStickers:Array<StickerSprite>, ?targetState:StickerSubState->FlxState):Void
   {
     super();
+
+    setSubStateScript(); //This would be pretty funny
 
     this.targetState = (targetState == null) ? ((sticker) -> new MainMenuState()) : targetState;
 
@@ -114,6 +116,7 @@ class StickerSubState extends MusicBeatSubstate
 
   public function degenStickers():Void
   {
+    StateScriptHandler.callOnScripts("onDegenStickersPre", []);
     grpStickers.cameras = FlxG.cameras.list;
 
     /*
@@ -127,6 +130,7 @@ class StickerSubState extends MusicBeatSubstate
     if (grpStickers.members == null || grpStickers.members.length == 0)
     {
       switchingState = false;
+      StateScriptHandler.callOnScripts("onDegenStickersPost", []);
       close();
       return;
     }
@@ -143,15 +147,19 @@ class StickerSubState extends MusicBeatSubstate
         {
           switchingState = false;
           FlxTransitionableState.skipNextTransIn = false;
+          StateScriptHandler.callOnScripts("onDegenStickersPost", []);
           close();
         }
       });
     }
+
+    StateScriptHandler.callOnScripts("onDegenStickers", []);
   }
 
   var funny = ['AB1', 'AB2'];
   function regenStickers():Void
   {
+    StateScriptHandler.callOnScripts("onRegenStickersPre", []);
     if (grpStickers.members.length > 0)
     {
       grpStickers.clear();
@@ -168,7 +176,7 @@ class StickerSubState extends MusicBeatSubstate
       var modStickerDir = Paths.getPath('images/transitionSwag/$STICKER_SET',TEXT,null,true);
       if(!FileSystem.exists(modStickerDir)){
         trace('Couldn\'t find sticker set "$STICKER_SET" in $modStickerDir');
-        
+
       }
       else if(!FileSystem.exists('$modStickerDir/stickers.json')){
         trace('Sticker set $STICKER_SET doesn\'t contain a "stickers.json" file.');
@@ -205,7 +213,7 @@ class StickerSubState extends MusicBeatSubstate
           stickerSetCollection = stickerSetCollection.concat(stickers.getStickers(x));
         }
 
-        // get a random sticker 
+        // get a random sticker
         var sticker:String = FlxG.random.getObject(stickerSetCollection);
         sticky = new StickerSprite(0, 0, STICKER_SET, sticker);
       }
@@ -308,6 +316,7 @@ class StickerSubState extends MusicBeatSubstate
               //trace("reopen: " + MusicBeatState.reopen);
               //FlxG.state.openSubState(emptyStickers);
               TransitionState.currenttransition = null;
+              StateScriptHandler.callOnScripts("onRegenStickersPost", []);
               return targetState(this);
             });
           }
@@ -328,6 +337,8 @@ class StickerSubState extends MusicBeatSubstate
     STICKER_SET = "stickers-set-1";
     STICKER_PACK = "all";
     Mods.loadTopMod(); // We won't be messing with mods from here on
+
+    StateScriptHandler.callOnScripts("onRegenStickers", []);
   }
 
   override public function update(elapsed:Float):Void
@@ -370,7 +381,7 @@ class StickerSprite extends FlxSprite
     super(x, y);
     stickerPath = stickerSet == null ? stickerName : 'transitionSwag/$stickerSet/$stickerName';
     loadSticker();
-    
+
   }
 }
 

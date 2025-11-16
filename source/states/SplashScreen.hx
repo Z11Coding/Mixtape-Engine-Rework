@@ -41,6 +41,9 @@ class SplashScreen extends MusicBeatState
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Splash Screen", null);
 		#end
+
+        setStateScript();
+
         var currentDate = ExtendedDate.global();
         if (currentDate.getDate() == 5) {
             // Skip intro and show video

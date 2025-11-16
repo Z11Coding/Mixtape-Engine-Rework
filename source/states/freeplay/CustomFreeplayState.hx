@@ -1,14 +1,13 @@
 package states.freeplay;
 
-import flixel.FlxState;
+import crowplexus.iris.Iris;
+import crowplexus.iris.IrisConfig;
 import flixel.FlxG;
-import hscript.Parser;
+import flixel.FlxState;
 import hscript.Interp;
-import sys.io.File;
+import hscript.Parser;
 import managers.FreeplayManager;
-
-    import crowplexus.iris.Iris;
-    import crowplexus.iris.IrisConfig;
+import sys.io.File;
 
 class CustomFreeplayState extends MusicBeatState {
     public var scriptInterp:psychlua.HScript.CustomInterp;
@@ -24,10 +23,10 @@ class CustomFreeplayState extends MusicBeatState {
 
 
     // ...existing code...
-    
+
     override public function create():Void {
         super.create();
-    
+
         // Prepare Iris interpreter
         var scriptCode = File.getContent(scriptPath);
         var iris = new Iris(scriptCode, new IrisConfig(null, false, false));
@@ -43,11 +42,11 @@ class CustomFreeplayState extends MusicBeatState {
         iris.set('FlxSprite', flixel.FlxSprite);
         iris.set('${Type.getClassName(Type.getClass(FlxG.state))}', this);
         iris.set('state', this);
-    
+
         // Parse and execute the script, expecting it to return an object with lifecycle methods
         iris.parse(true);
         scriptEnv = iris.funcAndReturn(iris.execute);
-    
+
         // Call script's create if it exists
         if (scriptEnv != null && Reflect.hasField(scriptEnv, "create")) {
             Reflect.callMethod(scriptEnv, Reflect.field(scriptEnv, "create"), []);

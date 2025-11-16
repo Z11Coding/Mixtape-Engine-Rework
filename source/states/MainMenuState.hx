@@ -65,40 +65,41 @@ class MainMenuState extends MusicBeatState
 
 		super.create();
 
-				if (archipelago.APEntryState.inArchipelagoMode) {
+		if (archipelago.APEntryState.inArchipelagoMode) {
 			FlxG.switchState(new archipelago.APCategoryState(archipelago.APPlayState.apGame));
 		}
+
 		if(!states.FirstCheckState.dropFileSetup)
 		{
-		      var e = new yutautil.GenericProgressSubstate("Setting up file drop handler...",
-		          yutautil.GenericProgressSubstate.createTask("Setting up file drop handler...", function(results) {
-		              try {
-		                  trace("Setting up onDropFile handler...");
-		                  if (!states.FirstCheckState.dropFileSetup) {
-		                      lime.app.Application.current.window.onDropFile.add(function(path:String) {
-		                          var path = path;
-                            trace("user dropped file with path: " + path);
-                            try {
-                                if (Std.is(FlxG.state, backend.MusicBeatState))
-                                    (cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
-                            } catch (e:Dynamic) {
-                                trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
-                                trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
-                            }
-                        });
-                        states.FirstCheckState.dropFileSetup = true;
-                        trace("File drop handler set up successfully");
-                    } else {
-                        trace("File drop handler already set up, skipping");
-                    }
-                    return "file_drop_success";
-                } catch (e:Dynamic) {
-                    trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
-                    return "file_drop_error";
-                }
-            }, false));
-						this.openSubState(e);
+			var e = new yutautil.GenericProgressSubstate("Setting up file drop handler...",
+				yutautil.GenericProgressSubstate.createTask("Setting up file drop handler...", function(results) {
+						try {
+								trace("Setting up onDropFile handler...");
+								if (!states.FirstCheckState.dropFileSetup) {
+										lime.app.Application.current.window.onDropFile.add(function(path:String) {
+												var path = path;
+											trace("user dropped file with path: " + path);
+											try {
+													if (Std.is(FlxG.state, backend.MusicBeatState))
+															(cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
+											} catch (e:Dynamic) {
+													trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
+													trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
+											}
+									});
+									states.FirstCheckState.dropFileSetup = true;
+									trace("File drop handler set up successfully");
+							} else {
+									trace("File drop handler already set up, skipping");
+							}
+							return "file_drop_success";
+					} catch (e:Dynamic) {
+							trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
+							return "file_drop_error";
 					}
+			}, false));
+			this.openSubState(e);
+		}
 
 		#if MODS_ALLOWED
 		Mods.pushGlobalMods();
@@ -109,6 +110,8 @@ class MainMenuState extends MusicBeatState
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Main Menu", null);
 		#end
+
+		setStateScript();
 
 		persistentUpdate = persistentDraw = true;
 
@@ -519,6 +522,8 @@ class MainMenuState extends MusicBeatState
 						item = archipelagoItem;
 				}
 
+				StateScriptHandler.callOnScripts("onSwitchMenu", [option]);
+
 				FlxFlicker.flicker(item, 1, 0.06, false, false, function(flick:FlxFlicker)
 				{
 					switch (option)
@@ -642,6 +647,8 @@ class MainMenuState extends MusicBeatState
 		selectedItem.animation.play('selected');
 		selectedItem.centerOffsets();
 		camFollow.y = selectedItem.getGraphicMidpoint().y;
+
+		StateScriptHandler.callOnScripts("onChangeItem", []);
 	}
 
 	function hideit(time:Float)

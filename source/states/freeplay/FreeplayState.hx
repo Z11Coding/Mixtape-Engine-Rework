@@ -149,6 +149,8 @@ class FreeplayState extends MusicBeatState
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
 
+		setStateScript();
+
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In Mixtape Freeplay", null);
@@ -1374,6 +1376,8 @@ class FreeplayState extends MusicBeatState
 		else
 			diffText.text = displayDiff.toUpperCase();
 
+		StateScriptHandler.callOnScripts("onChangeDiff", []);
+
 		positionHighscore();
 		missingText.visible = false;
 		missingTextBG.visible = false;
@@ -1613,6 +1617,8 @@ class FreeplayState extends MusicBeatState
 				albumPhoto.y += 20;
 			}
 		}
+
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
 
 		changeDiff();
 		_updateSongLastDifficulty();

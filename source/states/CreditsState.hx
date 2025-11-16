@@ -24,12 +24,14 @@ class CreditsState extends MusicBeatState
 		DiscordClient.changePresence("Reading the credits", null);
 		#end
 
+		setStateScript();
+
 		persistentUpdate = true;
 		bg = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
-		
+
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
 
@@ -68,10 +70,10 @@ class CreditsState extends MusicBeatState
 			["Psych Engine Discord"],
 			["Join the Psych Ward!", "discord", "", "https://discord.gg/2ka77eMXDv", "5165F6"]
 		];
-		
+
 		for(i in defaultList)
 			creditsStuff.push(i);
-	
+
 		for (i => credit in creditsStuff)
 		{
 			var isSelectable:Bool = !unselectableCheck(i);
@@ -99,7 +101,7 @@ class CreditsState extends MusicBeatState
 				if(str.endsWith('-pixel')) icon.antialiasing = false;
 				icon.xAdd = optionText.width + 10;
 				icon.sprTracker = optionText;
-	
+
 				// using a FlxGroup is too much fuss!
 				iconArray.push(icon);
 				add(icon);
@@ -109,7 +111,7 @@ class CreditsState extends MusicBeatState
 			}
 			else optionText.alignment = CENTERED;
 		}
-		
+
 		descBox = new AttachedSprite();
 		descBox.makeGraphic(1, 1, FlxColor.BLACK);
 		descBox.xAdd = -10;
@@ -184,7 +186,7 @@ class CreditsState extends MusicBeatState
 				quitting = true;
 			}
 		}
-		
+
 		for (item in grpOptions.members)
 		{
 			if(!item.bold)
@@ -240,21 +242,23 @@ class CreditsState extends MusicBeatState
 		{
 			descText.visible = descBox.visible = true;
 			descText.y = FlxG.height - descText.height + offsetThing - 60;
-	
+
 			if(moveTween != null) moveTween.cancel();
 			moveTween = FlxTween.tween(descText, {y : descText.y + 75}, 0.25, {ease: FlxEase.sineOut});
-	
+
 			descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
 			descBox.updateHitbox();
 		}
 		else descText.visible = descBox.visible = false;
+
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
 	}
 
 	#if MODS_ALLOWED
 	function pushModCreditsToList(folder:String)
 	{
 		var creditsFile:String = Paths.mods(folder + '/data/credits.txt');
-		
+
 		#if TRANSLATIONS_ALLOWED
 		//trace('/data/credits-${ClientPrefs.data.language}.txt');
 		var translatedCredits:String = Paths.mods(folder + '/data/credits-${ClientPrefs.data.language}.txt');

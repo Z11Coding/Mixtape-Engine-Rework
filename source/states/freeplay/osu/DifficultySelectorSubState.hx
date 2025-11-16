@@ -36,6 +36,8 @@ class DifficultySelectorSubState extends MusicBeatSubstate
     {
         super();
 
+        setSubStateScript();
+
         this.song = song;
 
         var background:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);

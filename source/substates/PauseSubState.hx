@@ -68,6 +68,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	override function create()
 	{
+		setSubStateScript();
 
 		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		if(PlayState.chartingMode)
@@ -345,6 +346,8 @@ class PauseSubState extends MusicBeatSubstate
 				regenMenu();
 			}
 
+			StateScriptHandler.callOnScripts("onSelected", [daSelected]);
+
 			switch (daSelected)
 			{
 				case "Resume":
@@ -498,6 +501,8 @@ class PauseSubState extends MusicBeatSubstate
 		missingText.visible = false;
 		missingTextBG.visible = false;
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
 	}
 
 	function regenMenu():Void {

@@ -310,7 +310,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		else
 			backingCard = new BoyfriendCard(currentCharacter);*/
 
-        // Check if the Victory Song is cleared.
+    // Check if the Victory Song is cleared.
 		if (APEntryState.inArchipelagoMode) {
 			trace(APEntryState.victorySong);
 			APFreeplayManager.updateArchFreeplay();
@@ -383,6 +383,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// ? Init psych's weeks
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
+
+		setStateScript();
 
 		if(WeekData.weeksList.length < 1)
 		{
@@ -1383,6 +1385,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				difficultyId: "hard"
 			});
 		}
+
 		if (FlxG.keys.justPressed.Y)
 		{
 			rankAnimStart(fromResultsParams ?? {
@@ -1416,7 +1419,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				persistentUpdate = false;
 				var curSng = curCapsule;
 
-                FreeplayHelpers.openResetScoreState(this, curSng.songData, () ->
+        FreeplayHelpers.openResetScoreState(this, curSng.songData, () ->
 				{
 					curSng.songData.scoringRank = null;
 					intendedScore = 0;
@@ -1797,6 +1800,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		if (intendedCompletion == Math.POSITIVE_INFINITY || intendedCompletion == Math.NEGATIVE_INFINITY || Math.isNaN(intendedCompletion))
 			intendedCompletion = 0;
 
+		StateScriptHandler.callOnScripts("onChangeDiff", []);
 
 		// Hide all diffs
 		if (didDifficultyChange) swipeDiffSpr(true,change);
@@ -2150,6 +2154,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		if (!prepForNewRank && curSelected != prevSelected && change != 0)
 			FunkinSound.playOnce('scrollMenu', 0.4);
+
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
 
 		var daSongCapsule:SongMenuItem = curCapsule;
 		if (daSongCapsule.songData != null)

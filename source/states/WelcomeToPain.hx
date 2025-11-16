@@ -45,6 +45,8 @@ class WelcomeToPain extends MusicBeatState
 		DiscordClient.changePresence("If you're reading this, they're somewhere they shouldn't be.", null);
 		#end
 
+		setStateScript("TheAbyss");
+
 		CppAPI.setWindowOpacity(1);
 		camMESSAGE = initPsychCamera();
 		super.create();

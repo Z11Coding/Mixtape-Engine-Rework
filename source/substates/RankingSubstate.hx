@@ -63,6 +63,8 @@ class RankingSubstate extends MusicBeatSubstate
 
 	override function create()
 	{
+		setSubStateScript();
+
 		wasFC = backend.Highscore.getFCState(PlayState.SONG.song, PlayState.storyDifficulty);
 		prevScore = backend.Highscore.getScore(PlayState.SONG.song, PlayState.storyDifficulty);
 		prevAcc = backend.Highscore.getRating(PlayState.SONG.song, PlayState.storyDifficulty);
@@ -529,6 +531,7 @@ class RankingSubstate extends MusicBeatSubstate
 			}
 			accuracyNeeded = accConditions[accRankSetLimit-1];
 		}
+		StateScriptHandler.callOnScripts("onGenerateRanking", [ranking, accRankLimit]);
 		return ranking;
 	}
 }

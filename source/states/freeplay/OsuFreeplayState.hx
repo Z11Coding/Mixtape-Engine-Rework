@@ -86,6 +86,8 @@ class OsuFreeplayState extends MusicBeatState
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
 
+		setStateScript();
+
 		FlxG.mouse.visible = true;
 
 		if (ClientPrefs.data.allowVis) {
@@ -713,6 +715,8 @@ class OsuFreeplayState extends MusicBeatState
 		}
 		if(playSound)
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
 	}
 
 	public static var vocals:FlxSound = null;

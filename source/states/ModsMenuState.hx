@@ -64,6 +64,8 @@ class ModsMenuState extends MusicBeatState
 		DiscordClient.changePresence("In the Mods Menu", null);
 		#end
 
+		setStateScript(); // this is probably a bad idea but whatever lol
+
 		bg = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));
 		bg.color = 0xFF665AFF;
 		bg.antialiasing = ClientPrefs.data.antialiasing;
@@ -110,7 +112,7 @@ class ModsMenuState extends MusicBeatState
 			}
 			CoolUtil.openFolder(modFolder);
 		});
-		add(buttonModFolder);
+		//add(buttonModFolder);
 
 		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, Language.getPhrase('enable_all_button', 'ENABLE ALL'), function() {
 			buttonEnableAll.ignoreCheck = false;
@@ -127,6 +129,7 @@ class ModsMenuState extends MusicBeatState
 			updateModDisplayData();
 			checkToggleButtons();
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+			StateScriptHandler.callOnScripts("onEnableAll", []);
 		});
 		buttonEnableAll.bg.color = FlxColor.GREEN;
 		buttonEnableAll.focusChangeCallback = function(focus:Bool) if(!focus) buttonEnableAll.bg.color = FlxColor.GREEN;
@@ -147,6 +150,7 @@ class ModsMenuState extends MusicBeatState
 			updateModDisplayData();
 			checkToggleButtons();
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+			StateScriptHandler.callOnScripts("onDisableAll", []);
 		});
 		buttonDisableAll.bg.color = 0xFFFF6666;
 		buttonDisableAll.focusChangeCallback = function(focus:Bool) if(!focus) buttonDisableAll.bg.color = 0xFFFF6666;
@@ -649,6 +653,8 @@ class ModsMenuState extends MusicBeatState
 			}
 		}
 
+		StateScriptHandler.callOnScripts("onChangeSelection", []);
+
 		holdingMod = false;
 		holdingElapsed = 0;
 		gottaClickAgain = true;
@@ -768,6 +774,7 @@ class ModsMenuState extends MusicBeatState
 	function reload()
 	{
 		saveTxt();
+		StateScriptHandler.callOnScripts("onReload", []);
 		FlxG.autoPause = ClientPrefs.data.autoPause;
 		FlxTransitionableState.skipNextTransIn = true;
 		FlxTransitionableState.skipNextTransOut = true;
