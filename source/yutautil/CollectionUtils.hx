@@ -623,12 +623,117 @@ enum Size
 	Auto;
 }
 
+abstract TypeInfo({o:Dynamic, t:Type.ValueType})
+{
+	// An abstract type representing either a Class or a Type.
+	public inline function new(value:Dynamic)
+	{
+		this = {o: value, t: Type.typeof(value)};
+	}
+
+	@:to public inline function toDynamic():Dynamic
+	{
+		return this;
+	}
+
+	@:from public inline static function fromClass(typing:Class<Dynamic>):TypeInfo
+	{
+		return cast {o: null, t: Type.ValueType.TClass(typing)};
+	}
+
+	@:from public inline static function fromType(cls:Type.ValueType):TypeInfo
+	{
+		return cast {o: null, t: cls};
+	}
+
+	@:to public inline function toClass():Null<Class<Dynamic>>
+	{
+		return Type.getClass(this.o);
+	}
+
+	@:to public inline function toType():Type.ValueType
+	{
+		return this.t;
+	}
+}
+
 /**
  * A utility class for working with collections, providing various methods
  * to check types, estimate sizes, and convert between different collection types.
  */
 class CollectionUtils
 {
+
+	public static inline extern overload function alterObject<T>(input:T, changes:Dynamic):Void
+	{
+		if (changes == null) return;
+
+		for (field in Reflect.fields(changes))
+		{
+			if (!Reflect.hasField(input, field))
+			{
+				throw 'Field "$field" does not exist on object of type ${Type.getClassName(Type.getClass(input))}';
+			}
+			Reflect.setField(input, field, Reflect.field(changes, field));
+		}
+	}
+
+	public static inline overload extern function alterObject<T>(input:T, changes:haxe.ds.StringMap<Dynamic>):Void
+	{
+		if (changes == null) return;
+
+		for (field in changes.keys())
+		{
+			if (!Reflect.hasField(input, field))
+			{
+				throw 'Field "$field" does not exist on object of type ${Type.getClassName(Type.getClass(input))}';
+			}
+			Reflect.setField(input, field, Reflect.field(changes, field));
+		}
+	}
+
+	public static inline extern overload function alterObject<T>(input:T, changes:Array<{key:String, value:Dynamic}>):Void
+	{
+		if (changes == null) return;
+
+		for (pair in changes)
+		{
+			var field = pair.key;
+			var value = pair.value;
+			if (!Reflect.hasField(input, field))
+			{
+				throw 'Field "$field" does not exist on object of type ${Type.getClassName(Type.getClass(input))}';
+			}
+			Reflect.setField(input, field, value);
+		}
+	}
+
+	public static inline extern overload function alterObject<T>(input:T, func:T->Dynamic):Void
+	{
+		if (func == null) return;
+		var changes = func(input);
+		if (changes == null) return;
+
+		for (field in Reflect.fields(changes))
+		{
+			if (!Reflect.hasField(input, field))
+			{
+				throw 'Field "$field" does not exist on object of type ${Type.getClassName(Type.getClass(input))}';
+			}
+			Reflect.setField(input, field, Reflect.field(changes, field));
+		}
+	}
+
+	public static inline function E(math:Class<Math>):Float
+	{
+		return 2.71828182845904523536;
+	}
+
+	public static inline function getObjectType<E>(input:Dynamic):TypeInfo
+	{
+		return Type.getClass(input) != null ? Type.getClass(input) : Type.typeof(input);
+	}
+
 	public static inline function isIterable<T>(input:Dynamic):Bool
 	{
 		return Std.is(input, Array)
@@ -1934,6 +2039,10 @@ class CollectionUtils
 	// 		}
 	// 	}
 	// }
+
+	public static inline function infinify(t:Dynamic, positive:Bool = true):Dynamic {
+		return getInfinity(t, positive);
+	}
 
 	public static function getInfinity(t:Dynamic, positive:Bool = true):Dynamic {
 		if (Std.isOfType(t, Float)) {

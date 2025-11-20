@@ -34,6 +34,9 @@ class MusicBeatSubstate extends FlxSubState
 
 	override function update(elapsed:Float)
 	{
+		// Update trace management system (frame-based limiting and threading)
+		backend.modules.TraceManager.update();
+
 		//everyStep();
 		if(!persistentUpdate) MusicBeatState.timePassedOnState += elapsed;
 		var oldStep:Int = curStep;

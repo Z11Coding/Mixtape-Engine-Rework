@@ -800,6 +800,8 @@ class APItem {
                                 states.freeplay.FreeplayState.instance.reloadSongs(true);
                             if (states.freeplay.OsuFreeplayState.instance != null)
                                 @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                            if (states.freeplay.VSliceFreeplayState.instance != null)
+                                states.freeplay.VSliceFreeplayState.instance.generateSongList(null, true, false);
                         }
                     }, 300000); // 5 minutes = 300000 milliseconds
 
@@ -809,6 +811,8 @@ class APItem {
                             states.freeplay.FreeplayState.instance.reloadSongs(true);
                         if (states.freeplay.OsuFreeplayState.instance != null)
                             @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                        if (states.freeplay.VSliceFreeplayState.instance != null)
+                            states.freeplay.VSliceFreeplayState.instance.generateSongList(null, true, false);
                     }
                 }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.

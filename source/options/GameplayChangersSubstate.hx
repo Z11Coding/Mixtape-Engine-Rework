@@ -1,10 +1,10 @@
 package options;
 
 import archipelago.APEntryState;
+import backend.GameplayOptionsLoader;
 import objects.AttachedText;
 import objects.CheckboxThingie;
 import objects.Note;
-
 import options.Option.OptionType;
 
 class GameplayChangersSubstate extends MusicBeatSubstate
@@ -21,83 +21,45 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 	function getOptions()
 	{
-		var goption:GameplayOption = new GameplayOption('Scroll Type', 'scrolltype', STRING, 'multiplicative', ["multiplicative", "constant"]);
-		optionsArray.push(goption);
+		// Use the GameplayOptionsLoader for standard options
+		var loader = new GameplayOptionsLoader();
+		var standardOptions = loader.getAllOptionsForSubstate();
 
-		var option:GameplayOption = new GameplayOption('Scroll Speed', 'scrollspeed', FLOAT, 1);
-		option.scrollSpeed = 2.0;
-		option.minValue = 0.35;
-		option.changeValue = 0.05;
-		option.decimals = 2;
-		if (goption.getValue() != "constant")
-		{
-			option.displayFormat = '%vX';
-			option.maxValue = 3;
+		// Add all standard options first
+		for (option in standardOptions) {
+			// Special handling for scroll speed to match original behavior
+			if (option.getVariable() == 'scrollspeed') {
+				var scrollTypeOption = getOptionByVariable('scrolltype');
+				if (scrollTypeOption != null) {
+					if (scrollTypeOption.getValue() != "constant") {
+						option.displayFormat = '%vX';
+						option.maxValue = 3;
+					} else {
+						option.displayFormat = "%v";
+						option.maxValue = 6;
+					}
+				}
+			}
+			// Special display formatting for health multipliers
+			else if (option.getVariable() == 'healthgain' || option.getVariable() == 'healthloss') {
+				option.displayFormat = '%vX';
+				option.scrollSpeed = 2.5;
+			}
+
+			optionsArray.push(option);
 		}
-		else
+
+		// All options are now handled by the GameplayOptionsLoader
+		// No need to manually add duplicate options
+	}	public function getOptionByVariable(variable:String):GameplayOption
+	{
+		for(i in optionsArray)
 		{
-			option.displayFormat = "%v";
-			option.maxValue = 6;
+			var opt:GameplayOption = i;
+			if (opt.getVariable() == variable)
+				return opt;
 		}
-		optionsArray.push(option);
-
-		#if FLX_PITCH
-		var option:GameplayOption = new GameplayOption('Playback Rate', 'songspeed', FLOAT, 1);
-		option.scrollSpeed = 1;
-		option.minValue = 0.5;
-		option.maxValue = 3.0;
-		option.changeValue = 0.05;
-		option.displayFormat = '%vX';
-		option.decimals = 2;
-		optionsArray.push(option);
-
-		optionsArray.push(new GameplayOption('Random Playback Rate', 'randomspeedchange', BOOL, false));
-		#end
-
-		var option:GameplayOption = new GameplayOption('Health Gain Multiplier', 'healthgain', FLOAT, 1);
-		option.scrollSpeed = 2.5;
-		option.minValue = 0;
-		option.maxValue = 5;
-		option.changeValue = 0.1;
-		option.displayFormat = '%vX';
-		optionsArray.push(option);
-
-		var option:GameplayOption = new GameplayOption('Health Loss Multiplier', 'healthloss', FLOAT, 1);
-		option.scrollSpeed = 2.5;
-		option.minValue = 0.5;
-		option.maxValue = 5;
-		option.changeValue = 0.1;
-		option.displayFormat = '%vX';
-		optionsArray.push(option);
-
-		optionsArray.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
-		optionsArray.push(new GameplayOption('Practice Mode', 'practice', BOOL, false));
-		if (!APEntryState.inArchipelagoMode){
-		optionsArray.push(new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal', ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", "UNO", "Amalgam"]));
-		var option:GameplayOption = new GameplayOption('Convert Mania', 'convertMania', INT, 3);
-		option.scrollSpeed = 2.5;
-		option.minValue = Note.minMania;
-		option.maxValue = Note.maxMania;
-		optionsArray.push(option);}
-
-		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
-		optionsArray.push(new GameplayOption('Showcase Mode', 'showcase', BOOL, false));
-		optionsArray.push(new GameplayOption('Mania Mode', 'maniaMode', BOOL, false));
-		optionsArray.push(new GameplayOption('Opponent Mode', 'opponentplay', BOOL, false));
-		optionsArray.push(new GameplayOption('Play Both Sides', 'bothMode', BOOL, false));
-		optionsArray.push(new GameplayOption('Loop Mode', 'loopMode', BOOL, false));
-		optionsArray.push(new GameplayOption('Loop Challenge Mode', 'loopModeC', BOOL, false));
-		var option:GameplayOption = new GameplayOption('Challenge Mode Mult.', 'loopPlayMult', FLOAT, 1.05);
-		option.scrollSpeed = 1;
-		option.minValue = 1.05;
-		option.maxValue = 2;
-		option.changeValue = 0.05;
-		option.displayFormat = '%vX';
-		option.decimals = 2;
-		optionsArray.push(option);
-
-		optionsArray.push(new GameplayOption('Legacy Psych Mode', 'legacyMode', BOOL, false));
-		optionsArray.push(new GameplayOption('Legacy Emulated Version', 'legacyType', STRING, '0.6.3', psychlua.LegacyFunkinLua.emulatableVersions.concat(["None"])));
+		return null;
 	}
 
 	public function getOptionByName(name:String)
@@ -114,7 +76,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	public function new()
 	{
 		super();
-		
+
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0.6;
 		add(bg);
@@ -128,7 +90,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		checkboxGroup = new FlxTypedGroup<CheckboxThingie>();
 		add(checkboxGroup);
-		
+
 		getOptions();
 
 		for (i in 0...optionsArray.length)
@@ -244,7 +206,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 									curOption.curOption = num;
 									curOption.setValue(curOption.options[num]); //lol
-									
+
 									if (curOption.name == "Scroll Type")
 									{
 										var oOption:GameplayOption = getOptionByName("Scroll Speed");
@@ -280,7 +242,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 							{
 								case INT:
 									curOption.setValue(Math.round(holdValue));
-								
+
 								case FLOAT, PERCENT:
 									var blah:Float = Math.max(curOption.minValue, Math.min(curOption.maxValue, holdValue + curOption.changeValue - (holdValue % curOption.changeValue)));
 									curOption.setValue(FlxMath.roundDecimal(blah, curOption.decimals));
@@ -350,7 +312,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 		holdTime = 0;
 	}
-	
+
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);
@@ -465,6 +427,9 @@ class GameplayOption
 
 	public function setChild(child:Alphabet)
 		this.child = child;
+
+	public function getVariable():String
+		return variable;
 
 	var _name:String = null;
 	var _text:String = null;

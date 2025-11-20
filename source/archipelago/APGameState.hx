@@ -666,6 +666,44 @@ class APGameState
 		info().set_goal();
 	}
 
+	public function checkProperTags():Bool
+	{
+		// Check and sync DeathLink tag
+		if (ClientPrefs.data.deathlink && !_ap.tagsManager.hasDeathLink())
+		{
+			trace('DeathLink enabled in settings but missing from client tags - adding DeathLink');
+			_ap.tagsManager.enableDeathLink();
+		}
+		else if (!ClientPrefs.data.deathlink && _ap.tagsManager.hasDeathLink())
+		{
+			trace('DeathLink disabled in settings but present in client tags - removing DeathLink');
+			_ap.tagsManager.disableDeathLink();
+		}
+
+		// Check and sync TrapLink tag (assuming similar pattern to DeathLink)
+		// Note: Adjust if TrapLink has a different setting location
+		if (ClientPrefs.data.traplink && !_ap.tagsManager.hasTrapLink())
+		{
+			trace('TrapLink enabled in settings but missing from client tags - adding TrapLink');
+			_ap.tagsManager.enableTrapLink();
+		}
+		else if (!ClientPrefs.data.traplink && _ap.tagsManager.hasTrapLink())
+		{
+			trace('TrapLink disabled in settings but present in client tags - removing TrapLink');
+			_ap.tagsManager.disableTrapLink();
+		}
+
+		// // Check required tags from slot data
+		// for (tag in requiredTags)
+		// {
+		// 	if (!_ap.hasTag(tag))
+		// 	{
+		// 		return false;
+		// 	}
+		// }
+		return true;
+	}
+
 	public function excludeCheckedLocations(locations:Array<Int>):Array<Int>
 	{
 		var checkedLocations:Array<Int> = info().checkedLocations;

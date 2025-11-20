@@ -562,6 +562,32 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.scrollSpeed = 20;
 		addOption(option);
 
+		var option:Option = new Option('Enable Frame Trace Limiting',
+			"If checked, limits console traces per frame to prevent lag spikes during heavy trace output",
+			'enableFrameTraceLimiting',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Max Traces Per Frame',
+			"Maximum traces to output per frame when frame limiting is enabled",
+			'maxTracesPerFrame',
+			INT
+		);
+		option.displayFormat = '%v traces/frame';
+		option.changeValue = 1;
+		option.minValue = 1;
+		option.maxValue = 20;
+		option.scrollSpeed = 10;
+		addOption(option);
+
+		#if sys
+		var option:Option = new Option('Use Trace Threading',
+			"Process console traces on separate thread for better performance (experimental)",
+			'useTraceThreading',
+			BOOL);
+		addOption(option);
+		#end
+
 		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,
 			['hide', 'fps', 'fps-mem', 'fps-mem-peak']);
 		addOption(option);

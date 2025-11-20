@@ -487,7 +487,10 @@ class CategoryState extends MusicBeatState
 				changeSelection(shiftMult);
 			}
 
-			if (FlxG.keys.justPressed.CONTROL && !inFreeplay)
+			// Don't allow CTRL if we're in freeplay or have VSliceFreeplayState as substate
+			var hasVSliceSubstate = (subState != null && Std.isOfType(subState, states.freeplay.VSliceFreeplayState));
+
+			if (FlxG.keys.justPressed.CONTROL && !inFreeplay && !hasVSliceSubstate)
 			{
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				this.openSubState(new options.CategoriesSubstate());

@@ -371,9 +371,12 @@ class Main extends Sprite
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 
-		// Override trace function to support enhanced tracing system
-			"Overriding haxe.Log.trace to support Console/Game/Both modes with in-game viewer.".NativeComment();
+		trace(Math.E());
+
+		// Override trace function to support enhanced tracing system with frame limiting and threading
+			"Overriding haxe.Log.trace to support Console/Game/Both modes with frame-based limiting and threading.".NativeComment();
 		var originalTrace = haxe.Log.trace;
+		TraceManager.setOriginalTrace(originalTrace);
 		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
 			if (backend.ClientPrefs.data.disableHaxeTraces) {
 				return; // Traces disabled completely
@@ -382,16 +385,17 @@ class Main extends Sprite
 			var traceMode = backend.ClientPrefs.data.traceMode;
 			switch (traceMode) {
 				case "CONSOLE":
-					originalTrace(v, infos);
+					// Use enhanced TraceManager for console output with frame limiting
+					TraceManager.addTrace(Std.string(v), infos);
+					// Don't call originalTrace directly - let TraceManager handle it
 				case "GAME":
 					// Only send to in-game viewer
 					TraceManager.addTrace(Std.string(v), infos);
 				case "BOTH":
-					// Send to both console and in-game viewer
-					originalTrace(v, infos);
+					// Send to both console and in-game viewer via TraceManager
 					TraceManager.addTrace(Std.string(v), infos);
 				default:
-					// Fallback to console for unknown modes
+					// Fallback to original trace for unknown modes
 					originalTrace(v, infos);
 			}
 		};
@@ -563,6 +567,14 @@ class Main extends Sprite
 	{
 		if (gameClosing) return;
 		gameClosing = true;
+
+		// Flush all queued traces before exit
+		backend.modules.TraceManager.flushAllQueuedTraces();
+
+		// Clean up trace system threading
+		#if sys
+		backend.modules.TraceManager.stopTraceThread();
+		#end
 
 		// Track command exit through CrashReporter
 		#if !debug
@@ -1831,6 +1843,140 @@ class CommandPrompt
 			case "unoSim":
 				var maxTurns = args.length > 0 ? Std.parseInt(args[0]) : null;
 				this.startUnoSimulation(maxTurns);
+
+			case "traceInfo":
+				if (args.length == 0) {
+					print(backend.modules.TraceManager.getQueueInfo());
+				} else {
+					print("Error: traceInfo does not accept any arguments.");
+				}
+
+			case "traceLimit":
+				if (args.length == 0) {
+					print("Trace limiting commands:");
+					print("  traceLimit toggle - Toggle frame-based trace limiting");
+					print("  traceLimit set <number> - Set max traces per frame");
+					print("  traceLimit status - Show current limit settings");
+				} else {
+					switch (args[0]) {
+						case "toggle":
+							backend.ClientPrefs.data.enableFrameTraceLimiting = !backend.ClientPrefs.data.enableFrameTraceLimiting;
+							backend.ClientPrefs.saveSettings();
+							print("Frame trace limiting: " + (backend.ClientPrefs.data.enableFrameTraceLimiting ? "ENABLED" : "DISABLED"));
+						case "set":
+							if (args.length >= 2) {
+								var limit = Std.parseInt(args[1]);
+								if (limit != null && limit > 0 && limit <= 50) {
+									backend.ClientPrefs.data.maxTracesPerFrame = limit;
+									backend.ClientPrefs.saveSettings();
+									print("Max traces per frame set to: " + limit);
+								} else {
+									print("Error: Limit must be a number between 1 and 50.");
+								}
+							} else {
+								print("Usage: traceLimit set <number>");
+							}
+						case "status":
+							print("Frame Trace Limiting Status:");
+							print("  Enabled: " + backend.ClientPrefs.data.enableFrameTraceLimiting);
+							print("  Max per frame: " + backend.ClientPrefs.data.maxTracesPerFrame);
+							print("  Threading: " + backend.ClientPrefs.data.useTraceThreading);
+							print("  Trace mode: " + backend.ClientPrefs.data.traceMode);
+						default:
+							print("Unknown traceLimit command. Use 'traceLimit' for help.");
+					}
+				}
+
+			#if sys
+			case "traceThread":
+				if (args.length == 0) {
+					print("Trace threading commands:");
+					print("  traceThread toggle - Toggle trace threading");
+					print("  traceThread status - Show thread status");
+					print("  traceThread restart - Restart trace thread");
+				} else {
+					switch (args[0]) {
+						case "toggle":
+							backend.ClientPrefs.data.useTraceThreading = !backend.ClientPrefs.data.useTraceThreading;
+							backend.ClientPrefs.saveSettings();
+							print("Trace threading: " + (backend.ClientPrefs.data.useTraceThreading ? "ENABLED" : "DISABLED"));
+							if (!backend.ClientPrefs.data.useTraceThreading) {
+								print("Note: Thread will stop on next frame update.");
+							}
+						case "status":
+							print(backend.modules.TraceManager.getQueueInfo());
+						case "restart":
+							print("Restarting trace thread...");
+							backend.modules.TraceManager.stopTraceThread();
+							if (backend.ClientPrefs.data.useTraceThreading) {
+								print("Thread will restart automatically on next update.");
+							} else {
+								print("Note: Threading is disabled. Enable it first with 'traceThread toggle'.");
+							}
+						default:
+							print("Unknown traceThread command. Use 'traceThread' for help.");
+					}
+				}
+			#end
+
+			case "stressTrace":
+				if (args.length == 0) {
+					print("Trace stress testing commands:");
+					print("  stressTrace burst <count> - Send burst of traces");
+					print("  stressTrace spam <duration> - Spam traces for X seconds");
+					print("  stressTrace flood - Continuous trace flood (use with caution!)");
+				} else {
+					switch (args[0]) {
+						case "burst":
+							var count = args.length >= 2 ? Std.parseInt(args[1]) : 10;
+							if (count == null || count < 1 || count > 1000) {
+								print("Error: Count must be between 1 and 1000.");
+								return;
+							}
+							print("Sending " + count + " trace burst...");
+							for (i in 0...count) {
+								trace("Stress test trace #" + (i + 1) + " - Frame limiting should handle this!");
+							}
+							print("Burst complete. Check trace info for queue status.");
+						case "spam":
+							var duration = args.length >= 2 ? Std.parseFloat(args[1]) : 1.0;
+							if (Math.isNaN(duration) || duration < 0.1 || duration > 10.0) {
+								print("Error: Duration must be between 0.1 and 10.0 seconds.");
+								return;
+							}
+							print("Starting trace spam for " + duration + " seconds...");
+							var startTime = haxe.Timer.stamp();
+							var counter = 0;
+							while ((haxe.Timer.stamp() - startTime) < duration) {
+								trace("Spam trace #" + (++counter) + " at " + (haxe.Timer.stamp() - startTime));
+								Sys.sleep(0.001); // Small delay to prevent total system lock
+							}
+							print("Spam complete. Sent " + counter + " traces in " + duration + " seconds.");
+						case "flood":
+							print("WARNING: Starting continuous trace flood!");
+							print("This will spam traces until you restart. Use Ctrl+C to stop.");
+							print("Starting in 3 seconds...");
+							Sys.sleep(3);
+							var counter = 0;
+							while (true) {
+								trace("FLOOD TRACE #" + (++counter) + " - FRAME LIMITING TEST");
+								if (counter % 100 == 0) {
+									print("Flood status: " + counter + " traces sent");
+								}
+							}
+						default:
+							print("Unknown stressTrace command. Use 'stressTrace' for help.");
+					}
+				}
+
+			case "flushTraces":
+				if (args.length == 0) {
+					print("Flushing all queued traces...");
+					backend.modules.TraceManager.flushAllQueuedTraces();
+					print("Trace flush complete. Check console for output.");
+				} else {
+					print("Error: flushTraces does not accept any arguments.");
+				}
 
 			case "stateEdit":
 				if (args.length == 0) {

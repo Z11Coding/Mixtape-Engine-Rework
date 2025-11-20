@@ -28,6 +28,7 @@ import states.TitleState;
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
 	public var showRenderedText:Bool = false;
+	public var freeplayOptionsOpen:Bool = false; // Remember if options menu was open in freeplay
 	public var noteOffset:Int = 0;
 	public var arrowRGB:Array<Array<FlxColor>> = [
 		[0xFFC24B99, 0xFFFFFFFF, 0xFF3C1F56],
@@ -222,6 +223,11 @@ import states.TitleState;
 	public var disableHaxeTraces:Bool = false;
 	public var traceMode:String = "CONSOLE"; // CONSOLE, GAME, or BOTH
 	public var maxInGameTraces:Int = 100; // Maximum traces to keep in memory for in-game viewer
+
+	// Frame-based trace limiting system
+	public var enableFrameTraceLimiting:Bool = false; // Enable frame-based trace limiting
+	public var maxTracesPerFrame:Int = 5; // Maximum traces per frame before queuing
+	public var useTraceThreading:Bool = false; // Use separate thread for trace processing
 }
 
 class ClientPrefs {
