@@ -1,6 +1,8 @@
 package backend;
 
+#if !html5
 import backend.util.JSEZip;
+#end
 import haxe.Http;
 import haxe.Json;
 import haxe.crypto.Base64;
@@ -14,10 +16,12 @@ import openfl.net.URLLoaderDataFormat;
 import openfl.net.URLRequest;
 import openfl.net.URLRequestHeader;
 import openfl.utils.ByteArray;
-import sys.FileSystem;
-import sys.io.File;
 import yutautil.DualProgressSubstate;
 import yutautil.TypeUtils.OneOrMore;
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
 
 typedef GitHubRelease = {
 	var id:Int;
@@ -770,6 +774,7 @@ class GitHubAPI {
 		?progressCallback:(progress:Float, fileName:String)->Void,
 		callback:String->Void, errorCallback:String->Void):Void {
 
+		#if !html5
 		if (!FileSystem.exists(zipPath)) {
 			errorCallback("ZIP file not found: " + zipPath);
 			return;
@@ -797,6 +802,9 @@ class GitHubAPI {
 		} catch (e:Dynamic) {
 			errorCallback("Failed to extract ZIP file: " + e);
 		}
+		#else
+		errorCallback("You can't use this on HTML5 bozo! (how'd you even access this...)");
+		#end
 	}
 
 	/**

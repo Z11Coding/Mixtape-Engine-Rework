@@ -154,6 +154,12 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Judgement Counter',
+				'Show the judgement counter during gameplay.',
+				'judgementCounter',
+				BOOL);
+		addOption(option);
+
 		super();
 		add(notes);
 		add(splashes);

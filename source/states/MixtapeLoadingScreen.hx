@@ -15,9 +15,12 @@ import openfl.display.BitmapData;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import stages.StageData;
+
+#if (target.threaded)
 import sys.thread.FixedThreadPool;
 import sys.thread.Mutex;
 import sys.thread.Thread;
+#end
 
 #if HSCRIPT_ALLOWED
 import crowplexus.hscript.Expr.Error as IrisError;

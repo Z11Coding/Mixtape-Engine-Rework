@@ -34,6 +34,12 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Bad and Shit Break Combo',
+			"If checked, hitting Bad or Shit notes will break your combo\nand count as Combo Breaks instead of just Misses.",
+			'badShitBreakCombo',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Auto Pause',
 			"If checked, the game automatically pauses if the screen isn't on focus.",
 			'autoPause',
@@ -141,6 +147,13 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			"If checked, Hold Notes can't be pressed if you miss,\nand count as a single Hit/Miss.\nUncheck this if you prefer the old Input System.",
 			'guitarHeroSustains',
 			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Accuracy System:',
+			"Choose the accuracy calculation system:\nWife3 - StepMania precision timing\nPsych - Rating mod based\nSimple - Basic hits/total\nosu!mania - Weighted judgement system\nDJMAX - Combo bonus system\nITG - Dance Points system\n\n",
+			'accuracySystem',
+			STRING,
+			['Wife3', 'Psych', 'Mixtape', 'Simple', 'osu!mania', 'DJMAX', 'ITG']);
 		addOption(option);
 
 		super();

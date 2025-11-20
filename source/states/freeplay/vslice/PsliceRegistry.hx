@@ -1,6 +1,4 @@
 package states.freeplay.vslice;
-
-import backend.NativeFileSystem;
 import haxe.Json;
 
 class PsliceRegistry {
@@ -11,7 +9,10 @@ class PsliceRegistry {
 
     function readJson(id:String):Dynamic {
         var char_path = Paths.getPath('$regPath/$id.json', TEXT);
-        if(!NativeFileSystem.exists(char_path)) return null;
+        if(!NativeFileSystem.exists(char_path)) {
+            trace('DJ FILE NOT FOUND!: $char_path');
+            return null;
+        }
         var text = NativeFileSystem.getContent(char_path);
         return Json.parse(text);
     }

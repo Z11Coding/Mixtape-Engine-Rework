@@ -6,9 +6,11 @@ import backend.GitHubAPI;
 import backend.Paths;
 import backend.WeekData;
 import haxe.Json;
+import yutautil.TypeUtils.OneOrMore;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
-import yutautil.TypeUtils.OneOrMore;
+#end
 
 typedef SiivaReplacementData = {
     var originalSong:String;

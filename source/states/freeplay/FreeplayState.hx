@@ -412,32 +412,33 @@ class FreeplayState extends MusicBeatState
 				var color:FlxColor = 0xFFFFFFFF;
 				var someLocationsNotMissing:Bool = false;
 
-			if (APEntryState.inArchipelagoMode) {
-				songName = fpManager.songList[i].songName;
-				modName = fpManager.songList[i].folder;
-				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+				if (APEntryState.inArchipelagoMode) {
+					songName = fpManager.songList[i].songName;
+					modName = fpManager.songList[i].folder;
+					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
-				// Check if song is unlocked (in curUnlocked)
-				var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+					// Check if song is unlocked (in curUnlocked)
+					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
 
-				// Color logic based on requirements:
-				// RED = not unlocked (locked)
-				// WHITE = unlocked with all locations missing
-				// GRAY = unlocked with some locations missing
-				// GREEN = unlocked with no locations missing (completed)
-				if (!isUnlocked) {
-					color = FlxColor.RED; // Locked song
-				} else {
-					if (!isMissing) {
-						color = FlxColor.GREEN; // Fully completed
+					// Color logic based on requirements:
+					// RED = not unlocked (locked)
+					// WHITE = unlocked with all locations missing
+					// GRAY = unlocked with some locations missing
+					// GREEN = unlocked with no locations missing (completed)
+					if (!isUnlocked) {
+						color = FlxColor.RED; // Locked song
 					} else {
-						// Check if some locations are not missing (partially completed)
-						someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
-						color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+						if (!isMissing) {
+							color = FlxColor.GREEN; // Fully completed
+						} else {
+							// Check if some locations are not missing (partially completed)
+							someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+						}
 					}
 				}
-			}
+
 				var songText:Alphabet = null;
 				if (APEntryState.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze

@@ -20,18 +20,15 @@ class PlayerRegistry extends PsliceRegistry{
     }
 
     public function fetchEntry(playableCharId:String):Null<PlayableCharacter> {
-      try {
-        var player_blob:Dynamic = readJson(playableCharId);// new PlayerData();
-        if(player_blob == null) return null;
-        var player_data = new PlayerData().mergeWithJson(player_blob,["freeplayDJ"]);
-        var dj = new PlayerFreeplayDJData().mergeWithJson(player_blob.freeplayDJ);
-        player_data.freeplayDJ = dj;
-        return new PlayableCharacter(player_data);
-      }
-      catch(x){
-        trace('Couldn\'t pull $playableCharId: ${x.message}');
+      var player_blob:Dynamic = readJson(playableCharId);// new PlayerData();
+      if(player_blob == null) {
+        trace('COULDN\'T FIND DJ!');
         return null;
       }
+      var player_data = new PlayerData().mergeWithJson(player_blob,["freeplayDJ"]);
+      var dj = new PlayerFreeplayDJData().mergeWithJson(player_blob.freeplayDJ);
+      player_data.freeplayDJ = dj;
+      return new PlayableCharacter(player_data);
     }
 
     // return ALL characters avaliable (from current mod)

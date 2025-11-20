@@ -43,6 +43,7 @@ import backend.Language;
 import backend.Mods;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
+import backend.NativeFileSystem;
 import backend.Paths;
 import backend.TransitionState;
 import backend.pslice.ScaleMode as MobileScaleMode; // too lazy + its 3 in the morning lol
@@ -72,11 +73,6 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import managers.*;
 import mechanics.*;
-import moonchart.Moonchart;
-import moonchart.formats.*;
-import moonchart.formats.fnf.*;
-import moonchart.formats.fnf.legacy.*;
-import moonchart.parsers.*;
 import objects.Alphabet;
 import objects.AudioDisplay;
 import objects.BGSprite;
@@ -109,6 +105,14 @@ using yutautil.TypeUtils;
 using yutautil.Valid;
 
 // using yutautil.lambda.LambdaCalculus;
+#if moonchart
+import moonchart.Moonchart;
+import moonchart.formats.*;
+import moonchart.formats.fnf.*;
+import moonchart.formats.fnf.legacy.*;
+import moonchart.parsers.*;
+#end
+
 //Window Stuff
 #if flxanimate
 import flxanimate.*;

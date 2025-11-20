@@ -14,8 +14,6 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
-import sys.FileSystem;
-import sys.io.File;
 
 class RankingSubstate extends MusicBeatSubstate
 {
@@ -302,7 +300,7 @@ class RankingSubstate extends MusicBeatSubstate
 																		if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
 																		{
 																			trace("Match found for JSON file: " + json);
-																			songJson = Song.parseJSON(File.getContent(json));
+																			songJson = Song.parseJSON(NativeFileSystem.getContent(json));
 																			if (songJson != null)
 																			{
 																				trace("Parsed JSON successfully for song: " + songJson.song);

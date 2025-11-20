@@ -42,7 +42,7 @@ class RGBPalette {
 		shader.b.value = [color.redFloat, color.greenFloat, color.blueFloat];
 		return color;
 	}
-	
+
 	private function set_mult(value:Float) {
 		mult = FlxMath.bound(value, 0, 1);
 		shader.mult.value = [mult];
@@ -66,6 +66,7 @@ class RGBShaderReference
 	public var b(default, set):FlxColor;
 	public var mult(default, set):Float;
 	public var enabled(default, set):Bool = true;
+	public var forceDisabled:Bool = false; // im ngl I dont know why I didn't start with this lmao
 
 	public var parent:RGBPalette;
 	private var _owner:FlxSprite;
@@ -85,7 +86,7 @@ class RGBShaderReference
 			mult = parent.mult;
 		}
 	}
-	
+
 	private function set_r(value:FlxColor)
 	{
 		if(allowNew && value != _original.r) cloneOriginal();
@@ -108,6 +109,13 @@ class RGBShaderReference
 	}
 	private function set_enabled(value:Bool)
 	{
+		// If forceDisabled is enabled, NEVER activate the shader
+		if(forceDisabled)
+		{
+			_owner.shader = null;
+			return (enabled = false);
+		}
+
 		_owner.shader = value ? parent.shader : null;
 		return (enabled = value);
 	}
@@ -134,7 +142,7 @@ class RGBShaderReference
 class RGBPaletteShader extends FlxShader {
 	@:glFragmentHeader('
 		#pragma header
-		
+
 		uniform vec3 r;
 		uniform vec3 g;
 		uniform vec3 b;
@@ -149,9 +157,9 @@ class RGBPaletteShader extends FlxShader {
 			vec4 newColor = color;
 			newColor.rgb = min(color.r * r + color.g * g + color.b * b, vec3(1.0));
 			newColor.a = color.a;
-			
+
 			color = mix(color, newColor, mult);
-			
+
 			if(color.a > 0.0) {
 				return vec4(color.rgb, color.a);
 			}

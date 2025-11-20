@@ -65,6 +65,12 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		option = new Option('Wide Screen Mode',
+			'If checked, The game will stetch to fill your whole screen. (WARNING: Can result in bad visuals & break some mods that resizes the game/cameras)',
+			'wideScreen', BOOL);
+		option.onChange = () -> FlxG.scaleMode = new MobileScaleMode();
+		addOption(option);
+
 		#if !html5 //Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
 		var option:Option = new Option('Framerate',
 			"Pretty self explanatory, isn't it?",
@@ -85,6 +91,12 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		option.onChange = onChangeFramerate;
 		addOption(option);
+
+		var option:Option = new Option('FPS Rework',
+			"If checked, this works around the game becoming \"slow\" and \"smooth\" when the current FPS is lower than the FPS cap.",
+			'fpsRework',
+			BOOL);
+		addOption(option);
 		#end
 
 		super();
@@ -104,15 +116,31 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 	function onChangeFramerate()
 	{
+		if (ClientPrefs.data.unlockFramerate) {
+			FlxG.updateFramerate = 1000;
+			FlxG.drawFramerate = 1000;
+			return;
+		}
+
 		if(ClientPrefs.data.framerate > FlxG.drawFramerate)
 		{
-			FlxG.updateFramerate = ClientPrefs.data.framerate;
-			FlxG.drawFramerate = ClientPrefs.data.framerate;
+			if (ClientPrefs.data.fpsRework)
+				FlxG.stage.window.frameRate = ClientPrefs.data.framerate;
+			else
+			{
+				FlxG.updateFramerate = ClientPrefs.data.framerate;
+				FlxG.drawFramerate = ClientPrefs.data.framerate;
+			}
 		}
 		else
 		{
-			FlxG.drawFramerate = ClientPrefs.data.framerate;
-			FlxG.updateFramerate = ClientPrefs.data.framerate;
+			if (ClientPrefs.data.fpsRework)
+				FlxG.stage.window.frameRate = ClientPrefs.data.framerate;
+			else
+			{
+				FlxG.drawFramerate = ClientPrefs.data.framerate;
+				FlxG.updateFramerate = ClientPrefs.data.framerate;
+			}
 		}
 	}
 

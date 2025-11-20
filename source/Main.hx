@@ -16,6 +16,7 @@ import games.uno.backend.*;
 import games.uno.backend.UnoCPU.UnoDifficulty;
 import games.uno.backend.UnoCard.UnoColor;
 import games.uno.backend.UnoRules.UnoGameState;
+import haxe.Exception;
 import haxe.io.Path;
 import haxe.ui.Toolkit;
 import lime.app.Application;
@@ -201,17 +202,90 @@ class Main extends Sprite
 		// trace("Words loaded: " + backend.MusicBeatState.words);
 	}
 
+	// Game pre-flixel init code
+	// ? This runs before we attempt to precache things
+	public static function loadGameEarly()
+	{
+		#if (linux || mac) // fix the app icon not showing up on the Linux Panel
+		var icon = lime.graphics.Image.fromFile("icon.png");
+		Lib.current.stage.window.setIcon(icon);
+		#end
+
+		// This initialises mods
+		try
+		{
+			#if HXCPP_TRACY
+			trace("Starting tracy");
+			cpp.vm.tracy.TracyProfiler.messageAppInfo(backend.window.Native.buildSystemInfo());
+			cpp.vm.tracy.TracyProfiler.setThreadName("main");
+			#end
+
+			trace("Pushing global mods");
+			#if LUA_ALLOWED
+			Mods.pushGlobalMods();
+			#end
+			trace("Pushing top mod");
+			Mods.loadTopMod();
+		}
+		catch (x:Exception)
+			trace("Something went wrong with mod code: " + x.message);
+
+		#if VIDEOS_ALLOWED
+		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
+		#end
+
+		if (cmdArgs.indexOf('check') != -1)
+		{
+			// kill any running instances of the game
+			Sys.command("taskkill /f /im MixEngine.exe");
+		}
+
+		var commandPrompt = new CommandPrompt();
+
+		trace(commandPrompt.metadata());
+
+		yutautil.Threader.runInThread(commandPrompt.start(), 0, "cmd", true, 0);
+
+		WindowUtils.onClosing = function()
+		{
+			if (commandPrompt != null)
+				commandPrompt.active = false;
+			commandPrompt = null;
+			handleStateBasedClosing();
+		}
+
+		// Override trace function to support enhanced tracing system
+			"Overriding haxe.Log.trace to support Console/Game/Both modes with in-game viewer.".NativeComment();
+		var originalTrace = haxe.Log.trace;
+		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
+			if (backend.ClientPrefs.data.disableHaxeTraces) {
+				return; // Traces disabled completely
+			}
+
+			var traceMode = backend.ClientPrefs.data.traceMode;
+			switch (traceMode) {
+				case "CONSOLE":
+					originalTrace(v, infos);
+				case "GAME":
+					// Only send to in-game viewer
+					TraceManager.addTrace(Std.string(v), infos);
+				case "BOTH":
+					// Send to both console and in-game viewer
+					originalTrace(v, infos);
+					TraceManager.addTrace(Std.string(v), infos);
+				default:
+					// Fallback to console for unknown modes
+					originalTrace(v, infos);
+			}
+		};
+		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu, except for when using 'HxTrace.log()' via Yutautil.".log();
+	}
+
 	@:dox(hide)
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
 	public function new()
 	{
-
-		#if HXCPP_TRACY
-		trace("Starting tracy");
-		cpp.vm.tracy.TracyProfiler.messageAppInfo(backend.window.Native.buildSystemInfo());
-		cpp.vm.tracy.TracyProfiler.setThreadName("main");
-		#end
 
 		backend.window.CppAPI.setWindowOpacity(0);
 
@@ -240,17 +314,6 @@ class Main extends Sprite
 		// var h:Float = c;
 		// trace("InfNum Test: " + h);
 
-		// Credits to MAJigsaw77 (he's the og author for this code)
-		#if android
-		Sys.setCwd(Path.addTrailingSlash(Context.getExternalFilesDir()));
-		#elseif ios
-		Sys.setCwd(lime.system.System.applicationStorageDirectory);
-		#end
-
-		#if VIDEOS_ALLOWED
-		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
-		#end
-
 		#if windows
 		backend.window.CppAPI._setWindowLayered();
 		backend.window.CppAPI.darkMode();
@@ -263,30 +326,16 @@ class Main extends Sprite
 
 		trace(yutautil.StatePick.getStateNames("MusicBeatState"));
 
-		if (cmdArgs.indexOf('check') != -1)
-		{
-			// kill any running instances of the game
-			Sys.command("taskkill /f /im MixEngine.exe");
-		}
-
 		// yutautil.save.MixSaveWrapperBeta.testFunctionSave();
-
-		#if LUA_ALLOWED
-		Mods.pushGlobalMods();
-		#end
-		Mods.loadTopMod();
 
 		FlxG.save.bind('Mixtape', CoolUtil.getSavePath());
 		Highscore.load();
 
 		WindowUtils.init();
 
-		var commandPrompt = new CommandPrompt();
+		//trace(game.metadata());
 
-		trace(commandPrompt.metadata());
-		trace(game.metadata());
-
-		trace("gamedddifsdsf".realSizeOf());
+		//trace("gamedddifsdsf".realSizeOf());
 
 		// var testArray = new yutautil.CollectionUtils.KeyIndexedArray();
 		// testArray.set("test", 1);
@@ -308,8 +357,6 @@ class Main extends Sprite
 		#end
 
 
-
-		yutautil.Threader.runInThread(commandPrompt.start(), 0, "cmd", true, 0);
 		#if HSCRIPT_ALLOWED
 		Iris.warn = function(x, ?pos:haxe.PosInfos) {
 			Iris.logLevel(WARN, x, pos);
@@ -371,31 +418,6 @@ class Main extends Sprite
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 
-		// Override trace function to support enhanced tracing system
-			"Overriding haxe.Log.trace to support Console/Game/Both modes with in-game viewer.".NativeComment();
-		var originalTrace = haxe.Log.trace;
-		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
-			if (backend.ClientPrefs.data.disableHaxeTraces) {
-				return; // Traces disabled completely
-			}
-
-			var traceMode = backend.ClientPrefs.data.traceMode;
-			switch (traceMode) {
-				case "CONSOLE":
-					originalTrace(v, infos);
-				case "GAME":
-					// Only send to in-game viewer
-					TraceManager.addTrace(Std.string(v), infos);
-				case "BOTH":
-					// Send to both console and in-game viewer
-					originalTrace(v, infos);
-					TraceManager.addTrace(Std.string(v), infos);
-				default:
-					// Fallback to console for unknown modes
-					originalTrace(v, infos);
-			}
-		};
-
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
 		@:privateAccess
@@ -416,11 +438,6 @@ class Main extends Sprite
 		FlxG.plugins.add(new ScreenShotPlugin());
 		#elseif (flixel >= "5.6.0")
 		FlxG.plugins.addIfUniqueType(new ScreenShotPlugin());
-		#end
-
-		#if (linux || mac) // fix the app icon not showing up on the Linux Panel / Mac Dock
-		var icon = Image.fromFile("icon.png");
-		Lib.current.stage.window.setIcon(icon);
 		#end
 
 		#if html5
@@ -448,8 +465,6 @@ class Main extends Sprite
 		archipelago.HighQualityTrapManager.onEngineExit();
 		#end
 
-		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu, except for when using 'HxTrace.log()' via Yutautil.".log();
-
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
 		// try { // WHY THE HELL IS THIS CRASHING???????????????????
@@ -475,7 +490,7 @@ class Main extends Sprite
 
 
 		// Artificial loop using GoToTag as a label and GoTo as a goto
-		var counter = 0;
+		/*var counter = 0;
 		yutautil.CUMacroTools.GoToTag("loopStart");
 			trace('goto test: $counter');
 			counter++;
@@ -499,21 +514,13 @@ class Main extends Sprite
 			} else {
 				"loopStart2".GoTo();
 			}
-		"loopEnd2".GoToTag();
+		"loopEnd2".GoToTag();*/
 		// This is a test to see if the GoToTag and GoTo string extensions work correctly.
 
 
 		#if android
 		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
 		#end
-
-		WindowUtils.onClosing = function()
-		{
-			if (commandPrompt != null)
-				commandPrompt.active = false;
-			commandPrompt = null;
-			handleStateBasedClosing();
-		}
 
 		EvacuateDebugPlugin.initialize();
 		ForceCrashPlugin.initialize();

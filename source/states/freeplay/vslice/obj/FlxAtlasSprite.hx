@@ -81,7 +81,7 @@ class FlxAtlasSprite extends PsychFlxAnimate
   }
   //? P-Slice fix for mods
   override function loadAtlas(path:String) {
-      Paths.loadAnimateAtlas(this,path,null,ANIMATION_OBJECTS.get(path));
+    Paths.loadAnimateAtlas(this,path,null,ANIMATION_OBJECTS.get(path));
   }
   /**
    * @return A list of all the animations this sprite has available.

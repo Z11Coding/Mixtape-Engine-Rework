@@ -828,6 +828,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	 */
 	public function generateSongList(filterStuff:Null<SongFilter>, force:Bool = false, onlyIfChanged:Bool = true):Void
 	{
+		if (APEntryState.inArchipelagoMode) APFreeplayManager.checkSongStatus();
+
 		var tempSongs:Array<Null<FreeplaySongData>> = songs;
 
 		if (filterStuff != null)
@@ -836,8 +838,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// Filter further by current selected difficulty.
 		if (currentDifficulty != null)
 		{
-			tempSongs = tempSongs.filter(song ->
-			{
+			tempSongs = tempSongs.filter(song -> {
 				if (song == null)
 					return true; // Random
 				return song.songDifficulties.contains(currentDifficulty);
@@ -862,7 +863,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		curSelected = 0;
 		curSelectedFractal = 0;
 
-		grpCapsules.generateFullSongList(tempSongs,currentDifficulty,
+		grpCapsules.generateFullSongList(tempSongs, currentDifficulty,
 			difficultyLastChange > 0 ? SLIDE_RIGHT : SLIDE_LEFT,
 			fromCharSelect ? SLIDE_LEFT : JUMPIN_FORCE);
 
@@ -2143,8 +2144,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				return;
 			}
 
-		Mods.currentModDirectory = fpManager.vsliceSongList[curSelected].folder ?? '';
-		PlayState.storyWeek = fpManager.vsliceSongList[curSelected].levelId;
+		if (curSelected >= 0) {
+			Mods.currentModDirectory = fpManager.vsliceSongList[curSelected].folder ?? '';
+			PlayState.storyWeek = fpManager.vsliceSongList[curSelected].levelId;
+		}
 
 		// alternitive if the above doesn't work: WeekData.setDirectoryFromWeek();
 

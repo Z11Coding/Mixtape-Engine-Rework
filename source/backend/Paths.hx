@@ -11,6 +11,7 @@ import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets;
 import haxe.Json;
+import haxe.io.Path;
 import lime.utils.Assets;
 import openfl.display.BitmapData;
 import openfl.display3D.textures.RectangleTexture;
@@ -329,10 +330,11 @@ class Paths
 	inline static function destroyGraphic(graphic:FlxGraphic)
 	{
 		// free some gpu memory
-		if (graphic != null && graphic.bitmap != null && graphic.bitmap.__texture != null)
+		if (graphic != null && graphic.bitmap != null && graphic.bitmap.__texture != null) {
 			graphic.bitmap.__texture.dispose();
 			graphic.bitmap.dispose();
 			// graphic.destroy();
+		}
 		FlxG.bitmap.remove(graphic);
 		if (graphic != null)
 		{
@@ -544,7 +546,7 @@ class Paths
 			if (parentfolder != null) customFile = '$parentfolder/$file';
 
 			var modded:String = modFolders(customFile);
-			if(FileSystem.exists(modded)) return modded;
+			if (NativeFileSystem.exists(modded)) return modded;
 		}
 		#end
 
@@ -554,7 +556,7 @@ class Paths
 		if (currentLevel != null && currentLevel != 'shared')
 		{
 			var levelPath = getFolderPath(file, currentLevel);
-			if (OpenFlAssets.exists(levelPath, type))
+			if (NativeFileSystem.exists(levelPath))
 				return levelPath;
 		}
 		return getSharedPath(file);
@@ -1322,70 +1324,32 @@ class Paths
 	#if flxanimate
 	public static function loadAnimateAtlas(spr:FlxAnimate, folderOrImg:Dynamic, spriteJson:Dynamic = null, animationJson:Dynamic = null)
 	{
-		var changedAnimJson = false;
-		var changedAtlasJson = false;
-		var changedImage = false;
-
-		if(spriteJson != null)
+		if (folderOrImg is String)
 		{
-			changedAtlasJson = true;
-			spriteJson = File.getContent(spriteJson);
-		}
-
-		if(animationJson != null)
-		{
-			changedAnimJson = true;
-			animationJson = File.getContent(animationJson);
-		}
-
-		// is folder or image path
-		if(Std.isOfType(folderOrImg, String))
-		{
-			var originalPath:String = folderOrImg;
-			for (i in 0...10)
+			var dir = getPath("images/" + folderOrImg);
+			// We actually DO support system in Animate!
+			if (spriteJson == null)
 			{
-				var st:String = '$i';
-				if(i == 0) st = '';
-
-				if(!changedAtlasJson)
+				if (NativeFileSystem.exists(Path.join([dir, "spritemap1.json"])))
+					spriteJson = NativeFileSystem.getContent(Path.join([dir, "spritemap1.json"]));
+				else
 				{
-					spriteJson = getTextFromFile('images/$originalPath/spritemap$st.json');
-					if(spriteJson != null)
-					{
-						//trace('found Sprite Json');
-						changedImage = true;
-						changedAtlasJson = true;
-						folderOrImg = image('$originalPath/spritemap$st');
-						break;
-					}
-				}
-				else if(fileExists('images/$originalPath/spritemap$st.png', IMAGE))
-				{
-					//trace('found Sprite PNG');
-					changedImage = true;
-					folderOrImg = image('$originalPath/spritemap$st');
-					break;
+					trace(Path.join([dir, "spritemap1.json"]) + " is missing!!");
+					return;
 				}
 			}
-
-			if(!changedImage)
+			if (animationJson == null)
 			{
-				//trace('Changing folderOrImg to FlxGraphic');
-				changedImage = true;
-				folderOrImg = image(originalPath);
+				if (NativeFileSystem.exists(Path.join([dir, "Animation.json"])))
+					animationJson = NativeFileSystem.getContent(Path.join([dir, "Animation.json"]));
+				else
+				{
+					trace(Path.join([dir, "Animation.json"]) + " is missing!!");
+					return;
+				}
 			}
-
-			if(!changedAnimJson)
-			{
-				//trace('found Animation Json');
-				changedAnimJson = true;
-				animationJson = getTextFromFile('images/$originalPath/Animation.json');
-			}
+			folderOrImg = image(Path.join([folderOrImg, "spritemap1"]));
 		}
-
-		//trace(folderOrImg);
-		//trace(spriteJson);
-		//trace(animationJson);
 		spr.loadAtlasEx(folderOrImg, spriteJson, animationJson);
 	}
 

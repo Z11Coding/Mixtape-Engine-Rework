@@ -279,6 +279,8 @@ class Highscore
 		var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
 		var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
 		var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
+		if (APEntryState.inArchipelagoMode)
+			saveMod += "-archipelago";
 		if (bothMode)
 			saveMod += "-bothMode";
 		else if (opponentmode)

@@ -1,5 +1,6 @@
 package yutautil;
 
+#if !html5
 import dialogs.Dialogs as FilePopup;
 import dialogs.Dialogs.FileFilter;
 import haxe.Json;
@@ -246,6 +247,51 @@ class ImprovedFileHandling
 		return true;
 	}
 }
+#else
+class ImprovedFileHandling
+{
+	public static var lastPath:String = "";
+	public static function openFile(title:String, ?filters:OneOrMore<Filter>, ?preserve_cwd:Bool = true):String
+	{
+		// Nothing
+	}
+
+	public static function saveFile(title:String, ?filter:Filter, ?preserve_cwd:Bool = true):String
+	{
+		// Nothing
+	}
+
+	public static function selectFolder(title:String, ?preserve_cwd:Bool = true):String
+	{
+		// Nothing
+	}
+
+	public static function loadFile(title:String, ?filters:OneOrMore<Filter>, readType:ReadType, ?operation:Dynamic->Dynamic, ?preserve_cwd:Bool = true):Dynamic
+	{
+		// Nothing
+	}
+
+	static function compareData(writeType:ReadType, existing:Dynamic, newData:Dynamic):Bool
+	{
+		// Nothing
+	}
+
+	public static function multiSaveOperation(title:String, ?filter:Filter, writeType:ReadType, mainData:Dynamic, ?extraFiles:Array<{name:String, data:Dynamic}>, ?preserve_cwd:Bool = true):Bool
+	{
+		// Nothing
+	}
+
+	public static function checkFileExists(filePath:String):Bool
+	{
+		// Nothing
+	}
+
+	public static function checkFilesExist(filePaths:Array<String>):Bool
+	{
+		// Nothing
+	}
+}
+#end
 
 /**
  * Dynamically manages a file's content, keeping it in sync with disk.

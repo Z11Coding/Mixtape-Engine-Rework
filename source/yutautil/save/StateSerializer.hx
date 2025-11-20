@@ -3,8 +3,10 @@ package yutautil.save;
 import flixel.FlxG;
 import flixel.FlxState;
 import haxe.Json;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
+#end
 
 /**
  * Structure to hold serialized class information with JSON support

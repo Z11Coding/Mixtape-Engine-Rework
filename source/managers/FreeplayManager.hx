@@ -258,7 +258,7 @@ class FreeplayManager {
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(refresh, searchText);
             case "Base Game":
                 if (states.freeplay.VSliceFreeplayState.instance != null)
-                    states.freeplay.VSliceFreeplayState.instance.generateSongList(null, false);
+                    states.freeplay.VSliceFreeplayState.instance.generateSongList({filterType: REGEXP, filterData: searchText}, refresh);
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 if (states.freeplay.FreeplayState.instance != null)

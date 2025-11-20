@@ -19,10 +19,13 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import stages.StageData;
 import states.MixtapeLoadingScreen;
+import yutautil.UnoMechanic;
+
+#if (target.threaded)
 import sys.thread.FixedThreadPool;
 import sys.thread.Mutex;
 import sys.thread.Thread;
-import yutautil.UnoMechanic;
+#end
 
 #if HSCRIPT_ALLOWED
 import crowplexus.hscript.Expr.Error as IrisError;
@@ -52,6 +55,13 @@ class LoadingState extends MusicBeatState
 	static var speedChanges:Array<SpeedEvent> = [];
 
 	public static var noteCache:Array<Note> = [];
+
+	// Timeout system
+	public static var returnState:FlxState = null;
+	var loadingTimer:Float = 0;
+	var timeoutWarning:FlxText;
+	var canEscape:Bool = false;
+	static final TIMEOUT_DURATION:Float = 5.0;
 
 	function new(target:FlxState, stopMusic:Bool)
 	{
@@ -192,12 +202,20 @@ class LoadingState extends MusicBeatState
 		funkay.updateHitbox();
 		addBehindBar(funkay);
 		#end
+
+		// Timeout warning message
+		timeoutWarning = new FlxText(0, FlxG.height - 100, FlxG.width, "", 24);
+		timeoutWarning.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.RED, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		timeoutWarning.borderSize = 2;
+		timeoutWarning.visible = false;
+		add(timeoutWarning);
+
 		super.create();
 
 		if (ClientPrefs.data.loadingState == 'Everything' || ClientPrefs.data.loadingState == 'Song Only') {
 			if (stateChangeDelay <= 0 && checkLoaded())
 			{
-				//dontUpdate = true;
+				dontUpdate = true;
 				onLoad();
 			}
 		}
@@ -223,6 +241,41 @@ class LoadingState extends MusicBeatState
 	{
 		super.update(elapsed);
 		if (dontUpdate) return;
+
+		if (!transitioning && !finishedLoading)
+		{
+			loadingTimer += elapsed;
+
+			if (loadingTimer >= TIMEOUT_DURATION && !canEscape)
+			{
+				canEscape = true;
+				timeoutWarning.text = Language.getPhrase('loading_timeout', 'Loading is taking too long...\nPress ESC to return', []);
+				timeoutWarning.visible = true;
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+			}
+
+			if (canEscape && FlxG.keys.justPressed.ESCAPE)
+			{
+				transitioning = true;
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+
+				if (threadPool != null)
+				{
+					threadPool.shutdown();
+					threadPool = null;
+				}
+
+				var targetState:FlxState = (returnState != null) ? returnState : new PlayState();
+
+				if (stopMusic && FlxG.sound.music != null)
+					FlxG.sound.music.stop();
+
+				FlxG.camera.fade(FlxColor.BLACK, 0.3, false, function() {
+					MusicBeatState.switchState(targetState);
+				});
+				return;
+			}
+		}
 
 		if (!transitioning)
 		{

@@ -2,7 +2,6 @@ package states;
 import backend.GitHubAPI.GitHubAsset;
 import backend.GitHubAPI.GitHubRelease;
 import backend.GitHubAPI;
-import backend.util.JSEZip;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxBackdrop;
@@ -29,9 +28,15 @@ import openfl.net.URLLoader;
 import openfl.net.URLRequest;
 import openfl.utils.ByteArray;
 import substates.Prompt;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
 import sys.io.Process;
+#end
+
+#if !html5
+import backend.util.JSEZip;
+#end
 
 class UpdateState extends MusicBeatState
 {

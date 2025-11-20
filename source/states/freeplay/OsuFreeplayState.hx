@@ -15,8 +15,10 @@ import states.editors.ChartingState;
 import states.freeplay.osu.DifficultySelectorSubState;
 import states.freeplay.osu.SongBox;
 import substates.ResetScoreSubState;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
+#end
 
 #if ARCHIPELAGO_ALLOWED
 import archipelago.*;
@@ -70,12 +72,11 @@ class OsuFreeplayState extends MusicBeatState
 		fpManager = FreeplayManager.loadFPManager();
 
 		// Check if the Victory Song is cleared.
-		{
+		if (APEntryState.inArchipelagoMode) {
+			trace(APEntryState.victorySong);
 			APFreeplayManager.updateArchFreeplay();
 			APFreeplayManager.checkVictory();
 		}
-
-
 
 		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();

@@ -1,8 +1,10 @@
 package yutautil.save;
 
+#if sys
 import sys.io.File;
-using yutautil.save.MixSave;
+#end
 using yutautil.CollectionUtils;
+using yutautil.save.MixSave;
 
 enum OutputType {
     MixSaveWrapperType;
@@ -199,7 +201,7 @@ class MixSaveWrapper {
 //      * @param useEncryption Whether to enable encryption (default true)
 //      * @return A new SecureMixSave instance with the same data
 //      */
-//     public function toSecureSave(secureFilePath:String = "save/mixsave.smix", 
+//     public function toSecureSave(secureFilePath:String = "save/mixsave.smix",
 //                                 ?encryptionKey:String,
 //                                 compressionLevel:Int = 6,
 //                                 useCompression:Bool = true,

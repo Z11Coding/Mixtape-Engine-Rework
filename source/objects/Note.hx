@@ -1241,7 +1241,7 @@ class Note extends NoteObject
 			animation.addByPrefix(name, prefix, framerate, doLoop);
 		}
 		catch(e){
-			trace("Anim was null!: " + prefix);
+			//trace("Anim was null!: " + prefix);
 		}
 	}
 

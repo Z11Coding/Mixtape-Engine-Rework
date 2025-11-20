@@ -10,6 +10,7 @@ import managers.FreeplayManager;
 import objects.*;
 import objects.Character;
 import objects.Note;
+import objects.VideoSprite;
 import objects.playfields.PlayField;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
@@ -76,9 +77,10 @@ class APPlayState extends PlayState {
     var drainHealth:Bool = false;
 	var drunkTween:NumTween = null;
 	var lagOn:Bool = false;
-	var addedMP4s:Array<VideoHandlerMP4> = [];
+	var addedMP4s:Array<VideoSprite> = [];
 	var flashbangTimer:FlxTimer = new FlxTimer();
 	var errorMessages:FlxTypedGroup<FlxSprite> = new FlxTypedGroup<FlxSprite>();
+    var aliveVideos:FlxTypedGroup<VideoSprite> = new FlxTypedGroup<VideoSprite>();
 	var noiseSound:FlxSound = new FlxSound();
 	var camAngle:Float = 0;
 	var dmgMultiplier:Float = 1;
@@ -528,11 +530,20 @@ class APPlayState extends PlayState {
             },
             'cover' => function() {
                 var ttl:Float = 12;
-                var errorMessage = new FlxSprite();
+                var errorMessage:FlxSprite = new FlxSprite();
+                var videoGames:VideoSprite = null;
                 var onEnd:(Void->Void) = function() {
-                    errorMessage.kill();
-                    errorMessages.remove(errorMessage);
-                    FlxDestroyUtil.destroy(errorMessage);
+                    if (errorMessage != null) {
+                        errorMessage.kill();
+                        errorMessages.remove(errorMessage);
+                        FlxDestroyUtil.destroy(errorMessage);
+                    }
+
+                    if (videoGames != null) {
+                        videoGames.kill();
+                        aliveVideos.remove(videoGames);
+                        FlxDestroyUtil.destroy(videoGames);
+                    }
                 };
                 var playSound:String = "";
                 var playSoundVol:Float = 1;
@@ -577,73 +588,73 @@ class APPlayState extends PlayState {
                         errorMessage.scale.x = errorMessage.scale.y = 0.5;
                     #if windows
                     case 6:
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/mark'), null, false, false).setDimensions(378, 362);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
+                        videoGames = new VideoSprite(Paths.video('streamervschat/mark'), true, false);
+                        videoGames.videoSprite.scale.set(378, 362);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
                     case 7:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/fireworks'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/fireworks'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'firework';
                     case 8:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/spiral'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/spiral'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'spiral';
                     case 9:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/thingy'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/thingy'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'thingy';
                     case 10:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/light'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/light'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'light';
                     case 11:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/snow'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/snow'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'snow';
                         playSoundVol = 0.6;
                     case 12:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/spiral2'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/spiral2'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'spiral';
                     case 13:
                         randomPosition = false;
-                        errorMessage = new VideoHandlerMP4();
-                        cast(errorMessage, VideoHandlerMP4).playMP4(Paths.video('streamervschat/wheel'), null, false, false).setDimensions(1280, 720);
-                        addedMP4s.push(cast(errorMessage, VideoHandlerMP4));
-                        errorMessages.add(errorMessage);
-                        errorMessage.x = errorMessage.y = 0;
-                        errorMessage.blend = ADD;
+                        videoGames = new VideoSprite(Paths.video('streamervschat/wheel'), true, false);
+                        videoGames.videoSprite.scale.set(1280, 720);
+                        videoGames.finishCallback = () -> addedMP4s.remove(videoGames);
+                        addedMP4s.push(videoGames);
+                        videoGames.videoSprite.x = videoGames.videoSprite.y = 0;
+                        videoGames.videoSprite.blend = ADD;
                         playSound = 'wheel';
                     #end
                     case #if windows 14 #else 9 #end:
@@ -660,30 +671,76 @@ class APPlayState extends PlayState {
                     var position = FlxG.random.int(0, 4);
                     switch (position) {
                         case 0:
-                            errorMessage.x = (FlxG.width - FlxG.width / 4) - errorMessage.width / 2;
-                            errorMessage.screenCenter(Y);
-                            errorMessages.add(errorMessage);
+                            if (errorMessage != null) {
+                                errorMessage.x = (FlxG.width - FlxG.width / 4) - errorMessage.width / 2;
+                                errorMessage.screenCenter(Y);
+                                errorMessages.add(errorMessage);
+                            }
+
+                            if (videoGames != null && videoGames.videoSprite != null) {
+                                videoGames.videoSprite.x = (FlxG.width - FlxG.width / 4) - videoGames.videoSprite.width / 2;
+                                videoGames.videoSprite.screenCenter(Y);
+                                aliveVideos.add(videoGames);
+                            }
                         case 1:
-                            errorMessage.x = (FlxG.width - FlxG.width / 4) - errorMessage.width / 2;
-                            errorMessage.y = (effectiveDownScroll ? FlxG.height - errorMessage.height : 0);
-                            errorMessages.add(errorMessage);
+                            if (errorMessage != null) {
+                                errorMessage.x = (FlxG.width - FlxG.width / 4) - errorMessage.width / 2;
+                                errorMessage.y = (effectiveDownScroll ? FlxG.height - errorMessage.height : 0);
+                                errorMessages.add(errorMessage);
+                            }
+
+                            if (videoGames != null && videoGames.videoSprite != null) {
+                                videoGames.videoSprite.x = (FlxG.width - FlxG.width / 4) - videoGames.videoSprite.width / 2;
+                                videoGames.videoSprite.y = (effectiveDownScroll ? FlxG.height - videoGames.videoSprite.height : 0);
+                                aliveVideos.add(videoGames);
+                            }
                         case 2:
-                            errorMessage.x = (FlxG.width - FlxG.width / 4) - errorMessage.width / 2;
-                            errorMessage.y = (effectiveDownScroll ? 0 : FlxG.height - errorMessage.height);
-                            errorMessages.add(errorMessage);
+                            if (errorMessage != null) {
+                                errorMessage.x = (FlxG.width - FlxG.width / 4) - errorMessage.width / 2;
+                                errorMessage.y = (effectiveDownScroll ? 0 : FlxG.height - errorMessage.height);
+                                errorMessages.add(errorMessage);
+                            }
+
+                            if (videoGames != null && videoGames.videoSprite != null) {
+                                videoGames.videoSprite.x = (FlxG.width - FlxG.width / 4) - videoGames.videoSprite.width / 2;
+                                videoGames.videoSprite.y = (effectiveDownScroll ? 0 : FlxG.height - videoGames.videoSprite.height);
+                                aliveVideos.add(videoGames);
+                            }
+
                         case 3:
-                            errorMessage.screenCenter(XY);
-                            errorMessages.add(errorMessage);
+                            if (errorMessage != null) {
+                                errorMessage.screenCenter(XY);
+                                errorMessages.add(errorMessage);
+                            }
+
+                            if (videoGames != null && videoGames.videoSprite != null) {
+                                videoGames.videoSprite.screenCenter(XY);
+                                aliveVideos.add(videoGames);
+                            }
                         case 4:
-                            errorMessage.x = 0;
-                            errorMessage.y = 0;
-                            FlxTween.circularMotion(errorMessage, FlxG.width / 2 - errorMessage.width / 2, FlxG.height / 2 - errorMessage.height / 2,
-                                errorMessage.width / 2, 0, true, 6, true, {
-                                    onStart: function(_) {
-                                        errorMessages.add(errorMessage);
-                                    },
-                                    type: LOOPING
-                                });
+                            if (errorMessage != null) {
+                                errorMessage.x = 0;
+                                errorMessage.y = 0;
+                                FlxTween.circularMotion(errorMessage, FlxG.width / 2 - errorMessage.width / 2, FlxG.height / 2 - errorMessage.height / 2,
+                                    errorMessage.width / 2, 0, true, 6, true, {
+                                        onStart: function(_) {
+                                            errorMessages.add(errorMessage);
+                                        },
+                                        type: LOOPING
+                                    });
+                            }
+
+                            if (videoGames != null && videoGames.videoSprite != null) {
+                                videoGames.videoSprite.x = 0;
+                                videoGames.videoSprite.y = 0;
+                                FlxTween.circularMotion(videoGames.videoSprite, FlxG.width / 2 - videoGames.videoSprite.width / 2, FlxG.height / 2 - videoGames.videoSprite.height / 2,
+                                    videoGames.videoSprite.width / 2, 0, true, 6, true, {
+                                        onStart: function(_) {
+                                            aliveVideos.add(videoGames);
+                                        },
+                                        type: LOOPING
+                                    });
+                            }
                     }
                 }
 
@@ -2362,8 +2419,6 @@ class APPlayState extends PlayState {
 			if (video != null)
             {
 				video.cameras = [camHUD];
-                if (video.completed)
-                    addedMP4s.remove(video);
             }
 		}
         #end

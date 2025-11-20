@@ -1,7 +1,9 @@
 package yutautil;
 
+#if cpp
 import cpp.Float32;
 import cpp.abi.Abi;
+#end
 import haxe.Constraints.IMap;
 import haxe.ds.StringMap;
 // import states.PlayState.LuaScript;
@@ -33,7 +35,9 @@ enum FuncAndReturnItem<T>
 	TransformedItem(func:T->Dynamic, ?extraArgs:Array<Dynamic>);
 }
 
+#if LUA_ALLOWED
 typedef LuaScript = flixel.util.typeLimit.OneOfTwo<psychlua.FunkinLua, psychlua.LegacyFunkinLua>;
+#end
 
 // abstract Collection<T>(Dynamic) from Array<T> to Array<T> {
 //     @:from public static inline function fromList<T>(list:List<T>):Collection<T> {
@@ -2976,7 +2980,7 @@ class CollectionUtils
 	}
 
 	// Only for Funkin Lua Legacy...
-
+	#if LUA_ALLOWED
 	public static inline function getScriptName(s:LuaScript):String
 	{
 		return switch (Type.getClass(s)) {
@@ -3012,6 +3016,7 @@ class CollectionUtils
 			throw "Unsupported LuaScript type";
 		}
 	}
+	#end
 
 	public static function mergeWithJson<T>(target:T,source:Dynamic,?ignoreFields:Array<String>):T{
 		if(ignoreFields == null) ignoreFields = [];

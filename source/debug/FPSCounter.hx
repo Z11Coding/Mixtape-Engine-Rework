@@ -11,6 +11,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxStringUtil;
 import haxe.Timer;
 import openfl.Assets;
+import openfl.Lib;
 import openfl.events.Event;
 import openfl.system.System;
 #if gl_stats
@@ -60,6 +61,10 @@ class FPSCounter extends TextField
 	@:noCompletion private var cacheCount:Int;
 	@:noCompletion private var currentTime:Float;
 	@:noCompletion private var times:Array<Float>;
+	@:noCompletion private var framesCount:Int;
+	@:noCompletion private var updateTime:Int;
+	@:noCompletion private var lastFramerateUpdateTime:Float;
+	@:noCompletion private var prevTime:Int;
 
 	public function new(x:Float = 10, y:Float = 10, color:Int = 0x000000)
 	{
@@ -77,6 +82,9 @@ class FPSCounter extends TextField
 		autoSize = LEFT;
 		multiline = true;
 		text = "FPS: ";
+		lastFramerateUpdateTime = Timer.stamp();
+		prevTime = Lib.getTimer();
+		updateTime = prevTime + 500;
 
 		cacheCount = 0;
 		currentTime = 0;
@@ -111,12 +119,59 @@ class FPSCounter extends TextField
 	@:noCompletion
 	private #if !flash override #end function __enterFrame(deltaTime:Float):Void
 	{
-		currentTime += deltaTime;
-		times.push(currentTime);
-
-		while (times[0] < currentTime - 1000)
+		if (ClientPrefs.data.fpsRework)
 		{
-			times.shift();
+			// Flixel keeps reseting this to 60 on focus gained
+			if (FlxG.stage.window.frameRate != ClientPrefs.data.framerate && FlxG.stage.window.frameRate != FlxG.game.focusLostFramerate)
+				FlxG.stage.window.frameRate = ClientPrefs.data.framerate;
+
+			var currentTime = openfl.Lib.getTimer();
+			framesCount++;
+
+			if (currentTime >= updateTime)
+			{
+				var elapsed = currentTime - prevTime;
+				currentFPS = Math.ceil((framesCount * 1000) / elapsed);
+				framesCount = 0;
+				prevTime = currentTime;
+				updateTime = currentTime + 500;
+			}
+
+			// Set Update and Draw framerate to the current FPS every 1.5 second to prevent "slowness" issue
+			if ((FlxG.updateFramerate >= currentFPS + 5 || FlxG.updateFramerate <= currentFPS - 5)
+				&& haxe.Timer.stamp() - lastFramerateUpdateTime >= 1.5
+				&& currentFPS >= 30)
+			{
+				FlxG.updateFramerate = FlxG.drawFramerate = Std.int(currentFPS);
+				lastFramerateUpdateTime = haxe.Timer.stamp();
+			}
+
+			updateText();
+		}
+		else
+		{
+			currentTime += deltaTime;
+			times.push(currentTime);
+
+			while (times[0] < currentTime - 1000)
+			{
+				times.shift();
+			}
+
+			var currentCount = times.length;
+			currentFPS = Math.round((currentCount + cacheCount) / 2);
+			var optionFramerate = ClientPrefs.data.unlockFramerate ? 1000 : ClientPrefs.data.framerate;
+			if (currentFPS > optionFramerate) currentFPS = optionFramerate;
+
+			_updateMemTimer += FlxG.elapsed / 1000;
+
+			// fucking hell this is weird
+			if ((currentCount != cacheCount || _updateMemTimer >= 100.0) && visible)
+			{
+				updateText();
+			}
+
+			cacheCount = currentCount;
 		}
 
 		var minAlpha:Float = 0.5;
@@ -130,24 +185,9 @@ class FPSCounter extends TextField
 		}
 
 		if (!lagging)
-			realAlpha = CoolUtil.boundTo(realAlpha - (deltaTime / 1000) * aggressor, minAlpha, 1);
-		else
-			realAlpha = CoolUtil.boundTo(realAlpha + (deltaTime / 1000), 0.3, 1);
-
-		var currentCount = times.length;
-		currentFPS = Math.round((currentCount + cacheCount) / 2);
-		var optionFramerate = ClientPrefs.data.unlockFramerate ? 1000 : ClientPrefs.data.framerate;
-		if (currentFPS > optionFramerate) currentFPS = optionFramerate;
-
-		_updateMemTimer += FlxG.elapsed / 1000;
-
-		// fucking hell this is weird
-		if ((currentCount != cacheCount || _updateMemTimer >= 100.0) && visible)
-		{
-			updateText();
-		}
-
-		cacheCount = currentCount;
+				realAlpha = CoolUtil.boundTo(realAlpha - (deltaTime / 1000) * aggressor, minAlpha, 1);
+			else
+				realAlpha = CoolUtil.boundTo(realAlpha + (deltaTime / 1000), 0.3, 1);
 
 		alpha = realAlpha;
 	}

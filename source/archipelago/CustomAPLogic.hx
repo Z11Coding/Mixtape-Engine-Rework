@@ -7,8 +7,10 @@ import backend.Paths;
 import backend.WeekData;
 import hscript.Interp;
 import hscript.Parser;
+#if sys
 import sys.FileSystem;
 import sys.io.File;
+#end
 
 typedef APRequiredItem = {
     name: String,

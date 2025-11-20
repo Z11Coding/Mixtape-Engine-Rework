@@ -13,7 +13,7 @@
 	<!--The flixel preloader is not accurate in Chrome. You can use it regularly if you embed the swf into a html file
 		or you can set the actual size of your file manually at "FlxPreloaderBase-onUpdate-bytesTotal"-->
 	<!-- <app preloader="Preloader" resizable="true" /> -->
-	<app preloader="flixel.system.FlxPreloader" />
+	<app preloader="backend.FunkinPreloader" />
 
 	<!--Minimum without FLX_NO_GAMEPAD: 11.8, without FLX_NO_NATIVE_CURSOR: 11.2-->
 	<set name="SWF_VERSION" value="11.8" />
@@ -31,7 +31,8 @@
 	<define name="ARCHIPELAGO_ALLOWED"/>
 	<define name="CHECK_FOR_UPDATES"/>
 	<define name="TITLE_SCREEN_EASTER_EGG"/>
-	<define name="NATIVE_LOOKUP"/>
+	<define name="NATIVE_LOOKUP" if="MODS_ALLOWED" />
+	<define name="OPENFL_LOOKUP"/>
 
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY"/>
@@ -153,7 +154,7 @@
 	<haxelib name="linc_dialogs" version="git" if="desktop" />
 
 	<!--Uncomment if you want to use moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
-    <haxelib name="moonchart" version="git" if="native"/>
+  <haxelib name="moonchart" version="git" if="native"/>
 
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>

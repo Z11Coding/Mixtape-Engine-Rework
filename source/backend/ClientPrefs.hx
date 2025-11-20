@@ -197,6 +197,7 @@ import states.TitleState;
 	public var showRenderText:Bool = false;
 	public var garbageCollection:Bool = true;
 	public var dontAllowScriptOverride:Bool = true;
+	public var scoreTextMode:String = 'VSlice';
 
 	// P-Slice things
 	public var favSongIds:Array<String> = [];
@@ -222,6 +223,13 @@ import states.TitleState;
 	public var disableHaxeTraces:Bool = false;
 	public var traceMode:String = "CONSOLE"; // CONSOLE, GAME, or BOTH
 	public var maxInGameTraces:Int = 100; // Maximum traces to keep in memory for in-game viewer
+
+	// Plus Engine cool stuff
+	public var accuracySystem:String = 'Wife3'; // 'Wife3', 'Psych', 'Mixtape, 'Simple', 'osu!mania', 'DJMAX', 'ITG'
+	public var judgeDiff:String = 'J4'; // Judge Difficulty: J1 (easiest) to JUSTICE (hardest)
+	public var fpsRework:Bool = false;
+	public var badShitBreakCombo:Bool = false; // If true, Bad and Shit will break the combo
+	public var judgementCounter:Bool = true;
 }
 
 class ClientPrefs {
@@ -587,15 +595,20 @@ class ClientPrefs {
 		}
 		#end
 
-		if(data.framerate > FlxG.drawFramerate)
-		{
-			FlxG.updateFramerate = data.framerate;
-			FlxG.drawFramerate = data.framerate;
-		}
+		if (data.fpsRework)
+			FlxG.stage.window.frameRate = data.framerate;
 		else
 		{
-			FlxG.drawFramerate = data.framerate;
-			FlxG.updateFramerate = data.framerate;
+			if (data.framerate > FlxG.drawFramerate)
+			{
+				FlxG.updateFramerate = data.framerate;
+				FlxG.drawFramerate = data.framerate;
+			}
+			else
+			{
+				FlxG.drawFramerate = data.framerate;
+				FlxG.updateFramerate = data.framerate;
+			}
 		}
 
 		if(FlxG.save.data.gameplaySettings != null)

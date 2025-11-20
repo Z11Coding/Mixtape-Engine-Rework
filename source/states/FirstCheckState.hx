@@ -4,6 +4,7 @@ import archipelago.APEntryState;
 import backend.AudioSwitchFix;
 import backend.util.NativeAPI;
 import flixel.input.keyboard.FlxKey;
+import lime.utils.Assets;
 import states.MixtapeCrashSplash;
 import yutautil.AprilFools;
 import yutautil.modules.SyncUtils;
@@ -82,6 +83,9 @@ class FirstCheckState extends MusicBeatState
 		}
 
 		super.create();
+
+		NativeFileSystem.openFlAssets = Assets.list();
+		openfl.utils.Assets.cache.enabled = false;
 
 		FlxG.scaleMode = new MobileScaleMode(ClientPrefs.data.wideScreen);
 

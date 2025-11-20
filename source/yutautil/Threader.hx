@@ -1,14 +1,18 @@
 package yutautil;
 
-// import openfl.utils.QName;
 import haxe.Exception;
-import haxe.macro.Expr;
 import haxe.macro.Context;
+import haxe.macro.Expr;
 import haxe.macro.ExprTools;
-import haxe.macro.Type;
 import haxe.macro.Printer;
+import haxe.macro.Type;
+
+// import openfl.utils.QName;
+
+#if (target.threaded)
 import sys.thread.Mutex;
 import sys.thread.Thread;
+#end
 
 /**
  * Represents a thread baked into compilation.
@@ -26,7 +30,7 @@ typedef QuietThread = String;
 
 /**
  * Manages threading operations, including running expressions in threads and queues.
- * 
+ *
  * Used for threading function calls for performance, and for running multiple functions concurrently.
  * Will NOT work with regular expressions.
  */
@@ -110,7 +114,7 @@ class Threader {
             var thrd = sys.thread.Thread.create(function() {
                 var retryCount = 0;
                 var shouldRetry = true;
-                
+
                 while (shouldRetry) {
                     try {
                         trace("Set command to run in a thread...");
@@ -129,7 +133,7 @@ class Threader {
                         if ($nameExpr != "") {
                             trace("Errored Thread name: " + $nameExpr + " (attempt " + (retryCount + 1) + ")");
                         }
-                        
+
                         if ($retryExpr) {
                             retryCount++;
                             // If maxRetries is 0, allow infinite retries
@@ -151,7 +155,7 @@ class Threader {
                             // No retry enabled, exit immediately
                             shouldRetry = false;
                         }
-                        
+
                         if (!shouldRetry) {
                             yutautil.Threader.quietThreads.remove($nameExpr);
                         }
@@ -181,15 +185,15 @@ class Threader {
 
     /**
      * Waits for all quiet threads to finish. This may cause permanent blocking if a thread is stuck, or is meant to run indefinitely.
-     * 
+     *
      * This function is not recommended for production use, as it may cause permanent blocking.
-     * 
+     *
      * This function is intended for debugging purposes only.
-     * 
+     *
      * Use with caution.
      * Will cause a compiler error if used as a threaded expression.
      * @see waitForThread
-     * 
+     *
      */
     public static function waitForThreads():Void {
         while (quietThreads.length > 0) {
@@ -199,7 +203,7 @@ class Threader {
 
     /**
      * Waits for a specific thread to finish.
-     * 
+     *
      * You cannot wait for unnamed threads. If you need to wait for an unnamed thread, you should name it.
      * @param name The name of the thread.
      */
@@ -226,7 +230,7 @@ class ThreadQueue {
     private var blockUntilFinished:Bool;
     public var done:Bool = true;
     public var length(get, never):Int;
-    
+
     function get_length():Int {
         return queue.length;
     }
@@ -242,15 +246,15 @@ class ThreadQueue {
         this.running = 0;
         this.blockUntilFinished = blockUntilFinished;
     }
-    
+
     /**
      * Runs the queue, if there is anything to run. Only should be used if you preloaded functions while it wasn't already running.
-     * 
+     *
      * This function checks if the queue is already running or if there are no threads available to run.
      * If the queue is already running, it logs a message and returns without doing anything.
      * If there are no threads available, it logs a message and throws an exception.
      * Otherwise, it proceeds to process the queue.
-     * 
+     *
      * @throws NoThread if there are no threads available to run.
      */
     public function run():Void {
@@ -310,7 +314,7 @@ class ThreadQueue {
 
     /**
      * Preloads multiple functions into the queue.
-     * 
+     *
      * Warning: If currently running functions, these will be added to the same CURRENT queue.
      * @param funcs The functions to preload.
      */
@@ -322,7 +326,7 @@ class ThreadQueue {
 
     /**
      * Preloads a function into the queue.
-     * 
+     *
      * Warning: If currently running functions, this will be added to the same CURRENT queue.
      * @param func The function to preload.
      */
@@ -458,7 +462,7 @@ class MemLimitThreadQ {
         return items.length;
     }
 
-    
+
     function get_queueLength():Int {
         return queue.length;
     }
