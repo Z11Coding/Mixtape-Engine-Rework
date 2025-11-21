@@ -1,10 +1,13 @@
 package states.freeplay;
 
+import backend.GameplayOptionsLoader;
 import backend.Highscore;
 import backend.WeekData;
 import backend.pslice.BPMCache;
 import backend.pslice.Scoring.ScoringRank;
 import backend.pslice.SortUtil;
+import backend.ui.*;
+import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxSprite;
 import flixel.addons.transition.FlxTransitionableState;
@@ -50,6 +53,17 @@ import states.freeplay.vslice.obj.AtlasText;
 import states.freeplay.vslice.obj.CapsuleOptionsMenu;
 import states.freeplay.vslice.obj.LetterSort;
 import substates.StickerSubState;
+#if ARCHIPELAGO_ALLOWED
+import archipelago.APEntryState;
+import archipelago.APGameState;
+import archipelago.APInfo;
+import options.GameplayChangersSubstate;
+#end
+
+
+#if ARCHIPELAGO_ALLOWED
+import managers.APFreeplayManager;
+#end
 
 
 
@@ -188,6 +202,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	var dj:Null<FreeplayDJ> = null;
 
+	// DJ animation timing control - prevents bopping too fast for animation to complete
+	var djLastBeatHit:Int = -1;
+	var djDanceEveryNumBeats:Int = 1;
+
 	var ostName:FlxText;
 	var albumRoll:AlbumRoll;
 
@@ -224,6 +242,19 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	var backingCard:Null<BackingCard> = null;
 
 	public var backingImage:FlxSprite;
+
+	var optionsBox:PsychUIBox;
+	var characterHintButton:PsychUIButton;
+	var stageHintButton:PsychUIButton;
+	var uiGroup:FlxTypedGroup<FlxBasic>; // Dedicated UI group that stays on top
+	var optionsVisible:Bool = false;
+	var optionsAnimating:Bool = false; // Prevent spam clicking during animation
+	var optionsTargetX:Float = 0; // Target X position for animation
+	var optionsHiddenX:Float = 0; // Hidden X position (off-screen right)
+
+	// Pagination for options
+	var currentPages:Map<String, Int> = new Map();
+	var totalPages:Map<String, Int> = new Map();
 
 	var fromResultsParams:Null<FromResultsParams> = null;
 
@@ -311,11 +342,18 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			backingCard = new BoyfriendCard(currentCharacter);*/
 
         // Check if the Victory Song is cleared.
+		#if ARCHIPELAGO_ALLOWED
 		if (APEntryState.inArchipelagoMode) {
 			trace(APEntryState.victorySong);
 			APFreeplayManager.updateArchFreeplay();
 			APFreeplayManager.checkVictory();
+
+			// Check proper tags upon creation
+			if (APGameState.instance != null) {
+				APGameState.instance.checkProperTags();
+			}
 		}
+		#end
 
     Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
@@ -345,6 +383,13 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 
         super.create();
+
+		// Initialize DJ dance frequency with default BPM
+		calculateDjDanceFrequency();
+
+		// Initialize options menu (UI group will be created later)
+		createOptionsMenu();
+
 		var diffIdsTotalModBinds:Map<String, String> = ["easy" => "", "normal" => "", "hard" => ""];
 
 		FlxG.state.persistentUpdate = false;
@@ -504,6 +549,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			diffSprite.difficultyId = diffId;
 			grpDifficulties.add(diffSprite);
 		}
+
+
+
 		Mods.loadTopMod();
 
 		grpDifficulties.group.forEach(function(spr)
@@ -511,13 +559,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			spr.visible = false;
 		});
 
-		for (diffSprite in grpDifficulties.group.members)
-		{
-			if (diffSprite == null)
-				continue;
-			if (diffSprite.difficultyId == currentDifficulty)
-				diffSprite.visible = true;
-		}
+		updateDifficultyVisibility();
 
 		albumRoll.albumId = null;
 		@:privateAccess // Force update the album
@@ -799,6 +841,17 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			bs.cameras = [funnyCam];
 		});
 
+		// Create UI group AFTER forEach so it renders on top of everything
+		uiGroup = new FlxTypedGroup<FlxBasic>();
+		uiGroup.cameras = [funnyCam]; // Use same camera as everything else
+		add(uiGroup);
+
+		// Move options box to UI group for proper top layering
+		if (optionsBox != null) {
+			remove(optionsBox, true); // Remove from state without destroying
+			uiGroup.add(optionsBox); // Add to UI group which renders last
+		}
+
 		rankCamera.bgColor = FlxColor.TRANSPARENT;
 		FlxG.cameras.add(rankCamera, false);
 		rankBg.cameras = [rankCamera];
@@ -836,7 +889,12 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			tempSongs = sortSongs(tempSongs, filterStuff);
 
 		// Filter further by current selected difficulty.
+		// Skip difficulty filtering when Ultimate Confusion Trap is active
+		#if ARCHIPELAGO_ALLOWED
+		if (currentDifficulty != null && !archipelago.APItem.unknownSongs)
+		#else
 		if (currentDifficulty != null)
+		#end
 		{
 			tempSongs = tempSongs.filter(song -> {
 				if (song == null)
@@ -1405,14 +1463,15 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		#end // ^<-- FEATURE_DEBUG_FUNCTIONS
 
+		// Toggle options menu with CTRL key (replaces GameplayChangers substate)
+		if (FlxG.keys.justPressed.CONTROL && !busy && !optionsAnimating)
+		{
+			toggleOptionsMenu();
+		}
+
 		if (!busy)
 		{
-			if (FlxG.keys.justPressed.CONTROL)
-			{
-				persistentUpdate = false;
-				FreeplayHelpers.openGameplayChanges(this);
-			}
-			else if (controls.RESET && curSelected != 0)
+			if (controls.RESET && curSelected != 0)
 			{
 				persistentUpdate = false;
 				var curSng = curCapsule;
@@ -1644,7 +1703,20 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			if (dj != null)
 				dj.onIntroDone.removeAll();
 
-			FunkinSound.playOnce('cancelMenu');
+			// Unfocus any PsychUI text inputs to prevent crashes
+			backend.ui.PsychUIInputText.focusOn = null;
+
+			// Save options menu state and trigger close animation if open
+			if (optionsBox != null) {
+				var isOpen = optionsBox.x < FlxG.width;
+				ClientPrefs.data.freeplayOptionsOpen = isOpen;
+				ClientPrefs.saveSettings();
+
+				// If options are open, animate them out during exit
+				if (isOpen && !optionsAnimating) {
+					animateOptionsOut();
+				}
+			}			FunkinSound.playOnce('cancelMenu');
 			FreeplayHelpers.exitFreeplay();
 
 			var longestTimer:Float = 0;
@@ -1715,26 +1787,76 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Calculate DJ dance frequency based on BPM to prevent animation interruption
+	 */
+	function calculateDjDanceFrequency():Void
+	{
+		// Get current BPM from FreeplayHelpers (set when song is selected)
+		// If no specific BPM has been set yet, use default of 102 (freeplay menu music BPM)
+		var currentBpm = FreeplayHelpers.BPM;
+		if (currentBpm <= 0) {
+			currentBpm = 102; // Default freeplay BPM
+		}
+
+		// If BPM is too high, slow down the dance rate to prevent animation interruption
+		// Base threshold: 140 BPM = 1 beat per animation (normal speed)
+		// Above 280 BPM = 2 beats per animation (half speed)
+		// Above 420 BPM = 3 beats per animation (third speed), etc.
+		// User requested: "if it is too fast, it halves the speed"
+
+		if (currentBpm > 140)
+		{
+			djDanceEveryNumBeats = Math.ceil(currentBpm / 140);
+		}
+		else
+		{
+			djDanceEveryNumBeats = 1;
+		}
+
+		trace('DJ Dance Frequency: BPM=$currentBpm, DanceEvery=$djDanceEveryNumBeats beats');
+	}
+
 	override function beatHit()
 	{
+		// // Only prevent duplicate beat hits if it's actually the same beat
+		// if (djLastBeatHit == curBeat) {
+		// 	return;
+		// }
+
 		backingCard?.beatHit(curBeat);
 
 		if (dj != null) {
-			@:privateAccess {
-				var animPrefix = dj.playableCharData.getAnimationPrefix('idle');
-				if (dj.currentState == Idle && curBeat % 2 == 0)
-				{
-					dj.playFlashAnimation(animPrefix, true, false, false);
+			// Only bop DJ on appropriate beats based on calculated frequency
+			if (curBeat % djDanceEveryNumBeats == 0) {
+				@:privateAccess {
+					var animPrefix = dj.playableCharData.getAnimationPrefix('idle');
+					if (dj.currentState == Idle)
+					{
+						dj.playFlashAnimation(animPrefix, true, false, false);
+					}
 				}
 			}
 		}
 
 		super.beatHit();
+		djLastBeatHit = curBeat;
 	}
 
 	public override function destroy():Void
 	{
 		controls.isInSubstate = false;
+
+		// Unfocus any PsychUI text inputs to prevent crashes during cleanup
+		backend.ui.PsychUIInputText.focusOn = null;
+
+		// Clean up PsychUI options menu
+		if (optionsBox != null)
+		{
+			remove(optionsBox);
+			optionsBox = null;
+		}
+
 		super.destroy();
 		var daSong:Null<FreeplaySongData> = currentFilteredSongs[curSelected];
 		if (daSong != null)
@@ -1754,6 +1876,16 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	{
 		touchTimer = 0;
 		difficultyLastChange = change;
+
+		// Ultimate Confusion Trap - Don't change difficulties when confused
+		#if ARCHIPELAGO_ALLOWED
+		if (archipelago.APItem.unknownSongs)
+		{
+			// Force difficulty to show as ??? but don't actually change the internal currentDifficulty
+			// The actual difficulty will be randomly selected when the song is played
+			return;
+		}
+		#end
 
 		var currentDifficultyIndex:Int = diffIdsCurrent.indexOf(currentDifficulty);
 
@@ -1815,6 +1947,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		// Set difficulty star count.
 		albumRoll.setDifficultyStars(daSong?.difficultyRating);
+
+		// Update difficulty visibility for confusion state
+		updateDifficultyVisibility();
 	}
 
 	/**
@@ -1929,6 +2064,21 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		busy = true;
 		letterSort.inputEnabled = false;
 
+		// Unfocus any PsychUI text inputs to prevent crashes
+		backend.ui.PsychUIInputText.focusOn = null;
+
+		// Save options menu state and trigger close animation if open
+		if (optionsBox != null) {
+			var isOpen = optionsBox.x < FlxG.width;
+			ClientPrefs.data.freeplayOptionsOpen = isOpen;
+			ClientPrefs.saveSettings();
+
+			// If options are open, animate them out during song load
+			if (isOpen) {
+				animateOptionsOut();
+			}
+		}
+
 		var availableSongCapsules:Array<SongMenuItem> = grpCapsules.activeSongItems.filter(function(cap:SongMenuItem)
 		{
 			// Dead capsules are ones which were removed from the list when changing filters.
@@ -2021,7 +2171,20 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		busy = true;
 		letterSort.inputEnabled = false;
 
-		PlayState.isStoryMode = false;
+		// Unfocus any PsychUI text inputs to prevent crashes
+		backend.ui.PsychUIInputText.focusOn = null;
+
+		// Save options menu state and trigger close animation if open
+		if (optionsBox != null) {
+			var isOpen = optionsBox.x < FlxG.width;
+			ClientPrefs.data.freeplayOptionsOpen = isOpen;
+			ClientPrefs.saveSettings();
+
+			// If options are open, animate them out during song load
+			if (isOpen && !optionsAnimating) {
+				animateOptionsOut();
+			}
+		}		PlayState.isStoryMode = false;
 
 		var targetSong = cap.songData;
 		if (targetSong == null)
@@ -2032,6 +2195,18 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		// colorTween = null;
 		var targetDifficultyId:String = currentDifficulty;
+
+		#if ARCHIPELAGO_ALLOWED
+		// Ultimate Confusion Trap - randomly select difficulty when confused
+		if (archipelago.APItem.unknownSongs && cap.songData != null && cap.songData.songDifficulties.length > 0)
+		{
+			var availableDifficulties = cap.songData.songDifficulties;
+			var randomIndex = Std.random(availableDifficulties.length);
+			targetDifficultyId = availableDifficulties[randomIndex];
+			trace("Ultimate Confusion Trap: Randomly selected difficulty: " + targetDifficultyId);
+		}
+		#end
+
 		PlayState.storyWeek = cap.songData.levelId;
 
 		// Find current difficulty sprite
@@ -2190,6 +2365,16 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		else if (prepForNewRank)
 			tweenCurSongColor(daSongCapsule);
+
+		// Update hint button costs when song selection changes
+		if (optionsBox != null && archipelago.APEntryState.inArchipelagoMode) {
+			// Since PsychUI components are added directly, we can reference them directly
+			// The buttons are already member variables, so we can use them directly
+			if (characterHintButton != null)
+				updateCharacterHintButton(characterHintButton);
+			if (stageHintButton != null)
+				updateStageHintButton(stageHintButton);
+		}
 	}
 
 	public function playCurSongPreview(?daSongCapsule:SongMenuItem):Void
@@ -2233,6 +2418,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					// ? set BPMs
 					var newBPM = daSongCapsule.songData.songStartingBpm;
 					FreeplayHelpers.BPM = newBPM; // ? reimplementing
+
+					// Update DJ dance frequency based on new BPM
+					calculateDjDanceFrequency();
 				}
 			});
 		}
@@ -2245,6 +2433,499 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			var newColor:FlxColor = (curSelected == 0) ? 0xFFFFD863 : daSongCapsule.songData.color;
 			var bfCard = cast(backingCard, BoyfriendCard);
 			bfCard.colorEngine?.tweenColor(newColor);
+		}
+	}
+
+	/**
+	 * Update difficulty visibility based on confusion state
+	 */
+	function updateDifficultyVisibility():Void
+	{
+		#if ARCHIPELAGO_ALLOWED
+		if (archipelago.APItem.unknownSongs)
+		{
+			// Hide all difficulties when confused - no difficulty display at all
+			for (diffSprite in grpDifficulties.group.members)
+			{
+				if (diffSprite == null)
+					continue;
+				diffSprite.visible = false;
+			}
+		}
+		else
+		{
+			// Show normal difficulty display
+			for (diffSprite in grpDifficulties.group.members)
+			{
+				if (diffSprite == null)
+					continue;
+				if (diffSprite.difficultyId == currentDifficulty)
+					diffSprite.visible = true;
+			}
+		}
+		#else
+		for (diffSprite in grpDifficulties.group.members)
+		{
+			if (diffSprite == null)
+				continue;
+			if (diffSprite.difficultyId == currentDifficulty)
+				diffSprite.visible = true;
+		}
+		#end
+	}
+
+	/**
+	 * Create the HaxeUI options menu on the right side of the screen
+	 */
+	function createOptionsMenu():Void
+	{
+		trace("createOptionsMenu() called - APEntryState.inArchipelagoMode: " + APEntryState.inArchipelagoMode);
+
+		// Set up animation positions
+		optionsTargetX = FlxG.width - 360; // Final position (visible)
+		optionsHiddenX = FlxG.width + 20;   // Hidden position (off-screen right)
+
+		// Load saved state (default to closed if no save exists)
+		optionsVisible = ClientPrefs.data.freeplayOptionsOpen ?? false;
+
+		#if ARCHIPELAGO_ALLOWED
+		if (APEntryState.inArchipelagoMode)
+		{
+			trace("Creating Archipelago options menu");
+			// Position lower and make taller for more options
+			optionsBox = new PsychUIBox(optionsVisible ? optionsTargetX : optionsHiddenX, 200, 340, FlxG.height - 240, ['AP Options', 'Assist', 'Modifiers', 'Advanced']);
+			var tab_group = optionsBox.getTab('AP Options').menu;
+			var yPos = 10;
+
+			// Victory Song Tickets info
+			var ticketText = new FlxText(10, yPos, 280, "Victory Song Tickets: " + APInfo.ticketCount + " / " + APInfo.ticketWinCount, 12);
+			ticketText.alignment = CENTER;
+			tab_group.add(ticketText);
+			yPos += 25;
+
+			// Hint Points info
+			var hintText = new FlxText(10, yPos, 280, "Hint Points: " + APInfo.hintPoints + " (Cost: " + APInfo.hintCost + ")", 12);
+			hintText.alignment = CENTER;
+			tab_group.add(hintText);
+			yPos += 35;
+
+			// Song Hint Button
+			var songHintButton = new PsychUIButton(10, yPos, "Hint Current Song", function() {
+				if (APInfo.hintPoints >= APInfo.hintCost && curCapsule?.songData != null) {
+					var songName = curCapsule.songData.songName;
+					var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
+
+					// Hint the song
+					if (APFreeplayManager.isVictorySong(songName, modName) && APInfo.ticketCount >= APInfo.ticketWinCount) {
+						APEntryState.ap.Say("!hint Ticket");
+					} else {
+						var hintCommand = "!hint " + songName + ((modName != "" && modName != null) ? " (" + modName + ")" : "");
+						APEntryState.ap.Say(hintCommand);
+					}
+				}
+			}, 280);
+			tab_group.add(songHintButton);
+			yPos += 40;
+
+			// Charactersanity/Stagesanity hinting - Check if sanity is enabled
+			var sanityTypesEnabled = APEntryState.apGame.sanitySettings.sanity_types.length > 0;
+			if (sanityTypesEnabled && APEntryState.apGame.sanitySettings.enable_sanity_locations)
+			{
+				// Character hinting
+				if (APEntryState.apGame.sanitySettings.sanity_types.contains("characters"))
+				{
+					characterHintButton = new PsychUIButton(10, yPos, "", function() {
+						hintMissingCharacters();
+					}, 280);
+					updateCharacterHintButton(characterHintButton); // Will update text and cost
+					tab_group.add(characterHintButton);
+					yPos += 40;
+				}
+
+				// Stage hinting
+				if (APEntryState.apGame.sanitySettings.sanity_types.contains("stages"))
+				{
+					stageHintButton = new PsychUIButton(10, yPos, "", function() {
+						hintMissingStages();
+					}, 280);
+					updateStageHintButton(stageHintButton); // Will update text and cost
+					tab_group.add(stageHintButton);
+					yPos += 40;
+				}
+			}
+
+			// Close button for AP tab
+			var closeButton = new PsychUIButton(10, yPos + 20, "Close", function() {
+				toggleOptionsMenu();
+			}, 280);
+			tab_group.add(closeButton);
+
+			// Initialize gameplay options loader and pagination
+			var optionsLoader = new GameplayOptionsLoader();
+			initializeOptionsPagination();
+
+			// Populate other tabs with gameplay options using pagination
+			populateOptionsTab('Assist', GameplayOptionsLoader.ASSIST_CATEGORY, optionsLoader);
+			populateOptionsTab('Modifiers', GameplayOptionsLoader.MODIFIERS_CATEGORY, optionsLoader);
+			populateOptionsTab('Advanced', GameplayOptionsLoader.ADVANCED_CATEGORY, optionsLoader);
+		}
+		else
+		#end
+		{
+			trace("Creating regular gameplay options menu");
+			// Position lower to avoid overlapping score text - start at 220 instead of 150
+			// Position lower and make taller for more options
+			optionsBox = new PsychUIBox(optionsVisible ? optionsTargetX : optionsHiddenX, 200, 340, FlxG.height - 240, ['Assist', 'Modifiers', 'Advanced']);
+
+			// Initialize gameplay options loader and pagination
+			var optionsLoader = new GameplayOptionsLoader();
+			trace("GameplayOptionsLoader created, categories available: " + [for (cat in optionsLoader.optionsByCategory.keys()) cat]);
+			initializeOptionsPagination();
+
+			// Populate tabs with gameplay options (no AP options in regular mode)
+			trace("Populating Assist tab");
+			populateOptionsTab('Assist', GameplayOptionsLoader.ASSIST_CATEGORY, optionsLoader);
+			trace("Populating Modifiers tab");
+			populateOptionsTab('Modifiers', GameplayOptionsLoader.MODIFIERS_CATEGORY, optionsLoader);
+			trace("Populating Advanced tab");
+			populateOptionsTab('Advanced', GameplayOptionsLoader.ADVANCED_CATEGORY, optionsLoader);
+		}
+
+		// Set initial visibility and position based on saved state
+		optionsBox.visible = true; // Always visible for animation, but positioned off-screen if closed
+		// Will be moved to UI group later in create() for proper layering
+		add(optionsBox);
+		trace("Options box created and added to state at position: " + optionsBox.x + ", " + optionsBox.y);
+
+		// If options should be open on entry, animate in from the right
+		if (optionsVisible) {
+			optionsBox.x = optionsHiddenX; // Start off-screen
+			animateOptionsIn();
+		}
+	}
+
+	/**
+	 * Initialize pagination for all option categories
+	 */
+	private function initializeOptionsPagination():Void {
+		var categories = [GameplayOptionsLoader.ASSIST_CATEGORY, GameplayOptionsLoader.MODIFIERS_CATEGORY, GameplayOptionsLoader.ADVANCED_CATEGORY];
+		for (category in categories) {
+			currentPages.set(category, 0);
+			totalPages.set(category, 1);
+		}
+	}
+
+	/**
+	 * Populate an options tab with pagination support
+	 */
+	private function populateOptionsTab(tabName:String, category:String, optionsLoader:GameplayOptionsLoader):Void {
+		trace('=== POPULATE OPTIONS TAB DEBUG START ===');
+		trace('populateOptionsTab called: tabName=$tabName, category=$category');
+
+		var tab_group = optionsBox.getTab(tabName).menu;
+		var currentPage:Int = currentPages.get(category) ?? 0;
+		trace('Retrieved currentPage from map: $currentPage for category: $category');
+		trace('currentPage type: ${Type.getClassName(Type.getClass(currentPage))}');
+
+		var itemsPerPage = 8; // Fit more items in taller box
+
+		// Create options for current page
+		trace('About to call createPsychUIForCategory with currentPage: $currentPage');
+		var pages = optionsLoader.createPsychUIForCategory(category, tab_group, currentPage, itemsPerPage);
+		totalPages.set(category, pages);
+		trace('populateOptionsTab: category=$category, currentPage=$currentPage, calculated pages=$pages');
+		trace('=== POPULATE OPTIONS TAB DEBUG (PARTIAL) END ===');
+
+		// Add pagination controls if needed
+		if (pages > 1) {
+			// Capture variables to avoid closure issues
+			var tabNameCapture = tabName;
+			var categoryCapture = category;
+			var optionsLoaderCapture = optionsLoader;
+
+			// Only show Previous button if not on first page
+			if (currentPage > 0) {
+				var prevButton = new PsychUIButton(10, 300, "← Prev", function() {
+					trace('=== PREV BUTTON CLICK DEBUG ===');
+					trace('PrevButton clicked! Category: $categoryCapture');
+					trace('Current currentPages map at button click:');
+					for (key in currentPages.keys()) {
+						trace('  $key: ${currentPages.get(key)}');
+					}
+					trace('About to call changePage with: $tabNameCapture, $categoryCapture, -1');
+					changePage(tabNameCapture, categoryCapture, optionsLoaderCapture, -1);
+				}, 100);
+				tab_group.add(prevButton);
+				trace('Added prevButton to tab_group for category: $category, current page: $currentPage, total pages: $pages');
+			}
+
+			// Only show Next button if not on last page
+			if (currentPage < pages - 1) {
+				var nextButton = new PsychUIButton(120, 300, "Next →", function() {
+					trace('=== NEXT BUTTON CLICK DEBUG ===');
+					trace('NextButton clicked! Category: $categoryCapture');
+					trace('Current currentPages map at button click:');
+					for (key in currentPages.keys()) {
+						trace('  $key: ${currentPages.get(key)}');
+					}
+					trace('About to call changePage with: $tabNameCapture, $categoryCapture, 1');
+					changePage(tabNameCapture, categoryCapture, optionsLoaderCapture, 1);
+				}, 100);
+				tab_group.add(nextButton);
+				trace('Added nextButton to tab_group for category: $category');
+			}
+
+			var pageText = new FlxText(230, 305, 80, 'Page ${currentPage + 1}/${pages}', 12);
+			pageText.alignment = CENTER;
+			tab_group.add(pageText);
+		}
+
+		// Add close button
+		var closeButton = new PsychUIButton(10, 340, "Close", function() {
+			toggleOptionsMenu();
+		}, 300);
+		tab_group.add(closeButton);
+	}
+
+	/**
+	 * Change page for a category and refresh the tab
+	 */
+	private function changePage(tabName:String, category:String, optionsLoader:GameplayOptionsLoader, direction:Int):Void {
+		trace('=== CHANGEPAGE DEBUG START ===');
+		trace('changePage called with: tabName=$tabName, category=$category, direction=$direction');
+
+		// Debug currentPages map state BEFORE any operations
+		trace('BEFORE - currentPages map contents:');
+		for (key in currentPages.keys()) {
+			trace('  $key: ${currentPages.get(key)}');
+		}
+
+		var currentPage:Int = currentPages.get(category) ?? 0;
+		var maxPages:Int = totalPages.get(category) ?? 1;
+
+		trace('changePage: category=$category, currentPage=$currentPage, maxPages=$maxPages, direction=$direction');
+		trace('currentPage type: ${Type.getClassName(Type.getClass(currentPage))}');
+
+		var newPage:Int = currentPage + direction;
+		trace('Raw newPage calculation: $currentPage + $direction = $newPage');
+
+		// Bounds checking - no wrap around, stay within bounds
+		if (newPage < 0) {
+			newPage = 0;
+			trace('newPage < 0, clamped to: 0');
+		} else if (newPage >= maxPages) {
+			newPage = maxPages - 1;
+			trace('newPage >= maxPages, clamped to: ${newPage}');
+		}
+
+		trace('changePage: final newPage will be: $newPage');
+		trace('newPage type: ${Type.getClassName(Type.getClass(newPage))}');
+
+		// Only proceed if page actually changed
+		if (newPage != currentPage) {
+			trace('Pages are different ($newPage != $currentPage), updating...');
+			currentPages.set(category, newPage);
+			trace('changePage: Page changed from $currentPage to $newPage');
+
+			// Verify the set worked
+			var verifyPage = currentPages.get(category);
+			trace('VERIFICATION: currentPages.get($category) now returns: $verifyPage');
+			trace('Verification equals newPage? ${verifyPage == newPage}');
+		} else {
+			trace('changePage: Page did not change ($newPage == $currentPage), returning');
+			return;
+		}
+
+		// Debug currentPages map state AFTER update
+		trace('AFTER - currentPages map contents:');
+		for (key in currentPages.keys()) {
+			trace('  $key: ${currentPages.get(key)}');
+		}
+
+		// Clear and repopulate tab
+		var tab_group = optionsBox.getTab(tabName).menu;
+		trace('changePage: Clearing and repopulating tab: $tabName');
+		trace('tab_group members before clear: ${tab_group.members.length}');
+		for (i in 0...tab_group.members.length) {
+			var member = tab_group.members[i];
+			trace('  Member $i: ${Type.getClassName(Type.getClass(member))} at (${member.x}, ${member.y})');
+		}
+		tab_group.clear();
+		trace('tab_group members after clear: ${tab_group.members.length}');
+		trace('About to call populateOptionsTab with page: ${currentPages.get(category)}');
+		populateOptionsTab(tabName, category, optionsLoader);
+		trace('tab_group members after repopulate: ${tab_group.members.length}');
+		trace('changePage: Tab repopulated successfully');
+		trace('=== CHANGEPAGE DEBUG END ===');
+	}
+
+	/**
+	 * Toggle the visibility of the options menu
+	 */
+	function toggleOptionsMenu():Void
+	{
+		// Prevent spam clicking during animation
+		if (optionsAnimating) return;
+
+		optionsVisible = !optionsVisible;
+
+		// Save state preference
+		ClientPrefs.data.freeplayOptionsOpen = optionsVisible;
+		ClientPrefs.saveSettings();
+
+		if (optionsVisible) {
+			animateOptionsIn();
+		} else {
+			animateOptionsOut();
+		}
+	}
+
+	function animateOptionsIn():Void
+	{
+		if (optionsAnimating) return;
+
+		optionsAnimating = true;
+		optionsBox.visible = true;
+		optionsBox.x = optionsHiddenX; // Start off-screen right
+
+		// Smooth slide in from right with easing
+		FlxTween.tween(optionsBox, {x: optionsTargetX}, 0.4, {
+			ease: FlxEase.backOut,
+			onComplete: function(tween:FlxTween) {
+				optionsAnimating = false;
+			}
+		});
+	}
+
+	function animateOptionsOut():Void
+	{
+		if (optionsAnimating) return;
+
+		optionsAnimating = true;
+
+		// Smooth slide out to right with easing
+		FlxTween.tween(optionsBox, {x: optionsHiddenX}, 0.3, {
+			ease: FlxEase.backIn,
+			onComplete: function(tween:FlxTween) {
+				optionsAnimating = false;
+				// Don't set visible = false to allow it to be positioned off-screen
+			}
+		});
+	}
+
+	/**
+	 * Update character hint button text with cost estimation
+	 */
+	function updateCharacterHintButton(button:PsychUIButton):Void
+	{
+		var missingCharacters = getMissingCharactersForCurrentSong();
+		var estimatedCost = missingCharacters.length * APInfo.hintCost;
+		button.text.text = "Hint Characters (" + missingCharacters.length + " × " + APInfo.hintCost + " = " + estimatedCost + " pts)";
+	}
+
+	/**
+	 * Update stage hint button text with cost estimation
+	 */
+	function updateStageHintButton(button:PsychUIButton):Void
+	{
+		var missingStages = getMissingStagesForCurrentSong();
+		var estimatedCost = missingStages.length * APInfo.hintCost;
+		button.text.text = "Hint Stages (" + missingStages.length + " × " + APInfo.hintCost + " = " + estimatedCost + " pts)";
+	}
+
+	/**
+	 * Get missing characters for the current selected song
+	 */
+	function getMissingCharactersForCurrentSong():Array<String>
+	{
+		if (curCapsule?.songData == null) return [];
+
+		try {
+			var songName = curCapsule.songData.songName;
+			var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
+
+			// Load the song data to get character information
+			var songLowercase = Paths.formatToSongPath(songName);
+			var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+			if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
+			var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+			var songData = backend.Song.loadFromJson(poop, songLowercase);
+
+			if (songData == null) return [];
+
+			var allMissingItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+			return allMissingItems.filter(item -> item.startsWith("Character:"));
+		} catch (e:Dynamic) {
+			trace("Error getting missing characters: " + e);
+			return [];
+		}
+	}
+
+	/**
+	 * Get missing stages for the current selected song
+	 */
+	function getMissingStagesForCurrentSong():Array<String>
+	{
+		if (curCapsule?.songData == null) return [];
+
+		try {
+			var songName = curCapsule.songData.songName;
+			var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
+
+			// Load the song data to get stage information
+			var songLowercase = Paths.formatToSongPath(songName);
+			var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+			if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
+			var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+			var songData = backend.Song.loadFromJson(poop, songLowercase);
+
+			if (songData == null) return [];
+
+			var allMissingItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+			return allMissingItems.filter(item -> item.startsWith("Stage:"));
+		} catch (e:Dynamic) {
+			trace("Error getting missing stages: " + e);
+			return [];
+		}
+	}
+
+	/**
+	 * Hint all missing characters for the current song
+	 */
+	function hintMissingCharacters():Void
+	{
+		var missingCharacters = getMissingCharactersForCurrentSong();
+		var estimatedCost = missingCharacters.length * APInfo.hintCost;
+
+		if (APInfo.hintPoints >= estimatedCost && missingCharacters.length > 0) {
+			for (character in missingCharacters) {
+				APEntryState.ap.Say("!hint " + character);
+			}
+			trace("Hinted " + missingCharacters.length + " characters for estimated cost of " + estimatedCost);
+		} else if (missingCharacters.length == 0) {
+			trace("No missing characters for this song");
+		} else {
+			trace("Not enough hint points. Need: " + estimatedCost + ", Have: " + APInfo.hintPoints);
+		}
+	}
+
+	/**
+	 * Hint all missing stages for the current song
+	 */
+	function hintMissingStages():Void
+	{
+		var missingStages = getMissingStagesForCurrentSong();
+		var estimatedCost = missingStages.length * APInfo.hintCost;
+
+		if (APInfo.hintPoints >= estimatedCost && missingStages.length > 0) {
+			for (stage in missingStages) {
+				APEntryState.ap.Say("!hint " + stage);
+			}
+			trace("Hinted " + missingStages.length + " stages for estimated cost of " + estimatedCost);
+		} else if (missingStages.length == 0) {
+			trace("No missing stages for this song");
+		} else {
+			trace("Not enough hint points. Need: " + estimatedCost + ", Have: " + APInfo.hintPoints);
 		}
 	}
 

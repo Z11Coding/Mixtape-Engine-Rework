@@ -20,6 +20,9 @@ import states.freeplay.vslice.FreeplayStyle;
 import states.freeplay.vslice.obj.AtlasText.AtlasFont;
 import states.freeplay.vslice.obj.AtlasText;
 import states.freeplay.vslice.obj.PixelatedIcon;
+#if ARCHIPELAGO_ALLOWED
+import archipelago.APItem;
+#end
 
 // ? Documented
 // changed FunkinSprite to FlxSprite
@@ -393,11 +396,42 @@ class SongMenuItem extends FlxSpriteGroup
 		}
 		else
 		{
+			// Ultimate Confusion Trap - Hide song names when AP unknown songs is active
+			#if ARCHIPELAGO_ALLOWED
+			if (APItem.unknownSongs)
+			{
+				songText.text = '???';
+				// Add subtle visual glitch effect
+				songText.color = FlxColor.interpolate(FlxColor.WHITE, FlxColor.RED, 0.3);
+
+				// Force BF icon when confused
+				pixelIcon.setCharacter('bf');
+				pixelIcon.visible = true;
+
+				// Hide week name when confused
+				updateWeekText("");
+			}
+			else
+			{
+				songText.text = songData.songName;
+				// Reset any confusion effects
+				songText.color = FlxColor.WHITE;
+
+				// Show normal character icon
+				if (songData.songCharacter != null)
+					pixelIcon.setCharacter(songData.songCharacter);
+				pixelIcon.visible = true;
+
+				// Show normal week name
+				updateWeekText(songData?.songWeekName ?? "");
+			}
+			#else
 			songText.text = songData.songName;
 			if (songData.songCharacter != null)
 				pixelIcon.setCharacter(songData.songCharacter);
 			pixelIcon.visible = true;
 			updateWeekText(songData?.songWeekName ?? "");
+			#end
 		}
 		refreshDisplayDifficulty();
 	}

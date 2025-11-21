@@ -40,6 +40,9 @@ class ExitState extends FlxState
 
 	private function performCleanup():Void
 	{
+		// Flush all queued traces before exit to ensure nothing is lost
+		backend.modules.TraceManager.flushAllQueuedTraces();
+
 		// Clean up crash tracking (remove lock file for normal exit)
 		yutautil.CrashReporter.cleanupOnExit();
 

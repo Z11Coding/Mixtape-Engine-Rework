@@ -514,6 +514,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 	override function update(elapsed:Float)
 	{
+		// Update trace management system (frame-based limiting and threading)
+		backend.modules.TraceManager.update();
+
 		// Check trap testing mode restrictions
 		if (_trapTestingMode && !isStateAllowedInTesting(Type.getClass(FlxG.state))) {
 			trace("MusicBeatState: Attempted to switch to disallowed state during trap testing: " + Type.getClass(FlxG.state) + ". Returning to test state.");
