@@ -57,107 +57,6 @@ class FreeplayHelpers
 
 		// Paths.setCurrentLevel(cap.songData.levelId);
 
-    if (APEntryState.inArchipelagoMode) {
-      var vicCheck:Bool = APFreeplayManager.isVictorySong(cap.getNativeSongId(), state.fpManager.songList[cap.levelId].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
-      //You need the song AND the tickets.
-      trace('can play victory song: ${vicCheck}');
-      if (APFreeplayManager.isVictorySong(cap.getNativeSongId(), state.fpManager.songList[cap.levelId].folder) && !vicCheck) {
-
-        // Check for hints first
-        var hints = APFreeplayManager.getHintsForSong(cap.getNativeSongId(), state.fpManager.songList[cap.levelId].folder);
-
-        if (hints.length > 0) {
-          // Show hint panel first
-          var hintContent = "Here are the hints for this song:\n\n";
-          for (i in 0...hints.length) {
-            hintContent += "• " + hints[i];
-            if (i < hints.length - 1) hintContent += "\n\n";
-          }
-
-          archipelago.substates.InfoPanelSubstate.show(
-            "Song Hints: " + cap.getNativeSongId(),
-            hintContent,
-            FlxColor.CYAN,
-            function() {
-              UserErrorSubstate.makeMessage("SONG NOT UNLOCKED!", 'You don\'t have enough tickets to play this victory song.\n\nRequired: ${APInfo.ticketWinCount}\nYou have: ${APInfo.ticketCount}');
-              FlxG.sound.play(Paths.sound('cancelMenu'));
-            }
-          );
-          return;
-        } else {
-          UserErrorSubstate.makeMessage("SONG NOT UNLOCKED!", 'You don\'t have enough tickets to play this victory song.\n\nRequired: ${APInfo.ticketWinCount}\nYou have: ${APInfo.ticketCount}');
-          FlxG.sound.play(Paths.sound('cancelMenu'));
-          return;
-        }
-      }
-
-      // Check if song is locked (not in curUnlocked)
-      var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == cap.getNativeSongId().trim().toLowerCase().replace('-', ' ') && songObj.mod == state.fpManager.songList[cap.levelId].folder].contains(true);
-      var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
-
-      if (isLocked) {
-        trace('Song is locked (not in curUnlocked)!');
-
-        // Check for hints first
-        var hints = APFreeplayManager.getHintsForSong(cap.getNativeSongId(), state.fpManager.songList[cap.levelId].folder);
-
-        if (hints.length > 0) {
-          // Show hint panel first
-          var hintContent = "Here are the hints for this song:\n\n";
-          for (i in 0...hints.length) {
-            hintContent += "• " + hints[i];
-            if (i < hints.length - 1) hintContent += "\n\n";
-          }
-
-          archipelago.substates.InfoPanelSubstate.show(
-            "Song Hints: " + cap.getNativeSongId(),
-            hintContent,
-            FlxColor.CYAN,
-            function() {
-              UserErrorSubstate.makeMessage("SONG NOT UNLOCKED!", "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.");
-              FlxG.sound.play(Paths.sound('cancelMenu'));
-            }
-          );
-          return;
-        } else {
-          UserErrorSubstate.makeMessage("SONG NOT UNLOCKED!", "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.");
-          FlxG.sound.play(Paths.sound('cancelMenu'));
-          return;
-        }
-      }
-
-      if (APFreeplayManager.trueMissing.contains({song: cap.getNativeSongId(), mod: state.fpManager.songList[cap.levelId].folder}) && !APFreeplayManager.unplayedList.contains({song: cap.getNativeSongId(), mod: state.fpManager.songList[cap.levelId].folder})) {
-        trace('Song is locked!');
-
-        // Check for hints first
-        var hints = APFreeplayManager.getHintsForSong(cap.getNativeSongId(), state.fpManager.songList[cap.levelId].folder);
-
-        if (hints.length > 0) {
-          // Show hint panel first
-          var hintContent = "Here are the hints for this song:\n\n";
-          for (i in 0...hints.length) {
-            hintContent += "• " + hints[i];
-            if (i < hints.length - 1) hintContent += "\n\n";
-          }
-
-          archipelago.substates.InfoPanelSubstate.show(
-            "Song Hints: " + cap.getNativeSongId(),
-            hintContent,
-            FlxColor.CYAN,
-            function() {
-              UserErrorSubstate.makeMessage("SONG NOT UNLOCKED!", "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.");
-              FlxG.sound.play(Paths.sound('cancelMenu'));
-            }
-          );
-          return;
-        } else {
-          UserErrorSubstate.makeMessage("SONG NOT UNLOCKED!", "This song isn't unlocked yet.\n\nYou need to complete the required objectives to unlock it.");
-          FlxG.sound.play(Paths.sound('cancelMenu'));
-          return;
-        }
-      }
-    }
-
 		state.persistentUpdate = false;
 		Mods.currentModDirectory = cap.folder;
 
@@ -230,63 +129,47 @@ class FreeplayHelpers
 		}*/
 		trace(poop);
 
-    // Check if required characters and stage are unlocked via sanity system
-    if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-      trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG)}');
-      var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
-      if (missingItems.length > 0) {
-        trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
+    try
+    {
+      PlayState.SONG = Song.loadFromJson(poop, songLowercase);
+      if(PlayState.SONG == null) throw "Song parsing failed!";
+      PlayState.isStoryMode = false;
+      PlayState.storyDifficulty = diffId;
 
-        var itemList = "";
-        for (i in 0...missingItems.length) {
-          itemList += "• " + missingItems[i];
-          if (i < missingItems.length - 1) itemList += "\n";
-        }
+      var directory = StageData.forceNextDirectory;
+      LoadingState.loadNextDirectory();
+      StageData.forceNextDirectory = directory;
 
-        UserErrorSubstate.makeMessage("Cannot Play Song!", 'This song requires unlocked characters or stages:\n\n' + itemList + '\n\nPlay other songs to unlock these items!');
-        FlxG.sound.play(Paths.sound('cancelMenu'));
+      // @:privateAccess
+      // if(PlayState._lastLoadedModDirectory != Mods.currentModDirectory)
+      // {
+      // 	trace('CHANGED MOD DIRECTORY, RELOADING STUFF');
+      // 	Paths.freeGraphicsFromMemory();
+      // }
+      #if STRICT_LOADING_SCREEN
+      if (!backend.ClientPrefs.data.strictLoadingScreen)
+        LoadingState.prepareToSong();
+      #end
 
-        return;
+      trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
+    }
+    catch (e:Exception)
+    {
+      trace('ERROR! $e');
+      UserErrorSubstate.makeMessage("Failed to load a song", '${e.message}\n\n${e.details()}');
+      @:privateAccess {
+        state.busy = false;
+        state.letterSort.inputEnabled = true;
       }
+      return;
     }
 
-		try
-		{
-			PlayState.SONG = Song.loadFromJson(poop, songLowercase);
-			if(PlayState.SONG == null) throw "Song parsing failed!";
-			PlayState.isStoryMode = false;
-			PlayState.storyDifficulty = diffId;
-
-			var directory = StageData.forceNextDirectory;
-			LoadingState.loadNextDirectory();
-			StageData.forceNextDirectory = directory;
-
-			// @:privateAccess
-			// if(PlayState._lastLoadedModDirectory != Mods.currentModDirectory)
-			// {
-			// 	trace('CHANGED MOD DIRECTORY, RELOADING STUFF');
-			// 	Paths.freeGraphicsFromMemory();
-			// }
-			#if STRICT_LOADING_SCREEN
-			if (!backend.ClientPrefs.data.strictLoadingScreen)
-				LoadingState.prepareToSong();
-			#end
-
-			trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
-		}
-		catch (e:Exception)
-		{
-			trace('ERROR! $e');
-			UserErrorSubstate.makeMessage("Failed to load a song", '${e.message}\n\n${e.details()}');
-			@:privateAccess {
-				state.busy = false;
-				state.letterSort.inputEnabled = true;
-			}
-			return;
-		}
-
 		#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
-		LoadingState.loadAndSwitchState(new PlayState(), true);
+		LoadingState.prepareToSong();
+    LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
+      archipelago.APPlayState.currentSong = cap.getNativeSongId();
+      archipelago.APPlayState.currentMod = cap.folder;
+    }) : new PlayState());
 
 		FlxG.sound.music.volume = 0;
 

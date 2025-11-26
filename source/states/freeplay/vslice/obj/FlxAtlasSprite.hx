@@ -17,7 +17,7 @@ class FlxAtlasSprite extends PsychFlxAnimate
   /**
    * A list of precached "animation.json" files in case they're used a lot
    */
-  public static final ANIMATION_OBJECTS = new Map<String,Dynamic>();
+  public static final ANIMATION_OBJECTS = new Map<String, Dynamic>();
 
   static final SETTINGS:Settings =
     {
@@ -79,6 +79,7 @@ class FlxAtlasSprite extends PsychFlxAnimate
     this.anim.onComplete.add(_onAnimationComplete);
     this.anim.onFrame.add(_onAnimationFrame);
   }
+
   //? P-Slice fix for mods
   override function loadAtlas(path:String) {
     Paths.loadAnimateAtlas(this,path,null,ANIMATION_OBJECTS.get(path));

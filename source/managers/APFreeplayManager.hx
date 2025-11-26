@@ -20,15 +20,15 @@ import archipelago.PacketTypes.ClientStatus;
     just a way to separate Archipelago from the main stuff so it doesn't get affected by AP's bull
 */
 
-    // SongInfo structure as typedef
-    typedef SongInfo = {
-        var song:String;
-        var mod:String;
-        var unlocked:Bool;
-        var missing:Bool;
-        var hinted:Bool;
-        var otherData:Dynamic;
-    }
+// SongInfo structure as typedef
+typedef SongInfo = {
+    var song:String;
+    var mod:String;
+    var unlocked:Bool;
+    var missing:Bool;
+    var hinted:Bool;
+    var otherData:Dynamic;
+}
 
 abstract APSongData(SongInfo) {
     // SongInfo holds all relevant data for a song

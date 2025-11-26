@@ -13,6 +13,7 @@ import flixel.util.FlxTimer;
 class FreeplayDJ extends FlxSprite
 {
     public var characterId:String = "bf";
+    public var characterModFolder:String = "";
 
     // Animation states
     public var currentState:DJState = IDLE;
@@ -44,15 +45,15 @@ class FreeplayDJ extends FlxSprite
     private function getDJFrames(character:String):FlxAtlasFrames
     {
         // Try character-specific DJ frames first
-        var charFrames = Paths.getSparrowAtlas('freeplay/freeplay-$character', 'vslice');
+        var charFrames = Paths.getSparrowAtlas('freeplay/freeplay-$character', PlayerRegistry.curModFolder);
         if (charFrames != null) return charFrames;
 
         // Try generic freeplay boyfriend
-        var bfFrames = Paths.getSparrowAtlas('freeplay/freeplay-boyfriend', 'vslice');
+        var bfFrames = Paths.getSparrowAtlas('freeplay/freeplay-boyfriend');
         if (bfFrames != null) return bfFrames;
 
         // Fallback to regular character
-        return Paths.getSparrowAtlas('characters/$character', 'vslice');
+        return Paths.getSparrowAtlas('characters/$character');
     }
 
     private function setupAnimations():Void

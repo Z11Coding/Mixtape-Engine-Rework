@@ -49,6 +49,8 @@ enum PathType
 	TEXT;
 	LUA;
 	HSCRIPT;
+	JSON;
+	REGISTRY;
 }
 
 @:access(openfl.display.BitmapData)
@@ -113,6 +115,7 @@ class Paths
 		'assets/shared/music/menuMusic/titlemania.$SOUND_EXT',
 		'assets/shared/images/mechanics/general/toplight.$IMAGE_EXT'
 	];
+
 	// haya I love you for the base cache dump I took to the max
 	public static function clearUnusedMemory()
 	{
@@ -545,7 +548,8 @@ class Paths
 			var customFile:String = file;
 			if (parentfolder != null) customFile = '$parentfolder/$file';
 
-			var modded:String = modFolders(customFile);
+			var modded:String = modFolders(customFile, parentfolder);
+		  //trace('Modded Path: $modded\nOriginal Path: $customFile\nExists: ${NativeFileSystem.exists(modded)}');
 			if (NativeFileSystem.exists(modded)) return modded;
 		}
 		#end
@@ -735,7 +739,7 @@ class Paths
 	// Similar to all functions, but instead this returns if it can find a modded file, or an asset file, as an object.
 	// Example: Paths.assetLocation('images/character.png') will return the modded file if it exists, or the asset file if it doesn't.
 	// Will return: {location: 'assets/images/character.png', modded: false} if the asset file exists, or {location: 'mods/character.png', modded: true} if the modded file exists.
-	public static function assetLocation(key:String, ?parentFolder:String = null, ?pathType:PathType = IMAGES, ?allowNull:Bool = false, ?topModOnly:Bool = false):Null<{location:String, modded:Bool}>
+	public static function assetLocation(key:String, ?parentFolder:String = "", ?pathType:PathType = IMAGES, ?allowNull:Bool = false, ?topModOnly:Bool = false):Null<{location:String, modded:Bool}>
 	{
 		var ext = switch (pathType) {
 			case IMAGES: IMAGE_EXT;
@@ -747,6 +751,8 @@ class Paths
 			case LUA: "lua";
 			case HSCRIPT: "hx";
 			case SONGS: SOUND_EXT;
+			case JSON: "json";
+			case REGISTRY: "json";
 			default: IMAGE_EXT;
 		};
 
@@ -761,6 +767,8 @@ class Paths
 			case LUA: "scripts";
 			case HSCRIPT: "scripts";
 			case SONGS: "songs";
+			case REGISTRY: ""; //The registry path usually has the proper path in it
+			case JSON: "data";
 			default: "images";
 		};
 
@@ -775,29 +783,35 @@ class Paths
 			case LUA: AssetType.TEXT;
 			case HSCRIPT: AssetType.TEXT;
 			case SONGS: SOUND;
+			case JSON: AssetType.TEXT;
+			case REGISTRY: AssetType.TEXT;
 			default: IMAGE;
 		};
 
-		var filePath = folder != "" ? '$folder/$key.$ext' : '$key.$ext';
+		var filePath = folder != "" ? '$folder/$key.$ext' : parentFolder.length > 0 ? '$parentFolder/$key.$ext' : '$key.$ext';
 
 		#if MODS_ALLOWED
 		// Check enabled mods first
 		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0) {
 			var modPath = 'mods/${Mods.currentModDirectory}/$filePath';
 			if (FileSystem.exists(modPath)) {
+				trace(modPath);
 				return {location: modPath, modded: true};
 			}
 		}
+
 		if (!topModOnly) {
 			for (mod in Mods.parseList().enabled) {
 				var modPath = 'mods/$mod/$filePath';
 				if (FileSystem.exists(modPath)) {
+					trace(modPath);
 					return {location: modPath, modded: true};
 				}
 			}
 			for (mod in Mods.getGlobalMods()) {
 				var modPath = 'mods/$mod/$filePath';
 				if (FileSystem.exists(modPath)) {
+					trace(modPath);
 					return {location: modPath, modded: true};
 				}
 			}
@@ -816,6 +830,198 @@ class Paths
 		}
 
 		return allowNull ? {location: null, modded: false} : null;
+	}
+
+	// Similar to all functions, but instead this returns if it can find a modded file, or an asset file, as an object.
+	// Example: Paths.assetLocation('images/character.png') will return the modded file if it exists, or the asset file if it doesn't.
+	// Will return: {location: 'assets/images/character.png', modded: false} if the asset file exists, or {location: 'mods/character.png', modded: true} if the modded file exists.
+	public static function basicAssetLocation(key:String, ?parentFolder:String = "", ?pathType:PathType = IMAGES, ?allowNull:Bool = false, ?topModOnly:Bool = false):String
+	{
+		var ext = switch (pathType) {
+			case IMAGES: IMAGE_EXT;
+			case SOUNDS: SOUND_EXT;
+			case MUSIC: SOUND_EXT;
+			case VIDEOS: VIDEO_EXT;
+			case SHADERS: "frag";
+			case DATA | TEXT: "txt";
+			case LUA: "lua";
+			case HSCRIPT: "hx";
+			case SONGS: SOUND_EXT;
+			case JSON: "json";
+			case REGISTRY: "json";
+			default: IMAGE_EXT;
+		};
+
+		var folder = switch (pathType) {
+			case IMAGES: "images";
+			case SOUNDS: "sounds";
+			case MUSIC: "music";
+			case VIDEOS: "videos";
+			case SHADERS: "shaders";
+			case DATA: "data";
+			case TEXT: "data";
+			case LUA: "scripts";
+			case HSCRIPT: "scripts";
+			case SONGS: "songs";
+			case REGISTRY: ""; //The registry path usually has the proper path in it
+			case JSON: "data";
+			default: "images";
+		};
+
+		var type = switch (pathType) {
+			case IMAGES: IMAGE;
+			case SOUNDS: SOUND;
+			case MUSIC: SOUND;
+			case VIDEOS: BINARY;
+			case SHADERS: AssetType.TEXT;
+			case DATA: AssetType.TEXT;
+			case TEXT: AssetType.TEXT;
+			case LUA: AssetType.TEXT;
+			case HSCRIPT: AssetType.TEXT;
+			case SONGS: SOUND;
+			case JSON: AssetType.TEXT;
+			case REGISTRY: AssetType.TEXT;
+			default: IMAGE;
+		};
+
+		var filePath = folder != "" ? '$folder/$key.$ext' : parentFolder.length > 0 ? '$parentFolder/$key.$ext' : '$key.$ext';
+
+		#if MODS_ALLOWED
+		// Check enabled mods first
+		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0) {
+			var modPath = 'mods/${Mods.currentModDirectory}/$filePath';
+			if (FileSystem.exists(modPath)) {
+				trace(modPath);
+				return modPath;
+			}
+		}
+
+		if (!topModOnly) {
+			for (mod in Mods.parseList().enabled) {
+				var modPath = 'mods/$mod/$filePath';
+				if (FileSystem.exists(modPath)) {
+					trace(modPath);
+					return modPath;
+				}
+			}
+			for (mod in Mods.getGlobalMods()) {
+				var modPath = 'mods/$mod/$filePath';
+				if (FileSystem.exists(modPath)) {
+					trace(modPath);
+					return modPath;
+				}
+			}
+			// Check base mods folder (for loose files)
+			var looseModPath = 'mods/$filePath';
+			if (FileSystem.exists(looseModPath)) {
+				return looseModPath;
+			}
+		}
+		#end
+
+		// Fallback to shared assets
+		var assetPath = getSharedPath(filePath);
+		if (FileSystem.exists(assetPath)) {
+			return assetPath;
+		}
+
+		return allowNull ? null : null;
+	}
+
+	// Similar to all functions, but instead this returns if it can find a modded file, or an asset file, as an object.
+	// Example: Paths.assetLocation('images/character.png') will return the modded file if it exists, or the asset file if it doesn't.
+	// Will return: {location: 'assets/images/character.png', modded: false} if the asset file exists, or {location: 'mods/character.png', modded: true} if the modded file exists.
+	public static function basicModsLocation(key:String, ?parentFolder:String = "", ?pathType:PathType = IMAGES, ?allowNull:Bool = false, ?topModOnly:Bool = false):String
+	{
+		var ext = switch (pathType) {
+			case IMAGES: IMAGE_EXT;
+			case SOUNDS: SOUND_EXT;
+			case MUSIC: SOUND_EXT;
+			case VIDEOS: VIDEO_EXT;
+			case SHADERS: "frag";
+			case DATA | TEXT: "txt";
+			case LUA: "lua";
+			case HSCRIPT: "hx";
+			case SONGS: SOUND_EXT;
+			case JSON: "json";
+			case REGISTRY: "json";
+			default: IMAGE_EXT;
+		};
+
+		var folder = switch (pathType) {
+			case IMAGES: "images";
+			case SOUNDS: "sounds";
+			case MUSIC: "music";
+			case VIDEOS: "videos";
+			case SHADERS: "shaders";
+			case DATA: "data";
+			case TEXT: "data";
+			case LUA: "scripts";
+			case HSCRIPT: "scripts";
+			case SONGS: "songs";
+			case REGISTRY: ""; //The registry path usually has the proper path in it
+			case JSON: "data";
+			default: "images";
+		};
+
+		var type = switch (pathType) {
+			case IMAGES: IMAGE;
+			case SOUNDS: SOUND;
+			case MUSIC: SOUND;
+			case VIDEOS: BINARY;
+			case SHADERS: AssetType.TEXT;
+			case DATA: AssetType.TEXT;
+			case TEXT: AssetType.TEXT;
+			case LUA: AssetType.TEXT;
+			case HSCRIPT: AssetType.TEXT;
+			case SONGS: SOUND;
+			case JSON: AssetType.TEXT;
+			case REGISTRY: AssetType.TEXT;
+			default: IMAGE;
+		};
+
+		var filePath = folder != "" ? '$folder/$key.$ext' : parentFolder.length > 0 ? '$parentFolder/$key.$ext' : '$key.$ext';
+
+		#if MODS_ALLOWED
+		// Check enabled mods first
+		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0) {
+			var modPath = 'mods/${Mods.currentModDirectory}/$filePath';
+			if (FileSystem.exists(modPath)) {
+				trace(Mods.currentModDirectory);
+				return Mods.currentModDirectory;
+			}
+		}
+
+		if (!topModOnly) {
+			for (mod in Mods.parseList().enabled) {
+				var modPath = 'mods/$mod/$filePath';
+				if (FileSystem.exists(modPath)) {
+					trace(mod);
+					return mod;
+				}
+			}
+			for (mod in Mods.getGlobalMods()) {
+				var modPath = 'mods/$mod/$filePath';
+				if (FileSystem.exists(modPath)) {
+					trace(mod);
+					return mod;
+				}
+			}
+			// Check base mods folder (for loose files)
+			var looseModPath = 'mods/$filePath';
+			if (FileSystem.exists(looseModPath)) {
+				return '';
+			}
+		}
+		#end
+
+		// Fallback to shared assets
+		var assetPath = getSharedPath(filePath);
+		if (FileSystem.exists(assetPath)) {
+			return assetPath;
+		}
+
+		return allowNull ? null : null;
 	}
 
 	public static inline function isAssetInCurrentMod(key:String)
@@ -870,6 +1076,7 @@ class Paths
 	{
 		if (bitmap == null)
 		{
+			//trace(key);
 			var file:String = getPath(key, IMAGE, parentFolder, true);
 			#if MODS_ALLOWED
 			if (FileSystem.exists(file))
@@ -1215,7 +1422,7 @@ class Paths
 	inline static public function modsImagesJson(key:String)
 		return modFolders('images/' + key + '.json');
 
-	static public function modFolders(key:String)
+	static public function modFolders(key:String, ?modFolder:String = '')
 	{
 		#if ARCHIPELAGO_ALLOWED
 		// Check High Quality Trap temp folder first if actively in use
@@ -1260,7 +1467,7 @@ class Paths
 			if (NativeFileSystem.exists(fileToCheck))
 				return fileToCheck;
 		}
-		return checkNamedModPath(key, '');
+		return checkNamedModPath(key, modFolder);
 	}
 
 	private static function checkNamedModPath(key:String, modName:String):Null<String>
@@ -1326,7 +1533,9 @@ class Paths
 	{
 		if (folderOrImg is String)
 		{
+			trace(folderOrImg);
 			var dir = getPath("images/" + folderOrImg);
+			trace(dir);
 			// We actually DO support system in Animate!
 			if (spriteJson == null)
 			{
@@ -1338,6 +1547,7 @@ class Paths
 					return;
 				}
 			}
+
 			if (animationJson == null)
 			{
 				if (NativeFileSystem.exists(Path.join([dir, "Animation.json"])))
@@ -1348,6 +1558,7 @@ class Paths
 					return;
 				}
 			}
+
 			folderOrImg = image(Path.join([folderOrImg, "spritemap1"]));
 		}
 		spr.loadAtlasEx(folderOrImg, spriteJson, animationJson);

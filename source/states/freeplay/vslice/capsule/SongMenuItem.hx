@@ -20,6 +20,7 @@ import states.freeplay.vslice.FreeplayStyle;
 import states.freeplay.vslice.obj.AtlasText.AtlasFont;
 import states.freeplay.vslice.obj.AtlasText;
 import states.freeplay.vslice.obj.PixelatedIcon;
+import yutautil.AprilFools;
 #if ARCHIPELAGO_ALLOWED
 import archipelago.APItem;
 #end
@@ -98,6 +99,12 @@ class SongMenuItem extends FlxSpriteGroup
 	static var gaussianBlur:GaussianBlurShader = null;
 	static var gaussianBlur_12:GaussianBlurShader = null;
 	public static var static_hsvShader:HSVShader = null;
+
+	//Archipelago Stuff (and maybe general use later on????)
+	public var isLocked:Bool = false;
+	public var locationId:Array<Int> = [];
+	public var someLocationsNotMissing:Bool = false;
+	public var enableRainbow:Bool = false;
 
 	public static function reloadGlobalItemData()
 	{
@@ -398,39 +405,122 @@ class SongMenuItem extends FlxSpriteGroup
 		{
 			// Ultimate Confusion Trap - Hide song names when AP unknown songs is active
 			#if ARCHIPELAGO_ALLOWED
-			if (APItem.unknownSongs)
-			{
-				songText.text = '???';
-				// Add subtle visual glitch effect
-				songText.color = FlxColor.interpolate(FlxColor.WHITE, FlxColor.RED, 0.3);
+			if (APEntryState.inArchipelagoMode) {
+				if (APItem.unknownSongs)
+				{
+					songText.text = '???';
+					// Add subtle visual glitch effect
+					songText.color = FlxColor.interpolate(FlxColor.WHITE, FlxColor.RED, 0.3);
 
-				// Force BF icon when confused
-				pixelIcon.setCharacter('bf');
-				pixelIcon.visible = true;
+					// Force BF icon when confused
+					pixelIcon.setCharacter('bf');
+					pixelIcon.visible = true;
 
-				// Hide week name when confused
-				updateWeekText("");
+					// Hide week name when confused
+					updateWeekText("");
+				}
+				else
+				{
+					// Do it in here for Vslice so that it's automatically per capsule
+					var songName:String = songData.songName;
+					var modName:String = songData.folder;
+					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					var isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+
+					// Check if song is unlocked (in curUnlocked)
+					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+
+					someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+
+					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
+					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+
+					if (!isUnlocked) {
+						songText.text = '${songData.songName} (Locked)';
+						songText.color = FlxColor.RED;
+						pixelIcon.setCharacter('lock');
+						pixelIcon.visible = true;
+						updateWeekText("LOCKED");
+					} else {
+						if (APFreeplayManager.isVictorySong(songName, modName)) {
+							if (isMissing) {
+								if (someLocationsNotMissing) {
+									songText.text = '${songData.songName} (Goal) (Semi-Complete)';
+									songText.color = bronzeOrOrangeColor;
+									if (songData.songCharacter != null)
+										pixelIcon.setCharacter(songData.songCharacter);
+									pixelIcon.visible = true;
+									updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Semi-Complete)');
+								} else {
+									songText.text = '${songData.songName} (Goal)';
+									songText.color = FlxColor.WHITE;
+									enableRainbow = true;
+									if (songData.songCharacter != null)
+										pixelIcon.setCharacter(songData.songCharacter);
+									pixelIcon.visible = true;
+									updateWeekText((songData?.songWeekName ?? "") + ' (Goal)');
+								}
+							} else {
+								songText.text = '${songData.songName} (Goal) (Complete)';
+								songText.color = 0xFFFFD700;
+								if (songData.songCharacter != null)
+									pixelIcon.setCharacter(songData.songCharacter);
+								pixelIcon.visible = true;
+								updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Complete)');
+							}
+						} else {
+							if (!isMissing) {
+								songText.text = '${songData.songName} (Complete)';
+								color = FlxColor.GREEN; // Fully completed
+								if (songData.songCharacter != null)
+									pixelIcon.setCharacter(songData.songCharacter);
+								pixelIcon.visible = true;
+								updateWeekText((songData?.songWeekName ?? "") + ' (Complete)');
+							} else {
+								// Check if some locations are not missing (partially completed)
+								songText.text = '${songData.songName}' + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)');
+								songText.color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+								if (songData.songCharacter != null)
+									pixelIcon.setCharacter(songData.songCharacter);
+								pixelIcon.visible = true;
+								updateWeekText((songData?.songWeekName ?? "") + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)'));
+							}
+						}
+
+						if (AprilFools.allowAF && FlxG.random.bool(10)) {
+							songText.text = CoolUtil.randString(songData.songName.length);
+						}
+					}
+				}
+			} else {
+				if (isLocked) {
+					songText.text = '${songData.songName} (Locked)';
+					songText.color = FlxColor.RED;
+					pixelIcon.setCharacter('lock');
+					pixelIcon.visible = true;
+					updateWeekText("LOCKED");
+				} else {
+					songText.text = songData.songName;
+					if (songData.songCharacter != null)
+						pixelIcon.setCharacter(songData.songCharacter);
+					pixelIcon.visible = true;
+					updateWeekText(songData?.songWeekName ?? "");
+				}
 			}
-			else
-			{
+			#else
+			if (isLocked) {
+				songText.text = '${songData.songName} (Locked)';
+				songText.color = FlxColor.RED;
+				pixelIcon.setCharacter('lock');
+				pixelIcon.visible = true;
+				updateWeekText("LOCKED");
+			} else {
 				songText.text = songData.songName;
-				// Reset any confusion effects
-				songText.color = FlxColor.WHITE;
-
-				// Show normal character icon
 				if (songData.songCharacter != null)
 					pixelIcon.setCharacter(songData.songCharacter);
 				pixelIcon.visible = true;
-
-				// Show normal week name
 				updateWeekText(songData?.songWeekName ?? "");
 			}
-			#else
-			songText.text = songData.songName;
-			if (songData.songCharacter != null)
-				pixelIcon.setCharacter(songData.songCharacter);
-			pixelIcon.visible = true;
-			updateWeekText(songData?.songWeekName ?? "");
 			#end
 		}
 		refreshDisplayDifficulty();
@@ -657,12 +747,17 @@ class SongMenuItem extends FlxSpriteGroup
 				animBox.forcePosition();
 		}
 	}
+
+	var e:Int = 0;
 	override function update(elapsed:Float) {
 		if (impactThing != null)
 			impactThing.angle = capsule.angle;
 		animBox.update(elapsed);
 
+		e++;
 		super.update(elapsed);
+
+		if (enableRainbow) songText.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
 	}
 	public function setCapsuleAnimInitPosition()
 	{

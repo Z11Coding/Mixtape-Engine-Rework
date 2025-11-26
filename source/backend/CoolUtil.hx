@@ -496,6 +496,18 @@ class CoolUtil
 		);
 		return p;
 	}
+
+	public static function randString(Length:Int)
+	{
+		var string:String = '';
+		var data:String = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUBWXYZ1234567890';
+
+		for (i in 0...Length)
+		{
+			string += data.charAt(FlxG.random.int(0, data.length - 1));
+		}
+		return string;
+	}
 }
 
 typedef LogData = {

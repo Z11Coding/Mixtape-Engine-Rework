@@ -33,6 +33,7 @@
 	<define name="TITLE_SCREEN_EASTER_EGG"/>
 	<define name="NATIVE_LOOKUP" if="MODS_ALLOWED" />
 	<define name="OPENFL_LOOKUP"/>
+	<define name="TOUCH_HERE_TO_PLAY"/>
 
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY"/>

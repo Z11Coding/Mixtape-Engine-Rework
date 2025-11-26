@@ -736,20 +736,20 @@ class TitleState extends MusicBeatState
 	var underText:UnderTextParser;
 	var daStatic:FlxSprite;
 	//Box Stuff
-    public var targetW:Float = 810;
-    public var targetH:Float = 200;
-    public var boxX:Float = (1280 / 2) - 25;
-    public var boxY:Float = (720 / 2) + 75;
-    var boxW:Float = 0;
-    var boxH:Float = 0;
-    public var boxA:Float = 1;
+	public var targetW:Float = 810;
+	public var targetH:Float = 200;
+	public var boxX:Float = (1280 / 2) - 25;
+	public var boxY:Float = (720 / 2) + 75;
+	var boxW:Float = 0;
+	var boxH:Float = 0;
+	public var boxA:Float = 1;
 	var curDial:Int = 0;
 
 	var inGasterEgg:Bool = false;
 	var camfilters:Array<BitmapFilter> = [];
 	var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 	var gasterSpeech:Array<String> = [
-		"[set:0.2]THE DARKNESS GROWS COLD.",
+		"[set:0.1]THE DARKNESS GROWS COLD.",
 		"IT'S NEVER-ENDING NIGHT THAT EXPANDS ACROSS AN ENDLESS OCEAN",
 		"I CAN REACH PLACES I'VE NEVER KNOWN BEFORE",
 		"AND I HAVE LOST THE ABILITY TO TELL WHERE I AM",
@@ -772,22 +772,22 @@ class TitleState extends MusicBeatState
 		add(daStatic);
 
 		boxB = new FlxSprite().loadGraphic(Paths.image('ut/boxBorder'));
-        box = new FlxSprite().loadGraphic(Paths.image('ut/box'));
+    box = new FlxSprite().loadGraphic(Paths.image('ut/box'));
 		boxB.screenCenter();
-        box.screenCenter();
+    box.screenCenter();
 		add(boxB);
-        add(box);
+    add(box);
 
 		underText = new UnderTextParser(300, 400, Std.int(FlxG.width * 0.6), '', 32);
-        underText.font = Paths.font("undertale-wingdings.ttf");
-        underText.color = 0xFFFFFFFF;
-        underText.prefix = '* ';
-        add(underText);
+		underText.font = Paths.font("undertale-wingdings.ttf");
+		underText.color = 0xFFFFFFFF;
+		underText.prefix = '* ';
+		add(underText);
 		for (letter in alphabet) {
-			underText.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
-			underText.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
+			underText.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/snd-wngdng${FlxG.random.int(1, 7)}'), 1));
+			underText.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/snd-wngdng${FlxG.random.int(1, 7)}'), 1));
 		}
-        //underText.alpha = 0;
+    //underText.alpha = 0;
 		inGasterEgg = true;
 		FlxG.camera.setFilters(camfilters);
 		FlxG.camera.filtersEnabled = true;
@@ -795,29 +795,29 @@ class TitleState extends MusicBeatState
 	}
 
 	var daSpeed:Float = 0.015;
-    function typeFunc(?text:String = '', ?sound:String = 'uifont', ?speed:Float = 0.2, ?delayBetweenPause:Float = 1, hide:Bool = false)
-    {
-        var splitName:Array<String> = text.split("\n");
-        var trueText:String = splitName[0];
-        for (i in 0...splitName.length)
-        {
-            if (i > 0) trueText += '\n* ' + splitName[i];
-        }
+	function typeFunc(?text:String = '', ?sound:String = 'uifont', ?speed:Float = 0.2, ?delayBetweenPause:Float = 1, hide:Bool = false)
+	{
+		var splitName:Array<String> = text.split("\n");
+		var trueText:String = splitName[0];
+		for (i in 0...splitName.length)
+		{
+			if (i > 0) trueText += '\n* ' + splitName[i];
+		}
 
-        if (hide)
-        {
-            underText.alpha = 0;
-            underText.resetText('');
+		if (hide)
+		{
+			underText.alpha = 0;
+			underText.resetText('');
 			box.visible = false;
 			boxB.visible = false;
-        }
-        else
-        {
-            underText.alpha = 1;
-            underText.resetText(trueText);
-            underText.start(speed, true);
+		}
+		else
+		{
+			underText.alpha = 1;
+			underText.resetText(trueText);
+			underText.start(speed, true);
 			box.visible = true;
 			boxB.visible = true;
-        }
-    }
+		}
+	}
 }

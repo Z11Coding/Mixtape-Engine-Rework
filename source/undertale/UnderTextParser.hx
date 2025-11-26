@@ -1,7 +1,7 @@
 package undertale;
 
-import flixel.addons.text.FlxTypeText;
 import flixel.FlxG;
+import flixel.addons.text.FlxTypeText;
 
 using yutautil.CollectionUtils;
 
@@ -23,7 +23,8 @@ abstract Char(String) {
 //     CarriageReturn = '\r'
 // };
 
-class UnderTextParser extends FlxTypeText {
+class
+UnderTextParser extends FlxTypeText {
     private var speed:Float;
     private var defaultSpeed:Float;
     private var pauseDuration:Float;
@@ -89,22 +90,22 @@ class UnderTextParser extends FlxTypeText {
 
         if (!soundlessChars.contains(_finalText.charAt(_length))) {
             for (sound in soundOnChars.keys()) {
-            if (soundOnChars.get(sound) != null && _finalText.charAt(_length).toLowerCase() == sound) {
-                soundOnChars.get(sound).play();
-            } else {
-                if (typingSound != null) typingSound.play();
-            }
+                if (soundOnChars.get(sound) != null && _finalText.charAt(_length).toLowerCase() == sound) {
+                    soundOnChars.get(sound).play();
+                } else {
+                    if (typingSound != null) typingSound.play();
+                }
             }
         } else {
             for (sound in soundOnChars.keys()) {
-            if (soundOnChars.get(sound) != null) {
-                soundOnChars.get(sound).pause();
-            }
+                if (soundOnChars.get(sound) != null) {
+                    soundOnChars.get(sound).pause();
+                }
             }
             if (typingSound != null) typingSound.pause();
         }
 
-        delay = speed;  
+        delay = speed;
 
         if (pauseDuration > 0) {
             pauseDuration -= elapsed;
@@ -155,7 +156,7 @@ class UnderTextParser extends FlxTypeText {
         var offset:Int = 0; // to keep track of the offset caused by tag removal
         nextMenu = '';
         autoskip = false;
-    
+
         while (i < text.length) {
             if (text.charAt(i) == '[') {
                 var endTag:Int = text.indexOf(']', i);
@@ -280,7 +281,7 @@ class UnderTextParser extends FlxTypeText {
             result += text.charAt(i);
             i++;
         }
-    
+
         // Update the remaining indices in formattingLocations
         var updatedLocations:Map<Int, Void->Void> = new Map<Int, Void->Void>();
         for (index in formattingLocations.keys()) {
@@ -289,7 +290,7 @@ class UnderTextParser extends FlxTypeText {
             updatedLocations.set(newIndex, value);
         }
         formattingLocations = updatedLocations;
-    
+
         _formattingLocations = formattingLocations;
         return result;
     }

@@ -136,8 +136,8 @@ class FunkinPreloader extends FlxBasePreloader
 		// We can't even call trace() yet, until Flixel loads.
 		trace('Initializing custom preloader...');
 
-		this.siteLockTitleText = "You Loser!";
-		// this.siteLockBodyText = "This isn't Newgrounds!\nGo play Friday Night Funkin' on Newgrounds:";
+		this.siteLockTitleText = "This Mixtape Was STOLEN!";
+		this.siteLockBodyText = "HEY!!!\nI don't know where I am right now, but I'm not where i'm supposed to be.\nGo enjoy your mixtape properly here:";
 	}
 
 	override function create():Void
@@ -177,19 +177,19 @@ class FunkinPreloader extends FlxBasePreloader
 		var pieceGap:Int = 8;
 
 		progressLines = new openfl.display.Sprite();
-		progressLines.graphics.lineStyle(2, 0xFFA4FF11);
+		progressLines.graphics.lineStyle(2, 0xFF6C11FF);
 		progressLines.graphics.drawRect(-2, this._height - BAR_PADDING - BAR_HEIGHT - 208, this._width + 4, 30);
 		addChild(progressLines);
 
 		var progressBarPiece = new Sprite();
-		progressBarPiece.graphics.beginFill(0xFFA4FF11);
+		progressBarPiece.graphics.beginFill(0xFF6C11FF);
 		progressBarPiece.graphics.drawRoundRect(0, 0, pieceWidth - pieceGap, BAR_HEIGHT, 4, 4);
 		progressBarPiece.graphics.endFill();
 
 		for (i in 0...amountOfPieces)
 		{
 			var piece = new Sprite();
-			piece.graphics.beginFill(0xFFA4FF11);
+			piece.graphics.beginFill(0xFFFF9011);
 			piece.graphics.drawRoundRect(0, 0, pieceWidth - pieceGap, BAR_HEIGHT, 4, 4);
 			piece.graphics.endFill();
 
@@ -204,7 +204,7 @@ class FunkinPreloader extends FlxBasePreloader
 		enhancedText = new TextField();
 		stereoText = new TextField();
 
-		var progressLeftTextFormat = new TextFormat("DS-Digital", 32, 0xFFA4FF11, true);
+		var progressLeftTextFormat = new TextFormat("DS-Digital", 32, 0xFFFFFFFF, true);
 		progressLeftTextFormat.align = TextFormatAlign.LEFT;
 		progressLeftText.defaultTextFormat = progressLeftTextFormat;
 
@@ -219,7 +219,7 @@ class FunkinPreloader extends FlxBasePreloader
 		// Create the progress %.
 		progressRightText = new TextField();
 
-		var progressRightTextFormat = new TextFormat("DS-Digital", 16, 0xFFA4FF11, true);
+		var progressRightTextFormat = new TextFormat("DS-Digital", 16, 0xFF6C11FF, true);
 		progressRightTextFormat.align = TextFormatAlign.RIGHT;
 		progressRightText.defaultTextFormat = progressRightTextFormat;
 
@@ -231,11 +231,11 @@ class FunkinPreloader extends FlxBasePreloader
 		addChild(progressRightText);
 
 		box = new Sprite();
-		box.graphics.beginFill(0xFFA4FF11, 1);
+		box.graphics.beginFill(0xFF6C11FF, 1);
 		box.graphics.drawRoundRect(0, 0, 64, 20, 5, 5);
 		box.graphics.drawRoundRect(70, 0, 58, 20, 5, 5);
 		box.graphics.endFill();
-		box.graphics.beginFill(0xFFA4FF11, 0.1);
+		box.graphics.beginFill(0xFF6C11FF, 0.1);
 		box.graphics.drawRoundRect(0, 0, 128, 20, 5, 5);
 		box.graphics.endFill();
 		box.x = this._width - BAR_PADDING - BAR_HEIGHT - 432;
@@ -261,7 +261,7 @@ class FunkinPreloader extends FlxBasePreloader
 		box.addChild(fnfText);
 
 		enhancedText.selectable = false;
-		enhancedText.textColor = 0xFFA4FF11;
+		enhancedText.textColor = 0xFF6C11FF;
 		enhancedText.width = this._width;
 		enhancedText.height = 100;
 		enhancedText.text = 'ENHANCED';
@@ -270,7 +270,7 @@ class FunkinPreloader extends FlxBasePreloader
 		box.addChild(enhancedText);
 
 		stereoText.selectable = false;
-		stereoText.textColor = 0xFFA4FF11;
+		stereoText.textColor = 0xFF6C11FF;
 		stereoText.width = this._width;
 		stereoText.height = 100;
 		stereoText.text = 'STEREO';

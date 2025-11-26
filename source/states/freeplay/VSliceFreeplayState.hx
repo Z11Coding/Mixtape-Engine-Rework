@@ -1621,12 +1621,12 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		if (busy)
 			return;
 
-		var upP:Bool = controls.UI_UP_P #if TOUCH_CONTROLS_ALLOWED || touchPad?.buttonUp.justPressed #end;
-		var downP:Bool = controls.UI_DOWN_P #if TOUCH_CONTROLS_ALLOWED || touchPad?.buttonDown.justPressed #end;
-		var accepted:Bool = controls.ACCEPT #if TOUCH_CONTROLS_ALLOWED || touchPad?.buttonA.justPressed #end;
+		var upP:Bool = controls.UI_UP_P;
+		var downP:Bool = controls.UI_DOWN_P;
+		var accepted:Bool = controls.ACCEPT;
 		// ? new tags
-		var up = controls.UI_UP #if TOUCH_CONTROLS_ALLOWED || touchPad?.buttonUp.pressed #end;
-		var down = controls.UI_DOWN #if TOUCH_CONTROLS_ALLOWED || touchPad?.buttonDown.pressed #end;
+		var up = controls.UI_UP;
+		var down = controls.UI_DOWN;
 		if ((up || down))
 		{
 			if (spamming)
@@ -1718,7 +1718,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			diffSelLeft.setPress(false);
 		}
 
-		if (controls.BACK #if TOUCH_CONTROLS_ALLOWED || touchPad?.buttonB.justPressed #end && !busy)
+		if (controls.BACK && !busy)
 		{
 			busy = true;
 			FlxTween.globalManager.clear();
@@ -1806,6 +1806,205 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		else if (accepted) // ? bugfix
 		{
+			if (APEntryState.inArchipelagoMode) {
+				var animPrefixB:String = "";
+				var badStartFrame:Int = 0;
+				@:privateAccess {
+					animPrefixB = dj.playableCharData.getAnimationPrefix('loss');
+					badStartFrame = dj.playableCharData.getFistPumpIntroBadStartFrame();
+				}
+				var vicCheck:Bool = APFreeplayManager.isVictorySong(songs[curSelected].songName, songs[curSelected].folder ?? '') && APInfo.ticketCount >= APInfo.ticketWinCount;
+				//You need the song AND the tickets.
+				trace('can play victory song: ${vicCheck}');
+				if (APFreeplayManager.isVictorySong(songs[curSelected].songName, songs[curSelected].folder ?? '') && !vicCheck) {
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(songs[curSelected].songName, songs[curSelected].folder ?? '');
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + songs[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								FlxG.camera.shake(0.005, 0.5);
+								// 1 in 20 chance to play metal_pipe instead of badnoise
+								FlxG.sound.play(
+									FlxG.random.int(1, 20) == 1
+										? Paths.sound("metal_pipe")
+										: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+									1
+								);
+								FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+								if (dj != null) {
+									dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+								}
+							}
+						);
+						return;
+					} else {
+						FlxG.camera.shake(0.005, 0.5);
+						// 1 in 20 chance to play metal_pipe instead of badnoise
+						FlxG.sound.play(
+							FlxG.random.int(1, 20) == 1
+								? Paths.sound("metal_pipe")
+								: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+							1
+						);
+						FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						if (dj != null) {
+							dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+						}
+						return;
+					}
+				}
+
+				// Check if song is locked (not in curUnlocked)
+				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songs[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == songs[curSelected].folder ?? ''].contains(true);
+				var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
+
+				if (isLocked) {
+					trace('Song is locked (not in curUnlocked)!');
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(songs[curSelected].songName, songs[curSelected].folder ?? '');
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + songs[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								// After hint panel closes, show the missing text
+								FlxG.camera.shake(0.005, 0.5);
+								// 1 in 20 chance to play metal_pipe instead of badnoise
+								FlxG.sound.play(
+									FlxG.random.int(1, 20) == 1
+										? Paths.sound("metal_pipe")
+										: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+									1
+								);
+								FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+								if (dj != null) {
+									dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+								}
+							}
+						);
+						return;
+					} else {
+						// No hints, show missing text immediately
+						FlxG.camera.shake(0.005, 0.5);
+						// 1 in 20 chance to play metal_pipe instead of badnoise
+						FlxG.sound.play(
+							FlxG.random.int(1, 20) == 1
+								? Paths.sound("metal_pipe")
+								: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+							1
+						);
+						FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						if (dj != null) {
+							dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+						}
+						return;
+					}
+				}
+
+				if (APFreeplayManager.trueMissing.contains({song: songs[curSelected].songName, mod: songs[curSelected].folder ?? ''}) && !APFreeplayManager.unplayedList.contains({song: songs[curSelected].songName, mod: songs[curSelected].folder ?? ''})) {
+					trace('Song is locked!');
+
+					// Check for hints first
+					var hints = APFreeplayManager.getHintsForSong(songs[curSelected].songName, songs[curSelected].folder ?? '');
+
+					if (hints.length > 0) {
+						// Show hint panel first
+						var hintContent = "Here are the hints for this song:\n\n";
+						for (i in 0...hints.length) {
+							hintContent += "• " + hints[i];
+							if (i < hints.length - 1) hintContent += "\n\n";
+						}
+
+						archipelago.substates.InfoPanelSubstate.show(
+							"Song Hints: " + songs[curSelected].songName,
+							hintContent,
+							FlxColor.CYAN,
+							function() {
+								FlxG.camera.shake(0.005, 0.5);
+								// 1 in 20 chance to play metal_pipe instead of badnoise
+								FlxG.sound.play(
+									FlxG.random.int(1, 20) == 1
+										? Paths.sound("metal_pipe")
+										: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+									1
+								);
+								FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+							}
+						);
+						if (dj != null) {
+							dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+						}
+						return;
+					} else {
+						// No hints, show missing text immediately
+						FlxG.camera.shake(0.005, 0.5);
+						// 1 in 20 chance to play metal_pipe instead of badnoise
+						FlxG.sound.play(
+							FlxG.random.int(1, 20) == 1
+								? Paths.sound("metal_pipe")
+								: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+							1
+						);
+						FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						if (dj != null) {
+							dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+						}
+						return;
+					}
+				}
+			}
+
+			// Check if required characters and stage are unlocked via sanity system
+			if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+				trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG)}');
+				var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+				if (missingItems.length > 0) {
+					trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
+
+					var itemList = "";
+					for (i in 0...missingItems.length) {
+						itemList += "• " + missingItems[i];
+						if (i < missingItems.length - 1) itemList += "\n";
+					}
+
+					backend.pslice.UserErrorSubstate.makeMessage("Cannot Play Song!", 'This song requires unlocked characters or stages:\n\n' + itemList + '\n\nPlay other songs to unlock these items!');
+					// No hints, show missing text immediately
+					FlxG.camera.shake(0.005, 0.5);
+					// 1 in 20 chance to play metal_pipe instead of badnoise
+					FlxG.sound.play(
+						FlxG.random.int(1, 20) == 1
+							? Paths.sound("metal_pipe")
+							: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+						1
+					);
+					FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+
+					return;
+				}
+			}
+
 			curCapsule.onConfirm();
 		}
 	}

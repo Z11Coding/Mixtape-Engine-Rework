@@ -85,7 +85,7 @@ abstract class SngCapsuleData{
 			//trace("P-SLICE CHECK FAILED! ASSUMING IT'S A MIXTAPE METAFILE AND READING IT AS SUCH...");
 			var meta = FreeplayManager.getMixtapeMetadata(metaSngId);
 			if (meta != null) { // Mixtape Metadata doesn't have everything P-Slice does, so im gonna have to accomidate where I can
-				difficultyRating = meta.freeplay?.ratings?.get(currentDifficulty);
+				difficultyRating = meta.freeplay?.ratings?.get(currentDifficulty.toLowerCase());
 				metaAllowNew = true;
 				allowErect = false;
 				freeplayPrevStart = 0;
