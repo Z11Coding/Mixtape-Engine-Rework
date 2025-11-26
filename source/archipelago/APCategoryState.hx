@@ -13,6 +13,7 @@ class APCategoryState extends states.CategoryState {
     public function new(gameState:archipelago.APGameState, ?AP:archipelago.Client) {
         this.gameState = gameState;
         var attempts = 0;
+        backend.ClientPrefs.data.showMods = false;
         while (attempts < 20) {
             try {
                 this.AP = gameState.info();

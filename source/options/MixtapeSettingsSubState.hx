@@ -669,6 +669,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		addOption(option);
 
+		var option:Option = new Option('Ignore Throws',
+			"DANGEROUS DEBUG OPTION: Completely ignores all crashes and errors.\nOnly prevents crash escalation - NO logging, reporting, or recovery.\nUSE ONLY FOR SPECIFIC DEBUGGING PURPOSES!",
+			'ignoreThrows',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('AP Server Compression',
 		'Tell the Engine to ask for compressed data. (WIP)',
 		'apCompressed', BOOL);

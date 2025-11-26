@@ -381,6 +381,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 			archipelago.APGameState.reconnectionCallback();
 			archipelago.APItem.waitingForTransition = false;
 		}
+
+		// Update Archipelago tags on every state switch
+		updateAPTags();
 	}
 }
 
@@ -1012,6 +1015,26 @@ class MusicBeatState extends yutautil.SafeManagedState
 			closeTimer = null;
 		}
 	}
+
+	/**
+	 * Updates Archipelago tags to ensure they're properly set on every state switch
+	 */
+	private static function updateAPTags():Void
+	{
+		#if ARCHIPELAGO_ALLOWED
+		// Only update tags if we're in Archipelago mode and have a valid client
+		if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.ap != null) {
+			try {
+				// Set base tags and add DeathLink/TrapLink based on settings
+				archipelago.APEntryState.ap.updateLinkTags(ClientPrefs.data.deathlink, ClientPrefs.data.traplink);
+				trace("MusicBeatState: Updated AP tags - DeathLink: " + ClientPrefs.data.deathlink + ", TrapLink: " + ClientPrefs.data.traplink);
+			} catch (e:Dynamic) {
+				trace("MusicBeatState: Error updating AP tags: " + e);
+			}
+		}
+		#end
+	}
+
 	override public function onFocusLost():Void
 	{
 		super.onFocusLost();

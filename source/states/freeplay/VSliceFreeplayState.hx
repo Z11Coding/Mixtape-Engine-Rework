@@ -444,9 +444,32 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		WeekData.setDirectoryFromWeek();
 
 		fpManager.reloadFreeplay(true);
-		for (sngCard in fpManager.vsliceSongList)
+		// Convert GlobalSongMetadata from fpManager.songList to FreeplaySongData
+		for (globalSong in fpManager.songList)
 		{
-      songs.push(sngCard);
+			// Extract the color from the GlobalSongMetadata format
+			var color = globalSong.color;
+			var colorInt = FlxColor.WHITE; // Default color
+
+			if (color != null && color.length > 0) {
+				if (color.length > 1 && color[1] != null && color[1].length > 0) {
+					// Use the FlxColor if available
+					colorInt = color[1][0];
+				} else if (color[0] != null && color[0].length >= 3) {
+					// Convert from RGB array
+					var rgb = color[0];
+					colorInt = FlxColor.fromRGB(rgb[0], rgb[1], rgb[2]);
+				}
+			}
+
+			// Create VSlice format song data
+			var sngCard = new FreeplaySongData(globalSong.week, globalSong.songName, globalSong.songCharacter, colorInt);
+
+			// Only add if it has valid difficulties
+			if (sngCard.songDifficulties.length == 0)
+				continue;
+
+			songs.push(sngCard);
 			for (difficulty in sngCard.songDifficulties)
 			{
 				diffIdsTotal.pushUnique(difficulty);
@@ -1923,8 +1946,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		else
 		{
-			intendedScore = Highscore.getScore(fpManager.vsliceSongList[curSelected].songName, currentDifficultyIndex);
-			intendedCompletion = Highscore.getRating(fpManager.vsliceSongList[curSelected].songName, currentDifficultyIndex);
+			if (curSelected < songs.length && songs[curSelected] != null) {
+				intendedScore = Highscore.getScore(songs[curSelected].songName, currentDifficultyIndex);
+				intendedCompletion = Highscore.getRating(songs[curSelected].songName, currentDifficultyIndex);
+			}
 		}
 		rememberedDifficulty = currentDifficulty;
 		if (intendedCompletion == Math.POSITIVE_INFINITY || intendedCompletion == Math.NEGATIVE_INFINITY || Math.isNaN(intendedCompletion))
@@ -2319,9 +2344,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				return;
 			}
 
-		if (curSelected >= 0) {
-			Mods.currentModDirectory = fpManager.vsliceSongList[curSelected].folder ?? '';
-			PlayState.storyWeek = fpManager.vsliceSongList[curSelected].levelId;
+		if (curSelected >= 0 && curSelected < songs.length && songs[curSelected] != null) {
+			Mods.currentModDirectory = songs[curSelected].folder ?? '';
+			PlayState.storyWeek = songs[curSelected].levelId;
 		}
 
 		// alternitive if the above doesn't work: WeekData.setDirectoryFromWeek();

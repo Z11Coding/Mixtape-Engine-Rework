@@ -1204,7 +1204,7 @@ class APGameState
 	{
 		trace("Bounce packet received: " + haxe.Json.stringify(data));
 
-		info()?.tagsManager?.syncToClient();
+		// info()?.tagsManager?.syncToClient();
 
 		// Check for TrapLink packet first
 		if (Reflect.hasField(data, "trap_name"))

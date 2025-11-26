@@ -526,7 +526,7 @@ class Client {
 			trace('Death link not sent - state: $state, deathByLink: ${APPlayState.deathByLink}, deathlink enabled: ${ClientPrefs.data.deathlink}');
 		}
 
-		tagsManager.syncToClient();
+		// tagsManager.syncToClient();
 	}
 
 
@@ -1080,9 +1080,9 @@ class Client {
 		if (_ws != null)
 			process_queue();
 
-		if (currentTags != _tagsManager.tags) {
-			tagsManager.syncToClient();
-		}
+		// if (currentTags != _tagsManager.tags) {
+		// 	tagsManager.syncToClient();
+		// }
 
 
 		// var needDataPackage = if (_gotDataPackage) false else true;

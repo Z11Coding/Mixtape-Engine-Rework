@@ -638,6 +638,12 @@ class Main extends Sprite
 		"Crash Handler Code for Mixtape Engine Rework.".NativeComment();
 		// Prevent further propagation of the error to avoid crashing the application
 		e.preventDefault();
+
+		// DANGEROUS DEBUG OPTION: If ignoreThrows is enabled, just prevent crash escalation and return
+		if (ClientPrefs.data.ignoreThrows) {
+			trace('Crash ignored due to ignoreThrows debug setting: ${e.error}');
+			return;
+		}
 		var errMsg:String = "";
 		var errType:String = e.error;
 		var path:String;
