@@ -8,6 +8,7 @@ import backend.Highscore;
 import backend.Mods;
 import backend.Paths;
 import backend.Song;
+import backend.WeekData;
 import crowplexus.iris.Iris;
 import crowplexus.iris.IrisConfig;
 import flixel.FlxG;
@@ -587,6 +588,9 @@ class CustomFreeplayState extends MusicBeatState {
 
         // Utility functions for scripts
         iris.set('loadSong', loadSong);
+        iris.set('loadMod', loadMod);
+        iris.set('loadFolder', loadMod); // Alias for loadMod
+        iris.set('loadModDirectory', loadMod); // Alias for loadMod
         iris.set('isArchipelagoMode', isArchipelagoMode);
         iris.set('goToCategoryState', goToCategoryState);
         iris.set('getDifficultyName', getDifficultyName);
@@ -596,6 +600,7 @@ class CustomFreeplayState extends MusicBeatState {
         iris.set('getAllDifficultyImagePaths', getAllDifficultyImagePaths);
         iris.set('findDifficultyIndex', findDifficultyIndex);
         iris.set('createDifficultySprite', createDifficultySprite);
+        iris.set('updateDifficultyListBySong', updateDifficultyListBySong);
         iris.set('isSongAccessible', isSongAccessible);
         iris.set('getSongAccessStatus', getSongAccessStatus);
         iris.set('playSong', playSong);
@@ -672,6 +677,64 @@ class CustomFreeplayState extends MusicBeatState {
         } catch (e:Dynamic) {
             handleError('loadSong', e, 'Failed to load song at index $songIndex');
             return false;
+        }
+    }
+
+    /**
+     * Load mod directory for a song by index without loading the song itself
+     * This allows custom freeplay states to load the correct assets before song selection
+     * @param songIndex Index of the song in the song list
+     * @return Dynamic object containing mod info: {success: Bool, modDirectory: String, songName: String, accessible: Bool}
+     */
+    public function loadMod(songIndex:Int):Dynamic {
+        var result = {
+            success: false,
+            modDirectory: "",
+            songName: "",
+            accessible: false,
+            reason: null
+        };
+
+        try {
+            // Get the appropriate FreeplayManager (regular or AP)
+            var manager = FreeplayManager.loadFPManager();
+            if (manager == null || manager.songList == null || songIndex >= manager.songList.length || songIndex < 0) {
+                trace('[CustomFreeplayState] loadMod: Invalid song index: $songIndex');
+                result.reason = "invalid_index";
+                return result;
+            }
+
+            var songData = manager.songList[songIndex];
+            result.songName = songData.songName;
+
+            // Check song access (locked status, missing items, etc.)
+            var accessStatus = getSongAccessStatus(songData.songName, songData.folder);
+            result.accessible = accessStatus.accessible;
+
+            if (!accessStatus.accessible) {
+                trace('[CustomFreeplayState] loadMod: Song access denied for ${songData.songName}: ${accessStatus.reason}');
+                result.reason = accessStatus.reason;
+                // Still set mod directory even for inaccessible songs for UI purposes
+            }
+
+            // Set mod directory if song has one
+            var modFolder = (songData.folder != null && songData.folder != "") ? songData.folder : "";
+            result.modDirectory = modFolder;
+
+            if (modFolder != "") {
+                trace('[CustomFreeplayState] loadMod: Setting mod directory to: $modFolder for song: ${songData.songName}');
+                Mods.currentModDirectory = modFolder;
+            } else {
+                trace('[CustomFreeplayState] loadMod: Using base game assets for song: ${songData.songName}');
+                Mods.currentModDirectory = "";
+            }
+
+            result.success = true;
+            return result;
+        } catch (e:Dynamic) {
+            handleError('loadMod', e, 'Failed to load mod for song index $songIndex');
+            result.reason = "exception";
+            return result;
         }
     }
 
@@ -840,6 +903,102 @@ class CustomFreeplayState extends MusicBeatState {
             handleError('createDifficultySprite', e, 'Failed to load difficulty sprite for index $difficultyIndex');
             sprite.destroy();
             return null;
+        }
+    }
+
+    /**
+     * Update the global difficulty list based on a song's available difficulties using WeekData
+     * @param songIndex Index of the song in the song list
+     * @return Dynamic object with update info: {success: Bool, songName: String, difficulties: Array<String>, originalDifficulties: Array<String>, reason: String}
+     */
+    public function updateDifficultyListBySong(songIndex:Int):Dynamic {
+        var result = {
+            success: false,
+            songName: "",
+            difficulties: [],
+            originalDifficulties: Difficulty.list.copy(),
+            reason: null
+        };
+
+        try {
+            // Get the appropriate FreeplayManager (regular or AP)
+            var manager = FreeplayManager.loadFPManager();
+            if (manager == null || manager.songList == null || songIndex >= manager.songList.length || songIndex < 0) {
+                trace('[CustomFreeplayState] updateDifficultyListBySong: Invalid song index: $songIndex');
+                result.reason = "invalid_index";
+                return result;
+            }
+
+            var songData = manager.songList[songIndex];
+            result.songName = songData.songName;
+
+            // Set the proper week and mod directory like other Freeplay states do
+            var previousModDir = Mods.currentModDirectory;
+
+            // Set mod directory and week data
+            Mods.currentModDirectory = songData.folder;
+            PlayState.storyWeek = songData.week;
+
+            // Use WeekData to properly set directory and load difficulties
+            WeekData.setDirectoryFromWeek();
+
+            try {
+                // Load difficulties from the week data (the proper way)
+                Difficulty.loadFromWeek();
+
+                result.difficulties = Difficulty.list.copy();
+
+                trace('[CustomFreeplayState] updateDifficultyListBySong: Updated difficulty list for "${songData.songName}" using WeekData: ${result.difficulties}');
+                result.success = true;
+
+            } catch (e:Dynamic) {
+                trace('[CustomFreeplayState] updateDifficultyListBySong: Failed to load from week, falling back to default difficulties');
+
+                // Fallback: Reset to default and use current week's difficulties if available
+                Difficulty.resetList();
+
+                try {
+                    var currentWeek = WeekData.getCurrentWeek();
+                    if (currentWeek != null && currentWeek.difficulties != null && currentWeek.difficulties.trim() != "") {
+                        var weekDiffs = currentWeek.difficulties.trim().split(',');
+                        var cleanDiffs:Array<String> = [];
+                        for (diff in weekDiffs) {
+                            var cleanDiff = diff.trim();
+                            if (cleanDiff.length > 0) {
+                                cleanDiffs.push(cleanDiff);
+                            }
+                        }
+                        if (cleanDiffs.length > 0) {
+                            Difficulty.list = cleanDiffs;
+                            result.difficulties = cleanDiffs.copy();
+                            result.reason = "used_week_difficulties";
+                        } else {
+                            result.difficulties = Difficulty.list.copy();
+                            result.reason = "used_default_difficulties";
+                        }
+                    } else {
+                        result.difficulties = Difficulty.list.copy();
+                        result.reason = "used_default_difficulties";
+                    }
+                    result.success = true;
+                } catch (weekError:Dynamic) {
+                    result.difficulties = Difficulty.list.copy();
+                    result.reason = "fallback_to_default";
+                    result.success = true;
+                }
+            }
+
+            // Restore previous mod directory
+            Mods.currentModDirectory = previousModDir;
+            return result;
+
+        } catch (e:Dynamic) {
+            handleError('updateDifficultyListBySong', e, 'Failed to update difficulty list for song index $songIndex');
+            result.reason = "exception";
+
+            // Restore original difficulties on error
+            Difficulty.list = result.originalDifficulties;
+            return result;
         }
     }
 
