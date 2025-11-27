@@ -1368,7 +1368,7 @@ class Paths
 
 	inline public static function soundP(key:String)
 	{
-		return getPath('sounds/$key.$SOUND_EXT');
+		return getPath('sounds/$key.$SOUND_EXT', SOUND);
 	}
 
 	public static function returnSoundCache(path:String, key:String, ?library:String)
