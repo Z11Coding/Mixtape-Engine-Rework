@@ -2,6 +2,7 @@ package archipelago;
 import backend.InputFormatter;
 import backend.Song;
 import flixel.FlxObject;
+import flixel.FlxState;
 import flixel.input.keyboard.FlxKey;
 import flixel.tweens.misc.NumTween;
 import flixel.util.FlxColor;
@@ -69,6 +70,8 @@ class APPlayState extends PlayState {
 
     // Song unlock system
     private var songNotUnlocked:Bool = false;
+    private var missingItems:Array<String> = [];
+    private var unlockTransitionStarted:Bool = false;
 	// private var unBlurShaderRestore:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
     var curDifficulty:Int = -1;
     var effectsActive:Map<String, Int> = new Map<String, Int>();
@@ -174,6 +177,8 @@ class APPlayState extends PlayState {
         if (APEntryState.inArchipelagoMode)
         {
             var found = false;
+            var missingItems:Array<String> = [];
+
             for (entry in APFreeplayManager.curUnlocked)
             {
             if (entry.song == currentSong && entry.mod == currentMod)
@@ -186,7 +191,7 @@ class APPlayState extends PlayState {
             // If song is unlocked, also check if required characters and stage are unlocked via sanity system
             if (found && archipelago.APEntryState.apGame != null) {
                 // Check sanity items for this song's characters and stage
-                var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+                missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
                 if (missingItems.length > 0) {
                     trace('APPlayState: Song requires unlocked sanity items: ' + missingItems.join(", "));
                     found = false; // Mark as not accessible due to missing sanity items
@@ -195,8 +200,8 @@ class APPlayState extends PlayState {
 
             if (!found) {
                 songNotUnlocked = true;
-                // Show info panel immediately
-                showUnlockInfoPanel();
+                // Store missing items for later use in startCountdown
+                this.missingItems = missingItems;
             }
         }
 
@@ -1605,12 +1610,37 @@ class APPlayState extends PlayState {
 	public var bfturn:Bool = false;
     public var stuck:Bool = false;
     public var did:Int = 0;
+    var entryDenied:Bool = false;
 
     override public function startCountdown():Bool
     {
-        // Prevent countdown if song is not unlocked
+        // Prevent countdown if song is not unlocked and start transition timer
         if (songNotUnlocked) {
-            // trace("Countdown blocked: Song not unlocked");
+            entryDenied = true;
+            trace("Countdown blocked: Song not unlocked");
+
+            // Start the transition timer only once
+            if (!unlockTransitionStarted) {
+                unlockTransitionStarted = true;
+                new FlxTimer().start(3.0, function(timer:FlxTimer) {
+                    // 99.99% chance for sticker transition, 0.01% for random transition
+                    if (FlxG.random.bool(0.01)) {
+                        // Use a random transition from available ones
+                        var transitions = ["fade", "fadeColor", "slideLeft", "slideRight", "slideUp", "slideDown"];
+                        var randomTransition = transitions[FlxG.random.int(0, transitions.length - 1)];
+                        TransitionState.transitionState(new APSongLockedInfoState(currentSong, currentMod, missingItems), {
+                            transitionType: randomTransition,
+                            duration: 1.0
+                        });
+                    } else {
+                        // Use sticker transition (default/preferred method)
+                        FlxG.state.openSubState(new substates.StickerSubState(null, function(sticker) {
+                            return new APSongLockedInfoState(currentSong, currentMod, missingItems);
+                        }));
+                    }
+                });
+            }
+
             return false;
         }
 
@@ -3160,3 +3190,120 @@ class TerminateTimestamp extends FlxObject
 			tooLate = true;
 	}
 }
+
+/**
+ * Mini state that displays song unlock information and returns to freeplay
+ * Used when a song is locked due to AP progression requirements
+ */
+class APSongLockedInfoState extends backend.MusicBeatState
+{
+	var songName:String;
+	var modName:String;
+	var missingItems:Array<String>;
+	var infoPanel:FlxSprite;
+	var infoText:FlxText;
+	var okButton:FlxSprite;
+	var okText:FlxText;
+
+	public function new(song:String, mod:String, missing:Array<String>)
+	{
+		super();
+		this.songName = song;
+		this.modName = mod;
+		this.missingItems = missing != null ? missing : [];
+	}
+
+	override function create()
+	{
+		super.create();
+
+		// Dark background
+		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0x88000000);
+		add(bg);
+
+		// Info panel background
+		infoPanel = new FlxSprite().makeGraphic(600, 400, 0xFF333333);
+		infoPanel.screenCenter();
+		add(infoPanel);
+
+		// Panel border
+		var border:FlxSprite = new FlxSprite(infoPanel.x - 2, infoPanel.y - 2).makeGraphic(Std.int(infoPanel.width + 4), Std.int(infoPanel.height + 4), 0xFFFFFFFF);
+		insert(members.indexOf(infoPanel), border);
+
+		// Title text
+		var titleText:FlxText = new FlxText(infoPanel.x + 20, infoPanel.y + 20, infoPanel.width - 40, "Song Locked", 24);
+		titleText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(titleText);
+
+		// Song info
+		var songInfo:String = 'Song: ${songName}\n';
+		if (modName != null && modName.length > 0) {
+			songInfo += 'Mod: ${modName}\n';
+		}
+		songInfo += '\nThis song is locked in Archipelago mode.\n';
+
+		if (missingItems.length > 0) {
+			songInfo += '\nMissing required items:\n';
+			for (item in missingItems) {
+				songInfo += '• ${item}\n';
+			}
+		} else {
+			songInfo += '\nThis song requires progression through\nthe Archipelago multiworld to unlock.\n';
+		}
+
+		infoText = new FlxText(infoPanel.x + 20, titleText.y + 40, infoPanel.width - 40, songInfo, 16);
+		infoText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(infoText);
+
+		// OK button
+		okButton = new FlxSprite().makeGraphic(120, 40, 0xFF666666);
+		okButton.x = infoPanel.x + (infoPanel.width - okButton.width) / 2;
+		okButton.y = infoPanel.y + infoPanel.height - 60;
+		add(okButton);
+
+		var okBorder:FlxSprite = new FlxSprite(okButton.x - 1, okButton.y - 1).makeGraphic(Std.int(okButton.width + 2), Std.int(okButton.height + 2), FlxColor.WHITE);
+		insert(members.indexOf(okButton), okBorder);
+
+		okText = new FlxText(okButton.x, okButton.y, okButton.width, "OK", 16);
+		okText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(okText);
+
+		// Play sound
+		FlxG.sound.play(Paths.sound('cancelMenu'));
+	}
+
+	override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+
+		// Check for OK button click or key press
+		if (FlxG.mouse.justPressed) {
+			if (FlxG.mouse.overlaps(okButton)) {
+				returnToFreeplay();
+			}
+		}
+
+		if (controls.ACCEPT || controls.BACK || FlxG.keys.justPressed.ESCAPE || FlxG.keys.justPressed.ENTER) {
+			returnToFreeplay();
+		}
+
+		// Button hover effect
+		if (FlxG.mouse.overlaps(okButton)) {
+			okButton.color = 0xFF888888;
+		} else {
+			okButton.color = 0xFF666666;
+		}
+	}
+
+	function returnToFreeplay()
+	{
+		FlxG.sound.play(Paths.sound('confirmMenu'));
+
+		// Use stickers transition to return to freeplay
+		openSubState(new substates.StickerSubState(null, function(sticker) {
+			return cast FreeplayManager.getNewFreeplayInstance();
+		}));
+	}
+}
+
+

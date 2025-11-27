@@ -1813,6 +1813,132 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		else if (accepted) // ? bugfix
 		{
 			if (APEntryState.inArchipelagoMode) {
+				// Handle random song selection in AP mode
+				if (curSelected == 0) {
+					// Random button was selected - find accessible songs and pick randomly
+					trace('Random song selected in AP mode - checking for accessible songs');
+
+					var accessibleCapsules:Array<SongMenuItem> = [];
+					for (capsule in grpCapsules.activeSongItems) {
+						if (capsule == null || !capsule.alive || capsule.songData == null) continue;
+						// Skip the random capsule (index 0)
+						var capsuleIndex = grpCapsules.activeSongItems.indexOf(capsule);
+						if (capsuleIndex == 0) continue;
+
+						var songAccessible = true;
+						var songName = capsule.songData.songName;
+						var modName = capsule.songData.folder ?? '';
+
+						// Check victory song requirements
+						if (APFreeplayManager.isVictorySong(songName, modName)) {
+							var vicCheck = APInfo.ticketCount >= APInfo.ticketWinCount;
+							if (!vicCheck) {
+								songAccessible = false;
+							}
+						}
+
+						// Check if song is unlocked
+						if (songAccessible) {
+							var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked)
+								songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ')
+								&& songObj.mod == modName].contains(true);
+							if (!isUnlocked) {
+								songAccessible = false;
+							}
+						}
+
+						// Check if it's in trueMissing but not in unplayedList
+						if (songAccessible) {
+							if (APFreeplayManager.trueMissing.contains({song: songName, mod: modName})
+								&& !APFreeplayManager.unplayedList.contains({song: songName, mod: modName})) {
+								songAccessible = false;
+							}
+						}
+
+						// Check sanity items if song is otherwise accessible
+						if (songAccessible && archipelago.APEntryState.apGame != null) {
+							// Store original mod directory
+							var originalModDirectory = Mods.currentModDirectory;
+
+							// Set mod directory to the song's mod before checking
+							if (modName != null && modName != '') {
+								Mods.currentModDirectory = modName;
+							}
+
+							// Use the same robust song loading pattern
+							var songData = null;
+							try {
+								var songLowercase = Paths.formatToSongPath(songName);
+								var difficultyIndex = capsule.songData.songDifficulties != null ? capsule.songData.songDifficulties.indexOf(currentDifficulty) : 0;
+								if (difficultyIndex == -1) difficultyIndex = 0;
+								var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+								songData = backend.Song.loadFromJson(poop, songLowercase);
+							} catch (e:Dynamic) {
+								trace('Random selection: Initial song load failed for $songName: $e, attempting with temporary difficulty list');
+								var originalDiffList = backend.Difficulty.list.copy();
+								try {
+									backend.Difficulty.list = capsule.songData.songDifficulties != null ? capsule.songData.songDifficulties.copy() : ['normal'];
+									var songLowercase = Paths.formatToSongPath(songName);
+									var difficultyIndex = 0; // Use first available difficulty
+									var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+									songData = backend.Song.loadFromJson(poop, songLowercase);
+								} catch (e2:Dynamic) {
+									trace('Random selection: Song load failed even with temporary difficulty list for $songName: $e2');
+									songData = null;
+								}
+								backend.Difficulty.list = originalDiffList;
+							}
+
+							if (songData != null) {
+								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+								if (missingItems.length > 0) {
+									songAccessible = false;
+								}
+							} else {
+								songAccessible = false; // Couldn't load song data
+							}
+
+							// Restore original mod directory
+							Mods.currentModDirectory = originalModDirectory;
+						}
+
+						if (songAccessible) {
+							accessibleCapsules.push(capsule);
+						}
+					}
+
+					if (accessibleCapsules.length == 0) {
+						// No accessible songs - behave like a locked song
+						trace('Random song: No accessible songs found');
+						FlxG.camera.shake(0.005, 0.5);
+						FlxG.sound.play(
+							FlxG.random.int(1, 20) == 1
+								? Paths.sound("metal_pipe")
+								: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+							1
+						);
+						FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+						if (dj != null) {
+							var animPrefixB:String = "";
+							var badStartFrame:Int = 0;
+							@:privateAccess {
+								animPrefixB = dj.playableCharData.getAnimationPrefix('loss');
+								badStartFrame = dj.playableCharData.getFistPumpIntroBadStartFrame();
+							}
+							dj.playFlashAnimation(animPrefixB, true, false, false, badStartFrame);
+						}
+						return;
+					}
+
+					// Pick a random accessible song
+					var randomCapsule = accessibleCapsules[FlxG.random.int(0, accessibleCapsules.length - 1)];
+					curSelected = grpCapsules.activeSongItems.indexOf(randomCapsule);
+					curSelectedFractal = curSelected;
+					changeSelection(0); // Update the UI to reflect the new selection
+
+					// Continue with normal song confirmation for the selected song
+				}
+
 				var animPrefixB:String = "";
 				var badStartFrame:Int = 0;
 				@:privateAccess {
