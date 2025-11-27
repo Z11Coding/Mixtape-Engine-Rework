@@ -846,7 +846,13 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		currentDifficulty = rememberedDifficulty; // ? use last difficulty to create this list
 		// Generates song list with the starter params (who our current character is, last remembered difficulty, etc.)
     	// Set this to false if you prefer the 50% transparency on the capsules when they first appear.
-		generateSongList(null, false);
+		// Force generation when unknownSongs is active to ensure songs are displayed initially
+		#if ARCHIPELAGO_ALLOWED
+		var forceInitialGeneration = archipelago.APItem.unknownSongs;
+		#else
+		var forceInitialGeneration = false;
+		#end
+		generateSongList(null, forceInitialGeneration);
 
 		// dedicated camera for the state so we don't need to fuk around with camera scrolls from the mainmenu / elsewhere
 		funnyCam.bgColor = FlxColor.TRANSPARENT;
@@ -1978,30 +1984,64 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 			// Check if required characters and stage are unlocked via sanity system
 			if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-				trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG)}');
-				var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
-				if (missingItems.length > 0) {
-					trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
+				// Load the song data to get character information instead of relying on PlayState.SONG
+				var songData = null; // Declare songData outside try-catch blocks
+				try {
+					var songLowercase = Paths.formatToSongPath(curCapsule.songData.songName);
+					var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+					trace('Checking sanity unlocks for song: $songLowercase at difficulty index: $difficultyIndex. (diff: ${currentDifficulty}) (found difficulties: ${curCapsule.songData.songDifficulties})');
+					if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
+					var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+					songData = backend.Song.loadFromJson(poop, songLowercase);
+				} catch (e:Dynamic) {
+					trace('Initial song load failed: $e, attempting with temporary difficulty list');
+					// Backup current difficulty list
+					var originalDiffList = backend.Difficulty.list.copy();
+					try {
+						// Temporarily set difficulty list to match capsule's available difficulties
+						backend.Difficulty.list = curCapsule.songData.songDifficulties.copy();
 
-					var itemList = "";
-					for (i in 0...missingItems.length) {
-						itemList += "• " + missingItems[i];
-						if (i < missingItems.length - 1) itemList += "\n";
+						var songLowercase = Paths.formatToSongPath(curCapsule.songData.songName);
+						var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+						trace('Retry: Checking sanity unlocks for song: $songLowercase at difficulty index: $difficultyIndex. (diff: ${currentDifficulty}) (found difficulties: ${curCapsule.songData.songDifficulties})');
+						if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
+						var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+						songData = backend.Song.loadFromJson(poop, songLowercase);
+					} catch (e2:Dynamic) {
+						trace('Song load failed even with temporary difficulty list: $e2');
+						songData = null;
+						throw "Failed to load song data for sanity check: " + e2;
 					}
+					// Restore original difficulty list
+					backend.Difficulty.list = originalDiffList;
+				}
 
-					backend.pslice.UserErrorSubstate.makeMessage("Cannot Play Song!", 'This song requires unlocked characters or stages:\n\n' + itemList + '\n\nPlay other songs to unlock these items!');
-					// No hints, show missing text immediately
-					FlxG.camera.shake(0.005, 0.5);
-					// 1 in 20 chance to play metal_pipe instead of badnoise
-					FlxG.sound.play(
-						FlxG.random.int(1, 20) == 1
-							? Paths.sound("metal_pipe")
-							: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
-						1
-					);
-					FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+				if (songData != null) {
+					trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData)}');
+					var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+					if (missingItems.length > 0) {
+						trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
 
-					return;
+						var itemList = "";
+						for (i in 0...missingItems.length) {
+							itemList += "• " + missingItems[i];
+							if (i < missingItems.length - 1) itemList += "\n";
+						}
+
+						backend.pslice.UserErrorSubstate.makeMessage("Cannot Play Song!", 'This song requires unlocked characters or stages:\n\n' + itemList + '\n\nPlay other songs to unlock these items!');
+						// No hints, show missing text immediately
+						FlxG.camera.shake(0.005, 0.5);
+						// 1 in 20 chance to play metal_pipe instead of badnoise
+						FlxG.sound.play(
+							FlxG.random.int(1, 20) == 1
+								? Paths.sound("metal_pipe")
+								: Paths.sound("badnoise" + FlxG.random.int(1, 3)),
+							1
+						);
+						FlxTween.color(curCapsule.capsule, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
+
+						return;
+					}
 				}
 			}
 
@@ -2699,6 +2739,136 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	}
 
 	/**
+	 * Refresh and update all songs in the freeplay using the FreeplayManager's songList
+	 * This removes and updates all existing songs, then regenerates the song list display
+	 * Note: This uses the existing songList from fpManager without reloading it
+	 */
+	public function refreshSongList():Void
+	{
+		trace("VSlice Freeplay: Refreshing song list from fpManager...");
+
+		if (fpManager == null)
+		{
+			trace("Error: fpManager is null, cannot refresh song list");
+			return;
+		}
+
+		// Store current selection info for restoration
+		var previousSongId:Null<String> = null;
+		var previousDifficulty:String = currentDifficulty;
+
+		if (curCapsule?.songData != null)
+		{
+			previousSongId = curCapsule.songData.songId;
+		}
+
+		// Clear existing songs array (but keep the null/random entry at index 0)
+		songs = [];
+
+		// Re-add the null entry for RANDOM option
+		songs.push(null);
+
+		// Clear difficulty arrays
+		diffIdsCurrent = [];
+		diffIdsTotal = ['easy', "normal", "hard"]; // Reset to default ordering
+
+		// Convert GlobalSongMetadata from fpManager.songList to FreeplaySongData
+		if (fpManager.songList != null)
+		{
+			trace("Converting " + fpManager.songList.length + " songs from fpManager to VSlice format...");
+
+			for (globalSong in fpManager.songList)
+			{
+				if (globalSong == null) continue;
+
+				// Extract the color from the GlobalSongMetadata format
+				var color = globalSong.color;
+				var colorInt = FlxColor.WHITE; // Default color
+
+				if (color != null && color.length > 0) {
+					if (color.length > 1 && color[1] != null && color[1].length > 0) {
+						// Use the FlxColor if available
+						colorInt = color[1][0];
+					} else if (color[0] != null && color[0].length >= 3) {
+						// Convert from RGB array
+						var rgb = color[0];
+						colorInt = FlxColor.fromRGB(rgb[0], rgb[1], rgb[2]);
+					}
+				}
+
+				// Create VSlice format song data
+				var sngCard = new FreeplaySongData(globalSong.week, globalSong.songName, globalSong.songCharacter, colorInt);
+
+				// Only add if it has valid difficulties
+				if (sngCard.songDifficulties.length == 0)
+					continue;
+
+				songs.push(sngCard);
+
+				// Update difficulty arrays
+				for (difficulty in sngCard.songDifficulties)
+				{
+					diffIdsTotal.pushUnique(difficulty);
+				}
+			}
+		}
+
+		trace("Song refresh complete. Total songs: " + (songs.length - 1) + " (excluding random)");
+
+		// Regenerate the song list display with force refresh
+		generateSongList(currentFilter, true);
+
+		// Try to restore previous selection
+		if (previousSongId != null)
+		{
+			var foundIndex = -1;
+			for (i in 0...currentFilteredSongs.length)
+			{
+				var song = currentFilteredSongs[i];
+				if (song != null && song.songId == previousSongId)
+				{
+					foundIndex = i;
+					break;
+				}
+			}
+
+			if (foundIndex != -1)
+			{
+				curSelected = foundIndex;
+				curSelectedFractal = foundIndex;
+				trace("Restored selection to: " + previousSongId + " at index " + foundIndex);
+			}
+			else
+			{
+				// If previous song not found, default to first song (index 1, since 0 is random)
+				curSelected = 1;
+				curSelectedFractal = 1;
+				trace("Previous song '" + previousSongId + "' not found after refresh, defaulting to index 1");
+			}
+		}
+		else
+		{
+			// No previous song, start at first song
+			curSelected = 1;
+			curSelectedFractal = 1;
+		}
+
+		// Restore difficulty if it's still available
+		currentDifficulty = previousDifficulty;
+		if (!diffIdsTotal.contains(currentDifficulty))
+		{
+			currentDifficulty = diffIdsTotal.contains('normal') ? 'normal' : diffIdsTotal[0];
+			trace("Previous difficulty '" + previousDifficulty + "' not available, switched to: " + currentDifficulty);
+		}
+
+		// Update the selection and difficulty display
+		changeSelection(0);
+		changeDiff(0, true);
+
+		trace("Song list refresh completed successfully");
+	}
+
+	/**
 	 * Create the HaxeUI options menu on the right side of the screen
 	 */
 	function createOptionsMenu():Void
@@ -2734,49 +2904,103 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			yPos += 35;
 
 			// Song Hint Button
-			var songHintButton = new PsychUIButton(10, yPos, "Hint Current Song", function() {
-				if (APInfo.hintPoints >= APInfo.hintCost && curCapsule?.songData != null) {
-					var songName = curCapsule.songData.songName;
-					var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
+			var songHintButton:PsychUIButton;
+			songHintButton = new PsychUIButton(10, yPos, "Hint Current Song", function() {
+				if (curCapsule?.songData == null || APInfo.hintPoints < APInfo.hintCost) {
+					// Play error feedback
+					FlxG.sound.play(Paths.sound("badnoise" + FlxG.random.int(1, 3)), 1);
+					FlxTween.color(songHintButton.text, 1, FlxColor.RED, FlxColor.WHITE, {ease: FlxEase.sineIn});
+					return;
+				}
 
-					// Hint the song
-					if (APFreeplayManager.isVictorySong(songName, modName) && APInfo.ticketCount >= APInfo.ticketWinCount) {
-						APEntryState.ap.Say("!hint Ticket");
-					} else {
-						var hintCommand = "!hint " + songName + ((modName != "" && modName != null) ? " (" + modName + ")" : "");
-						APEntryState.ap.Say(hintCommand);
-					}
+				var songName = curCapsule.songData.songName;
+				var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
+
+				// Hint the song
+				if (APFreeplayManager.isVictorySong(songName, modName) && APInfo.ticketCount >= APInfo.ticketWinCount) {
+					APEntryState.ap.Say("!hint Ticket");
+				} else {
+					var hintCommand = "!hint " + songName + ((modName != "" && modName != null) ? " (" + modName + ")" : "");
+					APEntryState.ap.Say(hintCommand);
 				}
 			}, 280);
 			tab_group.add(songHintButton);
 			yPos += 40;
 
 			// Charactersanity/Stagesanity hinting - Check if sanity is enabled
+			// Note: Hint buttons should show when sanity types are configured,
+			// regardless of enable_sanity_locations setting
 			var sanityTypesEnabled = APEntryState.apGame.sanitySettings.sanity_types.length > 0;
-			if (sanityTypesEnabled && APEntryState.apGame.sanitySettings.enable_sanity_locations)
+
+			trace("Sanity settings check:");
+			trace("  sanity_types: " + APEntryState.apGame.sanitySettings.sanity_types);
+			trace("  sanity_types.length: " + APEntryState.apGame.sanitySettings.sanity_types.length);
+			trace("  enable_sanity_locations: " + APEntryState.apGame.sanitySettings.enable_sanity_locations);
+			trace("  sanityTypesEnabled: " + sanityTypesEnabled);
+
+			if (sanityTypesEnabled)
 			{
+				trace("ENTERED sanityTypesEnabled condition - creating buttons");
 				// Character hinting
 				if (APEntryState.apGame.sanitySettings.sanity_types.contains("characters"))
 				{
+					trace("Creating character hint button at yPos: " + yPos);
 					characterHintButton = new PsychUIButton(10, yPos, "", function() {
 						hintMissingCharacters();
 					}, 280);
 					updateCharacterHintButton(characterHintButton); // Will update text and cost
+					trace("Adding character hint button to tab_group");
 					tab_group.add(characterHintButton);
+					trace("Character hint button added, incrementing yPos from " + yPos + " to " + (yPos + 40));
 					yPos += 40;
+				} else {
+					trace("Character sanity not enabled in sanity_types");
 				}
 
 				// Stage hinting
 				if (APEntryState.apGame.sanitySettings.sanity_types.contains("stages"))
 				{
+					trace("Creating stage hint button at yPos: " + yPos);
 					stageHintButton = new PsychUIButton(10, yPos, "", function() {
 						hintMissingStages();
 					}, 280);
 					updateStageHintButton(stageHintButton); // Will update text and cost
+					trace("Adding stage hint button to tab_group");
 					tab_group.add(stageHintButton);
+					trace("Stage hint button added, incrementing yPos from " + yPos + " to " + (yPos + 40));
 					yPos += 40;
+				} else {
+					trace("Stage sanity not enabled in sanity_types");
 				}
+			} else {
+				trace("ENTERED else block - Sanity hint buttons will NOT be created");
+				trace("  Reason: sanityTypesEnabled = " + sanityTypesEnabled);
+				trace("  sanity_types: " + APEntryState.apGame.sanitySettings.sanity_types);
+				trace("  sanity_types.length: " + APEntryState.apGame.sanitySettings.sanity_types.length);
+				trace("  Expected: sanity_types.length > 0 should be true if array has items");
 			}
+
+			// Skip Song button (Debug) - similar to L key functionality in other freeplay states
+			// #if FEATURE_DEBUG_FUNCTIONS
+			var skipSongButton = new PsychUIButton(10, yPos, "Skip Song (Debug)", function() {
+				if (APEntryState.inArchipelagoMode && !busy && curCapsule != null) {
+					try {
+						var songName = curCapsule.songData.songName;
+						var modName = curCapsule.songData.folder ?? "";
+
+						trace("Debug: Skipping song " + songName + " (mod: " + modName + ")");
+						APFreeplayManager.forceUnlockCheck(songName, modName);
+
+						// // Reload the freeplay state to reflect changes
+						// MusicBeatState.resetState();
+					} catch (e:Dynamic) {
+						trace("Error skipping song: " + e);
+					}
+				}
+			}, 280);
+			tab_group.add(skipSongButton);
+			yPos += 40;
+			// #end
 
 			// Close button for AP tab
 			var closeButton = new PsychUIButton(10, yPos + 20, "Close", function() {
@@ -3121,15 +3345,16 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		var missingCharacters = getMissingCharactersForCurrentSong();
 		var estimatedCost = missingCharacters.length * APInfo.hintCost;
 
-		if (APInfo.hintPoints >= estimatedCost && missingCharacters.length > 0) {
-			for (character in missingCharacters) {
-				APEntryState.ap.Say("!hint " + character);
-			}
-			trace("Hinted " + missingCharacters.length + " characters for estimated cost of " + estimatedCost);
-		} else if (missingCharacters.length == 0) {
-			trace("No missing characters for this song");
-		} else {
-			trace("Not enough hint points. Need: " + estimatedCost + ", Have: " + APInfo.hintPoints);
+		if (missingCharacters.length == 0 || APInfo.hintPoints < estimatedCost) {
+			// Play error feedback
+			FlxG.sound.play(Paths.sound("badnoise" + FlxG.random.int(1, 3)), 1);
+			FlxTween.color(characterHintButton.text, 1, FlxColor.RED, FlxColor.WHITE, {ease: FlxEase.sineIn});
+			return;
+		}
+
+		// Send hint commands
+		for (character in missingCharacters) {
+			APEntryState.ap.Say("!hint " + character);
 		}
 	}
 
@@ -3141,15 +3366,16 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		var missingStages = getMissingStagesForCurrentSong();
 		var estimatedCost = missingStages.length * APInfo.hintCost;
 
-		if (APInfo.hintPoints >= estimatedCost && missingStages.length > 0) {
-			for (stage in missingStages) {
-				APEntryState.ap.Say("!hint " + stage);
-			}
-			trace("Hinted " + missingStages.length + " stages for estimated cost of " + estimatedCost);
-		} else if (missingStages.length == 0) {
-			trace("No missing stages for this song");
-		} else {
-			trace("Not enough hint points. Need: " + estimatedCost + ", Have: " + APInfo.hintPoints);
+		if (missingStages.length == 0 || APInfo.hintPoints < estimatedCost) {
+			// Play error feedback
+			FlxG.sound.play(Paths.sound("badnoise" + FlxG.random.int(1, 3)), 1);
+			FlxTween.color(stageHintButton.text, 1, FlxColor.RED, FlxColor.WHITE, {ease: FlxEase.sineIn});
+			return;
+		}
+
+		// Send hint commands
+		for (stage in missingStages) {
+			APEntryState.ap.Say("!hint " + stage);
 		}
 	}
 

@@ -81,7 +81,7 @@ class FreeplayManager {
     }
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
-    public static function loadFPManager(?ensureLoaded:Bool = false) {
+    public static function loadFPManager(?ensureLoaded:Bool = false):FreeplayManager {
         trace("FP in Arch Mode: " + APEntryState.inArchipelagoMode);
         #if ARCHIPELAGO_ALLOWED
         return switch (APEntryState.inArchipelagoMode) {
@@ -261,7 +261,7 @@ class FreeplayManager {
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(refresh, searchText);
             case "Base Game":
                 if (states.freeplay.VSliceFreeplayState.instance != null)
-                    states.freeplay.VSliceFreeplayState.instance.generateSongList({filterType: REGEXP, filterData: searchText}, refresh);
+                    states.freeplay.VSliceFreeplayState.instance.refreshSongList();
             default:
                 if (states.freeplay.CustomFreeplayState.instance != null)
                     states.freeplay.CustomFreeplayState.instance.handleFreeplayReload(refresh, searchText);
@@ -519,7 +519,7 @@ class FreeplayManager {
                     states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
             case "Base Game":
                 if (states.freeplay.VSliceFreeplayState.instance != null)
-                    states.freeplay.VSliceFreeplayState.instance.generateSongList(null, false);
+                    states.freeplay.VSliceFreeplayState.instance.refreshSongList();
             default:
                 states.freeplay.CustomFreeplayState.instance != null ?
                     states.freeplay.CustomFreeplayState.instance.handleFreeplayReload(refresh, searchText) : null;

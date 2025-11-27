@@ -796,12 +796,7 @@ class APItem {
 
                         // Reload freeplay to refresh the display
                         if (APEntryState.inArchipelagoMode) {
-                            if (states.freeplay.FreeplayState.instance != null)
-                                states.freeplay.FreeplayState.instance.reloadSongs(true);
-                            if (states.freeplay.OsuFreeplayState.instance != null)
-                                @:privateAccess states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
-                            if (states.freeplay.VSliceFreeplayState.instance != null)
-                                states.freeplay.VSliceFreeplayState.instance.generateSongList(null, true, false);
+                            managers.FreeplayManager.loadFPManager().reloadFreeplayState();
                         }
                     }, 300000); // 5 minutes = 300000 milliseconds
 
@@ -1751,7 +1746,7 @@ class APItem {
             if (playState != null && (playState.endingSong || playState.transitioning ||
                 backend.TransitionState.currenttransition != null ||
                 (playState.subState != null && Std.is(playState.subState, substates.RankingSubstate)))) {
-                trace("Blocking item trigger due to inappropriate PlayState condition: " + this.name);
+                // trace("Blocking item trigger due to inappropriate PlayState condition: " + this.name);
                 return; // Don't trigger during song end, transitions, or ranking
             }
         }

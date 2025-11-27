@@ -263,6 +263,14 @@ class Main extends Sprite
 				return; // Traces disabled completely
 			}
 
+			if (TraceManager.traceClassesAsObjects) {
+				// Check if v is a class instance
+				var className = Type.getClassName(Type.getClass(v));
+				if (className != null) {
+					v = yutautil.save.ObjectSerializer.serialize(v);
+				}
+			}
+
 			var traceMode = backend.ClientPrefs.data.traceMode;
 			switch (traceMode) {
 				case "CONSOLE":
@@ -281,6 +289,7 @@ class Main extends Sprite
 			}
 		};
 		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu, except for when using 'HxTrace.log()' via Yutautil.".log();
+		"Warning: Putting a class instance in a trace may serialize a LOT of data, which can impact performance, even in threading mode.".log();
 	}
 
 	@:dox(hide)
@@ -1650,6 +1659,10 @@ class CommandPrompt
 			case "saveState":
 				if (args.length == 0) {
 					// Save with auto-generated filename
+					print("Saving current state with auto-generated filename...");
+					print("Note: If you want to specify a custom filename, use: saveState 'filename'");
+					print("Warning: This may take a while depending on the state size.");
+					print("Do not close the game or switch states until the save is complete, or you get notified of success, as this may corrupt the save file.");
 					var success = yutautil.save.StateSerializer.saveCurrentState();
 					if (success) {
 						print("Current state saved successfully with auto-generated filename.");
@@ -1659,6 +1672,9 @@ class CommandPrompt
 				} else if (args.length == 1) {
 					// Save with custom filename
 					var filename = args[0];
+					print("Saving current state as: " + filename + ".json");
+					print("Warning: This may take a while depending on the state size.");
+					print("Do not close the game or switch states until the save is complete, or you get notified of success, as this may corrupt the save file.");
 					var success = yutautil.save.StateSerializer.saveCurrentState(filename);
 					if (success) {
 						print("Current state saved successfully as: " + filename + ".json");
@@ -2128,6 +2144,57 @@ class CommandPrompt
 				}
 				#else
 				print("Error: High Quality Trap testing requires ARCHIPELAGO_ALLOWED compilation flag.");
+				#end
+
+			case "debugSanity":
+				#if ARCHIPELAGO_ALLOWED
+				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+					archipelago.APEntryState.apGame.debugSanityItems();
+				} else {
+					print("Error: Not in Archipelago mode or AP game instance not available.");
+				}
+				#else
+				print("Error: Sanity debugging requires ARCHIPELAGO_ALLOWED compilation flag.");
+				#end
+
+			case "refreshSanity":
+				#if ARCHIPELAGO_ALLOWED
+				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+					print("Refreshing sanity items...");
+					archipelago.APEntryState.apGame.refreshSanityItems();
+					print("Sanity item refresh completed.");
+				} else {
+					print("Error: Not in Archipelago mode or AP game instance not available.");
+				}
+				#else
+				print("Error: Sanity refresh requires ARCHIPELAGO_ALLOWED compilation flag.");
+				#end
+
+			case "forceSanitySync":
+				#if ARCHIPELAGO_ALLOWED
+				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+					print("Forcing sanity item synchronization with save data...");
+
+					// Get all unlocked sanity items
+					var unlockedItems = archipelago.APEntryState.apGame.unlockedSanityItems;
+					var count = [for (key in unlockedItems.keys()) key].length;
+
+					if (count > 0) {
+						// Force save immediately using the public method
+						var success = archipelago.APEntryState.apGame.forceSaveSanityItems();
+						if (success) {
+							print("Successfully synced " + count + " sanity items to save data.");
+						} else {
+							print("Error syncing sanity items to save data.");
+						}
+					} else {
+						print("No sanity items to sync.");
+					}
+				} else {
+					print("Error: Not in Archipelago mode or AP game instance not available.");
+				}
+				#else
+				print("Error: Sanity sync requires ARCHIPELAGO_ALLOWED compilation flag.");
 				#end
 
 			default:

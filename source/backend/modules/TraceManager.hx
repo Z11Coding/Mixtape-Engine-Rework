@@ -69,6 +69,10 @@ class TraceManager
     private static var threadQueue:Array<TraceEntry> = [];
     #end
 
+    // Settings.
+    public static var traceClassesAsObjects:Bool = false;
+    //
+
     private static var initialized:Bool = false;
 
     public static function setOriginalTrace(originalTraceFunc:Dynamic -> ?haxe.PosInfos -> Void):Void

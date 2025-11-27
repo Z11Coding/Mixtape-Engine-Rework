@@ -756,7 +756,7 @@ class APGameState
 		instance = this;
 
 		trace("APGameState initialized with seed: " + _seed);
-		trace("APGameState slot data: \n" + Std.string(slotData));
+		// trace("APGameState slot data: \n" + Std.string(slotData));
 
 
 		// APDisconnectSubstate removed - now using ConnectionSubstate for reconnection
@@ -874,7 +874,7 @@ class APGameState
 
 	function handleRetrievedPacket(retrievedPacket:haxe.DynamicAccess<Dynamic>):Void
 	{
-		trace("Retrieved packet: " + retrievedPacket);
+		// trace("Retrieved packet: " + retrievedPacket);
 		for (key in retrievedPacket.keys())
 		{
 			var value = retrievedPacket.get(key);
@@ -1134,6 +1134,46 @@ class APGameState
 				unlockedSanityItems.set(item.name, item.data);
 			}
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
+
+			// Validate loaded sanity items against slot data
+			if (_slotData != null && Reflect.hasField(_slotData, "sanityData"))
+			{
+				var slotSanityData:haxe.DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
+				if (slotSanityData != null)
+				{
+					var validatedCount = 0;
+					var removedCount = 0;
+					var sanityItemsToRemove:Array<String> = [];
+
+					// Check each loaded sanity item against slot data
+					for (itemName in unlockedSanityItems.keys())
+					{
+						if (slotSanityData.exists(itemName))
+						{
+							validatedCount++;
+						}
+						else
+						{
+							trace("Warning: Saved sanity item '" + itemName + "' not found in slot data, removing");
+							sanityItemsToRemove.push(itemName);
+							removedCount++;
+						}
+					}
+
+					// Remove invalid sanity items
+					for (itemName in sanityItemsToRemove)
+					{
+						unlockedSanityItems.remove(itemName);
+					}
+
+					trace("Validated sanity items: " + validatedCount + " valid, " + removedCount + " removed");
+				}
+			}
+		}
+		else
+		{
+			// No saved sanity items found - they will be populated as items are received during gameplay
+			trace("No saved sanity items found - starting with empty sanity collection");
 		}
 
 		// Load shop
@@ -1149,53 +1189,77 @@ class APGameState
 		_saveData.save();
 	}
 
-	public function updateSaveData():Void
-	{
-		if (_saveData == null)
+		public function updateSaveData():Void
 		{
-			trace("Save data is not ready yet...");
-			return;
+			if (_saveData == null)
+			{
+				trace("Save data is not ready yet...");
+				return;
+			}
+			_saveData.addItem("itemIndex", ItemIndex);
+			_saveData.addItem("activeItem", APItem.activeItem?.name);
+			_saveData.addItem("waitingItems",
+				APItem.getItems()
+					.map(item -> item.name)
+					.concat([if (APPlayState.ghostChat) "Ghost Chat" else null])
+					.filter(item -> item != null));
+			_saveData.addItem("tickets", APInfo.ticketCount);
+			_saveData.addItem("shields", APItem.shields);
+			_saveData.addItem("MaxHP", APItem.maxHPUp);
+			_saveData.addItem("Lives", APPlayState.livecount);
+			_saveData.addItem("hasPocketLens", APItem.hasPocketLens);
+			_saveData.addItem("hasDashMechanic", APItem.hasDashMechanic);
+			_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
+			@:privateAccess
+			_saveData.addItem("confusionStack", APItem.confusionStack);
+
+			// Save current minigame state
+			var minigameValue:Int = switch (APInfo.inMinigame) {
+				case None: 0;
+				case Uno: 1;
+				case Pong: 2;
+			};
+			_saveData.addItem("currentMinigame", minigameValue);
+
+			// Save sanity data
+			_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
+
+			// put everything in the array to grab later
+			var shopItems:Array<shop.Item.MiniItem> = [];
+			for (item in ShopData.items.keys())
+				shopItems.push(shop.Item.makeMiniItemFromItem(ShopData.items.get(item)));
+
+			_saveData.addItem("apShopItems", shopItems);
+
+			_saveData.save();
+			trace("Save data updated!");
 		}
-		_saveData.addItem("itemIndex", ItemIndex);
-		_saveData.addItem("activeItem", APItem.activeItem?.name);
-		_saveData.addItem("waitingItems",
-			APItem.getItems()
-				.map(item -> item.name)
-				.concat([if (APPlayState.ghostChat) "Ghost Chat" else null])
-				.filter(item -> item != null));
-		_saveData.addItem("tickets", APInfo.ticketCount);
-		_saveData.addItem("shields", APItem.shields);
-		_saveData.addItem("MaxHP", APItem.maxHPUp);
-		_saveData.addItem("Lives", APPlayState.livecount);
-		_saveData.addItem("hasPocketLens", APItem.hasPocketLens);
-		_saveData.addItem("hasDashMechanic", APItem.hasDashMechanic);
-		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
-		@:privateAccess
-		_saveData.addItem("confusionStack", APItem.confusionStack);
 
-		// Save current minigame state
-		var minigameValue:Int = switch (APInfo.inMinigame) {
-			case None: 0;
-			case Uno: 1;
-			case Pong: 2;
-		};
-		_saveData.addItem("currentMinigame", minigameValue);
+		/**
+		 * Public method to force save sanity items immediately
+		 * Returns true if successful, false if failed
+		 */
+		public function forceSaveSanityItems():Bool
+		{
+			if (_saveData == null)
+			{
+				trace("Save data not available for sanity item sync");
+				return false;
+			}
 
-		// Save sanity data
-		_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
-
-		// put everything in the array to grab later
-		var shopItems:Array<shop.Item.MiniItem> = [];
-		for (item in ShopData.items.keys())
-			shopItems.push(shop.Item.makeMiniItemFromItem(ShopData.items.get(item)));
-
-		_saveData.addItem("apShopItems", shopItems);
-
-		_saveData.save();
-		trace("Save data updated!");
-	}
-
-	public function info()
+			try
+			{
+				_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
+				_saveData.save();
+				trace("Successfully synced sanity items to save data");
+				return true;
+			}
+			catch (e:Dynamic)
+			{
+				trace("Error syncing sanity items to save data: " + e);
+				return false;
+			}
+		}	public function info()
 	{
 		return _ap;
 	}
@@ -1680,30 +1744,38 @@ class APGameState
 			{
 				var itemName = info().get_item_name(songName.item);
 
-				if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
-				{
-					nonSongs.set(itemName, songName.index);
-					nonSongsNames.push(itemName);
-					continue;
-				}
-
 				// Use the realName function to convert special keywords back to actual brackets
 				itemName = APInfo.realName(itemName);
 
-				// Check if this is a sanity item by ID instead of name
+				// Check if this is a sanity item FIRST before doing APItems check
 				var isSanityItem = false;
-				if (_slotData != null && _slotData.sanityData != null)
+				var sanityItemName = itemName; // Default to the original item name
+
+				if (_slotData != null && Reflect.hasField(_slotData, "sanityData"))
 				{
-					// Check if the item ID exists in the sanity data
-					for (sanityItemName in _slotData.sanityData.keys())
+					var slotSanityData:haxe.DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
+					if (slotSanityData != null)
 					{
-						var sanityItemData = _slotData.sanityData.get(sanityItemName);
-						if (sanityItemData != null && sanityItemData.id == songName.item)
+						// Check if the item ID exists in the sanity data
+						for (slotSanityItemName in slotSanityData.keys())
+						{
+							var sanityItemData = slotSanityData.get(slotSanityItemName);
+							if (sanityItemData != null && sanityItemData.id == songName.item)
+							{
+								isSanityItem = true;
+								// Use the sanity item name from slot data for consistency
+								sanityItemName = slotSanityItemName;
+								trace("Found sanity item by ID match: " + songName.item + " -> " + slotSanityItemName);
+								break;
+							}
+						}
+
+						// Also check by name match as fallback
+						if (!isSanityItem && slotSanityData.exists(itemName))
 						{
 							isSanityItem = true;
-							// Use the sanity item name from slot data for consistency
-							itemName = sanityItemName;
-							break;
+							sanityItemName = itemName;
+							trace("Found sanity item by name match: " + itemName);
 						}
 					}
 				}
@@ -1711,7 +1783,17 @@ class APGameState
 				if (isSanityItem)
 				{
 					// This is a sanity item - add to sanity tracking
-					sanityItems.push(itemName);
+					sanityItems.push(sanityItemName);
+					nonSongs.set(sanityItemName, songName.index);
+					nonSongsNames.push(sanityItemName);
+					trace("Processing sanity item: " + sanityItemName + " (original: " + itemName + ")");
+					continue;
+				}
+
+				// Check APItems for non-sanity items only (moved after sanity check)
+				if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
+				{
+					trace("Skipping non-sanity APItem: " + itemName);
 					nonSongs.set(itemName, songName.index);
 					nonSongsNames.push(itemName);
 					continue;
@@ -1772,6 +1854,14 @@ class APGameState
 		function applyProcessedItems(result:ProcessedItemsResult)
 		{
 			var songCopy:Array<{song:String, mod:String}> = APFreeplayManager.curUnlocked.copy();
+
+			// Handle sanity items FIRST to ensure they're available for other systems
+			trace("Processing " + result.sanityItems.length + " sanity items first");
+			for (sanityItemName in result.sanityItems)
+			{
+				handleSanityItemReceived(sanityItemName);
+			}
+
 			// Apply all unlocked songs
 			for (song in result.unlockedSongs)
 			{
@@ -1792,12 +1882,6 @@ class APGameState
 			if (info().casualSync && APInfo.ticketCount != result.tickets)
 			{
 				APInfo.ticketCount = result.tickets;
-			}
-
-			// Handle sanity items
-			for (sanityItemName in result.sanityItems)
-			{
-				handleSanityItemReceived(sanityItemName);
 			}
 
 			// Apply items in order
@@ -1840,9 +1924,33 @@ class APGameState
 				if (sanityData != null && sanityData.exists(itemName))
 				{
 					var sanityItemData = sanityData.get(itemName);
+
+					// Check if we already have this sanity item to avoid duplicates
+					if (unlockedSanityItems.exists(itemName))
+					{
+						trace("Sanity item '" + itemName + "' already exists in unlocked items, skipping");
+						return;
+					}
+
 					unlockedSanityItems.set(itemName, sanityItemData);
 
 					trace("Added sanity item '" + itemName + "' to unlocked items");
+					trace("Current unlocked sanity items count: " + [for (key in unlockedSanityItems.keys()) key].length);
+
+					// Immediately save the sanity item to prevent loss
+					if (_saveData != null)
+					{
+						try
+						{
+							_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
+							_saveData.save();
+							trace("Immediately saved sanity item '" + itemName + "' to save data");
+						}
+						catch (e:Dynamic)
+						{
+							trace("Error immediately saving sanity item to save data: " + e);
+						}
+					}
 
 					// If completion type is "on_getting", immediately send the sanity location check
 					if (sanitySettings.sanity_completion_type == "on_getting")
@@ -1856,11 +1964,16 @@ class APGameState
 				else
 				{
 					trace("Warning: Sanity item '" + itemName + "' not found in slot data");
+					trace("Available sanity items in slot data: " + [for (key in sanityData.keys()) key]);
 				}
 			}
 			else
 			{
 				trace("Warning: No sanity data found in slot data");
+				if (_slotData != null)
+				{
+					trace("Available fields in slot data: " + [for (field in Reflect.fields(_slotData)) field]);
+				}
 			}
 		}
 
@@ -1878,6 +1991,114 @@ class APGameState
 			{
 				trace("Warning: Could not find location ID for sanity location: " + locationName);
 			}
+		}
+
+		/**
+		 * Manual method to refresh sanity items from slot data
+		 * Call this if you suspect sanity items aren't being properly loaded
+		 */
+		public function refreshSanityItems():Void
+		{
+			trace("Manually refreshing sanity items from slot data");
+
+			if (_slotData == null || !Reflect.hasField(_slotData, "sanityData"))
+			{
+				trace("No slot data or sanity data available for refresh");
+				return;
+			}
+
+			var sanityData:haxe.DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
+			if (sanityData == null)
+			{
+				trace("Sanity data is null");
+				return;
+			}
+
+			var refreshCount = 0;
+			for (itemName in sanityData.keys())
+			{
+				var sanityItemData = sanityData.get(itemName);
+				if (sanityItemData != null && !unlockedSanityItems.exists(itemName))
+				{
+					// Check if we received this item already by checking the AP items
+					var itemReceived = false;
+					if (APItems.exists(itemName))
+					{
+						itemReceived = true;
+						unlockedSanityItems.set(itemName, sanityItemData);
+						refreshCount++;
+						trace("Refreshed missing sanity item: " + itemName);
+					}
+				}
+			}
+
+			if (refreshCount > 0)
+			{
+				trace("Refreshed " + refreshCount + " sanity items");
+				// Save the refreshed data
+				if (_saveData != null)
+				{
+					try
+					{
+						_saveData.addItem("unlockedSanityItems", [for (name => data in unlockedSanityItems) {name: name, data: data}]);
+						_saveData.save();
+						trace("Saved refreshed sanity items to save data");
+					}
+					catch (e:Dynamic)
+					{
+						trace("Error saving refreshed sanity items: " + e);
+					}
+				}
+			}
+			else
+			{
+				trace("No sanity items needed refreshing");
+			}
+		}
+
+		/**
+		 * Debug method to check current state of sanity items
+		 */
+		public function debugSanityItems():Void
+		{
+			trace("=== SANITY ITEM DEBUG INFO ===");
+			trace("Sanity settings enabled: " + sanitySettings.enable_sanity_locations);
+			trace("Sanity completion type: " + sanitySettings.sanity_completion_type);
+			trace("Sanity types: " + sanitySettings.sanity_types);
+			trace("Unlocked sanity items count: " + [for (key in unlockedSanityItems.keys()) key].length);
+
+			if (unlockedSanityItems != null)
+			{
+				for (name => data in unlockedSanityItems)
+				{
+					trace("  - " + name + " (type: " + data.type + ", id: " + data.id + ")");
+				}
+			}
+
+			trace("Sanity location IDs count: " + [for (key in sanityLocationIds.keys()) key].length);
+			if (sanityLocationIds != null)
+			{
+				for (name => id in sanityLocationIds)
+				{
+					trace("  - " + name + " -> " + id);
+				}
+			}
+
+			if (_slotData != null && Reflect.hasField(_slotData, "sanityData"))
+			{
+				var sanityData:haxe.DynamicAccess<SanityItemData> = Reflect.field(_slotData, "sanityData");
+				if (sanityData != null)
+				{
+					trace("Available sanity items in slot data: " + [for (key in sanityData.keys()) key].length);
+					for (name in sanityData.keys())
+					{
+						var data = sanityData.get(name);
+						var isUnlocked = unlockedSanityItems.exists(name);
+						trace("  - " + name + " (type: " + data.type + ", id: " + data.id + ") [" + (isUnlocked ? "UNLOCKED" : "LOCKED") + "]");
+					}
+				}
+			}
+			trace("==============================");
 		}
 
 		public function checkSanityLocationsOnPlaying(songName:String, ?modName:String):Void

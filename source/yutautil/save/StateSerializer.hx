@@ -74,6 +74,7 @@ class StateSerializer {
      */
     public static function createSerializableObject(instance:Dynamic):SerializedClass {
         if (instance == null) return null;
+        trace('Starting serialization of ${getTypePath(instance)}');
 
         // Reset state
         resetSerializationState();
@@ -114,6 +115,7 @@ class StateSerializer {
         // Update metadata
         updateSerializationMetadata(result);
 
+        trace('Serialization completed: ${result.METADATA.totalObjects} objects, max depth ${result.METADATA.maxDepth}, circular refs: ${result.METADATA.hasCircularRefs}');
         return result;
     }
 
@@ -739,6 +741,8 @@ class StateSerializer {
     public static function saveState(state:FlxState, filename:String):Bool {
         try {
             var serializedState = createSerializableObject(state);
+            trace('Saving state with ${serializedState.METADATA.totalObjects} objects...');
+            trace("You may now continue running the game while the state is being saved.");
 
             // Ensure save directory exists
             if (!sys.FileSystem.exists(SAVE_DIRECTORY)) {

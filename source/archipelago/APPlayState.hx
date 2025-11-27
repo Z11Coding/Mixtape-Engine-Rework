@@ -182,6 +182,17 @@ class APPlayState extends PlayState {
                 break;
             }
             }
+
+            // If song is unlocked, also check if required characters and stage are unlocked via sanity system
+            if (found && archipelago.APEntryState.apGame != null) {
+                // Check sanity items for this song's characters and stage
+                var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+                if (missingItems.length > 0) {
+                    trace('APPlayState: Song requires unlocked sanity items: ' + missingItems.join(", "));
+                    found = false; // Mark as not accessible due to missing sanity items
+                }
+            }
+
             if (!found) {
                 songNotUnlocked = true;
                 // Show info panel immediately
