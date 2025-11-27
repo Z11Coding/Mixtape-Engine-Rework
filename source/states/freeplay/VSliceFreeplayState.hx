@@ -1819,13 +1819,13 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					animPrefixB = dj.playableCharData.getAnimationPrefix('loss');
 					badStartFrame = dj.playableCharData.getFistPumpIntroBadStartFrame();
 				}
-				var vicCheck:Bool = APFreeplayManager.isVictorySong(songs[curSelected].songName, songs[curSelected].folder ?? '') && APInfo.ticketCount >= APInfo.ticketWinCount;
+				var vicCheck:Bool = APFreeplayManager.isVictorySong(curCapsule.songData.songName, curCapsule.songData.folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
 				//You need the song AND the tickets.
 				trace('can play victory song: ${vicCheck}');
-				if (APFreeplayManager.isVictorySong(songs[curSelected].songName, songs[curSelected].folder ?? '') && !vicCheck) {
+				if (APFreeplayManager.isVictorySong(curCapsule.songData.songName, curCapsule.songData.folder) && !vicCheck) {
 
 					// Check for hints first
-					var hints = APFreeplayManager.getHintsForSong(songs[curSelected].songName, songs[curSelected].folder ?? '');
+					var hints = APFreeplayManager.getHintsForSong(curCapsule.songData.songName, curCapsule.songData.folder);
 
 					if (hints.length > 0) {
 						// Show hint panel first
@@ -1836,7 +1836,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 						}
 
 						archipelago.substates.InfoPanelSubstate.show(
-							"Song Hints: " + songs[curSelected].songName,
+							"Song Hints: " + curCapsule.songData.songName,
 							hintContent,
 							FlxColor.CYAN,
 							function() {
@@ -1873,14 +1873,26 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				}
 
 				// Check if song is locked (not in curUnlocked)
-				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songs[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == songs[curSelected].folder ?? ''].contains(true);
+				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == curCapsule.songData.songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == curCapsule.songData.folder].contains(true);
 				var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
 
 				if (isLocked) {
 					trace('Song is locked (not in curUnlocked)!');
+					trace('Currently Unlocked: ${APFreeplayManager.curUnlocked}');
+					for (songObj in APFreeplayManager.curUnlocked) {
+						if (songObj.song.trim().toLowerCase().replace('-', ' ') == curCapsule.songData.songName.trim().toLowerCase().replace('-', ' '))
+							trace('Matched unlocked song: ${songObj.song} == ${curCapsule.songData.songName}');
+						else
+							trace('Did not match unlocked song: ${songObj.song} == ${curCapsule.songData.songName}');
+
+						if (songObj.mod == curCapsule.songData.folder)
+							trace('Mod matched: ${songObj.mod} == ${curCapsule.songData.folder}');
+						else
+							trace('Mod did not match: ${songObj.mod} != ${curCapsule.songData.folder}');
+					}
 
 					// Check for hints first
-					var hints = APFreeplayManager.getHintsForSong(songs[curSelected].songName, songs[curSelected].folder ?? '');
+					var hints = APFreeplayManager.getHintsForSong(curCapsule.songData.songName, curCapsule.songData.folder);
 
 					if (hints.length > 0) {
 						// Show hint panel first
@@ -1891,7 +1903,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 						}
 
 						archipelago.substates.InfoPanelSubstate.show(
-							"Song Hints: " + songs[curSelected].songName,
+							"Song Hints: " + curCapsule.songData.songName,
 							hintContent,
 							FlxColor.CYAN,
 							function() {
@@ -1929,11 +1941,11 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					}
 				}
 
-				if (APFreeplayManager.trueMissing.contains({song: songs[curSelected].songName, mod: songs[curSelected].folder ?? ''}) && !APFreeplayManager.unplayedList.contains({song: songs[curSelected].songName, mod: songs[curSelected].folder ?? ''})) {
+				if (APFreeplayManager.trueMissing.contains({song: curCapsule.songData.songName, mod: curCapsule.songData.folder}) && !APFreeplayManager.unplayedList.contains({song: curCapsule.songData.songName, mod: curCapsule.songData.folder})) {
 					trace('Song is locked!');
 
 					// Check for hints first
-					var hints = APFreeplayManager.getHintsForSong(songs[curSelected].songName, songs[curSelected].folder ?? '');
+					var hints = APFreeplayManager.getHintsForSong(curCapsule.songData.songName, curCapsule.songData.folder);
 
 					if (hints.length > 0) {
 						// Show hint panel first
@@ -1944,7 +1956,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 						}
 
 						archipelago.substates.InfoPanelSubstate.show(
-							"Song Hints: " + songs[curSelected].songName,
+							"Song Hints: " + curCapsule.songData.songName,
 							hintContent,
 							FlxColor.CYAN,
 							function() {
@@ -2185,9 +2197,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		else
 		{
-			if (curSelected < songs.length && songs[curSelected] != null) {
-				intendedScore = Highscore.getScore(songs[curSelected].songName, currentDifficultyIndex);
-				intendedCompletion = Highscore.getRating(songs[curSelected].songName, currentDifficultyIndex);
+			if (curSelected < songs.length && curCapsule.songData != null) {
+				intendedScore = Highscore.getScore(curCapsule.songData.songName, currentDifficultyIndex);
+				intendedCompletion = Highscore.getRating(curCapsule.songData.songName, currentDifficultyIndex);
 			}
 		}
 		rememberedDifficulty = currentDifficulty;
@@ -2583,9 +2595,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				return;
 			}
 
-		if (curSelected >= 0 && curSelected < songs.length && songs[curSelected] != null) {
-			Mods.currentModDirectory = songs[curSelected].folder ?? '';
-			PlayState.storyWeek = songs[curSelected].levelId;
+		if (curSelected >= 0 && curSelected < songs.length && curCapsule.songData != null) {
+			Mods.currentModDirectory = curCapsule.songData.folder;
+			PlayState.storyWeek = curCapsule.songData.levelId;
 		}
 
 		// alternitive if the above doesn't work: WeekData.setDirectoryFromWeek();

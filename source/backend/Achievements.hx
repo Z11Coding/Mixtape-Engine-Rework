@@ -92,7 +92,7 @@ class Achievements {
 		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
 		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
 		createAchievement('potato',					{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
-		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 3 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 4, maxDecimals: 0});
+		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 4 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 4, maxDecimals: 0});
 		createAchievement('challenger',				{name: "Challenger", description: "Complete a Song with 2 Safe Frames."});
 		createAchievement('hardcore',				{name: "Hardcore", description: "Beat a song with no Misses on 24/20 mode."});
 		createAchievement('demon',					{name: "Demon", description: "Beat a Song with 100% accuracy on 24/20 mode. Well done, now stop it."});
