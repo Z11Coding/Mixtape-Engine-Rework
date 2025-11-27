@@ -3288,6 +3288,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	{
 		if (curCapsule?.songData == null) return [];
 
+		var songData = null; // Declare songData outside try-catch blocks
 		try {
 			var songName = curCapsule.songData.songName;
 			var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
@@ -3295,18 +3296,38 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			// Load the song data to get character information
 			var songLowercase = Paths.formatToSongPath(songName);
 			var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+			trace('Getting missing characters for song: $songLowercase at difficulty index: $difficultyIndex. (diff: ${currentDifficulty}) (found difficulties: ${curCapsule.songData.songDifficulties})');
 			if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
 			var poop = Highscore.formatSong(songLowercase, difficultyIndex);
-			var songData = backend.Song.loadFromJson(poop, songLowercase);
+			songData = backend.Song.loadFromJson(poop, songLowercase);
+		} catch (e:Dynamic) {
+			trace('Initial character hint song load failed: $e, attempting with temporary difficulty list');
+			// Backup current difficulty list
+			var originalDiffList = backend.Difficulty.list.copy();
+			try {
+				// Temporarily set difficulty list to match capsule's available difficulties
+				backend.Difficulty.list = curCapsule.songData.songDifficulties.copy();
 
-			if (songData == null) return [];
+				var songLowercase = Paths.formatToSongPath(curCapsule.songData.songName);
+				var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+				trace('Retry character hint: Getting missing characters for song: $songLowercase at difficulty index: $difficultyIndex. (diff: ${currentDifficulty}) (found difficulties: ${curCapsule.songData.songDifficulties})');
+				if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
+				var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+				songData = backend.Song.loadFromJson(poop, songLowercase);
+			} catch (e2:Dynamic) {
+				trace('Character hint song load failed even with temporary difficulty list: $e2');
+				songData = null;
+			}
+			// Restore original difficulty list
+			backend.Difficulty.list = originalDiffList;
+		}
 
+		if (songData != null) {
 			var allMissingItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
 			return allMissingItems.filter(item -> item.startsWith("Character:"));
-		} catch (e:Dynamic) {
-			trace("Error getting missing characters: " + e);
-			return [];
 		}
+
+		return [];
 	}
 
 	/**
@@ -3316,6 +3337,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	{
 		if (curCapsule?.songData == null) return [];
 
+		var songData = null; // Declare songData outside try-catch blocks
 		try {
 			var songName = curCapsule.songData.songName;
 			var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
@@ -3323,18 +3345,38 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			// Load the song data to get stage information
 			var songLowercase = Paths.formatToSongPath(songName);
 			var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+			trace('Getting missing stages for song: $songLowercase at difficulty index: $difficultyIndex. (diff: ${currentDifficulty}) (found difficulties: ${curCapsule.songData.songDifficulties})');
 			if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
 			var poop = Highscore.formatSong(songLowercase, difficultyIndex);
-			var songData = backend.Song.loadFromJson(poop, songLowercase);
+			songData = backend.Song.loadFromJson(poop, songLowercase);
+		} catch (e:Dynamic) {
+			trace('Initial stage hint song load failed: $e, attempting with temporary difficulty list');
+			// Backup current difficulty list
+			var originalDiffList = backend.Difficulty.list.copy();
+			try {
+				// Temporarily set difficulty list to match capsule's available difficulties
+				backend.Difficulty.list = curCapsule.songData.songDifficulties.copy();
 
-			if (songData == null) return [];
+				var songLowercase = Paths.formatToSongPath(curCapsule.songData.songName);
+				var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
+				trace('Retry stage hint: Getting missing stages for song: $songLowercase at difficulty index: $difficultyIndex. (diff: ${currentDifficulty}) (found difficulties: ${curCapsule.songData.songDifficulties})');
+				if (difficultyIndex == -1) difficultyIndex = 0; // fallback to first difficulty
+				var poop = Highscore.formatSong(songLowercase, difficultyIndex);
+				songData = backend.Song.loadFromJson(poop, songLowercase);
+			} catch (e2:Dynamic) {
+				trace('Stage hint song load failed even with temporary difficulty list: $e2');
+				songData = null;
+			}
+			// Restore original difficulty list
+			backend.Difficulty.list = originalDiffList;
+		}
 
+		if (songData != null) {
 			var allMissingItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
 			return allMissingItems.filter(item -> item.startsWith("Stage:"));
-		} catch (e:Dynamic) {
-			trace("Error getting missing stages: " + e);
-			return [];
 		}
+
+		return [];
 	}
 
 	/**

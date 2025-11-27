@@ -1936,6 +1936,8 @@ class APGameState
 
 					trace("Added sanity item '" + itemName + "' to unlocked items");
 					trace("Current unlocked sanity items count: " + [for (key in unlockedSanityItems.keys()) key].length);
+					// Show if you got a sanity item
+					archipelago.APItem.popup("You received an asset:\n" + itemName);
 
 					// Immediately save the sanity item to prevent loss
 					if (_saveData != null)
