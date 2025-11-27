@@ -44,7 +44,7 @@ class FreeplayDJ extends FlxAtlasSprite
       {
         if (number == playableCharData.getCartoonSoundClickFrame())
         {
-          FunkinSound.playOnce(Paths.soundP('remote_click'));
+          FunkinSound.playOnce('remote_click');
         }
         if (number == playableCharData.getCartoonSoundCartoonFrame())
         {
@@ -327,14 +327,14 @@ class FreeplayDJ extends FlxAtlasSprite
     if (cartoonSnd == null)
     {
       // tv is OFF, but getting turned on
-      FunkinSound.playOnce(Paths.soundP('tv_on'), 1.0, function() {
+      FunkinSound.playOnce('tv_on', 1.0, function() {
         loadCartoon();
       });
     }
     else
     {
       // plays it smidge after the click
-      FunkinSound.playOnce(Paths.soundP('channel_switch'), 1.0, function() {
+      FunkinSound.playOnce('channel_switch', 1.0, function() {
         cartoonSnd.destroy();
         loadCartoon();
       });
