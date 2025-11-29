@@ -2404,6 +2404,9 @@ class APAdvancedSettingsState extends MusicBeatState
 											stageToDirectDifficulties.set(stageName, []);
 										}
 										stageToDirectDifficulties.get(stageName).push(difficulty);
+									} else if (stageName == null) {
+										// trace('No stage defined for $songName ($difficulty)');
+										stages.StageData.vanillaSongStage(songName);
 									}
 								}
 							}

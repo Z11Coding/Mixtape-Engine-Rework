@@ -13,6 +13,35 @@ import backend.window.CppAPI;
 import debug.DebugManager;
 #end
 
+@:access(MusicBeatState)
+class UnsupportedStateClass<T:FlxState> extends MusicBeatState {
+	var value:T;
+	public function new(value:T) {
+		this.value = value;
+		super();
+	}
+
+	override public function create() {
+		super.create();
+		trace("Warning: UnsupportedStateClass instantiated for " + Type.getClassName(Type.getClass(value)) + ". This state cannot be used directly.");
+		backend.TransitionState.transitionState(value,{transitionType: MusicBeatState.getRandomTransition()});
+	}
+}
+@:access(MusicBeatState)
+class MBSubstateClass<T:MusicBeatSubstate> extends MusicBeatState {
+	var value:T;
+	public function new(value:T) {
+		this.value = value;
+		super();
+	}
+
+	override public function create() {
+		super.create();
+		trace("Warning: MBSubstateClass instantiated for " + Type.getClassName(Type.getClass(value)) + ". This substate cannot be used directly.");
+		backend.TransitionState.transitionState(value,{transitionType: MusicBeatState.getRandomTransition()});
+	}
+}
+
 // @:autoBuild(yutautil.CrashTracker.instrument())
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
@@ -942,7 +971,18 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 	public static function getState():MusicBeatState
 	{
-		return cast(FlxG.state, MusicBeatState);
+		return try
+		{
+		cast(FlxG.state, MusicBeatState);
+		}
+		catch (e:Dynamic)
+		{
+			if (FlxG.state is MusicBeatSubstate)
+				new MBSubstateClass(cast(FlxG.state, MusicBeatSubstate));
+			else
+				new UnsupportedStateClass(FlxG.state);
+			null;
+		}
 	}
 
 	public function stepHit():Void

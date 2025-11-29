@@ -3061,6 +3061,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					var hintCommand = "!hint " + songName + ((modName != "" && modName != null) ? " (" + modName + ")" : "");
 					APEntryState.ap.Say(hintCommand);
 				}
+									archipelago.console.SideUI.instance.active = true;
 			}, 280);
 			tab_group.add(songHintButton);
 			yPos += 40;
@@ -3531,6 +3532,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			FlxTween.color(characterHintButton.text, 1, FlxColor.RED, FlxColor.WHITE, {ease: FlxEase.sineIn});
 			return;
 		}
+		// Show MainTab
+		archipelago.console.SideUI.instance.active = true;
 
 		// Send hint commands
 		for (character in missingCharacters) {
@@ -3552,6 +3555,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			FlxTween.color(stageHintButton.text, 1, FlxColor.RED, FlxColor.WHITE, {ease: FlxEase.sineIn});
 			return;
 		}
+
+		// Show MainTab
+		archipelago.console.SideUI.instance.active = true;
 
 		// Send hint commands
 		for (stage in missingStages) {
