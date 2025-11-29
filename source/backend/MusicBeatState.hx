@@ -408,8 +408,11 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 			// Execute the reconnection callback
 			archipelago.APGameState.reconnectionCallback();
-			archipelago.APItem.waitingForTransition = false;
 		}
+
+
+		archipelago.APItem.waitingForTransition = false;
+
 
 		// Update Archipelago tags on every state switch
 		updateAPTags();

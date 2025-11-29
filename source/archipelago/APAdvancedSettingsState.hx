@@ -22,6 +22,7 @@ import haxe.Exception;
 import haxe.crypto.Base64;
 import openfl.geom.Rectangle;
 import options.*;
+import stages.StageData;
 import states.*;
 import substates.Prompt;
 import substates.SongSelectSubState;
@@ -2405,8 +2406,8 @@ class APAdvancedSettingsState extends MusicBeatState
 										}
 										stageToDirectDifficulties.get(stageName).push(difficulty);
 									} else if (stageName == null) {
-										// trace('No stage defined for $songName ($difficulty)');
-										stages.StageData.vanillaSongStage(songName);
+										trace('No stage defined for $songName ($difficulty)');
+										stageName = StageData.vanillaSongStage(songName);
 									}
 								}
 							}
