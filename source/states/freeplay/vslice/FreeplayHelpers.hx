@@ -103,7 +103,7 @@ class FreeplayHelpers
 			var instPath = '${Paths.formatToSongPath(targetInstId)}/Inst.ogg';
 			if (Paths.fileExists(instPath, AssetType.BINARY, false, "songs"))
 			{
-				//PlayState.altInstrumentals = targetInstId;
+				PlayState.altInstrumentals = targetInstId;
 			}
 			else
 			{
@@ -113,8 +113,8 @@ class FreeplayHelpers
 				return;
 			}
 		}
-		//else
-			//PlayState.altInstrumentals = null; // ? P-Slice
+		else
+			PlayState.altInstrumentals = null; // ? P-Slice
 
 		var songLowercase:String = Paths.formatToSongPath(cap.getNativeSongId());
 		var poop:String = Highscore.formatSong(songLowercase, diffId); // TODO //currentDifficulty);
@@ -176,5 +176,10 @@ class FreeplayHelpers
 		#if (MODS_ALLOWED && DISCORD_ALLOWED)
 		DiscordClient.loadModRPC();
 		#end
+	}
+
+	public static function getDifficultyName()
+	{
+		return Difficulty.list[PlayState.storyDifficulty].toUpperCase();
 	}
 }

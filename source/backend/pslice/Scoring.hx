@@ -2,7 +2,7 @@
 package backend.pslice;
 
 import backend.Highscore; // making exception for this one: identical in both versions
-import backend.pslice.Tallies.SaveScoreData;
+import substates.results.Tallies.SaveScoreData;
 /**
  * Which system to use when scoring and judging notes.
  */
@@ -129,6 +129,33 @@ enum abstract ScoringRank(String)
 				return 0;
 			default:
 				return -1;
+		}
+	}
+
+	/**
+	 * Converts Mixtape's Rank integer to a ScoringRank value for comparison.
+	 * Better ranks should be tied to a lower value.
+	 */
+	static function getRankFromValue(rank:Int):Null<ScoringRank>
+	{
+		switch (rank)
+		{
+			case 0:
+				return PERFECT_GOLD;
+			case 1 | 2:
+				return PERFECT;
+			case 3 | 4 | 5 | 6 | 7:
+				return EXCELLENT;
+			case 8 | 9 | 10:
+				return GREAT;
+			case 11 | 12 | 13 | 14:
+				return GOOD;
+			case 16:
+				return SHIT;
+			case 15:
+				return null;
+			default:
+				return null;
 		}
 	}
 

@@ -12,7 +12,7 @@ class HSVShader extends FlxRuntimeShader
 
   public function new(h:Float = 1, s:Float = 1, v:Float = 1)
   {
-    super(Assets.getText(Paths.shaderFragment('hsv')));
+    super(Assets.getText(Paths.getPath('shaders/hsv.frag', TEXT, null,false)));
     FlxG.debugger.addTrackerProfile(new TrackerProfile(HSVShader, ['hue', 'saturation', 'value']));
     hue = h;
     saturation = s;

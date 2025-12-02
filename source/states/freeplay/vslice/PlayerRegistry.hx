@@ -42,7 +42,7 @@ class PlayerRegistry extends PsliceRegistry{
           allJsons.pushMany(listJsons());
         }
         Mods.loadModDir("");
-        var basedCharFiles = NativeFileSystem.readDirectory("assets/shared/registry/players");
+        var basedCharFiles = FileSystem.readDirectory("assets/shared/registry/players");
         allJsons.pushMany(basedCharFiles.filter(s -> s.endsWith(".json")).map(s -> s.substr(0,s.length-5)));
         return allJsons;
       }
@@ -59,7 +59,7 @@ class PlayerRegistry extends PsliceRegistry{
         allJsons.pushMany(listJsons());
       }
       Mods.loadModDir("");
-      var basedCharFiles = NativeFileSystem.readDirectory("assets/shared/registry/players");
+      var basedCharFiles = FileSystem.readDirectory("assets/shared/registry/players");
       allJsons.pushMany(basedCharFiles.filter(s -> s.endsWith(".json")).map(s -> s.substr(0,s.length-5)));
       return allJsons;
     }

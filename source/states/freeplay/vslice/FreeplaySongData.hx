@@ -99,12 +99,13 @@ class FreeplaySongData extends SngCapsuleData
 			currentDifficulty = songDifficulties[0]; // TODO
 		}
 
-		songStartingBpm = BPMCache.instance.getBPM(sngDataPath, fileSngName);
+		this.songStartingBpm = BPMCache.instance.getBPM(sngDataPath, fileSngName);
 
 		// this.songStartingBpm = songDifficulty.getStartingBPM();
-		// this.songName = songDifficulty.songName;
-		// this.difficultyRating = songDifficulty.difficultyRating;
-		//this.scoringRank = Highscore.getRank(Highscore.formatSong(getNativeSongId(), loadAndGetDiffId()), loadAndGetDiffId());
+		//this.songName = songDifficulty.songName;
+		//this.difficultyRating = songDifficulty.difficultyRating;
+		@:privateAccess
+		this.scoringRank = ScoringRank.getRankFromValue(Highscore.getRank(Highscore.formatSong(getNativeSongId(), loadAndGetDiffId()), loadAndGetDiffId()));
 		updateIsNewTag();
 	}
 

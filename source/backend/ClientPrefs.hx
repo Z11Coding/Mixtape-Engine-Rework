@@ -202,9 +202,11 @@ import states.TitleState;
 
 	// P-Slice things
 	public var favSongIds:Array<String> = [];
+	public var lastFreeplayMod:String = '||bf';
 	public var djCharacter:String = 'bf';
 	public var wideScreen:Bool = false;
 	public var ranking:String = 'Mixtape';
+	public var naughtyness:Bool = false;
 
 	// Experimental Settings
 	public var useExperimentalNotePool:Bool = false;

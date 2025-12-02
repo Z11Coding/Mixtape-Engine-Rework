@@ -741,7 +741,12 @@ class LoadingState extends MusicBeatState
 				prepare(imgs, snds, mscs);
 			}
 
-			songsToPrepare.push('$folder/Inst');
+			if (PlayState.altInstrumentals != null)
+			{
+				songsToPrepare.push('${Paths.formatToSongPath(PlayState.altInstrumentals)}/Inst');
+			}
+			else
+				songsToPrepare.push('$folder/Inst');
 
 			var player1:String = song.player1;
 			var player2:String = song.player2;

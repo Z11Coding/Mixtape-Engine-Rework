@@ -46,6 +46,7 @@ import backend.MusicBeatSubstate;
 import backend.NativeFileSystem;
 import backend.Paths;
 import backend.TransitionState;
+import backend.pslice.FreeplayThings;
 import backend.pslice.ScaleMode as MobileScaleMode; // too lazy + its 3 in the morning lol
 import backend.ui.*; // Psych-UI
 import backend.util.*;

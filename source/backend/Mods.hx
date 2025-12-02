@@ -255,4 +255,8 @@ class Mods
 	public inline static function loadModDir(directory:String) {
 		Mods.currentModDirectory = directory;
 	}
+
+	public inline static function isModDirEnabled(directory:String) {
+		return Mods.parseList().enabled.contains(directory);
+	}
 }

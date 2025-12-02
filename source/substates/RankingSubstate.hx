@@ -211,18 +211,20 @@ class RankingSubstate extends MusicBeatSubstate
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
 					trace('WENT BACK TO FREEPLAY??');
-					states.CategoryState.instaFreeplay = true;
-					TransitionState.transitionState(states.freeplay.VSliceFreeplayState.build(
-					{
-						fromResults: {
+
+					if (ClientPrefs.data.freeplayMenu == "Base Game") {
+						states.CategoryState.instaFreeplay = true;
+						states.CategoryState.freeplayStuff.fromResults = {
 							oldRank: prevRank,
-							playRankAnim: acc > prevAcc,
+							playRankAnim: true,
 							newRank: fpRank,
-							songId: PlayState.SONG.song,
-							difficultyId: Difficulty.getString()
-						}
-					}), {transitionType: "stickers"});
-					//MusicManager.playMenuMusic();
+							songId: PlayState.SONG.song.toLowerCase(),
+							difficultyId: Difficulty.getString().toLowerCase()
+						};
+						TransitionState.transitionState(states.freeplay.VSliceFreeplayState.build(), {transitionType: "instant"});
+					} else {
+						TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
+					}
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
 					//MusicManager.playMenuMusic();

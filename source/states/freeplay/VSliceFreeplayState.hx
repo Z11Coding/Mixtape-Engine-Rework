@@ -278,10 +278,18 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		fpManager = FreeplayManager.loadFPManager();
 
+		var saveBox = FreeplayThings.LAST_MOD;
+		currentCharacterId = saveBox.char_name;
+		// switch to the character's mod to load her registry
+		trace('Loading mod dir ' + saveBox.mod_dir);
+		trace('mod dir ${saveBox.mod_dir} is enabled: ${Mods.isModDirEnabled(saveBox.mod_dir)}');
+		if (Mods.isModDirEnabled(saveBox.mod_dir))
+			Mods.loadModDir(saveBox.mod_dir);
+
     // Since CUTOUT_WIDTH is static it might retain some old inccrect values so we update it before loading freeplay
 		CUTOUT_WIDTH = MobileScaleMode.gameCutoutSize.x / 1.5;
 
-    currentCharacterId = ClientPrefs.data.djCharacter;
+    //currentCharacterId = ClientPrefs.data.djCharacter;
 
     var result = PlayerRegistry.instance.fetchEntry(currentCharacterId);
 		if (result == null)
@@ -293,6 +301,11 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		currentCharacter = result;
 
 		styleData = FreeplayStyleRegistry.instance.fetchEntry(currentCharacterId);
+
+		if (styleData == null) // Fallback to bf style
+		{
+			styleData = FreeplayStyleRegistry.instance.fetchEntry('bf');
+		}
 
 		fromCharSelect = params?.fromCharSelect;
 
@@ -319,6 +332,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	{
 		// ? Psych might've reloaded the mod list. Make sure we select current character's mod for the style
 		SongMenuItem.reloadGlobalItemData();
+
+		var saveBox = FreeplayThings.LAST_MOD;
+		if (Mods.isModDirEnabled(saveBox.mod_dir))
+			Mods.loadModDir(saveBox.mod_dir);
 		// We build a bunch of sprites BEFORE create() so we can guarantee they aren't null later on.
 		// ? but doing it here, because psych 0.6.3 can destroy graphics created in the constructor
 		//TODO: make Freeplay Cards Optional
@@ -489,7 +506,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		if (currentCharacter?.getFreeplayDJData() != null)
 		{
 			// ? Low quality. why we need him again?
-      Mods.loadTopMod();
+			Mods.loadModDir(FreeplayThings.LAST_MOD.mod_dir); // ? make sure to load a mod dir of this character!
 			if (!ClientPrefs.data.lowQuality)
 			{
 				dj = new FreeplayDJ((CUTOUT_WIDTH * DJ_POS_MULTI) + 640, 366, currentCharacter);
@@ -504,6 +521,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					wait: 0.1
 				});
 			}
+			Mods.loadTopMod();
 		}
 
 		if (!ClientPrefs.data.lowQuality)
@@ -575,7 +593,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 
 
-		Mods.loadTopMod();
+		Mods.loadModDir(FreeplayThings.LAST_MOD.mod_dir); // ? load stuff for this Char's mod
 
 		grpDifficulties.group.forEach(function(spr)
 		{
@@ -687,6 +705,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			speed: 0.8,
 			wait: 0.1
 		});
+
+		Mods.loadTopMod();
 
 		letterSort.changeSelectionCallback = (str) ->
 		{
@@ -1334,20 +1354,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	override function closeSubState()
 	{
+		Highscore.reloadModifiers();
 		super.closeSubState();
 
 		controls.isInSubstate = true;
-		#if TOUCH_CONTROLS_ALLOWED
-		#if LEGACY_PSYCH
-		MusicBeatSubstate.instance = this;
-		#else
-		backend.MusicBeatSubstate.instance = this;
-		#end
-		persistentUpdate = true;
-		removeTouchPad();
-		addTouchPad('UP_DOWN', 'A_B_C_X_Y_F');
-		addTouchPadCamera();
-		#end
 	}
 
 	function enterFromCharSel():Void
@@ -1460,7 +1470,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			charSelectHint.alpha = FlxMath.lerp(0.3, 0.9, targetAmt);
 		}
 
-		#if FEATURE_DEBUG_FUNCTIONS
+		//#if FEATURE_DEBUG_FUNCTIONS
 		if (FlxG.keys.justPressed.T)
 		{
 			rankAnimStart(fromResultsParams ?? {
@@ -1490,7 +1500,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		{
 			rankAnimSlam(fromResultsParams);
 		}
-		#end // ^<-- FEATURE_DEBUG_FUNCTIONS
+		//#end // ^<-- FEATURE_DEBUG_FUNCTIONS
 
 		// Toggle options menu with CTRL key (replaces GameplayChangers substate)
 		if (FlxG.keys.justPressed.CONTROL && !busy && !optionsAnimating)
@@ -1505,7 +1515,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				persistentUpdate = false;
 				var curSng = curCapsule;
 
-                FreeplayHelpers.openResetScoreState(this, curSng.songData, () ->
+        FreeplayHelpers.openResetScoreState(this, curSng.songData, () ->
 				{
 					curSng.songData.scoringRank = null;
 					intendedScore = 0;
@@ -3576,7 +3586,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		result.persistentUpdate = false;
 		result.persistentDraw = true;
 		result.inFreeplay = true;
-		CategoryState.freeplayStuff = {fromResults: null, fromCharSelect: null};
+		//CategoryState.freeplayStuff = {fromResults: null, fromCharSelect: null};
 		return result;
 	}
 }

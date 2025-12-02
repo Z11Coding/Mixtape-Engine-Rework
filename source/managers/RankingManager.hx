@@ -46,6 +46,15 @@ class RankingManager extends FlxSprite {
                 updateHitbox();
                 screenCenter();
                 alpha = 0;
+            case "capsule":
+                loadGraphic(Paths.image('rankings/$defalutRank-small'));
+                scale.set(0.9, 0.9);
+                updateHitbox();
+                antialiasing = true;
+                scrollFactor.set();
+                y = 41;
+                x = 420;
+                alpha = 1;
         }
     }
 
@@ -97,7 +106,7 @@ class RankingManager extends FlxSprite {
 			{
 				rankingNum = i;
                 if (PlayState.deathCounter >= 30 || acc == 0)
-					rankingNum = 17;
+					rankingNum = 16;
                 break;
 			}
 		}
@@ -124,6 +133,9 @@ class RankingManager extends FlxSprite {
         if (Math.abs(lerpRating - intendedRating) <= 0 || instant)
 			lerpRating = intendedRating;
 
+        if (lerpRating >= rankTable.length - 1)
+            lerpRating = 15;
+
         switch (size) {
             case 'small':
                 loadGraphic(Paths.image('rankings/${rankTable[lerpRating]}-small'));
@@ -139,6 +151,15 @@ class RankingManager extends FlxSprite {
                 setGraphicSize(0, 450);
                 updateHitbox();
                 screenCenter();
+            case "capsule":
+                loadGraphic(Paths.image('rankings/${rankTable[lerpRating]}-small'));
+                scale.set(0.9, 0.9);
+                updateHitbox();
+                antialiasing = true;
+                scrollFactor.set();
+                y = 41;
+                x = 420;
+                alpha = 1;
         }
     }
 }

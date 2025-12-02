@@ -95,6 +95,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('Ranking System',
+		"The ranking system you wish to use.",
+		'ranking',
+		STRING,
+		[
+			"Mixtape",
+			"V-Slice",
+			// Maybe other ranking systems in the future?
+		]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('No Antimash',
 			"If checked, Antimash will be disabled. (Does nothing...for now...)\n(dont worry there is no antimashing...yet...)", 'noAntimash', BOOL);
 		addOption(option);
@@ -225,6 +237,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			playerIds);
 		addOption(option);
 		option.displayFormat = '< %v >';
+		option.onChange = function() {onChangeDJ(option.curOption);};
 
 		var option:Option = new Option('---MENUS---',
 			"",
@@ -788,6 +801,11 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 	function onChangeSoundMax()
 	{
 		if (!ClientPrefs.data.silentVol) FlxG.sound.play(Paths.sound('soundtray/'+ClientPrefs.data.volMax), 1);
+	}
+
+	function onChangeDJ(curSel:Int) {
+		FreeplayThings.curDirectory = curSel;
+		FreeplayThings.LAST_MOD = {mod_dir: FreeplayThings.getCurMod(), char_name: ClientPrefs.data.djCharacter}; // ? save selected character
 	}
 
 	override function update(e:Float)

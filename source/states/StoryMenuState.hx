@@ -45,6 +45,7 @@ class StoryMenuState extends MusicBeatState
 
 		persistentUpdate = persistentDraw = true;
 		PlayState.isStoryMode = true;
+		PlayState.altInstrumentals = null; // ? P-Slice
 		WeekData.reloadWeekFiles(true);
 
 		#if DISCORD_ALLOWED
@@ -318,6 +319,9 @@ class StoryMenuState extends MusicBeatState
 				if(diffic == null) diffic = '';
 
 				PlayState.storyDifficulty = curDifficulty;
+				PlayState.storyDifficultyColor = sprDifficulty.color;
+				PlayState.storyCampaignTitle = txtWeekTitle.text;
+				if(PlayState.storyCampaignTitle == "") PlayState.storyCampaignTitle = "Unnamed week";
 
 				Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + diffic, PlayState.storyPlaylist[0].toLowerCase());
 				PlayState.campaignScore = 0;

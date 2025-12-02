@@ -9,7 +9,6 @@ import backend.modchart.ModManager;
 import backend.modchart.Modifier;
 import backend.pslice.Scoring.ScoringRank;
 import backend.pslice.Scoring;
-import backend.pslice.Tallies.SaveScoreData;
 import cutscenes.DialogueBoxPsych;
 import flixel.FlxBasic;
 import flixel.FlxObject;
@@ -50,6 +49,7 @@ import states.playbits.*; // All the bits
 import substates.GameOverSubstate;
 import substates.PauseSubState;
 import substates.StickerSubState;
+import substates.results.Tallies.SaveScoreData;
 import yutautil.AprilFools;
 import yutautil.ChanceSelector.Chance;
 import yutautil.ChanceSelector;
@@ -237,6 +237,11 @@ class PlayState extends MusicBeatState
 	public static var storyPlaylist:Array<String> = [];
 	public static var storyDifficulty:Int = 1;
 
+	// ! new shit P-Slice
+	public static var storyCampaignTitle = "";
+	public static var altInstrumentals:String = null;
+	public static var storyDifficultyColor = FlxColor.GRAY;
+
 	public var spawnTime:Float = 2000;
 
 	public var inst:FlxSound;
@@ -419,7 +424,6 @@ class PlayState extends MusicBeatState
 	public var mashViolations:Int = 0;
 	public var mashing:Int = 0;
 	public var maskedSongLength:Float = -1;
-	public var saveMod:String = ""; // The modifier that allows sperate saves depending how how you want to play the game
 	public var lyrics:FlxText;
 	public var rainIntensity:Float = 0;
 	public var skipTxt:FlxText;
@@ -808,31 +812,6 @@ class PlayState extends MusicBeatState
 		AIDifficulty = /*(SONG.song == "Small Argument" && !inArchipelagoMode) ? "Baby Mode" : */ClientPrefs.data.aiDifficulty;
 		gimmicksAllowed = ClientPrefs.data.gimmicksAllowed;
 		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
-
-		if (inArchipelagoMode)
-			saveMod += "-archipelago";
-		if (bothMode)
-			saveMod += "-bothMode";
-		else if (opponentmode)
-			saveMod += "-opponentMode";
-		else if (playAsGF)
-			saveMod += "-gfMode";
-		if (chartModifier != "Normal")
-			saveMod += "-" + chartModifier;
-		if (!gimmicksAllowed)
-			saveMod += "-noGimmick";
-		if (!ClientPrefs.data.modcharts)
-			saveMod += "-noModchart";
-		if (ClientPrefs.data.noAntimash)
-			saveMod += "-noAntimash";
-		if (!ClientPrefs.data.drain)
-			saveMod += "-noHealthDrain";
-		if (!ClientPrefs.data.useMarvs)
-			saveMod += "-noMarvs";
-		if (loopModeChallenge)
-			saveMod += "-endlessChallenge";
-		else if (loopMode)
-			saveMod += "-endless";
 
 		AIPlayer.active = AIMode && !bothMode;
 		switch (AIDifficulty)
@@ -3625,7 +3604,7 @@ class PlayState extends MusicBeatState
 				// Fallback to standard inst loading
 				try
 				{
-					inst.loadEmbedded(Paths.inst(songData.song));
+					inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
 				}
 				catch (e:Dynamic) {}
 			}
@@ -3635,7 +3614,7 @@ class PlayState extends MusicBeatState
 			// Standard inst loading logic
 			try
 			{
-				inst.loadEmbedded(Paths.inst(songData.song));
+				inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
 			}
 			catch (e:Dynamic) {}
 		}
@@ -8534,32 +8513,28 @@ class PlayState extends MusicBeatState
 				camOther.fade(FlxColor.BLACK, 0.6, false, () ->
 				{
 					FlxTransitionableState.skipNextTransOut = true;
-					FlxG.switchState(() -> states.freeplay.VSliceFreeplayState.build({
-						{
-							fromResults: {
-								oldRank: prevScoreRank,
-								newRank: fpRank,
-								songId: curSong,
-								difficultyId: Difficulty.getString(),
-								playRankAnim: !botplay
-							}
-						}
-					}));
+					states.CategoryState.instaFreeplay = true;
+          states.CategoryState.freeplayStuff.fromResults = {
+            oldRank: prevScoreRank,
+						newRank: fpRank,
+						songId: curSong,
+						difficultyId: Difficulty.getString(),
+						playRankAnim: !botplay
+          };
+					FlxG.switchState(() -> states.freeplay.VSliceFreeplayState.build());
 				});
 			}
 			else if (!isStoryMode)
 			{
-				openSubState(new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build({
-					{
-						fromResults: {
-							oldRank: null,
-							playRankAnim: false,
-							newRank: fpRank,
-							songId: curSong,
-							difficultyId: Difficulty.getString()
-						}
-					}
-				}, sticker)));
+				states.CategoryState.instaFreeplay = true;
+				states.CategoryState.freeplayStuff.fromResults = {
+					oldRank: null,
+					playRankAnim: false,
+					newRank: fpRank,
+					songId: curSong,
+					difficultyId: Difficulty.getString()
+				};
+				openSubState(new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build(null, sticker)));
 			}
 			else
 			{
@@ -8644,7 +8619,7 @@ class PlayState extends MusicBeatState
 		vocals.stop();
 		camHUD.alpha = 1;
 
-		/*var res:ResultState = new ResultState({
+		var res:substates.ResultState = new substates.ResultState({
 			storyMode: isStoryMode,
 			songId: curSong,
 			difficultyId: Difficulty.getString(),
@@ -8653,10 +8628,10 @@ class PlayState extends MusicBeatState
 			prevScoreRank: prevScoreRank,
 			isNewHighscore: isNewHighscore,
 			characterId: SONG.player1
-		});*/
+		});
 		this.persistentDraw = false;
-		FreeplayManager.openFreeplay();
-		//openSubState(res);
+		//FreeplayManager.openFreeplay();
+		openSubState(res);
 	}
 
 	public function KillNotes()

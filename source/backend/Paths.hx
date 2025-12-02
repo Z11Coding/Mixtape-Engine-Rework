@@ -1638,4 +1638,11 @@ class Paths
 		@:privateAccess
 		return sound._channel.__audioSource;
 	}
+
+	public static function stripLibrary(path:String):String
+	{
+		var parts:Array<String> = path.split(':');
+		if (parts.length < 2) return path;
+		return parts[1];
+	}
 }

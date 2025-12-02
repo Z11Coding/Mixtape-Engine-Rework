@@ -279,6 +279,10 @@ class Highscore
 		var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
 		var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
 		var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
+
+		// THIS IS EXTREMEMLY IMPORTANT!!! Without this the game literally cant save the ranking properly
+		saveMod += "-"+ClientPrefs.data.ranking;
+
 		if (APEntryState.inArchipelagoMode)
 			saveMod += "-archipelago";
 		if (bothMode)
