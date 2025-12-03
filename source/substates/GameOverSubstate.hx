@@ -29,8 +29,8 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var deathDelay:Float = 0;
 
 	// Custom return state support for AP traps
-	private var customReturnState:MusicBeatState = null;
-	private var customBackState:MusicBeatState = null;
+	private var customReturnState:flixel.FlxState = null;
+	private var customBackState:flixel.FlxState = null;
 
 	public static var deathbysquare:FlxSprite;
 	public static var causeofdeath:UnderTextParser;
@@ -39,7 +39,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var isVideo:Bool = false;
 
 	public static var instance:GameOverSubstate;
-	public function new(?playStateBoyfriend:Character = null, ?customReturnState:MusicBeatState = null, ?customBackState:MusicBeatState = null)
+	public function new(?playStateBoyfriend:Character = null, ?customReturnState:flixel.FlxState = null, ?customBackState:flixel.FlxState = null)
 	{
 		// Set custom states from constructor parameters
 		this.customReturnState = customReturnState;

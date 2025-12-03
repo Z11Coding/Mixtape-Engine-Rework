@@ -16,6 +16,7 @@ import yutautil.GenericProgressSubstate;
 typedef Condition = {
     var checkFn:APItem->Bool;
     var type:ConditionType;
+    var ?playStateType:PlayStateType;
     var ?extraConditions:Array<APItem->Bool>;
 }
 
@@ -23,6 +24,12 @@ enum ConditionType {
     Everywhere;
     PlayState;
     Freeplay;
+}
+
+enum PlayStateType {
+    Song;      // Affects entire song - only one per song
+    Effect;    // Needs countdown - won't allow another while active
+    Anytime;   // Ignores countdown requirement
 }
 
 class ConditionHelper {
@@ -48,7 +55,7 @@ class ConditionHelper {
     public static inline function Everywhere():Condition {
         return ConditionHelper.create(function(item:APItem):Bool { return true; }, ConditionType.Everywhere);
     }
-    public static inline function PlayState(?oneAtATime:Bool = false):Condition {
+    public static inline function PlayState(?type:PlayStateType = Anytime):Condition {
         return ConditionHelper.create(function(item:APItem):Bool {
             if (!Std.is(FlxG.state, states.PlayState)) return false;
             var playState = states.PlayState.instance;
@@ -60,8 +67,22 @@ class ConditionHelper {
             // Check if we're in a substate that should block activation
             if (playState.subState != null && Std.is(playState.subState, substates.RankingSubstate)) return false;
 
-            return playState.startingSong || (item.isException && playState.startedCountdown);
-        }, ConditionType.PlayState);
+            // Handle different PlayState types
+            switch (type) {
+                case Song:
+                    // Song affects entire song, check if another song-level effect is active
+                    if (APItem.activeSongEffects.length > 0) return false;
+                    return playState.startingSong || (item.isException && playState.startedCountdown);
+                case Effect:
+                    // Effect needs countdown, check if same effect is already active
+                    if (APItem.activeEffects.exists(item.name)) return false;
+                    return !item.isException ? playState.startedCountdown : true;
+                case Anytime:
+                    // Can trigger anytime during PlayState
+                    return true;
+            }
+            return false;
+        }, ConditionType.PlayState).funcAndReturn(function(c) { c.playStateType = type; });
     }
     public static inline function Freeplay():Condition {
         return ConditionHelper.create(function(item:APItem):Bool { return Std.is(FlxG.state, FreeplayManager.getFreeplay()); }, ConditionType.Freeplay);
@@ -149,6 +170,10 @@ class APItem {
     public static var unknownSongs:Bool = false; // If true, songs are unknown.
     public static var queuedTrap:APItem = null; // Trap queued for execution when conditions are met
 
+    // Track active effects and song-level effects
+    public static var activeEffects:Map<String, APItem> = new Map<String, APItem>();
+    public static var activeSongEffects:Array<APItem> = [];
+
     private var toSync:Bool = true;
     public var triggered:Bool = false;
 
@@ -204,7 +229,7 @@ class APItem {
     public static function createItemByName(name:String, ?fromTrapLink:Bool = false):APItem {
         switch (name) {
             case "Blue Balls Curse":
-                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                return new APTrap(name, ConditionHelper.Special(), function() {
                     // Check if shields are available
                     if (shields > 0) {
                         shields--;
@@ -317,7 +342,7 @@ class APItem {
                     popup(archipelago.APInfo.ticketCount > archipelago.APInfo.ticketWinCount ? "Not that you needed it..." : archipelago.APInfo.ticketCount == archipelago.APInfo.ticketWinCount ? "You have all you need!" : "One step closer...", "You got a ticket!");
                 }, true, true, false, fromTrapLink);
             case "SvC Effect":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState(Anytime), function() {
                     // Pick a random effect from the effectArray
                     var effects = APPlayState.instance.effectArray;
                     var randomIndex = FlxG.random.int(0, effects.length - 1);
@@ -329,7 +354,7 @@ class APItem {
                     t.isTrap = true;
                 });
             case "Ghost Chat":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState(Effect), function() {
                     popup('May the chat be merciful on you...', "APItem: Ghost Chat", true);
                     APPlayState.instance.triggerGhostChat();
                 }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
@@ -502,7 +527,7 @@ class APItem {
                     popup('Extra Lives Left: ${APPlayState.livecount}', "You got an extra life!");
                 }, true, true, false, fromTrapLink);
             case "Tutorial Trap":
-                return new APTrap(name, ConditionHelper.PlayState(), function() {
+                return new APTrap(name, ConditionHelper.PlayState(Song), function() {
                     // Wait for PlayState's startedCountdown to become active
                     haxe.Timer.delay(function checkCountdown() {
                         var playState:archipelago.APPlayState = cast states.PlayState.instance;
@@ -643,7 +668,7 @@ class APItem {
                 }, true, true, false, fromTrapLink);
 
             case "Opponent Mode Trap":
-                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                return new APTrap(name, ConditionHelper.PlayState(Song).funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true;
@@ -664,7 +689,7 @@ class APItem {
                 });
 
             case "Both Play Trap":
-                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                return new APTrap(name, ConditionHelper.PlayState(Song).funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true;
@@ -685,7 +710,7 @@ class APItem {
                 });
 
             case "Resistance Trap":
-                return new APTrap(name, ConditionHelper.PlayState().funcAndReturn(function(c) {
+                return new APTrap(name, ConditionHelper.PlayState(Effect).funcAndReturn(function(c) {
                     c.extraConditions = [];
                     c.extraConditions.push(function(e) {
                         return states.PlayState.instance?.startedSong == true && APPlayState.resisting == false;
@@ -1761,6 +1786,18 @@ class APItem {
                 }
             }
 
+            // Handle effect tracking based on PlayStateType
+            if (this.condition.type == ConditionType.PlayState && this.condition.playStateType != null) {
+                switch (this.condition.playStateType) {
+                    case Song:
+                        activeSongEffects.push(this);
+                    case Effect:
+                        activeEffects.set(this.name, this);
+                    case Anytime:
+                        // No effect tracking needed
+                }
+            }
+
             if (!this.isException)
             activeItem = this;
             allItems.remove(this); // Remove the item from the queue
@@ -1787,6 +1824,33 @@ class APItem {
             // Send the trap link to the server
             archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: trapName}, null, null, ["TrapLink"]);
         }
+    }
+
+
+
+
+
+    /**
+     * Clear active effects when songs end or states change
+     */
+    public static function clearActiveEffects():Void {
+        activeEffects.clear();
+        activeSongEffects = [];
+    }
+
+    /**
+     * Called when song ends - clears Song-type effects but keeps Effect-type for next song
+     */
+    public static function onSongEnd():Void {
+        activeSongEffects = [];
+        // Keep Effect-type effects for consistency across songs in same session
+    }
+
+    /**
+     * Called when leaving PlayState - clears all effects
+     */
+    public static function onLeavePlayState():Void {
+        clearActiveEffects();
     }
 
     public static function createItems():Void {

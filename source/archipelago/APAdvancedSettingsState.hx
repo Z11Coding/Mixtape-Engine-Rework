@@ -878,7 +878,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			description: "How sanity locations are accessed: on_getting, on_playing, or on_beating",
 			callback: () -> cycleSanityCompletionType(),
 			locked: false,
-			contextMenu: createEnumContextMenu(["on_getting", "on_playing", "on_beating"], sanity_completion_type, (value) -> sanity_completion_type = value)
+			contextMenu: createEnumContextMenu(["on_getting", "on_playing", "on_beating"], sanity_completion_type, (value) -> {
+				sanity_completion_type = value;
+				refreshCurrentPage(); // Force refresh to update the display
+			})
 		});
 
 		// Example state options (you can add actual complex settings states here)
@@ -4025,7 +4028,27 @@ class APAdvancedSettingsState extends MusicBeatState
 			default: songLimit;
 		}
 
+		var sanityChecks = 0;
+		if (enable_sanity_locations && (stagesanity || charactersanity))
+		{
+			if (stagesanity)
+			{
+				var stageMap = scanStagesFromCharts();
+				sanityChecks += stageMap.lengthTo();
+			}
+			if (charactersanity)
+			{
+				var characterMap = scanCharactersFromCharts();
+				sanityChecks += characterMap.lengthTo();
+			}
+		}
+
 		comment += "# Expected checks: " + totalChecks + "\n";
+		if (sanityChecks > 0)
+		{
+			comment += "# Sanity checks: " + sanityChecks + "\n";
+			comment += "# Total checks: " + (totalChecks + sanityChecks) + "\n";
+		}
 		comment += "# Trap items: " + trapAmount + "\n";
 
 		comment += "# Content includes:\n";
@@ -4050,6 +4073,19 @@ class APAdvancedSettingsState extends MusicBeatState
 			comment += "# Contains compressed CustomAPLogic Python script (Base64 encoded)\n";
 			var modDataLength = Std.string(Reflect.field(yamlThing, "modData")).length;
 			comment += "# Compressed script size: " + modDataLength + " characters\n";
+		}
+
+		// Add sanity data information
+		if (enable_sanity_locations && (stagesanity || charactersanity))
+		{
+			var sanityTypes:Array<String> = [];
+			if (stagesanity) sanityTypes.push("Stages");
+			if (charactersanity) sanityTypes.push("Characters");
+
+			if (sanityTypes.length > 0)
+			{
+				comment += "# This YAML contains sanity data for " + sanityTypes.join(" and ") + "\n";
+			}
 		}
 
 		comment += "\n";

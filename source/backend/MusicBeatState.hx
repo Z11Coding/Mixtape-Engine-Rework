@@ -398,6 +398,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			afm.addEffect(badqualitymic);
 
 			effectArray.push(afm);
+		}
 
 			// Check for pending Archipelago reconnection
 		if (archipelago.APEntryState.inArchipelagoMode &&
@@ -410,14 +411,14 @@ class MusicBeatState extends yutautil.SafeManagedState
 			archipelago.APGameState.reconnectionCallback();
 		}
 
-
+		// trace("State created, resetting APItem waitingForTransition flag");
 		archipelago.APItem.waitingForTransition = false;
+		// trace("APItem waitingForTransition flag reset to " + archipelago.APItem.waitingForTransition);
 
 
 		// Update Archipelago tags on every state switch
 		updateAPTags();
 	}
-}
 
 	public static var firstRun:Bool = true;
 	public static var emergencyOpacityFix:Bool = false;
