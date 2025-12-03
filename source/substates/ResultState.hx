@@ -820,6 +820,7 @@ class ResultState extends MusicBeatSubState
           FlxG.sound.pause(); //? fix sound
           shouldTween = false;
           controls.isInSubstate = shouldUseSubstate = true;
+          states.CategoryState.instaFreeplay = true;
           targetState = new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build(null, sticker));
         }
       }
