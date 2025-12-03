@@ -44,6 +44,12 @@ class MusicBeatSubstate extends FlxSubState
 		updateCurStep();
 		updateBeat();
 
+		#if ARCHIPELAGO_ALLOWED
+		// Essential Archipelago function - APItem checking
+		if (archipelago.APEntryState.inArchipelagoMode)
+			archipelago.APItem.doCheck();
+		#end
+
 		if (oldStep != curStep)
 		{
 			if(curStep > 0)
@@ -58,8 +64,16 @@ class MusicBeatSubstate extends FlxSubState
 			}
 		}
 
+		// Handle debug keys (essential for development and debugging)
+		debug.DebugManager.handleDebugKeys();
+
 		super.update(elapsed);
-		if (APEntryState.apGame != null) APEntryState.apGame.info()?.poll();
+
+		#if ARCHIPELAGO_ALLOWED
+		// Essential Archipelago polling
+		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
+			APEntryState.apGame.info()?.poll();
+		#end
 	}
 
 	private function updateSection():Void

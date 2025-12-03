@@ -260,8 +260,8 @@ class APNote extends objects.Note {
 
                         // Sustain note animations if this is a sustain note
                         if (notes[lane][index].isSustainNote) {
-                            notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' hold', 'ap hold piece', 24, true);
-                            notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' tail', 'ap hold end', 24, false);
+                            notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' hold', 'ap hold piece0', 24, true);
+                            notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' tail', 'ap hold end0', 24, false);
                         }
                     }
 

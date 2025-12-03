@@ -258,6 +258,12 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	var fromResultsParams:Null<FromResultsParams> = null;
 
+	#if ARCHIPELAGO_ALLOWED
+	// Dynamic AP UI text elements
+	var apTicketText:FlxText;
+	var apHintText:FlxText;
+	#end
+
 	var prepForNewRank:Bool = false;
 
 	var styleData:Null<FreeplayStyle> = null;
@@ -276,6 +282,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		instance = this;
 		Cursor.cursorMode = Default;
 
+		// Set Discord stuff.
+		#if discord_rpc
+		DiscordClient.changePresence('In Freeplay Menu', null);
+		#end
 		fpManager = FreeplayManager.loadFPManager();
 
 		var saveBox = FreeplayThings.LAST_MOD;
@@ -310,6 +320,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		fromCharSelect = params?.fromCharSelect;
 
 		fromResultsParams = params?.fromResults;
+
+		if (fromResultsParams != null)
+			archipelago.APItem.waitingForTransition = false;
+
 
 		if (fromResultsParams?.playRankAnim == true)
 		{
@@ -1470,7 +1484,22 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			charSelectHint.alpha = FlxMath.lerp(0.3, 0.9, targetAmt);
 		}
 
-		//#if FEATURE_DEBUG_FUNCTIONS
+		#if ARCHIPELAGO_ALLOWED
+		// Update AP text elements dynamically in AP mode
+		if (APEntryState.inArchipelagoMode)
+		{
+			if (apTicketText != null)
+			{
+				apTicketText.text = "Victory Song Tickets: " + APInfo.ticketCount + " / " + APInfo.ticketWinCount;
+			}
+			if (apHintText != null)
+			{
+				apHintText.text = "Hint Points: " + APInfo.hintPoints + " (Cost: " + APInfo.hintCost + ")";
+			}
+		}
+		#end
+
+		#if FEATURE_DEBUG_FUNCTIONS
 		if (FlxG.keys.justPressed.T)
 		{
 			rankAnimStart(fromResultsParams ?? {
@@ -1500,7 +1529,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		{
 			rankAnimSlam(fromResultsParams);
 		}
-		//#end // ^<-- FEATURE_DEBUG_FUNCTIONS
+		#end // ^<-- FEATURE_DEBUG_FUNCTIONS
 
 		// Toggle options menu with CTRL key (replaces GameplayChangers substate)
 		if (FlxG.keys.justPressed.CONTROL && !busy && !optionsAnimating)
@@ -2134,6 +2163,11 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
 				// Load the song data to get character information instead of relying on PlayState.SONG
 				var songData = null; // Declare songData outside try-catch blocks
+				// Make sure the folder is correct.
+				var originalModDirectory = Mods.currentModDirectory;
+				if (curCapsule.songData.folder != null && curCapsule.songData.folder != '') {
+					Mods.currentModDirectory = curCapsule.songData.folder;
+				}
 				try {
 					var songLowercase = Paths.formatToSongPath(curCapsule.songData.songName);
 					var difficultyIndex = curCapsule.songData.songDifficulties.indexOf(currentDifficulty);
@@ -2158,10 +2192,11 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					} catch (e2:Dynamic) {
 						trace('Song load failed even with temporary difficulty list: $e2');
 						songData = null;
-						throw "Failed to load song data for sanity check: " + e2;
+						backend.pslice.UserErrorSubstate.makeMessage("Cannot Play Song!", 'An error occurred while loading the song data. Please try another song, or try again in a bit.');
 					}
 					// Restore original difficulty list
 					backend.Difficulty.list = originalDiffList;
+					Mods.currentModDirectory = originalModDirectory;
 				}
 
 				if (songData != null) {
@@ -3040,15 +3075,15 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			var yPos = 10;
 
 			// Victory Song Tickets info
-			var ticketText = new FlxText(10, yPos, 280, "Victory Song Tickets: " + APInfo.ticketCount + " / " + APInfo.ticketWinCount, 12);
-			ticketText.alignment = CENTER;
-			tab_group.add(ticketText);
+			apTicketText = new FlxText(10, yPos, 280, "Victory Song Tickets: " + APInfo.ticketCount + " / " + APInfo.ticketWinCount, 12);
+			apTicketText.alignment = CENTER;
+			tab_group.add(apTicketText);
 			yPos += 25;
 
 			// Hint Points info
-			var hintText = new FlxText(10, yPos, 280, "Hint Points: " + APInfo.hintPoints + " (Cost: " + APInfo.hintCost + ")", 12);
-			hintText.alignment = CENTER;
-			tab_group.add(hintText);
+			apHintText = new FlxText(10, yPos, 280, "Hint Points: " + APInfo.hintPoints + " (Cost: " + APInfo.hintCost + ")", 12);
+			apHintText.alignment = CENTER;
+			tab_group.add(apHintText);
 			yPos += 35;
 
 			// Song Hint Button

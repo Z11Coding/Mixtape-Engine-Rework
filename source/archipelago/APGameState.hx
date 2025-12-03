@@ -1114,6 +1114,18 @@ class APGameState
 		{
 			APItem.confusionStack = _saveData.getItem("confusionStacks");
 		}
+		
+		// Load active effects - these will be restored after all items are loaded
+		var savedActiveEffects:Array<String> = [];
+		var savedActiveSongEffects:Array<String> = [];
+		if (_saveData.hasItem("activeEffects"))
+		{
+			savedActiveEffects = _saveData.getItem("activeEffects");
+		}
+		if (_saveData.hasItem("activeSongEffects"))
+		{
+			savedActiveSongEffects = _saveData.getItem("activeSongEffects");
+		}
 		if (_saveData.hasItem("currentMinigame"))
 		{
 			var minigameValue:Int = _saveData.getItem("currentMinigame");
@@ -1186,7 +1198,44 @@ class APGameState
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
 
+		// Restore active effects after all items are loaded
+		restoreActiveEffects(savedActiveEffects, savedActiveSongEffects);
+
 		_saveData.save();
+	}
+
+	/**
+	 * Restore active effects from save data
+	 * This method creates active effect items first, then recreates the tracking maps
+	 */
+	private function restoreActiveEffects(savedActiveEffects:Array<String>, savedActiveSongEffects:Array<String>):Void
+	{
+		if (savedActiveEffects.length == 0 && savedActiveSongEffects.length == 0)
+		{
+			trace("No active effects to restore");
+			return;
+		}
+		
+		trace("Restoring active effects: " + savedActiveEffects.length + " regular, " + savedActiveSongEffects.length + " song effects");
+		
+		// Create active effect items first (like other save data checks)
+		var allActiveEffectNames = savedActiveEffects.concat(savedActiveSongEffects);
+		for (itemName in allActiveEffectNames)
+		{
+			var item = APItem.createItemByName(itemName);
+			
+			// Recreate the active tracking
+			if (savedActiveEffects.contains(itemName))
+			{
+				APItem.activeEffects.set(itemName, item);
+			}
+			if (savedActiveSongEffects.contains(itemName))
+			{
+				APItem.activeSongEffects.push(item);
+			}
+		}
+		
+		trace("Active effects restored successfully - " + allActiveEffectNames.length + " active items created");
 	}
 
 		public function updateSaveData():Void
@@ -1209,11 +1258,15 @@ class APGameState
 			_saveData.addItem("Lives", APPlayState.livecount);
 			_saveData.addItem("hasPocketLens", APItem.hasPocketLens);
 			_saveData.addItem("hasDashMechanic", APItem.hasDashMechanic);
-			_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
-			@:privateAccess
-			_saveData.addItem("confusionStack", APItem.confusionStack);
+		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
+		@:privateAccess
+		_saveData.addItem("confusionStack", APItem.confusionStack);
+		
+		// Save active effects tracking
+		_saveData.addItem("activeEffects", [for (name in APItem.activeEffects.keys()) name]);
+		_saveData.addItem("activeSongEffects", APItem.activeSongEffects.map(item -> item.name));
 
-			// Save current minigame state
+		// Save current minigame state
 			var minigameValue:Int = switch (APInfo.inMinigame) {
 				case None: 0;
 				case Uno: 1;
