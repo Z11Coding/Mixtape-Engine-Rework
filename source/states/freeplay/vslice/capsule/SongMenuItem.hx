@@ -463,61 +463,64 @@ class SongMenuItem extends FlxSpriteGroup
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
 
-					if (!isUnlocked) {
-						songText.text = '${songData.songName} (Locked)';
-						songText.color = FlxColor.RED;
-						pixelIcon.setCharacter('lock');
-						pixelIcon.visible = true;
-						updateWeekText("LOCKED");
-					} else {
-						if (APFreeplayManager.isVictorySong(songName, modName)) {
-							if (isMissing) {
-								if (someLocationsNotMissing) {
-									songText.text = '${songData.songName} (Goal) (Semi-Complete)';
-									songText.color = bronzeOrOrangeColor;
-									if (songData.songCharacter != null)
-										pixelIcon.setCharacter(songData.songCharacter);
-									pixelIcon.visible = true;
-									updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Semi-Complete)');
-								} else {
-									songText.text = '${songData.songName} (Goal)';
-									songText.color = FlxColor.WHITE;
-									enableRainbow = true;
-									if (songData.songCharacter != null)
-										pixelIcon.setCharacter(songData.songCharacter);
-									pixelIcon.visible = true;
-									updateWeekText((songData?.songWeekName ?? "") + ' (Goal)');
-								}
-							} else {
-								songText.text = '${songData.songName} (Goal) (Complete)';
-								songText.color = 0xFFFFD700;
+					if (APFreeplayManager.isVictorySong(songData.songName, songData.folder)) {
+						if (!isUnlocked) {
+							songText.text = '${songData.songName} (Locked)';
+							songText.color = FlxColor.RED;
+							pixelIcon.setCharacter('lock');
+							pixelIcon.visible = true;
+							updateWeekText("LOCKED");
+						} else if (isMissing) {
+							if (someLocationsNotMissing) {
+								songText.text = '${songData.songName} (Goal) (Semi-Complete)';
+								songText.color = bronzeOrOrangeColor;
 								if (songData.songCharacter != null)
 									pixelIcon.setCharacter(songData.songCharacter);
 								pixelIcon.visible = true;
-								updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Complete)');
+								updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Semi-Complete)');
+							} else {
+								songText.text = '${songData.songName} (Goal)';
+								songText.color = FlxColor.WHITE;
+								enableRainbow = true;
+								if (songData.songCharacter != null)
+									pixelIcon.setCharacter(songData.songCharacter);
+								pixelIcon.visible = true;
+								updateWeekText((songData?.songWeekName ?? "") + ' (Goal)');
 							}
 						} else {
-							if (!isMissing) {
-								songText.text = '${songData.songName} (Complete)';
-								color = FlxColor.GREEN; // Fully completed
-								if (songData.songCharacter != null)
-									pixelIcon.setCharacter(songData.songCharacter);
-								pixelIcon.visible = true;
-								updateWeekText((songData?.songWeekName ?? "") + ' (Complete)');
-							} else {
-								// Check if some locations are not missing (partially completed)
-								songText.text = '${songData.songName}' + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)');
-								songText.color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-								if (songData.songCharacter != null)
-									pixelIcon.setCharacter(songData.songCharacter);
-								pixelIcon.visible = true;
-								updateWeekText((songData?.songWeekName ?? "") + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)'));
-							}
+							songText.text = '${songData.songName} (Goal) (Complete)';
+							songText.color = 0xFFFFD700;
+							if (songData.songCharacter != null)
+								pixelIcon.setCharacter(songData.songCharacter);
+							pixelIcon.visible = true;
+							updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Complete)');
 						}
+					} else {
+						if (!isUnlocked) {
+							songText.text = '${songData.songName} (Locked)';
+							songText.color = FlxColor.RED;
+							pixelIcon.setCharacter('lock');
+							pixelIcon.visible = true;
+							updateWeekText("LOCKED");
+						} else if (!isMissing) {
+							songText.text = '${songData.songName} (Complete)';
+							if (songData.songCharacter != null)
+								pixelIcon.setCharacter(songData.songCharacter);
+							pixelIcon.visible = true;
+							updateWeekText((songData?.songWeekName ?? "") + ' (Complete)');
+						} else {
+							// Check if some locations are not missing (partially completed)
+							songText.text = '${songData.songName}' + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)');
+							songText.color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
+							if (songData.songCharacter != null)
+								pixelIcon.setCharacter(songData.songCharacter);
+							pixelIcon.visible = true;
+							updateWeekText((songData?.songWeekName ?? "") + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)'));
+						}
+					}
 
-						if (AprilFools.allowAF && FlxG.random.bool(10)) {
-							songText.text = CoolUtil.randString(songData.songName.length);
-						}
+					if (AprilFools.allowAF && FlxG.random.bool(10)) {
+						songText.text = CoolUtil.randString(songData.songName.length);
 					}
 				}
 			} else {
