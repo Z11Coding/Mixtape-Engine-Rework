@@ -475,37 +475,18 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		WeekData.setDirectoryFromWeek();
 
 		fpManager.reloadFreeplay(true);
-		// Convert GlobalSongMetadata from fpManager.songList to FreeplaySongData
-		for (globalSong in fpManager.songList)
+		// Note: fpManager.reloadFreeplay() already calls refreshSongList() which populates the songs array
+		// So we don't need to duplicate that work here. The songs array is already populated by refreshSongList()
+
+		// Just need to populate diffIdsTotalModBinds for any songs that were added
+		for (song in songs)
 		{
-			// Extract the color from the GlobalSongMetadata format
-			var color = globalSong.color;
-			var colorInt = FlxColor.WHITE; // Default color
+			if (song == null) continue; // Skip the random/null entry
 
-			if (color != null && color.length > 0) {
-				if (color.length > 1 && color[1] != null && color[1].length > 0) {
-					// Use the FlxColor if available
-					colorInt = color[1][0];
-				} else if (color[0] != null && color[0].length >= 3) {
-					// Convert from RGB array
-					var rgb = color[0];
-					colorInt = FlxColor.fromRGB(rgb[0], rgb[1], rgb[2]);
-				}
-			}
-
-			// Create VSlice format song data
-			var sngCard = new FreeplaySongData(globalSong.week, globalSong.songName, globalSong.songCharacter, colorInt);
-
-			// Only add if it has valid difficulties
-			if (sngCard.songDifficulties.length == 0)
-				continue;
-
-			songs.push(sngCard);
-			for (difficulty in sngCard.songDifficulties)
+			for (difficulty in song.songDifficulties)
 			{
-				diffIdsTotal.pushUnique(difficulty);
 				if (!diffIdsTotalModBinds.exists(difficulty))
-					diffIdsTotalModBinds.set(difficulty, sngCard.folder);
+					diffIdsTotalModBinds.set(difficulty, song.folder);
 			}
 		}
 
@@ -2923,7 +2904,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	/**
 	 * Refresh and update all songs in the freeplay using the FreeplayManager's songList
-	 * This removes and updates all existing songs, then regenerates the song list display
+	 * This removes and updates all existing songs, then regenerates the song list display with proper capsule updates
 	 * Note: This uses the existing songList from fpManager without reloading it
 	 */
 	public function refreshSongList():Void
@@ -2939,6 +2920,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// Store current selection info for restoration
 		var previousSongId:Null<String> = null;
 		var previousDifficulty:String = currentDifficulty;
+		var previousFilter:Null<SongFilter> = currentFilter;
 
 		if (curCapsule?.songData != null)
 		{
@@ -2975,7 +2957,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 					} else if (color[0] != null && color[0].length >= 3) {
 						// Convert from RGB array
 						var rgb = color[0];
-						colorInt = FlxColor.fromRGB(rgb[0], rgb[1], rgb[2]);
+					colorInt = FlxColor.fromRGB(rgb[0], rgb[1], rgb[2]);
 					}
 				}
 
@@ -2998,8 +2980,50 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		trace("Song refresh complete. Total songs: " + (songs.length - 1) + " (excluding random)");
 
-		// Regenerate the song list display with force refresh
-		generateSongList(currentFilter, true);
+		// Update difficulty sprites to match new difficulties
+		grpDifficulties.clear();
+		for (diffId in diffIdsTotal)
+		{
+			WeekData.setDirectoryFromWeek();
+			var diffSprite:DifficultySprite = new DifficultySprite(diffId);
+			diffSprite.difficultyId = diffId;
+			grpDifficulties.add(diffSprite);
+		}
+
+		grpDifficulties.group.forEach(function(spr) {
+			spr.visible = false;
+		});
+
+		updateDifficultyVisibility();
+
+		// Restore difficulty if it's still available
+		currentDifficulty = previousDifficulty;
+		if (!diffIdsTotal.contains(currentDifficulty))
+		{
+			currentDifficulty = diffIdsTotal.contains('normal') ? 'normal' : diffIdsTotal[0];
+			trace("Previous difficulty '" + previousDifficulty + "' not available, switched to: " + currentDifficulty);
+		}
+
+		// Force regenerate the song list display with current filter
+		var filterToUse = previousFilter != null ? previousFilter : currentFilter;
+		generateSongList(filterToUse, true, false);
+
+		#if ARCHIPELAGO_ALLOWED
+		// Special handling for unknown songs - if only random capsule exists, try reloading "all" category once
+		if (APItem.unknownSongs && currentFilteredSongs.length <= 1)
+		{
+			trace("Unknown songs enabled and only random capsule found, trying 'all' category fallback...");
+			var allFilter:SongFilter = {filterType: ALL};
+			generateSongList(allFilter, true, false);
+
+			// If that worked, update the current filter
+			if (currentFilteredSongs.length > 1)
+			{
+				currentFilter = allFilter;
+				trace("Fallback to 'all' category successful, found " + (currentFilteredSongs.length - 1) + " songs");
+			}
+		}
+		#end
 
 		// Try to restore previous selection
 		if (previousSongId != null)
@@ -3036,19 +3060,26 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			curSelectedFractal = 1;
 		}
 
-		// Restore difficulty if it's still available
-		currentDifficulty = previousDifficulty;
-		if (!diffIdsTotal.contains(currentDifficulty))
-		{
-			currentDifficulty = diffIdsTotal.contains('normal') ? 'normal' : diffIdsTotal[0];
-			trace("Previous difficulty '" + previousDifficulty + "' not available, switched to: " + currentDifficulty);
-		}
-
-		// Update the selection and difficulty display
+		// Update the selection and difficulty display with proper capsule refresh
 		changeSelection(0);
 		changeDiff(0, true);
 
-		trace("Song list refresh completed successfully");
+		// Force update capsule difficulties and refresh their display
+		if (grpCapsules != null)
+		{
+			grpCapsules.updateSongDifficulties(currentDifficulty);
+
+			// Refresh all capsule data to ensure proper display
+			for (capsule in grpCapsules.activeSongItems)
+			{
+				if (capsule != null)
+				{
+					capsule.refreshDisplayDifficulty();
+				}
+			}
+		}
+
+		trace("Song list refresh completed successfully with " + (currentFilteredSongs.length - 1) + " songs displayed");
 	}
 
 	/**

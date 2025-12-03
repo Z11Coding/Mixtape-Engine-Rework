@@ -436,6 +436,10 @@ class CategoryState extends MusicBeatState
 			return;
 		}
 
+		if (inFreeplay && this.subState == null) {
+			inFreeplay = false;
+		}
+
 		// Don't trigger resetState if we're in LegacyLua mode
 		if (legacyLuaMode == null) {
 			ClientPrefs.data.showMods && catMode != "Mods" || !ClientPrefs.data.showMods && catMode == "Mods"

@@ -468,6 +468,14 @@ class StateSerializer {
 
         var fieldNames = Reflect.fields(fields);
 
+        // remove [] from array fields
+        for (i in 0...fieldNames.length) {
+            var fieldName = fieldNames[i];
+            if (fieldName.endsWith("[]")) {
+                fieldNames[i] = fieldName.substr(0, fieldName.length - 2);
+            }
+        }
+
         for (field in fieldNames) {
             var value = Reflect.field(fields, field);
             try {

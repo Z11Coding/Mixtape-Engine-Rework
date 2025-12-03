@@ -1,5 +1,10 @@
 package substates;
 
+#if ARCHIPELAGO_ALLOWED
+import archipelago.*;
+import archipelago.APEntryState;
+#end
+import backend.WeekData;
 import backend.pslice.Scoring;
 import flixel.FlxSprite;
 import flixel.FlxSubState;
@@ -492,6 +497,10 @@ class ResultState extends MusicBeatSubState
     refresh();
 
     super.create();
+
+    #if ARCHIPELAGO_ALLOWED
+    archipelago.APItem.waitingForTransition = true;
+    #end
   }
 
   function getMusicPath(playerCharacter:Null<PlayableCharacter>, rank:ScoringRank):String
@@ -771,6 +780,114 @@ class ResultState extends MusicBeatSubState
       var shouldTween = false;
       var shouldUseSubstate = false;
 
+      #if ARCHIPELAGO_ALLOWED
+      // Handle Archipelago mode logic
+      if (APEntryState.inArchipelagoMode && PlayState.gameplayArea == "APFreeplay")
+      {
+        trace('WENT BACK TO ARCHIPELAGO FREEPLAY FROM RESULTS??');
+
+        // Handle Archipelago location checking logic (same as RankingSubstate)
+        trace('Combo Gotten: ' + generateComboRank() + '\nCombo Required: ' + comboRankSetLimit);
+        trace('Accuracy Gotten: ' + generateAccuracyRank() + '\nAccuracy Required: ' + accRankSetLimit);
+
+        // Always send note checks regardless of ranking requirements
+        trace("Sending checks for all checked notes (no ranking requirement)...");
+        if (archipelago.APPlayState.instance != null) {
+          for (note in archipelago.APPlayState.instance.checkedNotes) {
+            trace("Sending check for note: " + note);
+            @:privateAccess{
+              trace("Sending location: " + note.checkInfo.loc);
+              archipelago.APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
+            }
+          }
+        }
+        trace("All note checks sent.");
+
+        // Only send main song location check if ranking requirements are met
+        var comboRankLimit = getComboRankLimit();
+        var accRankLimit = getAccuracyRankLimit();
+
+        if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) &&
+            comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+          trace("Ranking requirements met! Sending main location check...");
+
+          var locationId = (archipelago.APPlayState.currentSong != null && archipelago.APPlayState.currentSong.trim() != "")
+            ? archipelago.APPlayState.currentSong
+            : PlayState.SONG.song;
+
+          if (APInfo.unlockMethod != "Note Checks") {
+            trace(archipelago.APPlayState.currentMod);
+            trace("Starting location ID processing for: " + locationId.trim());
+            var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+            trace('Initial Location IDs: ' + locationIdInts);
+
+            // Location ID processing logic (same as RankingSubstate)
+            if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1) {
+              trace("Location ID not found or invalid, attempting to match song in current week...");
+              for (song in WeekData.getCurrentWeek().songs) {
+                trace("Checking song: " + song[0]);
+                if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
+                    (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
+                  trace("Match found for song: " + song[0]);
+                  locationId = song[0];
+                  locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+                  trace("Updated Location IDs: " + locationIdInts);
+                  break;
+                }
+              }
+            }
+
+            trace("Final Location IDs: " + locationIdInts);
+            for (locationIdInt in locationIdInts) {
+              trace("Processing Location ID: " + locationIdInt);
+              trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
+              trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
+            }
+            trace("Current Song: " + PlayState.SONG.song);
+
+            archipelago.ArchPopup.startPopupCustom("You've completed a Song Check!", "Good Job!", "archColor", function() {
+              trace("Popup triggered for sending location to Archipelago.");
+              FlxG.sound.playMusic(Paths.sound('secret'));
+            });
+          }
+
+          if (archipelago.APItem.activeItem != null)
+            archipelago.APItem.activeItem = null;
+
+          // Clear active effects
+          archipelago.APItem.clearActiveEffects();
+
+          if (archipelago.APEntryState.inArchipelagoMode) {
+            ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+          }
+
+          // Check sanity locations on beating if enabled
+          if (archipelago.APEntryState.apGame != null) {
+            var songName = PlayState.SONG.song;
+            var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
+            archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
+          }
+
+          if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+            archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
+              trace("Goal achievement popup triggered.");
+              FlxG.sound.playMusic(Paths.sound('You Win'));
+            });
+          }
+        } else {
+          trace("Ranking requirements not met - main location check will not be sent");
+        }
+
+        Mods.loadTopMod();
+
+        // Set target to AP freeplay
+        FlxG.sound.pause();
+        shouldTween = false;
+        shouldUseSubstate = false;
+        targetState = FreeplayManager.getNewFreeplayInstance();
+      }
+      else
+      #end
       if (params.storyMode)
       {
         FlxG.sound.pause(); //? fix sound
@@ -813,14 +930,14 @@ class ResultState extends MusicBeatSubState
             difficultyId: params.difficultyId,
             playRankAnim: true
           };
-          targetState = states.freeplay.VSliceFreeplayState.build();
+          targetState = FreeplayManager.getNewFreeplayInstance();
         }
         else
         {
           FlxG.sound.pause(); //? fix sound
           shouldTween = false;
           controls.isInSubstate = shouldUseSubstate = true;
-          targetState = new StickerSubState(null, (sticker) -> states.freeplay.VSliceFreeplayState.build(null, sticker));
+          targetState = new StickerSubState(null, (sticker) -> FreeplayManager.getNewFreeplayInstance());
         }
       }
 
@@ -857,6 +974,89 @@ class ResultState extends MusicBeatSubState
 
     super.update(elapsed);
   }
+
+  #if ARCHIPELAGO_ALLOWED
+  // Helper variables for Archipelago ranking (matching RankingSubstate)
+  var comboRankSetLimit:Int = 7;
+  var accRankSetLimit:Int = 15;
+
+  function generateComboRank():String {
+    if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 &&
+        PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits == 0 &&
+        PlayState.instance.comboManager.ratingsData[0].hits == 0) // Marvelous Full Combo
+      return "MFC";
+    else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 &&
+             PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits == 0) // Sick Full Combo
+      return "SFC";
+    else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits == 0 &&
+             PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 1) // Good Full Combo
+      return "GFC";
+    else if (PlayState.instance.comboManager.songMisses == 0 && PlayState.instance.comboManager.ratingsData[2].hits >= 1 &&
+             PlayState.instance.comboManager.ratingsData[3].hits == 0 && PlayState.instance.comboManager.ratingsData[1].hits >= 0) // Alright Full Combo
+      return "AFC";
+    else if (PlayState.instance.comboManager.songMisses == 0) // Regular Full Combo
+      return "FC";
+    else if (PlayState.instance.comboManager.songMisses < 10) // Single Digit Combo Breaks
+      return "SDCB";
+    else return "Clear"; // Good enough
+  }
+
+  function getComboRankLimit():Int {
+    var comboRank = generateComboRank();
+    switch(comboRank) {
+      case "MFC": return 1;
+      case "SFC": return 2;
+      case "GFC": return 3;
+      case "AFC": return 4;
+      case "FC": return 5;
+      case "SDCB": return 6;
+      case "Clear": return 7;
+      default: return 7;
+    }
+  }
+
+  function generateAccuracyRank():String {
+    var acc = CoolUtil.floorDecimal(PlayState.instance.comboManager.ratingPercent * 100, 2);
+    if (acc >= 99.9935) return "P";
+    else if (acc >= 99.980) return "X";
+    else if (acc >= 99.950) return "X-";
+    else if (acc >= 99.90) return "SS+";
+    else if (acc >= 99.80) return "SS";
+    else if (acc >= 99.70) return "SS-";
+    else if (acc >= 99.50) return "S+";
+    else if (acc >= 99) return "S";
+    else if (acc >= 96.50) return "S-";
+    else if (acc >= 93) return "A+";
+    else if (acc >= 90) return "A";
+    else if (acc >= 85) return "A-";
+    else if (acc >= 80) return "B";
+    else if (acc >= 70) return "C";
+    else if (acc >= 60) return "D";
+    else return "E";
+  }
+
+  function getAccuracyRankLimit():Int {
+    var accRank = generateAccuracyRank();
+    switch(accRank) {
+      case "P": return 1;
+      case "X": return 2;
+      case "X-": return 3;
+      case "SS+": return 4;
+      case "SS": return 5;
+      case "SS-": return 6;
+      case "S+": return 7;
+      case "S": return 8;
+      case "S-": return 9;
+      case "A+": return 10;
+      case "A": return 11;
+      case "A-": return 11;
+      case "B": return 12;
+      case "C": return 13;
+      case "D": return 14;
+      default: return 15;
+    }
+  }
+  #end
 }
 
 typedef ResultsStateParams =

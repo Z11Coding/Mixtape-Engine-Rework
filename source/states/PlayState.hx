@@ -1049,7 +1049,7 @@ class PlayState extends MusicBeatState
 			startCharacterPos(dad, true);
 			dadGroup.add(dad);
 
-			if (SONG.player4 != null)
+			if (SONG.player4.isNotEmpty())
 			{
 				dad2 = new Character(0, 0, SONG.player4, false, DAD);
 				startCharacterPos(dad2, true);
@@ -1062,7 +1062,7 @@ class PlayState extends MusicBeatState
 			startCharacterPos(boyfriend);
 			boyfriendGroup.add(boyfriend);
 
-			if (SONG.player5 != null)
+			if (SONG.player5.isNotEmpty())
 			{
 				bf2 = new Character(0, 0, SONG.player5, true, BF);
 				startCharacterPos(bf2, true);

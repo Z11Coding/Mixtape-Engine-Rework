@@ -5,6 +5,7 @@ import backend.WeekData;
 import objects.Character;
 import states.MainMenuState;
 import states.ModchartEditor;
+import states.editors.ChartCreatorMenuState;
 import states.freeplay.FreeplayState;
 
 class MasterEditorMenu extends MusicBeatState
@@ -114,7 +115,7 @@ class MasterEditorMenu extends MusicBeatState
 		{
 			switch(options[curSelected]) {
 				case 'Chart Editor'://felt it would be cool maybe
-					ClientPrefs.openChartEditor();
+					MusicBeatState.switchState(new ChartCreatorMenuState());
 				case 'Character Editor':
 					LoadingState.loadAndSwitchState(new CharacterEditorState(Character.DEFAULT_CHARACTER, false));
 				case 'Stage Editor':

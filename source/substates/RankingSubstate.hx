@@ -221,7 +221,7 @@ class RankingSubstate extends MusicBeatSubstate
 							songId: PlayState.SONG.song.toLowerCase(),
 							difficultyId: Difficulty.getString().toLowerCase()
 						};
-						TransitionState.transitionState(states.freeplay.VSliceFreeplayState.build(), {transitionType: "instant"});
+						TransitionState.transitionState(states.freeplay.VSliceFreeplayState.build(), {transitionType: "stickers"});
 					} else {
 						TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					}
@@ -352,14 +352,15 @@ class RankingSubstate extends MusicBeatSubstate
 								FlxG.sound.playMusic(Paths.sound('secret'));
 							});
 
-						if (((((((archipelago.APItem.activeItem != null)))))))
+					if (((((((archipelago.APItem.activeItem != null)))))))
             archipelago.APItem.activeItem = null;
 
-						if (archipelago.APEntryState.inArchipelagoMode) {
-							ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
-						}
+					// Clear active effects
+					archipelago.APItem.clearActiveEffects();
 
-						// Check sanity locations on beating if enabled
+					if (archipelago.APEntryState.inArchipelagoMode) {
+						ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+					}						// Check sanity locations on beating if enabled
 						if (archipelago.APEntryState.apGame != null)
 						{
 							var songName = PlayState.SONG.song;

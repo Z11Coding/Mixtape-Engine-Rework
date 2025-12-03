@@ -260,6 +260,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	}
 
 	public var controls(get, never):Controls;
+	public var forceCursor:Bool = false;
 
 	private function get_controls()
 	{
@@ -656,6 +657,11 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		// Handle debug keys
 		debug.DebugManager.handleDebugKeys();
+
+		// Force cursor visibility if requested
+		if (forceCursor) {
+			FlxG.mouse.visible = true;
+		}
 
 		super.update(elapsed);
 
