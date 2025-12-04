@@ -174,7 +174,7 @@ class APPlayState extends PlayState {
         lives = livecount;
 
         // Check if the current song/mod is unlocked; if not, set flag and show info panel
-        if (APEntryState.inArchipelagoMode)
+        if (APEntryState.inArchipelagoMode && !archipelago.APInfo.inSongTrap)
         {
             var found = false;
             var missingItems:Array<String> = [];

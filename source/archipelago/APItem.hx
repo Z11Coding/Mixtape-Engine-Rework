@@ -2098,7 +2098,7 @@ class APChartModifier extends APTrap {
              (states.PlayState.SONG != null && states.PlayState.SONG.mania != null && states.PlayState.SONG.mania > 3)))
             ? "4K Only" : this.chartModifier;
 
-        super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(), function() {
+        super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(Song), function() {
             ClientPrefs.data.gameplaySettings.set("chartModifier", this.chartModifier);
             if (this.chartModifier == 'ManiaConverter') // Random between 4 and 8.
                 ClientPrefs.data.gameplaySettings.set("convertMania", 4 + Std.random(5));

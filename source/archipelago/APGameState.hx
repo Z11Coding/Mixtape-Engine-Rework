@@ -1114,7 +1114,7 @@ class APGameState
 		{
 			APItem.confusionStack = _saveData.getItem("confusionStacks");
 		}
-		
+
 		// Load active effects - these will be restored after all items are loaded
 		var savedActiveEffects:Array<String> = [];
 		var savedActiveSongEffects:Array<String> = [];
@@ -1215,15 +1215,15 @@ class APGameState
 			trace("No active effects to restore");
 			return;
 		}
-		
+
 		trace("Restoring active effects: " + savedActiveEffects.length + " regular, " + savedActiveSongEffects.length + " song effects");
-		
+
 		// Create active effect items first (like other save data checks)
 		var allActiveEffectNames = savedActiveEffects.concat(savedActiveSongEffects);
 		for (itemName in allActiveEffectNames)
 		{
 			var item = APItem.createItemByName(itemName);
-			
+
 			// Recreate the active tracking
 			if (savedActiveEffects.contains(itemName))
 			{
@@ -1234,7 +1234,7 @@ class APGameState
 				APItem.activeSongEffects.push(item);
 			}
 		}
-		
+
 		trace("Active effects restored successfully - " + allActiveEffectNames.length + " active items created");
 	}
 
@@ -1261,7 +1261,7 @@ class APGameState
 		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
 		@:privateAccess
 		_saveData.addItem("confusionStack", APItem.confusionStack);
-		
+
 		// Save active effects tracking
 		_saveData.addItem("activeEffects", [for (name in APItem.activeEffects.keys()) name]);
 		_saveData.addItem("activeSongEffects", APItem.activeSongEffects.map(item -> item.name));
@@ -1841,14 +1841,14 @@ class APGameState
 					sanityItems.push(sanityItemName);
 					nonSongs.set(sanityItemName, songName.index);
 					nonSongsNames.push(sanityItemName);
-					trace("Processing sanity item: " + sanityItemName + " (original: " + itemName + ")");
+					// trace("Processing sanity item: " + sanityItemName + " (original: " + itemName + ")");
 					continue;
 				}
 
 				// Check APItems for non-sanity items only (moved after sanity check)
 				if (APItems.exists(itemName) && APItems.get(itemName) == songName.item)
 				{
-					trace("Skipping non-sanity APItem: " + itemName);
+					// trace("Skipping non-sanity APItem: " + itemName);
 					nonSongs.set(itemName, songName.index);
 					nonSongsNames.push(itemName);
 					continue;
@@ -1984,6 +1984,11 @@ class APGameState
 					if (unlockedSanityItems.exists(itemName))
 					{
 						trace("Sanity item '" + itemName + "' already exists in unlocked items, skipping");
+					// If completion type is "on_getting", check if it has actually sent the check.
+					if (sanitySettings.sanity_completion_type == "on_getting")
+					{
+						sendSanityLocationCheck(itemName);
+					}
 						return;
 					}
 

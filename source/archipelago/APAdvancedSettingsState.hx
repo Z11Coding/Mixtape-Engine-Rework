@@ -2399,7 +2399,7 @@ class APAdvancedSettingsState extends MusicBeatState
 								if (songData != null)
 								{
 									// Extract stage information
-									var stageName:String = songData.stage;
+									var stageName:String = songData.stage ?? StageData.vanillaSongStage(songName);
 
 									if (stageName != null && stageName.trim().length > 0)
 									{
@@ -2411,6 +2411,14 @@ class APAdvancedSettingsState extends MusicBeatState
 									} else if (stageName == null) {
 										trace('No stage defined for $songName ($difficulty)');
 										stageName = StageData.vanillaSongStage(songName);
+										if (stageName != null && stageName.trim().length > 0)
+										{
+											if (!stageToDirectDifficulties.exists(stageName))
+											{
+												stageToDirectDifficulties.set(stageName, []);
+											}
+											stageToDirectDifficulties.get(stageName).push(difficulty);
+										}
 									}
 								}
 							}
