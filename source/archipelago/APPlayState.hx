@@ -3155,6 +3155,15 @@ class APPlayState extends PlayState {
             for (note in allNotes) {
                 note.multAlpha = 0.3;
             }
+        } else {
+            for (field in playfields.members) {
+                for (strum in field.strumNotes) {
+                    strum.multAlpha = 1;
+                }
+            }
+            for (note in allNotes) {
+                note.multAlpha = 1;
+            }
         }
     }
 

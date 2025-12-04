@@ -1198,6 +1198,34 @@ class APGameState
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
 
+		var antiTrapList:Array<String> = [];
+		// Load anti perma traps
+		if (_saveData.hasItem("activeAntiPermaTraps"))
+		{
+			var activeAntiPermaTraps:Array<String> = _saveData.getItem("activeAntiPermaTraps");
+			for (trapName in activeAntiPermaTraps)
+			{
+				activeAntiPermaTraps.push(trapName);
+			}
+			trace("Loaded " + activeAntiPermaTraps.length + " active perma traps from save");
+		}
+
+		// Load perma traps
+		if (_saveData.hasItem("activePermaTraps"))
+		{
+			var activePermaTraps:Array<String> = _saveData.getItem("activePermaTraps");
+			for (trapName in activePermaTraps)
+			{
+				if (trapName == "Sore Throat Trap" && !antiTrapList.contains("Throat Medicine")
+					|| trapName == "Vocal Inverter Trap" && !antiTrapList.contains("Voice Inverter")
+					|| trapName == "Blindness Trap" && !antiTrapList.contains("Contact Lenses")
+					|| trapName == "Mechanical Hell Trap" && !antiTrapList.contains("The Simplifier 3000")
+					|| trapName == "Metronome Madness Trap" && !antiTrapList.contains("Metronome Stabilizer"))
+					archipelago.APItem.createItemByName(trapName);
+			}
+			trace("Loaded " + activePermaTraps.length + " active perma traps from save");
+		}
+
 		// Restore active effects after all items are loaded
 		restoreActiveEffects(savedActiveEffects, savedActiveSongEffects);
 
@@ -1283,6 +1311,10 @@ class APGameState
 				shopItems.push(shop.Item.makeMiniItemFromItem(ShopData.items.get(item)));
 
 			_saveData.addItem("apShopItems", shopItems);
+
+			_saveData.addItem("activePermaTraps", APItem.triggeredPermaTraps);
+
+			_saveData.addItem("activeAntiPermaTraps", APItem.triggeredAntiPermaTraps);
 
 			_saveData.save();
 			trace("Save data updated!");

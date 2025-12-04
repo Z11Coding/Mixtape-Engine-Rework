@@ -179,7 +179,8 @@ class APItem {
 
     public static var nonSongItemCounts:Map<String, Int> = new Map<String, Int>();
 
-
+    public static var triggeredPermaTraps:Array<String> = [];
+    public static var triggeredAntiPermaTraps:Array<String> = [];
 
 
     private static var allItems:ActiveArray = new ActiveArray([]);
@@ -839,11 +840,70 @@ class APItem {
                     t.isTrap = true;
                 });
 
+            case "Sore Throat Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    if (!APEntryState.gonnaRunSync)
+                        popup('Oh no! BF can\'t sing anymore!', "Z11 Hell Trap: Sore Throat Trap");
+                    APInfo.soreThroat = true;
+                    APPlayState.instance?.removeThroatNotes();
+                    triggeredPermaTraps.push(name);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Vocal Inverter Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    if (!APEntryState.gonnaRunSync)
+                        popup('How are you inverse singing???', "Z11 Hell Trap: Vocal Inverter Trap");
+                    APInfo.backwardsSinging = true;
+                    triggeredPermaTraps.push(name);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Blindness Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    if (!APEntryState.gonnaRunSync)
+                        popup('Wait, where did I put the notes?', "Z11 Hell Trap: Blindness Trap");
+                    APInfo.blindness = false;
+                    APPlayState.instance?.adjustSight();
+                    triggeredPermaTraps.push(name);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Mechanical Hell Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    if (!APEntryState.gonnaRunSync)
+                        popup('#NotEnoughMechanics', "Z11 Hell Trap: Mechanical Hell Trap");
+                    APInfo.fivenightsatmechanicsmod = true;
+                    APPlayState.instance?.removeLeMechanics();
+                    triggeredPermaTraps.push(name);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Metronome Madness Trap":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    if (!APEntryState.gonnaRunSync)
+                        popup('ERROR: Speed Module currupted!', "Z11 Hell Trap: Metronome Madness Trap");
+                    APInfo.unstableSpeed = true;
+                    triggeredPermaTraps.push(name);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
             case "Throat Medicine":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Much Better.', "APItem: Throat Medicine");
                     APInfo.soreThroat = false;
-                    APPlayState.instance.removeThroatNotes();
+                    APPlayState.instance?.removeThroatNotes();
+                    triggeredAntiPermaTraps.push(name);
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -853,6 +913,7 @@ class APItem {
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Now you can stop singing backwards!', "APItem: Voice Inverter");
                     APInfo.backwardsSinging = false;
+                    triggeredAntiPermaTraps.push(name);
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -862,7 +923,8 @@ class APItem {
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Oh so THATS where I put the notes!', "APItem: Contact Lenses");
                     APInfo.blindness = false;
-                    if (APPlayState.instance != null) APPlayState.instance.adjustSight();
+                    APPlayState.instance?.adjustSight();
+                    triggeredAntiPermaTraps.push(name);
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -872,7 +934,8 @@ class APItem {
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('#NoMoreMechanics', "APItem: The Simplifier 3000");
                     APInfo.fivenightsatmechanicsmod = false;
-                    if (APPlayState.instance != null) APPlayState.instance.removeLeMechanics();
+                    APPlayState.instance?.removeLeMechanics();
+                    triggeredAntiPermaTraps.push(name);
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -880,9 +943,31 @@ class APItem {
 
             case "Metronome Stabilizer":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    popup('Speed Module has been fixed', "APItem: Metronome Stabilizer");
+                    popup('ALERT: Speed Module has been fixed', "APItem: Metronome Stabilizer");
                     APInfo.unstableSpeed = false;
-                    states.PlayState.instance.lerpSongSpeed(1, 1);
+                    states.PlayState.instance?.lerpSongSpeed(1, 1);
+                    triggeredAntiPermaTraps.push(name);
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Strums":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Strums restored!', "Z11 Hell Element: Strums");
+                    objects.StrumNote.hardAlpha = 1;
+				    objects.Note.hardAlpha = 1;
+                }, true, false).funcAndReturn(function(t:APItem) {
+                    // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "BF's Mic":
+                return new APTrap(name, ConditionHelper.Everywhere(), function() {
+                    popup('Boyfriend\'s singing restored!', "Z11 Hell Element: BF's Mic");
+                    for (note in APPlayState.instance?.allNotes) {
+                        note.forceBlockHit = false;
+                    }
                 }, true, false).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
                     t.isTrap = true;
@@ -2021,6 +2106,9 @@ class APItem {
         frozenInput = 0;
         unknownSongs = false;
         unoColorsUnlocked = [];
+
+        APItem.triggeredPermaTraps.clear();
+        APItem.triggeredAntiPermaTraps.clear();
 
         // Clear inventory and item counts
         extraItemInventory = [];

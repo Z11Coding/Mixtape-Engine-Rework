@@ -515,6 +515,7 @@ class Note extends NoteObject
 	public var parent:Note;
 
 	public var blockHit:Bool = false; // only works for player
+	public var forceBlockHit:Bool = false;
 
 	public var sustainLength:Float = 0;
 	public var isSustainNote:Bool = false;
@@ -689,6 +690,8 @@ class Note extends NoteObject
 
 	public var noteSplashTexture:String = "";
 
+	public static var hardAlpha:Float = 1; // For hard mode
+
 	private function set_multSpeed(value:Float):Float {
 		resizeByRatio(value / multSpeed);
 		multSpeed = value;
@@ -854,8 +857,12 @@ class Note extends NoteObject
 					botNote = true;
 					hitsoundChartEditor = false;
 				case "Throat Note":
+					ignoreNote = mustPress;
 					hitCausesMiss = true;
 					missHealth = 0.0475;
+					rgbShader.r = 0xFFFF0000;
+					rgbShader.g = 0xFFFF0000;
+					rgbShader.b = 0xFFFF0000;
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof
@@ -872,7 +879,7 @@ class Note extends NoteObject
 	override function set_alpha(Alpha:Float):Float {
 		multAlpha = Alpha;
 		// trace('set alpha: ' + Alpha);
-		return super.set_alpha(Alpha);
+		return super.set_alpha(Alpha * hardAlpha);
 	}
 	public var isNotePool:Bool = false;
 	/**

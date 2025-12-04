@@ -84,7 +84,7 @@ typedef APOptions =
 	var	sanity_completion_type:String;
 	var	stagesanity:Bool;
 	var	charactersanity:Bool;
-	var	starter_debuff:Bool;
+	var	starter_debuffs:Bool;
 	var	hard_mode:Bool;
 	var	enable_shop:Bool;
 	var	perma_traps:Bool;
@@ -205,7 +205,7 @@ class APEntryState extends MusicBeatState
 			sanity_completion_type: "on_getting",
 			stagesanity: false,
 			charactersanity: false,
-			starter_debuff: false,
+			starter_debuffs: false,
 			perma_traps: false,
 			hard_mode: false,
 			enable_shop: false
@@ -500,6 +500,7 @@ class APEntryState extends MusicBeatState
 		APInfo.ticketCount = 0;
 		APInfo.grabLimits(slotData.gradeNeeded[0], slotData.accuracyNeeded[0]);
 		APInfo.unlockMethod = slotData.locationType;
+		APInfo.inHardMode = slotData.hardmode;
 		//APInfo.unlockType = slotData.locationMethod;
 		FlxG.save.flush();
 		trace(APInfo.unlockMethod);

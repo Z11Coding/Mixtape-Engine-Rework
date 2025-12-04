@@ -240,7 +240,7 @@ class LoadingState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-		if (dontUpdate) return;
+		if (dontUpdate || noAccess) return;
 
 		if (!transitioning && !finishedLoading)
 		{
@@ -455,8 +455,17 @@ class LoadingState extends MusicBeatState
 	}
 
 	static var isIntrusive:Bool = false;
+	static var noAccess:Bool = false;
 	static function getNextState(target:FlxState, stopMusic = false, intrusive:Bool = true):FlxState
 	{
+		if (APEntryState.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("Stage Access Key")) {
+			FlxG.state.openSubState(new Prompt("ERROR: Access key denied.", 0, function() FreeplayManager.openFreeplay(), function() FreeplayManager.openFreeplay(), false, "Return to Freeplay", "Return to Freeplay"));
+			noAccess = true;
+			loadMax++; //just to be sure it doesn't try to load anyway
+		} else {
+			noAccess = false;
+		}
+
 		#if !SHOW_LOADING_SCREEN
 		intrusive = false;
 		#end

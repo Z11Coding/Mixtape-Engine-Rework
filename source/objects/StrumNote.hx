@@ -19,6 +19,7 @@ class StrumNote extends NoteObject
 	public var formerPosition:FlxPoint = FlxPoint.get();
 	public var positionData:Int = 0;
 	public var multAlpha:Float = 1;
+	public static var hardAlpha:Float = 1; // For hard mode
 	private var player:Int;
 
 	public static var ogStrumPosX:Array<Null<Float>> = [];
@@ -303,6 +304,7 @@ class StrumNote extends NoteObject
 		}
 
 		alpha *= multAlpha;
+		alpha *= hardAlpha;
 
 		super.update(elapsed);
 	}
