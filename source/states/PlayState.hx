@@ -538,7 +538,9 @@ class PlayState extends MusicBeatState
 
 	// Archipelago / Streamer Vs. Chat stuff
 	public var instVolumeMultiplier:Float = 1;
+	public var instVolumeMultiplierHardMode:Float = 1;
 	public var vocalVolumeMultiplier:Float = 1;
+	public var vocalVolumeMultiplierHardMode:Float = 1;
 	var inArchipelagoMode:Bool = false;
 
 	//Various things from other engines
@@ -656,6 +658,8 @@ class PlayState extends MusicBeatState
 					fiveMechanicsAtMixtape++;
 				}
 				if (fiveMechanicsAtMixtape == 4) break; //We only want 5 mechanics max at one time
+			} else if (inArchipelagoMode) {
+				mechanic.points = 0; //Reset it so that no mechanics are active
 			}
 		}
 
@@ -2546,6 +2550,14 @@ class PlayState extends MusicBeatState
 					modManager.setValue("opponentSwap", 0.5);
 				}
 			}
+
+			if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem('Strums')) {
+				StrumNote.hardAlpha = 0;
+				Note.hardAlpha = 0;
+			} else {
+				StrumNote.hardAlpha = 1;
+				Note.hardAlpha = 1;
+			}
 			#if ALLOW_DEPRECATION
 			callOnScripts('postModifierRegister'); // deprecated
 			#end
@@ -3257,7 +3269,6 @@ class PlayState extends MusicBeatState
 				case 5:
 					trace("Nothing");
 					//Nothing
-
 			}
 		}
 		if (inArchipelagoMode) reverseNoteRules = APInfo.backwardsSinging;
@@ -4437,27 +4448,30 @@ class PlayState extends MusicBeatState
 
 								for (i in 0...16)
 								{
-									var placeNote:Note = placeNote(25, "Throat Note", [
+									var throatNote:Note = placeNote(10, "Throat Note", [
 										sectionStartTime + (Conductor.stepCrochet * i),
 										FlxG.random.int(0, 3),
 										j,
 										hitSectionMulti
 									]);
 
-									var placePlayfield:PlayField = placeNote.field;
-									if (placePlayfield == null && playfields.length > 0) {
-										if (placeNote.fieldIndex == -1) placeNote.fieldIndex = placeNote.mustPress ? 0 : 1;
+									if (throatNote == null)
+										continue;
 
-										if (playfields.members[placeNote.fieldIndex] != null) {
-											placePlayfield = playfields.members[placeNote.fieldIndex];
-											placeNote.field = placePlayfield;
+									var placePlayfield:PlayField = throatNote.field;
+									if (placePlayfield == null && playfields.length > 0) {
+										if (throatNote.fieldIndex == -1) throatNote.fieldIndex = throatNote.mustPress ? 0 : 1;
+
+										if (playfields.members[throatNote.fieldIndex] != null) {
+											placePlayfield = playfields.members[throatNote.fieldIndex];
+											throatNote.field = placePlayfield;
 										}
 									}
 
 									if (placePlayfield != null)
 									{
-										placePlayfield.queue(placeNote);
-										allNotes.push(placeNote);
+										placePlayfield.queue(throatNote);
+										allNotes.push(throatNote);
 									}
 								}
 							}
@@ -5671,6 +5685,7 @@ class PlayState extends MusicBeatState
 	public var canReset:Bool = true;
 	public var startedCountdown:Bool = false;
 	public var canPause:Bool = true;
+	public var canPauseHardMode:Bool = true;
 	var freezeCamera:Bool = false;
 	public var allowDebugKeys:Bool = true;
 
@@ -5845,6 +5860,20 @@ class PlayState extends MusicBeatState
 		// Update modchart debug info every frame
 		updateModchartDebugText();
 
+		if (inArchipelagoMode && APInfo.inHardMode)
+		{
+			vocalVolumeMultiplierHardMode = (APInfo.hasItem("BF's Mic") ? 1 : 0);
+
+			gfGroup.visible = APInfo.hasItem("GF");
+
+			instVolumeMultiplierHardMode = (APInfo.hasItem("Speakers") ? 1 : 0);
+
+			camHUD.visible = !APInfo.hasItem("HUD");
+
+			canPauseHardMode = APInfo.hasItem("Pause Menu");
+
+		}
+
 		callOnScripts('onUpdate', [elapsed]);
 
 		updateVisPos();
@@ -5858,8 +5887,8 @@ class PlayState extends MusicBeatState
 		}
 
 		super.update(elapsed);
-		vocals.volume *= vocalVolumeMultiplier;
-		FlxG.sound.music.volume = 1 * instVolumeMultiplier;
+		vocals.volume *= vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
+		FlxG.sound.music.volume = 1 * instVolumeMultiplier * instVolumeMultiplierHardMode;
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
 		updateSyncedVideos(); // Update synced video system
@@ -5938,7 +5967,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (controls.PAUSE && startedCountdown && canPause && !endingSong)
+		if (controls.PAUSE && startedCountdown && canPause && canPauseHardMode && !endingSong)
 		{
 			var ret:Dynamic = callOnScripts('onPause', null, true);
 			if(ret != LuaUtils.Function_Stop) {
@@ -6836,7 +6865,7 @@ class PlayState extends MusicBeatState
 				case SINGLE:
 					iconP1.animation.curAnim.curFrame = 0;
 				case WINNING:
-					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 0 : (healthBar.percent > 80 ? 2 : 1));
+					iconP1.animation.curAnim.curFrame = (healthBar.percent < 20 ? 2 : (healthBar.percent > 80 ? 0 : 1));
 				case ANIMSINGLE:
 					iconP1.animation.play('idle', true);
 				case ANIMDEFAULT:
@@ -8688,7 +8717,7 @@ class PlayState extends MusicBeatState
 	private function popUpScore(note:Note = null):Void
 	{
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
-		vocals.volume = 1 * vocalVolumeMultiplier;
+		vocals.volume = 1 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
 
 		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0 || comboGroup.members.length > 1000)
 		{
@@ -10057,7 +10086,7 @@ class PlayState extends MusicBeatState
 				gf.specialAnim = true;
 			}
 		}
-		vocals.volume = 0 * vocalVolumeMultiplier;
+		vocals.volume = 0 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
 
 		if (curHealthMode == "Lives" && lives > 0)
 		{
@@ -10169,7 +10198,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if(opponentVocals.length <= 0) vocals.volume = 1 * vocalVolumeMultiplier;
+		if(opponentVocals.length <= 0) vocals.volume = 1 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
 		strumPlayAnim(field, note.column % field.keyCount, Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
 		note.hitByOpponent = true;
 
@@ -10261,7 +10290,7 @@ class PlayState extends MusicBeatState
 				if(spr != null) spr.playAnim('confirm', true);
 			}
 			else strumPlayAnim(field, note.column % field.keyCount, Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
-			vocals.volume = 1 * vocalVolumeMultiplier;
+			vocals.volume = 1 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
 
 			if (!note.isSustainNote)
 			{

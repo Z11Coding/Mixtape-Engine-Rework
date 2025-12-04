@@ -1114,7 +1114,7 @@ class APGameState
 		{
 			APItem.confusionStack = _saveData.getItem("confusionStacks");
 		}
-		
+
 		// Load active effects - these will be restored after all items are loaded
 		var savedActiveEffects:Array<String> = [];
 		var savedActiveSongEffects:Array<String> = [];
@@ -1198,6 +1198,34 @@ class APGameState
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
 
+		var antiTrapList:Array<String> = [];
+		// Load anti perma traps
+		if (_saveData.hasItem("activeAntiPermaTraps"))
+		{
+			var activeAntiPermaTraps:Array<String> = _saveData.getItem("activeAntiPermaTraps");
+			for (trapName in activeAntiPermaTraps)
+			{
+				activeAntiPermaTraps.push(trapName);
+			}
+			trace("Loaded " + activeAntiPermaTraps.length + " active perma traps from save");
+		}
+
+		// Load perma traps
+		if (_saveData.hasItem("activePermaTraps"))
+		{
+			var activePermaTraps:Array<String> = _saveData.getItem("activePermaTraps");
+			for (trapName in activePermaTraps)
+			{
+				if (trapName == "Sore Throat Trap" && !antiTrapList.contains("Throat Medicine")
+					|| trapName == "Vocal Inverter Trap" && !antiTrapList.contains("Voice Inverter")
+					|| trapName == "Blindness Trap" && !antiTrapList.contains("Contact Lenses")
+					|| trapName == "Mechanical Hell Trap" && !antiTrapList.contains("The Simplifier 3000")
+					|| trapName == "Metronome Madness Trap" && !antiTrapList.contains("Metronome Stabilizer"))
+					archipelago.APItem.createItemByName(trapName);
+			}
+			trace("Loaded " + activePermaTraps.length + " active perma traps from save");
+		}
+
 		// Restore active effects after all items are loaded
 		restoreActiveEffects(savedActiveEffects, savedActiveSongEffects);
 
@@ -1215,15 +1243,15 @@ class APGameState
 			trace("No active effects to restore");
 			return;
 		}
-		
+
 		trace("Restoring active effects: " + savedActiveEffects.length + " regular, " + savedActiveSongEffects.length + " song effects");
-		
+
 		// Create active effect items first (like other save data checks)
 		var allActiveEffectNames = savedActiveEffects.concat(savedActiveSongEffects);
 		for (itemName in allActiveEffectNames)
 		{
 			var item = APItem.createItemByName(itemName);
-			
+
 			// Recreate the active tracking
 			if (savedActiveEffects.contains(itemName))
 			{
@@ -1234,7 +1262,7 @@ class APGameState
 				APItem.activeSongEffects.push(item);
 			}
 		}
-		
+
 		trace("Active effects restored successfully - " + allActiveEffectNames.length + " active items created");
 	}
 
@@ -1261,7 +1289,7 @@ class APGameState
 		_saveData.addItem("unlockedUnoColors", archipelago.APItem.unoColorsUnlocked);
 		@:privateAccess
 		_saveData.addItem("confusionStack", APItem.confusionStack);
-		
+
 		// Save active effects tracking
 		_saveData.addItem("activeEffects", [for (name in APItem.activeEffects.keys()) name]);
 		_saveData.addItem("activeSongEffects", APItem.activeSongEffects.map(item -> item.name));
@@ -1283,6 +1311,10 @@ class APGameState
 				shopItems.push(shop.Item.makeMiniItemFromItem(ShopData.items.get(item)));
 
 			_saveData.addItem("apShopItems", shopItems);
+
+			_saveData.addItem("activePermaTraps", APItem.triggeredPermaTraps);
+
+			_saveData.addItem("activeAntiPermaTraps", APItem.triggeredAntiPermaTraps);
 
 			_saveData.save();
 			trace("Save data updated!");

@@ -180,7 +180,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	var MHPDWeight:Int = 3;
 
 	// Z11's Optional Hell
-	var starter_debuff:Bool = false;
+	var starter_debuffs:Bool = false;
 	var perma_traps:Bool = false;
 	var hard_mode:Bool = false;
 	var enable_shop:Bool = false;
@@ -458,8 +458,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							stagesanity = value == true;
 						case "charactersanity":
 							charactersanity = value == true;
-						case "starter_debuff":
-							starter_debuff = value == true;
+						case "starter_debuffs":
+							starter_debuffs = value == true;
 						case "perma_traps":
 							perma_traps = value == true;
 						case "hard_mode":
@@ -902,12 +902,13 @@ class APAdvancedSettingsState extends MusicBeatState
 			name: "Starter Debuffs",
 			description: "Inflicts you with four near-perminant debuffs (SEE WIKI PAGE FOR DEBUFF DETAILS)",
 			callback: function() {
-				starter_debuff = !starter_debuff;
+				starter_debuffs = !starter_debuffs;
+				perma_traps = false; // Disable perma-traps if starter debuff is enabled
 				refreshCurrentPage();
 			},
 			locked: false,
-			contextMenu: createBoolContextMenu(starter_debuff, function(value:Bool) {
-				starter_debuff = value;
+			contextMenu: createBoolContextMenu(starter_debuffs, function(value:Bool) {
+				starter_debuffs = value;
 				// Don't refresh here - the main callback will handle it
 			})
 		});
@@ -917,6 +918,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			description: "Makes the starting debuffs Trap Items instead (SEE WIKI PAGE FOR DEBUFF DETAILS)",
 			callback: function() {
 				perma_traps = !perma_traps;
+				starter_debuffs = false; // Disable starter debuff if perma-traps is enabled
 				refreshCurrentPage();
 			},
 			locked: false,
@@ -1597,7 +1599,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Sanity Completion Type": sanity_completion_type;
 			case "Stagesanity": stagesanity ? "ON" : "OFF";
 			case "Charactersanity": charactersanity ? "ON" : "OFF";
-			case "Starter Debuffs": starter_debuff ? "ON" : "OFF";
+			case "Starter Debuffs": starter_debuffs ? "ON" : "OFF";
 			case "Perma-Traps": perma_traps ? "ON" : "OFF";
 			case "HARD MODE": hard_mode ? "ON" : "OFF";
 			case "Enable Shop": enable_shop ? "ON" : "OFF";
@@ -2065,6 +2067,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Include Vanilla":
 				includeVanilla = cast(value, Bool);
 				updateSongStats();
+			case "Sanity Completion Type":
+				accRequirement = Std.string(value);
 			default:
 				trace('Unknown option: $optionName');
 		}
@@ -3083,7 +3087,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			sanity_completion_type = Reflect.hasField(settings, "sanity_completion_type") ? Reflect.field(settings, "sanity_completion_type") : "on_getting";
 			stagesanity = Reflect.hasField(settings, "stagesanity") ? settings.stagesanity : false;
 			charactersanity = Reflect.hasField(settings, "charactersanity") ? settings.charactersanity : false;
-			starter_debuff = Reflect.hasField(settings, "starter_debuff") ? settings.starter_debuff : false;
+			starter_debuffs = Reflect.hasField(settings, "starter_debuffs") ? settings.starter_debuffs : false;
 			hard_mode = Reflect.hasField(settings, "hard_mode") ? settings.hard_mode : false;
 			enable_shop = Reflect.hasField(settings, "enable_shop") ? settings.enable_shop : false;
 			perma_traps = Reflect.hasField(settings, "perma_traps") ? settings.perma_traps : false;
@@ -3139,7 +3143,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			Reflect.setField(settings, "sanity_completion_type", sanity_completion_type);
 			settings.stagesanity = stagesanity;
 			settings.charactersanity = charactersanity;
-			settings.starter_debuff = starter_debuff;
+			settings.starter_debuffs = starter_debuffs;
 			settings.perma_traps = perma_traps;
 			settings.hard_mode = hard_mode;
 			settings.enable_shop = enable_shop;
@@ -3693,7 +3697,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
 		Reflect.setField(yamlThing, "stagesanity", stagesanity);
 		Reflect.setField(yamlThing, "charactersanity", charactersanity);
-		Reflect.setField(yamlThing, "starter_debuff", starter_debuff);
+		Reflect.setField(yamlThing, "starter_debuffs", starter_debuffs);
 		Reflect.setField(yamlThing, "perma_traps", perma_traps);
 		Reflect.setField(yamlThing, "hard_mode", hard_mode);
 		Reflect.setField(yamlThing, "enable_shop", enable_shop);
@@ -3848,7 +3852,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
 		Reflect.setField(yamlThing, "stagesanity", stagesanity);
 		Reflect.setField(yamlThing, "charactersanity", charactersanity);
-		Reflect.setField(yamlThing, "starter_debuff", starter_debuff);
+		Reflect.setField(yamlThing, "starter_debuffs", starter_debuffs);
 		Reflect.setField(yamlThing, "perma_traps", perma_traps);
 		Reflect.setField(yamlThing, "hard_mode", hard_mode);
 		Reflect.setField(yamlThing, "enable_shop", enable_shop);
@@ -4584,7 +4588,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			sanity_completion_type: sanity_completion_type,
 			stagesanity: stagesanity,
 			charactersanity: charactersanity,
-			starter_debuff: starter_debuff,
+			starter_debuffs: starter_debuffs,
 			perma_traps: perma_traps,
 			hard_mode: hard_mode,
 			enable_shop: enable_shop
@@ -4667,8 +4671,8 @@ class APAdvancedSettingsState extends MusicBeatState
 				charactersanity = data.charactersanity;
 
 			// Load Z11's Optional Hell
-			if (Reflect.hasField(data, "starter_debuff"))
-				starter_debuff = data.starter_debuff;
+			if (Reflect.hasField(data, "starter_debuffs"))
+				starter_debuffs = data.starter_debuffs;
 			if (Reflect.hasField(data, "perma_traps"))
 				perma_traps = data.perma_traps;
 			if (Reflect.hasField(data, "hard_mode"))

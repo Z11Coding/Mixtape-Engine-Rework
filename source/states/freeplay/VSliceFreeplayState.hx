@@ -478,6 +478,35 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// Note: fpManager.reloadFreeplay() already calls refreshSongList() which populates the songs array
 		// So we don't need to duplicate that work here. The songs array is already populated by refreshSongList()
 
+		// Yeah so turns out AP literally doesn't work in this state without this????
+		if (APEntryState.inArchipelagoMode) {
+			for (globalSong in fpManager.songList)
+			{
+				// Extract the color from the GlobalSongMetadata format
+				var color = globalSong.color;
+				var colorInt = FlxColor.WHITE; // Default color
+
+				if (color != null && color.length > 0) {
+					if (color.length > 1 && color[1] != null && color[1].length > 0) {
+						// Use the FlxColor if available
+						colorInt = color[1][0];
+					} else if (color[0] != null && color[0].length >= 3) {
+						// Convert from RGB array
+						var rgb = color[0];
+						colorInt = FlxColor.fromRGB(rgb[0], rgb[1], rgb[2]);
+					}
+				}
+
+				// Create VSlice format song data
+				var sngCard = new FreeplaySongData(globalSong.week, globalSong.songName, globalSong.songCharacter, colorInt);
+
+				// Only add if it has valid difficulties
+				if (sngCard.songDifficulties.length == 0)
+					continue;
+				songs.push(sngCard);
+			}
+		}
+
 		// Just need to populate diffIdsTotalModBinds for any songs that were added
 		for (song in songs)
 		{

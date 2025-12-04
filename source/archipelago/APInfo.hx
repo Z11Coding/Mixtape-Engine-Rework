@@ -163,6 +163,8 @@ class APInfo {
 	public static var fivenightsatmechanicsmod:Bool = false;
 	public static var unstableSpeed:Bool = false;
 
+	public static var inHardMode:Bool = false;
+
 	public static var gradeList:Array<String> =
 	[
 		'Any',
@@ -381,5 +383,23 @@ class APInfo {
 		trace('Combo Minimum: $comboRankSetLimit\nAccuacy Minimum: $accRankSetLimit');
 	}
 
+	public static function grabAPItemName(item:Dynamic):String {
+		if (item is String)
+			return ap.get_item_name(ap.get_item_id(item));
+		if (item is Int)
+			return ap.get_item_name(item);
+		return "";
+	}
 
+	public static function grabAPItemID(item:Dynamic):Int {
+		if (item is Int)
+			return ap.get_item_id(ap.get_item_name(item));
+		if (item is String)
+			return ap.get_item_id(item);
+		return -1;
+	}
+
+	public static function hasItem(item:Dynamic):Bool {
+		return [for (item in APGameState.instance.APItems.keys()) item == grabAPItemName(item)].contains(true);
+	}
 }
