@@ -508,6 +508,12 @@ class CoolUtil
 		}
 		return string;
 	}
+
+	public static function showPopUp(message:String, title:String):Void
+	{
+		FlxG.stage.window.alert(message, title);
+	}
+
 }
 
 typedef LogData = {

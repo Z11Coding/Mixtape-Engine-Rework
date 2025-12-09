@@ -20,10 +20,10 @@ class ColorUtil
         //Blue
         hexString += hexCodes.charAt(Math.floor(b/16));
         hexString += hexCodes.charAt(b%16);
-        
+
         return Std.parseInt(hexString);
     }
-    
+
     public static function rgbaToHex(r:Int, g:Int, b:Int, a:Int):Int
     {
         var hexString = "0x";
@@ -39,8 +39,8 @@ class ColorUtil
         //Alpha
         hexString += hexCodes.charAt(Math.floor(a/16));
         hexString += hexCodes.charAt(a%16);
-        
-        
+
+
         return Std.parseInt(hexString);
     }
 }
