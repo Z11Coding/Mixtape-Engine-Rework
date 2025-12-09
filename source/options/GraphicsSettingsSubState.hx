@@ -42,7 +42,10 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option = new Option('Wide Screen Mode',
 			'If checked, The game will stetch to fill your whole screen. (WARNING: Can result in bad visuals & break some mods that resizes the game/cameras)',
 			'wideScreen', BOOL);
-		option.onChange = () -> MobileScaleMode.enabled = ClientPrefs.data.wideScreen;
+		option.onChange = () -> {
+			MobileScaleMode.enabled = ClientPrefs.data.wideScreen;
+			FlxG.scaleMode = new MobileScaleMode();
+		}
 		addOption(option);
 
 		var option:Option = new Option('Anti-Aliasing',
@@ -63,12 +66,6 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have a shitty Graphics Card.\n(WARNING! THIS TENDS TO BREAK THINGS AND CRASH THE GAME!\nTURN ON AT YOUR OWN RISK!)", //Description
 			'cacheOnGPU',
 			BOOL);
-		addOption(option);
-
-		option = new Option('Wide Screen Mode',
-			'If checked, The game will stetch to fill your whole screen. (WARNING: Can result in bad visuals & break some mods that resizes the game/cameras)',
-			'wideScreen', BOOL);
-		option.onChange = () -> FlxG.scaleMode = new MobileScaleMode();
 		addOption(option);
 
 		#if !html5 //Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk

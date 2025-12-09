@@ -1,16 +1,13 @@
 package states.editors;
 
-import openfl.events.Event;
-import openfl.events.IOErrorEvent;
+import cutscenes.DialogueBoxPsych;
+import cutscenes.DialogueCharacter;
 import flash.net.FileFilter;
 import haxe.Json;
 import lime.system.Clipboard;
-
 import objects.TypedAlphabet;
-
-import cutscenes.DialogueBoxPsych;
-import cutscenes.DialogueCharacter;
-
+import openfl.events.Event;
+import openfl.events.IOErrorEvent;
 import states.editors.content.Prompt;
 
 class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
@@ -46,7 +43,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		camHUD = new FlxCamera();
 		camHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(camHUD, false);
-		
+
 		mainGroup = new FlxSpriteGroup();
 		mainGroup.cameras = [camGame];
 		hudGroup = new FlxSpriteGroup();
@@ -57,7 +54,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		character = new DialogueCharacter();
 		character.scrollFactor.set();
 		mainGroup.add(character);
-		
+
 		ghostLoop = new DialogueCharacter();
 		ghostLoop.alpha = 0;
 		ghostLoop.color = FlxColor.RED;
@@ -65,7 +62,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		ghostLoop.jsonFile = character.jsonFile;
 		ghostLoop.cameras = [camGame];
 		mainGroup.add(ghostLoop);
-		
+
 		ghostIdle = new DialogueCharacter();
 		ghostIdle.alpha = 0;
 		ghostIdle.color = FlxColor.BLUE;
@@ -91,7 +88,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		\nR - Reset Camera
 		\nH - Toggle Speech Bubble
 		\nSpace - Reset text';
-	
+
 	    TIP_TEXT_OFFSET =
 		'JKLI - Move camera (Hold Shift to move 4x faster)
 		\nQ/E - Zoom out/in
@@ -138,7 +135,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		addEditorBox();
 		FlxG.mouse.visible = true;
 		updateCharTypeBox();
-		
+
 		#if TOUCH_CONTROLS_ALLOWED
 		addTouchPad('DIALOGUE_PORTRAIT', 'DIALOGUE_PORTRAIT');
 		addTouchPadCamera();
@@ -171,7 +168,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 	var characterTypeRadio:PsychUIRadioGroup;
 	function addTypeUI() {
 		var tab_group = UI_typebox.getTab('Character Type').menu;
-		
+
 		characterTypeRadio = new PsychUIRadioGroup(10, 20, ['Left', 'Center', 'Right'], 40);
 		characterTypeRadio.checked = 0;
 		characterTypeRadio.onClick = function() {
@@ -213,11 +210,11 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 				idleInputText.text = animShit.idle_name;
 			}
 		});
-		
+
 		animationInputText = new PsychUIInputText(15, 85, 80, '', 8);
 		loopInputText = new PsychUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
 		idleInputText = new PsychUIInputText(loopInputText.x, loopInputText.y + 40, 150, '', 8);
-		
+
 		var addUpdateButton:PsychUIButton = new PsychUIButton(10, idleInputText.y + 30, "Add/Update", function() {
 			var theAnim:String = animationInputText.text.trim();
 			if(character.dialogueAnimations.exists(theAnim)) //Update
@@ -258,7 +255,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 				animationDropDown.selectedLabel = lastSelected;
 			}
 		});
-		
+
 		var removeUpdateButton:PsychUIButton = new PsychUIButton(100, addUpdateButton.y, "Remove", function() {
 			for (i in 0...character.jsonFile.animations.length) {
 				var animArray:DialogueAnimArray = character.jsonFile.animations[i];
@@ -282,7 +279,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 				}
 			}
 		});
-		
+
 		tab_group.add(new FlxText(animationDropDown.x, animationDropDown.y - 18, 0, 'Animations:'));
 		tab_group.add(new FlxText(animationInputText.x, animationInputText.y - 18, 0, 'Animation name:'));
 		tab_group.add(new FlxText(loopInputText.x, loopInputText.y - 18, 0, 'Loop name on .XML file:'));
@@ -325,7 +322,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 			character.jsonFile.no_antialiasing = noAntialiasingCheckbox.checked;
 			character.antialiasing = !character.jsonFile.no_antialiasing;
 		};
-		
+
 		tab_group.add(new FlxText(10, imageInputText.y - 18, 0, 'Image file name:'));
 		tab_group.add(new FlxText(10, xStepper.y - 18, 0, 'Position Offset:'));
 		tab_group.add(new FlxText(10, scaleStepper.y - 18, 0, 'Scale:'));
@@ -338,7 +335,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		var reloadImageButton:PsychUIButton = new PsychUIButton(10, scaleStepper.y + 60, "Reload Image", function() {
 			reloadCharacter();
 		});
-		
+
 		#if !mobile
 		var loadButton:PsychUIButton = new PsychUIButton(reloadImageButton.x + 100, reloadImageButton.y, "Load Character", function() {
 			loadCharacter();
@@ -351,7 +348,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		#if !mobile tab_group.add(loadButton); #end
 		tab_group.add(saveButton);
 	}
-	
+
 	function updateCharTypeBox()
 	{
 		switch(character.jsonFile.dialogue_pos)
@@ -384,7 +381,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		switch(character.jsonFile.dialogue_pos) {
 			case 'right':
 				character.x = FlxG.width - character.width + DialogueBoxPsych.RIGHT_CHAR_X;
-			
+
 			case 'center':
 				character.x = FlxG.width / 2;
 				character.x -= character.width / 2;
@@ -472,7 +469,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		justPressed_S = justPressed_S || touchPad.buttonDown2.justPressed;
 		justPressed_A = justPressed_A || touchPad.buttonLeft2.justPressed;
 		justPressed_D = justPressed_D || touchPad.buttonRight2.justPressed;
- 
+
 		justPressed_LEFT = justPressed_LEFT || touchPad.buttonLeft.justPressed;
 		justPressed_RIGHT = justPressed_RIGHT || touchPad.buttonRight.justPressed;
 		justPressed_UP = justPressed_UP || touchPad.buttonUp.justPressed;
@@ -610,17 +607,17 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 					animText.visible = true;
 					updateTextBox();
 					daText.resetDialogue();
-					
+
 					if(curAnim < 0) curAnim = character.jsonFile.animations.length - 1;
 					else if(curAnim >= character.jsonFile.animations.length) curAnim = 0;
-					
+
 					character.playAnim(character.jsonFile.animations[curAnim].anim);
 					animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
 				}
 				lastTab = UI_mainbox.selectedName;
 				currentGhosts = 0;
 			}
-			
+
 			if(UI_mainbox.selectedName == 'Character')
 			{
 				var negaMult:Array<Int> = [1, -1];
@@ -661,7 +658,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		}
 		else ClientPrefs.toggleVolumeKeys(false);
 	}
-	
+
 	function loadCharacter() {
 		var jsonFile = ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]);
 		var jsonPath = ImprovedFileHandling.lastPath;
@@ -703,12 +700,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 			var splittedImage:Array<String> = imageInputText.text.trim().split('_');
 			var characterName:String = splittedImage[0].toLowerCase().replace(' ', '');
 
-			#if mobile
-			unsavedProgress = false;
-			StorageUtil.saveContent('$characterName.json', data);
-			#else
 			ImprovedFileHandling.saveOperation(characterName + ".json", {ext: "json", desc: "JSON File"}, Text, data);
-			#end
 		}
 	}
 

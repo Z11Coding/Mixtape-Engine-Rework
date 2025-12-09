@@ -23,8 +23,8 @@ class CrashTracker {
     public static var ENABLE_FUNCTION_WRAPPING:Bool = true; // Re-enabled
     public static var ENABLE_COMMAND_EXIT_TRACKING:Bool = true; // Re-enabled
     public static var ENABLE_VARIABLE_ACCESS_TRACKING:Bool = true; // Re-enabled with safer variable handling
-    public static var ENABLE_COMPILATION_TRACING:Bool = true; // Re-enabled for debugging
-    public static var ENABLE_DETAILED_COMPILATION_TRACING:Bool = true; // Re-enabled for debugging
+    public static var ENABLE_COMPILATION_TRACING:Bool = #if verbose true #else false #end; // Re-enabled for debugging
+    public static var ENABLE_DETAILED_COMPILATION_TRACING:Bool = #if verbose true #else false #end; // Re-enabled for debugging
 
     /**
      * Macro to inject crash tracking into a class

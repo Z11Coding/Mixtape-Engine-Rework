@@ -337,12 +337,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
-		var option = new Option('Wide Screen Mode',
-			'If checked, The game will stetch to fill your whole screen. (WARNING: Can result in bad visuals & break some mods that resizes the game/cameras)',
-			'wideScreen', BOOL);
-		option.onChange = () -> MobileScaleMode.enabled = ClientPrefs.data.wideScreen;
-		addOption(option);
-
 		var option:Option = new Option('Enable Garbage Collection',
 			"If checked, Your memory usage will be normalized, but you'll have lag spikes.\nBut, unchecked, little to no lag spikes, but higher average memory usage.",
 			'garbageCollection',
