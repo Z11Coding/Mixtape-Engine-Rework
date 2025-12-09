@@ -298,7 +298,9 @@ class Main extends Sprite
 	public function new()
 	{
 
+		#if windows
 		backend.window.CppAPI.setWindowOpacity(0);
+		#end
 
 		super();
 

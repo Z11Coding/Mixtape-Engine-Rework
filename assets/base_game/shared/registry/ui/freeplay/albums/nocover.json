@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "name": "Mixtape Engine",
+  "artists": ["???"],
+  "albumArtAsset": "albums/NoCover",
+  "albumTitleAsset": "freeplay/albumRoll/expansion1-text"
+}

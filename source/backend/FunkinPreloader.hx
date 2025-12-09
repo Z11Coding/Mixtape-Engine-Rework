@@ -358,7 +358,7 @@ class FunkinPreloader extends FlxBasePreloader
 
 					#if (linux || ios)
 					FlxG.signals.preStateCreate.add(state ->{
-						mikolka.funkin.custom.NativeFileSystem.excludePaths.resize(0);
+						backend.NativeFileSystem.excludePaths.resize(0);
 					});
 					#end
 
