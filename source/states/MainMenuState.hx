@@ -1,7 +1,10 @@
 package states;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APGameState;
 import archipelago.APVersionSelectionState;
+#end
+
 import flixel.FlxObject;
 import flixel.addons.display.FlxBackdrop;
 import flixel.effects.FlxFlicker;

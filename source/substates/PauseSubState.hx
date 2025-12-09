@@ -1,6 +1,9 @@
 package substates;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APPlayState;
+#end
+
 import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
@@ -434,6 +437,8 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.changedDifficulty = false;
 					PlayState.chartingMode = false;
 					FlxG.camera.followLerp = 0;
+
+				#if ARCHIPELAGO_ALLOWED
 				case 'Skip Check':
 					var apPlayState:APPlayState = cast PlayState.instance;
 					@:privateAccess
@@ -442,6 +447,7 @@ class PauseSubState extends MusicBeatSubstate
 							apPlayState.checkedNotes.push(note);
 					PlayState.instance.endSong();
 					close();
+				#end
 			}
 		}
 	}

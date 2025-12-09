@@ -283,8 +283,10 @@ class Highscore
 		// THIS IS EXTREMEMLY IMPORTANT!!! Without this the game literally cant save the ranking properly
 		saveMod += "-"+ClientPrefs.data.ranking;
 
+		#if ARCHIPELAGO_ALLOWED
 		if (APEntryState.inArchipelagoMode)
 			saveMod += "-archipelago";
+		#end
 		if (bothMode)
 			saveMod += "-bothMode";
 		else if (opponentmode)

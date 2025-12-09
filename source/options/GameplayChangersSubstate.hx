@@ -1,6 +1,8 @@
 package options;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APEntryState;
+#end
 import backend.GameplayOptionsLoader;
 import objects.AttachedText;
 import objects.CheckboxThingie;

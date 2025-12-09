@@ -580,13 +580,13 @@ class FunkinPreloader extends FlxBasePreloader
 				{
 					cachingDataPercent = 0.0;
 					cachingDataStartTime = elapsed;
+
 					#if !LEGACY_PSYCH
 
 					var assetsToCache:Array<String> = [
-					"freeplay/freeplayStars",
-					"freeplay/albumRoll/freeplayAlbum",
-					"freeplay/sortedLetters",
-					"charSelect/charSelectStage"
+						"freeplay/freeplayStars",
+						"freeplay/albumRoll/freeplayAlbum",
+						"freeplay/sortedLetters"
 					];
 
 					trace("Load misc");
@@ -594,7 +594,7 @@ class FunkinPreloader extends FlxBasePreloader
 					// Cache assets list for future use
 					// load 6.4MB json file
 
-						var promise = new Promise<Any>();
+					var promise = new Promise<Any>();
 					new Future(() ->
 					{
 						for (index => item in assetsToCache)
@@ -606,14 +606,14 @@ class FunkinPreloader extends FlxBasePreloader
 								if (jsonBlob != null)
 								{
 									#if debug trace("Cached JSON: " + item); #end
-									states.freeplay.vslice.obj.FlxAtlasSprite.ANIMATION_OBJECTS.set(item,jsonBlob);
+									states.freeplay.vslice.obj.FlxAtlasSprite.ANIMATION_OBJECTS.set(item, jsonBlob);
 									//objects.FlxAtlasSprite.ANIMATION_OBJECTS.set(item,jsonBlob);
 								}
 								else trace("JSON is null: " + item);
-
 							}
 							catch (x:Exception)
 								trace("Exception when caching Anim JSON: " + x.message);
+
 							promise.progress(index + 1, assetsToCache.length);
 						}
 						promise.complete(null);

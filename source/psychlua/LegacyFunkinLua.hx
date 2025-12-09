@@ -1,38 +1,49 @@
 package psychlua;
 
-import openfl.display.BitmapData;
-#if LUA_ALLOWED
-import llua.Lua;
-import llua.LuaL;
-import llua.State;
-import llua.Convert;
-#end
-
+import Type.ValueType;
 import animateatlas.AtlasFrameMaker;
-import flixel.FlxG;
-import flixel.addons.effects.FlxTrail;
-import flixel.input.keyboard.FlxKey;
-import flixel.tweens.FlxTween;
-import flixel.tweens.FlxEase;
-import flixel.text.FlxText;
-import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.math.FlxPoint;
-import flixel.system.FlxSound;
-import flixel.util.FlxTimer;
-import flixel.FlxSprite;
-import flixel.FlxCamera;
-import flixel.util.FlxColor;
+import backend.Controls;
+import backend.Highscore;
+import backend.Song;
+import backend.WeekData;
+import cutscenes.DialogueBoxPsych;
 import flixel.FlxBasic;
+import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
+import flixel.FlxSprite;
+import flixel.addons.effects.FlxTrail;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.input.keyboard.FlxKey;
+import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
+import flixel.system.FlxAssets.FlxShader;
+import flixel.system.FlxSound;
+import flixel.text.FlxText;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxSave;
+import flixel.util.FlxTimer;
+import objects.Character;
+import objects.Note;
+import objects.StrumNote;
 import openfl.Lib;
+import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.utils.Assets;
-import flixel.math.FlxMath;
-import flixel.util.FlxSave;
-import flixel.addons.transition.FlxTransitionableState;
-import flixel.system.FlxAssets.FlxShader;
+import states.PlayState;
+
+using StringTools;
+#if LUA_ALLOWED
+import llua.Convert;
+import llua.Lua;
+import llua.LuaL;
+import llua.State;
+#end
 
 #if (!flash && sys)
 import flixel.addons.display.FlxRuntimeShader;
@@ -43,29 +54,16 @@ import sys.FileSystem;
 import sys.io.File;
 #end
 
-import Type.ValueType;
-import backend.Controls;
-import cutscenes.DialogueBoxPsych;
-import states.PlayState;
-import objects.Character;
-
 #if hscript
-import hscript.Parser;
-import hscript.Interp;
 import hscript.Expr;
+import hscript.Interp;
+import hscript.Parser;
 #end
 
 #if desktop
 import backend.Discord;
 #end
 
-using StringTools;
-
-import objects.StrumNote;
-import objects.Note;
-import backend.WeekData;
-import backend.Song;
-import backend.Highscore;
 
 class LegacyFunkinLua {
 
@@ -81,7 +79,7 @@ class LegacyFunkinLua {
 	#if hscript
 	public static var hscript:HScriptLegacy = null;
 	#end
-	
+
 	public function new(script:String) {
 		#if LUA_ALLOWED
 		lua = LuaL.newstate();
@@ -168,8 +166,8 @@ class LegacyFunkinLua {
 		set('rating', 0);
 		set('ratingName', '');
 		set('ratingFC', '');
-		set('version', Std.string(ClientPrefs.getGameplaySetting('legacyType')).toLowerCase().trim() != 'none' 
-			? Std.string(ClientPrefs.getGameplaySetting('legacyType')).trim() 
+		set('version', Std.string(ClientPrefs.getGameplaySetting('legacyType')).toLowerCase().trim() != 'none'
+			? Std.string(ClientPrefs.getGameplaySetting('legacyType')).trim()
 			: states.MainMenuState.psychEngineVersion.trim());
 
 		set('inGameOver', false);
@@ -280,7 +278,7 @@ class LegacyFunkinLua {
 			#end
 			return false;
 		});
-		
+
 		Lua_helper.add_callback(lua, "setSpriteShader", function(obj:String, shader:String) {
 			if(!ClientPrefs.data.shaders) return false;
 
@@ -938,11 +936,14 @@ class LegacyFunkinLua {
 		});
 
 		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
+			#if ARCHIPELAGO_ALLOWED
 			if(archipelago.APEntryState.inArchipelagoMode)
 			{
 				luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
 				APFreeplayManager.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
 			}
+			#end
+
 			if(name == null || name.length < 1)
 				name = PlayState.SONG.song;
 			if (difficultyNum == -1)
@@ -1847,7 +1848,7 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "addAnimationByIndicesLoop", function(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24) {
 			return addAnimByIndices(obj, name, prefix, indices, framerate, true);
 		});
-		
+
 
 		Lua_helper.add_callback(lua, "playAnim", function(obj:String, name:String, forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0)
 		{
@@ -2345,7 +2346,7 @@ class LegacyFunkinLua {
 			if (text5 == null) text5 = '';
 			luaTrace('' + text1 + text2 + text3 + text4 + text5, true, false);
 		});
-		
+
 		Lua_helper.add_callback(lua, "close", function() {
 			closed = true;
 			return closed;
@@ -2429,7 +2430,7 @@ class LegacyFunkinLua {
 				CoolUtil.setTextBorderFromString(obj, (size > 0 ? style : 'none'));
 				if(size > 0)
 					obj.borderSize = size;
-				
+
 				obj.borderColor = CoolUtil.colorFromString(color);
 				return true;
 			}
@@ -2797,7 +2798,7 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "stringTrim", function(str:String) {
 			return str.trim();
 		});
-		
+
 		Lua_helper.add_callback(lua, "directoryFileList", function(folder:String) {
 			var list:Array<String> = [];
 			#if sys
@@ -2864,7 +2865,7 @@ class LegacyFunkinLua {
 		/*if(Std.isOfType(instance, Map))
 			instance.set(variable,value);
 		else*/
-			
+
 		if(PlayState.instance.variables.exists(variable))
 		{
 			PlayState.instance.variables.set(variable, value);
@@ -2929,7 +2930,7 @@ class LegacyFunkinLua {
 		return null;
 	}
 	#end
-	
+
 	function initLuaShader(name:String, ?glslVersion:Int = 120)
 	{
 		if(!ClientPrefs.data.shaders) return false;
@@ -2947,7 +2948,7 @@ class LegacyFunkinLua {
 
 		for(mod in Mods.getGlobalMods())
 			foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
-		
+
 		for (folder in foldersToCheck)
 		{
 			if(FileSystem.exists(folder))
@@ -3389,14 +3390,14 @@ class ModchartText extends FlxText
 // 		super.create();
 // 		PlayState.instance.callOnLuas('onCustomSubstateCreatePost', [name]);
 // 	}
-	
+
 // 	public function new(name:String)
 // 	{
 // 		CustomSubstate.name = name;
 // 		super();
 // 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 // 	}
-	
+
 // 	override function update(elapsed:Float)
 // 	{
 // 		PlayState.instance.callOnLuas('onCustomSubstateUpdate', [name, elapsed]);

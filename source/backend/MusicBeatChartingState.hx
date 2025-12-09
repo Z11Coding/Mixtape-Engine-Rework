@@ -1,12 +1,15 @@
 package backend;
 
+import backend.PsychCamera;
+import flixel.FlxState;
 import flixel.addons.ui.FlxUIState;
 #if windows
 import backend.window.CppAPI;
 #end
-import flixel.FlxState;
-import backend.PsychCamera;
+
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APEntryState;
+#end
 
 class MusicBeatChartingState extends FlxUIState
 {
@@ -152,7 +155,7 @@ class MusicBeatChartingState extends FlxUIState
 			FlxG.resetState();
 		}
 		else if (Main.audioDisconnected) FlxG.resetState();
-		
+
 		// everyStep();
 		var oldStep:Int = curStep;
 		timePassedOnState += elapsed;
@@ -277,15 +280,15 @@ class MusicBeatChartingState extends FlxUIState
 		switch (transition) {
 			case "FlxG", "FlxG.switchState":
 				FlxG.switchState(new PlayState());
-				
+
 			case "MusicBeatState":
 				switchState(new PlayState());
-				
+
 			case "TransitionState":
 				TransitionState.transitionState(PlayState, {
 					transitionType: type
 				});
-				
+
 			default:
 				FlxG.switchState(new PlayState());
 

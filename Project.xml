@@ -29,6 +29,7 @@
 	<define name="TRANSLATIONS_ALLOWED" />
 	<define name="IRIS_DEBUG"/>
 	<define name="ARCHIPELAGO_ALLOWED"/>
+	<define name="MECHANICS_MOD_ALLOWED"/>
 	<define name="CHECK_FOR_UPDATES"/>
 	<define name="TITLE_SCREEN_EASTER_EGG"/>
 	<define name="NATIVE_LOOKUP" if="MODS_ALLOWED" />

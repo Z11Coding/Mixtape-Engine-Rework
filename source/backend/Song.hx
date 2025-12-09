@@ -355,6 +355,7 @@ class Song
 	 */
 	private static function checkForSongVariants(folder:String, jsonInput:String):{folderPath:String, jsonInput:String, variantName:String}
 	{
+		#if ARCHIPELAGO_ALLOWED
 		#if MODS_ALLOWED
 		if (!HighQualityTrapManager.isTrapInUse()) return null;
 		// Check for variants folder in the song's data directory
@@ -421,6 +422,9 @@ class Song
 		} else {
 			trace('Song.checkForSongVariants: No variants folder found');
 		}
+		#end
+		#else
+		trace('Song.checkForSongVariants: ARCHIPELAGO IS DISABLED! This function requires ARCHIPELAGO to be enabled to check for song variants.');
 		#end
 
 		return null;

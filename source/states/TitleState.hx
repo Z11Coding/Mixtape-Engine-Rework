@@ -90,7 +90,7 @@ class TitleState extends MusicBeatState
 		trace(this.metadata());
 		for (classthing in this.metadata().super_tree.toIterable())
 			try {
-			trace("Ultimate Super Tree for " + classthing + ": " + Type.createEmptyInstance(Type.resolveClass(classthing)).metadata().super_tree);
+				trace("Ultimate Super Tree for " + classthing + ": " + Type.createEmptyInstance(Type.resolveClass(classthing)).metadata().super_tree);
 			} catch (e:haxe.Exception) {
 				trace("Error retrieving super tree for " + classthing + ": " + e.message);
 				trace("Details: " + e.details());
@@ -141,11 +141,13 @@ class TitleState extends MusicBeatState
 			FlxG.switchState(new options.OptionsState());
 		}
 
+		#if ARCHIPELAGO_ALLOWED
 		if (Main.cmdArgs.indexOf("APDisconnectError") != -1 && !APBug)
 		{
 			APBug = true;
 			FlxG.switchState(new archipelago.APEntryState());
 		}
+		#end
 
 		if (initialized && (FlxG.sound.music == null || !FlxG.sound.music.playing))
 			MusicManager.playMenuMusic(0.5);
@@ -704,7 +706,6 @@ class TitleState extends MusicBeatState
 					addMoreText(curWacky[1]);
 				case 16:
 					addMoreText(curWacky[2]); // credTextShit.text += '\nFunkin';
-
 				case 17:
 					skipIntro();
 			}
@@ -732,7 +733,7 @@ class TitleState extends MusicBeatState
 	}
 
 	var box:FlxSprite;
-    var boxB:FlxSprite;
+  var boxB:FlxSprite;
 	var underText:UnderTextParser;
 	var daStatic:FlxSprite;
 	//Box Stuff

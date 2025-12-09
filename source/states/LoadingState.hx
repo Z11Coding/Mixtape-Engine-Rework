@@ -1630,6 +1630,7 @@ class LoadingState extends MusicBeatState
 					}
 				}
 
+				#if MECHANICS_MOD_ALLOWED
 				if (PlayState.mechanicsMod != null) {
 					var sectionLength = (section.sectionBeats*4);
 
@@ -1757,8 +1758,10 @@ class LoadingState extends MusicBeatState
 					}
 					sectionLoopCount += 1;
 				}
+				#end
 			}
 
+			#if MECHANICS_MOD_ALLOWED
 			if (PlayState.mechanicsMod != null) {
 				if (MechanicManager.mechanics["note_speed"].points > 0)
 				{
@@ -1778,6 +1781,7 @@ class LoadingState extends MusicBeatState
 					}
 				}
 			}
+			#end
 		}
 		trace('Done Preloading Chart!');
 		chartLoaded = true;

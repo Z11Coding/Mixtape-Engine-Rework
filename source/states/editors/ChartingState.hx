@@ -1628,7 +1628,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			var doCut:Bool = false;
 			var canContinue:Bool = true;
-			if(FlxG.keys.justPressed.ENTER || archipelago.APEntryState.inArchipelagoMode)
+			if(FlxG.keys.justPressed.ENTER #if ARCHIPELAGO_ALLOWED || archipelago.APEntryState.inArchipelagoMode #end)
 			{
 				goToPlayState();
 				return;

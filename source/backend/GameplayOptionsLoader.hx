@@ -1,6 +1,9 @@
 package backend;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APEntryState;
+#end
+
 import backend.ui.*;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -178,6 +181,7 @@ class GameplayOptionsLoader {
         options.push(randomSpeed);
         #end
 
+        #if ARCHIPELAGO_ALLOWED
         // Mixtape-specific options
         if (!APEntryState.inArchipelagoMode) {
             var chartModifier = new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal',
@@ -190,6 +194,7 @@ class GameplayOptionsLoader {
             convertMania.maxValue = Note.maxMania;
             options.push(convertMania);
         }
+        #end
 
         var showcase = new GameplayOption('Showcase Mode', 'showcase', BOOL, false);
         options.push(showcase);

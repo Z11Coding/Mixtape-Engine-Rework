@@ -1,6 +1,9 @@
 package substates;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APPlayState;
+#end
+
 import backend.WeekData;
 import flixel.FlxObject;
 import flixel.FlxSubState;
@@ -397,12 +400,14 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		instance = null;
 
+		#if ARCHIPELAGO_ALLOWED
 		if (APPlayState.deathByLink)
 		{
 			APPlayState.deathByLink = false;
 			APPlayState.deathLinkPacket = null;
 			APPlayState.alreadyKilledByLink = false;
 		}
+		#end
 		super.destroy();
 	}
 }

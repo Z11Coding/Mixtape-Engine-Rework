@@ -1,7 +1,10 @@
 package substates;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.*;
 import archipelago.APEntryState;
+#end
+
 import backend.Song;
 import backend.WeekData;
 import backend.pslice.Scoring.ScoringRank;
@@ -29,8 +32,11 @@ class RankingSubstate extends MusicBeatSubstate
 	var comboRankLimit:Int = 0;
 	var accRankLimit:Int = 0;
 
+	#if ARCHIPELAGO_ALLOWED
 	var comboRankSetLimit:Int = APInfo.comboRankSetLimit;
 	var accRankSetLimit:Int = APInfo.accRankSetLimit;
+	#end
+
 	public function new()
 	{
 		super();
@@ -114,6 +120,7 @@ class RankingSubstate extends MusicBeatSubstate
 		hint.updateHitbox();
 		add(hint);
 
+		#if ARCHIPELAGO_ALLOWED
 		if (!archipelago.APEntryState.inArchipelagoMode) {
 			trace("Not in AP");
 			switch (comboRank)
@@ -172,8 +179,36 @@ class RankingSubstate extends MusicBeatSubstate
 				}
 			}
 		}
+		#else
+		switch (comboRank)
+		{
+			case 'MFC':
+				hint.text = "Congrats! You're perfect!";
+			case 'SFC':
+				hint.text = "Almost Perfection! Try getting only marvelous for MFC";
+			case 'GFC':
+				hint.text = "You're doing great! Try getting only sicks for SFC";
+			case 'FC':
+				hint.text = "Good job. Try getting goods at minimum for GFC.";
+			case 'SDCB':
+				hint.text = "Nice. Try not missing at all for FC.";
+		}
 
+		if (PlayState.instance.cpuControlled)
+		{
+			hint.y -= 35;
+			hint.text = 'If you wanna gather that rank, disable botplay.' + FlxG.random.bool(3) ?? '\n(Dirty cheater...)';
+		}
+
+		if (PlayState.deathCounter >= 30)
+		{
+			hint.text = "...how are you this bad...";
+		}
+		#end
+
+		#if ARCHIPELAGO_ALLOWED
 		archipelago.APItem.waitingForTransition = true;
+		#end
 
 		hint.screenCenter(X);
 
@@ -225,6 +260,7 @@ class RankingSubstate extends MusicBeatSubstate
 					} else {
 						TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					}
+				#if ARCHIPELAGO_ALLOWED
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');
 					//MusicManager.playMenuMusic();
@@ -393,6 +429,7 @@ class RankingSubstate extends MusicBeatSubstate
 						trace("Ranking requirements not met - main location check will not be sent");
 					}
 					Mods.loadTopMod();
+				#end
 			}
 		}
 	}

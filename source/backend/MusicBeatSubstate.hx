@@ -1,6 +1,9 @@
 package backend;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APEntryState;
+#end
+
 import flixel.FlxSubState;
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatSubstate))

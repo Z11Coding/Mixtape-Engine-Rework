@@ -731,11 +731,13 @@ class Note extends NoteObject
 			rgbShader.r = arr[0];
 			rgbShader.g = arr[1];
 			rgbShader.b = arr[2];
+			#if ARCHIPELAGO_ALLOWED
 			if (this is archipelago.APNote)
 			{
 				trace("AP Color.");
 				shader = null;
 			}
+			#end
 		}
 		else
 		{

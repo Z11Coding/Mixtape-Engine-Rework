@@ -401,7 +401,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 			effectArray.push(afm);
 		}
 
-			// Check for pending Archipelago reconnection
+		#if ARCHIPELAGO_ALLOWED
+		// Check for pending Archipelago reconnection
 		if (archipelago.APEntryState.inArchipelagoMode &&
 			archipelago.APGameState.pendingReconnection &&
 			archipelago.APGameState.reconnectionCallback != null) {
@@ -419,6 +420,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		// Update Archipelago tags on every state switch
 		updateAPTags();
+		#end
 	}
 
 	public static var firstRun:Bool = true;
@@ -630,8 +632,10 @@ class MusicBeatState extends yutautil.SafeManagedState
 		updateCurStep();
 		updateBeat();
 
+		#if ARCHIPELAGO_ALLOWED
 		if (archipelago.APEntryState.inArchipelagoMode)
 			archipelago.APItem.doCheck();
+		#end
 
 		if (oldStep != curStep)
 		{
@@ -692,8 +696,10 @@ class MusicBeatState extends yutautil.SafeManagedState
 			}
 		}
 
+		#if ARCHIPELAGO_ALLOWED
 		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
 			APEntryState.apGame.info()?.poll();
+		#end
 	}
 
 	private function updateSection():Void

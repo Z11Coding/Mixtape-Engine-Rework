@@ -1,5 +1,9 @@
 package states;
+
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APEntryState;
+#end
+
 import backend.WeekData;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.input.keyboard.FlxKey;

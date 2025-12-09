@@ -36,23 +36,31 @@ class EvacuateDebugPlugin extends FlxBasic
 
     if (FlxG.keys.justPressed.F5)
     {
+      #if ARCHIPELAGO_ALLOWED
       if (Std.is(FlxG.state, archipelago.APPlayState)) {
         states.PlayState.instance.inCutscene = true;
         states.PlayState.instance.paused = true;
       } else {
         backend.MusicBeatState.revokeControls = true;
       }
+      #else
+      backend.MusicBeatState.revokeControls = true;
+      #end
       var psychDialogue:DialogueBoxPsych;
       psychDialogue = new DialogueBoxPsych(DialogueBoxPsych.parseDialogue(Paths.json('apthings/dialogue/0')));
       psychDialogue.scrollFactor.set();
       psychDialogue.autoScroller = true;
       psychDialogue.finishThing = function() {
+        #if ARCHIPELAGO_ALLOWED
         if (Std.is(FlxG.state, archipelago.APPlayState)) {
           states.PlayState.instance.paused = false;
           states.PlayState.instance.inCutscene = false;
         } else {
           backend.MusicBeatState.revokeControls = false;
         }
+        #else
+        backend.MusicBeatState.revokeControls = false;
+        #end
         FlxG.state.remove(psychDialogue);
         psychDialogue = null;
       }

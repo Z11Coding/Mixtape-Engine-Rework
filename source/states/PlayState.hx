@@ -26,8 +26,6 @@ import lime.utils.Assets;
 import managers.DynamicSongManager;
 import managers.DynamicSongScripting;
 import managers.NotePoolManager;
-import mechanics.MechanicsPlaystate;
-import mechanics.objects.Shape;
 import metadata.STMetaFile.MetadataFile;
 import objects.*;
 import objects.Note.EventNote;
@@ -54,6 +52,12 @@ import yutautil.AprilFools;
 import yutautil.ChanceSelector.Chance;
 import yutautil.ChanceSelector;
 import yutautil.UnoMechanic;
+
+#if MECHANICS_MOD_ALLOWED
+import mechanics.MechanicsPlaystate;
+import mechanics.objects.Shape;
+#end
+
 #if (target.threaded)
 import sys.thread.FixedThreadPool;
 import sys.thread.Mutex;
@@ -548,10 +552,11 @@ class PlayState extends MusicBeatState
 	var vocalvisual:AudioDisplay = null;
 	var oppvisual:AudioDisplay = null;
 
+	#if MECHANICS_MOD_ALLOWED
 	// Mechanics Mod
 	public static var mechanicsMod:MechanicsPlaystate;
 	public var shapeGroup:FlxTypedGroup<Shape>;
-		// Mechanics
+
 	public static var moveStrumSections:Array<Null<Bool>> = [];
 	public var mechanicInfo:Map<String, {description:String, value:Float}> = [];
 	public var sleepFog:FlxSprite;
@@ -561,6 +566,7 @@ class PlayState extends MusicBeatState
 	public var barCursor:FlxSprite;
 	public var mouseCursor:FlxSprite;
 	var shapeTmr:FlxTimer;
+	#end
 
 	// Skydecay Engine (our good friends)
 	public var noteManager:NoteManager;
@@ -640,16 +646,19 @@ class PlayState extends MusicBeatState
 			Song.loadFromJson(poop, songLowercase);
 		}
 		inArchipelagoMode = archipelago.APEntryState.inArchipelagoMode;
+		#if ARCHIPELAGO_ALLOWED
 		if (inArchipelagoMode && !(this is archipelago.APPlayState) && !isLegacyLuaTest && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
 		{
 			FlxG.switchState(new archipelago.APPlayState());
 		}
+		#end
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
 		Paths.clearUnusedMemory();
 		Language.reloadPhrases();
 		nextReloadAll = false;
 
+		#if MECHANICS_MOD_ALLOWED
 		var fiveMechanicsAtMixtape:Int = 0;
 		for (mechanic in MechanicManager.mechanics) {
 			if (inArchipelagoMode && APInfo.fivenightsatmechanicsmod) {
@@ -751,6 +760,7 @@ class PlayState extends MusicBeatState
 					mechanicsResult[mechanic.ID] = {name: mechanic.name, value: 0, text: mechanic.results};
 			}
 		}
+		#end
 
 		startCallback = startCountdown;
 		endCallback = endSong;
@@ -2551,6 +2561,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 
+			#if ARCHIPELAGO_ALLOWED
 			if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem('Strums')) {
 				StrumNote.hardAlpha = 0;
 				Note.hardAlpha = 0;
@@ -2558,6 +2569,8 @@ class PlayState extends MusicBeatState
 				StrumNote.hardAlpha = 1;
 				Note.hardAlpha = 1;
 			}
+			#end
+
 			#if ALLOW_DEPRECATION
 			callOnScripts('postModifierRegister'); // deprecated
 			#end
@@ -2648,8 +2661,10 @@ class PlayState extends MusicBeatState
 							FlxTween.tween(camCredit, {alpha: 0, y: 1000}, 1, {ease: FlxEase.circInOut});
 						});
 						rank.doTween('in');
+						#if ARCHIPELAGO_ALLOWED
 						if (archipelago.APPlayState.resisting)
-						archipelago.APPlayState.instance?.startResisting();
+							archipelago.APPlayState.instance?.startResisting();
+						#end
 						tick = START;
 				}
 
@@ -5630,7 +5645,7 @@ class PlayState extends MusicBeatState
 		callOnScripts("onHoldStep", [note, field]);
 
 		if(field.isPlayer){
-			if (holdsGiveHP && (mechanicsMod != null && !mechanicsMod.restoreActivated)){
+			if (holdsGiveHP #if MECHANICS_MOD_ALLOWED && (mechanicsMod != null && !mechanicsMod.restoreActivated) #end){
 				health += note.hitHealth * healthGain;
 			}
 		}
@@ -6722,6 +6737,7 @@ class PlayState extends MusicBeatState
 			return health;
 		}
 
+		#if MECHANICS_MOD_ALLOWED
 		if (MechanicManager.mechanics['karma'].points > 0
 			&& !noTriggerKarma
 			&& value < health
@@ -6781,6 +6797,9 @@ class PlayState extends MusicBeatState
 		{
 			health = value;
 		}
+		#else
+		health = value;
+		#end
 
 		// update health bar
 		var newPercent:Null<Float> = FlxMath.remapToRange(FlxMath.bound(healthBar.valueFunction(), healthBar.bounds.min, healthBar.bounds.max), healthBar.bounds.min, healthBar.bounds.max, 0, 100);
@@ -9960,8 +9979,10 @@ class PlayState extends MusicBeatState
 
 				if (mechanicsResult[1] != null)
 					mechanicsResult[1].value += 20;
+
 			case 'Swap Note':
 				COD.setCOD(null, 'Failed to tell the difference between your notes and you opponents.');
+
 			case 'Throat Note':
 				FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
 					onComplete: function(n) {
@@ -9969,6 +9990,7 @@ class PlayState extends MusicBeatState
 							if (curNote.column == note.column)
 								note.blockHit = true;
 						}
+
 						new FlxTimer().start(FlxG.random.float(3, 10), function(tmr:FlxTimer)
 						{
 							FlxTween.tween(note.field.strumNotes[note.column], {alpha: 1}, 1);
@@ -10964,6 +10986,7 @@ class PlayState extends MusicBeatState
 		super.beatHit();
 		lastBeatHit = curBeat;
 
+		#if MECHANICS_MOD_ALLOWED
 		if (mechanicsMod != null) {
 			if (curBeat % 4 == 0)
 			{
@@ -11008,6 +11031,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
+		#end
 
 		setOnScripts('curBeat', curBeat);
 		callOnScripts('onBeatHit');

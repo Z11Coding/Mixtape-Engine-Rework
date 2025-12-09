@@ -1,6 +1,9 @@
 package backend;
 
+#if ARCHIPELAGO_ALLOWED
 import archipelago.ArchPopup;
+#end
+
 import backend.window.CppAPI;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -425,6 +428,7 @@ class TransitionState {
         });
     }
 
+    #if ARCHIPELAGO_ALLOWED
     public static function fakeTransition(options:Dynamic = null):Void {
         var duration:Float = options != null && Reflect.hasField(options, "duration") ? options.duration : 1;
         var transitionType:String = options != null && Reflect.hasField(options, "transitionType") ? options.transitionType : "fadeOut";
@@ -618,6 +622,7 @@ class TransitionState {
                 #end
         }
     }
+    #end
 
     // static function slideWindow(x:Float, y:Float, duration:Float, targetState:Class<FlxState>, onComplete:Dynamic, ?args:Array<Dynamic>):Void {
     //     var screenWidth:Float = FlxG.width * FlxG.camera.zoom;

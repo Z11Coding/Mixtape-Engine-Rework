@@ -1,5 +1,9 @@
 package states;
+
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APGameState;
+#end
+
 import flixel.FlxState;
 import flixel.text.FlxText;
 import haxe.ds.StringMap;
@@ -46,11 +50,11 @@ class ExitState extends FlxState
 		// Clean up crash tracking (remove lock file for normal exit)
 		yutautil.CrashReporter.cleanupOnExit();
 
+		#if ARCHIPELAGO_ALLOWED
 		// Clean up temporary Archipelago weeks before exit
 		APGameState.forceCleanupTemporaryWeeks();
 
 		// Clean up High Quality Trap temporary files on engine exit
-		#if ARCHIPELAGO_ALLOWED
 		archipelago.HighQualityTrapManager.onEngineExit();
 		#end
 

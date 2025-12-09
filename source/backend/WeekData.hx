@@ -1,10 +1,13 @@
 package backend;
 
+import haxe.Json;
 import lime.utils.Assets;
 import openfl.utils.Assets as OpenFlAssets;
-import haxe.Json;
+
+#if ARCHIPELAGO_ALLOWED
 import archipelago.APEntryState;
 import archipelago.APGameState;
+#end
 
 typedef WeekFile =
 {
@@ -90,10 +93,12 @@ class WeekData {
 		var originalLength:Int = directories.length;
 		#end
 
+		#if ARCHIPELAGO_ALLOWED
 		if (APEntryState.inArchipelagoMode) {
 			for (day in APGameState.temporaryWeeks) weeksLoaded.set(day.weekName, day);
 			weeksList = APGameState.temporaryWeekNames.copy();
 		}
+		#end
 
 		var sexList:Array<String> = CoolUtil.coolTextFile(Paths.getSharedPath('weeks/weekList.txt'));
 		for (i in 0...sexList.length) {
