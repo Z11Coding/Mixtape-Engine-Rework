@@ -859,12 +859,10 @@ class Note extends NoteObject
 					botNote = true;
 					hitsoundChartEditor = false;
 				case "Throat Note":
+					reloadNote('noteSkins/mechanicsmod/THROATNOTE_assets');
 					ignoreNote = mustPress;
 					hitCausesMiss = true;
 					missHealth = 0.0475;
-					rgbShader.r = 0xFFFF0000;
-					rgbShader.g = 0xFFFF0000;
-					rgbShader.b = 0xFFFF0000;
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof

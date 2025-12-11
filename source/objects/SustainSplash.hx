@@ -1,7 +1,5 @@
 package objects;
 
-package objects;
-
 import shaders.RGBPalette;
 
 // This code was from Psych Online, so credit to NotMagniill and Snirozu for the code
@@ -58,16 +56,16 @@ class SustainSplash extends FlxSprite
 
 	public function setupSusSplash(strum:StrumNote, daNote:Note, ?playbackRate:Float = 1):Void
 	{
-		final susLength:Float = (!daNote.isSustainNote ? daNote.sustainLength : daNote.parentSL);
+		final susLength:Float = (!daNote.isSustainNote ? daNote.sustainLength : daNote.parentNote.sustainLength);
 		final lengthToGet:Int = Math.floor(susLength / Conductor.stepCrochet);
-		final timeToGet:Float = !daNote.isSustainNote ? daNote.strumTime : daNote.parentST;
-		final timeThingy:Float = (startCrochet * lengthToGet + (timeToGet - Conductor.songPosition + ClientPrefs.ratingOffset)) / playbackRate * .001;
+		final timeToGet:Float = !daNote.isSustainNote ? daNote.strumTime : daNote.parentNote.strumTime;
+		final timeThingy:Float = (startCrochet * lengthToGet + (timeToGet - Conductor.songPosition + ClientPrefs.data.ratingOffset)) / playbackRate * .001;
 
 		animation.play('hold', true, false, 0);
 		animation.curAnim.frameRate = frameRate;
 		animation.curAnim.looped = true;
 
-		shader = (ClientPrefs.enableColorShader ? rgbShader.shader : null);
+		shader = daNote.rgbShader.parent.shader;
 
 		clipRect = new flixel.math.FlxRect(0, !PlayState.isPixelStage ? 0 : -210, frameWidth, frameHeight);
 
@@ -104,7 +102,7 @@ class SustainSplash extends FlxSprite
 
 		timer = new FlxTimer().start(timeThingy, (idk:FlxTimer) ->
 		{
-			if (daNote.isSustainEnd && daNote.mustPress && !daNote.noteSplashData.disabled && ClientPrefs.noteSplashes)
+			if (daNote.istail && daNote.mustPress && !daNote.noteSplashData.disabled && ClientPrefs.data.noteSplashes)
 			{
 				alpha = 1;
 				animation.play('end', true, false, 0);

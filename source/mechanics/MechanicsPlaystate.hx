@@ -61,6 +61,7 @@ class MechanicsPlaystate {
 
 		if (sleepTime.value >= sleepTime.max)
 		{
+			backend.COD.COD.COD = "Boyfriend fell sleep and missed the notes.";
 			PlayState.instance.health = -40;
 			PlayState.instance.doDeathCheck(true);
 		}
@@ -79,6 +80,7 @@ class MechanicsPlaystate {
 		var calculateHealth:Float = FlxMath.remapToRange(lastHealth / 50, 0, PlayState.instance.MaxHP, PlayState.instance.minHealth, PlayState.instance.MaxHP);
 		healthTimer = new FlxTimer().start(0.5, function(tmr:FlxTimer)
 		{
+			backend.COD.COD.COD = "Boyfriend couldn't restore his healthgain fast enough.";
 			PlayState.instance.noTriggerKarma = true;
 			PlayState.instance.health -= calculateHealth;
 			PlayState.instance.mechanicsResult[4].value += calculateHealth * 10;
@@ -97,12 +99,12 @@ class MechanicsPlaystate {
 					restoreNote.scrollSpeed = PlayState.instance.songSpeed;
 					restoreNote.noteType = 'Restore Note';
 					restoreNote.x += FlxG.width / 2; // general offset
-                    restoreNote.fieldIndex = 0;
-                    restoreNote.field = PlayState.instance.playfields.members[0];
-                    restoreNoteGroup.push(restoreNote);
-                    PlayState.instance.allNotes.unshift(restoreNote);
+					restoreNote.fieldIndex = 0;
+					restoreNote.field = PlayState.instance.playfields.members[0];
+					restoreNoteGroup.push(restoreNote);
+					PlayState.instance.allNotes.unshift(restoreNote);
 					PlayState.instance.unspawnNotes.unshift(restoreNote);
-                    PlayState.instance.playfields.members[0].queue(restoreNote);
+					PlayState.instance.playfields.members[0].queue(restoreNote);
 				}
 			}
 			PlayState.instance.noTriggerKarma = false;
@@ -169,7 +171,7 @@ class MechanicsPlaystate {
 		restoreActivated = false;
 	}
 
-    public var noteSwapTweens:Array<FlxTween> = [];
+  public var noteSwapTweens:Array<FlxTween> = [];
 	public var wasSwapped:Bool = false;
 	public var swapCooldown:Int = 0;
 
@@ -340,9 +342,10 @@ class MechanicsPlaystate {
 	public function failedDodge():Void
 	{
 		PlayState.instance.noTriggerKarma = true;
-		if (PlayState.instance.health < 0.4)
+		if (PlayState.instance.health < 0.4) {
+			backend.COD.COD.COD = "Boyfriend was low on health and got punched in the face.";
 			PlayState.instance.die();
-		else
+		} else
 			PlayState.instance.health /= 2;
 		failedDodges++;
 		PlayState.instance.noTriggerKarma = false;
@@ -352,7 +355,7 @@ class MechanicsPlaystate {
 			PlayState.instance.mechanicsResult[11].value += 1;
 	}
 
-    public var ghostCursor:FlxSprite;
+  public var ghostCursor:FlxSprite;
 	public var cursorValue:Float = 0;
 	public var cursorTimer:FlxTimer;
 	public var cpuPos:FlxPoint = FlxPoint.get();
@@ -812,8 +815,10 @@ class MechanicsPlaystate {
 
 				letterFinishMechanic();
 
-				if (++failedTimes >= 5)
+				if (++failedTimes >= 5) {
+					backend.COD.COD.COD = "Boyfriend failed to type" + wantedLetter.toLowerCase() + " fast enough.";
 					PlayState.instance.doDeathCheck(true);
+				}
 
 				if (PlayState.instance.mechanicsResult[21] != null)
 					PlayState.instance.mechanicsResult[21].value = failedTimes;

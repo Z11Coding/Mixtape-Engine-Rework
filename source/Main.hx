@@ -199,6 +199,12 @@ class Main extends Sprite
 		Lib.current.addChild(new archipelago.console.SideUI());
 		//Lib.current.addChild(new objects.Nightlight());
 
+		#if cpp
+		cpp.NativeGc.enable(true);
+		#elseif hl
+		hl.Gc.enable(true);
+		#end
+
 		// trace("Words loaded: " + backend.MusicBeatState.words);
 	}
 

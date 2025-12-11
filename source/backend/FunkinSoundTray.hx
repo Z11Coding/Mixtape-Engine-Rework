@@ -1,9 +1,9 @@
 package backend;
 
-import flixel.system.ui.FlxSoundTray;
-import flixel.tweens.FlxTween;
 import flixel.system.FlxAssets;
+import flixel.system.ui.FlxSoundTray;
 import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.utils.Assets;
@@ -122,6 +122,10 @@ class FunkinSoundTray extends FlxSoundTray
     active = true;
     var globalVolume:Int = Math.round(FlxG.sound.volume * 10);
 
+    volumeUpSound = Paths.file2(ClientPrefs.data.volUp, "sounds/soundtray", "ogg");
+    volumeDownSound = Paths.file2(ClientPrefs.data.volDown, "sounds/soundtray", "ogg");
+    volumeMaxSound = Paths.file2(ClientPrefs.data.volMax, "sounds/soundtray", "ogg");
+
     if (FlxG.sound.muted)
     {
       globalVolume = 0;
@@ -133,7 +137,7 @@ class FunkinSoundTray extends FlxSoundTray
 
       if (globalVolume == 10) sound = volumeMaxSound;
 
-      if (sound != null) FlxG.sound.load(sound).play();
+      if (!ClientPrefs.data.silentVol && sound != null) FlxG.sound.load(sound).play();
     }
 
     for (i in 0..._bars.length)

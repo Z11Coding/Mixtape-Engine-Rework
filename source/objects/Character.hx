@@ -17,6 +17,9 @@ typedef CharacterFile = {
 	var sing_duration:Float;
 	var healthicon:String;
 
+	@:optional var name:String;
+	@:optional var pronouns:String;
+
 	var position:Array<Float>;
 	var camera_position:Array<Float>;
 
@@ -67,7 +70,9 @@ class Character extends FlxSprite
 	public var idleSuffix:String = '';
 	public var danceIdle:Bool = false; //Character use "danceLeft" and "danceRight" instead of "idle"
 	public var skipDance:Bool = false;
+
 	public var charName:String = '???';
+	public var charPronouns:Array<String> = ['???', '???']; // please dont make me regret this
 
 	public var healthIcon:String = 'face';
 	public var animationsArray:Array<AnimArray> = [];
@@ -224,6 +229,7 @@ class Character extends FlxSprite
 					#end
 
 					charName = json.name != null ? json.name : '???';
+					charPronouns = json.pronouns != null ? json.pronouns.split('/') : ['???', '???'];
 
 					imageFile = json.assetPath;
 					jsonScale = json.scale;

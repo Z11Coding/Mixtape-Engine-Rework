@@ -35,6 +35,7 @@
 	<define name="NATIVE_LOOKUP" if="MODS_ALLOWED" />
 	<define name="OPENFL_LOOKUP"/>
 	<define name="TOUCH_HERE_TO_PLAY"/>
+	<define name="MODCHARTS_NOTITG_ALLOWED" if="desktop || mobile" />
 
 	<!-- so that the things that use this can have it-->
 	<define name="PE_MOD_COMPATIBILITY"/>
@@ -53,20 +54,12 @@
 	<define name="BASE_GAME_FILES" />
 	<define name="VIDEOS_ALLOWED" if="windows || linux || android || mac" unless="32bits"/> <!-- IF YOU WANT TO USE VIDEOS ON YOUR SOURCE MOD, GET THIS LINE OUTSIDE OF THE SECTION -->
 
-	<define name="FLX_STANDARD_ASSETS_DIRECTORY"/>
-
 	<section if="officialBuild">
 		<define name="TITLE_SCREEN_EASTER_EGG"/>
 	</section>
 
 	<!-- Apparently I can just drop this in and it'll work so i'll be the judge of that -->
 	<!-- As it turns out, you can indeed just drop it in and it'll work -->
-
-	<haxedef name="FM_ENGINE" value="PSYCH"/>
-	<haxedef name="FM_ENGINE_VERSION" value="1.0"/>
-
-	<haxelib name="funkin-modchart" />
-	<haxeflag name="--macro" value="modchart.backend.macros.Macro.includeFiles()"/>
 
 	<!-- ____________________________ Window Settings ___________________________ -->
 
@@ -279,7 +272,7 @@
 	<haxeflag name="--macro" value="addMetadata('@:build(backend.macro.pslice.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')" />
 
 	<!-- Patched type system - enable field validation on all classes -->
-	<!-- <haxeflag name="--macro" value="yutautil.Patched.PatchedMacro.init()" /> -->
+	<!-- <haxeflag name="macro" value="yutautil.Patched.PatchedMacro.init()" /> -->
 
 	<haxeflag name="--resource" value="assets/embed/apworld/fridaynightfunkin.apworld@apworld" />
 	<haxeflag name="--resource" value="example_mods/modTemplate.zip@modTemp" />
@@ -306,6 +299,23 @@
 
 	<!-- Javascript breaks with inline for reasons unknown -->
 	<haxedef name="no-inline" if="html5"/>
+
+	<!-- Force C99 standard for macOS/iOS to fix zlib compilation with Xcode 16.4 -->
+	<haxedef name="HXCPP_CFLAGS" value="-std=c99 -Wno-error=deprecated-non-prototype -Wno-deprecated-declarations -Wno-unused-command-line-argument -Wno-macro-redefined" if="macos || ios" />
+
+	<!-- ____________________________ PlusEngine/FunkinModchart Stuff _______________________________ -->
+
+    <section if="MODCHARTS_NOTITG_ALLOWED">
+		<assets path="assets/modchart/arrowShape.csv" rename="modchart/arrowShape.csv" embed="true" />
+		<assets path="assets/modchart/eyeShape.csv" rename="modchart/eyeShape.csv" embed="true" />
+		<haxedef name="FM_ENGINE" value="PSYCH"/>
+    <haxedef name="FM_ENGINE_VERSION" value="1.0"/>
+    <haxeflag name="--macro" value="backend.funkinmodchart.backend.macros.Macro.includeFiles()"/>
+		<haxeflag name="source/extraParams.hxml" unless="ios"/>
+		<haxeflag name="--macro" value="addMetadata('@:build(backend.funkinmodchart.backend.macros.Macro.buildFlxCamera())', 'flixel.FlxCamera')" if="ios"/>
+		<haxeflag name="--macro" value="addMetadata('@:build(backend.funkinmodchart.backend.macros.Macro.buildFlxDrawTrianglesItem())', 'flixel.graphics.tile.FlxDrawTrianglesItem')" if="ios"/>
+		<haxeflag name="--macro" value="addMetadata('@:build(backend.funkinmodchart.backend.macros.Macro.addModchartStorage())', 'flixel.FlxBasic')" if="ios"/>
+	</section>
 
 	<!-- _________________________________ Custom _______________________________ -->
 

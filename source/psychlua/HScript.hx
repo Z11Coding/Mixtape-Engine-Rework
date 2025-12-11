@@ -15,12 +15,12 @@ import psychlua.FunkinLua;
 #end
 
 #if HSCRIPT_ALLOWED
+import backend.funkinmodchart.Manager;
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.hscript.Printer;
 import crowplexus.iris.Iris;
 import crowplexus.iris.IrisConfig;
 import haxe.ValueException;
-import modchart.Manager;
 
 typedef HScriptInfos = {
 	> haxe.PosInfos,

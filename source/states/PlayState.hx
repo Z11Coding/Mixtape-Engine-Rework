@@ -64,6 +64,7 @@ import sys.thread.Mutex;
 #end
 
 #if LUA_ALLOWED
+import backend.funkinmodchart.Manager;
 import psychlua.*;
 
 using psychlua.IntegratedScript;
@@ -578,6 +579,8 @@ class PlayState extends MusicBeatState
 	static var mutex:Mutex;
 
 	//P-Slice
+
+	//Plus Engine
 	// StepMania UI
 	var smScoreTxt:FlxText;
 	var smAccuracyTxt:FlxText;
@@ -598,6 +601,10 @@ class PlayState extends MusicBeatState
 	var npsCheck:Int = 0;
 
 	var lastJudName:String = "None";
+
+	// Modchart warning variables
+	var modchartWarningShown:Bool = false;
+	var isShowingModchartWarning:Bool = false;
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -761,8 +768,6 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#end
-
-		startCallback = startCountdown;
 		endCallback = endSong;
 
 		modManager = new ModManager(this);
@@ -1339,6 +1344,12 @@ class PlayState extends MusicBeatState
 		if (!isNotITG) uiGroup.add(healthBar);
 		healthBar.visible = (curHealthMode != "Lives");
 
+		if (mechanicsMod != null) {
+			healthBarShader = new ColorSwap();
+			healthBar.shader = healthBarShader.shader;
+			healthBarShader.brightness = -1;
+		}
+
 		if (curHealthMode == "Double" || curHealthMode == "Amalgam") {
 			healthBarOverflow = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 2, 4);
 			healthBarOverflow.screenCenter(X);
@@ -1636,8 +1647,6 @@ class PlayState extends MusicBeatState
 
 		// Register dynamic song scripting functions after all scripts are loaded
 		//registerDynamicSongScripting();
-
-		startCallback();
 		comboManager.RecalculateRating(false, false);
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
@@ -1681,7 +1690,16 @@ class PlayState extends MusicBeatState
 		callOnScripts('onCreatePost');
 		currentRate = playbackRate;
 
+		// if none of the loaded scripts/stages changed it, use the default
+		if (startCallback == null) startCallback = (hasModchart() ? showModchartWarning : startCountdown);
+
+		// Initialize any Funkin Modchart modcharts after all scripts are loaded
+		initModchart();
+
 		super.create();
+
+		startCallback();
+
 		Paths.clearUnusedMemory();
 
 		add(blackOverlay);
@@ -1931,6 +1949,193 @@ class PlayState extends MusicBeatState
 
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
+	}
+
+	// Some small stuff from PlusEngine
+	function hasModchart():Bool
+	{
+		#if MODCHARTS_NOTITG_ALLOWED
+		var hasModchartFunction:Bool = false;
+
+		#if LUA_ALLOWED
+		for (script in luaArray) {
+			if (script != null && !script.closed && script.lua != null) {
+				Lua.getglobal(script.lua, 'onInitModchart');
+				var type:Int = Lua.type(script.lua, -1);
+				Lua.pop(script.lua, 1);
+
+				if (type == Lua.LUA_TFUNCTION) {
+					hasModchartFunction = true;
+					break;
+				}
+			}
+		}
+		#end
+
+		#if HSCRIPT_ALLOWED
+		if (!hasModchartFunction) {
+			for (script in hscriptArray) {
+				@:privateAccess
+				if (script != null && script.exists('onInitModchart')) {
+					hasModchartFunction = true;
+					break;
+				}
+			}
+		}
+		#end
+
+		return hasModchartFunction;
+		#else
+		return false;
+		#end
+	}
+
+	function showModchartWarning():Void
+	{
+		isShowingModchartWarning = true;
+
+		// black background
+		var blackBG:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		blackBG.scrollFactor.set();
+		blackBG.cameras = [camHUD];
+		add(blackBG);
+
+		// NotITG style "EVENT MODE" text
+		var warningText:FlxText = new FlxText(0, 0, FlxG.width, "EVENTS MODE!");
+		warningText.setFormat(Paths.font("aller.ttf"), 72, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		warningText.borderSize = 4;
+		warningText.screenCenter();
+		warningText.y -= 100;
+		warningText.scrollFactor.set();
+		warningText.cameras = [camHUD];
+		warningText.alpha = 0;
+		add(warningText);
+
+		// Secondary text
+		var subText:FlxText = new FlxText(0, 0, FlxG.width, "Modcharts Enabled");
+		subText.setFormat(Paths.font("aller.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		subText.borderSize = 2;
+		subText.screenCenter();
+		subText.y += 50;
+		subText.scrollFactor.set();
+		subText.cameras = [camHUD];
+		subText.alpha = 0;
+		add(subText);
+
+		// Entry animation
+		FlxTween.tween(warningText, {alpha: 1}, 0.3, {ease: FlxEase.cubeOut});
+
+		FlxTween.tween(subText, {alpha: 1}, 0.4, {
+			ease: FlxEase.cubeOut,
+			startDelay: 0.2,
+			onComplete: function(twn:FlxTween) {
+				// Wait a bit and do the confirmation effect
+				new FlxTimer().start(0.3, function(tmr:FlxTimer) {
+					// Confirmation sound
+					FlxG.sound.play(Paths.sound('confirmMenu'));
+
+					// Change texts to green
+					warningText.color = FlxColor.LIME;
+					subText.color = FlxColor.LIME;
+
+					// Create explosion particles from the center
+					var centerX:Float = FlxG.width / 2;
+					var centerY:Float = FlxG.height / 2;
+
+					for (i in 0...16) {
+						var angle:Float = (360 / 16) * i;
+						var particle:FlxSprite = new FlxSprite(centerX, centerY);
+						particle.makeGraphic(10, 10, FlxColor.LIME);
+						particle.scrollFactor.set();
+						particle.cameras = [camHUD];
+						add(particle);
+
+						var targetX:Float = particle.x + Math.cos(angle * Math.PI / 180) * 200;
+						var targetY:Float = particle.y + Math.sin(angle * Math.PI / 180) * 200;
+
+						FlxTween.tween(particle, {x: targetX, y: targetY, alpha: 0}, 0.8, {
+							ease: FlxEase.cubeOut,
+							onComplete: function(twn:FlxTween) {
+								particle.destroy();
+							}
+						});
+					}
+				});
+			}
+		});
+
+		// After 2 seconds, disappear instantly and continue
+		new FlxTimer().start(2.0, function(tmr:FlxTimer) {
+			blackBG.destroy();
+			warningText.destroy();
+			subText.destroy();
+			isShowingModchartWarning = false;
+			modchartWarningShown = true;
+
+			// Iniciar countdown ahora
+			startCountdown();
+		});
+	}
+
+	function initModchart()
+	{
+		#if MODCHARTS_NOTITG_ALLOWED
+		// Check if any script has the onInitModchart function
+		var hasModchartFunction:Bool = false;
+
+		#if LUA_ALLOWED
+		for (script in luaArray) {
+			if (script != null && !script.closed && script.lua != null) {
+				Lua.getglobal(script.lua, 'onInitModchart');
+				var type:Int = Lua.type(script.lua, -1);
+				Lua.pop(script.lua, 1);
+
+				if (type == Lua.LUA_TFUNCTION) {
+					hasModchartFunction = true;
+					break;
+				}
+			}
+		}
+		#end
+
+		#if HSCRIPT_ALLOWED
+		if (!hasModchartFunction) {
+			for (script in hscriptArray) {
+				@:privateAccess
+				if (script != null && script.exists('onInitModchart')) {
+					hasModchartFunction = true;
+					break;
+				}
+			}
+		}
+		#end
+
+		// If there is no onInitModchart function, do not initialize the manager
+		if (!hasModchartFunction) {
+			//trace("No onInitModchart function found - modchart manager not initialized");
+			return;
+		}
+
+		// If there is an onInitModchart function, automatically activate modcharting
+		//trace("onInitModchart function detected - initializing modchart manager");
+
+		try {
+			if (Manager.instance == null) {
+				var manager = new Manager();
+				add(manager);
+				trace("Modchart Manager initialized successfully");
+			}
+			// Wait a frame to ensure Manager is fully initialized
+			var initCallback:Void->Void = null;
+			initCallback = function() {
+				callOnScripts('onInitModchart');
+				FlxG.signals.postUpdate.remove(initCallback);
+			};
+			FlxG.signals.postUpdate.add(initCallback);
+		} catch (e:Dynamic) {
+			trace("Error initializing modcharts: " + e);
+		}
+		#end
 	}
 
 	public var mechanicsResult:Array<MechanicResults> = [];
@@ -4550,9 +4755,11 @@ class PlayState extends MusicBeatState
 								noTriggerKarma = true;
 								var loss:Float = FlxMath.remapToRange(0.1, 0, 100, 0, 2);
 								if (mechanicsMod.restoreActivated)
-									lastHealth -= loss;
-								else
+									mechanicsMod.lastHealth -= loss;
+								else {
+									backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "couldn't keep up.";
 									health -= loss;
+								}
 
 								if (mechanicsResult[8] != null)
 									mechanicsResult[8].value += loss * 10;
@@ -5897,6 +6104,7 @@ class PlayState extends MusicBeatState
 		{
 			if (health > 0)
 			{
+				backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "succumbed to the sheer might of the opponent.";
 				health -= 0.001 / (ClientPrefs.data.framerate / 60);
 			}
 		}
@@ -5909,7 +6117,7 @@ class PlayState extends MusicBeatState
 		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong && ClientPrefs.data.modcharts)
+		if (!startingSong && ClientPrefs.data.modcharts && Manager.instance != null) //Don't wanna override it now do we
 			modchartSync(false);
 
 		setOnScripts('curDecStep', curDecStep);
@@ -6109,7 +6317,9 @@ class PlayState extends MusicBeatState
 								if (healthBarTween != null)
 									healthBarTween.cancel();
 
-								healthBarTween = FlxTween.tween(healthBarShader, {brightness: 0, hue: 0.5}, 1, {ease: FlxEase.cubeOut});
+								try {
+									healthBarTween = FlxTween.tween(healthBarShader, {brightness: 0, hue: 0.5}, 1, {ease: FlxEase.cubeOut});
+								} catch(e) {}
 							}
 						}
 						else
@@ -6117,8 +6327,9 @@ class PlayState extends MusicBeatState
 							mechanicsMod.allowBurstTween = true;
 							if (healthBarTween != null)
 								healthBarTween.cancel();
-
-							healthBarTween = FlxTween.tween(healthBarShader, {brightness: -1, hue: 0}, 1, {ease: FlxEase.cubeOut});
+							try {
+								healthBarTween = FlxTween.tween(healthBarShader, {brightness: -1, hue: 0}, 1, {ease: FlxEase.cubeOut});
+							} catch(e) {}
 						}
 					}
 
@@ -6782,6 +6993,7 @@ class PlayState extends MusicBeatState
 			var loop:Int = FlxG.random.int(min, max);
 			karmaTmr = new FlxTimer().start(0.1, function(tmr:FlxTimer)
 			{
+				backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName}\'s ' : '') + "karma cought up.";
 				health -= difference;
 				if (mechanicsResult[23] != null)
 					mechanicsResult[23].value += difference * 10;
@@ -8385,13 +8597,19 @@ class PlayState extends MusicBeatState
 		{
 			notes.forEachAlive(function(daNote:Note)
 			{
-				if(daNote.strumTime < songLength - Conductor.safeZoneOffset)
+				if(daNote.strumTime < songLength - Conductor.safeZoneOffset) {
+					backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "tried to cheat and failed.";
 					health -= 0.05 * healthLoss;
+					bfkilledcheck = true;
+				}
 			});
 			for (daNote in unspawnNotes)
 			{
-				if(daNote != null && daNote.strumTime < songLength - Conductor.safeZoneOffset)
+				if(daNote != null && daNote.strumTime < songLength - Conductor.safeZoneOffset) {
+					backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "tried to cheat and failed.";
 					health -= 0.05 * healthLoss;
+					bfkilledcheck = true;
+				}
 			}
 
 			if(doDeathCheck()) {
@@ -9973,7 +10191,7 @@ class PlayState extends MusicBeatState
 			case 'Kill Note':
 				noTriggerKarma = true;
 				die();
-				COD.setCOD(null, 'Hit a Kill Note.');
+				COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
 				noTriggerKarma = false;
 				FlxG.sound.play(Paths.sound('explosion'));
 
@@ -9981,7 +10199,7 @@ class PlayState extends MusicBeatState
 					mechanicsResult[1].value += 20;
 
 			case 'Swap Note':
-				COD.setCOD(null, 'Failed to tell the difference between your notes and you opponents.');
+				COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Failed to tell the difference between your notes and your opponents.');
 
 			case 'Throat Note':
 				FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
@@ -10001,7 +10219,7 @@ class PlayState extends MusicBeatState
 						});
 					}
 				});
-				COD.setCOD(null, "Couldn't Clear your throat. (Have you tried Throat Medicine?)");
+				COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "Couldn't clear your throat. (Have you tried Throat Medicine?)");
 		}
 
 		bfkilledcheck = true;
@@ -10198,6 +10416,7 @@ class PlayState extends MusicBeatState
 
 		if ((curHealthMode == "Tabi" || curHealthMode == "Amalgam") && health > 0)
 		{
+			backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "couldn't handle the opponent's sheer skill.";
 			health -= 0.04;
 			health -= 0.03;
 		}
@@ -10211,7 +10430,7 @@ class PlayState extends MusicBeatState
 					lossHealth /= 5;
 				noTriggerKarma = true;
 				if (mechanicsMod != null && mechanicsMod.restoreActivated)
-					lastHealth = Math.max(health - lossHealth, minHealth + minHealthOffset + 0.1);
+					mechanicsMod.lastHealth = Math.max(health - lossHealth, minHealth + minHealthOffset + 0.1);
 				else
 					health = Math.max(health - lossHealth, minHealth + minHealthOffset + 0.1);
 				if (mechanicsResult[9] != null)
@@ -10395,7 +10614,7 @@ class PlayState extends MusicBeatState
 					case 'Kill Note':
 						noTriggerKarma = true;
 						die();
-						COD.setCOD(null, 'Hit a Kill Note.');
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
 						noTriggerKarma = false;
 						FlxG.sound.play(Paths.sound('explosion'));
 
@@ -10426,19 +10645,19 @@ class PlayState extends MusicBeatState
 					case 'Kill Note':
 						lastKill = 1;
 						FlxG.sound.play(Paths.sound('explosion'));
-						COD.setCOD(null, 'Hit a Kill Note.');
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
 					case 'Burst Note':
 						mechanicsMod.burstNote();
 						lastKill = 2;
-						COD.setCOD(null, 'Sufficated under pressure.');
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Sufficated under pressure.');
 					case 'Sleep Note':
 						mechanicsMod.sleepNote();
 						lastKill = 5;
-						COD.setCOD(null, 'Fell asleep and died.');
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Fell asleep and died.');
 					case 'Swap Note':
 						if (mechanicsResult[6] != null)
 							mechanicsResult[6].value += note.missHealth * 10;
-						COD.setCOD(null, 'Couldn\'t keep up with the notes.');
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Couldn\'t keep up with the notes.');
 					case 'No Animation':
 						if (note.autoGenerated && mechanicsResult[7] != null)
 							mechanicsResult[7].value += note.missHealth * 10;
@@ -10457,7 +10676,7 @@ class PlayState extends MusicBeatState
 				if (!mechanicsMod.restoreActivated)
 					health += note.hitHealth * healthGain;
 				else
-					lastHealth += note.hitHealth * healthGain;
+					mechanicsMod.lastHealth += note.hitHealth * healthGain;
 			}
 		}
 
@@ -10600,6 +10819,21 @@ class PlayState extends MusicBeatState
 			} catch(e) {} //Assume the notes are already destroyed if you can't destroy them
 		}
 
+		if (allNotes != null) {
+			for (note in allNotes) {
+				if (note != null) note.destroy();
+			}
+			allNotes.splice(0, allNotes.length);
+			allNotes = null;
+		}
+
+		if (curChart != null) {
+			for (note in curChart) {
+				if (note != null) note.destroy();
+			}
+			curChart.splice(0, curChart.length);
+		}
+
 		// Clear strum note references
 		if (playerStrums != null) {
 			playerStrums.forEachAlive(function(strum:StrumNote) {
@@ -10642,6 +10876,11 @@ class PlayState extends MusicBeatState
 			eventNotes = null;
 		}
 
+		if (curEvents != null) {
+			curEvents.splice(0, curEvents.length);
+			curEvents = null;
+		}
+
 		// Clear tween managers
 		if (modchartTweens != null) {
 			for (tween in modchartTweens) {
@@ -10676,13 +10915,15 @@ class PlayState extends MusicBeatState
 		queuedSyncedVideos = [];
 		#end
 
-		if (mechanicsMod != null) mechanicsMod.luckMechanicDestroy();
+		if (mechanicsMod != null) {
+			mechanicsMod.luckMechanicDestroy();
+			mechanicsMod = null;
+		}
 
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 
 		FlxG.camera.setFilters([]);
-
 
 		#if FLX_PITCH if (FlxG.sound.music != null) FlxG.sound.music.pitch = 1; #end
 		FlxG.animationTimeScale = 1;
@@ -10697,6 +10938,17 @@ class PlayState extends MusicBeatState
 		NoteSplash.configs.clear();
 		mania = 3;
 
+		// Clean modchart Managers
+		#if LUA_ALLOWED
+		if (backend.funkinmodchart.Manager.instance != null) {
+			backend.funkinmodchart.Manager.instance = null;
+		}
+		#end
+
+		if (modManager != null) {
+			modManager = null;
+		}
+
 		// Cleanup experimental NotePool system if it was enabled
 		if (ClientPrefs.data.useExperimentalNotePool) {
 			NotePoolManager.forceCleanup(); // Aggressive cleanup on exit
@@ -10704,15 +10956,14 @@ class PlayState extends MusicBeatState
 		}
 
 		// yutautil.MemoryHelper.freeMemory(this);
-		mechanicsMod = null;
 		moveStrumSections = [];
 		instance = null;
 		variables = null;
 		keysArray = null;
-
-		super.destroy();
 		endingSong = true;
 		//Paths.clearStoredWithoutStickers();
+
+		super.destroy();
 
 		// Reload the save data as proper.
 		if (clientSaveData != null) {

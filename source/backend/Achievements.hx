@@ -102,11 +102,26 @@ class Achievements {
 		// Secret achievements
 		createAchievement('fps',					{name: "1 FPS Gaming", description: "Slideshow Incarnate,", hidden: true});
 		createAchievement('lag',					{name: "man this engine SUCKS", description: "Lag.", hidden: true});
-		createAchievement('much_better',			{name: "Much Better", description: "Can someone please turn the lights off, please?", hidden: true});
 		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		createAchievement('freaky_bar',				{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
 		createAchievement('much_better',			{name: "Much Better", description: "Join the dark side.", hidden: true});
+		createAchievement('potatogaming',			{name: "Slow-Mo", description: "Set the game to 1 FPS", hidden: true});
+		createAchievement('truepotatogaming',			{name: "YOU CAN PLAY LIKE THIS?!?!", description: "Beat a song while the FPS is set to 1", hidden: true});
+		createAchievement('mattdestroyer',	        {name: "Max Efficiency", description: "Beat a song at 2X Speed or higher", hidden: true});
+		createAchievement('matteleminator',	        {name: "Max Efficiency 2X", description: "Beat a song at 5X Speed or higher", hidden: true});
+		createAchievement('mattgod',	            {name: "Max Efficiency 3X", description: "Beat a song at 10x Speed or higher", hidden: true});
+		createAchievement('matt',	                {name: "Max Efficiency 4X", description: "Beat a song at 15X Speed or higher", hidden: true});
+		createAchievement('mattbeyond',	            {name: "Bro what are you even doing anymore", description: "Beat a song at 20X Speed or higher", hidden: true});
+		createAchievement('lessismore',	        	{name: "Master of Less", description: "Beat any song in a mania of 1-3", hidden: true});
+		createAchievement('toomanynotes',	        {name: "Master of Mania", description: "Beat any song in a mania higher than 4", hidden: true});
+		createAchievement('h',	                    {name: "h?", description: "h?", hidden: true});
+
+		#if !MODS_ALLOWED //it doesn't go here if mods are enabled, otherwise it'll be above the mods
+		// Omega Achievements
+		createAchievement('truefunker',	                    {name: "The True Funker", description: "Get every single achievement (NOT INCLUDING MODDED!)"});
+		createAchievement('bffnf',	                    {name: "Don't you have anything better to do?", description: "Get every single achievement (INCLUDING MODDED!)"});
+		#end
 
 		//dont delete this thing below
 		_originalLength = _sortID + 1;
@@ -318,6 +333,10 @@ class Achievements {
 			loadAchievementJson(Paths.mods('$mod/data/achievements.json'));
 		}
 		Mods.currentModDirectory = modLoaded;
+
+		// Omega Achievements (they go at the very bottom under the mods)
+		createAchievement('truefunker',	                    {name: "The True Funker", description: "Get every single achievement (NOT INCLUDING MODDED!)"});
+		createAchievement('bffnf',	                    {name: "Don't you have anything better to do?", description: "Get every single achievement (INCLUDING MODDED!)"});
 	}
 
 	inline static function loadAchievementJson(path:String, addMods:Bool = true)

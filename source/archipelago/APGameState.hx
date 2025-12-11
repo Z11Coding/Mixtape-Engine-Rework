@@ -1206,6 +1206,7 @@ class APGameState
 			for (trapName in activeAntiPermaTraps)
 			{
 				activeAntiPermaTraps.push(trapName);
+				APItem.triggeredAntiPermaTraps.push(trapName);
 			}
 			trace("Loaded " + activeAntiPermaTraps.length + " active perma traps from save");
 		}
@@ -1220,8 +1221,11 @@ class APGameState
 					|| trapName == "Vocal Inverter Trap" && !antiTrapList.contains("Voice Inverter")
 					|| trapName == "Blindness Trap" && !antiTrapList.contains("Contact Lenses")
 					|| trapName == "Mechanical Hell Trap" && !antiTrapList.contains("The Simplifier 3000")
-					|| trapName == "Metronome Madness Trap" && !antiTrapList.contains("Metronome Stabilizer"))
+					|| trapName == "Metronome Madness Trap" && !antiTrapList.contains("Metronome Stabilizer")) {
 					archipelago.APItem.createItemByName(trapName);
+					APItem.triggeredPermaTraps.push(trapName);
+				}
+
 			}
 			trace("Loaded " + activePermaTraps.length + " active perma traps from save");
 		}

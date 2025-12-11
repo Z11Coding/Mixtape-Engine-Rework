@@ -1,22 +1,22 @@
 package substates;
 
-import states.MainMenuState;
-import flixel.FlxSprite;
-import haxe.Json;
-import lime.utils.Assets;
-// import flxtyped group
-import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.util.FlxTimer;
 import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.FlxState;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;
-import flixel.addons.transition.FlxTransitionableState;
-import openfl.display.BitmapData;
-import openfl.geom.Matrix;
-import openfl.display.Sprite;
-import openfl.display.Bitmap;
-import flixel.FlxState;
+import flixel.util.FlxTimer;
+// import flxtyped group
+import haxe.Json;
+import lime.utils.Assets;
 import objects.FunkinSprite;
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.Sprite;
+import openfl.geom.Matrix;
+import states.MainMenuState;
 
 using Lambda;
 using StringTools;
@@ -157,6 +157,20 @@ class StickerSubState extends MusicBeatSubstate
       grpStickers.clear();
     }
 
+    // Just in case
+    new FlxTimer().start(5, function(timer:FlxTimer) {
+      trace("STICKER TRANSITION IS STUCK! MANUALLY SWITCHING STATES!");
+      switchingState = true;
+      FlxTransitionableState.skipNextTransIn = true;
+      FlxTransitionableState.skipNextTransOut = true;
+      FlxG.switchState(() -> {
+        MusicBeatState.emptyStickers = new StickerSubState(grpStickers.members);
+        MusicBeatState.reopen = true;
+        TransitionState.currenttransition = null;
+        return targetState(this);
+      });
+    });
+
     trace("Collecting stickers...");
     var stickers:StickerInfo = null;
 
@@ -165,24 +179,24 @@ class StickerSubState extends MusicBeatSubstate
     // globalMods.push("assets/shared"); // base stickers
 
 
-      var modStickerDir = Paths.getPath('images/transitionSwag/$STICKER_SET',TEXT,null,true);
-      if(!FileSystem.exists(modStickerDir)){
-        trace('Couldn\'t find sticker set "$STICKER_SET" in $modStickerDir');
-        
+    var modStickerDir = Paths.getPath('images/transitionSwag/$STICKER_SET',TEXT,null,true);
+    if(!FileSystem.exists(modStickerDir)){
+      trace('Couldn\'t find sticker set "$STICKER_SET" in $modStickerDir');
+
+    }
+    else if(!FileSystem.exists('$modStickerDir/stickers.json')){
+      trace('Sticker set $STICKER_SET doesn\'t contain a "stickers.json" file.');
+    }
+    else{
+      try{
+        var infoObj = new StickerInfo(STICKER_SET);
+        stickers = infoObj;
+        if(infoObj.getPack(STICKER_PACK) == null) trace('Sticker set ${infoObj.name} doesn\'t contain "$STICKER_PACK" pack. All available stickers will be loaded instead.');
       }
-      else if(!FileSystem.exists('$modStickerDir/stickers.json')){
-        trace('Sticker set $STICKER_SET doesn\'t contain a "stickers.json" file.');
+      catch(x){
+        trace('Error while creating "$modStickerDir" sticker pack: ${x.message}');
       }
-      else{
-        try{
-          var infoObj = new StickerInfo(STICKER_SET);
-          stickers = infoObj;
-          if(infoObj.getPack(STICKER_PACK) == null) trace('Sticker set ${infoObj.name} doesn\'t contain "$STICKER_PACK" pack. All available stickers will be loaded instead.');
-        }
-        catch(x){
-          trace('Error while creating "$modStickerDir" sticker pack: ${x.message}');
-        }
-      }
+    }
     // sticker group -> array of sticker names
 
     var xPos:Float = -100;
@@ -205,7 +219,7 @@ class StickerSubState extends MusicBeatSubstate
           stickerSetCollection = stickerSetCollection.concat(stickers.getStickers(x));
         }
 
-        // get a random sticker 
+        // get a random sticker
         var sticker:String = FlxG.random.getObject(stickerSetCollection);
         sticky = new StickerSprite(0, 0, STICKER_SET, sticker);
       }
@@ -370,7 +384,7 @@ class StickerSprite extends FlxSprite
     super(x, y);
     stickerPath = stickerSet == null ? stickerName : 'transitionSwag/$stickerSet/$stickerName';
     loadSticker();
-    
+
   }
 }
 

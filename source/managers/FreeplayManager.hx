@@ -87,20 +87,20 @@ class FreeplayManager {
         return switch (APEntryState.inArchipelagoMode) {
             case true:
                 if (instance != null && Std.isOfType(instance, APFreeplayManager)) {
-                    trace("Using existing APFreeplayManager instance.");
+                    //trace("Using existing APFreeplayManager instance.");
                     if (ensureLoaded) instance.reloadFreeplay(true);
                     return instance;
                 } else {
-                    trace("Creating new APFreeplayManager instance.");
+                    //trace("Creating new APFreeplayManager instance.");
                     return instance = new APFreeplayManager(ensureLoaded);
                 }
             case false:
                 if (instance != null && instance.isType(FreeplayManager, true)) {
-                    trace("Using existing FreeplayManager instance.");
+                    //trace("Using existing FreeplayManager instance.");
                     if (ensureLoaded) instance.reloadFreeplay(true);
                     return instance;
                 } else {
-                    trace("Creating new FreeplayManager instance.");
+                    //trace("Creating new FreeplayManager instance.");
                     return instance = new FreeplayManager(ensureLoaded);
                 }
         }

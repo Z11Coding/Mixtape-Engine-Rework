@@ -111,38 +111,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"If checked, Antimash will be disabled. (Does nothing...for now...)\n(dont worry there is no antimashing...yet...)", 'noAntimash', BOOL);
 		addOption(option);
 
-		var option:Option = new Option(
-			'Optimized Holds',
-			"If checked, smooth holds will have fewer calls to the modchart system for position info.\nBest to leave this on, unless you have a high-end PC and require the highest accuracy rendering for, some reason.",
-			'optimizeHolds',
-			BOOL
-		);
-		addOption(option);
-
-		var option:Option = new Option('Hold Subdivisions',
-			"How many divisions are in a hold note with smooth holds.\nMore means smoother holds, but more of a performance hit.",
-			'holdSubdivs',
-			INT
-		);
-		option.displayFormat = '%v';
-		option.changeValue = 1;
-		option.minValue = 1;
-		option.maxValue = 8;
-		option.scrollSpeed = 20;
-		addOption(option);
-
-		var option:Option = new Option('Draw Dist. Mult',
-			"A multiplier to note's draw distance. Higher number means notes can be seen from further away, less means closer.\nNote that with higher numbers, draw distance is still capped by the spawn distance (which is only modifiable by modcharts) so it's only recommended to lower this value for low-end PCs.\nKEEP IN MIND, ANYTHING PAST X2 IS UNTESTED AND WILL MOST LIKELY BREAK SOMETHING!\nYOU HAVE BEEN WARNED!!!",
-			'drawDistanceModifier',
-			FLOAT);
-		option.displayFormat = 'x%v';
-		option.decimals = 1;
-		option.changeValue = 0.1;
-		option.minValue = 0.8;
-		option.maxValue = 10;
-		option.scrollSpeed = 20;
-		addOption(option);
-
 		var option:Option = new Option('Intro Skip When',
 		"Choose when the intro can be skipped.",
 		'skipWhen',
@@ -212,6 +180,123 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		);
 		//addOption(option);
 		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('---MODCHART---',
+			"Not all options affect both modchart systems!",
+			'',
+			LABEL);
+
+		var option:Option = new Option('Enable 3D Cameras',
+			'Enables or disables 3D camera functionality.\nDisabling this may improve performance by skipping 3D transformations.',
+			'camera3dEnabled',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option(
+			'Optimized Holds',
+			"If checked, smooth holds will have fewer calls to the modchart system for position info.\nBest to leave this on, unless you have a high-end PC and require the highest accuracy rendering for, some reason.",
+			'optimizeHolds',
+			BOOL
+		);
+		addOption(option);
+
+		var option:Option = new Option('Z-Axis Scale',
+			'Scales the Z-axis values to control perceived depth.\nHigher values increase depth, lower values flatten it.',
+			'zScale',
+			FLOAT);
+		option.scrollSpeed = 10;
+		option.minValue = 0.1;
+		option.maxValue = 5.0;
+		option.changeValue = 0.1;
+		option.decimals = 1;
+		addOption(option);
+
+		var option:Option = new Option('Render Arrow Paths',
+			'Renders the trajectory lines of arrows.\nWARNING: This affects performance due to path computation.',
+			'renderArrowPaths',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Styled Arrow Paths',
+			'Applies visual styles to arrow paths (color, scale, alpha).\nOnly works when "Render Arrow Paths" is enabled.',
+			'styledArrowPaths',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Arrow Path Quality',
+			'Controls path rendering frequency.\nLower = Smoother paths (better quality, worse FPS)\nHigher = Faster rendering (lower quality, better FPS)\n(Recommended: 2-3)',
+			'arrowPathFrameSkip',
+			INT);
+		option.scrollSpeed = 1;
+		option.minValue = 1;
+		option.maxValue = 6;
+		option.changeValue = 1;
+		option.decimals = 0;
+		addOption(option);
+
+		var option:Option = new Option('Arrow Path Boundary',
+			'Pixels outside screen to still render paths.\nLower = Better FPS, Higher = Less pop-in\n(Recommended: 300)',
+			'arrowPathBoundary',
+			INT);
+		option.scrollSpeed = 10;
+		option.minValue = 0;
+		option.maxValue = 1000;
+		option.changeValue = 50;
+		option.decimals = 0;
+		addOption(option);
+
+		var option:Option = new Option('Draw Dist. Mult',
+			"A multiplier to note's draw distance. Higher number means notes can be seen from further away, less means closer.\nNote that with higher numbers, draw distance is still capped by the spawn distance (which is only modifiable by modcharts) so it's only recommended to lower this value for low-end PCs.\nKEEP IN MIND, ANYTHING PAST X2 IS UNTESTED AND WILL MOST LIKELY BREAK SOMETHING!\nYOU HAVE BEEN WARNED!!!",
+			'drawDistanceModifier',
+			FLOAT);
+		option.displayFormat = 'x%v';
+		option.decimals = 1;
+		option.changeValue = 0.1;
+		option.minValue = 0.8;
+		option.maxValue = 10;
+		option.scrollSpeed = 20;
+		addOption(option);
+
+		var option:Option = new Option('Hold Subdivisions',
+			"How many divisions are in a hold note with smooth holds.\nMore means smoother holds, but more of a performance hit.",
+			'holdSubdivs',
+			INT
+		);
+		option.displayFormat = '%v';
+		option.changeValue = 1;
+		option.minValue = 1;
+		option.maxValue = 8;
+		option.scrollSpeed = 20;
+		addOption(option);
+
+		var option:Option = new Option('Hold End Scale',
+			'Scales the size of hold note endings.\nAdjust for visual preference.',
+			'holdEndScale',
+			FLOAT);
+		option.scrollSpeed = 10;
+		option.minValue = 0.1;
+		option.maxValue = 3.0;
+		option.changeValue = 0.1;
+		option.decimals = 1;
+		addOption(option);
+
+		var option:Option = new Option('Prevent Scaled Hold Ends',
+			'Prevents scaling the hold note endings.\nWARNING: May affect performance with many holds on screen.',
+			'preventScaledHoldEnd',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Column Specific Modifiers',
+			'Enables column-specific modifiers.\nDisabling may improve performance by reducing calculations.',
+			'columnSpecificModifiers',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Holds Behind Strums',
+			'Shows sustain notes behind the strum line.\nVisual preference option.',
+			'holdsBehindStrum',
+			BOOL);
+		addOption(option);
 
 		var option:Option = new Option('---FREEPLAY---',
 			"",

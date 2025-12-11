@@ -171,7 +171,7 @@ class GameplayOptionsLoader {
         var songSpeed = new GameplayOption('Playback Rate', 'songspeed', FLOAT, 1.0);
         songSpeed.scrollSpeed = 1;
         songSpeed.minValue = 0.5;
-        songSpeed.maxValue = 3.0;
+        songSpeed.maxValue = 20.0;
         songSpeed.changeValue = 0.05;
         songSpeed.displayFormat = '%vX';
         songSpeed.decimals = 2;

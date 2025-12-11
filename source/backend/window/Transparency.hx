@@ -15,28 +15,29 @@ typedef COLORREF = DWORD;
 ")
 class Transparency
 {
+	#if windows
 	public static var win:HWND;
 	private static var winStyle:LONG;
 	private static var winExStyle:LONG;
 
 	@:native("FindWindowA") @:extern
-	private static function findWindow(className:cpp.ConstCharStar, windowName:cpp.ConstCharStar):HWND
+	inline private static function findWindow(className:cpp.ConstCharStar, windowName:cpp.ConstCharStar):Null<HWND>
 		return null;
 
 	@:native("SetWindowLongA") @:extern
-	private static function setWindowLong(hWnd:HWND, nIndex:Int, dwNewLong:LONG):LONG
+	inline private static function setWindowLong(hWnd:HWND, nIndex:Int, dwNewLong:LONG):Null<LONG>
 		return null;
 
 	@:native("GetWindowLongA") @:extern
-	private static function getWindowLong(hWnd:HWND, nIndex:Int):LONG
+	inline private static function getWindowLong(hWnd:HWND, nIndex:Int):Null<LONG>
 		return null;
 
 	@:native("SetLayeredWindowAttributes") @:extern
-	private static function setLayeredWindowAttributes(hwnd:HWND, crKey:COLORREF, bAlpha:BYTE, dwFlags:DWORD):BOOL
+	inline private static function setLayeredWindowAttributes(hwnd:HWND, crKey:COLORREF, bAlpha:BYTE, dwFlags:DWORD):Null<BOOL>
 		return null;
 
 	@:native("GetLastError") @:extern
-	private static function getLastError():DWORD
+	inline private static function getLastError():Null<DWORD>
 		return null;
 
 	public static function setTransparency(winName:String, color:Int):Void
@@ -86,4 +87,5 @@ class Transparency
 				trace("Code: " + Std.string(getLastError()));
 		}*/
 	}
+	#end
 }

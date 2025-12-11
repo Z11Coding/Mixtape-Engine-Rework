@@ -1631,6 +1631,7 @@ class FunkinLua {
 		CursorFunctions.implement(this);
 		VideoFunctions.implement(this);
 		PlayFieldFunctions.implement(this);
+		FMMFunctions.implement(this);
 		stages.VSliceLoader.implement(this);
 		WindowFunctions.implement(this);
 
