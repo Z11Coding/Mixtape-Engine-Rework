@@ -71,7 +71,6 @@ final class ModifierGroup {
 	@:noCompletion private var __idCount:Int = 0;
 
 	inline private function __loadModifiers() {
-		trace(ModifiersMacro.get());
 		for (cls in COMPILED_MODIFIERS) {
 			var name = Type.getClassName(cls);
 			name = name.substring(name.lastIndexOf('.') + 1, name.length);

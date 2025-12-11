@@ -8,8 +8,8 @@ import haxe.macro.Type.ClassField;
 
 class Macro {
 	public static function includeFiles() {
-		Compiler.include('modchart', true, ['backend.funkinmodchart.backend.standalone.adapters']);
-		Compiler.include("backend.funkinmodchart.backend.standalone.adapters." + haxe.macro.Context.definedValue("FM_ENGINE").toLowerCase());
+		Compiler.include('backend.funkinmodchart', true, ['backend.funkinmodchart.backend.standalone.adapters']);
+		Compiler.include("backend.funkinmodchart.backend.standalone.adapters.psych");
 	}
 
 	public static function addModchartStorage():Array<Field> {
