@@ -1,6 +1,9 @@
 package backend.util;
 
 import backend.window.os.HiddenProcess;
+import openfl.system.System;
+
+using StringTools;
 #if cpp
 import cpp.vm.Gc;
 #elseif hl
@@ -10,9 +13,6 @@ import java.vm.Gc;
 #elseif neko
 import neko.vm.Gc;
 #end
-import openfl.system.System;
-
-using StringTools;
 
 class MemoryUtil {
 	public static var disableCount:Int = 0;
@@ -72,9 +72,9 @@ class MemoryUtil {
 	{
 		#if windows
 		return backend.window.os.Windows.getTotalRam();
-		#elseif mac
+		#elseif (mac && CROSSPLATFORM)
 		return backend.window.os.Mac.getTotalRam();
-		#elseif linux
+		#elseif (linux && CROSSPLATFORM)
 		return backend.window.os.Linux.getTotalRam();
 		#else
 		return 0;
