@@ -3486,6 +3486,203 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 	}
 
+	// Central function to build YAML data object with all settings
+	function buildYamlDataObject():Dynamic
+	{
+		// Ensure song list is generated
+		var checks = 0;
+		while (APSettingsSubState.globalSongList.length == 0)
+		{
+			APSettingsSubState.generateSongList();
+			checks++;
+			if (checks >= 20)
+			{
+				throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
+			}
+		}
+		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+
+		if (APEntryState.gameSettings.FNF.songList.length == 0)
+		{
+			while (APEntryState.gameSettings.FNF.songList.length == 0)
+			{
+				APSettingsSubState.generateSongList();
+				checks++;
+				APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+				if (checks >= 20)
+				{
+					throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
+				}
+			}
+		}
+
+		// Process CustomAPLogic scripts before generating YAML (only if allowMods is true)
+		trace('Processing CustomAPLogic scripts...');
+		if (allowMods)
+		{
+			CustomAPLogic.APHScriptProcessor.processAllMods();
+		}
+		else
+		{
+			trace('Skipping CustomAPLogic processing - allowMods is false');
+		}
+
+		// Build base YAML object from game settings
+		var yamlThing = {};
+		for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
+		{
+			Reflect.setField(yamlThing, thing, Reflect.field(APEntryState.gameSettings.FNF, thing));
+		}
+
+		// Add all advanced settings
+		Reflect.setField(yamlThing, "include_secrets", includeSecrets);
+		Reflect.setField(yamlThing, "include_pico", includePico);
+		Reflect.setField(yamlThing, "include_erect", includeErect);
+		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
+		Reflect.setField(yamlThing, "enable_sanity_locations", enable_sanity_locations);
+		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
+		Reflect.setField(yamlThing, "stagesanity", stagesanity);
+		Reflect.setField(yamlThing, "charactersanity", charactersanity);
+		Reflect.setField(yamlThing, "starter_debuffs", starter_debuffs);
+		Reflect.setField(yamlThing, "perma_traps", perma_traps);
+		Reflect.setField(yamlThing, "hard_mode", hard_mode);
+		Reflect.setField(yamlThing, "enable_shop", enable_shop);
+		Reflect.setField(yamlThing, "allow_mods", allowMods);
+
+		// Handle optional song settings
+		if (startingSong != null)
+		{
+			Reflect.setField(yamlThing, "starting_song", startingSong);
+		}
+		else
+		{
+			Reflect.deleteField(yamlThing, "starting_song");
+		}
+		if (victorySong != null)
+		{
+			Reflect.setField(yamlThing, "victory_song", victorySong);
+		}
+		else
+		{
+			Reflect.deleteField(yamlThing, "victory_song");
+		}
+
+		// Generate and compress Python script for CustomAPLogic (only if allowMods is true and content exists)
+		if (allowMods && (CustomAPLogic.APDataStore.items.length > 0
+			|| CustomAPLogic.APDataStore.locations.length > 0
+			|| CustomAPLogic.APDataStore.customWeeks.length > 0
+			|| Lambda.count(CustomAPLogic.APDataStore.customData) > 0))
+		{
+			trace('Generating Python script for CustomAPLogic...');
+
+			// Generate the Python script content
+			var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
+
+			if (pythonContent != null && pythonContent.length > 0)
+			{
+				// ALWAYS compress the Python script using Base64 encoding
+				var compressedPythonScript = Base64.encode(haxe.io.Bytes.ofString(pythonContent));
+
+				// Embed as modData in the YAML
+				Reflect.setField(yamlThing, "modData", compressedPythonScript);
+				trace('Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
+			}
+			else
+			{
+				trace('Warning: Python script generation returned empty content');
+			}
+		}
+		else if (!allowMods)
+		{
+			trace('Skipping Python script generation - allowMods is false');
+		}
+
+		// Add sanity data if any sanity options are enabled
+		if (stagesanity || charactersanity)
+		{
+			var sanityData = generateSanityData();
+			if (sanityData != null)
+			{
+				// Convert sanity data to JSON and encode in Base64
+				var sanityJson = haxe.Json.stringify(sanityData);
+				var compressedSanityData = Base64.encode(haxe.io.Bytes.ofString(sanityJson));
+
+				// Embed as sanity in the YAML
+				Reflect.setField(yamlThing, "sanity", compressedSanityData);
+				trace('Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
+			}
+		}
+
+		// Shuffle song list
+		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+		FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
+
+		return yamlThing;
+	}
+
+	// Central function to generate complete YAML document
+	function generateCompleteYamlDocument(yamlDataObject:Dynamic):String
+	{
+		var mainSettings = {
+			name: playerName,
+			description: APEntryState.gameSettings.description,
+			game: APEntryState.gameSettings.game
+		};
+
+		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
+
+		// Create enhanced comment with stats
+		var comment = generateYAMLComment(yamlDataObject);
+
+		var yamlString = "Friday Night Funkin:\n";
+		for (key in Reflect.fields(yamlDataObject))
+		{
+			yamlString += "  " + key + ": " + Reflect.field(yamlDataObject, key) + "\n";
+		}
+
+		return document + comment + yamlString;
+	}
+
+	// Central function to save YAML to file with different destination options
+	function saveYamlToFile(yamlContent:String, destination:String, ?specificPath:String):Void
+	{
+		#if sys
+		switch (destination)
+		{
+			case "default":
+				// Save to default PlayerSettings location
+				if (!sys.FileSystem.exists("./PlayerSettings/"))
+					sys.FileSystem.createDirectory("./PlayerSettings/");
+				sys.io.File.saveContent("PlayerSettings/" + playerName + ".yaml", yamlContent);
+
+			case "dialog":
+				// Use ImprovedFileHandling to save the file with user-chosen location
+				var defaultFileName = playerName + ".yaml";
+				var success = yutautil.ImprovedFileHandling.saveOperation("Export YAML Configuration",
+					{ext: "yaml", desc: "FNF AP YAML File"},
+					Text,
+					yamlContent,
+					true);
+
+				if (!success)
+				{
+					throw new Exception("Export was cancelled or failed");
+				}
+
+			case "specific":
+				// Save to specific path
+				if (specificPath == null)
+				{
+					throw new Exception("Specific path required but not provided");
+				}
+				sys.io.File.saveContent(specificPath, yamlContent);
+
+			default:
+				throw new Exception("Unknown destination type: " + destination);
+		}
+		#end
+	}
+
 	function performYAMLExportToDefault()
 	{
 		// Show export animation
@@ -3504,10 +3701,15 @@ class APAdvancedSettingsState extends MusicBeatState
 				// Perform actual export to default location
 				try
 				{
-					performYAMLExport(true); // true = use default location
+					var yamlData = buildYamlDataObject();
+					var yamlDocument = generateCompleteYamlDocument(yamlData);
+					saveYamlToFile(yamlDocument, "default");
 
 					exportDialog.text = "EXPORT COMPLETED!\nSaved to: PlayerSettings/" + playerName + ".yaml";
 					exportDialog.color = FlxColor.GREEN;
+
+					trace('YAML export generated for player: ' + playerName);
+					trace('YAML export content:\n' + yamlDocument);
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -3559,10 +3761,15 @@ class APAdvancedSettingsState extends MusicBeatState
 				// Perform actual export with file dialog
 				try
 				{
-					performYAMLExport(false); // false = use file dialog
+					var yamlData = buildYamlDataObject();
+					var yamlDocument = generateCompleteYamlDocument(yamlData);
+					saveYamlToFile(yamlDocument, "dialog");
 
 					exportDialog.text = "EXPORT COMPLETED!";
 					exportDialog.color = FlxColor.GREEN;
+
+					trace('YAML export generated for player: ' + playerName);
+					trace('YAML export content:\n' + yamlDocument);
 
 					new FlxTimer().start(1.5, function(_)
 					{
@@ -3618,10 +3825,15 @@ class APAdvancedSettingsState extends MusicBeatState
 				// Perform actual export to the specified path
 				try
 				{
-					performYAMLExportToSpecificPath(forcePath);
+					var yamlData = buildYamlDataObject();
+					var yamlDocument = generateCompleteYamlDocument(yamlData);
+					saveYamlToFile(yamlDocument, "specific", forcePath);
 
 					exportDialog.text = "YAML REFRESHED!\nSaved to: " + forcePath;
 					exportDialog.color = FlxColor.GREEN;
+
+					trace('YAML refresh export generated for player: ' + playerName);
+					trace('YAML refresh export content:\n' + yamlDocument);
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -3654,328 +3866,6 @@ class APAdvancedSettingsState extends MusicBeatState
 				}
 			}
 		});
-	}
-
-	function performYAMLExportToSpecificPath(targetPath:String)
-	{
-		var checks = 0;
-
-		while (APSettingsSubState.globalSongList.length == 0)
-		{
-			APSettingsSubState.generateSongList();
-			checks++;
-			if (checks >= 20)
-			{
-				throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
-			}
-		}
-		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-
-		if (APEntryState.gameSettings.FNF.songList.length == 0)
-		{
-			while (APEntryState.gameSettings.FNF.songList.length == 0)
-			{
-				APSettingsSubState.generateSongList();
-				checks++;
-				APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-				if (checks >= 20)
-				{
-					throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
-				}
-			}
-		}
-
-		// Process CustomAPLogic scripts before generating YAML
-		trace('Processing CustomAPLogic scripts...');
-		if (allowMods)
-		CustomAPLogic.APHScriptProcessor.processAllMods();
-
-		var yamlThing = {};
-		for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
-		{
-			Reflect.setField(yamlThing, thing, Reflect.field(APEntryState.gameSettings.FNF, thing));
-		}
-
-		// Add new settings
-		Reflect.setField(yamlThing, "include_secrets", includeSecrets);
-		Reflect.setField(yamlThing, "include_pico", includePico);
-		Reflect.setField(yamlThing, "include_erect", includeErect);
-		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
-		Reflect.setField(yamlThing, "enable_sanity_locations", enable_sanity_locations);
-		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
-		Reflect.setField(yamlThing, "stagesanity", stagesanity);
-		Reflect.setField(yamlThing, "charactersanity", charactersanity);
-		Reflect.setField(yamlThing, "starter_debuffs", starter_debuffs);
-		Reflect.setField(yamlThing, "perma_traps", perma_traps);
-		Reflect.setField(yamlThing, "hard_mode", hard_mode);
-		Reflect.setField(yamlThing, "enable_shop", enable_shop);
-		if (startingSong != null)
-		{
-			Reflect.setField(yamlThing, "starting_song", startingSong);
-		}
-		else
-		{
-			Reflect.deleteField(yamlThing, "starting_song");
-		}
-		if (victorySong != null)
-		{
-			Reflect.setField(yamlThing, "victory_song", victorySong);
-		}
-		else
-		{
-			Reflect.deleteField(yamlThing, "victory_song");
-		}
-
-		// Generate and compress Python script for CustomAPLogic (ALWAYS compressed as Base64)
-		if (CustomAPLogic.APDataStore.items.length > 0
-			|| CustomAPLogic.APDataStore.locations.length > 0
-			|| CustomAPLogic.APDataStore.customWeeks.length > 0
-			|| Lambda.count(CustomAPLogic.APDataStore.customData) > 0)
-		{
-			trace('Generating Python script for CustomAPLogic...');
-
-			// Process all mods first to ensure data is up to date
-			CustomAPLogic.APHScriptProcessor.processAllMods();
-
-			// Generate the Python script content using the same method as APSettingsSubState
-			var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
-
-			if (pythonContent != null && pythonContent.length > 0)
-			{
-				// ALWAYS compress the Python script using Base64 encoding (NOT optional)
-				var compressedPythonScript = Base64.encode(haxe.io.Bytes.ofString(pythonContent));
-
-				// Embed as modData in the YAML
-				Reflect.setField(yamlThing, "modData", compressedPythonScript);
-				trace('Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
-			}
-			else
-			{
-				trace('Warning: Python script generation returned empty content');
-			}
-		}
-
-		// Add sanity data if any sanity options are enabled
-		if (stagesanity || charactersanity)
-		{
-			var sanityData = generateSanityData();
-			if (sanityData != null)
-			{
-				// Convert sanity data to JSON and encode in Base64
-				var sanityJson = haxe.Json.stringify(sanityData);
-				var compressedSanityData = Base64.encode(haxe.io.Bytes.ofString(sanityJson));
-
-				// Embed as sanity in the YAML
-				Reflect.setField(yamlThing, "sanity", compressedSanityData);
-				trace('Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
-			}
-		}
-
-		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-		FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
-
-		var mainSettings = {
-			name: playerName,
-			description: APEntryState.gameSettings.description,
-			game: APEntryState.gameSettings.game
-		};
-
-		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
-
-		// Create enhanced comment with stats
-		var comment = generateYAMLComment(yamlThing);
-
-		var yamlString = "Friday Night Funkin:\n";
-		for (key in Reflect.fields(yamlThing))
-		{
-			yamlString += "  " + key + ": " + Reflect.field(yamlThing, key) + "\n";
-		}
-
-		var finalDocument = document + comment + yamlString;
-
-		trace('YAML refresh export generated for player: ' + playerName);
-		trace('YAML refresh export content:\n' + finalDocument);
-
-		// Save to the specific target path
-		#if sys
-		sys.io.File.saveContent(targetPath, finalDocument);
-		#end
-	}
-
-	function performYAMLExport(useDefaultLocation:Bool = false)
-	{
-		var checks = 0;
-
-		while (APSettingsSubState.globalSongList.length == 0)
-		{
-			APSettingsSubState.generateSongList();
-			checks++;
-			if (checks >= 20)
-			{
-				openSubState(new InfoPanelSubstate(
-					"YAML Export Error",
-					"No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.",
-					FlxColor.RED
-				));
-				return;
-			}
-		}
-		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-
-		if (APEntryState.gameSettings.FNF.songList.length == 0)
-		{
-			while (APEntryState.gameSettings.FNF.songList.length == 0)
-			{
-				APSettingsSubState.generateSongList();
-				checks++;
-				APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-				if (checks >= 20)
-				{
-					openSubState(new InfoPanelSubstate(
-						"YAML Export Error",
-						"No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.",
-						FlxColor.RED
-					));
-					return;
-				}
-			}
-		}
-
-		// Process CustomAPLogic scripts before generating YAML
-		trace('Processing CustomAPLogic scripts...');
-		CustomAPLogic.APHScriptProcessor.processAllMods();
-
-		var yamlThing = {};
-		for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
-		{
-			Reflect.setField(yamlThing, thing, Reflect.field(APEntryState.gameSettings.FNF, thing));
-		}
-
-		// Add new settings
-		Reflect.setField(yamlThing, "include_secrets", includeSecrets);
-		Reflect.setField(yamlThing, "include_pico", includePico);
-		Reflect.setField(yamlThing, "include_erect", includeErect);
-		Reflect.setField(yamlThing, "include_vanilla", includeVanilla);
-		Reflect.setField(yamlThing, "enable_sanity_locations", enable_sanity_locations);
-		Reflect.setField(yamlThing, "sanity_completion_type", sanity_completion_type);
-		Reflect.setField(yamlThing, "stagesanity", stagesanity);
-		Reflect.setField(yamlThing, "charactersanity", charactersanity);
-		Reflect.setField(yamlThing, "starter_debuffs", starter_debuffs);
-		Reflect.setField(yamlThing, "perma_traps", perma_traps);
-		Reflect.setField(yamlThing, "hard_mode", hard_mode);
-		Reflect.setField(yamlThing, "enable_shop", enable_shop);
-		if (startingSong != null)
-		{
-			Reflect.setField(yamlThing, "starting_song", startingSong);
-		}
-		else
-		{
-			Reflect.deleteField(yamlThing, "starting_song");
-		}
-		if (victorySong != null)
-		{
-			Reflect.setField(yamlThing, "victory_song", victorySong);
-		}
-		else
-		{
-			Reflect.deleteField(yamlThing, "victory_song");
-		}
-
-		// Generate and compress Python script for CustomAPLogic (ALWAYS compressed as Base64)
-		if (CustomAPLogic.APDataStore.items.length > 0
-			|| CustomAPLogic.APDataStore.locations.length > 0
-			|| CustomAPLogic.APDataStore.customWeeks.length > 0
-			|| Lambda.count(CustomAPLogic.APDataStore.customData) > 0)
-		{
-			trace('Generating Python script for CustomAPLogic...');
-
-			// Process all mods first to ensure data is up to date
-			CustomAPLogic.APHScriptProcessor.processAllMods();
-
-			// Generate the Python script content using the same method as APSettingsSubState
-			var pythonContent = allowMods ? CustomAPLogic.APPythonGenerator.generatePythonScript() : null;
-
-			if (pythonContent != null && pythonContent.length > 0)
-			{
-				// ALWAYS compress the Python script using Base64 encoding (NOT optional)
-				var compressedPythonScript = Base64.encode(haxe.io.Bytes.ofString(pythonContent));
-
-				// Embed as modData in the YAML
-				Reflect.setField(yamlThing, "modData", compressedPythonScript);
-				trace('Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
-			}
-			else
-			{
-				trace('Warning: Python script generation returned empty content');
-			}
-		}
-
-		// Add sanity data if any sanity options are enabled
-		if (stagesanity || charactersanity)
-		{
-			var sanityData = generateSanityData();
-			if (sanityData != null)
-			{
-				// Convert sanity data to JSON and encode in Base64
-				var sanityJson = haxe.Json.stringify(sanityData);
-				var compressedSanityData = Base64.encode(haxe.io.Bytes.ofString(sanityJson));
-
-				// Embed as sanity in the YAML
-				Reflect.setField(yamlThing, "sanity", compressedSanityData);
-				trace('Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
-			}
-		}
-
-		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-		FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
-
-		var mainSettings = {
-			name: playerName,
-			description: APEntryState.gameSettings.description,
-			game: APEntryState.gameSettings.game
-		};
-
-		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
-
-		// Create enhanced comment with stats
-		var comment = generateYAMLComment(yamlThing);
-
-		var yamlString = "Friday Night Funkin:\n";
-		for (key in Reflect.fields(yamlThing))
-		{
-			yamlString += "  " + key + ": " + Reflect.field(yamlThing, key) + "\n";
-		}
-
-		var finalDocument = document + comment + yamlString;
-
-		trace('YAML export generated for player: ' + playerName);
-		trace('YAML export content:\n' + finalDocument);
-
-		if (useDefaultLocation)
-		{
-			// Save to default PlayerSettings location
-			#if sys
-			if (!sys.FileSystem.exists("./PlayerSettings/"))
-				sys.FileSystem.createDirectory("./PlayerSettings/");
-
-			sys.io.File.saveContent("PlayerSettings/" + playerName + ".yaml", finalDocument);
-			#end
-		}
-		else
-		{
-			// Use ImprovedFileHandling to save the file with user-chosen location
-			var defaultFileName = playerName + ".yaml";
-			var success = yutautil.ImprovedFileHandling.saveOperation("Export YAML Configuration",
-				{ext: "yaml", desc: "FNF AP YAML File"},
-				Text,
-				finalDocument,
-				true);
-
-			if (!success)
-			{
-				throw new Exception("Export was cancelled or failed");
-			}
-		}
 	}
 
 	function generateYAMLComment(yamlThing:Dynamic):String
@@ -4196,6 +4086,22 @@ class APAdvancedSettingsState extends MusicBeatState
 								includeErect = value == true;
 							case "include_vanilla":
 								includeVanilla = value == true;
+							case "enable_sanity_locations":
+								enable_sanity_locations = value == true;
+							case "sanity_completion_type":
+								sanity_completion_type = Std.string(value);
+							case "stagesanity":
+								stagesanity = value == true;
+							case "charactersanity":
+								charactersanity = value == true;
+							case "starter_debuffs":
+								starter_debuffs = value == true;
+							case "perma_traps":
+								perma_traps = value == true;
+							case "hard_mode":
+								hard_mode = value == true;
+							case "enable_shop":
+								enable_shop = value == true;
 							case "starting_song":
 								// Only set if the value is actually present in YAML and not empty
 								var songValue = Std.string(value);
@@ -4563,6 +4469,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			gradeRequirement: gradeRequirement,
 			accRequirement: accRequirement,
 			allowMods: allowMods,
+			includeSecrets: includeSecrets,
 			includePico: includePico,
 			includeErect: includeErect,
 			includeVanilla: includeVanilla,
@@ -4621,6 +4528,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			gradeRequirement = data.gradeRequirement;
 			accRequirement = data.accRequirement;
 			allowMods = data.allowMods;
+			includeSecrets = data.includeSecrets;
 			includePico = data.includePico;
 			includeErect = data.includeErect;
 			includeVanilla = data.includeVanilla;

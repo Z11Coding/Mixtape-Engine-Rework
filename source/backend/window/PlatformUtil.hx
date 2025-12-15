@@ -78,9 +78,35 @@ class PlatformUtil {
     @:functionCode('
         return ShowNotification(title.c_str(), desc.c_str());
     ')
-    #end
-
-    static public function  sendWindowsNotification(title:String = "", desc:String = ""):Bool {
+    static public function sendWindowsNotification(title:String = "", desc:String = ""):Bool {
         return true; // Actual logic is handled by C++ code
     }
+    #else
+    static public function sendWindowsNotification(title:String = "", desc:String = ""):Bool {
+        // Fallback for non-Windows platforms
+        #if (linux && CROSSPLATFORM)
+        try {
+            var result = Sys.command('notify-send "$title" "$desc" --app-name="Mixtape Engine" --urgency=normal');
+            return result == 0;
+        } catch (e:Dynamic) {
+            trace("Linux notification failed: " + e);
+            return false;
+        }
+        #elseif (mac && CROSSPLATFORM)
+        try {
+            var script = 'display notification "$desc" with title "$title" subtitle "Mixtape Engine"';
+            var result = Sys.command('osascript -e \'$script\'');
+            return result == 0;
+        } catch (e:Dynamic) {
+            trace("macOS notification failed: " + e);
+            return false;
+        }
+        #elseif CROSSPLATFORM
+        trace('Platform notification: $title - $desc');
+        return true;
+        #else
+        return true; // Do nothing when CROSSPLATFORM is disabled
+        #end
+    }
+    #end
 }

@@ -12,10 +12,13 @@ package yutautil;
  * var num:Num = 3.14;        // From Float
  * var num:Num = 100.5;       // From any numeric type
  *
- * var result = num + 10;     // Works with any numeric operation
+ * var result = num + 10;     // Works with any numeric operation (Num on left)
+ * var result2 = 10 + num;    // Also works with Num on right (commutative)
+ * var comparison = 5 < num;  // Comparison operators work both ways
  * var floatVal:Float = num;  // Implicit conversion to Float
  * var intVal:Int = num;      // Implicit conversion to Int
  * ```
+ * Note: All arithmetic and comparison operators support both `Num + Int` and `Int + Num` patterns.
  * Warning: It may require explicit casting in some contexts, but easily can be bypassed by using the `cast` keyword.
  */
 abstract Num(Float)
@@ -68,6 +71,19 @@ abstract Num(Float)
         return this + haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse addition operators (for when Num is on the right)
+    @:op(A + B) public static inline function addFloatReverse(lhs:Float, rhs:Num):Num
+        return lhs + rhs.toFloat();
+    @:op(A + B) public static inline function addIntReverse(lhs:Int, rhs:Num):Num
+        return lhs + rhs.toFloat();
+    @:op(A + B) public static inline function addUIntReverse(lhs:UInt, rhs:Num):Num
+        return lhs + rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A + B) public static inline function addInt64Reverse(lhs:haxe.Int64, rhs:Num):Num
+        return haxe.Int64.toInt(lhs) + rhs.toFloat();
+    #end
+
+
     @:op(A - B) public inline function subtract(rhs:Num):Num
         return this - rhs.toFloat();
     @:op(A - B) public inline function subtractFloat(rhs:Float):Num
@@ -80,6 +96,19 @@ abstract Num(Float)
     @:op(A - B) public inline function subtractInt64(rhs:haxe.Int64):Num
         return this - haxe.Int64.toInt(rhs);
     #end
+
+    // Reverse subtraction operators (for when Num is on the right)
+    @:op(A - B) public static inline function subtractFloatReverse(lhs:Float, rhs:Num):Num
+        return lhs - rhs.toFloat();
+    @:op(A - B) public static inline function subtractIntReverse(lhs:Int, rhs:Num):Num
+        return lhs - rhs.toFloat();
+    @:op(A - B) public static inline function subtractUIntReverse(lhs:UInt, rhs:Num):Num
+        return lhs - rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A - B) public static inline function subtractInt64Reverse(lhs:haxe.Int64, rhs:Num):Num
+        return haxe.Int64.toInt(lhs) - rhs.toFloat();
+    #end
+
 
     @:op(A * B) public inline function multiply(rhs:Num):Num
         return this * rhs.toFloat();
@@ -94,6 +123,19 @@ abstract Num(Float)
         return this * haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse multiplication operators (for when Num is on the right)
+    @:op(A * B) public static inline function multiplyFloatReverse(lhs:Float, rhs:Num):Num
+        return lhs * rhs.toFloat();
+    @:op(A * B) public static inline function multiplyIntReverse(lhs:Int, rhs:Num):Num
+        return lhs * rhs.toFloat();
+    @:op(A * B) public static inline function multiplyUIntReverse(lhs:UInt, rhs:Num):Num
+        return lhs * rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A * B) public static inline function multiplyInt64Reverse(lhs:haxe.Int64, rhs:Num):Num
+        return haxe.Int64.toInt(lhs) * rhs.toFloat();
+    #end
+
+
     @:op(A / B) public inline function divide(rhs:Num):Num
         return this / rhs.toFloat();
     @:op(A / B) public inline function divideFloat(rhs:Float):Num
@@ -107,6 +149,19 @@ abstract Num(Float)
         return this / haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse division operators (for when Num is on the right)
+    @:op(A / B) public static inline function divideFloatReverse(lhs:Float, rhs:Num):Num
+        return lhs / rhs.toFloat();
+    @:op(A / B) public static inline function divideIntReverse(lhs:Int, rhs:Num):Num
+        return lhs / rhs.toFloat();
+    @:op(A / B) public static inline function divideUIntReverse(lhs:UInt, rhs:Num):Num
+        return lhs / rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A / B) public static inline function divideInt64Reverse(lhs:haxe.Int64, rhs:Num):Num
+        return haxe.Int64.toInt(lhs) / rhs.toFloat();
+    #end
+
+
     @:op(A % B) public inline function modulo(rhs:Num):Num
         return this % rhs.toFloat();
     @:op(A % B) public inline function moduloFloat(rhs:Float):Num
@@ -119,6 +174,19 @@ abstract Num(Float)
     @:op(A % B) public inline function moduloInt64(rhs:haxe.Int64):Num
         return this % haxe.Int64.toInt(rhs);
     #end
+
+    // Reverse modulo operators (for when Num is on the right)
+    @:op(A % B) public static inline function moduloFloatReverse(lhs:Float, rhs:Num):Num
+        return lhs % rhs.toFloat();
+    @:op(A % B) public static inline function moduloIntReverse(lhs:Int, rhs:Num):Num
+        return lhs % rhs.toFloat();
+    @:op(A % B) public static inline function moduloUIntReverse(lhs:UInt, rhs:Num):Num
+        return lhs % rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A % B) public static inline function moduloInt64Reverse(lhs:haxe.Int64, rhs:Num):Num
+        return haxe.Int64.toInt(lhs) % rhs.toFloat();
+    #end
+
 
     // Unary operators
     @:op(-A) public inline function negate():Num
@@ -154,6 +222,19 @@ abstract Num(Float)
         return this == haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse equality operators (for when Num is on the right)
+    @:op(A == B) public static inline function equalsFloatReverse(lhs:Float, rhs:Num):Bool
+        return lhs == rhs.toFloat();
+    @:op(A == B) public static inline function equalsIntReverse(lhs:Int, rhs:Num):Bool
+        return lhs == rhs.toFloat();
+    @:op(A == B) public static inline function equalsUIntReverse(lhs:UInt, rhs:Num):Bool
+        return lhs == rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A == B) public static inline function equalsInt64Reverse(lhs:haxe.Int64, rhs:Num):Bool
+        return haxe.Int64.toInt(lhs) == rhs.toFloat();
+    #end
+
+
     @:op(A != B) public inline function notEquals(rhs:Num):Bool
         return this != rhs.toFloat();
     @:op(A != B) public inline function notEqualsFloat(rhs:Float):Bool
@@ -165,6 +246,18 @@ abstract Num(Float)
     #if (haxe_ver >= 4.0)
     @:op(A != B) public inline function notEqualsInt64(rhs:haxe.Int64):Bool
         return this != haxe.Int64.toInt(rhs);
+    #end
+
+    // Reverse not-equals operators (for when Num is on the right)
+    @:op(A != B) public static inline function notEqualsFloatReverse(lhs:Float, rhs:Num):Bool
+        return lhs != rhs.toFloat();
+    @:op(A != B) public static inline function notEqualsIntReverse(lhs:Int, rhs:Num):Bool
+        return lhs != rhs.toFloat();
+    @:op(A != B) public static inline function notEqualsUIntReverse(lhs:UInt, rhs:Num):Bool
+        return lhs != rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A != B) public static inline function notEqualsInt64Reverse(lhs:haxe.Int64, rhs:Num):Bool
+        return haxe.Int64.toInt(lhs) != rhs.toFloat();
     #end
 
     @:op(A < B) public inline function lessThan(rhs:Num):Bool
@@ -180,6 +273,18 @@ abstract Num(Float)
         return this < haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse less-than operators (for when Num is on the right)
+    @:op(A < B) public static inline function lessThanFloatReverse(lhs:Float, rhs:Num):Bool
+        return lhs < rhs.toFloat();
+    @:op(A < B) public static inline function lessThanIntReverse(lhs:Int, rhs:Num):Bool
+        return lhs < rhs.toFloat();
+    @:op(A < B) public static inline function lessThanUIntReverse(lhs:UInt, rhs:Num):Bool
+        return lhs < rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A < B) public static inline function lessThanInt64Reverse(lhs:haxe.Int64, rhs:Num):Bool
+        return haxe.Int64.toInt(lhs) < rhs.toFloat();
+    #end
+
     @:op(A <= B) public inline function lessThanOrEqual(rhs:Num):Bool
         return this <= rhs.toFloat();
     @:op(A <= B) public inline function lessThanOrEqualFloat(rhs:Float):Bool
@@ -191,6 +296,18 @@ abstract Num(Float)
     #if (haxe_ver >= 4.0)
     @:op(A <= B) public inline function lessThanOrEqualInt64(rhs:haxe.Int64):Bool
         return this <= haxe.Int64.toInt(rhs);
+    #end
+
+    // Reverse less-than-or-equal operators (for when Num is on the right)
+    @:op(A <= B) public static inline function lessThanOrEqualFloatReverse(lhs:Float, rhs:Num):Bool
+        return lhs <= rhs.toFloat();
+    @:op(A <= B) public static inline function lessThanOrEqualIntReverse(lhs:Int, rhs:Num):Bool
+        return lhs <= rhs.toFloat();
+    @:op(A <= B) public static inline function lessThanOrEqualUIntReverse(lhs:UInt, rhs:Num):Bool
+        return lhs <= rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A <= B) public static inline function lessThanOrEqualInt64Reverse(lhs:haxe.Int64, rhs:Num):Bool
+        return haxe.Int64.toInt(lhs) <= rhs.toFloat();
     #end
 
     @:op(A > B) public inline function greaterThan(rhs:Num):Bool
@@ -206,6 +323,18 @@ abstract Num(Float)
         return this > haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse greater-than operators (for when Num is on the right)
+    @:op(A > B) public static inline function greaterThanFloatReverse(lhs:Float, rhs:Num):Bool
+        return lhs > rhs.toFloat();
+    @:op(A > B) public static inline function greaterThanIntReverse(lhs:Int, rhs:Num):Bool
+        return lhs > rhs.toFloat();
+    @:op(A > B) public static inline function greaterThanUIntReverse(lhs:UInt, rhs:Num):Bool
+        return lhs > rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A > B) public static inline function greaterThanInt64Reverse(lhs:haxe.Int64, rhs:Num):Bool
+        return haxe.Int64.toInt(lhs) > rhs.toFloat();
+    #end
+
     @:op(A >= B) public inline function greaterThanOrEqual(rhs:Num):Bool
         return this >= rhs.toFloat();
     @:op(A >= B) public inline function greaterThanOrEqualFloat(rhs:Float):Bool
@@ -217,6 +346,18 @@ abstract Num(Float)
     #if (haxe_ver >= 4.0)
     @:op(A >= B) public inline function greaterThanOrEqualInt64(rhs:haxe.Int64):Bool
         return this >= haxe.Int64.toInt(rhs);
+    #end
+
+    // Reverse greater-than-or-equal operators (for when Num is on the right)
+    @:op(A >= B) public static inline function greaterThanOrEqualFloatReverse(lhs:Float, rhs:Num):Bool
+        return lhs >= rhs.toFloat();
+    @:op(A >= B) public static inline function greaterThanOrEqualIntReverse(lhs:Int, rhs:Num):Bool
+        return lhs >= rhs.toFloat();
+    @:op(A >= B) public static inline function greaterThanOrEqualUIntReverse(lhs:UInt, rhs:Num):Bool
+        return lhs >= rhs.toFloat();
+    #if (haxe_ver >= 4.0)
+    @:op(A >= B) public static inline function greaterThanOrEqualInt64Reverse(lhs:haxe.Int64, rhs:Num):Bool
+        return haxe.Int64.toInt(lhs) >= rhs.toFloat();
     #end
 
     // Assignment operators
@@ -285,6 +426,62 @@ abstract Num(Float)
         return this = this % haxe.Int64.toInt(rhs);
     #end
 
+    // Reverse assignment operators (for when Num is on the right)
+    @:op(A += B) public static inline function addAssignFloatReverse(lhs:Float, rhs:Num):Float
+        return lhs += rhs.toFloat();
+    @:op(A += B) public static inline function addAssignIntReverse(lhs:Int, rhs:Num):Int
+        return lhs += rhs.toInt();
+    @:op(A += B) public static inline function addAssignUIntReverse(lhs:UInt, rhs:Num):UInt
+        return lhs += rhs.toUInt();
+    #if (haxe_ver >= 4.0)
+    @:op(A += B) public static inline function addAssignInt64Reverse(lhs:haxe.Int64, rhs:Num):haxe.Int64
+        return lhs += rhs.toInt64();
+    #end
+
+    @:op(A -= B) public static inline function subtractAssignFloatReverse(lhs:Float, rhs:Num):Float
+        return lhs -= rhs.toFloat();
+    @:op(A -= B) public static inline function subtractAssignIntReverse(lhs:Int, rhs:Num):Int
+        return lhs -= rhs.toInt();
+    @:op(A -= B) public static inline function subtractAssignUIntReverse(lhs:UInt, rhs:Num):UInt
+        return lhs -= rhs.toUInt();
+    #if (haxe_ver >= 4.0)
+    @:op(A -= B) public static inline function subtractAssignInt64Reverse(lhs:haxe.Int64, rhs:Num):haxe.Int64
+        return lhs -= rhs.toInt64();
+    #end
+
+    @:op(A *= B) public static inline function multiplyAssignFloatReverse(lhs:Float, rhs:Num):Float
+        return lhs *= rhs.toFloat();
+    @:op(A *= B) public static inline function multiplyAssignIntReverse(lhs:Int, rhs:Num):Int
+        return lhs *= rhs.toInt();
+    @:op(A *= B) public static inline function multiplyAssignUIntReverse(lhs:UInt, rhs:Num):UInt
+        return lhs *= rhs.toUInt();
+    #if (haxe_ver >= 4.0)
+    @:op(A *= B) public static inline function multiplyAssignInt64Reverse(lhs:haxe.Int64, rhs:Num):haxe.Int64
+        return lhs *= rhs.toInt64();
+    #end
+
+    @:op(A /= B) public static inline function divideAssignFloatReverse(lhs:Float, rhs:Num):Float
+        return lhs /= rhs.toFloat();
+    @:op(A /= B) public static inline function divideAssignIntReverse(lhs:Int, rhs:Num):Int
+        return lhs = Std.int(lhs / rhs.toFloat());
+    @:op(A /= B) public static inline function divideAssignUIntReverse(lhs:UInt, rhs:Num):UInt
+        return lhs = Std.int(Math.max(0, lhs / rhs.toFloat()));
+    #if (haxe_ver >= 4.0)
+    @:op(A /= B) public static inline function divideAssignInt64Reverse(lhs:haxe.Int64, rhs:Num):haxe.Int64
+        return lhs = haxe.Int64.ofInt(Std.int(haxe.Int64.toInt(lhs) / rhs.toFloat()));
+    #end
+
+    @:op(A %= B) public static inline function moduloAssignFloatReverse(lhs:Float, rhs:Num):Float
+        return lhs %= rhs.toFloat();
+    @:op(A %= B) public static inline function moduloAssignIntReverse(lhs:Int, rhs:Num):Int
+        return lhs %= rhs.toInt();
+    @:op(A %= B) public static inline function moduloAssignUIntReverse(lhs:UInt, rhs:Num):UInt
+        return lhs %= rhs.toUInt();
+    #if (haxe_ver >= 4.0)
+    @:op(A %= B) public static inline function moduloAssignInt64Reverse(lhs:haxe.Int64, rhs:Num):haxe.Int64
+        return lhs %= rhs.toInt64();
+    #end
+
     // Utility methods
 
     /**
@@ -298,6 +495,13 @@ abstract Num(Float)
      */
     public inline function cube():Num
         return this * this * this;
+
+    public static inline function cubed(value:Num):Num
+        return value * value * value;
+
+    public static inline function squared(value:Num):Num
+        return value * value;
+
 
 
      @:to public inline function toFloatIterator():Iterator<Num> {
@@ -353,6 +557,63 @@ abstract Num(Float)
 
     public static inline function floatIter(Iterated:Num, stp:Num):Iterator<Num> {
         return new Num(Iterated).floatIterator(stp);
+    }
+
+    public static inline function iterFrom0To(target:Num, ?step:Float):Iterator<Num> {
+        return new Num(0).floatIterator(target, step);
+    }
+    /**
+     * Returns an iterator that iterates from this value towards the target (inclusive),
+     * with the last value being the target regardless of step size.
+     */
+    public inline function floatIteratorToTarget(target:Num, ?step:Float):Iterator<Num> {
+        if (step == null) step = 1.0;
+        var current:Num = this;
+        var ascending = this < target;
+        var actualStep = ascending ? Math.abs(step) : -Math.abs(step);
+        var done = false;
+
+        return {
+            hasNext: function():Bool {
+                return !done;
+            },
+            next: function():Num {
+                if (ascending ? (current + actualStep >= target) : (current + actualStep <= target)) {
+                    done = true;
+                    return target;
+                }
+                var ret = current;
+                current += actualStep;
+                return ret;
+            }
+        };
+    }
+
+    public static inline function rangeToTarget(start:Num, end:Num, ?step:Float):Array<Num> {
+        var result = [];
+        if (step == null) step = 1.0;
+        var current:Num = start;
+        var ascending = start < end;
+        var actualStep = ascending ? Math.abs(step) : -Math.abs(step);
+
+        while (ascending ? (current < end) : (current > end)) {
+            if (ascending ? (current + actualStep >= end) : (current + actualStep <= end)) {
+                result.push(end);
+                break;
+            }
+            result.push(current);
+            current += actualStep;
+        }
+
+        if (result.length == 0 || result[result.length - 1] != end) {
+            result.push(end);
+        }
+
+        return result;
+    }
+
+    public static inline function iterFrom0ToTarget(target:Num, ?step:Float):Iterator<Num> {
+        return new Num(0).floatIteratorToTarget(target, step);
     }
 
     /**

@@ -551,6 +551,8 @@ class Main extends Sprite
 		TraceViewerPlugin.initialize();
 		new ScreenShotPlugin();
 
+		// trace(3.cubed());
+
 
 		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));
 		// trace("Game Dialog Test 2: " + dialogs.Dialogs.save('Test for Save', {ext:'txt', desc:'Text files'}));

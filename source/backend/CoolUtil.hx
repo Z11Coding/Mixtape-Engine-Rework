@@ -240,7 +240,7 @@ class CoolUtil
 
 		// Execute the batch file
 		new Process(exeDir + "/update.bat", []);
-		Sys.exit(0);
+		Main.closeGame();
 	}
 
 	inline public static function parseLog(msg:Dynamic):LogData {

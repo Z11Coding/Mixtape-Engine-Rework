@@ -16,6 +16,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
 import openfl.display.BlendMode;
+import substates.AssetSelectionSubstate;
 import substates.GitHubPromptSubstate.GitHubButtonStyle;
 import substates.GitHubPromptSubstate;
 import substates.Prompt;
@@ -341,14 +342,8 @@ class ReleaseSelectionState extends MusicBeatState {
 	}
 
 	private function showAssetSelection(release:GitHubRelease, assets:Array<GitHubAsset>):Void {
-		var assetNames = [];
-		for (asset in assets) {
-			assetNames.push(asset.name + " (" + GitHubAPI.formatFileSize(asset.size) + ")");
-		}
-
-		// For now, we'll automatically select the first compatible asset
-		// TODO: Implement proper asset selection UI
 		if (assets.length == 1) {
+			// Only one asset, show confirmation dialog
 			var prompt = new GitHubPromptSubstate("Download Release",
 				"Download " + assets[0].name + " (" + GitHubAPI.formatFileSize(assets[0].size) + ")?", [
 				{text: "Download", callback: function() { downloadRelease(release, assets[0]); }, style: GitHubButtonStyle.SUCCESS},
@@ -356,14 +351,17 @@ class ReleaseSelectionState extends MusicBeatState {
 			]);
 			openSubState(prompt);
 		} else {
-			// Multiple assets - show first one for now
-			var prompt = new GitHubPromptSubstate("Multiple Files Available",
-				"Multiple compatible files found. Downloading: " + assets[0].name +
-				" (" + GitHubAPI.formatFileSize(assets[0].size) + ")", [
-				{text: "Download", callback: function() { downloadRelease(release, assets[0]); }, style: GitHubButtonStyle.SUCCESS},
-				{text: "Cancel", callback: function() {}, style: GitHubButtonStyle.SECONDARY}
-			]);
-			openSubState(prompt);
+			// Multiple assets - show selection UI
+			var assetSelection = new AssetSelectionSubstate(release, assets,
+				function(selectedAsset:GitHubAsset) {
+					// Asset selected, proceed with download
+					downloadRelease(release, selectedAsset);
+				},
+				function() {
+					// Cancelled, do nothing
+				}
+			);
+			openSubState(assetSelection);
 		}
 	}
 

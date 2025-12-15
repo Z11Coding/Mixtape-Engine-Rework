@@ -1999,6 +1999,8 @@ class APGameState
 				archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
 			}
 
+			archipelago.APInfo.ticketCount = result.tickets;
+
 			// Save state after everything is applied
 			trace("AP State Saving...");
 			updateSaveData();

@@ -110,7 +110,8 @@ class SongCapsuleGroup extends FlxTypedGroup<SongMenuItem> {
 				add(funnyMenu);
 			}
 			else{
-				funnyMenu.refreshDisplayDifficulty();
+				// Apply the new song data to refresh the full display, not just difficulty
+				funnyMenu.applySongData(tempSong);
 			}
 			funnyMenu.onConfirm = function()
 			{

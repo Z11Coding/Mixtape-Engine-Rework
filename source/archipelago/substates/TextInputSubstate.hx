@@ -116,7 +116,16 @@ class TextInputSubstate extends MusicBeatSubstate {
         inputBg.makeGraphic(Std.int(panel.width - 40), 50, FlxColor.fromRGB(10, 10, 30));
         add(inputBg);
 
-        inputText = new FlxText(inputBg.x + 10, inputBg.y + 10, inputBg.width - 20, currentValue, 20);
+        // Initialize with masked text if password mode
+        var initialDisplayText = currentValue;
+        if (isPasswordMode && currentValue.length > 0) {
+            initialDisplayText = "";
+            for (i in 0...currentValue.length) {
+                initialDisplayText += "•";
+            }
+        }
+
+        inputText = new FlxText(inputBg.x + 10, inputBg.y + 10, inputBg.width - 20, initialDisplayText, 20);
         inputText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         inputText.borderSize = 2;
         add(inputText);
@@ -380,16 +389,19 @@ class TextInputSubstate extends MusicBeatSubstate {
         if (keys.Y) keysPressed.push("Y");
         if (keys.Z) keysPressed.push("Z");
 
-        if (keys.ZERO) keysPressed.push("0");
-        if (keys.ONE) keysPressed.push("1");
-        if (keys.TWO) keysPressed.push("2");
-        if (keys.THREE) keysPressed.push("3");
-        if (keys.FOUR) keysPressed.push("4");
-        if (keys.FIVE) keysPressed.push("5");
-        if (keys.SIX) keysPressed.push("6");
-        if (keys.SEVEN) keysPressed.push("7");
-        if (keys.EIGHT) keysPressed.push("8");
-        if (keys.NINE) keysPressed.push("9");
+        // Only add numbers if SHIFT is not pressed (to avoid conflict with special chars)
+        if (!FlxG.keys.pressed.SHIFT || !isPasswordMode) {
+            if (keys.ZERO) keysPressed.push("0");
+            if (keys.ONE) keysPressed.push("1");
+            if (keys.TWO) keysPressed.push("2");
+            if (keys.THREE) keysPressed.push("3");
+            if (keys.FOUR) keysPressed.push("4");
+            if (keys.FIVE) keysPressed.push("5");
+            if (keys.SIX) keysPressed.push("6");
+            if (keys.SEVEN) keysPressed.push("7");
+            if (keys.EIGHT) keysPressed.push("8");
+            if (keys.NINE) keysPressed.push("9");
+        }
 
         if (keys.SPACE) keysPressed.push(" ");
         if (keys.MINUS) {
@@ -403,15 +415,99 @@ class TextInputSubstate extends MusicBeatSubstate {
         if (keys.PERIOD) keysPressed.push(".");
         if (keys.COMMA) keysPressed.push(",");
 
+        // Add support for common special characters (only in password mode)
+        if (isPasswordMode) {
+            if (keys.SEMICOLON) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push(":"); // SHIFT+SEMICOLON = colon
+                } else {
+                    keysPressed.push(";");
+                }
+            }
+            if (keys.QUOTE) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("\""); // SHIFT+QUOTE = double quote
+                } else {
+                    keysPressed.push("'");
+                }
+            }
+            if (keys.LBRACKET) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("{"); // SHIFT+LBRACKET = left brace
+                } else {
+                    keysPressed.push("[");
+                }
+            }
+            if (keys.RBRACKET) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("}"); // SHIFT+RBRACKET = right brace
+                } else {
+                    keysPressed.push("]");
+                }
+            }
+            if (keys.BACKSLASH) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("|"); // SHIFT+BACKSLASH = pipe
+                } else {
+                    keysPressed.push("\\");
+                }
+            }
+            if (keys.SLASH) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("?"); // SHIFT+SLASH = question mark
+                } else {
+                    keysPressed.push("/");
+                }
+            }
+            if (keys.GRAVEACCENT) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("~"); // SHIFT+GRAVEACCENT = tilde
+                } else {
+                    keysPressed.push("`");
+                }
+            }
+
+            // Number row special characters (SHIFT + number keys) - only in password mode
+            if (FlxG.keys.pressed.SHIFT) {
+                if (keys.ONE) keysPressed.push("!");
+                if (keys.TWO) keysPressed.push("@");
+                if (keys.THREE) keysPressed.push("#");
+                if (keys.FOUR) keysPressed.push("$");
+                if (keys.FIVE) keysPressed.push("%");
+                if (keys.SIX) keysPressed.push("^");
+                if (keys.SEVEN) keysPressed.push("&");
+                if (keys.EIGHT) keysPressed.push("*");
+                if (keys.NINE) keysPressed.push("(");
+                if (keys.ZERO) keysPressed.push(")");
+            }
+
+            // Equals and plus/minus - only in password mode
+            if (keys.PLUS) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("+"); // SHIFT+PLUS = plus
+                } else {
+                    keysPressed.push("=");
+                }
+            }
+        }
+
 
         // Process each key
         for (key in keysPressed) {
             var char = key;
-            if (!FlxG.keys.pressed.SHIFT && char != " " && char != "-" && char != "_") {
-                char = char.toLowerCase();
+
+            // Only apply lowercase conversion to letters when SHIFT is not pressed
+            // Don't convert special characters or symbols
+            if (!FlxG.keys.pressed.SHIFT && char.length == 1) {
+                var charCode = char.charCodeAt(0);
+                // Only convert A-Z to lowercase
+                if (charCode >= 65 && charCode <= 90) {
+                    char = char.toLowerCase();
+                }
             }
 
-            if (allowedChars.indexOf(char) != -1) {
+            // In password mode, allow all printable characters; otherwise use allowedChars
+            if (isPasswordMode || allowedChars.indexOf(char) != -1) {
                 addCharacter(char);
             }
         }
@@ -488,7 +584,13 @@ class TextInputSubstate extends MusicBeatSubstate {
                 var filteredText = "";
                 for (i in 0...clipboardText.length) {
                     var char = clipboardText.charAt(i);
-                    if (allowedChars == "" || allowedChars.indexOf(char) != -1) {
+                    // In password mode, allow all printable ASCII; otherwise use allowedChars
+                    if (isPasswordMode) {
+                        var charCode = char.charCodeAt(0);
+                        if (charCode >= 32 && charCode <= 126) {
+                            filteredText += char;
+                        }
+                    } else if (allowedChars == "" || allowedChars.indexOf(char) != -1) {
                         filteredText += char;
                     }
                 }
@@ -536,11 +638,22 @@ class TextInputSubstate extends MusicBeatSubstate {
         if (currentValue.length == 0) return false;
         if (currentValue.length > maxLength) return false;
 
-        // Check if all characters are allowed
-        for (i in 0...currentValue.length) {
-            var char = currentValue.charAt(i);
-            if (allowedChars.indexOf(char) == -1) {
-                return false;
+        // In password mode, allow all printable characters
+        if (isPasswordMode) {
+            // Just check for basic printable ASCII range (space to tilde)
+            for (i in 0...currentValue.length) {
+                var charCode = currentValue.charCodeAt(i);
+                if (charCode < 32 || charCode > 126) {
+                    return false;
+                }
+            }
+        } else {
+            // Check if all characters are allowed
+            for (i in 0...currentValue.length) {
+                var char = currentValue.charAt(i);
+                if (allowedChars.indexOf(char) == -1) {
+                    return false;
+                }
             }
         }
 

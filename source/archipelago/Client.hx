@@ -1712,23 +1712,23 @@ private function onmessage(msg:MessageType) {
 		case StrMessage(content):
 			_recvLock.execute(() -> {
 				try {
-					trace("=== RAW MESSAGE ANALYSIS (String) ===");
-					trace("Content length: " + content.length);
+					// trace("=== RAW MESSAGE ANALYSIS (String) ===");
+					// trace("Content length: " + content.length);
 
 					var trimmed = StringTools.trim(content);
 
 					// Quick path: if it already looks like JSON, parse and return
 					if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-						trace("Data appears to be uncompressed JSON");
+						// trace("Data appears to be uncompressed JSON");
 						var newPackets:Array<IncomingPacket> = TJson.parse(content);
 						for (newPacket in newPackets) _recvQueue.push(newPacket);
-						trace("=== END RAW MESSAGE ANALYSIS ===");
+						// trace("=== END RAW MESSAGE ANALYSIS ===");
 						return;
 					}
 
 					// Convert incoming string to raw bytes
 					var contentBytes = haxe.io.Bytes.ofString(content, haxe.io.Encoding.RawNative);
-					trace("Content bytes length: " + contentBytes.length);
+					// trace("Content bytes length: " + contentBytes.length);
 
 					// Helper that uses an instance of Uncompress (so we can set windowBits)
 					var tryUncompress = function(src:haxe.io.Bytes, windowBits:Int):haxe.io.Bytes {
