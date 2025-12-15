@@ -159,6 +159,33 @@ enum abstract ScoringRank(String)
 		}
 	}
 
+	/**
+	 * Converts ScoringRank to Mixtape Rank.
+	 * Better ranks should be tied to a lower value.
+	 */
+	public static function getValueFromRank(rank:Null<ScoringRank>):Int
+	{
+		if (rank == null)
+			return 15;
+		switch (rank)
+		{
+			case PERFECT_GOLD:
+				return 0;
+			case PERFECT:
+				return 2;
+			case EXCELLENT:
+				return 7;
+			case GREAT:
+				return 10;
+			case GOOD:
+				return 14;
+			case SHIT:
+				return 16;
+			default:
+				return 15;
+		}
+	}
+
 	// Yes, we really need a different function for each comparison operator.
 	@:op(A > B) static function compareGT(a:Null<ScoringRank>, b:Null<ScoringRank>):Bool
 	{

@@ -94,6 +94,9 @@ class ResultState extends MusicBeatSubState
 
     rank = Scoring.calculateRank(params.scoreData) ?? SHIT;
 
+    backend.Highscore.saveRank(PlayState.SONG.song, ScoringRank.getValueFromRank(rank), PlayState.storyDifficulty);
+    if (!PlayState.instance.cpuControlled)
+
     cameraBG = new FunkinCamera('resultsBG', 0, 0, FlxG.width, FlxG.height);
     cameraScroll = new FunkinCamera('resultsScroll', 0, 0, FlxG.width, FlxG.height);
     cameraEverything = new FunkinCamera('resultsEverything', 0, 0, FlxG.width, FlxG.height);

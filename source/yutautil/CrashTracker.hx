@@ -59,9 +59,9 @@ class CrashTracker {
         var isBaseInfrastructureClass = (baseInfrastructureClass == null);
         if (isBaseInfrastructureClass) {
             baseInfrastructureClass = fullClassName;
-            trace('CrashTracker: Setting up base infrastructure in $fullClassName');
+            #if verbose trace('CrashTracker: Setting up base infrastructure in $fullClassName'); #end
         } else {
-            trace('CrashTracker: Instrumenting functions in $fullClassName');
+            #if verbose trace('CrashTracker: Instrumenting functions in $fullClassName'); #end
         }
 
         var fields = Context.getBuildFields();

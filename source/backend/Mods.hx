@@ -31,7 +31,8 @@ class Mods
 		'achievements',
 		'chartModifiers',
 		'__mixtape__',
-		'temp_siivagunner_mods'  // Ignore SiivaGunner temp folder
+		'temp_siivagunner_mods',  // Ignore SiivaGunner temp folder
+		'custom_freeplays'
 	];
 
 	private static var globalMods:Array<String> = [];
@@ -258,5 +259,44 @@ class Mods
 
 	public inline static function isModDirEnabled(directory:String) {
 		return Mods.parseList().enabled.contains(directory);
+	}
+
+	public inline static function loadFileList(mainFolder:String, ?optionalList:String = null, ?fileTypes:Array<String> = null)
+	{
+		if(fileTypes == null) fileTypes = ['.json'];
+
+		var fileList:Array<String> = [];
+		if(optionalList != null)
+		{
+			for (file in Mods.mergeAllTextsNamed(optionalList))
+			{
+				file = file.trim();
+				if(file.length > 0 && !fileList.contains(file))
+					fileList.push(file);
+			}
+		}
+
+		#if MODS_ALLOWED
+		for (directory in Mods.directoriesWithFile(Paths.getSharedPath(), mainFolder))
+		{
+			for (file in FileSystem.readDirectory(directory))
+			{
+				var path = haxe.io.Path.join([directory, file.trim()]);
+				if (!FileSystem.isDirectory(path) && !file.startsWith('readme.'))
+				{
+					for (fileType in fileTypes)
+					{
+						var fileToCheck:String = file.substr(0, file.length - fileType.length);
+						if(fileToCheck.length > 0 && path.endsWith(fileType) && !fileList.contains(fileToCheck))
+						{
+							fileList.push(fileToCheck);
+							break;
+						}
+					}
+				}
+			}
+		}
+		#end
+		return fileList;
 	}
 }
