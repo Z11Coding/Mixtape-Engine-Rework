@@ -49,7 +49,7 @@ class CustomFreeplayState extends MusicBeatState {
 
     public function new(scriptPath:String) {
         super();
-        this.scriptPath = Paths.assetLocation('custom_freeplays/$scriptPath.hx');
+        this.scriptPath = Paths.getPath('custom_freeplays/$scriptPath.hx');
         this.themeName = (scriptPath != null) ? scriptPath.split('/').pop().split('.').shift() : "debug-fallback";
     }
 
