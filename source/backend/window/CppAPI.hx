@@ -548,7 +548,7 @@ class CppAPI
 		try {
 			var content = sys.io.File.getContent("/proc/uptime");
 			var uptime = Std.parseFloat(content.split(" ")[0]);
-			return uptime != null ? uptime : -1;
+			return uptime;
 		} catch (e:Dynamic) {
 			return -1;
 		}
