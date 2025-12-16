@@ -43,6 +43,7 @@
 	<define name="EASED_SVs"/>
 	<define name="MULTICORE_LOADING" if="desktop" />
 	<define name="loadBenchmark" if="MULTICORE_LOADING"/>
+	<define name="CROSSPLATFORM"/>
 
 	<haxedef name="traceShaderLineNumbers"/>
 
