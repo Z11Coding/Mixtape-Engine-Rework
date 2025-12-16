@@ -1,11 +1,20 @@
 package backend.modchart;
 // @author Nebula_Zorua
 
+import backend.funkinmodchart.Config;
+import backend.funkinmodchart.backend.core.ArrowData;
+import backend.funkinmodchart.backend.core.ModifierOutput;
+import backend.funkinmodchart.backend.core.ModifierParameters;
+import backend.funkinmodchart.backend.core.VisualParameters;
+import backend.funkinmodchart.backend.math.Vector3 as Vector3D;
 import backend.math.Vector3;
 import backend.modchart.Modifier;
 import backend.modchart.events.*;
 import backend.modchart.modifiers.*;
 import backend.modchart.modifiers.extra.*;
+import backend.modchart.modifiers.shmoovin.*;
+import backend.modchart.modifiers.shmoovin.false_paradise.*;
+import backend.modchart.modifiers.shmoovin.psych_noteTween.*;
 import flixel.FlxG;
 import flixel.FlxState;
 import flixel.math.FlxMath;
@@ -25,9 +34,20 @@ import objects.playfields.NoteField;
  * (for example you can have a screen bounce aux mod + node w/ that aux mod as an input, and then change transformX)
  */
 typedef Node = {
-	var in_mods:Array<String>; /// the modifiers that get input into this node
-	var out_mods:Array<String>; // the modifiers that get transformed by this node
-	var nodeFunc:(Array<Float>, Int)->Array<Float>; // takes an array of the input mods' values, and returns an array of transformed modifier values, if out_mods.length > 0
+	/**
+		Modifiers that get input into this node
+	**/
+	var in_mods:Array<String>;
+
+	/**
+		Modifiers that get transformed by this node
+	**/
+	var out_mods:Array<String>;
+
+	/**
+		Takes an array of the input mods' values, and returns an array of transformed modifier values, if out_mods.length > 0
+	**/
+	var nodeFunc:(values:Array<Float>, player:Int) -> Array<Float>;
 }
 
 class ModManager {
@@ -100,7 +120,23 @@ class ModManager {
 			SchmovinDrunkModifier,
 			FlaccidModifier,
 			AngleModifier,
-			SkewModifier
+			SkewModifier,
+			WiggleModifier,
+
+			//Shmoovin
+			ArrowShape,
+			CounterClockWise,
+			EyeShape,
+			SchmovinArrowShape,
+			Vibrate,
+			Wiggle,
+			Bounce,
+			Drugged,
+			Radionic,
+
+			//Compat.
+			NoteTweenAngle,
+			NoteTweenDirection
 		];
 		for (mod in quickRegs)
 			quickRegister(Type.createInstance(mod, [this]));
@@ -140,8 +176,22 @@ class ModManager {
 			registerAux('flash${i}B');
 		}
 
+		registerAux('arrowPathAlpha');
+		registerAux('arrowPathThickness');
+
+
+		var toAlternate:Array<String> = ["transformX", "transformY", "transformZ", "flashR", "flashG", "flashB"];
+		for (i in 0...Note.ammo[PlayState.mania]) {
+			toAlternate.push('transform${i}X');
+			toAlternate.push('transform${i}Y');
+			toAlternate.push('transform${i}Z');
+		}
+
+		for(shit in toAlternate)
+			registerAltNode(shit);
+
 		isAvailable = true;
-		for (playerNumber => mods in activeMods) {
+		for (playerNumber => mods in activeMods){
 			setDefaultValues(playerNumber);
 			updateActiveMods(playerNumber);
 		}
@@ -152,12 +202,10 @@ class ModManager {
 
 	}
 
-	function setDefaultValues(mN:Int=-1) {
-		/*
-		for(modName => mod in register){
+	function setDefaultValues(mN:Int=-1){
+/* 		for(modName => mod in register){
 			setValue(modName, 0, mN);
-		}
-		*/
+		} */
 		setValue("noteSpawnTime", 0, mN); // when this is <= 0, it defaults to field.spawnTime
 		setValue("drawDistance", FlxG.height * 1.1, mN); // MAY NOT REPRESENT ACTUAL DRAWDISTANCE: drawDistance is modified by the notefields aswell
 		// so whAT you set drawDistance to might be lower or higher than expected because of the draw distance mult. setting
@@ -179,6 +227,9 @@ class ModManager {
 		setValue("flashR", 1, mN);
 		setValue("flashG", 1, mN);
 		setValue("flashB", 1, mN);
+
+		setValue("arrowPathAlpha", 1, mN);
+		setValue("arrowPathThickness", 2, mN);
 
 		for (i in 0...Note.ammo[PlayState.mania]){
 			setValue('noteSpawnTime$i', 0, mN);
@@ -554,7 +605,7 @@ class ModManager {
 	public function getBaseX(direction:Int, player:Float, receptorAmount:Int = 4):Float
 	{
 		if (playerOOBIsCentered && (player >= playerAmount || player < 0))
-			player = 0.5; // replicating old behaviour for upcoming modcharts
+			player = (playerAmount - 1) * 0.5; // replicating old behaviour for upcoming modcharts
 
 		var spaceWidth = FlxG.width / playerAmount;
 		var spaceX = spaceWidth * (playerAmount-1-player);
@@ -604,9 +655,16 @@ class ModManager {
 		if (pos == null)
 			pos = new Vector3();
 
-		diff += (
-			(FlxMath.lerp(Note.swagWidth, Conductor.crochet * 0.45 * (obj.objType == NOTE ? getNoteSpeed(cast obj, player, field.songSpeed) : getCMod(data, player, field.songSpeed) * getXMod(data, player)), getValue("movePathType", player))) * getValue("movePath", player)) +
-			getValue("transformPath", player
+		var speed:Float = if (obj.objType == NOTE)
+			getNoteSpeed(cast obj, player, field.songSpeed);
+		else
+			getCMod(data, player, field.songSpeed) * getXMod(data, player);
+
+		diff += getValue("transformPath", player);
+		diff += getValue("movePath", player) * FlxMath.lerp(
+			Note.swagWidth,
+			Conductor.crochet * 0.45 * speed,
+			getValue("movePathType", player)
 		);
 
 		pos.setTo(
@@ -850,4 +908,16 @@ class ModManager {
 
 	public function queueEaseFuncLB(beat:Float, length:Float, func:EaseFunction, callback:(EaseEvent, Float, Float) -> Void)
 		addEvent(new EaseEvent(beat * 4, (beat + length) * 4, func, callback, this));
+
+	public function queueEaseProps(step:Float, endStep:Float, object:Dynamic, values:Dynamic, ?options:EasePropertiesEvent.TweenOptions)
+		addEvent(new EasePropertiesEvent(step, endStep - step, object, values, options, this));
+
+	public function queueEasePropsL(step:Float, length:Float, object:Dynamic, values:Dynamic, ?options:EasePropertiesEvent.TweenOptions)
+		addEvent(new EasePropertiesEvent(step, length, object, values, options, this));
+
+	public function queueEasePropsB(beat:Float, endBeat:Float, object:Dynamic, values:Dynamic, ?options:EasePropertiesEvent.TweenOptions)
+		addEvent(new EasePropertiesEvent(beat * 4, (endBeat - beat) * 4, object, values, options, this));
+
+	public function queueEasePropsLB(beat:Float, length:Float, object:Dynamic, values:Dynamic, ?options:EasePropertiesEvent.TweenOptions)
+		addEvent(new EasePropertiesEvent(beat * 4, length * 4, object, values, options, this));
 }

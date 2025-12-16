@@ -1,68 +1,49 @@
-package modchart.modifiers.psych_noteTween;
+package backend.modchart.modifiers.shmoovin.psych_noteTween;
 
-import modchart.core.util.Constants.RenderParams;
-import modchart.modifiers.Reverse;
+import backend.modchart.modifiers.ReverseModifier;
 import objects.StrumNote;
-import openfl.geom.Vector3D;
 import states.PlayState;
 
 /**
- * Modifier que actúa como puente entre noteTweenDirection del engine y el sistema de modcharts.
- * Hereda de Reverse para usar el sistema scrollAngleZ ya implementado.
- * Lee el valor direction actual del StrumNote y lo convierte en scrollAngleZ.
+ * Modifier that acts as a bridge between the engine's noteTweenDirection and the modcharts system.
+ * Inherits from Reverse to use the already implemented scrollAngleZ system.
+ * Reads the current direction value of the StrumNote and converts it to scrollAngleZ.
  */
-class NoteTweenDirection extends Reverse {
+class NoteTweenDirection extends ReverseModifier {
+	override function getName() return 'noteTweenDirection';
 
-	override public function render(curPos:Vector3D, params:RenderParams) {
-		var player = params.player;
-		var lane = params.lane;
+	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:NoteObject, field:NoteField)
+	{
+		if (obj != null) {
+			// Read the current direction of the StrumNote (modified by noteTweenDirection)
+			var currentDirection = field.field.strumNotes[data].direction;
 
-		// Obtener el StrumNote específico para este lane y player
-		var strumNote:StrumNote = getStrumFromInfo(lane, player);
-
-		if (strumNote != null) {
-			// Leer el direction actual del StrumNote (modificado por noteTweenDirection)
-			var currentDirection = strumNote.direction;
-
-			// Convertir direction a scrollAngleZ (90 grados por defecto = 0 scrollAngleZ)
+			// Convert direction to scrollAngleZ (default 90 degrees = 0 scrollAngleZ)
 			var additionalScrollAngleZ = currentDirection - 90;
 
-			// Aplicar el scrollAngleZ temporal para este render
-			var originalScrollAngleZ = getPercent('scrollAngleZ', player);
-			setPercent('scrollAngleZ', originalScrollAngleZ + additionalScrollAngleZ, player);
+			// Apply temporary scrollAngleZ for this render
+			var originalScrollAngleZ = getOtherValue('incomingAngleZ', player);
+			setOtherValue('incomingAngleZ', originalScrollAngleZ + additionalScrollAngleZ, player);
 
-			// Llamar al render de Reverse que ya maneja scrollAngleZ correctamente
-			var result = super.render(curPos, params);
+			// Call Reverse render that already handles scrollAngleZ correctly
+			var result = super.getPos(visualDiff, timeDiff, beat, pos, data, player, obj, field);
 
-			// Restaurar el valor original de scrollAngleZ
-			setPercent('scrollAngleZ', originalScrollAngleZ, player);
+			// Restore the original value of scrollAngleZ
+			setOtherValue('incomingAngleZ', originalScrollAngleZ, player);
 
 			return result;
 		}
 
-		// Si no hay StrumNote, usar el comportamiento normal de Reverse
-		return super.render(curPos, params);
+		// If there is no StrumNote, use normal Reverse behavior
+		return super.getPos(visualDiff, timeDiff, beat, pos, data, player, obj, field);
 	}
 
-	override public function shouldRun(params:RenderParams):Bool {
-		// Usar la misma lógica que Reverse (ejecuta para todas las notas)
-		return super.shouldRun(params);
+	override function shouldExecute(player:Int, val:Float):Bool {
+		// Use the same logic as Reverse (runs for all notes)
+		return super.shouldExecute(player, val);
 	}
 
-	// Función helper para obtener el StrumNote específico
-	private function getStrumFromInfo(lane:Int, player:Int):StrumNote {
-		if (PlayState.instance == null) return null;
-
-		var group = player == 0 ? PlayState.instance.opponentStrums : PlayState.instance.playerStrums;
-		var strum:StrumNote = null;
-
-		group.forEach(str -> {
-			@:privateAccess
-			if (str.noteData == lane) {
-				strum = str;
-			}
-		});
-
-		return strum;
+	override function getSubmods(){
+		return super.getSubmods();
 	}
 }

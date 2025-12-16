@@ -982,7 +982,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	var spawned = 0;
 	// spawns notes, deals w/ hold inputs, etc.
 	var aliveNoteCount:Int = 0;
-	var aliveNoteLimiter:Int = 50;
+	var aliveNoteLimiter:Int = 35;
 	override public function update(elapsed:Float){
 		noteField.modNumber = modNumber;
 		noteField.cameras = cameras;

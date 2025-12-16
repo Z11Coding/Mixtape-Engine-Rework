@@ -1,21 +1,17 @@
-package modchart.modifiers.false_paradise;
+package backend.modchart.modifiers.shmoovin.false_paradise;
 
 import flixel.math.FlxAngle;
-import modchart.core.util.Constants.ArrowData;
-import modchart.core.util.Constants.RenderParams;
-import openfl.geom.Vector3D;
 
-class Wiggle extends Modifier {
-	override public function render(curPos:Vector3D, params:RenderParams) {
-		var wiggle = getPercent('wiggle', params.player);
-		curPos.x += sin(params.curBeat) * wiggle * 20;
-		curPos.y += sin(params.curBeat + 1) * wiggle * 20;
+class Wiggle extends NoteModifier {
+	override function getName()return 'wiggle';
 
-		setPercent('rotateZ', (sin(params.curBeat) * 0.2 * wiggle) * FlxAngle.TO_DEG);
+	override function getPos( visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField) {
+		var wiggle = getValue(player);
+		pos.x += sin(beat) * wiggle * 20;
+		pos.y += sin(beat + 1) * wiggle * 20;
 
-		return curPos;
+		setOtherValue('rotateZ', (sin(beat) * 0.2 * wiggle) * FlxAngle.TO_DEG, player);
+
+		return pos;
 	}
-
-	override public function shouldRun(params:RenderParams):Bool
-		return getPercent('wiggle', params.player) != 0;
 }

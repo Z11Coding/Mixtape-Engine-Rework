@@ -4,6 +4,7 @@ cd ..
 @echo on
 echo Installing dependencies...
 echo This might take a few moments depending on your internet speed.
+haxelib --global update haxelib
 haxelib install lime 8.2.2
 haxelib install openfl 9.4.1
 haxelib install flixel 5.6.2

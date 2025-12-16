@@ -1,18 +1,14 @@
-package modchart.modifiers.false_paradise;
+package backend.modchart.modifiers.shmoovin.false_paradise;
 
-import modchart.core.util.Constants.ArrowData;
-import modchart.core.util.Constants.RenderParams;
-import openfl.geom.Vector3D;
+class Vibrate extends NoteModifier {
+	override function getName()
+		return 'vibrate';
 
-class Vibrate extends Modifier {
-	override public function render(curPos:Vector3D, params:RenderParams) {
-		var vib = getPercent('vibrate', params.player);
-		curPos.x += (Math.random() - 0.5) * vib * 20;
-		curPos.y += (Math.random() - 0.5) * vib * 20;
+	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField){
+		var vib = getValue(player);
+		pos.x += (Math.random() - 0.5) * vib * 20;
+		pos.y += (Math.random() - 0.5) * vib * 20;
 
-		return curPos;
+		return pos;
 	}
-
-	override public function shouldRun(params:RenderParams):Bool
-		return getPercent('vibrate', params.player) != 0;
 }

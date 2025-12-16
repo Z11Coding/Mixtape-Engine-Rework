@@ -1,6 +1,7 @@
 package objects.playfields;
 
 import backend.MusicBeatState;
+import backend.funkinmodchart.Config;
 import backend.math.Vector3;
 import backend.math.VectorHelpers;
 import backend.modchart.ModManager;
@@ -307,7 +308,7 @@ class NoteField extends FieldBase
 		}
 
 		/*if ((FlxG.state is PlayState))
-			PlayState.instance.callOnHScripts("notefieldPreDraw", [this],
+			PlayState.instance.callOnScripts("notefieldPreDraw", [this],
 				["drawQueue" => drawQueue, "lookupMap" => lookupMap]); // lets you do custom rendering in scripts, if needed*/
 		// one example would be reimplementing Die Batsards' original bullet mechanic
 		// if you need an example on how this all works just look at the tap note drawing portion
@@ -350,6 +351,8 @@ class NoteField extends FieldBase
 			wid = hold.frame.frame.width * hold.scale.x;
 
 		var simpleDraw = !hold.copyX && !hold.copyY;
+		// Use adaptive subdivisions for performance (minimum 1)
+		var currentSubdivisions:Num = optimizeHolds ? Math.max(1, adaptiveSubdivisions) : adaptiveSubdivisions;
 
 		var p1 = simpleDraw ? hold.vec3Cache : modManager.getPos(-vDiff * speed, diff, curDecBeat, hold.column, modNumber, hold, this, [], hold.vec3Cache);
 
@@ -410,6 +413,7 @@ class NoteField extends FieldBase
 		var simpleDraw = !hold.copyX && !hold.copyY;
 		// Use adaptive subdivisions for performance (minimum 1)
 		var currentSubdivisions:Num = optimizeHolds ? Math.max(1, adaptiveSubdivisions) : adaptiveSubdivisions;
+		// TODO: make simpleDraw reduce the amount of subdivisions used by the hold
 
 		var vertices = new Vector<Float>(8 * cast currentSubdivisions, true);
 		var uvData = new Vector<Float>(8 * cast currentSubdivisions, true);

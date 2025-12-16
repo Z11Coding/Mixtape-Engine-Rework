@@ -1,56 +1,35 @@
-package modchart.modifiers.psych_noteTween;
+package backend.modchart.modifiers.shmoovin.psych_noteTween;
 
-import modchart.Modifier;
-import modchart.core.util.Constants.RenderParams;
-import modchart.core.util.Constants.Visuals;
 import objects.StrumNote;
 import states.PlayState;
 
 /**
- * Modifier que actúa como puente entre noteTweenAngle del engine y el sistema de modcharts.
- * Lee el valor angle actual del StrumNote (modificado por noteTweenAngle) y lo aplica
- * como rotación visual (angleZ) tanto a los receptores como a las notas.
+ * Modifier that acts as a bridge between noteTweenAngle of the engine and the modcharts system.
+ * Reads the current angle value from StrumNote (modified by noteTweenAngle) and applies it
+ * as visual rotation (angleZ) to both receivers and notes.
  */
-class NoteTweenAngle extends Modifier {
+class NoteTweenAngle extends NoteModifier {
+	override function getName()return 'noteTweenAngle';
+	override function isRenderMod()return true;
 
-	override public function visuals(data:Visuals, params:RenderParams):Visuals {
-		var player = params.player;
-		var lane = params.lane;
+	override function modifyVert(beat:Float, vert:Vector3, idx:Int, obj:NoteObject, pos:Vector3, player:Int, data:Int, field:NoteField):Vector3 {
+		var data = vert;
+		if (obj != null) {
+			// Read the current angle of the StrumNote (modified by noteTweenAngle)
+			var currentAngle = obj.angle;
 
-		// Obtener el StrumNote específico para este lane y player
-		var strumNote:StrumNote = getStrumFromInfo(lane, player);
-
-		if (strumNote != null) {
-			// Leer el angle actual del StrumNote (modificado por noteTweenAngle)
-			var currentAngle = strumNote.angle;
-
-			// Aplicar al sistema de visuals del modchart como rotación visual
-			// Ahora afecta tanto a receptores como a notas
-			data.angleZ += currentAngle;
+			// Apply to modchart visuals system as visual rotation
+			// Now affects both receivers and notes
+			var radians = FlxAngle.TO_RAD;
+			data = VectorHelpers.rotateV3(
+				vert,
+				vert.x,
+				vert.y += currentAngle,
+				vert.z,
+				vert
+			);
 		}
 
 		return data;
-	}
-
-	override public function shouldRun(params:RenderParams):Bool {
-		// Ejecutar tanto en receptores como en notas
-		return true;
-	}
-
-	// Función helper para obtener el StrumNote específico
-	private function getStrumFromInfo(lane:Int, player:Int):StrumNote {
-		if (PlayState.instance == null) return null;
-
-		var group = player == 0 ? PlayState.instance.opponentStrums : PlayState.instance.playerStrums;
-		var strum:StrumNote = null;
-
-		group.forEach(str -> {
-			@:privateAccess
-			if (str.noteData == lane) {
-				strum = str;
-			}
-		});
-
-		return strum;
 	}
 }

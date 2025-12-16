@@ -241,7 +241,7 @@ final class PlayField extends FlxSprite {
 				holdLength = holdLength + curItems[2].length;
 			if (curItems[3] != null)
 				attachmentLength = attachmentLength + curItems[3].length;
-			// curItems[4] (sustain splashes) no se procesan aquí
+			// curItems[4] (sustain splashes) are not processed here
 		}
 
 		if (receptorLength != 0)

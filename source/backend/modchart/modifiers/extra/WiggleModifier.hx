@@ -6,11 +6,11 @@ package backend.modchart.modifiers.extra;
 @:keep
 class WiggleModifier extends NoteModifier {
 	override function getName()
-		return "wiggle";
-		
+		return "rumbleWiggle";
+
 	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, column:Int, player:Int, obj:NoteObject, field:NoteField) {
 		var val = getValue(player);
-		if(obj.objType == NOTE){
+		if (obj.objType == NOTE) {
 			var note:Note = cast obj;
 			if (note.isSustainNote)
 				val += getSubmodValue("wiggleHolds", player);
@@ -28,5 +28,5 @@ class WiggleModifier extends NoteModifier {
 		];
 
 
-	
+
 }

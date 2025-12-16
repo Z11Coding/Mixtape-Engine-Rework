@@ -605,6 +605,7 @@ class PlayState extends MusicBeatState
 	// Modchart warning variables
 	var modchartWarningShown:Bool = false;
 	var isShowingModchartWarning:Bool = false;
+	public var fmManager:Manager;
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -1693,9 +1694,6 @@ class PlayState extends MusicBeatState
 		// if none of the loaded scripts/stages changed it, use the default
 		if (startCallback == null) startCallback = (hasModchart() ? showModchartWarning : startCountdown);
 
-		// Initialize any Funkin Modchart modcharts after all scripts are loaded
-		initModchart();
-
 		super.create();
 
 		startCallback();
@@ -2072,7 +2070,7 @@ class PlayState extends MusicBeatState
 			isShowingModchartWarning = false;
 			modchartWarningShown = true;
 
-			// Iniciar countdown ahora
+			// Start countdown now
 			startCountdown();
 		});
 	}
@@ -2120,18 +2118,11 @@ class PlayState extends MusicBeatState
 		//trace("onInitModchart function detected - initializing modchart manager");
 
 		try {
-			if (Manager.instance == null) {
-				var manager = new Manager();
-				add(manager);
+			if (fmManager == null) {
+				fmManager = new Manager();
+				add(fmManager);
 				trace("Modchart Manager initialized successfully");
 			}
-			// Wait a frame to ensure Manager is fully initialized
-			var initCallback:Void->Void = null;
-			initCallback = function() {
-				callOnScripts('onInitModchart');
-				FlxG.signals.postUpdate.remove(initCallback);
-			};
-			FlxG.signals.postUpdate.add(initCallback);
 		} catch (e:Dynamic) {
 			trace("Error initializing modcharts: " + e);
 		}
@@ -2803,7 +2794,14 @@ class PlayState extends MusicBeatState
 				changeMania(convertMania, isStoryMode || skipArrowStartTween);
 			}
 
+			// Initialize any Funkin Modchart modcharts after all scripts and strums are loaded
+			initModchart();
+
 			callOnScripts("generateModchart"); // this is where scripts should generate modcharts from here on out lol
+
+			// if there's a Funkin Modchart present, Load that too
+			if (hasModchart())
+				callOnScripts('onInitModchart');
 
 			var swagCounter:Int = 0;
 			if (startOnTime > 0) {
@@ -6117,7 +6115,7 @@ class PlayState extends MusicBeatState
 		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong && ClientPrefs.data.modcharts && Manager.instance != null) //Don't wanna override it now do we
+		if (!startingSong && ClientPrefs.data.modcharts && fmManager == null) //Don't wanna override it now do we
 			modchartSync(false);
 
 		setOnScripts('curDecStep', curDecStep);
@@ -10944,6 +10942,10 @@ class PlayState extends MusicBeatState
 			backend.funkinmodchart.Manager.instance = null;
 		}
 		#end
+
+		if (fmManager != null) {
+			fmManager = null;
+		}
 
 		if (modManager != null) {
 			modManager = null;

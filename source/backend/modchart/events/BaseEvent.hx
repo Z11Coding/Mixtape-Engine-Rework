@@ -3,7 +3,7 @@ package backend.modchart.events;
 class BaseEvent {
 	public var manager:ModManager;
 	public var parent:EventTimeline;
-	public var executionStep:Float = 0;
+	public var executionStep:Float;
 	public var ignoreExecution:Bool = false;
 	public var finished:Bool = false;
 	public function new(step:Float, manager:ModManager)
@@ -13,6 +13,6 @@ class BaseEvent {
 	}
 
 	public function addedToTimeline(){}
-	
+
 	public function run(curStep:Float){}
 }

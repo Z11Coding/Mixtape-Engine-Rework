@@ -1,24 +1,23 @@
-package modchart.modifiers;
+package backend.modchart.modifiers.shmoovin;
 
-import modchart.core.util.Constants.ArrowData;
-import modchart.core.util.Constants.RenderParams;
-import openfl.geom.Vector3D;
+class Bounce extends NoteModifier {
+	override function getName() return 'shmoovinBounce';
+	override function getPos( visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField) {
+		var speed = getSubmodValue('shmoovinBounceSpeed', player);
+		var offset = getSubmodValue('shmoovinBounceOffset', player);
 
-class Bounce extends Modifier {
-	override public function render(curPos:Vector3D, params:RenderParams) {
-		var player = params.player;
-		var speed = getPercent('bounceSpeed', player);
-		var offset = getPercent('bounceOffset', player);
+		var bounce = Math.abs(sin((beat + offset) * (1 + speed) * Math.PI)) * Note.swagWidth;
 
-		var bounce = Math.abs(sin((params.curBeat + offset) * (1 + speed) * Math.PI)) * ARROW_SIZE;
+		pos.x += bounce * getSubmodValue('shmoovinBounceX', player);
+		pos.y += bounce * (getValue(player) + getSubmodValue('shmoovinBounceY', player));
+		pos.z += bounce * getSubmodValue('shmoovinBounceZ', player);
 
-		curPos.x += bounce * getPercent('bounceX', player);
-		curPos.y += bounce * (getPercent('bounce', player) + getPercent('bounceY', player));
-		curPos.z += bounce * getPercent('bounceZ', player);
-
-		return curPos;
+		return pos;
 	}
 
-	override public function shouldRun(params:RenderParams):Bool
-		return true;
+	override function getSubmods(){
+		var subMods:Array<String> = ["shmoovinBounceSpeed", "shmoovinBounceOffset", "shmoovinBounceX", "shmoovinBounceY", "shmoovinBounceZ"];
+
+		return subMods;
+	}
 }

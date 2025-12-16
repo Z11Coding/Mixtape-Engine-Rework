@@ -17,7 +17,7 @@ class InfinitePathModifier extends CustomPathModifier {
 				var rad = r * Math.PI / 180;
 				infPath[data].push(new Vector3(
 					FlxG.width * 0.5 + (FlxMath.fastSin(rad)) * 600,
-					FlxG.height * 0.5 + (FlxMath.fastSin(rad) * FlxMath.fastCos(rad)) * 600, 
+					FlxG.height * 0.5 + (FlxMath.fastSin(rad) * FlxMath.fastCos(rad)) * 600,
 					0
 				));
 			}
@@ -25,5 +25,4 @@ class InfinitePathModifier extends CustomPathModifier {
 		}
 		return infPath;
 	}
-
 }

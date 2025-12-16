@@ -1,7 +1,7 @@
 package backend.modchart;
 
-import backend.modchart.events.ModEvent;
 import backend.modchart.events.BaseEvent;
+import backend.modchart.events.ModEvent;
 
 class EventTimeline {
 	public var modEvents:Map<String, Array<ModEvent>> = [];
@@ -10,7 +10,7 @@ class EventTimeline {
 
 	public function addMod(modName:String)
 		modEvents.set(modName, []);
-	
+
 
 	public function addEvent(event:BaseEvent){
 		event.parent = this;
@@ -20,7 +20,7 @@ class EventTimeline {
 			var name = modEvent.modName;
 			if (!modEvents.exists(name))
 				addMod(name);
-			
+
 			if (!modEvents.get(name).contains(modEvent))
 				modEvents.get(name).push(modEvent);
 
@@ -32,7 +32,7 @@ class EventTimeline {
 				events.push(event);
 				events.sort((a, b) -> Std.int(a.executionStep - b.executionStep));
 			}
-		
+
 	}
 
 	@:allow(backend.modchart.ModManager)
@@ -46,13 +46,13 @@ class EventTimeline {
 				var event:ModEvent = schedule[eventIndex];
 				if (event.finished)
 					garbage.push(event);
-				
+
 				if (event.ignoreExecution || event.finished)
 					continue;
-				
+
 				if (step >= event.executionStep)
 					event.run(step);
-				
+
 				else
 					break;
 			}
@@ -69,11 +69,11 @@ class EventTimeline {
 		{
 			if (event.finished)
 				garbage.push(event);
-			
+
 			if(event.ignoreExecution || event.finished)
 				continue;
 
-			
+
 			if (step >= event.executionStep)
 				event.run(step);
 			else

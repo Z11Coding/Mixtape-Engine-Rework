@@ -20,7 +20,7 @@ class Psych implements IAdapter {
 		try {
 			setupLuaFunctions();
 		} catch (e) {
-			trace('[FunkinModchart Psych Adapter] Failed while adding lua functions: $e');
+			trace('[FunkinModchart Mixtape Adapter] Failed while adding lua functions: $e');
 		}
 	}
 
@@ -73,12 +73,12 @@ class Psych implements IAdapter {
 
 	public function getLaneFromArrow(arrow:FlxSprite) {
 		if (arrow is Note)
-			return cast(arrow, Note).noteData;
+			return cast(arrow, Note).column;
 		else if (arrow is Strum) @:privateAccess
-			return cast(arrow, Strum).noteData;
+			return cast(arrow, Strum).column;
 		#if (FM_ENGINE_VERSION >= "1.0")
 		if (arrow is NoteSplash) @:privateAccess
-			return cast(arrow, NoteSplash).babyArrow.noteData;
+			return cast(arrow, NoteSplash).babyArrow.column;
 		#end
 
 		return 0;
@@ -86,7 +86,7 @@ class Psych implements IAdapter {
 
 	public function getPlayerFromArrow(arrow:FlxSprite) {
 		if (arrow is Note)
-			return cast(arrow, Note).mustPress ? 1 : 0;
+			return cast(arrow, Note).mustPress ? 0 : 1;
 		if (arrow is Strum) @:privateAccess
 			return cast(arrow, Strum).player;
 		#if (FM_ENGINE_VERSION >= "1.0")

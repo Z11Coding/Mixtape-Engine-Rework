@@ -12,11 +12,11 @@ class SnapModifier extends NoteModifier
 		pos.z = FlxMath.lerp(pos.z, CoolUtil.snap(pos.z, getSubmodValue("snapZInterval", player)), getSubmodValue("snapZ", player));
 		return pos;
 	}
-	
+
 	override function getName(){
 		return "snapX";
 	}
-	
+
 	override function getSubmods(){
 		return ["snapXInterval", "snapYInterval", "snapZInterval", "snapY", "snapZ"];
 	}
