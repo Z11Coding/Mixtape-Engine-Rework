@@ -133,6 +133,7 @@ class ModManager {
 			Bounce,
 			Drugged,
 			Radionic,
+			Carousel,
 
 			//Compat.
 			NoteTweenAngle,

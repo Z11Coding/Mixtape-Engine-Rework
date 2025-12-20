@@ -92,7 +92,7 @@ class ReverseModifier extends NoteModifier
 		return pos;
 	}
 
-	override function getSubmods(){
+	override function getSubmods() {
 		var subMods:Array<String> = ["cross", "split", "alternate", "centered", "unboundedReverse", "incomingAngleX", "incomingAngleY", "incomingAngleZ"];
 
 		for (i in 0...Note.ammo[PlayState.mania]) {

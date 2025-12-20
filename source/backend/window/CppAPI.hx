@@ -304,7 +304,7 @@ class CppAPI
 		#elseif ((linux || mac) && CROSSPLATFORM)
 		// Lime handles this automatically on most platforms
 		try {
-//lime.app.Application.current.window.scale = lime.system.System.devicePixelRatio;
+			//lime.app.Application.current.window.scale = lime.system.System.devicePixelRatio;
 		} catch (e:Dynamic) {
 			trace("High DPI support not available: " + e);
 		}

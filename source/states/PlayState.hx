@@ -605,6 +605,7 @@ class PlayState extends MusicBeatState
 	// Modchart warning variables
 	var modchartWarningShown:Bool = false;
 	var isShowingModchartWarning:Bool = false;
+	public var allowModchartCutscene:Bool = true;
 	public var fmManager:Manager;
 
 	// End of Mixtape Engine's large amount of bull
@@ -1692,7 +1693,7 @@ class PlayState extends MusicBeatState
 		currentRate = playbackRate;
 
 		// if none of the loaded scripts/stages changed it, use the default
-		if (startCallback == null) startCallback = (hasModchart() ? showModchartWarning : startCountdown);
+		if (startCallback == null) startCallback = (hasModchart() && allowModchartCutscene ? showModchartWarning : startCountdown);
 
 		super.create();
 
@@ -1959,6 +1960,7 @@ class PlayState extends MusicBeatState
 		for (script in luaArray) {
 			if (script != null && !script.closed && script.lua != null) {
 				Lua.getglobal(script.lua, 'onInitModchart');
+				Lua.getglobal(script.lua, 'generateModchart');
 				var type:Int = Lua.type(script.lua, -1);
 				Lua.pop(script.lua, 1);
 
@@ -1974,7 +1976,7 @@ class PlayState extends MusicBeatState
 		if (!hasModchartFunction) {
 			for (script in hscriptArray) {
 				@:privateAccess
-				if (script != null && script.exists('onInitModchart')) {
+				if (script != null && (script.exists('onInitModchart') || script.exists('generateModchart'))) {
 					hasModchartFunction = true;
 					break;
 				}
@@ -6115,7 +6117,7 @@ class PlayState extends MusicBeatState
 		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong && ClientPrefs.data.modcharts && fmManager == null) //Don't wanna override it now do we
+		if (!startingSong && ClientPrefs.data.modcharts) //Don't wanna override it now do we
 			modchartSync(false);
 
 		setOnScripts('curDecStep', curDecStep);
@@ -11578,7 +11580,7 @@ class PlayState extends MusicBeatState
 							} else {
 								// Sync X position
 								var offsetX = strumNote.x - field.getBaseX(i);
-								modManager.setValue('transform${i}X', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
+								modManager.setValue('transform${i}X-a', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
 								//strumNote.x = strumNote.x;
 
 								// Sync Y position
@@ -11587,29 +11589,24 @@ class PlayState extends MusicBeatState
 
 								// Only sync if the strum is close to its expected position
 								// This prevents overriding custom positions set by scripts
-								if (Math.abs(offsetY) < 100) { // Allow some tolerance for modchart transforms
+								/*if (Math.abs(offsetY) < 100) { // Allow some tolerance for modchart transforms
 									modManager.setValue('transform${i}Y', offsetY, field.playerId);
 								} else {
 									// If the strum has been moved significantly, update the base position
 									//trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
 									field.updateBaseYPosition(i, strumNote.y);
-								}
+								}*/
+								modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
 								//modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
 								//strumNote.angle = strumNote.angle;
 
-								// Downscroll.
-								if (ModchartScrollType == 1) {
-									modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
-								} else if (ModchartScrollType == 2 && curDownscroll != ClientPrefs.data.downScroll) {
-									// Invert the direction of strumNote by adding 180 degrees to its current direction
-									modManager.setValue('local${i}rotateX', (strumNote.direction + 180) % 360, field.playerId);
-									curDownscroll = ClientPrefs.data.downScroll;
-								} else {
-									// Nothing.
-								}
+								// now we can do both :D
+								modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
+
+								modManager.setValue('noteTweenDirection', strumNote.direction, field.playerId);
 
 								// // Sync alpha
 								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
