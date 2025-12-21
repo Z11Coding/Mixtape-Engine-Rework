@@ -5435,7 +5435,7 @@ class PlayState extends MusicBeatState
 					// trace(prevNote.scale.y);
 				}
 
-				if (isPixelStage)
+				if (isPixelStage && prevNote != null)
 				{
 					prevNote.scale.y *= daPixelZoom * (Note.pixelScales[mania]); // Fuck urself
 					prevNote.updateHitbox();
@@ -10999,11 +10999,10 @@ class PlayState extends MusicBeatState
 			ssLerpTween.destroy();
 		}
 
-		ssLerpTween = FlxTween.num(playbackRate, num, time, {ease: FlxEase.sineInOut}, function(value:Float)
+		ssLerpTween = FlxTween.num(playbackRate, num, time, {ease: FlxEase.sineInOut, onComplete: function(tween) {ssLerpTween.destroy();}}, function(value:Float)
 		{
 			playbackRate = value * currentRate;
 			resyncVocals();
-			ssLerpTween.destroy();
 		});
 
 		if (staticLines) {
