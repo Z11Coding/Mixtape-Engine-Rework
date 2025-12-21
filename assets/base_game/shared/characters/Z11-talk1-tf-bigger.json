@@ -1,0 +1,32 @@
+{
+	"animations": [
+		{
+			"offsets": [-60, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "talk",
+			"indices": [],
+			"name": "Ztalk1"
+		},
+		{
+			"offsets": [-60, 0],
+			"loop": false,
+			"fps": 24,
+			"anim": "idle",
+			"indices": [0],
+			"name": "Ztalk1"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"score_name": "Z11",
+	"image": "characters/Z11Talking1",
+	"position": [-60, -50],
+	"healthicon": "Z_icon",
+	"flip_x": false,
+	"healthbar_colors": [95, 60, 155],
+	"camera_position": [0, -220],
+	"sing_duration": 6.1,
+	"scale": 1.7,
+	"_editor_isPlayer": true
+}
