@@ -1,40 +1,39 @@
-package modchart.modifiers;
+package backend.modchart.modifiers.shmoovin;
 
-import modchart.core.util.Constants.ArrowData;
-import modchart.core.util.Constants.RenderParams;
-import modchart.core.util.Constants.Visuals;
-import modchart.core.util.ModchartUtil;
-import openfl.geom.Vector3D;
+import backend.funkinmodchart.backend.util.ModchartUtil;
 
 // Circular motion based on the lane.
 // Naming this `Radionic` since it seems like a Radionic Graphic.
 // Inspired by `The Poenix NotITG Modchart` at 0:35
 // Warning!: This should be AFTER regular modifiers (drunk, beat, transform, etc) and BEFORE rotation modifiers.
-class Radionic extends Modifier {
-	override public function render(pos:Vector3D, params:RenderParams) {
-		final perc = getPercent('radionic', params.player);
+class Radionic extends NoteModifier {
+	override function getName()return 'radionic';
+	override function getPos( visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:NoteObject, field:NoteField) {
+		final perc = getValue(player);
 
 		if (perc == 0)
 			return pos;
 
-		final reverse = getManager().modifiers.modifiers.get('reverse');
+		final modArray = modMgr.getActiveMods(player);
 
-		final angle = ((1 / Adapter.instance.getStaticCrochet()) * ((params.songTime + params.distance) * Math.PI * .25) + (Math.PI * params.player));
-		final offsetX = pos.x - getReceptorX(params.lane, params.player);
-		final offsetY = reverse != null ? (pos.y - reverse.render(pos, params).y) : 0;
+		final reverse = modMgr.register.get('reverse');
 
-		final circf = ARROW_SIZE + params.lane * ARROW_SIZE;
+		final angle = ((1 / Conductor.crochet) * ((Conductor.songPosition + visualDiff) * Math.PI * .25) + (Math.PI * player));
+		final offsetX = pos.x - modMgr.getBaseX(data, player, field.field.keyCount);
+		final offsetY = (reverse != null ? (pos.y - reverse.getPos(visualDiff, timeDiff, beat, pos, data, player, obj, field).y) : 0);
+
+		final circf = Note.swagWidth + data * Note.swagWidth;
 
 		final sinAng = sin(angle);
 		final cosAng = cos(angle);
 
-		final radionicVec = new Vector3D();
+		final radionicVec = new Vector3();
 
-		radionicVec.x = WIDTH * 0.5 + ((sinAng * offsetY + cosAng * (circf + offsetX)) * 0.7) * 1.125;
-		radionicVec.y = HEIGHT * 0.5 + ((cosAng * offsetY + sinAng * (circf + offsetX)) * 0.7) * 0.875;
+		radionicVec.x = FlxG.width * 0.5 + ((sinAng * offsetY + cosAng * (circf + offsetX)) * Note.scales[field.field.keyCount-1]) * 1.125;
+		radionicVec.y = FlxG.height * 0.5 + ((cosAng * offsetY + sinAng * (circf + offsetX)) * Note.scales[field.field.keyCount-1]) * 0.875;
 		radionicVec.z = pos.z;
 
-		return ModchartUtil.lerpVector3D(pos, radionicVec, perc);
+		return pos.lerp(radionicVec, perc, pos);
 	}
 
 	// should i include this?
@@ -51,6 +50,4 @@ class Radionic extends Modifier {
 
 			return vis;
 	}*/
-	override public function shouldRun(params:RenderParams):Bool
-		return true;
 }

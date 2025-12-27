@@ -1,13 +1,13 @@
 package backend.modchart.modifiers;
 
-import backend.math.CoolMath;
-import backend.math.CoolMath.triangle;
-import backend.math.CoolMath.square;
-import flixel.math.FlxMath.fastSin as sin;
-import flixel.math.FlxMath.fastCos as cos;
 import backend.math.CoolMath.fastTan as tan;
+import backend.math.CoolMath.square;
+import backend.math.CoolMath.triangle;
+import backend.math.CoolMath;
+import flixel.math.FlxMath.fastCos as cos;
+import flixel.math.FlxMath.fastSin as sin;
 class PathModifier extends NoteModifier
-{	
+{
 	override function getName()
 		return 'tornado';
 
@@ -35,7 +35,7 @@ class PathModifier extends NoteModifier
 
 			pos.z += (zigzagZ * Note.halfWidth) * result;
 		}
-		
+
 
 		var sawtooth = getSubmodValue("sawtooth", player);
 		if (sawtooth != 0) {
@@ -126,7 +126,7 @@ class PathModifier extends NoteModifier
 			var offsetX = (-tan(phaseShift - columnPhaseShift) + 1) * Note.halfWidth * keyCunt - returnReceptorToZeroOffsetX;
 			pos.z += offsetX * tornadoTanZVal;
 		}
-		
+
 		var itgTornadoVal = getSubmodValue("itgTornado", player);
 		var itgTornadoTanVal = getSubmodValue("itgTornadoTan", player);
 
@@ -210,7 +210,7 @@ class PathModifier extends NoteModifier
 
 			'bounceZ',
 			'bounceZOffset',
-			'bounceZPeriod',	
+			'bounceZPeriod',
 
 			'digital',
 			"digitalSteps",
@@ -221,14 +221,14 @@ class PathModifier extends NoteModifier
 			'digitalZSteps',
 			"digitalZOffset",
 			"digitalZPeriod",
-			
+
 			"tornadoPeriod",
 			"tornadoOffset",
-			
+
 			"tornadoZ",
 			"tornadoZPeriod",
 			"tornadoZOffset",
-			
+
 			"tornadoTan",
 			"tornadoTanPeriod",
 			"tornadoTanOffset",

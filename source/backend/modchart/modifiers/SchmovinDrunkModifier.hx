@@ -1,7 +1,8 @@
 package backend.modchart.modifiers;
 
+import backend.math.CoolMath; // Games
 import flixel.math.FlxMath;
-import backend.math.CoolMath;//Games
+
 using StringTools;
 
 class SchmovinDrunkModifier extends NoteModifier {
@@ -52,17 +53,17 @@ class SchmovinDrunkModifier extends NoteModifier {
 
 	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
 	{
-		pos.x += 
+		pos.x +=
 			applyDrunk('', player, beat, visualDiff, data, field.field.keyCount, FlxMath.fastSin) +
 			applyTipsy('X', player, beat, visualDiff, data, field.field.keyCount, FlxMath.fastSin) +
 			applyBumpy('X', player, beat, visualDiff, data, FlxMath.fastSin);
 
-		pos.y += 
+		pos.y +=
 			applyDrunk('Y', player, beat, visualDiff, data, field.field.keyCount, FlxMath.fastSin) +
 			applyTipsy('', player, beat, visualDiff, data, field.field.keyCount, FlxMath.fastSin) +
 			applyBumpy('Y', player, beat, visualDiff, data, FlxMath.fastSin);
 
-		pos.z += 
+		pos.z +=
 			applyDrunk('Z', player, beat, visualDiff, data, field.field.keyCount, FlxMath.fastSin) +
 			applyTipsy('Z', player, beat, visualDiff, data, field.field.keyCount, FlxMath.fastSin) +
 			applyBumpy('', player, beat, visualDiff, data, FlxMath.fastSin);

@@ -43,6 +43,7 @@
 	<define name="EASED_SVs"/>
 	<define name="MULTICORE_LOADING" if="desktop" />
 	<define name="loadBenchmark" if="MULTICORE_LOADING"/>
+	<define name="CROSSPLATFORM"/>
 
 	<haxedef name="traceShaderLineNumbers"/>
 
@@ -98,6 +99,7 @@
 	<!-- Assets -->
 	<assets path=".flight" />
 	<assets path="assets/fonts" />
+	<assets path="assets/modchart" />
 	<assets path="assets/shared"        exclude="*.ogg" if="web"/>
 	<assets path="assets/shared"        exclude="*.mp3" unless="web"/>
 	<assets path="assets/embed"         exclude="*.ogg" if="web" embed="true"/>
@@ -309,8 +311,6 @@
 	<!-- ____________________________ PlusEngine/FunkinModchart Stuff _______________________________ -->
 
     <section if="MODCHARTS_NOTITG_ALLOWED">
-		<assets path="assets/modchart/arrowShape.csv" rename="modchart/arrowShape.csv" embed="true" />
-		<assets path="assets/modchart/eyeShape.csv" rename="modchart/eyeShape.csv" embed="true" />
 		<haxedef name="FM_ENGINE" value="PSYCH"/>
     <haxedef name="FM_ENGINE_VERSION" value="1.0"/>
     <haxeflag name="--macro" value="backend.funkinmodchart.backend.macros.Macro.includeFiles()"/>

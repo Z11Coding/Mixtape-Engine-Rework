@@ -13,61 +13,69 @@ class FMMFunctions
 
         // Add modifier
         Lua_helper.add_callback(lua, "addModifier", function(name:String, ?field:Int = -1) {
-          if (Manager.instance != null)
-              Manager.instance.addModifier(name, field);
+            if (PlayState.instance?.fmManager != null)
+                PlayState.instance?.fmManager?.addModifier(name, field);
+            else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Set modifier percentage
         Lua_helper.add_callback(lua, "setPercentFMM", function(name:String, value:Float, ?player:Int = -1, ?field:Int = -1) {
-          if (Manager.instance != null)
-              Manager.instance.setPercent(name, value, player, field);
+            if (PlayState.instance?.fmManager != null)
+                PlayState.instance?.fmManager?.setPercent(name, value, player, field);
+            else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Get modifier percentage
         Lua_helper.add_callback(lua, "getPercentFMM", function(name:String, ?player:Int = 0, ?field:Int = 0):Float {
-            if (Manager.instance != null)
-                return Manager.instance.getPercent(name, player, field);
+            if (PlayState.instance?.fmManager != null)
+                return PlayState.instance?.fmManager?.getPercent(name, player, field);
             return 0.0;
         });
 
         // Set value to a specific beat
         Lua_helper.add_callback(lua, "set", function(name:String, beat:Float, value:Float, ?player:Int = -1, ?field:Int = -1) {
-            if (Manager.instance != null)
-                Manager.instance.set(name, beat, value, player, field);
+            if (PlayState.instance?.fmManager != null)
+                PlayState.instance?.fmManager?.set(name, beat, value, player, field);
+            else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Easing a modifier
         Lua_helper.add_callback(lua, "ease", function(name:String, beat:Float, length:Float, value:Float, easeName:String, ?player:Int = -1, ?field:Int = -1) {
-            if (Manager.instance != null) {
+            if (PlayState.instance?.fmManager != null) {
                 var easeFunc = getEaseFunction(easeName);
-                Manager.instance.ease(name, beat, length, value, easeFunc, player, field);
-            }
+                PlayState.instance?.fmManager?.ease(name, beat, length, value, easeFunc, player, field);
+            } else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Add value with easing
         Lua_helper.add_callback(lua, "add", function(name:String, beat:Float, length:Float, value:Float, easeName:String, ?player:Int = -1, ?field:Int = -1) {
-            if (Manager.instance != null) {
+            if (PlayState.instance?.fmManager != null) {
                 var easeFunc = getEaseFunction(easeName);
-                Manager.instance.add(name, beat, length, value, easeFunc, player, field);
-            }
+                PlayState.instance?.fmManager?.add(name, beat, length, value, easeFunc, player, field);
+            } else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Establish and add value
         Lua_helper.add_callback(lua, "setAdd", function(name:String, beat:Float, value:Float, ?player:Int = -1, ?field:Int = -1) {
-            if (Manager.instance != null)
-                Manager.instance.setAdd(name, beat, value, player, field);
+            if (PlayState.instance?.fmManager != null)
+                PlayState.instance?.fmManager?.setAdd(name, beat, value, player, field);
         });
 
         // Add new playfield
         Lua_helper.add_callback(lua, "addPlayfield", function() {
-            if (Manager.instance != null)
-                Manager.instance.addPlayfield();
+            if (PlayState.instance?.fmManager != null)
+                PlayState.instance?.fmManager?.addPlayfield();
         });
 
         // Create alias for modifier
         Lua_helper.add_callback(lua, "alias", function(name:String, aliasName:String, field:Int) {
-            if (Manager.instance != null)
-                Manager.instance.alias(name, aliasName, field);
+            if (PlayState.instance?.fmManager != null)
+                PlayState.instance?.fmManager?.alias(name, aliasName, field);
         });
 
         // Useful constants
@@ -88,39 +96,42 @@ class FMMFunctions
         });
 
         // Callback event: execute a function on a specific beat
-        Lua_helper.add_callback(lua, "callback", function(beat:Float, funcName:String, ?field:Int = -1) {
-            if (Manager.instance != null) {
-                Manager.instance.callback(beat, function(event) {
-                    funk.call(funcName, []); // No pasar el objeto event a Lua
+        Lua_helper.add_callback(lua, "fmmcallback", function(beat:Float, funcName:String, ?field:Int = -1) {
+            if (PlayState.instance?.fmManager != null) {
+                PlayState.instance?.fmManager?.callback(beat, function(event) {
+                    funk.call(funcName, []); // Don't pass event object to Lua
                 }, field);
-            }
+            } else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // repeater event: execute a function repeatedly over a period
         Lua_helper.add_callback(lua, "repeater", function(beat:Float, length:Float, funcName:String, ?field:Int = -1) {
-            if (Manager.instance != null) {
-                Manager.instance.repeater(beat, length, function(event) {
+            if (PlayState.instance?.fmManager != null) {
+                PlayState.instance?.fmManager?.repeater(beat, length, function(event) {
                     funk.call(funcName, []); // No pasar el objeto event a Lua
                 }, field);
-            }
+            } else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Add scripted modifier (custom)
         Lua_helper.add_callback(lua, "addScriptedModifier", function(name:String, modifierInstance:Dynamic, ?field:Int = -1) {
-            if (Manager.instance != null && modifierInstance != null) {
-                // El modifierInstance debe ser una instancia de Modifier creada desde Lua/HScript
-                Manager.instance.addScriptedModifier(name, modifierInstance, field);
-            }
+            if (PlayState.instance?.fmManager != null && modifierInstance != null) {
+                // The modifierInstance must be a Modifier instance created from Lua/HScript
+                PlayState.instance?.fmManager?.addScriptedModifier(name, modifierInstance, field);
+            } else
+                trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         /*
-        // Crear nodo (node): vincular inputs y outputs con una función
+        // Create node (node): link inputs and outputs with a function
         Lua_helper.add_callback(lua, "node", function(inputs:Array<String>, outputs:Array<String>, funcName:String, ?field:Int = -1) {
-            if (Manager.instance != null) {
-                Manager.instance.node(inputs, outputs, function(curInput:Array<Float>, curOutput:Int):Int {
-                    // Llamar función Lua con los valores de entrada
+            if (PlayState.instance?.fmManager != null) {
+                PlayState.instance?.fmManager?.node(inputs, outputs, function(curInput:Array<Float>, curOutput:Int):Int {
+                    // Call Lua function with input values
                     var result:Dynamic = funk.call(funcName, [curInput]);
-                    // Retornar resultado o valor actual si no hay resultado
+                    // Return result or current value if there is no result
                     if (result != null && Std.isOfType(result, Int)) {
                         return cast result;
                     }

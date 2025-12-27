@@ -1,12 +1,12 @@
 package objects.playfields;
 /*
-	if ((FlxG.state is PlayState))
-		PlayState.instance.callOnHScripts("notefieldDraw", [this], ["drawQueue" => drawQueue]); // lets you do custom rendering in scripts, if needed
+if ((FlxG.state is PlayState))
+	PlayState.instance.callOnHScripts("notefieldDraw", [this], ["drawQueue" => drawQueue]); // lets you do custom rendering in scripts, if needed
 
-	var glowR = modManager.getValue("flashR", modNumber);
-	var glowG = modManager.getValue("flashG", modNumber);
-	var glowB = modManager.getValue("flashB", modNumber);
- */
+var glowR = modManager.getValue("flashR", modNumber);
+var glowG = modManager.getValue("flashG", modNumber);
+var glowB = modManager.getValue("flashB", modNumber);
+*/
 
 import flixel.math.FlxPoint;
 import flixel.util.FlxColor;
@@ -48,15 +48,6 @@ class NotefieldRenderer extends FlxBasic {
 			result = -Order;
 		}
 
-/* 		if(result == 0){
-			var isObj1Note = Obj1.objectType == NOTE;
-			var isObj2Note = Obj2.objectType == NOTE;
-			if (isObj1Note && !isObj2Note)
-				result = -Order;
-			else if(isObj2Note)
-				result = Order;
-		} */
-
 		return result;
 	}
 
@@ -86,7 +77,6 @@ class NotefieldRenderer extends FlxBasic {
 
 		return false;
 	}
-
 
 	override function draw(){
 		var finalDrawQueue:Array<FinalRenderObject> = [];
@@ -174,6 +164,7 @@ class NotefieldRenderer extends FlxBasic {
 				transfarm.alphaMultiplier = alphas[n] * multAlpha;
 				transforms.push(transfarm);
 			}
+
 			for (camera in object.cameras) {
 				if (camera != null && camera.canvas != null && camera.canvas.graphics != null) {
 					if (camera.alpha == 0 || !camera.visible)
@@ -192,7 +183,6 @@ class NotefieldRenderer extends FlxBasic {
 				}
 			}
 		}
-
 	}
 
 	override function update(elapsed:Float){

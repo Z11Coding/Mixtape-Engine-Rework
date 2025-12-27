@@ -114,13 +114,13 @@ abstract Vector3(Vector3D) from Vector3D to Vector3D {
 		if (vector == null)
 			vector = new Vector3();
 
-        // @formatter:off
-        vector.setTo(
-            this.x + (target.x - this.x) * alpha,
-            this.y + (target.y - this.y) * alpha,
-            this.z + (target.z - this.z) * alpha
-        );
-        // @formatter:on
+		// @formatter:off
+		vector.setTo(
+				this.x + (target.x - this.x) * alpha,
+				this.y + (target.y - this.y) * alpha,
+				this.z + (target.z - this.z) * alpha
+		);
+		// @formatter:on
 		return vector;
 	}
 }

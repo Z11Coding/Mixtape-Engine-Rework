@@ -1,21 +1,17 @@
 package backend.modchart.modifiers;
 
-import backend.modchart.Modifier.ModifierOrder;
-import backend.modchart.*;
 import backend.math.*;
-
+import backend.modchart.*;
+import backend.modchart.Modifier.ModifierOrder;
 import flixel.FlxG;
 import flixel.FlxSprite;
-import objects.playfields.NoteField;
 import objects.NoteObject.ObjectType;
-class ReverseModifier extends NoteModifier 
+import objects.playfields.NoteField;
+class ReverseModifier extends NoteModifier
 {
-	inline function lerp(a:Float, b:Float, c:Float) 
-		return a + (b - a) * c;
-
-	override function getOrder() 
-		return REVERSE;
-	override function getName() 
+	override function getOrder()
+		return ModifierOrder.REVERSE;
+	override function getName()
 		return 'reverse';
 
 	override function shouldExecute(player:Int, val:Float)
@@ -23,50 +19,67 @@ class ReverseModifier extends NoteModifier
 	override function ignoreUpdateNote()
 		return false;
 
-    public function getReverseValue(dir:Int, player:Int){
-        var kNum = Note.ammo[PlayState.mania];
-        var val:Float = 0;
-        if(dir>=kNum * 0.5)
-            val += getSubmodValue("split", player);
+	public function getReverseValue(dir:Int, player:Int){
+		var kNum = Note.ammo[PlayState.mania];
 
-        if((dir%2)==1)
-            val += getSubmodValue("alternate", player);
+		var val:Float = 0;
+		if(dir>=kNum * 0.5)
+			val += getSubmodValue("split" ,player);
 
-        var first = kNum * 0.25;
-        var last = kNum-1-first;
+		if((dir%2)==1)
+			val += getSubmodValue("alternate" ,player);
 
-        if(dir>=first && dir<=last)
-            val += getSubmodValue("cross" ,player);
+		var first = kNum * 0.25;
+		var last = kNum-1-first;
 
-        val += getValue(player) + getSubmodValue("reverse" + Std.string(dir), player);
+		if(dir>=first && dir<=last)
+			val += getSubmodValue("cross" ,player);
+
+		val += getValue(player) + getSubmodValue('reverse$dir', player);
 
 
-        if(getSubmodValue("unboundedReverse", player)==0){
-            val %=2;
-            if(val>1)val=2-val;
-        }
+		if(getSubmodValue("unboundedReverse",player)==0){
+			val %=2;
+			if(val>1)val=2-val;
+		}
 
-       	if(ClientPrefs.data.downScroll)
-            val = 1 - val;
+	   	if(ClientPrefs.data.downScroll)
+			val = 1 - val;
 
-        return val;
-    }
+		return val;
+	}
 
 	private inline function getCenterValue(player:Int){
 		var centerPercent = getSubmodValue("centered", player);
+		#if FUNNY_ALLOWED
+		return (ClientPrefs.middleScroll) ? 1 - centerPercent : centerPercent;
+		#else
 		return centerPercent;
+		#end
 	}
+
+	var distanceVec = new Vector3();
 
 	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:NoteObject, field:NoteField)
 	{
 		var swagOffset = Note.halfWidth + modMgr.vPadding; // maybe vPadding can be a field variable?
 		var reversePerc = getReverseValue(data, player);
 		var shift = lerp(swagOffset, FlxG.height - swagOffset, reversePerc);
-		
-		var centerPercent = getCenterValue(player);		
+
+		var centerPercent = getCenterValue(player);
 		shift = lerp(shift, (FlxG.height * 0.5), centerPercent);
-		
-		pos.y = shift + lerp(visualDiff, -visualDiff, reversePerc);
+
+		var distance = lerp(visualDiff, -visualDiff, reversePerc);
+
+		distanceVec.setTo(0, distance, 0);
+		VectorHelpers.rotateV3(distanceVec,
+			(getSubmodValue('incomingAngleX', player) + getSubmodValue('incomingAngleX${data}', player)) * FlxAngle.TO_RAD,
+			(getSubmodValue('incomingAngleY', player) + getSubmodValue('incomingAngleY${data}', player)) * FlxAngle.TO_RAD,
+			(getSubmodValue('incomingAngleZ', player) + getSubmodValue('incomingAngleZ${data}', player)) * FlxAngle.TO_RAD,
+			distanceVec
+		);
+		pos.y = shift;
+		pos.add(distanceVec, pos);
 
 		if ((obj.objType == NOTE))
 		{
@@ -74,18 +87,21 @@ class ReverseModifier extends NoteModifier
 			pos.y += n.typeOffsetY;
 		}
 
-        pos.y += obj.offsetY;
+		pos.y += obj.offsetY;
 
 		return pos;
 	}
 
-    override function getSubmods(){
-        var subMods:Array<String> = ["cross", "split", "alternate", "centered", "unboundedReverse"];
+	override function getSubmods() {
+		var subMods:Array<String> = ["cross", "split", "alternate", "centered", "unboundedReverse", "incomingAngleX", "incomingAngleY", "incomingAngleZ"];
 
-		for (i in 0...Note.ammo[PlayState.mania]){
-            subMods.push('reverse${i}');
-        }
+		for (i in 0...Note.ammo[PlayState.mania]) {
+			subMods.push('reverse${i}');
+			subMods.push('incomingAngleX${i}');
+			subMods.push('incomingAngleY${i}');
+			subMods.push('incomingAngleZ${i}');
+		}
 
-        return subMods;
-    }
+		return subMods;
+	}
 }

@@ -74,7 +74,6 @@ final class ModifierGroup {
 		for (cls in COMPILED_MODIFIERS) {
 			var name = Type.getClassName(cls);
 			name = name.substring(name.lastIndexOf('.') + 1, name.length);
-			trace(name.toLowerCase());
 			__modifierRegistrery.set(name.toLowerCase(), cast cls);
 		}
 	}

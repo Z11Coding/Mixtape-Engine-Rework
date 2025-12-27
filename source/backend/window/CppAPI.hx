@@ -304,7 +304,7 @@ class CppAPI
 		#elseif ((linux || mac) && CROSSPLATFORM)
 		// Lime handles this automatically on most platforms
 		try {
-			lime.app.Application.current.window.scale = lime.system.System.devicePixelRatio;
+			//lime.app.Application.current.window.scale = lime.system.System.devicePixelRatio;
 		} catch (e:Dynamic) {
 			trace("High DPI support not available: " + e);
 		}
@@ -548,7 +548,7 @@ class CppAPI
 		try {
 			var content = sys.io.File.getContent("/proc/uptime");
 			var uptime = Std.parseFloat(content.split(" ")[0]);
-			return uptime != null ? uptime : -1;
+			return uptime;
 		} catch (e:Dynamic) {
 			return -1;
 		}

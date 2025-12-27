@@ -1,18 +1,23 @@
-package modchart.modifiers.false_paradise;
+package backend.modchart.modifiers.shmoovin.false_paradise;
 
+import backend.funkinmodchart.backend.util.ModchartUtil;
 import flixel.math.FlxMath;
-import modchart.core.util.Constants.ArrowData;
-import modchart.core.util.Constants.RenderParams;
 import openfl.geom.Vector3D;
 
 @:dontSave
-private class TimeVector extends Vector3D {
+private class TimeVector extends Vector3 {
 	public var startDist = 0.0;
 	public var endDist = 0.0;
 	public var next:TimeVector;
 }
 
-class SchmovinArrowShape extends Modifier {
+class SchmovinArrowShape extends NoteModifier {
+	override function getName()
+		return 'schmovinArrowShape';
+
+	override function getOrder()
+		return Modifier.ModifierOrder.LAST - 7;
+
 	var _path:List<TimeVector>;
 	var _pathDistance:Float = 0;
 
@@ -37,11 +42,11 @@ class SchmovinArrowShape extends Modifier {
 		return dist;
 	}
 
-	function GetPointAlongPath(distance:Float):Null<Vector3D> {
+	function GetPointAlongPath(distance:Float):Null<Vector3> {
 		for (vec in _path) {
 			if (FlxMath.inBounds(distance, vec.startDist, vec.endDist) && vec.next != null) {
 				var ratio = (distance - vec.startDist) / vec.next.subtract(vec).length;
-				return ModchartUtil.lerpVector3D(vec, vec.next, ratio);
+				return vec.lerp(vec.next, ratio, vec);
 			}
 		}
 		return _path.first();
@@ -52,7 +57,7 @@ class SchmovinArrowShape extends Modifier {
 		var path = new List<TimeVector>();
 		for (line in file) {
 			var coords = line.split(';');
-			var vec = new TimeVector(Std.parseFloat(coords[0]), Std.parseFloat(coords[1]), Std.parseFloat(coords[2]), Std.parseFloat(coords[3]));
+			var vec = new TimeVector(Std.parseFloat(coords[0]), Std.parseFloat(coords[1]), Std.parseFloat(coords[2]));
 			vec.scaleBy(SCALE);
 			path.add(vec);
 		}
@@ -60,21 +65,21 @@ class SchmovinArrowShape extends Modifier {
 		return path;
 	}
 
-	override public function render(curPos:Vector3D, params:RenderParams) {
+	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField){
 		if (_path == null)
 			_path = LoadPath();
 
-		final perc = getPercent('schmovinArrowShape', params.player);
+		final perc = getValue(player);
 
 		if (perc == 0)
-			return curPos;
+			return pos;
 
-		var path = GetPointAlongPath(params.distance / 1500.0 * _pathDistance);
+		var path = GetPointAlongPath(visualDiff / 1500.0 * _pathDistance);
 
-		return ModchartUtil.lerpVector3D(curPos,
-			path.add(new Vector3D(WIDTH * .5, HEIGHT * .5 + 280, params.lane * getPercent('schmovinArrowShapeOffset', params.player) + curPos.z)), perc);
+		return pos.lerp(path.add(new Vector3(FlxG.width * .5, FlxG.height * .5 + 280, data * getSubmodValue('schmovinArrowShapeOffset', player) + pos.z)), perc, pos);
 	}
 
-	override public function shouldRun(params:RenderParams):Bool
-		return true;
+	override function getSubmods(){
+		return ['schmovinArrowShapeOffset'];
+	}
 }

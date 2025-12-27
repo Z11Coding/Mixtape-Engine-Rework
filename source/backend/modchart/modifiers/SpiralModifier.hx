@@ -27,12 +27,12 @@ class SpiralModifier extends NoteModifier {
 		var schmovinSpiralX = getSubmodValue("schmovinSpiralX", player);
 		var schmovinSpiralY = getSubmodValue("schmovinSpiralY", player);
 		var schmovinSpiralZ = getSubmodValue("schmovinSpiralZ", player);
-		
+
 		// Best combined with reverse 0.5 and flip 0.5
 		if(schmovinSpiralX != 0){
 			var dist = getSubmodValue("schmovinSpiralXSpacing", player) * 33.5;
 			var beat = ((getSubmodValue("schmovinSpiralXSpeed", player) * beat) + (getSubmodValue("schmovinSpiralXOffset", player))) * Math.PI / 4;
-			var radiusOffset = -visualDiff / 4; 
+			var radiusOffset = -visualDiff / 4;
 			var radius = radiusOffset + dist * column % field.field.keyCount;
 
 			pos.x += FlxMath.fastCos(-visualDiff / Conductor.crochet * Math.PI + beat) * radius * schmovinSpiralX;

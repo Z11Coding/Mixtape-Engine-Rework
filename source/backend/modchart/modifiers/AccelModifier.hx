@@ -11,18 +11,13 @@ import objects.playfields.NoteField;
 
 class AccelModifier extends NoteModifier
 { // this'll be boost in ModManager
-	inline function lerp(a:Float, b:Float, c:Float)
-	{
-		return a + (b - a) * c;
-	}
-
 	override function getName()
 		return 'boost';
 
 	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField)
 	{
 		if (getOtherValue("movePastReceptors", player) == 0 && visualDiff<=0)
-      return pos;
+			return pos;
 
 		var wave = getSubmodValue("wave", player);
 		var brake = getSubmodValue("brake", player);
@@ -48,7 +43,7 @@ class AccelModifier extends NoteModifier
 		}
 
 		if (getSubmodValue("wavePeriod", player) != -1 /**< no division by 0**/ && wave != 0)
-		    yAdjust += wave * 40 * FlxMath.fastSin(visualDiff / ((114 * getSubmodValue("wavePeriod", player)) + 114));
+			yAdjust += wave * 40 * FlxMath.fastSin(visualDiff / ((114 * getSubmodValue("wavePeriod", player)) + 114));
 
 		pos.y += yAdjust * mult;
 		return pos;

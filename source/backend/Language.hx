@@ -1,5 +1,4 @@
 package backend;
-import backend.languages.*;
 
 class Language
 {
@@ -9,76 +8,39 @@ class Language
 	private static var keyCache:Map<String, String> = [];
 	#end
 
-	 private static var hardcodedLanguages:Array<Class<Dynamic>> = [
-		EsLA,    // Español (Latinoamérica)
-		EsES,    // Español (España)
-		FrFR,    // Français (France)
-		ItIT,    // Italiano (Italia)
-		DeDE,    // Deutsch (Deutschland)
-		NlNL,    // Nederlands (Nederland)
-		ZhCN,    // Chinese (Mainland)
-		ZhHK,    // Chinese (Hong Kong)
-		JpJP,     // Japanese (Japan)
-		IdID      // Indonesian (Bahasa Indonesia)
-	];
-
 	public static function reloadPhrases()
 	{
 		#if TRANSLATIONS_ALLOWED
 		var langFile:String = ClientPrefs.data.language;
+		var loadedText:Array<String> = Mods.mergeAllTextsNamed('data/$langFile.lang');
 		//trace(loadedText);
 
 		phrases.clear();
-    keyCache.clear(); // ← LIMPIAR CACHE DE KEYS AL RECARGAR
 		var hasPhrases:Bool = false;
-
-		for (langClass in hardcodedLanguages) {
-			// "9-Code-Name" wow cool word uh
-			var languageCode:String = Reflect.field(langClass, 'languageCode');
-			var languageName:String = Reflect.field(langClass, 'languageName');
-			var translations:Map<String, String> = Reflect.field(langClass, 'translations');
-
-			if (languageCode == langFile && translations != null) {
-					// Cargar nombre del idioma
-					phrases.set('language_name', languageName);
-
-					// Cargar todas las traducciones
-					for (key => value in translations) {
-						phrases.set(key.toLowerCase(), value);
-					}
-					hasPhrases = true;
-					break;
-			}
-		}
-
-		if (!hasPhrases) {
-			var loadedText:Array<String> = Mods.mergeAllTextsNamed('data/$langFile.lang');
-
-			for (num => phrase in loadedText)
+		for (num => phrase in loadedText)
+		{
+			phrase = phrase.trim();
+			if(num < 1 && !phrase.contains(':'))
 			{
-				phrase = phrase.trim();
-				if(num < 1 && !phrase.contains(':'))
-				{
-					//First line ignores formatting and shit if the line doesn't have ":" because its language_name
-					phrases.set('language_name', phrase.trim());
-					continue;
-				}
-
-				if(phrase.length < 4 || phrase.startsWith('//')) continue;
-
-				var n:Int = phrase.indexOf(':');
-				if(n < 0) continue;
-
-				var key:String = phrase.substr(0, n).trim().toLowerCase();
-
-				var value:String = phrase.substr(n);
-				n = value.indexOf('"');
-				if(n < 0) continue;
-
-				//trace("Mapped to " + key);
-				phrases.set(key, value.substring(n+1, value.lastIndexOf('"')).replace('\\n', '\n'));
-				hasPhrases = true;
+				//First line ignores formatting and shit if the line doesn't have ":" because its language_name
+				phrases.set('language_name', phrase.trim());
+				continue;
 			}
+
+			if(phrase.length < 4 || phrase.startsWith('//')) continue;
+
+			var n:Int = phrase.indexOf(':');
+			if(n < 0) continue;
+
+			var key:String = phrase.substr(0, n).trim().toLowerCase();
+
+			var value:String = phrase.substr(n);
+			n = value.indexOf('"');
+			if(n < 0) continue;
+
+			//trace("Mapped to " + key);
+			phrases.set(key, value.substring(n+1, value.lastIndexOf('"')).replace('\\n', '\n'));
+			hasPhrases = true;
 		}
 
 		if(!hasPhrases) ClientPrefs.data.language = ClientPrefs.defaultData.language;
@@ -93,27 +55,10 @@ class Language
 		#end
 	}
 
-	public static function getAvailableLanguages():Array<{code:String, name:String}> {
-		var languages:Array<{code:String, name:String}> = [];
-
-		#if TRANSLATIONS_ALLOWED
-		for (langClass in hardcodedLanguages) {
-			var code:String = Reflect.field(langClass, 'languageCode');
-			var name:String = Reflect.field(langClass, 'languageName');
-			if (code != null && name != null) {
-				languages.push({code: code, name: name});
-			}
-		}
-		#else
-		languages.push({code: "en-US", name: defaultLangName});
-		#end
-
-		return languages;
-	}
-
 	inline public static function getPhrase(key:String, ?defaultPhrase:String, values:Array<Dynamic> = null):String
 	{
 		#if TRANSLATIONS_ALLOWED
+		//trace(formatKey(key));
 		var formattedKey:String = keyCache.get(key);
 		if (formattedKey == null) {
 			formattedKey = formatKey(key);
@@ -129,41 +74,11 @@ class Language
 		if(str == null)
 			str = key;
 
-    if(values != null && values.length > 0)
+		if(values != null && values.length > 0)
 			for (num => value in values)
 				str = str.replace('{${num+1}}', value);
 
 		return str;
-	}
-
-	public static function getPhrases(keys:Array<String>, defaultPhrases:Array<String> = null):Array<String> {
-		var results:Array<String> = [];
-
-		#if TRANSLATIONS_ALLOWED
-		for (i in 0...keys.length) {
-			var key = keys[i];
-			var defaultPhrase = (defaultPhrases != null && i < defaultPhrases.length) ? defaultPhrases[i] : null;
-
-			var formattedKey:String = keyCache.get(key);
-			if (formattedKey == null) {
-				formattedKey = formatKey(key);
-				keyCache.set(key, formattedKey);
-			}
-
-			var str:String = phrases.get(formattedKey);
-			if(str == null) str = defaultPhrase;
-			if(str == null) str = key;
-
-			results.push(str);
-		}
-		#else
-		for (i in 0...keys.length) {
-			var defaultPhrase = (defaultPhrases != null && i < defaultPhrases.length) ? defaultPhrases[i] : keys[i];
-			results.push(defaultPhrase);
-		}
-		#end
-
-		return results;
 	}
 
 	public static function cacheSpecificPhrases(keys:Array<String>, defaults:Array<String>):Array<String> {
@@ -173,25 +88,23 @@ class Language
 			cached.push(getPhrase(keys[i], defaultPhrase));
 		}
 		return cached;
-}
+	}
 
 	// More optimized for file loading
 	inline public static function getFileTranslation(key:String)
 	{
 		#if TRANSLATIONS_ALLOWED
-		var lowerKey = key.trim().toLowerCase();
-    var str:String = phrases.get(lowerKey);
+		var str:String = phrases.get(key.trim().toLowerCase());
 		if(str != null) key = str;
 		#end
 		return key;
 	}
 
 	#if TRANSLATIONS_ALLOWED
-	static final hideCharsRegex = ~/[~&\\\/;:<>#.,'"%?!]/g;
-
 	inline static private function formatKey(key:String)
 	{
-    return hideCharsRegex.replace(key.replace(' ', '_'), '').toLowerCase().trim();
+		final hideChars = ~/[~&\\\/;:<>#.,'"%?!]/g;
+		return hideChars.replace(key.replace(' ', '_'), '').toLowerCase().trim();
 	}
 	#end
 

@@ -2,20 +2,20 @@ package backend.modchart;
 // @author Riconuts
 
 
-import objects.playfields.NoteField;
-import trolllua.FunkinHScript;
-import backend.modchart.Modifier;
 import backend.math.Vector3;
-import objects.StrumNote;
+import backend.modchart.Modifier;
 import objects.Note;
 import objects.NoteObject;
+import objects.StrumNote;
+import objects.playfields.NoteField;
+import trolllua.FunkinHScript;
 
 class HScriptModifier extends Modifier
 {
 	public var script:FunkinHScript;
 	public var name:String = "unknown";
 
-	public function new(modMgr:ModManager, ?parent:Modifier, script:FunkinHScript) 
+	public function new(modMgr:ModManager, ?parent:Modifier, script:FunkinHScript)
 	{
 		this.script = script;
 		this.modMgr = modMgr;
@@ -56,14 +56,14 @@ class HScriptModifier extends Modifier
 	public static function fromString(modMgr:ModManager, ?parent:Modifier, scriptSource:String):HScriptModifier
 	{
 		return new HScriptModifier(
-			modMgr, 
-			parent, 
+			modMgr,
+			parent,
 			FunkinHScript.fromString(scriptSource, "HScriptModifier", _scriptEnums, false)
 		);
 	}
 
 	public static function fromName(modMgr:ModManager, ?parent:Modifier, scriptName:String):Null<HScriptModifier>
-	{		
+	{
 		var filePath:String = Paths.getHScriptPath('modifiers/$scriptName');
 		if(filePath == null){
 			trace('Modifier script: $scriptName not found!');
@@ -71,8 +71,8 @@ class HScriptModifier extends Modifier
 		}
 
 		var mod = new HScriptModifier(
-			modMgr, 
-			parent, 
+			modMgr,
+			parent,
 			FunkinHScript.fromFile(filePath, filePath, _scriptEnums, false)
 		);
 		mod.name = scriptName;
@@ -110,16 +110,16 @@ class HScriptModifier extends Modifier
 	override public function getSubmods():Array<String>
 		return script.exists("getSubmods") ? script.executeFunc("getSubmods") : super.getSubmods();
 
-	override public function updateReceptor(beat:Float, receptor:StrumNote, player:Int) 
+	override public function updateReceptor(beat:Float, receptor:StrumNote, player:Int)
 		return script.exists("updateReceptor") ? script.executeFunc("updateReceptor", [beat, receptor, player]) : super.updateReceptor(beat, receptor, player);
 
 	override public function updateNote(beat:Float, note:Note, player:Int)
 		return script.exists("updateNote") ? script.executeFunc("updateNote", [beat, note, player]) : super.updateNote(beat, note, player);
 
-	override public function getPos(diff:Float, tDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:NoteObject, field:NoteField):Vector3 
+	override public function getPos(diff:Float, tDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:NoteObject, field:NoteField):Vector3
 		return script.exists("getPos") ? script.executeFunc("getPos", [diff, tDiff, beat, pos, data, player, obj, field]) : super.getPos(diff, tDiff, beat, pos, data, player, obj, field);
 
-	override public function modifyVert(beat:Float, vert:Vector3, idx:Int, obj:NoteObject, pos:Vector3, player:Int, data:Int, field:NoteField):Vector3 
+	override public function modifyVert(beat:Float, vert:Vector3, idx:Int, obj:NoteObject, pos:Vector3, player:Int, data:Int, field:NoteField):Vector3
 		return script.exists("modifyVert") ? script.executeFunc("modifyVert",
 			[beat, vert, idx, obj, pos, player, data, field]) : super.modifyVert(beat, vert, idx, obj, pos, player, data, field);
 
@@ -129,9 +129,9 @@ class HScriptModifier extends Modifier
 			[diff, tDiff, beat, info, obj, player, data]) : super.getExtraInfo(diff, tDiff, beat, info, obj, player, data);
 	}
 
-	override public function update(elapsed:Float, beat:Float) 
+	override public function update(elapsed:Float, beat:Float)
 		return script.exists("update") ? script.executeFunc("update", [elapsed, beat]) : super.update(elapsed, beat);
 
-	override public function isRenderMod():Bool 
+	override public function isRenderMod():Bool
 		return script.exists("isRenderMod") ? script.executeFunc("isRenderMod") : super.isRenderMod();
 }

@@ -1,9 +1,9 @@
 package backend.modchart.modifiers;
 
+import backend.math.Vector3;
+import backend.modchart.Modifier.ModifierOrder;
 import backend.modchart.Modifier.RenderInfo;
 import flixel.math.FlxPoint;
-import backend.modchart.Modifier.ModifierOrder;
-import backend.math.Vector3;
 import objects.playfields.NoteField;
 
 class ScaleModifier extends NoteModifier {
@@ -19,16 +19,16 @@ class ScaleModifier extends NoteModifier {
 		scale.x *= Math.pow(0.5, tinyX) * Math.pow(0.5, tiny);
 		scale.y *= Math.pow(0.5, tinyY) * Math.pow(0.5, tiny);
 
-		scale.x *= getSubmodValue("scale", player) 
-			* getSubmodValue('scale${data}', player) 
+		scale.x *= getSubmodValue("scale", player)
+			* getSubmodValue('scale${data}', player)
 			* getSubmodValue('scaleX', player)
 			* getSubmodValue('scale${data}X', player);
 
-		scale.y *= getSubmodValue("scale", player) 
-			* getSubmodValue('scale${data}', player) 
+		scale.y *= getSubmodValue("scale", player)
+			* getSubmodValue('scale${data}', player)
 			* getSubmodValue('scaleY', player)
 			* getSubmodValue('scale${data}Y', player);
-		
+
 		var stretch = getSubmodValue("stretch", player) + getSubmodValue('stretch${data}', player);
 		var squish = getSubmodValue("squish", player) + getSubmodValue('squish${data}', player);
 
@@ -45,16 +45,16 @@ class ScaleModifier extends NoteModifier {
 
 		scale.x *= (sin * squishY) + (cos * squishX);
 		scale.y *= (cos * squishY) + (sin * squishX);
-		
+
 		scale.x *= (sin * stretchY) + (cos * stretchX);
 		scale.y *= (cos * stretchY) + (sin * stretchX);
-		
+
 		if ((sprite is Note) && sprite.isSustainNote)
 			scale.y = 1.0;
 
 		return scale;
 	}
-	
+
 	override function shouldExecute(player:Int, val:Float)
 		return true;
 
@@ -83,7 +83,7 @@ class ScaleModifier extends NoteModifier {
 				pos.x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
 			case 1:
 				pos.x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
-		} 
+		}
 
 		return pos;
 	} */
