@@ -10,6 +10,7 @@ import archipelago.substates.ConnectionSubstate;
 import archipelago.substates.ExportAPWorldChoiceSubstate;
 import archipelago.substates.InfoPanelSubstate;
 import archipelago.substates.PortInputSubstate;
+import archipelago.substates.TextInputSubstate.InputMode;
 import archipelago.substates.TextInputSubstate;
 import archipelago.substates.YAMLOptionsSubstate;
 import backend.MusicBeatState;
@@ -333,7 +334,8 @@ class APStyledEntryState extends MusicBeatState {
             100, // Max length
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_", // Allowed characters
             "Enter the Archipelago server address (e.g., archipelago.gg)",
-            FlxColor.CYAN
+            FlxColor.CYAN,
+            BASIC // Use basic input mode
         );
         openSubState(hostInput);
     }
@@ -363,10 +365,11 @@ class APStyledEntryState extends MusicBeatState {
             function() {
                 // Cancel callback - do nothing
             },
-            30, // Max length
+            16, // Max length
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_", // Allowed characters
-            "Enter your player name from the YAML file",
-            FlxColor.CYAN
+            "Enter your player name from the YAML file (YAML-safe characters only)",
+            FlxColor.CYAN,
+            YAML // Use YAML input mode for player names
         );
         openSubState(slotInput);
     }
@@ -386,7 +389,7 @@ class APStyledEntryState extends MusicBeatState {
             "", // All characters allowed
             "Enter server password (leave empty if none required)",
             FlxColor.CYAN,
-            true // Password mode - mask the input
+            PASSWORD // Use password input mode
         );
         openSubState(passwordInput);
     }
@@ -446,6 +449,16 @@ class APStyledEntryState extends MusicBeatState {
         installButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         installButtonText.borderSize = 1;
         add(installButtonText);
+
+        // Change AP Location button
+        var changeLocationButton = new FlxSprite(connectionPanel.x + connectionPanel.width + 20, buttonY + buttonSpacing * 5);
+        changeLocationButton.makeGraphic(120, 40, FlxColor.fromRGB(180, 80, 180)); // Purple-pink color
+        add(changeLocationButton);
+
+        var changeLocationText = new FlxText(changeLocationButton.x, changeLocationButton.y + 10, changeLocationButton.width, "CHANGE\nAP LOCATION", 9);
+        changeLocationText.setFormat(Paths.font("vcr.ttf"), 9, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        changeLocationText.borderSize = 1;
+        add(changeLocationText);
         #end
     }
 
@@ -753,6 +766,15 @@ class APStyledEntryState extends MusicBeatState {
 
         if (installButton != null && FlxG.mouse.overlaps(installButton) && FlxG.mouse.justPressed) {
             handleAPWorldInstall();
+        }
+
+        // Check Change AP Location button click by coordinates (since we didn't store it in a variable)
+        var changeLocationX = connectionPanel.x + connectionPanel.width + 20;
+        var changeLocationY = connectionPanel.y + 20 + (60 * 5); // buttonY + buttonSpacing * 5
+        if (FlxG.mouse.x >= changeLocationX && FlxG.mouse.x <= changeLocationX + 120 &&
+            FlxG.mouse.y >= changeLocationY && FlxG.mouse.y <= changeLocationY + 40 &&
+            FlxG.mouse.justPressed) {
+            changeAPLocation();
         }
         #end
     }
@@ -1088,65 +1110,6 @@ class APStyledEntryState extends MusicBeatState {
         }
     }
 
-    function changeAPLocation() {
-        var tasks = [
-            GenericProgressSubstate.createTask("Opening folder selection dialog", function(results:Array<Dynamic>) {
-                var newLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
-                if (newLocation == null || newLocation.trim() == "") {
-                    throw new Exception("No folder selected");
-                }
-                return newLocation;
-            }),
-            GenericProgressSubstate.createTask("Validating Archipelago installation", function(results:Array<Dynamic>) {
-                var newLocation:String = results[0];
-                if (!FileSystem.exists(newLocation + "/ArchipelagoLauncher.exe") &&
-                    !FileSystem.exists(newLocation + "/ArchipelagoClient.exe")) {
-                    throw new Exception("Selected folder doesn't appear to be an Archipelago installation");
-                }
-                return "Validation passed";
-            }),
-            GenericProgressSubstate.createTask("Saving new location", function(results:Array<Dynamic>) {
-                var newLocation:String = results[0];
-                var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true);
-                save.addItem("apLocation", newLocation);
-                save.save();
-                currentAPLocation = newLocation;
-                return "Location saved";
-            })
-        ];
-
-        var progressSubstate = new GenericProgressSubstate(
-            "Changing Archipelago Location",
-            tasks,
-            function(results:Array<Dynamic>) {
-                // On completion
-                var newLocation:String = results[0];
-                var successPrompt = new InfoPanelSubstate(
-                    "Location Updated",
-                    "Archipelago location changed to:\n" + newLocation,
-                    FlxColor.LIME
-                );
-                openSubState(successPrompt);
-            },
-            function(error:String, shouldThrow:Bool) {
-                if (error.indexOf("No folder selected") == -1) {
-                    var errorPrompt = new InfoPanelSubstate(
-                        "Location Change Failed",
-                        error,
-                        FlxColor.RED
-                    );
-                    openSubState(errorPrompt);
-                }
-                // If no folder selected, just silently cancel
-            },
-            function() {
-                // On cancel - do nothing
-            }
-        );
-
-        openSubState(progressSubstate);
-    }
-
     function refreshYAML() {
         // Import a YAML using the same method as importYAML, but then force export to original location
         var stuff = null;
@@ -1342,4 +1305,39 @@ class APStyledEntryState extends MusicBeatState {
     function onBack() {
         MusicBeatState.switchState(new states.MainMenuState());
     }
+
+    #if sys
+    function changeAPLocation() {
+        FlxG.sound.play(Paths.sound('confirmMenu'));
+
+        var before = currentAPLocation;
+        currentAPLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
+
+        if (currentAPLocation != null && currentAPLocation.trim() != "") {
+            var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true);
+            save.addItem("apLocation", currentAPLocation);
+
+            // Show success message using InfoPanelSubstate for consistency
+            var successPanel = new InfoPanelSubstate(
+                "✅ Archipelago Location Changed",
+                "Archipelago location changed to:\\n" + currentAPLocation + "\\n\\nThe state will refresh to apply changes.",
+                FlxColor.LIME,
+                function() {
+                    save.save();
+                    FlxG.resetState();
+                }
+            );
+            openSubState(successPanel);
+        } else {
+            // Show cancellation message
+            currentAPLocation = before;
+            var cancelPanel = new InfoPanelSubstate(
+                "❌ Location Change Cancelled",
+                "Archipelago location was not changed.\\n\\nThe current location remains:\\n" + currentAPLocation,
+                FlxColor.ORANGE
+            );
+            openSubState(cancelPanel);
+        }
+    }
+    #end
 }

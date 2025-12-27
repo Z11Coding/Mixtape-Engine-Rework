@@ -14,6 +14,7 @@ class OptionsState extends MusicBeatState
 		'Gameplay',
 		#if TRANSLATIONS_ALLOWED 'Language', #end
 		"Mixtape Settings",
+		"Setup Guide",
 		"Save Management",
 		"UNO Options",
 		"Legacy Lua Settings"
@@ -45,6 +46,8 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.ArchipelagoSettingsSubState());
 			case 'Mixtape Settings':
 				openSubState(new options.MixtapeSettingsSubState());
+			case 'Setup Guide':
+				MusicBeatState.switchState(new setup.SetupGuideState());
 			case 'Save Management':
 				MusicBeatState.switchState(new states.SaveManagementState());
 			case 'UNO Options':

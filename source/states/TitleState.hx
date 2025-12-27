@@ -124,7 +124,15 @@ class TitleState extends MusicBeatState
 		#elseif CHARTING
 		ClientPrefs.openChartEditor();
 		#else
-		if(FlxG.save.data.flashing == null && !FlashingState.leftState)
+		// Check for first-time setup after title initialization but before flashing state
+		if(!initialized && !ClientPrefs.data.setupCompleted && !ClientPrefs.data.setupSkipped)
+		{
+			// First time running - redirect to setup guide
+			FlxTransitionableState.skipNextTransIn = true;
+			FlxTransitionableState.skipNextTransOut = true;
+			MusicBeatState.switchState(new setup.SetupGuideState());
+		}
+		else if(FlxG.save.data.flashing == null && !FlashingState.leftState)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;

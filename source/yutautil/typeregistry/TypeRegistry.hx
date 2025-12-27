@@ -87,9 +87,37 @@ class TypeRegistry {
     }
 
     static function collectFromAvailableTypes():Void {
-        // Alternative collection method using Context.getAllTypes()
-        // This will be implemented as a fallback
+        // Alternative collection method using reflection
         trace("TypeRegistry: Using fallback type collection method");
+
+        // Try to get types through reflection
+        try {
+            var allModules = [
+                "Main", "backend.MusicBeatState", "backend.ClientPrefs",
+                "yutautil.Num", "objects.Note", "states.PlayState"
+            ];
+
+            for (module in allModules) {
+                try {
+                    var moduleType = Context.getType(module);
+                    switch (moduleType) {
+                        case TInst(classRef, _):
+                            collectClassInfo(classRef.get());
+                        case TAbstract(abstractRef, _):
+                            collectAbstractInfo(abstractRef.get());
+                        case TType(typedefRef, _):
+                            collectTypedefInfo(typedefRef.get());
+                        case TEnum(enumRef, _):
+                            collectEnumInfo(enumRef.get());
+                        case _:
+                    }
+                } catch (e:Dynamic) {
+                    // Skip modules that can't be resolved
+                }
+            }
+        } catch (e:Dynamic) {
+            trace("TypeRegistry: Fallback collection failed: " + e);
+        }
     }
 
     static function collectClassInfo(classType:ClassType):Void {

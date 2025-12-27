@@ -90,6 +90,11 @@ import states.TitleState;
 	public var editorMusic:String = 'None';
 	public var checkForUpdates:Bool = true;
 	public var comboStacking:Bool = true;
+
+	// Setup Guide Settings
+	public var setupCompleted:Bool = false;
+	public var setupSkipped:Bool = false;
+	public var setupArchipelagoMode:Bool = false;
 	public var loadingState:String = 'Song Only';
 	public var loadingScreenTheme:String = 'Mixtape';
 	public var chartPreload:String = 'Off';

@@ -1,6 +1,7 @@
 package yutautil.typeregistry;
 
 import yutautil.typeregistry.AbstractRecognizer;
+import yutautil.typeregistry.BuildDataLoader;
 import yutautil.typeregistry.InGameSourceEditor;
 import yutautil.typeregistry.RuntimeRegistry;
 import yutautil.typeregistry.SourceMapper;
@@ -162,26 +163,74 @@ class TypeRegistryAPI {
     }
 
     /**
-     * Get all registered abstract types
+     * Get all registered abstracts
+     * Uses build-time data when available, falls back to runtime discovery
      */
     public static function getAllAbstracts():Array<String> {
         initialize();
+
+        // Try build data first
+        try {
+            if (BuildDataLoader.initialize()) {
+                var buildAbstracts = BuildDataLoader.getAllAbstracts();
+                if (buildAbstracts.length > 0) {
+                    trace('TypeRegistryAPI: Using build data for abstracts (${buildAbstracts.length} found)');
+                    return buildAbstracts;
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Build data unavailable for abstracts, using runtime: $e');
+        }
+
+        // Fallback to runtime registry
         return RuntimeRegistry.get().getAllAbstracts();
     }
 
     /**
      * Get all registered classes
+     * Uses build-time data when available, falls back to runtime discovery
      */
     public static function getAllClasses():Array<String> {
         initialize();
+
+        // Try build data first
+        try {
+            if (BuildDataLoader.initialize()) {
+                var buildClasses = BuildDataLoader.getAllClasses();
+                if (buildClasses.length > 0) {
+                    trace('TypeRegistryAPI: Using build data for classes (${buildClasses.length} found)');
+                    return buildClasses;
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Build data unavailable, using runtime: $e');
+        }
+
+        // Fallback to runtime registry
         return RuntimeRegistry.get().getAllClasses();
     }
 
     /**
      * Get all registered typedefs
+     * Uses build-time data when available, falls back to runtime discovery
      */
     public static function getAllTypedefs():Array<String> {
         initialize();
+
+        // Try build data first
+        try {
+            if (BuildDataLoader.initialize()) {
+                var buildTypedefs = BuildDataLoader.getAllTypedefs();
+                if (buildTypedefs.length > 0) {
+                    trace('TypeRegistryAPI: Using build data for typedefs (${buildTypedefs.length} found)');
+                    return buildTypedefs;
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Build data unavailable for typedefs, using runtime: $e');
+        }
+
+        // Fallback to runtime registry
         return RuntimeRegistry.get().getAllTypedefs();
     }
 
@@ -195,9 +244,29 @@ class TypeRegistryAPI {
 
     /**
      * Get detailed information about a specific type
+     * Uses build-time data when available for enhanced information
      */
     public static function getTypeInfo(typeName:String):TypeInfo {
         initialize();
+
+        // Try build data first for detailed info
+        try {
+            if (BuildDataLoader.initialize()) {
+                var buildInfo = BuildDataLoader.getTypeInfo(typeName);
+                if (buildInfo != null) {
+                    return {
+                        name: buildInfo.data.name,
+                        pack: buildInfo.data.pack,
+                        fields: buildInfo.data.fields != null ? buildInfo.data.fields : [],
+                        confidence: 1.0
+                    };
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Error getting build type info: $e');
+        }
+
+        // Fallback to runtime info
         return RuntimeRegistry.get().getTypeInfo(typeName);
     }
 
@@ -378,6 +447,125 @@ class TypeRegistryAPI {
     public static function printEditorStatus():Void {
         initialize();
         InGameSourceEditor.get().printStatus();
+    }
+
+    // === Build Data API ===
+
+    /**
+     * Get all functions from build data
+     */
+    public static function getAllFunctions():Array<Dynamic> {
+        try {
+            if (BuildDataLoader.initialize()) {
+                return BuildDataLoader.getAllFunctions();
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Error getting build functions: $e');
+        }
+        return [];
+    }
+
+    /**
+     * Get functions by class name
+     */
+    public static function getFunctionsByClass(className:String):Array<Dynamic> {
+        try {
+            if (BuildDataLoader.initialize()) {
+                return BuildDataLoader.getFunctionsByClass(className);
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Error getting functions by class: $e');
+        }
+        return [];
+    }
+
+    /**
+     * Search functions by name pattern
+     */
+    public static function searchFunctions(pattern:String):Array<Dynamic> {
+        try {
+            if (BuildDataLoader.initialize()) {
+                return BuildDataLoader.searchFunctions(pattern);
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Error searching functions: $e');
+        }
+        return [];
+    }
+
+    /**
+     * Get functions with specific metadata
+     */
+    public static function getFunctionsWithMetadata(metadata:String):Array<Dynamic> {
+        try {
+            if (BuildDataLoader.initialize()) {
+                return BuildDataLoader.getFunctionsWithMetadata(metadata);
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Error getting functions with metadata: $e');
+        }
+        return [];
+    }
+
+    /**
+     * Get build statistics if available
+     */
+    public static function getBuildStats():Dynamic {
+        try {
+            if (BuildDataLoader.initialize()) {
+                return BuildDataLoader.getBuildStats();
+            }
+        } catch (e:Dynamic) {
+            trace('TypeRegistryAPI: Error getting build stats: $e');
+        }
+        return null;
+    }
+
+    /**
+     * Check if build-time data is available
+     */
+    public static function hasBuildData():Bool {
+        return BuildDataLoader.initialize();
+    }
+
+    /**
+     * Print comprehensive system statistics including build data
+     */
+    public static function printComprehensiveStats():Void {
+        initialize();
+
+        var registry = RuntimeRegistry.get();
+        var runtimeTypes = registry.getAllTypes().length;
+        var runtimeAbstracts = registry.getAllAbstracts().length;
+        var runtimeClasses = registry.getAllClasses().length;
+        var runtimeTypedefs = registry.getAllTypedefs().length;
+
+        trace("=== Comprehensive Type Registry Statistics ===");
+
+        // Build data stats
+        var buildStats = getBuildStats();
+        if (buildStats != null) {
+            trace("Build Data Available:");
+            trace('  Build Timestamp: ${Date.fromTime(buildStats.timestamp)}');
+            trace('  Target Platform: ${buildStats.platform}');
+            trace('  Classes: ${buildStats.classCount}');
+            trace('  Abstracts: ${buildStats.abstractCount}');
+            trace('  Functions: ${buildStats.functionCount}');
+            trace('  Source Files: ${buildStats.sourceFileCount}');
+            trace("");
+        } else {
+            trace("Build Data: Not Available");
+            trace("");
+        }
+
+        // Runtime stats
+        trace("Runtime Discovery:");
+        trace('  Total Types: $runtimeTypes');
+        trace('  - Abstracts: $runtimeAbstracts');
+        trace('  - Classes: $runtimeClasses');
+        trace('  - Typedefs: $runtimeTypedefs');
+        trace('  - Other: ${runtimeTypes - runtimeAbstracts - runtimeClasses - runtimeTypedefs}');
+        trace("============================================");
     }
 
     // === Enhanced Testing ===

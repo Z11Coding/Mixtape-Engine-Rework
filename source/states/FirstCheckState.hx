@@ -213,7 +213,8 @@ class FirstCheckState extends MusicBeatState
 									backend.MusicBeatState.emergencyOpacityFix = true;
 								}
 								else {
-									if (ClientPrefs.data.checkAPWorld)
+									// Only check APWorld if setup has been completed and user chose Archipelago mode
+									if (ClientPrefs.data.checkAPWorld && ClientPrefs.data.setupCompleted && ClientPrefs.data.setupArchipelagoMode)
 										FlxG.switchState(new APCheckState());
 									else
 										FirstCheckState.goToSplashScreen();
@@ -328,7 +329,8 @@ class FirstCheckState extends MusicBeatState
 						backend.MusicBeatState.emergencyOpacityFix = true;
 					}
 					else {
-						if (ClientPrefs.data.checkAPWorld)
+						// Only check APWorld if setup has been completed and user chose Archipelago mode
+						if (ClientPrefs.data.checkAPWorld && ClientPrefs.data.setupCompleted && ClientPrefs.data.setupArchipelagoMode)
 							FlxG.switchState(new APCheckState());
 						else
 							FirstCheckState.goToSplashScreen();

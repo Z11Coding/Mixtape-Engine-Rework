@@ -56,12 +56,22 @@ class OutdatedState extends MusicBeatState
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				FlxTween.tween(warnText, {alpha: 0}, 1, {
 					onComplete: function (twn:FlxTween) {
-						MusicBeatState.switchState(new states.FirstCheckState.APCheckState());
+						// Only check APWorld if setup has been completed and user chose Archipelago mode
+						if (ClientPrefs.data.checkAPWorld && ClientPrefs.data.setupCompleted && ClientPrefs.data.setupArchipelagoMode)
+							MusicBeatState.switchState(new states.FirstCheckState.APCheckState());
+						else
+							states.FirstCheckState.goToSplashScreen();
 					}
 				});
 			}
 		}
-		else MusicBeatState.switchState(new states.FirstCheckState.APCheckState());
+		else {
+			// Only check APWorld if setup has been completed and user chose Archipelago mode
+			if (ClientPrefs.data.checkAPWorld && ClientPrefs.data.setupCompleted && ClientPrefs.data.setupArchipelagoMode)
+				MusicBeatState.switchState(new states.FirstCheckState.APCheckState());
+			else
+				states.FirstCheckState.goToSplashScreen();
+		}
 		super.update(elapsed);
 	}
 }

@@ -6,6 +6,7 @@ import archipelago.APVersionSelectionState;
 import archipelago.CustomAPLogic;
 import archipelago.substates.InfoPanelSubstate;
 import archipelago.substates.NumberInputSubstate;
+import archipelago.substates.TextInputSubstate.InputMode;
 import archipelago.substates.TextInputSubstate;
 import backend.MusicBeatState;
 import backend.MusicBeatSubstate;
@@ -1798,9 +1799,10 @@ class APAdvancedSettingsState extends MusicBeatState
 		}, function()
 		{
 			// Cancel callback - do nothing
-		}, 30, // Max length
+		}, 16, // Max length
 			"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_", // Allowed characters
-			"Enter your player name for Archipelago", FlxColor.CYAN);
+			"Enter your player name for Archipelago (YAML-safe characters only)", FlxColor.CYAN,
+			YAML); // Use YAML input mode
 		openSubState(nameInput);
 	}
 

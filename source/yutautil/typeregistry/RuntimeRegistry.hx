@@ -43,13 +43,17 @@ class RuntimeRegistry {
             var registryData = Json.parse(yutautil.typeregistry.GeneratedTypeRegistry.DATA);
             loadFromData(registryData);
             #else
-            // Runtime initialization - will need to be populated differently
-            trace("RuntimeRegistry: Initializing at runtime");
+            // Runtime initialization - create minimal registry
+            trace("RuntimeRegistry: Initializing at runtime without macro data");
+            createBasicRegistry();
             #end
 
             initialized = true;
         } catch (e:Dynamic) {
             trace("RuntimeRegistry: Failed to initialize - " + e);
+            // Create empty registry as fallback
+            createEmptyRegistry();
+            initialized = true;
         }
     }
 
@@ -231,5 +235,38 @@ class RuntimeRegistry {
             };
         }
         return null;
+    }
+
+    /**
+     * Create a basic registry with runtime reflection
+     */
+    private function createBasicRegistry():Void {
+        // Add some basic types that we know exist
+        var basicTypes = [
+            "String", "Int", "Float", "Bool", "Array", "Dynamic"
+        ];
+
+        for (typeName in basicTypes) {
+            var info = new TypeInfo();
+            info.name = typeName;
+            info.pack = [];
+            info.isAbstract = false;
+            typeInfos.set(typeName, info);
+        }
+
+        trace("RuntimeRegistry: Created basic registry with " + basicTypes.length + " types");
+    }
+
+    /**
+     * Create empty registry as fallback
+     */
+    private function createEmptyRegistry():Void {
+        typeInfos = new Map();
+        abstractInfos = new Map();
+        classInfos = new Map();
+        typedefInfos = new Map();
+        sourceMap = new Map();
+
+        trace("RuntimeRegistry: Created empty registry as fallback");
     }
 }

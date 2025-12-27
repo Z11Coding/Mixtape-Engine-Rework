@@ -1,5 +1,6 @@
 package archipelago.substates;
 
+import archipelago.APInfo;
 import backend.MusicBeatSubstate;
 import backend.ui.*;
 import flixel.effects.FlxFlicker;
@@ -7,6 +8,12 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
+
+enum InputMode {
+    BASIC;
+    YAML;
+    PASSWORD;
+}
 
 /**
  * Text input substate with visual styling matching the advanced settings
@@ -40,7 +47,7 @@ class TextInputSubstate extends MusicBeatSubstate {
     var allowedChars:String;
     var onConfirm:String->Void;
     var onCancel:Void->Void;
-    var isPasswordMode:Bool = false;
+    var inputMode:InputMode = BASIC;
 
     // Visual state
     var isAnimating:Bool = false;
@@ -60,18 +67,22 @@ class TextInputSubstate extends MusicBeatSubstate {
         ?allowedChars:String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_",
         ?description:String = "",
         ?themeColor:FlxColor = null,
-        ?passwordMode:Bool = false
+        ?inputMode:InputMode = BASIC
     ) {
         super();
 
         this.title = title;
-        this.description = description != "" ? description : 'Enter text (max $maxLength characters)';
+        var defaultDescription = 'Enter text (max $maxLength characters)';
+        if (inputMode == YAML) {
+            defaultDescription += "\nYAML-safe mode: Some special characters restricted";
+        }
+        this.description = description != "" ? description : defaultDescription;
         this.maxLength = maxLength;
         this.allowedChars = allowedChars;
         this.onConfirm = callback != null ? callback : function(v:String) {};
         this.onCancel = cancelCallback != null ? cancelCallback : function() {};
         this.themeColor = themeColor != null ? themeColor : FlxColor.CYAN;
-        this.isPasswordMode = passwordMode;
+        this.inputMode = inputMode;
 
         // Set initial value
         this.currentValue = currentVal != null ? currentVal : "";
@@ -118,7 +129,7 @@ class TextInputSubstate extends MusicBeatSubstate {
 
         // Initialize with masked text if password mode
         var initialDisplayText = currentValue;
-        if (isPasswordMode && currentValue.length > 0) {
+        if (inputMode == PASSWORD && currentValue.length > 0) {
             initialDisplayText = "";
             for (i in 0...currentValue.length) {
                 initialDisplayText += "•";
@@ -390,7 +401,7 @@ class TextInputSubstate extends MusicBeatSubstate {
         if (keys.Z) keysPressed.push("Z");
 
         // Only add numbers if SHIFT is not pressed (to avoid conflict with special chars)
-        if (!FlxG.keys.pressed.SHIFT || !isPasswordMode) {
+        if (!FlxG.keys.pressed.SHIFT) {
             if (keys.ZERO) keysPressed.push("0");
             if (keys.ONE) keysPressed.push("1");
             if (keys.TWO) keysPressed.push("2");
@@ -415,8 +426,8 @@ class TextInputSubstate extends MusicBeatSubstate {
         if (keys.PERIOD) keysPressed.push(".");
         if (keys.COMMA) keysPressed.push(",");
 
-        // Add support for common special characters (only in password mode)
-        if (isPasswordMode) {
+        // Add support for common special characters (in password and YAML modes)
+        if (inputMode == PASSWORD || inputMode == YAML) {
             if (keys.SEMICOLON) {
                 if (FlxG.keys.pressed.SHIFT) {
                     keysPressed.push(":"); // SHIFT+SEMICOLON = colon
@@ -431,6 +442,40 @@ class TextInputSubstate extends MusicBeatSubstate {
                     keysPressed.push("'");
                 }
             }
+            if (keys.SLASH) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("?"); // SHIFT+SLASH = question mark
+                } else {
+                    keysPressed.push("/");
+                }
+            }
+
+            // Number row special characters (SHIFT + number keys)
+            if (FlxG.keys.pressed.SHIFT) {
+                if (keys.ONE) keysPressed.push("!");
+                if (keys.TWO) keysPressed.push("@");
+                if (keys.THREE) keysPressed.push("#");
+                if (keys.FOUR) keysPressed.push("$");
+                if (keys.FIVE) keysPressed.push("%");
+                if (keys.SIX) keysPressed.push("^");
+                if (keys.SEVEN) keysPressed.push("&");
+                if (keys.EIGHT) keysPressed.push("*");
+                if (keys.NINE) keysPressed.push("(");
+                if (keys.ZERO) keysPressed.push(")");
+            }
+
+            // Equals and plus/minus
+            if (keys.PLUS) {
+                if (FlxG.keys.pressed.SHIFT) {
+                    keysPressed.push("+"); // SHIFT+PLUS = plus
+                } else {
+                    keysPressed.push("=");
+                }
+            }
+        }
+
+        // Additional characters only allowed in password mode
+        if (inputMode == PASSWORD) {
             if (keys.LBRACKET) {
                 if (FlxG.keys.pressed.SHIFT) {
                     keysPressed.push("{"); // SHIFT+LBRACKET = left brace
@@ -452,41 +497,11 @@ class TextInputSubstate extends MusicBeatSubstate {
                     keysPressed.push("\\");
                 }
             }
-            if (keys.SLASH) {
-                if (FlxG.keys.pressed.SHIFT) {
-                    keysPressed.push("?"); // SHIFT+SLASH = question mark
-                } else {
-                    keysPressed.push("/");
-                }
-            }
             if (keys.GRAVEACCENT) {
                 if (FlxG.keys.pressed.SHIFT) {
                     keysPressed.push("~"); // SHIFT+GRAVEACCENT = tilde
                 } else {
                     keysPressed.push("`");
-                }
-            }
-
-            // Number row special characters (SHIFT + number keys) - only in password mode
-            if (FlxG.keys.pressed.SHIFT) {
-                if (keys.ONE) keysPressed.push("!");
-                if (keys.TWO) keysPressed.push("@");
-                if (keys.THREE) keysPressed.push("#");
-                if (keys.FOUR) keysPressed.push("$");
-                if (keys.FIVE) keysPressed.push("%");
-                if (keys.SIX) keysPressed.push("^");
-                if (keys.SEVEN) keysPressed.push("&");
-                if (keys.EIGHT) keysPressed.push("*");
-                if (keys.NINE) keysPressed.push("(");
-                if (keys.ZERO) keysPressed.push(")");
-            }
-
-            // Equals and plus/minus - only in password mode
-            if (keys.PLUS) {
-                if (FlxG.keys.pressed.SHIFT) {
-                    keysPressed.push("+"); // SHIFT+PLUS = plus
-                } else {
-                    keysPressed.push("=");
                 }
             }
         }
@@ -506,9 +521,21 @@ class TextInputSubstate extends MusicBeatSubstate {
                 }
             }
 
-            // In password mode, allow all printable characters; otherwise use allowedChars
-            if (isPasswordMode || allowedChars.indexOf(char) != -1) {
-                addCharacter(char);
+            // Character validation based on mode
+            switch (inputMode) {
+                case YAML:
+                    if (isValidYamlCharacterForTyping(char, currentValue.length)) {
+                        addCharacter(char);
+                    }
+                case PASSWORD:
+                    var charCode = char.charCodeAt(0);
+                    if (charCode >= 32 && charCode <= 126) {
+                        addCharacter(char);
+                    }
+                case BASIC:
+                    if (allowedChars.indexOf(char) != -1) {
+                        addCharacter(char);
+                    }
             }
         }
 
@@ -551,6 +578,96 @@ class TextInputSubstate extends MusicBeatSubstate {
         }
     }
 
+    function isValidYamlCharacterForTyping(char:String, position:Int):Bool {
+        // Check if character is in the general escape map (not allowed anywhere)
+        for (escapedChar in APInfo.YAMLEscapeMap.keys()) {
+            if (APInfo.YAMLEscapeMap.get(escapedChar) == char) {
+                return false; // Never allowed in YAML mode
+            }
+        }
+
+        // Check if character is in the start escape map (not allowed at start)
+        if (position == 0) {
+            for (escapedChar in APInfo.YAMLStartEscapeMap.keys()) {
+                if (APInfo.YAMLStartEscapeMap.get(escapedChar) == char) {
+                    return false; // Never allowed at start
+                }
+            }
+        }
+
+        // Don't check end map during typing - allow end characters to be typed
+        // End validation will be handled during final validation
+
+        // Allow all other printable characters
+        var charCode = char.charCodeAt(0);
+        return (charCode >= 32 && charCode <= 126);
+    }
+
+    function isValidYamlCharacterForValidation(char:String, position:Int, stringLength:Int):Bool {
+        // Check if character is in the general escape map (not allowed anywhere)
+        for (escapedChar in APInfo.YAMLEscapeMap.keys()) {
+            if (APInfo.YAMLEscapeMap.get(escapedChar) == char) {
+                return false;
+            }
+        }
+
+        // Check if character is in the start escape map (not allowed at start)
+        if (position == 0) {
+            for (escapedChar in APInfo.YAMLStartEscapeMap.keys()) {
+                if (APInfo.YAMLStartEscapeMap.get(escapedChar) == char) {
+                    return false;
+                }
+            }
+        }
+
+        // Check if character is in the end escape map (not allowed at end)
+        if (position == stringLength - 1 && stringLength > 0) {
+            for (escapedChar in APInfo.YAMLEndEscapeMap.keys()) {
+                if (APInfo.YAMLEndEscapeMap.get(escapedChar) == char) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    function isValidYamlCharacter(char:String, position:Int, stringLength:Int):Bool {
+        // Check if character is in the general escape map (not allowed anywhere)
+        for (escapedChar in APInfo.YAMLEscapeMap.keys()) {
+            if (APInfo.YAMLEscapeMap.get(escapedChar) == char) {
+                // Only allow in password mode
+                return inputMode == PASSWORD;
+            }
+        }
+
+        // Check if character is in the start escape map (not allowed at start)
+        if (position == 0) {
+            for (escapedChar in APInfo.YAMLStartEscapeMap.keys()) {
+                if (APInfo.YAMLStartEscapeMap.get(escapedChar) == char) {
+                    return inputMode == PASSWORD; // Only allow in password mode
+                }
+            }
+        }
+
+        // Check if character is in the end escape map (not allowed at end)
+        if (position == stringLength - 1 && stringLength > 0) {
+            for (escapedChar in APInfo.YAMLEndEscapeMap.keys()) {
+                if (APInfo.YAMLEndEscapeMap.get(escapedChar) == char) {
+                    return inputMode == PASSWORD; // Only allow in password mode
+                }
+            }
+        }
+
+        // Allow all other printable characters in password mode, or use allowedChars in normal mode
+        if (inputMode == PASSWORD) {
+            var charCode = char.charCodeAt(0);
+            return (charCode >= 32 && charCode <= 126);
+        } else {
+            return allowedChars.indexOf(char) != -1;
+        }
+    }
+
     function addCharacter(char:String) {
         if (currentValue.length < maxLength) {
             currentValue += char;
@@ -584,14 +701,21 @@ class TextInputSubstate extends MusicBeatSubstate {
                 var filteredText = "";
                 for (i in 0...clipboardText.length) {
                     var char = clipboardText.charAt(i);
-                    // In password mode, allow all printable ASCII; otherwise use allowedChars
-                    if (isPasswordMode) {
-                        var charCode = char.charCodeAt(0);
-                        if (charCode >= 32 && charCode <= 126) {
-                            filteredText += char;
-                        }
-                    } else if (allowedChars == "" || allowedChars.indexOf(char) != -1) {
-                        filteredText += char;
+                    // Use appropriate validation based on mode
+                    switch (inputMode) {
+                        case YAML:
+                            if (isValidYamlCharacterForTyping(char, filteredText.length)) {
+                                filteredText += char;
+                            }
+                        case PASSWORD:
+                            var charCode = char.charCodeAt(0);
+                            if (charCode >= 32 && charCode <= 126) {
+                                filteredText += char;
+                            }
+                        case BASIC:
+                            if (allowedChars == "" || allowedChars.indexOf(char) != -1) {
+                                filteredText += char;
+                            }
                     }
                 }
 
@@ -615,7 +739,7 @@ class TextInputSubstate extends MusicBeatSubstate {
     function updateDisplays() {
         // Display masked text if in password mode
         var displayText = currentValue;
-        if (isPasswordMode && currentValue.length > 0) {
+        if (inputMode == PASSWORD && currentValue.length > 0) {
             displayText = "";
             for (i in 0...currentValue.length) {
                 displayText += "•";
@@ -638,22 +762,38 @@ class TextInputSubstate extends MusicBeatSubstate {
         if (currentValue.length == 0) return false;
         if (currentValue.length > maxLength) return false;
 
-        // In password mode, allow all printable characters
-        if (isPasswordMode) {
-            // Just check for basic printable ASCII range (space to tilde)
-            for (i in 0...currentValue.length) {
-                var charCode = currentValue.charCodeAt(i);
-                if (charCode < 32 || charCode > 126) {
-                    return false;
+        switch (inputMode) {
+            case YAML:
+                return isValidYamlString(currentValue);
+            case PASSWORD:
+                // Just check for basic printable ASCII range (space to tilde)
+                for (i in 0...currentValue.length) {
+                    var charCode = currentValue.charCodeAt(i);
+                    if (charCode < 32 || charCode > 126) {
+                        return false;
+                    }
                 }
-            }
-        } else {
-            // Check if all characters are allowed
-            for (i in 0...currentValue.length) {
-                var char = currentValue.charAt(i);
-                if (allowedChars.indexOf(char) == -1) {
-                    return false;
+            case BASIC:
+                // Check if all characters are allowed
+                for (i in 0...currentValue.length) {
+                    var char = currentValue.charAt(i);
+                    if (allowedChars.indexOf(char) == -1) {
+                        return false;
+                    }
                 }
+        }
+
+        return true;
+    }
+
+    function isValidYamlString(str:String):Bool {
+        if (str.length == 0) return false;
+
+        // Validate each character with its position context
+        for (i in 0...str.length) {
+            var char = str.charAt(i);
+            if (!isValidYamlCharacterForValidation(char, i, str.length)) {
+                return false;
             }
         }
 
@@ -662,7 +802,11 @@ class TextInputSubstate extends MusicBeatSubstate {
 
     function confirmInput() {
         if (!validateInput()) {
-            showError("Invalid input! Please enter valid text (max " + maxLength + " characters)");
+            var errorMsg = "Invalid input! Please enter valid text (max " + maxLength + " characters)";
+            if (inputMode == YAML) {
+                errorMsg = "Invalid YAML input! Avoid special characters at start/end and use allowed characters only.";
+            }
+            showError(errorMsg);
             return;
         }
 
