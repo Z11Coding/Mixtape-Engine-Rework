@@ -325,6 +325,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '< %v >';
 		option.onChange = function() {onChangeDJ(option.curOption);};
 
+		var option:Option = new Option('Showcase Mode Warnings',
+			"If checked, warnings will be displayed in freeplay menus when showcase mode is enabled.\nThese warnings only appear when NOT in Archipelago mode.",
+			'showcaseWarnings',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('---MENUS---',
 			"",
 			'',
@@ -415,12 +421,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			["Light", "Dark"]);
 		option.displayFormat = '< %v >';
 		option.onChange = function() {if (ClientPrefs.data.menuTheme == "Dark") Achievements.unlock('much_better');};
-		addOption(option);
-
-		var option:Option = new Option('Showcase Mode Warnings',
-			"If checked, warnings will be displayed in freeplay menus when showcase mode is enabled.\nThese warnings only appear when NOT in Archipelago mode.",
-			'showcaseWarnings',
-			BOOL);
 		addOption(option);
 
 		var option:Option = new Option('---MISC.---',
