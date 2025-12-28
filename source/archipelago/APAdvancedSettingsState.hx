@@ -954,7 +954,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				else FlxG.sound.play(Paths.sound('ok nevermind were good'), 2);
 				refreshCurrentPage();
 			},
-			locked: false,
+			locked: true,
 			contextMenu: createBoolContextMenu(enable_shop, function(value:Bool) {
 				enable_shop = value;
 				if (enable_shop) FlxG.sound.play(Paths.sound('uh oh'), 2);

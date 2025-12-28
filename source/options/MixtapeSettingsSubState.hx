@@ -96,7 +96,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '< %v >';
 
 		var option:Option = new Option('Ranking System',
-		"The ranking system you wish to use.",
+		"The ranking system you wish to use.\nMixtape: Accuracy-Based ranking system with more through ranks.\nV-Slice: Score, Accuracy and Miss based ranking system with simplistic ranks.\n(Keep in mind, both systems save separately, so your score on one system wont transfer to the other!)",
 		'ranking',
 		STRING,
 		[

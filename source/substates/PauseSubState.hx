@@ -96,7 +96,10 @@ class PauseSubState extends MusicBeatSubstate
 		{
 			menuItemsOG.remove('Exit to menu');
 			menuItemsOG.remove('Skip Check');
+			menuItemsOG.remove('Change Difficulty');
+			menuItemsOG.remove('Options');
 		}
+
 		if (!archipelago.APItem.unknownSongs)
 		for (i in 0...Difficulty.list.length) {
 			var diff:String = Difficulty.getString(i);

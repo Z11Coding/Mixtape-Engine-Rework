@@ -48,13 +48,11 @@ class RankingManager extends FlxSprite {
                 alpha = 0;
             case "capsule":
                 loadGraphic(Paths.image('rankings/$defalutRank-small'));
-                scale.set(0.9, 0.9);
-                updateHitbox();
-                antialiasing = true;
-                scrollFactor.set();
-                y = 41;
-                x = 420;
+                y = 141;
+                x = 720;
                 alpha = 1;
+                scale.set(0.5, 0.5);
+                updateHitbox();
         }
     }
 
@@ -153,13 +151,11 @@ class RankingManager extends FlxSprite {
                 screenCenter();
             case "capsule":
                 loadGraphic(Paths.image('rankings/${rankTable[lerpRating]}-small'));
-                scale.set(0.9, 0.9);
-                updateHitbox();
-                antialiasing = true;
-                scrollFactor.set();
-                y = 41;
-                x = 420;
+                y = 141;
+                x = 720;
                 alpha = 1;
+                scale.set(0.5, 0.5);
+                updateHitbox();
         }
     }
 }

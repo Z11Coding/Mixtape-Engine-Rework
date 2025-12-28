@@ -14,7 +14,7 @@ import objects.Alphabet;
 import shop.DaShop;
 import states.MainMenuState;
 // import states.MicrophoneTestState;
-import states.freeplay.VSliceFreeplay;
+import states.freeplay.VSliceFreeplayMidState;
 import yutautil.StatePick;
 import yutautil.games.pong.PongTestState;
 

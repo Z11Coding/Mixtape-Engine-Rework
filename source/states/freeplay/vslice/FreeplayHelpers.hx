@@ -98,6 +98,7 @@ class FreeplayHelpers
         return;
       }
     }
+
 		if (targetInstId != null && targetInstId != "default")
 		{
 			var instPath = '${Paths.formatToSongPath(targetInstId)}/Inst.ogg';

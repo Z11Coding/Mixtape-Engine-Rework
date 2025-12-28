@@ -9,7 +9,7 @@ import haxe.macro.Expr;
  * Automatically applies @:build metadata to all classes for type collection
  */
 class GlobalTypeMacro {
-    static var tracesEnabled:Bool = true;
+    static var tracesEnabled:Bool = #if verbose true #else false #end;
 
     /**
      * Apply type collection build macro to all classes

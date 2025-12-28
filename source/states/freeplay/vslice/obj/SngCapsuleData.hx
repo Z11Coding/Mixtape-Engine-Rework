@@ -91,7 +91,7 @@ abstract class SngCapsuleData{
 				allowErect = false;
 				freeplayPrevStart = 0;
 				freeplayPrevEnd = 0.2;
-				songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){1;}
+				songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+'-'+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
 				albumId = meta.freeplay?.album ?? '';
 				instVariants = [];
 
@@ -105,7 +105,7 @@ abstract class SngCapsuleData{
 					allowErect = false;
 					freeplayPrevStart = 0;
 					freeplayPrevEnd = 0.2;
-					songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){1;}
+					songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+'-'+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
 					albumId = meta.freeplay?.album ?? '';
 					instVariants = [];
 
@@ -118,7 +118,7 @@ abstract class SngCapsuleData{
 					allowErect = false;
 					freeplayPrevStart = 0;
 					freeplayPrevEnd = 0.2;
-					songStartingBpm = try{backend.Song.getChart(getNativeSongId()+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId()).bpm;}catch(e){1;}
+					songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+'-'+(currentDifficulty.toLowerCase() != "normal" ? currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
 					albumId = 'noCover';
 					instVariants = [];
 

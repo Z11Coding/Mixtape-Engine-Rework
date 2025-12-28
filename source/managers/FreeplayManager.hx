@@ -64,6 +64,7 @@ class FreeplayManager {
         'Rise',
         'Zeventeen',
         'Pack-A-Punch',
+        'Driller',
         'Test Field',
         'Rawr',
         'Fightback',
@@ -81,7 +82,7 @@ class FreeplayManager {
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
     public static function loadFPManager(?ensureLoaded:Bool = false):FreeplayManager {
-        trace("FP in Arch Mode: " + APEntryState.inArchipelagoMode);
+        //trace("FP in Arch Mode: " + APEntryState.inArchipelagoMode);
         #if ARCHIPELAGO_ALLOWED
         return switch (APEntryState.inArchipelagoMode) {
             case true:
@@ -179,13 +180,13 @@ class FreeplayManager {
             case "Osu":
                 new states.freeplay.OsuFreeplayState();
             case "Base Game":
-                new states.freeplay.VSliceFreeplayState();
+                new states.CategoryState(); //Since this is where Freeplay is hosted, it has to go here
             default:
                 new states.freeplay.CustomFreeplayState(Paths.mods(ClientPrefs.data.freeplayMenu));
         }
 	}
 
-    public static inline function openFreeplay(?fromCategory:Bool = false, ?freeplayPrams:FreeplayStateParams)
+    public static inline function openFreeplay(?fromCategory:Bool = false, ?freeplayPrams:FreeplayStateParams = null)
 	{
         if (ClientPrefs.data.freeplayMenu == "Base Game") { //Base game opens a little differently
             if (fromCategory) {
@@ -197,7 +198,7 @@ class FreeplayManager {
                 FlxTransitionableState.skipNextTransOut = true;
 
                 curState.openSubState(new states.freeplay.VSliceFreeplayState(freeplayPrams));
-            } else FlxG.state.openSubState(new substates.StickerSubState(null, (sticker) -> VSliceFreeplayState.build(freeplayPrams, sticker)));
+            } else FlxG.switchState(() -> states.freeplay.VSliceFreeplayState.build());
         } else if (CategoryState.loadWeekForce != null && !states.PlayState.Crashed) {
             var freeplayClass = getFreeplay();
             var freeplayInstance = freeplayClass == states.freeplay.CustomFreeplayState ?
@@ -222,7 +223,7 @@ class FreeplayManager {
         try {
         var psliceMetadataFile:FreeplayMetaJSON = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(songName.toLowerCase()) + '/metadata')));
         return psliceMetadataFile;
-        } catch(e:Dynamic) {trace(e);}
+        } catch(e:Dynamic) {/*trace(e);*/}
         return null;
     }
 
@@ -425,6 +426,8 @@ class FreeplayManager {
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
@@ -459,6 +462,8 @@ class FreeplayManager {
                 addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
             if (Std.string('Pack-A-Punch').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
                 addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+            if (Std.string('Driller').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
             if (Std.string('Test Field').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
                 addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
             if (Std.string('Rawr').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))

@@ -49,7 +49,9 @@ function onCreate()
     phillyTraffic.frames = Paths.getSparrowAtlas('stages/fanta/phillyTraffic');
     phillyTraffic.animation.addByPrefix('togreen','redtogreen',24, false);
     phillyTraffic.animation.addByPrefix('tored',  'greentored',24, false);
-    //addBehindGF(phillyTraffic); JD doesn't think it fits. He's right, but i still think one would have been cool.
+    addBehindGF(phillyTraffic);
+    //JD doesn't think it fits. He's right, but i still think one would have been cool.
+    // Yeah well screw JD this is mixtape engine I do what I wanna do
 
     wall = new FlxSprite(0, 0).loadGraphic(Paths.image("stages/fanta/main_floor"));
     wall.screenCenter();

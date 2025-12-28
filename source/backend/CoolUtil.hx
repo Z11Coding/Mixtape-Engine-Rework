@@ -257,6 +257,33 @@ class CoolUtil
 		}
 	}
 
+	public static function wordWrapText(string:String, lineLength:Int) {
+		var lines = [];
+		var semmiSentence = '';
+		var word = '';
+		var char = '';
+		for (i in 0...string.length) {
+			char = string.charAt(i);
+
+			if (char == ' ' || char == '\n' || i == string.length - 1) {
+				if (char == '\n' || semmiSentence.length + word.length > lineLength) {
+					lines.push(semmiSentence);
+					semmiSentence = '';
+				}
+				if (i == string.length - 1)
+					word += char;
+				semmiSentence += (semmiSentence.length > 0 ? ' ' : '') + word;
+				word = '';
+				continue;
+			}
+
+			word += char;
+		}
+		if (semmiSentence.length > 0)
+			lines.push(semmiSentence);
+		return lines.join('\n');
+	}
+
 	// could probably use a macro
 	public static function getEaseFromString(?name:String):EaseFunction
 	{

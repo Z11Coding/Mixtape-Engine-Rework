@@ -6,11 +6,13 @@ import haxe.io.Bytes;
 import haxe.io.BytesOutput;
 import openfl.Lib;
 import openfl.display.Bitmap;
+import openfl.display.DisplayObject;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.events.TextEvent;
+import openfl.geom.Matrix;
 import openfl.text.TextField;
 
 class MainTab extends TabSprite {
@@ -18,7 +20,7 @@ class MainTab extends TabSprite {
 	var info:TextField;
   var chatBg:Bitmap;
 	var chatInput:TextField;
-	static var messages:Array<TextField> = [];
+	static var messages:Array<FlxText> = [];
 	var msgSprite:Sprite;
 
 	var chatInputPlaceholder:TextField;
@@ -83,14 +85,10 @@ class MainTab extends TabSprite {
 	public static function addMessage(raw:Dynamic) {
 		var data = CoolUtil.parseLog(raw);
 
-		var msg:TextField = new TextField();
-		var format = TabSprite.getDefaultFormat();
-		format.color = data.hue != null ? FlxColor.fromHSL(data.hue, 1.0, 0.8) : FlxColor.WHITE;
-		msg.defaultTextFormat = format;
-		msg.height = 10000;
+		var msg:FlxText = new FlxText(0, 0, 270, 'TEST!!!', 15);
+		msg.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
 		msg.wordWrap = true;
-		msg.text = data.content;
-		msg.height = msg.textHeight + 1;
+		drawTextAt(msg, data.content, 0, 0);
 		messages.unshift(msg);
 
 		updateMessages();
@@ -112,9 +110,12 @@ class MainTab extends TabSprite {
 
 		var lastY:Null<Float> = null;
 		for (message in messages) {
-			message.width = Std.int(instance.widthTab);
-			message.y = lastY = (lastY ?? Lib.application.window.height - instance.chatBg.height) - (message.textHeight + 5);
-			instance.msgSprite.addChild(message);
+			message.fieldWidth = Std.int(instance.widthTab);
+			message.y = lastY = ((lastY ?? Lib.application.window.height - instance.chatBg.height) - (message.fieldHeight + 5)) * message.ID;
+			message.update(1);
+			var bd:BitmapData = message.framePixels; // or ft.pixels / ft.get_pixels()
+			var bmp = new Bitmap(bd);
+			instance.msgSprite.addChild(bmp);
 		}
 	}
 
@@ -172,5 +173,18 @@ class MainTab extends TabSprite {
 		Cursor.hide();
 	}
 
+	static function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float)
+	{
+		var bitmaps:Array<BitmapData> = [];
+		var instance:MainTab = cast SideUI.instance.curTab;
+
+		text.text = str;
+		text.updateHitbox();
+
+		var clonedBitmap:BitmapData = text.graphic.bitmap.clone();
+		bitmaps.push(clonedBitmap);
+		instance?.graphics.beginBitmapFill(clonedBitmap, new Matrix(1, 0, 0, 1, textX, textY), false, false);
+		instance?.graphics.drawRect(textX, textY, text.width + textX, text.height + textY);
+	}
 
 }

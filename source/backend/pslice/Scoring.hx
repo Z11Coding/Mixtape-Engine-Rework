@@ -150,9 +150,9 @@ enum abstract ScoringRank(String)
 				return GREAT;
 			case 11 | 12 | 13 | 14:
 				return GOOD;
-			case 16:
-				return SHIT;
 			case 15:
+				return SHIT;
+			case 16:
 				return null;
 			default:
 				return null;
@@ -180,9 +180,9 @@ enum abstract ScoringRank(String)
 			case GOOD:
 				return 14;
 			case SHIT:
-				return 16;
-			default:
 				return 15;
+			default:
+				return 16;
 		}
 	}
 

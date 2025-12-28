@@ -67,6 +67,7 @@ class UnoTestState extends MusicBeatState {
     private var isPlayingCard:Bool = false; // Prevent hover effects during card play
     private var previousCardPositions:Map<UnoCard, {x:Float, y:Float}> = new Map(); // Track card positions
 
+    // Cool Music
     var normalMus:FlxSound;
     var lastcardMus:FlxSound;
 
@@ -111,8 +112,9 @@ class UnoTestState extends MusicBeatState {
         Cursor.show();
         Cursor.cursorMode = Default;
 
-        normalMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards'));
-        lastcardMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards (Last Card Mix)'));
+        var allowRip:Bool = (FlxG.random.bool(27) && !APEntryState.inArchipelagoMode);
+        normalMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards${(allowRip ? ' (Mountain Man Mix)' : '')}'));
+        lastcardMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards${(allowRip ? ' (Mountain Man Mix)' : '')} (Last Card Mix)'));
         normalMus.play();
         lastcardMus.play();
         lastcardMus.volume = 0;

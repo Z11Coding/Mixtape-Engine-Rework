@@ -67,13 +67,6 @@ class SongMenuItem extends FlxSpriteGroup
 	var fakeRanking:FreeplayRank;
 	var fakeBlurredRanking:FreeplayRank;
 
-	public var mixtapeRanking:RankingManager;
-	public var mixtapeBlurredRanking:RankingManager;
-
-	var fakeMixtapeRankingInited:Bool = false;
-	var fakeMixtapeRanking:RankingManager;
-	var fakeMixtapeBlurredRanking:RankingManager;
-
 	public var txtWeek:AtlasText;
 
 	public var targetPos:FlxPoint = FlxPoint.get();
@@ -182,13 +175,6 @@ class SongMenuItem extends FlxSpriteGroup
 		blurredRanking.shader = gaussianBlur;
 		add(blurredRanking);
 
-		mixtapeRanking = new RankingManager('capsule');
-		//add(mixtapeRanking);
-
-		mixtapeBlurredRanking = new RankingManager('capsule');
-		mixtapeBlurredRanking.shader = gaussianBlur;
-		//add(mixtapeBlurredRanking);
-
 		sparkle = new FlxSprite(ranking.x, ranking.y);
 		sparkle.frames = Paths.getSparrowAtlas('freeplay/sparkle');
 		sparkle.animation.addByPrefix('sparkle', 'sparkle Export0', 24, false);
@@ -251,19 +237,6 @@ class SongMenuItem extends FlxSpriteGroup
 			fakeRanking.visible = false;
 		}
 		fakeRanking.rank = oldRank;
-
-		if (!fakeMixtapeRankingInited)
-		{
-			var index = members.indexOf(mixtapeRanking);
-			fakeMixtapeRankingInited = true;
-
-			fakeMixtapeRanking = new RankingManager('capsule');
-			insert(index, fakeMixtapeRanking);
-
-			fakeMixtapeRanking.visible = false;
-		}
-		@:privateAccess
-		fakeMixtapeRanking.setRank(ScoringRank.getValue(oldRank), true);
 	}
 
 	function sparkleEffect(timer:FlxTimer):Void
@@ -671,11 +644,6 @@ class SongMenuItem extends FlxSpriteGroup
 		this.ranking.rank = newRank;
 		this.blurredRanking.rank = newRank;
 
-		@:privateAccess {
-			this.mixtapeRanking.setRank(ScoringRank.getValue(newRank), true);
-			this.mixtapeBlurredRanking.setRank(ScoringRank.getValue(newRank), true);
-		}
-
 		if (newRank == PERFECT_GOLD)
 		{
 			sparkleTimer = new FlxTimer().start(1, sparkleEffect);
@@ -852,11 +820,9 @@ class SongMenuItem extends FlxSpriteGroup
 		capsule.offset.x = this.selected ? 0 : -5;
 		capsule.animation.play(this.selected ? "selected" : "unselected");
 		ranking.alpha = this.selected ? 1 : 0.7;
-		mixtapeRanking.alpha = this.selected ? 1 : 0.7;
 		favIcon.alpha = this.selected ? 1 : 0.6;
 		favIconBlurred.alpha = this.selected ? 1 : 0;
 		ranking.color = this.selected ? 0xFFFFFFFF : 0xFFAAAAAA;
-		mixtapeRanking.color = this.selected ? 0xFFFFFFFF : 0xFFAAAAAA;
 
 		if (songText.tooLong)
 			songText.resetText();

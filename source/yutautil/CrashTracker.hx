@@ -247,7 +247,9 @@ class CrashTracker {
                 try {
                     if (defaultExpr != null && containsReturnStatement(defaultExpr)) return true;
                 } catch (e:Dynamic) {
+                    #if verbose
                     trace("For some reason, cannot read defaultExpr: " + defaultExpr);
+                    #end
                 }
             case ETry(tryExpr, catches):
                 if (containsReturnStatement(tryExpr)) return true;
@@ -619,7 +621,9 @@ class CrashTracker {
                 try {
                     processedDefault = defaultExpr != null ? processInternalFunctions(defaultExpr, className, parentFuncName) : null;
                 } catch (e:Dynamic) {
+                    #if verbose
                     trace("There was probably no default here...");
+                    #end
                     processedDefault = defaultExpr;
                 }
                 {expr: ESwitch(switchExpr, processedCases, processedDefault), pos: expr.pos};

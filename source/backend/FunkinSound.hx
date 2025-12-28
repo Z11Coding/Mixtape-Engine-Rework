@@ -90,9 +90,9 @@ class FunkinSound extends FlxSound
 				instPath = 'assets/songs/${Paths.formatToSongPath(key)}/Inst.${Paths.SOUND_EXT}';
 				#if MODS_ALLOWED
 				var modsInstPath = Paths.modFolders('songs/${Paths.formatToSongPath(key)}/Inst.${Paths.SOUND_EXT}');
-				trace('Modded Song Path: $modsInstPath');
+				//trace('Modded Song Path: $modsInstPath');
 				var real_modSngPath = NativeFileSystem.getPathLike(modsInstPath);
-				trace('Real Modded Song Path: $real_modSngPath');
+				//trace('Real Modded Song Path: $real_modSngPath');
 				#if mac
 				if(real_modSngPath != null) instPath = haxe.io.Path.join([StorageUtil.getStorageDirectory(),real_modSngPath]);
 				#else
@@ -100,7 +100,7 @@ class FunkinSound extends FlxSound
 				#end
 				#end
 
-				trace('Using Song Path: $instPath');
+				//trace('Using Song Path: $instPath');
 
 				var future = FlxPartialSound.partialLoadFromFile(instPath,params.partialParams.start,params.partialParams.end);
 				if(future == null){
@@ -109,7 +109,7 @@ class FunkinSound extends FlxSound
 				}
 				future.future.onComplete(function(sound:Sound)
 				{
-					trace("Playing preview!");
+					//trace("Playing preview!");
 					FlxG.sound.playMusic(sound,0);
 					params.onLoad();
 				});

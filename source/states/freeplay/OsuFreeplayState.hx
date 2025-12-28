@@ -664,10 +664,14 @@ class OsuFreeplayState extends MusicBeatState
 			try {
 				switch (fpManager.songList[curSelected].songName)
 				{
-					case 'Small Argument' | 'Beat Battle 2':
+					case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown' | 'Pack-A-Punch':
 						Difficulty.list = ['Hard'];
+					case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
+						Difficulty.list = ['Normal'];
 					case "Beat Battle":
 						Difficulty.list = ["Normal", "Reasonable", "Unreasonable", "Semi-Impossible", "Impossible"];
+					case "Testimony":
+						Difficulty.list = ["4K", "Canon"];
 					default:
 						Difficulty.loadFromWeek();
 				}

@@ -815,6 +815,10 @@ class APStyledEntryState extends MusicBeatState {
         ap = client;
         APEntryState.gonnaRunSync = true;
 
+        // Clear this here so that the save doesn't mess up between playthoughs
+        APItem.triggeredPermaTraps.clear();
+        APItem.triggeredAntiPermaTraps.clear();
+
         // Remove ap callbacks since APGameState will take over
         // Note: The connection-specific callbacks (onRoomInfo, onSlotRefused, etc.)
         // are already cleaned up by the ConnectionSubstate

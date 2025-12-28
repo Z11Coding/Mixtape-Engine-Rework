@@ -45,7 +45,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 		generateRanking();
 
-		if (!PlayState.instance.cpuControlled)
+		if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
 	}
 
@@ -383,7 +383,7 @@ class RankingSubstate extends MusicBeatSubstate
 							}
 							trace("Current Song: " + PlayState.SONG.song);
 
-							archipelago.ArchPopup.startPopupCustom("You've completed a Song Check!", "Good Job!", "archColor", function() {
+							archipelago.console.obj.Alert.alert("You've completed a Song Check!", "Good Job!", function() {
 								trace("Popup triggered for sending location to Archipelago.");
 								FlxG.sound.playMusic(Paths.sound('secret'));
 							});
@@ -420,10 +420,9 @@ class RankingSubstate extends MusicBeatSubstate
 						}
 
 						if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
-							archipelago.ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", "Well Done!", "archColor", function() {
-								trace("Goal achievement popup triggered.");
-								FlxG.sound.playMusic(Paths.sound('You Win'));
-							});
+							archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
+							trace("Goal achievement popup triggered.");
+							FlxG.sound.playMusic(Paths.sound('You Win'));
 						}
 					} else {
 						trace("Ranking requirements not met - main location check will not be sent");

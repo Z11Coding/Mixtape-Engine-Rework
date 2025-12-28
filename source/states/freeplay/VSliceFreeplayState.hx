@@ -30,6 +30,7 @@ import shaders.HSVShader;
 import shaders.PureColor;
 import shaders.StrokeShader;
 import states.CategoryState;
+import states.freeplay.VSliceFreeplayMidState;
 import states.freeplay.vslice.DJBoyfriend.FreeplayDJ;
 import states.freeplay.vslice.DifficultySelector;
 import states.freeplay.vslice.DifficultySprite;
@@ -178,10 +179,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	// List of available difficulties for the total song list, without `-variation` at the end (no duplicates or nulls).
 	var diffIdsTotal:Array<String> = ['easy', "normal", "hard"]; // ? forcing this diff order
 
-	public var curSelected:Int = 0;
+	public static var curSelected:Int = 0;
 	// This below track drag for the mobile
-	var curSelectedFractal:Float = 0;
-	var currentDifficulty:String = "normal";
+	static var curSelectedFractal:Float = 0;
+	static var currentDifficulty:String = "normal";
 
 	var fp:FreeplayScore;
 	var txtCompletion:AtlasText;
@@ -221,17 +222,6 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	var stickerSubState:Null<StickerSubState> = null;
 
-	/**
-	 * The difficulty we were on when this menu was last accessed.
-	 */
-	public static var rememberedDifficulty:String = 'normal';
-
-	/**
-	 * The song we were on when this menu was last accessed.
-	 * NOTE: `null` if the last song was `Random`.
-	 */
-	public static var rememberedSongId:Null<String> = 'tutorial';
-
 	public static var instance:VSliceFreeplayState;
 
 	var funnyCam:FunkinCamera;
@@ -269,6 +259,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	var styleData:Null<FreeplayStyle> = null;
 
 	var fromCharSelect:Null<Bool> = null;
+
+	static var alreadyLoadedAP:Bool = false;
 
 	//Mixtape things
 	public var fpManager:FreeplayManager;
@@ -336,6 +328,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		{
 			stickerSubState = stickers;
 		}
+
+		states.CategoryState.freeplayStuff.fromResults = null;
 	}
 
 	var fadeShader:BlueFade = new BlueFade();
@@ -479,7 +473,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// So we don't need to duplicate that work here. The songs array is already populated by refreshSongList()
 
 		// Yeah so turns out AP literally doesn't work in this state without this????
-		if (APEntryState.inArchipelagoMode) {
+		if (APEntryState.inArchipelagoMode && !alreadyLoadedAP) {
+			alreadyLoadedAP =  true;
 			for (globalSong in fpManager.songList)
 			{
 				// Extract the color from the GlobalSongMetadata format
@@ -503,6 +498,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				// Only add if it has valid difficulties
 				if (sngCard.songDifficulties.length == 0)
 					continue;
+
 				songs.push(sngCard);
 			}
 		}
@@ -671,14 +667,14 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		charSelectHint.y -= 100;
 		FlxTween.tween(charSelectHint, {y: charSelectHint.y + 100}, 0.8, {ease: FlxEase.quartOut});
 
-		exitMovers.set([overhangStuff,freeplayTxtBg, topLeftCornerText, ostName, charSelectHint], {
+		exitMovers.set([overhangStuff, freeplayTxtBg, topLeftCornerText, ostName, charSelectHint], {
 			y: -overhangStuff.height,
 			x: 0,
 			speed: 0.2,
 			wait: 0
 		});
 
-		exitMoversCharSel.set([overhangStuff,freeplayTxtBg, topLeftCornerText, ostName, charSelectHint], {
+		exitMoversCharSel.set([overhangStuff, freeplayTxtBg, topLeftCornerText, ostName, charSelectHint], {
 			y: -300,
 			speed: 0.8,
 			wait: 0.1
@@ -748,7 +744,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 			// We want to land on the first song of the group, rather than random song when changing letter sorts
 			// that is, only if there's more than one song in the group!
-			if (grpCapsules.activeSongItems.length > 0)
+			if (grpCapsules.activeSongItems.length > 0 && !prepForNewRank)
 			{
 				FunkinSound.playOnce('scrollMenu', 0.4);
 				curSelected = 1;
@@ -887,9 +883,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		{
 			FlxTimer.wait(0.5, () -> onDJIntroDone());
 		}
-		currentDifficulty = rememberedDifficulty; // ? use last difficulty to create this list
+		currentDifficulty = VSliceFreeplayMidState.rememberedDifficulty; // ? use last difficulty to create this list
 		// Generates song list with the starter params (who our current character is, last remembered difficulty, etc.)
-    	// Set this to false if you prefer the 50% transparency on the capsules when they first appear.
+    // Set this to false if you prefer the 50% transparency on the capsules when they first appear.
 		// Force generation when unknownSongs is active to ensure songs are displayed initially
 		#if ARCHIPELAGO_ALLOWED
 		var forceInitialGeneration = archipelago.APItem.unknownSongs;
@@ -986,7 +982,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// Only now do we know that the filter is actually changing.
 
 		// If curSelected is 0, the result will be null and fall back to the rememberedSongId.
-		rememberedSongId = curCapsule?.songData?.songId ?? rememberedSongId;
+		VSliceFreeplayMidState.rememberedSongId = curCapsule?.songData?.songId ?? VSliceFreeplayMidState.rememberedSongId;
 
 		currentFilter = filterStuff;
 
@@ -1073,10 +1069,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		curCapsule.sparkle.alpha = 0;
 		// curCapsule.forcePosition();
 
-		rememberedSongId = fromResults.songId;
-		rememberedDifficulty = fromResults.difficultyId;
-		changeSelection();
+		rememberSelection();
 		changeDiff();
+		changeSelection();
 
 		if (fromResultsParams?.newRank == SHIT)
 		{
@@ -1753,7 +1748,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			if (dj != null)
 				dj.resetAFKTimer();
 			changeDiff(-1);
-			rememberedDifficulty = currentDifficulty; // ? make sure to remember it, because otherwise we'll forget about it
+			VSliceFreeplayMidState.rememberedDifficulty = currentDifficulty; // ? make sure to remember it, because otherwise we'll forget about it
 			if (diffSelLeft != null)
 				diffSelLeft.setPress(true);
 		}
@@ -1762,7 +1757,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			if (dj != null)
 				dj.resetAFKTimer();
 			changeDiff(1);
-			rememberedDifficulty = currentDifficulty; // ? make sure to remember it, because otherwise we'll forget about it
+			VSliceFreeplayMidState.rememberedDifficulty = currentDifficulty; // ? make sure to remember it, because otherwise we'll forget about it
 			if (diffSelLeft != null)
 				diffSelRight.setPress(true);
 		}
@@ -1794,14 +1789,15 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				if (isOpen && !optionsAnimating) {
 					animateOptionsOut();
 				}
-			}			FunkinSound.playOnce('cancelMenu');
+			}
+			FunkinSound.playOnce('cancelMenu');
 			FreeplayHelpers.exitFreeplay();
 
 			var longestTimer:Float = 0;
 
 			// //? edited so that freeplay color works
-			// FlxTween.color(pinkBack, 0.25, pinkBack.color, 0xFFFFD0D5, {ease: FlxEase.quadOut});
-			// FlxTween.color(backingImage, 0.33, 0xFFFFFFFF, 0xFF555555, {ease: FlxEase.quadOut});
+			//FlxTween.color(pinkBack, 0.25, pinkBack.color, 0xFFFFD0D5, {ease: FlxEase.quadOut});
+			FlxTween.color(backingImage, 0.33, 0xFFFFFFFF, 0xFF555555, {ease: FlxEase.quadOut});
 			backingCard?.disappear();
 
 			for (grpSpr in exitMovers.keys())
@@ -1845,17 +1841,15 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				FlxTransitionableState.skipNextTransOut = true;
 				if (Type.getClass(_parentState) == CategoryState)
 				{
-					FunkinSound.playMusic('freakyMenu', {
-            pathsFunction: BASE,
-						overrideExisting: true,
-						restartTrack: false
-					});
+					MusicManager.playMenuMusic();
 					FlxG.sound.music.fadeIn(4.0, 0.0, 1.0);
 					close();
 				}
 				else
 				{
 					FlxG.switchState(new CategoryState());
+					CategoryState.instaFreeplay = false;
+					CategoryState.freeplayStuff.fromResults = null;
 				}
 			});
 		}
@@ -2383,7 +2377,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				intendedCompletion = Highscore.getRating(curCapsule.songData.songName, currentDifficultyIndex);
 			}
 		}
-		rememberedDifficulty = currentDifficulty;
+		VSliceFreeplayMidState.rememberedDifficulty = currentDifficulty;
 		if (intendedCompletion == Math.POSITIVE_INFINITY || intendedCompletion == Math.NEGATIVE_INFINITY || Math.isNaN(intendedCompletion))
 			intendedCompletion = 0;
 
@@ -2697,13 +2691,13 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 	function rememberSelection():Void
 	{
-		if (rememberedSongId != null)
+		if (VSliceFreeplayMidState.rememberedSongId != null)
 		{
 			curSelected = currentFilteredSongs.findIndex(function(song)
 			{
 				if (song == null)
 					return false;
-				return song.songId == rememberedSongId;
+				return song.songId == VSliceFreeplayMidState.rememberedSongId;
 			});
 
 			if (curSelected == -1)
@@ -2711,9 +2705,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			curSelectedFractal = curSelected;
 		}
 
-		if (rememberedDifficulty != null)
+		if (VSliceFreeplayMidState.rememberedDifficulty != null)
 		{
-			currentDifficulty = rememberedDifficulty;
+			currentDifficulty = VSliceFreeplayMidState.rememberedDifficulty;
 		}
 	}
 
@@ -2794,7 +2788,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			// intendedScore = songScore ?? 0;
 			// intendedCompletion = Highscore.getRating(daSongCapsule.songData.songId, diffId);
 			diffIdsCurrent = daSongCapsule.songData.songDifficulties;
-			rememberedSongId = daSongCapsule.songData.songId;
+			VSliceFreeplayMidState.rememberedSongId = daSongCapsule.songData.songId;
 			changeDiff();
 		}
 		else
@@ -2802,8 +2796,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			intendedScore = 0;
 			intendedCompletion = 0.0;
 			diffIdsCurrent = diffIdsTotal;
-			rememberedSongId = null;
-			rememberedDifficulty = 'normal';
+			VSliceFreeplayMidState.rememberedSongId = null;
+			VSliceFreeplayMidState.rememberedDifficulty = 'normal';
 			albumRoll.albumId = null;
 		}
 		if (updateCardPosition)
@@ -2842,7 +2836,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		if (curSelected == 0 || daSongCapsule.songData == null)
 		{
 			FunkinSound.playMusic('freeplayRandom', {
-                pathsFunction: BASE,
+        pathsFunction: BASE,
 				startingVolume: 0.0,
 				overrideExisting: true,
 				restartTrack: false
@@ -2931,6 +2925,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		#end
 	}
 
+	static var previousFilter:Null<SongFilter> = currentFilter;
+
 	/**
 	 * Refresh and update all songs in the freeplay using the FreeplayManager's songList
 	 * This removes and updates all existing songs, then regenerates the song list display with proper capsule updates
@@ -2949,7 +2945,6 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// Store current selection info for restoration
 		var previousSongId:Null<String> = null;
 		var previousDifficulty:String = currentDifficulty;
-		var previousFilter:Null<SongFilter> = currentFilter;
 
 		if (curCapsule?.songData != null)
 		{
@@ -3077,8 +3072,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			else
 			{
 				// If previous song not found, default to first song (index 1, since 0 is random)
-				curSelected = 1;
-				curSelectedFractal = 1;
+				//curSelected = 1;
+				//curSelectedFractal = 1;
 				trace("Previous song '" + previousSongId + "' not found after refresh, defaulting to index 1");
 			}
 		}

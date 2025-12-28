@@ -567,9 +567,13 @@ class ThreadChecker {
     public static macro function safeThread(expr:Expr, ?thread:QuietThread):Expr {
         var hasWaitForThreads = containsWaitForThreads(expr);
         if (hasWaitForThreads) {
+            #if verbose
             Context.error("You can't create an infinite waiting thread." + (thread != null ? " (" + thread + ")" : ""), expr.pos);
+            #end
         }
+        #if verbose
         trace("Threaded section of code prepared.");
+        #end
         return expr;
     }
 

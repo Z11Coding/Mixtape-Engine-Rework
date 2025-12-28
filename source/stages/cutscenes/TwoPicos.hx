@@ -168,7 +168,7 @@ class TwoPicos
 		{
 			playerShoots = false;
 		}
-		if (#if pico_always_kill true #else FlxG.random.bool(8) #end)
+		if (ClientPrefs.data.naughtyness && #if pico_always_kill true #else FlxG.random.bool(8) #end)
 		{
 			explode = true;
 		}

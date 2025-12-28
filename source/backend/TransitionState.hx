@@ -609,7 +609,7 @@ class TransitionState {
                         if (!psPause) cast(states.PlayState.instance, archipelago.APPlayState).paused = false;
                         cast(states.PlayState.instance, archipelago.APPlayState).forceResync();
                     } catch (_) {}
-                    ArchPopup.startPopupCustom('APItem: Fake Transition', "Gotcha!", "ArchWhite");
+                    archipelago.console.obj.Alert.alert('APItem: Fake Transition', "Gotcha!");
                 }},
                 function(num)
                 {

@@ -547,6 +547,7 @@ class PlayState extends MusicBeatState
 	public var vocalVolumeMultiplier:Float = 1;
 	public var vocalVolumeMultiplierHardMode:Float = 1;
 	var inArchipelagoMode:Bool = false;
+	public static var resettingState:Bool = false;
 
 	//Various things from other engines
 	var visual:AudioDisplay;
@@ -1159,6 +1160,9 @@ class PlayState extends MusicBeatState
 			}
 		}
 
+		// Cache group indices for performance
+		updateGroupIndices();
+
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 		// "SCRIPTS FOLDER" SCRIPTS
 		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'scripts/'))
@@ -1225,9 +1229,6 @@ class PlayState extends MusicBeatState
 		judgementCounter.setCameras([camHUD]);
 		add(judgementCounter);
 
-		// Cache group indices for performance
-		updateGroupIndices();
-
 		if (curHealthMode == "Lives" || curHealthMode == "Lives + HealthBar" || curHealthMode == "Lives + Mixtape" || curHealthMode == "Amalgam")
 			hearts.visible = true;
 		else
@@ -1274,7 +1275,7 @@ class PlayState extends MusicBeatState
 		if (playerField != null) {
 			playerField.noteField.isEditor = false;
 			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
-			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || playAsGF;
+			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || playAsGF;
 			playerField.noteHitCallback = goodNoteHit;
 		}
 
@@ -1283,7 +1284,7 @@ class PlayState extends MusicBeatState
 		if (dadField != null) {
 			dadField.noteField.isEditor = false;
 			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
-			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || playAsGF) || (bothMode && cpuControlled);
+			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || (opponentmode && ClientPrefs.getGameplaySetting('showcase', false)) || playAsGF) || (bothMode && cpuControlled) || (bothMode && ClientPrefs.getGameplaySetting('showcase', false));
 			dadField.AIPlayer = AIMode;
 			dadField.noteHitCallback = opponentNoteHit;
 		}
@@ -1485,7 +1486,7 @@ class PlayState extends MusicBeatState
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
 		botplayTxt.borderSize = 1.25;
-		botplayTxt.visible = (cpuControlled || practiceMode || instakillOnMiss || opponentmode || bothMode || playAsGF);
+		botplayTxt.visible = (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || practiceMode || instakillOnMiss || opponentmode || bothMode || playAsGF);
 		uiGroup.add(botplayTxt);
 		if(ClientPrefs.data.downScroll)
 			botplayTxt.y = healthBar.y + 70;
@@ -1945,6 +1946,8 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
+
+		resettingState = false;
 
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
@@ -2935,32 +2938,32 @@ class PlayState extends MusicBeatState
 
 	public function addBehindGF(obj:FlxBasic)
 	{
-		insert(_gfGroupIndex, obj);
+		insert(members.indexOf(gfGroup), obj);
 	}
 
 	public function addBehindBF(obj:FlxBasic)
 	{
-		insert(_boyfriendGroupIndex, obj);
+		insert(members.indexOf(boyfriendGroup), obj);
 	}
 
 	public function addBehindDad(obj:FlxBasic)
 	{
-		insert(_dadGroupIndex, obj);
+		insert(members.indexOf(dadGroup), obj);
 	}
 
 	public function addBehindBF2(obj:FlxBasic)
 	{
-		insert(_boyfriendGroup2Index, obj);
+		insert(members.indexOf(boyfriendGroup2), obj);
 	}
 
 	public function addBehindDad2(obj:FlxBasic)
 	{
-		insert(_dadGroup2Index, obj);
+		insert(members.indexOf(dadGroup2), obj);
 	}
 
 	public function addBehindHUD(obj:FlxBasic)
 	{
-		insert(_uiGroupIndex, obj);
+		insert(members.indexOf(uiGroup), obj);
 	}
 
 	public function addAbove(obj:FlxBasic, above:FlxBasic):FlxBasic
@@ -2981,17 +2984,17 @@ class PlayState extends MusicBeatState
 
 	public function addAboveDad(obj:FlxBasic)
 	{
-		insert(_dadGroupIndex + 1, obj);
+		insert(members.indexOf(dadGroup) + 1, obj);
 	}
 
 	public function addAboveBF2(obj:FlxBasic)
 	{
-		insert(_boyfriendGroup2Index + 1, obj);
+		insert(members.indexOf(boyfriendGroup2) + 1, obj);
 	}
 
 	public function addAboveDad2(obj:FlxBasic)
 	{
-		insert(_dadGroup2Index + 1, obj);
+		insert(members.indexOf(dadGroup2) + 1, obj);
 	}
 
 	public function addNoteToField(note:Note, ?field:Int = 0)
@@ -3074,78 +3077,80 @@ class PlayState extends MusicBeatState
 			return;
 		}
 
-		var col:String = '';
-		var str:String = Language.getPhrase('rating_${comboManager.ratingName}', comboManager.ratingName);
-		if(comboManager.totalPlayed != 0)
-		{
-			var percent:Float = CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2);
-			// TODO: Make this look nicer
-			if (percent == 100)
-				col = "~";
-			else if (percent > 90)
-				col = ";";
-			else if (percent > 80)
-				col = "@";
-			else if (percent > 70)
-				col = "#";
-			else if (percent > 60)
-				col = "$";
-			else if (percent > 50)
-				col = "*";
-			else if (percent > 30)
-				col = "^";
-			else
-				col = "&";
-
-			str = '${Language.getPhrase('rating_${comboManager.ratingName}', comboManager.ratingName)} $col(${percent}%) $col - ${Language.getPhrase(comboManager.ratingFC)}';
-			rank.updateRank();
-		}
-
-		if (health <= 0.0475 && (curHealthMode == "Mixtape" || curHealthMode == "Tabi" || curHealthMode == "Double" || curHealthMode == "Amalgam"))
-		{
-			scoreTxt.text = "DON'T MISS!";
-			scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
-		}
-		else {
-			var tempScore:String;
-			if(!instakillOnMiss) {
-				var missLabel:String = ClientPrefs.data.badShitBreakCombo ? Language.getPhrase('combo_breaks', 'Combo Breaks') : Language.getPhrase('misses', 'Misses');
-				var missCount:Int = ClientPrefs.data.badShitBreakCombo ? comboManager.comboBreaks : comboManager.songMisses;
-				tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [comboManager.songScore, comboManager.songMisses, str]);
-			}
-			else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [comboManager.songScore, str]);
-			var healthTxt:String = '100';
-			var hlth = CoolUtil.floorDecimal((health / 2) * 100, 2);
+		if (!resettingState) { // to prevernt a very stupid crash for songswitching
 			var col:String = '';
-			if (hlth == 100)
-				col = "~";
-			else if (hlth > 90)
-				col = ";";
-			else if (hlth > 80)
-				col = "@";
-			else if (hlth > 70)
-				col = "#";
-			else if (hlth > 60)
-				col = "$";
-			else if (hlth > 50)
-				col = "*";
-			else if (hlth > 20)
-				col = "^";
-			else
-				col = "&";
-			healthTxt = '$hlth';
-			scoreTxt.applyMarkup('$tempScore | Health: $col$healthTxt% $col' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : ''),
-			[
-				new FlxTextFormatMarkerPair(fullClearFormat, "~"),
-				new FlxTextFormatMarkerPair(sFormat, ";"),
-				new FlxTextFormatMarkerPair(aFormat, "@"),
-				new FlxTextFormatMarkerPair(bFormat, "#"),
-				new FlxTextFormatMarkerPair(cFormat, "$"),
-				new FlxTextFormatMarkerPair(dFormat, "*"),
-				new FlxTextFormatMarkerPair(eFormat, "^"),
-				new FlxTextFormatMarkerPair(fFormat, "&")
-			]);
-			scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
+			var str:String = Language.getPhrase('rating_${comboManager.ratingName}', comboManager.ratingName);
+			if(comboManager.totalPlayed != 0)
+			{
+				var percent:Float = CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2);
+				// TODO: Make this look nicer
+				if (percent == 100)
+					col = "~";
+				else if (percent > 90)
+					col = ";";
+				else if (percent > 80)
+					col = "@";
+				else if (percent > 70)
+					col = "#";
+				else if (percent > 60)
+					col = "$";
+				else if (percent > 50)
+					col = "*";
+				else if (percent > 30)
+					col = "^";
+				else
+					col = "&";
+
+				str = '${Language.getPhrase('rating_${comboManager.ratingName}', comboManager.ratingName)} $col(${percent}%) $col - ${Language.getPhrase(comboManager.ratingFC)}';
+				rank.updateRank();
+			}
+
+			if (health <= 0.0475 && (curHealthMode == "Mixtape" || curHealthMode == "Tabi" || curHealthMode == "Double" || curHealthMode == "Amalgam"))
+			{
+				scoreTxt.text = "DON'T MISS!";
+				scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
+			}
+			else {
+				var tempScore:String;
+				if(!instakillOnMiss) {
+					var missLabel:String = ClientPrefs.data.badShitBreakCombo ? Language.getPhrase('combo_breaks', 'Combo Breaks') : Language.getPhrase('misses', 'Misses');
+					var missCount:Int = ClientPrefs.data.badShitBreakCombo ? comboManager.comboBreaks : comboManager.songMisses;
+					tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [comboManager.songScore, comboManager.songMisses, str]);
+				}
+				else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [comboManager.songScore, str]);
+				var healthTxt:String = '100';
+				var hlth = CoolUtil.floorDecimal((health / 2) * 100, 2);
+				var col:String = '';
+				if (hlth == 100)
+					col = "~";
+				else if (hlth > 90)
+					col = ";";
+				else if (hlth > 80)
+					col = "@";
+				else if (hlth > 70)
+					col = "#";
+				else if (hlth > 60)
+					col = "$";
+				else if (hlth > 50)
+					col = "*";
+				else if (hlth > 20)
+					col = "^";
+				else
+					col = "&";
+				healthTxt = '$hlth';
+				scoreTxt.applyMarkup('$tempScore | Health: $col$healthTxt% $col' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : ''),
+				[
+					new FlxTextFormatMarkerPair(fullClearFormat, "~"),
+					new FlxTextFormatMarkerPair(sFormat, ";"),
+					new FlxTextFormatMarkerPair(aFormat, "@"),
+					new FlxTextFormatMarkerPair(bFormat, "#"),
+					new FlxTextFormatMarkerPair(cFormat, "$"),
+					new FlxTextFormatMarkerPair(dFormat, "*"),
+					new FlxTextFormatMarkerPair(eFormat, "^"),
+					new FlxTextFormatMarkerPair(fFormat, "&")
+				]);
+				scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
+			}
 		}
 	}
 
@@ -4668,7 +4673,7 @@ class PlayState extends MusicBeatState
 
 								for (i in 0...16)
 								{
-									var throatNote:Note = placeNote(10, "Throat Note", [
+									var throatNote:Note = placeNote(50, "Throat Note", [
 										sectionStartTime + (Conductor.stepCrochet * i),
 										FlxG.random.int(0, 3),
 										j,
@@ -6110,14 +6115,15 @@ class PlayState extends MusicBeatState
 		}
 
 		super.update(elapsed);
-		vocals.volume *= vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
+		if (vocals != null) vocals.volume *= vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
 		FlxG.sound.music.volume = 1 * instVolumeMultiplier * instVolumeMultiplierHardMode;
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
 		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
-		if (!startingSong && ClientPrefs.data.modcharts) //Don't wanna override it now do we
+		//This has no right to work as well as it does lmao
+		if (!startingSong && ClientPrefs.data.modcharts)
 			modchartSync(false);
 
 		setOnScripts('curDecStep', curDecStep);
@@ -6296,7 +6302,7 @@ class PlayState extends MusicBeatState
 		{
 			if(!inCutscene)
 			{
-				if(!cpuControlled) keysCheck();
+				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) keysCheck();
 				else playerDance();
 
 				amountOfRenderedNotes = 0;
@@ -6348,7 +6354,7 @@ class PlayState extends MusicBeatState
 					{
 						if (mechanicsMod.dodgeInput)
 						{
-							if (cpuControlled || controls.justPressed('dodge'))
+							if (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || controls.justPressed('dodge'))
 							{
 								mechanicsMod.dodged = true;
 								for (tmr in mechanicsMod.dodgeTimers)
@@ -6384,7 +6390,7 @@ class PlayState extends MusicBeatState
 					{
 						if (mouseCursor != null)
 						{
-							if (cpuControlled)
+							if (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false))
 							{
 								mouseCursor.x = FlxMath.lerp(mouseCursor.x, mechanicsMod.cpuPos.x, CoolUtil.boundTo(elapsed * 4.65, 0, 1));
 								mouseCursor.y = FlxMath.lerp(mouseCursor.y, mechanicsMod.cpuPos.y, CoolUtil.boundTo(elapsed * 4.65, 0, 1));
@@ -6400,7 +6406,7 @@ class PlayState extends MusicBeatState
 						{
 							if (FlxG.overlap(mouseCursor, mechanicsMod.ghostCursor))
 							{
-								if (cpuControlled)
+								if (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false))
 								{
 									mechanicsMod.cpuPos.x = FlxG.random.float(0, FlxG.width);
 									mechanicsMod.cpuPos.y = FlxG.random.float(0, FlxG.height);
@@ -7181,7 +7187,8 @@ class PlayState extends MusicBeatState
 			opponentVocals.pause();
 			gfVocals.pause();
 		}
-		if(!cpuControlled)
+
+		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 		{
 			for (note in playerStrums)
 				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
@@ -7211,7 +7218,7 @@ class PlayState extends MusicBeatState
 			gfVocals.pause();
 		}
 
-		if(!cpuControlled)
+		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 		{
 			for (note in playerStrums)
 				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
@@ -9051,7 +9058,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if(!cpuControlled) {
+		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) {
 			comboManager.songScore += Math.ceil(score * MechanicManager.multiplier);
 			if(!note.ratingDisabled)
 			{
@@ -9572,7 +9579,7 @@ class PlayState extends MusicBeatState
 								if (note == null)
 								{
 									var spr:StrumNote = field.strumNotes[key];
-									if (spr != null && spr.animation.curAnim.name != 'confirm')
+									if (spr != null && spr.animation?.curAnim?.name != 'confirm')
 									{
 										spr.playAnim('pressed');
 										spr.resetAnim = 0;
@@ -9621,7 +9628,7 @@ class PlayState extends MusicBeatState
 
 	private function keyPressed(key:Int, player:Int = -1)
 	{
-		if(cpuControlled || paused || inCutscene || key < 0 || key >= playerStrums.length || !generatedMusic || endingSong || boyfriend.stunned) return;
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || paused || inCutscene || key < 0 || key >= playerStrums.length || !generatedMusic || endingSong || boyfriend.stunned) return;
 		if (strumsBlocked[key]) return;
 
 		// Early script callback optimization - only call if scripts exist
@@ -9929,7 +9936,7 @@ class PlayState extends MusicBeatState
 
 	private function keyReleased(key:Int, ?player:Int = -1)
 	{
-		if(cpuControlled || !startedCountdown || paused || key < 0 || key >= playerStrums.length) return;
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || !startedCountdown || paused || key < 0 || key >= playerStrums.length) return;
 
 		var ret:Dynamic = callOnScripts('onKeyReleasePre', [key]);
 		if(ret == LuaUtils.Function_Stop) return;
@@ -10453,7 +10460,7 @@ class PlayState extends MusicBeatState
 	public function goodNoteHit(note:Note, field:PlayField):Void
 	{
 		if(note.wasGoodHit) return;
-		if (cpuControlled && (note.ignoreNote || note.hitCausesMiss)) return;
+		if ((cpuControlled || ClientPrefs.getGameplaySetting('showcase', false)) && (note.ignoreNote || note.hitCausesMiss)) return;
 
 		var isSus:Bool = note.isSustainNote; //GET OUT OF MY HEAD, GET OUT OF MY HEAD, GET OUT OF MY HEAD
 		var leData:Int = Math.round(Math.abs(note.noteData));
@@ -11588,14 +11595,14 @@ class PlayState extends MusicBeatState
 
 								// Only sync if the strum is close to its expected position
 								// This prevents overriding custom positions set by scripts
-								/*if (Math.abs(offsetY) < 100) { // Allow some tolerance for modchart transforms
-									modManager.setValue('transform${i}Y', offsetY, field.playerId);
+								// Allow some tolerance for modchart transforms
+								if (Math.abs(offsetY) < 200 && Math.abs(offsetY) > -200) { //Give it a zone to work in so that if it steps outside that zone it updates it instead of whatever it was doing before
+									modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
 								} else {
 									// If the strum has been moved significantly, update the base position
 									//trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
 									field.updateBaseYPosition(i, strumNote.y);
-								}*/
-								modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
+								}
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
@@ -11665,7 +11672,7 @@ class PlayState extends MusicBeatState
 		if(chartingMode) return;
 
 		var usedPractice:Bool = (ClientPrefs.getGameplaySetting('practice') || ClientPrefs.getGameplaySetting('botplay'));
-		if(cpuControlled) return;
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false)) return;
 
 		for (name in achievesToCheck) {
 			if(!Achievements.exists(name)) continue;

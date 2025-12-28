@@ -104,7 +104,7 @@ class CustomAnimControl {
 				// I have no idea why this if instead of frameInTypeBeat == xFrames.length works even though they're the same thing
 				 if (host.targetPos.x <= shiftx)
                     @:privateAccess
-				 	host.targetPos.x = host.intendedX(host.ID+1-VSliceFreeplayState.instance.curSelectedFractal) + widescreenMult;
+				 	host.targetPos.x = host.intendedX(host.ID+1-VSliceFreeplayState.curSelectedFractal) + widescreenMult;
 			}
 			else if (frameInTypeBeat == xFrames.length)
 			{

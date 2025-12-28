@@ -4,6 +4,7 @@ import backend.Highscore;
 import backend.NativeFileSystem;
 import backend.WeekData;
 import backend.pslice.BPMCache;
+import backend.pslice.Scoring.ScoringRank;
 import states.freeplay.vslice.obj.SngCapsuleData;
 
 
@@ -84,6 +85,19 @@ class FreeplaySongData extends SngCapsuleData
 			}
 		}
 
+		//trace(songName);
+		switch (songName)
+		{
+			case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown' | 'Pack-A-Punch':
+				this.songDifficulties = ['hard'];
+			case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
+				this.songDifficulties = ['normal'];
+			case "Beat Battle":
+				this.songDifficulties = ["normal", "reasonable", "unreasonable", "semi-impossible", "impossible"];
+			case "Testimony":
+				this.songDifficulties = ["4k", "canon"];
+		}
+
     var fileSngName = Paths.formatToSongPath(getNativeSongId());
 		var sngDataPath = Paths.getPath("data/" + fileSngName);
 		if (allowErect && !hasErectSong())
@@ -105,7 +119,7 @@ class FreeplaySongData extends SngCapsuleData
 		//this.songName = songDifficulty.songName;
 		//this.difficultyRating = songDifficulty.difficultyRating;
 		@:privateAccess
-		this.scoringRank = ScoringRank.getRankFromValue(Highscore.getRank(Highscore.formatSong(getNativeSongId(), loadAndGetDiffId()), loadAndGetDiffId()));
+		this.scoringRank = ScoringRank.getRankFromValue(Highscore.getRank(getNativeSongId(), loadAndGetDiffId()));
 		updateIsNewTag();
 	}
 
@@ -130,8 +144,20 @@ class FreeplaySongData extends SngCapsuleData
 
 	public function loadAndGetDiffId()
 	{
-		var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[levelId]);
-		Difficulty.loadFromWeek(leWeek);
+		switch (songName)
+		{
+			case 'Small Argument' | 'Beat Battle 2' | 'GeoStar' | 'Zeventeen' | 'Tag And Seek' | 'Rawr' | 'Funky Fanta' | 'Fightback' | 'Fangirl Frenzy' | 'Slowdown' | 'Pack-A-Punch':
+				Difficulty.list = ['hard'];
+			case 'Rise' | 'Test Field' | 'Pack A Punch' | 'Driller':
+				Difficulty.list = ['normal'];
+			case "Beat Battle":
+				Difficulty.list = ["normal", "reasonable", "unreasonable", "semi-impossible", "impossible"];
+			case "Testimony":
+				Difficulty.list = ["4k", "canon"];
+			default:
+				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[levelId]);
+				Difficulty.loadFromWeek(leWeek);
+		}
 		return Difficulty.list.findIndex(s -> s.trim().toLowerCase() == currentDifficulty);
 	}
 

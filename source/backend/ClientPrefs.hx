@@ -258,6 +258,8 @@ import states.TitleState;
 	public var enableFrameTraceLimiting:Bool = false; // Enable frame-based trace limiting
 	public var maxTracesPerFrame:Int = 5; // Maximum traces per frame before queuing
 	public var useTraceThreading:Bool = false; // Use separate thread for trace processing
+
+	public var playLists:Map<String, Array<String>> = [];
 }
 
 class ClientPrefs {

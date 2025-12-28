@@ -32,12 +32,16 @@ class TypeCollectionMacro {
         var fields = Context.getBuildFields();
         var localClass = Context.getLocalClass();
         if (localClass == null) {
+            #if verbose
             trace("TypeCollectionMacro: No local class available, skipping");
+            #end
             return fields;
         }
 
         var classType = localClass.get();
+        #if verbose
         trace('TypeCollectionMacro: Processing class ${classType.name} from ${classType.module}');
+        #end
 
         if (!initialized) {
             initializeBuildCollection();
@@ -121,7 +125,9 @@ class TypeCollectionMacro {
 
             collectedClasses.push(classInfo);
 
+            #if verbose
             trace('TypeCollectionMacro: Collected class ${classType.name} (${classInfo.fields.length} fields)');
+            #end
 
         } catch (e:Dynamic) {
             trace('TypeCollectionMacro: Error collecting class data for ${classType.name}: $e');
@@ -361,10 +367,14 @@ class TypeCollectionMacro {
             // Generate runtime accessor
             generateRuntimeAccessor(outputPath, data);
 
+            #if verbose
             trace('TypeCollectionMacro: Saved build data to ${outputPath}');
+            #end
 
         } catch (e:Dynamic) {
+            #if verbose
             trace('TypeCollectionMacro: Error saving build data: $e');
+            #end
         }
     }
 

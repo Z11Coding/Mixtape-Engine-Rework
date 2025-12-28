@@ -80,6 +80,7 @@ class AlbumRoll extends FlxSpriteGroup
   {
     if (albumId == null)
     {
+      trace("ALBUM IS NULL: " + albumId);
       this.visible = false;
       difficultyStars.stars.visible = false;
       return;

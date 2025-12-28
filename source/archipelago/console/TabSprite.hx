@@ -1,11 +1,11 @@
 package archipelago.console;
 
+import openfl.Assets;
+import openfl.display.Sprite;
+import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.text.TextFormat;
-import openfl.display.Sprite;
-import openfl.events.Event;
-import openfl.Assets;
 
 @:allow(archipelago.console.SideUI)
 class TabSprite extends Sprite {

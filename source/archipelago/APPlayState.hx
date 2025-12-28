@@ -146,6 +146,8 @@ class APPlayState extends PlayState {
     var zenetta:Character;
     var resistanceAmount:Float = 0;
 
+    public static var dontCorrect:Bool = false;
+
 
     function generateGibberish(length:Int, exclude:String):String
 	{
@@ -205,7 +207,7 @@ class APPlayState extends PlayState {
             }
         }
 
-        if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride)
+        if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride && !dontCorrect)
         {
             // When manual override is active, ensure we're playing the correct trap song
             trace('Manual Override detected - verifying trap song consistency');
@@ -234,6 +236,7 @@ class APPlayState extends PlayState {
                     PlayState.storyDifficulty = FlxG.save.data.trapStoryDifficulty;
 
                     trace('Trap song state corrected - resetting APPlayState');
+                    PlayState.resettingState = true;
                     StageData.loadDirectory(PlayState.SONG);
                     MusicBeatState.resetState();
                     return;
@@ -1594,6 +1597,9 @@ class APPlayState extends PlayState {
         zenetta.alpha = 0.0000000001;
         zenetta.cameras = [camGame];
         add(zenetta);
+
+        if (ghostChat && !ghostChatCheck) //so that it re-triggers after death/reset
+            triggerGhostChat();
     }
 
     public function addEffect(e:String)
@@ -1809,8 +1815,11 @@ class APPlayState extends PlayState {
     public function doEffect(effect:String)
     {
         // trace('im finna act up');
-        if (!APEntryState.inArchipelagoMode)
+        if (!APEntryState.inArchipelagoMode) return; //why are you here lol
+
         if (paused || endingSong || transitioning) return;
+
+        ghostChatCheck = true; //check every time an effect runs so it doesn't get stuck
 
         // Additional checks to prevent effects during transitions or ranking
         if (backend.TransitionState.currenttransition != null ||
@@ -2560,13 +2569,20 @@ class APPlayState extends PlayState {
             func.activated = true;
         }
 
-        if (ghostChat && effectsRan == 0 && ghostChatCheck && (randoTimer != null && randoTimer.timeLeft <= 0 || randoTimer == null)) {
+        if (ghostChat && effectsRan <= 1 && ghostChatCheck && randoTimer != null && (randoTimer.timeLeft <= 0 || !randoTimer.active)) {
             ghostChatCheck = false;
             randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer) {
                 doEffect(effectArray[curEffect]);
                 tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0));
             });
             trace("Ghost Chat Re-activated!");
+        } else if (ghostChat && effectsRan > 0 && ghostChatCheck && (randoTimer == null || randoTimer != null && randoTimer.timeLeft <= 0 || randoTimer != null && !randoTimer.active)) {
+            ghostChatCheck = false;
+            randoTimer.start(FlxG.random.float(5, 10), function(tmr:FlxTimer) {
+                doEffect(effectArray[curEffect]);
+                tmr.reset(FlxG.random.float(5, 10) + (FlxG.random.bool(10) ? FlxG.random.float(1, 20) : 0));
+            });
+            trace("Ghost Chat got stuck! Re-activating!");
         }
 
         if (bfAscend) boyfriendGroup.y += 0.01;
@@ -2660,8 +2676,6 @@ class APPlayState extends PlayState {
         if (ghostChat)
             ghostChat = false;
 
-
-
 		ClientPrefs.data.downScroll = ogScroll;
 
         if (resisting)
@@ -2674,16 +2688,16 @@ class APPlayState extends PlayState {
         {
             // Null checks before tweening
             if (boyfriend != null)
-            FlxTween.tween(boyfriend, {alpha: 1}, 0.5);
+                FlxTween.tween(boyfriend, {alpha: 1}, 0.5);
             if (zenetta != null)
             {
-            FlxTween.tween(zenetta, {alpha: 0.0000000001}, 0.5);
-            FlxTween.tween(zenetta, {x: -2000, y: -2000}, 0.5);
+                FlxTween.tween(zenetta, {alpha: 0.0000000001}, 0.5);
+                FlxTween.tween(zenetta, {x: -2000, y: -2000}, 0.5);
             }
             FlxTween.num(resistanceAmount, 0, 0.5, {
-            onUpdate: function(tween) {
-                resistanceAmount = cast(tween, NumTween).value;
-            }
+                onUpdate: function(tween) {
+                    resistanceAmount = cast(tween, NumTween).value;
+                }
             });
         }
 
@@ -2697,6 +2711,9 @@ class APPlayState extends PlayState {
             PlayState.SONG = FlxG.save.data.SONG;
             PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
             FlxG.save.data.manualOverride = false;
+            APPlayState.instance.playfields.forEach(function(pf) {
+                pf.autoPlayed = false;
+            });
 			StageData.loadDirectory(PlayState.SONG);
             FlxG.save.flush();
             FlxG.resetState();

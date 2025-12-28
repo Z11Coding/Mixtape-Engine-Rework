@@ -714,9 +714,8 @@ class PongGameState extends MusicBeatState {
     }
 
     private function setupAudio():Void {
-        // Optional background music - using existing menu music
         FlxG.sound.music.stop();
-        bgMusic = FlxG.sound.load(Paths.music('gameMusic/PONG beyond the stars'));
+        bgMusic = FlxG.sound.load(Paths.music('gameMusic/PONG beyond the stars${(FlxG.random.bool(18) ? ' (Classics Mix)' : '')}'));
         bgMusic.looped = true;
         bgMusic.volume = 0.3;
         bgMusic.play();

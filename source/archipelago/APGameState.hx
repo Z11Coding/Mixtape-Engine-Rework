@@ -1198,6 +1198,20 @@ class APGameState
 			trace("Loaded " + [for (key in unlockedSanityItems.keys()) key].length + " unlocked sanity items from save");
 		}
 
+		// Load perma traps
+		if (_saveData.hasItem("activePermaTraps"))
+		{
+			var activePermaTraps:Array<String> = _saveData.getItem("activePermaTraps");
+			for (trapName in activePermaTraps)
+			{
+				if (!APItem.triggeredPermaTraps.contains(trapName)) {
+					APItem.triggeredPermaTraps.push(trapName);
+					archipelago.APItem.createItemByName(trapName);
+				}
+			}
+			trace("Loaded " + APItem.triggeredPermaTraps.length + " active perma traps from save");
+		}
+
 		var antiTrapList:Array<String> = [];
 		// Load anti perma traps
 		if (_saveData.hasItem("activeAntiPermaTraps"))
@@ -1205,29 +1219,12 @@ class APGameState
 			var activeAntiPermaTraps:Array<String> = _saveData.getItem("activeAntiPermaTraps");
 			for (trapName in activeAntiPermaTraps)
 			{
-				activeAntiPermaTraps.push(trapName);
-				APItem.triggeredAntiPermaTraps.push(trapName);
-			}
-			trace("Loaded " + activeAntiPermaTraps.length + " active perma traps from save");
-		}
-
-		// Load perma traps
-		if (_saveData.hasItem("activePermaTraps"))
-		{
-			var activePermaTraps:Array<String> = _saveData.getItem("activePermaTraps");
-			for (trapName in activePermaTraps)
-			{
-				if (trapName == "Sore Throat Trap" && !antiTrapList.contains("Throat Medicine")
-					|| trapName == "Vocal Inverter Trap" && !antiTrapList.contains("Voice Inverter")
-					|| trapName == "Blindness Trap" && !antiTrapList.contains("Contact Lenses")
-					|| trapName == "Mechanical Hell Trap" && !antiTrapList.contains("The Simplifier 3000")
-					|| trapName == "Metronome Madness Trap" && !antiTrapList.contains("Metronome Stabilizer")) {
+				if (!APItem.triggeredAntiPermaTraps.contains(trapName)) {
+					APItem.triggeredAntiPermaTraps.push(trapName);
 					archipelago.APItem.createItemByName(trapName);
-					APItem.triggeredPermaTraps.push(trapName);
 				}
-
 			}
-			trace("Loaded " + activePermaTraps.length + " active perma traps from save");
+			trace("Loaded " + APItem.triggeredAntiPermaTraps.length + " active perma traps from save");
 		}
 
 		// Restore active effects after all items are loaded
@@ -1646,6 +1643,7 @@ class APGameState
 			APEntryState.ap = null;
 		}
 	}
+
 	public function getSongAndMod(songName:String):{song:String, ?mod:String}
 		{
 			var input = songName;
@@ -1957,7 +1955,8 @@ class APGameState
 			for (song in result.unlockedSongs)
 			{
 				if (!isSync)
-					ArchPopup.startPopupSong(song, 'archColor');
+					archipelago.console.obj.Alert.alert("New Song!", '${song.song} from ${song.mod}', function() {trace("why did you click it lol?");}); //Gonna try something new
+				//ArchPopup.startPopupSong(song, 'archColor');
 				APFreeplayManager.curUnlocked.push(song);
 			}
 

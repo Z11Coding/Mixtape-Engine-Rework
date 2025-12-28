@@ -67,9 +67,13 @@ class StatePick
 		// Add the data as a resource
 		try {
 			Context.addResource("statePickData", haxe.io.Bytes.ofString(jsonData));
+			#if verbose
 			trace('StatePick: Added resource "statePickData" with ${Lambda.count(StateMapBuildTime)} base classes');
+			#end
 		} catch (e:Dynamic) {
+			#if verbose
 			trace('StatePick: Failed to add resource: $e');
+			#end
 		}
 	}
 	#end
