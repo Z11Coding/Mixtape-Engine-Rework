@@ -12,15 +12,15 @@ class TypeCollectionAccessor {
     public static var functionCount:Int = 8442;
     public static var enumCount:Int = 196;
     public static var typedefCount:Int = 719;
-    
+
     public static function getDataPath():String {
         return "export/builddata/type_collection_compressed.json";
     }
-    
+
     public static function getFullDataPath():String {
         return "export/builddata/type_collection_data.json";
     }
-    
+
     public static function isDataAvailable():Bool {
         return sys.FileSystem.exists(getDataPath());
     }

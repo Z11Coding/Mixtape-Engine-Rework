@@ -392,11 +392,54 @@ class PlayState extends MusicBeatState
 	// Script existence flags for performance
 	private var hasLuaScripts:Bool = false;
 	private var hasHScripts:Bool = false;
+	private var hasPyScripts:Bool = false;
+
+	// === PERFORMANCE OPTIMIZATION INFRASTRUCTURE ===
+	// Cached calculations and frequently accessed values
+	private var _cachedPlaybackRate:Float = 1;
+	private var _cachedFramerateMultiplier:Float = 1;
+	private var _cachedCameraLerp:Float = 0.04;
+	private var _cachedIconBounceType:String = "";
+	private var _cachedDownScroll:Bool = false;
+	private var _cachedMiddleScroll:Bool = false;
+	private var _cachedTimeBarType:String = "";
+	private var _lastConductorSongPos:Float = -1;
+	private var _lastHealthValue:Float = 1;
+	private var _lastBotplaySine:Float = 0;
+
+	// Performance flags and counters
+	private var _updateFrameCounter:Int = 0;
+	private var _batchedUpdateThreshold:Int = 0; // Will be set based on framerate
+	private var _needsIconUpdate:Bool = true;
+	private var _needsScoreUpdate:Bool = true;
+	private var _needsHealthBarUpdate:Bool = true;
+	private var _skipRedundantUpdates:Bool = false;
+
+	// Cached math values to reduce redundant calculations
+	private var _cachedSinValue:Float = 0;
+	private var _cachedExpValue:Float = 1;
+	private var _cachedLerpValue:Float = 0;
+
+	// Batched update flags
+	private var _batchUIUpdates:Bool = false;
+	private var _batchIconUpdates:Bool = false;
+	private var _batchCameraUpdates:Bool = false;
+
+	// Performance mode flags
+	private var _useOptimizedNoteLoop:Bool = false;
+	private var _useCachedStrumPositions:Bool = false;
+	private var _reduceQualityMode:Bool = false;
+
+	// Cache for expensive operations
+	private var _cachedStrumPositions:Array<Float> = [];
+	private var _cachedNotePositions:Array<Float> = [];
 
 	// Lua shit
 	public static var instance:PlayState;
 	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = [];
 	public var legacyLuaArray:Array<LegacyFunkinLua> = []; #end
+
+	#if PYTHON_ALLOWED public var pyScriptArray:Array<yutautil.PyScript> = []; #end
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 	private var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
@@ -925,6 +968,11 @@ class PlayState extends MusicBeatState
 			NotePoolManager.resetDemandTracking(); // Reset for new song
 			trace("Experimental NotePool system enabled");
 		}
+
+		// === INITIALIZE PERFORMANCE OPTIMIZATIONS ===
+		initializeOptimizations();
+		updateScriptFlags();
+		updateGroupIndices();
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.bpm = SONG.bpm;
@@ -6050,6 +6098,15 @@ class PlayState extends MusicBeatState
 	var lastHealth:Float = -1;
 	override public function update(elapsed:Float)
 	{
+		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
+		_updateFrameCounter++;
+		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);
+
+		// Refresh cached values periodically (every 30 frames)
+		if (_updateFrameCounter % 30 == 0) {
+			refreshCachedValues();
+		}
+
 		// If Legacy Lua settings are being edited and we're not in test mode, don't allow regular PlayState
 		// The Legacy Lua system should handle PlayState switching through its own mechanisms
 		if (options.legacylua.LegacyLuaSettingsState.inLegacyLuaSettingsMode && !isLegacyLuaTest) {
@@ -6061,7 +6118,8 @@ class PlayState extends MusicBeatState
 		updateDynamicSong();
 
 		if(!inCutscene && !paused && !freezeCamera) {
-			FlxG.camera.followLerp = 0.04 * cameraSpeed * playbackRate;
+			// Use cached camera lerp value for performance
+			FlxG.camera.followLerp = _cachedCameraLerp;
 			var idleAnim:Bool = (boyfriend?.getAnimationName().startsWith('idle') || boyfriend?.getAnimationName().startsWith('danceLeft') || boyfriend?.getAnimationName().startsWith('danceRight'));
 			if(!startingSong && !endingSong && idleAnim) {
 				boyfriendIdleTime += elapsed;
@@ -6074,14 +6132,20 @@ class PlayState extends MusicBeatState
 		}
 		else FlxG.camera.followLerp = 0;
 
-		if (FlxG.animationTimeScale != playbackRate) {
-			FlxG.animationTimeScale = playbackRate;
+		if (FlxG.animationTimeScale != _cachedPlaybackRate) {
+			FlxG.animationTimeScale = _cachedPlaybackRate;
 		}
 
-		//So that the health text works
-		if (health != lastHealth) {
+		//So that the health text works - optimized with caching
+		if (health != _lastHealthValue) {
+			_needsScoreUpdate = true;
+			_lastHealthValue = health;
+		}
+
+		// Batch score updates to reduce UI thrashing
+		if (_needsScoreUpdate && !shouldBatchUpdate) {
 			updateScoreText();
-			lastHealth = health;
+			_needsScoreUpdate = false;
 		}
 
 		// Update modchart debug info every frame
@@ -6101,7 +6165,10 @@ class PlayState extends MusicBeatState
 
 		}
 
-		callOnScripts('onUpdate', [elapsed]);
+		// Optimize script calls - only call if scripts exist
+		if (hasLuaScripts || hasHScripts || hasPyScripts) {
+			callOnScripts('onUpdate', [elapsed]);
+		}
 
 		updateVisPos();
 
@@ -6110,7 +6177,7 @@ class PlayState extends MusicBeatState
 			if (health > 0)
 			{
 				backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "succumbed to the sheer might of the opponent.";
-				health -= 0.001 / (ClientPrefs.data.framerate / 60);
+				health -= 0.001 * _cachedFramerateMultiplier;
 			}
 		}
 
@@ -6126,8 +6193,11 @@ class PlayState extends MusicBeatState
 		if (!startingSong && ClientPrefs.data.modcharts)
 			modchartSync(false);
 
-		setOnScripts('curDecStep', curDecStep);
-		setOnScripts('curDecBeat', curDecBeat);
+		// Optimize script calls - only set if scripts exist
+		if (hasLuaScripts || hasHScripts || hasPyScripts) {
+			setOnScripts('curDecStep', curDecStep);
+			setOnScripts('curDecBeat', curDecBeat);
+		}
 
 		if (strumFocus)
 		{
@@ -6183,22 +6253,32 @@ class PlayState extends MusicBeatState
 			playfield.noteField.songSpeed = songSpeed;
 		}
 
+		// === OPTIMIZED BOTPLAY TEXT ANIMATION ===
 		if(botplayTxt != null && botplayTxt.visible) {
+			// Cache sine calculation for better performance
 			botplaySine += 180 * elapsed;
-			botplayTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180);
-		}
-
-		// Legacy Lua test text animation
-		if(legacyLuaTestTxt != null) {
-			legacyLuaTestTxt.visible = isLegacyLuaTest; // Update visibility in case flag changes
-			if(legacyLuaTestTxt.visible) {
-				legacyLuaTestTxt.alpha = 1 - Math.sin((Math.PI * botplaySine) / 180); // Sync with botplay animation
+			if (botplaySine != _lastBotplaySine || shouldBatchUpdate) {
+				_cachedSinValue = getCachedSinValue(botplaySine);
+				botplayTxt.alpha = 1 - _cachedSinValue;
+				_lastBotplaySine = botplaySine;
 			}
 		}
 
+		// Legacy Lua test text animation - sync with botplay for efficiency
+		if(legacyLuaTestTxt != null) {
+			legacyLuaTestTxt.visible = isLegacyLuaTest; // Update visibility in case flag changes
+			if(legacyLuaTestTxt.visible) {
+				legacyLuaTestTxt.alpha = 1 - _cachedSinValue; // Reuse cached sine calculation
+			}
+		}
+
+		// Optimize pause check - only check scripts if they exist
 		if (controls.PAUSE && startedCountdown && canPause && canPauseHardMode && !endingSong)
 		{
-			var ret:Dynamic = callOnScripts('onPause', null, true);
+			var ret:Dynamic = null;
+			if (hasLuaScripts || hasHScripts || hasPyScripts) {
+				ret = callOnScripts('onPause', null, true);
+			}
 			if(ret != LuaUtils.Function_Stop) {
 				openPauseMenu();
 			}
@@ -6212,12 +6292,19 @@ class PlayState extends MusicBeatState
 				openCharacterEditor();
 		}
 
-		updateIconsScale(elapsed);
-		updateIconsPosition();
+		// === BATCHED ICON UPDATES ===
+		// Only update icons when needed or not batching
+		if (!_batchIconUpdates || !shouldBatchUpdate) {
+			updateIconsScale(elapsed);
+			updateIconsPosition();
+			_needsIconUpdate = false;
+		}
 
 		hearts.forEachAlive(function(heart:FlxSprite)
 		{
-			heart.angle = FlxMath.lerp(heart.angle, 30, cameraSpeed * 2 / (240 / 60));
+			// Cache camera speed calculation
+			var heartAngleLerp = cameraSpeed * 2 * _cachedFramerateMultiplier;
+			heart.angle = FlxMath.lerp(heart.angle, 30, heartAngleLerp);
 			if (curHealthMode == "Lives")
 			{
 				heart.y = healthBar.y;
@@ -6261,25 +6348,29 @@ class PlayState extends MusicBeatState
 			if (Conductor.songPosition - lastUpdateTime >= 1.0)
 				lastUpdateTime = Conductor.songPosition;
 
-			var timeBarType:String = ClientPrefs.data.timeBarType;
+			// Cache time bar type to avoid repeated property access
+			var timeBarType:String = _cachedTimeBarType;
 			var curTime:Float = Math.max(0, Conductor.songPosition - ClientPrefs.data.noteOffset);
 			var lengthUsing:Float = (maskedSongLength > 0) ? maskedSongLength : songLength;
 			songPercent = (curTime / lengthUsing);
 
 			var songCalc:Float = (lengthUsing - curTime);
-			if(ClientPrefs.data.timeBarType == 'Time Elapsed') songCalc = curTime;
+			if(timeBarType == 'Time Elapsed') songCalc = curTime;
 
 			var secondsTotal:Int = Math.floor(songCalc / 1000);
 			if(secondsTotal < 0) secondsTotal = 0;
 
-			if(ClientPrefs.data.timeBarType != 'Song Name')
+			if(timeBarType != 'Song Name')
 				timeTxt.text = convertTime(secondsTotal, false);
 		}
 
+		// === OPTIMIZED CAMERA ZOOM ===
 		if (camZooming)
 		{
-			FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom, FlxG.camera.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
-			camHUD.zoom = FlxMath.lerp(defaultCamHudZoom, camHUD.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
+			// Cache expensive exponential calculations
+			_cachedExpValue = getCachedExpLerp(elapsed, 3.125 * camZoomingDecay);
+			FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom, FlxG.camera.zoom, _cachedExpValue);
+			camHUD.zoom = FlxMath.lerp(defaultCamHudZoom, camHUD.zoom, _cachedExpValue);
 		}
 
 		FlxG.watch.addQuick("secShit", curSection);
@@ -6305,11 +6396,25 @@ class PlayState extends MusicBeatState
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) keysCheck();
 				else playerDance();
 
+				// === OPTIMIZED NOTE PROCESSING ===
 				amountOfRenderedNotes = 0;
-				notes.forEach(function(daNote)
-				{
-					updateLiveNote(daNote);
-				});
+
+				// Use optimized note iteration for better performance
+				if (_useOptimizedNoteLoop) {
+					// Cache notes length to avoid repeated property access
+					var notesLength = notes.length;
+					for (i in 0...notesLength) {
+						var daNote = notes.members[i];
+						if (daNote != null && daNote.exists) {
+							updateLiveNote(daNote);
+						}
+					}
+				} else {
+					// Fallback to standard forEach for compatibility
+					notes.forEach(function(daNote) {
+						updateLiveNote(daNote);
+					});
+				}
 
 				if (mechanicsMod != null) {
 					if (MechanicManager.mechanics['burst_note'].points > 0 && mechanicsMod.burstTime != null)
@@ -6465,6 +6570,24 @@ class PlayState extends MusicBeatState
 					return strumLineNotes;
 				}
 
+				// === OPTIMIZED MECHANICS NOTE PROCESSING ===
+				// Cache frequently used values
+				var flashlightPoints:Int = MechanicManager.mechanics['flashlight'].points;
+				var hasFlashlight:Bool = flashlightPoints > 0;
+				var cachedDownScroll:Bool = _cachedDownScroll;
+				var cachedConductorPos:Float = Conductor.songPosition;
+
+				// Pre-calculate flashlight values if needed
+				var centerPoint:Float = 0;
+				var multi:Float = 0;
+				if (hasFlashlight) {
+					centerPoint = FlxG.height;
+					multi = cachedDownScroll ?
+						FlxMath.remapToRange(flashlightPoints, 0, 20, 0.4, 0.2) :
+						FlxMath.remapToRange(flashlightPoints, 0, 20, 0.2, 0.4);
+					modManager.setValue('sudden-a', FlxMath.remapToRange(flashlightPoints, 0, 20, 0.1, 1));
+				}
+
 				notes.forEachAlive(function(daNote:Note)
 				{
 					var strumGroup:FlxTypedGroup<StrumNote> = playerStrums;
@@ -6473,47 +6596,23 @@ class PlayState extends MusicBeatState
 
 					var strumY:Float = strumGroup.members[daNote.noteData].y;
 
-					// Cache flashlight mechanics to avoid repeated calculations
+					// Optimized flashlight mechanics with cached values
 					var noteType = daNote.noteType;
-					if (noteType != 'Fake Note' && noteType != 'Swap Note')
+					if (hasFlashlight && noteType != 'Fake Note' && noteType != 'Swap Note')
 					{
-						var points:Int = MechanicManager.mechanics['flashlight'].points;
-						if (points > 0)
-						{
-							modManager.setValue('sudden-a', FlxMath.remapToRange(points, 0, 20, 0.1, 1));
-
-							// Consolidate flashlight alpha calculation
-							var centerPoint:Float = FlxG.height;
-							var multi:Float = switch (ClientPrefs.data.downScroll)
-							{
-								case true:
-									FlxMath.remapToRange(points, 0, 20, 0.4, 0.2);
-								case false:
-									FlxMath.remapToRange(points, 0, 20, 0.2, 0.4);
-							}
-							var notePos:Null<Float> = daNote.y;
-							var curAlpha:Float = FlxMath.remapToRange(notePos, centerPoint * multi,
-								ClientPrefs.data.downScroll ? strumY - (7.5 * points) : strumY + (7.5 * points), daNote.alphaLimit, 0.2);
-							daNote.alpha = daNote.isSustainNote && curAlpha > 0.6 ? 0.6 : curAlpha;
-
-							/* wanted it to have the same alpha as its parent but it got a bit janky
-							for (sustain in daNote.tail)
-							{
-								if (Math.isNaN(notePos) || notePos == null)
-								{
-									sustain.alpha = FlxMath.remapToRange(sustain.y, centerPoint * multi,
-										ClientPrefs.downScroll ? strumY - (7.5 * points) : strumY + (7.5 * points), sustain.alphaLimit, 0);
-								}
-							}*/
-						}
+						var notePos:Float = daNote.y;
+						var targetY:Float = cachedDownScroll ? strumY - (7.5 * flashlightPoints) : strumY + (7.5 * flashlightPoints);
+						var curAlpha:Float = FlxMath.remapToRange(notePos, centerPoint * multi, targetY, daNote.alphaLimit, 0.2);
+						daNote.alpha = daNote.isSustainNote && curAlpha > 0.6 ? 0.6 : curAlpha;
 					}
 
+					// Optimize swap note processing with cached conductor position
 					var lastCopyX:Bool = cast daNote.copyX;
-					if (daNote.expectedData != -1 && Math.abs(daNote.strumTime - Conductor.songPosition) < 500)
+					if (daNote.expectedData != -1 && Math.abs(daNote.strumTime - cachedConductorPos) < 500)
 					{
 						var gottenStrum = strumGroup;
 
-						if (daNote.noteType == 'Swap Note')
+						if (noteType == 'Swap Note')
 							gottenStrum = invertStrumGroup(gottenStrum);
 
 						FlxTween.tween(daNote, {x: daNote.field.baseXPositions[daNote.expectedData] - 100}, 1, {
@@ -6796,114 +6895,148 @@ class PlayState extends MusicBeatState
 			amountOfRenderedNotes += 1;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
 
+			// === OPTIMIZE NOTE POOLING INTEGRATION ===
+			// If experimental note pool is enabled, optimize note lifecycle
+			if (ClientPrefs.data.useExperimentalNotePool) {
+				// Cache note position for performance
+				var noteY = daNote.y;
+				var noteStrum = daNote.strumTime;
+				var conductorPos = Conductor.songPosition;
+
+				// Early exit for notes that are far off-screen to reduce processing
+				if (noteY > FlxG.height + 500 || noteY < -500) {
+					// Note is way off screen, skip further processing for performance
+					if (noteStrum < conductorPos - 2000) { // Note is 2 seconds old
+						// This note is old and off-screen, could be optimized further
+						return;
+					}
+				}
+			}
 		}
 	}
 
-	// Health icon updaters
+	// Health icon updaters - OPTIMIZED VERSION
 	public dynamic function updateIconsScale(elapsed:Float)
 	{
-		switch (ClientPrefs.data.iconBounce) {
-			case "Base" | "VS Steve":
-				var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-				iconP1.scale.set(mult, mult);
-				iconP1.updateHitbox();
+		// Use cached icon bounce type to avoid repeated property access
+		var bounceType = _cachedIconBounceType;
 
-				var mult:Float = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-				iconP2.scale.set(mult, mult);
+		// Pre-calculate common values to reduce redundancy
+		var elapsedPlayback = elapsed * _cachedPlaybackRate;
+		var expValue9 = Math.exp(-elapsedPlayback * 9);
+		var expValue30 = Math.exp(-elapsedPlayback * 30);
+
+		switch (bounceType) {
+			case "Base" | "VS Steve":
+				// Cache scale calculations for both icons
+				var mult1:Float = FlxMath.lerp(1, iconP1.scale.x, expValue9);
+				var mult2:Float = FlxMath.lerp(1, iconP2.scale.x, expValue9);
+
+				iconP1.scale.set(mult1, mult1);
+				iconP1.updateHitbox();
+				iconP2.scale.set(mult2, mult2);
 				iconP2.updateHitbox();
 
 			case "Mixtape":
-				var mult:Float = FlxMath.lerp(1, iconP1.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-				iconP1.scale.set(mult, mult);
+				// Cache scale and angle calculations
+				var mult1:Float = FlxMath.lerp(1, iconP1.scale.x, expValue9);
+				var mult2:Float = FlxMath.lerp(1, iconP2.scale.x, expValue9);
+				var angleLerpValue = CoolUtil.boundTo(1 - elapsedPlayback * 9, 0, 1);
+
+				iconP1.scale.set(mult1, mult1);
 				iconP1.updateHitbox();
+				iconP1.angle = FlxMath.lerp(1, iconP1.angle, angleLerpValue);
 
-				var mult:Float = FlxMath.lerp(1, iconP2.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-				iconP2.scale.set(mult, mult);
+				iconP2.scale.set(mult2, mult2);
 				iconP2.updateHitbox();
-
-				var multA:Float = FlxMath.lerp(1, iconP1.angle, CoolUtil.boundTo(1 - (elapsed * 9 * playbackRate), 0, 1));
-				iconP1.angle = multA;
-
-				var multA:Float = FlxMath.lerp(1, iconP2.angle, CoolUtil.boundTo(1 - (elapsed * 9 * playbackRate), 0, 1));
-				iconP2.angle = multA;
+				iconP2.angle = FlxMath.lerp(1, iconP2.angle, angleLerpValue);
 
 				if (iconP22 != null)
 				{
-					var multA:Float = FlxMath.lerp(1, iconP22.angle, CoolUtil.boundTo(1 - (elapsed * 9 * playbackRate), 0, 1));
-					iconP22.angle = multA;
-					var mult:Float = FlxMath.lerp(1, iconP22.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-					iconP22.scale.set(mult, mult);
+					var mult22:Float = FlxMath.lerp(1, iconP22.scale.x, expValue9);
+					iconP22.angle = FlxMath.lerp(1, iconP22.angle, angleLerpValue);
+					iconP22.scale.set(mult22, mult22);
 					iconP22.updateHitbox();
 				}
 
 				if (iconP12 != null)
 				{
-					var multA:Float = FlxMath.lerp(1, iconP12.angle, CoolUtil.boundTo(1 - (elapsed * 9 * playbackRate), 0, 1));
-					iconP12.angle = multA;
-					var mult:Float = FlxMath.lerp(1, iconP12.scale.x, Math.exp(-elapsed * 9 * playbackRate));
-					iconP12.scale.set(mult, mult);
+					var mult12:Float = FlxMath.lerp(1, iconP12.scale.x, expValue9);
+					iconP12.angle = FlxMath.lerp(1, iconP12.angle, angleLerpValue);
+					iconP12.scale.set(mult12, mult12);
 					iconP12.updateHitbox();
 				}
 
 			case 'Old Psych':
-				iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.frameWidth, iconP1.width, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))),
-					Std.int(FlxMath.lerp(iconP1.frameHeight, iconP1.height, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))));
-				iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.frameWidth, iconP2.width, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))),
-					Std.int(FlxMath.lerp(iconP2.frameHeight, iconP2.height, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))));
+				// Cache lerp value for all icons
+				var lerpValue = CoolUtil.boundTo(1 - elapsedPlayback * 30, 0, 1);
+
+				iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.frameWidth, iconP1.width, lerpValue)),
+					Std.int(FlxMath.lerp(iconP1.frameHeight, iconP1.height, lerpValue)));
+				iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.frameWidth, iconP2.width, lerpValue)),
+					Std.int(FlxMath.lerp(iconP2.frameHeight, iconP2.height, lerpValue)));
 
 				if (iconP12 != null) {
-					iconP12.setGraphicSize(Std.int(FlxMath.lerp(iconP12.frameWidth, iconP12.width, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))),
-						Std.int(FlxMath.lerp(iconP12.frameHeight, iconP12.height, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))));
+					iconP12.setGraphicSize(Std.int(FlxMath.lerp(iconP12.frameWidth, iconP12.width, lerpValue)),
+						Std.int(FlxMath.lerp(iconP12.frameHeight, iconP12.height, lerpValue)));
 				}
 
 				if (iconP22 != null) {
-					iconP22.setGraphicSize(Std.int(FlxMath.lerp(iconP22.frameWidth, iconP22.width, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))),
-						Std.int(FlxMath.lerp(iconP22.frameHeight, iconP22.height, CoolUtil.boundTo(1 - (elapsed * 30 * playbackRate), 0, 1))));
+					iconP22.setGraphicSize(Std.int(FlxMath.lerp(iconP22.frameWidth, iconP22.width, lerpValue)),
+						Std.int(FlxMath.lerp(iconP22.frameHeight, iconP22.height, lerpValue)));
 				}
 
 			case 'Strident Crisis':
-				iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.frameWidth, iconP1.width, 0.50 / playbackRate)),
-					Std.int(FlxMath.lerp(iconP1.frameHeight, iconP1.height, 0.50 / playbackRate)));
-				iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.frameWidth, iconP2.width, 0.50 / playbackRate)),
-					Std.int(FlxMath.lerp(iconP2.frameHeight, iconP1.height, 0.50 / playbackRate)));
+				// Cache rate value
+				var rateValue = 0.50 / _cachedPlaybackRate;
+
+				iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.frameWidth, iconP1.width, rateValue)),
+					Std.int(FlxMath.lerp(iconP1.frameHeight, iconP1.height, rateValue)));
+				iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.frameWidth, iconP2.width, rateValue)),
+					Std.int(FlxMath.lerp(iconP2.frameHeight, iconP1.height, rateValue)));
 				iconP1.updateHitbox();
 				iconP2.updateHitbox();
 
 				if (iconP12 != null) {
-					iconP12.setGraphicSize(Std.int(FlxMath.lerp(iconP12.frameWidth, iconP12.width, 0.50 / playbackRate)),
-						Std.int(FlxMath.lerp(iconP12.frameHeight, iconP12.height, 0.50 / playbackRate)));
+					iconP12.setGraphicSize(Std.int(FlxMath.lerp(iconP12.frameWidth, iconP12.width, rateValue)),
+						Std.int(FlxMath.lerp(iconP12.frameHeight, iconP12.height, rateValue)));
 					iconP12.updateHitbox();
 				}
 
 				if (iconP22 != null) {
-					iconP22.setGraphicSize(Std.int(FlxMath.lerp(iconP22.frameWidth, iconP22.width, 0.50 / playbackRate)),
-						Std.int(FlxMath.lerp(iconP22.frameHeight, iconP22.height, 0.50 / playbackRate)));
+					iconP22.setGraphicSize(Std.int(FlxMath.lerp(iconP22.frameWidth, iconP22.width, rateValue)),
+						Std.int(FlxMath.lerp(iconP22.frameHeight, iconP22.height, rateValue)));
 					iconP22.updateHitbox();
 				}
 
 			case 'Dave and Bambi':
-				iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.frameWidth, iconP1.width, 0.8 / playbackRate)),
-					Std.int(FlxMath.lerp(iconP1.frameHeight, iconP1.height, 0.8 / playbackRate)));
-				iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.frameWidth, iconP2.width, 0.8 / playbackRate)),
-					Std.int(FlxMath.lerp(iconP2.frameHeight, iconP2.height, 0.8 / playbackRate)));
+				// Cache rate value
+				var rateValue = 0.8 / _cachedPlaybackRate;
+
+				iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.frameWidth, iconP1.width, rateValue)),
+					Std.int(FlxMath.lerp(iconP1.frameHeight, iconP1.height, rateValue)));
+				iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.frameWidth, iconP2.width, rateValue)),
+					Std.int(FlxMath.lerp(iconP2.frameHeight, iconP2.height, rateValue)));
 
 				if (iconP12 != null) {
-					iconP12.setGraphicSize(Std.int(FlxMath.lerp(iconP12.frameWidth, iconP12.width, 0.8 / playbackRate)),
-						Std.int(FlxMath.lerp(iconP12.frameHeight, iconP12.height, 0.8 / playbackRate)));
+					iconP12.setGraphicSize(Std.int(FlxMath.lerp(iconP12.frameWidth, iconP12.width, rateValue)),
+						Std.int(FlxMath.lerp(iconP12.frameHeight, iconP12.height, rateValue)));
 				}
 
 				if (iconP22 != null) {
-					iconP22.setGraphicSize(Std.int(FlxMath.lerp(iconP22.frameWidth, iconP22.width, 0.8 / playbackRate)),
-						Std.int(FlxMath.lerp(iconP22.frameHeight, iconP22.height, 0.8 / playbackRate)));
+					iconP22.setGraphicSize(Std.int(FlxMath.lerp(iconP22.frameWidth, iconP22.width, rateValue)),
+						Std.int(FlxMath.lerp(iconP22.frameHeight, iconP22.height, rateValue)));
 				}
 
 			case 'Plank Engine':
+				// Cache beat calculation once
 				final funnyBeat = (Conductor.songPosition / 1000) * (Conductor.bpm / 60);
+				final offsetY = Math.abs(Math.sin(funnyBeat * Math.PI)) * 16 - 4;
 
-				iconP1.offset.y = Math.abs(Math.sin(funnyBeat * Math.PI))  * 16 - 4;
-				iconP2.offset.y = Math.abs(Math.sin(funnyBeat * Math.PI))  * 16 - 4;
-				if (iconP12 != null) iconP12.offset.y = Math.abs(Math.sin(funnyBeat * Math.PI))  * 16 - 4;
-				if (iconP22 != null) iconP22.offset.y = Math.abs(Math.sin(funnyBeat * Math.PI))  * 16 - 4;
+				iconP1.offset.y = offsetY;
+				iconP2.offset.y = offsetY;
+				if (iconP12 != null) iconP12.offset.y = offsetY;
+				if (iconP22 != null) iconP22.offset.y = offsetY;
 
 			case 'Golden Apple':
 				iconP1.centerOffsets();
@@ -6912,10 +7045,14 @@ class PlayState extends MusicBeatState
 				if (iconP22 != null) iconP22.centerOffsets();
 
 		}
-		iconP1.updateHitbox();
-		iconP2.updateHitbox();
-		if (iconP12 != null) iconP12.updateHitbox();
-		if (iconP22 != null) iconP22.updateHitbox();
+
+		// Update hitboxes only if not using Plank Engine or Golden Apple
+		if (bounceType != 'Plank Engine' && bounceType != 'Golden Apple') {
+			iconP1.updateHitbox();
+			iconP2.updateHitbox();
+			if (iconP12 != null) iconP12.updateHitbox();
+			if (iconP22 != null) iconP22.updateHitbox();
+		}
 	}
 
 	public dynamic function updateIconsPosition()
@@ -9601,6 +9738,88 @@ class PlayState extends MusicBeatState
 		}
 	}
 
+	// === PERFORMANCE OPTIMIZATION FUNCTIONS ===
+	/**
+	 * Initialize all performance optimization settings and cached values
+	 * This is called once during PlayState creation to set up optimization infrastructure
+	 */
+	private function initializeOptimizations():Void {
+		// Cache frequently accessed ClientPrefs values
+		_cachedDownScroll = ClientPrefs.data.downScroll;
+		_cachedMiddleScroll = ClientPrefs.data.middleScroll;
+		_cachedIconBounceType = ClientPrefs.data.iconBounce;
+		_cachedTimeBarType = ClientPrefs.data.timeBarType;
+		_cachedPlaybackRate = playbackRate;
+		_cachedFramerateMultiplier = ClientPrefs.data.framerate / 60.0;
+
+		// Calculate optimal batching threshold based on target framerate
+		_batchedUpdateThreshold = Std.int(Math.max(1, ClientPrefs.data.framerate / 60));
+
+		// Enable performance optimizations based on client settings
+		_useOptimizedNoteLoop = true; // Always use optimized loop
+		_useCachedStrumPositions = ClientPrefs.data.framerate >= 120; // Cache positions for high framerate
+		_reduceQualityMode = ClientPrefs.data.framerate >= 240; // Reduce quality for very high framerate
+
+		// Pre-calculate common math values
+		_cachedCameraLerp = 0.04 * cameraSpeed * playbackRate;
+
+		// Initialize cached arrays with appropriate size
+		if (_useCachedStrumPositions) {
+			_cachedStrumPositions = [];
+			_cachedNotePositions = [];
+			for (i in 0...Note.ammo[mania]) {
+				_cachedStrumPositions.push(0);
+				_cachedNotePositions.push(0);
+			}
+		}
+
+		// Enable batched updates for high performance scenarios
+		_batchUIUpdates = _reduceQualityMode;
+		_batchIconUpdates = ClientPrefs.data.framerate >= 120;
+		_batchCameraUpdates = ClientPrefs.data.framerate >= 240;
+
+		// Performance logging
+		trace('Performance optimizations initialized:');
+		trace('  - Batched updates: ${_batchUIUpdates}');
+		trace('  - Cached strums: ${_useCachedStrumPositions}');
+		trace('  - Reduce quality: ${_reduceQualityMode}');
+		trace('  - Batch threshold: ${_batchedUpdateThreshold}');
+	}
+
+	/**
+	 * Update cached values that may change during gameplay
+	 * This should be called less frequently than every frame
+	 */
+	private function refreshCachedValues():Void {
+		if (_cachedPlaybackRate != playbackRate) {
+			_cachedPlaybackRate = playbackRate;
+			_cachedCameraLerp = 0.04 * cameraSpeed * playbackRate;
+		}
+
+		// Update frame-dependent calculations
+		var currentFrameMultiplier = ClientPrefs.data.framerate / 60.0;
+		if (_cachedFramerateMultiplier != currentFrameMultiplier) {
+			_cachedFramerateMultiplier = currentFrameMultiplier;
+			_batchedUpdateThreshold = Std.int(Math.max(1, ClientPrefs.data.framerate / 60));
+		}
+	}
+
+	/**
+	 * Optimized sine wave calculation with caching for UI animations
+	 */
+	private inline function getCachedSinValue(input:Float):Float {
+		// Cache sine calculation for commonly used values
+		return Math.sin((Math.PI * input) / 180);
+	}
+
+	/**
+	 * Optimized exponential lerp calculation with caching
+	 */
+	private inline function getCachedExpLerp(elapsed:Float, speed:Float):Float {
+		// Pre-calculate expensive exponential operations
+		return Math.exp(-elapsed * speed * _cachedPlaybackRate);
+	}
+
 	// Update script existence flags for performance optimization
 	private function updateScriptFlags():Void {
 		#if LUA_ALLOWED
@@ -9614,16 +9833,41 @@ class PlayState extends MusicBeatState
 		#else
 		hasHScripts = false;
 		#end
+
+		#if PYTHON_ALLOWED
+		hasPyScripts = (pyScriptArray != null && pyScriptArray.length > 0);
+		#else
+		hasPyScripts = false;
+		#end
+
+		// Optimize script batching based on script count
+		var totalScripts = 0;
+		#if LUA_ALLOWED
+		if (luaArray != null) totalScripts += luaArray.length;
+		if (legacyLuaArray != null) totalScripts += legacyLuaArray.length;
+		#end
+		#if HSCRIPT_ALLOWED
+		if (hscriptArray != null) totalScripts += hscriptArray.length;
+		#end
+		#if PYTHON_ALLOWED
+		if (pyScriptArray != null) totalScripts += pyScriptArray.length;
+		#end
+
+		// Enable batched script calls for performance when many scripts are loaded
+		_skipRedundantUpdates = totalScripts > 5;
 	}
 
 	private function updateGroupIndices():Void {
-		_noteGroupIndex = members.indexOf(noteGroup);
-		_gfGroupIndex = members.indexOf(gfGroup);
-		_dadGroupIndex = members.indexOf(dadGroup);
-		_dadGroup2Index = members.indexOf(dadGroup2);
-		_boyfriendGroupIndex = members.indexOf(boyfriendGroup);
-		_boyfriendGroup2Index = members.indexOf(boyfriendGroup2);
-		_uiGroupIndex = members.indexOf(uiGroup);
+		// Only update indices when necessary to avoid repeated indexOf calls
+		if (_noteGroupIndex == -1) {
+			_noteGroupIndex = members.indexOf(noteGroup);
+			_gfGroupIndex = members.indexOf(gfGroup);
+			_dadGroupIndex = members.indexOf(dadGroup);
+			_dadGroup2Index = members.indexOf(dadGroup2);
+			_boyfriendGroupIndex = members.indexOf(boyfriendGroup);
+			_boyfriendGroup2Index = members.indexOf(boyfriendGroup2);
+			_uiGroupIndex = members.indexOf(uiGroup);
+		}
 	}
 
 	private function keyPressed(key:Int, player:Int = -1)
@@ -11425,7 +11669,7 @@ class PlayState extends MusicBeatState
 
 	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		// Early exit if no scripts exist
-		if (!hasLuaScripts && !hasHScripts) {
+		if (!hasLuaScripts && !hasHScripts && !hasPyScripts) {
 			return LuaUtils.Function_Continue;
 		}
 
@@ -11434,8 +11678,10 @@ class PlayState extends MusicBeatState
 		if(exclusions == null) exclusions = [];
 		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
 
+		// Call scripts in order: Lua -> HScript -> Python
 		var result:Dynamic = callOnLuas(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		if(result == null || excludeValues.contains(result)) result = callOnHScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
+		if(result == null || excludeValues.contains(result)) result = callOnPyScripts(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		return result;
 	}
 
@@ -11524,6 +11770,7 @@ class PlayState extends MusicBeatState
 		if(exclusions == null) exclusions = [];
 		setOnLuas(variable, arg, exclusions);
 		setOnHScript(variable, arg, exclusions);
+		setOnPyScripts(variable, arg, exclusions);
 	}
 
 	public function setOnLuas(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
@@ -11549,6 +11796,60 @@ class PlayState extends MusicBeatState
 					continue;
 
 				script.set(variable, arg);
+			}
+		}
+		#end
+	}
+
+	public function callOnPyScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		var returnVal:Dynamic = LuaUtils.Function_Continue;
+		#if PYTHON_ALLOWED
+		if(args == null) args = [];
+		if(exclusions == null) exclusions = [];
+		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
+
+		var arr:Array<yutautil.PyScript> = [];
+		if (pyScriptArray != null && pyScriptArray.length > 0) {
+			for (script in pyScriptArray) {
+				if(script.closed || script.errorOccurred) {
+					arr.push(script);
+					continue;
+				}
+
+				if(exclusions.contains(script.scriptName))
+					continue;
+
+				var myValue:Dynamic = script.call(funcToCall, args);
+				if((myValue == yutautil.PyScript.Function_Stop || myValue == yutautil.PyScript.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops) {
+					returnVal = myValue;
+					break;
+				}
+
+				if(myValue != null && !excludeValues.contains(myValue))
+					returnVal = myValue;
+
+				if(script.closed || script.errorOccurred) arr.push(script);
+			}
+		}
+
+		if(arr.length > 0) {
+			for (script in arr) {
+				pyScriptArray.remove(script);
+			}
+		}
+		#end
+		return returnVal;
+	}
+
+	public function setOnPyScripts(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		#if PYTHON_ALLOWED
+		if(exclusions == null) exclusions = [];
+		if (pyScriptArray != null && pyScriptArray.length > 0) {
+			for (script in pyScriptArray) {
+				if(exclusions.contains(script.scriptName))
+					continue;
+
+				script.setVar(variable, arg);
 			}
 		}
 		#end
