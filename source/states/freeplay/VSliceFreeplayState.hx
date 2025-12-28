@@ -663,7 +663,15 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		charSelectHint.alignment = CENTER;
 		charSelectHint.font = "5by7";
 		charSelectHint.color = 0xFF5F5F5F;
-		charSelectHint.text = 'You can\'t change characters lol';
+
+// Check if showcase mode is enabled, not in Archipelago mode, and warnings are enabled
+	if (ClientPrefs.getGameplaySetting('showcase', false) && !APEntryState.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
+			charSelectHint.text = '⚠️ SHOWCASE MODE ENABLED ⚠️';
+			charSelectHint.color = 0xFFFFFF00; // Yellow color for warning
+		} else {
+			charSelectHint.text = 'Press [CTRL] for Options';
+		}
+
 		charSelectHint.y -= 100;
 		FlxTween.tween(charSelectHint, {y: charSelectHint.y + 100}, 0.8, {ease: FlxEase.quartOut});
 
@@ -2925,7 +2933,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		#end
 	}
 
-	static var previousFilter:Null<SongFilter> = currentFilter;
+	static var previousFilter:Null<SongFilter> = null;
 
 	/**
 	 * Refresh and update all songs in the freeplay using the FreeplayManager's songList

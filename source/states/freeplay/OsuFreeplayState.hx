@@ -55,6 +55,10 @@ class OsuFreeplayState extends MusicBeatState
 	var ticketCounterTop:FlxText = null;
 	var ticketCounterBottom:FlxText = null;
 
+	// Showcase warning
+	var showcaseWarning:FlxText;
+	var showcaseWarningBG:FlxSprite;
+
 	var visual:AudioDisplay;
 	var vocalvisual:AudioDisplay = null;
 	var oppvisual:AudioDisplay = null;
@@ -185,6 +189,27 @@ class OsuFreeplayState extends MusicBeatState
 		albumPhoto.screenCenter(Y);
 		albumPhoto.y += 20;
 		add(albumPhoto);
+
+		// Initialize showcase warning
+		showcaseWarning = new FlxText(FlxG.width - 250, 150, 240, "", 16);
+		showcaseWarning.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.YELLOW, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		showcaseWarning.scrollFactor.set();
+		showcaseWarning.visible = false;
+
+		showcaseWarningBG = new FlxSprite(FlxG.width - 260, 140).makeGraphic(260, 80, FlxColor.BLACK);
+		showcaseWarningBG.alpha = 0.7;
+		showcaseWarningBG.scrollFactor.set();
+		showcaseWarningBG.visible = false;
+
+		add(showcaseWarningBG);
+		add(showcaseWarning);
+
+		// Check if showcase mode is enabled, not in Archipelago mode, and warnings are enabled
+		if (ClientPrefs.getGameplaySetting('showcase', false) && !APEntryState.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
+			showcaseWarning.text = "⚠️ SHOWCASE MODE\nENABLED";
+			showcaseWarning.visible = true;
+			showcaseWarningBG.visible = true;
+		}
 
 		WeekData.setDirectoryFromWeek();
 

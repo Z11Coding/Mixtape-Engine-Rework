@@ -198,6 +198,7 @@ import states.TitleState;
 	public var freeplaySongPreviews:Bool = true;
 	public var showMods:Bool = false;
 	public var checkAPWorld:Bool = true;
+	public var showcaseWarnings:Bool = true; // Show warnings when showcase mode is active
 	public var skipMode:String = 'First Note';
 	public var skipWhen:String = 'Freeplay';
 	public var audioDisplayQuality:Int = 1;

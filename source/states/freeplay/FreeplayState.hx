@@ -121,6 +121,10 @@ class FreeplayState extends MusicBeatState
 	var albumPhoto:FlxSprite;
 	var difficultyStars:DifficultyStars;
 
+	// Showcase warning
+	var showcaseWarning:FlxText;
+	var showcaseWarningBG:FlxSprite;
+
 	public var fpManager:FreeplayManager;
 	override function create()
 	{
@@ -271,6 +275,26 @@ class FreeplayState extends MusicBeatState
 
 		rank.alpha = 0;
 
+		// Initialize showcase warning
+		showcaseWarning = new FlxText(FlxG.width - 250, 150, 240, "", 16);
+		showcaseWarning.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.YELLOW, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		showcaseWarning.scrollFactor.set();
+		showcaseWarning.visible = false;
+
+		showcaseWarningBG = new FlxSprite(FlxG.width - 260, 140).makeGraphic(260, 80, FlxColor.BLACK);
+		showcaseWarningBG.alpha = 0.7;
+		showcaseWarningBG.scrollFactor.set();
+		showcaseWarningBG.visible = false;
+
+		add(showcaseWarningBG);
+		add(showcaseWarning);
+
+		// Check if showcase mode is enabled, not in Archipelago mode, and warnings are enabled
+		if (ClientPrefs.getGameplaySetting('showcase', false) && !APEntryState.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
+			showcaseWarning.text = "⚠️ SHOWCASE MODE\nENABLED";
+			showcaseWarning.visible = true;
+			showcaseWarningBG.visible = true;
+		}
 
 		missingTextBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		missingTextBG.alpha = 0.6;

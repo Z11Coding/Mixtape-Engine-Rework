@@ -1534,7 +1534,7 @@ class PlayState extends MusicBeatState
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
 		botplayTxt.borderSize = 1.25;
-		botplayTxt.visible = (cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || practiceMode || instakillOnMiss || opponentmode || bothMode || playAsGF);
+		botplayTxt.visible = (cpuControlled || practiceMode || instakillOnMiss || opponentmode || bothMode || playAsGF);
 		uiGroup.add(botplayTxt);
 		if(ClientPrefs.data.downScroll)
 			botplayTxt.y = healthBar.y + 70;
