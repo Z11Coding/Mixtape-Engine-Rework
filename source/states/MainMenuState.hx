@@ -1,10 +1,6 @@
 package states;
 
-#if ARCHIPELAGO_ALLOWED
-import archipelago.APGameState;
-import archipelago.APVersionSelectionState;
-#end
-
+import backend.Version;
 import flixel.FlxObject;
 import flixel.addons.display.FlxBackdrop;
 import flixel.effects.FlxFlicker;
@@ -13,6 +9,11 @@ import lime.app.Application;
 import options.OptionsState;
 import states.DebugStateMenu;
 import states.editors.MasterEditorMenu;
+#if ARCHIPELAGO_ALLOWED
+import archipelago.APGameState;
+import archipelago.APVersionSelectionState;
+#end
+
 
 enum MainMenuColumn {
 	LEFT;
@@ -248,7 +249,7 @@ class MainMenuState extends MusicBeatState
 		fnfVer.scrollFactor.set();
 		fnfVer.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(fnfVer);
-		var mixVer:FlxText = new FlxText(fnfVer.width + 12, FlxG.height - 24, 0, "Mixtape Engine v" + mixtapeEngineVersion, 12);
+		var mixVer:FlxText = new FlxText(fnfVer.width + 12, FlxG.height - 24, 0, "Mixtape Engine " + Version.getVersionString(true) + '(Internal: v$mixtapeEngineVersion)', 12);
 		mixVer.scrollFactor.set();
 		mixVer.setFormat(Paths.font("comboFont.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(mixVer);
@@ -259,9 +260,9 @@ class MainMenuState extends MusicBeatState
 		changeItem();
 
 		#if !debug
-		mixVer.text = "Mixtape Engine v" + mixtapeEngineVersion;
+		mixVer.text = "Mixtape Engine " + Version.getVersionString(true);
 		#else
-		mixVer.text = "Mixtape Engine v" + mixtapeEngineVersion + ' (debug)';
+		mixVer.text = "Mixtape Engine " + Version.getVersionString(true) + ' (debug)';
 		#end
 
 		if (ClientPrefs.data.username)
