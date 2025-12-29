@@ -43,6 +43,13 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 		};
 		addOption(option);
 
+		var noticeStyleOption:Option = new Option('Notice Style',
+			"Choose the style of popup notifications for Archipelago items.\nNotification: Simple alert dialog\nAchievement: Psych Achievement-style popup",
+			'apNoticeStyle',
+			STRING,
+			["Notification", "Achievement"]);
+		addOption(noticeStyleOption);
+
 		var flip:Option = new Option('Flip Screen',
 			"if checked, the screen will be flipped upside down.\nWARNING: THIS MAY CAUSE ISSUES WITH THE GAME.",
 			'flipScreen',

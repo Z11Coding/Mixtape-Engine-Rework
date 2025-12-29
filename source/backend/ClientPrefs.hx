@@ -95,6 +95,7 @@ import states.TitleState;
 	public var setupCompleted:Bool = false;
 	public var setupSkipped:Bool = false;
 	public var setupArchipelagoMode:Bool = false;
+	public var apNoticeStyle:String = 'Notification';
 	public var loadingState:String = 'Song Only';
 	public var loadingScreenTheme:String = 'Mixtape';
 	public var chartPreload:String = 'Off';

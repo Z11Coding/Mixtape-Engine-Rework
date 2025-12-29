@@ -216,9 +216,14 @@ class APItem {
 
     public static function popup(desc:String, ?title:String, ?isWhite:Bool = false):Void {
         if (!APGameState.haventranyet) {
-            archipelago.console.obj.Alert.alert(title != null ? title : "AP Item!", desc, function() {trace("why did you click it lol?");}); //Gonna try something new
-            //archipelago.ArchPopup.startPopupCustom(title != null ? title : "AP Item!", desc, isWhite ? "archWhite" : "archColor", function() {
-            //FlxG.sound.playMusic(Paths.sound('secret'));});
+            if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
+                archipelago.ArchPopup.startPopupCustom(title != null ? title : "AP Item!", desc, isWhite ? "archWhite" : "archColor", function() {
+                    FlxG.sound.playMusic(Paths.sound('secret'));
+                });
+            } else {
+                // Default to Notification style
+                archipelago.console.obj.Alert.alert(title != null ? title : "AP Item!", desc, function() {trace("why did you click it lol?");});
+            }
         }
     }
 
