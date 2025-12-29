@@ -2,10 +2,10 @@ package yutautil.typeregistry;
 
 /**
  * Auto-generated type collection data accessor
- * Generated at: 2025-12-29 16:18:07
+ * Generated at: 2025-12-29 16:21:13
  */
 class TypeCollectionAccessor {
-    public static var buildTimestamp:Float = 1.767042965e+012;
+    public static var buildTimestamp:Float = 1.767043092e+012;
     public static var targetPlatform:String = "cpp";
     public static var classCount:Int = 977;
     public static var abstractCount:Int = 542;

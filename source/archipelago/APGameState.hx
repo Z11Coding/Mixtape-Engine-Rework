@@ -1972,6 +1972,9 @@ class APGameState
 			if (info().casualSync && APInfo.ticketCount != result.tickets)
 			{
 				APInfo.ticketCount = result.tickets;
+			} else if (!info().casualSync)
+			{
+				APInfo.ticketCount += result.tickets;
 			}
 
 			// Apply items in order
@@ -1998,7 +2001,7 @@ class APGameState
 				archipelago.APItem.popup("Error", "You need to wait for all of the data to load, silly!", true);
 			}
 
-			archipelago.APInfo.ticketCount = result.tickets;
+			// archipelago.APInfo.ticketCount = result.tickets;
 
 			// Save state after everything is applied
 			trace("AP State Saving...");
