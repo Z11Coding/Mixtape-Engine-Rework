@@ -1999,6 +1999,7 @@ class PlayState extends MusicBeatState
 
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
+		Paths.nukeMemory(true); // LIGHTLY nuke everything
 	}
 
 	// Some small stuff from PlusEngine
@@ -10997,6 +10998,8 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		FlxG.camera.bgColor = 0xFF000000; // to fix mods that like to change its color (looking at you, 17bucks)
+
 		if (psychlua.CustomSubstate.instance != null)
 		{
 			closeSubState();
@@ -11226,6 +11229,7 @@ class PlayState extends MusicBeatState
 			clientSaveData = null;
 		}
 		trace("Done destroy.");
+		Paths.nukeMemory(true); // LIGHTLY nuke everything
 	}
 
 	var lastStepHit:Int = -1;

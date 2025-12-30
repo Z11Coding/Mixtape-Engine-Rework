@@ -183,11 +183,11 @@ class APPlayState extends PlayState {
 
             for (entry in APFreeplayManager.curUnlocked)
             {
-            if (entry.song == currentSong && entry.mod == currentMod)
-            {
-                found = true;
-                break;
-            }
+                if (entry.song == currentSong && entry.mod == currentMod)
+                {
+                    found = true;
+                    break;
+                }
             }
 
             // If song is unlocked, also check if required characters and stage are unlocked via sanity system
@@ -201,6 +201,7 @@ class APPlayState extends PlayState {
             }
 
             if (!found) {
+                trace('APPlayState: Song $currentSong in mod $currentMod is not unlocked. Missing items: ' + missingItems.join(", "));
                 songNotUnlocked = true;
                 // Store missing items for later use in startCountdown
                 this.missingItems = missingItems;
@@ -290,6 +291,22 @@ class APPlayState extends PlayState {
         {
             if (!func.keepOnRestart && (func.activated != null && func.activated)) updateFunctions.remove(func);
         }
+
+        filterMap = [
+            "Grayscale" => {
+                var matrix:Array<Float> = [
+                    0.5, 0.5, 0.5, 0, 0,
+                    0.5, 0.5, 0.5, 0, 0,
+                    0.5, 0.5, 0.5, 0, 0,
+                        0,   0,   0, 1, 0,
+                ];
+
+                {filter: new ColorMatrixFilter(matrix)}
+            },
+            "BlurLittle" => {
+                filter: new BlurFilter()
+            }
+        ];
 
         effectMap = [
             'colorblind' => function() {
@@ -1508,22 +1525,6 @@ class APPlayState extends PlayState {
 			controlButtons.push(StringTools.trim(thing).toLowerCase());
 		}*/
 
-        filterMap = [
-            "Grayscale" => {
-                var matrix:Array<Float> = [
-                    0.5, 0.5, 0.5, 0, 0,
-                    0.5, 0.5, 0.5, 0, 0,
-                    0.5, 0.5, 0.5, 0, 0,
-                        0,   0,   0, 1, 0,
-                ];
-
-                {filter: new ColorMatrixFilter(matrix)}
-            },
-            "BlurLittle" => {
-                filter: new BlurFilter()
-            }
-        ];
-
         super.create();
 
         if (FlxG.save.data.songPos != 0 && !FlxG.save.data.manualOverride)
@@ -1546,6 +1547,9 @@ class APPlayState extends PlayState {
 
         errorMessages.cameras = [camOther];
 		add(errorMessages);
+
+        aliveVideos.cameras = [camOther];
+        add(errorMessages);
 
         for (i in 0...PlayState.mania + 1) {
 			severInputs.push(false);
@@ -1839,15 +1843,11 @@ class APPlayState extends PlayState {
             return;
         }
 
-        try {
-            if (effectMap.exists(effect)) {
+        if (effectMap.exists(effect)) {
             effectMap.get(effect)();
             trace('running effect: $effect');
-            } else {
+        } else {
             trace("Effect not found: " + effect);
-            }
-        } catch (e:Dynamic) {
-            trace("Error while executing effect: " + effect + " - " + e);
         }
     }
 
@@ -2404,10 +2404,12 @@ class APPlayState extends PlayState {
             lowpassVocal = new FlxSoundFilter();
 			lowpassVocal.filterType = FlxSoundFilterType.LOWPASS;
 			add(lowpassVocal);
+        }
 
-            lowpass.applyFilter(FlxG.sound.music);
-            lowpassVocal.applyFilter(vocals);
-            lowpassVocal.applyFilter(opponentVocals);
+        if (lowpass != null) lowpass.applyFilter(FlxG.sound.music);
+        if (lowpassVocal != null) {
+            if (vocals != null && vocals.length > 0) lowpassVocal.applyFilter(vocals);
+            if (opponentVocals != null && opponentVocals.length > 0) lowpassVocal.applyFilter(opponentVocals);
         }
 
         #if cpp

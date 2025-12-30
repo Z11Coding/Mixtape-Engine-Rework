@@ -82,16 +82,19 @@ class MainTab extends TabSprite {
 		updateMessages();
 	}
 
+	static var id:Int = 0;
 	public static function addMessage(raw:Dynamic) {
 		var data = CoolUtil.parseLog(raw);
+		var instance:MainTab = cast SideUI.instance.curTab;
 
-		var msg:FlxText = new FlxText(0, 0, 270, 'TEST!!!', 15);
+		var msg:FlxText = new FlxText(0, (50*id), Std.int(instance.widthTab), data.content, 15);
 		msg.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
 		msg.wordWrap = true;
-		drawTextAt(msg, data.content, 0, 0);
+		msg.ID = id;
 		messages.unshift(msg);
 
 		updateMessages();
+		id++;
 	}
 
 	public static function updateMessages() {
@@ -173,9 +176,9 @@ class MainTab extends TabSprite {
 		Cursor.hide();
 	}
 
+	static var bitmaps:Array<BitmapData> = [];
 	static function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float)
 	{
-		var bitmaps:Array<BitmapData> = [];
 		var instance:MainTab = cast SideUI.instance.curTab;
 
 		text.text = str;
@@ -185,6 +188,24 @@ class MainTab extends TabSprite {
 		bitmaps.push(clonedBitmap);
 		instance?.graphics.beginBitmapFill(clonedBitmap, new Matrix(1, 0, 0, 1, textX, textY), false, false);
 		instance?.graphics.drawRect(textX, textY, text.width + textX, text.height + textY);
+	}
+
+	function deleteClonedBitmaps()
+	{
+		for (clonedBitmap in bitmaps)
+		{
+			if(clonedBitmap != null)
+			{
+				clonedBitmap.dispose();
+				clonedBitmap.disposeImage();
+			}
+		}
+		bitmaps = null;
+	}
+
+	public function destroy()
+	{
+		deleteClonedBitmaps();
 	}
 
 }
