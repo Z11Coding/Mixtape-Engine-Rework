@@ -507,7 +507,7 @@ class APStyledEntryState extends MusicBeatState {
         pageIndicator.text = 'CONNECTION';
 
         // Set title color
-        titleText.color = page.color;
+        //titleText.color = page.color;
         if (glowEffect != null) {
             glowEffect.color = page.color;
         }
@@ -638,6 +638,7 @@ class APStyledEntryState extends MusicBeatState {
         FNF.destroy();
     }
 
+    var a:Int = 0;
     override function update(elapsed:Float) {
         super.update(elapsed);
 
@@ -652,9 +653,10 @@ class APStyledEntryState extends MusicBeatState {
         // Handle mouse clicks
         handleMouseInput();
 
+        a++; //without this the rambow effect just doesn't work. At all. No idea why.
         // Update visual effects (similar to original APEntryState)
-        var e = Std.int(elapsed * 60 * 2); // Convert to frame-based
-        titleText.color = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
+        var e = Std.int(a * 60 / 2); // Convert to frame-based
+        titleText.color = FlxColor.fromHSL(((a / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
 
         // Audio filter effect
         if(FlxG.sound.music != null && FlxG.sound.music.playing) {

@@ -239,7 +239,6 @@ class Paths
 	}
 
 	// The "If All Else Fails" option
-	// The "If All Else Fails" option
 	public static function nukeMemory(?useAlt:Bool = false){
 		if (useAlt) {
 			clearStoredWithoutStickers();

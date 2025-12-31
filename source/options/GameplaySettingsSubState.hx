@@ -59,6 +59,12 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		'bool');
 		addOption(option);
 
+		var option:Option = new Option('Naughtyness',
+			"If checked, gives you the raw funky friday we know you came here for" + (if (FlxG.random.bool(0.1)) "...\n\n(weirdo)" else ""),
+			'naughtyness',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Modchart Debug Info',
 		'If checked, shows debug information for modcharts\n(strum coordinates, song position, steps, beats, sections)\nin the top-right corner.',
 		'modchartDebugInfo',
