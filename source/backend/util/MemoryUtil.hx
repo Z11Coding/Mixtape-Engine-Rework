@@ -1,5 +1,6 @@
 package backend.util;
 
+import backend.GarbageController;
 import backend.window.os.HiddenProcess;
 import openfl.system.System;
 
@@ -34,7 +35,13 @@ class MemoryUtil {
 
 	public static function init() {
 		#if (cpp || hl)
-		Gc.enable(ClientPrefs.data.garbageCollection);
+		// Initialize GarbageController which handles experimental mode
+		GarbageController.init();
+
+		// Only set standard GC if not in experimental mode
+		if (!GarbageController.isExperimentalMode()) {
+			Gc.enable(ClientPrefs.data.garbageCollection);
+		}
 		#end
 	}
 

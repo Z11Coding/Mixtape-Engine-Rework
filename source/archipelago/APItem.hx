@@ -1894,10 +1894,67 @@ class APItem {
         if (this.isTrap && !this.fromTrapLink) {
             var trapName = this.name;
             if (this is APChartModifier) {
-                trapName = "Chart Modifier Trap (" + cast (this, APChartModifier).chartModifier + ")";
+                // Get all games from the DataPackage stored in APGameState
+                var gamePackages = archipelago.APGameState.currentPackages;
+                var fnfGames:Array<String> = [];
+                var nonFNFGames:Array<String> = [];
+
+                for (gameName in gamePackages.keys()) {
+                    // Check if this is the exact FNF game name that the Client expects
+                    if (gameName == "Friday Night Funkin") {
+                        var alreadyExists = false;
+                        for (game in fnfGames) {
+                            if (game == gameName) {
+                                alreadyExists = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyExists) {
+                            fnfGames.push(gameName);
+                        }
+                    } else {
+                        var alreadyExists = false;
+                        for (game in nonFNFGames) {
+                            if (game == gameName) {
+                                alreadyExists = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyExists) {
+                            nonFNFGames.push(gameName);
+                        }
+                    }
+                }
+
+                // Send targeted bounces based on game types present
+                if (fnfGames.length > 0 && nonFNFGames.length > 0) {
+                    // Mixed session - send detailed version to FNF games
+                    var detailedTrapName = "Chart Modifier Trap (" + cast (this, APChartModifier).chartModifier + ")";
+                    archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: detailedTrapName}, fnfGames, null, ["TrapLink"]);
+
+                    // Send generic version to non-FNF games
+                    var genericTrapName = "Chart Modifier Trap";
+                    archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: genericTrapName}, nonFNFGames, null, ["TrapLink"]);
+
+                    trace("Sending Chart Modifier trap: detailed to FNF games, generic to other games");
+                    return;
+                } else if (fnfGames.length > 0) {
+                    // Only FNF games - send detailed name to specific FNF games
+                    trapName = "Chart Modifier Trap (" + cast (this, APChartModifier).chartModifier + ")";
+                    archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: trapName}, fnfGames, null, ["TrapLink"]);
+                    trace("Sending trap link for: " + trapName + " to FNF games");
+                    return;
+                } else if (nonFNFGames.length > 0) {
+                    // Only non-FNF games - send generic name to specific non-FNF games
+                    trapName = "Chart Modifier Trap";
+                    archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: trapName}, nonFNFGames, null, ["TrapLink"]);
+                    trace("Sending trap link for: " + trapName + " to non-FNF games");
+                    return;
+                }
+                // If no games detected, fall through to generic send
             }
             trace("Sending trap link for: " + trapName);
-            // Send the trap link to the server
+            // Send the trap link to the server (no game targeting - send to all)
             archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: trapName}, null, null, ["TrapLink"]);
         }
     }

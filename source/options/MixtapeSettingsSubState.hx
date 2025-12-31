@@ -436,6 +436,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.onChange = function() {MemoryUtil.init();};
 		addOption(option);
 
+		var option:Option = new Option('Experimental Garbage Collection',
+			"If checked, enables experimental GC control that disables garbage collection in menus and gameplay to prevent hangs,\nbut enables it during loading with forced cleanup. May improve stability on some systems.",
+			'experimentalGC',
+			BOOL);
+		option.onChange = function() {backend.GarbageController.updateFromPrefs();};
+		addOption(option);
+
 		var option:Option = new Option('Allow Visualizers',
 			"If unchecked, the visualizers will be turned off.",
 			'allowVis',

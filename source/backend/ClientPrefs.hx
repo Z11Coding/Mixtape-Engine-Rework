@@ -218,6 +218,7 @@ import states.TitleState;
 	public var menuTheme:String = 'Light';
 	public var showRenderText:Bool = false;
 	public var garbageCollection:Bool = true;
+	public var experimentalGC:Bool = false;
 	public var dontAllowScriptOverride:Bool = true;
 	public var scoreTextMode:String = 'VSlice';
 

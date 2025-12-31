@@ -1,6 +1,7 @@
 package backend;
 
 import archipelago.APEntryState;
+import backend.GarbageController;
 import backend.PsychCamera;
 import backend.StateTracker;
 import flixel.FlxState;
@@ -44,11 +45,27 @@ class MBSubstateClass<T:MusicBeatSubstate> extends MusicBeatState {
 
 // @:autoBuild(yutautil.CrashTracker.instrument())
 
+/**
+ * Enum for specifying Garbage Collection behavior for states
+ */
+enum GCBehavior {
+	AUTO; // Let MusicBeatState determine based on state type
+	DISABLE; // Disable GC for this state
+	ENABLE; // Enable GC for this state
+	LOADING; // Use loading behavior (enable GC with cleanup)
+}
+
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
 class MusicBeatState extends yutautil.SafeManagedState
 {
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;
+
+	/**
+	 * Garbage Collection behavior for this state
+	 * Override in subclasses to customize GC behavior
+	 */
+	public var gcBehavior:GCBehavior = AUTO;
 
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
@@ -250,6 +267,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 	override public function destroy()
 	{
+		// Handle state-specific GC cleanup before destruction
+		handleStateExitCleanup();
+
 		// Clean up suspended substate data
 		substateQueue = [];
 		suspendedSubstateData = [];
@@ -282,6 +302,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 			backend.TransitionState.transitionState(states.ExitState, {transitionType: getRandomTransition()});
 			return;
 		}
+
+		// Handle Garbage Collection for this state
+		handleGarbageCollection();
 
 		justgothere = true;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
@@ -1089,6 +1112,94 @@ class MusicBeatState extends yutautil.SafeManagedState
 			}
 		}
 		#end
+	}
+
+	/**
+	 * Handle garbage collection behavior for this state
+	 */
+	private function handleGarbageCollection():Void {
+		if (!GarbageController.isExperimentalMode()) return;
+
+		var behavior = determineGCBehavior();
+
+		switch (behavior) {
+			case DISABLE:
+				GarbageController.disableForState();
+			case ENABLE:
+				GarbageController.enableForLoading(); // Uses normal enabling
+			case LOADING:
+				GarbageController.forceCleanupBeforeLoading();
+			case AUTO:
+				// AUTO behavior already handled by determineGCBehavior
+		}
+	}
+
+	/**
+	 * Determine the appropriate GC behavior for this state
+	 */
+	private function determineGCBehavior():GCBehavior {
+		if (gcBehavior != AUTO) return gcBehavior;
+
+		// Auto-determine behavior based on state class
+		var className = Type.getClassName(Type.getClass(this));
+
+		// Loading states should enable GC with cleanup
+		if (className.contains("LoadingState") || className.contains("LoadingScreen")) {
+			return LOADING;
+		}
+
+		// PlayState and menu states should disable GC
+		if (className.contains("PlayState") ||
+			className.contains("MenuState") ||
+			className.contains("MainMenuState") ||
+			className.contains("FreeplayState") ||
+			className.contains("StoryMenuState") ||
+			className.contains("OptionsState")) {
+			return DISABLE;
+		}
+
+		// Default to enable for other states
+		return ENABLE;
+	}
+
+	/**
+	 * Handle cleanup when exiting certain states
+	 */
+	private function handleStateExitCleanup():Void {
+		if (!GarbageController.isExperimentalMode()) return;
+
+		var className = Type.getClassName(Type.getClass(this));
+
+		// Force cleanup after PlayState
+		if (className.contains("PlayState")) {
+			GarbageController.forceCleanupAfterPlayState();
+		}
+	}
+
+	/**
+	 * Manual GC control methods for states that need custom behavior
+	 */
+	public function setGCBehavior(behavior:GCBehavior):Void {
+		gcBehavior = behavior;
+		handleGarbageCollection();
+	}
+
+	public function disableGC():Void {
+		if (GarbageController.isExperimentalMode()) {
+			GarbageController.disableForState();
+		}
+	}
+
+	public function enableGC():Void {
+		if (GarbageController.isExperimentalMode()) {
+			GarbageController.enableForLoading();
+		}
+	}
+
+	public function forceGCCleanup():Void {
+		if (GarbageController.isExperimentalMode()) {
+			GarbageController.forceCleanupBeforeLoading();
+		}
 	}
 
 	override public function onFocusLost():Void
