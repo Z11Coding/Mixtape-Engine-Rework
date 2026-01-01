@@ -40,6 +40,7 @@ import openfl.filters.BitmapFilter;
 import shaders.ErrorHandledShader;
 import stages.*;
 import stages.StageData;
+import states.PlaylistState.PlaylistSongMetadata;
 import states.StoryMenuState;
 import states.editors.CharacterEditorState;
 import states.editors.ChartingState;
@@ -241,6 +242,11 @@ class PlayState extends MusicBeatState
 	public static var storyWeek:Int = 0;
 	public static var storyPlaylist:Array<String> = [];
 	public static var storyDifficulty:Int = 1;
+
+	//Playlist Stuff
+	public static var isWarmUp:Bool = false;
+	public static var isPlaylist:Bool = false;
+	public static var curPlaylist:Array<PlaylistSongMetadata> = [];
 
 	// ! new shit P-Slice
 	public static var storyCampaignTitle = "";
@@ -705,6 +711,10 @@ class PlayState extends MusicBeatState
 			FlxG.switchState(new archipelago.APPlayState());
 		}
 		#end
+		if (isWarmUp || isPlaylist) {
+			Difficulty.loadFromWeek(WeekData.weeksLoaded.get(WeekData.weeksList[curPlaylist[0].week]));
+			storyDifficulty = Difficulty.list.indexOf(curPlaylist[0].difficulty);
+		}
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
 		Paths.clearUnusedMemory();
@@ -6732,6 +6742,7 @@ class PlayState extends MusicBeatState
 					}
 					loopCallback(0);
 					endingSong = false;
+					backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "couldn't keep up with the opponent.";
 					die();
 				}
 				else
@@ -8809,7 +8820,74 @@ class PlayState extends MusicBeatState
 				return false;
 			}
 
-			if (isStoryMode)
+			if (isWarmUp || isPlaylist)
+			{
+				campaignScore += comboManager.songScore;
+				campaignMisses += comboManager.songMisses;
+
+				var lastSong = curPlaylist[0];
+				curPlaylist.remove(curPlaylist[0]);
+
+				if (curPlaylist.length <= 0)
+				{
+					ClientPrefs.data.warmupCompleted = true;
+					canResync = false;
+					gameplayArea = isPlaylist ? "Playlist" : "Warmup";
+					changedDifficulty = false;
+					new FlxTimer().start(0.1, function(tmr:FlxTimer)
+					{
+						camHUD.alpha -= 1 / 10;
+					}, 10);
+
+					if (ClientPrefs.data.ranking == "Mixtape") {
+						openSubState(new substates.RankingSubstate());
+						#if !switch
+						var percent:Float = comboManager.ratingPercent;
+						if(Math.isNaN(percent)) percent = 0;
+						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+						#end
+					} else if (ClientPrefs.data.ranking == "V-Slice") {
+						var wasFC = Highscore.getFCState(curSong, PlayState.storyDifficulty);
+						var prevScore = Highscore.getScore(curSong, PlayState.storyDifficulty);
+						var prevAcc = Highscore.getRating(curSong, PlayState.storyDifficulty);
+
+						var prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
+
+						zoomIntoResultsScreen(prevScore < tempActiveTallises.score, tempActiveTallises, prevRank);
+
+						#if !switch
+						var percent:Float = comboManager.ratingPercent;
+						if(Math.isNaN(percent)) percent = 0;
+						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+						#end
+					}
+				}
+				else
+				{
+					Difficulty.loadFromWeek(WeekData.weeksLoaded.get(WeekData.weeksList[curPlaylist[0].week]));
+					storyDifficulty = Difficulty.list.indexOf(curPlaylist[0].difficulty);
+					var difficulty:String = Difficulty.getFilePath();
+
+					trace('LOADING NEXT SONG');
+					trace(Paths.formatToSongPath(curPlaylist[0].songName) + difficulty);
+
+					FlxTransitionableState.skipNextTransIn = true;
+					FlxTransitionableState.skipNextTransOut = true;
+					prevCamFollow = camFollow;
+
+					Song.loadFromJson(PlayState.curPlaylist[0].songName + difficulty, PlayState.curPlaylist[0].songName);
+					FlxG.sound.music.stop();
+					#if !switch
+					var percent:Float = comboManager.ratingPercent;
+					if(Math.isNaN(percent)) percent = 0;
+					Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					#end
+					canResync = false;
+					LoadingState.prepareToSong();
+					LoadingState.loadAndSwitchState(new PlayState(), false, false);
+				}
+			}
+			else if (isStoryMode)
 			{
 				campaignScore += comboManager.songScore;
 				campaignMisses += comboManager.songMisses;

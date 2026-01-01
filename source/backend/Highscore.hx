@@ -11,7 +11,8 @@ class Highscore
 	public static var songDeaths:Map<String, Int> = new Map<String, Int>();
 	public static var endlessScores:Map<String, Int> = new Map<String, Int>();
 
-	public static var saveMod:String = "";
+	static var saveMod:String = "";
+	public static var customMod:String = "";
 	// Gameplay settings
 	var mixupMode:Bool = false;
 	var gimmicksAllowed:Bool = false;
@@ -270,7 +271,7 @@ class Highscore
 		return weekScores.get(weekMod);
 	}
 
-	public static function reloadModifiers(?customMod:String):Void
+	public static function reloadModifiers():Void
 	{
 		saveMod = "";
 		var playAsGF:Bool = ClientPrefs.getGameplaySetting('gfMode', false);
@@ -279,6 +280,7 @@ class Highscore
 		var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
 		var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
 		var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
+		var songSpeed:Float = ClientPrefs.getGameplaySetting('songspeed', 1);
 
 		// THIS IS EXTREMEMLY IMPORTANT!!! Without this the game literally cant save the ranking properly
 		saveMod += "-"+ClientPrefs.data.ranking;
@@ -309,6 +311,7 @@ class Highscore
 			saveMod += "-endlessChallenge";
 		else if (loopMode)
 			saveMod += "-endless";
+		saveMod += songSpeed;
 		if (customMod != "" && customMod != null)
 			saveMod += customMod;
 	}

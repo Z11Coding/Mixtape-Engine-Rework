@@ -1,7 +1,15 @@
 package states;
+import backend.Highscore;
+import backend.WeekData;
+import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
 import objects.Alphabet.DynamicAlphabet;
+import objects.Character;
+import objects.HealthIcon;
+import states.PlaylistState.PlaylistMetadata;
+import states.freeplay.backend.DifficultyStars;
+import yutautil.AprilFools;
 class PlaylistState extends MusicBeatState {
-  public var loadedPlaylists:Map<String, Array<String>> = [];
+  public var loadedPlaylists:Array<PlaylistMetadata> = [];
 
   private static var curSelected:Int = 0;
   var lerpSelected:Float = 0;
@@ -13,6 +21,10 @@ class PlaylistState extends MusicBeatState {
 	var lerpRating:Float = 0;
 	var intendedScore:Int = 0;
 	var intendedRating:Float = 0;
+
+	var bottomString:String;
+	var bottomText:FlxText;
+	var bottomBG:FlxSprite;
 
   private var grpPlaylists:FlxTypedGroup<Alphabet>;
 	private var iconList:FlxTypedGroup<HealthIcon>;
@@ -44,8 +56,6 @@ class PlaylistState extends MusicBeatState {
     Highscore.reloadModifiers();
     Paths.clearStoredWithoutStickers();
 
-    reloadPlayLists();
-
     persistentUpdate = true;
 		PlayState.isStoryMode = false;
 
@@ -53,15 +63,6 @@ class PlaylistState extends MusicBeatState {
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Selecting Their Mixtape...", null);
 		#end
-
-    if (loadedPlaylists.keys().length < 1) {
-      FlxTransitionableState.skipNextTransIn = true;
-			persistentUpdate = false;
-			MusicBeatState.switchState(new states.ErrorState("NO PLAYLISTS FOUND!\n\nPress ACCEPT to go to the Playlist Editor Menu.\nPress BACK to return to Main Menu.",
-				function() MusicBeatState.switchState(new states.editors.WeekEditorState()),
-				function() MusicBeatState.switchState(new states.MainMenuState())));
-			return;
-    }
 
     Mods.loadTopMod();
 
@@ -91,8 +92,8 @@ class PlaylistState extends MusicBeatState {
 			}
 		}
 
-    grpSongs = new FlxTypedGroup<Alphabet>();
-		add(grpSongs);
+    grpPlaylists = new FlxTypedGroup<Alphabet>();
+		add(grpPlaylists);
 
     iconList = new FlxTypedGroup<HealthIcon>();
 		add(iconList);
@@ -120,7 +121,16 @@ class PlaylistState extends MusicBeatState {
     difficultyStars.scrollFactor.set();
     add(difficultyStars);
 
-		WeekData.setDirectoryFromWeek();
+		reloadPlayLists();
+
+		if (loadedPlaylists.length < 1) {
+      FlxTransitionableState.skipNextTransIn = true;
+			persistentUpdate = false;
+			MusicBeatState.switchState(new states.ErrorState("NO PLAYLISTS FOUND!\n\nPress ACCEPT to go to the Playlist Editor Menu.\nPress BACK to return to Main Menu.",
+				function() MusicBeatState.switchState(new states.editors.PlaylistEditorState()),
+				function() MusicBeatState.switchState(new states.MainMenuState())));
+			return;
+    }
 
     //Search bar my belovid
 		searchBar = new FlxUIInputText(FlxG.height, 100, 800, '', 20);
@@ -176,8 +186,6 @@ class PlaylistState extends MusicBeatState {
     updateTexts();
 
     super.create();
-
-    reloadPlayLists();
     changeSelection();
 
     rank.doTween('in');
@@ -203,30 +211,75 @@ class PlaylistState extends MusicBeatState {
   override function closeSubState() {
 		if (doChange)
 		{
-			changeSelection(0, false);
+			changeSelection(0);
 			doChange = false;
-			mismatched = "";
 			Highscore.reloadModifiers();
 		}
 		persistentUpdate = true;
 		super.closeSubState();
 	}
 
+	function changeSelection(change:Int = 0) {
+    curSelected += change;
+    if (curSelected < -1)
+      curSelected = grpPlaylists.length - 1;
+    else if (curSelected >= grpPlaylists.length)
+      curSelected = -1;
+
+		var bullShit:Int = 0;
+    for (item in grpPlaylists.members)
+		{
+			bullShit++;
+			item.alpha = 0.4;
+			if (item.targetY == curSelected)
+				item.alpha = 1;
+			if (item is Scrollable) {
+				if (cast(item, Scrollable).targetY == curSelected)
+					item.alpha = 1;
+			}
+		}
+    FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+  }
+
   override function update(elapse:Float) {
     super.update(elapse);
-    rank.updateRank();
+
+		updateTexts(elapse);
+
+		if (controls.ACCEPT)
+    {
+      // TODO: playlist stuff
+    }
+    else if (controls.BACK)
+    {
+      FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
+      FlxTransitionableState.skipNextTransIn = true;
+      MusicBeatState.switchState(new MainMenuState());
+    }
+    else if (controls.UI_UP)
+    {
+      changeSelection(-1);
+    }
+    else if (controls.UI_DOWN)
+    {
+      changeSelection(1);
+    }
   }
 
   function reloadPlayLists() {
-    grpSongs.clear();
+    grpPlaylists.clear();
 
-    loadedPlaylists = ClientPrefs.data.playLists;
+    loadedPlaylists = loadPlaylists();
 
-    for (listName in loadedPlaylists.keys()) {
-      var list:Array<String> = loadedPlaylists.get(listName);
+		if (loadedPlaylists.length == 0) {
+			trace('no need to do anything if there\'s nothing to do');
+			// no need to do anything if there's nothing to do
+			return;
+		}
 
+    for (i in 0...loadedPlaylists.length - 1) {
       var listText:Alphabet = null;
-      listText = new DynamicAlphabet(90, 320, fpManager.songList[i].songName, true, true);
+      listText = new DynamicAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
       listText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
       listText.targetY = i;
 			grpPlaylists.add(listText);
@@ -272,4 +325,114 @@ class PlaylistState extends MusicBeatState {
 		}
 	}
 
+	public static function loadPlaylists():Array<PlaylistMetadata>
+	{
+		var playlists:Array<PlaylistMetadata> = ClientPrefs.data.playLists ?? [];
+
+		// mod-specific playlist support maybe??? idk could be cool
+		#if MODS_ALLOWED
+		var directories:Array<String> = [
+			Paths.mods('playlists/'),
+			Paths.mods(Mods.currentModDirectory + '/playlists/'),
+			Paths.getSharedPath('playlists/')
+		];
+		for (mod in Mods.getGlobalMods())
+			directories.push(Paths.mods(mod + '/playlists/'));
+		for (directory in directories)
+		{
+			if (FileSystem.exists(directory))
+			{
+				for (file in FileSystem.readDirectory(directory)) {
+					var path = haxe.io.Path.join([directory, file]);
+					if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
+						var rawJson:String = File.getContent(file);
+						if(rawJson != null && rawJson.length > 0)
+						{
+							var playlistData:PlaylistMetadata = cast tjson.TJSON.parse(rawJson);
+							if (playlistData != null)
+							{
+								var isDupe:Bool = false;
+								//TODO: find a better way to check for dupes
+								for (playlist in playlists)
+								{
+									if (playlist.playlistName == playlistData.playlistName)
+									{
+										trace('Playlist "' + playlistData.playlistName + '" already exists! Skipping duplicate from ' + path);
+										isDupe = true;
+										continue;
+									}
+								}
+								if (!isDupe)
+									playlists.push(playlistData);
+							}
+						}
+					}
+				}
+			}
+		}
+		#end
+		return playlists;
+	}
+
+	var _drawDistance:Int = 4;
+	var _lastVisibles:Array<Int> = [];
+	public function updateTexts(elapsed:Float = 0.0)
+	{
+		lerpSelected = FlxMath.lerp(curSelected, lerpSelected, Math.exp(-elapsed * 9.6));
+		for (i in _lastVisibles)
+		{
+			if(grpPlaylists.members[i] != null) grpPlaylists.members[i].visible = grpPlaylists.members[i].active = false;
+		}
+		_lastVisibles = [];
+
+		var min:Int = Math.round(Math.max(0, Math.min(loadedPlaylists.length, lerpSelected - _drawDistance)));
+		var max:Int = Math.round(Math.max(0, Math.min(loadedPlaylists.length, lerpSelected + _drawDistance)));
+		for (i in min...max)
+		{
+			if (grpPlaylists.members[i] != null)
+			{
+				var item = grpPlaylists.members[i];
+				item.visible = item.active = true;
+				item.x = ((item.targetY - lerpSelected) * item.distancePerItem.x) + item.startPosition.x;
+				item.y = ((item.targetY - lerpSelected) * 1.3 * item.distancePerItem.y) + item.startPosition.y;
+
+				_lastVisibles.push(i);
+			}
+		}
+	}
+}
+
+class PlaylistSongMetadata extends managers.FreeplayManager.GlobalSongMetadata
+{
+	public var difficulty:String = "";
+	public function new(song:String, week:Int, songCharacter:String, color:Array<Array<Dynamic>>, difficulty:String = "", ?charter:String = "???", ?artist:String = "???")
+	{
+		super(song, week, songCharacter, color, );
+		this.difficulty = difficulty;
+		this.charter = charter;
+		this.artist = artist;
+		this.folder = Mods.currentModDirectory;
+		if (this.folder == null) this.folder = '';
+	}
+
+}
+
+class PlaylistMetadata
+{
+	public var playlistName:String = "";
+	public var bg:String = "";
+	public var icon:String = "";
+	public var album:String = "";
+	public var difficulty:Int = -1;
+	public var color:Array<Dynamic> = [];
+	public var songList:Array<PlaylistSongMetadata> = [];
+	public function new(?playlistName:String = 'unnamed playlist', ?bg:String = 'menuDesat', ?icon:String = 'bf', ?album:String = 'nocover', ?color:Array<Dynamic>, ?songList:Array<PlaylistSongMetadata>)
+	{
+		this.playlistName = playlistName;
+		this.bg = bg;
+		this.icon = icon;
+		this.album = album;
+		this.color = color;
+		this.songList = songList;
+	}
 }

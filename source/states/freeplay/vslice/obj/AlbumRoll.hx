@@ -81,8 +81,8 @@ class AlbumRoll extends FlxSpriteGroup
     if (albumId == null)
     {
       trace("ALBUM IS NULL: " + albumId);
-      this.visible = false;
-      difficultyStars.stars.visible = false;
+      this.visible = true;
+      albumId = 'nocover';
       return;
     }
     else
@@ -90,16 +90,20 @@ class AlbumRoll extends FlxSpriteGroup
       this.visible = true;
     }
 
+
     albumData = AlbumRegistry.instance.fetchEntry(albumId);
 
-    if (albumData == null || !Paths.exists("images/"+albumData.getAlbumArtAssetKey()+".png")) //? changed this section
+    var albumPath = albumData.getAlbumArtAssetKey();
+
+    if (albumData == null || !Paths.exists('images/$albumPath.png')) //? changed this section
     {
       if(albumId != ''){
         FlxG.log.warn('Could not find album data for album ID: ${albumId}');
         trace('Could not find album data for album ID: ${albumId}');
       }
 
-      this.visible = false;
+      trace('Path "images/${albumData.getAlbumArtAssetKey()}.png" doesn\'t exist!');
+      albumPath = "freeplay/albumRoll/NoCover";
       difficultyStars.stars.visible = false;
       return;
     };

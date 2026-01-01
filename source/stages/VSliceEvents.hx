@@ -79,7 +79,12 @@ class VSliceEvents extends BaseStage {
 			case 'Zoom Camera': //defaultCamZoom
 				var keyValues = value1.split(",");
 				if(keyValues.length != 2) {
-					trace("INVALID EVENT VALUE");
+					trace("INVALID EVENT VALUE! Attempting to salvage...");
+                    if (keyValues.length > 2)
+                        keyValues = [keyValues[0], keyValues[1]]; //default values
+                    else if (keyValues.length == 1)
+                        keyValues = [keyValues[0], "0.5"];
+                    else trace("Could not salvage Zoom Camera event!");
 					return;
 				}
 				var floaties = keyValues.map(s -> Std.parseFloat(s));
