@@ -1,5 +1,6 @@
 package states;
 
+import backend.Song;
 import backend.WeekData;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.graphics.frames.FlxFrame;
@@ -13,6 +14,7 @@ import openfl.display.BitmapData;
 import openfl.filters.BitmapFilter;
 import shaders.ColorSwap;
 import states.MainMenuState;
+import states.PlaylistState.PlaylistMetadata;
 import states.StoryMenuState;
 import undertale.UnderTextParser;
 
@@ -132,6 +134,99 @@ class TitleState extends MusicBeatState
 			FlxTransitionableState.skipNextTransOut = true;
 			MusicBeatState.switchState(new setup.SetupGuideState());
 		}
+		else if(!ClientPrefs.data.warmupCompleted && (!ClientPrefs.data.skipWarmup || ClientPrefs.data.alwaysWarmup))
+		{
+			FlxTransitionableState.skipNextTransIn = true;
+			FlxTransitionableState.skipNextTransOut = true;
+			persistentUpdate = false;
+			var playlist:PlaylistMetadata = null;
+			var hasWarmup:Bool = false;
+			if (ClientPrefs.data.playLists != null && ClientPrefs.data.playLists.length > 0) {
+				for (playlistItem in ClientPrefs.data.playLists) {
+					if (playlistItem.playlistName == "Warm-Up") {
+						playlist = playlistItem;
+						hasWarmup = true;
+						break;
+					}
+				}
+			}
+
+			if (hasWarmup) {
+				if (ClientPrefs.data.alwaysWarmup) {
+					PlayState.isWarmUp = true;
+					PlayState.altInstrumentals = null; // ? P-Slice
+					WeekData.reloadWeekFiles();
+					if (ClientPrefs.data.playLists != null && ClientPrefs.data.playLists.length > 0) {
+						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
+						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
+						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+						LoadingState.prepareToSong();
+						LoadingState.loadAndSwitchState(new PlayState());
+					} else {
+						trace('[WARN] No playlists found, defaulting to tutorial!');
+
+						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
+						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
+						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+						LoadingState.prepareToSong();
+						LoadingState.loadAndSwitchState(new PlayState());
+					}
+				} else {
+					var warmup = new haxe.ui.containers.dialogs.MessageBox();
+					warmup.title = "Warm-up?";
+					warmup.text = "Would you like to play the warm-up playlist before starting?";
+					warmup.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+
+					warmup.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+					{
+						if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
+						{
+							PlayState.isWarmUp = true;
+							PlayState.altInstrumentals = null; // ? P-Slice
+							WeekData.reloadWeekFiles();
+							if (ClientPrefs.data.playLists != null) {
+								var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
+								Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
+								Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+								LoadingState.prepareToSong();
+								LoadingState.loadAndSwitchState(new PlayState());
+							}
+						}
+						else
+						{
+							ClientPrefs.data.warmupCompleted = true;
+							ClientPrefs.saveSettings();
+							FlxG.resetState();
+						}
+					};
+
+					warmup.show();
+				}
+			} else {
+				trace('[WARN] "Warm-Up" playlist not found!');
+				var warmup = new haxe.ui.containers.dialogs.MessageBox();
+				warmup.title = "Warm-up?";
+				warmup.text = "It looks like you don't have a playlist called \"Warm-Up\"!\n\nWould you like to make one?";
+				warmup.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+
+				warmup.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+				{
+					if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
+					{
+						MusicManager.playMenuMusic(1);
+						FlxG.switchState(new states.PlaylistState());
+					}
+					else
+					{
+						ClientPrefs.data.warmupCompleted = true;
+						ClientPrefs.saveSettings();
+						FlxG.resetState();
+					}
+				};
+
+				warmup.show();
+			}
+		}
 		else if(FlxG.save.data.flashing == null && !FlashingState.leftState)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
@@ -145,7 +240,7 @@ class TitleState extends MusicBeatState
 		if (Main.cmdArgs.indexOf("GameJoltBug") != -1 && !GJBug)
 		{
 			GJBug = true;
-			MusicManager.playMenuMusic(0);
+			MusicManager.playMenuMusic(1);
 			FlxG.switchState(new options.OptionsState());
 		}
 

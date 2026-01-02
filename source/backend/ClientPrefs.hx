@@ -3,6 +3,7 @@ package backend;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxSave;
+import states.PlaylistState.PlaylistMetadata;
 import states.TitleState;
 
 // Add a variable here and it will get automatically saved
@@ -263,7 +264,12 @@ import states.TitleState;
 	public var maxTracesPerFrame:Int = 5; // Maximum traces per frame before queuing
 	public var useTraceThreading:Bool = false; // Use separate thread for trace processing
 
-	public var playLists:Map<String, Array<String>> = [];
+	public var playLists:Array<PlaylistMetadata> = [];
+
+	//Warm-Up Stuff
+	public var warmupCompleted:Bool = false;
+	public var skipWarmup:Bool = false;
+	public var alwaysWarmup:Bool = false;
 }
 
 class ClientPrefs {

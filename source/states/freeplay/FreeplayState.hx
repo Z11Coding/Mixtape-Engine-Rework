@@ -144,8 +144,6 @@ class FreeplayState extends MusicBeatState
 			APFreeplayManager.checkVictory();
 		}
 
-
-
 		Highscore.reloadModifiers();
 		Paths.clearStoredWithoutStickers();
 
@@ -227,8 +225,8 @@ class FreeplayState extends MusicBeatState
 
 		difficultyStars = new DifficultyStars(albumPhoto.x, albumPhoto.y - 130);
 		difficultyStars.visible = true;
-        difficultyStars.scrollFactor.set();
-        add(difficultyStars);
+		difficultyStars.scrollFactor.set();
+		add(difficultyStars);
 
 
 		WeekData.setDirectoryFromWeek();
@@ -1029,7 +1027,7 @@ class FreeplayState extends MusicBeatState
 						try {
 							var testPoop:String = Highscore.formatSong(songLowercase, i);
 							// Test if the chart exists by trying to load it
-							var testSong = Song.loadFromJson(testPoop, songLowercase);
+							var testSong = Song.getChart(testPoop, songLowercase);
 							if (testSong != null) {
 								availableDifficulties.push(i);
 							}
@@ -1711,7 +1709,7 @@ class FreeplayState extends MusicBeatState
 	{
 		FlxG.camera.zoom = zoomies;
 
-		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet*0.001*4, {
 			ease: FlxEase.quadOut
 		});
 
@@ -1721,8 +1719,8 @@ class FreeplayState extends MusicBeatState
 			return;
 		}
 
-		if (listening && instPlaying > -1 && iconList.members[instPlaying] != null)
-			iconList.members[instPlaying].scale.set(1.2, 1.2);
+		if (listening && iconList.members[curSelected] != null)
+			iconList.members[curSelected].scale.set(1.2, 1.2);
 	}
 
 	override function destroy():Void

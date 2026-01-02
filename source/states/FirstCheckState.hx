@@ -75,6 +75,11 @@ class FirstCheckState extends MusicBeatState
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
 
+			if (ClientPrefs.data.playLists == null) {
+				ClientPrefs.data.playLists = [];
+				ClientPrefs.saveSettings();
+			}
+
 			// Initialize crash tracking system early
 			#if !debug
 			yutautil.CrashTrackerHelper.initialize();
