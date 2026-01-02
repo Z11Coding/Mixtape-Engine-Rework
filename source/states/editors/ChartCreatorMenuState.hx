@@ -65,8 +65,11 @@ class ChartCreatorMenuState extends MusicBeatState
 	private var backButton:FlxUIButton;
 	private var loadCurrentSongButton:FlxUIButton;
 	private var loadChartButton:FlxUIButton;
+	private var loadAutosaveButton:FlxUIButton;
 	private var previewButton:FlxUIButton;
 	private var stopPreviewButton:FlxUIButton;
+	private var songGoButton:FlxUIButton;
+	private var difficultyGoButton:FlxUIButton;
 
 	// File paths
 	private var selectedInstPath:String = "";
@@ -107,10 +110,26 @@ class ChartCreatorMenuState extends MusicBeatState
 	// Available mods
 	private var availableMods:Array<String>;
 
+	// File existence tracking
+	private var hasExistingInst:Bool = false;
+	private var hasExistingVocals:Bool = false;
+	private var hasExistingChart:Bool = false;
+	private var lastCheckedSong:String = "";
+	private var lastCheckedDifficulty:String = "";
+	private var lastCheckedMod:String = "";
+
 	// File drop support
 	private var dragDropOverlay:FlxSprite;
 	private var dragDropText:FlxText;
 	private var isDragging:Bool = false;
+
+	// Confirmation dialog variables
+	private var dialogBg:FlxSprite;
+	private var dialogBox:FlxSprite;
+	private var border:FlxSprite;
+	private var messageText:FlxText;
+	private var yesButton:FlxUIButton;
+	private var noButton:FlxUIButton;
 
 	override function create()
 	{
@@ -169,6 +188,12 @@ class ChartCreatorMenuState extends MusicBeatState
 		songNameInput.filterMode = FlxInputText.ONLY_ALPHANUMERIC;
 		add(songNameInput);
 
+		// Song GO Button (initially hidden)
+		songGoButton = new FlxUIButton(leftColumnX + 310, yPos - 3, "GO", onSongGo);
+		songGoButton.resize(40, 20);
+		songGoButton.visible = false;
+		add(songGoButton);
+
 		yPos += spacing;
 
 		// Difficulty Input
@@ -179,6 +204,12 @@ class ChartCreatorMenuState extends MusicBeatState
 		difficultyInput = new FlxInputText(leftColumnX + 100, yPos, 120, "normal", 14, FlxColor.BLACK, FlxColor.WHITE);
 		difficultyInput.filterMode = FlxInputText.ONLY_ALPHANUMERIC;
 		add(difficultyInput);
+
+		// Difficulty GO Button (initially hidden)
+		difficultyGoButton = new FlxUIButton(leftColumnX + 230, yPos - 3, "GO", onDifficultyGo);
+		difficultyGoButton.resize(40, 20);
+		difficultyGoButton.visible = false;
+		add(difficultyGoButton);
 
 		yPos += spacing;
 
@@ -272,7 +303,16 @@ class ChartCreatorMenuState extends MusicBeatState
 		} else {
 			chartEditorDropDown.selectedLabel = "New";
 		}
+		chartEditorDropDown.callback = function(str:String) {
+			updateAutosaveButton();
+		};
+		chartEditorDropDown.callback = function(str:String) {
+			updateAutosaveButton();
+		};
 		add(chartEditorDropDown);
+
+		// Update autosave button visibility initially
+		updateAutosaveButton();
 
 		yPos += spacing;
 
@@ -360,7 +400,17 @@ class ChartCreatorMenuState extends MusicBeatState
 			loadCurrentSongButton = new FlxUIButton(FlxG.width - 370, FlxG.height - 80, "Load Current Song", onLoadCurrentSong);
 			loadCurrentSongButton.resize(160, 50);
 			add(loadCurrentSongButton);
+
+			// Position Load Autosave to the left of Load Current Song
+			loadAutosaveButton = new FlxUIButton(FlxG.width - 540, FlxG.height - 80, "Load Autosave", onLoadAutosave);
+		} else {
+			// Position Load Autosave normally when Load Current Song is not visible
+			loadAutosaveButton = new FlxUIButton(FlxG.width - 370, FlxG.height - 85, "Load Autosave", onLoadAutosave);
 		}
+
+		loadAutosaveButton.resize(150, 30);
+		add(loadAutosaveButton);
+		updateAutosaveButton();
 
 		// Back Button - positioned above Create Chart
 		backButton = new FlxUIButton(FlxG.width - 200, FlxG.height - 140, "Back", onBack);
@@ -1059,12 +1109,38 @@ class ChartCreatorMenuState extends MusicBeatState
 
 		var targetMod = modDropDown.selectedLabel;
 
-		// Check if song with this difficulty already exists
-		if (validateSongExists(songName, difficulty, targetMod)) {
+		// Check for all potential file overwrites
+		var overwriteFiles = checkAllPotentialOverwrites(songName, difficulty, targetMod);
+		if (overwriteFiles.length > 0) {
 			FlxG.sound.play(Paths.sound('cancelMenu'));
-			showError('Song "$songName" with difficulty "$difficulty" already exists!');
+			var warningMsg = 'Warning: Creating this chart will OVERWRITE the following existing files:\n\n';
+			for (file in overwriteFiles) {
+				warningMsg += '• ' + file + '\n';
+			}
+			warningMsg += '\nDo you want to continue?';
+
+			// Show confirmation dialog
+			openConfirmDialog(warningMsg, function(confirmed:Bool) {
+				if (confirmed) {
+					// User confirmed, proceed with creation
+					proceedWithChartCreation();
+				} else {
+					// User cancelled
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+				}
+			});
 			return;
 		}
+
+		// No existing files, proceed normally
+		proceedWithChartCreation();
+	}
+
+	function proceedWithChartCreation()
+	{
+		var songName = songNameInput.text.trim();
+		var difficulty = difficultyInput.text.trim().toLowerCase();
+		var targetMod = modDropDown.selectedLabel;
 
 		#if desktop
 		if (selectedInstPath == "") {
@@ -1554,11 +1630,534 @@ class ChartCreatorMenuState extends MusicBeatState
 		}
 	}
 
+	// Confirmation dialog
+	function openConfirmDialog(message:String, onComplete:Bool -> Void)
+	{
+		// Create a simple confirmation dialog
+		dialogBg = new FlxSprite(0, 0);
+		dialogBg.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 150));
+		add(dialogBg);
+
+		dialogBox = new FlxSprite();
+		dialogBox.makeGraphic(400, 200, FlxColor.BLACK);
+		dialogBox.screenCenter();
+		add(dialogBox);
+
+		border = new FlxSprite(dialogBox.x - 2, dialogBox.y - 2);
+		border.makeGraphic(404, 204, FlxColor.WHITE);
+		add(border);
+		dialogBox.x = border.x + 2;
+		dialogBox.y = border.y + 2;
+
+		messageText = new FlxText(dialogBox.x + 10, dialogBox.y + 20, dialogBox.width - 20, message, 14);
+		messageText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		add(messageText);
+
+		yesButton = new FlxUIButton(dialogBox.x + 50, dialogBox.y + 150, "Yes", function() {
+			remove(dialogBg);
+			remove(border);
+			remove(dialogBox);
+			remove(messageText);
+			remove(yesButton);
+			remove(noButton);
+			onComplete(true);
+		});
+		yesButton.resize(80, 30);
+		add(yesButton);
+
+		noButton = new FlxUIButton(dialogBox.x + 270, dialogBox.y + 150, "No", function() {
+			remove(dialogBg);
+			remove(border);
+			remove(dialogBox);
+			remove(messageText);
+			remove(yesButton);
+			remove(noButton);
+			onComplete(false);
+		});
+		noButton.resize(80, 30);
+		add(noButton);
+	}
+
+	function checkAllPotentialOverwrites(songName:String, difficulty:String, targetMod:String):Array<String>
+	{
+		var overwrites:Array<String> = [];
+
+		#if sys
+		var formattedName = Paths.formatToSongPath(songName);
+
+		// Determine paths based on mod
+		var songDir:String;
+		var chartPath:String;
+
+		if (targetMod == "__mixtape__") {
+			songDir = 'assets/songs/$formattedName/';
+			chartPath = 'assets/data/$formattedName/$formattedName-$difficulty.json';
+		} else {
+			#if MODS_ALLOWED
+			songDir = 'mods/$targetMod/songs/$formattedName/';
+			chartPath = 'mods/$targetMod/data/$formattedName/$formattedName-$difficulty.json';
+			#else
+			songDir = 'assets/songs/$formattedName/';
+			chartPath = 'assets/data/$formattedName/$formattedName-$difficulty.json';
+			#end
+		}
+
+		// Check chart file
+		if (FileSystem.exists(chartPath)) {
+			overwrites.push('Chart: $formattedName-$difficulty.json');
+		}
+
+		// Check instrumental file (only if user has selected one)
+		if (selectedInstPath != "" && FileSystem.exists(songDir + "Inst.ogg")) {
+			overwrites.push('Instrumental: Inst.ogg');
+		}
+
+		// Check vocals file (only if user has selected vocals)
+		if (selectedVocalsPaths.length > 0 && FileSystem.exists(songDir + "Voices.ogg")) {
+			overwrites.push('Vocals: Voices.ogg');
+		}
+
+		// Check for additional vocals files that might be overwritten
+		for (i in 0...selectedVocalsPaths.length) {
+			var label = (i < vocalsLabels.length) ? vocalsLabels[i] : "Custom" + (i + 1);
+			var vocalsFileName = 'Voices-$label.ogg';
+			if (label == "Player") {
+				vocalsFileName = "Voices.ogg"; // Main vocals file
+			}
+
+			if (FileSystem.exists(songDir + vocalsFileName) && overwrites.indexOf('Vocals: $vocalsFileName') == -1) {
+				overwrites.push('Vocals: $vocalsFileName');
+			}
+		}
+		#end
+
+		return overwrites;
+	}
+
+	// GO Button callbacks
+	function onSongGo()
+	{
+		var songName = songNameInput.text.trim();
+		if (songName.length == 0) {
+			showError("Song name is required!");
+			return;
+		}
+
+		var difficulty = difficultyInput.text.trim();
+		var targetMod = modDropDown.selectedLabel;
+
+		// Check for overwrites before proceeding
+		var overwriteFiles = checkGoButtonOverwrites(songName, difficulty, targetMod, true, false);
+		if (overwriteFiles.length > 0) {
+			var warningMsg = 'Warning: Creating this chart will OVERWRITE the following existing files:\n\n';
+			for (file in overwriteFiles) {
+				warningMsg += '• ' + file + '\n';
+			}
+			warningMsg += '\nDo you want to continue?';
+
+			openConfirmDialog(warningMsg, function(confirmed:Bool) {
+				if (confirmed) {
+					proceedWithSongGo();
+				} else {
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+				}
+			});
+		} else {
+			proceedWithSongGo();
+		}
+	}
+
+	function proceedWithSongGo()
+	{
+		var songName = songNameInput.text.trim();
+		var targetMod = modDropDown.selectedLabel;
+
+		// Pre-fill audio paths if they exist
+		var formattedName = Paths.formatToSongPath(songName);
+		var songDir:String;
+
+		if (targetMod == "__mixtape__") {
+			songDir = 'assets/songs/$formattedName/';
+		} else {
+			#if MODS_ALLOWED
+			songDir = 'mods/$targetMod/songs/$formattedName/';
+			#else
+			songDir = 'assets/songs/$formattedName/';
+			#end
+		}
+
+		#if sys
+		if (hasExistingInst && FileSystem.exists(songDir + "Inst.ogg")) {
+			selectedInstPath = songDir + "Inst.ogg";
+			instFileText.text = "Inst.ogg (auto-detected)";
+			instFileText.color = FlxColor.GREEN;
+		}
+
+		if (hasExistingVocals && FileSystem.exists(songDir + "Voices.ogg")) {
+			selectedVocalsPaths = [songDir + "Voices.ogg"];
+			vocalsLabels = ["Player"];
+			updateVocalsDisplay();
+		}
+		#end
+
+		// Proceed with chart creation
+		onCreate();
+	}
+
+	function onDifficultyGo()
+	{
+		var songName = songNameInput.text.trim();
+		var difficulty = difficultyInput.text.trim();
+
+		if (songName.length == 0 || difficulty.length == 0) {
+			showError("Song name and difficulty are required!");
+			return;
+		}
+
+		// Check if audio files are missing and required
+		if (!hasExistingInst && selectedInstPath.length == 0) {
+			showError("Please select an instrumental file before loading the chart!");
+			return;
+		}
+
+		var targetMod = modDropDown.selectedLabel;
+
+		// Check for overwrites if new audio files will be copied
+		var overwriteFiles = checkGoButtonOverwrites(songName, difficulty, targetMod, false, true);
+		if (overwriteFiles.length > 0) {
+			var warningMsg = 'Warning: Loading this chart will OVERWRITE the following existing audio files:\n\n';
+			for (file in overwriteFiles) {
+				warningMsg += '• ' + file + '\n';
+			}
+			warningMsg += '\nDo you want to continue?';
+
+			openConfirmDialog(warningMsg, function(confirmed:Bool) {
+				if (confirmed) {
+					proceedWithDifficultyGo();
+				} else {
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+				}
+			});
+		} else {
+			proceedWithDifficultyGo();
+		}
+	}
+
+	function proceedWithDifficultyGo()
+	{
+		var songName = songNameInput.text.trim();
+		var difficulty = difficultyInput.text.trim();
+		var targetMod = modDropDown.selectedLabel;
+		var formattedName = Paths.formatToSongPath(songName);
+		var chartPath:String;
+
+		if (targetMod == "__mixtape__") {
+			chartPath = 'assets/data/$formattedName/$formattedName-$difficulty.json';
+		} else {
+			#if MODS_ALLOWED
+			chartPath = 'mods/$targetMod/data/$formattedName/$formattedName-$difficulty.json';
+			#else
+			chartPath = 'assets/data/$formattedName/$formattedName-$difficulty.json';
+			#end
+		}
+
+		// If audio files are missing but selected, copy them first
+		if (!hasExistingInst && selectedInstPath.length > 0) {
+			#if sys
+			copyAudioFilesImproved(songName, targetMod);
+			#end
+		}
+
+		// Load the existing chart
+		loadChartFromFile(chartPath);
+	}
+
+	function onLoadAutosave()
+	{
+		var selectedEditor = chartEditorDropDown.selectedLabel;
+
+		if (selectedEditor == "New") {
+			// ChartingState - load backup file
+			#if sys
+			var foundBackup = false;
+			if (FileSystem.exists("backups") && FileSystem.isDirectory("backups")) {
+				var backupFiles = FileSystem.readDirectory("backups").filter(file -> file.endsWith('.bkp'));
+
+				if (backupFiles.length > 0) {
+					if (ClientPrefs.data.chartBackupSelection == "Recent") {
+						// Auto-select most recent backup
+						backupFiles.sort(function(a, b) {
+							var statA = FileSystem.stat("backups/" + a);
+							var statB = FileSystem.stat("backups/" + b);
+							return Reflect.compare(statB.mtime.getTime(), statA.mtime.getTime());
+						});
+
+						// Load the most recent backup
+						var mostRecent = "backups/" + backupFiles[0];
+						loadChartFromFile(mostRecent);
+						foundBackup = true;
+					} else {
+						// Show backup selection interface
+						showBackupSelectionDialog(backupFiles);
+						foundBackup = true;
+					}
+			}
+
+			if (!foundBackup) {
+				showError("No backup files found for the New chart editor!");
+			}
+			#else
+			showError("Backup loading is not available in this build.");
+			#end
+
+		} else if (selectedEditor == "Old") {
+			// ChartingStateOG - load from FlxSave
+			if (FlxG.save.data.autosave != null) {
+				try {
+					// Parse and load the autosaved chart
+					var autosaveData = haxe.Json.parse(FlxG.save.data.autosave);
+					PlayState.SONG = autosaveData.song;
+
+					// Switch to the Old chart editor to load the autosave
+					var originalStyle = ClientPrefs.data.chartEditorStyle;
+					ClientPrefs.data.chartEditorStyle = "Old";
+					ClientPrefs.openChartEditor();
+					ClientPrefs.data.chartEditorStyle = originalStyle;
+				} catch (e:Dynamic) {
+					showError("Error loading autosave data: " + e);
+				}
+			} else {
+				showError("No autosave data found for the Old chart editor!");
+			}
+
+		} else if (selectedEditor == "Mixtape") {
+			// MixtapeChartEditorState - no autosave feature
+			showError("The Mixtape chart editor does not have autosave functionality.");
+		}
+	}
+}
+
+	function checkGoButtonOverwrites(songName:String, difficulty:String, targetMod:String, isNewChart:Bool, isLoadChart:Bool):Array<String>
+	{
+		var overwrites:Array<String> = [];
+
+		#if sys
+		var formattedName = Paths.formatToSongPath(songName);
+		var songDir:String;
+
+		if (targetMod == "__mixtape__") {
+			songDir = 'assets/songs/$formattedName/';
+		} else {
+			#if MODS_ALLOWED
+			songDir = 'mods/$targetMod/songs/$formattedName/';
+			#else
+			songDir = 'assets/songs/$formattedName/';
+			#end
+		}
+
+		// For new chart creation (Song GO button)
+		if (isNewChart) {
+			// Check if we'll overwrite chart file when creating new
+			var chartPath = getChartPath(songName, difficulty, targetMod);
+			if (FileSystem.exists(chartPath)) {
+				overwrites.push('Chart: $formattedName-$difficulty.json');
+			}
+		}
+
+		// Check audio files only if user has selected new ones to copy
+		if (selectedInstPath != "" && selectedInstPath != songDir + "Inst.ogg" && FileSystem.exists(songDir + "Inst.ogg")) {
+			overwrites.push('Instrumental: Inst.ogg');
+		}
+
+		if (selectedVocalsPaths.length > 0) {
+			// Check main vocals
+			var wouldOverwriteMainVocals = false;
+			for (path in selectedVocalsPaths) {
+				if (path != songDir + "Voices.ogg") {
+					wouldOverwriteMainVocals = true;
+					break;
+				}
+			}
+			if (wouldOverwriteMainVocals && FileSystem.exists(songDir + "Voices.ogg")) {
+				overwrites.push('Vocals: Voices.ogg');
+			}
+		}
+		#end
+
+		return overwrites;
+	}
+
+	#if sys
+	function showBackupSelectionDialog(backupFiles:Array<String>):Void
+	{
+		// Sort files alphabetically descending (similar to ChartingState)
+		backupFiles.sort((a:String, b:String) -> (a.toUpperCase() < b.toUpperCase()) ? 1 : -1);
+
+		// Create selection dialog background
+		var selectionBg = new FlxSprite(0, 0);
+		selectionBg.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 150));
+		add(selectionBg);
+
+		var dialogWidth = 450;
+		var dialogHeight = 450; // Fixed height to accommodate pagination
+
+		// Dialog box
+		var selectionBox = new FlxSprite();
+		selectionBox.makeGraphic(dialogWidth, Std.int(dialogHeight), FlxColor.BLACK);
+		selectionBox.screenCenter();
+		add(selectionBox);
+
+		// Border
+		var selectionBorder = new FlxSprite(selectionBox.x - 2, selectionBox.y - 2);
+		selectionBorder.makeGraphic(dialogWidth + 4, Std.int(dialogHeight) + 4, FlxColor.WHITE);
+		add(selectionBorder);
+		selectionBox.x = selectionBorder.x + 2;
+		selectionBox.y = selectionBorder.y + 2;
+
+		// Title
+		var titleText = new FlxText(selectionBox.x + 10, selectionBox.y + 20, selectionBox.width - 20, "Select a Backup to Load", 16);
+		titleText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		add(titleText);
+
+		// Pagination setup
+		var maxVisible = 10;
+		var currentPage = 0;
+		var totalPages = Math.ceil(backupFiles.length / maxVisible);
+		var listHeight = Math.min(maxVisible, backupFiles.length);
+		var buttons:Array<FlxUIButton> = [];
+		var selectedIndex = 0;
+
+		var loadButton:FlxUIButton;
+		var cancelButton:FlxUIButton;
+
+		// Page navigation (if multiple pages)
+		var prevButton:FlxUIButton = null;
+		var nextButton:FlxUIButton = null;
+		var pageText:FlxText = null;
+
+		if (totalPages > 1) {
+			prevButton = new FlxUIButton(selectionBox.x + 20, selectionBox.y + dialogHeight - 120, "<", function() {
+				if (currentPage > 0) {
+					currentPage--;
+					updatePageDisplay();
+				}
+			});
+			prevButton.resize(30, 25);
+			add(prevButton);
+
+			nextButton = new FlxUIButton(selectionBox.x + dialogWidth - 50, selectionBox.y + dialogHeight - 120, ">", function() {
+				if (currentPage < totalPages - 1) {
+					currentPage++;
+					updatePageDisplay();
+				}
+			});
+			nextButton.resize(30, 25);
+			add(nextButton);
+
+			pageText = new FlxText(selectionBox.x + 60, selectionBox.y + dialogHeight - 115, dialogWidth - 120, 'Page ${currentPage + 1} / ${totalPages}', 12);
+			pageText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+			add(pageText);
+		}
+
+		function updatePageDisplay() {
+			// Clear current buttons
+			for (button in buttons) {
+				remove(button);
+			}
+			buttons = [];
+
+			// Display files for current page
+			var startIndex = currentPage * maxVisible;
+			var endIndex = Math.min(startIndex + maxVisible, backupFiles.length);
+
+			for (i in 0...(endIndex - startIndex)) {
+				var fileIndex = startIndex + i;
+				var fileButton = new FlxUIButton(selectionBox.x + 20, selectionBox.y + 60 + (i * 30), backupFiles[fileIndex], function() {
+					selectedIndex = fileIndex;
+					// Update button colors
+					for (j in 0...buttons.length) {
+						buttons[j].color = (startIndex + j == fileIndex) ? FlxColor.YELLOW : FlxColor.WHITE;
+					}
+				});
+				fileButton.resize(dialogWidth - 40, 25);
+				fileButton.color = (i == 0) ? FlxColor.YELLOW : FlxColor.WHITE;
+				add(fileButton);
+				buttons.push(fileButton);
+			}
+
+			// Update page controls
+			if (prevButton != null) prevButton.visible = currentPage > 0;
+			if (nextButton != null) nextButton.visible = currentPage < totalPages - 1;
+			if (pageText != null) pageText.text = 'Page ${currentPage + 1} / ${totalPages}';
+		}
+
+		// Initialize first page display
+		updatePageDisplay();
+
+		// Load button (moved down to avoid overlap)
+		loadButton = new FlxUIButton(selectionBox.x + 50, selectionBox.y + dialogHeight - 50, "Load", function() {
+			var selectedFile = "backups/" + backupFiles[selectedIndex];
+
+			// Clean up dialog
+			remove(selectionBg);
+			remove(selectionBorder);
+			remove(selectionBox);
+			remove(titleText);
+			for (button in buttons) remove(button);
+			if (prevButton != null) remove(prevButton);
+			if (nextButton != null) remove(nextButton);
+			if (pageText != null) remove(pageText);
+			remove(loadButton);
+			remove(cancelButton);
+
+			// Load the selected backup
+			loadChartFromFile(selectedFile);
+		});
+		loadButton.resize(100, 30);
+		add(loadButton);
+
+		// Cancel button (moved down to avoid overlap)
+		cancelButton = new FlxUIButton(selectionBox.x + dialogWidth - 150, selectionBox.y + dialogHeight - 50, "Cancel", function() {
+			// Clean up dialog
+			remove(selectionBg);
+			remove(selectionBorder);
+			remove(selectionBox);
+			remove(titleText);
+			for (button in buttons) remove(button);
+			if (prevButton != null) remove(prevButton);
+			if (nextButton != null) remove(nextButton);
+			if (pageText != null) remove(pageText);
+			remove(loadButton);
+			remove(cancelButton);
+		});
+		cancelButton.resize(100, 30);
+		add(cancelButton);
+	}
+	#end
+
 	function updateVocalsDisplay()
 	{
-		// This would reposition vocals items based on scroll offset
-		// For now, just a placeholder - full implementation would track vocal items
-		// and update their y positions based on vocalsScrollOffset
+		// Reposition vocals items based on scroll offset
+		for (i in 0...vocalsTexts.length) {
+			if (i < vocalsTexts.length && vocalsTexts[i] != null) {
+				var newY = vocalsScrollY + (i * 22) - vocalsScrollOffset;
+				vocalsTexts[i].y = newY + 2; // +2 for vertical alignment
+			}
+		}
+
+		for (i in 0...vocalsRemoveButtons.length) {
+			if (i < vocalsRemoveButtons.length && vocalsRemoveButtons[i] != null) {
+				var newY = vocalsScrollY + (i * 22) - vocalsScrollOffset;
+				vocalsRemoveButtons[i].y = newY;
+			}
+		}
+
+		for (i in 0...vocalsInputs.length) {
+			if (i < vocalsInputs.length && vocalsInputs[i] != null) {
+				var newY = vocalsScrollY + (i * 22) - vocalsScrollOffset;
+				vocalsInputs[i].y = newY;
+			}
+		}
 	}
 
 	// File drop handling implementation
@@ -1892,6 +2491,119 @@ class ChartCreatorMenuState extends MusicBeatState
 			trace("Exception during audio loading: " + e);
 			return null;
 		}
+	}
+
+	// File existence checking functions
+	function checkExistingFiles()
+	{
+		var songName = songNameInput.text.trim();
+		var difficulty = difficultyInput.text.trim();
+		var targetMod = modDropDown.selectedLabel;
+
+		// Only check if inputs have changed
+		if (songName == lastCheckedSong && difficulty == lastCheckedDifficulty && targetMod == lastCheckedMod) {
+			return;
+		}
+
+		lastCheckedSong = songName;
+		lastCheckedDifficulty = difficulty;
+		lastCheckedMod = targetMod;
+
+		// Reset states
+		hasExistingInst = false;
+		hasExistingVocals = false;
+		hasExistingChart = false;
+
+		if (songName.length == 0) {
+			songGoButton.visible = false;
+			difficultyGoButton.visible = false;
+			return;
+		}
+
+		#if sys
+		var formattedName = Paths.formatToSongPath(songName);
+		var songDir:String;
+		var chartPath:String;
+
+		// Determine paths based on mod
+		if (targetMod == "__mixtape__") {
+			songDir = 'assets/songs/$formattedName/';
+			chartPath = 'assets/data/$formattedName/$formattedName-$difficulty.json';
+		} else {
+			#if MODS_ALLOWED
+			songDir = 'mods/$targetMod/songs/$formattedName/';
+			chartPath = 'mods/$targetMod/data/$formattedName/$formattedName-$difficulty.json';
+			#else
+			songDir = 'assets/songs/$formattedName/';
+			chartPath = 'assets/data/$formattedName/$formattedName-$difficulty.json';
+			#end
+		}
+
+		// Check for audio files
+		hasExistingInst = FileSystem.exists(songDir + "Inst.ogg");
+		hasExistingVocals = FileSystem.exists(songDir + "Voices.ogg");
+
+		// Check for chart file (only if difficulty is provided)
+		if (difficulty.length > 0) {
+			hasExistingChart = FileSystem.exists(chartPath);
+		}
+
+		// Update GO button visibility
+		updateGoButtons();
+		#end
+	}
+
+	function updateGoButtons()
+	{
+		// Difficulty GO button takes priority if chart exists
+		if (hasExistingChart && difficultyInput.text.trim().length > 0) {
+			difficultyGoButton.visible = true;
+			songGoButton.visible = false;
+
+			// Update color based on audio availability
+			if (hasExistingInst) {
+				difficultyGoButton.color = FlxColor.GREEN; // Ready to load chart
+			} else {
+				difficultyGoButton.color = FlxColor.YELLOW; // Chart exists but missing audio
+			}
+		} else if (hasExistingInst) {
+			// Show song GO if audio files exist but no chart
+			songGoButton.visible = true;
+			difficultyGoButton.visible = false;
+			songGoButton.color = FlxColor.CYAN; // Ready for new chart creation
+		} else {
+			// Hide both if no existing files
+			songGoButton.visible = false;
+			difficultyGoButton.visible = false;
+		}
+	}
+
+	function updateAutosaveButton()
+	{
+		// Only update if the button has been created
+		if (loadAutosaveButton == null) return;
+
+		var selectedEditor = chartEditorDropDown.selectedLabel;
+		var hasAutosave = false;
+
+		// Check for autosave based on selected chart editor
+		if (selectedEditor == "New") {
+			// ChartingState - uses .bkp backup files in backups/ directory
+			#if sys
+			if (FileSystem.exists("backups") && FileSystem.isDirectory("backups")) {
+				var backupFiles = FileSystem.readDirectory("backups").filter(file -> file.endsWith('.bkp'));
+				hasAutosave = backupFiles.length > 0;
+			}
+			#end
+		} else if (selectedEditor == "Old") {
+			// ChartingStateOG - uses FlxG.save.data.autosave
+			hasAutosave = (FlxG.save.data.autosave != null);
+		} else if (selectedEditor == "Mixtape") {
+			// MixtapeChartEditorState - no autosave, only layout
+			hasAutosave = false;
+		}
+
+		loadAutosaveButton.visible = hasAutosave;
 	}
 }
 

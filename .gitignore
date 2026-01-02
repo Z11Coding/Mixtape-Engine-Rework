@@ -26,3 +26,4 @@ vs_Community.exe
 art/build_html.bat
 art/build_html-debug.bat
 assets/shared/music/hello.ogg.asd
+source/yutautil/typeregistry/TypeCollectionAccessor.hx

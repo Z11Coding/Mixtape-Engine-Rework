@@ -349,6 +349,17 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('Backup Selection Mode',
+			"Choose how backup files are loaded in Chart Creator Menu.\nRecent: Automatically load the most recent backup\nChoose: Show a list to pick from",
+			'chartBackupSelection',
+			STRING,
+			[
+				'Recent',
+				'Choose'
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var loadingThemes:Array<String> = ['Psych', 'Mixtape'];
 		var option:Option = new Option('Loading Screen Theme:',
 			"Which loading screen theme do you prefer?\nPsych: The classic loading screen\nMixtape: A new loading screen based on the splash screen with animated logo",

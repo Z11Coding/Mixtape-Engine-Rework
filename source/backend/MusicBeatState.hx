@@ -1154,7 +1154,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 			className.contains("MainMenuState") ||
 			className.contains("FreeplayState") ||
 			className.contains("StoryMenuState") ||
-			className.contains("OptionsState")) {
+			className.contains("OptionsState") ||
+			className.contains("ChartingState") ||
+			className.contains("ChartEditorState")) {
 			return DISABLE;
 		}
 
