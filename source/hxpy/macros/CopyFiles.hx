@@ -31,6 +31,10 @@ class CopyFiles {
 		process.close();
 
 		var copiedFiles = copyFiles('$libPath/package', outputFolder);
+
+		// Handle DLL files specially - copy them to both locations for runtime access
+		copyDllsForRuntime('$libPath/package', binFolder, outputFolder);
+
 		cleanupOldFiles(binFolder, copiedFiles);
 		return macro null;
 	}
@@ -58,6 +62,44 @@ class CopyFiles {
 		return copiedFiles;
 	}
 
+	public static function copyDllsForRuntime(start:String, binFolder:String, pythonFolder:String) {
+		if (!FileSystem.exists(start)) return;
+
+		trace('DLL Copy: Checking for Python DLLs to copy to main bin folder');
+
+		for (file in FileSystem.readDirectory(start)) {
+			var filePath:String = '$start/$file';
+
+			// Look for Python DLL files (python313.dll, python3.dll, etc.)
+			if (file.toLowerCase().endsWith('.dll') && file.toLowerCase().contains('python')) {
+				var binDllPath = haxe.io.Path.join([binFolder, file]);
+				var pythonDllPath = haxe.io.Path.join([pythonFolder, file]);
+
+				trace('DLL Copy: Found Python DLL: $file');
+
+				// Copy to main bin folder for runtime access
+				try {
+					if (!FileSystem.exists(binDllPath) || !filesAreIdentical(filePath, binDllPath)) {
+						File.copy(filePath, binDllPath);
+						trace('DLL Copy: Copied $file to main bin folder for runtime access');
+					}
+				} catch (e:Dynamic) {
+					trace('Warning: Could not copy DLL to main bin: $e');
+				}
+
+				// Also ensure it's in the python folder
+				try {
+					if (!FileSystem.exists(pythonDllPath) || !filesAreIdentical(filePath, pythonDllPath)) {
+						File.copy(filePath, pythonDllPath);
+						trace('DLL Copy: Ensured $file is in python folder');
+					}
+				} catch (e:Dynamic) {
+					trace('Warning: Could not copy DLL to python folder: $e');
+				}
+			}
+		}
+	}
+
   // You're welcome, Z11Gaming.
 	public static function cleanupOldFiles(binFolder:String, copiedFiles:Array<String>) {
 		trace('Cleanup: Starting cleanup in binFolder: $binFolder');
@@ -71,6 +113,12 @@ class CopyFiles {
 		var cleanedCount = 0;
 
 		for (fileName in copiedFiles) {
+			// Skip DLL files - they need to be in both locations for runtime access
+			if (fileName.toLowerCase().endsWith('.dll') && fileName.toLowerCase().contains('python')) {
+				trace('Cleanup: Skipping Python DLL cleanup: $fileName (needed in both locations)');
+				continue;
+			}
+
 			var oldFilePath = haxe.io.Path.join([binFolder, fileName]);
 			var newFilePath = haxe.io.Path.join([binFolder, "python", fileName]);
 
