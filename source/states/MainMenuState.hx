@@ -260,7 +260,7 @@ class MainMenuState extends MusicBeatState
 		changeItem();
 
 		#if !debug
-		mixVer.text = "Mixtape Engine " + Version.getVersionString(true);
+		mixVer.text = "Mixtape Engine " + Version.getVersionString(true) + ' (Internal: v$mixtapeEngineVersion)';
 		#else
 		mixVer.text = "Mixtape Engine " + Version.getVersionString(true) + ' (debug)';
 		#end
