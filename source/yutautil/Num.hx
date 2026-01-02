@@ -53,6 +53,12 @@ abstract Num(Float)
         return haxe.Int64.ofInt(Std.int(this));
     #end
 
+    public static inline function zero():Num
+        return new Num(0.0);
+
+    public static inline function toNum(value:Float):Num
+        return new Num(value);
+
     // Constructor
     public inline function new(value:Float)
         this = value;

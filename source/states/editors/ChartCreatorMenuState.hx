@@ -2030,10 +2030,45 @@ class ChartCreatorMenuState extends MusicBeatState
 		var loadButton:FlxUIButton;
 		var cancelButton:FlxUIButton;
 
-		// Page navigation (if multiple pages)
+		// Page navigation variables
 		var prevButton:FlxUIButton = null;
 		var nextButton:FlxUIButton = null;
 		var pageText:FlxText = null;
+
+		// Define updatePageDisplay function first
+		function updatePageDisplay() {
+			// Clear current buttons
+			for (button in buttons) {
+				remove(button);
+			}
+			buttons = [];
+
+			// Display files for current page
+			var startIndex = currentPage * maxVisible;
+			var endIndex = Math.min(startIndex + maxVisible, backupFiles.length);
+
+			for (i in 0...(endIndex - startIndex).toNum()) {
+				var fileIndex = startIndex + i;
+				var fileButton = new FlxUIButton(selectionBox.x + 20, selectionBox.y + 60 + (i * 30), backupFiles[fileIndex], function() {
+					selectedIndex = fileIndex;
+					// Update button colors
+					for (j in 0...buttons.length) {
+						buttons[j].color = (startIndex + j == fileIndex) ? FlxColor.YELLOW : FlxColor.WHITE;
+					}
+				});
+				fileButton.resize(dialogWidth - 40, 25);
+				fileButton.color = (i == 0) ? FlxColor.YELLOW : FlxColor.WHITE;
+				add(fileButton);
+				buttons.push(fileButton);
+			}
+
+			// Update page controls
+			if (prevButton != null) prevButton.visible = currentPage > 0;
+			if (nextButton != null) nextButton.visible = currentPage < totalPages - 1;
+			if (pageText != null) pageText.text = 'Page ${currentPage + 1} / ${totalPages}';
+		}
+
+		// Page navigation setup (if multiple pages)
 
 		if (totalPages > 1) {
 			prevButton = new FlxUIButton(selectionBox.x + 20, selectionBox.y + dialogHeight - 120, "<", function() {
@@ -2057,38 +2092,6 @@ class ChartCreatorMenuState extends MusicBeatState
 			pageText = new FlxText(selectionBox.x + 60, selectionBox.y + dialogHeight - 115, dialogWidth - 120, 'Page ${currentPage + 1} / ${totalPages}', 12);
 			pageText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
 			add(pageText);
-		}
-
-		function updatePageDisplay() {
-			// Clear current buttons
-			for (button in buttons) {
-				remove(button);
-			}
-			buttons = [];
-
-			// Display files for current page
-			var startIndex = currentPage * maxVisible;
-			var endIndex = Math.min(startIndex + maxVisible, backupFiles.length);
-
-			for (i in 0...(endIndex - startIndex)) {
-				var fileIndex = startIndex + i;
-				var fileButton = new FlxUIButton(selectionBox.x + 20, selectionBox.y + 60 + (i * 30), backupFiles[fileIndex], function() {
-					selectedIndex = fileIndex;
-					// Update button colors
-					for (j in 0...buttons.length) {
-						buttons[j].color = (startIndex + j == fileIndex) ? FlxColor.YELLOW : FlxColor.WHITE;
-					}
-				});
-				fileButton.resize(dialogWidth - 40, 25);
-				fileButton.color = (i == 0) ? FlxColor.YELLOW : FlxColor.WHITE;
-				add(fileButton);
-				buttons.push(fileButton);
-			}
-
-			// Update page controls
-			if (prevButton != null) prevButton.visible = currentPage > 0;
-			if (nextButton != null) nextButton.visible = currentPage < totalPages - 1;
-			if (pageText != null) pageText.text = 'Page ${currentPage + 1} / ${totalPages}';
 		}
 
 		// Initialize first page display
