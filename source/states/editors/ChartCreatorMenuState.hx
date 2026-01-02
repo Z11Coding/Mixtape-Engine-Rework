@@ -425,6 +425,14 @@ class ChartCreatorMenuState extends MusicBeatState
 			return;
 		}
 
+		// Set mod directory to currently selected mod
+		var targetMod = modDropDown.selectedLabel;
+		#if MODS_ALLOWED
+		if (targetMod != "__mixtape__") {
+			Mods.currentModDirectory = targetMod;
+		}
+		#end
+
 		// Pre-fill the form with current song data
 		songNameInput.text = PlayState.SONG.song;
 		difficultyInput.text = Difficulty.getString();
@@ -474,6 +482,12 @@ class ChartCreatorMenuState extends MusicBeatState
 	function onLoadChart()
 	{
 		#if MODS_ALLOWED
+		// Set mod directory to currently selected mod before loading
+		var targetMod = modDropDown.selectedLabel;
+		if (targetMod != "__mixtape__") {
+			Mods.currentModDirectory = targetMod;
+		}
+
 		// Use file dialog to browse for chart files
 		var filter:String = "Chart Files (*.json)|*.json";
 		var title:String = "Load Existing Chart";
@@ -496,6 +510,31 @@ class ChartCreatorMenuState extends MusicBeatState
 	function loadChartFromFile(path:String)
 	{
 		try {
+			// Determine mod directory from file path
+			var targetMod = "__mixtape__"; // Default to base game
+
+			#if MODS_ALLOWED
+			if (path.indexOf("mods/") != -1) {
+				// Extract mod directory from path
+				var pathParts = path.split("/");
+				for (i in 0...pathParts.length) {
+					if (pathParts[i] == "mods" && i + 1 < pathParts.length) {
+						targetMod = pathParts[i + 1];
+						break;
+					}
+				}
+			}
+			#end
+
+			// Set the current mod directory
+			#if MODS_ALLOWED
+			if (targetMod != "__mixtape__") {
+				Mods.currentModDirectory = targetMod;
+				// Update UI to reflect correct mod
+				modDropDown.selectedLabel = targetMod;
+			}
+			#end
+
 			// Load the chart JSON
 			var rawJson = sys.io.File.getContent(path);
 			var chartData:backend.SwagSong = cast haxe.Json.parse(rawJson);
@@ -1874,6 +1913,14 @@ class ChartCreatorMenuState extends MusicBeatState
 
 	function onLoadAutosave()
 	{
+		// Set mod directory to currently selected mod
+		var targetMod = modDropDown.selectedLabel;
+		#if MODS_ALLOWED
+		if (targetMod != "__mixtape__") {
+			Mods.currentModDirectory = targetMod;
+		}
+		#end
+
 		var selectedEditor = chartEditorDropDown.selectedLabel;
 
 		if (selectedEditor == "New") {
