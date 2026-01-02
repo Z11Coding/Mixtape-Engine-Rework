@@ -28,3 +28,5 @@ art/build_html-debug.bat
 assets/shared/music/hello.ogg.asd
 build.txt
 source/yutautil/typeregistry/TypeCollectionAccessor.hx
+build.txt
+source/yutautil/typeregistry/TypeCollectionAccessor.hx

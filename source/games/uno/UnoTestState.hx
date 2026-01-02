@@ -112,6 +112,8 @@ class UnoTestState extends MusicBeatState {
         Cursor.show();
         Cursor.cursorMode = Default;
 
+        forceCursor = true;
+
         var allowRip:Bool = (FlxG.random.bool(27) && !APEntryState.inArchipelagoMode);
         normalMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards${(allowRip ? ' (Mountain Man Mix)' : '')}'));
         lastcardMus = new FlxSound().loadEmbedded(Paths.music('gameMusic/Heart of the Cards${(allowRip ? ' (Mountain Man Mix)' : '')} (Last Card Mix)'));

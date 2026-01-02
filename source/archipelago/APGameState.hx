@@ -318,6 +318,7 @@ class APGameState
 	public static var temporaryWeekNames:Array<String> = [];
 
 	public var connected(get, never):Bool;
+	public var canGoal:Bool = false;
 
 	public var APLocations:Array<Int> = [];
 	public var APItems:Map<String, Int> = new Map<String, Int>();

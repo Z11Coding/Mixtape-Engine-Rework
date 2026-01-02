@@ -4,10 +4,14 @@ package yutautil;
 import flixel.FlxG;
 import haxe.Json;
 import hxpy.Py;
+import hxpy.PyConfig;
 import hxpy.PyRun;
+import hxpy.PyStatus;
 import states.PlayState;
 import sys.FileSystem;
 import sys.io.File;
+
+using cpp.RawPointer;
 
 /**
  * Simple Python scripting integration for Mixtape Engine
@@ -21,6 +25,10 @@ class PyScript {
     public static var Function_StopLua:Int = 2;
     public static var Function_StopHScript:Int = 3;
     public static var Function_StopAll:Int = 4;
+
+    // Static PyConfig and PyStatus for proper pointer management
+    private static var config:PyConfig;
+    private static var status:PyStatus;
 
     private var scriptPath:String;
     public var scriptName:String;  // Made public for PlayState access
@@ -44,7 +52,7 @@ class PyScript {
         try {
             // Initialize Python interpreter if not already done
             if (!Py.isInitialized()) {
-                Py.initialize();
+                initializePythonWithConfig();
             }
 
             // Set up basic environment
@@ -61,6 +69,53 @@ class PyScript {
             isInitialized = false;
             scriptExists = false;
             errorOccurred = true;
+        }
+    }
+
+    private function initializePythonWithConfig():Void {
+        try {
+            // Initialize Python config using static variables
+            PyConfig.initPythonConfig(config.addressOf());
+
+            // Set Python home to our bin/python directory
+            var pythonHome = haxe.io.Path.join([Sys.getCwd(), "python"]);
+            if (FileSystem.exists(pythonHome)) {
+                // Convert to wide string for PyConfig
+                status = PyConfig.setBytesString(config.addressOf(), config.home.addressOf(), pythonHome);
+                if (Py.exception(status)) {
+                    trace('Warning: Could not set Python home to $pythonHome');
+                }
+
+                // Also set program name for better path resolution
+                status = PyConfig.setBytesString(config.addressOf(), config.program_name.addressOf(), "PyScript");
+                if (Py.exception(status)) {
+                    trace('Warning: Could not set Python program name');
+                }
+
+                trace('Python configured to use home directory: $pythonHome');
+            }
+
+            // Initialize Python with our configuration
+            status = Py.initializeFromConfig(config.addressOf());
+            if (Py.exception(status)) {
+                trace('Failed to initialize Python with config, falling back to basic initialization');
+                PyConfig.clear(config.addressOf());
+                Py.initialize();
+                return;
+            }
+
+            PyConfig.clear(config.addressOf());
+            trace('Python successfully initialized with custom configuration');
+
+        } catch (e:Dynamic) {
+            trace('Error during Python config initialization: $e');
+            // Clean up and fall back to basic initialization
+            try {
+                PyConfig.clear(config.addressOf());
+            } catch (cleanupError:Dynamic) {
+                // Ignore cleanup errors
+            }
+            Py.initialize();
         }
     }
 

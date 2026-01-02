@@ -214,7 +214,7 @@ class APItem {
         return allItems.getItems().copy();
     }
 
-    public static function popup(desc:String, ?title:String, ?isWhite:Bool = false):Void {
+    public static function popup(desc:String, ?title:String, ?isWhite:Bool = false, ?onClick:Void->Void = null):Void {
         if (!APGameState.haventranyet) {
             if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
                 archipelago.ArchPopup.startPopupCustom(title != null ? title : "AP Item!", desc, isWhite ? "archWhite" : "archColor", function() {
@@ -222,7 +222,7 @@ class APItem {
                 });
             } else {
                 // Default to Notification style
-                archipelago.console.obj.Alert.alert(title != null ? title : "AP Item!", desc, function() {trace("why did you click it lol?");});
+                archipelago.console.obj.Alert.alert(title != null ? title : "AP Item!", desc, onClick != null ? onClick : function() {trace("why did you click it lol?");});
             }
         }
     }
@@ -235,6 +235,15 @@ class APItem {
     static var confusionStack:Int = 0;
     public static function createItemByName(name:String, ?fromTrapLink:Bool = false):APItem {
         switch (name) {
+
+            case "Girlfriend's Love":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('You feel a warm embrace...', "You got Girlfriend's Love!");
+                    popup("You have reached your goal! Congratulations!", "Victory!", false);
+                    if (APGameState.instance != null) {
+                        APGameState.instance.canGoal = true;
+                    }
+                }, true, true, false, fromTrapLink);
             case "Blue Balls Curse":
                 return new APTrap(name, ConditionHelper.Special(), function() {
                     // Check if shields are available
