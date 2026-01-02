@@ -524,6 +524,159 @@ class FreeplayManager {
         }
     }
 
+    public function reloadPlaylistSelect()
+    {
+        trace("Reloading Songs!");
+        // Always populate the main songs array for all freeplay menus
+        songs = [];
+
+        for (i in 0...WeekData.weeksList.length) {
+            var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+
+            function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
+                if (array == null || array.length == 0) {
+                    return null;
+                }
+                return array;
+            }
+
+            WeekData.setDirectoryFromWeek(leWeek);
+            for (song in leWeek.songs)
+            {
+                var colors:Array<Int> = song[2];
+                if(colors == null || colors.length < 3)
+                {
+                    colors = [146, 113, 253];
+                }
+
+                try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}
+                catch(e) {
+                    //trace("can't.");
+                    metadataFile = null;
+                }
+
+                try {
+                    pMetadataFile = new FreeplayMetaJSON().mergeWithJson(Json.parse(Paths.getTextFromFile('data/${Paths.formatToSongPath(song[0].toLowerCase())}/metadata.json')));
+                    metadataFile = {
+                        song: {
+                            name: song[0],
+                            mod: pMetadataFile.freeplayWeekName,
+                            charter: "???",
+                            artist: "???"
+                        },
+                        freeplay: { // cover the defaults and pray to god the custom ones figure themselves out
+                            ratings: ['easy' => pMetadataFile.songRating, 'normal' => pMetadataFile.songRating, 'hard' => pMetadataFile.songRating, 'erect' => pMetadataFile.songRating, 'nightmare' => pMetadataFile.songRating],
+                            bg: "menuDesat",
+                            album: pMetadataFile.albumId
+                        },
+                    };
+                    var diffStr:String = leWeek.difficulties;
+                    if(diffStr != null && diffStr.length > 0)
+                    {
+                        var diffs:Array<String> = diffStr.trim().split(',');
+                        for (diff in diffs) {
+                            if(diff != null)
+                            {
+                                diff = diff.trim();
+                                if(diff.length < 1) diffs.remove(diff);
+                            }
+                            metadataFile.freeplay.ratings.set(diff.toLowerCase(), pMetadataFile.songRating);
+                        }
+                    }
+                }
+                catch(e) {
+                    //trace("can't.");
+                    pMetadataFile = null;
+                }
+
+                try
+                {
+                    metadata.set(song[0].toLowerCase(), cast metadataFile);
+                    //trace("Found metadata for " + song[0].toLowerCase());
+                }
+                catch (e)
+                {
+                    /*try
+                    {
+                        trace("No metadata for " + song[0].toLowerCase());
+                    }
+                    catch (e)
+                    {
+                        trace("No metadata found. No song either apparently.");
+                    }*/
+                }
+
+                addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
+            }
+        }
+
+
+        Mods.currentModDirectory = '';
+        // Secrets
+        if (FlxG.save.data.gotIntoAnArgument && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+            addSong('Small Argument', 7, "gfchibi", [[235, 100, 161], [FlxColor.fromRGB(235, 100, 161)]]);
+        if (FlxG.save.data.gotbeatbattle && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+            addSong('Beat Battle', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+        if (FlxG.save.data.gotbeatbattle2 && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+            addSong('Beat Battle 2', 7, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+        if (FlxG.save.data.gotgeostar && (CategoryState.loadWeekForce == "secrets" || CategoryState.loadWeekForce == "all"))
+            addSong('GeoStar', 7, "ElCaption", [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
+
+        // Special
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Rise', 8, "gf", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Zeventeen', 8, "Z_icon", [[135, 53, 172], [FlxColor.fromRGB(135, 53, 172)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Pack-A-Punch', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Driller', 8, "matt", [[165, 0, 77], [FlxColor.fromRGB(165, 0, 77)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Test Field', 8, "icons-ohagi", [[255, 200, 40], [FlxColor.fromRGB(255, 200, 40)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Rawr', 8, "michael", [[140, 120, 80], [FlxColor.fromRGB(140, 120, 80)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Fightback', 8, "z12", [[255, 253, 255], [FlxColor.fromRGB(255, 253, 255)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Funky Fanta', 8, "fanta", [[254, 134, 29], [FlxColor.fromRGB(254, 134, 29)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Tag And Seek', 8, "sillyexe", [[45, 69, 165], [FlxColor.fromRGB(45, 69, 165)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Testimony', 8, "shaggy", [[146, 113, 253], [FlxColor.fromRGB(146, 113, 253)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
+        if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+            addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+
+        for (song in weeklessSongs) {
+            try {metadataFile = cast Json.parse(Assets.getText(Paths.json(Paths.formatToSongPath(song.toLowerCase()) + '/meta')));}
+            catch(e) {
+                //trace("can't.");
+                metadataFile = null;
+            }
+
+            try
+            {
+                metadata.set(song.toLowerCase(), cast metadataFile);
+                //trace("Found metadata for " + song.toLowerCase());
+            }
+            catch (e)
+            {
+                try
+                {
+                    //trace("No metadata for " + song.toLowerCase());
+                }
+                catch (e)
+                {
+                    //trace("No metadata found. No song either apparently.");
+                }
+            }
+        }
+
+        if (states.editors.PlaylistSongSelectorState.instance != null)
+            states.editors.PlaylistSongSelectorState.instance.reloadSongs();
+    }
+
     public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Array<Array<Dynamic>>, ?charter:String = "???", ?artist:String = "???")
 	{
 		songs.push(new GlobalSongMetadata(songName, weekNum, songCharacter, color, charter, artist));

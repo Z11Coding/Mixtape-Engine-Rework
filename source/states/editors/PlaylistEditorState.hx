@@ -5,6 +5,8 @@ import states.freeplay.backend.DifficultyStars;
 
 class PlaylistEditorState extends MusicBeatState
 {
+  public static var autoOpenMetaEditor:Bool = false;
+
   public var playlists:Array<PlaylistMetadata> = [];
   public var selectedPlaylist:PlaylistMetadata = null;
   private var grpPlaylist:FlxTypedGroup<Alphabet>;
@@ -41,18 +43,21 @@ class PlaylistEditorState extends MusicBeatState
     add(playlistTitle);
     super.create();
 
-    var playlistSelect:PsychUIButton = new PsychUIButton(25, (-FlxG.height + 250), 'Playlist Select', function()
+    var sizeMulti:Int = 2;
+
+    var playlistSelect:PsychUIButton = new PsychUIButton(0, (FlxG.height - 50), 'Playlist Select', function()
 		{
       FlxTransitionableState.skipNextTransIn = true;
       FlxG.switchState(new PlaylistSelector());
-		}, 20);
+		}, 80*sizeMulti, 20*sizeMulti);
+    playlistSelect.x = (FlxG.width/2) - playlistSelect.width - 250;
 
-    var editMetadata:PsychUIButton = new PsychUIButton(playlistSelect.x+15, playlistSelect.y, 'Edit Metadata', function()
+    var editMetadata:PsychUIButton = new PsychUIButton((playlistSelect.x + playlistSelect.width)+50, playlistSelect.y, 'Edit Metadata', function()
 		{
       openSubState(new PlaylistMetaDataEditor(selectedPlaylist));
-		}, 20);
+		}, 80*sizeMulti, 20*sizeMulti);
 
-    var deletePlaylist:PsychUIButton = new PsychUIButton(editMetadata.x+15, editMetadata.y, 'Delete Playlist', function()
+    var deletePlaylist:PsychUIButton = new PsychUIButton((editMetadata.x+editMetadata.width)+50, editMetadata.y, 'Delete Playlist', function()
 		{
       openSubState(new Prompt('Are you sure you want to delete ${selectedPlaylist.playlistName}?\n(THIS CANNOT BE UNDONE!)', 0, function() {
         ClientPrefs.data.playLists.remove(selectedPlaylist);
@@ -86,18 +91,21 @@ class PlaylistEditorState extends MusicBeatState
         }
         #end
       }, null, false, 'Yes', 'Cancel'));
-		}, 20);
+		}, 80*sizeMulti, 20*sizeMulti);
     deletePlaylist.normalStyle.bgColor = FlxColor.RED;
 		deletePlaylist.normalStyle.textColor = FlxColor.WHITE;
 
-    var reorderSongs:PsychUIButton = new PsychUIButton(deletePlaylist.x+15, deletePlaylist.y, 'Re-Arrange Songs', function()
+    var reorderSongs:PsychUIButton = new PsychUIButton((deletePlaylist.x+deletePlaylist.width)+50, deletePlaylist.y, 'Re-Arrange Songs', function()
 		{
       // Nothing for now
-		}, 20);
+		}, 80*sizeMulti, 20*sizeMulti);
     add(playlistSelect);
     add(editMetadata);
     add(deletePlaylist);
     add(reorderSongs);
+
+    if (autoOpenMetaEditor)
+      openSubState(new PlaylistMetaDataEditor(selectedPlaylist));
   }
 
   function loadPlaylist(playlist:PlaylistMetadata) {
@@ -115,6 +123,7 @@ class PlaylistEditorState extends MusicBeatState
       bg.screenCenter();
 
       playlistTitle.text = playlist.playlistName;
+      playlistTitle.screenCenter(X);
 
       grpPlaylist.clear();
       for (i in 0...playlist.songList.length) {
@@ -141,11 +150,11 @@ class PlaylistEditorState extends MusicBeatState
       FlxTransitionableState.skipNextTransIn = true;
       MusicBeatState.switchState(new PlaylistState());
     }
-    else if (controls.UI_UP)
+    else if (controls.UI_UP_P)
     {
       changeSelection(-1);
     }
-    else if (controls.UI_DOWN)
+    else if (controls.UI_DOWN_P)
     {
       changeSelection(1);
     }
@@ -224,7 +233,7 @@ class PlaylistSelector extends MusicBeatState {
 		newPlaylistText.snapToPosition();
 		add(cast newPlaylistText);
 
-    var chooseText:Alphabet = new Alphabet(200, FlxG.height - 150, "Select a Playlist to Edit", true);
+    var chooseText:Alphabet = new Alphabet((FlxG.width/2), (-FlxG.height + 150), "Select a Playlist to Edit", true);
     chooseText.setAlignmentFromString("center");
     newPlaylistText.snapToPosition();
     //chooseText.screenCenter(X);
@@ -263,11 +272,11 @@ class PlaylistSelector extends MusicBeatState {
       FlxTransitionableState.skipNextTransIn = true;
       MusicBeatState.switchState(new PlaylistState());
     }
-    else if (controls.UI_UP)
+    else if (controls.UI_UP_P)
     {
       changeSelection(-1);
     }
-    else if (controls.UI_DOWN)
+    else if (controls.UI_DOWN_P)
     {
       changeSelection(1);
     }
@@ -346,11 +355,14 @@ class PlaylistSelector extends MusicBeatState {
 
 class PlaylistMetaDataEditor extends MusicBeatSubstate {
   public static var playlist:PlaylistMetadata;
+  static var oldPlaylist:PlaylistMetadata;
 
   public function new(playlist:PlaylistMetadata = null)
   {
     super();
     PlaylistMetaDataEditor.playlist = playlist;
+    PlaylistMetaDataEditor.oldPlaylist = playlist;
+    PlaylistEditorState.autoOpenMetaEditor = false;
   }
 
   var diffStars:DifficultyStars;
@@ -422,18 +434,52 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     objX = 10;
     var songSelect:PsychUIButton = new PsychUIButton(objX, objY, 'Song Select', function()
 		{
+      FlxG.switchState(new PlaylistSongSelectorState());
+		}, 80);
 
-		}, 20);
-
-    objX += 80;
+    objX += 120;
     var savePlaylist:PsychUIButton = new PsychUIButton(objX, objY, 'Save Playlist', function()
 		{
       var promptSave:Prompt;
       var saveInternal = function()
       {
         trace('Playlist: ${PlaylistMetaDataEditor.playlist}');
+        if (PlaylistMetaDataEditor.oldPlaylist != null) { // cant delete what isnt there lol
+          if (ClientPrefs.data.playLists.contains(PlaylistMetaDataEditor.oldPlaylist))
+            ClientPrefs.data.playLists.remove(PlaylistMetaDataEditor.oldPlaylist);
+        }
+
         ClientPrefs.data.playLists.push(PlaylistMetaDataEditor.playlist);
         ClientPrefs.saveSettings();
+
+        if (PlaylistMetaDataEditor.oldPlaylist != null) { // cant delete what isnt there lol
+          var playlists:Array<PlaylistMetadata> = ClientPrefs.data.playLists;
+
+          var directories:Array<String> = [
+            Paths.mods(Mods.currentModDirectory + '/playlists/'),
+            Paths.mods('playlists/'),
+            Paths.getSharedPath('playlists/')
+          ];
+          for (mod in Mods.getGlobalMods())
+            directories.push(Paths.mods(mod + '/playlists/'));
+          for (directory in directories)
+          {
+            if (FileSystem.exists(directory))
+            {
+              for (file in FileSystem.readDirectory(directory)) {
+                var path = haxe.io.Path.join([directory, file]);
+                if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
+                  var fileName:String = file.substr(0, file.length - 5);
+                  if (fileName == PlaylistMetaDataEditor.oldPlaylist.playlistName) {
+                    FileSystem.deleteFile(file);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+
         openSubState(new Prompt('Save Successful!', 1, function() {
           MusicBeatState.switchState(new PlaylistEditorState(PlaylistMetaDataEditor.playlist));
         }, null, false, 'OK', 'its actually very not ok'));
@@ -467,6 +513,7 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     tab_group.add(playlistAlbumInputText);
     tab_group.add(playlistDifficultySlider);
     tab_group.add(savePlaylist);
+    tab_group.add(songSelect);
   }
 
   function reloadUI() {
@@ -478,7 +525,6 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     playlistIconInputText.text = playlist.icon;
     playlistAlbumInputText.text = playlist.album;
     playlistDifficultySlider.value = playlist.difficulty;
-    setStars(playlist.difficulty);
   }
 
   function setStars(value:Int) {

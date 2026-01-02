@@ -143,10 +143,12 @@ class TitleState extends MusicBeatState
 			var hasWarmup:Bool = false;
 			if (ClientPrefs.data.playLists != null && ClientPrefs.data.playLists.length > 0) {
 				for (playlistItem in ClientPrefs.data.playLists) {
-					if (playlistItem.playlistName == "Warm-Up") {
-						playlist = playlistItem;
-						hasWarmup = true;
-						break;
+					if (playlistItem != null) {
+						if (playlistItem.playlistName == "Warm-Up") {
+							playlist = playlistItem;
+							hasWarmup = true;
+							break;
+						}
 					}
 				}
 			}

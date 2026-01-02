@@ -1376,9 +1376,9 @@ class FreeplayState extends MusicBeatState
 
 			for (item in Reflect.fields(ratingValue)) {
 					if (item == 'normal' || item == 'easy' || item == 'hard') {
-							actualRating.set(item, Reflect.field(ratingValue, item));
+						actualRating.set(item, Reflect.field(ratingValue, item));
 					} else {
-							actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
+						actualRating.set(item.toLowerCase(), Reflect.field(ratingValue, item));
 					}
 			}
 
