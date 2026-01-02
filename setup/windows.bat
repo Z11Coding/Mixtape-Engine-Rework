@@ -22,7 +22,6 @@ haxelib install hscript 2.5.0
 haxelib install noisehx 0.0.1
 haxelib install haxeui-core 1.7.0
 haxelib install haxeui-flixel 1.7.0
-haxelib install funkin-modchart 1.2.3
 haxelib install deflatex 1.0.0
 haxelib install crypto 1.0.4
 haxelib install openflCamera 1.0.7
@@ -31,7 +30,6 @@ haxelib set lime 8.2.2
 haxelib set openfl 9.4.1
 haxelib git flxsoundfilters https://github.com/TheZoroForce240/FlxSoundFilters
 haxelib git hxWebSockets https://github.com/ianharrigan/hxWebSockets
-haxelib git funkin-modchart https://github.com/TheoDevelops/FunkinModchart
 haxelib git linc_dialogs https://github.com/snowkit/linc_dialogs.git
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7

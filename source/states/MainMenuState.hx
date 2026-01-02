@@ -582,8 +582,10 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new MasterEditorMenu());
 			}
 
+			//Make is so that you have to use shift to access these so the normal keybinded debug stuff isnt overridden
+
 			// Debug State Menu access with F3 or debug_2
-			if (FlxG.keys.justPressed.F3 || controls.justPressed('debug_2'))
+			if (FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.F3 || controls.justPressed('debug_2'))
 			{
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;
@@ -591,7 +593,7 @@ class MainMenuState extends MusicBeatState
 			}
 
 			// Dev Release Tool access with F5 (only in livereload mode)
-			if (FlxG.keys.justPressed.F5 && Sys.args().indexOf('-livereload') != -1)
+			if (FlxG.keys.pressed.SHIFT && (FlxG.keys.justPressed.F5 && Sys.args().indexOf('-livereload') != -1))
 			{
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;
@@ -599,7 +601,7 @@ class MainMenuState extends MusicBeatState
 			}
 
 			// Release Selection access with F6 or Ctrl+U
-			if (FlxG.keys.justPressed.F6 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.U))
+			if (FlxG.keys.pressed.SHIFT && (FlxG.keys.justPressed.F6 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.U)))
 			{
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;
@@ -607,7 +609,7 @@ class MainMenuState extends MusicBeatState
 			}
 
 			// Debug Main Menu access with F4 or Ctrl+D
-			if (FlxG.keys.justPressed.F4 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.D))
+			if (FlxG.keys.pressed.SHIFT && (FlxG.keys.justPressed.F4 || (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.D)))
 			{
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;

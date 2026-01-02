@@ -191,23 +191,6 @@ class PlaylistState extends MusicBeatState {
     rank.doTween('in');
   }
 
-  public function setDifficultyStars(?difficulty:Int):Void
-	{
-		if (difficulty == null) return;
-		difficultyStars.setNumber(archipelago.APItem.unknownSongs ? 100 : difficulty);
-		showStars();
-	}
-
-	/**
-	 * Make the album stars visible.
-	 * I thought this was pointless.
-	 * Turns out, this DOES have a reason to exist
-	 */
-	public function showStars():Void
-	{
-		difficultyStars.visible = true; // true;
-	}
-
   override function closeSubState() {
 		if (doChange)
 		{
@@ -238,13 +221,53 @@ class PlaylistState extends MusicBeatState {
 					item.alpha = 1;
 			}
 		}
+
+		if (curSelected != -1 || loadedPlaylists[curSelected] != null) {
+			if (loadedPlaylists[curSelected]?.bg != null && loadedPlaylists[curSelected]?.bg != '') {
+				bg.loadGraphic(Paths.image(loadedPlaylists[curSelected].bg));
+				bg.screenCenter();
+			} else {
+				bg.loadGraphic(Paths.image(ClientPrefs.getBGImage()));
+				bg.screenCenter();
+			}
+
+			if (albumPhoto != null) {
+				albumPhoto.visible = true;
+				if (loadedPlaylists[curSelected]?.album != null && loadedPlaylists[curSelected]?.album != '') {
+					albumPhoto.loadGraphic(Paths.image('albums/${Std.string(loadedPlaylists[curSelected].album)}'));
+					albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+					albumPhoto.screenCenter(Y);
+					albumPhoto.y += 20;
+				} else {
+					albumPhoto.loadGraphic(Paths.image('albums/NoCover'));
+					albumPhoto.setGraphicSize(Std.int(albumPhoto.width * 1.6));
+					albumPhoto.screenCenter(Y);
+					albumPhoto.y += 20;
+				}
+			}
+
+			difficultyStars.setNumber(loadedPlaylists[curSelected]?.difficulty ?? 0);
+			difficultyStars.visible = true;
+		} else {
+			bg.loadGraphic(Paths.image(ClientPrefs.getBGImage()));
+			bg.screenCenter();
+			if (albumPhoto != null)
+				albumPhoto.visible = false;
+			difficultyStars.setNumber(0);
+			difficultyStars.visible = false;
+		}
+
     FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
   }
 
+	var holdTime:Float = 0;
   override function update(elapse:Float) {
     super.update(elapse);
 
 		updateTexts(elapse);
+
+		var shiftMult:Int = 1;
+		if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
 
 		if (controls.ACCEPT)
     {
@@ -256,14 +279,31 @@ class PlaylistState extends MusicBeatState {
       FlxTransitionableState.skipNextTransIn = true;
       MusicBeatState.switchState(new MainMenuState());
     }
-    else if (controls.UI_UP)
+
+		if (controls.UI_UP_P)
+		{
+			changeSelection(-shiftMult);
+			holdTime = 0;
+		}
+		if (controls.UI_DOWN_P)
+		{
+			changeSelection(shiftMult);
+			holdTime = 0;
+		}
+
+		if (controls.UI_DOWN || controls.UI_UP)
     {
-      changeSelection(-1);
+      var checkLastHold:Int = Math.floor((holdTime - 0.5) * 10);
+			holdTime += elapse;
+			var checkNewHold:Int = Math.floor((holdTime - 0.5) * 10);
+
+			if(holdTime > 0.5 && checkNewHold - checkLastHold > 0)
+				changeSelection((checkNewHold - checkLastHold) * (controls.UI_UP ? -shiftMult : shiftMult));
     }
-    else if (controls.UI_DOWN)
-    {
-      changeSelection(1);
-    }
+
+		if (controls.justPressed('debug_1')) {
+			MusicBeatState.switchState(new states.editors.PlaylistEditorState());
+		}
   }
 
   function reloadPlayLists() {
@@ -272,17 +312,23 @@ class PlaylistState extends MusicBeatState {
     loadedPlaylists = loadPlaylists();
 
 		if (loadedPlaylists.length == 0) {
-			trace('no need to do anything if there\'s nothing to do');
 			// no need to do anything if there's nothing to do
 			return;
 		}
 
-    for (i in 0...loadedPlaylists.length - 1) {
-      var listText:Alphabet = null;
-      listText = new DynamicAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
-      listText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
-      listText.targetY = i;
-			grpPlaylists.add(listText);
+    for (i in 0...loadedPlaylists.length) {
+			if (loadedPlaylists[i] != null) {
+				var listText:Alphabet = null;
+				listText = new DynamicAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
+				listText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
+				listText.targetY = i;
+				grpPlaylists.add(listText);
+			} else {
+				trace('A PLAYLIST WAS NULL! REMOVING PLAYLIST FROM INTERNAL PLAYLISTS!');
+				loadedPlaylists.remove(loadedPlaylists[i]);
+				ClientPrefs.data.playLists.remove(loadedPlaylists[i]);
+				ClientPrefs.saveSettings();
+			}
     }
 
     //if I need to do anything else, this function will be here
@@ -374,6 +420,16 @@ class PlaylistState extends MusicBeatState {
 		return playlists;
 	}
 
+	private function updateScrollable(obj:Scrollable, elapsed:Float = 0.0) {
+		obj.x = ((obj.targetY - lerpSelected) * obj.distancePerItem.x) + obj.startPosition.x;
+		obj.y = ((obj.targetY - lerpSelected) * 1.3 * obj.distancePerItem.y) + obj.startPosition.y;
+
+		if (selected)
+			obj.alpha -= elapsed * 4;
+		else
+			obj.alpha = FlxMath.bound(obj.alpha + elapsed * 5, 0, 0.6);
+	}
+
 	var _drawDistance:Int = 4;
 	var _lastVisibles:Array<Int> = [];
 	public function updateTexts(elapsed:Float = 0.0)
@@ -384,6 +440,11 @@ class PlaylistState extends MusicBeatState {
 			if(grpPlaylists.members[i] != null) grpPlaylists.members[i].visible = grpPlaylists.members[i].active = false;
 		}
 		_lastVisibles = [];
+
+		updateScrollable(randomText, elapsed);
+		if (curSelected == -1)
+			randomText.alpha = 1;
+		randomIcon.alpha = randomText.alpha;
 
 		var min:Int = Math.round(Math.max(0, Math.min(loadedPlaylists.length, lerpSelected - _drawDistance)));
 		var max:Int = Math.round(Math.max(0, Math.min(loadedPlaylists.length, lerpSelected + _drawDistance)));
@@ -407,7 +468,7 @@ class PlaylistSongMetadata extends managers.FreeplayManager.GlobalSongMetadata
 	public var difficulty:String = "";
 	public function new(song:String, week:Int, songCharacter:String, color:Array<Array<Dynamic>>, difficulty:String = "", ?charter:String = "???", ?artist:String = "???")
 	{
-		super(song, week, songCharacter, color, );
+		super(song, week, songCharacter, color);
 		this.difficulty = difficulty;
 		this.charter = charter;
 		this.artist = artist;
