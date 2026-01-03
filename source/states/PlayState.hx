@@ -712,7 +712,7 @@ class PlayState extends MusicBeatState
 		}
 		#end
 		if (isWarmUp || isPlaylist) {
-			Difficulty.loadFromWeek(WeekData.weeksLoaded.get(WeekData.weeksList[curPlaylist[0].week]));
+			Difficulty.loadFromWeek();
 			storyDifficulty = Difficulty.list.indexOf(curPlaylist[0].difficulty);
 		}
 		//trace('Playback Rate: ' + playbackRate);
@@ -8830,7 +8830,8 @@ class PlayState extends MusicBeatState
 
 				if (curPlaylist.length <= 0)
 				{
-					ClientPrefs.data.warmupCompleted = true;
+					if (isWarmUp)
+						ClientPrefs.data.warmupCompleted = true;
 					canResync = false;
 					gameplayArea = isPlaylist ? "Playlist" : "Warmup";
 					changedDifficulty = false;
@@ -8864,7 +8865,9 @@ class PlayState extends MusicBeatState
 				}
 				else
 				{
-					Difficulty.loadFromWeek(WeekData.weeksLoaded.get(WeekData.weeksList[curPlaylist[0].week]));
+					Mods.currentModDirectory = curPlaylist[0].folder != null ? curPlaylist[0].folder : '';
+					PlayState.storyWeek = curPlaylist[0].week;
+					Difficulty.loadFromWeek();
 					storyDifficulty = Difficulty.list.indexOf(curPlaylist[0].difficulty);
 					var difficulty:String = Difficulty.getFilePath();
 

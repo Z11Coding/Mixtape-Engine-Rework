@@ -90,6 +90,9 @@ class PlaylistEditorState extends MusicBeatState
           }
         }
         #end
+
+        FlxTransitionableState.skipNextTransIn = true;
+        FlxG.switchState(new PlaylistSelector());
       }, null, false, 'Yes', 'Cancel'));
 		}, 80*sizeMulti, 20*sizeMulti);
     deletePlaylist.normalStyle.bgColor = FlxColor.RED;
@@ -104,8 +107,14 @@ class PlaylistEditorState extends MusicBeatState
     add(deletePlaylist);
     add(reorderSongs);
 
-    if (autoOpenMetaEditor)
+    updateTexts();
+    lerpSelected = curSelected;
+    changeSelection();
+
+    if (autoOpenMetaEditor) {
+      autoOpenMetaEditor = false;
       openSubState(new PlaylistMetaDataEditor(selectedPlaylist));
+    }
   }
 
   function loadPlaylist(playlist:PlaylistMetadata) {
@@ -129,6 +138,9 @@ class PlaylistEditorState extends MusicBeatState
       for (i in 0...playlist.songList.length) {
         var playlistText:Alphabet = new Alphabet(90, 320, playlist.songList[i].songName, true);
         playlistText.targetY = i;
+        playlistText.scaleX = Math.min(1, 980 / playlistText.width);
+				playlistText.snapToPosition();
+        playlistText.visible = playlistText.active = playlistText.isMenuItem = false;
         grpPlaylist.add(playlistText);
       }
     }
@@ -186,11 +198,13 @@ class PlaylistEditorState extends MusicBeatState
 		for (i in _lastVisibles)
 		{
 			if(grpPlaylist.members[i] != null) grpPlaylist.members[i].visible = grpPlaylist.members[i].active = false;
+			//try{if(iconArray[i] != null) iconArray[i].visible = iconArray[i].active = false;}
+			//catch(e) {trace("Failed to update the icons!");}
 		}
 		_lastVisibles = [];
 
-		var min:Int = Math.round(Math.max(0, Math.min(playlists.length, lerpSelected - _drawDistance)));
-		var max:Int = Math.round(Math.max(0, Math.min(playlists.length, lerpSelected + _drawDistance)));
+		var min:Int = Math.round(Math.max(0, Math.min(grpPlaylist?.members.length ?? 1, lerpSelected - _drawDistance)));
+		var max:Int = Math.round(Math.max(0, Math.min(grpPlaylist?.members.length ?? 1, lerpSelected + _drawDistance)));
 		for (i in min...max)
 		{
 			if (grpPlaylist.members[i] != null)
@@ -246,6 +260,7 @@ class PlaylistSelector extends MusicBeatState {
     }
 
     updateTexts();
+    changeSelection(0);
 
   }
 
@@ -362,7 +377,6 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     super();
     PlaylistMetaDataEditor.playlist = playlist;
     PlaylistMetaDataEditor.oldPlaylist = playlist;
-    PlaylistEditorState.autoOpenMetaEditor = false;
   }
 
   var diffStars:DifficultyStars;
@@ -419,11 +433,11 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
 
     objY += 40;
     playlistDifficultySlider = new PsychUISlider(objX, objY, function(v:Float) {
-      setStars(Std.int(v));
       if (PlaylistMetaDataEditor.playlist != null) PlaylistMetaDataEditor.playlist.difficulty = Std.int(v);
+      setStars(Std.int(v));
     }, 0, 0, 20, 200);
     playlistDifficultySlider.decimals = 0;
-		playlistDifficultySlider.label = 'Difficulty';
+		playlistDifficultySlider.label = 'Difficulty:';
 
     diffStars = new DifficultyStars(playlistDifficultySlider.x - 25, playlistDifficultySlider.y + 35);
 		diffStars.visible = true;
@@ -434,6 +448,7 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     objX = 10;
     var songSelect:PsychUIButton = new PsychUIButton(objX, objY, 'Song Select', function()
 		{
+      PlaylistEditorState.autoOpenMetaEditor = true;
       FlxG.switchState(new PlaylistSongSelectorState());
 		}, 80);
 
@@ -481,6 +496,7 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
         }
 
         openSubState(new Prompt('Save Successful!', 1, function() {
+          states.editors.PlaylistEditorState.autoOpenMetaEditor = false;
           MusicBeatState.switchState(new PlaylistEditorState(PlaylistMetaDataEditor.playlist));
         }, null, false, 'OK', 'its actually very not ok'));
       };
@@ -490,11 +506,13 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
         if (ImprovedFileHandling.saveOperation('Save Playlist', {ext: "json", desc: "JSON File"}, Text, playlistData)) {
           trace("Saved playlist externally!");
           openSubState(new Prompt('Save Successful!', 1, function() {
+            states.editors.PlaylistEditorState.autoOpenMetaEditor = false;
             MusicBeatState.switchState(new PlaylistEditorState(PlaylistMetaDataEditor.playlist));
           }, null, false, 'OK', 'its actually very not ok'));
         } else {
           trace("Failed to save playlist externally.");
           openSubState(new Prompt('Save Failed!', 1, function() {
+            states.editors.PlaylistEditorState.autoOpenMetaEditor = false;
             MusicBeatState.switchState(new PlaylistEditorState(PlaylistMetaDataEditor.playlist));
           }, null, false, 'OK', 'its actually very not ok'));
         }
@@ -525,6 +543,7 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     playlistIconInputText.text = playlist.icon;
     playlistAlbumInputText.text = playlist.album;
     playlistDifficultySlider.value = playlist.difficulty;
+    setStars(playlist.difficulty);
   }
 
   function setStars(value:Int) {
@@ -537,8 +556,9 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
   override function update(elapsed:Float) {
     super.update(elapsed);
     if (controls.BACK) {
+      PlaylistEditorState.autoOpenMetaEditor = false;
       PlaylistMetaDataEditor.playlist = null;
-      closeSubState();
+      close();
     }
   }
 }

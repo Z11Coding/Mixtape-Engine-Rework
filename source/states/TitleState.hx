@@ -155,13 +155,18 @@ class TitleState extends MusicBeatState
 
 			if (hasWarmup) {
 				if (ClientPrefs.data.alwaysWarmup) {
+					persistentUpdate = true;
 					PlayState.isWarmUp = true;
 					PlayState.altInstrumentals = null; // ? P-Slice
+					Mods.loadTopMod();
 					WeekData.reloadWeekFiles();
 					if (ClientPrefs.data.playLists != null && ClientPrefs.data.playLists.length > 0) {
+						MusicManager.playMenuMusic(0);
+						PlayState.curPlaylist = playlist.songList;
 						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
 						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+						PlayState.storyWeek = playlist.songList[0].week;
+						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
 						LoadingState.prepareToSong();
 						LoadingState.loadAndSwitchState(new PlayState());
 					} else {
@@ -183,13 +188,18 @@ class TitleState extends MusicBeatState
 					{
 						if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 						{
+							persistentUpdate = true;
 							PlayState.isWarmUp = true;
 							PlayState.altInstrumentals = null; // ? P-Slice
+							Mods.loadTopMod();
 							WeekData.reloadWeekFiles();
 							if (ClientPrefs.data.playLists != null) {
+								MusicManager.playMenuMusic(0);
+								PlayState.curPlaylist = playlist.songList;
 								var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-								Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
 								Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+								PlayState.storyWeek = playlist.songList[0].week;
+								Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
 								LoadingState.prepareToSong();
 								LoadingState.loadAndSwitchState(new PlayState());
 							}

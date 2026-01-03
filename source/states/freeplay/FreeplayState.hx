@@ -514,6 +514,7 @@ class FreeplayState extends MusicBeatState
 				iconArray.push(icon);
 				iconList.add(icon);
 			}
+
 			if (fpManager.songList.length == -1 || fpManager.songList.length == 0)
 				fpManager.addSong('SONG NOT FOUND', -999, 'face', [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]]);
 

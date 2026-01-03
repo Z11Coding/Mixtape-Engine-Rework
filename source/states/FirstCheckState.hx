@@ -76,8 +76,8 @@ class FirstCheckState extends MusicBeatState
 			AudioSwitchFix.init();
 
 			if (ClientPrefs.data.playLists == null) {
-				ClientPrefs.data.playLists = [];
-				ClientPrefs.saveSettings();
+				ClientPrefs.loadPrefs();
+				//load it again just t be sure
 			}
 
 			// Initialize crash tracking system early

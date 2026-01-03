@@ -96,7 +96,7 @@ class FunkinLua {
 		set('scrollSpeed', PlayState.SONG.speed);
 		set('crochet', Conductor.crochet);
 		set('stepCrochet', Conductor.stepCrochet);
-		set('songLength', FlxG.sound.music.length ?? 0);
+		set('songLength', FlxG.sound.music?.length ?? 0);
 		set('songName', PlayState.SONG.song);
 		set('songPath', Paths.formatToSongPath(PlayState.SONG.song));
 		set('loadedSongName', Song.loadedSongName);

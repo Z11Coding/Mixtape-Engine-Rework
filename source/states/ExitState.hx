@@ -91,6 +91,9 @@ class ExitState extends FlxState
 			}
 		}
 
+		ClientPrefs.data.warmupCompleted = false;
+		ClientPrefs.saveSettings();
+
 		trace("Returns: " + returnResults);
 		Main.closeGame();
 	}
