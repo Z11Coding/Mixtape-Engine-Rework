@@ -446,6 +446,24 @@ class Main extends Sprite
 		game._customSoundTray = backend.FunkinSoundTray;
 		addChild(game);
 
+		// ASync Test - create a slow function and test it
+		trace("=== ASync Test Starting ===");
+
+		function slowFunction():String {
+			trace("ASync: Starting slow operation...");
+			Sys.sleep(8.0); // Wait 8 seconds
+			trace("ASync: Slow operation completed!");
+			return "Async operation completed successfully!";
+		}
+
+		var asyncFunc:ASync<Void -> String> = slowFunction;
+		var result = asyncFunc();
+
+		trace("ASync: About to get result (this should block for ~8 seconds)...");
+		trace("ASync: Got result: " + result.get());
+		var testForString:String = result;
+		trace("=== ASync Test Complete ===");
+
 		#if !mobile
 		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);
 		addChild(fpsVar);

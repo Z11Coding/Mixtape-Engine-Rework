@@ -1790,6 +1790,13 @@ class CollectionUtils
 		return pattern.match(input);
 	}
 
+	public static inline function matchInputWithRegex(REG:EReg, input:String):Null<String> {
+		if (REG.match(input)) {
+			return REG.matched(0);
+		}
+		return null;
+	}
+
 
 
 	/**
@@ -1801,6 +1808,17 @@ class CollectionUtils
 
 	// Sums a list of numbers (OneOrMore<FlexibleNum>), Array<Float>, or Array<Int>
 	public static extern overload inline function sum(numbers:OneOrMore<FlexibleNum>):Float {
+		var sum:Float = 0;
+		var arr:Array<Float> = cast numbers;
+		for (num in arr) {
+			sum += num;
+		}
+		return sum;
+	}
+
+	// Num Version.
+
+	public static extern overload inline function sum(numbers:OneOrMore<Num>):Float {
 		var sum:Float = 0;
 		var arr:Array<Float> = cast numbers;
 		for (num in arr) {
