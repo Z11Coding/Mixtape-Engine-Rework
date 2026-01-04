@@ -2268,7 +2268,7 @@ class PlayState extends MusicBeatState
 	function set_playbackRate(value:Float):Float
 	{
 		#if FLX_PITCH
-		if(generatedMusic)
+		if(generatedMusic && !waitingForPreloadFinish)
 		{
 			vocals.pitch = value;
 			opponentVocals.pitch = value;
@@ -3760,13 +3760,29 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
-
+		waitingForPreloadFinish = false;
 		trace('Pre-generated ${preGen.length} notes.');
 	}
 
+	var waitingForPreloadFinish:Bool = false;
 
-	private function generateSong():Void
+	public inline function forceGenerateSong(preload:Bool = false):Void
 	{
+		generateSong(preload);
+	}
+
+	private function generateSong(preload:Bool = false):Void
+	{
+		if (generatedMusic && !preload) {
+			// Chart was preloaded, now finish the job
+			waitingForPreloadFinish = true;
+		finishPreloadedGeneration();
+		return;
+		}
+		// If this is a preload call, just note it
+		if (preload) {
+			trace("PlayState: Starting preload generation for: " + SONG.song);
+		}
 		// trace('Generating Song: ${SONG.song}');
 		// FlxG.log.add(ChartParser.parse());
 		songSpeed = PlayState.SONG.speed;
@@ -3784,139 +3800,14 @@ class PlayState extends MusicBeatState
 
 		curSong = songData.song;
 
-		vocals = new FlxSound();
-		opponentVocals = new FlxSound();
-		gfVocals = new FlxSound();
-		var usable = Paths.isAssetInMod;
-
-		// Check if this is a dynamic song and use stitched audio
-		if (songData.isDynamic != null && songData.isDynamic && songData.dynamicAudio != null)
-		{
-			trace('PlayState: Loading dynamic song audio');
-
-			// Use stitched audio from DynamicAudioManager
-			var dynamicAudio = songData.dynamicAudio;
-
-			if (dynamicAudio.vocals != null)
-				vocals = dynamicAudio.vocals;
-			if (dynamicAudio.vocalsPlayer != null)
-				vocals = dynamicAudio.vocalsPlayer; // Use player vocals if available
-			if (dynamicAudio.vocalsOpponent != null)
-				opponentVocals = dynamicAudio.vocalsOpponent;
-			if (dynamicAudio.vocalsGF != null)
-				gfVocals = dynamicAudio.vocalsGF;
-
-			trace('PlayState: Dynamic audio loaded successfully');
-		}
-		else
-		{
-			// Standard audio loading logic
-			try
-			{
-				if (songData.needsVoices)
-				{
-					var currentMod = "";
-					if (backend.WeekData.getCurrentWeek() != null)
-						currentMod = backend.WeekData.getCurrentWeek().folder; //istg this is somehow the root cause to all my problems ong
-					if (currentMod != null && currentMod != "")
-					{
-						var generalVocals = Paths.voices(songData.song);
-						if (generalVocals != null && generalVocals.length > 0)
-						{
-							vocals.loadEmbedded(generalVocals);
-
-							// Check for the other vocals as well
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-						else
-						{
-							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-					}
-					else
-					{
-						var generalVocals = Paths.voices(songData.song);
-						if (generalVocals != null && generalVocals.length > 0)
-						{
-							vocals.loadEmbedded(generalVocals);
-
-							// Check for the other vocals as well
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-						else
-						{
-							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-					}
-				}
-			}
-			catch (e:Dynamic) {trace("Vocals Broke.");}
+		// Skip audio loading during preload mode to avoid breaking issues
+		if (!preload) {
+			loadSongAudio();
 		}
 
-		#if FLX_PITCH
-		vocals.pitch = playbackRate;
-		opponentVocals.pitch = playbackRate;
-		gfVocals.pitch = playbackRate;
-		#end
-		FlxG.sound.list.add(vocals);
-		FlxG.sound.list.add(opponentVocals);
-		FlxG.sound.list.add(gfVocals);
-
-		inst = new FlxSound();
-
-		// Check if this is a dynamic song and use stitched inst
-		if (songData.isDynamic != null && songData.isDynamic && songData.dynamicAudio != null)
-		{
-			if (songData.dynamicAudio.inst != null)
-			{
-				inst = songData.dynamicAudio.inst;
-				trace('PlayState: Using stitched inst audio from dynamic song');
-			}
-			else
-			{
-				// Fallback to standard inst loading
-				try
-				{
-					inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
-				}
-				catch (e:Dynamic) {}
-			}
-		}
-		else
-		{
-			// Standard inst loading logic
-			try
-			{
-				inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
-			}
-			catch (e:Dynamic) {}
-		}
-		FlxG.sound.list.add(inst);
 
 		notes = new FlxTypedGroup<Note>();
-		noteGroup.add(notes);
+		if (!preload && noteGroup != null) noteGroup.add(notes);
 
 		try
 		{
@@ -3924,7 +3815,7 @@ class PlayState extends MusicBeatState
 			if(eventsChart != null)
 				for (event in eventsChart.events) //Event Notes
 					for (i in 0...event[1].length)
-						makeEvent(event, i);
+						makeEventPreload(event, i, preload);
 		}
 		catch(e:Dynamic) {}
 
@@ -4412,9 +4303,10 @@ class PlayState extends MusicBeatState
 					else
 						oldNote = null;
 
-					var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
+var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
+					(ClientPrefs.data.useExperimentalNotePool ?
 					NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, this) :
-					noteManager.getNote(spawnTime, noteColumn, oldNote, false);
+					noteManager.getNote(spawnTime, noteColumn, oldNote, false));
 
 					swagNote.noteIndex = Std.int(allNotes.length);
 					swagNote.formerPress = swagNote.mustPress = gottaHitNote;
@@ -4487,8 +4379,15 @@ class PlayState extends MusicBeatState
 
 					if (playfield != null)
 					{
-						playfield.queue(swagNote); // queues the note to be spawned
+						if (!preload && playfield != null) {
+							playfield.queue(swagNote); // queues the note to be spawned
+						}
 						allNotes.push(swagNote); // just for the sake of convenience
+					}
+					else if (preload) {
+						// During preload, still add to allNotes even without playfield
+						allNotes.push(swagNote);
+						swagNote.fieldIndex = swagNote.mustPress ? 0 : 1; // Set default field index
 					}
 
 					// Generate special UNO notes (skip, wrong, +2, +4)
@@ -4498,7 +4397,14 @@ class PlayState extends MusicBeatState
 							if (playfield != null) {
 								specialNote.field = playfield;
 								specialNote.fieldIndex = swagNote.fieldIndex;
-								playfield.queue(specialNote);
+								if (!preload) {
+									playfield.queue(specialNote);
+								}
+								allNotes.push(specialNote);
+							}
+							else if (preload) {
+								// During preload, still add to allNotes even without playfield
+								specialNote.fieldIndex = swagNote.fieldIndex;
 								allNotes.push(specialNote);
 							}
 						}
@@ -4550,7 +4456,9 @@ class PlayState extends MusicBeatState
 							sustainNote.field = parentField;
 							swagNote.tail.push(sustainNote);
 							swagNote.unhitTail.push(sustainNote);
-							playfield.queue(sustainNote);
+							if (!preload && playfield != null) {
+								playfield.queue(sustainNote);
+							}
 							allNotes.push(sustainNote);
 							var setPos:Bool = true;
 							if (sustainNote.noteType == 'Swap Note') {
@@ -4790,7 +4698,7 @@ class PlayState extends MusicBeatState
 		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
 		for (event in songData.events) //Event Notes
 			for (i in 0...event[1].length)
-				makeEvent(event, i);
+				makeEventPreload(event, i, preload);
 
 		allNotes.sort(sortByTime);
 
@@ -4840,6 +4748,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 		generatedMusic = true;
+		trace('Finished Generating Notes for ${SONG.song}!');
 	}
 
 	private function placeNote(chance:Float, noteType:String, attributes:Array<Dynamic>):Note
@@ -5314,8 +5223,8 @@ class PlayState extends MusicBeatState
 					oldNote = null;
 
 				var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
-					NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, this) :
-					new Note(spawnTime, noteColumn, oldNote);
+				NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, this) :
+				new Note(spawnTime, noteColumn, oldNote);
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.mustPress = gottaHitNote;
 
@@ -5424,15 +5333,18 @@ class PlayState extends MusicBeatState
 		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
 		for (event in songData.events) //Event Notes
 			for (i in 0...event[1].length)
-				makeEvent(event, i);
+				makeEventPreload(event, i, false);
 
 		allNotes.sort(sortByTime);
 
-		for (fuck in allNotes)
+		for (fuck in allNotes) {
 			unspawnNotes.push(fuck);
+			curChart.push(fuck);
+		}
 
 		for (field in playfields.members)
 			field.clearStackedNotes();
+
 		generatedMusic = true;
 	}
 
@@ -5725,7 +5637,7 @@ class PlayState extends MusicBeatState
 	public static function sortByTime(Obj1:Dynamic, Obj2:Dynamic):Int
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 
-	function makeEvent(event:Array<Dynamic>, i:Int)
+	public function makeEvent(event:Array<Dynamic>, i:Int)
 	{
 		var subEvent:EventNote = {
 			strumTime: event[0] + ClientPrefs.data.noteOffset,
@@ -5733,10 +5645,28 @@ class PlayState extends MusicBeatState
 			value1: event[1][i][1],
 			value2: event[1][i][2]
 		};
+
 		eventNotes.push(subEvent);
 		curEvents.push(subEvent);
 		eventPushed(subEvent);
 		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+	}
+
+	public function makeEventPreload(event:Array<Dynamic>, i:Int, preload:Bool = false)
+	{
+		var subEvent:EventNote = {
+			strumTime: event[0] + ClientPrefs.data.noteOffset,
+			event: event[1][i][0],
+			value1: event[1][i][1],
+			value2: event[1][i][2]
+		};
+
+		eventNotes.push(subEvent);
+		if (!preload) {
+			curEvents.push(subEvent);
+			eventPushed(subEvent);
+			callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+		}
 	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
@@ -12313,6 +12243,216 @@ class PlayState extends MusicBeatState
 		{
 			DynamicSongManager.instance.update(Conductor.songPosition);
 		}
+	}
+
+	/**
+	 * Load song audio (vocals, inst) - separated from chart generation for preload mode
+	 */
+	private function loadSongAudio():Void {
+		var songData = SONG;
+
+		vocals = new FlxSound();
+		opponentVocals = new FlxSound();
+		gfVocals = new FlxSound();
+		var usable = Paths.isAssetInMod;
+
+		// Check if this is a dynamic song and use stitched audio
+		if (songData.isDynamic != null && songData.isDynamic && songData.dynamicAudio != null)
+		{
+			trace('PlayState: Loading dynamic song audio');
+
+			// Use stitched audio from DynamicAudioManager
+			var dynamicAudio = songData.dynamicAudio;
+
+			if (dynamicAudio.vocals != null)
+				vocals = dynamicAudio.vocals;
+			if (dynamicAudio.vocalsPlayer != null)
+				vocals = dynamicAudio.vocalsPlayer; // Use player vocals if available
+			if (dynamicAudio.vocalsOpponent != null)
+				opponentVocals = dynamicAudio.vocalsOpponent;
+			if (dynamicAudio.vocalsGF != null)
+				gfVocals = dynamicAudio.vocalsGF;
+
+			trace('PlayState: Dynamic audio loaded successfully');
+		}
+		else
+		{
+			// Standard audio loading logic
+			try
+			{
+				if (songData.needsVoices)
+				{
+					var currentMod = "";
+					if (backend.WeekData.getCurrentWeek() != null)
+						currentMod = backend.WeekData.getCurrentWeek().folder; //istg this is somehow the root cause to all my problems ong
+					if (currentMod != null && currentMod != "")
+					{
+						var generalVocals = Paths.voices(songData.song);
+						if (generalVocals != null && generalVocals.length > 0)
+						{
+							vocals.loadEmbedded(generalVocals);
+
+							// Check for the other vocals as well
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
+						else
+						{
+							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
+					}
+					else
+					{
+						var generalVocals = Paths.voices(songData.song);
+						if (generalVocals != null && generalVocals.length > 0)
+						{
+							vocals.loadEmbedded(generalVocals);
+
+							// Check for the other vocals as well
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
+						else
+						{
+							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
+
+							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+
+							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+						}
+					}
+				}
+			}
+			catch (e:Dynamic) {trace("Vocals Broke.");}
+		}
+
+		#if FLX_PITCH
+		vocals.pitch = playbackRate;
+		opponentVocals.pitch = playbackRate;
+		gfVocals.pitch = playbackRate;
+		#end
+		FlxG.sound.list.add(vocals);
+		FlxG.sound.list.add(opponentVocals);
+		FlxG.sound.list.add(gfVocals);
+
+		inst = new FlxSound();
+
+		// Check if this is a dynamic song and use stitched inst
+		if (songData.isDynamic != null && songData.isDynamic && songData.dynamicAudio != null)
+		{
+			if (songData.dynamicAudio.inst != null)
+			{
+				inst = songData.dynamicAudio.inst;
+				trace('PlayState: Using stitched inst audio from dynamic song');
+			}
+			else
+			{
+				// Fallback to standard inst loading
+				try
+				{
+					inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
+				}
+				catch (e:Dynamic) {}
+			}
+		}
+		else
+		{
+			// Standard inst loading logic
+			try
+			{
+				inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
+			}
+			catch (e:Dynamic) {}
+		}
+		FlxG.sound.list.add(inst);
+
+		trace('PlayState: Song audio loaded successfully');
+	}
+
+	/**
+	 * Finish preloaded chart generation by adding to playfields and groups
+	 * Called when create() runs after preload generation
+	 */
+	private function finishPreloadedGeneration():Void {
+		trace('PlayState: Finishing preloaded generation - adding ${allNotes.length} notes to playfields');
+
+		// Load audio that was skipped during preload
+		loadSongAudio();
+
+		// Complete note initialization that was skipped during preload
+		// Process in smaller batches to prevent freezing
+		var batchSize = 50;
+		var processedNotes = 0;
+		for (note in allNotes) {
+			if (note != null) {
+				try {
+					note.finishNoteInitialization();
+					processedNotes++;
+					// Add small delay every batch to prevent freezing
+					if (processedNotes % batchSize == 0) {
+						trace('Processed $processedNotes/${allNotes.length} notes');
+					}
+				} catch (e:Dynamic) {
+					trace('Error initializing note $processedNotes: $e');
+				}
+			}
+		}
+		trace('Completed note initialization for $processedNotes notes');
+
+		// Add notes to noteGroup (this was skipped during preload)
+		if (noteGroup != null && notes != null) {
+			noteGroup.add(notes);
+			trace('PlayState: Added notes group to noteGroup');
+		}
+
+		// Add all notes to their proper playfields
+		for (note in allNotes) {
+			var playfield = note.field;
+			if (playfield == null && playfields.length > 0) {
+				if (note.fieldIndex == -1)
+					note.fieldIndex = note.mustPress ? 0 : 1;
+
+				if (playfields.members[note.fieldIndex] != null) {
+					playfield = playfields.members[note.fieldIndex];
+					note.field = playfield;
+				}
+			}
+
+			if (playfield != null) {
+				playfield.queue(note);
+			}
+		}
+
+		// Process events that weren't processed during preload
+		for (event in eventNotes) {
+			if (curEvents.indexOf(event) == -1) {
+				curEvents.push(event);
+				eventPushed(event);
+				callOnScripts('onEventPushed', [event.event, event.value1 != null ? event.value1 : '', event.value2 != null ? event.value2 : '', event.strumTime]);
+			}
+		}
+
+		// Clear stacked notes now that playfields exist
+		for (field in playfields.members)
+			field.clearStackedNotes();
+
+		trace('PlayState: Preloaded chart integration completed');
 	}
 } //
 typedef MechanicResults =

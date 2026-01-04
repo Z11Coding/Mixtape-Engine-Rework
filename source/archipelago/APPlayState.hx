@@ -1924,10 +1924,10 @@ class APPlayState extends PlayState {
 	}
 
     var apNotes:Array<archipelago.APNote> = [];
-    private override function generateSong():Void
+    private override function generateSong(preload:Bool = false):Void
     {
-        super.generateSong();
-        if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap") return;
+        super.generateSong(preload);
+        if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap" || preload) return;
         apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
 
         for (field in playfields.members)

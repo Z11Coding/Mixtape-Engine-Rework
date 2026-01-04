@@ -234,6 +234,7 @@ import states.TitleState;
 
 	// Experimental Settings
 	public var useExperimentalNotePool:Bool = false;
+	public var preloadSong:Bool = false;
 
 	// UNO game settings
 	public var unoCustomColors:Array<{color:Int, name:String}> = [];

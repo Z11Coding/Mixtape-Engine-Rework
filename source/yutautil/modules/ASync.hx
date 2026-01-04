@@ -130,6 +130,11 @@ abstract AResult<T>(ASyncStatus<T>) {
         this.error = error;
         this.status = Failed;
 
+        // Add warning trace with error and stack trace
+        var errorMessage = "ASync operation failed: " + Std.string(error);
+        var stackTrace = haxe.CallStack.toString(haxe.CallStack.exceptionStack());
+        trace("WARNING: " + errorMessage + "\nStack trace:\n" + stackTrace);
+
         // Execute error callbacks
         for (callback in this.errorCallbacks) {
             try {

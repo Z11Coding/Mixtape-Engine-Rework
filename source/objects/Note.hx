@@ -224,7 +224,12 @@ class Note extends NoteObject
 			if (value.rgb != null) {
 				if (value.rgb.r != null) {
 					try {
-						this.rgbShader.r = value.rgb.r;
+						// Store temporarily if in preload mode, otherwise set directly
+						if (isInPreloadMode && tempRGBColors != null) {
+							tempRGBColors.r = value.rgb.r;
+						} else {
+							this.rgbShader.r = value.rgb.r;
+						}
 					} catch (e:Dynamic) {
 						if (Std.is(value.rgb.r, Int)) {
 							trace("An error occurred while setting the value of rgb.r.");
@@ -235,7 +240,12 @@ class Note extends NoteObject
 				}
 				if (value.rgb.g != null) {
 					try {
-						this.rgbShader.g = value.rgb.g;
+						// Store temporarily if in preload mode, otherwise set directly
+						if (isInPreloadMode && tempRGBColors != null) {
+							tempRGBColors.g = value.rgb.g;
+						} else {
+							this.rgbShader.g = value.rgb.g;
+						}
 					} catch (e:Dynamic) {
 						if (Std.is(value.rgb.g, Int)) {
 							trace("An error occurred while setting the value of rgb.g.");
@@ -246,7 +256,12 @@ class Note extends NoteObject
 				}
 				if (value.rgb.b != null) {
 					try {
-						this.rgbShader.b = value.rgb.b;
+						// Store temporarily if in preload mode, otherwise set directly
+						if (isInPreloadMode && tempRGBColors != null) {
+							tempRGBColors.b = value.rgb.b;
+						} else {
+							this.rgbShader.b = value.rgb.b;
+						}
 					} catch (e:Dynamic) {
 						if (Std.is(value.rgb.b, Int)) {
 							trace("An error occurred while setting the value of rgb.b.");
@@ -527,6 +542,11 @@ class Note extends NoteObject
 	public var eventVal2:String = '';
 
 	public var rgbShader:RGBShaderReference;
+	// Temporary RGB storage for preload mode
+	private var tempRGBData:{noteData:Int, disableRGB:Bool, isPixelStage:Bool, postfix:String} = null;
+	// Temporary RGB color values for preload mode
+	private var tempRGBColors:{r:FlxColor, g:FlxColor, b:FlxColor} = null;
+	private var isInPreloadMode:Bool = false;
 	public static var globalRgbShaders:Array<RGBPalette> = [];
 	public var inEditor:Bool = false;
 
@@ -728,9 +748,16 @@ class Note extends NoteObject
 
 		if (arr != null && noteData > -1 && noteData <= PlayState.mania)
 		{
-			rgbShader.r = arr[0];
-			rgbShader.g = arr[1];
-			rgbShader.b = arr[2];
+			// Store temporarily if in preload mode, otherwise set directly
+			if (isInPreloadMode && tempRGBColors != null) {
+				tempRGBColors.r = arr[0];
+				tempRGBColors.g = arr[1];
+				tempRGBColors.b = arr[2];
+			} else if (rgbShader != null) {
+				rgbShader.r = arr[0];
+				rgbShader.g = arr[1];
+				rgbShader.b = arr[2];
+			}
 			#if ARCHIPELAGO_ALLOWED
 			if (this is archipelago.APNote)
 			{
@@ -741,9 +768,16 @@ class Note extends NoteObject
 		}
 		else
 		{
-			rgbShader.r = 0xFFFF0000;
-			rgbShader.g = 0xFF00FF00;
-			rgbShader.b = 0xFF0000FF;
+			// Store temporarily if in preload mode, otherwise set directly
+			if (isInPreloadMode && tempRGBColors != null) {
+				tempRGBColors.r = 0xFFFF0000;
+				tempRGBColors.g = 0xFF00FF00;
+				tempRGBColors.b = 0xFF0000FF;
+			} else if (rgbShader != null) {
+				rgbShader.r = 0xFFFF0000;
+				rgbShader.g = 0xFF00FF00;
+				rgbShader.b = 0xFF0000FF;
+			}
 		}
 	}
 
@@ -757,13 +791,16 @@ class Note extends NoteObject
 					ignoreNote = mustPress;
 
 					// note colors
+				// Store temporarily if in preload mode, otherwise set directly
+				if (isInPreloadMode && tempRGBColors != null) {
+					tempRGBColors.r = 0xFF101010;
+					tempRGBColors.g = 0xFFFF0000;
+					tempRGBColors.b = 0xFF990022;
+				} else if (rgbShader != null) {
 					rgbShader.r = 0xFF101010;
 					rgbShader.g = 0xFFFF0000;
 					rgbShader.b = 0xFF990022;
-
-					// splash data and colors
-					noteSplashData.r = 0xFFFF0000;
-					noteSplashData.g = 0xFF101010;
+				}
 					noteSplashData.texture = 'noteSplashes/noteSplashes-electric';
 
 					// gameplay data
@@ -912,6 +949,28 @@ class Note extends NoteObject
 
 		if (inNotePool) return;
 
+		// Early return during preload mode - finish initialization later
+		if (ClientPrefs.data.preloadSong && !inEditor) {
+			// Store basic data for later completion
+			this.strumTime = strumTime;
+			this.noteData = noteData;
+			isInPreloadMode = true;
+			// Initialize temp RGB colors storage
+			tempRGBColors = {r: FlxColor.WHITE, g: FlxColor.WHITE, b: FlxColor.WHITE};
+			// Store RGB-related data temporarily
+			if (noteData > -1) {
+				tempRGBData = {
+					noteData: noteData,
+					disableRGB: PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck,
+					isPixelStage: PlayState.isPixelStage,
+					postfix: getNoteSkinPostfix().toLowerCase()
+				};
+			}
+			return;
+		}
+
+		// Add a function to complete this stuff if we decide to return for another reason later
+
 		if (isSustainNote && prevNote != null) {
 			parentNote = prevNote;
 			while (parentNote.parentNote != null)
@@ -1007,6 +1066,159 @@ class Note extends NoteObject
 
 				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
 				if(createdFrom != null && createdFrom.songSpeed != null) prevNote.scale.y *= createdFrom.songSpeed;
+
+				if(PlayState.isPixelStage) {
+					prevNote.scale.y *= 1.19;
+					prevNote.scale.y *= (6 / height); //Auto adjust note size
+				}
+				prevNote.updateHitbox();
+				prevNote.centerOffsets();
+
+				// offsetY += height / 2;
+				// prevNote.setGraphicSize();
+			}
+
+			if(PlayState.isPixelStage)
+			{
+				scale.y *= PlayState.daPixelZoom;
+				updateHitbox();
+				centerOffsets();
+			}
+			earlyHitMult = 0;
+		}
+		else if(!isSustainNote)
+		{
+			centerOffsets();
+			centerOrigin();
+			centerOffsets();
+		}
+		//x += offsetX;
+	}
+
+	/**
+	 * Complete note initialization that was skipped during preload mode
+	 */
+	public function finishNoteInitialization():Void {
+		// Skip if already fully initialized or in editor
+		if (inEditor || !ClientPrefs.data.preloadSong) return;
+
+		// Complete the initialization that was skipped during preload
+		if (isSustainNote && prevNote != null) {
+			parentNote = prevNote;
+			while (parentNote.parentNote != null)
+				parentNote = parentNote.parentNote;
+			parentNote.childrenNotes.push(this);
+		} else if (!isSustainNote)
+			parentNote = null;
+
+		baseAlpha = 1;
+
+		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		// MAKE SURE ITS DEFINITELY OFF SCREEN?
+		y -= 2000;
+
+		if(!inEditor) {
+			this.strumTime += ClientPrefs.data.noteOffset;
+			visualTime = PlayState.getNoteInitialTime(this.strumTime);
+		}
+
+		if(noteData > -1)
+		{
+			// Apply RGB data from temporary storage if available
+			if (tempRGBData != null) {
+				rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(tempRGBData.noteData));
+				if(tempRGBData.disableRGB) rgbShader.enabled = false;
+				texture = '';
+
+				if (tempRGBData.isPixelStage || tempRGBData.postfix == '-retribution')
+					rgbShader.enabled = false;
+
+				// Apply stored RGB color values
+				if (tempRGBColors != null && rgbShader != null) {
+					rgbShader.r = tempRGBColors.r;
+					rgbShader.g = tempRGBColors.g;
+					rgbShader.b = tempRGBColors.b;
+					tempRGBColors = null;
+				}
+
+				// Clear temporary data
+				tempRGBData = null;
+				isInPreloadMode = false;
+			} else {
+				// Fallback initialization if no temp data
+				rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
+				if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
+				texture = '';
+
+				if (PlayState.isPixelStage || getNoteSkinPostfix().toLowerCase() == '-retribution')
+					rgbShader.enabled = false;
+			}
+
+			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
+				var animToPlay:String = '';
+				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+				if (hasAnimation(animToPlay))
+					animation.play(animToPlay);
+				else
+				{
+					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+					animation.play(animToPlay + 'Scroll');
+				}
+			}
+
+			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
+		}
+
+		// trace(prevNote);
+
+		if(prevNote != null)
+			prevNote.nextNote = this;
+
+		if (isSustainNote)
+		{
+			alphaLimit = 0.6;
+		}
+
+		if (isSustainNote && prevNote != null)
+		{
+			alpha = 0.6;
+			multAlpha = 0.6;
+			hitsoundDisabled = true;
+			if(ClientPrefs.data.downScroll) flipY = true;
+
+			istail = true;
+
+			//offsetY += height / 2;
+
+			var animToPlay:String = '';
+			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+			if (!hasAnimation(animToPlay))
+			{
+				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+			}
+			animation.play(animToPlay);
+
+			//scale.y = 0.7;
+			updateHitbox();
+			centerOffsets();
+
+			//offsetY += height;
+
+			//if (PlayState.isPixelStage)
+				//offsetX += 30;
+
+			if (prevNote != null && prevNote.isSustainNote)
+			{
+				var animToPlay2:String = '';
+				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+				if (!hasAnimation(animToPlay2))
+				{
+					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+				}
+				prevNote.animation.play(animToPlay2);
+
+				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
+				if(PlayState.instance != null && PlayState.instance.songSpeed.isReal()) prevNote.scale.y *= PlayState.instance.songSpeed;
 
 				if(PlayState.isPixelStage) {
 					prevNote.scale.y *= 1.19;
@@ -1466,7 +1678,12 @@ class Note extends NoteObject
 		// Set note's RGB color based on UNO card color (affects the note's red channel)
 		if (colorHexDynamic != null && rgbShader != null) {
 			var colorHex:Int = cast colorHexDynamic;
-			rgbShader.r = colorHex;
+			// Store temporarily if in preload mode, otherwise set directly
+			if (isInPreloadMode && tempRGBColors != null) {
+				tempRGBColors.r = colorHex;
+			} else {
+				rgbShader.r = colorHex;
+			}
 		}
 
         // Create text display for the UNO card (always white unless wild)

@@ -8,6 +8,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.system.FlxAssets;
 import flixel.util.FlxSort;
 import haxe.Json;
+import haxe.Timer;
 import lime.app.Future;
 import lime.utils.Assets;
 import objects.Character;
@@ -20,6 +21,7 @@ import openfl.utils.Assets as OpenFlAssets;
 import stages.StageData;
 import states.MixtapeLoadingScreen;
 import yutautil.UnoMechanic;
+import yutautil.modules.ASync;
 
 #if (target.threaded)
 import sys.thread.FixedThreadPool;
@@ -456,6 +458,7 @@ class LoadingState extends MusicBeatState
 
 	static var isIntrusive:Bool = false;
 	static var noAccess:Bool = false;
+	static var preloadAsync:yutautil.modules.ASync.AResult<Bool> = null; // Store async preload result
 	static function getNextState(target:FlxState, stopMusic = false, intrusive:Bool = true):FlxState
 	{
 		if (APEntryState.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("Stage Access Key")) {
@@ -464,6 +467,12 @@ class LoadingState extends MusicBeatState
 			loadMax++; //just to be sure it doesn't try to load anyway
 		} else {
 			noAccess = false;
+		}
+
+		// Check if preload setting is enabled and target is PlayState
+		if (ClientPrefs.data.preloadSong && Std.isOfType(target, states.PlayState)) {
+			trace("LoadingState: Preload enabled, starting async chart generation for PlayState");
+			startPlayStatePreload(cast(target, states.PlayState));
 		}
 
 		#if !SHOW_LOADING_SCREEN
@@ -496,10 +505,13 @@ class LoadingState extends MusicBeatState
 			if(checkLoaded())
 			{
 				_loaded();
+				var _donePlayState:Bool = preloadAsync != null && preloadAsync.get();
+				preloadAsync = null;
 				break;
 			}
 			else Sys.sleep(0.001);
 		}
+
 		return target;
 	}
 
@@ -1899,4 +1911,37 @@ class LoadingState extends MusicBeatState
         	return -1;
     	}
     	#end
+
+	/**
+	 * Start asynchronous preloading for PlayState
+	 * Uses ASync to generate song chart without visual objects
+	 */
+	static function startPlayStatePreload(playStateTarget:states.PlayState):Void {
+		if (playStateTarget == null || states.PlayState.SONG == null) {
+			trace("LoadingState: Cannot preload - target or SONG is null");
+			return;
+		}
+
+		trace("LoadingState: Starting async preload for song: " + states.PlayState.SONG.song);
+
+		// Create async function for chart generation
+		var preloadFunction = (function():Bool {
+			trace("LoadingState: Async preload thread started");
+
+			// Call generateSong with preload=true on the target instance
+			@:privateAccess
+			playStateTarget.waitingForPreloadFinish = true;
+			playStateTarget.forceGenerateSong(true);
+
+			trace("LoadingState: Async preload generation completed");
+			return true;
+		});
+
+		var A:ASync<Dynamic> = preloadFunction;
+
+
+		// Start the async operation
+		preloadAsync = A();
+
+	}
 }

@@ -638,6 +638,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeExperimentalNotePool;
 
+		var option:Option = new Option('Preload Song',
+			"If checked, songs will be preloaded using ASync processing when loading into PlayState for improved performance.\nWARNING: This is experimental and may cause issues!",
+			'preloadSong',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('---DEBUG---',
 			"",
 			'',
