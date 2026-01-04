@@ -69,15 +69,15 @@ class FirstCheckState extends MusicBeatState
 		}
 
 		if (!relaunch) {
-			COD.initCOD();
 			ClientPrefs.loadPrefs();
+			COD.initCOD();
 			MemoryUtil.init();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
 
 			if (ClientPrefs.data.playLists == null) {
 				ClientPrefs.loadPrefs();
-				//load it again just t be sure
+				//load it again just to be sure
 			}
 
 			// Initialize crash tracking system early
