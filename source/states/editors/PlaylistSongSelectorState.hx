@@ -16,17 +16,17 @@ import objects.Alphabet.DynamicColoredAlphabet;
 import objects.Character;
 import objects.HealthIcon;
 import options.GameplayChangersSubstate;
+import states.PlaylistState.PlaylistMetadata;
+import states.PlaylistState.PlaylistSongMetadata;
 import states.editors.ChartingState;
 import states.editors.ChartingStateOG;
+import states.editors.PlaylistEditorState.PlaylistMetaDataEditor;
 import states.freeplay.backend.DifficultyStars;
 import substates.Prompt;
 import substates.ResetScoreSubState;
 import yutautil.AprilFools;
 import yutautil.ChanceSelector.Chance;
 import yutautil.ChanceSelector;
-import states.PlaylistState.PlaylistMetadata;
-import states.PlaylistState.PlaylistSongMetadata;
-import states.editors.PlaylistEditorState.PlaylistMetaDataEditor;
 
 class PlaylistSongSelectorState extends MusicBeatState
 {
@@ -312,17 +312,14 @@ class PlaylistSongSelectorState extends MusicBeatState
 
     for (i in 0...fpManager.songList.length)
     {
-      var songName:String = '';
-      var color:FlxColor = 0xFFFFFFFF;
+      var color:FlxColor = 0xFFFF0000;
 
-      for (song in curPlaylist.songList) {
-        if (fpManager.songList[i].songName == song.songName) {
-          color = 0xFF00FF00;
-          break;
-        }
-        else
-          color = 0xFFFF0000;
-      }
+			for (song in curPlaylist.songList) {
+				if (song.songName.toLowerCase().replace("-", " ") == fpManager.songList[i].songName.toLowerCase().replace("-", " ")) {
+					color = 0xFF00FF00;
+					break;
+				}
+			}
 
       var songText:Alphabet = null;
       songText = new DynamicColoredAlphabet(90, 320, fpManager.songList[i].songName, true, color, true);
@@ -624,8 +621,17 @@ class PlaylistSongSelectorState extends MusicBeatState
 						return;
 					}
 
+					// Run a quick scan of the list just to be sure
+					var hasSong:Bool = false;
+					for (song in curPlaylist.songList) {
+						if (song.songName.toLowerCase() == songLowercase) {
+							hasSong = true;
+							break;
+						}
+					}
+
 					var curSong:PlaylistSongMetadata = new PlaylistSongMetadata(songLowercase, FreeplayManager.instance.songList[curSelected].week, fpManager.songList[curSelected].songCharacter, fpManager.songList[curSelected].color, Difficulty.getString());
-          if (!curPlaylist.songList.contains(curSong))
+          if (!hasSong)
             curPlaylist.songList.push(curSong);
           else
             curPlaylist.songList.remove(curSong);
@@ -744,6 +750,7 @@ class PlaylistSongSelectorState extends MusicBeatState
 		positionHighscore();
 		missingText.visible = false;
 		missingTextBG.visible = false;
+		//reloadSongs();
 	}
 
 	public var metadata:MetadataFile = null;

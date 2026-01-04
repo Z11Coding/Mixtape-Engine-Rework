@@ -706,7 +706,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		#end
 
 		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,
-			['hide', 'fps', 'fps-mem', 'fps-mem-peak']);
+			['hide', 'fps', 'fps-mem', 'fps-mem-peak', 'base', 'base-adv']);
 		addOption(option);
 		option.onChange = function()
 		{
@@ -761,6 +761,14 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 							}
 						}
 					}
+				case 'base':
+				{
+					option.text = 'Base';
+				}
+				case 'base-adv':
+				{
+					option.text = 'Base Adv.';
+				}
 			}
 		};
 
@@ -836,8 +844,33 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			{
 				case 'hide':
 					Main.fpsVar.visible = false;
+				case 'base':
+					Main.fpsVar.visible = false;
+				case 'base-adv':
+					Main.fpsVar.visible = false;
 			}
 			Main.fpsVar.forceUpdateText = true;
+		}
+
+		if (Main.debugDisplay != null)
+		{
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					Main.debugDisplay.visible = false;
+				case 'fps':
+					Main.debugDisplay.visible = false;
+				case 'fps-mem':
+					Main.debugDisplay.visible = false;
+				case 'fps-mem-peak':
+					Main.debugDisplay.visible = false;
+				case 'base':
+					Main.debugDisplay.visible = true;
+					Main.debugDisplay.isAdvanced = false;
+				case 'base-adv':
+					Main.debugDisplay.visible = true;
+					Main.debugDisplay.isAdvanced = true;
+			}
 		}
 	}
 

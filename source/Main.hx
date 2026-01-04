@@ -9,6 +9,7 @@ import backend.modules.*;
 import backend.modules.SSPlugin as ScreenShotPlugin;
 import backend.modules.TraceManager;
 import debug.FPSCounter;
+import debug.FunkinDebugDisplay;
 import flixel.FlxGame;
 import flixel.FlxState;
 import flixel.graphics.FlxGraphic;
@@ -98,6 +99,8 @@ class Main extends Sprite
 
 	public static var fpsVar:FPSCounter;
 	public static var flxSignalCrash:Bool = false;
+
+	public static var debugDisplay:FunkinDebugDisplay;
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
 
@@ -340,6 +343,13 @@ class Main extends Sprite
 		backend.window.CppAPI.allowHighDPI();
 		backend.window.CppAPI.setOld();
 		#end
+		 #if (windows && cpp)
+    // Disable the Windows "ghosting" effect that dims unresponsive windows.
+    backend.window.base.windows.WinAPI.disableWindowsGhosting();
+
+    // Disable Windows error reporting (avoids sending bug reports to Microsoft).
+    backend.window.base.windows.WinAPI.disableErrorReporting();
+    #end
 		Toolkit.init();
 		Toolkit.theme = 'dark'; // don't be cringe
 		backend.Cursor.registerHaxeUICursors();
@@ -470,9 +480,15 @@ class Main extends Sprite
 		Lib.current.stage.align = "tl";
 		Lib.current.stage.scaleMode = StageScaleMode.NO_SCALE;
 		if(fpsVar != null) {
-			fpsVar.visible = ClientPrefs.data.showFPS;
+			fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");
 		}
 		#end
+
+		debugDisplay = new FunkinDebugDisplay(10, 10, 0xFFFFFF);
+		addChild(debugDisplay);
+		if(debugDisplay != null) {
+			debugDisplay.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "base" || ClientPrefs.data.performanceCounter == "base-adv");
+		}
 
 		#if (!web && flixel < "5.5.0")
 		FlxG.plugins.add(new ScreenShotPlugin());
@@ -636,7 +652,7 @@ class Main extends Sprite
 		WindowUtils.preventClosing = false;
 		Lib.application.window.close();
 
-		closeGame();
+		//closeGame();
 	}
 
 	public static var pressedOnce:Bool = false;
@@ -654,8 +670,10 @@ class Main extends Sprite
 
 				default:
 					// Default behavior: close the window
+					ClientPrefs.data.warmupCompleted = false;
+					ClientPrefs.saveSettings();
 					FlxG.autoPause = false;
-								backend.MusicBeatState.isClosing = true;
+					backend.MusicBeatState.isClosing = true;
 
 					TransitionState.transitionState(states.ExitState, {transitionType: "transparent close"});
 			}
