@@ -26,6 +26,7 @@ haxelib install deflatex 1.0.0
 haxelib install crypto 1.0.4
 haxelib install openflCamera 1.0.7
 haxelib install openflMicrophone 1.0.1
+haxelib install hxpy 2.0.0
 haxelib set lime 8.2.2
 haxelib set openfl 9.4.1
 haxelib git flxsoundfilters https://github.com/TheZoroForce240/FlxSoundFilters
