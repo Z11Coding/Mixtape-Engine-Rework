@@ -390,11 +390,6 @@ class ChartCreatorMenuState extends MusicBeatState
 		loadChartButton.resize(150, 50);
 		add(loadChartButton);
 
-		// Load Chart Button
-		loadChartButton = new FlxUIButton(FlxG.width - 370, FlxG.height - 140, "Load Chart", onLoadChart);
-		loadChartButton.resize(150, 50);
-		add(loadChartButton);
-
 		// Load Current Song Button (if PlayState.SONG exists)
 		if (PlayState.SONG != null) {
 			loadCurrentSongButton = new FlxUIButton(FlxG.width - 370, FlxG.height - 80, "Load Current Song", onLoadCurrentSong);
