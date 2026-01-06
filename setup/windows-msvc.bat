@@ -1,5 +1,5 @@
 @echo off
-color 0a
+color 0d
 cd ..
 @echo on
 echo Installing Microsoft Visual Studio Community (Dependency)
