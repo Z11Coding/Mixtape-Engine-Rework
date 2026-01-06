@@ -282,6 +282,11 @@ abstract AResult<T>(ASyncStatus<T>) {
         return this.result;
     }
 
+    @:to public inline function standardAResult():AResult<T> {
+        return abstract;
+    }
+
+
     /**
      * Automatic conversion to target type - waits until ready
      */

@@ -1941,7 +1941,7 @@ class LoadingState extends MusicBeatState
 
 
 		// Start the async operation
-		preloadAsync = A();
+		preloadAsync = cast A();
 
 	}
 }
