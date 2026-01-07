@@ -102,14 +102,17 @@ class AlbumRoll extends FlxSpriteGroup
         trace('Could not find album data for album ID: ${albumId}');
       }
 
-      trace('Path "images/${albumData.getAlbumArtAssetKey()}.png" doesn\'t exist!');
+      if (albumData != null)
+        trace('Path "images/${albumData.getAlbumArtAssetKey()}.png" doesn\'t exist!');
+      else
+        trace('Album data is null for album ID: ${albumId}\nResorting to NoCover.');
       albumPath = "freeplay/albumRoll/NoCover";
       difficultyStars.stars.visible = false;
       return;
     };
 
     // Update the album art.
-    var albumGraphic = Paths.image(albumData.getAlbumArtAssetKey(), null, false);
+    var albumGraphic = Paths.image(albumPath, null, false);
     newAlbumArt.replaceFrameGraphic(0, albumGraphic);
 
     buildAlbumTitle(albumData.getAlbumTitleAssetKey());

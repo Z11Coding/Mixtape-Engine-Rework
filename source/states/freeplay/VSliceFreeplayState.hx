@@ -3150,6 +3150,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			grpDifficulties.add(diffSprite);
 		}
 
+		difficultyDots.clear();
 		for (i in 0...diffIdsTotal.length)
     {
       var dot:DifficultyDot = new DifficultyDot(diffIdsTotal[i], i);
