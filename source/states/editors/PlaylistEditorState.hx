@@ -82,7 +82,7 @@ class PlaylistEditorState extends MusicBeatState
               if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
                 var fileName:String = file.substr(0, file.length - 5);
                 if (fileName == selectedPlaylist.playlistName) {
-                  FileSystem.deleteFile(file);
+                  FileSystem.deleteFile(path);
                   break;
                 }
               }
@@ -553,12 +553,17 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     }
   }
 
+  var lastFocus:PsychUIInputText;
   override function update(elapsed:Float) {
     super.update(elapsed);
-    if (controls.BACK) {
+    var playlistFocus:Bool = PsychUIInputText.focusOn == null && lastFocus == null;
+    ClientPrefs.toggleVolumeKeys(playlistFocus);
+
+    if (playlistFocus && controls.BACK) {
       PlaylistEditorState.autoOpenMetaEditor = false;
       PlaylistMetaDataEditor.playlist = null;
       close();
     }
+    lastFocus = PsychUIInputText.focusOn;
   }
 }

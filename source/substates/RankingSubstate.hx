@@ -17,6 +17,8 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
+import states.PlaylistState;
+import states.TitleState;
 
 class RankingSubstate extends MusicBeatSubstate
 {
@@ -260,6 +262,12 @@ class RankingSubstate extends MusicBeatSubstate
 					} else {
 						TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
 					}
+				case "Warmup":
+					trace('WENT BACK TO TITLESCREEN??');
+					TransitionState.transitionState(TitleState, {transitionType: "stickers"});
+				case "Playlist":
+					trace('WENT BACK TO PLAYLIST MENU??');
+					TransitionState.transitionState(PlaylistState, {transitionType: "stickers"});
 				#if ARCHIPELAGO_ALLOWED
 				case "APFreeplay":
 					trace('WENT BACK TO ARCHIPELAGO FREEPLAY??');

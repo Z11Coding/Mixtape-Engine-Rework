@@ -45,7 +45,8 @@ class SplashScreen extends MusicBeatState
         if (currentDate.getDate() == 5) {
             // Skip intro and show video
             trace("Playing Video!");
-            startVideo("splashscreen/bat.mp4");
+            startVideo("splashscreen/bat");
+            isVideo = true;
         }
         states.FirstCheckState.gameInitialized = true;
         if (!isVideo) {

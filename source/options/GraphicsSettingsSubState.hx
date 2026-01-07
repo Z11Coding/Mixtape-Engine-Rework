@@ -6,6 +6,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 {
 	var antialiasingOption:Int;
 	var boyfriend:Character = null;
+	var perfOpt:Option;
 	public function new()
 	{
 		title = Language.getPhrase('graphics_menu', 'Graphics Settings');
@@ -160,9 +161,64 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		MusicBeatState.resetState();
 	}
 
+	function onChangePerformanceCounter()
+	{
+		if (Main.fpsVar != null)
+		{
+			Main.fpsVar.visible = true;
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					Main.fpsVar.visible = false;
+				case 'base':
+					Main.fpsVar.visible = false;
+				case 'base-adv':
+					Main.fpsVar.visible = false;
+			}
+			Main.fpsVar.forceUpdateText = true;
+		}
+
+		if (Main.debugDisplay != null)
+		{
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					Main.debugDisplay.visible = false;
+				case 'fps':
+					Main.debugDisplay.visible = false;
+				case 'fps-mem':
+					Main.debugDisplay.visible = false;
+				case 'fps-mem-peak':
+					Main.debugDisplay.visible = false;
+				case 'base':
+					Main.debugDisplay.visible = true;
+					Main.debugDisplay.isAdvanced = false;
+				case 'base-adv':
+					Main.debugDisplay.visible = true;
+					Main.debugDisplay.isAdvanced = true;
+			}
+		}
+	}
+
 	override function changeSelection(change:Int = 0)
 	{
 		super.changeSelection(change);
 		boyfriend.visible = (antialiasingOption == curSelected);
+	}
+
+	override function update(e:Float) {
+		if (perfOpt != null && (ClientPrefs.data.performanceCounter == 'hide' || ClientPrefs.data.performanceCounter == 'fps' || ClientPrefs.data.performanceCounter == 'fps-mem' || ClientPrefs.data.performanceCounter == 'fps-mem-peak'))
+			perfOpt.onChange();
+	}
+
+	override function beatHit()
+	{
+		super.beatHit();
+
+		// FlxG.camera.zoom = zoomies;
+
+		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+			ease: FlxEase.quadOut
+		});
 	}
 }

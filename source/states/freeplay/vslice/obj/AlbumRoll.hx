@@ -93,7 +93,7 @@ class AlbumRoll extends FlxSpriteGroup
 
     albumData = AlbumRegistry.instance.fetchEntry(albumId);
 
-    var albumPath = albumData.getAlbumArtAssetKey();
+    var albumPath = albumData?.getAlbumArtAssetKey() ?? null;
 
     if (albumData == null || !Paths.exists('images/$albumPath.png')) //? changed this section
     {

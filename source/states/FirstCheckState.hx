@@ -87,6 +87,15 @@ class FirstCheckState extends MusicBeatState
 			#end
 		}
 
+		if(Main.fpsVar != null) {
+			Main.fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");
+		}
+
+		if(Main.debugDisplay != null) {
+			Main.debugDisplay.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "base" || ClientPrefs.data.performanceCounter == "base-adv");
+			Main.debugDisplay.isAdvanced = (ClientPrefs.data.performanceCounter == "base-adv");
+		}
+
 		super.create();
 
 		NativeFileSystem.openFlAssets = Assets.list();

@@ -2,7 +2,8 @@ package backend;
 
 class Highscore
 {
-	public static var weekScores:Map<String, Int> = new Map();
+	public static var weekScores:Map<String, Int> = new Map<String, Int>();
+	public static var playlistScores:Map<String, Int> = new Map<String, Int>();
 	public static var songScores:Map<String, Int> = new Map<String, Int>();
 	public static var songRating:Map<String, Float> = new Map<String, Float>();
 	public static var songFCs:Map<String, Bool> = new Map<String, Bool>();
@@ -126,6 +127,17 @@ class Highscore
 		else setWeekScore(weekMod, score);
 	}
 
+	public static function savePlaylistScore(playlist:String, score:Int = 0):Void
+	{
+		var playlistScore:String = playlist+saveMod;
+		if (playlistScores.exists(playlistScore))
+		{
+			if (playlistScores.get(playlistScore) < score)
+				setPlaylistScore(playlistScore, score);
+		}
+		else setPlaylistScore(playlistScore, score);
+	}
+
 	/**
 	 * YOU SHOULD FORMAT SONG WITH formatSong() BEFORE TOSSING IN SONG VARIABLE
 	 */
@@ -178,6 +190,14 @@ class Highscore
 		// Reminder that I don't need to format this song, it should come formatted!
 		weekScores.set(week, score);
 		FlxG.save.data.weekScores = weekScores;
+		FlxG.save.flush();
+	}
+
+	static function setPlaylistScore(playlist:String, score:Int):Void
+	{
+		// Reminder that I don't need to format this song, it should come formatted!
+		playlistScores.set(playlist, score);
+		FlxG.save.data.playlistScores = playlistScores;
 		FlxG.save.flush();
 	}
 
@@ -271,6 +291,15 @@ class Highscore
 		return weekScores.get(weekMod);
 	}
 
+	public static function getPlaylistScore(playlist:String):Int
+	{
+		var playlistMod:String = playlist+saveMod;
+		if (!playlistScores.exists(playlistMod))
+			setPlaylistScore(playlistMod, 0);
+
+		return playlistScores.get(playlistMod);
+	}
+
 	public static function reloadModifiers():Void
 	{
 		saveMod = "";
@@ -320,6 +349,9 @@ class Highscore
 	{
 		if (FlxG.save.data.weekScores != null)
 			weekScores = FlxG.save.data.weekScores;
+
+		if (FlxG.save.data.playlistScores != null)
+			playlistScores = FlxG.save.data.playlistScores;
 
 		if (FlxG.save.data.songScores != null)
 			songScores = FlxG.save.data.songScores;

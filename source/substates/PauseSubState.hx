@@ -9,6 +9,7 @@ import backend.Song;
 import backend.WeekData;
 import flixel.util.FlxStringUtil;
 import options.OptionsState;
+import states.PlaylistState;
 import states.StoryMenuState;
 
 enum PauseSpecialAction {
@@ -72,7 +73,7 @@ class PauseSubState extends MusicBeatSubstate
 	override function create()
 	{
 
-		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
+		if(Difficulty.list.length < 2 || PlayState.isWarmUp || PlayState.isPlaylist) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		if(PlayState.chartingMode)
 		{
 			menuItemsOG.insert(2, 'Leave Charting Mode');
@@ -87,7 +88,6 @@ class PauseSubState extends MusicBeatSubstate
 			menuItemsOG.insert(5 + num, 'Toggle Botplay');
 		} else if(PlayState.instance.practiceMode && !PlayState.instance.startingSong)
 			menuItemsOG.insert(3, 'Skip Time');
-		menuItems = menuItemsOG;
 
 		if (archipelago.APEntryState.inArchipelagoMode)
 			menuItemsOG.insert(3, 'Skip Check');
@@ -99,6 +99,13 @@ class PauseSubState extends MusicBeatSubstate
 			menuItemsOG.remove('Change Difficulty');
 			menuItemsOG.remove('Options');
 		}
+
+		if (PlayState.isWarmUp || PlayState.isPlaylist) {
+			menuItemsOG.remove('Change Difficulty');
+			menuItemsOG.insert(menuItemsOG.length - 1, 'Skip Song');
+		}
+
+		menuItems = menuItemsOG;
 
 		if (!archipelago.APItem.unknownSongs)
 		for (i in 0...Difficulty.list.length) {
@@ -383,7 +390,7 @@ class PauseSubState extends MusicBeatSubstate
 						}
 						close();
 					}
-				case 'End Song':
+				case 'End Song' | 'Skip Song':
 					close();
 					PlayState.instance.notes.clear();
 					PlayState.instance.unspawnNotes = [];
@@ -427,6 +434,8 @@ class PauseSubState extends MusicBeatSubstate
 					Mods.loadTopMod();
 					if(PlayState.isStoryMode)
 						MusicBeatState.switchState(new StoryMenuState());
+					else if(PlayState.isWarmUp || PlayState.isPlaylist)
+						MusicBeatState.switchState(new PlaylistState());
 					else if (PlayState.isLegacyLuaTest) {
 						// Return to Legacy Lua settings system
 						PlayState.isLegacyLuaTest = false;

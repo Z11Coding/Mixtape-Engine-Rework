@@ -294,4 +294,15 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			Main.fpsVar.visible = ClientPrefs.data.showFPS;
 	}
 	#end
+
+	override function beatHit()
+	{
+		super.beatHit();
+
+		// FlxG.camera.zoom = zoomies;
+
+		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+			ease: FlxEase.quadOut
+		});
+	}
 }
