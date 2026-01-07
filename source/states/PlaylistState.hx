@@ -3,6 +3,7 @@ import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
 import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
+import flixel.math.FlxRandom;
 import objects.Alphabet.DynamicAlphabet;
 import objects.Character;
 import objects.HealthIcon;
@@ -53,7 +54,10 @@ class PlaylistState extends MusicBeatState {
 
 	var readyTxt:ColoredAlphabet;
 	var mainBox:PsychUIBox;
+	var settingsBox:PsychUIBox;
 	var songListTxt:FlxText;
+
+	static var shufflePlaylist:Bool = false;
 
   override function create()
 	{
@@ -176,16 +180,29 @@ class PlaylistState extends MusicBeatState {
 		add(readyTxt);
 
 		mainBox = new PsychUIBox(3000, 0, 300, 320, ['Song List']);
+		mainBox.canMove = false;
+		mainBox.canMinimize = false;
 		mainBox.selectedName = 'Song List';
 		mainBox.scrollFactor.set();
 		mainBox.screenCenter(Y);
 		mainBox.y -= 50;
 		add(mainBox);
 
-		songListTxt = new FlxText(25, 40, 300, '', 32);
+		settingsBox = new PsychUIBox(3000, 0, 300, 320, ['Playlist Modifiers']);
+		settingsBox.canMove = false;
+		settingsBox.canMinimize = false;
+		settingsBox.selectedName = 'Playlist Modifiers';
+		settingsBox.scrollFactor.set();
+		settingsBox.screenCenter(Y);
+		settingsBox.y -= 50;
+		add(settingsBox);
+
+		makeModifierUI();
+
+		songListTxt = new FlxText(25, 25, 300, '', 32);
 		songListTxt.setFormat(Paths.font("vcr.ttf"), 22, FlxColor.WHITE, CENTER);
 		songListTxt.scrollFactor.set();
-		mainBox.add(songListTxt);
+		mainBox.getTab('Song List').menu.add(songListTxt);
 
     rank = new RankingManager('small');
 		rank.updateHitbox();
@@ -302,7 +319,7 @@ class PlaylistState extends MusicBeatState {
 		if (readyTxt != null)
 			for (i in 0...readyTxt.letters.length) {
 				readyTxt.letters[i].color = FlxColor.fromHSL((((e / 2) / 300 * 360) % 360)+(15*i), 1.0, 0.5*1.0);
-				readyTxt.letters[i].offset.y = Math.sin(((e / 2) * 4) + (15*i));
+				readyTxt.letters[i].offset.y = Math.sin((e * 2) + (15*i)) / 2;
 			}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapse * 24)));
@@ -347,7 +364,7 @@ class PlaylistState extends MusicBeatState {
 			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 			if (!choosePlaylist) {
 				choosePlaylist = true;
-				selectedPlaylist = loadedPlaylists[curSelected];
+				selectedPlaylist = loadedPlaylists[curSelected].copy();
 				for (song in selectedPlaylist.songList)
 					songString += '${song.songName}\n';
 
@@ -361,6 +378,7 @@ class PlaylistState extends MusicBeatState {
 				FlxTween.tween(albumPhoto, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(difficultyStars, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(readyTxt, {y: 550}, 2, {ease: FlxEase.elasticOut});
+				FlxTween.tween(settingsBox, {x: 930}, 1, {ease: FlxEase.elasticOut});
 				//FlxTween.tween(searchBar, {y: -3000}, 1, {ease: FlxEase.elasticOut});
 				mainBox.screenCenter();
 				FlxG.sound.music.pause();
@@ -372,6 +390,9 @@ class PlaylistState extends MusicBeatState {
 				PlayState.altInstrumentals = null; // ? P-Slice
 				Mods.loadTopMod();
 				WeekData.reloadWeekFiles();
+				if (shufflePlaylist) {
+					FlxG.random.shuffle(selectedPlaylist.songList);
+				}
 				PlayState.curPlaylist = selectedPlaylist;
 				PlayState.curSonglist = selectedPlaylist.songList;
 				var songLowercase:String = Paths.formatToSongPath(selectedPlaylist.songList[0].songName);
@@ -407,6 +428,7 @@ class PlaylistState extends MusicBeatState {
 				FlxTween.tween(difficultyStars, {alpha: 1, x: 930}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(readyTxt, {y: 3000}, 2, {ease: FlxEase.elasticInOut});
 				FlxTween.tween(mainBox, {x: 3000}, 2, {ease: FlxEase.elasticInOut});
+				FlxTween.tween(settingsBox, {x: 3000}, 2, {ease: FlxEase.sineIn});
 				//FlxTween.tween(searchBar, {y: 100}, 1, {ease: FlxEase.elasticOut});
 				playCurListPreview(null);
 				curSong = 0;
@@ -706,6 +728,20 @@ class PlaylistState extends MusicBeatState {
 			FlxTimer.wait(0.25, switchVisualizer.bind(false));
 		}
 	}
+
+	var shuffleSongs:PsychUICheckBox;
+	function makeModifierUI():Void
+	{
+		var tab_group = settingsBox.getTab('Playlist Modifiers').menu;
+		var objX = 10;
+		var objY = 10;
+
+		shuffleSongs = new PsychUICheckBox(objX, objY, 'Shuffle Songs', 60, function()
+		{
+			shufflePlaylist = shuffleSongs.checked;
+		});
+		tab_group.add(shuffleSongs);
+	}
 }
 
 class PlaylistSongMetadata extends managers.FreeplayManager.GlobalSongMetadata
@@ -762,6 +798,12 @@ class PlaylistMetadata
 	{
 		var songlist:PlaylistSongMetadata = new PlaylistSongMetadata(data.songName, data.week, data.songCharacter, data.color, data.difficulty);
 		return songlist;
+	}
+
+	public inline function copy():PlaylistMetadata
+	{
+		var playlist:PlaylistMetadata = new PlaylistMetadata(this.playlistName, this.bg, this.icon, this.album, this.color, this.songList);
+		return playlist;
 	}
 }
 

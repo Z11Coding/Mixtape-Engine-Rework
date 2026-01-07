@@ -113,6 +113,8 @@ class FreeplaySongData extends SngCapsuleData
 			currentDifficulty = songDifficulties[0]; // TODO
 		}
 
+		this.songDifficulties = this.songDifficulties.map(s -> s.toLowerCase());
+
 		this.songStartingBpm = BPMCache.instance.getBPM(sngDataPath, fileSngName);
 
 		// this.songStartingBpm = songDifficulty.getStartingBPM();
