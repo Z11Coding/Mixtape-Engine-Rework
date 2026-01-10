@@ -25,6 +25,8 @@ import haxe.Exception;
 import objects.FunkinCamera;
 import objects.FunkinSprite;
 import shaders.LeftMaskShader;
+import states.PlaylistState;
+import states.TitleState;
 import states.freeplay.VSliceFreeplayState;
 import states.freeplay.vslice.FreeplayHelpers;
 import states.freeplay.vslice.PlayableCharacter;
@@ -94,8 +96,8 @@ class ResultState extends MusicBeatSubState
 
     rank = Scoring.calculateRank(params.scoreData) ?? SHIT;
 
-    backend.Highscore.saveRank(PlayState.SONG.song, ScoringRank.getValueFromRank(rank), PlayState.storyDifficulty);
-    if (!PlayState.instance.cpuControlled)
+    if (!PlayState.instance.cpuControlled && !params.playlistMode)
+      backend.Highscore.saveRank(PlayState.SONG.song, ScoringRank.getValueFromRank(rank), PlayState.storyDifficulty);
 
     cameraBG = new FunkinCamera('resultsBG', 0, 0, FlxG.width, FlxG.height);
     cameraScroll = new FunkinCamera('resultsScroll', 0, 0, FlxG.width, FlxG.height);
@@ -890,7 +892,7 @@ class ResultState extends MusicBeatSubState
       }
       else
       #end
-      if (params.storyMode)
+      if (params.storyMode || params.playlistMode)
       {
         FlxG.sound.pause(); //? fix sound
         //TODO re-enable this
@@ -913,7 +915,7 @@ class ResultState extends MusicBeatSubState
           // No new characters.
           shouldTween = false;
           shouldUseSubstate = true;
-          targetState = new StickerSubState(null, (sticker) -> new states.StoryMenuState());
+          targetState = new StickerSubState(null, (sticker) -> params.storyMode ? new states.StoryMenuState() : new states.PlaylistState());
         //}
       }
       else
@@ -923,23 +925,34 @@ class ResultState extends MusicBeatSubState
           trace('THE RANK IS Higher.....');
 
           shouldTween = true;
+          if (PlayState.gameplayArea == "Playlist")
+            targetState = new StickerSubState(null, (sticker) -> new PlaylistState());
+          else if (PlayState.gameplayArea == "Warmup")
+            targetState = new StickerSubState(null, (sticker) -> new TitleState());
+          else {
+            states.CategoryState.instaFreeplay = true;
+            states.CategoryState.freeplayStuff.fromResults = {
+              oldRank: params.prevScoreRank,
+              newRank: rank,
+              songId: params.songId,
+              difficultyId: params.difficultyId,
+              playRankAnim: true
+            };
+            targetState = FreeplayManager.getNewFreeplayInstance();
+          }
           controls.isInSubstate = FlxTransitionableState.skipNextTransOut = true;
-          states.CategoryState.instaFreeplay = true;
-          states.CategoryState.freeplayStuff.fromResults = {
-            oldRank: params.prevScoreRank,
-            newRank: rank,
-            songId: params.songId,
-            difficultyId: params.difficultyId,
-            playRankAnim: true
-          };
-          targetState = FreeplayManager.getNewFreeplayInstance();
         }
         else
         {
           FlxG.sound.pause(); //? fix sound
           shouldTween = false;
           controls.isInSubstate = shouldUseSubstate = true;
-          targetState = new StickerSubState(null, (sticker) -> FreeplayManager.getNewFreeplayInstance());
+          if (PlayState.gameplayArea == "Playlist")
+            targetState = new StickerSubState(null, (sticker) -> new PlaylistState());
+          else if (PlayState.gameplayArea == "Warmup")
+            targetState = new StickerSubState(null, (sticker) -> new TitleState());
+          else
+            targetState = new StickerSubState(null, (sticker) -> FreeplayManager.getNewFreeplayInstance());
         }
       }
 
@@ -1067,6 +1080,11 @@ typedef ResultsStateParams =
    * True if results are for a level, false if results are for a single song.
    */
   var storyMode:Bool;
+
+  /**
+   * True if results are for a playlist, false if results are for legit anything else.
+   */
+  var playlistMode:Bool;
 
   /**
    * Either "Song Name by Artist Name" or "Week Name"

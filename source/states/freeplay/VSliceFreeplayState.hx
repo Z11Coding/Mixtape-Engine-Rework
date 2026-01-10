@@ -1474,7 +1474,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
       if (!daSong?.songDifficulties.contains(diffId))
       {
-        targetType = INACTIVE;
+        targetType = NORMAL;
       }
       else
       {

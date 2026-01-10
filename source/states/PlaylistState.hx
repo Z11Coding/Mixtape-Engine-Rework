@@ -398,7 +398,7 @@ class PlaylistState extends MusicBeatState {
 				var songLowercase:String = Paths.formatToSongPath(selectedPlaylist.songList[0].songName);
 				Mods.currentModDirectory = selectedPlaylist.songList[0].folder != null ? selectedPlaylist.songList[0].folder : '';
 				PlayState.storyWeek = selectedPlaylist.songList[0].week;
-				Song.loadFromJson('${songLowercase}-${selectedPlaylist.songList[0].difficulty.toLowerCase()}', songLowercase);
+				Song.loadFromJson('${songLowercase}${(selectedPlaylist.songList[0].difficulty.toLowerCase() != "normal" ? "-"+selectedPlaylist.songList[0].difficulty.toLowerCase() : "")}', songLowercase);
 				LoadingState.prepareToSong();
 				LoadingState.loadAndSwitchState(new PlayState());
 			}

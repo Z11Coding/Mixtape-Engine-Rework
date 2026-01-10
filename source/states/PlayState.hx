@@ -40,8 +40,8 @@ import openfl.filters.BitmapFilter;
 import shaders.ErrorHandledShader;
 import stages.*;
 import stages.StageData;
-import states.PlaylistState.PlaylistSongMetadata;
 import states.PlaylistState.PlaylistMetadata;
+import states.PlaylistState.PlaylistSongMetadata;
 import states.StoryMenuState;
 import states.editors.CharacterEditorState;
 import states.editors.ChartingState;
@@ -8821,7 +8821,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					FlxTransitionableState.skipNextTransOut = true;
 					prevCamFollow = camFollow;
 
-					Song.loadFromJson(PlayState.curSonglist[0].songName + difficulty, PlayState.curSonglist[0].songName);
+					Song.loadFromJson(PlayState.curSonglist[0].songName + (curSonglist[0].difficulty.toLowerCase() != "normal" ? "-"+curSonglist[0].difficulty.toLowerCase() : ""), PlayState.curSonglist[0].songName);
 					FlxG.sound.music.stop();
 					#if !switch
 					var percent:Float = comboManager.ratingPercent;
@@ -9058,11 +9058,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		vocals.stop();
 		camHUD.alpha = 1;
 
+		var isPlaylist:Bool = (gameplayArea == "Playlist" || gameplayArea == "Warmup");
+
 		var res:substates.ResultState = new substates.ResultState({
 			storyMode: isStoryMode,
+			playlistMode: isPlaylist,
 			songId: curSong,
 			difficultyId: Difficulty.getString(),
-			title: isStoryMode ? ('${storyCampaignTitle}') : fpText,
+			title: isPlaylist ? '${curPlaylist.playlistName} complete!' : (isStoryMode ? ('${storyCampaignTitle}') : fpText),
 			scoreData: scoreData,
 			prevScoreRank: prevScoreRank,
 			isNewHighscore: isNewHighscore,

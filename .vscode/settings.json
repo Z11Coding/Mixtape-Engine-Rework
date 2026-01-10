@@ -1,7 +1,12 @@
 {
   "files.associations": {
     "xstring": "cpp",
-    "xlocale": "cpp"
+    "xlocale": "cpp",
+    "*.hxp": "haxe",
+    "*.hscript": "haxe",
+    "*.haxe": "haxe",
+    "*.hxs": "haxe",
+    "*.hxc": "haxe"
   },
 
   "search.exclude": {
@@ -17,6 +22,7 @@
   "haxe.displayServer": {
     "arguments": ["-v"]
   },
+
   "[haxe]": {
     "editor.formatOnSave": false,
     "editor.formatOnSaveMode": "modifications",
