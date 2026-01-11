@@ -88,6 +88,7 @@ class Note extends NoteObject
 			hitByOpponent: this.hitByOpponent,
 			noteType: this.noteType,
 			alpha: this.alpha,
+			owner: this.owner,
 			x: this.x,
 			y: this.y,
 			rgb: {

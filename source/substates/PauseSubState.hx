@@ -434,7 +434,9 @@ class PauseSubState extends MusicBeatSubstate
 					Mods.loadTopMod();
 					if(PlayState.isStoryMode)
 						MusicBeatState.switchState(new StoryMenuState());
-					else if(PlayState.isWarmUp || PlayState.isPlaylist)
+					else if (PlayState.isWarmUp)
+						MusicBeatState.switchState(new states.TitleState());
+					else if(PlayState.isPlaylist)
 						MusicBeatState.switchState(new PlaylistState());
 					else if (PlayState.isLegacyLuaTest) {
 						// Return to Legacy Lua settings system

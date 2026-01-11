@@ -122,4 +122,27 @@ class WindowUtil
   {
     lime.app.Application.current.window.title = value;
   }
+
+  #if TRACY_ENABLED
+	/**
+	 * Initialize the tracy profiler
+	 * taken from base game https://github.com/FunkinCrew/Funkin/blob/main/source/funkin/util/WindowUtil.hx
+	 */
+	public static function initTracy():Void
+	{
+		// Apply a marker to indicate frame end for the Tracy profiler.
+		//  Do this only if Tracy is configured to prevent lag.
+    var appInfoMessage = backend.util.LogUtil.buildSystemInfo();
+
+    trace("Mixtape Engine: Connection to Tracy profiler successful.");
+
+    // Post system info like Git hash
+    cpp.vm.tracy.TracyProfiler.messageAppInfo(appInfoMessage);
+		openfl.Lib.current.stage.addEventListener(openfl.events.Event.EXIT_FRAME, (e:openfl.events.Event) -> {
+			cpp.vm.tracy.TracyProfiler.frameMark();
+		});
+
+		cpp.vm.tracy.TracyProfiler.setThreadName("main");
+	}
+	#end
 }

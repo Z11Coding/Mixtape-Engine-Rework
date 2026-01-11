@@ -1338,6 +1338,7 @@ class PlayState extends MusicBeatState
 			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
 			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || playAsGF;
 			playerField.noteHitCallback = goodNoteHit;
+			playerField.owner = boyfriend;
 		}
 
 		//trace("Making DadField!");
@@ -1348,6 +1349,7 @@ class PlayState extends MusicBeatState
 			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || (opponentmode && ClientPrefs.getGameplaySetting('showcase', false)) || playAsGF) || (bothMode && cpuControlled) || (bothMode && ClientPrefs.getGameplaySetting('showcase', false));
 			dadField.AIPlayer = AIMode;
 			dadField.noteHitCallback = opponentNoteHit;
+			dadField.owner = dad;
 		}
 
 		PlayField.initExtras();

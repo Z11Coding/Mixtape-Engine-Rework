@@ -224,12 +224,6 @@ class Main extends Sprite
 		// This initialises mods
 		try
 		{
-			#if HXCPP_TRACY
-			trace("Starting tracy");
-			cpp.vm.tracy.TracyProfiler.messageAppInfo(backend.window.Native.buildSystemInfo());
-			cpp.vm.tracy.TracyProfiler.setThreadName("main");
-			#end
-
 			trace("Pushing global mods");
 			#if LUA_ALLOWED
 			Mods.pushGlobalMods();
@@ -350,8 +344,7 @@ class Main extends Sprite
     // Disable Windows error reporting (avoids sending bug reports to Microsoft).
     backend.window.base.windows.WinAPI.disableErrorReporting();
     #end
-		Toolkit.init();
-		Toolkit.theme = 'dark'; // don't be cringe
+		initHaxeUI();
 		backend.Cursor.registerHaxeUICursors();
 
 		trace(yutautil.StatePick.getStateNames("MusicBeatState"));
@@ -598,6 +591,17 @@ class Main extends Sprite
 		// trace("Extended Date: " + eDate);
 		// trace("Extended Date: " + eDate.asString());
 		// trace("Special Date Test: " + yutautil.ExtendedDate.getFullDateObject());
+	}
+
+	function initHaxeUI():Void
+	{
+		#if haxeui_core
+		haxe.ui.Toolkit.init();
+		haxe.ui.Toolkit.theme = 'dark';
+		haxe.ui.Toolkit.autoScale = false;
+		haxe.ui.focus.FocusManager.instance.autoFocus = false;
+		haxe.ui.tooltips.ToolTipManager.defaultDelay = 200;
+		#end
 	}
 
 	// shader coords fix
