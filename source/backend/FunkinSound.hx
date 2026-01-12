@@ -110,7 +110,13 @@ class FunkinSound extends FlxSound
 				future.future.onComplete(function(sound:Sound)
 				{
 					//trace("Playing preview!");
-					FlxG.sound.playMusic(sound,0);
+					FlxG.sound.playMusic(sound, 0, params.loop);
+					if (params.onComplete != null)
+						FlxG.sound.music.onComplete = params.onComplete;
+					if (params.restartTrack) {
+						FlxG.sound.music.time = 0;
+						FlxG.sound.music.play();
+					}
 					params.onLoad();
 				});
 				return true;

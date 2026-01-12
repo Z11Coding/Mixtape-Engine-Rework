@@ -152,6 +152,7 @@ class MixtapeLoadingScreen extends MusicBeatState
 	}
 
 	var transitioning:Bool = false;
+	var doAFlip:Bool = false;
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -187,6 +188,14 @@ class MixtapeLoadingScreen extends MusicBeatState
 
 		if (!transitioning)
 		{
+			if (FlxG.keys.justPressed.SPACE) {
+				if (!doAFlip) {
+					doAFlip = true;
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+					logo.angle = 360;
+					FlxTween.tween(logo, {angle: 0}, FlxG.random.float(1, 3), {ease: FlxEase.circInOut, onComplete: function(tween:FlxTween) doAFlip = false});
+				}
+			}
 			if (!finishedLoading && checkLoaded())
 			{
 				if(stateChangeDelay <= 0)

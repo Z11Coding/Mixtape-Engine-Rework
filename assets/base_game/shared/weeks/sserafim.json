@@ -1,0 +1,16 @@
+{
+  "songs": [["spaghetti", "sserafim-kazuha", [65, 60, 174]]],
+
+  "weekCharacters": ["spaghetti", "bf", "gf"],
+  "weekBackground": "",
+
+  "storyName": "LE SSERAFIM",
+  "weekBefore": "Weekend 1",
+  "weekName": "sserafim",
+  "startUnlocked": true,
+
+  "hideStoryMode": false,
+  "hideFreeplay": false,
+  "difficulties": "Easy, Normal, Hard",
+  "category": "special"
+}

@@ -3,14 +3,13 @@ import states.freeplay.vslice.PlayerRegistry;
 class MixtapeSettingsSubState extends BaseOptionsMenu
 {
 	public static var curBPMList:Array<Int> =  [0, 160, 160, 88, 160, 90, 105, 130, 100, 160, 180, 100, 125, 170, 140];
-	var perfOpt:Option;
 	public function new()
 	{
 		title = 'Mixtape Settings.';
 		rpcTitle = 'Mixtape Settings'; // for Discord Rich Presence
 
 		var option:Option = new Option('---GAMEPLAY---',
-			"",
+			"Options that will modify the gameplay of th engine to your liking.",
 			'',
 			LABEL);
 		addOption(option);
@@ -59,18 +58,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 				"Plank Engine",
 				"Golden Apple",
 				"VS Steve",
-			]);
-		addOption(option);
-		option.displayFormat = '< %v >';
-
-		var option:Option = new Option('Chart Preload',
-			"How do you prefer the charts load?",
-			'chartPreload',
-			STRING,
-			[
-				"Off",
-				"No Threadding",
-				"On"
 			]);
 		addOption(option);
 		option.displayFormat = '< %v >';
@@ -182,7 +169,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '< %v >';
 
 		var option:Option = new Option('---MODCHART---',
-			"Not all options affect both modchart systems!",
+			"Modify how the modchart system runs!\n(Not all options affect both modchart systems!)",
 			'',
 			LABEL);
 
@@ -299,7 +286,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('---FREEPLAY---',
-			"",
+			"Wanna switch up freeplay? Well here ya go!",
 			'',
 			LABEL);
 		addOption(option);
@@ -332,7 +319,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('---MENUS---',
-			"",
+			"Getting tired of the same-old same-old?\nWell try out some other menus and options!",
 			'',
 			LABEL);
 		addOption(option);
@@ -435,7 +422,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('---MISC.---',
-			"",
+			"Random Options that do various things.",
 			'',
 			LABEL);
 		addOption(option);
@@ -711,6 +698,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
+		var option:Option = new Option('Experimental Garbage Collection',
+			"If checked, enables experimental GC control that disables garbage collection in menus and gameplay to prevent hangs,\nbut enables it during loading with forced cleanup. May improve stability on some systems.",
+			'experimentalGC',
+			BOOL);
+		option.onChange = function() {backend.GarbageController.updateFromPrefs();};
+		addOption(option);
+
 		var option:Option = new Option('Use Experimental Note Pool',
 			"If checked, all notes will be generated and managed through an optimized NotePool system for better performance.\nWARNING: This is experimental and may cause issues!",
 			'useExperimentalNotePool',
@@ -724,8 +718,20 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Chart Loading',
+			"How do you prefer the charts load?",
+			'chartPreload',
+			STRING,
+			[
+				"Off",
+				"No Threadding",
+				"On"
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('---DEBUG---',
-			"",
+			"For Devs who want a more refined creation experence!\n(or for people who are sick of the traces)",
 			'',
 			LABEL);
 
@@ -791,75 +797,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		#end
 
-		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,
-			['hide', 'fps', 'fps-mem', 'fps-mem-peak', 'base', 'base-adv']);
-		addOption(option);
-		option.onChange = function()
-		{
-			onChangePerformanceCounter();
-			switch (ClientPrefs.data.performanceCounter)
-			{
-				case 'hide':
-					{
-						option.text = 'Hide FPS';
-					}
-				case 'fps':
-					{
-						option.text = 'FPS Only';
-					}
-				case 'fps-mem':
-					{
-						option.text = 'FPS With Memory';
-						@:privateAccess
-						{
-							for (i in 0...option.text.length)
-							{
-								if (option.child.members[i] != null)
-								{
-									if (i >= 7)
-									{
-										option.child.members[i].y += 40;
-										option.child.members[i].x -= 280;
-									}
-									else
-										option.child.members[i].y -= 15;
-								}
-							}
-						}
-					}
-				case 'fps-mem-peak':
-					{
-						option.text = 'FPS With Memory Peak';
-						@:privateAccess
-						{
-							for (i in 0...option.text.length)
-							{
-								if (option.child.members[i] != null)
-								{
-									if (i >= 7)
-									{
-										option.child.members[i].y += 40;
-										option.child.members[i].x -= 360;
-									}
-									else
-										option.child.members[i].y -= 15;
-								}
-							}
-						}
-					}
-				case 'base':
-				{
-					option.text = 'Base';
-				}
-				case 'base-adv':
-				{
-					option.text = 'Base Adv.';
-				}
-			}
-		};
-
-		perfOpt = option;
-
 		var option:Option = new Option('Show Rendered Text',
 			"If checked, debug information about rendered objects will be displayed during gameplay.",
 			'showRenderedText',
@@ -919,45 +856,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		}
 
 		super();
-	}
-
-	function onChangePerformanceCounter()
-	{
-		if (Main.fpsVar != null)
-		{
-			Main.fpsVar.visible = true;
-			switch (ClientPrefs.data.performanceCounter)
-			{
-				case 'hide':
-					Main.fpsVar.visible = false;
-				case 'base':
-					Main.fpsVar.visible = false;
-				case 'base-adv':
-					Main.fpsVar.visible = false;
-			}
-			Main.fpsVar.forceUpdateText = true;
-		}
-
-		if (Main.debugDisplay != null)
-		{
-			switch (ClientPrefs.data.performanceCounter)
-			{
-				case 'hide':
-					Main.debugDisplay.visible = false;
-				case 'fps':
-					Main.debugDisplay.visible = false;
-				case 'fps-mem':
-					Main.debugDisplay.visible = false;
-				case 'fps-mem-peak':
-					Main.debugDisplay.visible = false;
-				case 'base':
-					Main.debugDisplay.visible = true;
-					Main.debugDisplay.isAdvanced = false;
-				case 'base-adv':
-					Main.debugDisplay.visible = true;
-					Main.debugDisplay.isAdvanced = true;
-			}
-		}
 	}
 
 	var changedMusic:Bool = false;

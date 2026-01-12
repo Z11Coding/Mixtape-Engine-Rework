@@ -40,6 +40,7 @@ import openfl.filters.BitmapFilter;
 import shaders.ErrorHandledShader;
 import stages.*;
 import stages.StageData;
+import states.PlaylistState.PlaylistMetadata;
 import states.PlaylistState.PlaylistSongMetadata;
 import states.StoryMenuState;
 import states.editors.CharacterEditorState;
@@ -246,7 +247,8 @@ class PlayState extends MusicBeatState
 	//Playlist Stuff
 	public static var isWarmUp:Bool = false;
 	public static var isPlaylist:Bool = false;
-	public static var curPlaylist:Array<PlaylistSongMetadata> = [];
+	public static var curPlaylist:PlaylistMetadata = null;
+	public static var curSonglist:Array<PlaylistSongMetadata> = [];
 
 	// ! new shit P-Slice
 	public static var storyCampaignTitle = "";
@@ -712,8 +714,9 @@ class PlayState extends MusicBeatState
 		}
 		#end
 		if (isWarmUp || isPlaylist) {
+			allowDebugKeys = false;
 			Difficulty.loadFromWeek();
-			storyDifficulty = Difficulty.list.indexOf(curPlaylist[0].difficulty);
+			storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
 		}
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
@@ -1335,6 +1338,7 @@ class PlayState extends MusicBeatState
 			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
 			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || playAsGF;
 			playerField.noteHitCallback = goodNoteHit;
+			playerField.owner = boyfriend;
 		}
 
 		//trace("Making DadField!");
@@ -1345,6 +1349,7 @@ class PlayState extends MusicBeatState
 			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || (opponentmode && ClientPrefs.getGameplaySetting('showcase', false)) || playAsGF) || (bothMode && cpuControlled) || (bothMode && ClientPrefs.getGameplaySetting('showcase', false));
 			dadField.AIPlayer = AIMode;
 			dadField.noteHitCallback = opponentNoteHit;
+			dadField.owner = dad;
 		}
 
 		PlayField.initExtras();
@@ -3776,8 +3781,8 @@ class PlayState extends MusicBeatState
 		if (generatedMusic && !preload) {
 			// Chart was preloaded, now finish the job
 			waitingForPreloadFinish = true;
-		finishPreloadedGeneration();
-		return;
+			initThreadAlt(finishPreloadedGeneration, 'FinishPreloadGen');
+			return;
 		}
 		// If this is a preload call, just note it
 		if (preload) {
@@ -8681,7 +8686,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		//Should kill you if you tried to cheat
 		if(!startingSong)
 		{
-			notes.forEachAlive(function(daNote:Note)
+			/*notes.forEachAlive(function(daNote:Note)
 			{
 				if(daNote.strumTime < songLength - Conductor.safeZoneOffset) {
 					backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "tried to cheat and failed.";
@@ -8696,7 +8701,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					health -= 0.05 * healthLoss;
 					bfkilledcheck = true;
 				}
-			}
+			}*/
 
 			if(doDeathCheck()) {
 				return false;
@@ -8755,13 +8760,15 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				campaignScore += comboManager.songScore;
 				campaignMisses += comboManager.songMisses;
 
-				var lastSong = curPlaylist[0];
-				curPlaylist.remove(curPlaylist[0]);
+				var lastSong = curSonglist[0];
+				curSonglist.remove(curSonglist[0]);
 
-				if (curPlaylist.length <= 0)
+				if (curSonglist.length <= 0)
 				{
-					if (isWarmUp)
+					if (isWarmUp) {
 						ClientPrefs.data.warmupCompleted = true;
+						isWarmUp = false;
+					}
 					canResync = false;
 					gameplayArea = isPlaylist ? "Playlist" : "Warmup";
 					changedDifficulty = false;
@@ -8769,6 +8776,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					{
 						camHUD.alpha -= 1 / 10;
 					}, 10);
+
+					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay') && !ClientPrefs.getGameplaySetting('showcase', false)) {
+						Highscore.savePlaylistScore(curPlaylist.playlistName, campaignScore);
+						FlxG.save.flush();
+					}
+					isPlaylist = false;
 
 					if (ClientPrefs.data.ranking == "Mixtape") {
 						openSubState(new substates.RankingSubstate());
@@ -8792,23 +8805,25 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 						#end
 					}
+					curPlaylist = null;
+					curSonglist = null;
 				}
 				else
 				{
-					Mods.currentModDirectory = curPlaylist[0].folder != null ? curPlaylist[0].folder : '';
-					PlayState.storyWeek = curPlaylist[0].week;
+					Mods.currentModDirectory = curSonglist[0].folder != null ? curSonglist[0].folder : '';
+					PlayState.storyWeek = curSonglist[0].week;
 					Difficulty.loadFromWeek();
-					storyDifficulty = Difficulty.list.indexOf(curPlaylist[0].difficulty);
+					storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
 					var difficulty:String = Difficulty.getFilePath();
 
 					trace('LOADING NEXT SONG');
-					trace(Paths.formatToSongPath(curPlaylist[0].songName) + difficulty);
+					trace(Paths.formatToSongPath(curSonglist[0].songName) + difficulty);
 
 					FlxTransitionableState.skipNextTransIn = true;
 					FlxTransitionableState.skipNextTransOut = true;
 					prevCamFollow = camFollow;
 
-					Song.loadFromJson(PlayState.curPlaylist[0].songName + difficulty, PlayState.curPlaylist[0].songName);
+					Song.loadFromJson(PlayState.curSonglist[0].songName + (curSonglist[0].difficulty.toLowerCase() != "normal" ? "-"+curSonglist[0].difficulty.toLowerCase() : ""), PlayState.curSonglist[0].songName);
 					FlxG.sound.music.stop();
 					#if !switch
 					var percent:Float = comboManager.ratingPercent;
@@ -8935,15 +8950,19 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				camOther.fade(FlxColor.BLACK, 0.6, false, () ->
 				{
 					FlxTransitionableState.skipNextTransOut = true;
-					states.CategoryState.instaFreeplay = true;
-          states.CategoryState.freeplayStuff.fromResults = {
-            oldRank: prevScoreRank,
-						newRank: fpRank,
-						songId: curSong,
-						difficultyId: Difficulty.getString(),
-						playRankAnim: !botplay
-          };
-					FlxG.switchState(() -> states.freeplay.VSliceFreeplayState.build());
+					if (ClientPrefs.data.freeplayMenu == "Base Game") {
+						states.CategoryState.instaFreeplay = true;
+						states.CategoryState.freeplayStuff.fromResults = {
+							oldRank: prevScoreRank,
+							newRank: fpRank,
+							songId: curSong,
+							difficultyId: Difficulty.getString(),
+							playRankAnim: !botplay
+						};
+						FlxG.switchState(() -> states.freeplay.VSliceFreeplayState.build());
+					} else {
+						TransitionState.transitionState(FreeplayManager.getFreeplayState(), {transitionType: "stickers"});
+					}
 				});
 			}
 			else if (!isStoryMode)
@@ -9041,11 +9060,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		vocals.stop();
 		camHUD.alpha = 1;
 
+		var isPlaylist:Bool = (gameplayArea == "Playlist" || gameplayArea == "Warmup");
+
 		var res:substates.ResultState = new substates.ResultState({
 			storyMode: isStoryMode,
+			playlistMode: isPlaylist,
 			songId: curSong,
 			difficultyId: Difficulty.getString(),
-			title: isStoryMode ? ('${storyCampaignTitle}') : fpText,
+			title: isPlaylist ? '${curPlaylist.playlistName} complete!' : (isStoryMode ? ('${storyCampaignTitle}') : fpText),
 			scoreData: scoreData,
 			prevScoreRank: prevScoreRank,
 			isNewHighscore: isNewHighscore,

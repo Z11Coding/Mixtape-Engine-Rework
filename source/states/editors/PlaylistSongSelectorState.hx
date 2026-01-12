@@ -623,9 +623,11 @@ class PlaylistSongSelectorState extends MusicBeatState
 
 					// Run a quick scan of the list just to be sure
 					var hasSong:Bool = false;
+					var curVictim:PlaylistSongMetadata = null;
 					for (song in curPlaylist.songList) {
 						if (song.songName.toLowerCase() == songLowercase) {
 							hasSong = true;
+							curVictim = song;
 							break;
 						}
 					}
@@ -633,8 +635,8 @@ class PlaylistSongSelectorState extends MusicBeatState
 					var curSong:PlaylistSongMetadata = new PlaylistSongMetadata(songLowercase, FreeplayManager.instance.songList[curSelected].week, fpManager.songList[curSelected].songCharacter, fpManager.songList[curSelected].color, Difficulty.getString());
           if (!hasSong)
             curPlaylist.songList.push(curSong);
-          else
-            curPlaylist.songList.remove(curSong);
+          else if (hasSong && curVictim != null)
+            curPlaylist.songList.remove(curVictim);
           reloadSongs();
 				} else {
 					substates.DiffSubState.songChoices = songChoices;

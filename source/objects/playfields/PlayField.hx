@@ -73,6 +73,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		return playerId;
 	}
 
+	public var owner:Character; // character that owns this playfield
 	public var tracks:Array<FlxSound> = []; // tracks managed by this field
 	public var playerId(default, set):Int = 0; // used to calculate the base position of the strums
 

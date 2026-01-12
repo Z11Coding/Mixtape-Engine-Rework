@@ -151,6 +151,7 @@ class HScript extends Iris
 	}
 
 	var varsToBring(default, set):Any = null;
+	@:inheritDoc
 	override function preset() {
 		super.preset();
 
@@ -177,9 +178,10 @@ class HScript extends Iris
 		set('Conductor', Conductor);
 		set('ClientPrefs', ClientPrefs);
 		#if VIDEOS_ALLOWED //Compat stuff. you wouldn't get it
-		set('PsychVideoSprite', objects.FNFWeeklyVideoSprite);
+		set('PsychVideoSprite', objects.VideoSprite);
 		set('FNFWeeklyVideoSprite', objects.FNFWeeklyVideoSprite);
-		set('VideoSprite', objects.FNFWeeklyVideoSprite);
+		set('FunkinVideoSprite', objects.FNFWeeklyVideoSprite);
+		set('VideoSprite', objects.VideoSprite);
 		#end
 		#if ACHIEVEMENTS_ALLOWED
 		set('Achievements', Achievements);
@@ -193,6 +195,8 @@ class HScript extends Iris
 		set('ErrorHandledRuntimeShader', shaders.ErrorHandledShader.ErrorHandledRuntimeShader);
 		#end
 		set('ShaderFilter', openfl.filters.ShaderFilter);
+		set('ColorSwap', shaders.ColorSwap);
+		set('HSLColorSwap', shaders.HSLColorSwap);
 		set('StringTools', StringTools);
 		#if flxanimate
 		set('FlxAnimate', FlxAnimate);
@@ -606,6 +610,50 @@ class HScript extends Iris
 		});
 
 		set('Date', yutautil.ExtendedDate);
+
+		set("BGSprite", BGSprite);
+
+		//NVM funny
+		set("script", this);
+		set("Dynamic", Dynamic);
+		set('StringMap', haxe.ds.StringMap);
+		set('IntMap', haxe.ds.IntMap);
+		set('ObjectMap', haxe.ds.ObjectMap);
+		set("Main", Main);
+		set("Lib", openfl.Lib);
+		set("Assets", lime.utils.Assets);
+		set("OpenFlAssets", openfl.utils.Assets);
+		set("FlxTypedGroup", flixel.group.FlxGroup.FlxTypedGroup);
+		set("FlxSpriteGroup", flixel.group.FlxSpriteGroup);
+		set("FlxSound", flixel.sound.FlxSound);
+		set("FlxFlicker", flixel.effects.FlxFlicker);
+		set('FlxSpriteUtil', flixel.util.FlxSpriteUtil);
+		set("FlxBackdrop", flixel.addons.display.FlxBackdrop);
+		set("FlxTiledSprite", flixel.addons.display.FlxTiledSprite);
+		set('FlxCameraFollowStyle', flixel.FlxCamera.FlxCameraFollowStyle);
+		set("FlxTextBorderStyle", flixel.text.FlxText.FlxTextBorderStyle);
+		set("FlxBarFillDirection", flixel.ui.FlxBar.FlxBarFillDirection);
+		// abstracts
+		set("FlxTextAlign", backend.util.MacroUtil.buildAbstract(flixel.text.FlxText.FlxTextAlign));
+		set('FlxAxes', backend.util.MacroUtil.buildAbstract(flixel.util.FlxAxes));
+		set("FlxKey", backend.util.MacroUtil.buildAbstract(flixel.input.keyboard.FlxKey));
+		set('BlendMode', backend.util.MacroUtil.buildAbstract(openfl.display.BlendMode));
+
+		set("MusicBeatState", MusicBeatState);
+		set("Song", backend.Song);
+		set("CoolUtil", backend.CoolUtil);
+		set("StageData", stages.StageData);
+		set("FunkinLua", FunkinLua);
+		set("Bar", objects.Bar);
+		set("BackgroundDancer", stages.objects.BackgroundDancer);
+		set("BackgroundGirls", stages.objects.BackgroundGirls);
+		set("TankmenBG", stages.objects.TankmenBG);
+		set("FNFSprite", objects.FunkinSprite);
+		set("HealthIcon", objects.HealthIcon);
+		set("NoteSplash", objects.NoteSplash);
+		set("StrumNote", objects.StrumNote);
+		set("AttachedSprite", objects.AttachedSprite);
+		set("CutsceneHandler", cutscenes.CutsceneHandler);
 	}
 
 	#if LUA_ALLOWED

@@ -3,6 +3,7 @@ package objects;
 import backend.math.Vector3;
 import flixel.math.FlxPoint;
 import flixel.util.FlxDestroyUtil;
+import objects.playfields.PlayField;
 import shaders.NoteColorSwap;
 
 enum abstract ObjectType(#if cpp cpp.UInt8 #else Int #end)
@@ -18,6 +19,9 @@ class NoteObject extends FlxSprite {
 	public var objType:ObjectType = UNKNOWN;
 
 	public var extraData:Map<String, Dynamic> = [];
+
+	public var owner:Character = null; //if u wanna get freaky with the notes
+	public var desiredField:PlayField; // incase a note should be put into a specific playfield
 
 	public var column:Int = 0;
 	@:isVar

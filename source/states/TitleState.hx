@@ -141,8 +141,9 @@ class TitleState extends MusicBeatState
 			persistentUpdate = false;
 			var playlist:PlaylistMetadata = null;
 			var hasWarmup:Bool = false;
-			if (ClientPrefs.data.playLists != null && ClientPrefs.data.playLists.length > 0) {
-				for (playlistItem in ClientPrefs.data.playLists) {
+			var allLists:Array<PlaylistMetadata> = PlaylistState.loadPlaylists();
+			if (allLists.length > 0) {
+				for (playlistItem in allLists) {
 					if (playlistItem != null) {
 						if (playlistItem.playlistName == "Warm-Up") {
 							playlist = playlistItem;
@@ -153,16 +154,19 @@ class TitleState extends MusicBeatState
 				}
 			}
 
-			if (hasWarmup) {
+			if (hasWarmup && playlist != null && playlist.songList != null && playlist.songList[0] != null) {
 				if (ClientPrefs.data.alwaysWarmup) {
 					persistentUpdate = true;
 					PlayState.isWarmUp = true;
 					PlayState.altInstrumentals = null; // ? P-Slice
 					Mods.loadTopMod();
 					WeekData.reloadWeekFiles();
-					if (ClientPrefs.data.playLists != null && ClientPrefs.data.playLists.length > 0) {
+					if (allLists.length > 0) {
+						closedState = false;
+						transitioning = false;
 						MusicManager.playMenuMusic(0);
-						PlayState.curPlaylist = playlist.songList;
+						PlayState.curPlaylist = playlist;
+						PlayState.curSonglist = playlist.songList;
 						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
 						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
 						PlayState.storyWeek = playlist.songList[0].week;
@@ -171,7 +175,8 @@ class TitleState extends MusicBeatState
 						LoadingState.loadAndSwitchState(new PlayState());
 					} else {
 						trace('[WARN] No playlists found, defaulting to tutorial!');
-
+						closedState = false;
+						transitioning = false;
 						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
 						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
 						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
@@ -179,6 +184,8 @@ class TitleState extends MusicBeatState
 						LoadingState.loadAndSwitchState(new PlayState());
 					}
 				} else {
+					closedState = true;
+					transitioning = true;
 					var warmup = new haxe.ui.containers.dialogs.MessageBox();
 					warmup.title = "Warm-up?";
 					warmup.text = "Would you like to play the warm-up playlist before starting?";
@@ -188,33 +195,42 @@ class TitleState extends MusicBeatState
 					{
 						if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 						{
+							closedState = false;
+							transitioning = false;
 							persistentUpdate = true;
 							PlayState.isWarmUp = true;
 							PlayState.altInstrumentals = null; // ? P-Slice
 							Mods.loadTopMod();
 							WeekData.reloadWeekFiles();
-							if (ClientPrefs.data.playLists != null) {
-								MusicManager.playMenuMusic(0);
-								PlayState.curPlaylist = playlist.songList;
-								var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-								Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
-								PlayState.storyWeek = playlist.songList[0].week;
-								Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
-								LoadingState.prepareToSong();
-								LoadingState.loadAndSwitchState(new PlayState());
-							}
+							MusicManager.playMenuMusic(0);
+							PlayState.curPlaylist = playlist;
+							PlayState.curSonglist = playlist.songList;
+							trace('songName: ${playlist.songList[0]}');
+							var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
+							Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+							PlayState.storyWeek = playlist.songList[0].week;
+							Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
+							LoadingState.prepareToSong();
+							LoadingState.loadAndSwitchState(new PlayState());
 						}
 						else
 						{
+							closedState = false;
+							transitioning = false;
 							ClientPrefs.data.warmupCompleted = true;
 							ClientPrefs.saveSettings();
 							FlxG.resetState();
+							Cursor.hide();
+							sickBeats = 0;
 						}
 					};
 
 					warmup.show();
+					Cursor.show();
 				}
 			} else {
+				closedState = true;
+				transitioning = true;
 				trace('[WARN] "Warm-Up" playlist not found!');
 				var warmup = new haxe.ui.containers.dialogs.MessageBox();
 				warmup.title = "Warm-up?";
@@ -225,18 +241,25 @@ class TitleState extends MusicBeatState
 				{
 					if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 					{
+						closedState = false;
+						transitioning = false;
 						MusicManager.playMenuMusic(1);
 						FlxG.switchState(new states.PlaylistState());
 					}
 					else
 					{
+						closedState = false;
+						transitioning = false;
 						ClientPrefs.data.warmupCompleted = true;
 						ClientPrefs.saveSettings();
 						FlxG.resetState();
+						Cursor.hide();
+						sickBeats = 0;
 					}
 				};
 
 				warmup.show();
+				Cursor.show();
 			}
 		}
 		else if(FlxG.save.data.flashing == null && !FlashingState.leftState)
@@ -794,6 +817,8 @@ class TitleState extends MusicBeatState
 					MusicManager.playMenuMusic(0);
 					FlxG.sound.music.fadeIn(4, 0, 0.7);
 				case 2:
+					if (FlxG.sound.music.volume == 0)
+						FlxG.sound.music.fadeIn(4, 0, 0.7);
 					createCoolText(['Mixtape Engine by'], 40);
 				case 4:
 					addMoreText('Z11Gaming', 40);

@@ -89,6 +89,8 @@
 	<set name="BUILD_DIR" value="export/debug" if="debug" />
 	<set name="BUILD_DIR" value="export/release" unless="debug" />
 	<set name="BUILD_DIR" value="export/32bit" if="32bits" />
+	<!-- because you need to rebuild the game everytime you enable tracy -->
+	<set name="BUILD_DIR" value="export/tracy" if="TRACY_ENABLED" />
 	<classpath name="source" />
 
 	<!-- __________________________ Game Assets & Etc. __________________________ -->
@@ -255,6 +257,13 @@
 		<haxedef name="HXCPP_CATCH_SEGV" />
 	</section>
 
+	<section if="TRACY_ENABLED">
+		<haxedef name="HXCPP_TELEMETRY"/>
+		<haxedef name="HXCPP_TRACY"/>
+		<haxedef name="HXCPP_TRACY_MEMORY"/>
+		<haxedef name="HXCPP_TRACY_ON_DEMAND"/>
+	</section>
+
 	<section if="desktop">
 		<!--Enable Handle Error-->
 		<haxedef name="openfl_enable_handle_error" if="${openfl >= 9.4.0}" />
@@ -266,11 +275,12 @@
 	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
 
 	<!--Disable deprecated warnings-->
-	<haxedef name='no-deprecation-warnings' />
+	<haxedef name='no-deprecation-warnings' unless="debug" />
 
 	<!-- Haxe 4.3.0+: Enable pretty syntax errors and stuff. -->
 	<!-- pretty (haxeflixel default), indent, classic (haxe compiler default) -->
-	<haxedef name="message.reporting" value="pretty" />
+	<haxedef name="message.reporting" value="pretty" unless="{haxe &lt; 4.3.1}"/>
+	<haxedef name="message.log-format" value="pretty" unless="{haxe &lt; 4.3.1}"/>
 
 	<!--Macro fixes-->
 	<haxeflag name="--macro" value="allowPackage('flash')" />

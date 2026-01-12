@@ -119,6 +119,20 @@ class FirstCheckState extends MusicBeatState
 		#end
 			yutautil.CrashTrackerHelper.initialize();
 			yutautil.CrashTrackerHelper.logCriticalActivity("FirstCheckState", "new", "Application starting up");
+			#end
+
+			#if TRACY_ENABLED
+			backend.util.WindowUtil.initTracy();
+			#end
+		}
+
+		if(Main.fpsVar != null) {
+			Main.fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");
+		}
+
+		if(Main.debugDisplay != null) {
+			Main.debugDisplay.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "base" || ClientPrefs.data.performanceCounter == "base-adv");
+			Main.debugDisplay.isAdvanced = (ClientPrefs.data.performanceCounter == "base-adv");
 		}
 
 		super.create();
