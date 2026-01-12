@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="0a36b2c5-57b0-400d-931f-b3484957d2e7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/Main.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/Main.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/backend/ClientPrefs.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/backend/ClientPrefs.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/backend/window/CppAPI.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/backend/window/CppAPI.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/backend/window/WindowsData.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/backend/window/WindowsData.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/options/MixtapeSettingsSubState.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/options/MixtapeSettingsSubState.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/psychlua/WindowFunctions.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/psychlua/WindowFunctions.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/states/FirstCheckState.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/states/FirstCheckState.hx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/yutautil/CollectionUtils.hx" beforeDir="false" afterPath="$PROJECT_DIR$/source/yutautil/CollectionUtils.hx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="37sdK8IQtuKjSlA0IzLnCPg53ul" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "AP-CustomEx",
+    "junie.onboarding.icon.badge.shown": "true",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.29346.138" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0a36b2c5-57b0-400d-931f-b3484957d2e7" name="Changes" comment="" />
+      <created>1767695646384</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1767695646384</updated>
+      <workItem from="1767695647876" duration="188000" />
+    </task>
+    <servers />
+  </component>
+</project>

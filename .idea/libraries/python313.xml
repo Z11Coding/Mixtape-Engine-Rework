@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="python313">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/export/release/windows/bin/python/python313.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

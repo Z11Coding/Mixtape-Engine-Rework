@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="mods">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/export/release/windows/bin/mods/FNATI.zip!/" />
+      <root url="jar://$PROJECT_DIR$/export/release/windows/bin/mods/modTemplate.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

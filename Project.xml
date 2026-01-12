@@ -188,6 +188,9 @@
 	<!--Avoid memory leaks with for loops in HScript-->
 	<haxedef name="loop_unroll_max_cost" value="25" />
 
+	<!-- Tracy Profiler -->
+	<!-- <haxedef name="HXCPP_TRACY" if="desktop" /> -->
+
 	<haxelib name="flxsoundfilters" />
 
 	<haxelib name="faxe" if='switch'/>

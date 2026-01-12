@@ -8,6 +8,7 @@ import backend.Highscore;
 import backend.modules.*;
 import backend.modules.SSPlugin as ScreenShotPlugin;
 import backend.modules.TraceManager;
+import cpp.vm.tracy.TracyProfiler;
 import debug.FPSCounter;
 import debug.FunkinDebugDisplay;
 import flixel.FlxGame;
@@ -34,6 +35,7 @@ import yutautil.GenericProgressSubstate;
 import debug.DebugManager;
 import yutautil.StatePick;
 #end
+
 
 #if HSCRIPT_ALLOWED
 import crowplexus.iris.Iris;
@@ -2242,6 +2244,203 @@ class CommandPrompt
 				}
 				#else
 				print("Error: Sanity sync requires ARCHIPELAGO_ALLOWED compilation flag.");
+				#end
+
+			case "testPriority":
+				#if windows
+				backend.window.PriorityTest.runBasicTests();
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			case "testMonitoring":
+				#if windows
+				backend.window.PriorityTest.testMonitoring();
+				#else
+				print("Priority monitoring is only available on Windows.");
+				#end
+
+			case "monitorPriority":
+				#if windows
+				backend.window.PriorityTest.monitorPriorityChanges();
+				#else
+				print("Priority monitoring is only available on Windows.");
+				#end
+
+			case "setPriority":
+				#if windows
+				if (args.length == 1) {
+					var priority = Std.parseInt(args[0]);
+					if (priority != null && priority >= 0 && priority <= 5) {
+						var success = backend.window.Priority.setPriority(priority);
+						if (success) {
+							print('Priority set to ${priority} (${backend.window.Priority.getPriorityString()})');
+						} else {
+							print('Failed to set priority to ${priority}');
+						}
+					} else {
+						print("Error: Priority must be a number between 0 and 5 (0=Idle, 1=Below Normal, 2=Normal, 3=Above Normal, 4=High, 5=Realtime)");
+					}
+				} else {
+					print("Error: setPriority requires exactly one argument (priority level 0-5)");
+				}
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			case "setPriorityString":
+				#if windows
+				if (args.length == 1) {
+					var success = backend.window.Priority.setPriorityString(args[0]);
+					if (success) {
+						print('Priority set to "${args[0]}" (${backend.window.Priority.getPriorityString()})');
+					} else {
+						print('Failed to set priority to "${args[0]}". Valid options: Idle, Below Normal, Normal, Above Normal, High, Realtime');
+					}
+				} else {
+					print("Error: setPriorityString requires exactly one argument (priority name)");
+				}
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			case "getPriority":
+				#if windows
+				var priority = backend.window.Priority.getPriority();
+				var priorityString = backend.window.Priority.getPriorityString();
+				print('Current Priority: ${priority} (${priorityString})');
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			#if EFFICIENCY_MODE_ALLOWED
+			case "enableEfficiencyMode":
+				#if windows
+				if (backend.window.EfficiencyMode.isSupported()) {
+					var success = backend.window.EfficiencyMode.setEfficiencyMode(true);
+					if (success) {
+						print("Efficiency Mode enabled - power saving active");
+						print("Status: " + backend.window.EfficiencyMode.getStatusString());
+					} else {
+						print("Failed to enable Efficiency Mode");
+					}
+				} else {
+					print("Efficiency Mode is not supported on this system (Windows 11 22H2+ required)");
+				}
+				#else
+				print("Efficiency Mode is only available on Windows.");
+				#end
+
+			case "disableEfficiencyMode":
+				#if windows
+				var success = backend.window.EfficiencyMode.setEfficiencyMode(false);
+				if (success) {
+					print("Efficiency Mode disabled - normal performance restored");
+					print("Status: " + backend.window.EfficiencyMode.getStatusString());
+				} else {
+					print("Failed to disable Efficiency Mode");
+				}
+				#else
+				print("Efficiency Mode is only available on Windows.");
+				#end
+
+			case "toggleEfficiencyMode":
+				#if windows
+				if (backend.window.EfficiencyMode.isSupported()) {
+					var success = backend.window.EfficiencyMode.toggle();
+					if (success) {
+						print("Efficiency Mode toggled");
+						print("Status: " + backend.window.EfficiencyMode.getStatusString());
+					} else {
+						print("Failed to toggle Efficiency Mode");
+					}
+				} else {
+					print("Efficiency Mode is not supported on this system (Windows 11 22H2+ required)");
+				}
+				#else
+				print("Efficiency Mode is only available on Windows.");
+				#end
+
+			case "getEfficiencyStatus":
+				#if windows
+				print("Efficiency Mode Status: " + backend.window.EfficiencyMode.getStatusString());
+				print("Supported: " + (backend.window.EfficiencyMode.isSupported() ? "Yes" : "No"));
+				print("Active: " + (backend.window.EfficiencyMode.isActive() ? "Yes" : "No"));
+				print("Setting: " + (ClientPrefs.data.efficiencyMode ? "Enabled" : "Disabled"));
+				#else
+				print("Efficiency Mode is only available on Windows.");
+				#end
+			#end
+
+			case "startPriorityMonitoring":
+				#if windows
+				var targetPriority = 2; // Default to Normal
+				var forceLock = false;
+				var interval = 1000.0;
+
+				if (args.length >= 1) {
+					var parsedPriority = Std.parseInt(args[0]);
+					if (parsedPriority == null || parsedPriority < 0 || parsedPriority > 5) {
+						print("Error: Target priority must be 0-5 (0=Idle, 1=Below Normal, 2=Normal, 3=Above Normal, 4=High, 5=Realtime)");
+						return;
+					}
+					targetPriority = parsedPriority;
+				}
+				if (args.length >= 2) {
+					forceLock = args[1].toLowerCase() == "true";
+				}
+				if (args.length >= 3) {
+					var parsedInterval = Std.parseFloat(args[2]).asNullable();
+					if (parsedInterval == null || parsedInterval < 100) {
+						interval = 1000;
+					} else {
+						interval = parsedInterval;
+					}
+				}
+
+				backend.window.Priority.startPriorityMonitoring(targetPriority, forceLock, interval);
+				print('Started priority monitoring: Target=${backend.window.Priority.getPriorityStringFromLevel(targetPriority)}, Force-Lock=${forceLock}, Interval=${interval}ms');
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			case "stopPriorityMonitoring":
+				#if windows
+				backend.window.Priority.stopPriorityMonitoring();
+				print("Stopped priority monitoring");
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			case "priorityStatus":
+				#if windows
+				var isMonitoring = backend.window.Priority.isMonitoring();
+				var forceLockEnabled = backend.window.Priority.isForceLockEnabled();
+				var targetPriority = backend.window.Priority.getTargetPriority();
+				var currentPriority = backend.window.Priority.getPriority();
+
+				print('Priority Status:');
+				print('  Current: ${backend.window.Priority.getPriorityStringFromLevel(currentPriority)} (${currentPriority})');
+				print('  Monitoring: ${isMonitoring ? "Active" : "Inactive"}');
+				if (isMonitoring) {
+					print('  Target: ${backend.window.Priority.getPriorityStringFromLevel(targetPriority)} (${targetPriority})');
+					print('  Force-Lock: ${forceLockEnabled ? "Enabled" : "Disabled"}');
+				}
+				#else
+				print("Priority system is only available on Windows.");
+				#end
+
+			case "setForceLock":
+				#if windows
+				if (args.length == 1) {
+					var enabled = args[0].toLowerCase() == "true";
+					backend.window.Priority.setForceLock(enabled);
+					print('Force-lock ${enabled ? "enabled" : "disabled"}');
+				} else {
+					print("Error: setForceLock requires exactly one argument (true/false)");
+				}
+				#else
+				print("Priority system is only available on Windows.");
 				#end
 
 			default:

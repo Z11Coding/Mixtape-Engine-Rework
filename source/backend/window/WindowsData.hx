@@ -212,7 +212,7 @@ class WindowsData
 
 		if (alpha > 1) {
 			a = 1;
-		} 
+		}
 		if (alpha < 0) {
 			a = 0;
 		}
@@ -223,7 +223,7 @@ class WindowsData
 	/**
 	 * Set Whole Window's Opacity
 	 * ! MAKE SURE TO CALL CppAPI._setWindowLayered(); BEFORE RUNNING THIS
-	 * @param alpha 
+	 * @param alpha
 	 */
 	public static function setWindowAlpha(alpha:Float)
 	{
@@ -243,7 +243,7 @@ class WindowsData
     ')
 	/**
 	 * Get Whole Window's Opacity
-	 * @return 
+	 * @return
 	 */
 	public static function getWindowAlpha():Float
 	{
@@ -252,6 +252,63 @@ class WindowsData
 
 	@:functionCode('SetProcessDPIAware();')
 	public static function registerHighDpi() {}
+
+	// Process Priority Functions
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return SetPriorityClass(hProcess, IDLE_PRIORITY_CLASS);
+	')
+	public static function setProcessPriorityIdle():Bool {
+		return false;
+	}
+
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return SetPriorityClass(hProcess, BELOW_NORMAL_PRIORITY_CLASS);
+	')
+	public static function setProcessPriorityBelowNormal():Bool {
+		return false;
+	}
+
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return SetPriorityClass(hProcess, NORMAL_PRIORITY_CLASS);
+	')
+	public static function setProcessPriorityNormal():Bool {
+		return false;
+	}
+
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return SetPriorityClass(hProcess, ABOVE_NORMAL_PRIORITY_CLASS);
+	')
+	public static function setProcessPriorityAboveNormal():Bool {
+		return false;
+	}
+
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS);
+	')
+	public static function setProcessPriorityHigh():Bool {
+		return false;
+	}
+
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return SetPriorityClass(hProcess, REALTIME_PRIORITY_CLASS);
+	')
+	public static function setProcessPriorityRealtime():Bool {
+		return false;
+	}
+
+	@:functionCode('
+		HANDLE hProcess = GetCurrentProcess();
+		return GetPriorityClass(hProcess);
+	')
+	public static function getProcessPriority():Int {
+		return -1;
+	}
 	#end
 }
 

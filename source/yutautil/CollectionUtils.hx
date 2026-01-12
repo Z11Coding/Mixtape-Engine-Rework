@@ -1893,6 +1893,48 @@ class CollectionUtils
 		}
 	}
 
+	/**
+	 * Converts an input value to a nullable version of the same type.
+	 * For Float values, NaN is treated as null for safer null checking.
+	 * 
+	 * @param input The value to convert to nullable
+	 * @return The nullable version of the input, or null if input is Float NaN
+	 */
+	public static inline function asNullable<T>(input:T):Null<T>
+	{
+		// Check if input is a Float and is NaN, treat as null
+		if (Std.is(input, Float) && Math.isNaN(cast input))
+		{
+			return null;
+		}
+		return cast input;
+	}
+
+	public static inline function makeSync(ASync:ASync<Dynamic>):Dynamic
+	{
+		return ASync.originalFunction;
+	}
+
+	public static inline function makeAsync<TFunc:haxe.Constraints.Function>(func:TFunc):ASync<TFunc>
+	{
+		return new ASync<TFunc>(func);
+	}
+
+	public static inline function makeArray<T>(...items:T):Array<T>
+	{
+		return items;
+	}
+
+	public static inline function arrayOfLength<T>(length:Int, ?defaultValue:T):Array<T>
+	{
+		var arr:Array<T> = new Array<T>();
+		for (i in 0...length)
+		{
+			arr.push(defaultValue);
+		}
+		return arr;
+	}
+
 
 
 

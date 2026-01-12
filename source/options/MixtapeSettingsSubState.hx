@@ -454,6 +454,86 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.onChange = function() {backend.GarbageController.updateFromPrefs();};
 		addOption(option);
 
+		#if windows
+		var option:Option = new Option('Process Priority',
+			"Sets the process priority level for better performance control.\nHigher priorities give more CPU time but can affect system responsiveness.\nChanges take effect immediately.",
+			'processPriority',
+			STRING,
+			['Idle', 'Below Normal', 'Normal', 'Above Normal', 'High', 'Realtime']);
+		option.displayFormat = '< %v >';
+		option.onChange = function() {
+			backend.window.Priority.setPriorityString(ClientPrefs.data.processPriority);
+
+			// Update monitoring if enabled
+			if (ClientPrefs.data.processPriorityMonitoring) {
+				var priorityLevel = switch (ClientPrefs.data.processPriority.toLowerCase())
+				{
+					case "idle": 0;
+					case "below normal", "belownormal", "below_normal": 1;
+					case "normal": 2;
+					case "above normal", "abovenormal", "above_normal": 3;
+					case "high": 4;
+					case "realtime", "real time", "real_time": 5;
+					default: 2;
+				}
+				backend.window.Priority.setTargetPriority(priorityLevel);
+			}
+		};
+		addOption(option);
+
+		var option:Option = new Option('Priority Monitoring',
+			"If checked, continuously monitors the process priority for external changes.\nUseful for detecting when Task Manager changes the priority.",
+			'processPriorityMonitoring',
+			BOOL);
+		option.onChange = function() {
+			if (ClientPrefs.data.processPriorityMonitoring) {
+				// Start monitoring
+				var priorityLevel = switch (ClientPrefs.data.processPriority.toLowerCase())
+				{
+					case "idle": 0;
+					case "below normal", "belownormal", "below_normal": 1;
+					case "normal": 2;
+					case "above normal", "abovenormal", "above_normal": 3;
+					case "high": 4;
+					case "realtime", "real time", "real_time": 5;
+					default: 2;
+				}
+				backend.window.Priority.startPriorityMonitoring(priorityLevel, ClientPrefs.data.processPriorityForceLock, 1000);
+			} else {
+				// Stop monitoring
+				backend.window.Priority.stopPriorityMonitoring();
+			}
+		};
+		addOption(option);
+
+		var option:Option = new Option('Priority Force-Lock',
+			"If checked, automatically restores the priority if changed externally.\nRequires Priority Monitoring to be enabled to function.",
+			'processPriorityForceLock',
+			BOOL);
+		option.onChange = function() {
+			if (ClientPrefs.data.processPriorityMonitoring) {
+				backend.window.Priority.setForceLock(ClientPrefs.data.processPriorityForceLock);
+			}
+		};
+		addOption(option);
+
+		#if EFFICIENCY_MODE_ALLOWED
+		var option:Option = new Option('Efficiency Mode',
+			"Enables Windows Efficiency Mode for reduced power consumption and heat generation.\nLowers process priority and optimizes for battery life.\nIdeal for laptop users or when running on battery power.",
+			'efficiencyMode',
+			BOOL);
+		option.onChange = function() {
+			#if windows
+			var success = backend.window.EfficiencyMode.setEfficiencyMode(ClientPrefs.data.efficiencyMode);
+			if (!success && ClientPrefs.data.efficiencyMode) {
+				ClientPrefs.data.efficiencyMode = false; // Revert if failed
+			}
+			#end
+		};
+		addOption(option);
+		#end
+		#end
+
 		var option:Option = new Option('Allow Visualizers',
 			"If unchecked, the visualizers will be turned off.",
 			'allowVis',
@@ -959,6 +1039,13 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 		if (perfOpt != null)
 			perfOpt.onChange();
+
+		// Update process priority option description if selected
+		#if windows
+		if (curOption != null && curOption.variable == 'processPriority') {
+			updateProcessPriorityDescription();
+		}
+		#end
 	}
 
 	override function beatHit()
@@ -971,6 +1058,42 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			ease: FlxEase.quadOut
 		});
 	}
+
+	#if windows
+	private function updateProcessPriorityDescription():Void
+	{
+		var currentPriority = backend.window.Priority.getPriority();
+		var currentPriorityString = backend.window.Priority.getPriorityString();
+		var settingPriority = ClientPrefs.data.processPriority;
+
+		var baseDescription = "Sets the process priority level for better performance control.\nHigher priorities give more CPU time but can affect system responsiveness.\nChanges take effect immediately.";
+
+		// Check if actual priority differs from setting
+		if (settingPriority.toLowerCase() != currentPriorityString.toLowerCase()) {
+			var newDescription = baseDescription + "\n\n⚠️  Current actual priority: " + currentPriorityString + "\n(Different from setting - may have been changed externally)";
+			if (curOption.description != newDescription) {
+				curOption.description = newDescription;
+				descText.text = newDescription;
+				descText.screenCenter(Y);
+				descText.y += 270;
+				descBox.setPosition(descText.x - 10, descText.y - 10);
+				descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
+				descBox.updateHitbox();
+			}
+		} else {
+			// Priority matches setting, use base description
+			if (curOption.description != baseDescription) {
+				curOption.description = baseDescription;
+				descText.text = baseDescription;
+				descText.screenCenter(Y);
+				descText.y += 270;
+				descBox.setPosition(descText.x - 10, descText.y - 10);
+				descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
+				descBox.updateHitbox();
+			}
+		}
+	}
+	#end
 
 	function onChangeExperimentalNotePool()
 	{

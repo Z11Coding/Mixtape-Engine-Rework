@@ -27,6 +27,12 @@ import states.TitleState;
 	public var cacheOnGPU:Bool = false; // GPU Caching made by Raltyro // its buggy lol
 	public var framerate:Int = 60;
 	public var unlockFramerate:Bool = false;
+	public var processPriority:String = 'Normal'; // Process priority: Idle, Below Normal, Normal, Above Normal, High, Realtime
+	public var processPriorityForceLock:Bool = false; // Force-lock process priority to prevent external changes
+	public var processPriorityMonitoring:Bool = false; // Enable continuous priority monitoring
+	#if EFFICIENCY_MODE_ALLOWED
+	public var efficiencyMode:Bool = false; // Enable Windows Efficiency Mode for power saving
+	#end
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;
 	public var showRenderedText:Bool = false;
@@ -633,6 +639,31 @@ class ClientPrefs {
 		} else {
 			FlxG.drawFramerate = data.framerate;
 			FlxG.updateFramerate = data.framerate;
+		}
+		#end
+
+		// Apply process priority setting
+		#if windows
+		if (data.processPriority != null && data.processPriority != '') {
+			trace('Setting startup priority to: ${data.processPriority}');
+			backend.window.Priority.setPriorityString(data.processPriority);
+
+			// Start monitoring if enabled
+			if (data.processPriorityMonitoring == true) {
+				var priorityLevel = switch (data.processPriority.toLowerCase())
+				{
+					case "idle": 0;
+					case "below normal", "belownormal", "below_normal": 1;
+					case "normal": 2;
+					case "above normal", "abovenormal", "above_normal": 3;
+					case "high": 4;
+					case "realtime", "real time", "real_time": 5;
+					default: 2; // Default to Normal
+				}
+
+				trace('Starting priority monitoring with force-lock: ${data.processPriorityForceLock}');
+				backend.window.Priority.startPriorityMonitoring(priorityLevel, data.processPriorityForceLock == true, 1000);
+			}
 		}
 		#end
 

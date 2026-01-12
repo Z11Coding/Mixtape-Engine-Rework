@@ -586,4 +586,160 @@ class CppAPI
 		// Return inverse duration as score (higher is better)
 		return duration > 0 ? 1.0 / duration : 0;
 	}
+
+	// Process Priority Management
+	public static function setPriority(priority:Int):Bool
+	{
+		#if windows
+		return Priority.setPriority(priority);
+		#else
+		return false;
+		#end
+	}
+
+	public static function getPriority():Int
+	{
+		#if windows
+		return Priority.getPriority();
+		#else
+		return -1;
+		#end
+	}
+
+	public static function getPriorityString():String
+	{
+		#if windows
+		return Priority.getPriorityString();
+		#else
+		return "Unknown";
+		#end
+	}
+
+	public static function setPriorityString(priorityString:String):Bool
+	{
+		#if windows
+		return Priority.setPriorityString(priorityString);
+		#else
+		return false;
+		#end
+	}
+
+	public static function resetPriorityToNormal():Bool
+	{
+		#if windows
+		return Priority.resetToNormal();
+		#else
+		return false;
+		#end
+	}
+
+	public static function startPriorityMonitoring(?targetPriority:Int = 2, ?forceLock:Bool = false, ?monitorIntervalMs:Float = 1000):Void
+	{
+		#if windows
+		Priority.startPriorityMonitoring(targetPriority, forceLock, monitorIntervalMs);
+		#end
+	}
+
+	public static function stopPriorityMonitoring():Void
+	{
+		#if windows
+		Priority.stopPriorityMonitoring();
+		#end
+	}
+
+	public static function isMonitoring():Bool
+	{
+		#if windows
+		return Priority.isMonitoring();
+		#else
+		return false;
+		#end
+	}
+
+	public static function isForceLockEnabled():Bool
+	{
+		#if windows
+		return Priority.isForceLockEnabled();
+		#else
+		return false;
+		#end
+	}
+
+	public static function getTargetPriority():Int
+	{
+		#if windows
+		return Priority.getTargetPriority();
+		#else
+		return -1;
+		#end
+	}
+
+	public static function setTargetPriority(priority:Int):Void
+	{
+		#if windows
+		Priority.setTargetPriority(priority);
+		#end
+	}
+
+	public static function setForceLock(enabled:Bool, ?targetPriority:Int):Void
+	{
+		#if windows
+		Priority.setForceLock(enabled, targetPriority);
+		#end
+	}
+
+	// Efficiency Mode functions
+	public static function enableEfficiencyMode():Bool
+	{
+		#if windows
+		return EfficiencyMode.setEfficiencyMode(true);
+		#else
+		return false;
+		#end
+	}
+
+	public static function disableEfficiencyMode():Bool
+	{
+		#if windows
+		return EfficiencyMode.setEfficiencyMode(false);
+		#else
+		return false;
+		#end
+	}
+
+	public static function toggleEfficiencyMode():Bool
+	{
+		#if windows
+		return EfficiencyMode.toggle();
+		#else
+		return false;
+		#end
+	}
+
+	public static function isEfficiencyModeActive():Bool
+	{
+		#if windows
+		return EfficiencyMode.isActive();
+		#else
+		return false;
+		#end
+	}
+
+	public static function isEfficiencyModeSupported():Bool
+	{
+		#if windows
+		return EfficiencyMode.isSupported();
+		#else
+		return false;
+		#end
+	}
+
+	public static function getEfficiencyModeStatus():String
+	{
+		#if windows
+		return EfficiencyMode.getStatusString();
+		#else
+		return "Not supported on this platform";
+		#end
+	}
 }

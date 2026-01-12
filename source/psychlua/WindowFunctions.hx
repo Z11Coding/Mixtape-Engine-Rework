@@ -90,6 +90,84 @@ class WindowFunctions
 		Lua_helper.add_callback(lua, "setTransparency", function(color:Int, ?winName:String) {
 			CppAPI.setTransparency(winName, color);
 		});
+
+		// Process Priority Functions
+		Lua_helper.add_callback(lua, "setProcessPriority", function(priority:Int) {
+			return CppAPI.setPriority(priority);
+		});
+
+		Lua_helper.add_callback(lua, "getProcessPriority", function() {
+			return CppAPI.getPriority();
+		});
+
+		Lua_helper.add_callback(lua, "getProcessPriorityString", function() {
+			return CppAPI.getPriorityString();
+		});
+
+		Lua_helper.add_callback(lua, "setProcessPriorityString", function(priorityString:String) {
+			return CppAPI.setPriorityString(priorityString);
+		});
+
+		Lua_helper.add_callback(lua, "resetProcessPriorityToNormal", function() {
+			return CppAPI.resetPriorityToNormal();
+		});
+
+		Lua_helper.add_callback(lua, "startProcessPriorityMonitoring", function(?targetPriority:Int = 2, ?forceLock:Bool = false, ?monitorIntervalMs:Float = 1000) {
+			CppAPI.startPriorityMonitoring(targetPriority, forceLock, monitorIntervalMs);
+		});
+
+		Lua_helper.add_callback(lua, "stopProcessPriorityMonitoring", function() {
+			CppAPI.stopPriorityMonitoring();
+		});
+
+		Lua_helper.add_callback(lua, "isProcessPriorityMonitoring", function() {
+			return CppAPI.isMonitoring();
+		});
+
+		Lua_helper.add_callback(lua, "isProcessPriorityForceLockEnabled", function() {
+			return CppAPI.isForceLockEnabled();
+		});
+
+		Lua_helper.add_callback(lua, "getProcessPriorityTarget", function() {
+			return CppAPI.getTargetPriority();
+		});
+
+		Lua_helper.add_callback(lua, "setProcessPriorityTarget", function(priority:Int) {
+			CppAPI.setTargetPriority(priority);
+		});
+
+		Lua_helper.add_callback(lua, "setProcessPriorityForceLock", function(enabled:Bool, ?targetPriority:Int) {
+			CppAPI.setForceLock(enabled, targetPriority);
+		});
+
+		// Efficiency Mode Functions
+		Lua_helper.add_callback(lua, "enableEfficiencyMode", function() {
+			return backend.window.EfficiencyMode.setEfficiencyMode(true);
+		});
+
+		Lua_helper.add_callback(lua, "disableEfficiencyMode", function() {
+			return backend.window.EfficiencyMode.setEfficiencyMode(false);
+		});
+
+		Lua_helper.add_callback(lua, "toggleEfficiencyMode", function() {
+			return backend.window.EfficiencyMode.toggle();
+		});
+
+		Lua_helper.add_callback(lua, "isEfficiencyModeActive", function() {
+			return backend.window.EfficiencyMode.isActive();
+		});
+
+		Lua_helper.add_callback(lua, "isEfficiencyModeSupported", function() {
+			return backend.window.EfficiencyMode.isSupported();
+		});
+
+		Lua_helper.add_callback(lua, "getEfficiencyModeStatus", function() {
+			return backend.window.EfficiencyMode.getStatusString();
+		});
+
+		Lua_helper.add_callback(lua, "getEfficiencyModeDescription", function() {
+			return backend.window.EfficiencyMode.getDescription();
+		});
 		#end
 	}
 }
