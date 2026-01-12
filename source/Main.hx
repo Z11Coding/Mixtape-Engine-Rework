@@ -8,7 +8,7 @@ import backend.Highscore;
 import backend.modules.*;
 import backend.modules.SSPlugin as ScreenShotPlugin;
 import backend.modules.TraceManager;
-import cpp.vm.tracy.TracyProfiler;
+// import cpp.vm.tracy.TracyProfiler;
 import debug.FPSCounter;
 import debug.FunkinDebugDisplay;
 import flixel.FlxGame;
