@@ -755,6 +755,30 @@ class FunkinLua {
 		});
 		Lua_helper.add_callback(lua, "setHealth", function(value:Float = 1) game.health = value);
 		Lua_helper.add_callback(lua, "addHealth", function(value:Float = 0) game.health += value);
+		Lua_helper.add_callback(lua, "damage", function(value:Float = 0, ?lethal:Bool = true, ?causeOfDeath:String = null) {
+			// Calculate potential new health value
+			var newHealth = game.health - value;
+
+			// Check if damage would be lethal
+			if (lethal && newHealth <= 0) {
+				// Set cause of death if provided
+				if (causeOfDeath != null && causeOfDeath.trim() != "") {
+					backend.COD.setCOD(null, causeOfDeath);
+				} else {
+					backend.COD.setCOD(null, 'Took lethal damage. (${this.scriptName})');
+				}
+
+				// Apply damage and trigger death
+				game.health = newHealth;
+				game.doDeathCheck(true);
+			} else if (!lethal) {
+				// Non-lethal damage: don't let health go below a small positive value
+				game.health = Math.max(newHealth, 0.001);
+			} else {
+				// Normal damage that could be lethal but health won't drop to 0 or below
+				game.health = newHealth;
+			}
+		});
 		Lua_helper.add_callback(lua, "getHealth", function() return game.health);
 
 		//Identical functions

@@ -751,6 +751,8 @@ class Main extends Sprite
 
 		errMsg += "\nUncaught Error: " + e.error;
 		errMsg += "\nError Code: " + new DetailedException(e).errorCode;
+		errMsg += "\n(Error Codes in Beta. May be long...)";
+		errMsg += "\nIn State: " + crashState;
 
 		// Add special handling for unexpected crashes
 		if (isUnexpectedCrash) {
@@ -810,11 +812,97 @@ class Main extends Sprite
 
 		if (ClientPrefs.data.showCrash)
 		{
+			function lineBreaker(msg:String, lineLength:Int = 80):String
+			{
+
+			function findBreakPoint(text:String, maxLength:Int):Int
+			{
+				// Look for good break points: punctuation, camelCase, underscores
+				var breakChars = [".", ",", ":", ";", "!", "?", "-", "_", "(", ")", "[", "]", "{", "}"];
+
+				// Search backwards from max length for a good break point
+				for (i in 0...Math.floor(maxLength * 0.8))
+				{
+					var pos = maxLength - i - 1;
+					if (pos < 0) break;
+
+					var char = text.charAt(pos);
+
+					// Break after punctuation
+					if (breakChars.contains(char))
+					{
+						return pos + 1;
+					}
+
+					// Break at camelCase boundaries (lowercase followed by uppercase)
+					if (pos > 0 && pos < text.length - 1)
+					{
+						var prevChar = text.charAt(pos - 1);
+						var nextChar = text.charAt(pos);
+						if (prevChar == prevChar.toLowerCase() && nextChar == nextChar.toUpperCase())
+						{
+							return pos;
+						}
+					}
+				}
+
+				return 0; // No good break point found
+			}
+
+				var brokenMsg:String = "";
+				var currentLine:String = "";
+				var words = msg.split(" ");
+
+				for (word in words)
+				{
+					// Check if adding this word would exceed the line length
+					if (currentLine.length > 0 && (currentLine.length + word.length + 1) > lineLength)
+					{
+						// Add current line and start new one
+						brokenMsg += currentLine.trim() + "\n";
+						currentLine = word;
+					}
+					else
+					{
+						// Add word to current line
+						if (currentLine.length > 0) currentLine += " ";
+						currentLine += word;
+					}
+
+					// Handle very long words that exceed line length by themselves
+					if (currentLine.length > lineLength)
+					{
+						// Try to break at punctuation or camelCase boundaries
+						var breakPoint = findBreakPoint(currentLine, lineLength);
+						if (breakPoint > 0)
+						{
+							brokenMsg += currentLine.substring(0, breakPoint) + "\n";
+							currentLine = currentLine.substring(breakPoint);
+						}
+						else
+						{
+							// Force break if no good break point found
+							brokenMsg += currentLine.substring(0, lineLength) + "\n";
+							currentLine = currentLine.substring(lineLength);
+						}
+					}
+				}
+
+				// Add any remaining content
+				if (currentLine.length > 0)
+				{
+					brokenMsg += currentLine;
+				}
+
+				return brokenMsg;
+			}
+
+
 			var alertMsg = errMsg;
 			if (isUnexpectedCrash) {
 				alertMsg = "UNEXPECTED CRASH DETECTED!\n\nThe engine crashed unexpectedly in a previous session.\nDetailed crash tracking reports are available in the logger folder.\n\n" + alertMsg;
 			}
-			Application.current.window.alert(alertMsg, isUnexpectedCrash ? "Unexpected Crash!" : "Error!");
+			Application.current.window.alert((alertMsg), isUnexpectedCrash ? "Unexpected Crash!" : "Error!");
 		}
 
 		if (flxSignalCrash) FlxG.resetGame(); // Don't even bother to try and fix it just restart
@@ -2447,6 +2535,27 @@ class CommandPrompt
 				#else
 				print("Priority system is only available on Windows.");
 				#end
+
+			case "decodeError":
+				if (args.length == 1) {
+					try {
+						var errorCode = args[0];
+						var decoded = yutautil.TypeUtils.DetailedException.decodeErrorCode(errorCode);
+						print("Error Code Decoded Successfully:");
+						print("--------------------------------");
+						print("Message: " + decoded.message);
+						if (decoded.fileName != null) print("File: " + decoded.fileName);
+						if (decoded.lineNumber != null) print("Line: " + decoded.lineNumber);
+						if (decoded.className != null) print("Class: " + decoded.className);
+						if (decoded.methodName != null) print("Method: " + decoded.methodName);
+					} catch (e:Dynamic) {
+						print("Error decoding error code: " + Std.string(e));
+						print("Expected format: Exxx-xxxx-xxxx-... (hex values separated by dashes)");
+					}
+				} else {
+					print("Error: decodeError requires exactly one argument (the error code).");
+					print("Usage: decodeError E1A2B-3C4D-5E6F-...");
+				}
 
 			default:
 				if (args.length == 2 && args[1] == '=')

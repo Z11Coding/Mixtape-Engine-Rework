@@ -1145,14 +1145,142 @@ abstract DetailedException(ExceptionDetails) {
             return cast(value, haxe.Exception).message;
         }
         if (Std.isOfType(value, String)) return value;
-        try return Std.string(value) catch (_:Dynamic) return "<unknown>";
+
+        // Extract from common error patterns
+        if (value != null) {
+            var str = Std.string(value);
+            // Extract error type from UncaughtErrorEvent
+            if (str.contains("error=")) {
+                var errorMatch = ~/error="([^"]+)"/;
+                if (errorMatch.match(str)) {
+                    return errorMatch.matched(1);
+                }
+            }
+            // Extract from other common patterns
+            if (str.contains("Error:")) {
+                var parts = str.split("Error:");
+                if (parts.length > 1) {
+                    return "Error:" + parts[1].split("\n")[0].trim();
+                }
+            }
+            return str.length > 50 ? str.substr(0, 47) + "..." : str;
+        }
+
+        return "<unknown>";
     }
 
     static function generateErrorCode(message:String, pos:Null<haxe.PosInfos>):String {
-        var base = message + (pos != null ? pos.fileName + pos.lineNumber : "");
-        var hash = 0;
-        for (i in 0...base.length) hash = (hash * 31 + base.charCodeAt(i)) % 0x7FFFFFFF;
-        return "E" + StringTools.hex(hash, 8).toUpperCase();
+        // Extract location info from current stack trace instead of pos parameter
+        var fileName:Null<String> = null;
+        var lineNumber:Null<Int> = null;
+        var className:Null<String> = null;
+        var methodName:Null<String> = null;
+
+        try {
+            var stack = haxe.CallStack.exceptionStack();
+            if (stack != null && stack.length > 0) {
+                // Look for the first stack frame that's not in TypeUtils or DetailedException
+                for (frame in stack) {
+                    switch (frame) {
+                        case FilePos(s, file, line):
+                            // Skip frames from TypeUtils and DetailedException to find the real error location
+                            if (!file.contains("TypeUtils") && !file.contains("DetailedException")) {
+                                fileName = file;
+                                lineNumber = line;
+                                break;
+                            }
+                        case Method(classPath, method):
+                            if (!classPath.contains("TypeUtils") && !classPath.contains("DetailedException")) {
+                                className = classPath;
+                                methodName = method;
+                                if (fileName == null) break; // We want both if possible
+                            }
+                        case _:
+                    }
+                }
+            }
+        } catch (e:Dynamic) {
+            // Fallback to pos if stack trace fails
+            if (pos != null) {
+                fileName = pos.fileName;
+                lineNumber = pos.lineNumber;
+                className = pos.className;
+                methodName = pos.methodName;
+            }
+        }
+
+        var shortFileName = fileName != null ? fileName.split("/").pop().split("\\").pop() : null;
+
+        // Abbreviate common error messages
+        var shortMessage = message;
+        if (message.length > 30) {
+            // Common abbreviations
+            shortMessage = shortMessage.replace("Null Object Reference", "NullRef");
+            shortMessage = shortMessage.replace("Null Pointer Exception", "NullPtr");
+            shortMessage = shortMessage.replace("Null Function Pointer", "NullFuncPtr");
+            shortMessage = shortMessage.replace("UncaughtErrorEvent", "UncErr");
+            shortMessage = shortMessage.replace("type=", "t=");
+            shortMessage = shortMessage.replace("bubbles=true", "b=1");
+            shortMessage = shortMessage.replace("cancelable=true", "c=1");
+            shortMessage = shortMessage.replace("error=", "e=");
+
+            // If still too long, truncate
+            if (shortMessage.length > 20) {
+                shortMessage = shortMessage.substr(0, 17) + "...";
+            }
+        }
+
+        // Use very compact JSON with single-letter keys
+        var data = {
+            m: shortMessage,  // message
+            f: shortFileName, // fileName (short)
+            l: lineNumber,    // lineNumber from stack trace
+            c: className,     // className from stack trace
+            t: methodName     // methodName from stack trace
+        };
+
+        var jsonStr = haxe.Json.stringify(data);
+
+        // Use the new StringCompressor for advanced compression
+        // var compressedStr = yutautil.StringCompressor.compress(jsonStr);
+        var bytes = haxe.io.Bytes.ofString(jsonStr);
+        var hex = bytes.toHex().toUpperCase();
+
+        // Split into groups of 4 characters for readability
+        var groups = [];
+        var i = 0;
+        while (i < hex.length) {
+            groups.push(hex.substr(i, 4));
+            i += 4;
+        }
+
+        return "E" + groups.join("-");
+    }
+
+    public static function decodeErrorCode(errorCode:String):{message:String, fileName:Null<String>, lineNumber:Null<Int>, className:Null<String>, methodName:Null<String>} {
+        if (!errorCode.startsWith("E")) {
+            throw 'Invalid error code format: must start with "E"';
+        }
+        try {
+            // Remove "E" prefix and dashes, then convert hex back to bytes
+            var hexStr = errorCode.substring(1).split("-").join("");
+            var bytes = haxe.io.Bytes.ofHex(hexStr);
+            var compressedStr = bytes.toString();
+
+            // Use StringCompressor for decompression
+            // var jsonStr = yutautil.StringCompressor.decompress(compressedStr);
+            var jsonStr = compressedStr;
+            var data = haxe.Json.parse(jsonStr);
+            return {
+                message: data.m,     // message
+                fileName: data.f,    // fileName
+                lineNumber: data.l,  // lineNumber
+                className: data.c,   // className
+                methodName: data.t   // methodName
+            };
+        } catch (e:Dynamic) {
+            throw 'Failed to decode error code: ' + Std.string(e);
+        }
     }
 
     static function getStackTrace(?exception:Dynamic):String {

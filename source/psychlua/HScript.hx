@@ -361,6 +361,38 @@ class HScript extends Iris
 		set('game', FlxG.state);
 		set('controls', Controls.instance);
 
+		// Health-related functions
+		set('damage', function(value:Float = 0, ?lethal:Bool = true, ?causeOfDeath:String = null) {
+			var gameState = cast(FlxG.state, states.PlayState);
+
+			// Calculate potential new health value
+			var newHealth = gameState.health - value;
+
+			// Check if damage would be lethal
+			if (lethal && newHealth <= 0) {
+				// Set cause of death if provided
+				if (causeOfDeath != null && causeOfDeath.trim() != "") {
+					backend.COD.setCOD(null, causeOfDeath);
+				} else {
+					backend.COD.setCOD(null, 'Took lethal damage. (${this.scriptName})');
+				}
+
+				// Apply damage and trigger death
+				gameState.health = newHealth;
+				gameState.doDeathCheck(true);
+			} else if (!lethal) {
+				// Non-lethal damage: don't let health go below a small positive value
+				gameState.health = Math.max(newHealth, 0.001);
+			} else {
+				// Normal damage that could be lethal but health won't drop to 0 or below
+				gameState.health = newHealth;
+			}
+		});
+		set('getHealth', function() {
+			var gameState = cast(FlxG.state, states.PlayState);
+			return gameState.health;
+		});
+
 		set('buildTarget', LuaUtils.getBuildTarget());
 		set('customSubstate', CustomSubstate.instance);
 		set('customSubstateName', CustomSubstate.name);
