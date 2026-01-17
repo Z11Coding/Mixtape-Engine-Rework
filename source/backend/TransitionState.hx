@@ -15,6 +15,7 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import openfl.Lib;
 import openfl.display.BitmapData;
+import openfl.filters.ShaderFilter;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import substates.StickerSubState;
@@ -361,6 +362,20 @@ class TransitionState {
                     CppAPI.setWindowOppacity(num);
                 });
                 #end
+            case "screenwipe":
+                var screenShit:FlxSprite = new FlxSprite().loadGraphic(Paths.image('loading_screen/3'));
+                var screenWipeShit:ScreenWipeShader = new ScreenWipeShader();
+
+                screenWipeShit.funnyShit.input = screenShit.pixels;
+                FlxTween.tween(screenWipeShit, {daAlphaShit: 1}, 1,
+                {
+                    ease: FlxEase.quadInOut,
+                    onComplete: function(twn) {
+                        screenShit.destroy();
+                        switchState(targetState, onComplete, args);
+                    }
+                });
+                FlxG.camera.filters = [new ShaderFilter(screenWipeShit)];
         }
         //trace("Transition complete!");
     }

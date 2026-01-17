@@ -47,13 +47,12 @@ class TwoPicos
 		pico.antialiasing = ClientPrefs.data.antialiasing;
 		cutsceneHandler.push(pico);
 
-    // TODO: add a gore option
-		//if (ClientPrefs.data.naughtyness)
-		//{
+    if (ClientPrefs.data.naughtyness)
+		{
 			bloodPool = new FlxAnimate(0, 0);
 			bloodPool.visible = false;
 			Paths.loadAnimateAtlas(bloodPool, "philly/erect/cutscenes/bloodPool");
-		//}
+		}
 
 		cigarette = new FlxSprite();
 		cigarette.frames = Paths.getSparrowAtlas('philly/erect/cutscenes/cigarette');

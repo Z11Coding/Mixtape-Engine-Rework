@@ -1,0 +1,105 @@
+{
+	"animations": [
+		{
+			"prefix": "yunjin idle",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "idle",
+			"loop": false,
+			"name": "yunjin idle"
+		},
+		{
+			"prefix": "yunjin down pose",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN",
+			"loop": false,
+			"name": "yunjin down pose"
+		},
+		{
+			"prefix": "yunjin left pose",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT",
+			"loop": false,
+			"name": "yunjin left pose"
+		},
+		{
+			"prefix": "yunjin right pose",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHT",
+			"loop": false,
+			"name": "yunjin right pose"
+		},
+		{
+			"prefix": "yunjin up pose",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUP",
+			"loop": false,
+			"name": "yunjin up pose"
+		},
+		{
+			"prefix": "yunjin miss down",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss",
+			"loop": false,
+			"name": "yunjin miss down"
+		},
+		{
+			"prefix": "yunjin miss left",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"loop": false,
+			"name": "yunjin miss left"
+		},
+		{
+			"prefix": "yunjin miss right",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"loop": false,
+			"name": "yunjin miss right"
+		},
+		{
+			"prefix": "yunjin miss up",
+			"offsets": [-322, -257],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUPmiss",
+			"loop": false,
+			"name": "yunjin miss up"
+		},
+		{
+			"prefix": "yunjin intro",
+			"offsets": [142, 597],
+			"indices": [],
+			"fps": 24,
+			"anim": "intro",
+			"loop": false,
+			"name": "yunjin intro"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"image": "characters/sserafim/yunjin",
+	"position": [-110, 320],
+	"healthicon": "yunjin",
+	"flip_x": false,
+	"healthbar_colors": [165, 0, 77],
+	"camera_position": [-170, -20],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": false
+}

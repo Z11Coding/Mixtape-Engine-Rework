@@ -42,10 +42,21 @@ class SplashScreen extends MusicBeatState
 		DiscordClient.changePresence("In the Splash Screen", null);
 		#end
         var currentDate = ExtendedDate.global();
-        if (currentDate.getDate() == 5) {
+        if (ClientPrefs.data.skipSplash) {
+            trace("Skipping Splash!");
+            // Skip intro and go to title
+            FlxG.switchState(FirstCheckState.relaunch ? new MainMenuState() : new TitleState());
+            return;
+        } else if (currentDate.getDate() == 5) {
             // Skip intro and show video
             trace("Playing Video!");
             startVideo("splashscreen/bat");
+            isVideo = true;
+        } else if (ClientPrefs.data.memeSplash) {
+            trace("Playing Meme!");
+            var videoList:Array<String> = [];
+            videoList = Mods.loadFileList('videos/splashscreen/', ['.mp4']);
+            startVideo("splashscreen/" + videoList[FlxG.random.int(0, videoList.length - 1)]);
             isVideo = true;
         }
         states.FirstCheckState.gameInitialized = true;
@@ -215,19 +226,19 @@ class SplashScreen extends MusicBeatState
                 // On completion, proceed to the intended state
                 trace("Initialization complete, proceeding to title state");
                 haxe.Timer.delay(function() {
-                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "screenwipe", color: FlxColor.BLACK});
                 }, 300);
             },
             function(error, shouldThrow) {
                 trace('Error during initialization: $error');
                 // Still proceed to title state even if initialization failed
                 haxe.Timer.delay(function() {
-                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "screenwipe", color: FlxColor.BLACK});
                 }, 300);
             },
             function() {
                 // Cancel - still go to title state
-                TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+                TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "screenwipe", color: FlxColor.BLACK});
             }
         );
 

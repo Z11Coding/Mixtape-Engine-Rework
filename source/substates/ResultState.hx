@@ -888,7 +888,35 @@ class ResultState extends MusicBeatSubState
         FlxG.sound.pause();
         shouldTween = false;
         shouldUseSubstate = false;
-        targetState = FreeplayManager.getNewFreeplayInstance();
+        if (rank > params.prevScoreRank) {
+          if (ClientPrefs.data.freeplayMenu == "Base Game") {
+            states.CategoryState.instaFreeplay = true;
+            states.CategoryState.freeplayStuff.fromResults = {
+              oldRank: params.prevScoreRank,
+              newRank: rank,
+              songId: params.songId,
+              difficultyId: params.difficultyId,
+              playRankAnim: true
+            };
+            targetState = states.freeplay.VSliceFreeplayState.build();
+          } else {
+            targetState = FreeplayManager.getNewFreeplayInstance();
+          }
+        } else {
+          if (ClientPrefs.data.freeplayMenu == "Base Game") {
+            states.CategoryState.instaFreeplay = true;
+            states.CategoryState.freeplayStuff.fromResults = {
+              oldRank: params.prevScoreRank,
+              newRank: rank,
+              songId: params.songId,
+              difficultyId: params.difficultyId,
+              playRankAnim: false
+            };
+            targetState = states.freeplay.VSliceFreeplayState.build();
+          } else {
+            targetState = FreeplayManager.getNewFreeplayInstance();
+          }
+        }
       }
       else
       #end
@@ -930,15 +958,19 @@ class ResultState extends MusicBeatSubState
           else if (PlayState.gameplayArea == "Warmup")
             targetState = new StickerSubState(null, (sticker) -> new TitleState());
           else {
-            states.CategoryState.instaFreeplay = true;
-            states.CategoryState.freeplayStuff.fromResults = {
-              oldRank: params.prevScoreRank,
-              newRank: rank,
-              songId: params.songId,
-              difficultyId: params.difficultyId,
-              playRankAnim: true
-            };
-            targetState = FreeplayManager.getNewFreeplayInstance();
+            if (ClientPrefs.data.freeplayMenu == "Base Game") {
+              states.CategoryState.instaFreeplay = true;
+              states.CategoryState.freeplayStuff.fromResults = {
+                oldRank: params.prevScoreRank,
+                newRank: rank,
+                songId: params.songId,
+                difficultyId: params.difficultyId,
+                playRankAnim: true
+              };
+              targetState = states.freeplay.VSliceFreeplayState.build();
+            } else {
+              targetState = FreeplayManager.getNewFreeplayInstance();
+            }
           }
           controls.isInSubstate = FlxTransitionableState.skipNextTransOut = true;
         }
@@ -951,8 +983,21 @@ class ResultState extends MusicBeatSubState
             targetState = new StickerSubState(null, (sticker) -> new PlaylistState());
           else if (PlayState.gameplayArea == "Warmup")
             targetState = new StickerSubState(null, (sticker) -> new TitleState());
-          else
-            targetState = new StickerSubState(null, (sticker) -> FreeplayManager.getNewFreeplayInstance());
+          else {
+            if (ClientPrefs.data.freeplayMenu == "Base Game") {
+              states.CategoryState.instaFreeplay = true;
+              states.CategoryState.freeplayStuff.fromResults = {
+                oldRank: params.prevScoreRank,
+                newRank: rank,
+                songId: params.songId,
+                difficultyId: params.difficultyId,
+                playRankAnim: false
+              };
+              targetState = states.freeplay.VSliceFreeplayState.build();
+            } else {
+              targetState = FreeplayManager.getNewFreeplayInstance();
+            }
+          }
         }
       }
 

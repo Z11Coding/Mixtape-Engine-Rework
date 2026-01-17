@@ -306,7 +306,7 @@ class PlaylistState extends MusicBeatState {
 
 	var holdTime:Float = 0;
 	var choosePlaylist:Bool = false;
-	var e:Int = 0;
+	var e:Float = 0;
 	var songString:String = "";
 	var songStringOG:String = "";
   override function update(elapse:Float) {
@@ -319,7 +319,7 @@ class PlaylistState extends MusicBeatState {
 		if (readyTxt != null)
 			for (i in 0...readyTxt.letters.length) {
 				readyTxt.letters[i].color = FlxColor.fromHSL((((e / 2) / 300 * 360) % 360)+(15*i), 1.0, 0.5*1.0);
-				readyTxt.letters[i].offset.y = Math.sin((e * 2) + (15*i)) / 2;
+				readyTxt.letters[i].offset.y = (Math.sin((e*0.001) * 2) * 5)+(15*i);
 			}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapse * 24)));
@@ -342,10 +342,12 @@ class PlaylistState extends MusicBeatState {
 			ratingSplit[1] += '0';
 		}
 
+		try {
 		if (curSelected == -1)
 			scoreText.text = 'RANDOM SONG';
 		else
 			scoreText.text = Language.getPhrase('personal_best', 'PERSONAL BEST: {1}', [lerpScore]);
+		} catch(e) {trace("it broke????\nError: "+e);}
 
 		diffText.text = 'Deaths: $lerpDeaths';
 		positionHighscore();

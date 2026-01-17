@@ -204,7 +204,6 @@
 
 	</section>
 
-	<haxedef name="HXCPP_ALIGN_ALLOC"/>
 	<haxedef name="HX_HAS_ATOMIC"/>
 
 	<!-- ______________________________ Haxedefines _____________________________ -->

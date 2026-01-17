@@ -1,16 +1,16 @@
 package stages.cutscenes;
 
-import stages.Tank;
 import cutscenes.CutsceneHandler;
+import stages.Tank;
 
 class TankStageScenes {
-    public function new(host:Tank) {
-        stage = host;
-        game =  PlayState.instance;
-    }
-    	// Cutscenes
+	public function new(host:Tank) {
+		stage = host;
+		game =  PlayState.instance;
+	}
+  // Cutscenes
 	var stage:Tank;
-    var game:PlayState;
+  var game:PlayState;
 	var cutsceneHandler:CutsceneHandler;
 	var tankman:FlxAnimate;
 	var pico:FlxAnimate;
@@ -164,7 +164,7 @@ class TankStageScenes {
 	public function stressIntro()
 	{
 		prepareCutscene();
-		
+
 		cutsceneHandler.endTime = 35.5;
 		game.gfGroup.alpha = 0.00001;
 		game.boyfriendGroup.alpha = 0.00001;

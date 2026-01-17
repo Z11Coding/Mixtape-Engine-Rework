@@ -13,9 +13,9 @@ class AIPlayer
 	 * make a humidity system type of shit by calculating how many notes there are
 	 * the closer the humidity is to the best humidity, this benefits the AI best
 	 * although higher humidity will guarantee higher accuracy
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 * the fps will always be locked to 80 fps for the ai
 	 */
 	public static function GeneratePlayMap(map:Song.SwagSong, diff:Int):Array<Array<Float>>
@@ -24,7 +24,7 @@ class AIPlayer
 
 		switch (diff)
 		{
-            case 0: //First Time Playing FNF
+        case 0: //First Time Playing FNF
 				{
 					var ratingChance:Array<Float> = [0, 0, 0, 70, 95];
 					var isolatedHits:Array<Array<Float>> = isolateHits(map);
@@ -43,7 +43,7 @@ class AIPlayer
 							{
 								var timingWindows:Array<Null<Float>> = [
 									ClientPrefs.data.marvWindow,
-                                    ClientPrefs.data.sickWindow,
+                  ClientPrefs.data.sickWindow,
 									ClientPrefs.data.goodWindow,
 									ClientPrefs.data.badWindow,
 									Conductor.safeZoneOffset
@@ -251,7 +251,7 @@ class AIPlayer
 						}
 					}
 				}
-			case 5: //Average "Thanos if she didnt have a sucky computer" player:
+			case 5: //Average "I suck at this game" player:
 				{
 					var ratingChance:Array<Float> = [90, 10, 0.1, 0.01, 0.001];
 					var isolatedHits:Array<Array<Float>> = isolateHits(map);

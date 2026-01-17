@@ -1,0 +1,96 @@
+{
+	"animations": [
+		{
+			"prefix": "idle",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "idle",
+			"loop": false,
+			"name": "idle"
+		},
+		{
+			"prefix": "kazuha left pose",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT",
+			"loop": false,
+			"name": "kazuha left pose"
+		},
+		{
+			"prefix": "kazuha right pose",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHT",
+			"loop": false,
+			"name": "kazuha right pose"
+		},
+		{
+			"prefix": "kazuha up pose",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUP",
+			"loop": false,
+			"name": "kazuha up pose"
+		},
+		{
+			"prefix": "kazuha down pose",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN",
+			"loop": false,
+			"name": "kazuha down pose"
+		},
+		{
+			"prefix": "kazuha left miss",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"loop": false,
+			"name": "kazuha left miss"
+		},
+		{
+			"prefix": "kazuha down miss",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss",
+			"loop": false,
+			"name": "kazuha down miss"
+		},
+		{
+			"prefix": "kazuha up miss",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUPmiss",
+			"loop": false,
+			"name": "kazuha up miss"
+		},
+		{
+			"prefix": "kazuha right miss",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"loop": false,
+			"name": "kazuha right miss"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": true,
+	"image": "characters/sserafim/kazuha",
+	"position": [250, 330],
+	"healthicon": "kazuha",
+	"flip_x": true,
+	"healthbar_colors": [49, 176, 209],
+	"camera_position": [280, -250],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": true
+}

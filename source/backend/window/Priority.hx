@@ -199,11 +199,15 @@ class Priority
         // Check if priority has been changed externally
         if (currentPriority != _lastKnownPriority)
         {
+            #if verbose //I dont wanna be notified every 2 seconds dawg my mf terminal
             trace('Priority change detected: ${getPriorityStringFromLevel(_lastKnownPriority)} -> ${getPriorityStringFromLevel(currentPriority)}');
+            #end
 
             if (_forceLockEnabled && currentPriority != _targetPriority)
             {
+                #if verbose
                 trace('Force-lock enabled: Restoring priority to ${getPriorityStringFromLevel(_targetPriority)}');
+                #end
                 setPriority(_targetPriority);
                 _lastKnownPriority = _targetPriority;
             }

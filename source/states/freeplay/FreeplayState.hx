@@ -1095,6 +1095,7 @@ class FreeplayState extends MusicBeatState
 									FlxG.save.data.gotIntoAnArgument = true;
 									FlxG.save.flush();
 									Achievements.addScore("search_songs");
+									PlayState.inSecretSong = true;
 								case "beat battle":
 									Song.loadFromJson('beat-battle-reasonable', 'beat-battle');
 									FlxG.save.data.gotbeatbattle = true;
