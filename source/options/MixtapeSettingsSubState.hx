@@ -3,6 +3,7 @@ import states.freeplay.vslice.PlayerRegistry;
 class MixtapeSettingsSubState extends BaseOptionsMenu
 {
 	public static var curBPMList:Array<Int> =  [0, 160, 160, 88, 160, 90, 105, 130, 100, 160, 180, 100, 125, 170, 140];
+	var perfOpt:Option;
 	public function new()
 	{
 		title = 'Mixtape Settings.';

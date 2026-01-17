@@ -1616,10 +1616,10 @@ class PlayState extends MusicBeatState
 		if (hasMetadataFile)
 		{
 			Text = [
-				metadata.song.name,
-				metadata.song.artist,
-				metadata.song.charter,
-				metadata.song.mod
+				metadata.song?.name ?? curSong,
+				metadata.song?.artist ?? '???',
+				metadata.song?.charter ?? '???',
+				metadata.song?.mod ?? 'Unknown'
 			];
 		}
 		else
@@ -1632,12 +1632,12 @@ class PlayState extends MusicBeatState
 
 		if (hasMetadataFile)
 		{
-			songTxt.text = metadata.song.name;
-			if (metadata.song.artist != null && metadata.song.artist.length > 0)
+			songTxt.text = metadata.song?.name ?? curSong;
+			if (metadata.song?.artist != null && metadata.song.artist.length > 0)
 				artistTxt.text = 'Composed by: ' + metadata.song.artist;
-			if (metadata.song.charter != null && metadata.song.charter.length > 0)
+			if (metadata.song?.charter != null && metadata.song.charter.length > 0)
 				charterTxt.text = 'Charted by: ' + metadata.song.charter;
-			if (metadata.song.mod != null && metadata.song.mod.length > 0)
+			if (metadata.song?.mod != null && metadata.song.mod.length > 0)
 				modTxt.text = 'Song From: ' + metadata.song.mod;
 		}
 		for (i in 0...Text.length)
@@ -9229,7 +9229,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 		}
 
-		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) {
+		if(!cpuControlled) {
 			comboManager.songScore += Math.ceil(score * MechanicManager.multiplier);
 			if(!note.ratingDisabled)
 			{
@@ -11923,9 +11923,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
 							} else {
 								// Sync X position
-								var offsetX = strumNote.x - field.getBaseX(i);
-								modManager.setValue('transform${i}X-a', (altNoteMove ? strumNote.x : offsetX) - (strumOffsetspacebcauseitsstupid * i) - strumOffsetbcauseitsstupid, field.playerId);
-								//strumNote.x = strumNote.x;
+								var baseX = field.getBaseX(i);
+								var offsetX = strumNote.x - baseX;
+								modManager.setValue('transform${i}X-a', offsetX, field.playerId);
 
 								// Sync Y position
 								var baseY = field.getBaseY(i);

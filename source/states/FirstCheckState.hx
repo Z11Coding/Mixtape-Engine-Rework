@@ -119,7 +119,6 @@ class FirstCheckState extends MusicBeatState
 		#end
 			yutautil.CrashTrackerHelper.initialize();
 			yutautil.CrashTrackerHelper.logCriticalActivity("FirstCheckState", "new", "Application starting up");
-			#end
 
 			#if TRACY_ENABLED
 			backend.util.WindowUtil.initTracy();
