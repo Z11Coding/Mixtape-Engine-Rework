@@ -3781,7 +3781,7 @@ class PlayState extends MusicBeatState
 		if (generatedMusic && !preload) {
 			// Chart was preloaded, now finish the job
 			waitingForPreloadFinish = true;
-			initThreadAlt(finishPreloadedGeneration, 'FinishPreloadGen');
+			finishPreloadedGeneration();
 			return;
 		}
 		// If this is a preload call, just note it
