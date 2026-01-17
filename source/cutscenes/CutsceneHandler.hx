@@ -1,9 +1,9 @@
 package cutscenes;
 
 import flixel.FlxBasic;
-import flixel.util.FlxSort;
-import flixel.util.FlxDestroyUtil;
 import flixel.addons.display.FlxPieDial;
+import flixel.util.FlxDestroyUtil;
+import flixel.util.FlxSort;
 
 typedef CutsceneEvent = {
 	var time:Float;
@@ -20,7 +20,7 @@ class CutsceneHandler extends FlxBasic
 	public var music:String = null;
 
 	final _timeToSkip:Float = 1;
-	var _canSkip:Bool = false;
+	public var _canSkip:Bool = false;
 	public var holdingTime:Float = 0;
 	public var skipSprite:FlxPieDial;
 	public var finishCallback:Void->Void = null;
@@ -71,7 +71,7 @@ class CutsceneHandler extends FlxBasic
 			timedEvents[0].func();
 			timedEvents.shift();
 		}
-		
+
 		if(_canSkip && cutsceneTime > 0.1)
 		{
 			if(Controls.instance.pressed('accept'))
@@ -98,7 +98,7 @@ class CutsceneHandler extends FlxBasic
 				PlayState.instance.remove(spr);
 				spr.destroy();
 			}
-			
+
 			skipSprite = FlxDestroyUtil.destroy(skipSprite);
 			destroy();
 			PlayState.instance.remove(this);

@@ -130,19 +130,16 @@ class FlxPartialSound
 			switch (Path.extension(path))
 			{
 				case "ogg":
-					var oggBytesAsync = new Future<Bytes>(function()
-					{
+					var oggBytesAsync = new Future<Bytes>(function() {
 						var oggBytesIntro = Bytes.alloc(16 * 400);
-						while (byteNum < 16 * 400)
-						{
+						while (byteNum < 16 * 400) {
 							oggBytesIntro.set(byteNum, input.readByte());
 							byteNum++;
 						}
 						return cleanOggBytes(oggBytesIntro);
 					}, true);
 
-					oggBytesAsync.onComplete(function(oggBytesIntro:Bytes)
-					{
+					oggBytesAsync.onComplete(function(oggBytesIntro:Bytes) {
 						var oggRangeMin:Float = rangeStart * size;
 						var oggRangeMax:Float = rangeEnd * size;
 						var oggBytesFull = Bytes.alloc(Std.int(oggRangeMax - oggRangeMin));
@@ -151,10 +148,8 @@ class FlxPartialSound
 
 						input.position = Std.int(oggRangeMin);
 
-						var fullBytesAsync = new Future<Bytes>(function()
-						{
-							while (byteNum < oggRangeMax - oggRangeMin)
-							{
+						var fullBytesAsync = new Future<Bytes>(function() {
+							while (byteNum < oggRangeMax - oggRangeMin) {
 								oggBytesFull.set(byteNum, input.readByte());
 								byteNum++;
 							}
@@ -162,8 +157,7 @@ class FlxPartialSound
 							return cleanOggBytes(oggBytesFull);
 						}, true);
 
-						fullBytesAsync.onComplete(function(fullAssOgg:Bytes)
-						{
+						fullBytesAsync.onComplete(function(fullAssOgg:Bytes) {
 							var oggFullBytes = Bytes.alloc(oggBytesIntro.length + fullAssOgg.length);
 							oggFullBytes.blit(0, oggBytesIntro, 0, oggBytesIntro.length);
 							oggFullBytes.blit(oggBytesIntro.length, fullAssOgg, 0, fullAssOgg.length);
@@ -186,10 +180,10 @@ class FlxPartialSound
 						});
 					});
 
-				oggBytesAsync.onError(function(theError:Dynamic) {
-					trace("Something went wrong!: "+theError+"\nPlaying Song Normally");
-					FlxG.sound.playMusic(path);
-				});
+					oggBytesAsync.onError(function(theError:Dynamic) {
+						trace("Something went wrong!: "+theError+"\nPlaying Song Normally");
+						FlxG.sound.playMusic(path);
+					});
 
 				default:
 					promise.error("Unsupported file type: " + Path.extension(path));

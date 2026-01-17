@@ -132,8 +132,8 @@ import states.TitleState;
 		'showcase' => false,
 		'gfMode' => false,
 		'opponentplay' => false,
-		'aiMode' => false,
-		'aiDifficulty' => 5,
+		'mixMode' => false,
+		'oppDifficulty' => 5,
 		'loopMode' => false,
 		'loopModeC' => false,
 		'loopPlayMult' => 1.05,
@@ -277,6 +277,19 @@ import states.TitleState;
 	public var warmupCompleted:Bool = false;
 	public var skipWarmup:Bool = false;
 	public var alwaysWarmup:Bool = false;
+
+	//SplashScreen
+	public var memeSplash:Bool = false;
+	public var skipSplash:Bool = false;
+
+	//Score Text Settings
+	public var showScore:Bool = true;
+	public var showMisses:Bool = true;
+	public var showRating:Bool = true;
+	public var showRanking:Bool = true;
+	public var showNPS:Bool = true;
+	public var showHealth:Bool = true;
+	public var showScoreText:Bool = true;
 }
 
 class ClientPrefs {

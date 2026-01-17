@@ -169,6 +169,54 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		//addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('---SCORE TEXT---',
+			"Make that giant line of text meet your needs and NOT take up the whole screen",
+			'',
+			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Show Score Text',
+			'Pretty self explanitory, huh?',
+			'showScoreText',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show Score',
+			'Pretty self explanitory, huh?',
+			'showScore',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show Misses',
+			'Pretty self explanitory, huh?',
+			'showMisses',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show Rating',
+			'Pretty self explanitory, huh?',
+			'showRating',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show Ranking',
+			'Toggles the Rank Indicator on the bottom left of your screen',
+			'showRanking',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show NPS',
+			'Pretty self explanitory, huh?',
+			'showNPS',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Show Health',
+			'Pretty self explanitory, huh?',
+			'showHealth',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('---MODCHART---',
 			"Modify how the modchart system runs!\n(Not all options affect both modchart systems!)",
 			'',
@@ -316,6 +364,24 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Showcase Mode Warnings',
 			"If checked, warnings will be displayed in freeplay menus when showcase mode is enabled.\nThese warnings only appear when NOT in Archipelago mode.",
 			'showcaseWarnings',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('---SPLASH SCREEN---',
+			"cuz why not",
+			'',
+			LABEL);
+		addOption(option);
+
+		var option:Option = new Option('Skip Splash Screen',
+			"If checked, the splash screen will be skipped on startup.",
+			'skipSplash',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Play Memes on Splash Screen',
+			"If checked, the splash screen will play memes instead of the normal splash screen.\n(HAS MOD FOLDER SUPPORT!)",
+			'memeSplash',
 			BOOL);
 		addOption(option);
 
@@ -935,9 +1001,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		super.update(e);
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
-
-		if (perfOpt != null)
-			perfOpt.onChange();
 
 		// Update process priority option description if selected
 		#if windows

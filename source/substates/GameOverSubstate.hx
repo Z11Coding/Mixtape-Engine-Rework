@@ -381,13 +381,14 @@ class GameOverSubstate extends MusicBeatSubstate
 		video = new FNFWeeklyVideoSprite();
 
 		video.addCallback('onFormat',()->{
+			video.cameras = [(PlayState.instance != null ? PlayState.instance.camOther : FlxG.cameras.list[FlxG.cameras.list.length-1])];
 			video.setGraphicSize(0, FlxG.height);
 			video.updateHitbox();
 			video.screenCenter();
 			video.antialiasing = true;
-			video.cameras = [(PlayState.instance != null ? PlayState.instance.camOther : FlxG.cameras.list[FlxG.cameras.list.length-1])];
 		});
 		video.addCallback('onEnd',()->{
+			video = null;
 			FlxG.resetState();
 		});
 

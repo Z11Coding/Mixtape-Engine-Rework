@@ -1,0 +1,177 @@
+{
+	"animations": [
+		{
+			"prefix": "gf down",
+			"offsets": [2, -8],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN",
+			"loop": false,
+			"name": "gf down"
+		},
+		{
+			"prefix": "gf left",
+			"offsets": [15, 8],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT",
+			"loop": false,
+			"name": "gf left"
+		},
+		{
+			"prefix": "gf right",
+			"offsets": [2, 3],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"fps": 24,
+			"anim": "singRIGHT",
+			"loop": false,
+			"name": "gf right"
+		},
+		{
+			"prefix": "gf up",
+			"offsets": [5, 6],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+			"fps": 24,
+			"anim": "singUP",
+			"loop": false,
+			"name": "gf up"
+		},
+		{
+			"prefix": "gf idle",
+			"offsets": [0, 0],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "danceLeft",
+			"loop": false,
+			"name": "gf idle"
+		},
+		{
+			"prefix": "gf idle",
+			"offsets": [0, 0],
+			"indices": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+			"fps": 24,
+			"anim": "danceRight",
+			"loop": false,
+			"name": "gf idle"
+		},
+		{
+			"prefix": "gf down 2",
+			"offsets": [-265, -397],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN-alt",
+			"loop": false,
+			"name": "gf down 2"
+		},
+		{
+			"prefix": "gf left 2",
+			"offsets": [-265, -397],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT-alt",
+			"loop": false,
+			"name": "gf left 2"
+		},
+		{
+			"prefix": "gf right 2",
+			"offsets": [-265, -397],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"fps": 24,
+			"anim": "singRIGHT-alt",
+			"loop": false,
+			"name": "gf right 2"
+		},
+		{
+			"prefix": "gf up 2",
+			"offsets": [-265, -397],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+			"fps": 24,
+			"anim": "singUP-alt",
+			"loop": false,
+			"name": "gf up 2"
+		},
+		{
+			"prefix": "gf miss down 1",
+			"offsets": [121, -147],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss",
+			"loop": false,
+			"name": "gf miss down 1"
+		},
+		{
+			"prefix": "gf miss left 1",
+			"offsets": [121, -147],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"loop": false,
+			"name": "gf miss left 1"
+		},
+		{
+			"prefix": "gf miss right 1",
+			"offsets": [121, -147],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"loop": false,
+			"name": "gf miss right 1"
+		},
+		{
+			"prefix": "gf miss up 1",
+			"offsets": [121, -147],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+			"fps": 24,
+			"anim": "singUPmiss",
+			"loop": false,
+			"name": "gf miss up 1"
+		},
+		{
+			"prefix": "gf miss down 2",
+			"offsets": [121, -147],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss-alt",
+			"loop": false,
+			"name": "gf miss down 2"
+		},
+		{
+			"prefix": "gf miss left 2",
+			"offsets": [121, -147],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss-alt",
+			"loop": false,
+			"name": "gf miss left 2"
+		},
+		{
+			"prefix": "gf miss right 2",
+			"offsets": [121, -147],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"fps": 24,
+			"anim": "singRIGHTmiss-alt",
+			"loop": false,
+			"name": "gf miss right 2"
+		},
+		{
+			"prefix": "gf miss up 2",
+			"offsets": [121, -147],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+			"fps": 24,
+			"anim": "singUPmiss-alt",
+			"loop": false,
+			"name": "gf miss up 2"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"image": "characters/sserafim/sserafim-gf",
+	"position": [50, 400],
+	"healthicon": "gf",
+	"flip_x": false,
+	"healthbar_colors": [165, 0, 77],
+	"camera_position": [-150, -20],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": false
+}

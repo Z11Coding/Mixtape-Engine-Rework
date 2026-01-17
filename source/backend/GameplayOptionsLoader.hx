@@ -121,12 +121,12 @@ class GameplayOptionsLoader {
         options.push(new GameplayOption('Opponent Mode', 'opponentplay', BOOL, false));
         options.push(new GameplayOption('Instakill on Miss', 'instakill', BOOL, false));
         options.push(new GameplayOption('GF Mode', 'gfMode', BOOL, false));
-        options.push(new GameplayOption('AI Mode', 'aiMode', BOOL, false));
+        options.push(new GameplayOption('Mix-Up Mode', 'mixMode', BOOL, false));
 
-        var aiDifficulty = new GameplayOption('AI Difficulty', 'aiDifficulty', INT, 5);
+        var aiDifficulty = new GameplayOption('Opponent Difficulty', 'oppDifficulty', INT, 1);
         aiDifficulty.scrollSpeed = 20;
-        aiDifficulty.minValue = 1;
-        aiDifficulty.maxValue = 10;
+        aiDifficulty.minValue = 0;
+        aiDifficulty.maxValue = 6;
         options.push(aiDifficulty);
 
         return options;

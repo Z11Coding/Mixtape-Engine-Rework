@@ -47,6 +47,7 @@ class VSliceLoader extends BaseStage {
 			case 'schoolEvilErect': new SchoolEvilErect();			//Week 6 Special - Thorns
 			case 'tankmanBattlefieldErect': new TankErect();		//Week 7 Special
 			case 'phillyStreetsErect': new PhillyStreetsErect(); 	//Weekend 1 Special
+            case 'diner': new SserafimStage(); 	                    //Special Collab
             case 'portal': new Portal(); 	                        //Testimony Stage
             default: addNene = false;
 		}

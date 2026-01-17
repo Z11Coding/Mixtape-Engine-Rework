@@ -80,43 +80,44 @@ class FirstCheckState extends MusicBeatState
 				//load it again just to be sure
 			}
 			// Set Process Priority to the setting of choice.
-		#if windows
-		if (ClientPrefs.data.processPriority != null && ClientPrefs.data.processPriority != '') {
-			trace('FirstCheckState: Setting startup priority to: ${ClientPrefs.data.processPriority}');
-			backend.window.Priority.setPriorityString(ClientPrefs.data.processPriority);
+			#if windows
+			if (ClientPrefs.data.processPriority != null && ClientPrefs.data.processPriority != '') {
+				trace('FirstCheckState: Setting startup priority to: ${ClientPrefs.data.processPriority}');
+				backend.window.Priority.setPriorityString(ClientPrefs.data.processPriority);
 
-			// Start monitoring if enabled
-			if (ClientPrefs.data.processPriorityMonitoring == true) {
-				var priorityLevel = switch (ClientPrefs.data.processPriority.toLowerCase())
-				{
-					case "idle": 0;
-					case "below normal", "belownormal", "below_normal": 1;
-					case "normal": 2;
-					case "above normal", "abovenormal", "above_normal": 3;
-					case "high": 4;
-					case "realtime", "real time", "real_time": 5;
-					default: 2; // Default to Normal
+				// Start monitoring if enabled
+				if (ClientPrefs.data.processPriorityMonitoring == true) {
+					var priorityLevel = switch (ClientPrefs.data.processPriority.toLowerCase())
+					{
+						case "idle": 0;
+						case "below normal", "belownormal", "below_normal": 1;
+						case "normal": 2;
+						case "above normal", "abovenormal", "above_normal": 3;
+						case "high": 4;
+						case "realtime", "real time", "real_time": 5;
+						default: 2; // Default to Normal
+					}
+
+					trace('FirstCheckState: Starting priority monitoring with force-lock: ${ClientPrefs.data.processPriorityForceLock}');
+					backend.window.Priority.startPriorityMonitoring(priorityLevel, ClientPrefs.data.processPriorityForceLock == true, 1000);
 				}
-
-				trace('FirstCheckState: Starting priority monitoring with force-lock: ${ClientPrefs.data.processPriorityForceLock}');
-				backend.window.Priority.startPriorityMonitoring(priorityLevel, ClientPrefs.data.processPriorityForceLock == true, 1000);
 			}
-		}
 
-		// Apply Efficiency Mode if enabled
-		#if EFFICIENCY_MODE_ALLOWED
-		if (ClientPrefs.data.efficiencyMode == true) {
-			trace('FirstCheckState: Enabling Efficiency Mode for power saving');
-			var success = backend.window.EfficiencyMode.setEfficiencyMode(true);
-			if (success) {
-				trace('FirstCheckState: Efficiency Mode enabled successfully');
-			} else {
-				trace('FirstCheckState: Efficiency Mode failed to enable, disabling setting');
-				ClientPrefs.data.efficiencyMode = false;
+			// Apply Efficiency Mode if enabled
+			#if EFFICIENCY_MODE_ALLOWED
+			if (ClientPrefs.data.efficiencyMode == true) {
+				trace('FirstCheckState: Enabling Efficiency Mode for power saving');
+				var success = backend.window.EfficiencyMode.setEfficiencyMode(true);
+				if (success) {
+					trace('FirstCheckState: Efficiency Mode enabled successfully');
+				} else {
+					trace('FirstCheckState: Efficiency Mode failed to enable, disabling setting');
+					ClientPrefs.data.efficiencyMode = false;
+				}
 			}
-		}
-		#end
-		#end
+			#end
+			#end
+
 			yutautil.CrashTrackerHelper.initialize();
 			yutautil.CrashTrackerHelper.logCriticalActivity("FirstCheckState", "new", "Application starting up");
 

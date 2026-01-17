@@ -2,6 +2,6 @@
   "version": "1.0.0",
   "name": "Mixtape Engine",
   "artists": ["???"],
-  "albumArtAsset": "albums/noCover",
+  "albumArtAsset": "albums/NoCover",
   "albumTitleAsset": ""
 }

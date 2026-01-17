@@ -82,7 +82,7 @@ class AlbumRoll extends FlxSpriteGroup
     {
       trace("ALBUM IS NULL: " + albumId);
       this.visible = true;
-      albumId = 'nocover';
+      albumId = 'NoCover';
       return;
     }
     else

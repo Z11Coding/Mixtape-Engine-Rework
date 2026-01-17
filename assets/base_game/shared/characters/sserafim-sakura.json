@@ -1,0 +1,276 @@
+{
+	"animations": [
+		{
+			"prefix": "idle",
+			"offsets": [0, 0],
+			"indices": [],
+			"fps": 24,
+			"anim": "idle",
+			"loop": false,
+			"name": "idle"
+		},
+		{
+			"prefix": "bf left pose 1",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT-bf",
+			"loop": false,
+			"name": "bf left pose 1"
+		},
+		{
+			"prefix": "bf right pose 1",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHT-bf",
+			"loop": false,
+			"name": "bf right pose 1"
+		},
+		{
+			"prefix": "bf up pose 1",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUP-bf",
+			"loop": false,
+			"name": "bf up pose 1"
+		},
+		{
+			"prefix": "bf down pose 1",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN-bf",
+			"loop": false,
+			"name": "bf down pose 1"
+		},
+		{
+			"prefix": "bf left pose 2",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFT-bfA",
+			"loop": false,
+			"name": "bf left pose 2"
+		},
+		{
+			"prefix": "bf right pose 2",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHT-bfA",
+			"loop": false,
+			"name": "bf right pose 2"
+		},
+		{
+			"prefix": "bf up pose 2",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUP-bfA",
+			"loop": false,
+			"name": "bf up pose 2"
+		},
+		{
+			"prefix": "bf down pose 2",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN-bfA",
+			"loop": false,
+			"name": "bf down pose 2"
+		},
+		{
+			"prefix": "sakura miss left pose",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"loop": false,
+			"name": "sakura miss left pose"
+		},
+		{
+			"prefix": "sakura miss down pose",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss",
+			"loop": false,
+			"name": "sakura miss down pose"
+		},
+		{
+			"prefix": "sakura miss up pose",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUPmiss",
+			"loop": false,
+			"name": "sakura miss up pose"
+		},
+		{
+			"prefix": "sakura miss right pose",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"loop": false,
+			"name": "sakura miss right pose"
+		},
+		{
+			"prefix": "joint miss left",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss-both",
+			"loop": false,
+			"name": "joint miss left"
+		},
+		{
+			"prefix": "joint miss down",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss-both",
+			"loop": false,
+			"name": "joint miss down"
+		},
+		{
+			"prefix": "joint miss up",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUPmiss-both",
+			"loop": false,
+			"name": "joint miss up"
+		},
+		{
+			"prefix": "joint miss right",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHTmiss-both",
+			"loop": false,
+			"name": "joint miss right"
+		},
+		{
+			"prefix": "style miss left",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singLEFTmiss-bf",
+			"loop": false,
+			"name": "style miss left"
+		},
+		{
+			"prefix": "style miss down",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWNmiss-bf",
+			"loop": false,
+			"name": "style miss down"
+		},
+		{
+			"prefix": "style miss up",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singUPmiss-bf",
+			"loop": false,
+			"name": "style miss up"
+		},
+		{
+			"prefix": "style miss right",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singRIGHTmiss-bf",
+			"loop": false,
+			"name": "style miss right"
+		},
+		{
+			"prefix": "sakura left pose",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singLEFT",
+			"loop": false,
+			"name": "sakura left pose"
+		},
+		{
+			"prefix": "sakura right pose",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singRIGHT",
+			"loop": false,
+			"name": "sakura right pose"
+		},
+		{
+			"prefix": "sakura up pose",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singUP",
+			"loop": false,
+			"name": "sakura up pose"
+		},
+		{
+			"prefix": "sakura down pose",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singDOWN",
+			"loop": false,
+			"name": "sakura down pose"
+		},
+		{
+			"prefix": "joint pose left",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singLEFT-both",
+			"loop": false,
+			"name": "joint pose left"
+		},
+		{
+			"prefix": "joint pose right",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singRIGHT-both",
+			"loop": false,
+			"name": "joint pose right"
+		},
+		{
+			"prefix": "joint pose up",
+			"offsets": [-310, -450],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+			"fps": 24,
+			"anim": "singUP-both",
+			"loop": false,
+			"name": "joint pose up"
+		},
+		{
+			"prefix": "joint pose down",
+			"offsets": [-310, -450],
+			"indices": [],
+			"fps": 24,
+			"anim": "singDOWN-both",
+			"loop": false,
+			"name": "joint pose down"
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": true,
+	"image": "characters/sserafim/sakura",
+	"position": [-100, 80],
+	"healthicon": "sakura",
+	"flip_x": true,
+	"healthbar_colors": [49, 176, 209],
+	"camera_position": [80, 50],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": true
+}

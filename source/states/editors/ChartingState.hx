@@ -5210,7 +5210,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 										if(!pack.difficulties.exists(diffName)) continue;
 
 										var diffPostfix:String = (diffName != defaultDiff) ? '-$diffName' : '';
-										var chartData:SwagSong = pack.difficulties.get(diffName);
+										var	chartData:SwagSong = pack.difficulties.get(diffName);
 										var chartName:String = Paths.formatToSongPath(chartData.song) + diffPostfix + '.json';
 										overwriteCheck(path + chartName, chartName, PsychJsonPrinter.print(chartData, ['sectionNotes', 'events']), nextChart, true);
 										return;
@@ -5231,7 +5231,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 								overwriteSavedSomething = false;
 								nextChart();
 							}
-							doJsonStuffPart3(ImprovedFileHandling.openFile('Save Converted Psych JSONs', [{ext: "json", desc: "JSON File"}]));
+							doJsonStuffPart3(ImprovedFileHandling.selectFolder('Save Converted Psych JSONs'));
 						}
 						else showOutput('Error: No difficulties found.');
 					}

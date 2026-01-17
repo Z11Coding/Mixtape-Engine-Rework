@@ -472,6 +472,7 @@ class PlayState extends MusicBeatState
 	public static var Crashed:Bool = false;
 	public static var savedTime:Float = 0;
 	public static var playAsGF:Bool = false;
+	public static var inSecretSong:Bool = false;
 	private var specialOverlays:FlxTypedGroup<FlxSprite>;
 	private var timerExtensions:Array<Float>;
 	public var introStageBar:FlxSprite;
@@ -529,9 +530,8 @@ class PlayState extends MusicBeatState
 	public var bfGhost:FlxSprite = null;
 	var noteRows:Array<Array<Array<Note>>> = [[],[]];
 
-	// AI things. You wouldn't get it.
-	var AIMode:Bool = false;
-	var AIDifficulty:String = 'Average FNF Player';
+	// Mix-Up things. You wouldn't get it.
+	var oppDifficulty:String = 'Average FNF Player';
 
 	// things from trials
 	public var bfkilledcheck:Bool = false;
@@ -546,6 +546,7 @@ class PlayState extends MusicBeatState
 	var gfScared:Bool = false;
 
 	// Troll Engine
+	public var camCurTarget:Null<Character> = null;
 	public var zoomEveryBeat:Int = 1;
 	public var modManager:ModManager;
 	public var notefields = new NotefieldRenderer();
@@ -869,6 +870,12 @@ class PlayState extends MusicBeatState
 		opponentStrums = new FlxTypedGroup<StrumNote>();
 		playerStrums = new FlxTypedGroup<StrumNote>();
 
+		// Initialize TPS/NPS system
+		notesHitArray = [];
+		nps = 0;
+		maxNPS = 0;
+		npsCheck = 0;
+
 		if(FlxG.sound.music != null)
 			FlxG.sound.music.stop();
 
@@ -881,18 +888,17 @@ class PlayState extends MusicBeatState
 		chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 		trace("Chart Modifier: " + chartModifier);
 		bothMode = ClientPrefs.getGameplaySetting('bothMode', false);
-		mixupMode = (ClientPrefs.data.mixupMode /*|| SONG.song == "Small Argument" && !inArchipelagoMode*/) && !bothMode;
+		mixupMode = (ClientPrefs.getGameplaySetting('mixMode', false) || SONG.song == "Small Argument" && inSecretSong && !inArchipelagoMode) && !bothMode;
 		opponentmode = ClientPrefs.getGameplaySetting('opponentplay', false) && !bothMode;
 		playAsGF = ClientPrefs.getGameplaySetting('gfMode', false) && !bothMode && !opponentmode; // dont do it to yourself its not worth it
 		holdsGiveHP = ClientPrefs.getGameplaySetting('holdsgivehp', holdsGiveHP);
 		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
-		AIMode = ClientPrefs.data.mixupMode && !bothMode;
-		AIDifficulty = /*(SONG.song == "Small Argument" && !inArchipelagoMode) ? "Baby Mode" : */ClientPrefs.data.aiDifficulty;
+		oppDifficulty = (SONG.song == "Small Argument" && inSecretSong && !inArchipelagoMode) ? "Baby Mode" : ClientPrefs.getGameplaySetting('oppDifficulty', 'Average FNF Player');
 		gimmicksAllowed = ClientPrefs.data.gimmicksAllowed;
 		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
 
-		AIPlayer.active = AIMode && !bothMode;
-		switch (AIDifficulty)
+		AIPlayer.active = mixupMode && !bothMode;
+		switch (oppDifficulty)
 		{
 			case 'Baby Mode':
 				AIPlayer.diff = 0;
@@ -1347,7 +1353,7 @@ class PlayState extends MusicBeatState
 			dadField.noteField.isEditor = false;
 			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
 			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || (opponentmode && ClientPrefs.getGameplaySetting('showcase', false)) || playAsGF) || (bothMode && cpuControlled) || (bothMode && ClientPrefs.getGameplaySetting('showcase', false));
-			dadField.AIPlayer = AIMode;
+			dadField.AIPlayer = mixupMode;
 			dadField.noteHitCallback = opponentNoteHit;
 			dadField.owner = dad;
 		}
@@ -3141,7 +3147,7 @@ class PlayState extends MusicBeatState
 			return;
 		}
 
-		if (!resettingState) { // to prevernt a very stupid crash for songswitching
+		if (!resettingState && ClientPrefs.data.showScoreText) { // to prevernt a very stupid crash for songswitching
 			var col:String = '';
 			var str:String = Language.getPhrase('rating_${comboManager.ratingName}', comboManager.ratingName);
 			if(comboManager.totalPlayed != 0)
@@ -3179,9 +3185,12 @@ class PlayState extends MusicBeatState
 				if(!instakillOnMiss) {
 					var missLabel:String = ClientPrefs.data.badShitBreakCombo ? Language.getPhrase('combo_breaks', 'Combo Breaks') : Language.getPhrase('misses', 'Misses');
 					var missCount:Int = ClientPrefs.data.badShitBreakCombo ? comboManager.comboBreaks : comboManager.songMisses;
-					tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [comboManager.songScore, comboManager.songMisses, str]);
+					tempScore = Language.getPhrase('score_text', '${if (ClientPrefs.data.showScore) 'Score: {1} | ' else ""}${if (ClientPrefs.data.showMisses) 'Misses: {2} | ' else ""}${if (ClientPrefs.data.showRating) 'Rating: {3} | ' else ""}${if (ClientPrefs.data.showNPS) 'NPS: {4}/{5}' else ""}', [comboManager.songScore, comboManager.songMisses, str, nps, maxNPS]);
 				}
-				else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [comboManager.songScore, str]);
+				else {
+					tempScore = Language.getPhrase('score_text_instakill', '${if (ClientPrefs.data.showScore) 'Score: {1} | ' else ""}${if (ClientPrefs.data.showRating) 'Rating: {2} | ' else ""}${if (ClientPrefs.data.showNPS) 'NPS: {3}/{4}' else ""}', [comboManager.songScore, str, nps, maxNPS]);
+					scoreTxt.borderColor = FlxColor.fromRGB(255, 0, 0);
+				}
 				var healthTxt:String = '100';
 				var hlth = CoolUtil.floorDecimal((health / 2) * 100, 2);
 				var col:String = '';
@@ -3202,7 +3211,10 @@ class PlayState extends MusicBeatState
 				else
 					col = "&";
 				healthTxt = '$hlth';
-				scoreTxt.applyMarkup('$tempScore | Health: $col$healthTxt% $col' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : ''),
+
+				var hString:String = ' | Health: $col$healthTxt% $col' + (MaxHP != 2 ? ' / ${CoolUtil.floorDecimal((MaxHP / 2) * 100, 2)}%' : '');
+				var finalText:String = '$tempScore${if (ClientPrefs.data.showHealth) (instakillOnMiss ? "DON'T MISS!" : hString) else ""}';
+				scoreTxt.applyMarkup(finalText,
 				[
 					new FlxTextFormatMarkerPair(fullClearFormat, "~"),
 					new FlxTextFormatMarkerPair(sFormat, ";"),
@@ -3215,6 +3227,12 @@ class PlayState extends MusicBeatState
 				]);
 				scoreTxt.borderColor = FlxColor.fromRGB(0, 0, 0);
 			}
+		} else if (!resettingState) {
+			scoreTxt.visible = false;
+			scoreTxt.alpha = 0;
+			scoreTxt.y = 1000000;
+			scoreTxt.x = 1000000;
+			//Keep it alive so script calls still work, but hide it completely
 		}
 	}
 
@@ -6111,6 +6129,32 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		}
 
+		// TPS/NPS System Update
+		{
+			var i = notesHitArray.length - 1;
+			while (i >= 0)
+			{
+				var time:Date = notesHitArray[i];
+				if (time != null && time.getTime() + 1000 < Date.now().getTime())
+					notesHitArray.remove(time);
+				else
+					i = -1; // break the loop
+				i--;
+			}
+			nps = notesHitArray.length;
+			if (nps > maxNPS)
+				maxNPS = nps;
+
+			setOnScripts('nps', nps);
+			setOnScripts('maxNPS', maxNPS);
+
+			if (npsCheck != nps)
+			{
+				npsCheck = nps;
+				updateScoreText();
+			}
+		}
+
 		// Optimize script calls - only call if scripts exist
 		if (hasLuaScripts || hasHScripts || hasPyScripts) {
 			callOnScripts('onUpdate', [elapsed]);
@@ -6249,7 +6293,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		hearts.forEachAlive(function(heart:FlxSprite)
 		{
 			// Cache camera speed calculation
-			var heartAngleLerp = cameraSpeed * 2 * _cachedFramerateMultiplier;
+			var heartAngleLerp = cameraSpeed * 2 * (_cachedFramerateMultiplier/2);
 			heart.angle = FlxMath.lerp(heart.angle, 30, heartAngleLerp);
 			if (curHealthMode == "Lives")
 			{
@@ -6661,14 +6705,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 
-		if ((loopMode || loopModeChallenge/* || curSong == "Small Argument" && !inArchipelagoMode*/)
+		if ((loopMode || loopModeChallenge || curSong == "Small Argument" && inSecretSong && !inArchipelagoMode)
 			&& startedCountdown
 			&& !endingSong)
 		{
 			if (FlxG.sound.music.length - Conductor.songPosition <= endingTimeLimit)
 			{
 				songAboutToLoop = true;
-				if (comboManager.AIScore >= comboManager.songScore && AIMode)
+				if (comboManager.AIScore >= comboManager.songScore && mixupMode)
 				{
 					if (FlxG.sound.music.time < 0 || Conductor.songPosition < 0)
 					{
@@ -7403,10 +7447,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		endingSong = false;
 		songAboutToLoop = false;
 
-		/*if ((curSong == "Small Argument" && !inArchipelagoMode)
+		if ((curSong == "Small Argument" && inSecretSong && !inArchipelagoMode)
 			&& AIPlayer.diff != 6
-			&& AIScore != songScore) // Six is the highest there is. It's literally botplay at that point.
-			AIPlayer.diff += 1;*/
+			&& comboManager.AIScore != comboManager.songScore) // Six is the highest there is. It's literally botplay at that point.
+			AIPlayer.diff += 1;
 
 		trace("AI LEVEL: " + AIPlayer.diff);
 		var AIPlayMap = [];
@@ -7531,7 +7575,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					lives -= 1;
 					if (ClientPrefs.data.flashing)
 					{
-						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100, true);
 					}
 					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
 					{
@@ -7553,7 +7597,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					lives -= 1;
 					if (ClientPrefs.data.flashing)
 					{
-						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100, true);
 					}
 					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
 					{
@@ -7574,7 +7618,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					lives -= 1;
 					if (ClientPrefs.data.flashing)
 					{
-						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+						FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100, true);
 					}
 					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
 					{
@@ -7952,12 +7996,15 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								addCharacterToList(value2, charType);
 							}
 
+							var oldChar = boyfriend;
 							var lastAlpha:Float = boyfriend.alpha;
 							boyfriend.alpha = 0.00001;
 							boyfriend.shader = null;
 							boyfriend = boyfriendMap.get(value2);
 							boyfriend.alpha = lastAlpha;
 							iconP1.changeIcon(boyfriend.healthIcon);
+							for (field in playfields.members)
+								if (field.owner == oldChar) field.owner = boyfriend;
 						}
 						setOnScripts('boyfriendName', boyfriend.curCharacter);
 
@@ -7967,6 +8014,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								addCharacterToList(value2, charType);
 							}
 
+							var oldChar = dad;
 							var wasGf:Bool = dad.curCharacter.startsWith('gf-') || dad.curCharacter == 'gf';
 							var lastAlpha:Float = dad.alpha;
 							dad.alpha = 0.00001;
@@ -7981,6 +8029,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							}
 							dad.alpha = lastAlpha;
 							iconP2.changeIcon(dad.healthIcon);
+							for (field in playfields.members)
+								if (field.owner == oldChar) field.owner = dad;
 						}
 						setOnScripts('dadName', dad.curCharacter);
 
@@ -7993,11 +8043,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 									addCharacterToList(value2, charType);
 								}
 
+								var oldChar = gf;
 								var lastAlpha:Float = gf.alpha;
 								gf.alpha = 0.00001;
 								gf.shader = null;
 								gf = gfMap.get(value2);
 								gf.alpha = lastAlpha;
+								for (field in playfields.members)
+									if (field.owner == oldChar) field.owner = gf;
 							}
 							setOnScripts('gfName', gf.curCharacter);
 						}
@@ -8011,6 +8064,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 									addCharacterToList(value2, charType);
 								}
 
+								var oldChar = dad2;
 								var wasGf:Bool = dad2.curCharacter.startsWith('gf');
 								var lastAlpha:Float = dad2.alpha;
 								dad2.alpha = 0.00001;
@@ -8029,6 +8083,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								}
 								dad2.alpha = lastAlpha;
 								iconP22.changeIcon(dad2.healthIcon);
+								for (field in playfields.members)
+									if (field.owner == oldChar) field.owner = dad2;
 							}
 							setOnScripts('dad2Name', dad2.curCharacter);
 						}
@@ -8042,12 +8098,15 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 									addCharacterToList(value2, charType);
 								}
 
+								var oldChar = bf2;
 								var lastAlpha:Float = bf2.alpha;
 								bf2.alpha = 0.00001;
 								bf2.shader = null;
 								bf2 = boyfriendMap2.get(value2);
 								bf2.alpha = lastAlpha;
 								iconP12.changeIcon(bf2.healthIcon);
+								for (field in playfields.members)
+									if (field.owner == oldChar) field.owner = bf2;
 							}
 							setOnScripts('bf2Name', bf2.curCharacter);
 						}
@@ -8530,10 +8589,11 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		if (gf != null && SONG.notes[sec].gfSection)
 		{
-			moveCameraToGirlfriend();
-			whosTurn = 'gf';
+			camFollow.setPosition(gf.getMidpoint().x, gf.getMidpoint().y);
+			camFollow.x += gf.cameraPosition[0] + girlfriendCameraOffset[0];
+			camFollow.y += gf.cameraPosition[1] + girlfriendCameraOffset[1];
 			callOnScripts('onMoveCamera', ['gf']);
-			setOnScripts('whosTurn', whosTurn);
+			setOnScripts('whosTurn', 'gf');
 			return;
 		}
 
@@ -8544,6 +8604,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camFollow.y += dad2.cameraPosition[1] + opponent2CameraOffset[1];
 			tweenCamIn();
 			callOnScripts('onMoveCamera', ['dad2']);
+			setOnScripts('whosTurn', 'dad');
 			return;
 		}
 
@@ -8554,6 +8615,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camFollow.y += bf2.cameraPosition[1] + boyfriend2CameraOffset[1];
 			tweenCamIn();
 			callOnScripts('onMoveCamera', ['bf2']);
+			setOnScripts('whosTurn', 'bf');
 			return;
 		}
 
@@ -8592,34 +8654,21 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	var cameraTwn:FlxTween;
 	public function moveCamera(isDad:Bool)
 	{
-		if(isDad)
-		{
-			if(dad == null) return;
-			camFollow.setPosition(dad.getMidpoint().x + 150, dad.getMidpoint().y - 100);
-			camFollow.x += dad.cameraPosition[0] + opponentCameraOffset[0];
-			camFollow.y += dad.cameraPosition[1] + opponentCameraOffset[1];
-			tweenCamIn();
-			whosTurn = 'dad';
-		}
-		else
-		{
-			if(boyfriend == null) return;
-			camFollow.setPosition(boyfriend.getMidpoint().x - 100, boyfriend.getMidpoint().y - 100);
-			camFollow.x -= boyfriend.cameraPosition[0] - boyfriendCameraOffset[0];
-			camFollow.y += boyfriend.cameraPosition[1] + boyfriendCameraOffset[1];
+		var desiredPos:Null<FlxPoint> = null;
+		var curCharacter:Null<Character> = null;
 
-			if (songName == 'tutorial' && cameraTwn == null && FlxG.camera.zoom != 1)
-			{
-				cameraTwn = FlxTween.tween(FlxG.camera, {zoom: 1}, (Conductor.stepCrochet * 4 / 1000), {ease: FlxEase.elasticInOut, onComplete:
-					function (twn:FlxTween)
-					{
-						cameraTwn = null;
-					}
-				});
-			}
-			whosTurn = 'dad';
-		}
-		setOnScripts('whosTurn', whosTurn);
+		if (dadField != null && playerField != null) curCharacter = isDad ? dadField.owner : playerField.owner;
+		else curCharacter = isDad ? dad : boyfriend;
+
+		if (camCurTarget != null) curCharacter = camCurTarget;
+
+		desiredPos = getCharacterCameraPos(curCharacter);
+
+		camFollow.x = desiredPos.x;
+		camFollow.y = desiredPos.y;
+
+		desiredPos.put();
+		setOnScripts('whosTurn', isDad ? 'dad' : 'boyfriend');
 	}
 
 	public function tweenCamIn() {
@@ -8630,6 +8679,29 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				}
 			});
 		}
+	}
+	public function getCharacterCameraPos(char:Null<Character>):FlxPoint
+	{
+		if (char == null) return FlxPoint.weak();
+
+		final desiredPos = char.getMidpoint();
+
+		final offsets = char.isPlayer ? boyfriendCameraOffset : opponentCameraOffset;
+
+		desiredPos.y += -100 + char.cameraPosition[1] + offsets[1];
+
+		if (char.isPlayer)
+		{
+			desiredPos.x -= 100 + char.cameraPosition[0];
+		}
+		else
+		{
+			desiredPos.x += 100 + char.cameraPosition[0];
+		}
+
+		desiredPos.x += offsets[0];
+
+		return desiredPos;
 	}
 
 	// Simple yet convenent functions frim JS-engine my belovid
@@ -8716,6 +8788,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		inCutscene = false;
 		updateTime = false;
 		seenCutscene = false;
+		inSecretSong = false;
 
 		#if ACHIEVEMENTS_ALLOWED
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
@@ -8993,15 +9066,15 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		if (targetBF)
 		{
-			FlxG.camera.follow(boyfriend, null, 0.05);
+			FlxG.camera.follow(boyfriend, null, 0.04);
 		}
 		else if (targetDad)
 		{
-			FlxG.camera.follow(dad, null, 0.05);
+			FlxG.camera.follow(dad, null, 0.04);
 		}
 		else
 		{
-			FlxG.camera.follow(gf, null, 0.05);
+			FlxG.camera.follow(gf, null, 0.04);
 		}
 
 		// TODO: Make target offset configurable.
@@ -10357,7 +10430,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					}
 				});
 
-				if (boyfriend.holdTimer > Conductor.stepCrochet * 0.001 * boyfriend.singDuration
+				if (boyfriend != null && boyfriend.holdTimer > Conductor.stepCrochet * 0.001 * boyfriend.singDuration
 					&& boyfriend.animation.curAnim.name.startsWith('sing')
 					&& !boyfriend.animation.curAnim.name.endsWith('miss'))
 					boyfriend.dance();
@@ -10596,6 +10669,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			if (note.exNote && note.field == dadField)
 				char = dad2;
 		}
+		if (note.owner != null) char = note.owner;
 
 		if(char != null && (note == null || !note.noMissAnimation) && char.hasMissAnimations)
 		{
@@ -10618,7 +10692,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			lives -= 1;
 			if (ClientPrefs.data.flashing)
 			{
-				FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100);
+				FlxG.camera.flash(0xFFFF0000, 0.3 * SONG.bpm / 100, true);
 			}
 			new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
 			{
@@ -10663,10 +10737,11 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 		else if(!note.noAnimation)
 		{
-			var char:Character = (opponentmode ? boyfriend : dad);
+			var char:Character = field.owner;
 			var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[note.noteData] + note.animSuffix;
 			if(note.gfNote) char = gf;
 			if (note.exNote && !note.gfNote) char = (opponentmode ? bf2 : dad2);
+			if (note.owner != null) char = note.owner;
 
 			if (!note.exNote && !note.gfNote && note.noteType == 'GF Duet') {
 				if(gf != null)
@@ -10759,11 +10834,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		if(!note.hitCausesMiss) //Common notes
 		{
+			// Register note hit for TPS/NPS calculation
+			if (!note.isSustainNote) notesHitArray.unshift(Date.now());
+
 			if(!note.noAnimation)
 			{
 				var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[note.noteData] + note.animSuffix;
 
-				var char:Character = (opponentmode ? dad : boyfriend);
+				var char:Character = field.owner;
 				var animCheck:String = 'hey';
 				if (note.exNote && !note.gfNote && note.noteType != 'GF Duet') char = (opponentmode ? dad2 : bf2);
 				if(note.gfNote)
@@ -10771,6 +10849,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					char = gf;
 					animCheck = 'cheer';
 				}
+				if (note.owner != null) char = note.owner;
 
 				if (!note.exNote && !note.gfNote && note.noteType == 'GF Duet') {
 					var canPlay:Bool = true;
@@ -10841,6 +10920,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if (mashViolations < 0)
 					mashViolations = 0;
 			}
+
 			var gainHealth:Bool = true; // prevent health gain, *if* sustains are treated as a singular note
 			if (guitarHeroSustains && note.isSustainNote || (mechanicsMod != null && mechanicsMod.restoreActivated)) gainHealth = false;
 			if (gainHealth){
@@ -10910,7 +10990,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							mechanicsMod.restoreNoteHit();
 				}
 			}
-
 		}
 		else //Notes that count as a miss if you hit them (Hurt notes for example)
 		{
@@ -11262,7 +11341,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			clientSaveData = null;
 		}
 		trace("Done destroy.");
-		Paths.nukeMemory(true); // LIGHTLY nuke everything
+		//Paths.nukeMemory(true); // LIGHTLY nuke everything
 	}
 
 	var lastStepHit:Int = -1;
@@ -11583,13 +11662,13 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	{
 		if (gf != null && beat % Math.round(gfSpeed * gf.danceEveryNumBeats) == 0 && !gf.getAnimationName().startsWith('sing') && !gf.stunned)
 			gf.dance();
-		if (boyfriend != null && beat % boyfriend.danceEveryNumBeats == 0 && !boyfriend.getAnimationName().startsWith('sing') && !boyfriend.stunned)
+		if (boyfriend != null && beat % Math.round(gfSpeed * boyfriend.danceEveryNumBeats) == 0 && !boyfriend.getAnimationName().startsWith('sing') && !boyfriend.stunned)
 			boyfriend.dance();
-		if (dad != null && beat % dad.danceEveryNumBeats == 0 && !dad.getAnimationName().startsWith('sing') && !dad.stunned)
+		if (dad != null && beat % Math.round(gfSpeed * dad.danceEveryNumBeats) == 0 && !dad.getAnimationName().startsWith('sing') && !dad.stunned)
 			dad.dance();
-		if (bf2 != null && beat % bf2.danceEveryNumBeats == 0 && !bf2.getAnimationName().startsWith('sing') && !bf2.stunned)
-			bf2.dance();
-		if (dad2 != null && beat % dad2.danceEveryNumBeats == 0 && !dad2.getAnimationName().startsWith('sing') && !dad2.stunned)
+		//if (bf2 != null && beat % Math.round(gfSpeed * bf2.danceEveryNumBeats) == 0 && !bf2.getAnimationName().startsWith('sing') && !bf2.stunned)
+			//bf2.dance();
+		if (dad2 != null && beat % Math.round(gfSpeed * dad2.danceEveryNumBeats) == 0 && !dad2.getAnimationName().startsWith('sing') && !dad2.stunned)
 			dad2.dance();
 	}
 
