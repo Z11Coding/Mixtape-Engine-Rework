@@ -41,53 +41,53 @@ function onCreate()
       angle: -165
     }
   ];
+}
 
-  function onCreatePost()
+function onCreatePost()
+{
+  super.onCreatePost();
+
+  lipSyncSprite = new SserafimLipSyncSprite(0, 0);
+  lipSyncSprite.alpha = 0.5;
+
+  var element:FlxSpriteElement = new FlxSpriteElement(lipSyncSprite);
+  element.active = false; // We disable the element here so we can control when it updates.
+
+  for (frame in this.getFramesWithKeyword("mouth default"))
   {
-    super.onCreatePost();
-
-    lipSyncSprite = new SserafimLipSyncSprite(0, 0);
-    lipSyncSprite.alpha = 0.5;
-
-    var element:FlxSpriteElement = new FlxSpriteElement(lipSyncSprite);
-    element.active = false; // We disable the element here so we can control when it updates.
-
-    for (frame in this.getFramesWithKeyword("mouth default"))
-    {
-      frame.add(element);
-    }
+    frame.add(element);
   }
+}
 
-  function onPlayAnim(name:String, forced:Bool, restart:Bool, frame:Int):Void
+function onPlayAnim(name:String, forced:Bool, restart:Bool, frame:Int):Void
+{
+  if (LIP_SYNC_OFFSETS.exists(name) && lipSyncSprite != null)
   {
-    if (LIP_SYNC_OFFSETS.exists(name) && lipSyncSprite != null)
-    {
-      var data:LipSyncData = LIP_SYNC_OFFSETS.get(name);
+    var data:LipSyncData = LIP_SYNC_OFFSETS.get(name);
 
-      lipSyncSprite.offset.set(data.offset[0], data.offset[1]);
-      lipSyncSprite.angle = data.angle;
-    }
+    lipSyncSprite.offset.set(data.offset[0], data.offset[1]);
+    lipSyncSprite.angle = data.angle;
   }
+}
 
-  function update(elapsed:Float):Void
-  {
-    lipSyncSprite.update(elapsed);
+function update(elapsed:Float):Void
+{
+  lipSyncSprite.update(elapsed);
 
-    lipSyncSprite.shouldSing = this.characterType == CharType.BF;
+  lipSyncSprite.shouldSing = this.characterType == CharType.BF;
 
-    synchronizeShader();
-  }
+  synchronizeShader();
+}
 
-  var currentShader = null;
+var currentShader = null;
 
-  function synchronizeShader():Void
-  {
-    if (currentShader == this.shader) return;
+function synchronizeShader():Void
+{
+  if (currentShader == this.shader) return;
 
-    currentShader = this.shader;
+  currentShader = this.shader;
 
-    lipSyncSprite.shader = currentShader;
+  lipSyncSprite.shader = currentShader;
 
-    trace("Synchronized shader between children!");
-  }
+  trace("Synchronized shader between children!");
 }

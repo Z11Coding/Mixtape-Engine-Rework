@@ -8167,13 +8167,27 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				camZoomingMult = !Math.isNaN(val2) ? val2 : 1;
 				camZoomingFrequency = !Math.isNaN(val1) ? val1 : 4;
 
+			case 'SetCameraBopBase': //V-slice event notes
+				var val1 = Std.parseFloat(value1);
+				var val2 = Std.parseFloat(value2);
+				camZoomingMult = !Math.isNaN(val2) && val2>=1 ? val2 : 1;
+				camZoomingFrequency = !Math.isNaN(val1) ? val1 : 4;
+
 			case 'ZoomCamera': //defaultCamZoom
 				var keyValues = value1.split(",");
+				var trueValues:Array<String> = [];
 				if(keyValues.length != 2) {
-					trace("INVALID EVENT VALUE");
+					trace("INVALID EVENT VALUE! Attempting to salvage...");
+					if (keyValues.length > 2) {
+						trueValues = [keyValues[0], keyValues[1]]; //default values
+						trace("ONLY USING FIRST 2 VALUES OF EVENT!");
+					} else if (keyValues.length == 1) {
+						trueValues = ["0.5", keyValues[0]];
+						trace("ONLY USING 1 VALUE!");
+					} else trace("Could not salvage Zoom Camera event!");
 					return;
-				}
-				var floaties = keyValues.map(s -> Std.parseFloat(s));
+				} else trueValues = keyValues;
+				var floaties = trueValues.map(s -> Std.parseFloat(s));
 				if(backend.util.ArrayTools.findIndex(floaties,s -> Math.isNaN(s)) != -1) {
 					trace("INVALID FLOATIES");
 					return;
@@ -8181,7 +8195,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var easeFunc = LuaUtils.getTweenEaseByString(value2);
 				if(zoomTween != null) zoomTween.cancel();
 				var targetZoom = floaties[1]*defaultStageZoom;
-				zoomTween = FlxTween.tween(this,{ defaultCamZoom:targetZoom},(Conductor.stepCrochet/1000)*floaties[0],{
+				zoomTween = FlxTween.tween(this, {defaultCamZoom: targetZoom}, (Conductor.stepCrochet/1000)*floaties[0], {
 					onStart: (x) ->{
 						//camZooming = false;
 						camZoomingDecay = 7;
@@ -10458,6 +10472,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 	function noteMiss(daNote:Note, field:PlayField):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		//Dupe note remove
+		var result:Dynamic = callOnLuas('preNoteMiss', [notes.members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) callOnHScript('preNoteMiss', [daNote]);
 		notes.forEachAlive(function(note:Note) {
 			if (daNote != note && daNote.mustPress && daNote.noteData == note.noteData && daNote.isSustainNote == note.isSustainNote && Math.abs(daNote.strumTime - note.strumTime) < 1)
 				invalidateNote(note);
@@ -11074,7 +11090,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 	}
 
-	function playAnim(note:Note, char:Character, animToPlay:String, ?forceAnim:Bool = false) {
+	public function playAnim(note:Note, char:Character, animToPlay:String, ?forceAnim:Bool = false) {
 		if(char != null)
 		{
 			char.holdTimer = 0;

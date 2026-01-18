@@ -374,7 +374,7 @@ class HScript extends Iris
 				if (causeOfDeath != null && causeOfDeath.trim() != "") {
 					backend.COD.setCOD(null, causeOfDeath);
 				} else {
-					backend.COD.setCOD(null, 'Took lethal damage. (${this.scriptName})');
+					backend.COD.setCOD(null, 'Took lethal damage. (${this.origin})');
 				}
 
 				// Apply damage and trigger death
@@ -752,6 +752,7 @@ class HScript extends Iris
 				Iris.error(Printer.errorToString(e, false), pos);
 			}
 			FunkinLua.lastCalledScript = funk;
+
 			if (FunkinLua.getBool('luaDebugMode') && FunkinLua.getBool('luaDeprecatedWarnings'))
 				Iris.warn("addHaxeLibrary is deprecated! Import classes through \"import\" in HScript!", pos);
 		});

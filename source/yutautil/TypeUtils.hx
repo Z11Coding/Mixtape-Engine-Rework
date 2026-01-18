@@ -7,20 +7,20 @@ package yutautil;
  */
 typedef OneOrMore<T> = OneOrMany<T>;
 
-    /**
-     * PointerAccess is an enum that specifies how to access the pointer:
-     * - Direct: returns the value of the pointer (ptr.ref)
-     * - Method(name, args): calls a method on the pointer's value with the given name and arguments
-     * - Raw: returns the cpp.Pointer<T> itself
-     */
-    enum PointerAccess {
-        Direct;
-        PointerHandle; // Access to cpp.Pointer<T>, rather than the raw pointer.
-        Method(name:String, args:OneOrMore<Dynamic>);
-        Call(args:OneOrMore<Dynamic>);
-        Mem; Memory; // Memory access, equivalent to a HaxeAddress.
-        Raw;
-    }
+/**
+ * PointerAccess is an enum that specifies how to access the pointer:
+ * - Direct: returns the value of the pointer (ptr.ref)
+ * - Method(name, args): calls a method on the pointer's value with the given name and arguments
+ * - Raw: returns the cpp.Pointer<T> itself
+ */
+enum PointerAccess {
+    Direct;
+    PointerHandle; // Access to cpp.Pointer<T>, rather than the raw pointer.
+    Method(name:String, args:OneOrMore<Dynamic>);
+    Call(args:OneOrMore<Dynamic>);
+    Mem; Memory; // Memory access, equivalent to a HaxeAddress.
+    Raw;
+}
 #if cpp
 class TypeTools {
     public static final ptrMap:Map<PtrAddress, GlobalPointer<Dynamic>> = new Map<PtrAddress, GlobalPointer<Dynamic>>();

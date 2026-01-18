@@ -141,6 +141,7 @@ class VSlice
 			{
 				var focusEventNum:Int = 0;
 				var lastMustHit:Bool = false;
+				var nonChar:Bool = false;
 				while(time < focusCameraEvents[focusCameraEvents.length - 1].t)
 				{
 					var bpm:Float = songBpm;
@@ -171,8 +172,12 @@ class VSlice
 
 						if(char == null) char = '1';
 						lastMustHit = (char == '0');
+						nonChar = (char == '-1');
 					}
-					sectionMustHits.push(lastMustHit);
+					if (nonChar)
+						sectionMustHits.push(true); //assume its true, dispite that its a positional argument
+					else
+						sectionMustHits.push(lastMustHit);
 					sectionTime = Conductor.calculateCrochet(bpm) * 4;
 					time += sectionTime;
 				}
@@ -273,7 +278,7 @@ class VSlice
 		var pack:PsychPackage = {difficulties: songDifficulties, events: null};
 
 		var fileEvents:Array<Dynamic> = [];
-		var remainingEvents:Array<Dynamic> = allEvents.filter((event:Dynamic) -> !focusCameraEvents.contains(event));
+		var remainingEvents:Array<Dynamic> = allEvents;
 		if(remainingEvents.length > 0)
 		{
 			for (num => event in remainingEvents)
@@ -281,29 +286,45 @@ class VSlice
 				var fields:Array<Dynamic> = [];
 				if(event.v != null)
 				{
-					switch(Type.typeof(event.v))
-					{
-						case TObject:
-							for (field in Reflect.fields(event.v))
-							{
-								fields.push(Std.string(Reflect.field(event.v, field)));
-								if(fields.length == 2) break;
+					if (event.e == "FocusCamera") {
+						if (event.v.char != null)
+							fields.push('${event.v.char}');
+						else fields.push("0"); //Default to bf
+						if (event.v.x != null && event.v.y != null) { // these are the only 2 that actually matter. Everything else can be subbed
+							var ease:String = "";
+							var needsDirc:Bool = true;
+							if (event.v.ease != null) {
+								ease = event.v.ease;
+								if (ease.toLowerCase() == "classic" || ease.toLowerCase() == "instant")
+									needsDirc = false;
 							}
-						case TClass(String):
-							fields.push(event.v);
-						case TClass(Array):
-							var arr:Array<Dynamic> = cast event.v;
-							if(arr != null && arr.length > 0)
-							{
-								for (value in arr)
+							fields.push('${event.v.x}, ${event.v.y}, ${(event.v.duration ?? 1)}, ${(event.v.ease ?? 'classic')}${(event.v.easeDir != null && needsDirc ? event.v.easeDir : '')}');
+						}
+					} else {
+						switch(Type.typeof(event.v))
+						{
+							case TObject:
+								for (field in Reflect.fields(event.v))
 								{
-									fields.push(Std.string(value));
-
+									fields.push(Std.string(Reflect.field(event.v, field)));
 									if(fields.length == 2) break;
 								}
-							}
-						default:
-							fields.push(Std.string(event.v));
+							case TClass(String):
+								fields.push(event.v);
+							case TClass(Array):
+								var arr:Array<Dynamic> = cast event.v;
+								if(arr != null && arr.length > 0)
+								{
+									for (value in arr)
+									{
+										fields.push(Std.string(value));
+
+										if(fields.length == 2) break;
+									}
+								}
+							default:
+								fields.push(Std.string(event.v));
+						}
 					}
 				}
 				while(fields.length < 2) fields.push('');

@@ -1,9 +1,17 @@
+package stages.objects;
+
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.math.FlxPoint;
 import flixel.util.FlxTimer;
+@:keep
+typedef LipSyncData = {
+  offset:Array<Int>,
+  angle:Int
+}
 
 // object used for lip sync on characters in SPAGHETTI
+@:keep
 class SserafimLipSyncSprite extends FlxAnimate
 {
   var shouldSing(default, set):Bool = true;
