@@ -1,4 +1,5 @@
 function onCreate()
+  luaDebugMode = true
   makeLuaSprite("solid", nil, -5000, -3000)
   makeGraphic('solid', 10000, 10000, "FFFFFF")
   setScrollFactor("solid", 0.0, 0.0)

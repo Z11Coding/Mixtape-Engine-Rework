@@ -56,7 +56,12 @@ class SserafimStage extends BaseStage
     cutsceneHandler = null;
 
     super.create();
+  }
 
+  override function createPost() {
+    game.camZooming = true; //So that the camera works lol
+    setStartCallback(doCutsceneStuff);
+    super.createPost();
     characterShader = new SserafimShader(true);
     stageShader = new SserafimShader();
 
@@ -103,10 +108,10 @@ class SserafimStage extends BaseStage
     dust4.velocity.x = -150;
     dust4.shader = stageShader;
 
-    add(dust1);
-    add(dust2);
-    add(dust3);
-    add(dust4);
+    game.addAbove(getStageObject("solidCover"), dust1);
+    game.addAbove(getStageObject("solidCover"), dust2);
+    game.addAbove(getStageObject("solidCover"), dust3);
+    game.addAbove(getStageObject("solidCover"), dust4);
 
     dust1.color = 0xff98847d;
     dust2.color = 0xff8b6c63;
@@ -166,10 +171,6 @@ class SserafimStage extends BaseStage
     }
   }
 
-  override function createPost() {
-    super.createPost();
-  }
-
   function hideOpponentStrumline()
   {
     game.modManager.setValue('alpha', 1, 1);
@@ -195,18 +196,19 @@ class SserafimStage extends BaseStage
       case 'sserafimFlash':
         flashScreen(Std.parseFloat(value1));
       case 'sserafimPulseLights':
-        var threekings:Array<String> = value2.split(':');
-        var threekindoms:Array<Array<String>> = [];
-        for (king in threekings)
-          threekindoms.push(king.split(','));
-
-        setLightState(parseBool(value1), threekindoms[0], parseFloatArray(threekindoms[1]),
-          parseFloatArray(threekindoms[2]));
+        var threekings:Array<String> = value1.replace('[', '').replace(']', '').split(',');
+        var throneDur:Array<Float> = [];
+        var kingInt:Array<Float> = [];
+        for (king in 0...threekings.length) {
+          throneDur.push(Conductor.stepCrochet*0.001*8);
+          kingInt.push(0.6);
+        }
+        setLightState(parseBool(value2), threekings, throneDur, kingInt);
       case 'sserafimKick':
         if (parseBool(value1))
         {
           // play second kick anim + reset her idle back to normal
-          yunjin.playAnim('kick2', true, false);
+          yunjin.playAnim('yunjin intro', true, false);
           FunkinSound.playOnce('doorKick2', 1.0);
           yunjin.danceEveryNumBeats = 1;
 
@@ -241,7 +243,7 @@ class SserafimStage extends BaseStage
         else
         {
           // play first kick anim
-          yunjin.playAnim('kick1', true, false);
+          yunjin.playAnim('yunjin intro', true, false);
           FunkinSound.playOnce('doorKick1', 1.0);
         }
         case 'sserafimEnd':
@@ -252,7 +254,7 @@ class SserafimStage extends BaseStage
   }
 
   function parseBoolArray(value:String):Array<Bool> {
-    var sArr:Array<String> = value.trim().split(',');
+    var sArr:Array<String> = value.replace('[', '').replace(']', '').trim().split(',');
     var bArr:Array<Bool> = [];
     for (b in sArr)
       bArr.push(b.toLowerCase() == "true" ? true : false);
@@ -403,6 +405,12 @@ class SserafimStage extends BaseStage
     // flash lights behind truck
     if (lightsEnabled) flashBackLight(lightsIntensities[curBeat % lightsIntensities.length], lightsDurations[curBeat % lightsDurations.length],
       lightsColors[curBeat % lightsColors.length]);
+    if (chaewon != null && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && !chaewon.getAnimationName().startsWith('sing') && !chaewon.stunned)
+			chaewon.dance();
+    if (yunjin != null && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && !yunjin.getAnimationName().startsWith('sing') && !yunjin.stunned)
+			yunjin.dance();
+    if (eunchae != null && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && !eunchae.getAnimationName().startsWith('sing') && !eunchae.stunned)
+			eunchae.dance();
   }
 
   var isMobilePauseButtonPressed:Bool = false;
@@ -426,22 +434,6 @@ class SserafimStage extends BaseStage
       perspectiveFloor.updateSkew(camGame);
     }
 
-    if (Controls.instance.ACCEPT && !cutsceneSkipped)
-    {
-      if (!canSkipCutscene)
-      {
-        trace('cant skip yet!');
-        if (skipText != null)
-        {
-          FlxTween.tween(skipText, {alpha: 1}, 0.5, {ease: FlxEase.quadOut});
-          new FlxTimer().start(0.5, _ -> {
-            canSkipCutscene = true;
-            trace('can skip!');
-          });
-        }
-      }
-    }
-
     // i cant bear the weight of deleting you debugShitLol you can stay here just so i can remember how useful you were
     // debugShitLol();
   }
@@ -452,7 +444,6 @@ class SserafimStage extends BaseStage
   var sserafimGf:SserafimGfSprite;
   var cutsceneSounds:Null<FunkinSound> = null;
 
-  var skipText:FlxText;
   var cutsceneSkipped:Bool = false;
   var canSkipCutscene:Bool = false;
   var cutsceneHandler:CutsceneHandler;
@@ -462,18 +453,20 @@ class SserafimStage extends BaseStage
     if (cutsceneSounds != null) cutsceneSounds.destroy();
   }
 
-  override function startCountdown():Bool
+  function doCutsceneStuff()
   {
     if (PlayState.chartingMode && !hasPlayedCutscene)
     {
       hasPlayedCutscene = true;
       cutsceneSkipped = true;
       playCutsceneFromRestart();
+      startCountdown();
+      return;
     }
 
     if (!hasPlayedCutscene)
     {
-      trace('Pausing countdown to play in game cutscene');
+      trace('playing in-game cutscene');
 
       hasPlayedCutscene = true;
 
@@ -481,10 +474,7 @@ class SserafimStage extends BaseStage
 
       setCutsceneVisibility(true);
       introCutscene();
-      return false;
     }
-    super.startCountdown();
-    return true;
   }
 
   // helper function cause i really dont wanna have to manually do this twice
@@ -520,6 +510,14 @@ class SserafimStage extends BaseStage
   function createCutsceneSprites()
   {
     cutsceneHandler = new CutsceneHandler();
+    cutsceneHandler.endTime = 30; // set it here so the cutscene doesn't end immediently
+
+    cutsceneHandler.finishCallback = () ->{
+      inCutscene = false;
+      startCountdown();
+      canPause = true;
+      camHUD.visible = true;
+    }
 
     cutsceneHandler.skipCallback = skipCutscene;
 
@@ -544,9 +542,9 @@ class SserafimStage extends BaseStage
     sserafimBf.zIndex = 305;
     sserafimBf.visible = false;
 
-    cutsceneHandler.push(sserafimGf);
-    cutsceneHandler.push(sserafimBf);
-    cutsceneHandler.push(sserafimCutscene);
+    add(sserafimGf);
+    add(sserafimBf);
+    add(sserafimCutscene);
 
     SEEYOU1 = new FlxSprite().loadGraphic(Paths.image('end/end1'));
     SEEYOU1.scale.set(0.67, 0.67);
@@ -612,8 +610,8 @@ class SserafimStage extends BaseStage
     sserafimGf.doAnim();
     sserafimBf.doAnim();
 
-    sserafimGf.animation.curAnim.curFrame = 23;
-    sserafimBf.animation.curAnim.curFrame = 23;
+    //sserafimGf.animation.curAnim.curFrame = 23;
+    //sserafimBf.animation.curAnim.curFrame = 23;
   }
 
   function introCutscene()
@@ -621,7 +619,6 @@ class SserafimStage extends BaseStage
     inCutscene = true;
     canPause = false;
 
-    cutsceneHandler.endTime = 32;
     Paths.sound('cutscene/startCutscene');
 
     sserafimCutscene.doAnim();
@@ -632,6 +629,7 @@ class SserafimStage extends BaseStage
     camGame.fade(0xFF000000, 3, true, null, true);
 
     cutsceneHandler.timer(20 / 24, function() {
+      sserafimCutscene.doAnim();
       cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/startCutscene'), 1.0, false, true, true);
     });
 
@@ -658,15 +656,9 @@ class SserafimStage extends BaseStage
 
     // truck starts getting closer
     cutsceneHandler.timer(499 / 24, function() {
+      cutsceneHandler._canSkip = false;
       cutsceneSkipped = true;
       canSkipCutscene = false;
-      FlxTween.tween(skipText, {alpha: 0}, 0.5,
-      {
-        ease: FlxEase.quadIn,
-        onComplete: _ -> {
-          skipText.visible = false;
-        }
-      });
       // cutting off skipping here. really dont think its needed after this point and it saves problems from happening
 
       FlxTween.cancelTweensOf(stageShader);
@@ -731,7 +723,7 @@ class SserafimStage extends BaseStage
       tweenCameraToPosition(1070, 470, 0);
 
       resetClear();
-      FlxTween.tween(getStageObject('solidCover'), {alpha: 0}, 3, {ease: FlxEase.sineOut});
+      //FlxTween.tween(getStageObject('solidCover'), {alpha: 0}, 3, {ease: FlxEase.sineOut});
 
       sserafimGf.visible = true;
       sserafimBf.visible = true;
@@ -742,15 +734,6 @@ class SserafimStage extends BaseStage
     cutsceneHandler.timer(710 / 24, function() {
       sserafimGf.doAnim();
       sserafimBf.doAnim();
-    });
-
-    // actually start song
-    cutsceneHandler.timer(730 / 24, function() {
-      inCutscene = false;
-      startCountdown();
-
-      inCutscene = false;
-      canPause = true;
     });
   }
 
@@ -765,11 +748,12 @@ class SserafimStage extends BaseStage
     new FlxTimer().start(0.5, _ -> {
       camOther.fade(0xFF000000, 0.5, true, null, true);
 
-      cutsceneSounds.stop();
+      if (cutsceneSounds != null) cutsceneSounds.stop();
 
       inCutscene = false;
       canPause = true;
       startCountdown();
+      camHUD.visible = true;
 
       playCutsceneFromRestart();
     });
