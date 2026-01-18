@@ -467,7 +467,7 @@ class PlayState extends MusicBeatState
 	public static var nextReloadAll:Bool = false;
 
 	// Start of Mixtape Engine's large amount of bull
-	public static var mania:Int = 3;
+	public static var mania:Int = SONG?.startMania ?? SONG?.mania ?? 3;
 	public static var gameplayArea:String = "Story";
 	public static var Crashed:Bool = false;
 	public static var savedTime:Float = 0;
@@ -571,7 +571,7 @@ class PlayState extends MusicBeatState
 	var ch = 2 / 1000;
 	public var shaderUpdates:Array<Float->Void> = [];
 
-	public var chartModifier:String = 'Normal';
+	public var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 	public var convertMania:Int = ClientPrefs.getGameplaySetting('convertMania', 3);
 
 	// UNO mechanic instance for chart modifier

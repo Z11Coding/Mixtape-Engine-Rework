@@ -1944,6 +1944,7 @@ class LoadingState extends MusicBeatState
 			// Call generateSong with preload=true on the target instance
 			@:privateAccess
 			playStateTarget.waitingForPreloadFinish = true;
+			states.PlayState.mania = states.PlayState.SONG.startMania ?? states.PlayState.SONG.mania ?? 3;
 			playStateTarget.forceGenerateSong(true);
 
 			trace("LoadingState: Async preload generation completed");
