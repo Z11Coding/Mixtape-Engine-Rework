@@ -312,6 +312,13 @@ class PlaylistState extends MusicBeatState {
   override function update(elapse:Float) {
     super.update(elapse);
 
+	  if (loadedPlaylists.length <= 0) {
+		  if (controls.justPressed('debug_1') && !choosePlaylist) {
+			MusicBeatState.switchState(new states.editors.PlaylistEditorState());
+		  }
+		  return; //if there's no playlists, dont update lol
+	  }
+
 		if (!choosePlaylist)
 			updateTexts(elapse);
 
