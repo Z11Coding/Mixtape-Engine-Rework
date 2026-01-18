@@ -1,10 +1,10 @@
 package yutautil.modules;
 
-import haxe.Timer;
-import haxe.Http;
 import flixel.util.FlxTimer;
-import haxe.macro.Expr;
+import haxe.Http;
+import haxe.Timer;
 import haxe.macro.Context;
+import haxe.macro.Expr;
 
 class SyncUtils
 {
@@ -59,6 +59,7 @@ class SyncUtils
 		while (!condition())
 		{
 			// Busy wait
+			Sys.sleep(0.1);
 		}
 		trace("Done!");
 	}
