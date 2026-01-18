@@ -1937,6 +1937,7 @@ class LoadingState extends MusicBeatState
 		while (!MusicBeatState.getState().didGCBehavior || _doingRestart) {
 			// Wait for garbage collection behavior to be executed.
 			// trace("Restart State: " + _doingRestart + " | Did GC Behavior: " + MusicBeatState.getState().didGCBehavior);
+			Sys.sleep(0.1);
 		}
 
 
