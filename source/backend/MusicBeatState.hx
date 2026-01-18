@@ -66,6 +66,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	 * Override in subclasses to customize GC behavior
 	 */
 	public var gcBehavior:GCBehavior = AUTO;
+	public var didGCBehavior:Bool = false;
 
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
@@ -1118,7 +1119,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	 * Handle garbage collection behavior for this state
 	 */
 	private function handleGarbageCollection():Void {
-		if (!GarbageController.isExperimentalMode()) return;
+		if (!GarbageController.isExperimentalMode()) {return; didGCBehavior = true;}
 
 		var behavior = determineGCBehavior();
 
@@ -1132,6 +1133,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			case AUTO:
 				// AUTO behavior already handled by determineGCBehavior
 		}
+		didGCBehavior = true;
 	}
 
 	/**

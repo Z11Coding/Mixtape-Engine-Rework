@@ -763,9 +763,9 @@ class FunkinLua {
 			if (lethal && newHealth <= 0) {
 				// Set cause of death if provided
 				if (causeOfDeath != null && causeOfDeath.trim() != "") {
-					backend.COD.setCOD(null, causeOfDeath);
+					backend.COD.setCOD(this, causeOfDeath);
 				} else {
-					backend.COD.setCOD(null, 'Took lethal damage. (${this.scriptName})');
+					backend.COD.setCOD(this, 'Took lethal damage. (${this.scriptName})');
 				}
 
 				// Apply damage and trigger death

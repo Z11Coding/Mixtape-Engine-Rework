@@ -1912,6 +1912,8 @@ class LoadingState extends MusicBeatState
     	}
     	#end
 
+			private static var _doingRestart:Bool = false;
+
 	/**
 	 * Start asynchronous preloading for PlayState
 	 * Uses ASync to generate song chart without visual objects
@@ -1921,12 +1923,22 @@ class LoadingState extends MusicBeatState
 			trace("LoadingState: Cannot preload - target or SONG is null");
 			return;
 		}
+		trace("Is Restarting: " + _doingRestart);
 
 		trace("LoadingState: Starting async preload for song: " + states.PlayState.SONG.song);
+
 
 		// Create async function for chart generation
 		var preloadFunction = (function():Bool {
 			trace("LoadingState: Async preload thread started");
+
+			trace("LoadingState: Waiting for any ongoing GC behavior to finish...");
+
+		while (!MusicBeatState.getState().didGCBehavior || _doingRestart) {
+			// Wait for garbage collection behavior to be executed.
+			trace("Restart State: " + _doingRestart + " | Did GC Behavior: " + MusicBeatState.getState().didGCBehavior);
+		}
+
 
 			// Call generateSong with preload=true on the target instance
 			@:privateAccess

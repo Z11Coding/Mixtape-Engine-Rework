@@ -372,11 +372,10 @@ class HScript extends Iris
 			if (lethal && newHealth <= 0) {
 				// Set cause of death if provided
 				if (causeOfDeath != null && causeOfDeath.trim() != "") {
-					backend.COD.setCOD(null, causeOfDeath);
+					backend.COD.setCOD(this, causeOfDeath);
 				} else {
-					backend.COD.setCOD(null, 'Took lethal damage. (${this.scriptName})');
+			backend.COD.setCOD(this, 'Took lethal damage. (${haxe.io.Path.withoutDirectory(this.origin ?? this.filePath ?? "Unknown Script")})');
 				}
-
 				// Apply damage and trigger death
 				gameState.health = newHealth;
 				gameState.doDeathCheck(true);

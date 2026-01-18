@@ -168,6 +168,7 @@ class GarbageController
         }
 
         trace("GarbageController: Forced cleanup completed after PlayState");
+        @:privateAccess {states.LoadingState._doingRestart = false;}
         #end
     }
 

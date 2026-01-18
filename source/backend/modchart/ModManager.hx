@@ -640,8 +640,10 @@ class ModManager {
 		obj.updateHitbox();
 		if (obj.objType == NOTE) {
 			var cum:Note = cast obj;
+			if (cum.isReal()) {
 			cum.offset.x += cum.typeOffsetX;
 			cum.offset.y += cum.typeOffsetY;
+			}
 		}
 	}
 

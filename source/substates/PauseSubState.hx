@@ -489,7 +489,15 @@ class PauseSubState extends MusicBeatSubstate
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
 		}
-		MusicBeatState.resetState();
+
+		@:privateAccess
+		if (ClientPrefs.data.preloadSong)
+			states.LoadingState._doingRestart = true;
+
+		if (ClientPrefs.data.preloadSong)
+			states.LoadingState.loadAndSwitchState(#if ARCHIPELAGO_ALLOWED archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : #end new PlayState());
+		else
+			MusicBeatState.resetState();
 	}
 
 	override function destroy()
