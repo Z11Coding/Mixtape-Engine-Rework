@@ -119,19 +119,19 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\PsychEngine\\controls_v3.sol",
             Sys.getEnv("APPDATA") + "\\PsychEngine\\funkin.sol",
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario/FunkinPsychEngine/controls_v3.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario/FunkinPsychEngine/funkin.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario/PsychEngine/controls_v3.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario/PsychEngine/funkin.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/PsychEngine/controls_v3.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/PsychEngine/funkin.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario/FunkinPsychEngine/controls_v3.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario/FunkinPsychEngine/funkin.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario/PsychEngine/controls_v3.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario/PsychEngine/funkin.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/PsychEngine/controls_v3.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/PsychEngine/funkin.sol",
             #else
-            Sys.getenv("HOME") + "/.local/share/ShadowMario/FunkinPsychEngine/controls_v3.sol",
-            Sys.getenv("HOME") + "/.local/share/ShadowMario/FunkinPsychEngine/funkin.sol",
-            Sys.getenv("HOME") + "/.local/share/ShadowMario/PsychEngine/controls_v3.sol",
-            Sys.getenv("HOME") + "/.local/share/ShadowMario/PsychEngine/funkin.sol",
-            Sys.getenv("HOME") + "/.local/share/PsychEngine/controls_v3.sol",
-            Sys.getenv("HOME") + "/.local/share/PsychEngine/funkin.sol"
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario/FunkinPsychEngine/controls_v3.sol",
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario/FunkinPsychEngine/funkin.sol",
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario/PsychEngine/controls_v3.sol",
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario/PsychEngine/funkin.sol",
+            Sys.getEnv("HOME") + "/.local/share/PsychEngine/controls_v3.sol",
+            Sys.getEnv("HOME") + "/.local/share/PsychEngine/funkin.sol"
             #end
         ];
 
@@ -152,13 +152,13 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\ShadowMario\\PsychEngine",
             Sys.getEnv("APPDATA") + "\\PsychEngine",
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario/FunkinPsychEngine",
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario/PsychEngine",
-            Sys.getenv("HOME") + "/Library/Preferences/PsychEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario/FunkinPsychEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario/PsychEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/PsychEngine",
             #else
-            Sys.getenv("HOME") + "/.local/share/ShadowMario/FunkinPsychEngine",
-            Sys.getenv("HOME") + "/.local/share/ShadowMario/PsychEngine",
-            Sys.getenv("HOME") + "/.local/share/PsychEngine"
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario/FunkinPsychEngine",
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario/PsychEngine",
+            Sys.getEnv("HOME") + "/.local/share/PsychEngine"
             #end
         ];
 
@@ -184,11 +184,11 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\KadeEngine\\save.sol",
             Sys.getEnv("APPDATA") + "\\ninjamuffin99\\Kade Engine\\save.sol",
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/KadeEngine/save.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/ninjamuffin99/Kade Engine/save.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/KadeEngine/save.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/ninjamuffin99/Kade Engine/save.sol",
             #else
-            Sys.getenv("HOME") + "/.local/share/KadeEngine/save.sol",
-            Sys.getenv("HOME") + "/.local/share/ninjamuffin99/Kade Engine/save.sol"
+            Sys.getEnv("HOME") + "/.local/share/KadeEngine/save.sol",
+            Sys.getEnv("HOME") + "/.local/share/ninjamuffin99/Kade Engine/save.sol"
             #end
         ];
 
@@ -208,11 +208,11 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\KadeEngine",
             Sys.getEnv("APPDATA") + "\\ninjamuffin99\\Kade Engine",
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/KadeEngine",
-            Sys.getenv("HOME") + "/Library/Preferences/ninjamuffin99/Kade Engine",
+            Sys.getEnv("HOME") + "/Library/Preferences/KadeEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/ninjamuffin99/Kade Engine",
             #else
-            Sys.getenv("HOME") + "/.local/share/KadeEngine",
-            Sys.getenv("HOME") + "/.local/share/ninjamuffin99/Kade Engine"
+            Sys.getEnv("HOME") + "/.local/share/KadeEngine",
+            Sys.getEnv("HOME") + "/.local/share/ninjamuffin99/Kade Engine"
             #end
         ];
 
@@ -240,17 +240,17 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\Psych Engine", // Space variant
             Sys.getEnv("APPDATA") + "\\YoshiCrafter29\\CodenameEngine", // Codename Engine
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario",
-            Sys.getenv("HOME") + "/Library/Preferences/PsychEngine",
-            Sys.getenv("HOME") + "/Library/Preferences/FunkinCrew",
-            Sys.getenv("HOME") + "/Library/Preferences/Psych Engine",
-            Sys.getenv("HOME") + "/Library/Preferences/YoshiCrafter29/CodenameEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario",
+            Sys.getEnv("HOME") + "/Library/Preferences/PsychEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/FunkinCrew",
+            Sys.getEnv("HOME") + "/Library/Preferences/Psych Engine",
+            Sys.getEnv("HOME") + "/Library/Preferences/YoshiCrafter29/CodenameEngine",
             #else
-            Sys.getenv("HOME") + "/.local/share/ShadowMario",
-            Sys.getenv("HOME") + "/.local/share/PsychEngine",
-            Sys.getenv("HOME") + "/.local/share/FunkinCrew",
-            Sys.getenv("HOME") + "/.local/share/Psych Engine",
-            Sys.getenv("HOME") + "/.local/share/YoshiCrafter29/CodenameEngine"
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario",
+            Sys.getEnv("HOME") + "/.local/share/PsychEngine",
+            Sys.getEnv("HOME") + "/.local/share/FunkinCrew",
+            Sys.getEnv("HOME") + "/.local/share/Psych Engine",
+            Sys.getEnv("HOME") + "/.local/share/YoshiCrafter29/CodenameEngine"
             #end
         ];
 
@@ -288,17 +288,17 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\Psych Engine",
             Sys.getEnv("APPDATA") + "\\YoshiCrafter29\\CodenameEngine",
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/ShadowMario",
-            Sys.getenv("HOME") + "/Library/Preferences/PsychEngine",
-            Sys.getenv("HOME") + "/Library/Preferences/FunkinCrew",
-            Sys.getenv("HOME") + "/Library/Preferences/Psych Engine",
-            Sys.getenv("HOME") + "/Library/Preferences/YoshiCrafter29/CodenameEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/ShadowMario",
+            Sys.getEnv("HOME") + "/Library/Preferences/PsychEngine",
+            Sys.getEnv("HOME") + "/Library/Preferences/FunkinCrew",
+            Sys.getEnv("HOME") + "/Library/Preferences/Psych Engine",
+            Sys.getEnv("HOME") + "/Library/Preferences/YoshiCrafter29/CodenameEngine",
             #else
-            Sys.getenv("HOME") + "/.local/share/ShadowMario",
-            Sys.getenv("HOME") + "/.local/share/PsychEngine",
-            Sys.getenv("HOME") + "/.local/share/FunkinCrew",
-            Sys.getenv("HOME") + "/.local/share/Psych Engine",
-            Sys.getenv("HOME") + "/.local/share/YoshiCrafter29/CodenameEngine"
+            Sys.getEnv("HOME") + "/.local/share/ShadowMario",
+            Sys.getEnv("HOME") + "/.local/share/PsychEngine",
+            Sys.getEnv("HOME") + "/.local/share/FunkinCrew",
+            Sys.getEnv("HOME") + "/.local/share/Psych Engine",
+            Sys.getEnv("HOME") + "/.local/share/YoshiCrafter29/CodenameEngine"
             #end
         ];
 
@@ -338,15 +338,15 @@ class EngineImportSetup extends SetupBaseState {
             Sys.getEnv("APPDATA") + "\\MicUp\\save.sol",
             Sys.getEnv("APPDATA") + "\\Leather128\\LeatherEngine\\save.sol",
             #elseif mac
-            Sys.getenv("HOME") + "/Library/Preferences/FunkinLegacy/save.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/ModdingPlus/save.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/MicUp/save.sol",
-            Sys.getenv("HOME") + "/Library/Preferences/Leather128/LeatherEngine/save.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/FunkinLegacy/save.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/ModdingPlus/save.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/MicUp/save.sol",
+            Sys.getEnv("HOME") + "/Library/Preferences/Leather128/LeatherEngine/save.sol",
             #else
-            Sys.getenv("HOME") + "/.local/share/FunkinLegacy/save.sol",
-            Sys.getenv("HOME") + "/.local/share/ModdingPlus/save.sol",
-            Sys.getenv("HOME") + "/.local/share/MicUp/save.sol",
-            Sys.getenv("HOME") + "/.local/share/Leather128/LeatherEngine/save.sol"
+            Sys.getEnv("HOME") + "/.local/share/FunkinLegacy/save.sol",
+            Sys.getEnv("HOME") + "/.local/share/ModdingPlus/save.sol",
+            Sys.getEnv("HOME") + "/.local/share/MicUp/save.sol",
+            Sys.getEnv("HOME") + "/.local/share/Leather128/LeatherEngine/save.sol"
             #end
         ];
 
@@ -368,15 +368,15 @@ class EngineImportSetup extends SetupBaseState {
             ["MicUp", Sys.getEnv("APPDATA") + "\\MicUp"],
             ["LeatherEngine", Sys.getEnv("APPDATA") + "\\Leather128\\LeatherEngine"],
             #elseif mac
-            ["FunkinLegacy", Sys.getenv("HOME") + "/Library/Preferences/FunkinLegacy"],
-            ["ModdingPlus", Sys.getenv("HOME") + "/Library/Preferences/ModdingPlus"],
-            ["MicUp", Sys.getenv("HOME") + "/Library/Preferences/MicUp"],
-            ["LeatherEngine", Sys.getenv("HOME") + "/Library/Preferences/Leather128/LeatherEngine"],
+            ["FunkinLegacy", Sys.getEnv("HOME") + "/Library/Preferences/FunkinLegacy"],
+            ["ModdingPlus", Sys.getEnv("HOME") + "/Library/Preferences/ModdingPlus"],
+            ["MicUp", Sys.getEnv("HOME") + "/Library/Preferences/MicUp"],
+            ["LeatherEngine", Sys.getEnv("HOME") + "/Library/Preferences/Leather128/LeatherEngine"],
             #else
-            ["FunkinLegacy", Sys.getenv("HOME") + "/.local/share/FunkinLegacy"],
-            ["ModdingPlus", Sys.getenv("HOME") + "/.local/share/ModdingPlus"],
-            ["MicUp", Sys.getenv("HOME") + "/.local/share/MicUp"],
-            ["LeatherEngine", Sys.getenv("HOME") + "/.local/share/Leather128/LeatherEngine"]
+            ["FunkinLegacy", Sys.getEnv("HOME") + "/.local/share/FunkinLegacy"],
+            ["ModdingPlus", Sys.getEnv("HOME") + "/.local/share/ModdingPlus"],
+            ["MicUp", Sys.getEnv("HOME") + "/.local/share/MicUp"],
+            ["LeatherEngine", Sys.getEnv("HOME") + "/.local/share/Leather128/LeatherEngine"]
             #end
         ];
 
