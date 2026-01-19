@@ -7,7 +7,6 @@ import flixel.addons.display.FlxBackdrop;
 import flixel.tweens.misc.ColorTween;
 import objects.Character.CharType;
 import objects.Character;
-import objects.FlxAtlasSprite;
 import objects.FunkinSprite;
 import shaders.DropShadowShader;
 import shaders.SserafimShader;
@@ -27,12 +26,27 @@ class SserafimStage extends BaseStage
   // VFX/SHADERS
   var characterShader:SserafimShader;
   var stageShader:SserafimShader;
+  var solid:FunkinSprite;
+  var backLightColor:BGSprite;
+  var backLightWhite:BGSprite;
+  var truckLight1:BGSprite;
+  var truckLight2:BGSprite;
+  var solidCover:FunkinSprite;
 
   // SPRITES
   var perspectiveFloor:PerspectiveSprite = null;
+  var bg:BGSprite;
+  var fucker:BGSprite;
+  var backTables:BGSprite;
+  var backStools:BGSprite;
+  var truck:BGSprite;
+  var truckDoor:BGSprite;
+  var frontStool:BGSprite;
 
   // CUTSCENE SHIT
   var hasPlayedCutscene:Bool;
+  var backTablesCutscene:BGSprite;
+  var burgerCutscene:BGSprite;
 
   var SEEYOU1:FlxSprite;
   var SEEYOU2:FlxSprite;
@@ -56,6 +70,67 @@ class SserafimStage extends BaseStage
     cutsceneHandler = null;
 
     super.create();
+
+    solid = new FunkinSprite(-5000, -3000).makeSolidColor(10000, 10000);
+    solid.scrollFactor.set(0.0, 0.0);
+    add(solid);
+
+    bg = new BGSprite('bg', -1853, -815, 0.75, 0.75);
+    add(bg);
+
+    fucker = new BGSprite('floor', 790, 625, 0.85, 0.85);
+    fucker.alpha = 0;
+    add(fucker);
+
+    perspectiveFloor = new PerspectiveSprite(false);
+    perspectiveFloor.sprite.loadGraphic(Paths.image('floor'));
+    perspectiveFloor.setPositions(760, 1375, 790, 625);
+    perspectiveFloor.setScrollFactors(1.05, 1.05, 0.93, 0.93);
+    perspectiveFloor.shader = stageShader;
+    add(perspectiveFloor);
+
+    backTables = new BGSprite('back-tables', -1857, 267, 0.93, 0.93);
+    add(backTables);
+
+    backTablesCutscene = new BGSprite('cutscene/counter-stretch', -1858, 377, 0.93, 0.93);
+    backTablesCutscene.setGraphicSize(400, 1);
+    add(backTablesCutscene);
+
+    burgerCutscene = new BGSprite('cutscene/burger-cutscene', -97, 237, 0.93, 0.93);
+    add(burgerCutscene);
+
+    backStools = new BGSprite('back-stools', -1357, 426, 0.94, 0.94);
+    add(backStools);
+
+    backLightColor = new BGSprite('lights/back-light-color', -1241, -949, 0.93, 0.93);
+    backLightColor.alpha = 0;
+    add(backLightColor);
+
+    backLightWhite = new BGSprite('lights/back-light-white', -771, -599, 0.93, 0.93);
+    backLightWhite.alpha = 0;
+    add(backLightWhite);
+
+    truck = new BGSprite('truck-stuff', -983, -707, 0.95, 0.95);
+    add(truck);
+
+    truckDoor = new BGSprite('truck-door', -980, -173, 0.95, 0.95);
+    add(truckDoor);
+
+    truckLight1 = new BGSprite('lights/truck-light1', -962, -607, 0.95, 0.95);
+    truckLight1.alpha = 0;
+    add(truckLight1);
+
+    truckLight2 = new BGSprite('lights/truck-light2', -781, -464, 0.95, 0.95);
+    truckLight2.alpha = 0;
+    add(truckLight2);
+
+    frontStool = new BGSprite('front-stool', -280, 818, 1.0, 1.0);
+    add(frontStool);
+
+    solidCover = new FunkinSprite(-5000, -3000).makeSolidColor(10000, 10000, FlxColor.BLACK);
+    solidCover.scrollFactor.set(0.0, 0.0);
+    solidCover.alpha = 0;
+    add(solidCover);
   }
 
   override function createPost() {
@@ -64,13 +139,6 @@ class SserafimStage extends BaseStage
     super.createPost();
     characterShader = new SserafimShader(true);
     stageShader = new SserafimShader();
-
-    perspectiveFloor = new PerspectiveSprite(false);
-    perspectiveFloor.sprite.loadGraphic(Paths.image('floor'));
-    perspectiveFloor.setPositions(760, 1375, 790, 625);
-    perspectiveFloor.setScrollFactors(1.05, 1.05, 0.93, 0.93);
-    perspectiveFloor.shader = stageShader;
-    add(perspectiveFloor);
 
     dust1 = new FlxBackdrop(Paths.image('dust/dustMid'), 0x01);
     dust1.setPosition(-650, -200);
@@ -108,10 +176,10 @@ class SserafimStage extends BaseStage
     dust4.velocity.x = -150;
     dust4.shader = stageShader;
 
-    game.addAbove(getStageObject("solidCover"), dust1);
-    game.addAbove(getStageObject("solidCover"), dust2);
-    game.addAbove(getStageObject("solidCover"), dust3);
-    game.addAbove(getStageObject("solidCover"), dust4);
+    add(dust1);
+    add(dust2);
+    add(dust3);
+    add(dust4);
 
     dust1.color = 0xff98847d;
     dust2.color = 0xff8b6c63;
@@ -208,7 +276,6 @@ class SserafimStage extends BaseStage
         if (parseBool(value1))
         {
           // play second kick anim + reset her idle back to normal
-          yunjin.playAnim('yunjin intro', true, false);
           FunkinSound.playOnce('doorKick2', 1.0);
           yunjin.danceEveryNumBeats = 1;
 
@@ -280,7 +347,7 @@ class SserafimStage extends BaseStage
 
   function setCoverVisible(visible:Bool)
   {
-    getStageObject('solidCover').alpha = visible ? 1.0 : 0.0;
+    solidCover.alpha = visible ? 1.0 : 0.0;
   }
 
   function setGirlsVisible(visibleArray:Array<Bool>)
@@ -328,28 +395,28 @@ class SserafimStage extends BaseStage
 
   function flashTruckLights(amount:Float, duration:Float):Void
   {
-    FlxTween.cancelTweensOf(getStageObject('truckLight1'));
-    FlxTween.cancelTweensOf(getStageObject('truckLight2'));
+    FlxTween.cancelTweensOf(truckLight1);
+    FlxTween.cancelTweensOf(truckLight2);
 
-    getStageObject('truckLight1').alpha = amount;
-    getStageObject('truckLight2').alpha = amount;
+    truckLight1.alpha = amount;
+    truckLight2.alpha = amount;
 
     characterShader.truckLightStrength = amount;
     stageShader.truckLightStrength = amount;
 
-    FlxTween.tween(getStageObject('truckLight1'), {alpha: 0}, duration,
+    FlxTween.tween(truckLight1, {alpha: 0}, duration,
     {
       ease: FlxEase.cubeInOut,
       onUpdate: function(tween:FlxTween) {
-        characterShader.truckLightStrength = getStageObject('truckLight1').alpha;
-        stageShader.truckLightStrength = getStageObject('truckLight1').alpha;
+        characterShader.truckLightStrength = truckLight1.alpha;
+        stageShader.truckLightStrength = truckLight1.alpha;
       },
       onComplete: function(tween:FlxTween) {
         characterShader.truckLightStrength = 0;
         stageShader.truckLightStrength = 0;
       }
     });
-    FlxTween.tween(getStageObject('truckLight2'), {alpha: 0}, duration, {ease: FlxEase.cubeInOut});
+    FlxTween.tween(truckLight2, {alpha: 0}, duration, {ease: FlxEase.cubeInOut});
   }
 
   var lightsColors:Array<FlxColor> = [];
@@ -369,33 +436,33 @@ class SserafimStage extends BaseStage
 
   function flashBackLight(amount:Float, duration:Float, color:FlxColor)
   {
-    FlxTween.cancelTweensOf(getStageObject('backLightColor'));
-    FlxTween.cancelTweensOf(getStageObject('backLightWhite'));
+    FlxTween.cancelTweensOf(backLightColor);
+    FlxTween.cancelTweensOf(backLightWhite);
 
-    getStageObject('backLightColor').color = color;
+    backLightColor.color = color;
 
-    getStageObject('backLightColor').alpha = amount * 0.8;
-    getStageObject('backLightWhite').alpha = amount * 0.7;
+    backLightColor.alpha = amount * 0.8;
+    backLightWhite.alpha = amount * 0.7;
 
     characterShader.pulseLightColor = color;
     stageShader.pulseLightColor = color;
 
-    characterShader.pulseLightStrength = getStageObject('backLightColor').alpha;
-    stageShader.pulseLightStrength = getStageObject('backLightColor').alpha;
+    characterShader.pulseLightStrength = backLightColor.alpha;
+    stageShader.pulseLightStrength = backLightColor.alpha;
 
-    FlxTween.tween(getStageObject('backLightColor'), {alpha: 0}, duration,
+    FlxTween.tween(backLightColor, {alpha: 0}, duration,
       {
         ease: FlxEase.cubeInOut,
         onUpdate: function(tween:FlxTween) {
-          characterShader.pulseLightStrength = getStageObject('backLightColor').alpha;
-          stageShader.pulseLightStrength = getStageObject('backLightColor').alpha;
+          characterShader.pulseLightStrength = backLightColor.alpha;
+          stageShader.pulseLightStrength = backLightColor.alpha;
         },
         onComplete: function(tween:FlxTween) {
           characterShader.pulseLightStrength = 0;
           stageShader.pulseLightStrength = 0;
         }
       });
-    FlxTween.tween(getStageObject('backLightWhite'), {alpha: 0}, duration, {ease: FlxEase.cubeInOut});
+    FlxTween.tween(backLightWhite, {alpha: 0}, duration, {ease: FlxEase.cubeInOut});
   }
 
   override function beatHit()
@@ -405,11 +472,11 @@ class SserafimStage extends BaseStage
     // flash lights behind truck
     if (lightsEnabled) flashBackLight(lightsIntensities[curBeat % lightsIntensities.length], lightsDurations[curBeat % lightsDurations.length],
       lightsColors[curBeat % lightsColors.length]);
-    if (chaewon != null && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && !chaewon.getAnimationName().startsWith('sing') && !chaewon.stunned)
+    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && !chaewon.getAnimationName().startsWith('sing') && !chaewon.stunned)
 			chaewon.dance();
-    if (yunjin != null && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && !yunjin.getAnimationName().startsWith('sing') && !yunjin.stunned)
+    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && !yunjin.getAnimationName().startsWith('sing') && !yunjin.stunned)
 			yunjin.dance();
-    if (eunchae != null && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && !eunchae.getAnimationName().startsWith('sing') && !eunchae.stunned)
+    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && !eunchae.getAnimationName().startsWith('sing') && !eunchae.stunned)
 			eunchae.dance();
   }
 
@@ -489,17 +556,17 @@ class SserafimStage extends BaseStage
       setGirlsVisible(baseVisible);
     }
 
-    getStageObject('truck').visible = !inCutscene;
-    getStageObject('truckDoor').visible = false;
-    getStageObject('backTables').visible = !inCutscene;
-    getStageObject('backStools').visible = !inCutscene;
-    getStageObject('frontStool').visible = !inCutscene;
+    truck.visible = !inCutscene;
+    truckDoor.visible = false;
+    backTables.visible = !inCutscene;
+    backStools.visible = !inCutscene;
+    frontStool.visible = !inCutscene;
     hideDust(!inCutscene);
 
     perspectiveFloor.sprite.loadGraphic(Paths.image(inCutscene ? 'cutscene/floor-cutscene' : 'floor'));
 
-    getStageObject('backTablesCutscene').visible = inCutscene;
-    getStageObject('burgerCutscene').visible = inCutscene;
+    backTablesCutscene.visible = inCutscene;
+    burgerCutscene.visible = inCutscene;
 
     // gf will be hidden at the start + in the cutscene so we can just do this here
     game.gf.visible = false;
@@ -574,7 +641,7 @@ class SserafimStage extends BaseStage
 
     new FlxTimer().start(0.05, function(tmr) {
       SEEYOU1.visible = true;
-      getStageObject('solidCover').alpha = 1;
+      solidCover.alpha = 1;
       camHUD.visible = false;
       inCutscene = true;
       canPause = false;
@@ -711,7 +778,7 @@ class SserafimStage extends BaseStage
       stageShader.setAdjustColor(0, 0, 0, 0);
       characterShader.setAdjustColor(0, 0, 0, 0);
       camGame.fade(0xFFFFFFFF, 30 / 24, true, null, true);
-      getStageObject('solidCover').alpha = 1;
+      solidCover.alpha = 1;
 
       setCutsceneVisibility(false);
     });
@@ -723,7 +790,7 @@ class SserafimStage extends BaseStage
       tweenCameraToPosition(1070, 470, 0);
 
       resetClear();
-      //FlxTween.tween(getStageObject('solidCover'), {alpha: 0}, 3, {ease: FlxEase.sineOut});
+      FlxTween.tween(solidCover, {alpha: 0}, 3, {ease: FlxEase.sineOut});
 
       sserafimGf.visible = true;
       sserafimBf.visible = true;
@@ -771,10 +838,11 @@ class SserafimStage extends BaseStage
 
   function resetClear()
   {
-    yunjin.playAnim('doorclosed', true, true);
+    yunjin.playAnim('yunjin intro', true, true, 0);
+    yunjin.animPaused = true;
     yunjin.danceEveryNumBeats = 0;
 
-    getStageObject('truckDoor').visible = false;
+    truckDoor.visible = false;
 
     final things:Array<Dynamic> = [
       stageShader,

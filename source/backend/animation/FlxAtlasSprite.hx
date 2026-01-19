@@ -1,11 +1,11 @@
 package backend.animation;
 
-import flixel.util.FlxSignal.FlxTypedSignal;
-import flxanimate.FlxAnimate;
-import flxanimate.FlxAnimate.Settings;
 import flixel.graphics.frames.FlxFrame;
-import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.math.FlxPoint;
+import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.util.FlxSignal.FlxTypedSignal;
+import flxanimate.FlxAnimate.Settings;
+import flxanimate.FlxAnimate;
 import flxanimate.animate.FlxKeyFrame;
 import lime.utils.Assets;
 

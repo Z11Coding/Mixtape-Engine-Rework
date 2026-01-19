@@ -4,10 +4,10 @@ import backend.FunkinSound;
 import flixel.FlxSprite;
 import flixel.util.FlxSignal;
 import flixel.util.FlxTimer;
+import objects.FunkinSprite;
 import states.freeplay.vslice.PlayerData.PlayerFreeplayDJData;
-import states.freeplay.vslice.obj.FlxAtlasSprite;
 
-class FreeplayDJ extends FlxAtlasSprite
+class FreeplayDJ extends FunkinSprite
 {
   // Represents the sprite's current status.
   // Without state machines I would have driven myself crazy years ago.
@@ -39,7 +39,7 @@ class FreeplayDJ extends FlxAtlasSprite
 
     super(x, y, playableCharData.getAtlasPath());
 
-    onAnimationFrame.add(function(name, number) {
+    anim.onFrameChange.add(function(name, number, index) {
       if (name == playableCharData.getAnimationPrefix('cartoon'))
       {
         if (number == playableCharData.getCartoonSoundClickFrame())
@@ -56,7 +56,7 @@ class FreeplayDJ extends FlxAtlasSprite
     FlxG.debugger.track(this);
     FlxG.console.registerObject("dj", this);
 
-    onAnimationComplete.add(onFinishAnim);
+    anim.onFinish.add(onFinishAnim);
 
     FlxG.console.registerFunction("freeplayCartoon", function() {
       currentState = Cartoon;
@@ -67,7 +67,7 @@ class FreeplayDJ extends FlxAtlasSprite
   {
     var anims:Array<String> = [];
     @:privateAccess
-    for (animKey in anim.symbolDictionary)
+    for (animKey in anim._animations)
     {
       anims.push(animKey.name);
     }
@@ -78,8 +78,6 @@ class FreeplayDJ extends FlxAtlasSprite
 
   public override function update(elapsed:Float):Void
   {
-
-
     switch (currentState)
     {
       case Intro:
@@ -118,7 +116,7 @@ class FreeplayDJ extends FlxAtlasSprite
         if (getCurrentAnimation() == animPrefixA)
         {
           var endFrame = playableCharData.getFistPumpIntroEndFrame();
-          if (endFrame > -1 && anim.curFrame >= endFrame)
+          if (endFrame > -1 && anim.curAnim.curFrame >= endFrame)
           {
             playFlashAnimation(animPrefixA, true, false, false, playableCharData.getFistPumpIntroStartFrame());
           }
@@ -127,7 +125,7 @@ class FreeplayDJ extends FlxAtlasSprite
         {
           trace("Loss Intro");
           var endFrame = playableCharData.getFistPumpIntroBadEndFrame();
-          if (endFrame > -1 && anim.curFrame >= endFrame)
+          if (endFrame > -1 && anim.curAnim.curFrame >= endFrame)
           {
             playFlashAnimation(animPrefixB, true, false, false, playableCharData.getFistPumpIntroBadStartFrame());
           }
@@ -144,7 +142,7 @@ class FreeplayDJ extends FlxAtlasSprite
         if (getCurrentAnimation() == animPrefixA)
         {
           var endFrame = playableCharData.getFistPumpLoopEndFrame();
-          if (endFrame > -1 && anim.curFrame >= endFrame)
+          if (endFrame > -1 && anim.curAnim.curFrame >= endFrame)
           {
             playFlashAnimation(animPrefixA, true, false, false, playableCharData.getFistPumpLoopStartFrame());
           }
@@ -153,7 +151,7 @@ class FreeplayDJ extends FlxAtlasSprite
         {
           trace("Loss GYATT");
           var endFrame = playableCharData.getFistPumpLoopBadEndFrame();
-          if (endFrame > -1 && anim.curFrame >= endFrame)
+          if (endFrame > -1 && anim.curAnim.curFrame >= endFrame)
           {
             playFlashAnimation(animPrefixB, true, false, false, playableCharData.getFistPumpLoopBadStartFrame());
           }
@@ -458,13 +456,13 @@ class FreeplayDJ extends FlxAtlasSprite
 
   override public function getCurrentAnimation():String
   {
-    if (this.anim == null || this.anim.curSymbol == null) return "";
-    return this.anim.curSymbol.name;
+    if (this.anim == null || this.anim.curAnim == null) return "";
+    return this.anim.curAnim.name;
   }
 
   public function playFlashAnimation(id:String, Force:Bool = false, Reverse:Bool = false, Loop:Bool = false, Frame:Int = 0):Void
   {
-    playAnimation(id, Force, Reverse, Loop, Frame);
+    this.anim.play(id, Force, Reverse, Frame);
     applyAnimOffset();
   }
 

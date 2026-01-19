@@ -1,13 +1,13 @@
 package stages;
 
-import flixel.util.FlxSignal;
 import flixel.graphics.tile.FlxGraphicsShader;
+import flixel.util.FlxSignal;
 import flixel.util.typeLimit.OneOfTwo;
-import substates.StickerSubState;
+import objects.Note;
 import stages.objects.ABotPixel;
 import stages.objects.ABotSpeaker;
-import objects.Note;
 import substates.GameOverSubstate;
+import substates.StickerSubState;
 
 class PicoCapableStage extends BaseStage
 {
@@ -51,9 +51,9 @@ class PicoCapableStage extends BaseStage
 		super.destroy();
 	}
 	override function create() {
-		
+
 		if (!(NENE_LIST.contains(PlayState.SONG.gfVersion) || forceABot))
-			return;	
+			return;
 		var _song = PlayState.SONG;
 		if (_song.gameOverSound == null || _song.gameOverSound.trim().length < 1)
 			GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pico';
@@ -277,7 +277,7 @@ class PicoCapableStage extends BaseStage
 		}
 
 		if (finishInstantly){
-			if(abot != null) abot.eyes.anim.curFrame = abot.eyes.anim.length - 1;
+			if(abot != null) abot.eyes.anim.curAnim.curFrame = abot.eyes.anim.curAnim.numFrames - 1;
 			if(abotPixel != null) abotPixel.eyes.animation.frameIndex= abotPixel.eyes.animation.curAnim.numFrames - 1;
 		}
 	}

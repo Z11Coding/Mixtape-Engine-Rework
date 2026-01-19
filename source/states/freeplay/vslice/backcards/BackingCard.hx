@@ -10,14 +10,13 @@ import objects.FunkinSprite;
 import openfl.display.BlendMode;
 import states.freeplay.VSliceFreeplayState;
 import states.freeplay.vslice.PlayableCharacter;
-import states.freeplay.vslice.obj.FlxAtlasSprite;
 
 /**
  * A class for the backing cards so they dont have to be part of freeplayState......
  */
 class BackingCard extends FlxSpriteGroup
 {
-  public var backingTextYeah:FlxAtlasSprite;
+  public var backingTextYeah:FunkinSprite;
   public var orangeBackShit:FunkinSprite;
   public var alsoOrangeLOL:FunkinSprite;
   public var pinkBack:FunkinSprite;
@@ -50,15 +49,7 @@ class BackingCard extends FlxSpriteGroup
     orangeBackShit = new FunkinSprite(84, 440).makeSolidColor(Std.int(pinkBack.width), 75, 0xFFFEDA00);
     alsoOrangeLOL = new FunkinSprite(0, orangeBackShit.y).makeSolidColor(100, Std.int(orangeBackShit.height), 0xFFFFD400);
     confirmGlow2 = new FlxSprite(confirmGlow.x, confirmGlow.y).loadGraphic(Paths.image('freeplay/confirmGlow2'));
-    backingTextYeah = new FlxAtlasSprite((VSliceFreeplayState.CUTOUT_WIDTH * VSliceFreeplayState.DJ_POS_MULTI)+640, 370, "freeplay/backing-text-yeah",
-      {
-        FrameRate: 24.0,
-        Reversed: false,
-        // ?OnComplete:Void -> Void,
-        ShowPivot: false,
-        Antialiasing: true,
-        ScrollFactor: new FlxPoint(1, 1),
-      });
+    backingTextYeah = new FunkinSprite((VSliceFreeplayState.CUTOUT_WIDTH * VSliceFreeplayState.DJ_POS_MULTI)+640, 370, "freeplay/backing-text-yeah");
 
     pinkBack.color = 0xFFFFD4E9; // sets it to pink!
     pinkBack.x -= pinkBack.width;

@@ -34,7 +34,6 @@ import states.freeplay.vslice.PlayerData.PlayerFreeplayDJData;
 import states.freeplay.vslice.PlayerData;
 import states.freeplay.vslice.PlayerRegistry;
 import states.freeplay.vslice.VsliceSubState as MusicBeatSubState;
-import states.freeplay.vslice.obj.FlxAtlasSprite;
 import substates.StickerSubState;
 import substates.results.ClearPercentCounter;
 import substates.results.ResultScore;
@@ -69,7 +68,7 @@ class ResultState extends MusicBeatSubState
 
   var characterAtlasAnimations:Array<
     {
-      sprite:FlxAtlasSprite,
+      sprite:FunkinSprite,
       delay:Float,
       forceLoop:Bool,
       startFrameLabel:String,
@@ -249,14 +248,14 @@ class ResultState extends MusicBeatSubState
           // offsets[0] -= xDiff*1.8;
           // offsets[1] -= yDiff*1.8;
 
-          var animation:FlxAtlasSprite = new FlxAtlasSprite(offsets[0] + MobileScaleMode.gameNotchSize.x, offsets[1], animPath);
+          var animation:FunkinSprite = new FunkinSprite(offsets[0] + MobileScaleMode.gameNotchSize.x, offsets[1], animPath);
           animation.zIndex = animData.zIndex ?? 500;
           animation.scale.set(animData.scale ?? 1.0, animData.scale ?? 1.0);
 
           if (!(animData.looped ?? true))
             {
               // Animation is not looped.
-              animation.onAnimationComplete.add((_name:String) -> {
+              animation.anim.onFinish.add((_name:String) -> {
                 trace("AHAHAH 2");
                 if (animation != null)
                 {
@@ -266,22 +265,22 @@ class ResultState extends MusicBeatSubState
             }
             else if (animData.loopFrameLabel != null)
             {
-              animation.onAnimationComplete.add((_name:String) -> {
+              animation.anim.onFinish.add((_name:String) -> {
                 trace("AHAHAH 2");
                 if (animation != null)
                 {
-                  animation.playAnimation(animData.loopFrameLabel ?? '', true, false, true); // unpauses this anim, since it's on PlayOnce!
+                  animation.anim.play(animData.loopFrameLabel ?? '', true, false); // unpauses this anim, since it's on PlayOnce!
                 }
               });
             }
             else if (animData.loopFrame != null)
             {
-              animation.onAnimationComplete.add((_name:String) -> {
+              animation.anim.onFinish.add((_name:String) -> {
                 if (animation != null)
                 {
                   trace("AHAHAH");
-                  animation.anim.curFrame = animData.loopFrame ?? 0;
-                  animation.anim.play(); // unpauses this anim, since it's on PlayOnce!
+                  animation.anim.curAnim.curFrame = animData.loopFrame ?? 0;
+                  animation.anim.play(''); // unpauses this anim, since it's on PlayOnce!
                 }
               });
             }
@@ -649,7 +648,7 @@ class ResultState extends MusicBeatSubState
       new FlxTimer().start(atlas.delay, _ -> {
         if (atlas.sprite == null) return;
         atlas.sprite.visible = true;
-        atlas.sprite.playAnimation(atlas.startFrameLabel);
+        atlas.sprite.anim.play(atlas.startFrameLabel);
         if (atlas.sound != "")
         {
           var sndPath:String = Paths.stripLibrary(atlas.sound);

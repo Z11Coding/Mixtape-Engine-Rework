@@ -539,6 +539,13 @@ class Paths
 		return returnPath;
 	}
 
+	public static function getLibrary(path:String):String
+  {
+    var parts:Array<String> = path.split(':');
+    if (parts.length < 2) return 'shared';
+    return parts[0];
+  }
+
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
 	{
 		#if MODS_ALLOWED
@@ -1083,7 +1090,7 @@ class Paths
 			else #end if (OpenFlAssets.exists(file, IMAGE))
 				bitmap = OpenFlAssets.getBitmapData(file);
 
-			if (bitmap == null)
+			if (bitmap == null && key.split(',').length == 1)
 			{
 				trace('Bitmap not found: $file | key: $key');
 				return null;
@@ -1528,45 +1535,53 @@ class Paths
 	#end
 
 	#if flxanimate
-	public static function loadAnimateAtlas(spr:FlxAnimate, folderOrImg:Dynamic, spriteJson:Dynamic = null, animationJson:Dynamic = null)
-	{
-		if (folderOrImg is String)
-		{
-			trace(folderOrImg);
-			var dir = getPath("images/" + folderOrImg);
-			trace(dir);
-			// We actually DO support system in Animate!
-			if (spriteJson == null)
-			{
-				if (NativeFileSystem.exists(Path.join([dir, "spritemap1.json"])))
-					spriteJson = NativeFileSystem.getContent(Path.join([dir, "spritemap1.json"]));
-				else
-				{
-					trace(Path.join([dir, "spritemap1.json"]) + " is missing!!");
-					return;
-				}
-			}
-
-			if (animationJson == null)
-			{
-				if (NativeFileSystem.exists(Path.join([dir, "Animation.json"])))
-					animationJson = NativeFileSystem.getContent(Path.join([dir, "Animation.json"]));
-				else
-				{
-					trace(Path.join([dir, "Animation.json"]) + " is missing!!");
-					return;
-				}
-			}
-
-			folderOrImg = image(Path.join([folderOrImg, "spritemap1"]));
-		}
-		spr.loadAtlasEx(folderOrImg, spriteJson, animationJson);
-	}
-
 	public static function animateAtlas(path:String, ?library:String):String
 	{
-		return getLibraryPath('images/$path', library);
+		return getFolderPath('images/$path', library);
 	}
+
+	public static function getAnimateAtlas(key:String, ?library:String, settings:AtlasSpriteSettings):FlxAnimateFrames
+  {
+    var assetLibrary:String = library ?? "";
+    var graphicKey:String = "";
+
+    if (assetLibrary != "")
+    {
+      graphicKey = Paths.animateAtlas(key, assetLibrary);
+    }
+    else
+    {
+      graphicKey = Paths.animateAtlas(key);
+    }
+
+    var validatedSettings:AtlasSpriteSettings =
+      {
+        swfMode: settings?.swfMode ?? false,
+        cacheOnLoad: settings?.cacheOnLoad ?? false,
+        filterQuality: settings?.filterQuality ?? MEDIUM,
+        spritemaps: settings?.spritemaps ?? null,
+        metadataJson: settings?.metadataJson ?? null,
+        cacheKey: settings?.cacheKey ?? null,
+        uniqueInCache: settings?.uniqueInCache ?? false,
+        onSymbolCreate: settings?.onSymbolCreate ?? null,
+        applyStageMatrix: settings?.applyStageMatrix ?? false,
+        useRenderTexture: settings?.useRenderTexture ?? false
+      };
+
+    // Validate asset path.
+    if (!Assets.exists('${graphicKey}/Animation.json'))
+    {
+      throw 'No Animation.json file exists at the specified path (${graphicKey})';
+    }
+
+    return FlxAnimateFrames.fromAnimate(graphicKey, validatedSettings.spritemaps, validatedSettings.metadataJson, validatedSettings.cacheKey,
+      validatedSettings.uniqueInCache, {
+        swfMode: validatedSettings.swfMode,
+        cacheOnLoad: validatedSettings.cacheOnLoad,
+        filterQuality: validatedSettings.filterQuality,
+        onSymbolCreate: validatedSettings.onSymbolCreate
+      });
+  }
 	#end
 
 	public static function file(file:String, type:AssetType = TEXT, ?library:String):String {

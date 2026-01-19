@@ -578,62 +578,8 @@ class FunkinPreloader extends FlxBasePreloader
 			case CachingData:
 				if (cachingDataPercent < 0)
 				{
-					cachingDataPercent = 0.0;
-					cachingDataStartTime = elapsed;
-
-					#if !LEGACY_PSYCH
-
-					var assetsToCache:Array<String> = [
-						"freeplay/freeplayStars",
-						"freeplay/albumRoll/freeplayAlbum",
-						"freeplay/sortedLetters"
-					];
-
-					trace("Load misc");
-					// ? Some misc caching
-					// Cache assets list for future use
-					// load 6.4MB json file
-
-					var promise = new Promise<Any>();
-					new Future(() ->
-					{
-						for (index => item in assetsToCache)
-						{
-							try
-							{
-								var text = NativeFileSystem.getContent('assets/shared/images/${item}/Animation.json');
-								var jsonBlob = haxe.Json.parse(text);
-								if (jsonBlob != null)
-								{
-									#if debug trace("Cached JSON: " + item); #end
-									states.freeplay.vslice.obj.FlxAtlasSprite.ANIMATION_OBJECTS.set(item, jsonBlob);
-									//objects.FlxAtlasSprite.ANIMATION_OBJECTS.set(item,jsonBlob);
-								}
-								else trace("JSON is null: " + item);
-							}
-							catch (x:Exception)
-								trace("Exception when caching Anim JSON: " + x.message);
-
-							promise.progress(index + 1, assetsToCache.length);
-						}
-						promise.complete(null);
-					}, true); // Assets.cacheAssets(assetsToCache);
-
-					promise.future.onProgress((loaded:Int, total:Int) ->
-					{
-						cachingDataPercent = loaded / total;
-					});
-					promise.future.onComplete((_result) ->
-					{
-						cachingDataComplete = true;
-						trace('Completed caching JSONs.');
-					});
-					#else
-
-					cachingDataComplete = true;
 					cachingDataPercent = 1.0;
-					#end
-					return 0.0;
+					cachingDataComplete = true;
 				}
 				else if (0.0 > 0)
 				{

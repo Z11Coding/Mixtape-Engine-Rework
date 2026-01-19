@@ -17,7 +17,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 {
 	var character:Character;
 	var ghost:FlxSprite;
-	var animateGhost:FlxAnimate;
+	var animateGhost:FunkinSprite;
 	var animateGhostImage:String;
 	var cameraFollowPointer:FlxSprite;
 	var isAnimateSprite:Bool = false;
@@ -296,21 +296,20 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 				{
 					if(animateGhost == null) //If I created the animateGhost on create() and you didn't load an atlas, it would crash the game on destroy, so we create it here
 					{
-						animateGhost = new FlxAnimate(ghost.x, ghost.y);
-						animateGhost.showPivot = false;
+						animateGhost = new FunkinSprite(ghost.x, ghost.y);
 						insert(members.indexOf(ghost), animateGhost);
 						animateGhost.active = false;
 					}
 
 					if(animateGhost == null || animateGhostImage != character.imageFile)
-						Paths.loadAnimateAtlas(animateGhost, character.imageFile);
+						animateGhost.loadTextureAtlas(character.imageFile);
 
 					if(myAnim.indices != null && myAnim.indices.length > 0)
 						animateGhost.anim.addBySymbolIndices('anim', myAnim.name, myAnim.indices, 0, false);
 					else
 						animateGhost.anim.addBySymbol('anim', myAnim.name, 0, false);
 
-					animateGhost.anim.play('anim', true, false, character.atlas.anim.curFrame);
+					animateGhost.anim.play('anim', true, false, character.anim.curAnim.curFrame);
 					animateGhost.anim.pause();
 
 					animateGhostImage = character.imageFile;
@@ -541,7 +540,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					if(character.hasAnimation(animationInputText.text))
 					{
 						if(!character.isAnimateAtlas) character.animation.remove(animationInputText.text);
-						else @:privateAccess character.atlas.anim.animsMap.remove(animationInputText.text);
+						else @:privateAccess character.anim._animations.remove(animationInputText.text);
 					}
 					character.animationsArray.remove(anim);
 				}
@@ -569,7 +568,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					if(character.hasAnimation(anim.anim))
 					{
 						if(!character.isAnimateAtlas) character.animation.remove(anim.anim);
-						else @:privateAccess character.atlas.anim.animsMap.remove(anim.anim);
+						else @:privateAccess character.anim._animations.remove(anim.anim);
 						character.animOffsets.remove(anim.anim);
 						character.animationsArray.remove(anim);
 					}
@@ -821,18 +820,15 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		var lastAnim:String = character.getAnimationName();
 		var anims:Array<AnimArray> = character.animationsArray.copy();
 
-		character.atlas = FlxDestroyUtil.destroy(character.atlas);
 		character.isAnimateAtlas = false;
 		character.color = FlxColor.WHITE;
 		character.alpha = 1;
 
 		if(Paths.fileExists('images/' + character.imageFile + '/Animation.json', TEXT))
 		{
-			character.atlas = new FlxAnimate();
-			character.atlas.showPivot = false;
 			try
 			{
-				Paths.loadAnimateAtlas(character.atlas, character.imageFile);
+				character.loadTextureAtlas(character.imageFile);
 			}
 			catch(e:Dynamic)
 			{
@@ -1038,10 +1034,10 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 				frames = character.animation.curAnim.curFrame;
 				length = character.animation.curAnim.numFrames;
 			}
-			else if(character.isAnimateAtlas && character.atlas.anim != null)
+			else if(character.isAnimateAtlas && character.anim != null)
 			{
-				frames = character.atlas.anim.curFrame;
-				length = character.atlas.anim.length;
+				frames = character.anim.curAnim.curFrame;
+				length = character.anim.curAnim.numFrames;
 			}
 
 			if(length >= 0)
@@ -1056,7 +1052,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 					{
 						frames = FlxMath.wrap(frames + Std.int(isLeft ? -shiftMult : shiftMult), 0, length-1);
 						if(!character.isAnimateAtlas) character.animation.curAnim.curFrame = frames;
-						else character.atlas.anim.curFrame = frames;
+						else character.anim.curAnim.curFrame = frames;
 						holdingFrameElapsed -= 0.1;
 					}
 				}
@@ -1242,9 +1238,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		else
 		{
 			if(indices != null && indices.length > 0)
-				character.atlas.anim.addBySymbolIndices(anim, name, indices, fps, loop);
+				character.anim.addBySymbolIndices(anim, name, indices, fps, loop);
 			else
-				character.atlas.anim.addBySymbol(anim, name, fps, loop);
+				character.anim.addBySymbol(anim, name, fps, loop);
 		}
 
 		if(!character.hasAnimation(anim))

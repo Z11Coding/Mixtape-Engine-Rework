@@ -8,10 +8,10 @@ import flixel.math.FlxMath;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
+import objects.FunkinSprite;
 import openfl.display.BlendMode;
 import states.freeplay.VSliceFreeplayState;
 import states.freeplay.vslice.FreeplayHelpers;
-import states.freeplay.vslice.obj.FlxAtlasSprite;
 
 class PicoCard extends BackingCard
 {
@@ -24,7 +24,7 @@ class PicoCard extends BackingCard
   var glowDark:FlxSprite;
   var blueBar:FlxSprite;
 
-  var confirmAtlas:FlxAtlasSprite;
+  var confirmAtlas:FunkinSprite;
 
   public override function enterCharSel():Void
   {
@@ -142,7 +142,7 @@ class PicoCard extends BackingCard
     glow.visible = false;
     glowDark.visible = false;
 
-    confirmAtlas = new FlxAtlasSprite(5, 55, "freeplay/backingCards/pico/pico-confirm");
+    confirmAtlas = new FunkinSprite(5, 55, "freeplay/backingCards/pico/pico-confirm");
     confirmAtlas.visible = false;
     confirmAtlas.scale.x *= MobileScaleMode.wideScale.x;
     confirmAtlas.x += ((confirmAtlas.width * MobileScaleMode.wideScale.x) - confirmAtlas.width) * 2.48;

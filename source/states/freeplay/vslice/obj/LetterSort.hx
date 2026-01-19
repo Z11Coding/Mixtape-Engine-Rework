@@ -3,7 +3,7 @@ package states.freeplay.vslice.obj;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.util.FlxTimer;
-import states.freeplay.vslice.obj.FlxAtlasSprite;
+import objects.FunkinSprite;
 
 //? Checked
 class LetterSort extends FlxTypedSpriteGroup<FlxSprite>
@@ -163,7 +163,7 @@ class LetterSort extends FlxTypedSpriteGroup<FlxSprite>
 /**
  * The actual FlxAtlasSprite for the letters, with their animation code stuff and regex stuff
  */
-class FreeplayLetter extends FlxAtlasSprite
+class FreeplayLetter extends FunkinSprite
 {
   /**
    * A preformatted array of letter strings, for use when doing regex
@@ -207,10 +207,14 @@ class FreeplayLetter extends FlxAtlasSprite
       this.anim.play(animLetters[letterInd] + " move");
       this.anim.pause();
       curLetter = letterInd;
-      this.anim.onComplete.add(function() {
-        this.anim.play(animLetters[curLetter] + " move");
-      });
     }
+  }
+
+  override function initVars():Void {
+    super.initVars();
+    this.anim.onFinish.add(function(name) {
+      this.anim.play(animLetters[curLetter] + " move");
+    });
   }
 
   /**

@@ -1,8 +1,8 @@
 package states.freeplay.vslice;
 
 import flixel.group.FlxSpriteGroup;
+import objects.FunkinSprite;
 import shaders.HSVShader;
-import states.freeplay.vslice.obj.FlxAtlasSprite;
 import states.freeplay.vslice.obj.FreeplayFlames;
 
 class DifficultyStars extends FlxSpriteGroup
@@ -19,7 +19,7 @@ class DifficultyStars extends FlxSpriteGroup
    */
   public var difficulty(default, set):Int = 1;
 
-  public var stars:FlxAnimate;
+  public var stars:FunkinSprite;
 
   public var flames:FreeplayFlames;
 
@@ -35,7 +35,7 @@ class DifficultyStars extends FlxSpriteGroup
     add(flames);
 
     //? Using base FlxAnimate to sideload JSON obj "freeplay/freeplayStars
-    stars = new FlxAtlasSprite(0, 0, "freeplay/freeplayStars");
+    stars = new FunkinSprite(0, 0, "freeplay/freeplayStars");
 
     stars.anim.play("diff stars");
     add(stars);
@@ -61,7 +61,7 @@ class DifficultyStars extends FlxSpriteGroup
     // ......
     // 1300-1499: 15 stars
     // 1500 : 0 stars
-    if (curDifficulty < 15 && stars.anim.curFrame >= (curDifficulty + 1) * 100)
+    if (curDifficulty < 15 && stars.anim.curAnim.curFrame >= (curDifficulty + 1) * 100)
     {
       stars.anim.play("diff stars", true, false, curDifficulty * 100);
     }
@@ -109,7 +109,7 @@ class DifficultyStars extends FlxSpriteGroup
     }
     else
     {
-      stars.anim.curFrame = Std.int(curDifficulty * 100);
+      stars.anim.curAnim.curFrame = Std.int(curDifficulty * 100);
       stars.anim.play("diff stars", true, false, curDifficulty * 100);
     }
 

@@ -13,9 +13,9 @@ class ABotSpeaker extends FlxSpriteGroup
 	public var bg:FlxSprite;
 	public var vizSprites:Array<FlxSprite> = [];
 	public var eyeBg:FlxSprite;
-	public var eyes:FlxAnimate;
-	public var speaker:FlxAnimate;
-	public var speakerAlt:FlxAnimate;
+	public var eyes:FunkinSprite;
+	public var speaker:FunkinSprite;
+	public var speakerAlt:FunkinSprite;
 
 	#if funkin.vis
 	var analyzer:SpectralAnalyzer;
@@ -66,12 +66,12 @@ class ABotSpeaker extends FlxSpriteGroup
 		eyeBg.updateHitbox();
 		add(eyeBg);
 
-		eyes = new FlxAnimate(-10, 230);
-		Paths.loadAnimateAtlas(eyes, 'abot/systemEyes');
+		eyes = new FunkinSprite(-10, 230);
+		eyes.loadTextureAtlas('abot/systemEyes');
 		eyes.anim.addBySymbolIndices('lookleft', 'a bot eyes lookin', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 24, false);
 		eyes.anim.addBySymbolIndices('lookright', 'a bot eyes lookin', [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35], 24, false);
 		eyes.anim.play('lookright', true);
-		eyes.anim.curFrame = eyes.anim.length - 1;
+		eyes.anim.curAnim.curFrame = eyes.anim.curAnim.numFrames - 1;
 		add(eyes);
 
 		speaker = abotLol(useDark);
@@ -81,11 +81,11 @@ class ABotSpeaker extends FlxSpriteGroup
 		}
 	}
 	function abotLol(useDark:Bool) {
-		var temp = new FlxAnimate(-65, -10);
-		Paths.loadAnimateAtlas(temp, '${useDark? "abot/dark" : "abot"}/abotSystem');
+		var temp = new FunkinSprite(-65, -10);
+		temp.loadTextureAtlas('${useDark? "abot/dark" : "abot"}/abotSystem');
 		temp.anim.addBySymbol('anim', 'Abot System', 24, false);
 		temp.anim.play('anim', true);
-		temp.anim.curFrame = temp.anim.length - 1;
+		temp.anim.curAnim.curFrame = temp.anim.curAnim.numFrames - 1;
 		temp.antialiasing = ClientPrefs.data.antialiasing;
 		add(temp);
 		return temp;
@@ -105,7 +105,7 @@ class ABotSpeaker extends FlxSpriteGroup
 		{
 			var animFrame:Int = Math.round(levels[i].value * 5);
 			animFrame = Std.int(Math.abs(FlxMath.bound(animFrame, 0, 5) - 5)); // shitty dumbass flip, cuz dave got da shit backwards lol!
-		
+
 			vizSprites[i].animation.curAnim.curFrame = animFrame;
 			levelMax = Std.int(Math.max(levelMax, 5 - animFrame));
 		}
@@ -113,7 +113,7 @@ class ABotSpeaker extends FlxSpriteGroup
 		if(levelMax >= 4)
 		{
 			//trace(levelMax);
-			if(oldLevelMax <= levelMax && (levelMax >= 5 || speaker.anim.curFrame >= 3))
+			if(oldLevelMax <= levelMax && (levelMax >= 5 || speaker.anim.curAnim.curFrame >= 3))
 				beatHit();
 		}
 	}
@@ -130,7 +130,7 @@ class ABotSpeaker extends FlxSpriteGroup
 	{
 		@:privateAccess
 		analyzer = new SpectralAnalyzer(snd._channel.__audioSource, 7, 0.1, 40);
-	
+
 		#if !web
 		// On native it uses FFT stuff that isn't as optimized as the direct browser stuff we use on HTML5
 		// So we want to manually change it!

@@ -154,6 +154,9 @@
 	<haxelib name="flixel-text-input" /> <!-- Improved text field rendering for HaxeUI -->
 	<haxelib name="flixel-ui" />
 	<haxelib name="linc_dialogs" version="git" if="desktop" />
+	<haxelib name="flixel-animate" />
+	<!--so that the engine will still allow it without that exact library to exist-->
+	<define name="flxanimate"/>
 
 	<!--Uncomment if you want to use moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
   <haxelib name="moonchart" version="git" if="native"/>
@@ -163,7 +166,6 @@
 	<haxelib name="hscript-iris" if="HSCRIPT_ALLOWED" version="1.1.3"/>
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED" version="2.0.1"/>
 	<haxelib name="hxdiscord_rpc" version="1.2.4" if="DISCORD_ALLOWED"/>
-	<haxelib name="flxanimate"/>
 	<haxelib name="hxpy" if="PYTHON_ALLOWED" />
 
 	<!-- Archipelago Stuff-->
@@ -281,12 +283,15 @@
 	<haxedef name="message.reporting" value="pretty" unless="{haxe &lt; 4.3.1}"/>
 	<haxedef name="message.log-format" value="pretty" unless="{haxe &lt; 4.3.1}"/>
 
+	<haxeflag name="-dce" value="no" />
+
 	<!--Macro fixes-->
 	<haxeflag name="--macro" value="allowPackage('flash')" />
 	<haxeflag name="--macro" value="include('my.pack')" />
 	<haxeflag name="--macro" value="yutautil.RuntimeTypedef.processTypedef()" />
 	<haxeflag name="--macro" value="yutautil.VoidFall.randomFailure()" />
 	<haxeflag name="--macro" value="addMetadata('@:build(backend.macro.pslice.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')" />
+	<haxeflag name="--macro" value="include('animate')" />
 
 	<!-- Patched type system - enable field validation on all classes -->
 	<!-- <haxeflag name="macro" value="yutautil.Patched.PatchedMacro.init()" /> -->

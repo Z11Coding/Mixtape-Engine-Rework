@@ -29,6 +29,7 @@ import archipelago.substates.*;
 import archipelago.traps.*;
 #end
 
+import animate.*;
 import backend.COD;
 import backend.ClientPrefs;
 import backend.Conductor;
@@ -78,7 +79,6 @@ import mechanics.*;
 import objects.Alphabet;
 import objects.AudioDisplay;
 import objects.BGSprite;
-import objects.FlxAtlasSprite;
 import objects.FunkinSprite;
 import shaders.*;
 import shop.*;
@@ -113,12 +113,6 @@ import moonchart.formats.*;
 import moonchart.formats.fnf.*;
 import moonchart.formats.fnf.legacy.*;
 import moonchart.parsers.*;
-#end
-
-//Window Stuff
-#if flxanimate
-import flxanimate.*;
-import flxanimate.PsychFlxAnimate as FlxAnimate;
 #end
 
 #end

@@ -12,7 +12,7 @@ typedef LipSyncData = {
 
 // object used for lip sync on characters in SPAGHETTI
 @:keep
-class SserafimLipSyncSprite extends FlxAnimate
+class SserafimLipSyncSprite extends FunkinSprite
 {
   var shouldSing(default, set):Bool = true;
 
@@ -22,7 +22,7 @@ class SserafimLipSyncSprite extends FlxAnimate
 
     if (!value)
     {
-      animation.curAnim.curFrame = 0;
+      anim.curAnim.curFrame = 0;
     }
 
     return value;
@@ -32,17 +32,16 @@ class SserafimLipSyncSprite extends FlxAnimate
   {
     super(x, y);
 
-    showPivot = false;
-    Paths.loadAnimateAtlas(this, (suffix != null ? 'sserafim-lipsync-' + suffix : 'sserafim-lipsync'));
-    animation.addBySymbol("lipsync", this.getDefaultSymbol(), 24, false);
-    animation.play("lipsync", true);
+    loadTextureAtlas(suffix != null ? 'sserafim-lipsync-' + suffix : 'sserafim-lipsync', "sserafim");
+    anim.addBySymbol("lipsync", this.getDefaultSymbol(), 24, false);
+    anim.play("lipsync", true);
   }
 
   override function update(elapsed:Float):Void
   {
-    if (this.animation.curAnim != null && shouldSing)
+    if (this.anim.curAnim != null && shouldSing)
     {
-      this.animation.curAnim.curFrame = Math.floor((Conductor.songPosition / 1000) * 24) - 1;
+      this.anim.curAnim.curFrame = Math.floor((Conductor.songPosition / 1000) * 24) - 1;
     }
   }
 }

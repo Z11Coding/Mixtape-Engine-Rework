@@ -1,9 +1,8 @@
 package stages.objects;
 
-import cutscenes.CutsceneHandler;
-import objects.FlxAtlasSprite;
 import backend.FunkinSound;
-class PicoDopplegangerSprite extends FlxAtlasSprite
+import cutscenes.CutsceneHandler;
+class PicoDopplegangerSprite extends FunkinSprite
 {
 
   public var isPlayer:Bool = false;
@@ -11,14 +10,7 @@ class PicoDopplegangerSprite extends FlxAtlasSprite
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'assets/week3/images/philly/erect/cutscenes/pico_doppleganger', {
-      FrameRate: 24.0,
-      Reversed: false,
-      // ?OnComplete:Void -> Void,
-      ShowPivot: false,
-      Antialiasing: true,
-      ScrollFactor: new FlxPoint(1, 1),
-    });
+    super(x, y, 'philly/erect/cutscenes/pico_doppleganger');
   }
 
   var cutsceneSounds:FunkinSound = null;
@@ -35,21 +27,21 @@ class PicoDopplegangerSprite extends FlxAtlasSprite
     cutsceneHandler.timer(0.3, () -> {cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/picoGasp'), 1.0, false, true, true);});
 
     if(shoot == true){
-      playAnimation("shoot" + suffix, true, false, false);
+      anim.play("shoot" + suffix, true, false);
 
       cutsceneHandler.timer(6.29, () -> {cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/picoShoot'), 1.0, false, true, true);});
       cutsceneHandler.timer(10.33, () -> {cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/picoSpin'), 1.0, false, true, true);});
     }else{
       if(explode == true){
-        playAnimation("explode" + suffix, true, false, false);
+        anim.play("explode" + suffix, true, false);
 
-        onAnimationComplete.add(startLoop);
+        anim.onFinish.add(startLoop);
 
         cutsceneHandler.timer(3.7, () -> {cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/picoCigarette2'), 1.0, false, true, true);});
         cutsceneHandler.timer(8.75, () -> {cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/picoExplode'), 1.0, false, true, true);});
         cutsceneHandler.objects.remove(this);
       }else{
-        playAnimation("cigarette" + suffix, true, false, false);
+        anim.play("cigarette" + suffix, true, false);
 
         cutsceneHandler.timer(3.7, () -> {cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/picoCigarette'), 1.0, false, true, true);});
       }
@@ -57,6 +49,6 @@ class PicoDopplegangerSprite extends FlxAtlasSprite
   }
 
   function startLoop(x:String){
-    playAnimation("loop" + suffix, true, false, true);
+    anim.play("loop" + suffix, true, false);
   }
 }

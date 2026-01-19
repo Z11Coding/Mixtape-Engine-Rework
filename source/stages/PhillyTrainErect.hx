@@ -2,7 +2,6 @@ package stages;
 
 import cutscenes.CutsceneHandler;
 import flixel.FlxSubState;
-import flxanimate.motion.AdjustColor;
 import objects.Character;
 import shaders.AdjustColorShader;
 import stages.PicoCapableStage;
