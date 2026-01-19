@@ -319,25 +319,57 @@ class PyScriptManager {
 
 // Stub implementation when Python is not allowed
 class PyScript {
-    public var scriptExists:Bool = false;
+    // Static constants for script control (matching psychlua.FunkinLua)
+    public static var Function_Continue:Int = 0;
+    public static var Function_Stop:Int = 1;
+    public static var Function_StopLua:Int = 2;
+    public static var Function_StopHScript:Int = 3;
+    public static var Function_StopAll:Int = 4;
 
-    public function new(scriptPath:String) {}
+    public var scriptName:String;
+    public var scriptExists:Bool = false;
+    public var closed:Bool = false;
+    public var errorOccurred:Bool = false;
+
+    public function new(scriptPath:String) {
+        this.scriptName = haxe.io.Path.withoutDirectory(scriptPath);
+        this.scriptExists = false;
+        this.closed = true;
+        this.errorOccurred = false;
+    }
+
+    public function executeCode(code:String):Void {}
     public function call(func:String, ?args:Array<Dynamic>):Dynamic { return 0; }
     public function set(varName:String, value:Dynamic):Void {}
     public function get(varName:String):Dynamic { return null; }
+    public function setVar(varName:String, value:Dynamic):Void {}
     public function exists(functionName:String):Bool { return false; }
     public function existsVar(varName:String):Bool { return false; }
-    public function destroy():Void {}
+    public function destroy():Void {
+        scriptExists = false;
+        closed = true;
+    }
 }
 
 class PyScriptManager {
     public static var scripts:Array<PyScript> = [];
-    public static function loadScript(path:String):PyScript { return new PyScript(path); }
+
+    public static function loadScript(path:String):PyScript {
+        var script = new PyScript(path);
+        scripts.push(script);
+        return script;
+    }
+
     public static function loadScriptsFromDirectory(directory:String):Void {}
     public static function callOnAll(functionName:String, ?args:Array<Dynamic>):Dynamic { return 0; }
     public static function setOnAll(varName:String, value:Dynamic):Void {}
-    public static function destroyAll():Void {}
-    public static function getScriptCount():Int { return 0; }
+    public static function destroyAll():Void {
+        for (script in scripts) {
+            script.destroy();
+        }
+        scripts = [];
+    }
+    public static function getScriptCount():Int { return scripts.length; }
     public static function hasAnyScript():Bool { return false; }
 }
 
