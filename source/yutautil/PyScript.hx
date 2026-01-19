@@ -1,6 +1,6 @@
 package yutautil;
 
-#if PYTHON_ALLOWED
+#if (PYTHON_ALLOWED && windows)
 import flixel.FlxG;
 import haxe.Json;
 import hxpy.Py;
