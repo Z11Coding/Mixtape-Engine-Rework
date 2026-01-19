@@ -363,7 +363,7 @@ class TransitionState {
                 });
                 #end
             case "screenwipe":
-                var screenShit:FlxSprite = new FlxSprite().loadGraphic(Paths.image('loading_screen/3'));
+                /*var screenShit:FlxSprite = new FlxSprite().loadGraphic(Paths.image('loading_screen/3'));
                 var screenWipeShit:ScreenWipeShader = new ScreenWipeShader();
 
                 screenWipeShit.funnyShit.input = screenShit.pixels;
@@ -375,7 +375,7 @@ class TransitionState {
                         switchState(targetState, onComplete, args);
                     }
                 });
-                FlxG.camera.filters = [new ShaderFilter(screenWipeShit)];
+                FlxG.camera.filters = [new ShaderFilter(screenWipeShit)];*/
         }
         //trace("Transition complete!");
     }

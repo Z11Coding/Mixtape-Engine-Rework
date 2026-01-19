@@ -53,9 +53,10 @@ class SplashScreen extends MusicBeatState
             startVideo("splashscreen/bat");
             isVideo = true;
         } else if (ClientPrefs.data.memeSplash) {
-            trace("Playing Meme!");
             var videoList:Array<String> = [];
             videoList = Mods.loadFileList('videos/splashscreen/', ['.mp4']);
+            trace("videoList: "+videoList);
+            trace("Playing Meme: " + videoList[FlxG.random.int(0, videoList.length - 1)]);
             startVideo("splashscreen/" + videoList[FlxG.random.int(0, videoList.length - 1)]);
             isVideo = true;
         }
@@ -137,7 +138,7 @@ class SplashScreen extends MusicBeatState
         super.create();
     }
 
-    public function startVideo(name:String, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
+    public function startVideo(name:String, forMidSong:Bool = true, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
 	{
 		#if VIDEOS_ALLOWED
 		var foundFile:Bool = false;
@@ -171,9 +172,14 @@ class SplashScreen extends MusicBeatState
 				videoCutscene.play();
 			return videoCutscene;
 		}
-		else FlxG.log.error("Video not found: " + fileName);
+		else {
+            FlxG.log.error("Video not found: " + fileName);
+            trace("Video not found: " + fileName);
+            showInitializationProgress();
+        }
 		#else
 		FlxG.log.warn('Platform not supported!');
+        trace('Platform not supported!');
 		Conductor.songPosition = 0;
         showInitializationProgress();
 		#end
@@ -226,19 +232,19 @@ class SplashScreen extends MusicBeatState
                 // On completion, proceed to the intended state
                 trace("Initialization complete, proceeding to title state");
                 haxe.Timer.delay(function() {
-                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "screenwipe", color: FlxColor.BLACK});
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
                 }, 300);
             },
             function(error, shouldThrow) {
                 trace('Error during initialization: $error');
                 // Still proceed to title state even if initialization failed
                 haxe.Timer.delay(function() {
-                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "screenwipe", color: FlxColor.BLACK});
+                    TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
                 }, 300);
             },
             function() {
                 // Cancel - still go to title state
-                TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "screenwipe", color: FlxColor.BLACK});
+                TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
             }
         );
 

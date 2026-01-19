@@ -69,6 +69,8 @@ class Paths
 		"hx",
 		#if LUA_ALLOWED "lua" #end]; // TODo: initialize this by combining the top 2 vars ^
 
+	public static var pathType:String = 'Mixtape';
+
 	// Troll Engine Things
 	public static function getFileWithExtensions(scriptPath:String, extensions:Array<String>) {
 		for (fileExt in extensions) {

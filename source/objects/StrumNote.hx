@@ -2,7 +2,6 @@ package objects;
 
 import backend.animation.PsychAnimationController;
 import backend.math.Vector3;
-import flixel.addons.plugin.FlxMouseControl;
 import objects.playfields.PlayField;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;

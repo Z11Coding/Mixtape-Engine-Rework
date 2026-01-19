@@ -63,7 +63,13 @@ class PlaylistEditorState extends MusicBeatState
         ClientPrefs.data.playLists.remove(selectedPlaylist);
         ClientPrefs.saveSettings();
 
-        var playlists:Array<PlaylistMetadata> = ClientPrefs.data.playLists;
+        for (playlist in ClientPrefs.data.playLists) {
+          if (playlist.playlistName == selectedPlaylist.playlistName) {
+            ClientPrefs.data.playLists.remove(playlist);
+            ClientPrefs.saveSettings();
+            break;
+          }
+        }
 
         #if MODS_ALLOWED
         var directories:Array<String> = [

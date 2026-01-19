@@ -14,13 +14,17 @@ class ScreenWipeShader extends FlxShader
   }
 
   @:glFragmentSource('
+        // Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel
+
+        // end of ShadertoyToFlixel header
+
         #pragma header
 
         uniform float alphaShit;
-		uniform float yPos;
-		uniform float xPos;
+        uniform float yPos;
+        uniform float xPos;
 
-		uniform sampler2D funnyShit;
+        uniform sampler2D funnyShit;
 
 
         vec3 rgb2hsv(vec3 c)
@@ -43,21 +47,21 @@ class ScreenWipeShader extends FlxShader
 
         void main()
         {
-			vec2 funnyUv = openfl_TextureCoordv;
+            vec2 funnyUv = openfl_TextureCoordv;
             vec4 color = flixel_texture2D(bitmap, funnyUv);
 
-			vec2 reallyFunnyUv = vec2(vec2(0.0, 0.0) - gl_FragCoord.xy / openfl_TextureSize.xy);
+            vec2 reallyFunnyUv = vec2(vec2(0.0, 0.0) - gl_FragCoord.xy / openfl_TextureSize.xy);
 
-			vec4 gf = flixel_texture2D(funnyShit, openfl_TextureCoordv);
+            vec4 gf = flixel_texture2D(funnyShit, openfl_TextureCoordv);
 
 
             vec3 hsvTypeBeat = rgb2hsv(vec3(gf.r, gf.g, gf.b));
 
-			vec4 output = color;
+            vec4 output = color;
 
             // .b here actually means value?
-			if (hsvTypeBeat.b <= alphaShit)
-				color = vec4(0.0, 0.0, 0.0, 0.0);
+            if (hsvTypeBeat.b <= alphaShit)
+                color = vec4(0.0, 0.0, 0.0, 0.0);
 
 
             gl_FragColor = color;

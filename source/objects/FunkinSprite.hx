@@ -134,18 +134,6 @@ class FunkinSprite extends FlxAnimate
           this.loadGraphic(path);
 
         case '':
-          // Do the opposite of Paths.animateAtlas since that function is called in loadTextureAtlas.
-          var lib:String = Paths.getLibraryPath(path);
-
-          if (lib == 'preload')
-          {
-            path = path.replace('assets/images/', '');
-          }
-          else
-          {
-            path = path.replace('$lib:assets/$lib/images/', '');
-          }
-
           this.loadTextureAtlas(path, lib, atlasSettings);
 
         default:
