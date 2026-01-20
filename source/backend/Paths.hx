@@ -1536,7 +1536,6 @@ class Paths
 	#end
 	#end
 
-	#if flxanimate
 	public static function animateAtlas(path:String, ?library:String):String
 	{
 		return getFolderPath('images/$path', library);
@@ -1584,7 +1583,6 @@ class Paths
         onSymbolCreate: validatedSettings.onSymbolCreate
       });
   }
-	#end
 
 	public static function file(file:String, type:AssetType = TEXT, ?library:String):String {
 		return getPath(file, type, library);

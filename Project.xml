@@ -155,6 +155,7 @@
 	<haxelib name="flixel-ui" />
 	<haxelib name="linc_dialogs" version="git" if="desktop" />
 	<haxelib name="flixel-animate" />
+	<haxelib name="thx.core" version="git"/>
 	<!--so that the engine will still allow it without that exact library to exist-->
 	<define name="flxanimate"/>
 

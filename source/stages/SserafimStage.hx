@@ -696,7 +696,6 @@ class SserafimStage extends BaseStage
     camGame.fade(0xFF000000, 3, true, null, true);
 
     cutsceneHandler.timer(20 / 24, function() {
-      sserafimCutscene.doAnim();
       cutsceneSounds = FunkinSound.load(Paths.sound('cutscene/startCutscene'), 1.0, false, true, true);
     });
 
