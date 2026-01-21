@@ -1345,6 +1345,7 @@ class PlayState extends MusicBeatState
 			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || playAsGF;
 			playerField.noteHitCallback = goodNoteHit;
 			playerField.owner = boyfriend;
+			playerField.owners = [];
 		}
 
 		//trace("Making DadField!");
@@ -1356,6 +1357,7 @@ class PlayState extends MusicBeatState
 			dadField.AIPlayer = mixupMode;
 			dadField.noteHitCallback = opponentNoteHit;
 			dadField.owner = dad;
+			dadField.owners = [];
 		}
 
 		PlayField.initExtras();
@@ -8003,10 +8005,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							boyfriend = boyfriendMap.get(value2);
 							boyfriend.alpha = lastAlpha;
 							iconP1.changeIcon(boyfriend.healthIcon);
-							for (field in playfields.members)
+							for (field in playfields.members) {
 								if (field.owner == oldChar) field.owner = boyfriend;
+								if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? boyfriend : curChar);
+							}
+							setOnScripts('boyfriendName', boyfriend.curCharacter);
 						}
-						setOnScripts('boyfriendName', boyfriend.curCharacter);
 
 					case 1:
 						if(dad.curCharacter != value2) {
@@ -8029,8 +8033,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							}
 							dad.alpha = lastAlpha;
 							iconP2.changeIcon(dad.healthIcon);
-							for (field in playfields.members)
+							for (field in playfields.members) {
 								if (field.owner == oldChar) field.owner = dad;
+								if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? dad : curChar);
+							}
 						}
 						setOnScripts('dadName', dad.curCharacter);
 
@@ -8049,8 +8055,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								gf.shader = null;
 								gf = gfMap.get(value2);
 								gf.alpha = lastAlpha;
-								for (field in playfields.members)
+								for (field in playfields.members) {
 									if (field.owner == oldChar) field.owner = gf;
+									if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? gf : curChar);
+								}
 							}
 							setOnScripts('gfName', gf.curCharacter);
 						}
@@ -8083,8 +8091,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								}
 								dad2.alpha = lastAlpha;
 								iconP22.changeIcon(dad2.healthIcon);
-								for (field in playfields.members)
+								for (field in playfields.members) {
 									if (field.owner == oldChar) field.owner = dad2;
+									if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? dad2 : curChar);
+								}
 							}
 							setOnScripts('dad2Name', dad2.curCharacter);
 						}
@@ -8105,8 +8115,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								bf2 = boyfriendMap2.get(value2);
 								bf2.alpha = lastAlpha;
 								iconP12.changeIcon(bf2.healthIcon);
-								for (field in playfields.members)
+								for (field in playfields.members) {
 									if (field.owner == oldChar) field.owner = bf2;
+									if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? bf2 : curChar);
+								}
 							}
 							setOnScripts('bf2Name', bf2.curCharacter);
 						}
@@ -8195,16 +8207,16 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var easeFunc = LuaUtils.getTweenEaseByString(value2);
 				if(zoomTween != null) zoomTween.cancel();
 				var targetZoom = floaties[1]*defaultStageZoom;
-				zoomTween = FlxTween.tween(this, {defaultCamZoom: targetZoom}, (Conductor.stepCrochet/1000)*floaties[0], {
+				zoomTween = FlxTween.tween(camGame, {zoom: targetZoom}, (Conductor.stepCrochet/1000)*floaties[0], {
 					onStart: (x) ->{
-						//camZooming = false;
+						camZooming = false;
 						camZoomingDecay = 7;
 					},
 					ease: easeFunc,
 					onComplete: (x) ->{
 						defaultCamZoom = targetZoom;
 						camZoomingDecay = 1;
-						//camZooming = true;
+						camZooming = true;
 						zoomTween = null;
 					}
 				});
@@ -10685,10 +10697,24 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			if (note.exNote && note.field == dadField)
 				char = dad2;
 		}
-		if (note.owner != null) char = note.owner;
+		if (note.field.owners != null && note.field.owners.length != 0) {
+			for (owner in note.field.owners) {
+				if(owner != null && (note == null || !note.noMissAnimation) && owner.hasMissAnimations)
+				{
+					var postfix:String = '';
+					if(note != null) postfix = note.animSuffix;
 
-		if(char != null && (note == null || !note.noMissAnimation) && char.hasMissAnimations)
-		{
+					var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[Std.int(direction)] + 'miss' + postfix;
+					owner.playAnim(animToPlay, true);
+
+					if(owner != gf && lastCombo > 5 && gf != null && gf.hasAnimation('sad'))
+					{
+						gf.playAnim('sad');
+						gf.specialAnim = true;
+					}
+				}
+			}
+		} else if(char != null && (note == null || !note.noMissAnimation) && char.hasMissAnimations) {
 			var postfix:String = '';
 			if(note != null) postfix = note.animSuffix;
 
@@ -10775,7 +10801,21 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				}
 			}
 
-			if(char != null)
+			if (field.owners != null && field.owners.length != 0) {
+				for (owner in field.owners) {
+					var canPlay:Bool = true;
+					if(note.isSustainNote)
+					{
+						var holdAnim:String = animToPlay + '-hold';
+						if(owner.animation.exists(holdAnim)) animToPlay = holdAnim;
+						if(owner.getAnimationName() == holdAnim || owner.getAnimationName() == holdAnim + '-loop') canPlay = false;
+					}
+
+					if(canPlay) playAnim(note, owner, animToPlay, true);
+					owner.holdTimer = 0;
+				}
+			}
+			else if(char != null)
 			{
 				var canPlay:Bool = true;
 				if(note.isSustainNote)
@@ -10880,7 +10920,31 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					gf.holdTimer = 0;
 				}
 
-				if(char != null)
+				if (field.owners != null && field.owners.length != 0) {
+					for (owner in field.owners) {
+						var canPlay:Bool = true;
+						if(note.isSustainNote)
+						{
+							var holdAnim:String = animToPlay + '-hold';
+							if(owner.animation.exists(holdAnim)) animToPlay = holdAnim;
+							if(owner.getAnimationName() == holdAnim || owner.getAnimationName() == holdAnim + '-loop') canPlay = false;
+						}
+
+						if(canPlay) playAnim(note, owner, animToPlay, true);
+						owner.holdTimer = 0;
+
+						if(note.noteType == 'Hey!')
+						{
+							if(owner.hasAnimation(animCheck))
+							{
+								owner.playAnim(animCheck, true);
+								owner.specialAnim = true;
+								owner.heyTimer = 0.6;
+							}
+						}
+					}
+				}
+				else if(char != null)
 				{
 					var canPlay:Bool = true;
 					if(note.isSustainNote)

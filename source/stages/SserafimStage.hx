@@ -12,6 +12,7 @@ import shaders.DropShadowShader;
 import shaders.SserafimShader;
 import stages.objects.*;
 import stages.objects.PerspectiveSprite;
+import stages.objects.sserafim.*;
 
 class SserafimStage extends BaseStage
 {
@@ -19,9 +20,9 @@ class SserafimStage extends BaseStage
   var baseSinging:Array<Bool> = [false, false, false, false, false, false];
 
   // CHARACTERS
-  var yunjin:Character;
-  var chaewon:Character;
-  var eunchae:Character;
+  var yunjin:SserafimYunjinCharacter;
+  var chaewon:SserafimChaewonCharacter;
+  var eunchae:SserafimEunchaeCharacter;
 
   // VFX/SHADERS
   var characterShader:SserafimShader;
@@ -186,9 +187,13 @@ class SserafimStage extends BaseStage
     dust3.color = 0xff6e645c;
     dust4.color = 0xff886a60;
 
-    yunjin = new Character(0, 0, 'sserafim-yunjin', false, OTHER);
-    chaewon = new Character(0, 0, 'sserafim-chaewon', false, OTHER);
-    eunchae = new Character(0, 0, 'sserafim-eunchae', false, OTHER);
+    yunjin = new SserafimYunjinCharacter(0, 0);
+    chaewon = new SserafimChaewonCharacter(0, 0);
+    eunchae = new SserafimEunchaeCharacter(0, 0);
+
+    game.gf = new SserafimGirlfriendCharacter(0, 0);
+    game.boyfriend = new SserafimSakuraCharacter(0, 0);
+    game.dad = new SserafimKazuhaCharacter(0, 0);
 
     game.dadGroup2.add(yunjin);
     game.gfGroup.add(chaewon);
@@ -210,6 +215,10 @@ class SserafimStage extends BaseStage
     yunjin.shader = characterShader;
     chaewon.shader = characterShader;
     eunchae.shader = characterShader;
+
+    game.variables.set('chaewon', chaewon);
+    game.variables.set('yunjin', yunjin);
+    game.variables.set('eunchae', eunchae);
 
     createCutsceneSprites();
 
@@ -276,6 +285,7 @@ class SserafimStage extends BaseStage
         if (parseBool(value1))
         {
           // play second kick anim + reset her idle back to normal
+          yunjin.playAnim('yunjin intro', true, false);
           FunkinSound.playOnce('doorKick2', 1.0);
           yunjin.danceEveryNumBeats = 1;
 
@@ -297,7 +307,7 @@ class SserafimStage extends BaseStage
           yunjin.animation.onFrameChange.add(function(animName:String, frameNumber:Int, index:Int) {
             // at this point in the animation, the door is no longer part of her animation...
             // show a static one!
-            if (frameNumber == 23) game.getLuaObject('truckDoor').visible = true;
+            if (frameNumber == 23) truckDoor.visible = true;
           });
 
           yunjin.animation.onFinish.addOnce(function(animName:String) {
@@ -315,6 +325,8 @@ class SserafimStage extends BaseStage
         }
         case 'sserafimEnd':
           endStuff();
+        case 'sserafimBeautiful':
+          cast (game.gf, SserafimGirlfriendCharacter).isBeautiful = value1.toLowerCase() == "true";
       }
 
     super.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime);
@@ -368,7 +380,10 @@ class SserafimStage extends BaseStage
 
   function setGirlsSinging(singingArray:Array<Bool>)
   {
-    if (singingArray.length < 5) return;
+    if (singingArray.length < 5) {
+      trace("INVALD ARRAY!");
+      return;
+    }
 
     yunjin.charType = singingArray[0] ? CharType.BF : CharType.DAD;
 
@@ -380,6 +395,13 @@ class SserafimStage extends BaseStage
     boyfriend.charType = singingArray[4] ? CharType.BF : CharType.DAD;
 
     gf.charType = singingArray[5] ? CharType.BF : CharType.DAD;
+
+    var ownerArray:Array<Character> = [];
+
+    for (char in [yunjin, dad, chaewon, eunchae, boyfriend, gf])
+      if (char.charType == BF)
+        ownerArray.push(char);
+    game.playerField.owners = ownerArray;
   }
 
   var hasHidden = false;

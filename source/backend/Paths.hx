@@ -637,7 +637,7 @@ class Paths
 	static public function exists(someString:String):Bool
 	{
 		var toRet:Bool = false;
-		if (OpenFlAssets.exists(someString))
+		if (#if MODS_ALLOWED FileSystem.exists(someString) #else OpenFlAssets.exists(someString) #end)
 		{
 			toRet = true;
 		}
@@ -1092,7 +1092,7 @@ class Paths
 			else #end if (OpenFlAssets.exists(file, IMAGE))
 				bitmap = OpenFlAssets.getBitmapData(file);
 
-			if (bitmap == null && key.split(',').length == 1)
+			if (bitmap == null && key.split(',').length == 1 && !exists(key + '/Animation.json'))
 			{
 				trace('Bitmap not found: $file | key: $key');
 				return null;

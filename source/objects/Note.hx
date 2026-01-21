@@ -506,7 +506,10 @@ class Note extends NoteObject
 		'GF Sing',
 		'EX Note',
 		'No Animation',
-		'Botplay Note'
+		'Botplay Note',
+		'sakura-joint',
+		'sakura-bf1',
+		'sakura-bf2'
 	];
 	public var strumTime:Float = 0;
 
@@ -901,6 +904,12 @@ class Note extends NoteObject
 					ignoreNote = mustPress;
 					hitCausesMiss = true;
 					missHealth = 0.0475;
+				case 'sakura-joint':
+					animSuffix = '-both';
+				case 'sakura-bf1':
+					animSuffix = '-bf';
+				case 'sakura-bf2':
+					animSuffix = '-bfA';
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof

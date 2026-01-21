@@ -10,8 +10,6 @@ import objects.SyncedVideoSprite;
 import objects.VideoSprite;
 import psychlua.CustomSubstate;
 import psychlua.LuaUtils;
-import stages.objects.SserafimLipSyncSprite.LipSyncData;
-import stages.objects.SserafimLipSyncSprite;
 
 #if LUA_ALLOWED
 import psychlua.FunkinLua;
@@ -646,14 +644,6 @@ class HScript extends Iris
 		set('Date', yutautil.ExtendedDate);
 
 		set("BGSprite", BGSprite);
-
-		//Base game things that wont work otherwise for some reason
-		set("FlxSpriteElement", FlxSpriteElement);
-		set("SserafimLipSyncSprite", SserafimLipSyncSprite);
-		set("LipSyncData", {
-			offset: [0, 0],
-			angle: 0
-		});
 
 		//NVM funny
 		set("script", this);

@@ -341,37 +341,30 @@ class Character extends FunkinSprite
 			// animations
 			animationsArray = json.animations;
 			if(animationsArray != null && animationsArray.length > 0) {
-				if (isAnimateAtlas) {
-					FlxAnimationUtil.addTextureAtlasAnimations(this, animationsArray);
-					for (anims in animationsArray)
-						if(anims.offsets != null && anims.offsets.length > 1) addOffset(anims.anim, anims.offsets[0], anims.offsets[1]);
-						else addOffset(anims.anim, 0, 0);
-				} else {
-					for (anims in animationsArray) {
-						var animAnim:String = '' + anims.anim;
-						var animName:String = '' + anims.name;
-						var animFps:Int = anims.fps;
-						var animLoop:Bool = !!anims.loop; //Bruh
-						var animIndices:Array<Int> = anims.indices;
+				for (anims in animationsArray) {
+					var animAnim:String = '' + anims.anim;
+					var animName:String = '' + anims.name;
+					var animFps:Int = anims.fps;
+					var animLoop:Bool = !!anims.loop; //Bruh
+					var animIndices:Array<Int> = anims.indices;
 
-						if(!isAnimateAtlas)
-						{
-							if(animIndices != null && animIndices.length > 0)
-								animation.addByIndices(animAnim, animName, animIndices, "", animFps, animLoop);
-							else
-								animation.addByPrefix(animAnim, animName, animFps, animLoop);
-						}
+					if(!isAnimateAtlas)
+					{
+						if(animIndices != null && animIndices.length > 0)
+							animation.addByIndices(animAnim, animName, animIndices, "", animFps, animLoop);
 						else
-						{
-							if(animIndices != null && animIndices.length > 0)
-								anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
-							else
-								anim.addBySymbol(animAnim, animName, animFps, animLoop);
-						}
-
-						if(anims.offsets != null && anims.offsets.length > 1) addOffset(anims.anim, anims.offsets[0], anims.offsets[1]);
-						else addOffset(anims.anim, 0, 0);
+							animation.addByPrefix(animAnim, animName, animFps, animLoop);
 					}
+					else
+					{
+						if(animIndices != null && animIndices.length > 0)
+							anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
+						else
+							anim.addBySymbol(animAnim, animName, animFps, animLoop);
+					}
+
+					if(anims.offsets != null && anims.offsets.length > 1) addOffset(anims.anim, anims.offsets[0], anims.offsets[1]);
+					else addOffset(anims.anim, 0, 0);
 				}
 			}
 		}
@@ -803,6 +796,7 @@ class Character extends FunkinSprite
 					missingText.draw();
 				}
 			}
+			super.draw();
 			return;
 		}
 
