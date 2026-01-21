@@ -1,0 +1,332 @@
+// YScript Example File - Demonstrating Language Features
+
+// ===============================
+// Function Highlighting Test
+// ===============================
+
+// Function definitions (should have distinct color)
+function greet(name) {
+    return "Hello, " + name;
+}
+
+function multiply(a, b) {
+    return a * b;
+}
+
+// Function calls (should have different color)
+var greeting = greet("World");
+var result = multiply(5, 8);
+
+// Method calls on objects
+var text = "example";
+text.toUpperCase();
+text.charAt(0);
+
+// ===============================
+// Variable Declarations
+// ===============================
+
+// Mutable variables with type inference
+var playerName: String = "Alice";
+var playerScore: Int = 1500;
+var gameTime: Float = 45.5;
+var isActive: Bool = true;
+
+// Immutable constants
+const MAX_PLAYERS: Int = 16;
+const GAME_VERSION: String = "1.2.3";
+const PI: Float = 3.14159;
+
+// Dynamic typing
+var dynamicValue: Int = "Can be any";
+
+// ===============================
+// Function Declarations
+// ===============================
+
+// Simple function with return type
+function calculateScore(basePoints: Int, multiplier: Float): Int {
+    return Math.round(basePoints * multiplier);
+}
+
+// Function with optional parameters and embedded Haxe
+function processPlayerData(players: Array<String>) haxe {
+    // High-performance Haxe code for data processing
+    var processed = new Array<String>();
+    for (player in players) {
+        if (player.length > 0) {
+            processed.push(player.toUpperCase());
+        }
+    }
+    return processed;
+}
+
+// Function with embedded Lua for configuration
+function loadGameSettings() lua {
+    -- Lua configuration script
+    settings = {
+        difficulty = "normal",
+        music_volume = 0.8,
+        effects_volume = 0.6
+    }
+    return settings
+end
+
+// ===============================
+// Class Definitions
+// ===============================
+
+// Base class with fields and methods
+class GameObject {
+    var x: Float;
+    var y: Float;
+    var active: Bool;
+
+    function new(startX: Float, startY: Float) {
+        this.x = startX;
+        this.y = startY;
+        this.active = true;
+    }
+
+    function update(deltaTime: Float): Void {
+        // Update logic here
+    }
+
+    function render(): Void {
+        // Rendering logic here
+    }
+
+    function destroy(): Void {
+        this.active = false;
+    }
+}
+
+// Inheritance example
+class Player extends GameObject {
+    var name: String;
+    var health: Int;
+    var inventory: Array<String>;
+
+    function new(name: String, x: Float, y: Float) {
+        super(x, y);
+        this.name = name;
+        this.health = 100;
+        this.inventory = new Array<String>();
+    }
+
+    override function update(deltaTime: Float): Void {
+        super.update(deltaTime);
+
+        // Player-specific update logic
+        if (health <= 0) {
+            this.active = false;
+        }
+    }
+
+    function takeDamage(amount: Int): Void {
+        health -= amount;
+        if (health < 0) {
+            health = 0;
+        }
+    }
+
+    function addItem(item: String): Void {
+        inventory.push(item);
+    }
+}
+
+// Interface definition
+interface Drawable {
+    function draw(): Void;
+    function getPosition(): Array<Float>;
+}
+
+// Class implementing interface
+class Sprite extends GameObject implements Drawable {
+    var texture: String;
+    var scale: Float;
+
+    function new(texture: String, x: Float, y: Float) {
+        super(x, y);
+        this.texture = texture;
+        this.scale = 1.0;
+    }
+
+    function draw(): Void {
+        // Draw sprite at position with scale
+        renderSprite(texture, x, y, scale);
+    }
+
+    function getPosition(): Array<Float> {
+        return [x, y];
+    }
+
+    function setScale(newScale: Float): Void {
+        scale = newScale;
+    }
+}
+
+// ===============================
+// Control Flow Examples
+// ===============================
+
+// Conditional statements
+function checkGameState(player: Player): String {
+    if (player.health <= 0) {
+        return "Game Over";
+    } else if (player.health <= 25) {
+        return "Critical Health";
+    } else if (player.health <= 50) {
+        return "Low Health";
+    } else {
+        return "Healthy";
+    }
+}
+
+// Loop examples
+function processItems(items: Array<String>): Array<String> {
+    var processed: Array<String> = new Array<String>();
+
+    // For loop
+    for (var i: Int = 0; i < items.length; i++) {
+        var item = items[i];
+        processed.push(item.toLowerCase());
+    }
+
+    // While loop
+    var index: Int = 0;
+    while (index < processed.length) {
+        if (processed[index] == "remove") {
+            processed.splice(index, 1);
+        } else {
+            index++;
+        }
+    }
+
+    return processed;
+}
+
+// ===============================
+// Advanced Features
+// ===============================
+
+// Generic function (conceptual - would need parser support)
+function findMax(values: Array<Float>): Float {
+    if (values.length == 0) {
+        return 0.0;
+    }
+
+    var max: Float = values[0];
+    for (var i: Int = 1; i < values.length; i++) {
+        if (values[i] > max) {
+            max = values[i];
+        }
+    }
+    return max;
+}
+
+// Complex embedded Haxe for performance-critical operations
+function optimizedPathfinding(start: Array<Float>, end: Array<Float>, obstacles: Array<Array<Float>>): Array<Array<Float>> haxe {
+    // A* pathfinding algorithm in Haxe for performance
+    import haxe.ds.Vector;
+
+    var openSet = new Array<Node>();
+    var closedSet = new Array<Node>();
+
+    var startNode = new Node(start[0], start[1]);
+    var endNode = new Node(end[0], end[1]);
+
+    openSet.push(startNode);
+
+    while (openSet.length > 0) {
+        // Find node with lowest f cost
+        var current = openSet[0];
+        for (i in 1...openSet.length) {
+            if (openSet[i].fCost < current.fCost) {
+                current = openSet[i];
+            }
+        }
+
+        openSet.remove(current);
+        closedSet.push(current);
+
+        // Check if reached end
+        if (current.equals(endNode)) {
+            return reconstructPath(current);
+        }
+
+        // Check neighbors
+        for (neighbor in getNeighbors(current, obstacles)) {
+            if (closedSet.indexOf(neighbor) != -1) continue;
+
+            var newGCost = current.gCost + getDistance(current, neighbor);
+
+            if (newGCost < neighbor.gCost || openSet.indexOf(neighbor) == -1) {
+                neighbor.gCost = newGCost;
+                neighbor.hCost = getDistance(neighbor, endNode);
+                neighbor.parent = current;
+
+                if (openSet.indexOf(neighbor) == -1) {
+                    openSet.push(neighbor);
+                }
+            }
+        }
+    }
+
+    return []; // No path found
+}
+
+// Embedded Lua for game scripting
+function executeGameScript(scriptName: String) lua {
+    -- Dynamic game scripting in Lua
+    local scripts = {
+        ["intro"] = function()
+            showText("Welcome to the game!")
+            wait(2)
+            hideText()
+        end,
+
+        ["level_complete"] = function()
+            playSound("victory")
+            showText("Level Complete!")
+            wait(3)
+            nextLevel()
+        end,
+
+        ["boss_fight"] = function()
+            playMusic("boss_theme")
+            spawnEnemy("boss")
+            setDifficulty("hard")
+        end
+    }
+
+    local script = scripts[scriptName]
+    if script then
+        script()
+    else
+        print("Script not found: " .. scriptName)
+    end
+end
+
+// ===============================
+// Usage Examples
+// ===============================
+
+// Create game objects
+var mainPlayer: Player = new Player("Hero", 100.0, 100.0);
+var backgroundSprite: Sprite = new Sprite("background.png", 0.0, 0.0);
+
+// Process game state
+var gameState: String = checkGameState(mainPlayer);
+var playerItems: Array<String> = ["sword", "shield", "potion"];
+var processedItems: Array<String> = processItems(playerItems);
+
+// Perform calculations
+var baseScore: Int = 1000;
+var finalScore: Int = calculateScore(baseScore, 2.5);
+
+// Load configurations
+loadGameSettings();
+
+// Execute game scripts
+executeGameScript("intro");

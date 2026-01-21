@@ -1,0 +1,78 @@
+{
+  "name": "yscript-language-support",
+  "displayName": "YScript Language Support",
+  "description": "YScript syntax highlighting and language server with Haxe integration",
+  "version": "0.1.0",
+  "publisher": "mixtape-engine",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": ["Programming Languages", "Language Packs", "Other"],
+  "keywords": [
+    "yscript",
+    "haxe",
+    "game development",
+    "mixtape engine",
+    "scripting"
+  ],
+  "main": "./client/out/extension.js",
+  "activationEvents": ["onLanguage:yscript"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "yscript",
+        "aliases": ["YScript", "yscript"],
+        "extensions": [".ys", ".yscript"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "yscript",
+        "scopeName": "source.yscript",
+        "path": "./syntaxes/yscript.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "YScript Configuration",
+      "properties": {
+        "yscript.validation.enable": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable YScript validation."
+        },
+        "yscript.completion.enable": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable YScript completion suggestions."
+        },
+        "yscript.hover.enable": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable YScript hover information."
+        },
+        "yscript.haxe.integration": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Haxe integration for embedded code blocks."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "yscript.restart",
+        "title": "Restart YScript Language Server"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/mixtape-engine-rework"
+  },
+  "license": "MIT"
+}

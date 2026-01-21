@@ -3950,6 +3950,10 @@ class PlayState extends MusicBeatState
 						}
 					}
 
+					if (chartingMode)
+						chartModifier = "Normal";
+
+					if (!chartingMode)
 					switch (chartModifier)
 					{
 						case "Random":

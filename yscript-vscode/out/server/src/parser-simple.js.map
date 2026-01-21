@@ -1,0 +1,1 @@
+{"version":3,"file":"parser-simple.js","sourceRoot":"","sources":["../../../server/src/parser-simple.ts"],"names":[],"mappings":";;;AAAA,qCAAqC;AACrC,yCAA+C;AAAtC,6GAAA,gBAAgB,OAAA;AAQzB,MAAa,aAAa;IACxB,KAAK,CAAC,MAAa;QACjB,OAAO;YACL,IAAI,EAAE,SAAS;YACf,IAAI,EAAE,EAAE;SACT,CAAC;IACJ,CAAC;IAED,SAAS;QACP,OAAO,EAAE,CAAC;IACZ,CAAC;CACF;AAXD,sCAWC"}

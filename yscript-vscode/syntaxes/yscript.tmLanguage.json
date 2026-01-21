@@ -1,0 +1,330 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "YScript",
+  "scopeName": "source.yscript",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#embedded-haxe"
+    },
+    {
+      "include": "#embedded-lua"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#function-definition"
+    },
+    {
+      "include": "#function-calls"
+    },
+    {
+      "include": "#class-definition"
+    },
+    {
+      "include": "#variable-declaration"
+    },
+    {
+      "include": "#identifiers"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.yscript",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.yscript",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "embedded-haxe": {
+      "name": "meta.embedded.haxe.yscript",
+      "begin": "\\b(haxe)\\s*\\{",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.embedded.yscript"
+        }
+      },
+      "end": "\\}",
+      "contentName": "source.haxe",
+      "patterns": [
+        {
+          "include": "source.haxe"
+        }
+      ]
+    },
+    "embedded-lua": {
+      "name": "meta.embedded.lua.yscript",
+      "begin": "\\b(lua)\\s*\\{",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.embedded.yscript"
+        }
+      },
+      "end": "\\}",
+      "contentName": "source.lua",
+      "patterns": [
+        {
+          "include": "source.lua"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.yscript",
+          "match": "\\b(if|else|while|for|do|return|break|continue|switch|case|default|try|catch|finally)\\b"
+        },
+        {
+          "name": "keyword.declaration.yscript",
+          "match": "\\b(var|const|function|class|interface|enum|struct)\\b"
+        },
+        {
+          "name": "keyword.modifier.yscript",
+          "match": "\\b(public|private|static|override|extends|implements)\\b"
+        },
+        {
+          "name": "keyword.other.yscript",
+          "match": "\\b(new|this|super|null|void|cast|is|as|import|using|package)\\b"
+        },
+        {
+          "name": "constant.language.yscript",
+          "match": "\\b(true|false|null)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.primitive.yscript",
+          "match": "\\b(Int|Float|String|Bool|Dynamic|Void)\\b"
+        },
+        {
+          "name": "storage.type.generic.yscript",
+          "match": "\\b(Array)\\b"
+        },
+        {
+          "name": "entity.name.type.yscript",
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.yscript",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.yscript",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.yscript",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.yscript",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.decimal.yscript",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.hex.yscript",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.yscript",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.comparison.yscript",
+          "match": "(==|!=|<|<=|>|>=)"
+        },
+        {
+          "name": "keyword.operator.logical.yscript",
+          "match": "(&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.yscript",
+          "match": "(\\+|\\-|\\*|\\/|%)"
+        },
+        {
+          "name": "keyword.operator.increment.yscript",
+          "match": "(\\+\\+|\\-\\-)"
+        }
+      ]
+    },
+    "function-definition": {
+      "name": "meta.function.yscript",
+      "begin": "\\b(function)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.yscript"
+        },
+        "2": {
+          "name": "entity.name.function.definition.yscript"
+        }
+      },
+      "end": "\\)",
+      "patterns": [
+        {
+          "include": "#function-parameters"
+        }
+      ]
+    },
+    "function-parameters": {
+      "patterns": [
+        {
+          "name": "variable.parameter.yscript",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "include": "#types"
+        },
+        {
+          "include": "#punctuation"
+        }
+      ]
+    },
+    "function-calls": {
+      "patterns": [
+        {
+          "name": "meta.method-call.yscript",
+          "match": "(?<=\\.)([a-zA-Z_][a-zA-Z0-9_]*)(?=\\s*\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.method.yscript"
+            }
+          }
+        },
+        {
+          "name": "meta.function-call.yscript",
+          "match": "(?<=[=\\s\\(,;\\{])([a-zA-Z_][a-zA-Z0-9_]*)(?=\\s*\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.call.yscript"
+            }
+          }
+        }
+      ]
+    },
+    "class-definition": {
+      "name": "meta.class.yscript",
+      "begin": "\\b(class)\\s+([A-Z][a-zA-Z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.yscript"
+        },
+        "2": {
+          "name": "entity.name.class.yscript"
+        }
+      },
+      "end": "(?=\\{)",
+      "patterns": [
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#types"
+        }
+      ]
+    },
+    "variable-declaration": {
+      "name": "meta.variable.yscript",
+      "begin": "\\b(var|const)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.yscript"
+        },
+        "2": {
+          "name": "variable.name.yscript"
+        }
+      },
+      "end": "(?=[;=])",
+      "patterns": [
+        {
+          "include": "#types"
+        },
+        {
+          "include": "#punctuation"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.yscript",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.yscript",
+          "match": "[,;]"
+        },
+        {
+          "name": "punctuation.accessor.yscript",
+          "match": "\\."
+        },
+        {
+          "name": "punctuation.definition.type.yscript",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.section.scope.yscript",
+          "match": "[{}]"
+        },
+        {
+          "name": "punctuation.section.brackets.yscript",
+          "match": "[\\[\\]]"
+        },
+        {
+          "name": "punctuation.section.parens.yscript",
+          "match": "[()]"
+        }
+      ]
+    }
+  }
+}

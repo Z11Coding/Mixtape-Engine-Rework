@@ -87,6 +87,7 @@ import states.LoadingState;
 import states.PlayState;
 import yutautil.ChanceSelector;
 import yutautil.ImprovedFileHandling;
+import yutautil.YScript;
 
 using StringTools;
 using yutautil.CUMacroTools;

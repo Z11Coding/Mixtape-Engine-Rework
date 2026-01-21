@@ -1,0 +1,14 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.suggest.autoImports": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/out": false
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/out": true
+  }
+}
