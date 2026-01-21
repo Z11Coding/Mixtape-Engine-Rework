@@ -136,16 +136,7 @@ class FunkinSprite extends FlxAnimate
         case '':
           // Do the opposite of Paths.animateAtlas since that function is called in loadTextureAtlas.
           var lib:String = Paths.getLibraryPath(path);
-
-          if (lib == 'preload')
-          {
-            path = path.replace('assets/images/', '');
-          }
-          else
-          {
-            path = path.replace('$lib:assets/$lib/images/', '');
-          }
-
+          path = path.replace('$lib:assets/$lib/images/', '');
           this.loadTextureAtlas(path, lib, atlasSettings);
 
         default:
@@ -396,14 +387,15 @@ class FunkinSprite extends FlxAnimate
   public function hasAnimation(id:String):Bool
   {
     var animationList:Array<String> = this.animation?.getNameList() ?? [];
+    animationList.pushMany(this.anim?.getNameList() ?? []);
     if (animationList.contains(id))
     {
       return true;
     }
-    /*else if (this.isAnimate && !animationList.contains(id))
+    else if (this.isAnimate && !animationList.contains(id))
     {
       return addAnimationIfMissing(id);
-    }*/
+    }
 
     return false;
   }
@@ -412,11 +404,15 @@ class FunkinSprite extends FlxAnimate
    * TODO: Get this working again
    * Adds an animation if it doesn't exist.
    * @param id The animation ID to check.
-   *
+   */
   function addAnimationIfMissing(id:String):Bool
   {
+    var symbols:Array<String> = [];
+
     @:privateAccess
-    var symbols:Array<String> = this.library.dictionary.keys().toArray(String);
+    for (symbol in this.library.dictionary.keys())
+      symbols.push(symbol);
+
     var frameLabels:Array<String> = listAnimations();
 
     if (frameLabels.contains(id))
@@ -433,7 +429,7 @@ class FunkinSprite extends FlxAnimate
     }
 
     return false;
-  }*/
+  }
 
   /**
    * Gets every frame on every symbol that starts with the given keyword.

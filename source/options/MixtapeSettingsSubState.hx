@@ -217,10 +217,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+
 		var option:Option = new Option('---MODCHART---',
 			"Modify how the modchart system runs!\n(Not all options affect both modchart systems!)",
 			'',
 			LABEL);
+		addOption(option);
 
 		var option:Option = new Option('Enable 3D Cameras',
 			'Enables or disables 3D camera functionality.\nDisabling this may improve performance by skipping 3D transformations.',

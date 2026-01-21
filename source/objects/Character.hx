@@ -10,6 +10,16 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets;
 import stages.objects.TankmenBG;
 
+#if LUA_ALLOWED
+import backend.funkinmodchart.Manager;
+import psychlua.*;
+
+using psychlua.IntegratedScript;
+#else
+import psychlua.HScript;
+import psychlua.LuaUtils;
+#end
+
 typedef CharacterFile = {
 	var animations:Array<AnimArray>;
 	var image:String;
@@ -134,8 +144,6 @@ class Character extends FunkinSprite
 			doubleGhosts.push(ghost);
 		}
 
-		animation = new PsychAnimationController(this);
-
 		animOffsets = new Map<String, Array<Dynamic>>();
 		this.isPlayer = isPlayer;
 		this.charType = chType;
@@ -212,11 +220,9 @@ class Character extends FunkinSprite
 		if (json.version != null) {
 			switch (json.version) {
 				default:
-					#if flxanimate
 					var animToFind:String = Paths.getPath('images/' + json.assetPath + '/Animation.json', TEXT);
 					if (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind))
 						isAnimateAtlas = true;
-					#end
 
 					scale.set(1, 1);
 					updateHitbox();
@@ -225,20 +231,10 @@ class Character extends FunkinSprite
 					{
 						frames = Paths.getMultiAtlas(json.assetPath.split(','));
 					}
-					#if flxanimate
 					else
 					{
-						try
-						{
-							frames = Paths.getAnimateAtlas(json.assetPath, getDefaultAtlasSettings());
-						}
-						catch(e:haxe.Exception)
-						{
-							FlxG.log.warn('Could not load atlas ${json.assetPath}: $e');
-							trace(e.stack);
-						}
+						loadTextureAtlas(json.assetPath);
 					}
-					#end
 
 					charName = json.name != null ? json.name : '???';
 					charPronouns = json.pronouns != null ? json.pronouns.split('/') : ['???', '???'];
@@ -270,12 +266,12 @@ class Character extends FunkinSprite
 					// animations
 					animationsArray = json.animations;
 					if(animationsArray != null && animationsArray.length > 0) {
-						for (anim in animationsArray) {
-							var animAnim:String = '' + anim.name;
-							var animName:String = '' + anim.prefix;
-							var animFps:Int = (anim.fps != null ? anim.fps : 24);
-							var animLoop:Bool = (anim.loop != null ? !!anim.loop : false); //Bruh
-							var animIndices:Array<Int> = (anim.indices != null ? anim.indices : []);
+						for (anims in animationsArray) {
+							var animAnim:String = '' + anims.anim;
+							var animName:String = '' + anims.prefix;
+							var animFps:Int = (anims.fps != null ? anims.fps : 24);
+							var animLoop:Bool = (anims.loop != null ? !!anims.loop : false); //Bruh
+							var animIndices:Array<Int> = (anims.indices != null ? anims.indices : []);
 
 							if(!isAnimateAtlas)
 							{
@@ -284,28 +280,27 @@ class Character extends FunkinSprite
 								else
 									animation.addByPrefix(animAnim, animName, animFps, animLoop);
 							}
-							#if flxanimate
 							else
 							{
 								if(animIndices != null && animIndices.length > 0)
-									this.anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
+									anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
 								else
-									this.anim.addBySymbol(animAnim, animName, animFps, animLoop);
+									anim.addBySymbol(animAnim, animName, animFps, animLoop);
 							}
-							#end
 
-							if(anim.offsets != null && anim.offsets.length > 1) addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
-							else addOffset(anim.anim, 0, 0);
+							if(anims.offsets != null && anims.offsets.length > 1) addOffset(anims.anim, anims.offsets[0], anims.offsets[1]);
+							else addOffset(anims.anim, 0, 0);
 						}
 					}
 			}
 		} else {
 
-			#if flxanimate
 			var animToFind:String = Paths.getPath('images/' + json.image + '/Animation.json', TEXT);
-			if (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind))
+			if (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind)) {
 				isAnimateAtlas = true;
-			#end
+			}
+
+			trace('isAnimateAtlas: $isAnimateAtlas');
 
 			scale.set(1, 1);
 			updateHitbox();
@@ -314,20 +309,10 @@ class Character extends FunkinSprite
 			{
 				frames = Paths.getMultiAtlas(json.image.split(','));
 			}
-			#if flxanimate
 			else
 			{
-				try
-				{
-					frames = Paths.getAnimateAtlas(json.image, getDefaultAtlasSettings());
-				}
-				catch(e:haxe.Exception)
-				{
-					FlxG.log.warn('Could not load atlas ${json.image}: $e');
-					trace(e.stack);
-				}
+				loadTextureAtlas(json.image);
 			}
-			#end
 
 			imageFile = json.image;
 			jsonScale = json.scale;
@@ -356,12 +341,12 @@ class Character extends FunkinSprite
 			// animations
 			animationsArray = json.animations;
 			if(animationsArray != null && animationsArray.length > 0) {
-				for (anim in animationsArray) {
-					var animAnim:String = '' + anim.anim;
-					var animName:String = '' + anim.name;
-					var animFps:Int = anim.fps;
-					var animLoop:Bool = !!anim.loop; //Bruh
-					var animIndices:Array<Int> = anim.indices;
+				for (anims in animationsArray) {
+					var animAnim:String = '' + anims.anim;
+					var animName:String = '' + anims.name;
+					var animFps:Int = anims.fps;
+					var animLoop:Bool = !!anims.loop; //Bruh
+					var animIndices:Array<Int> = anims.indices;
 
 					if(!isAnimateAtlas)
 					{
@@ -370,18 +355,16 @@ class Character extends FunkinSprite
 						else
 							animation.addByPrefix(animAnim, animName, animFps, animLoop);
 					}
-					#if flxanimate
 					else
 					{
 						if(animIndices != null && animIndices.length > 0)
-							this.anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
+							anim.addBySymbolIndices(animAnim, animName, animIndices, animFps, animLoop);
 						else
-							this.anim.addBySymbol(animAnim, animName, animFps, animLoop);
+							anim.addBySymbol(animAnim, animName, animFps, animLoop);
 					}
-					#end
 
-					if(anim.offsets != null && anim.offsets.length > 1) addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
-					else addOffset(anim.anim, 0, 0);
+					if(anims.offsets != null && anims.offsets.length > 1) addOffset(anims.anim, anims.offsets[0], anims.offsets[1]);
+					else addOffset(anims.anim, 0, 0);
 				}
 			}
 		}
@@ -600,49 +583,52 @@ class Character extends FunkinSprite
 
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
-		specialAnim = false;
-		if(!isAnimateAtlas)
-		{
-			try {animation.play(AnimName, Force, Reversed, Frame);}
-			catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
-		}
-		else
-		{
-			anim.play(AnimName, Force, Reversed, Frame);
-			update(0);
-		}
-		_lastPlayedAnimation = AnimName;
-
-		try {
-		if (hasAnimation(AnimName))
-		{
-			var daOffset = animOffsets.get(AnimName);
-			offset.set(daOffset[0], daOffset[1]);
-		}
-		}
-		catch(e) {trace('Animation offset no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
-		//else offset.set(0, 0);
-
-		if (curCharacter.startsWith('gf-') || curCharacter == 'gf')
-		{
-			if (AnimName == 'singLEFT')
-				danced = true;
-
-			else if (AnimName == 'singRIGHT')
-				danced = false;
-
-			if (AnimName == 'singUP' || AnimName == 'singDOWN')
-				danced = !danced;
-		}
-
-		if (Paths.formatToSongPath(Song.loadedSongName) == 'fangirl-frenzy')
-		{
-			switch (curCharacter)
+		var ret:Dynamic = PlayState.instance?.callOnScripts('onPlayAnimPre', [AnimName, Force, Reversed, Frame]);
+		if(ret != LuaUtils.Function_Stop) {
+			specialAnim = false;
+			if(!isAnimateAtlas)
 			{
-				case 'Z11-true-player':
-					if (animation.curAnim.name != 'idle') PlayState.instance.health += 0.023 * ClientPrefs.getGameplaySetting('healthgain', 1);
-				case "Zenetta":
-					if (!animation.curAnim.name.contains('dance')) PlayState.instance.health -= 0.023 * ClientPrefs.getGameplaySetting('healthloss', 1);
+				try {animation.play(AnimName, Force, Reversed, Frame);}
+				catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
+			}
+			else
+			{
+				anim.play(AnimName, Force, Reversed, Frame);
+				update(0);
+			}
+			_lastPlayedAnimation = AnimName;
+
+			try {
+				if (hasAnimation(AnimName))
+				{
+					var daOffset = animOffsets.get(AnimName);
+					offset.set(daOffset[0], daOffset[1]);
+				}
+			}
+			catch(e) {trace('Animation offset no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
+			//else offset.set(0, 0);
+
+			if (curCharacter.startsWith('gf-') || curCharacter == 'gf')
+			{
+				if (AnimName == 'singLEFT')
+					danced = true;
+
+				else if (AnimName == 'singRIGHT')
+					danced = false;
+
+				if (AnimName == 'singUP' || AnimName == 'singDOWN')
+					danced = !danced;
+			}
+
+			if (Paths.formatToSongPath(Song.loadedSongName) == 'fangirl-frenzy')
+			{
+				switch (curCharacter)
+				{
+					case 'Z11-true-player':
+						if (animation.curAnim.name != 'idle') PlayState.instance.health += 0.023 * ClientPrefs.getGameplaySetting('healthgain', 1);
+					case "Zenetta":
+						if (!animation.curAnim.name.contains('dance')) PlayState.instance.health -= 0.023 * ClientPrefs.getGameplaySetting('healthloss', 1);
+				}
 			}
 		}
 
@@ -782,7 +768,6 @@ class Character extends FunkinSprite
 	// special thanks ne_eo for the references, you're the goat!!
 	@:allow(states.editors.CharacterEditorState)
 	public var isAnimateAtlas(default, null):Bool = false;
-	#if flxanimate
 	public override function draw()
 	{
 		for(ghost in doubleGhosts){
@@ -811,9 +796,12 @@ class Character extends FunkinSprite
 					missingText.draw();
 				}
 			}
+			super.draw();
 			return;
 		}
+
 		super.draw();
+
 		if(missingCharacter && visible)
 		{
 			alpha = lastAlpha;
@@ -837,5 +825,4 @@ class Character extends FunkinSprite
 		doubleGhosts = FlxDestroyUtil.destroyArray(doubleGhosts);
 		super.destroy();
 	}
-	#end
 }

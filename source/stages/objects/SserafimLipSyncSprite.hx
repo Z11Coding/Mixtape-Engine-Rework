@@ -1,20 +1,9 @@
 package stages.objects;
 
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.math.FlxPoint;
-import flixel.util.FlxTimer;
-@:keep
-typedef LipSyncData = {
-  offset:Array<Int>,
-  angle:Int
-}
-
 // object used for lip sync on characters in SPAGHETTI
-@:keep
 class SserafimLipSyncSprite extends FunkinSprite
 {
-  var shouldSing(default, set):Bool = true;
+  public var shouldSing(default, set):Bool = true;
 
   function set_shouldSing(value:Bool):Bool
   {
@@ -44,4 +33,9 @@ class SserafimLipSyncSprite extends FunkinSprite
       this.anim.curAnim.curFrame = Math.floor((Conductor.songPosition / 1000) * 24) - 1;
     }
   }
+}
+
+typedef LipSyncData = {
+  offset:Array<Int>,
+  angle:Int
 }

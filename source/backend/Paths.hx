@@ -69,6 +69,8 @@ class Paths
 		"hx",
 		#if LUA_ALLOWED "lua" #end]; // TODo: initialize this by combining the top 2 vars ^
 
+	public static var pathType:String = 'Mixtape';
+
 	// Troll Engine Things
 	public static function getFileWithExtensions(scriptPath:String, extensions:Array<String>) {
 		for (fileExt in extensions) {
@@ -635,7 +637,7 @@ class Paths
 	static public function exists(someString:String):Bool
 	{
 		var toRet:Bool = false;
-		if (OpenFlAssets.exists(someString))
+		if (#if MODS_ALLOWED FileSystem.exists(someString) #else OpenFlAssets.exists(someString) #end)
 		{
 			toRet = true;
 		}
@@ -1090,7 +1092,7 @@ class Paths
 			else #end if (OpenFlAssets.exists(file, IMAGE))
 				bitmap = OpenFlAssets.getBitmapData(file);
 
-			if (bitmap == null && key.split(',').length == 1)
+			if (bitmap == null && key.split(',').length == 1 && !exists(key + '/Animation.json'))
 			{
 				trace('Bitmap not found: $file | key: $key');
 				return null;
@@ -1534,7 +1536,6 @@ class Paths
 	#end
 	#end
 
-	#if flxanimate
 	public static function animateAtlas(path:String, ?library:String):String
 	{
 		return getFolderPath('images/$path', library);
@@ -1582,7 +1583,6 @@ class Paths
         onSymbolCreate: validatedSettings.onSymbolCreate
       });
   }
-	#end
 
 	public static function file(file:String, type:AssetType = TEXT, ?library:String):String {
 		return getPath(file, type, library);

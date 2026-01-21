@@ -7,6 +7,7 @@ import cpp.abi.Abi;
 import haxe.Constraints.IMap;
 import haxe.ds.StringMap;
 // import states.PlayState.LuaScript;
+import thx.ReadonlyArray;
 import yutautil.Threader.MemLimitThreadQ;
 import yutautil.Threader;
 import yutautil.modules.SyncUtils;
@@ -1896,7 +1897,7 @@ class CollectionUtils
 	/**
 	 * Converts an input value to a nullable version of the same type.
 	 * For Float values, NaN is treated as null for safer null checking.
-	 * 
+	 *
 	 * @param input The value to convert to nullable
 	 * @return The nullable version of the input, or null if input is Float NaN
 	 */
@@ -3261,6 +3262,19 @@ class CollectionUtils
 	public static function setVisibility(spr:FlxSprite,state:Bool) {
 		spr.visible = state;
 		spr.animation.paused = state;
+	}
+
+	/**
+		Same as `Array.map` but it adds a second argument to the `callback` function with the current index value.
+	**/
+	#if js
+	inline
+	#end
+	public static function mapi<TIn, TOut>(array:ReadonlyArray<TIn>, callback:TIn->Int->TOut):Array<TOut> {
+		var r = [];
+		for (i in 0...array.length)
+			r.push(callback(array[i], i));
+		return r;
 	}
 
 	/**
