@@ -905,7 +905,7 @@ class Note extends NoteObject
 					hitCausesMiss = true;
 					missHealth = 0.0475;
 				case 'sakura-joint':
-					animSuffix = '-both';
+					//animSuffix = '-both';
 				case 'sakura-bf1':
 					animSuffix = '-bf';
 				case 'sakura-bf2':

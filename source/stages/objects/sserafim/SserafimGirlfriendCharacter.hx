@@ -13,7 +13,7 @@ class SserafimGirlfriendCharacter extends Character
   {
     if (isBeautiful)
     {
-      super.playAnim(name + '-beautiful', restart, reversed, frame);
+      super.playAnim(name + '-alt', restart, reversed, frame);
     }
     else
     {

@@ -38,7 +38,7 @@ class SserafimYunjinCharacter extends Character
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-yunjin', false, DAD);
+    super(x, y, 'sserafim-yunjin', true , DAD);
 
     lipSyncSprite = new SserafimLipSyncSprite(0, 0, 'yunjin');
 

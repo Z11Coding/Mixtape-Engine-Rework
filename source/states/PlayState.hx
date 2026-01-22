@@ -367,7 +367,8 @@ class PlayState extends MusicBeatState
 	public var defaultCamZoom:Float = 1.05;
 	public var defaultCamHudZoom:Float = 0;
 	public var defaultStageZoom:Float = 1.05;
-	private static var zoomTween:FlxTween;
+	private var zoomTween:FlxTween;
+	private var camTween:FlxTween;
 
 	// how big to stretch the pixel art assets
 	public static var daPixelZoom:Float = 6;
@@ -8196,12 +8197,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					trace("INVALID EVENT VALUE! Attempting to salvage...");
 					if (keyValues.length > 2) {
 						trueValues = [keyValues[0], keyValues[1]]; //default values
-						trace("ONLY USING FIRST 2 VALUES OF EVENT!");
 					} else if (keyValues.length == 1) {
 						trueValues = ["0.5", keyValues[0]];
-						trace("ONLY USING 1 VALUE!");
-					} else trace("Could not salvage Zoom Camera event!");
-					return;
+					} else {
+						trace("Could not salvage Zoom Camera event!");
+						return;
+					}
 				} else trueValues = keyValues;
 				var floaties = trueValues.map(s -> Std.parseFloat(s));
 				if(backend.util.ArrayTools.findIndex(floaties,s -> Math.isNaN(s)) != -1) {
@@ -8211,19 +8212,77 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var easeFunc = LuaUtils.getTweenEaseByString(value2);
 				if(zoomTween != null) zoomTween.cancel();
 				var targetZoom = floaties[1]*defaultStageZoom;
-				zoomTween = FlxTween.tween(camGame, {zoom: targetZoom}, (Conductor.stepCrochet/1000)*floaties[0], {
-					onStart: (x) ->{
-						camZooming = false;
-						camZoomingDecay = 7;
-					},
-					ease: easeFunc,
-					onComplete: (x) ->{
-						defaultCamZoom = targetZoom;
-						camZoomingDecay = 1;
-						camZooming = true;
-						zoomTween = null;
+				if(value2.toLowerCase() == "classic"){
+					camZooming = true;
+					defaultCamZoom = targetZoom;
+				} else if(value2.toLowerCase() == "instant") {
+					camZooming = true;
+					defaultCamZoom = targetZoom;
+					camGame.zoom = targetZoom;
+				}
+				else{
+					zoomTween = FlxTween.tween(camGame, {zoom: targetZoom}, Conductor.stepCrochet*0.001*floaties[0], {
+						onStart: (x) ->{
+							camZooming = false;
+							camZoomingDecay = 7;
+						},
+						ease: easeFunc,
+						onComplete: (x) ->{
+							defaultCamZoom = targetZoom;
+							camZoomingDecay = 1;
+							camZooming = true;
+							zoomTween = null;
+						}
+					});
+				}
+
+			case 'FocusCamera': //V-slice event notes val1: char val2: x,y,dur,ease
+				var keyValues = value2.trim().split(",");
+				if(keyValues.length != 4 && value1.length <= 0) {
+					trace("INVALID EVENT VALUE");
+					return;
+				}
+				var ease = keyValues.pop().toLowerCase();
+				var floaties = keyValues.map(s -> Std.parseFloat(s));
+				if(floaties.length != 4 && backend.util.ArrayTools.findIndex(floaties,s -> Math.isNaN(s)) != -1) {
+					trace("INVALID FLOATIES");
+					return;
+				}
+				isCameraOnForcedPos = true;
+
+				var targetx = floaties[0];
+				var targety = floaties[1];
+				var dur = Conductor.stepCrochet*0.001*floaties[2];
+				switch (value1){
+					case "bf"|"0":{
+						targetx += boyfriend.getMidpoint().x -100 - boyfriend.cameraPosition[0] + boyfriendCameraOffset[0];
+						targety += boyfriend.getMidpoint().y -100 + boyfriend.cameraPosition[1] + boyfriendCameraOffset[1];
 					}
-				});
+					case "dad"|"1":{
+						targetx += dad.getMidpoint().x +150 + dad.cameraPosition[0] + opponentCameraOffset[0];
+						targety += dad.getMidpoint().y -100 + dad.cameraPosition[1] + opponentCameraOffset[1];
+					}
+					case "gf"|"2":{
+						targetx += gf.getMidpoint().x + gf.cameraPosition[0] - girlfriendCameraOffset[0];
+						targety += gf.getMidpoint().y + gf.cameraPosition[1] - girlfriendCameraOffset[1];
+					}
+				}
+
+				if(ease == "classic" || ease == "instant"){
+					camFollow.x = targetx;
+					camFollow.y = targety;
+					if(ease == "instant") FlxG.camera.snapToTarget();
+				}
+				else{
+					var easeFunc = psychlua.LuaUtils.getTweenEaseByString(ease);
+					camTween?.cancel();
+					camTween = FlxTween.tween(camFollow,{x:targetx,y:targety},dur,{
+							ease: easeFunc,
+							onComplete: s -> {
+									camTween = null;
+							}
+					});
+				}
 
 			case 'Change Mania':
 				var newMania:Int = 0;

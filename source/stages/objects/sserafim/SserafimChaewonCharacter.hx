@@ -38,7 +38,7 @@ class SserafimChaewonCharacter extends Character
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-chaewon', false, OTHER);
+    super(x, y, 'sserafim-chaewon', true, OTHER);
 
     lipSyncSprite = new SserafimLipSyncSprite(0, 0);
     lipSyncSprite.alpha = 0.5;

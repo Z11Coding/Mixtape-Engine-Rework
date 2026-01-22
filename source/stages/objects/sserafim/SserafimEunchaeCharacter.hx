@@ -40,7 +40,7 @@ class SserafimEunchaeCharacter extends Character
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-eunchae', false, OTHER);
+    super(x, y, 'sserafim-eunchae', true, OTHER);
 
     lipSyncSprite = new SserafimLipSyncSprite(0, 0);
 
