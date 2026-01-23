@@ -56,6 +56,7 @@ class PlaylistState extends MusicBeatState {
 	var mainBox:PsychUIBox;
 	var settingsBox:PsychUIBox;
 	var songListTxt:FlxText;
+	var readyLettersInPosition:Bool = false;
 
 	static var shufflePlaylist:Bool = false;
 
@@ -326,8 +327,10 @@ class PlaylistState extends MusicBeatState {
 		if (readyTxt != null)
 			for (i in 0...readyTxt.letters.length) {
 				readyTxt.letters[i].color = FlxColor.fromHSL((((e / 2) / 300 * 360) % 360)+(15*i), 1.0, 0.5*1.0);
-				// Use direct y positioning with proper base position and wave effect
-				readyTxt.letters[i].y = readyTxt.y + readyTxt.letters[i].row * 85 + (Math.sin((e*0.01) * 2 + (0.5*i)) * 5);
+				// Only apply wave effect if letters are in position
+				if (readyLettersInPosition) {
+					readyTxt.letters[i].y = readyTxt.y + readyTxt.letters[i].row * 85 + (Math.sin((e*0.01) * 2 + (0.5*i)) * 5);
+				}
 			}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapse * 24)));
@@ -387,7 +390,21 @@ class PlaylistState extends MusicBeatState {
 				FlxTween.tween(randomText, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(albumPhoto, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(difficultyStars, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
-				FlxTween.tween(readyTxt, {y: 550}, 2, {ease: FlxEase.elasticOut});
+				// Tween each letter individually to its final position
+				readyLettersInPosition = false;
+				for (i in 0...readyTxt.letters.length) {
+					var targetY = 550 + readyTxt.letters[i].row * 85;
+					FlxTween.tween(readyTxt.letters[i], {y: targetY}, 2, {
+						ease: FlxEase.elasticOut,
+						startDelay: i * 0.05,
+						onComplete: function(tween) {
+							if (i == readyTxt.letters.length - 1) {
+								readyTxt.y = 550;
+								readyLettersInPosition = true;
+							}
+						}
+					});
+				}
 				FlxTween.tween(settingsBox, {x: 930}, 1, {ease: FlxEase.elasticOut});
 				//FlxTween.tween(searchBar, {y: -3000}, 1, {ease: FlxEase.elasticOut});
 				mainBox.screenCenter();
@@ -436,7 +453,19 @@ class PlaylistState extends MusicBeatState {
 				FlxTween.tween(randomText, {alpha: 1, x: 90}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(albumPhoto, {alpha: 1, x: 930}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(difficultyStars, {alpha: 1, x: 930}, 1, {ease: FlxEase.sineIn});
-				FlxTween.tween(readyTxt, {y: 3000}, 2, {ease: FlxEase.elasticInOut});
+				// Stop wave effect and tween each letter individually off screen
+				readyLettersInPosition = false;
+				for (i in 0...readyTxt.letters.length) {
+					FlxTween.tween(readyTxt.letters[i], {y: 3000}, 2, {
+						ease: FlxEase.elasticInOut,
+						startDelay: i * 0.03,
+						onComplete: function(tween) {
+							if (i == readyTxt.letters.length - 1) {
+								readyTxt.y = 3000;
+							}
+						}
+					});
+				}
 				FlxTween.tween(mainBox, {x: 3000}, 2, {ease: FlxEase.elasticInOut});
 				FlxTween.tween(settingsBox, {x: 3000}, 2, {ease: FlxEase.sineIn});
 				//FlxTween.tween(searchBar, {y: 100}, 1, {ease: FlxEase.elasticOut});
@@ -547,7 +576,7 @@ class PlaylistState extends MusicBeatState {
 	public static function loadPlaylists():Array<PlaylistMetadata>
 	{
 		var playlists:Array<PlaylistMetadata> = [];
-		playlists.pushMany(ClientPrefs.data.playLists ?? []); // GOD how DUMB AM I?????
+		playlists.pushMany(ClientPrefs.data.playLists ?? []) // GOD how DUMB AM I?????
 
 		// mod-specific playlist support maybe??? idk could be cool
 		#if MODS_ALLOWED
