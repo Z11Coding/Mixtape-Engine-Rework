@@ -298,8 +298,18 @@ class VSlice
 								if (ease.toLowerCase() == "classic" || ease.toLowerCase() == "instant")
 									needsDirc = false;
 							}
-							fields.push('${event.v.x}, ${event.v.y}, ${(event.v.duration ?? 1)}, ${(event.v.ease ?? 'classic')}${(event.v.easeDir != null && needsDirc ? event.v.easeDir : '')}');
+							fields.push('${event.v.x}, ${event.v.y}, ${(event.v.duration ?? 1)}, ${(event.v.ease.toLowerCase() ?? 'classic')}${(event.v.easeDir != null && needsDirc ? event.v.easeDir : '')}');
 						}
+					} else if (event.e == "ZoomCamera") {
+						fields.push('${event.v.duration},${event.v.zoom}');
+						var ease:String = "";
+						var needsDirc:Bool = true;
+						if (event.v.ease != null) {
+							ease = event.v.ease;
+							if (ease.toLowerCase() == "classic" || ease.toLowerCase() == "instant")
+								needsDirc = false;
+						}
+						fields.push('${(event.v.ease.toLowerCase() ?? 'classic')}${(event.v.easeDir != null && needsDirc ? event.v.easeDir : '')}');
 					} else {
 						switch(Type.typeof(event.v))
 						{

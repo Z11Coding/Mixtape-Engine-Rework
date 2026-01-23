@@ -1,166 +1,166 @@
 {
 	"animations": [
 		{
-			"prefix": "gf down",
-			"offsets": [2, -8],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-44, -29],
 			"anim": "singDOWN",
-			"loop": false,
-			"name": "gf down"
+			"fps": 24,
+			"prefix": "gf down",
+			"name": "gf down",
+			"indices": []
 		},
 		{
-			"prefix": "gf left",
-			"offsets": [15, 8],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-33, -11],
 			"anim": "singLEFT",
-			"loop": false,
-			"name": "gf left"
+			"fps": 24,
+			"prefix": "gf left",
+			"name": "gf left",
+			"indices": []
 		},
 		{
-			"prefix": "gf right",
-			"offsets": [2, 3],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-46, -16],
 			"anim": "singRIGHT",
-			"loop": false,
-			"name": "gf right"
+			"fps": 24,
+			"prefix": "gf right",
+			"name": "gf right",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		},
 		{
-			"prefix": "gf up",
-			"offsets": [5, 6],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-43, -9],
 			"anim": "singUP",
-			"loop": false,
-			"name": "gf up"
+			"fps": 24,
+			"prefix": "gf up",
+			"name": "gf up",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		},
 		{
-			"prefix": "gf idle",
+			"loop": false,
 			"offsets": [0, 0],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-			"fps": 24,
 			"anim": "danceLeft",
-			"loop": false,
-			"name": "gf idle"
-		},
-		{
+			"fps": 24,
 			"prefix": "gf idle",
+			"name": "gf idle",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+		},
+		{
+			"loop": false,
 			"offsets": [0, 0],
-			"indices": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
-			"fps": 24,
 			"anim": "danceRight",
-			"loop": false,
-			"name": "gf idle"
+			"fps": 24,
+			"prefix": "gf idle",
+			"name": "gf idle",
+			"indices": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
 		},
 		{
-			"prefix": "gf down 2",
-			"offsets": [-265, -397],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-44, -29],
 			"anim": "singDOWN-alt",
-			"loop": false,
-			"name": "gf down 2"
+			"fps": 24,
+			"prefix": "gf down 2",
+			"name": "gf down 2",
+			"indices": []
 		},
 		{
-			"prefix": "gf left 2",
-			"offsets": [-265, -397],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-33, -11],
 			"anim": "singLEFT-alt",
-			"loop": false,
-			"name": "gf left 2"
+			"fps": 24,
+			"prefix": "gf left 2",
+			"name": "gf left 2",
+			"indices": []
 		},
 		{
-			"prefix": "gf right 2",
-			"offsets": [-265, -397],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-46, -16],
 			"anim": "singRIGHT-alt",
-			"loop": false,
-			"name": "gf right 2"
+			"fps": 24,
+			"prefix": "gf right 2",
+			"name": "gf right 2",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		},
 		{
-			"prefix": "gf up 2",
-			"offsets": [-265, -397],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-43, -9],
 			"anim": "singUP-alt",
-			"loop": false,
-			"name": "gf up 2"
+			"fps": 24,
+			"prefix": "gf up 2",
+			"name": "gf up 2",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		},
 		{
-			"prefix": "gf miss down 1",
-			"offsets": [121, -147],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-48, -14],
 			"anim": "singDOWNmiss",
-			"loop": false,
-			"name": "gf miss down 1"
+			"fps": 24,
+			"prefix": "gf miss down 1",
+			"name": "gf miss down 1",
+			"indices": []
 		},
 		{
-			"prefix": "gf miss left 1",
-			"offsets": [121, -147],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-33, -11],
 			"anim": "singLEFTmiss",
-			"loop": false,
-			"name": "gf miss left 1"
+			"fps": 24,
+			"prefix": "gf miss left 1",
+			"name": "gf miss left 1",
+			"indices": []
 		},
 		{
-			"prefix": "gf miss right 1",
-			"offsets": [121, -147],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-50, -12],
 			"anim": "singRIGHTmiss",
-			"loop": false,
-			"name": "gf miss right 1"
+			"fps": 24,
+			"prefix": "gf miss right 1",
+			"name": "gf miss right 1",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		},
 		{
-			"prefix": "gf miss up 1",
-			"offsets": [121, -147],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-51, 1],
 			"anim": "singUPmiss",
-			"loop": false,
-			"name": "gf miss up 1"
+			"fps": 24,
+			"prefix": "gf miss up 1",
+			"name": "gf miss up 1",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		},
 		{
-			"prefix": "gf miss down 2",
-			"offsets": [121, -147],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-45, -12],
 			"anim": "singDOWNmiss-alt",
-			"loop": false,
-			"name": "gf miss down 2"
+			"fps": 24,
+			"prefix": "gf miss down 2",
+			"name": "gf miss down 2",
+			"indices": []
 		},
 		{
-			"prefix": "gf miss left 2",
-			"offsets": [121, -147],
-			"indices": [],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-37, -11],
 			"anim": "singLEFTmiss-alt",
-			"loop": false,
-			"name": "gf miss left 2"
+			"fps": 24,
+			"prefix": "gf miss left 2",
+			"name": "gf miss left 2",
+			"indices": []
 		},
 		{
-			"prefix": "gf miss right 2",
-			"offsets": [121, -147],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"fps": 24,
+			"loop": false,
+			"offsets": [-43, -11],
 			"anim": "singRIGHTmiss-alt",
-			"loop": false,
-			"name": "gf miss right 2"
+			"fps": 24,
+			"prefix": "gf miss right 2",
+			"name": "gf miss right 2",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		},
 		{
-			"prefix": "gf miss up 2",
-			"offsets": [121, -147],
-			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-			"fps": 24,
-			"anim": "singUPmiss-alt",
 			"loop": false,
-			"name": "gf miss up 2"
+			"offsets": [-44, -5],
+			"anim": "singUPmiss-alt",
+			"fps": 24,
+			"prefix": "gf miss up 2",
+			"name": "gf miss up 2",
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 		}
 	],
 	"vocals_file": "",

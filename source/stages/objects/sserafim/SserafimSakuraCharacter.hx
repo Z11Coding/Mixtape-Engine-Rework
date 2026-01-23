@@ -60,7 +60,7 @@ class SserafimSakuraCharacter extends Character
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-sakura', false, OTHER);
+    super(x, y, 'sserafim-sakura', true, OTHER);
 
     lipSyncSprite = new SserafimLipSyncSprite(0, 0);
     lipSyncSprite.flipX = true;

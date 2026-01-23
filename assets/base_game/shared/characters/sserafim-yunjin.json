@@ -1,6 +1,87 @@
 {
 	"animations": [
 		{
+			"offsets": [4, 22],
+			"loop": false,
+			"fps": 24,
+			"anim": "singDOWN",
+			"prefix": "yunjin down pose",
+			"indices": [],
+			"name": "yunjin down pose"
+		},
+		{
+			"offsets": [1, 15],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFT",
+			"prefix": "yunjin left pose",
+			"indices": [],
+			"name": "yunjin left pose"
+		},
+		{
+			"offsets": [7, 4],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHT",
+			"prefix": "yunjin right pose",
+			"indices": [],
+			"name": "yunjin right pose"
+		},
+		{
+			"offsets": [-2, 24],
+			"loop": false,
+			"fps": 24,
+			"anim": "singUP",
+			"prefix": "yunjin up pose",
+			"indices": [],
+			"name": "yunjin up pose"
+		},
+		{
+			"offsets": [-4, 22],
+			"loop": false,
+			"fps": 24,
+			"anim": "singDOWNmiss",
+			"prefix": "yunjin miss down",
+			"indices": [],
+			"name": "yunjin miss down"
+		},
+		{
+			"offsets": [1, 16],
+			"loop": false,
+			"fps": 24,
+			"anim": "singLEFTmiss",
+			"prefix": "yunjin miss left",
+			"indices": [],
+			"name": "yunjin miss left"
+		},
+		{
+			"offsets": [11, 10],
+			"loop": false,
+			"fps": 24,
+			"anim": "singRIGHTmiss",
+			"prefix": "yunjin miss right",
+			"indices": [],
+			"name": "yunjin miss right"
+		},
+		{
+			"offsets": [3, 27],
+			"loop": false,
+			"fps": 24,
+			"anim": "singUPmiss",
+			"prefix": "yunjin miss up",
+			"indices": [],
+			"name": "yunjin miss up"
+		},
+		{
+			"offsets": [184, 81],
+			"loop": false,
+			"fps": 24,
+			"anim": "intro",
+			"prefix": "yunjin intro",
+			"indices": [],
+			"name": "yunjin intro"
+		},
+		{
 			"prefix": "yunjin idle",
 			"offsets": [0, 0],
 			"indices": [],
@@ -10,83 +91,11 @@
 			"name": "yunjin idle"
 		},
 		{
-			"prefix": "yunjin down pose",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singDOWN",
-			"loop": false,
-			"name": "yunjin down pose"
-		},
-		{
-			"prefix": "yunjin left pose",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singLEFT",
-			"loop": false,
-			"name": "yunjin left pose"
-		},
-		{
-			"prefix": "yunjin right pose",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singRIGHT",
-			"loop": false,
-			"name": "yunjin right pose"
-		},
-		{
-			"prefix": "yunjin up pose",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singUP",
-			"loop": false,
-			"name": "yunjin up pose"
-		},
-		{
-			"prefix": "yunjin miss down",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singDOWNmiss",
-			"loop": false,
-			"name": "yunjin miss down"
-		},
-		{
-			"prefix": "yunjin miss left",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singLEFTmiss",
-			"loop": false,
-			"name": "yunjin miss left"
-		},
-		{
-			"prefix": "yunjin miss right",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singRIGHTmiss",
-			"loop": false,
-			"name": "yunjin miss right"
-		},
-		{
-			"prefix": "yunjin miss up",
-			"offsets": [-322, -257],
-			"indices": [],
-			"fps": 24,
-			"anim": "singUPmiss",
-			"loop": false,
-			"name": "yunjin miss up"
-		},
-		{
 			"prefix": "yunjin intro",
-			"offsets": [142, 597],
-			"indices": [],
+			"offsets": [183, 82],
+			"indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
 			"fps": 24,
-			"anim": "intro",
+			"anim": "kick",
 			"loop": false,
 			"name": "yunjin intro"
 		}
@@ -96,10 +105,10 @@
 	"image": "characters/sserafim/yunjin",
 	"position": [-110, 320],
 	"healthicon": "yunjin",
-	"flip_x": false,
+	"flip_x": true,
 	"healthbar_colors": [165, 0, 77],
 	"camera_position": [-170, -20],
 	"sing_duration": 4,
 	"scale": 1,
-	"_editor_isPlayer": false
+	"_editor_isPlayer": true
 }

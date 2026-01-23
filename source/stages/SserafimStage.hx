@@ -23,6 +23,9 @@ class SserafimStage extends BaseStage
   var yunjin:SserafimYunjinCharacter;
   var chaewon:SserafimChaewonCharacter;
   var eunchae:SserafimEunchaeCharacter;
+  var ssGF:SserafimGirlfriendCharacter;
+  var ssBF:SserafimSakuraCharacter;
+  var ssDad:SserafimKazuhaCharacter;
 
   // VFX/SHADERS
   var characterShader:SserafimShader;
@@ -131,7 +134,6 @@ class SserafimStage extends BaseStage
     solidCover = new FunkinSprite(-5000, -3000).makeSolidColor(10000, 10000, FlxColor.BLACK);
     solidCover.scrollFactor.set(0.0, 0.0);
     solidCover.alpha = 0;
-    add(solidCover);
   }
 
   override function createPost() {
@@ -149,6 +151,7 @@ class SserafimStage extends BaseStage
     dust1.alpha = 0.8;
     dust1.velocity.x = 350;
     dust1.shader = stageShader;
+    dust1.spacing.x -= 10;
 
     dust2 = new FlxBackdrop(Paths.image('dust/dustBack'), 0x01);
     dust2.setPosition(-650, -250);
@@ -158,6 +161,7 @@ class SserafimStage extends BaseStage
     dust2.alpha = 0.9;
     dust2.velocity.x = -300;
     dust2.shader = stageShader;
+    dust2.spacing.x -= 10;
 
     dust3 = new FlxBackdrop(Paths.image('dust/dustMid'), 0x01);
     dust3.setPosition(-650, -400);
@@ -167,6 +171,7 @@ class SserafimStage extends BaseStage
     dust3.alpha = 0.8;
     dust3.velocity.x = -200;
     dust3.shader = stageShader;
+    dust3.spacing.x -= 10;
 
     dust4 = new FlxBackdrop(Paths.image('dust/dustBack'), 0x01);
     dust4.setPosition(-650, -1300);
@@ -176,6 +181,7 @@ class SserafimStage extends BaseStage
     dust4.alpha = 0.9;
     dust4.velocity.x = -150;
     dust4.shader = stageShader;
+    dust4.spacing.x -= 10;
 
     add(dust1);
     add(dust2);
@@ -191,9 +197,21 @@ class SserafimStage extends BaseStage
     chaewon = new SserafimChaewonCharacter(0, 0);
     eunchae = new SserafimEunchaeCharacter(0, 0);
 
-    game.gf = new SserafimGirlfriendCharacter(0, 0);
-    game.boyfriend = new SserafimSakuraCharacter(0, 0);
-    game.dad = new SserafimKazuhaCharacter(0, 0);
+    ssGF = new SserafimGirlfriendCharacter(0, 0);
+    ssGF.scrollFactor.set(0.95, 0.95);
+    game.gfMap.set('ssGF', ssGF);
+    game.gfGroup.add(ssGF);
+    ssGF.alpha = 0.00001;
+
+    ssBF = new SserafimSakuraCharacter(0, 0);
+    game.boyfriendMap.set('ssBF', ssBF);
+    game.boyfriendGroup.add(ssBF);
+    ssBF.alpha = 0.00001;
+
+    ssDad = new SserafimKazuhaCharacter(0, 0);
+    game.dadMap.set('ssDad', ssDad);
+    game.dadGroup.add(ssDad);
+    ssDad.alpha = 0.00001;
 
     game.dadGroup2.add(yunjin);
     game.gfGroup.add(chaewon);
@@ -204,7 +222,7 @@ class SserafimStage extends BaseStage
     eunchae.scrollFactor.set(0.97, 0.97);
 
     yunjin.setPosition(-621 - yunjin.characterOrigin.x, 154 - yunjin.characterOrigin.y);
-    chaewon.setPosition(687 - chaewon.characterOrigin.x, 98 - chaewon.characterOrigin.y);
+    chaewon.setPosition(687 - chaewon.characterOrigin.x, 0 - chaewon.characterOrigin.y);
     eunchae.setPosition(770 - eunchae.characterOrigin.x, 675 - eunchae.characterOrigin.y);
 
     setGirlsVisible(baseVisible);
@@ -246,6 +264,7 @@ class SserafimStage extends BaseStage
 
       character.shader = characterShader;
     }
+    add(solidCover); // so its actually ontop lol
   }
 
   function hideOpponentStrumline()
@@ -285,7 +304,7 @@ class SserafimStage extends BaseStage
         if (parseBool(value1))
         {
           // play second kick anim + reset her idle back to normal
-          yunjin.playAnim('yunjin intro', true, false);
+          yunjin.playAnim('intro', true);
           FunkinSound.playOnce('doorKick2', 1.0);
           yunjin.danceEveryNumBeats = 1;
 
@@ -298,20 +317,23 @@ class SserafimStage extends BaseStage
             // and show the REAL gf
             game.gf.visible = true;
 
+            game.triggerEvent('Change Character', 'gf', 'ssGF');
+            game.triggerEvent('Change Character', 'bf', 'ssBF');
+
             sserafimGf.visible = false;
             sserafimBf.visible = false;
           }
 
-          yunjin.animation.onFrameChange.removeAll();
+          yunjin.anim.onFrameChange.removeAll();
 
-          yunjin.animation.onFrameChange.add(function(animName:String, frameNumber:Int, index:Int) {
+          yunjin.anim.onFrameChange.add(function(animName:String, frameNumber:Int, index:Int) {
             // at this point in the animation, the door is no longer part of her animation...
             // show a static one!
             if (frameNumber == 23) truckDoor.visible = true;
           });
 
-          yunjin.animation.onFinish.addOnce(function(animName:String) {
-            yunjin.animation.onFrameChange.removeAll();
+          yunjin.anim.onFinish.addOnce(function(animName:String) {
+            yunjin.anim.onFrameChange.removeAll();
           });
 
           // start the dust clearing
@@ -320,13 +342,13 @@ class SserafimStage extends BaseStage
         else
         {
           // play first kick anim
-          yunjin.playAnim('yunjin intro', true, false);
+          yunjin.playAnim('kick', true);
           FunkinSound.playOnce('doorKick1', 1.0);
         }
         case 'sserafimEnd':
           endStuff();
         case 'sserafimBeautiful':
-          cast (game.gf, SserafimGirlfriendCharacter).isBeautiful = value1.toLowerCase() == "true";
+          ssGF.isBeautiful = value1.toLowerCase() == "true";
       }
 
     super.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime);
@@ -398,10 +420,14 @@ class SserafimStage extends BaseStage
 
     var ownerArray:Array<Character> = [];
 
-    for (char in [yunjin, dad, chaewon, eunchae, boyfriend, gf])
+    for (char in [yunjin, dad, chaewon, eunchae, boyfriend, gf]) {
       if (char.charType == BF)
         ownerArray.push(char);
+      if (ownerArray.length == 1) // This way only the first person on the list gets icon privliges
+        game.iconP1.changeIcon(char.healthIcon);
+    }
     game.playerField.owners = ownerArray;
+
   }
 
   var hasHidden = false;
@@ -550,6 +576,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
+      game.triggerEvent('Change Character', 'dad', 'ssDad');
       return;
     }
 
@@ -563,6 +590,11 @@ class SserafimStage extends BaseStage
 
       setCutsceneVisibility(true);
       introCutscene();
+    } else {
+      cutsceneSkipped = true;
+      playCutsceneFromRestart();
+      startCountdown();
+      game.triggerEvent('Change Character', 'dad', 'ssDad');
     }
   }
 
@@ -606,6 +638,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       canPause = true;
       camHUD.visible = true;
+      game.triggerEvent('Change Character', 'dad', 'ssDad');
     }
 
     cutsceneHandler.skipCallback = skipCutscene;
@@ -842,8 +875,8 @@ class SserafimStage extends BaseStage
       canPause = true;
       startCountdown();
       camHUD.visible = true;
-
       playCutsceneFromRestart();
+      game.triggerEvent('Change Character', 'dad', 'ssDad');
     });
   }
 
@@ -911,6 +944,7 @@ class SserafimStage extends BaseStage
       baseContrast: 0,
       baseSaturation: 0
     }, 6.0 * 4, {ease: FlxEase.sineOut});
+
     FlxTween.tween(characterShader,
     {
       baseBrightness: 0,
