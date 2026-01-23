@@ -1,12 +1,12 @@
 package yutautil;
 
 import Date;
-#if !macro
-import flixel.FlxBasic;
-#end
 import haxe.ds.Either;
 
 using StringTools;
+#if !macro
+import flixel.FlxBasic;
+#end
 
 enum Month {
     January;
@@ -106,15 +106,15 @@ class ExtendedDate {
     #if !macro
     public static function createDate(type:Class<flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate>>, now:Bool, _construct:NewDateObject):flixel.util.typeLimit.OneOfTwo<Date, ExtendedDate> {
         return now ? (type == Date ? Date.now() : ExtendedDate.newDate()) :
-            (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ? 
-                (type == Date ? new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) : new ExtendedDate(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second)) : 
+            (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ?
+                (type == Date ? new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) : new ExtendedDate(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second)) :
                 (type == Date ? Date.now() : ExtendedDate.newDate()));
     }
     #else
     public static function createDate(type:Class<Date>, now:Bool, _construct:NewDateObject):Date {
         return now ? Date.now() :
-            (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ? 
-                new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) : 
+            (_construct != null && _construct.year != null && _construct.month != null && _construct.day != null ?
+                new Date(_construct.year, _construct.month, _construct.day, _construct.hour, _construct.minute, _construct.second) :
                 Date.now());
     }
     #end
@@ -126,7 +126,7 @@ class ExtendedDate {
     public static function newDate():ExtendedDate {
         return ExtendedDate.fromDate(Date.now());
     }
-        
+
     public static function fromDate(date:Date):ExtendedDate {
         return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     }
@@ -230,7 +230,7 @@ class ExtendedDate {
         var m = Math.floor((a + 11 * h + 22 * l) / 451);
         var monthEaster = Math.floor((h + l - m + 90) / 25);
         var dayEaster = (h + l - m + 28) % 31 + 1;
-        
+
         return month == monthEaster && day == dayEaster;
     }
 
@@ -424,7 +424,7 @@ class ExtendedDate {
         return {
             year: now.getFullYear(),
             month: getMonthByNumber(now.getMonth() + 1),
-            day: getDayByNumber(now.getDay() + 1),  
+            day: getDayByNumber(now.getDay() + 1),
             date: now.getDate(),
             time: ExtendedDate.formatDateObject(now, "%H:%M:%S")
         };
@@ -436,7 +436,7 @@ class ExtendedDate {
         return {
             year: date.getFullYear(),
             month: getMonthByNumber(date.getMonth() + 1),
-            day: getDayByNumber(date.getDay() + 1),  
+            day: getDayByNumber(date.getDay() + 1),
             date: date.getDate(),
             time: ExtendedDate.formatDateObject(date, format)
         };
@@ -446,7 +446,7 @@ class ExtendedDate {
         return {
             year: date.getFullYear(),
             month: getMonthByNumber(date.getMonth() + 1),
-            day: getDayByNumber(date.getDay() + 1),  
+            day: getDayByNumber(date.getDay() + 1),
             date: date.getDate(),
             time: ExtendedDate.formatDateObject(date, format)
         };
@@ -457,7 +457,7 @@ class ExtendedDate {
         return {
             year: this.getFullYear(),
             month: getMonthByNumber(this.getMonth() + 1),
-            day: getDayByNumber(this.getDay() + 1),  
+            day: getDayByNumber(this.getDay() + 1),
             date: this.getDate(),
             time: this.time()
         };
@@ -530,7 +530,7 @@ class ExtendedDate {
 
     public static function exactTimeNow():String {
         // Return the date, as well as PC Time.
-        
+
         return ExtendedDate.fromDate(Date.now()).formatDate("%Y-%m-%d %H:%M:%S");
     }
 

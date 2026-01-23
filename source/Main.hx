@@ -1110,6 +1110,7 @@ class CommandPrompt
 	private var state:String;
 	private var variables:Map<String, Dynamic>;
 	private var unoGame:UnoGame;
+	private var yscriptTester:yutautil.YScript; // YScript test environment
 	public static var instance:CommandPrompt;
 
 	public var active:Boolean = true; // I thought it'd be funny to add this.
@@ -1407,6 +1408,23 @@ class CommandPrompt
 				{
 					print("Error: runCode requires at least one argument.");
 				}
+
+			case "yscript":
+				if (args.length == 0) {
+					print("YScript Test Environment");
+					print("Commands:");
+					print("  yscript load <file>    - Load script file (from export/ or absolute path)");
+					print("  yscript run <code>     - Execute YScript code directly");
+					print("  yscript test          - Enter interactive test mode");
+					print("  yscript vars          - Show current script variables");
+					print("  yscript funcs         - Show available functions");
+					print("  yscript inspect [name] - Show all info or inspect specific item");
+					print("  yscript info          - Show environment status");
+					print("  yscript reset         - Reset script environment");
+				} else {
+					handleYScriptCommand(args);
+				}
+
 			case "switchState":
 				if (args.length == 1)
 				{
@@ -3303,6 +3321,281 @@ class CommandPrompt
 			UnoExample.simulateGame(maxTurns);
 		} catch (e:Dynamic) {
 			print("Error during UNO simulation: " + e);
+		}
+	}
+
+	// ═══════════════════════════════════════════════════════════════════════════════════════
+	// YSCRIPT TEST ENVIRONMENT
+	// ═══════════════════════════════════════════════════════════════════════════════════════
+
+	private function handleYScriptCommand(args:Array<String>):Void {
+		try {
+			switch (args[0]) {
+				case "load":
+					if (args.length < 2) {
+						print("Error: yscript load requires a file path");
+						return;
+					}
+					loadYScriptFile(args[1]);
+
+				case "run":
+					if (args.length < 2) {
+						print("Error: yscript run requires code to execute");
+						return;
+					}
+					var code = args.slice(1).join(" ");
+					runYScriptCode(code);
+
+				case "test":
+					enterYScriptTestMode();
+
+				case "vars":
+					showYScriptVariables();
+
+				case "funcs":
+					showYScriptFunctions();
+
+				case "reset":
+					resetYScriptEnvironment();
+
+				case "inspect":
+					if (args.length < 2) {
+						showYScriptInspection();
+					} else {
+						inspectYScriptItem(args[1]);
+					}
+
+				case "info":
+					showYScriptEnvironmentInfo();
+
+				default:
+					print("Unknown yscript command: " + args[0]);
+					print("Use 'yscript' with no arguments to see available commands");
+			}
+		} catch (e:Dynamic) {
+			print("YScript Error: " + e);
+		}
+	}
+
+	private function loadYScriptFile(filePath:String):Void {
+		resetYScriptEnvironment();
+
+		var fullPath = filePath;
+
+		// Check if it's a relative path, prepend export directory
+		if (!haxe.io.Path.isAbsolute(filePath)) {
+			fullPath = "./" + filePath;
+		}
+
+		if (yscriptTester.loadFromFile(fullPath)) {
+			print("✅ Successfully loaded YScript file: " + fullPath);
+			showYScriptVariables();
+		} else {
+			print("❌ Failed to load YScript file: " + yscriptTester.lastError);
+		}
+	}
+
+	private function runYScriptCode(code:String):Void {
+		if (yscriptTester == null) {
+			resetYScriptEnvironment();
+		}
+
+		if (yscriptTester.loadFromSource(code, "<command-line>")) {
+			var result = yscriptTester.execute();
+			if (result != null) {
+				print("✅ Result: " + Std.string(result));
+			} else {
+				print("✅ Code executed successfully (no return value)");
+			}
+		} else {
+			print("❌ YScript Error: " + yscriptTester.lastError);
+		}
+	}
+
+	private function enterYScriptTestMode():Void {
+		if (yscriptTester == null) {
+			resetYScriptEnvironment();
+		}
+
+		print("🧪 Entering YScript Interactive Test Mode");
+		print("Type YScript commands, 'vars' to see variables, 'funcs' for functions, or 'exit' to quit");
+		print("───────────────────────────────────────────────");
+
+		while (true) {
+			Sys.print("yscript> ");
+			var input = Sys.stdin().readLine().trim();
+
+			if (input == "exit" || input == "quit") {
+				print("Exiting YScript test mode");
+				break;
+			}
+
+			if (input == "vars") {
+				showYScriptVariables();
+				continue;
+			}
+
+			if (input == "funcs") {
+				showYScriptFunctions();
+				continue;
+			}
+
+			if (input == "help") {
+				print("YScript Test Mode Commands:");
+				print("  vars  - Show current variables");
+				print("  funcs - Show available functions");
+				print("  exit  - Exit test mode");
+				print("  Any YScript code to execute");
+				continue;
+			}
+
+			if (input.length == 0) continue;
+
+			// Execute the YScript code
+			try {
+				if (yscriptTester.loadFromSource(input, "<interactive>")) {
+					var result = yscriptTester.execute();
+					if (result != null) {
+						print("=> " + Std.string(result));
+					}
+				} else {
+					print("❌ Error: " + yscriptTester.lastError);
+					// Don't exit on error, continue interactive mode
+				}
+			} catch (e:Dynamic) {
+				print("💥 Exception: " + Std.string(e));
+				break; // Exit on exception as requested
+			}
+		}
+	}
+
+	private function showYScriptVariables():Void {
+		if (yscriptTester == null || !yscriptTester.isReady) {
+			print("📭 No YScript environment loaded");
+			return;
+		}
+
+		var variables = yscriptTester.getVariables();
+		if (variables.length == 0) {
+			print("📋 No variables defined yet");
+			return;
+		}
+
+		print("📋 YScript Variables (" + variables.length + "):");
+		for (variable in variables) {
+			var valueStr = Std.string(variable.value);
+			if (valueStr.length > 50) {
+				valueStr = valueStr.substr(0, 47) + "...";
+			}
+			print("   " + variable.name + ":" + variable.type + " = " + valueStr);
+		}
+	}
+
+	private function showYScriptFunctions():Void {
+		if (yscriptTester == null || !yscriptTester.isReady) {
+			print("📭 No YScript environment loaded");
+			return;
+		}
+
+		var functions = yscriptTester.getFunctions();
+		if (functions.length == 0) {
+			print("⚙️ No functions defined yet");
+			print("   Built-in: printLine(), getTime()");
+			print("   Registered classes: FlxG, Math, Std");
+			return;
+		}
+
+		print("⚙️ YScript Functions (" + functions.length + "):");
+		for (func in functions) {
+			var signature = func.name + "(" + func.parameters.join(", ") + ")";
+			if (func.returnType != "Void") {
+				signature += ":" + func.returnType;
+			}
+			print("   " + signature);
+		}
+		print("   Built-in: printLine(msg:Dynamic), getTime():Float");
+		print("   Registered classes: FlxG, Math, Std");
+	}
+
+	private function resetYScriptEnvironment():Void {
+		if (yscriptTester != null) {
+			yscriptTester.destroy();
+		}
+
+		yscriptTester = new yutautil.YScript();
+
+		// Register useful Haxe functions for testing
+		yscriptTester.registerHaxeFunction("printLine", function(msg:Dynamic) {
+			print(Std.string(msg));
+		});
+
+		yscriptTester.registerHaxeFunction("getTime", function() {
+			return haxe.Timer.stamp();
+		});
+
+		yscriptTester.registerHaxeClass("FlxG", flixel.FlxG);
+		yscriptTester.registerHaxeClass("Math", Math);
+		yscriptTester.registerHaxeClass("Std", Std);
+
+		print("🔄 YScript environment reset");
+	}
+
+	private function showYScriptInspection():Void {
+		if (yscriptTester == null || !yscriptTester.isReady) {
+			print("📭 No YScript environment loaded");
+			return;
+		}
+
+		print("🔍 YScript Environment Inspection");
+		print("══════════════════════════════════");
+		showYScriptVariables();
+		print("");
+		showYScriptFunctions();
+	}
+
+	private function inspectYScriptItem(name:String):Void {
+		if (yscriptTester == null || !yscriptTester.isReady) {
+			print("📭 No YScript environment loaded");
+			return;
+		}
+
+		// Check if it's a variable first
+		var varInfo = yscriptTester.getVariableInfo(name);
+		if (varInfo != null) {
+			print("📋 Variable: " + name);
+			print("   Type: " + varInfo.type);
+			print("   Value: " + Std.string(varInfo.value));
+			return;
+		}
+
+		// Check if it's a function
+		var funcInfo = yscriptTester.getFunctionInfo(name);
+		if (funcInfo != null) {
+			print("⚙️ Function: " + name);
+			print("   Parameters: " + funcInfo.parameters.join(", "));
+			print("   Return Type: " + funcInfo.returnType);
+			return;
+		}
+
+		print("❌ Item '" + name + "' not found in YScript environment");
+	}
+
+	private function showYScriptEnvironmentInfo():Void {
+		print("📊 YScript Environment Status");
+		print("═══════════════════════════════");
+		print("   Ready: " + (yscriptTester != null ? yscriptTester.isReady : false));
+		print("   Has Errors: " + (yscriptTester != null ? yscriptTester.hasErrors : false));
+		if (yscriptTester != null && yscriptTester.lastError != null) {
+			print("   Last Error: " + yscriptTester.lastError);
+		}
+		if (yscriptTester != null && yscriptTester.scriptPath != null) {
+			print("   Script Path: " + yscriptTester.scriptPath);
+		}
+		if (yscriptTester != null && yscriptTester.isReady) {
+			var varCount = yscriptTester.getVariableNames().length;
+			var funcCount = yscriptTester.getFunctionNames().length;
+			print("   Variables: " + varCount);
+			print("   Functions: " + funcCount);
 		}
 	}
 }

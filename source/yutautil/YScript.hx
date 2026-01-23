@@ -5,6 +5,12 @@ import haxe.ds.StringMap;
 import haxe.macro.Context;
 import haxe.macro.Type;
 
+#if HSCRIPT_ALLOWED
+import crowplexus.hscript.Expr.Error as IrisError;
+import crowplexus.iris.Iris;
+import crowplexus.iris.IrisConfig;
+#end
+
 // ═══════════════════════════════════════════════════════════════════════════════════════
 // YScript - A Haxe-integrated scripting language
 // Goals:
@@ -154,7 +160,7 @@ enum YFunctionBody {
     YScript(statements:Array<YStatement>); // Native YScript code
     HaxeCode(code:String); // Embedded Haxe code block
     LuaCode(code:String); // Embedded Lua code block (future)
-    Native(func:Dynamic); // Direct Haxe function reference
+    Native(func:Function); // Direct Haxe function reference
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -165,7 +171,8 @@ enum YFunctionBody {
  * YScript Abstract Syntax Tree
  */
 enum YStatement {
-    // Declarations
+    // Imports and declarations
+    Import(path:String, alias:Null<String>); // import path.to.Class or import path.to.Class as Alias
     VarDecl(name:String, type:YType, init:Null<YExpression>);
     FuncDecl(name:String, params:Array<YVar>, returnType:YType, body:YFunctionBody);
     ClassDecl(name:String, extend:Null<String>, implement:Array<String>, body:Array<YStatement>);
@@ -193,11 +200,19 @@ enum YExpression {
     FloatLiteral(value:Float);
     StringLiteral(value:String);
     BoolLiteral(value:Bool);
+    NullLiteral;
+    ArrayLiteral(elements:Array<YExpression>);
+    ObjectLiteral(fields:Array<{name:String, value:YExpression}>);
 
     // Identifiers and access
     Identifier(name:String);
     MemberAccess(object:YExpression, member:String);
     ArrayAccess(array:YExpression, index:YExpression);
+
+    // Super calls and access
+    SuperCall(args:Array<YExpression>); // super(args) in constructor
+    SuperMemberAccess(member:String); // super.method or super.field
+    SuperMethodCall(method:String, args:Array<YExpression>); // super.method(args)
 
     // Operations
     BinaryOp(left:YExpression, op:String, right:YExpression);
@@ -219,28 +234,65 @@ enum YExpression {
 
 class YScriptError extends haxe.Exception {
     public var location:Null<YLocation>;
+    public var scriptPath:Null<String>;
 
-    public function new(message:String, ?location:YLocation) {
-        super(message);
+    public function new(message:String, ?location:YLocation, ?scriptPath:String) {
         this.location = location;
+        this.scriptPath = scriptPath;
+
+        // Add YScript location to native CallStack if available
+        if (location != null) {
+            super(addYScriptStackFrame(location, scriptPath, message));
+        }
+				else {
+						super(message);
+				}
+    }
+
+    private function addYScriptStackFrame(location:YLocation, ?scriptPath:String, message:String):String {
+        try {
+            // Create a synthetic stack frame for YScript location
+            var scriptInfo = scriptPath != null ? scriptPath : location.file;
+            var frameInfo = 'YScript:${location.file}:${location.line}';
+
+            // Add to current CallStack context - this will appear in stack traces
+            var currentStack:Dynamic = haxe.CallStack.exceptionStack();
+            if (currentStack.length == 0) {
+                currentStack = this.stack;
+            }
+						if (currentStack == null || currentStack.length == 0) {
+							currentStack = haxe.CallStack.callStack();
+						}
+
+            // Add YScript context information to the error message
+            var yscriptInfo = "YScript Error at " + location.file + ":" + location.line + ":" + location.column;
+            return message + "\n" + yscriptInfo;
+
+
+
+            // The frame will be included in subsequent stack traces automatically
+        } catch (e:Dynamic) {
+            // Fallback if CallStack manipulation fails
+						return message;
+        }
     }
 }
 
 class YScriptParseError extends YScriptError {
-    public function new(message:String, ?location:YLocation) {
-        super('Parse Error: $message', location);
+    public function new(message:String, ?location:YLocation, ?scriptPath:String) {
+        super('Parse Error: $message', location, scriptPath);
     }
 }
 
 class YScriptRuntimeError extends YScriptError {
-    public function new(message:String, ?location:YLocation) {
-        super('Runtime Error: $message', location);
+    public function new(message:String, ?location:YLocation, ?scriptPath:String) {
+        super('Runtime Error: $message', location, scriptPath);
     }
 }
 
 class YScriptTypeError extends YScriptError {
-    public function new(message:String, ?location:YLocation) {
-        super('Type Error: $message', location);
+    public function new(message:String, ?location:YLocation, ?scriptPath:String) {
+        super('Type Error: $message', location, scriptPath);
     }
 }
 
@@ -286,7 +338,8 @@ class YScript {
     public function loadFromSource(source:String, ?path:String):Bool {
         try {
             this.scriptPath = path ?? "<inline>";
-            var program = parser.parse(source);
+            scope.setExecutionContext(this.scriptPath);
+            var program = parser.parse(source, this.scriptPath);
             runtime.initialize(program, scope);
             isReady = true;
             hasErrors = false;
@@ -538,6 +591,59 @@ class YScript {
         scope.setType("Dynamic", YType.Dynamic);
         scope.setType("Void", YType.Void);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // INTROSPECTION API
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * ✅ API: Get all variable names in the current scope
+     */
+    public function getVariableNames():Array<String> {
+        return isReady ? scope.getAllVariableNames() : [];
+    }
+
+    /**
+     * ✅ API: Get all function names in the current scope
+     */
+    public function getFunctionNames():Array<String> {
+        return isReady ? scope.getAllFunctionNames() : [];
+    }
+
+    /**
+     * ✅ API: Get detailed information about all variables
+     */
+    public function getVariables():Array<{name:String, type:String, value:Dynamic}> {
+        return isReady ? scope.getAllVariables() : [];
+    }
+
+    /**
+     * ✅ API: Get detailed information about all functions
+     */
+    public function getFunctions():Array<{name:String, parameters:Array<String>, returnType:String}> {
+        return isReady ? scope.getAllFunctions() : [];
+    }
+
+    /**
+     * ✅ API: Get information about a specific variable
+     */
+    public function getVariableInfo(name:String):{name:String, type:String, value:Dynamic} {
+        return isReady ? scope.getVariableInfo(name) : null;
+    }
+
+    /**
+     * ✅ API: Get information about a specific function
+     */
+    public function getFunctionInfo(name:String):{name:String, parameters:Array<String>, returnType:String} {
+        return isReady ? scope.getFunctionInfo(name) : null;
+    }
+
+    /**
+     * ✅ API: Check if a variable exists
+     */
+    public function hasVariable(name:String):Bool {
+        return isReady ? scope.hasVariable(name) : false;
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -556,6 +662,8 @@ class YClassDefinition {
     public var constructors:Array<YFunction>;
     public var isHaxeClass:Bool; // True if extending a Haxe class
     public var haxeClassName:Null<String>; // Haxe class name if extending one
+    public var haxeClassType:Null<Class<Dynamic>>; // Actual Haxe class reference
+    public var superClassDef:Null<YClassDefinition>; // Reference to superclass definition if YScript class
 
     public function new(name:String, superClass:Null<String>, interfaces:Array<String>) {
         this.name = name;
@@ -566,6 +674,7 @@ class YClassDefinition {
         this.constructors = [];
         this.isHaxeClass = false;
         this.haxeClassName = null;
+        this.superClassDef = null;
     }
 
     public function addField(field:YVar):Void {
@@ -582,6 +691,56 @@ class YClassDefinition {
     public function addConstructor(constructor:YFunction):Void {
         constructors.push(constructor);
     }
+
+    /**
+     * Check if this class extends another class (directly or indirectly)
+     */
+    public function extendsClass(className:String):Bool {
+        if (superClass == className) return true;
+        if (superClassDef != null) {
+            return superClassDef.extendsClass(className);
+        }
+        return false;
+    }
+
+    /**
+     * Check if this class extends a Haxe class (directly or indirectly)
+     */
+    public function extendsHaxeClass(haxeClass:Class<Dynamic>):Bool {
+        if (isHaxeClass && haxeClassType == haxeClass) return true;
+        if (superClassDef != null) {
+            return superClassDef.extendsHaxeClass(haxeClass);
+        }
+        return false;
+    }
+
+    /**
+     * Get field from this class or superclasses
+     */
+    public function getField(name:String):Null<YVar> {
+        if (fields.exists(name)) {
+            return fields.get(name);
+        }
+        if (superClassDef != null) {
+            return superClassDef.getField(name);
+        }
+        return null;
+    }
+
+    /**
+     * Get method from this class or superclasses
+     */
+    public function getMethod(name:String):Null<Array<YFunction>> {
+        if (methods.exists(name)) {
+            return methods.get(name);
+        }
+        if (superClassDef != null) {
+            return superClassDef.getMethod(name);
+        }
+        return null;
+    }
+
+
 }
 
 /**
@@ -592,6 +751,8 @@ class YClassInstance {
     public var fields:StringMap<Dynamic>;
     public var classDef:YClassDefinition;
     public var haxeInstance:Null<Dynamic>; // Haxe instance if extending Haxe class
+    public var superCalled:Bool = false; // Track if super() was called in constructor
+    public var isInConstructor:Bool = false; // Track if currently executing constructor
 
     public function new(className:String, classDef:YClassDefinition) {
         this.className = className;
@@ -611,6 +772,12 @@ class YClassInstance {
             return fields.get(name);
         }
 
+        // Check superclass fields through class definition
+        var field = classDef.getField(name);
+        if (field != null) {
+            return field.value;
+        }
+
         // Check Haxe instance if extending Haxe class
         if (haxeInstance != null) {
             return Reflect.field(haxeInstance, name);
@@ -620,8 +787,17 @@ class YClassInstance {
     }
 
     public function setField(name:String, value:Dynamic):Void {
-        if (classDef.fields.exists(name)) {
-            fields.set(name, value);
+        // Check if field exists in this class or superclasses
+        var field = classDef.getField(name);
+        if (field != null) {
+            if (classDef.fields.exists(name)) {
+                // Field is in this class
+                fields.set(name, value);
+            } else {
+                // Field is in superclass - we need to handle this properly
+                // For now, create a field in this instance
+                fields.set(name, value);
+            }
         } else if (haxeInstance != null) {
             Reflect.setField(haxeInstance, name, value);
         } else {
@@ -663,7 +839,13 @@ class YScope {
     private var functions:StringMap<YFunction>;
     private var types:StringMap<YType>;
     private var classes:StringMap<YClassDefinition>; // Internal YClass definitions
+    private var imports:StringMap<String>; // Import mappings: alias -> full.path.ClassName
     private var parent:Null<YScope>;
+
+    // Script execution context tracking
+    public var currentScriptPath:Null<String>;
+    public var currentFunction:Null<String>;
+    public var currentLocation:Null<YLocation>;
 
     public function new(?parent:YScope) {
         this.parent = parent;
@@ -671,6 +853,14 @@ class YScope {
         functions = new StringMap();
         types = new StringMap();
         classes = new StringMap();
+        imports = new StringMap();
+
+        // Inherit script context from parent if available
+        if (parent != null) {
+            this.currentScriptPath = parent.currentScriptPath;
+            this.currentFunction = parent.currentFunction;
+            this.currentLocation = parent.currentLocation;
+        }
     }
 
     public function setVariable(name:String, variable:YVar):Void {
@@ -725,12 +915,132 @@ class YScope {
         return parent != null ? parent.getClass(name) : null;
     }
 
+    public function addImport(fullPath:String, ?alias:String):Void {
+        var className = alias ?? fullPath.split(".").pop();
+        imports.set(className, fullPath);
+    }
+
+    public function resolveImport(name:String):Null<String> {
+        if (imports.exists(name)) {
+            return imports.get(name);
+        }
+        return parent != null ? parent.resolveImport(name) : null;
+    }
+
+    public function setExecutionContext(scriptPath:String, ?functionName:String, ?location:YLocation):Void {
+        this.currentScriptPath = scriptPath;
+        this.currentFunction = functionName;
+        this.currentLocation = location;
+    }
+
+    public function getExecutionContext():{scriptPath:String, functionName:String, location:YLocation} {
+        return {
+            scriptPath: currentScriptPath ?? "<unknown>",
+            functionName: currentFunction ?? "<global>",
+            location: currentLocation ?? {file: "<unknown>", line: 0, column: 0}
+        };
+    }
+
+
+
     public function createChild():YScope {
         return new YScope(this);
     }
 
     public function createChildScope():YScope {
         return createChild();
+    }
+
+    /**
+     * Get a flattened view of all variables accessible from this scope
+     * Handles variable shadowing properly (local variables override parent variables)
+     */
+    public function getFlattenedVariables():StringMap<Dynamic> {
+        var flattened = new StringMap<Dynamic>();
+
+        // Traverse up the scope hierarchy and collect variables
+        var currentScope:YScope = this;
+        var scopeChain:Array<YScope> = [];
+
+        while (currentScope != null) {
+            scopeChain.push(currentScope);
+            currentScope = currentScope.parent;
+        }
+
+        // Process scopes from root to current (so current scope variables override parent ones)
+        scopeChain.reverse();
+
+        for (scope in scopeChain) {
+            for (varName in scope.variables.keys()) {
+                var yvar = scope.variables.get(varName);
+                flattened.set(varName, yvar.value);
+            }
+        }
+
+        return flattened;
+    }
+
+    /**
+     * Get a flattened view of all functions accessible from this scope
+     * Handles function shadowing properly (local functions override parent functions)
+     */
+    public function getFlattenedFunctions():StringMap<YFunction> {
+        var flattened = new StringMap<YFunction>();
+
+        // Traverse up the scope hierarchy and collect functions
+        var currentScope:YScope = this;
+        var scopeChain:Array<YScope> = [];
+
+        while (currentScope != null) {
+            scopeChain.push(currentScope);
+            currentScope = currentScope.parent;
+        }
+
+        // Process scopes from root to current (so current scope functions override parent ones)
+        scopeChain.reverse();
+
+        for (scope in scopeChain) {
+            for (funcName in scope.functions.keys()) {
+                var func = scope.functions.get(funcName);
+                flattened.set(funcName, func);
+            }
+        }
+
+        return flattened;
+    }
+
+    /**
+     * Apply flattened variables back to this scope
+     * Used to sync variables back from HScript environment
+     */
+    public function applyFlattenedVariables(flattened:StringMap<Dynamic>):Void {
+        for (varName in flattened.keys()) {
+            var value = flattened.get(varName);
+
+            // Find the scope that owns this variable and update it there
+            var currentScope:YScope = this;
+            var foundScope:YScope = null;
+
+            while (currentScope != null) {
+                if (currentScope.variables.exists(varName)) {
+                    foundScope = currentScope;
+                    break;
+                }
+                currentScope = currentScope.parent;
+            }
+
+            // If we found the owning scope, update it there
+            // Otherwise, create it in the current scope
+            if (foundScope != null) {
+                var yvar = foundScope.variables.get(varName);
+                yvar.value = value;
+            } else {
+                // Variable doesn't exist in hierarchy, create it in current scope
+                var inferredType = YScope.inferTypeFromValue(value);
+                var yvar = new YVar(varName, inferredType, value);
+                this.setVariable(varName, yvar);
+            }
+        }
     }
 
 		public static function fromStructure(structure:StringMap<Dynamic>):YScope {
@@ -761,6 +1071,7 @@ class YScope {
         functions.clear();
         types.clear();
         classes.clear();
+        imports.clear();
     }
 
     /**
@@ -864,6 +1175,84 @@ class YScope {
 
         // Fallback to Dynamic for mixed types
         return YType.Dynamic;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // INTROSPECTION API
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    public function getAllVariableNames():Array<String> {
+        var names = [];
+        for (name in variables.keys()) {
+            names.push(name);
+        }
+        if (parent != null) {
+            var parentNames = parent.getAllVariableNames();
+            for (name in parentNames) {
+                if (names.indexOf(name) == -1) {
+                    names.push(name);
+                }
+            }
+        }
+        return names;
+    }
+
+    public function getAllFunctionNames():Array<String> {
+        var names = [];
+        for (name in functions.keys()) {
+            names.push(name);
+        }
+        if (parent != null) {
+            var parentNames = parent.getAllFunctionNames();
+            for (name in parentNames) {
+                if (names.indexOf(name) == -1) {
+                    names.push(name);
+                }
+            }
+        }
+        return names;
+    }
+
+    public function getVariableInfo(name:String):{name:String, type:String, value:Dynamic} {
+        var variable = getVariable(name);
+        if (variable == null) return null;
+        return {
+            name: variable.name,
+            type: YTypeHelper.toString(variable.type),
+            value: variable.value
+        };
+    }
+
+    public function getFunctionInfo(name:String):{name:String, parameters:Array<String>, returnType:String} {
+        var func = getFunction(name);
+        if (func == null) return null;
+        var paramNames = [];
+        for (param in func.parameters) {
+            paramNames.push(param.name + ":" + YTypeHelper.toString(param.type));
+        }
+        return {
+            name: func.name,
+            parameters: paramNames,
+            returnType: YTypeHelper.toString(func.returnType)
+        };
+    }
+
+    public function getAllVariables():Array<{name:String, type:String, value:Dynamic}> {
+        var result = [];
+        for (name in getAllVariableNames()) {
+            var info = getVariableInfo(name);
+            if (info != null) result.push(info);
+        }
+        return result;
+    }
+
+    public function getAllFunctions():Array<{name:String, parameters:Array<String>, returnType:String}> {
+        var result = [];
+        for (name in getAllFunctionNames()) {
+            var info = getFunctionInfo(name);
+            if (info != null) result.push(info);
+        }
+        return result;
     }
 }
 
@@ -1234,10 +1623,12 @@ class YScriptTokenizer {
 class YScriptParser {
     private var tokens:Array<Token>;
     private var current:Int = 0;
+    private var currentFile:String = "<unknown>";
 
     public function new() {}
 
-    public function parse(source:String):Array<YStatement> {
+    public function parse(source:String, ?filePath:String):Array<YStatement> {
+        this.currentFile = filePath ?? "<unknown>";
         var tokenizer = new YScriptTokenizer();
         tokens = tokenizer.tokenize(source);
         current = 0;
@@ -1259,6 +1650,7 @@ class YScriptParser {
     private function parseStatement():Null<YStatement> {
         try {
             return switch (peek().type) {
+                case TKeyword("import"): parseImportStatement();
                 case TKeyword("var"): parseVarDeclaration();
                 case TKeyword("function"): parseFunctionDeclaration();
                 case TKeyword("class"): parseClassDeclaration();
@@ -1280,19 +1672,65 @@ class YScriptParser {
         }
     }
 
+    private function parseImportStatement():YStatement {
+        advance(); // consume 'import'
+
+        // Parse dotted path like package.subpackage.ClassName
+        var pathParts:Array<String> = [];
+        pathParts.push(consumeIdentifier("Expected package or class name"));
+
+        while (match([TDot])) {
+            pathParts.push(consumeIdentifier("Expected package or class name after '.'"));
+        }
+
+        var fullPath = pathParts.join(".");
+        var alias:Null<String> = null;
+
+        // Check for "as Alias" syntax
+        if (match([TKeyword("as")])) {
+            alias = consumeIdentifier("Expected alias name after 'as'");
+        }
+
+        consume(TSemicolon, "Expected ';' after import statement");
+        return YStatement.Import(fullPath, alias);
+    }
+
     private function parseVarDeclaration():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'var'
 
         var name = consumeIdentifier("Expected variable name");
+        trace('YScript Debug: Parsing variable: $name');
         consume(TColon, "Expected ':' after variable name");
         var type = parseType();
+        trace('YScript Debug: Variable $name has type: ${YTypeHelper.toString(type)}');
 
         var init:Null<YExpression> = null;
         if (match([TAssign])) {
-            init = parseExpression();
+            try {
+                trace('YScript Debug: Parsing initialization for $name');
+                init = parseExpression();
+                trace('YScript Debug: Successfully parsed init expression for $name');
+                // Add basic type checking for variable initialization
+                if (init != null) {
+                    var initType = inferExpressionType(init);
+                    if (!isTypeCompatible(type, initType)) {
+                        throw new YScriptTypeError('Type mismatch: cannot assign ${YTypeHelper.toString(initType)} to ${YTypeHelper.toString(type)}', startLocation, currentFile);
+                    }
+                }
+            } catch (e:YScriptError) {
+                trace('YScript Debug: Error parsing init for $name: ${e.message}');
+                // Re-throw with better location info if not already set
+                if (e.location == null) {
+                    e.location = startLocation;
+                    e.scriptPath = currentFile;
+                }
+                throw e;
+            }
         }
 
         consume(TSemicolon, "Expected ';' after variable declaration");
+        trace('YScript Debug: Successfully parsed variable declaration: $name');
         return YStatement.VarDecl(name, type, init);
     }
 
@@ -1604,11 +2042,50 @@ class YScriptParser {
             case TFloat(value): advance(); YExpression.FloatLiteral(value);
             case TString(value): advance(); YExpression.StringLiteral(value);
             case TIdentifier(name): advance(); YExpression.Identifier(name);
-            case TKeyword("null"): advance(); YExpression.Identifier("null");
+            case TKeyword("null"): advance(); YExpression.NullLiteral;
             case TKeyword("this"): advance(); YExpression.Identifier("this");
+            case TKeyword("super"): parseSuperExpression();
             case TKeyword("new"): parseNewExpression();
             case TLeftParen: parseGrouping();
+            case TLeftBracket: parseArrayLiteral();
+            case TLeftBrace: parseObjectLiteral();
             default: throw new YScriptParseError('Unexpected token: ${peek().type}', getCurrentLocation());
+        }
+    }
+
+    private function parseSuperExpression():YExpression {
+        advance(); // consume 'super'
+
+        if (match([TLeftParen])) {
+            // super(args) - constructor call
+            var args:Array<YExpression> = [];
+            if (!check(TRightParen)) {
+                do {
+                    args.push(parseExpression());
+                } while (match([TComma]));
+            }
+            consume(TRightParen, "Expected ')' after super constructor arguments");
+            return YExpression.SuperCall(args);
+        } else if (match([TDot])) {
+            // super.member or super.method(args)
+            var memberName = consumeIdentifier("Expected method or field name after 'super.'");
+
+            if (match([TLeftParen])) {
+                // super.method(args)
+                var args:Array<YExpression> = [];
+                if (!check(TRightParen)) {
+                    do {
+                        args.push(parseExpression());
+                    } while (match([TComma]));
+                }
+                consume(TRightParen, "Expected ')' after super method arguments");
+                return YExpression.SuperMethodCall(memberName, args);
+            } else {
+                // super.field
+                return YExpression.SuperMemberAccess(memberName);
+            }
+        } else {
+            throw new YScriptParseError("Expected '(' or '.' after 'super'", getCurrentLocation());
         }
     }
 
@@ -1635,16 +2112,91 @@ class YScriptParser {
         return expr;
     }
 
+    private function parseArrayLiteral():YExpression {
+        consume(TLeftBracket, "Expected '['");
+        var elements:Array<YExpression> = [];
+
+        // Skip any newlines after opening bracket
+        while (match([TNewline])) {}
+
+        if (!check(TRightBracket)) {
+            do {
+                // Skip newlines before each element
+                while (match([TNewline])) {}
+                elements.push(parseExpression());
+                // Skip newlines after each element
+                while (match([TNewline])) {}
+            } while (match([TComma]));
+        }
+
+        // Skip any newlines before closing bracket
+        while (match([TNewline])) {}
+        consume(TRightBracket, "Expected ']' after array elements");
+        return YExpression.ArrayLiteral(elements);
+    }
+
+    private function parseObjectLiteral():YExpression {
+        consume(TLeftBrace, "Expected '{'");
+        trace('YScript Debug: parseObjectLiteral() started');
+        var fields:Array<{name:String, value:YExpression}> = [];
+
+        // Skip any newlines after opening brace
+        while (match([TNewline])) {}
+
+        if (!check(TRightBrace)) {
+            do {
+                // Skip newlines before each field
+                while (match([TNewline])) {}
+                trace('YScript Debug: parseObjectLiteral() parsing field, current token: ${peek().type}');
+                var name = consumeIdentifier("Expected field name");
+                trace('YScript Debug: parseObjectLiteral() field name: $name');
+                consume(TColon, "Expected ':' after field name");
+                var value = parseExpression();
+                trace('YScript Debug: parseObjectLiteral() field value parsed');
+                fields.push({name: name, value: value});
+                // Skip newlines after each field
+                while (match([TNewline])) {}
+            } while (match([TComma]));
+        }
+
+        // Skip any newlines before closing brace
+        while (match([TNewline])) {}
+        consume(TRightBrace, "Expected '}' after object fields");
+        trace('YScript Debug: parseObjectLiteral() completed with ${fields.length} fields');
+        return YExpression.ObjectLiteral(fields);
+    }
+
     private function parseType():YType {
-        if (match([TIdentifier("Int")])) return YType.YInt;
-        if (match([TIdentifier("Float")])) return YType.YFloat;
-        if (match([TIdentifier("String")])) return YType.YString;
-        if (match([TIdentifier("Bool")])) return YType.YBool;
-        if (match([TIdentifier("Dynamic")])) return YType.Dynamic;
-        if (match([TIdentifier("Void")])) return YType.Void;
+        trace('YScript Debug: parseType() called, current token: ${peek().type}');
+
+        if (match([TIdentifier("Int")])) {
+            trace('YScript Debug: Matched Int type');
+            return YType.YInt;
+        }
+        if (match([TIdentifier("Float")])) {
+            trace('YScript Debug: Matched Float type');
+            return YType.YFloat;
+        }
+        if (match([TIdentifier("String")])) {
+            trace('YScript Debug: Matched String type');
+            return YType.YString;
+        }
+        if (match([TIdentifier("Bool")])) {
+            trace('YScript Debug: Matched Bool type');
+            return YType.YBool;
+        }
+        if (match([TIdentifier("Dynamic")])) {
+            trace('YScript Debug: Matched Dynamic type');
+            return YType.Dynamic;
+        }
+        if (match([TIdentifier("Void")])) {
+            trace('YScript Debug: Matched Void type');
+            return YType.Void;
+        }
 
         // Array type
         if (match([TIdentifier("Array")])) {
+            trace('YScript Debug: Matched Array type');
             consume(TOperator("<"), "Expected '<' after Array");
             var elementType = parseType();
             consume(TOperator(">"), "Expected '>' after Array element type");
@@ -1653,6 +2205,7 @@ class YScriptParser {
 
         // Custom or Haxe type
         var typeName = consumeIdentifier("Expected type name");
+        trace('YScript Debug: Using custom/Haxe type: $typeName');
         return YType.YClass(typeName); // Will be resolved later
     }
 
@@ -1675,11 +2228,6 @@ class YScriptParser {
         if (isAtEnd()) return false;
 
         return switch (type) {
-            case TIdentifier(_):
-                switch (peek().type) {
-                    case TIdentifier(_): true;
-                    default: false;
-                }
             case THaxeBlock(_):
                 switch (peek().type) {
                     case THaxeBlock(_): true;
@@ -1734,7 +2282,7 @@ class YScriptParser {
     private function getCurrentLocation():YLocation {
         var token = peek();
         return {
-            file: "unknown",
+            file: currentFile,
             line: token.line,
             column: token.column
         };
@@ -1754,6 +2302,232 @@ class YScriptParser {
             }
         }
     }
+
+    /**
+     * Parse-time type compatibility checking
+     */
+    private function isTypeCompatible(targetType:YType, valueType:YType):Bool {
+        // Exact match
+        if (Type.enumEq(targetType, valueType)) return true;
+
+        // Dynamic accepts anything
+        if (targetType == YType.Dynamic || valueType == YType.Dynamic) return true;
+
+        // Null literal can be assigned to most non-primitive types
+        if (valueType == YType.Dynamic) {
+            switch (targetType) {
+                case YType.YInt | YType.YFloat | YType.YBool: return false;
+                default: return true; // Allow null assignment to objects, arrays, etc.
+            }
+        }
+
+        // Numeric compatibility
+        switch [targetType, valueType] {
+            case [YType.YFloat, YType.YInt]: return true; // Int -> Float is safe
+            case [YType.YInt, YType.YFloat]: return false; // Float -> Int requires explicit cast
+            default:
+        }
+
+        // String concatenation compatibility
+        if (targetType == YType.YString) {
+            switch (valueType) {
+                case YType.YInt | YType.YFloat | YType.YBool: return true; // Auto-conversion
+                default:
+            }
+        }
+
+        // Array element compatibility
+        switch [targetType, valueType] {
+            case [YType.YArray(targetElement), YType.YArray(valueElement)]:
+                return isTypeCompatible(targetElement, valueElement);
+            default:
+        }
+
+        // Class inheritance compatibility
+        switch [targetType, valueType] {
+            case [YType.HaxeClass(targetClass), YType.HaxeClass(valueClass)]:
+                return isHaxeClassCompatible(targetClass, valueClass);
+            case [YType.YClass(targetName), YType.YClass(valueName)]:
+                return isYScriptClassCompatible(targetName, valueName);
+            case [YType.HaxeClass(targetClass), YType.YClass(valueName)]:
+                // YScript class extending Haxe class - need to check if YScript class extends the Haxe class
+                return checkYScriptExtendsHaxe(valueName, targetClass);
+            default:
+        }
+
+        // Function compatibility
+        switch [targetType, valueType] {
+            case [YType.YFunction(targetParams, targetReturn), YType.YFunction(valueParams, valueReturn)]:
+                if (targetParams.length != valueParams.length) return false;
+                for (i in 0...targetParams.length) {
+                    if (!isTypeCompatible(targetParams[i], valueParams[i])) return false;
+                }
+                return isTypeCompatible(targetReturn, valueReturn);
+            default:
+        }
+
+        return false;
+    }
+
+    /**
+     * Enhanced parse-time type inference from expressions
+     */
+    private function inferExpressionType(expr:YExpression):YType {
+        return switch (expr) {
+            case IntLiteral(_): YType.YInt;
+            case FloatLiteral(_): YType.YFloat;
+            case StringLiteral(_): YType.YString;
+            case BoolLiteral(_): YType.YBool;
+            case NullLiteral: YType.Dynamic; // Null can be assigned to most types
+
+            case ArrayLiteral(elements):
+                if (elements.length == 0) {
+                    YType.YArray(YType.Dynamic); // Empty array
+                } else {
+                    // Infer element type from first element
+                    var elementType = inferExpressionType(elements[0]);
+                    YType.YArray(elementType);
+                }
+
+            case ObjectLiteral(_):
+                YType.Dynamic; // Object literals are Dynamic
+
+            case Identifier(name):
+                // For parse-time, return Dynamic - runtime will do proper checking
+                YType.Dynamic;
+
+            case MemberAccess(object, member):
+                // Object member access
+                YType.Dynamic;
+
+            case ArrayAccess(array, index):
+                // Array element access
+                var arrayType = inferExpressionType(array);
+                switch (arrayType) {
+                    case YType.YArray(elementType): elementType;
+                    default: YType.Dynamic;
+                }
+
+            case BinaryOp(left, op, right):
+                var leftType = inferExpressionType(left);
+                var rightType = inferExpressionType(right);
+
+                switch (op) {
+                    case "+":
+                        // String concatenation has priority
+                        if (leftType == YType.YString || rightType == YType.YString) {
+                            YType.YString;
+                        }
+                        // Numeric addition with type promotion
+                        else if (leftType == YType.YFloat || rightType == YType.YFloat) {
+                            YType.YFloat;
+                        }
+                        else if (leftType == YType.YInt && rightType == YType.YInt) {
+                            YType.YInt;
+                        }
+                        else {
+                            YType.Dynamic;
+                        }
+                    case "-" | "*" | "/" | "%":
+                        // Arithmetic operations with type promotion
+                        if (leftType == YType.YFloat || rightType == YType.YFloat) {
+                            YType.YFloat;
+                        }
+                        else if (leftType == YType.YInt && rightType == YType.YInt) {
+                            YType.YInt;
+                        }
+                        else {
+                            YType.Dynamic;
+                        }
+                    case "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||":
+                        // Comparison and logical operations
+                        YType.YBool;
+                    default:
+                        YType.Dynamic;
+                }
+
+            case UnaryOp(op, operand):
+                switch (op) {
+                    case "!" | "not": YType.YBool;
+                    case "-" | "+":
+                        var operandType = inferExpressionType(operand);
+                        switch (operandType) {
+                            case YType.YInt: YType.YInt;
+                            case YType.YFloat: YType.YFloat;
+                            default: YType.Dynamic;
+                        }
+                    default: YType.Dynamic;
+                }
+
+            case FunctionCall(func, args):
+                // Function calls need signature analysis for proper typing
+                YType.Dynamic;
+
+            case New(type, args):
+                // Constructor calls return the specified type
+                type;
+
+            case Cast(expr, type):
+                // Cast expressions return the target type
+                type;
+
+            case Is(expr, type):
+                // Type checks return Bool
+                YType.YBool;
+
+            case Assignment(left, right):
+                // Assignment expressions return the type of the right-hand side
+                inferExpressionType(right);
+
+            case SuperCall(args):
+                // Super call expressions return Dynamic for now
+                YType.Dynamic;
+
+            case SuperMemberAccess(_) | SuperMethodCall(_, _):
+                // Super expressions return Dynamic for now
+                YType.Dynamic;
+        }
+    }
+
+    /**
+     * Check if Haxe class inheritance is compatible
+     */
+    private function isHaxeClassCompatible(targetClass:Class<Dynamic>, valueClass:Class<Dynamic>):Bool {
+        if (targetClass == valueClass) return true;
+
+        try {
+            // Check if valueClass is a subclass of targetClass
+            var currentClass = valueClass;
+            while (currentClass != null) {
+                if (currentClass == targetClass) return true;
+                currentClass = Type.getSuperClass(currentClass);
+            }
+            return false;
+        } catch (e:Dynamic) {
+            // If reflection fails, allow assignment (conservative approach)
+            return true;
+        }
+    }
+
+    /**
+     * Check if YScript class inheritance is compatible
+     */
+    private function isYScriptClassCompatible(targetName:String, valueName:String):Bool {
+        if (targetName == valueName) return true;
+
+        // For parse-time checking, we'd need access to class definitions
+        // For now, return false for different class names - runtime will handle proper checking
+        return false;
+    }
+
+    /**
+     * Check if YScript class extends a Haxe class
+     */
+    private function checkYScriptExtendsHaxe(yscriptClassName:String, haxeClass:Class<Dynamic>):Bool {
+        // Parse-time checking is limited - runtime will validate properly
+        // For now, allow the assignment and let runtime handle validation
+        return true;
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -1763,6 +2537,7 @@ class YScriptParser {
 /**
  * YScript runtime execution engine with Haxe integration
  */
+@:privateAccess
 class YScriptRuntime {
     public var scope:YScope;
     private var returnValue:Dynamic = null;
@@ -1801,7 +2576,8 @@ class YScriptRuntime {
         if (func != null) {
             return callYFunction(func, args);
         }
-        throw new YScriptRuntimeError('Function not found: $name', null);
+        var context = scope.getExecutionContext();
+        throw new YScriptRuntimeError('Function not found: $name', context.location, context.scriptPath);
     }
 
     public function destroy():Void {
@@ -1832,10 +2608,27 @@ class YScriptRuntime {
     public function executeStatement(stmt:YStatement):Void {
         try {
             switch (stmt) {
+                case Import(path, alias):
+                    scope.addImport(path, alias);
+                    // Try to resolve and register Haxe class
+                    var className = alias ?? path.split(".").pop();
+                    try {
+                        var haxeClass = Type.resolveClass(path);
+                        if (haxeClass != null) {
+                            scope.setType(className, YType.HaxeClass(haxeClass));
+                        }
+
+                    } catch (e:Dynamic) {
+                        // Import failed - could be YScript module or non-existent
+                        trace('Warning: Could not resolve import: $path');
+                    }
+
                 case VarDecl(name, type, init):
                     var value:Dynamic = null;
                     if (init != null) {
                         value = evaluateExpression(init);
+                        // Type checking for initialization
+                        validateAssignment(type, value);
                     } else {
                         value = getDefaultValue(type);
                     }
@@ -1849,12 +2642,24 @@ class YScriptRuntime {
                 case ClassDecl(name, extend, implement, body):
                     var classDef = new YClassDefinition(name, extend, implement);
 
-                    // Check if extending a Haxe class
+                    // Resolve superclass
                     if (extend != null) {
-                        var haxeClass = Type.resolveClass(extend);
-                        if (haxeClass != null) {
-                            classDef.isHaxeClass = true;
-                            classDef.haxeClassName = extend;
+                        // First try to resolve as YScript class
+                        var superClassDef = scope.getClass(extend);
+                        if (superClassDef != null) {
+                            classDef.superClassDef = superClassDef;
+                        } else {
+                            // Try to resolve from imports as Haxe class
+                            var fullPath = scope.resolveImport(extend) ?? extend;
+                            var haxeClass = Type.resolveClass(fullPath);
+                            if (haxeClass != null) {
+                                classDef.isHaxeClass = true;
+                                classDef.haxeClassName = fullPath;
+                                classDef.haxeClassType = haxeClass;
+                            } else {
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Cannot resolve superclass: $extend', context.location, context.scriptPath);
+                            }
                         }
                     }
 
@@ -1881,7 +2686,8 @@ class YScriptRuntime {
                                 }
 
                             default:
-                                throw new YScriptRuntimeError('Invalid statement in class body', null);
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Invalid statement in class body', context.location, context.scriptPath);
                         }
                     }
 
@@ -1955,13 +2761,15 @@ class YScriptRuntime {
                     #if LUA_ALLOWED
                     executeLuaCode(code);
                     #else
-                    throw new YScriptRuntimeError("Lua support not enabled", null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError("Lua support not enabled", context.location, context.scriptPath);
                     #end
             }
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Runtime error: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Runtime error: $e', context.location, context.scriptPath);
         }
     }
 
@@ -1971,6 +2779,21 @@ class YScriptRuntime {
             case FloatLiteral(value): value;
             case StringLiteral(value): value;
             case BoolLiteral(value): value;
+            case NullLiteral: null;
+
+            case ArrayLiteral(elements):
+                var array = [];
+                for (element in elements) {
+                    array.push(evaluateExpression(element));
+                }
+                array;
+
+            case ObjectLiteral(fields):
+                var obj = {};
+                for (field in fields) {
+                    Reflect.setField(obj, field.name, evaluateExpression(field.value));
+                }
+                obj;
 
             case Identifier(name):
                 if (scope.hasVariable(name)) {
@@ -1979,6 +2802,15 @@ class YScriptRuntime {
                     // Try to resolve as Haxe type or global
                     resolveHaxeIdentifier(name);
                 }
+
+            case SuperCall(args):
+                executeSuperConstructorCall(args);
+
+            case SuperMemberAccess(member):
+                executeSuperMemberAccess(member);
+
+            case SuperMethodCall(method, args):
+                executeSuperMethodCall(method, args);
 
             case BinaryOp(left, op, right):
                 var leftValue = evaluateExpression(left);
@@ -2048,7 +2880,7 @@ class YScriptRuntime {
         if (value == null) return false;
         if (Std.is(value, Bool)) return value;
         if (Std.is(value, Float) || Std.is(value, Int)) return value != 0;
-        if (Std.is(value, String)) return cast(value, String).length > 0;
+        if (Std.is(value, String)) return cast(value, String).trim().length > 0;
         return true;
     }
 
@@ -2067,7 +2899,9 @@ class YScriptRuntime {
             case ">=": left >= right;
             case "&&": isTruthy(left) && isTruthy(right);
             case "||": isTruthy(left) || isTruthy(right);
-            default: throw new YScriptRuntimeError('Unknown binary operator: $op', null);
+            default:
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Unknown binary operator: $op', context.location, context.scriptPath);
         }
     }
 
@@ -2076,7 +2910,9 @@ class YScriptRuntime {
             case "-": -operand;
             case "+": operand;
             case "!": !isTruthy(operand);
-            default: throw new YScriptRuntimeError('Unknown unary operator: $op', null);
+            default:
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Unknown unary operator: $op', context.location, context.scriptPath);
         }
     }
 
@@ -2085,9 +2921,12 @@ class YScriptRuntime {
             case Identifier(name):
                 if (scope.hasVariable(name)) {
                     var variable = scope.getVariable(name);
+                    // Type checking for assignment
+                    validateAssignment(variable.type, value);
                     variable.value = value;
                 } else {
-                    throw new YScriptRuntimeError('Undefined variable: $name', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Undefined variable: $name', context.location, context.scriptPath);
                 }
 
             case MemberAccess(object, member):
@@ -2100,7 +2939,8 @@ class YScriptRuntime {
                 setArrayElement(arrayValue, indexValue, value);
 
             default:
-                throw new YScriptRuntimeError('Invalid assignment target', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Invalid assignment target', context.location, context.scriptPath);
         }
     }
 
@@ -2121,7 +2961,8 @@ class YScriptRuntime {
                 return callMethod(objValue, method, args);
 
             default:
-                throw new YScriptRuntimeError('Cannot call this expression as a function', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Cannot call this expression as a function', context.location, context.scriptPath);
         }
     }
 
@@ -2129,9 +2970,16 @@ class YScriptRuntime {
         // Create new scope for function execution
         var functionScope = scope.createChild();
 
+        // Set execution context for error tracking
+        functionScope.setExecutionContext(
+            scope.currentScriptPath ?? "<unknown>",
+            func.name
+        );
+
         // Bind parameters - only validate argument count for non-native functions
         if (!func.isNative && args.length != func.parameters.length) {
-            throw new YScriptRuntimeError('Function "${func.name}" expected ${func.parameters.length} arguments, got ${args.length}', null);
+            var context = functionScope.getExecutionContext();
+            throw new YScriptRuntimeError('Function "${func.name}" expected ${func.parameters.length} arguments, got ${args.length}', context.location, context.scriptPath);
         }
 
         for (i in 0...func.parameters.length) {
@@ -2164,7 +3012,8 @@ class YScriptRuntime {
                     #if LUA_ALLOWED
                     result = executeLuaCode(code);
                     #else
-                    throw new YScriptRuntimeError("Lua support not enabled", null);
+                    var context = functionScope.getExecutionContext();
+                    throw new YScriptRuntimeError("Lua support not enabled", context.location, context.scriptPath);
                     #end
 
                 case Native(nativeFunc):
@@ -2177,7 +3026,8 @@ class YScriptRuntime {
         } catch (e:Dynamic) {
             this.scope = oldScope;
             shouldReturn = oldReturn;
-            throw new YScriptRuntimeError('Runtime error: $e', null);
+            var context = functionScope.getExecutionContext();
+            throw new YScriptRuntimeError('Runtime error in function ${func.name}: $e', context.location, context.scriptPath);
         }
 
         this.scope = oldScope;
@@ -2188,6 +3038,19 @@ class YScriptRuntime {
 
     private function resolveHaxeIdentifier(name:String):Dynamic {
         try {
+            // First check if it's a registered type in scope
+            var registeredType = scope.getType(name);
+            if (registeredType != null) {
+                switch (registeredType) {
+                    case HaxeClass(classType):
+                        return classType; // Return the actual class for static access
+                    case HaxeEnum(enumType):
+                        return enumType; // Return the actual enum for static access
+                    default:
+                        // Fall through to other resolution methods
+                }
+            }
+
             // Try to resolve as a Haxe type or global
             var type = Type.resolveClass(name);
             if (type != null) return type;
@@ -2198,7 +3061,8 @@ class YScriptRuntime {
             // Check for static fields
             return Reflect.field(Type.resolveClass("Std"), name);
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Unknown identifier: $name', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Unknown identifier: $name', context.location, context.scriptPath);
         }
     }
 
@@ -2226,11 +3090,13 @@ class YScriptRuntime {
                 return Reflect.callMethod(Math, mathMethod, args);
             }
 
-            throw new YScriptRuntimeError('Unknown function: $name', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Unknown function: $name', context.location, context.scriptPath);
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error calling function $name: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error calling function $name: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2240,12 +3106,14 @@ class YScriptRuntime {
             if (methodFunction != null && Reflect.isFunction(methodFunction)) {
                 return Reflect.callMethod(object, methodFunction, args);
             } else {
-                throw new YScriptRuntimeError('Method $method not found', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Method $method not found', context.location, context.scriptPath);
             }
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error calling method $method: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error calling method $method: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2253,7 +3121,8 @@ class YScriptRuntime {
         try {
             return Reflect.field(object, member);
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error accessing member $member: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error accessing member $member: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2261,7 +3130,8 @@ class YScriptRuntime {
         try {
             Reflect.setField(object, member, value);
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error setting member $member: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error setting member $member: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2273,14 +3143,17 @@ class YScriptRuntime {
                 if (idx >= 0 && idx < arr.length) {
                     return arr[idx];
                 }
-                throw new YScriptRuntimeError('Array index out of bounds: $idx', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Array index out of bounds: $idx', context.location, context.scriptPath);
             } else {
-                throw new YScriptRuntimeError('Cannot index non-array type', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Cannot index non-array type', context.location, context.scriptPath);
             }
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error accessing array element: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error accessing array element: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2292,15 +3165,18 @@ class YScriptRuntime {
                 if (idx >= 0 && idx < arr.length) {
                     arr[idx] = value;
                 } else {
-                    throw new YScriptRuntimeError('Array index out of bounds: $idx', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Array index out of bounds: $idx', context.location, context.scriptPath);
                 }
             } else {
-                throw new YScriptRuntimeError('Cannot index non-array type', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Cannot index non-array type', context.location, context.scriptPath);
             }
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error setting array element: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error setting array element: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2308,63 +3184,89 @@ class YScriptRuntime {
         try {
             switch (type) {
                 case YClass(className):
+                    // First check if it's an imported/registered Haxe type
+                    var haxeType = scope.getType(className);
+                    if (haxeType != null) {
+                        switch (haxeType) {
+                            case HaxeClass(classType):
+                                return Type.createInstance(classType, args);
+                            default:
+                                // Fall through to YScript class checking
+                        }
+                    }
+
+                    // Then check for YScript class definition
                     var classDef = scope.getClass(className);
                     if (classDef != null) {
                         var instance = new YClassInstance(className, classDef);
-
-                        // If extending Haxe class, create Haxe instance
-                        if (classDef.isHaxeClass && classDef.haxeClassName != null) {
-                            var haxeClass = Type.resolveClass(classDef.haxeClassName);
-                            if (haxeClass != null) {
-                                instance.haxeInstance = Type.createInstance(haxeClass, args);
-                            }
-                        }
 
                         // Call YScript constructor if available
                         if (classDef.constructors.length > 0) {
                             var constructor = findMatchingConstructor(classDef.constructors, args);
                             if (constructor != null) {
+                                // Mark as in constructor for super call tracking
+                                instance.isInConstructor = true;
                                 callYFunctionOnInstance(constructor, args, instance);
+                                instance.isInConstructor = false;
+
+                                // Validate super call for Haxe-extending classes
+                                if (classDef.isHaxeClass && !instance.superCalled) {
+                                    var context = scope.getExecutionContext();
+                                    throw new YScriptRuntimeError('Constructor must call super() when extending Haxe class ${classDef.haxeClassName}', context.location, context.scriptPath);
+                                }
                             }
+                        } else if (classDef.isHaxeClass && classDef.haxeClassType != null) {
+                            // No YScript constructor, but extending Haxe class - create instance with args
+                            instance.haxeInstance = Type.createInstance(classDef.haxeClassType, args);
+                            instance.superCalled = true;
                         }
 
                         return instance;
                     } else {
-                        throw new YScriptRuntimeError('Unknown YScript class: $className', null);
+                        var context = scope.getExecutionContext();
+                        throw new YScriptRuntimeError('Unknown class: $className (not found as Haxe import or YScript class)', context.location, context.scriptPath);
                     }
 
                 case HaxeClass(classType):
                     if (classType != null) {
                         return Type.createInstance(classType, args);
                     } else {
-                        throw new YScriptRuntimeError('Null Haxe class type', null);
+                        var context = scope.getExecutionContext();
+                        throw new YScriptRuntimeError('Null Haxe class type', context.location, context.scriptPath);
                     }
 
                 case YArray(elementType):
                     return [];
 
                 case YEnum(_):
-                    throw new YScriptRuntimeError('Cannot instantiate enum type directly', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Cannot instantiate enum type directly', context.location, context.scriptPath);
 
                 case YStruct(_):
-                    throw new YScriptRuntimeError('Struct instantiation not implemented yet', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Struct instantiation not implemented yet', context.location, context.scriptPath);
 
                 case HaxeType(_):
-                    throw new YScriptRuntimeError('Cannot instantiate raw Haxe type', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Cannot instantiate raw Haxe type', context.location, context.scriptPath);
 
                 case HaxeEnum(_):
-                    throw new YScriptRuntimeError('Cannot instantiate Haxe enum directly', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Cannot instantiate Haxe enum directly', context.location, context.scriptPath);
 
                 case Unknown:
-                    throw new YScriptRuntimeError('Cannot instantiate unknown type', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Cannot instantiate unknown type', context.location, context.scriptPath);
 
                 default:
-                    throw new YScriptRuntimeError('Cannot instantiate type: $type', null);
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Cannot instantiate type: $type', context.location, context.scriptPath);
             }
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error creating instance: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error creating instance: $e', context.location, context.scriptPath);
         }
     }
 
@@ -2377,6 +3279,15 @@ class YScriptRuntime {
         return constructors.length > 0 ? constructors[0] : null;
     }
 
+    private function findMatchingMethod(methods:Array<YFunction>, args:Array<Dynamic>):Null<YFunction> {
+        for (method in methods) {
+            if (method.parameters.length == args.length) {
+                return method;
+            }
+        }
+        return methods.length > 0 ? methods[0] : null;
+    }
+
     private function callYFunctionOnInstance(func:YFunction, args:Array<Dynamic>, instance:YClassInstance):Dynamic {
         var functionScope = scope.createChild();
 
@@ -2385,7 +3296,8 @@ class YScriptRuntime {
 
         // Bind parameters - only validate argument count for non-native functions
         if (!func.isNative && args.length != func.parameters.length) {
-            throw new YScriptRuntimeError('Method "${func.name}" expected ${func.parameters.length} arguments, got ${args.length}', null);
+            var context = functionScope.getExecutionContext();
+            throw new YScriptRuntimeError('Method "${func.name}" expected ${func.parameters.length} arguments, got ${args.length}', context.location, context.scriptPath);
         }
 
         for (i in 0...func.parameters.length) {
@@ -2420,7 +3332,8 @@ class YScriptRuntime {
                     #if LUA_ALLOWED
                     result = executeLuaCode(code);
                     #else
-                    throw new YScriptRuntimeError("Lua support not enabled", null);
+                    var context = functionScope.getExecutionContext();
+                    throw new YScriptRuntimeError("Lua support not enabled", context.location, context.scriptPath);
                     #end
 
                 case Native(nativeFunc):
@@ -2433,7 +3346,8 @@ class YScriptRuntime {
         } catch (e:Dynamic) {
             this.scope = oldScope;
             shouldReturn = oldReturn;
-            throw new YScriptRuntimeError('Runtime error: $e', null);
+            var context = functionScope.getExecutionContext();
+            throw new YScriptRuntimeError('Runtime error in method ${func.name}: $e', context.location, context.scriptPath);
         }
 
         this.scope = oldScope;
@@ -2449,7 +3363,8 @@ class YScriptRuntime {
     private function executeLuaCode(code:String):Dynamic {
         try {
             if (luaState == null) {
-                throw new YScriptRuntimeError("Lua state not initialized", null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError("Lua state not initialized", context.location, context.scriptPath);
             }
 
             // Execute Lua code
@@ -2458,7 +3373,8 @@ class YScriptRuntime {
             if (result != 0) {
                 var error = Lua.tostring(luaState, -1);
                 Lua.pop(luaState, 1);
-                throw new YScriptRuntimeError('Lua error: $error', null);
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Lua error: $error', context.location, context.scriptPath);
             }
 
             // Get result from Lua stack
@@ -2472,7 +3388,8 @@ class YScriptRuntime {
         } catch (e:YScriptError) {
             throw e;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('Error executing Lua code: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('Error executing Lua code: $e', context.location, context.scriptPath);
         }
     }
     #end
@@ -2487,39 +3404,339 @@ class YScriptRuntime {
     }
 
     /**
-     * ✅ HSCRIPT INTEGRATION: Execute Haxe code using HScript
+     * ✅ HSCRIPT INTEGRATION: Execute Haxe code using HScript (Iris)
      */
     private function executeHaxeCodeWithHScript(code:String):Dynamic {
         #if HSCRIPT_ALLOWED
         try {
-            var parser = new hscript.Parser();
-            var interp = new hscript.Interp();
+            // Use Iris (enhanced HScript) like the rest of the project
+            var iris = new Iris(code, new IrisConfig(scope.currentScriptPath, false, false));
 
-            // Sync YScript variables to HScript environment
-						@:privateAccess
-            for (varName in scope.variables.keys()) {
-                var yvar = scope.variables.get(varName);
-                interp.variables.set(varName, yvar.value);
+            // Get flattened variables from entire scope hierarchy
+            var flattenedVars = scope.getFlattenedVariables();
+
+            // Sync YScript variables to Iris environment
+            @:privateAccess
+            for (varName in flattenedVars.keys()) {
+                iris.interp.variables.set(varName, flattenedVars.get(varName));
             }
+
+            // trace('Executing Iris HScript code: $code');
 
             // Parse and execute the code
-            var program = parser.parseString(code);
-            var result = interp.execute(program);
+            var result = iris.execute();
 
-            // Sync variables back to YScript scope
-            for (varName in interp.variables.keys()) {
-                if (scope.hasVariable(varName)) {
-                    var yvar = scope.getVariable(varName);
-                    yvar.value = interp.variables.get(varName);
-                }
+            // Create a StringMap for syncing back
+            var updatedVars = new StringMap<Dynamic>();
+            @:privateAccess
+            for (varName in iris.interp.variables.keys()) {
+                updatedVars.set(varName, iris.interp.variables.get(varName));
             }
+
+            // Sync variables back to YScript scope hierarchy
+            scope.applyFlattenedVariables(updatedVars);
 
             return result;
         } catch (e:Dynamic) {
-            throw new YScriptRuntimeError('HScript execution error: $e', null);
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError('HScript execution error: $e', context.location, context.scriptPath);
         }
         #else
-        throw new YScriptRuntimeError("HScript support not enabled", null);
+        var context = scope.getExecutionContext();
+        throw new YScriptRuntimeError("HScript support not enabled", context.location, context.scriptPath);
         #end
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // SUPER CALL IMPLEMENTATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    private function executeSuperConstructorCall(args:Array<YExpression>):Dynamic {
+        // Get current instance from 'this' variable
+        var thisVar = scope.getVariable("this");
+        if (thisVar == null || !Std.is(thisVar.value, YClassInstance)) {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super() can only be called in class constructors", context.location, context.scriptPath);
+        }
+
+        var instance:YClassInstance = cast thisVar.value;
+        if (!instance.isInConstructor) {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super() can only be called during constructor execution", context.location, context.scriptPath);
+        }
+
+        // Evaluate arguments
+        var argValues:Array<Dynamic> = [];
+        for (arg in args) {
+            argValues.push(evaluateExpression(arg));
+        }
+
+        // Handle Haxe class extension
+        if (instance.classDef.isHaxeClass && instance.classDef.haxeClassType != null) {
+            try {
+                instance.haxeInstance = Type.createInstance(instance.classDef.haxeClassType, argValues);
+                instance.superCalled = true;
+                return instance.haxeInstance;
+            } catch (e:Dynamic) {
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Failed to call super constructor: $e', context.location, context.scriptPath);
+            }
+        }
+        // Handle YScript class extension
+        else if (instance.classDef.superClassDef != null) {
+            var superClassDef = instance.classDef.superClassDef;
+
+            // Find matching constructor in superclass
+            if (superClassDef.constructors.length > 0) {
+                var superConstructor = findMatchingConstructor(superClassDef.constructors, argValues);
+                if (superConstructor != null) {
+                    // Call superclass constructor
+                    callYFunctionOnInstance(superConstructor, argValues, instance);
+                    instance.superCalled = true;
+                    return instance;
+                }
+            }
+
+            // If no constructor found, just mark as called
+            instance.superCalled = true;
+            return instance;
+        }
+        else {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super() can only be used when extending a class", context.location, context.scriptPath);
+        }
+    }
+
+    private function executeSuperMemberAccess(member:String):Dynamic {
+        // Get current instance from 'this' variable
+        var thisVar = scope.getVariable("this");
+        if (thisVar == null || !Std.is(thisVar.value, YClassInstance)) {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super.field can only be used in class methods", context.location, context.scriptPath);
+        }
+
+        var instance:YClassInstance = cast thisVar.value;
+
+        // Handle Haxe class extension
+        if (instance.classDef.isHaxeClass && instance.haxeInstance != null) {
+            try {
+                return Reflect.field(instance.haxeInstance, member);
+            } catch (e:Dynamic) {
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Failed to access super.$member: $e', context.location, context.scriptPath);
+            }
+        }
+        // Handle YScript class extension
+        else if (instance.classDef.superClassDef != null) {
+            var superField = instance.classDef.superClassDef.getField(member);
+            if (superField != null) {
+                return superField.value;
+            } else {
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Super field $member not found', context.location, context.scriptPath);
+            }
+        }
+        else {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super.field can only be used when extending a class", context.location, context.scriptPath);
+        }
+    }
+
+    private function executeSuperMethodCall(method:String, args:Array<YExpression>):Dynamic {
+        // Get current instance from 'this' variable
+        var thisVar = scope.getVariable("this");
+        if (thisVar == null || !Std.is(thisVar.value, YClassInstance)) {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super.method() can only be used in class methods", context.location, context.scriptPath);
+        }
+
+        var instance:YClassInstance = cast thisVar.value;
+
+        // Evaluate arguments
+        var argValues:Array<Dynamic> = [];
+        for (arg in args) {
+            argValues.push(evaluateExpression(arg));
+        }
+
+        // Handle Haxe class extension
+        if (instance.classDef.isHaxeClass && instance.haxeInstance != null) {
+            try {
+                var superMethod = Reflect.field(instance.haxeInstance, method);
+                if (superMethod != null && Reflect.isFunction(superMethod)) {
+                    return Reflect.callMethod(instance.haxeInstance, superMethod, argValues);
+                } else {
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('Super method $method not found or not callable', context.location, context.scriptPath);
+                }
+            } catch (e:Dynamic) {
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Failed to call super.$method(): $e', context.location, context.scriptPath);
+            }
+        }
+        // Handle YScript class extension
+        else if (instance.classDef.superClassDef != null) {
+            var superMethods = instance.classDef.superClassDef.getMethod(method);
+            if (superMethods != null && superMethods.length > 0) {
+                // Find matching method based on argument count
+                var superMethod = findMatchingMethod(superMethods, argValues);
+                if (superMethod != null) {
+                    return callYFunctionOnInstance(superMethod, argValues, instance);
+                } else {
+                    var context = scope.getExecutionContext();
+                    throw new YScriptRuntimeError('No matching super method $method found', context.location, context.scriptPath);
+                }
+            } else {
+                var context = scope.getExecutionContext();
+                throw new YScriptRuntimeError('Super method $method not found', context.location, context.scriptPath);
+            }
+        }
+        else {
+            var context = scope.getExecutionContext();
+            throw new YScriptRuntimeError("super.method() can only be used when extending a class", context.location, context.scriptPath);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // TYPE CHECKING SYSTEM
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    private function validateAssignment(targetType:YType, value:Dynamic, ?location:YLocation):Void {
+        var valueType = inferTypeFromValue(value);
+        if (!isTypeCompatible(targetType, valueType)) {
+            var context = scope.getExecutionContext();
+            var useLocation = location ?? context.location;
+            var scriptPath = context.scriptPath;
+            var msg = 'Type mismatch: cannot assign ${YTypeHelper.toString(valueType)} to ${YTypeHelper.toString(targetType)}';
+            throw new YScriptTypeError(msg, useLocation, scriptPath);
+        }
+    }
+
+    private function isTypeCompatible(targetType:YType, valueType:YType):Bool {
+        // Exact match
+        if (Type.enumEq(targetType, valueType)) return true;
+
+        // Dynamic accepts anything
+        if (targetType == YType.Dynamic || valueType == YType.Dynamic) return true;
+
+        // Null can be assigned to any type (for now)
+        if (valueType == YType.Dynamic && targetType != YType.YInt && targetType != YType.YFloat && targetType != YType.YBool) {
+            return true; // Null assignment
+        }
+
+        // Numeric compatibility
+        switch [targetType, valueType] {
+            case [YType.YFloat, YType.YInt]: return true; // Int -> Float allowed
+            case [YType.YInt, YType.YFloat]: return false; // Float -> Int not allowed without cast
+            default:
+        }
+
+        // Array element compatibility
+        switch [targetType, valueType] {
+            case [YType.YArray(targetElement), YType.YArray(valueElement)]:
+                return isTypeCompatible(targetElement, valueElement);
+            default:
+        }
+
+        // Enhanced class inheritance compatibility
+        switch [targetType, valueType] {
+            case [YType.HaxeClass(targetClass), YType.HaxeClass(valueClass)]:
+                return isHaxeClassInheritanceCompatible(targetClass, valueClass);
+            case [YType.YClass(targetName), YType.YClass(valueName)]:
+                return isYScriptClassInheritanceCompatible(targetName, valueName);
+            case [YType.HaxeClass(targetClass), YType.YClass(valueName)]:
+                // YScript class instance being assigned to Haxe class type
+                var yscriptClassDef = scope.getClass(valueName);
+                return yscriptClassDef != null && yscriptClassDef.extendsHaxeClass(targetClass);
+            case [YType.YClass(targetName), YType.HaxeClass(valueClass)]:
+                // Check if the target YClass actually refers to an imported Haxe type
+                var registeredType = scope.getType(targetName);
+                if (registeredType != null) {
+                    switch (registeredType) {
+                        case HaxeClass(registeredClass):
+                            return isHaxeClassInheritanceCompatible(registeredClass, valueClass);
+                        default:
+                    }
+                }
+                return false;
+            default:
+        }
+
+        return false;
+    }
+
+    /**
+     * Get superclass chain for inheritance checking
+     */
+    private function getSuperClasses(ytype:YType):Array<YType> {
+        var supers = [];
+        switch (ytype) {
+            case YType.HaxeClass(c):
+                var superClass = Type.getSuperClass(c);
+                while (superClass != null) {
+                    supers.push(YType.HaxeClass(superClass));
+                    superClass = Type.getSuperClass(superClass);
+                }
+            case _:
+        }
+        return supers;
+    }
+
+    /**
+     * Check Haxe class inheritance compatibility at runtime
+     */
+    private function isHaxeClassInheritanceCompatible(targetClass:Class<Dynamic>, valueClass:Class<Dynamic>):Bool {
+        if (targetClass == valueClass) return true;
+
+        try {
+            // Check inheritance chain
+            var currentClass = valueClass;
+            while (currentClass != null) {
+                if (currentClass == targetClass) return true;
+                currentClass = Type.getSuperClass(currentClass);
+            }
+            return false;
+        } catch (e:Dynamic) {
+            // If reflection fails, be conservative
+            return targetClass == valueClass;
+        }
+    }
+
+    /**
+     * Check YScript class inheritance compatibility at runtime
+     */
+    private function isYScriptClassInheritanceCompatible(targetName:String, valueName:String):Bool {
+        if (targetName == valueName) return true;
+
+        var valueClassDef = scope.getClass(valueName);
+        return valueClassDef != null && valueClassDef.extendsClass(targetName);
+    }
+
+    /**
+     * Infer YScript type from Haxe value (runtime version with enhanced checking)
+     */
+    private function inferTypeFromValue(value:Dynamic):YType {
+        if (value == null) return YType.Dynamic;
+
+        return switch (Type.typeof(value)) {
+            case TInt: YType.YInt;
+            case TFloat: YType.YFloat;
+            case TBool: YType.YBool;
+            case TClass(String): YType.YString;
+            case TClass(Array):
+                var arr:Array<Dynamic> = cast value;
+                if (arr.length == 0) {
+                    YType.YArray(YType.Dynamic);
+                } else {
+                    // Sample first element for type
+                    var elementType = inferTypeFromValue(arr[0]);
+                    YType.YArray(elementType);
+                }
+            case TClass(c): YType.HaxeClass(c);
+            case TEnum(e): YType.HaxeEnum(e);
+            case TFunction: YType.YFunction([], YType.Dynamic);
+            case TObject: YType.Dynamic;
+            case TNull: YType.Dynamic;
+            case TUnknown: YType.Unknown;
+        };
     }
 }
