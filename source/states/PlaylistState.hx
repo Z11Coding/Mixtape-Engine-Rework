@@ -326,7 +326,8 @@ class PlaylistState extends MusicBeatState {
 		if (readyTxt != null)
 			for (i in 0...readyTxt.letters.length) {
 				readyTxt.letters[i].color = FlxColor.fromHSL((((e / 2) / 300 * 360) % 360)+(15*i), 1.0, 0.5*1.0);
-				readyTxt.letters[i].offset.y = (Math.sin((e*0.001) * 2) * 5)+(15*i);
+				// Use direct y positioning with proper base position and wave effect
+				readyTxt.letters[i].y = readyTxt.y + readyTxt.letters[i].row * 85 + (Math.sin((e*0.01) * 2 + (0.5*i)) * 5);
 			}
 
 		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapse * 24)));
