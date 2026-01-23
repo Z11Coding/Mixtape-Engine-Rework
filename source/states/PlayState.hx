@@ -8242,7 +8242,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					trace("INVALID EVENT VALUE");
 					return;
 				}
-				var ease = keyValues.pop().toLowerCase();
+				var ease = keyValues.pop().trim().toLowerCase();
 				var floaties = keyValues.map(s -> Std.parseFloat(s));
 				if(floaties.length != 4 && backend.util.ArrayTools.findIndex(floaties,s -> Math.isNaN(s)) != -1) {
 					trace("INVALID FLOATIES");
@@ -8268,12 +8268,21 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					}
 				}
 
-				if(ease == "classic" || ease == "instant"){
+				if(ease == "classic"){
+					FlxG.camera.followLerp = _cachedCameraLerp;
 					camFollow.x = targetx;
 					camFollow.y = targety;
-					if(ease == "instant") FlxG.camera.snapToTarget();
-				}
-				else{
+					trace("RUNNING CLASSIC CAM MOVEMENT!");
+				} else if(ease == "instant") {
+					FlxG.camera.followLerp = 1000000000000;
+					camGame.followLerp = 1000000000000;
+					camFollow.x = targetx;
+					camFollow.y = targety;
+					if (FlxG.camera != null) FlxG.camera.snapToTarget();
+					trace("RUNNING INSTANT CAM MOVEMENT!");
+				} else {
+					FlxG.camera.followLerp = _cachedCameraLerp;
+					trace('RUNNING ${ease.toUpperCase()} CAM MOVEMENT!');
 					var easeFunc = psychlua.LuaUtils.getTweenEaseByString(ease);
 					camTween?.cancel();
 					camTween = FlxTween.tween(camFollow,{x:targetx,y:targety},dur,{
@@ -8952,6 +8961,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						if(Math.isNaN(percent)) percent = 0;
 						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 						#end
+						curPlaylist = null;
+						curSonglist = null;
 					} else if (ClientPrefs.data.ranking == "V-Slice") {
 						var wasFC = Highscore.getFCState(curSong, PlayState.storyDifficulty);
 						var prevScore = Highscore.getScore(curSong, PlayState.storyDifficulty);
@@ -8967,8 +8978,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 						#end
 					}
-					curPlaylist = null;
-					curSonglist = null;
 				}
 				else
 				{
@@ -9238,6 +9247,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		this.persistentDraw = false;
 		//FreeplayManager.openFreeplay();
 		openSubState(res);
+		curPlaylist = null;
+		curSonglist = null;
 	}
 
 	public function KillNotes()

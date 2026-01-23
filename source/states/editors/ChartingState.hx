@@ -4725,7 +4725,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					{
 						var filePath:String = fileDialog.replace('\\', '/');
 						var jsonFile:Dynamic = Json.parse(File.getContent(filePath));
-						var eventsFile:SwagSong = Song.parseJSON(jsonFile, filePath.substr(filePath.lastIndexOf('/')));
+						var eventsFile:SwagSong = Song.parseJSON(jsonFile.data, filePath.substr(filePath.lastIndexOf('/')));
 						if(eventsFile == null || Reflect.hasField(eventsFile, 'scrollSpeed') || eventsFile.events == null)
 						{
 							showOutput('Error: File loaded is not a Psych Engine chart/events file.', true);

@@ -221,7 +221,7 @@ class SserafimStage extends BaseStage
     chaewon.scrollFactor.set(0.95, 0.95);
     eunchae.scrollFactor.set(0.97, 0.97);
 
-    yunjin.setPosition(-621 - yunjin.characterOrigin.x, 154 - yunjin.characterOrigin.y);
+    yunjin.setPosition(-621 - yunjin.characterOrigin.x, 234 - yunjin.characterOrigin.y);
     chaewon.setPosition(687 - chaewon.characterOrigin.x, 0 - chaewon.characterOrigin.y);
     eunchae.setPosition(770 - eunchae.characterOrigin.x, 675 - eunchae.characterOrigin.y);
 
@@ -230,6 +230,14 @@ class SserafimStage extends BaseStage
     setLightState(false);
 
     perspectiveFloor.sprite.shader = stageShader;
+    bg.shader = stageShader;
+    fucker.shader = stageShader;
+    backTables.shader = stageShader;
+    backStools.shader = stageShader;
+    truck.shader = stageShader;
+    truckDoor.shader = stageShader;
+    frontStool.shader = stageShader;
+
     yunjin.shader = characterShader;
     chaewon.shader = characterShader;
     eunchae.shader = characterShader;
@@ -892,7 +900,7 @@ class SserafimStage extends BaseStage
 
   function resetClear()
   {
-    yunjin.playAnim('yunjin intro', true, true, 0);
+    yunjin.playAnim('intro', true);
     yunjin.animPaused = true;
     yunjin.danceEveryNumBeats = 0;
 
