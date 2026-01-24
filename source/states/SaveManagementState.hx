@@ -1,6 +1,7 @@
 package states;
 
 import backend.*;
+import backend.ui.PsychUIButton;
 import flixel.*;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;
@@ -20,6 +21,7 @@ import haxe.io.Path;
 import lime.app.Application;
 import openfl.utils.Assets;
 import substates.Prompt;
+import substates.SaveEditSubstate;
 import yutautil.save.MixSaveWrapper;
 
 using StringTools;
@@ -55,11 +57,11 @@ class SaveManagementState extends MusicBeatState {
     var bg:FlxSprite;
     var gridOverlay:FlxBackdrop;
     var titleText:FlxText;
-    var categoryTabs:FlxTypedGroup<FlxButton>;
+    var categoryTabs:FlxTypedGroup<PsychUIButton>;
     var saveList:FlxTypedGroup<SaveEntryUI>;
     var detailPanel:FlxSprite;
     var detailText:FlxText;
-    var actionButtons:FlxTypedGroup<FlxButton>;
+    var actionButtons:FlxTypedGroup<PsychUIButton>;
 
     // Save Management
     var allSaveFiles:Array<SaveFileData> = [];
@@ -106,7 +108,7 @@ class SaveManagementState extends MusicBeatState {
         add(titleText);
 
         // Category tabs
-        categoryTabs = new FlxTypedGroup<FlxButton>();
+        categoryTabs = new FlxTypedGroup<PsychUIButton>();
         add(categoryTabs);
 
         var categories = [
@@ -121,10 +123,7 @@ class SaveManagementState extends MusicBeatState {
         ];
 
         for (i in 0...categories.length) {
-            var tab = new FlxButton(50 + i * 120, 80, categories[i].name);
-            tab.loadGraphic(Paths.image('ui/button'), true, 100, 30);
-            tab.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER);
-            tab.onUp.callback = () -> switchCategory(categories[i].category);
+            var tab = new PsychUIButton(50 + i * 120, 80, categories[i].name, () -> switchCategory(categories[i].category), 100, 30);
             categoryTabs.add(tab);
         }
 
@@ -144,56 +143,44 @@ class SaveManagementState extends MusicBeatState {
         add(detailText);
 
         // Action buttons
-        actionButtons = new FlxTypedGroup<FlxButton>();
+        actionButtons = new FlxTypedGroup<PsychUIButton>();
         add(actionButtons);
 
-        var backBtn = new FlxButton(20, FlxG.height - 60, "Back", goBack);
-        backBtn.loadGraphic(Paths.image('ui/button'), true, 80, 40);
-        backBtn.label.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER);
+        var backBtn = new PsychUIButton(20, FlxG.height - 60, "Back", goBack, 80, 40);
         actionButtons.add(backBtn);
 
-        var refreshBtn = new FlxButton(120, FlxG.height - 60, "Refresh", refreshSaveList);
-        refreshBtn.loadGraphic(Paths.image('ui/button'), true, 80, 40);
-        refreshBtn.label.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER);
+        var refreshBtn = new PsychUIButton(120, FlxG.height - 60, "Refresh", refreshSaveList, 80, 40);
         actionButtons.add(refreshBtn);
 
-        var openFolderBtn = new FlxButton(220, FlxG.height - 60, "Open Folder", openSaveFolder);
-        openFolderBtn.loadGraphic(Paths.image('ui/button'), true, 100, 40);
-        openFolderBtn.label.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, CENTER);
+        var openFolderBtn = new PsychUIButton(220, FlxG.height - 60, "Open Folder", openSaveFolder, 100, 40);
         actionButtons.add(openFolderBtn);
 
         setupDetailButtons();
     }
 
     function setupDetailButtons() {
-        var editBtn = new FlxButton(detailPanel.x + 20, detailPanel.y + detailPanel.height - 120, "Edit", editSelectedSave);
-        editBtn.loadGraphic(Paths.image('ui/button'), true, 80, 30);
-        editBtn.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER);
+        var editBtn = new PsychUIButton(detailPanel.x + 20, detailPanel.y + detailPanel.height - 120, "Edit", editSelectedSave, 80, 30);
+        editBtn.normalStyle.bgColor = FlxColor.GREEN;
+        editBtn.normalStyle.textColor = FlxColor.BLACK;
         actionButtons.add(editBtn);
 
-        var backupBtn = new FlxButton(detailPanel.x + 110, detailPanel.y + detailPanel.height - 120, "Backup", backupSelectedSave);
-        backupBtn.loadGraphic(Paths.image('ui/button'), true, 80, 30);
-        backupBtn.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER);
+        var backupBtn = new PsychUIButton(detailPanel.x + 110, detailPanel.y + detailPanel.height - 120, "Backup", backupSelectedSave, 80, 30);
+        backupBtn.normalStyle.bgColor = FlxColor.BLUE;
+        backupBtn.normalStyle.textColor = FlxColor.WHITE;
         actionButtons.add(backupBtn);
 
-        var deleteBtn = new FlxButton(detailPanel.x + 200, detailPanel.y + detailPanel.height - 120, "Delete", deleteSelectedSave);
-        deleteBtn.loadGraphic(Paths.image('ui/button'), true, 80, 30);
-        deleteBtn.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.RED, CENTER);
+        var deleteBtn = new PsychUIButton(detailPanel.x + 200, detailPanel.y + detailPanel.height - 120, "Delete", deleteSelectedSave, 80, 30);
+        deleteBtn.normalStyle.bgColor = FlxColor.RED;
+        deleteBtn.normalStyle.textColor = FlxColor.WHITE;
         actionButtons.add(deleteBtn);
 
-        var restoreBtn = new FlxButton(detailPanel.x + 20, detailPanel.y + detailPanel.height - 80, "Restore", restoreSelectedSave);
-        restoreBtn.loadGraphic(Paths.image('ui/button'), true, 80, 30);
-        restoreBtn.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER);
+        var restoreBtn = new PsychUIButton(detailPanel.x + 20, detailPanel.y + detailPanel.height - 80, "Restore", restoreSelectedSave, 80, 30);
         actionButtons.add(restoreBtn);
 
-        var exportBtn = new FlxButton(detailPanel.x + 110, detailPanel.y + detailPanel.height - 80, "Export", exportSelectedSave);
-        exportBtn.loadGraphic(Paths.image('ui/button'), true, 80, 30);
-        exportBtn.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER);
+        var exportBtn = new PsychUIButton(detailPanel.x + 110, detailPanel.y + detailPanel.height - 80, "Export", exportSelectedSave, 80, 30);
         actionButtons.add(exportBtn);
 
-        var importBtn = new FlxButton(detailPanel.x + 200, detailPanel.y + detailPanel.height - 80, "Import", importSave);
-        importBtn.loadGraphic(Paths.image('ui/button'), true, 80, 30);
-        importBtn.label.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER);
+        var importBtn = new PsychUIButton(detailPanel.x + 200, detailPanel.y + detailPanel.height - 80, "Import", importSave, 80, 30);
         actionButtons.add(importBtn);
     }
 
@@ -208,6 +195,9 @@ class SaveManagementState extends MusicBeatState {
 
         // Scan specific engine saves
         scanEngineSaves();
+
+        // Scan mod-specific saves
+        scanModSaves();
 
         // Sort by category and then by name
         allSaveFiles.sort((a, b) -> {
@@ -269,33 +259,19 @@ class SaveManagementState extends MusicBeatState {
         #if sys
         try {
             var savePath = CoolUtil.getSavePath();
-            var fullSavePath = #if windows
-                Sys.getEnv("APPDATA") + "/FlxG.save.data/" + savePath
+            // FlxSave stores files in platform-specific locations with the save path as subdirectory
+            var baseSaveDir = #if windows
+                Sys.getEnv("APPDATA")
             #elseif mac
-                Sys.getEnv("HOME") + "/Library/Application Support/FlxG.save.data/" + savePath
+                Sys.getEnv("HOME") + "/Library/Preferences"
             #else
-                Sys.getEnv("HOME") + "/.local/share/FlxG.save.data/" + savePath
+                Sys.getEnv("HOME") + "/.local/share"
             #end;
 
+            var fullSavePath = haxe.io.Path.join([baseSaveDir, savePath]);
+
             if (FileSystem.exists(fullSavePath)) {
-                for (file in FileSystem.readDirectory(fullSavePath)) {
-                    if (file.endsWith('.dat') || file.endsWith('.sol')) {
-                        var fullPath = Path.join([fullSavePath, file]);
-                        var stat = FileSystem.stat(fullPath);
-
-                        var category = categorizeFlxSave(file);
-
-                        allSaveFiles.push({
-                            name: file,
-                            path: fullPath,
-                            category: category,
-                            type: "FlxSave",
-                            size: stat.size,
-                            lastModified: stat.mtime,
-                            isReadonly: false
-                        });
-                    }
-                }
+                scanDirectoryForSaveFiles(fullSavePath, "");
             }
         } catch (e:Dynamic) {
             trace('Error scanning FlxSave files: $e');
@@ -304,34 +280,97 @@ class SaveManagementState extends MusicBeatState {
     }
 
     function scanEngineSaves() {
-        // Check for specific engine saves
-        var engineSaves = [
-            {file: "controls_v3", category: CONTROLS},
-            {file: "achievements", category: ACHIEVEMENTS},
-            {file: "weekScores", category: SCORES},
-            {file: "songScores", category: SCORES}
-        ];
+        #if sys
+        try {
+            var savePath = CoolUtil.getSavePath();
+            // FlxSave stores files in platform-specific locations
+            var baseSaveDir = #if windows
+                Sys.getEnv("APPDATA")
+            #elseif mac
+                Sys.getEnv("HOME") + "/Library/Preferences"
+            #else
+                Sys.getEnv("HOME") + "/.local/share"
+            #end;
 
-        for (saveInfo in engineSaves) {
-            try {
-                var save = new FlxSave();
-                save.bind(saveInfo.file, CoolUtil.getSavePath());
-                if (save.data != null && Reflect.fields(save.data).length > 0) {
-                    allSaveFiles.push({
-                        name: saveInfo.file + " (Engine)",
-                        path: "engine://" + saveInfo.file,
-                        category: saveInfo.category,
-                        type: "Engine Save",
-                        size: 0, // Can't easily get size of FlxSave
-                        lastModified: Date.now(),
-                        isReadonly: false
-                    });
-                }
-                save.destroy();
-            } catch (e:Dynamic) {
-                trace('Error checking engine save ${saveInfo.file}: $e');
+            var fullSavePath = haxe.io.Path.join([baseSaveDir, savePath]);
+
+            // Add main FlxSave (this uses the main save name from Main.hx)
+            var mainSaveName = "Mixtape";
+            var mainSavePath = haxe.io.Path.join([fullSavePath, mainSaveName + ".sol"]);
+            // Try .dat as fallback
+            if (!FileSystem.exists(mainSavePath)) {
+                mainSavePath = haxe.io.Path.join([fullSavePath, mainSaveName + ".dat"]);
             }
+
+            if (FileSystem.exists(mainSavePath)) {
+                var stat = FileSystem.stat(mainSavePath);
+                allSaveFiles.push({
+                    name: "Main Save (Engine)",
+                    path: "engine://Mixtape", // Use the actual save name from Main.hx
+                    category: SETTINGS,
+                    type: "Engine Save",
+                    size: stat.size,
+                    lastModified: stat.mtime,
+                    isReadonly: false
+                });
+            }
+
+            // Check for specific engine saves with actual file sizes
+            var engineSaves = [
+                {file: "controls_v3", category: CONTROLS},
+                {file: "achievements", category: ACHIEVEMENTS},
+                {file: "weekScores", category: SCORES},
+                {file: "songScores", category: SCORES}
+            ];
+
+            for (saveInfo in engineSaves) {
+                try {
+                    var save = new FlxSave();
+                    save.bind(saveInfo.file, CoolUtil.getSavePath());
+                    if (save.data != null && Reflect.fields(save.data).length > 0) {
+                        // Try to get actual file size by checking the expected save file location
+                        var actualPath = haxe.io.Path.join([fullSavePath, saveInfo.file + ".sol"]);
+
+                        var size = 0;
+                        var lastMod = Date.now();
+                        if (FileSystem.exists(actualPath)) {
+                            var stat = FileSystem.stat(actualPath);
+                            size = stat.size;
+                            lastMod = stat.mtime;
+                        } else {
+                            // Try .dat as fallback
+                            var datPath = haxe.io.Path.join([fullSavePath, saveInfo.file + ".dat"]);
+                            if (FileSystem.exists(datPath)) {
+                                var stat = FileSystem.stat(datPath);
+                                size = stat.size;
+                                lastMod = stat.mtime;
+                            }
+                        }
+
+                        allSaveFiles.push({
+                            name: saveInfo.file + " (Engine)",
+                            path: "engine://" + saveInfo.file,
+                            category: saveInfo.category,
+                            type: "Engine Save",
+                            size: size,
+                            lastModified: lastMod,
+                            isReadonly: false
+                        });
+                    }
+                    save.destroy();
+                } catch (e:Dynamic) {
+                    trace('Error checking engine save ${saveInfo.file}: $e');
+                }
+            }
+
+            // Scan for any other save files in the directory
+            if (FileSystem.exists(fullSavePath)) {
+                scanDirectoryForEngineFiles(fullSavePath, "");
+            }
+        } catch (e:Dynamic) {
+            trace('Error scanning engine saves: $e');
         }
+        #end
     }
 
     function categorizeFlxSave(filename:String):SaveCategory {
@@ -347,6 +386,117 @@ class SaveManagementState extends MusicBeatState {
         return OTHER;
     }
 
+    function scanModSaves() {
+        #if sys
+        try {
+            // Get list of all mods
+            var modsList = backend.Mods.parseList();
+            var allMods = modsList.enabled.concat(modsList.disabled);
+
+            for (modName in allMods) {
+                var modPath = 'mods/' + modName;
+                if (FileSystem.exists(modPath) && FileSystem.isDirectory(modPath)) {
+                    // Check for mod-specific save directory
+                    var modSaveDir = modPath + '/save';
+                    if (FileSystem.exists(modSaveDir)) {
+                        scanModSaveDirectory(modSaveDir, modName);
+                    }
+
+                    // Check for data directory with save-like files
+                    var modDataDir = modPath + '/data';
+                    if (FileSystem.exists(modDataDir)) {
+                        scanModDataDirectory(modDataDir, modName);
+                    }
+                }
+            }
+
+            // Also check for loose mod saves in the main save directory with mod names
+            var saveDir = "save";
+            if (FileSystem.exists(saveDir)) {
+                for (file in FileSystem.readDirectory(saveDir)) {
+                    var fullPath = haxe.io.Path.join([saveDir, file]);
+                    if (!FileSystem.isDirectory(fullPath) && file.endsWith('.json')) {
+                        // Check if filename contains any mod names
+                        for (modName in allMods) {
+                            if (file.toLowerCase().contains(modName.toLowerCase())) {
+                                var stat = FileSystem.stat(fullPath);
+                                allSaveFiles.push({
+                                    name: file + " (" + modName + " Mod)",
+                                    path: fullPath,
+                                    category: MODS,
+                                    type: "Mod Save",
+                                    size: stat.size,
+                                    lastModified: stat.mtime,
+                                    isReadonly: false
+                                });
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('Error scanning mod saves: $e');
+        }
+        #end
+    }
+
+    function scanModSaveDirectory(saveDir:String, modName:String) {
+        #if sys
+        try {
+            for (file in FileSystem.readDirectory(saveDir)) {
+                var fullPath = haxe.io.Path.join([saveDir, file]);
+                if (!FileSystem.isDirectory(fullPath) && (file.endsWith('.json') || file.endsWith('.dat'))) {
+                    var stat = FileSystem.stat(fullPath);
+                    var fileType = file.endsWith('.json') ? "Mod Save JSON" : "Mod Save Data";
+
+                    allSaveFiles.push({
+                        name: file + " (" + modName + ")",
+                        path: fullPath,
+                        category: MODS,
+                        type: fileType,
+                        size: stat.size,
+                        lastModified: stat.mtime,
+                        isReadonly: false
+                    });
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('Error scanning mod save directory $saveDir: $e');
+        }
+        #end
+    }
+
+    function scanModDataDirectory(dataDir:String, modName:String) {
+        #if sys
+        try {
+            for (file in FileSystem.readDirectory(dataDir)) {
+                var fullPath = haxe.io.Path.join([dataDir, file]);
+                if (!FileSystem.isDirectory(fullPath) && file.endsWith('.json')) {
+                    // Look for files that might be saves (contain save-like keywords)
+                    var lower = file.toLowerCase();
+                    if (lower.contains('save') || lower.contains('config') || lower.contains('setting') ||
+                        lower.contains('progress') || lower.contains('data') || lower.contains('user')) {
+                        var stat = FileSystem.stat(fullPath);
+
+                        allSaveFiles.push({
+                            name: file + " (" + modName + " Data)",
+                            path: fullPath,
+                            category: MODS,
+                            type: "Mod Data",
+                            size: stat.size,
+                            lastModified: stat.mtime,
+                            isReadonly: false
+                        });
+                    }
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('Error scanning mod data directory $dataDir: $e');
+        }
+        #end
+    }
+
     function switchCategory(category:SaveCategory) {
         currentCategory = category;
         selectedIndex = 0;
@@ -357,7 +507,13 @@ class SaveManagementState extends MusicBeatState {
         for (i in 0...categoryTabs.length) {
             var tab = categoryTabs.members[i];
             if (tab != null) {
-                tab.color = (Type.enumIndex(category) == i) ? FlxColor.YELLOW : FlxColor.WHITE;
+                if (Type.enumIndex(category) == i) {
+                    tab.normalStyle.bgColor = FlxColor.YELLOW;
+                    tab.normalStyle.textColor = FlxColor.BLACK;
+                } else {
+                    tab.normalStyle.bgColor = 0xFFAAAAAA;
+                    tab.normalStyle.textColor = FlxColor.BLACK;
+                }
             }
         }
     }
@@ -427,13 +583,15 @@ class SaveManagementState extends MusicBeatState {
         detailText.text = info;
     }
 
-    function getContentPreview(save:SaveFileData):String {
-        if (save.type == "MixSave JSON") {
+    function getContentPreview(saveData:SaveFileData):String {
+        var preview = "Preview not available for this save type";
+
+        if (saveData.type == "MixSave JSON") {
             try {
                 #if sys
-                var content = File.getContent(save.path);
+                var content = File.getContent(saveData.path);
                 var parsed = haxe.Json.parse(content);
-                var preview = "";
+                preview = "";
                 var keys = Reflect.fields(parsed);
 
                 if (keys.length == 0) {
@@ -460,11 +618,146 @@ class SaveManagementState extends MusicBeatState {
                 return "Error reading JSON: " + e;
             }
         }
-        else if (save.type == "Engine Save") {
-            return "Engine-managed save data\n(Use in-game settings to modify)";
+        else if (saveData.type == "Engine Save") {
+            try {
+                var saveName = saveData.path.substring(9); // Remove "engine://"
+                var save = new FlxSave();
+                save.bind(saveName, CoolUtil.getSavePath());
+
+                if (save.data != null) {
+                    preview = "Engine save data:\n";
+                    var fields = Reflect.fields(save.data);
+                    var displayCount = Math.min(fields.length, 10);
+
+                    for (i in 0...displayCount.toNum()) {
+                        var field = fields[i];
+                        var value = Reflect.field(save.data, field);
+                        var valueStr = Std.string(value);
+                        if (valueStr.length > 50) {
+                            valueStr = valueStr.substring(0, 47) + "...";
+                        }
+                        preview += field + ": " + valueStr + "\n";
+                    }
+
+                    if (fields.length > 10) {
+                        preview += "... and " + (fields.length - 10) + " more properties";
+                    }
+                }
+
+                save.destroy();
+                return preview;
+            } catch (e:Dynamic) {
+                return "Engine-managed save data\n(Error reading: " + e + ")";
+            }
         }
 
-        return "Preview not available for this save type";
+        return preview;
+    }
+
+    function resolveEnginePath(path:String):String {
+        if (!path.startsWith("engine://")) {
+            return path; // Not an engine path, return as-is
+        }
+
+        #if sys
+        var saveName = path.substring(9); // Remove "engine://"
+        var savePath = CoolUtil.getSavePath();
+
+        // Construct platform-specific save directory path
+        var baseSaveDir = #if windows
+            Sys.getEnv("APPDATA")
+        #elseif mac
+            Sys.getEnv("HOME") + "/Library/Preferences"
+        #else
+            Sys.getEnv("HOME") + "/.local/share"
+        #end;
+
+        var saveDir = haxe.io.Path.join([baseSaveDir, savePath]);
+
+        // Try .sol extension first (more common)
+        var solPath = haxe.io.Path.join([saveDir, saveName + ".sol"]);
+        if (FileSystem.exists(solPath)) {
+            return solPath;
+        }
+
+        // Try .dat extension as fallback
+        var datPath = haxe.io.Path.join([saveDir, saveName + ".dat"]);
+        if (FileSystem.exists(datPath)) {
+            return datPath;
+        }
+        #end
+
+        return null;
+    }
+
+    function scanDirectoryForSaveFiles(directory:String, relativePath:String) {
+        #if sys
+        try {
+            for (entry in FileSystem.readDirectory(directory)) {
+                var fullPath = haxe.io.Path.join([directory, entry]);
+                var entryRelativePath = relativePath.length > 0 ? relativePath + "/" + entry : entry;
+
+                if (FileSystem.isDirectory(fullPath)) {
+                    // Recursively scan subdirectories
+                    scanDirectoryForSaveFiles(fullPath, entryRelativePath);
+                } else if (entry.endsWith('.dat') || entry.endsWith('.sol')) {
+                    var stat = FileSystem.stat(fullPath);
+                    var category = categorizeFlxSave(entry);
+                    var displayName = relativePath.length > 0 ? entryRelativePath : entry;
+
+                    allSaveFiles.push({
+                        name: displayName,
+                        path: fullPath,
+                        category: category,
+                        type: "FlxSave",
+                        size: stat.size,
+                        lastModified: stat.mtime,
+                        isReadonly: false
+                    });
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('Error scanning directory $directory: $e');
+        }
+        #end
+    }
+
+    function scanDirectoryForEngineFiles(directory:String, relativePath:String) {
+        #if sys
+        try {
+            var alreadyProcessed = ["controls_v3", "achievements", "weekScores", "songScores", "Mixtape"];
+
+            for (entry in FileSystem.readDirectory(directory)) {
+                var fullPath = haxe.io.Path.join([directory, entry]);
+                var entryRelativePath = relativePath.length > 0 ? relativePath + "/" + entry : entry;
+
+                if (FileSystem.isDirectory(fullPath)) {
+                    // Recursively scan subdirectories
+                    scanDirectoryForEngineFiles(fullPath, entryRelativePath);
+                } else if (entry.endsWith('.dat') || entry.endsWith('.sol')) {
+                    var saveName = entry.substring(0, entry.lastIndexOf('.'));
+
+                    // Skip files we already processed
+                    if (!alreadyProcessed.contains(saveName)) {
+                        var stat = FileSystem.stat(fullPath);
+                        var displayName = relativePath.length > 0 ? entryRelativePath.substring(0, entryRelativePath.lastIndexOf('.')) : saveName;
+
+                        allSaveFiles.push({
+                            name: displayName + " (Engine)",
+                            path: "engine://" + (relativePath.length > 0 ? relativePath + "/" : "") + saveName,
+                            category: categorizeFlxSave(entry),
+                            type: "Engine Save",
+                            size: stat.size,
+                            lastModified: stat.mtime,
+                            isReadonly: false
+                        });
+                    }
+                }
+            }
+        } catch (e:Dynamic) {
+            trace('Error scanning engine directory $directory: $e');
+        }
+        #end
     }
 
     // Action functions
@@ -493,8 +786,14 @@ class SaveManagementState extends MusicBeatState {
         if (selectedSave == null) return;
 
         FlxG.sound.play(Paths.sound('confirmMenu'));
-        // TODO: Open save editor substate
-        trace('Edit save: ${selectedSave.name}');
+
+        // Check if save type is supported for editing
+        if (selectedSave.type == "Engine Save" || selectedSave.type == "FlxSave" || selectedSave.type == "MixSave JSON" || selectedSave.type == "Mod Save JSON") {
+            var editSubstate = new SaveEditSubstate(selectedSave);
+            openSubState(editSubstate);
+        } else {
+            Application.current.window.alert("This save type cannot be edited: " + selectedSave.type, "Edit Not Supported");
+        }
     }
 
     function backupSelectedSave() {
@@ -503,10 +802,14 @@ class SaveManagementState extends MusicBeatState {
         FlxG.sound.play(Paths.sound('confirmMenu'));
         try {
             #if sys
-            var backupPath = selectedSave.path + ".backup." + Std.string(Date.now().getTime());
-            File.copy(selectedSave.path, backupPath);
-
-            Application.current.window.alert("Backup created: " + Path.withoutDirectory(backupPath), "Backup Complete");
+            var actualPath = resolveEnginePath(selectedSave.path);
+            if (actualPath != null && FileSystem.exists(actualPath)) {
+                var backupPath = actualPath + ".backup." + Std.string(Date.now().getTime());
+                File.copy(actualPath, backupPath);
+                Application.current.window.alert("Backup created: " + Path.withoutDirectory(backupPath), "Backup Complete");
+            } else {
+                Application.current.window.alert("Cannot backup this save type or file not found", "Backup Failed");
+            }
             #else
             Application.current.window.alert("Backup not available on this platform", "Backup Failed");
             #end
@@ -528,13 +831,17 @@ class SaveManagementState extends MusicBeatState {
             function() { // OK callback
                 try {
                     #if sys
-                    FileSystem.deleteFile(selectedSave.path);
+                    var actualPath = resolveEnginePath(selectedSave.path);
+                    if (actualPath != null && FileSystem.exists(actualPath)) {
+                        FileSystem.deleteFile(actualPath);
+                        allSaveFiles.remove(selectedSave);
+                        selectedSave = null;
+                        updateDisplay();
+                        Application.current.window.alert("Save file deleted successfully.", "Delete Complete");
+                    } else {
+                        Application.current.window.alert("Cannot delete this save type or file not found", "Delete Failed");
+                    }
                     #end
-                    allSaveFiles.remove(selectedSave);
-                    selectedSave = null;
-                    updateDisplay();
-
-                    Application.current.window.alert("Save file deleted successfully.", "Delete Complete");
                 } catch (e:Dynamic) {
                     Application.current.window.alert("Failed to delete save file: " + e, "Delete Failed");
                 }

@@ -420,14 +420,14 @@ class PlaylistState extends MusicBeatState {
 				if (shufflePlaylist) {
 					FlxG.random.shuffle(selectedPlaylist.songList);
 				}
-				PlayState.curPlaylist = selectedPlaylist;
-				PlayState.curSonglist = selectedPlaylist.songList;
+				// PlayState.curPlaylist = selectedPlaylist;
+				// PlayState.curSonglist = selectedPlaylist.songList;
 				var songLowercase:String = Paths.formatToSongPath(selectedPlaylist.songList[0].songName);
 				Mods.currentModDirectory = selectedPlaylist.songList[0].folder != null ? selectedPlaylist.songList[0].folder : '';
 				PlayState.storyWeek = selectedPlaylist.songList[0].week;
 				Song.loadFromJson('${songLowercase}${(selectedPlaylist.songList[0].difficulty.toLowerCase() != "normal" ? "-"+selectedPlaylist.songList[0].difficulty.toLowerCase() : "")}', songLowercase);
 				LoadingState.prepareToSong();
-				LoadingState.loadAndSwitchState(new PlayState());
+				LoadingState.loadAndSwitchState(new PlayState(selectedPlaylist));
 			}
     }
     else if (controls.BACK)
@@ -526,6 +526,7 @@ class PlaylistState extends MusicBeatState {
 				listText.targetY = i;
 				grpPlaylists.add(listText);
 			} else {
+				trace('Playlist ${loadedPlaylists[i]} at index ${i} was null!');
 				trace('A PLAYLIST WAS NULL! REMOVING PLAYLIST FROM INTERNAL PLAYLISTS!');
 				loadedPlaylists.remove(loadedPlaylists[i]);
 				ClientPrefs.data.playLists.remove(loadedPlaylists[i]);
@@ -576,7 +577,18 @@ class PlaylistState extends MusicBeatState {
 	public static function loadPlaylists():Array<PlaylistMetadata>
 	{
 		var playlists:Array<PlaylistMetadata> = [];
-		playlists.pushMany(ClientPrefs.data.playLists ?? []) // GOD how DUMB AM I?????
+		playlists.pushMany(ClientPrefs.data.playLists ?? []).filter(function(playlist) return playlist != null && playlist is PlaylistMetadata); // HELP
+
+		ClientPrefs.data.playLists.map(function(playlist) {
+			if (playlist != null && !(playlist is PlaylistMetadata)) {
+				trace('Found invalid playlist in ClientPrefs! Removing it...');
+				ClientPrefs.saveSettings();
+				playlist = null;
+				playlists.remove(playlist);
+				return playlist;
+			}
+			return playlist;
+		});
 
 		// mod-specific playlist support maybe??? idk could be cool
 		#if MODS_ALLOWED
@@ -796,6 +808,11 @@ class PlaylistSongMetadata extends managers.FreeplayManager.GlobalSongMetadata
 		if (this.folder == null) this.folder = '';
 	}
 
+	public function toString():String
+	{
+		return 'PlaylistSongMetadata("${songName}", week: ${week}, difficulty: "${difficulty}", character: "${songCharacter}", artist: "${artist}", charter: "${charter}")';
+	}
+
 }
 
 class PlaylistMetadata
@@ -841,8 +858,13 @@ class PlaylistMetadata
 
 	public inline function copy():PlaylistMetadata
 	{
-		var playlist:PlaylistMetadata = new PlaylistMetadata(this.playlistName, this.bg, this.icon, this.album, this.color, this.songList);
+		var playlist:PlaylistMetadata = new PlaylistMetadata(this.playlistName, this.bg, this.icon, this.album, this.color, this.songList.copy());
 		return playlist;
+	}
+
+	public function toString():String
+	{
+		return 'PlaylistMetadata("${playlistName}", bg: "${bg}", icon: "${icon}", album: "${album}", songs: ${songList.length})';
 	}
 }
 

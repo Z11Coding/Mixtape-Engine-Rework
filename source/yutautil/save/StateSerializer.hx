@@ -337,7 +337,7 @@ class StateSerializer {
                     __info: "Function fields are not serializable"
                 };
             case TClass(Array):
-                var arr:Array<Dynamic> = cast value;
+                var arr:Array<Dynamic> = cast value.copy();
                 return arr.map(function(item) return convertValueToJSON(item, parentId, fieldName + "[]", depth + 1));
             case TObject:
                 // Handle anonymous structures/plain objects

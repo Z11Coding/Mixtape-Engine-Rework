@@ -247,8 +247,8 @@ class PlayState extends MusicBeatState
 	//Playlist Stuff
 	public static var isWarmUp:Bool = false;
 	public static var isPlaylist:Bool = false;
-	public static var curPlaylist:PlaylistMetadata = null;
-	public static var curSonglist:Array<PlaylistSongMetadata> = [];
+	public var curPlaylist:PlaylistMetadata = null;
+	public var curSonglist:Array<PlaylistSongMetadata> = [];
 
 	// ! new shit P-Slice
 	public static var storyCampaignTitle = "";
@@ -664,6 +664,18 @@ class PlayState extends MusicBeatState
 
 	// End of Mixtape Engine's large amount of bull
 
+	public function new(?playlist:PlaylistMetadata, ?songlist:Array<PlaylistSongMetadata>)
+	{
+
+		curPlaylist = playlist;
+		if (songlist != null)
+			curSonglist = songlist.concat(playlist?.songList ?? []);
+		else if (playlist != null)
+			curSonglist = playlist.songList;
+
+		super();
+
+	}
 
 	override public function create()
 	{
@@ -8961,8 +8973,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						if(Math.isNaN(percent)) percent = 0;
 						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 						#end
-						curPlaylist = null;
-						curSonglist = null;
+						// curPlaylist = null;
+						// curSonglist = null;
 					} else if (ClientPrefs.data.ranking == "V-Slice") {
 						var wasFC = Highscore.getFCState(curSong, PlayState.storyDifficulty);
 						var prevScore = Highscore.getScore(curSong, PlayState.storyDifficulty);
@@ -8994,7 +9006,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					FlxTransitionableState.skipNextTransOut = true;
 					prevCamFollow = camFollow;
 
-					Song.loadFromJson(PlayState.curSonglist[0].songName + (curSonglist[0].difficulty.toLowerCase() != "normal" ? "-"+curSonglist[0].difficulty.toLowerCase() : ""), PlayState.curSonglist[0].songName);
+					Song.loadFromJson(curSonglist[0].songName + (curSonglist[0].difficulty.toLowerCase() != "normal" ? "-"+curSonglist[0].difficulty.toLowerCase() : ""), curSonglist[0].songName);
 					FlxG.sound.music.stop();
 					#if !switch
 					var percent:Float = comboManager.ratingPercent;
@@ -9003,7 +9015,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					#end
 					canResync = false;
 					LoadingState.prepareToSong();
-					LoadingState.loadAndSwitchState(new PlayState(), false, false);
+					LoadingState.loadAndSwitchState(new PlayState(curSonglist), false, false);
 				}
 			}
 			else if (isStoryMode)
@@ -9247,8 +9259,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		this.persistentDraw = false;
 		//FreeplayManager.openFreeplay();
 		openSubState(res);
-		curPlaylist = null;
-		curSonglist = null;
+		// curPlaylist = null;
+		// curSonglist = null;
 	}
 
 	public function KillNotes()
