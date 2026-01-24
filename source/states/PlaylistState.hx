@@ -576,7 +576,7 @@ class PlaylistState extends MusicBeatState {
 	public static function loadPlaylists():Array<PlaylistMetadata>
 	{
 		var playlists:Array<PlaylistMetadata> = [];
-		playlists.pushMany(ClientPrefs.data.playLists ?? []) // GOD how DUMB AM I?????
+		playlists.pushMany(ClientPrefs.data.playLists ?? []); // GOD how DUMB AM I?????
 
 		// mod-specific playlist support maybe??? idk could be cool
 		#if MODS_ALLOWED

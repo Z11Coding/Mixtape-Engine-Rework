@@ -219,6 +219,7 @@ import states.TitleState;
 	public var silentVol:Bool = false;
 	public var editorMusVol:Float = 0.7;
 	public var performanceCounter:String = 'fps-mem-peak';
+	public var performanceBackground:Float = 0.3;
 	public var inGameRatings:Bool = false;
 	public var startHidden:Bool = false;
 	public var showKeybindsOnStart:Bool = false;
