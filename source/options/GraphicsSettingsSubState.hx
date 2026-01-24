@@ -6,6 +6,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 {
 	var antialiasingOption:Int;
 	var boyfriend:Character = null;
+	var perfOpt:Option;
 	public function new()
 	{
 		title = Language.getPhrase('graphics_menu', 'Graphics Settings');
@@ -96,6 +97,86 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		#end
 
+		var option:Option = new Option('Performance Counter', 'Toggle through the options for your performance counter', 'performanceCounter', STRING,
+			['hide', 'fps', 'fps-mem', 'fps-mem-peak', 'base', 'base-adv']);
+		addOption(option);
+		option.onChange = function()
+		{
+			onChangePerformanceCounter();
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					{
+						option.text = 'Hide FPS';
+					}
+				case 'fps':
+					{
+						option.text = 'FPS Only';
+					}
+				case 'fps-mem':
+					{
+						option.text = 'FPS With Memory';
+						@:privateAccess
+						{
+							for (i in 0...option.text.length)
+							{
+								if (option.child.members[i] != null)
+								{
+									if (i >= 7)
+									{
+										option.child.members[i].y += 40;
+										option.child.members[i].x -= 280;
+									}
+									else
+										option.child.members[i].y -= 15;
+								}
+							}
+						}
+					}
+				case 'fps-mem-peak':
+					{
+						option.text = 'FPS With Memory Peak';
+						@:privateAccess
+						{
+							for (i in 0...option.text.length)
+							{
+								if (option.child.members[i] != null)
+								{
+									if (i >= 7)
+									{
+										option.child.members[i].y += 40;
+										option.child.members[i].x -= 360;
+									}
+									else
+										option.child.members[i].y -= 15;
+								}
+							}
+						}
+					}
+				case 'base':
+				{
+					option.text = 'Base';
+				}
+				case 'base-adv':
+				{
+					option.text = 'Base Adv.';
+				}
+			}
+		};
+
+		perfOpt = option;
+
+		var option:Option = new Option('Background Opacity: ',
+			"The opacity of the FPS background (ONLY EFFECTS BASE GAME FPS DISPLAY!)",
+			'performanceBackground',
+			PERCENT);
+		addOption(option);
+		option.defaultValue = 0.3;
+		option.onChange = function() {
+			if (Main.debugDisplay != null && (ClientPrefs.data.performanceCounter == 'base' || ClientPrefs.data.performanceCounter == 'base-adv'))
+				Main.debugDisplay.backgroundOpacity = ClientPrefs.data.performanceBackground;
+		};
+
 		super();
 		insert(1, boyfriend);
 	}
@@ -141,6 +222,45 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		}
 	}
 
+	function onChangePerformanceCounter()
+	{
+		if (Main.fpsVar != null)
+		{
+			Main.fpsVar.visible = true;
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					Main.fpsVar.visible = false;
+				case 'base':
+					Main.fpsVar.visible = false;
+				case 'base-adv':
+					Main.fpsVar.visible = false;
+			}
+			Main.fpsVar.forceUpdateText = true;
+		}
+
+		if (Main.debugDisplay != null)
+		{
+			switch (ClientPrefs.data.performanceCounter)
+			{
+				case 'hide':
+					Main.debugDisplay.visible = false;
+				case 'fps':
+					Main.debugDisplay.visible = false;
+				case 'fps-mem':
+					Main.debugDisplay.visible = false;
+				case 'fps-mem-peak':
+					Main.debugDisplay.visible = false;
+				case 'base':
+					Main.debugDisplay.visible = true;
+					Main.debugDisplay.isAdvanced = false;
+				case 'base-adv':
+					Main.debugDisplay.visible = true;
+					Main.debugDisplay.isAdvanced = true;
+			}
+		}
+	}
+
 	function onChangeTrashMode()
 	{
 		// Clear all cached graphics when trash mode is toggled
@@ -164,6 +284,11 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	{
 		super.changeSelection(change);
 		boyfriend.visible = (antialiasingOption == curSelected);
+	}
+
+	override function update(e:Float) {
+		if (perfOpt != null && (ClientPrefs.data.performanceCounter == 'hide' || ClientPrefs.data.performanceCounter == 'fps' || ClientPrefs.data.performanceCounter == 'fps-mem' || ClientPrefs.data.performanceCounter == 'fps-mem-peak'))
+			perfOpt.onChange();
 	}
 
 	override function beatHit()
