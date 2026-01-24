@@ -4,6 +4,7 @@ import haxe.Constraints.Function;
 import haxe.ds.StringMap;
 import haxe.macro.Context;
 import haxe.macro.Type;
+import psychlua.LuaUtils;
 
 #if HSCRIPT_ALLOWED
 import crowplexus.hscript.Expr.Error as IrisError;
@@ -590,6 +591,9 @@ class YScript {
         scope.setType("Bool", YType.YBool);
         scope.setType("Dynamic", YType.Dynamic);
         scope.setType("Void", YType.Void);
+
+        //scope.setVariable("Function_StopYScript", LuaUtils.Function_StopYScript);
+        //scope.setVariable("Function_StopAll", LuaUtils.Function_StopAll);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════

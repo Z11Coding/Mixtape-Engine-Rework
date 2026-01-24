@@ -148,6 +148,9 @@ class PlayState extends MusicBeatState
 	public var hscriptArray:Array<HScript> = [];
 	#end
 
+	public var yscriptArray:Array<YScript> = [];
+
+
 
 	#if LUA_ALLOWED
 	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
@@ -402,6 +405,7 @@ class PlayState extends MusicBeatState
 	private var hasLuaScripts:Bool = false;
 	private var hasHScripts:Bool = false;
 	private var hasPyScripts:Bool = false;
+	private var hasYScripts:Bool = false;
 
 	// === PERFORMANCE OPTIMIZATION INFRASTRUCTURE ===
 	// Cached calculations and frequently accessed values
@@ -1258,6 +1262,11 @@ class PlayState extends MusicBeatState
 					if(file.toLowerCase().endsWith('.$ext'))
 						initHScript(folder + file);
 				#end
+
+				for (ext in Paths.YSCRIPT_EXTENSIONS)
+					if(file.toLowerCase().endsWith('.$ext'))
+						initYScript(folder + file);
+
 			}
 		#end
 
@@ -1284,6 +1293,7 @@ class PlayState extends MusicBeatState
 		// STAGE SCRIPTS
 		#if LUA_ALLOWED startLuasNamed('stages/' + curStage + '.lua'); #end
 		#if HSCRIPT_ALLOWED startHScriptsNamed('stages/' + curStage + '.hx'); #end
+		startYScriptsNamed('stages/' + curStage + '.ys');
 
 		// CHARACTER SCRIPTS
 		if(gf != null) startCharacterScripts(gf.curCharacter);
@@ -1701,6 +1711,10 @@ class PlayState extends MusicBeatState
 		for (event in eventsPushed)
 			startHScriptsNamed('custom_events/' + event + '.hx');
 		#end
+		for (notetype in noteTypes)
+			startYScriptsNamed('custom_notetypes/' + notetype + '.ys');
+		for (event in eventsPushed)
+			startYScriptsNamed('custom_events/' + event + '.ys');
 		noteTypes = null;
 		eventsPushed = null;
 
@@ -1715,9 +1729,14 @@ class PlayState extends MusicBeatState
 				#end
 
 				#if HSCRIPT_ALLOWED
-				if(file.toLowerCase().endsWith('.hx'))
-					initHScript(folder + file);
+				for (ext in Paths.HSCRIPT_EXTENSIONS)
+					if(file.toLowerCase().endsWith('.$ext'))
+						initHScript(folder + file);
 				#end
+
+				for (ext in Paths.YSCRIPT_EXTENSIONS)
+					if(file.toLowerCase().endsWith('.$ext'))
+						initYScript(folder + file);
 			}
 		#end
 
@@ -2072,6 +2091,16 @@ class PlayState extends MusicBeatState
 		}
 		#end
 
+		if (!hasModchartFunction) {
+			for (script in yscriptArray) {
+				@:privateAccess
+				if (script != null && (script.hasFunction('onInitModchart') || script.hasFunction('generateModchart'))) {
+					hasModchartFunction = true;
+					break;
+				}
+			}
+		}
+
 		return hasModchartFunction;
 		#else
 		return false;
@@ -2197,6 +2226,16 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#end
+
+		if (!hasModchartFunction) {
+			for (script in yscriptArray) {
+				@:privateAccess
+				if (script != null && script.hasFunction('onInitModchart')) {
+					hasModchartFunction = true;
+					break;
+				}
+			}
+		}
 
 		// If there is no onInitModchart function, do not initialize the manager
 		if (!hasModchartFunction) {
@@ -2532,12 +2571,49 @@ class PlayState extends MusicBeatState
 
 		if(doPush)
 		{
-			if(Iris.instances.exists(scriptFile))
-				doPush = false;
+			for (script in hscriptArray)
+			{
+				if(script.origin == scriptFile)
+				{
+					doPush = false;
+					break;
+				}
+			}
 
 			if(doPush) initHScript(scriptFile);
 		}
 		#end
+
+		var doPush:Bool = false;
+		var scriptFile:String = 'characters/' + name + '.ys';
+		#if MODS_ALLOWED
+		var replacePath:String = Paths.modFolders(scriptFile);
+		if(FileSystem.exists(replacePath))
+		{
+			scriptFile = replacePath;
+			doPush = true;
+		}
+		else
+		#end
+		{
+			scriptFile = Paths.getSharedPath(scriptFile);
+			if(FileSystem.exists(scriptFile))
+				doPush = true;
+		}
+
+		if(doPush)
+		{
+			for (script in yscriptArray)
+			{
+				if(script.scriptPath == scriptFile)
+				{
+					doPush = false;
+					break;
+				}
+			}
+
+			if(doPush) initYScript(scriptFile);
+		}
 	}
 
 	public function getLuaObject(tag:String, text:Bool = true):FlxSprite
@@ -2977,6 +3053,7 @@ class PlayState extends MusicBeatState
 				stagesFunc(function(stage:BaseStage) stage.countdownTick(tick, swagCounter));
 				callOnLuas('onCountdownTick', [swagCounter]);
 				callOnHScript('onCountdownTick', [tick, swagCounter]);
+				callOnYScript('onCountdownTick', [tick, swagCounter]);
 
 				swagCounter += 1;
 			}, 5);
@@ -6175,7 +6252,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 		// Optimize script calls - only call if scripts exist
-		if (hasLuaScripts || hasHScripts || hasPyScripts) {
+		if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
 			callOnScripts('onUpdate', [elapsed]);
 		}
 
@@ -6203,7 +6280,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			modchartSync(false);
 
 		// Optimize script calls - only set if scripts exist
-		if (hasLuaScripts || hasHScripts || hasPyScripts) {
+		if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
 			setOnScripts('curDecStep', curDecStep);
 			setOnScripts('curDecBeat', curDecBeat);
 		}
@@ -6285,7 +6362,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (controls.PAUSE && startedCountdown && canPause && canPauseHardMode && !endingSong)
 		{
 			var ret:Dynamic = null;
-			if (hasLuaScripts || hasHScripts || hasPyScripts) {
+			if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
 				ret = callOnScripts('onPause', null, true);
 			}
 			if(ret != LuaUtils.Function_Stop) {
@@ -8447,6 +8524,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						lua.stop();
 					}
 				}
+
 				for (hscript in hscriptArray)
 				{
 					if (hscript.origin == 'stages/' + stageName + '.hx')
@@ -8459,6 +8537,22 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						{
 							if(hscript.exists('onDestroy')) hscript.call('onDestroy');
 							hscript.destroy();
+						}
+					}
+				}
+
+				for (yscript in yscriptArray)
+				{
+					if (yscript.scriptPath == 'stages/' + stageName + '.hx')
+					{
+						return;
+					}
+					else if (yscript.scriptPath == 'stages/' + curStage + '.hx')
+					{
+						if(yscript != null)
+						{
+							if(yscript.hasFunction('onDestroy')) yscript.callFunction('onDestroy');
+							yscript.destroy();
 						}
 					}
 				}
@@ -8520,7 +8614,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				#if HSCRIPT_ALLOWED
 				startHScriptsNamed('stages/' + stageName + '.hx');
 				#end
-				var scripts:Array<Array<Dynamic>> = [luaArray, hscriptArray];
+				#if HSCRIPT_ALLOWED
+				startYScriptsNamed('stages/' + stageName + '.ys');
+				#end
+				var scripts:Array<Array<Dynamic>> = [luaArray, hscriptArray, yscriptArray];
 				stagesFunc(function(stage:BaseStage) stage.createPost());
 				for (stuff in scripts)
 				{
@@ -8540,6 +8637,13 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							if (script.scriptName == 'stages/' + stageName + '.lua')
 							{
 								script.call('onCreatePost', []);
+							}
+						} else if (script is YScript)
+						{
+							var script:YScript = cast(script);
+							if (script.scriptPath == 'stages/' + stageName + '.ys' || script.scriptPath == 'stages/' + stageName + '.yscript')
+							{
+								script.callFunction('onCreatePost', []);
 							}
 						}
 					}
@@ -10053,6 +10157,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		hasHScripts = false;
 		#end
 
+		hasYScripts = (yscriptArray != null && yscriptArray.length > 0);
+
 		#if PYTHON_ALLOWED
 		hasPyScripts = (pyScriptArray != null && pyScriptArray.length > 0);
 		#else
@@ -10068,6 +10174,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		#if HSCRIPT_ALLOWED
 		if (hscriptArray != null) totalScripts += hscriptArray.length;
 		#end
+		if (yscriptArray != null) totalScripts += yscriptArray.length;
 		#if PYTHON_ALLOWED
 		if (pyScriptArray != null) totalScripts += pyScriptArray.length;
 		#end
@@ -10571,7 +10678,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	function noteMiss(daNote:Note, field:PlayField):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		//Dupe note remove
 		var result:Dynamic = callOnLuas('preNoteMiss', [notes.members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote]);
-		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) callOnHScript('preNoteMiss', [daNote]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('preNoteMiss', [daNote]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('preNoteMiss', [daNote]);
 		notes.forEachAlive(function(note:Note) {
 			if (daNote != note && daNote.mustPress && daNote.noteData == note.noteData && daNote.isSustainNote == note.isSustainNote && Math.abs(daNote.strumTime - note.strumTime) < 1)
 				invalidateNote(note);
@@ -10580,7 +10688,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		noteMissCommon(daNote.noteData, daNote);
 		stagesFunc(function(stage:BaseStage) stage.noteMiss(daNote));
 		var result:Dynamic = callOnLuas('noteMiss', [notes.members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote]);
-		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) callOnHScript('noteMiss', [daNote]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('noteMiss', [daNote]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('noteMiss', [daNote]);
 	}
 
 	function noteMissPress(direction:Int = 1, field:PlayField):Void //You pressed a key when there was no notes to press for this key
@@ -10837,12 +10946,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (opponentmode)
 		{
 			result = callOnLuas('goodNoteHitPre', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
-			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHitPre', [note]);
+			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHitPre', [note]);
+			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHitPre', [note]);
 		}
 		else
 		{
 			result = callOnLuas('opponentNoteHitPre', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
-			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('opponentNoteHitPre', [note]);
+			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('opponentNoteHitPre', [note]);
+			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHitPre', [note]);
 		}
 
 		if(result == LuaUtils.Function_Stop) return;
@@ -10947,7 +11058,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
 		var result:Dynamic = callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
-		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) callOnHScript('opponentNoteHit', [note]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnHScript('opponentNoteHit', [note]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHit', [note]);
 
 		if (!note.isSustainNote) invalidateNote(note);
 	}
@@ -10963,6 +11075,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		var result:Dynamic = callOnLuas('goodNoteHitPre', [notes.members.indexOf(note), leData, leType, isSus]);
 		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHitPre', [note]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHitPre', [note]);
 
 		if(result == LuaUtils.Function_Stop) return;
 
@@ -11214,7 +11327,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		stagesFunc(function(stage:BaseStage) stage.goodNoteHit(note));
 		var result:Dynamic = callOnLuas('goodNoteHit', [notes.members.indexOf(note), leData, leType, isSus]);
-		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) callOnHScript('goodNoteHit', [note]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHit', [note]);
+		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHit', [note]);
 		if(!note.isSustainNote) invalidateNote(note);
 	}
 
@@ -11330,6 +11444,17 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		hscriptArray = null;
 		#end
+
+		if (yscriptArray != null && yscriptArray.length > 0) { //if there's nothing, simply dont.
+		for (script in yscriptArray)
+			if(script != null)
+			{
+				if(script.hasFunction('onDestroy')) script.callFunction('onDestroy');
+				script.destroy();
+			}
+		}
+
+		yscriptArray = null;
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 
 		// Clear all note groups and references
@@ -11949,9 +12074,51 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	}
 	#end
 
+	public function startYScriptsNamed(scriptFile:String)
+	{
+		#if MODS_ALLOWED
+		var scriptToLoad:String = Paths.modFolders(scriptFile);
+		if(!FileSystem.exists(scriptToLoad))
+			scriptToLoad = Paths.getSharedPath(scriptFile);
+		#else
+		var scriptToLoad:String = Paths.getSharedPath(scriptFile);
+		#end
+
+		if(FileSystem.exists(scriptToLoad))
+		{
+			initYScript(scriptToLoad);
+			return true;
+		}
+		return false;
+	}
+
+	public function initYScript(file:String)
+	{
+		var newScript:YScript = null;
+		try
+		{
+			newScript = new YScript();
+			newScript.loadFromFile(file);
+			if (newScript.hasFunction('onCreate')) {
+				newScript.callFunction('onCreate');
+			}
+			if (newScript.hasFunction('onLoad')) {
+				newScript.callFunction('onLoad');
+			}
+			trace('initialized yscript interp successfully: $file');
+			yscriptArray.push(newScript);
+			//updateScriptFlags(); // Update script existence flags when adding YScript
+		}
+		catch(e:YScriptError)
+		{
+			addTextToDebug(e.message, FlxColor.RED);
+		}
+		//updateScriptFlags(); // Update flags regardless of success/failure
+	}
+
 	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		// Early exit if no scripts exist
-		if (!hasLuaScripts && !hasHScripts && !hasPyScripts) {
+		if (!hasLuaScripts && !hasHScripts && !hasPyScripts && !hasYScripts) {
 			return LuaUtils.Function_Continue;
 		}
 
@@ -11960,9 +12127,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if(exclusions == null) exclusions = [];
 		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
 
-		// Call scripts in order: Lua -> HScript -> Python
+		// Call scripts in order: Lua -> HScript -> YScript -> Python
 		var result:Dynamic = callOnLuas(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		if(result == null || excludeValues.contains(result)) result = callOnHScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
+		if(result == null || excludeValues.contains(result)) result = callOnYScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		if(result == null || excludeValues.contains(result)) result = callOnPyScripts(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		return result;
 	}
@@ -12048,10 +12216,43 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		return returnVal;
 	}
 
+	public function callOnYScript(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		var returnVal:Dynamic = LuaUtils.Function_Continue;
+
+		if(exclusions == null) exclusions = new Array();
+		if(excludeValues == null) excludeValues = new Array();
+		excludeValues.push(LuaUtils.Function_Continue);
+
+		var len:Int = yscriptArray.length;
+		if (len < 1)
+			return returnVal;
+
+		for(script in yscriptArray)
+		{
+			var callValue = script.callFunction(funcToCall, args);
+			if(callValue != null)
+			{
+				var myValue:Dynamic = callValue.returnValue;
+
+				if((myValue == LuaUtils.Function_StopYScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+				{
+					returnVal = myValue;
+					break;
+				}
+
+				if(myValue != null && !excludeValues.contains(myValue))
+					returnVal = myValue;
+			}
+		}
+
+		return returnVal;
+	}
+
 	public function setOnScripts(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
 		if(exclusions == null) exclusions = [];
 		setOnLuas(variable, arg, exclusions);
 		setOnHScript(variable, arg, exclusions);
+		setOnYScript(variable, arg, exclusions);
 		setOnPyScripts(variable, arg, exclusions);
 	}
 
@@ -12081,6 +12282,18 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 		}
 		#end
+	}
+
+	public function setOnYScript(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		if(exclusions == null) exclusions = [];
+		if (yscriptArray != null && yscriptArray.length > 0) {
+			for (script in yscriptArray) {
+				if(exclusions.contains(script.scriptPath))
+					continue;
+
+				script.setVariable(variable, arg);
+			}
+		}
 	}
 
 	public function callOnPyScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {

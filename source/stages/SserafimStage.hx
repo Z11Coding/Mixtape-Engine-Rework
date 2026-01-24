@@ -221,7 +221,7 @@ class SserafimStage extends BaseStage
     chaewon.scrollFactor.set(0.95, 0.95);
     eunchae.scrollFactor.set(0.97, 0.97);
 
-    yunjin.setPosition(-421 - yunjin.characterOrigin.x, 434 - yunjin.characterOrigin.y);
+    yunjin.setPosition(-461 - yunjin.characterOrigin.x, 634 - yunjin.characterOrigin.y);
     chaewon.setPosition(687 - chaewon.characterOrigin.x, 0 - chaewon.characterOrigin.y);
     eunchae.setPosition(770 - eunchae.characterOrigin.x, 675 - eunchae.characterOrigin.y);
 
