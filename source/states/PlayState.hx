@@ -8300,7 +8300,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				}
 				var easeFunc = LuaUtils.getTweenEaseByString(value2);
 				if(zoomTween != null) zoomTween.cancel();
-				var targetZoom = floaties[1]*defaultStageZoom;
+				var targetZoom = floaties[1]*(defaultStageZoom*1.3);
 				if(value2.toLowerCase() == "classic"){
 					camZooming = true;
 					defaultCamZoom = targetZoom;
@@ -8361,17 +8361,17 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					FlxG.camera.followLerp = _cachedCameraLerp;
 					camFollow.x = targetx;
 					camFollow.y = targety;
-					trace("RUNNING CLASSIC CAM MOVEMENT!");
+					//trace("RUNNING CLASSIC CAM MOVEMENT!");
 				} else if(ease == "instant") {
 					FlxG.camera.followLerp = 1000000000000;
 					camGame.followLerp = 1000000000000;
 					camFollow.x = targetx;
 					camFollow.y = targety;
 					if (FlxG.camera != null) FlxG.camera.snapToTarget();
-					trace("RUNNING INSTANT CAM MOVEMENT!");
+					//trace("RUNNING INSTANT CAM MOVEMENT!");
 				} else {
 					FlxG.camera.followLerp = _cachedCameraLerp;
-					trace('RUNNING ${ease.toUpperCase()} CAM MOVEMENT!');
+					//trace('RUNNING ${ease.toUpperCase()} CAM MOVEMENT!');
 					var easeFunc = psychlua.LuaUtils.getTweenEaseByString(ease);
 					camTween?.cancel();
 					camTween = FlxTween.tween(camFollow,{x:targetx,y:targety},dur,{
@@ -11129,7 +11129,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							if(owner.getAnimationName() == holdAnim || owner.getAnimationName() == holdAnim + '-loop') canPlay = false;
 						}
 
-						if(canPlay) playAnim(note, owner, animToPlay, true);
+						var specialAnim:String = animToPlay;
+						// Band-Aid fix but I don't care LMAO
+						if (owner.curCharacter == "sserafim-sakura" && note.noteType == "sakura-joint")
+							specialAnim = animToPlay + '-both';
+
+						if(canPlay) playAnim(note, owner, specialAnim, true);
 						owner.holdTimer = 0;
 
 						if(note.noteType == 'Hey!')

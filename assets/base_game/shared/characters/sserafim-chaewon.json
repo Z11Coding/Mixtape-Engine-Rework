@@ -1,85 +1,85 @@
 {
 	"animations": [
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [0, 0],
 			"anim": "idle",
+			"fps": 24,
 			"prefix": "idle kim",
-			"indices": [],
-			"name": "idle kim"
+			"name": "idle kim",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [7, -5],
 			"anim": "singLEFT",
+			"fps": 24,
 			"prefix": "kim left pose",
-			"indices": [],
-			"name": "kim left pose"
+			"name": "kim left pose",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [0, 14],
 			"anim": "singRIGHT",
+			"fps": 24,
 			"prefix": "kim right pose",
-			"indices": [],
-			"name": "kim right pose"
+			"name": "kim right pose",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [-1, 23],
 			"anim": "singUP",
+			"fps": 24,
 			"prefix": "kim up pose",
-			"indices": [],
-			"name": "kim up pose"
+			"name": "kim up pose",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [10, -3],
 			"anim": "singDOWN",
+			"fps": 24,
 			"prefix": "kim down pose",
-			"indices": [],
-			"name": "kim down pose"
+			"name": "kim down pose",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [4, -6],
 			"anim": "singLEFTmiss",
+			"fps": 24,
 			"prefix": "kim left miss",
-			"indices": [],
-			"name": "kim left miss"
+			"name": "kim left miss",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [6, -3],
 			"anim": "singDOWNmiss",
+			"fps": 24,
 			"prefix": "kim miss down",
-			"indices": [],
-			"name": "kim miss down"
+			"name": "kim miss down",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [0, 22],
 			"anim": "singUPmiss",
+			"fps": 24,
 			"prefix": "kim miss up",
-			"indices": [],
-			"name": "kim miss up"
+			"name": "kim miss up",
+			"indices": []
 		},
 		{
-			"offsets": [0, 0],
 			"loop": false,
-			"fps": 24,
+			"offsets": [2, 15],
 			"anim": "singRIGHTmiss",
+			"fps": 24,
 			"prefix": "kim right miss",
-			"indices": [],
-			"name": "kim right miss"
+			"name": "kim right miss",
+			"indices": []
 		}
 	],
 	"vocals_file": "",

@@ -4,7 +4,7 @@ class SserafimGirlfriendCharacter extends Character
 {
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-gf', false, OTHER);
+    super(x, y, 'sserafim-gf', true, OTHER);
   }
 
   public var isBeautiful:Bool = false;
