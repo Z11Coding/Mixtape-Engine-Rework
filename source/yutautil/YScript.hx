@@ -1,11 +1,19 @@
 package yutautil;
 
 import haxe.Constraints.Function;
+import haxe.Json;
+import haxe.Serializer;
+import haxe.Unserializer;
+import haxe.crypto.Crc32;
 import haxe.ds.StringMap;
+import haxe.io.Bytes;
 import haxe.macro.Context;
 import haxe.macro.Type;
+#if sys
+import sys.io.File;
+#end
 
-#if HSCRIPT_ALLOWED
+#if (HSCRIPT_ALLOWED && !macro)
 import crowplexus.hscript.Expr.Error as IrisError;
 import crowplexus.iris.Iris;
 import crowplexus.iris.IrisConfig;
@@ -229,6 +237,87 @@ enum YExpression {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
+// COMPILED SCRIPT FORMAT
+// ═══════════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Compiled YScript format for faster loading and execution
+ */
+typedef YCompiledScript = {
+    // Script metadata
+    version:String, // YScript compiler version
+    originalPath:String, // Original source file path
+    compiledAt:String, // Compilation timestamp
+    sourceHash:String, // Hash of original source for validation
+
+    // Compiled data
+    statements:Array<YStatementData>, // Serialized AST
+    types:Array<YTypeData>, // Type definitions
+    functions:Array<YFunctionData>, // Function definitions
+    classes:Array<YClassData>, // Class definitions
+    imports:Array<YImportData>, // Import statements
+
+    // Optimization data
+    optimized:Bool, // Whether optimizations were applied
+    staticAnalysis:Dynamic // Static analysis results
+};
+
+/**
+ * Serializable statement data
+ */
+typedef YStatementData = {
+    type:String, // Statement type name
+    data:Dynamic // Statement-specific data
+};
+
+/**
+ * Serializable expression data
+ */
+typedef YExpressionData = {
+    type:String, // Expression type name
+    data:Dynamic // Expression-specific data
+};
+
+/**
+ * Serializable type data
+ */
+typedef YTypeData = {
+    type:String, // Type name
+    data:Dynamic // Type-specific data
+};
+
+/**
+ * Serializable function data
+ */
+typedef YFunctionData = {
+    name:String,
+    parameters:Array<Dynamic>,
+    returnType:YTypeData,
+    bodyType:String,
+    bodyData:Dynamic
+};
+
+/**
+ * Serializable class data
+ */
+typedef YClassData = {
+    name:String,
+    superClass:Null<String>,
+    interfaces:Array<String>,
+    fields:Array<{name:String, type:YTypeData, defaultValue:Dynamic}>,
+    methods:Array<YFunctionData>,
+    constructors:Array<YFunctionData>
+};
+
+/**
+ * Serializable import data
+ */
+typedef YImportData = {
+    path:String,
+    alias:Null<String>
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════════════
 // ERROR SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════════════════
 
@@ -363,6 +452,111 @@ class YScript {
         } catch (e:Dynamic) {
             hasErrors = true;
             lastError = 'Failed to read file: $filePath';
+            return false;
+        }
+        #else
+        hasErrors = true;
+        lastError = 'File system not available on this platform';
+        return false;
+        #end
+    }
+
+    /**
+     * ✅ COMPILATION: Compile YScript source to compiled format
+     */
+    public function compile(source:String, ?path:String):YCompiledScript {
+        try {
+            this.scriptPath = path ?? "<inline>";
+            scope.setExecutionContext(this.scriptPath);
+
+            // Parse the source
+            var statements = parser.parse(source, this.scriptPath);
+
+            // Serialize the AST and metadata
+            var compiled:YCompiledScript = {
+                version: "1.0.0",
+                originalPath: this.scriptPath,
+                compiledAt: Date.now().toString(),
+                sourceHash: generateSourceHash(source),
+                statements: serializeStatements(statements),
+                types: serializeTypes(),
+                functions: serializeFunctions(),
+                classes: serializeClasses(),
+                imports: serializeImports(),
+                optimized: false,
+                staticAnalysis: {}
+            };
+
+            return compiled;
+        } catch (e:YScriptError) {
+            throw e;
+        } catch (e:Dynamic) {
+            throw new YScriptRuntimeError('Compilation failed: $e');
+        }
+    }
+
+    /**
+     * ✅ COMPILATION: Load and execute compiled YScript
+     */
+    public function loadFromCompiled(compiled:YCompiledScript):Bool {
+        try {
+            this.scriptPath = compiled.originalPath;
+            scope.setExecutionContext(this.scriptPath);
+
+            // Deserialize and load the compiled data
+            var statements = deserializeStatements(compiled.statements);
+            deserializeTypes(compiled.types);
+            deserializeFunctions(compiled.functions);
+            deserializeClasses(compiled.classes);
+            deserializeImports(compiled.imports);
+
+            // Initialize runtime with deserialized statements
+            runtime.initialize(statements, scope);
+
+            isReady = true;
+            hasErrors = false;
+            return true;
+        } catch (e:YScriptError) {
+            hasErrors = true;
+            lastError = e.message;
+            trace('YScript: Failed to load compiled script: ${e.message}');
+            return false;
+        }
+    }
+
+    /**
+     * ✅ COMPILATION: Save compiled script to file
+     */
+    public function saveCompiled(compiled:YCompiledScript, filePath:String):Bool {
+        #if sys
+        try {
+            var json = Json.stringify(compiled);
+            sys.io.File.saveContent(filePath, json);
+            return true;
+        } catch (e:Dynamic) {
+            hasErrors = true;
+            lastError = 'Failed to save compiled script: $e';
+            return false;
+        }
+        #else
+        hasErrors = true;
+        lastError = 'File system not available on this platform';
+        return false;
+        #end
+    }
+
+    /**
+     * ✅ COMPILATION: Load compiled script from file
+     */
+    public function loadCompiledFromFile(filePath:String):Bool {
+        #if sys
+        try {
+            var json = sys.io.File.getContent(filePath);
+            var compiled:YCompiledScript = Json.parse(json);
+            return loadFromCompiled(compiled);
+        } catch (e:Dynamic) {
+            hasErrors = true;
+            lastError = 'Failed to load compiled script: $e';
             return false;
         }
         #else
@@ -643,6 +837,345 @@ class YScript {
      */
     public function hasVariable(name:String):Bool {
         return isReady ? scope.hasVariable(name) : false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // COMPILATION SERIALIZATION SYSTEM
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Generate hash of source code for validation
+     */
+    private function generateSourceHash(source:String):String {
+        var bytes = Bytes.ofString(source);
+        return Std.string(Crc32.make(bytes));
+    }
+
+    /**
+     * Serialize statements to data format
+     */
+    private function serializeStatements(statements:Array<YStatement>):Array<YStatementData> {
+        var result:Array<YStatementData> = [];
+        for (stmt in statements) {
+            result.push(serializeStatement(stmt));
+        }
+        return result;
+    }
+
+    /**
+     * Serialize individual statement
+     */
+    private function serializeStatement(stmt:YStatement):YStatementData {
+        return switch (stmt) {
+            case Import(path, alias):
+                {type: "Import", data: {path: path, alias: alias}};
+            case VarDecl(name, type, init):
+                {type: "VarDecl", data: {name: name, type: serializeType(type), init: init != null ? serializeExpression(init) : null}};
+            case FuncDecl(name, params, returnType, body):
+                {type: "FuncDecl", data: {name: name, params: [for (p in params) serializeVar(p)], returnType: serializeType(returnType), body: serializeFunctionBody(body)}};
+            case ClassDecl(name, extend, implement, body):
+                {type: "ClassDecl", data: {name: name, extend: extend, implement: implement, body: [for (s in body) serializeStatement(s)]}};
+            case If(condition, thenStmt, elseStmt):
+                {type: "If", data: {condition: serializeExpression(condition), thenStmt: serializeStatement(thenStmt), elseStmt: elseStmt != null ? serializeStatement(elseStmt) : null}};
+            case While(condition, body):
+                {type: "While", data: {condition: serializeExpression(condition), body: serializeStatement(body)}};
+            case For(init, condition, increment, body):
+                {type: "For", data: {init: init != null ? serializeStatement(init) : null, condition: condition != null ? serializeExpression(condition) : null, increment: increment != null ? serializeExpression(increment) : null, body: serializeStatement(body)}};
+            case Return(value):
+                {type: "Return", data: {value: value != null ? serializeExpression(value) : null}};
+            case Break:
+                {type: "Break", data: {}};
+            case Continue:
+                {type: "Continue", data: {}};
+            case Block(statements):
+                {type: "Block", data: {statements: [for (s in statements) serializeStatement(s)]}};
+            case Expression(expr):
+                {type: "Expression", data: {expr: serializeExpression(expr)}};
+            case HaxeBlock(code):
+                {type: "HaxeBlock", data: {code: code}};
+            case LuaBlock(code):
+                {type: "LuaBlock", data: {code: code}};
+        };
+    }
+
+    /**
+     * Serialize expression to data format
+     */
+    private function serializeExpression(expr:YExpression):YExpressionData {
+        return switch (expr) {
+            case IntLiteral(value):
+                {type: "IntLiteral", data: {value: value}};
+            case FloatLiteral(value):
+                {type: "FloatLiteral", data: {value: value}};
+            case StringLiteral(value):
+                {type: "StringLiteral", data: {value: value}};
+            case BoolLiteral(value):
+                {type: "BoolLiteral", data: {value: value}};
+            case NullLiteral:
+                {type: "NullLiteral", data: {}};
+            case ArrayLiteral(elements):
+                {type: "ArrayLiteral", data: {elements: [for (e in elements) serializeExpression(e)]}};
+            case ObjectLiteral(fields):
+                {type: "ObjectLiteral", data: {fields: [for (f in fields) {name: f.name, value: serializeExpression(f.value)}]}};
+            case Identifier(name):
+                {type: "Identifier", data: {name: name}};
+            case MemberAccess(object, member):
+                {type: "MemberAccess", data: {object: serializeExpression(object), member: member}};
+            case ArrayAccess(array, index):
+                {type: "ArrayAccess", data: {array: serializeExpression(array), index: serializeExpression(index)}};
+            case SuperCall(args):
+                {type: "SuperCall", data: {args: [for (a in args) serializeExpression(a)]}};
+            case SuperMemberAccess(member):
+                {type: "SuperMemberAccess", data: {member: member}};
+            case SuperMethodCall(method, args):
+                {type: "SuperMethodCall", data: {method: method, args: [for (a in args) serializeExpression(a)]}};
+            case BinaryOp(left, op, right):
+                {type: "BinaryOp", data: {left: serializeExpression(left), op: op, right: serializeExpression(right)}};
+            case UnaryOp(op, operand):
+                {type: "UnaryOp", data: {op: op, operand: serializeExpression(operand)}};
+            case Assignment(left, right):
+                {type: "Assignment", data: {left: serializeExpression(left), right: serializeExpression(right)}};
+            case FunctionCall(func, args):
+                {type: "FunctionCall", data: {func: serializeExpression(func), args: [for (a in args) serializeExpression(a)]}};
+            case New(type, args):
+                {type: "New", data: {type: serializeType(type), args: [for (a in args) serializeExpression(a)]}};
+            case Cast(expr, type):
+                {type: "Cast", data: {expr: serializeExpression(expr), type: serializeType(type)}};
+            case Is(expr, type):
+                {type: "Is", data: {expr: serializeExpression(expr), type: serializeType(type)}};
+        };
+    }
+
+    /**
+     * Serialize type to data format
+     */
+    private function serializeType(type:YType):YTypeData {
+        return switch (type) {
+            case YInt: {type: "YInt", data: {}};
+            case YFloat: {type: "YFloat", data: {}};
+            case YString: {type: "YString", data: {}};
+            case YBool: {type: "YBool", data: {}};
+            case YArray(elementType): {type: "YArray", data: {elementType: serializeType(elementType)}};
+            case YFunction(params, returnType): {type: "YFunction", data: {params: [for (p in params) serializeType(p)], returnType: serializeType(returnType)}};
+            case YClass(className): {type: "YClass", data: {className: className}};
+            case YEnum(enumName): {type: "YEnum", data: {enumName: enumName}};
+            case YStruct(structName): {type: "YStruct", data: {structName: structName}};
+            case HaxeType(type): {type: "HaxeType", data: {typeName: Type.getClassName(cast type)}};
+            case HaxeClass(classType): {type: "HaxeClass", data: {className: Type.getClassName(classType)}};
+            case HaxeAbstract(abstractType): {type: "HaxeAbstract", data: {abstractName: Std.string(abstractType)}};
+            case HaxeEnum(enumType): {type: "HaxeEnum", data: {enumName: Type.getEnumName(enumType)}};
+            case Dynamic: {type: "Dynamic", data: {}};
+            case Void: {type: "Void", data: {}};
+            case Unknown: {type: "Unknown", data: {}};
+        };
+    }
+
+    /**
+     * Serialize variable to data format
+     */
+    private function serializeVar(yvar:YVar):Dynamic {
+        return {
+            name: yvar.name,
+            type: serializeType(yvar.type),
+            value: yvar.value
+        };
+    }
+
+    /**
+     * Serialize function body to data format
+     */
+    private function serializeFunctionBody(body:YFunctionBody):Dynamic {
+        return switch (body) {
+            case YScript(statements): {type: "YScript", statements: [for (s in statements) serializeStatement(s)]};
+            case HaxeCode(code): {type: "HaxeCode", code: code};
+            case LuaCode(code): {type: "LuaCode", code: code};
+            case Native(func): {type: "Native", func: null}; // Cannot serialize native functions
+        };
+    }
+
+    /**
+     * Serialize current scope types
+     */
+    private function serializeTypes():Array<YTypeData> {
+        // For now, return empty array - could be enhanced to serialize custom types
+        return [];
+    }
+
+    /**
+     * Serialize current scope functions
+     */
+    private function serializeFunctions():Array<YFunctionData> {
+        // For now, return empty array - could be enhanced to serialize functions
+        return [];
+    }
+
+    /**
+     * Serialize current scope classes
+     */
+    private function serializeClasses():Array<YClassData> {
+        // For now, return empty array - could be enhanced to serialize classes
+        return [];
+    }
+
+    /**
+     * Serialize current scope imports
+     */
+    private function serializeImports():Array<YImportData> {
+        // For now, return empty array - could be enhanced to serialize imports
+        return [];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+    // DESERIALIZATION SYSTEM
+    // ═══════════════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Deserialize statements from data format
+     */
+    private function deserializeStatements(data:Array<YStatementData>):Array<YStatement> {
+        var result:Array<YStatement> = [];
+        for (stmtData in data) {
+            result.push(deserializeStatement(stmtData));
+        }
+        return result;
+    }
+
+    /**
+     * Deserialize individual statement
+     */
+    private function deserializeStatement(data:YStatementData):YStatement {
+        return switch (data.type) {
+            case "Import": Import(data.data.path, data.data.alias);
+            case "VarDecl": VarDecl(data.data.name, deserializeType(data.data.type), data.data.init != null ? deserializeExpression(data.data.init) : null);
+            case "FuncDecl": {
+                var params = [for (p in cast(data.data.params, Array<Dynamic>)) deserializeVar(p)];
+                var body = deserializeFunctionBody(data.data.body);
+                FuncDecl(data.data.name, params, deserializeType(data.data.returnType), body);
+            };
+            case "ClassDecl": ClassDecl(data.data.name, data.data.extend, data.data.implement, [for (s in cast(data.data.body, Array<Dynamic>)) deserializeStatement(s)]);
+            case "If": If(deserializeExpression(data.data.condition), deserializeStatement(data.data.thenStmt), data.data.elseStmt != null ? deserializeStatement(data.data.elseStmt) : null);
+            case "While": While(deserializeExpression(data.data.condition), deserializeStatement(data.data.body));
+            case "For": For(data.data.init != null ? deserializeStatement(data.data.init) : null, data.data.condition != null ? deserializeExpression(data.data.condition) : null, data.data.increment != null ? deserializeExpression(data.data.increment) : null, deserializeStatement(data.data.body));
+            case "Return": Return(data.data.value != null ? deserializeExpression(data.data.value) : null);
+            case "Break": Break;
+            case "Continue": Continue;
+            case "Block": Block([for (s in cast(data.data.statements, Array<Dynamic>)) deserializeStatement(s)]);
+            case "Expression": Expression(deserializeExpression(data.data.expr));
+            case "HaxeBlock": HaxeBlock(data.data.code);
+            case "LuaBlock": LuaBlock(data.data.code);
+            default: throw new YScriptRuntimeError('Unknown statement type: ${data.type}');
+        };
+    }
+
+    /**
+     * Deserialize expression from data format
+     */
+    private function deserializeExpression(data:YExpressionData):YExpression {
+        return switch (data.type) {
+            case "IntLiteral": IntLiteral(data.data.value);
+            case "FloatLiteral": FloatLiteral(data.data.value);
+            case "StringLiteral": StringLiteral(data.data.value);
+            case "BoolLiteral": BoolLiteral(data.data.value);
+            case "NullLiteral": NullLiteral;
+            case "ArrayLiteral": ArrayLiteral([for (e in cast(data.data.elements, Array<Dynamic>)) deserializeExpression(e)]);
+            case "ObjectLiteral": ObjectLiteral([for (f in cast(data.data.fields, Array<Dynamic>)) {name: f.name, value: deserializeExpression(f.value)}]);
+            case "Identifier": Identifier(data.data.name);
+            case "MemberAccess": MemberAccess(deserializeExpression(data.data.object), data.data.member);
+            case "ArrayAccess": ArrayAccess(deserializeExpression(data.data.array), deserializeExpression(data.data.index));
+            case "SuperCall": SuperCall([for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
+            case "SuperMemberAccess": SuperMemberAccess(data.data.member);
+            case "SuperMethodCall": SuperMethodCall(data.data.method, [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
+            case "BinaryOp": BinaryOp(deserializeExpression(data.data.left), data.data.op, deserializeExpression(data.data.right));
+            case "UnaryOp": UnaryOp(data.data.op, deserializeExpression(data.data.operand));
+            case "Assignment": Assignment(deserializeExpression(data.data.left), deserializeExpression(data.data.right));
+            case "FunctionCall": FunctionCall(deserializeExpression(data.data.func), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
+            case "New": New(deserializeType(data.data.type), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
+            case "Cast": Cast(deserializeExpression(data.data.expr), deserializeType(data.data.type));
+            case "Is": Is(deserializeExpression(data.data.expr), deserializeType(data.data.type));
+            default: throw new YScriptRuntimeError('Unknown expression type: ${data.type}');
+        };
+    }
+
+    /**
+     * Deserialize type from data format
+     */
+    private function deserializeType(data:YTypeData):YType {
+        return switch (data.type) {
+            case "YInt": YType.YInt;
+            case "YFloat": YType.YFloat;
+            case "YString": YType.YString;
+            case "YBool": YType.YBool;
+            case "YArray": YType.YArray(deserializeType(data.data.elementType));
+            case "YFunction": YType.YFunction([for (p in cast(data.data.params, Array<Dynamic>)) deserializeType(p)], deserializeType(data.data.returnType));
+            case "YClass": YType.YClass(data.data.className);
+            case "YEnum": YType.YEnum(data.data.enumName);
+            case "YStruct": YType.YStruct(data.data.structName);
+            case "HaxeType": {
+                var haxeClass = Type.resolveClass(data.data.typeName);
+                haxeClass != null ? YType.HaxeClass(haxeClass) : YType.Dynamic;
+            };
+            case "HaxeClass": {
+                var haxeClass = Type.resolveClass(data.data.className);
+                haxeClass != null ? YType.HaxeClass(haxeClass) : YType.Dynamic;
+            };
+            case "HaxeAbstract": YType.Dynamic; // Cannot fully deserialize abstract types
+            case "HaxeEnum": {
+                var haxeEnum = Type.resolveEnum(data.data.enumName);
+                haxeEnum != null ? YType.HaxeEnum(haxeEnum) : YType.Dynamic;
+            };
+            case "Dynamic": YType.Dynamic;
+            case "Void": YType.Void;
+            case "Unknown": YType.Unknown;
+            default: throw new YScriptRuntimeError('Unknown type: ${data.type}');
+        };
+    }
+
+    /**
+     * Deserialize variable from data format
+     */
+    private function deserializeVar(data:Dynamic):YVar {
+        return new YVar(data.name, deserializeType(data.type), data.value);
+    }
+
+    /**
+     * Deserialize function body from data format
+     */
+    private function deserializeFunctionBody(data:Dynamic):YFunctionBody {
+        return switch (data.type) {
+            case "YScript": YFunctionBody.YScript([for (s in cast(data.statements, Array<Dynamic>)) deserializeStatement(s)]);
+            case "HaxeCode": YFunctionBody.HaxeCode(data.code);
+            case "LuaCode": YFunctionBody.LuaCode(data.code);
+            case "Native": YFunctionBody.Native(null); // Cannot deserialize native functions
+            default: throw new YScriptRuntimeError('Unknown function body type: ${data.type}');
+        };
+    }
+
+    /**
+     * Deserialize types (placeholder)
+     */
+    private function deserializeTypes(data:Array<YTypeData>):Void {
+        // Placeholder for type deserialization
+    }
+
+    /**
+     * Deserialize functions (placeholder)
+     */
+    private function deserializeFunctions(data:Array<YFunctionData>):Void {
+        // Placeholder for function deserialization
+    }
+
+    /**
+     * Deserialize classes (placeholder)
+     */
+    private function deserializeClasses(data:Array<YClassData>):Void {
+        // Placeholder for class deserialization
+    }
+
+    /**
+     * Deserialize imports (placeholder)
+     */
+    private function deserializeImports(data:Array<YImportData>):Void {
+        // Placeholder for import deserialization
     }
 }
 
@@ -1649,10 +2182,12 @@ class YScriptParser {
 
     private function parseStatement():Null<YStatement> {
         try {
-            return switch (peek().type) {
+            var result = switch (peek().type) {
                 case TKeyword("import"): parseImportStatement();
                 case TKeyword("var"): parseVarDeclaration();
-                case TKeyword("function"): parseFunctionDeclaration();
+                case TKeyword("function"):
+                    trace('[YScript Parser] parseStatement calling parseFunctionDeclaration()');
+                    parseFunctionDeclaration();
                 case TKeyword("class"): parseClassDeclaration();
                 case TKeyword("if"): parseIfStatement();
                 case TKeyword("while"): parseWhileStatement();
@@ -1664,7 +2199,9 @@ class YScriptParser {
                 case THaxeBlock(code): advance(); YStatement.HaxeBlock(code);
                 case TLuaBlock(code): advance(); YStatement.LuaBlock(code);
                 default: parseExpressionStatement();
-            }
+            };
+            trace('[YScript Parser] parseStatement returning: ' + (result != null ? Std.string(result).substring(0, 50) : 'null'));
+            return result;
         } catch (e:YScriptError) {
             // Error recovery - skip to next statement
             synchronize();
@@ -1737,7 +2274,13 @@ class YScriptParser {
     private function parseFunctionDeclaration():YStatement {
         advance(); // consume 'function'
 
-        var name = consumeIdentifier("Expected function name");
+        var name:String;
+        // Handle constructor case
+        if (match([TKeyword("new")])) {
+            name = "new";
+        } else {
+            name = consumeIdentifier("Expected function name");
+        }
         consume(TLeftParen, "Expected '(' after function name");
 
         var params:Array<YVar> = [];
@@ -1751,8 +2294,17 @@ class YScriptParser {
         }
 
         consume(TRightParen, "Expected ')' after parameters");
-        consume(TColon, "Expected ':' before return type");
-        var returnType = parseType();
+
+        // For constructors, the return type is optional and defaults to Void
+        var returnType:YType;
+        if (name == "new" && !check(TColon)) {
+            // Constructor without explicit return type - default to Void
+            returnType = YType.Void;
+        } else {
+            // Regular function or constructor with explicit return type
+            consume(TColon, "Expected ':' before return type");
+            returnType = parseType();
+        }
 
         var body:YFunctionBody = null;
 
@@ -1769,6 +2321,7 @@ class YScriptParser {
                 default: throw new YScriptParseError("Expected lua block", getCurrentLocation());
             }
         } else {
+
             consume(TLeftBrace, "Expected '{' or haxe/lua block before function body");
             var statements:Array<YStatement> = [];
 
@@ -1780,15 +2333,19 @@ class YScriptParser {
 
             consume(TRightBrace, "Expected '}' after function body");
             body = YFunctionBody.YScript(statements);
+            trace('[YScript Parser] Function body parsed for: ' + name + ' with ' + statements.length + ' statements');
         }
 
-        return YStatement.FuncDecl(name, params, returnType, body);
+        var result = YStatement.FuncDecl(name, params, returnType, body);
+        trace('[YScript Parser] Successfully created FuncDecl for: ' + name);
+        return result;
     }
 
     private function parseClassDeclaration():YStatement {
         advance(); // consume 'class'
 
         var name = consumeIdentifier("Expected class name");
+        trace('[YScript Parser] Parsing class: ' + name);
 
         var extend:Null<String> = null;
         if (match([TKeyword("extends")])) {
@@ -1803,14 +2360,31 @@ class YScriptParser {
         }
 
         consume(TLeftBrace, "Expected '{' before class body");
+        trace('[YScript Parser] Starting to parse class body for: ' + name);
 
         var body:Array<YStatement> = [];
+        var bodyIndex = 0;
         while (!check(TRightBrace) && !isAtEnd()) {
             if (match([TNewline])) continue;
-            var stmt = parseStatement();
-            if (stmt != null) body.push(stmt);
+            trace('[YScript Parser] Class body statement ' + bodyIndex + ' - current token: ' + Std.string(peek().type));
+            try {
+                var stmt = parseStatement();
+                if (stmt != null) {
+                    trace('[YScript Parser] Parsed class body statement ' + bodyIndex + ': ' + Std.string(stmt).substring(0, 80));
+                    body.push(stmt);
+                    bodyIndex++;
+                } else {
+                    trace('[YScript Parser] parseStatement returned null for token: ' + Std.string(peek().type));
+                }
+            } catch (e:Dynamic) {
+                trace('[YScript Parser] ERROR parsing class body statement ' + bodyIndex + ': ' + e);
+                trace('[YScript Parser] Current token: ' + Std.string(peek().type));
+                trace('[YScript Parser] Breaking from class body parsing due to error');
+                break;
+            }
         }
 
+        trace('[YScript Parser] Finished parsing class body for ' + name + ' with ' + body.length + ' statements');
         consume(TRightBrace, "Expected '}' after class body");
 
         return YStatement.ClassDecl(name, extend, implement, body);
@@ -2545,14 +3119,14 @@ class YScriptRuntime {
     private var shouldBreak:Bool = false;
     private var shouldContinue:Bool = false;
 
-    #if LUA_ALLOWED
+    #if (LUA_ALLOWED && !macro)
     private var luaState:State = null;
     #end
 
     public function new(?scope:YScope) {
         this.scope = scope ?? new YScope();
 
-        #if LUA_ALLOWED
+        #if (LUA_ALLOWED && !macro)
         luaState = LuaL.newstate();
         LuaL.openlibs(luaState);
         #end
@@ -2581,7 +3155,7 @@ class YScriptRuntime {
     }
 
     public function destroy():Void {
-        #if LUA_ALLOWED
+        #if (LUA_ALLOWED && !macro)
         if (luaState != null) {
             Lua.close(luaState);
             luaState = null;
@@ -2679,7 +3253,7 @@ class YScriptRuntime {
 
                             case FuncDecl(methodName, params, returnType, methodBody):
                                 var method = new YFunction(methodName, params, returnType, methodBody);
-                                if (methodName == name) {
+                                if (methodName == name || methodName == "new") {
                                     classDef.addConstructor(method);
                                 } else {
                                     classDef.addMethod(method);
@@ -2758,7 +3332,7 @@ class YScriptRuntime {
                     executeHaxeCode(code);
 
                 case LuaBlock(code):
-                    #if LUA_ALLOWED
+                    #if (LUA_ALLOWED && !macro)
                     executeLuaCode(code);
                     #else
                     var context = scope.getExecutionContext();
@@ -2880,7 +3454,7 @@ class YScriptRuntime {
         if (value == null) return false;
         if (Std.is(value, Bool)) return value;
         if (Std.is(value, Float) || Std.is(value, Int)) return value != 0;
-        if (Std.is(value, String)) return cast(value, String).trim().length > 0;
+        if (Std.is(value, String)) return StringTools.trim(cast(value, String)).length > 0;
         return true;
     }
 
@@ -3009,7 +3583,7 @@ class YScriptRuntime {
                     result = executeHaxeCode(code);
 
                 case LuaCode(code):
-                    #if LUA_ALLOWED
+                    #if (LUA_ALLOWED && !macro)
                     result = executeLuaCode(code);
                     #else
                     var context = functionScope.getExecutionContext();
@@ -3329,7 +3903,7 @@ class YScriptRuntime {
                     result = executeHaxeCodeWithHScript(code);
 
                 case LuaCode(code):
-                    #if LUA_ALLOWED
+                    #if (LUA_ALLOWED && !macro)
                     result = executeLuaCode(code);
                     #else
                     var context = functionScope.getExecutionContext();
@@ -3359,7 +3933,7 @@ class YScriptRuntime {
         return executeHaxeCodeWithHScript(code);
     }
 
-    #if LUA_ALLOWED
+    #if (LUA_ALLOWED && !macro)
     private function executeLuaCode(code:String):Dynamic {
         try {
             if (luaState == null) {
@@ -3395,7 +3969,7 @@ class YScriptRuntime {
     #end
 
     public function cleanup():Void {
-        #if LUA_ALLOWED
+        #if (LUA_ALLOWED && !macro)
         if (luaState != null) {
             Lua.close(luaState);
             luaState = null;
@@ -3407,7 +3981,7 @@ class YScriptRuntime {
      * ✅ HSCRIPT INTEGRATION: Execute Haxe code using HScript (Iris)
      */
     private function executeHaxeCodeWithHScript(code:String):Dynamic {
-        #if HSCRIPT_ALLOWED
+        #if (HSCRIPT_ALLOWED && !macro)
         try {
             // Use Iris (enhanced HScript) like the rest of the project
             var iris = new Iris(code, new IrisConfig(scope.currentScriptPath, false, false));

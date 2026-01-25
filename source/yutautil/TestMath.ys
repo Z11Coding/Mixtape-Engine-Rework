@@ -1,0 +1,35 @@
+/**
+ * Simple YScript test file for testing the YSComp macro system
+ * This file provides basic math utilities that can be used from Haxe
+ */
+
+// A simple utility class for math operations
+class MathHelper {
+    var multiplier: Float;
+
+    function new(mult: Float) {
+        this.multiplier = mult;
+    }
+
+    function multiply(value: Float): Float {
+        return value * this.multiplier;
+    }
+
+    function add(a: Float, b: Float): Float {
+        return a + b;
+    }
+
+    function getMultiplier(): Float {
+        return this.multiplier;
+    }
+}
+
+// Module-level utility function
+function quickAdd(x: Float, y: Float): Float {
+    return x + y;
+}
+
+// Module-level variable
+var defaultMultiplier: Float = 2.5;
+
+defaultMultiplier = quickAdd(3.0, 4.0); // Example call to module-level function

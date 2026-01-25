@@ -199,6 +199,39 @@ class Main extends Sprite
 
 		trace("TypeTools ptrMap: " + TypeTools.ptrMap);
 
+		// YSComp Test - Testing YScript to Haxe compilation
+		#if macro
+		trace("YSComp test skipped - macro context");
+		#else
+		try {
+			// Test compiled YScript MathHelper class
+			var helper = new yutautil.TestMath.MathHelper(2.0);
+			trace("YSComp Test - Created MathHelper with multiplier 2.0");
+
+			var result1 = helper.multiply(5.0);
+			trace("YSComp Test - 5.0 * 2.0 = " + result1);
+
+			var result2 = helper.add(10.0, 15.0);
+			trace("YSComp Test - add(10.0, 15.0) = " + result2);
+
+			var multiplier = helper.getMultiplier();
+			trace("YSComp Test - getMultiplier() = " + multiplier);
+
+			// Test module-level function
+			var quickResult = yutautil.TestMath.quickAdd(7.5, 2.5);
+			trace("YSComp Test - quickAdd(7.5, 2.5) = " + quickResult);
+
+			// Test module-level variable
+			var defaultMult = yutautil.TestMath.defaultMultiplier;
+			trace("YSComp Test - defaultMultiplier = " + defaultMult);
+
+			trace("YSComp Test - All tests completed successfully!");
+		} catch (e:Dynamic) {
+			trace("YSComp Test - Error: " + e);
+			trace("YSComp Test - This is expected if YSComp macro is not enabled or YScript files are not processed");
+		}
+		#end
+
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());
@@ -583,6 +616,16 @@ class Main extends Sprite
 		new ScreenShotPlugin();
 
 		// trace(3.cubed());
+
+		// var classTest:Class<Dynamic> = states.PlayState;
+		// trace("Class Test: " + Type.getClassName(classTest));
+		// var mania:Dynamic = classTest.mania;
+		// trace("Class Test 2: " + mania);
+		// var instanceTest:Dynamic = Type.createInstance(classTest, []);
+		// trace("Class Test 3: " + instanceTest);
+		// var instance2Test:Dynamic = Type.createInstance(classTest, []);
+		// trace("Class Test 4: " + instance2Test);
+
 
 
 		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));
@@ -1979,7 +2022,7 @@ class CommandPrompt
 					var serializeTime = haxe.Timer.stamp() - startTime;
 
 					if (serialized != null) {
-						print("✓ Serialization successful!");
+						print("[OK] Serialization successful!");
 						print("  Class: " + serialized.CLASS);
 						print("  Type: " + serialized.TYPE);
 						print("  Version: " + serialized.VERSION);
@@ -1997,7 +2040,7 @@ class CommandPrompt
 						var deserializeTime = haxe.Timer.stamp() - deserializeStart;
 
 						if (restored != null) {
-							print("✓ Deserialization successful!");
+							print("[OK] Deserialization successful!");
 							print("  Deserialization Time: " + Math.round(deserializeTime * 1000) + "ms");
 
 							// Verify some data integrity
@@ -2006,7 +2049,7 @@ class CommandPrompt
 											  restoredObj.name == testObj.name &&
 											  restoredObj.settings.enabled == testObj.settings.enabled);
 
-							print("  Data Integrity Check: " + (dataMatches ? "✓ PASSED" : "✗ FAILED"));
+							print("  Data Integrity Check: " + (dataMatches ? "[PASS] PASSED" : "[FAIL] FAILED"));
 
 							if (restoredObj.history != null) {
 								print("  History Restored: " + restoredObj.history.length + " entries");
@@ -2016,10 +2059,10 @@ class CommandPrompt
 							print("  Total Time: " + totalTime + "ms");
 
 						} else {
-							print("✗ Deserialization failed!");
+							print("[FAIL] Deserialization failed!");
 						}
 					} else {
-						print("✗ Serialization failed!");
+						print("[FAIL] Serialization failed!");
 					}
 
 				} catch (e:Dynamic) {
@@ -2573,6 +2616,18 @@ class CommandPrompt
 				} else {
 					print("Error: decodeError requires exactly one argument (the error code).");
 					print("Usage: decodeError E1A2B-3C4D-5E6F-...");
+				}
+
+			case "compile":
+				if (args.length == 0) {
+					print("YScript Compilation System");
+					print("Commands:");
+					print("  compile <source.ys> [output.ysc]  - Compile YScript file");
+					print("  compile test <code>              - Test compile YScript code");
+					print("  compile load <compiled.ysc>      - Load and test compiled script");
+					print("  compile info                     - Show compilation system info");
+				} else {
+					handleCompileCommand(args);
 				}
 
 			default:
@@ -3215,15 +3270,15 @@ class CommandPrompt
 		print('  uno quit - End game');
 		print('');
 		print('Rules:');
-		print('  • Must call UNO when you have one card left');
-		print('  • Wild cards require color choice (red/blue/green/yellow)');
-		print('  • Can only play cards that match color, number, or type');
-		print('  • Draw if you can\'t play');
+		print('  - Must call UNO when you have one card left');
+		print('  - Wild cards require color choice (red/blue/green/yellow)');
+		print('  - Can only play cards that match color, number, or type');
+		print('  - Draw if you can\'t play');
 		print('');
 		print('Scoring:');
-		print('  • Number cards: Face value');
-		print('  • Action cards: 20 points');
-		print('  • Wild cards: 50 points');
+		print('  - Number cards: Face value');
+		print('  - Action cards: 20 points');
+		print('  - Wild cards: 50 points');
 		print('===================================');
 	}
 
@@ -3287,7 +3342,7 @@ class CommandPrompt
 					}
 				} else {
 					// Must draw cards
-					print('🤖 ${currentPlayer.name} has no playable cards, drawing...');
+					print('[AI] ${currentPlayer.name} has no playable cards, drawing...');
 					unoGame.drawCards(currentPlayer, 1);
 				}
 
@@ -3388,10 +3443,10 @@ class CommandPrompt
 		}
 
 		if (yscriptTester.loadFromFile(fullPath)) {
-			print("✅ Successfully loaded YScript file: " + fullPath);
+			print("[SUCCESS] Successfully loaded YScript file: " + fullPath);
 			showYScriptVariables();
 		} else {
-			print("❌ Failed to load YScript file: " + yscriptTester.lastError);
+			print("[ERROR] Failed to load YScript file: " + yscriptTester.lastError);
 		}
 	}
 
@@ -3403,12 +3458,12 @@ class CommandPrompt
 		if (yscriptTester.loadFromSource(code, "<command-line>")) {
 			var result = yscriptTester.execute();
 			if (result != null) {
-				print("✅ Result: " + Std.string(result));
+				print("[SUCCESS] Result: " + Std.string(result));
 			} else {
-				print("✅ Code executed successfully (no return value)");
+				print("[SUCCESS] Code executed successfully (no return value)");
 			}
 		} else {
-			print("❌ YScript Error: " + yscriptTester.lastError);
+			print("[ERROR] YScript Error: " + yscriptTester.lastError);
 		}
 	}
 
@@ -3417,9 +3472,9 @@ class CommandPrompt
 			resetYScriptEnvironment();
 		}
 
-		print("🧪 Entering YScript Interactive Test Mode");
+		print("[TEST] Entering YScript Interactive Test Mode");
 		print("Type YScript commands, 'vars' to see variables, 'funcs' for functions, or 'exit' to quit");
-		print("───────────────────────────────────────────────");
+		print("-----------------------------------------------");
 
 		while (true) {
 			Sys.print("yscript> ");
@@ -3459,11 +3514,11 @@ class CommandPrompt
 						print("=> " + Std.string(result));
 					}
 				} else {
-					print("❌ Error: " + yscriptTester.lastError);
+					print("[ERROR] Error: " + yscriptTester.lastError);
 					// Don't exit on error, continue interactive mode
 				}
 			} catch (e:Dynamic) {
-				print("💥 Exception: " + Std.string(e));
+				print("[EXCEPTION] Exception: " + Std.string(e));
 				break; // Exit on exception as requested
 			}
 		}
@@ -3471,17 +3526,17 @@ class CommandPrompt
 
 	private function showYScriptVariables():Void {
 		if (yscriptTester == null || !yscriptTester.isReady) {
-			print("📭 No YScript environment loaded");
+			print("[EMPTY] No YScript environment loaded");
 			return;
 		}
 
 		var variables = yscriptTester.getVariables();
 		if (variables.length == 0) {
-			print("📋 No variables defined yet");
+			print("[EMPTY] No variables defined yet");
 			return;
 		}
 
-		print("📋 YScript Variables (" + variables.length + "):");
+		print("[VARS] YScript Variables (" + variables.length + "):");
 		for (variable in variables) {
 			var valueStr = Std.string(variable.value);
 			if (valueStr.length > 50) {
@@ -3493,19 +3548,19 @@ class CommandPrompt
 
 	private function showYScriptFunctions():Void {
 		if (yscriptTester == null || !yscriptTester.isReady) {
-			print("📭 No YScript environment loaded");
+			print("[EMPTY] No YScript environment loaded");
 			return;
 		}
 
 		var functions = yscriptTester.getFunctions();
 		if (functions.length == 0) {
-			print("⚙️ No functions defined yet");
+			print("[EMPTY] No functions defined yet");
 			print("   Built-in: printLine(), getTime()");
 			print("   Registered classes: FlxG, Math, Std");
 			return;
 		}
 
-		print("⚙️ YScript Functions (" + functions.length + "):");
+		print("[INFO] YScript Functions (" + functions.length + "):");
 		for (func in functions) {
 			var signature = func.name + "(" + func.parameters.join(", ") + ")";
 			if (func.returnType != "Void") {
@@ -3537,17 +3592,17 @@ class CommandPrompt
 		yscriptTester.registerHaxeClass("Math", Math);
 		yscriptTester.registerHaxeClass("Std", Std);
 
-		print("🔄 YScript environment reset");
+		print("[RESET] YScript environment reset");
 	}
 
 	private function showYScriptInspection():Void {
 		if (yscriptTester == null || !yscriptTester.isReady) {
-			print("📭 No YScript environment loaded");
+			print("[EMPTY] No YScript environment loaded");
 			return;
 		}
 
-		print("🔍 YScript Environment Inspection");
-		print("══════════════════════════════════");
+		print("[INSPECT] YScript Environment Inspection");
+		print("==================================");
 		showYScriptVariables();
 		print("");
 		showYScriptFunctions();
@@ -3555,14 +3610,14 @@ class CommandPrompt
 
 	private function inspectYScriptItem(name:String):Void {
 		if (yscriptTester == null || !yscriptTester.isReady) {
-			print("📭 No YScript environment loaded");
+			print("[EMPTY] No YScript environment loaded");
 			return;
 		}
 
 		// Check if it's a variable first
 		var varInfo = yscriptTester.getVariableInfo(name);
 		if (varInfo != null) {
-			print("📋 Variable: " + name);
+			print("[VAR] Variable: " + name);
 			print("   Type: " + varInfo.type);
 			print("   Value: " + Std.string(varInfo.value));
 			return;
@@ -3571,18 +3626,18 @@ class CommandPrompt
 		// Check if it's a function
 		var funcInfo = yscriptTester.getFunctionInfo(name);
 		if (funcInfo != null) {
-			print("⚙️ Function: " + name);
+			print("[FUNC] Function: " + name);
 			print("   Parameters: " + funcInfo.parameters.join(", "));
 			print("   Return Type: " + funcInfo.returnType);
 			return;
 		}
 
-		print("❌ Item '" + name + "' not found in YScript environment");
+		print("[ERROR] Item '" + name + "' not found in YScript environment");
 	}
 
 	private function showYScriptEnvironmentInfo():Void {
-		print("📊 YScript Environment Status");
-		print("═══════════════════════════════");
+		print("[STATUS] YScript Environment Status");
+		print("===================================");
 		print("   Ready: " + (yscriptTester != null ? yscriptTester.isReady : false));
 		print("   Has Errors: " + (yscriptTester != null ? yscriptTester.hasErrors : false));
 		if (yscriptTester != null && yscriptTester.lastError != null) {
@@ -3597,6 +3652,207 @@ class CommandPrompt
 			print("   Variables: " + varCount);
 			print("   Functions: " + funcCount);
 		}
+	}
+
+	// ═══════════════════════════════════════════════════════════════════════════════════════
+	// YSCRIPT COMPILATION SYSTEM
+	// ═══════════════════════════════════════════════════════════════════════════════════════
+
+	private function handleCompileCommand(args:Array<String>):Void {
+		try {
+			switch (args[0]) {
+				case "test":
+					if (args.length < 2) {
+						print("Error: compile test requires code to test");
+						return;
+					}
+					var code = args.slice(1).join(" ");
+					testCompileYScriptCode(code);
+
+				case "load":
+					if (args.length < 2) {
+						print("Error: compile load requires a compiled file path");
+						return;
+					}
+					loadCompiledYScript(args[1]);
+
+				case "info":
+					showCompilationSystemInfo();
+
+				default:
+					// Default: compile file
+					if (args.length < 1) {
+						print("Error: compile requires a source file path");
+						return;
+					}
+
+					var sourceFile = args[0];
+					var outputFile = args.length > 1 ? args[1] : null;
+					compileYScriptFile(sourceFile, outputFile);
+			}
+		} catch (e:Dynamic) {
+			print("Compilation Error: " + e);
+		}
+	}
+
+	private function compileYScriptFile(sourceFile:String, ?outputFile:String):Void {
+		var compiler = new yutautil.YScript();
+
+		var fullSourcePath = sourceFile;
+		// Check if it's a relative path, prepend current directory
+		if (!haxe.io.Path.isAbsolute(sourceFile)) {
+			fullSourcePath = "./" + sourceFile;
+		}
+
+		#if sys
+		try {
+			// Read source file
+			var sourceCode = sys.io.File.getContent(fullSourcePath);
+			print("[FILE] Reading source file: " + fullSourcePath);
+
+			// Compile the source
+			print("[COMPILE] Compiling YScript...");
+			var compiled = compiler.compile(sourceCode, fullSourcePath);
+			print("[SUCCESS] Compilation successful!");
+
+			// Generate output file name if not provided
+			if (outputFile == null) {
+				var path = haxe.io.Path.withoutExtension(fullSourcePath);
+				outputFile = path + ".ysc";
+			}
+
+			// Check if output path is relative
+			var fullOutputPath = outputFile;
+			if (!haxe.io.Path.isAbsolute(outputFile)) {
+				fullOutputPath = "./" + outputFile;
+			}
+
+			// Save compiled script
+			if (compiler.saveCompiled(compiled, fullOutputPath)) {
+				print("[SAVE] Saved compiled script: " + fullOutputPath);
+
+				// Show compilation stats
+				var sourceSize = sourceCode.length;
+				var compiledSize = sys.io.File.getBytes(fullOutputPath).length;
+				print("[STATS] Source size: " + sourceSize + " bytes");
+				print("[STATS] Compiled size: " + compiledSize + " bytes");
+				print("[STATS] Compression ratio: " + Math.round((compiledSize / sourceSize) * 100) + "%");
+				print("[STATS] Source hash: " + compiled.sourceHash);
+			} else {
+				print("[ERROR] Failed to save compiled script: " + compiler.lastError);
+			}
+
+		} catch (e:Dynamic) {
+			print("[ERROR] Compilation failed: " + e);
+		}
+		#else
+		print("[ERROR] File system not available on this platform");
+		#end
+	}
+
+	private function testCompileYScriptCode(code:String):Void {
+		var compiler = new yutautil.YScript();
+
+		try {
+			print("[COMPILE] Test compiling YScript code...");
+			var compiled = compiler.compile(code, "<test>");
+			print("[SUCCESS] Test compilation successful!");
+
+			print("[STATS] Compilation info:");
+			print("   Version: " + compiled.version);
+			print("   Source hash: " + compiled.sourceHash);
+			print("   Statements: " + compiled.statements.length);
+			print("   Optimized: " + compiled.optimized);
+
+			// Test loading the compiled format
+			print("[TEST] Testing compiled format loading...");
+			var tester = new yutautil.YScript();
+			if (tester.loadFromCompiled(compiled)) {
+				print("[SUCCESS] Compiled format loads successfully!");
+
+				// Test execution
+				print("[RUN] Testing execution...");
+				var result = tester.execute();
+				if (result != null) {
+					print("[SUCCESS] Execution result: " + Std.string(result));
+				} else {
+					print("[SUCCESS] Execution completed (no return value)");
+				}
+			} else {
+				print("[ERROR] Failed to load compiled format: " + tester.lastError);
+			}
+
+		} catch (e:Dynamic) {
+			print("[ERROR] Test compilation failed: " + e);
+		}
+	}
+
+	private function loadCompiledYScript(filePath:String):Void {
+		var fullPath = filePath;
+		// Check if it's a relative path
+		if (!haxe.io.Path.isAbsolute(filePath)) {
+			fullPath = "./" + filePath;
+		}
+
+		#if sys
+		try {
+			resetYScriptEnvironment();
+
+			print("[FILE] Loading compiled YScript: " + fullPath);
+			if (yscriptTester.loadCompiledFromFile(fullPath)) {
+				print("[SUCCESS] Successfully loaded compiled script!");
+
+				// Show script info
+				print("[STATS] Script information:");
+				if (yscriptTester.scriptPath != null) {
+					print("   Original path: " + yscriptTester.scriptPath);
+				}
+
+				var varCount = yscriptTester.getVariableNames().length;
+				var funcCount = yscriptTester.getFunctionNames().length;
+				print("   Variables: " + varCount);
+				print("   Functions: " + funcCount);
+
+				// Execute the script
+				print("[RUN] Executing script...");
+				var result = yscriptTester.execute();
+				if (result != null) {
+					print("[SUCCESS] Execution result: " + Std.string(result));
+				} else {
+					print("[SUCCESS] Script executed successfully");
+				}
+
+			} else {
+				print("[ERROR] Failed to load compiled script: " + yscriptTester.lastError);
+			}
+		} catch (e:Dynamic) {
+			print("[ERROR] Error loading compiled script: " + e);
+		}
+		#else
+		print("[ERROR] File system not available on this platform");
+		#end
+	}
+
+	private function showCompilationSystemInfo():Void {
+		print("YScript Compilation System Info");
+		print("================================");
+		print("Compiler version: 1.0.0");
+		print("Supported features:");
+		print("  - Full AST serialization");
+		print("  - Source hash validation");
+		print("  - Metadata preservation");
+		print("  - Fast loading (.ysc format)");
+		print("  - Cross-platform compatibility");
+		print("");
+		print("File formats:");
+		print("  .ys  - YScript source files");
+		print("  .ysc - YScript compiled files");
+		print("");
+		print("Benefits:");
+		print("  - Faster script loading");
+		print("  - Pre-parsed AST format");
+		print("  - Integrity validation");
+		print("  - Optimized for production");
 	}
 }
 

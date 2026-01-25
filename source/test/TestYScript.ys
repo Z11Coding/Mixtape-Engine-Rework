@@ -1,0 +1,76 @@
+// Test YScript file for YSComp macro system
+// This file should be converted to a Haxe wrapper class in interpreter mode
+
+import flixel.FlxSprite;
+
+class TestYScript extends FlxSprite {
+    var hp: Float = 100.0;
+    var name: String = "Test";
+    var isAlive: Bool = true;
+
+    function new(x: Float, y: Float): Void {
+        super(x, y);
+        this.hp = 100.0;
+        this.name = "TestYScript";
+    }
+
+    function takeDamage(amount: Float): Float {
+        this.hp = this.hp - amount;
+        if (this.hp <= 0) {
+            this.isAlive = false;
+            this.hp = 0;
+        }
+        return this.hp;
+    }
+
+    function heal(amount: Float): Float {
+        this.hp = this.hp + amount;
+        if (this.hp > 100.0) {
+            this.hp = 100.0;
+        }
+        return this.hp;
+    }
+
+    function getStatus(): String {
+        if (this.isAlive) {
+            return this.name + " is alive with " + this.hp + " health";
+        } else {
+            return this.name + " is dead";
+        }
+    }
+
+    // Nested class example
+    class Weapon {
+        var damage: Float;
+        var durability: Int;
+
+        function new(damage: Float, durability: Int): Void {
+            this.damage = damage;
+            this.durability = durability;
+        }
+
+        function attack(): Float {
+            if (this.durability > 0) {
+                this.durability = this.durability - 1;
+                return this.damage;
+            }
+            return 0.0;
+        }
+    }
+}
+
+// Module-level variables and functions
+var globalCounter: Int = 0;
+
+function incrementCounter(): Int {
+    globalCounter = globalCounter + 1;
+    return globalCounter;
+}
+
+function resetCounter(): Void {
+    globalCounter = 0;
+}
+
+function getCounterValue(): Int {
+    return globalCounter;
+}

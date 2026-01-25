@@ -84,6 +84,8 @@ class TitleState extends MusicBeatState
 		DiscordClient.changePresence("Chilling on the Title Screen", null);
 		#end
 
+		trace(new test.TestYScript(0, 0).getStatus()); // Just to make sure YScript is compiled properly
+
 		MusicBeatState.allowNuke = true; // COMMENCE THE MEMORY CLEARAGE
 		// ticker.update(0);
 		trace(ticker.metadata());
