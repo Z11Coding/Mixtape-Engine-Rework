@@ -291,6 +291,7 @@
 	<haxedef name="message.log-format" value="pretty" unless="{haxe &lt; 4.3.1}"/>
 
 	<haxeflag name="-dce" value="no" />
+	<haxedef name="analyzer-optimize" />
 
 	<!--Macro fixes-->
 	<haxeflag name="--macro" value="allowPackage('flash')" />
