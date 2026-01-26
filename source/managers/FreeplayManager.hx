@@ -6,6 +6,7 @@ import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import lime.utils.Assets;
 import metadata.STMetaFile.FreeplayMetaJSON;
+import metadata.STMetaFile.CodenameMetadata;
 import metadata.STMetaFile.MetadataFile;
 import states.CategoryState;
 import states.PlayState;
@@ -376,7 +377,7 @@ class FreeplayManager {
                                 artist: (cMetadataFile.customValues?.credits?.sprites ?? "???")
                             },
                             freeplay: { // cover the defaults and pray to god the custom ones figure themselves out
-                                ratings: (cMetadataFile.customValues?.ratings ?? ['easy' => -1, 'normal' => -1, 'hard' => 1-, 'erect' => -1, 'nightmare' => -1]),
+                                ratings: (cMetadataFile.customValues?.ratings ?? ['easy' => -1, 'normal' => -1, 'hard' => -1, 'erect' => -1, 'nightmare' => -1]),
                                 bg: (cMetadataFile.customValues?.bg ?? "menuDesat"),
                                 album: (cMetadataFile.customValues?.album ?? 'NoCover')
                             },

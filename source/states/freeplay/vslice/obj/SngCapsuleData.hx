@@ -2,6 +2,8 @@ package states.freeplay.vslice.obj;
 
 import backend.WeekData;
 import backend.pslice.Scoring.ScoringRank;
+import metadata.STMetaFile.FreeplayMetaJSON;
+import metadata.STMetaFile.CodenameMetadata;
 import metadata.STMetaFile.MetadataFile;
 
 abstract class SngCapsuleData{
@@ -90,7 +92,7 @@ abstract class SngCapsuleData{
 				allowErect = (meta.customValues?.freeplay?.allowErect ?? false);
 				freeplayPrevStart = (meta.customValues?.freeplay?.previewStart ?? 0);
 				freeplayPrevEnd = (meta.customValues?.freeplay?.previewEnd ?? 0.2);
-				songStartingBpm = (meta.bpm ?? try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm}catch(e){1});
+				songStartingBpm = (meta.bpm ?? try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;});
 				albumId = (meta.customValues?.freeplay?.album ?? '');
 				instVariants = (meta.variants ?? []);
 

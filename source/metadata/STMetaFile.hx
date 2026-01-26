@@ -84,7 +84,7 @@ typedef CodenameMetadata = {
 	public var ?coopAllowed:Bool;
 	public var ?opponentModeAllowed:Bool;
 
-	public var ?metas:Map<String, ChartMetaData>;
+	public var ?metas:Map<String, CodenameMetadata>;
 	public var ?instSuffix:String;
 	public var ?vocalsSuffix:String;
 	public var ?needsVoices:Bool;
