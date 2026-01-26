@@ -408,6 +408,8 @@ class YScript {
     private var parser:YScriptParser;
     private var runtime:YScriptRuntime;
     private var scope:YScope;
+    private var haxeCompilerDefines:Map<String, String> = haxe.Resource.getString("haxe_compiler_defines") != null ? haxe.Json.parse(haxe.Resource.getString("haxe_compiler_defines")) : null;
+    private var YScript_Defines:Map<String, String> = null;
 
     public var scriptPath:String;
     public var isReady:Bool = false;

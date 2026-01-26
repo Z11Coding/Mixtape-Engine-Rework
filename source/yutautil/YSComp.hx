@@ -185,6 +185,8 @@ class YSComp {
         try {
             Context.onAfterInitMacros(function() {
                 processYScriptFiles(config);
+                trace('[YSComp] Initialization complete');
+                Context.addResource("haxe_compiler_defines", haxe.io.Bytes.ofString(haxe.Json.stringify(Context.getDefines())));
             });
 
             if (config.debugInfo) {
@@ -194,6 +196,7 @@ class YSComp {
             Context.error('YSComp initialization error: $e', Context.currentPos());
         }
     }
+
 
     /**
      * Main macro entry point - processes all YScript files in the project
@@ -2281,6 +2284,8 @@ class YSComp {
             default: null; // Non-constant expression
         };
     }
+
+
 
     #end // macro
 }
