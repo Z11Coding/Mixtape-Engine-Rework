@@ -738,7 +738,6 @@ class PlayState extends MusicBeatState
 		}
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
-		Paths.clearUnusedMemory();
 		Language.reloadPhrases();
 		nextReloadAll = false;
 
@@ -1802,8 +1801,6 @@ class PlayState extends MusicBeatState
 		super.create();
 
 		startCallback();
-
-		Paths.clearUnusedMemory();
 
 		add(blackOverlay);
 
@@ -11377,7 +11374,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if(note.nextNote != null && note.prevNote != null){
 					if (note != animNote && !note.nextNote.isSustainNote /* && !note.prevNote.isSustainNote */ && callOnScripts('onGhostAnim', [animToPlay, note]) != LuaUtils.Function_Stop) {
 						char.playGhostAnim(chord.indexOf(note), animToPlay, true);
-					}else if(note.nextNote.isSustainNote){
+					}else if(note.nextNote.isSustainNote || note.isSustainNote){
 						char.playAnim(realAnim, true);
 						char.playGhostAnim(chord.indexOf(note), animToPlay, true);
 
@@ -11962,8 +11959,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			boyfriend.dance();
 		if (dad != null && beat % Math.round(gfSpeed * dad.danceEveryNumBeats) == 0 && !dad.getAnimationName().startsWith('sing') && !dad.stunned)
 			dad.dance();
-		//if (bf2 != null && beat % Math.round(gfSpeed * bf2.danceEveryNumBeats) == 0 && !bf2.getAnimationName().startsWith('sing') && !bf2.stunned)
-			//bf2.dance();
+		if (bf2 != null && beat % Math.round(gfSpeed * bf2.danceEveryNumBeats) == 0 && !bf2.getAnimationName().startsWith('sing') && !bf2.stunned)
+			bf2.dance();
 		if (dad2 != null && beat % Math.round(gfSpeed * dad2.danceEveryNumBeats) == 0 && !dad2.getAnimationName().startsWith('sing') && !dad2.stunned)
 			dad2.dance();
 	}

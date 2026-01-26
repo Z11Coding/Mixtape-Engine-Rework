@@ -96,8 +96,8 @@ class SserafimStage extends BaseStage
     backTables = new BGSprite('back-tables', -1857, 267, 0.93, 0.93);
     add(backTables);
 
-    backTablesCutscene = new BGSprite('cutscene/counter-stretch', -1858, 377, 0.93, 0.93);
-    backTablesCutscene.setGraphicSize(400, 1);
+    backTablesCutscene = new BGSprite('cutscene/counter-stretch', -1458, 377, 0.93, 0.93);
+    backTablesCutscene.scale.set(400, 1);
     add(backTablesCutscene);
 
     burgerCutscene = new BGSprite('cutscene/burger-cutscene', -97, 237, 0.93, 0.93);
@@ -140,6 +140,8 @@ class SserafimStage extends BaseStage
     game.camZooming = true; //So that the camera works lol
     setStartCallback(doCutsceneStuff);
     super.createPost();
+    game.gfSpeed = 1;
+    game.ghostsAllowed = false;
     characterShader = new SserafimShader(true);
     stageShader = new SserafimShader();
 
@@ -226,6 +228,8 @@ class SserafimStage extends BaseStage
     setLightState(false);
 
     perspectiveFloor.sprite.shader = stageShader;
+    backTablesCutscene.shader = stageShader;
+    burgerCutscene.shader = stageShader;
     bg.shader = stageShader;
     fucker.shader = stageShader;
     backTables.shader = stageShader;
@@ -429,8 +433,6 @@ class SserafimStage extends BaseStage
     for (char in [yunjin, dad, chaewon, eunchae, boyfriend, gf]) {
       if (char.charType == BF)
         ownerArray.push(char);
-      if (ownerArray.length == 1) // This way only the first person on the list gets icon privliges
-        game.iconP1.changeIcon(char.healthIcon);
     }
     game.playerField.owners = ownerArray;
 
@@ -521,17 +523,31 @@ class SserafimStage extends BaseStage
 
   override function beatHit()
   {
-    super.beatHit();
-
     // flash lights behind truck
     if (lightsEnabled) flashBackLight(lightsIntensities[curBeat % lightsIntensities.length], lightsDurations[curBeat % lightsDurations.length],
       lightsColors[curBeat % lightsColors.length]);
-    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && !chaewon.getAnimationName().startsWith('sing') && !chaewon.stunned)
+    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && (!chaewon.getAnimationName().startsWith('sing') || chaewon.getCurrentAnimation().startsWith('sing') && chaewon.isAnimationFinished()) && !chaewon.stunned) {
 			chaewon.dance();
-    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && !yunjin.getAnimationName().startsWith('sing') && !yunjin.stunned)
+    }
+    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && (!yunjin.getAnimationName().startsWith('sing') || yunjin.getCurrentAnimation().startsWith('sing') && yunjin.isAnimationFinished()) && !yunjin.stunned) {
 			yunjin.dance();
-    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && !eunchae.getAnimationName().startsWith('sing') && !eunchae.stunned)
+    }
+    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && (!eunchae.getAnimationName().startsWith('sing') || eunchae.getCurrentAnimation().startsWith('sing') && eunchae.isAnimationFinished()) && !eunchae.stunned) {
 			eunchae.dance();
+    }
+    if (ssGF != null && ssGF.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * ssGF.danceEveryNumBeats) == 0 && (!ssGF.getAnimationName().startsWith('sing') || ssGF.getCurrentAnimation().startsWith('sing') && ssGF.isAnimationFinished()) && !ssGF.stunned) {
+      ssGF.skipDance = true;
+      switch(curBeat % Math.round(game.gfSpeed * ssGF.danceEveryNumBeats)) {
+        case 0:
+          ssGF.playAnim('danceLeft');
+        case 1:
+          ssGF.playAnim('danceRight');
+      }
+    }
+    if (ssDad != null && ssDad.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * ssDad.danceEveryNumBeats) == 0 && (!ssDad.getAnimationName().startsWith('sing') || ssDad.getCurrentAnimation().startsWith('sing') && ssDad.isAnimationFinished()) && !ssDad.stunned) {
+			ssDad.dance();
+    }
+    super.beatHit();
   }
 
   var isMobilePauseButtonPressed:Bool = false;

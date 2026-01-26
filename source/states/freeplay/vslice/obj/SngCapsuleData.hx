@@ -71,7 +71,7 @@ abstract class SngCapsuleData{
 		if (metaSngId == newSngId)
 			return;
 		metaSngId = newSngId;
-		var meta = FreeplayManager.getPSliceMetadata(metaSngId);
+		var meta:FreeplayMetaJSON = FreeplayManager.getPSliceMetadata(metaSngId);
 		if (meta != null) {
 			difficultyRating = meta.songRating;
 			metaAllowNew = meta.allowNewTag;
@@ -83,23 +83,23 @@ abstract class SngCapsuleData{
 			songPlayer = meta.freeplayCharacter;
 			songWeekName = meta.freeplayWeekName;
 		} else {
-			//trace("P-SLICE CHECK FAILED! ASSUMING IT'S A MIXTAPE METAFILE AND READING IT AS SUCH...");
-			var meta:MetadataFile = FreeplayManager.getMixtapeMetadata(metaSngId);
-			if (meta != null) { // Mixtape Metadata doesn't have everything P-Slice does, so im gonna have to accomidate where I can
-				difficultyRating = meta.freeplay?.ratings?.get(currentDifficulty.toLowerCase());
-				metaAllowNew = true;
-				allowErect = false;
-				freeplayPrevStart = 0;
-				freeplayPrevEnd = 0.2;
-				songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
-				albumId = meta.freeplay?.album ?? '';
-				instVariants = [];
+			var meta:CodenameMetadata = FreeplayManager.getCodenameMetadata(metaSngId);
+			if (meta != null) { // Codename Metadata doesn't have everything P-Slice does, so im gonna have to accomidate where I can
+				difficultyRating = (meta.customValues?.freeplay?.rating ?? -1);
+				metaAllowNew = (meta.customValues?.freeplay?.allowNew ?? true);
+				allowErect = (meta.customValues?.freeplay?.allowErect ?? false);
+				freeplayPrevStart = (meta.customValues?.freeplay?.previewStart ?? 0);
+				freeplayPrevEnd = (meta.customValues?.freeplay?.previewEnd ?? 0.2);
+				songStartingBpm = (meta.bpm ?? try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm}catch(e){1});
+				albumId = (meta.customValues?.freeplay?.album ?? '');
+				instVariants = (meta.variants ?? []);
 
-				songPlayer = 'bf';
-				songWeekName = '';
+				songPlayer = (meta.customValues?.freeplay?.songPlayer ?? 'bf');
+				songWeekName = (meta.customValues?.freeplay?.songWeekName ?? '');
 			} else {
-				var meta:MetadataFile = states.freeplay.VSliceFreeplayState.instance.fpManager.metadata.get(getNativeSongId().toLowerCase());
-				if (meta != null) {
+				//trace("P-SLICE CHECK FAILED! ASSUMING IT'S A MIXTAPE METAFILE AND READING IT AS SUCH...");
+				var meta:MetadataFile = FreeplayManager.getMixtapeMetadata(metaSngId);
+				if (meta != null) { // Mixtape Metadata doesn't have everything P-Slice does, so im gonna have to accomidate where I can
 					difficultyRating = meta.freeplay?.ratings?.get(currentDifficulty.toLowerCase());
 					metaAllowNew = true;
 					allowErect = false;
@@ -112,18 +112,33 @@ abstract class SngCapsuleData{
 					songPlayer = 'bf';
 					songWeekName = '';
 				} else {
-					//trace("NO METADATA COULD BE LOADED :(\nUSING DEFAULTS SO FREEPLAY DOESN'T HAVE A STROKE AND DIE");
-					difficultyRating = -1;
-					metaAllowNew = true;
-					allowErect = false;
-					freeplayPrevStart = 0;
-					freeplayPrevEnd = 0.2;
-					songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
-					albumId = 'noCover';
-					instVariants = [];
+					var meta:MetadataFile = states.freeplay.VSliceFreeplayState.instance.fpManager.metadata.get(getNativeSongId().toLowerCase());
+					if (meta != null) {
+						difficultyRating = meta.freeplay?.ratings?.get(currentDifficulty.toLowerCase());
+						metaAllowNew = true;
+						allowErect = false;
+						freeplayPrevStart = 0;
+						freeplayPrevEnd = 0.2;
+						songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
+						albumId = meta.freeplay?.album ?? '';
+						instVariants = [];
 
-					songPlayer = 'bf';
-					songWeekName = '';
+						songPlayer = 'bf';
+						songWeekName = '';
+					} else {
+						//trace("NO METADATA COULD BE LOADED :(\nUSING DEFAULTS SO FREEPLAY DOESN'T HAVE A STROKE AND DIE");
+						difficultyRating = -1;
+						metaAllowNew = true;
+						allowErect = false;
+						freeplayPrevStart = 0;
+						freeplayPrevEnd = 0.2;
+						songStartingBpm = try{backend.Song.getChart(getNativeSongId().toLowerCase()+(currentDifficulty.toLowerCase() != "normal" ? "-"+currentDifficulty.toLowerCase() : ""), getNativeSongId().toLowerCase()).bpm;}catch(e){1;}
+						albumId = 'noCover';
+						instVariants = [];
+
+						songPlayer = 'bf';
+						songWeekName = '';
+					}
 				}
 			}
 		}

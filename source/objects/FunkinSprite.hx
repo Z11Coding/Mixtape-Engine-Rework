@@ -476,7 +476,7 @@ class FunkinSprite extends FlxAnimate
    */
   public function getCurrentAnimation():String
   {
-    return this.animation?.curAnim?.name ?? '';
+    return this.isAnimate ? (this.anim?.curAnim?.name ?? '') : (this.animation?.curAnim?.name ?? '');
   }
 
   /**
@@ -484,7 +484,7 @@ class FunkinSprite extends FlxAnimate
    */
   public function isAnimationFinished():Bool
   {
-    return this.animation?.finished ?? false;
+    return this.isAnimate ? (this.anim?.curAnim?.finished ?? false) : (this.animation?.finished ?? false);
   }
 
   /**

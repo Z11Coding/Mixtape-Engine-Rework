@@ -33,7 +33,7 @@ class BGSprite extends FunkinSprite
 	}
 }
 
-class AltBGSprite extends FlxSprite
+class AltBGSprite extends FunkinSprite
 {
 	public function new(x:Float = 0, y:Float = 0, image:String, ?anim:String, ?loop:Bool=false) {
 		super(x, y);

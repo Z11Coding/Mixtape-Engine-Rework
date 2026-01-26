@@ -515,7 +515,7 @@ class Character extends FunkinSprite
 		if(isAnimationFinished() && hasAnimation('$name-loop'))
 			playAnim('$name-loop');
 
-		if(debugMode || (!isAnimateAtlas && animation.curAnim == null) || (isAnimateAtlas && anim.curAnim == null))
+		if(!debugMode || !(!isAnimateAtlas && animation.curAnim == null) || !(isAnimateAtlas && anim.curAnim == null))
 		{
 			for (ghost in doubleGhosts)
 				ghost.update(elapsed);
@@ -729,26 +729,7 @@ class Character extends FunkinSprite
 
 			ghostTweenGrp[ghostID]?.cancel();
 
-			var direction:String = animName.substring(4);
-
-			var directionMap:Map<String, Array<Float>> = [
-				'UP' => [0, -45],
-				'DOWN' => [0, 45],
-				'RIGHT' => [45, 0],
-				'LEFT' => [-45, 0],
-				'UP-alt' => [0, -45],
-				'DOWN-alt' => [0, 45],
-				'RIGHT-alt' => [45, 0],
-				'LEFT-alt' => [-45, 0],
-			];
-			//had to add alt cuz it kept crashing on room code LOL
-
-			var moveDirections:Array<Float> = [
-				x + (directionMap.get(direction)[0]),
-				y + (directionMap.get(direction)[1])
-			];
-
-			ghostTweenGrp[ghostID] = FlxTween.tween(ghost, {alpha: 0, x: moveDirections[0], y: moveDirections[1]}, 0.75,
+			ghostTweenGrp[ghostID] = FlxTween.tween(ghost, {alpha: 0}, 0.75,
 			{
 				onComplete: (twn) -> {
 					ghost.visible = false;
