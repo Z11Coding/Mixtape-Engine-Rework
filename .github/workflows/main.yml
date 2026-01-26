@@ -32,6 +32,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install Haxelib
         run: |
+          pacman -Fs hb.h
           pkgconf --cflags harfbuzz
           -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
           sudo apt-get update
