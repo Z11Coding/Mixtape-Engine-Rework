@@ -221,10 +221,6 @@ class SserafimStage extends BaseStage
     chaewon.scrollFactor.set(0.95, 0.95);
     eunchae.scrollFactor.set(0.97, 0.97);
 
-    yunjin.setPosition(-421 - yunjin.characterOrigin.x, 434 - yunjin.characterOrigin.y);
-    chaewon.setPosition(687 - chaewon.characterOrigin.x, 0 - chaewon.characterOrigin.y);
-    eunchae.setPosition(770 - eunchae.characterOrigin.x, 675 - eunchae.characterOrigin.y);
-
     setGirlsVisible(baseVisible);
     setGirlsSinging(baseSinging);
     setLightState(false);
@@ -313,6 +309,7 @@ class SserafimStage extends BaseStage
         {
           // play second kick anim + reset her idle back to normal
           yunjin.playAnim('intro', true);
+          yunjin.specialAnim = true;
           FunkinSound.playOnce('doorKick2', 1.0);
           yunjin.danceEveryNumBeats = 1;
 
@@ -351,6 +348,7 @@ class SserafimStage extends BaseStage
         {
           // play first kick anim
           yunjin.playAnim('kick', true);
+          yunjin.specialAnim = true;
           FunkinSound.playOnce('doorKick1', 1.0);
         }
         case 'sserafimEnd':
@@ -398,12 +396,12 @@ class SserafimStage extends BaseStage
 
     yunjin.visible = visibleArray[0];
 
-    game.dad.visible = visibleArray[1];
+    game.dadGroup.visible = visibleArray[1];
 
     chaewon.visible = visibleArray[2];
     eunchae.visible = visibleArray[3];
 
-    game.boyfriend.visible = visibleArray[4];
+    game.boyfriendGroup.visible = visibleArray[4];
 
     // gf visibility ISNT stored here, cause itd break a lot of stuff already in place and im kinda running out of time
   }

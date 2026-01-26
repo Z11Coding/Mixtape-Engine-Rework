@@ -61,13 +61,10 @@ class Paths
 	inline public static var VIDEO_EXT = "mp4";
 	public static var prioritizeOnlineAssets:Bool = false; // If true, will prioritize online assets over local ones. This is useful for development purposes.
 
+	public static final YSCRIPT_EXTENSIONS:Array<String> = ["ys", "yscript"];
 	public static final HSCRIPT_EXTENSIONS:Array<String> = ["hscript", "hxs", "hx"];
 	public static final LUA_EXTENSIONS:Array<String> = ["lua"];
-	public static final SCRIPT_EXTENSIONS:Array<String> = [
-		"hscript",
-		"hxs",
-		"hx",
-		#if LUA_ALLOWED "lua" #end]; // TODo: initialize this by combining the top 2 vars ^
+	public static final SCRIPT_EXTENSIONS:Array<String> = ["lua", "hscript", "hxs", "hx", "ys", "yscript"];
 
 	public static var pathType:String = 'Mixtape';
 

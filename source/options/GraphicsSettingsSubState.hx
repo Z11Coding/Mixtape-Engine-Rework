@@ -287,6 +287,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	}
 
 	override function update(e:Float) {
+		super.update(e);
 		if (perfOpt != null && (ClientPrefs.data.performanceCounter == 'hide' || ClientPrefs.data.performanceCounter == 'fps' || ClientPrefs.data.performanceCounter == 'fps-mem' || ClientPrefs.data.performanceCounter == 'fps-mem-peak'))
 			perfOpt.onChange();
 	}
