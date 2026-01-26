@@ -9,7 +9,10 @@ import haxe.ds.StringMap;
 import haxe.io.Bytes;
 import haxe.macro.Context;
 import haxe.macro.Type;
+#if !macro
 import psychlua.LuaUtils;
+#end
+
 #if sys
 import sys.io.File;
 #end
