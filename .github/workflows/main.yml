@@ -37,7 +37,6 @@ jobs:
           sudo apt-get install libvlc-dev --fix-missing
           sudo apt-get install libvlccore-dev
           sudo apt-get install libgtk-3-dev
-          sudo apt-get install libharfbuzz-dev
           haxelib setup ~/haxelib
           haxelib install hxcpp > /dev/null --quiet
           chmod +x ./setup/unixLinux.sh
