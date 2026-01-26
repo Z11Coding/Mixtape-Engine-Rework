@@ -11696,7 +11696,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	override function beatHit()
 	{
 		if(lastBeatHit >= curBeat) {
-			//trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
+			trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
 			return;
 		}
 

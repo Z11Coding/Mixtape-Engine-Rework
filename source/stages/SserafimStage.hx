@@ -521,22 +521,23 @@ class SserafimStage extends BaseStage
     FlxTween.tween(backLightWhite, {alpha: 0}, duration, {ease: FlxEase.cubeInOut});
   }
 
+  var localBeat:Int = 0; // I love having to do things manually /lie
   override function beatHit()
   {
+    localBeat++;
     super.beatHit();
     // flash lights behind truck
-    if (lightsEnabled) flashBackLight(lightsIntensities[curBeat % lightsIntensities.length], lightsDurations[curBeat % lightsDurations.length],
-      lightsColors[curBeat % lightsColors.length]);
-    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && (!chaewon.getAnimationName().startsWith('sing') || chaewon.getCurrentAnimation().startsWith('sing') && chaewon.isAnimationFinished()) && !chaewon.stunned) {
+    if (lightsEnabled) flashBackLight(lightsIntensities[localBeat % lightsIntensities.length], lightsDurations[localBeat % lightsDurations.length], lightsColors[localBeat % lightsColors.length]);
+    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && (!chaewon.getAnimationName().startsWith('sing') || chaewon.getCurrentAnimation().startsWith('sing') && chaewon.isAnimationFinished()) && !chaewon.stunned) {
 			chaewon.dance();
     }
-    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && (!yunjin.getAnimationName().startsWith('sing') || yunjin.getCurrentAnimation().startsWith('sing') && yunjin.isAnimationFinished()) && !yunjin.stunned) {
+    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && (!yunjin.getAnimationName().startsWith('sing') || yunjin.getCurrentAnimation().startsWith('sing') && yunjin.isAnimationFinished()) && !yunjin.stunned) {
 			yunjin.dance();
     }
-    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && (!eunchae.getAnimationName().startsWith('sing') || eunchae.getCurrentAnimation().startsWith('sing') && eunchae.isAnimationFinished()) && !eunchae.stunned) {
+    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && (!eunchae.getAnimationName().startsWith('sing') || eunchae.getCurrentAnimation().startsWith('sing') && eunchae.isAnimationFinished()) && !eunchae.stunned) {
 			eunchae.dance();
     }
-    if (ssDad != null && ssDad.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * ssDad.danceEveryNumBeats) == 0 && (!ssDad.getAnimationName().startsWith('sing') || ssDad.getCurrentAnimation().startsWith('sing') && ssDad.isAnimationFinished()) && !ssDad.stunned) {
+    if (ssDad != null && ssDad.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * ssDad.danceEveryNumBeats) == 0 && (!ssDad.getAnimationName().startsWith('sing') || ssDad.getCurrentAnimation().startsWith('sing') && ssDad.isAnimationFinished()) && !ssDad.stunned) {
 			ssDad.dance();
     }
   }
