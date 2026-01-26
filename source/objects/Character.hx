@@ -69,6 +69,7 @@ class Character extends FunkinSprite
 	public var extraData:Map<String, Dynamic> = new Map<String, Dynamic>();
 
 	public var isPlayer:Bool = false;
+	public var isPlayerAlt:Bool = false; // Same as isPlayer but without the flipping
 	public var curCharacter:String = DEFAULT_CHARACTER;
 
 	public var holdTimer:Float = 0;
@@ -503,9 +504,9 @@ class Character extends FunkinSprite
 		}
 
 		if (getAnimationName().startsWith('sing')) holdTimer += elapsed;
-		else if(isPlayer) holdTimer = 0;
+		else if(isPlayer || isPlayerAlt) holdTimer = 0;
 
-		if (!isPlayer && holdTimer >= Conductor.stepCrochet * (0.0011 #if FLX_PITCH / (FlxG.sound.music != null ? FlxG.sound.music.pitch : 1) #end) * singDuration)
+		if (!(isPlayer || isPlayerAlt) && holdTimer >= Conductor.stepCrochet * (0.0011 #if FLX_PITCH / (FlxG.sound.music != null ? FlxG.sound.music.pitch : 1) #end) * singDuration)
 		{
 			dance();
 			holdTimer = 0;

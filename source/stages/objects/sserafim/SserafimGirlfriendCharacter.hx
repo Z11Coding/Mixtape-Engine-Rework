@@ -5,6 +5,7 @@ class SserafimGirlfriendCharacter extends Character
   public function new(x:Float, y:Float)
   {
     super(x, y, 'sserafim-gf', true, OTHER);
+    this.isPlayerAlt = true;
   }
 
   public var isBeautiful:Bool = false;

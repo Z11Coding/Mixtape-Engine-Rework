@@ -523,6 +523,7 @@ class SserafimStage extends BaseStage
 
   override function beatHit()
   {
+    super.beatHit();
     // flash lights behind truck
     if (lightsEnabled) flashBackLight(lightsIntensities[curBeat % lightsIntensities.length], lightsDurations[curBeat % lightsDurations.length],
       lightsColors[curBeat % lightsColors.length]);
@@ -535,19 +536,9 @@ class SserafimStage extends BaseStage
     if (eunchae != null && eunchae.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && (!eunchae.getAnimationName().startsWith('sing') || eunchae.getCurrentAnimation().startsWith('sing') && eunchae.isAnimationFinished()) && !eunchae.stunned) {
 			eunchae.dance();
     }
-    if (ssGF != null && ssGF.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * ssGF.danceEveryNumBeats) == 0 && (!ssGF.getAnimationName().startsWith('sing') || ssGF.getCurrentAnimation().startsWith('sing') && ssGF.isAnimationFinished()) && !ssGF.stunned) {
-      ssGF.skipDance = true;
-      switch(curBeat % Math.round(game.gfSpeed * ssGF.danceEveryNumBeats)) {
-        case 0:
-          ssGF.playAnim('danceLeft');
-        case 1:
-          ssGF.playAnim('danceRight');
-      }
-    }
     if (ssDad != null && ssDad.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * ssDad.danceEveryNumBeats) == 0 && (!ssDad.getAnimationName().startsWith('sing') || ssDad.getCurrentAnimation().startsWith('sing') && ssDad.isAnimationFinished()) && !ssDad.stunned) {
 			ssDad.dance();
     }
-    super.beatHit();
   }
 
   var isMobilePauseButtonPressed:Bool = false;
