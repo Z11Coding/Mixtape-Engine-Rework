@@ -215,8 +215,6 @@
 
 	<haxedef name="HX_HAS_ATOMIC"/>
 
-	<include name="/usr/include/harfbuzz" if="linux"/>
-
 	<!-- ______________________________ Haxedefines _____________________________ -->
 
 	<!--Enable the Flixel core recording system-->

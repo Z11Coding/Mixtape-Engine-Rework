@@ -548,8 +548,7 @@ class SserafimStage extends BaseStage
 
     trace('colors: $colors');
     trace('durations: $durations');
-    //for (i in 0...colors.length) FlxColor.fromString(colors[i])
-    lightsColors = [for (color in colors) FlxColor.fromString(color)];
+    lightsColors = [for (i in 0...colors.length) FlxColor.fromString(FlxColor.fromString(colors[i]).toWebString())]; // This aggervates me
     lightsDurations = durations;
     lightsIntensities = intensities;
     trace('colors: $lightsColors');
