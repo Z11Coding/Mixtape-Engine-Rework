@@ -210,10 +210,9 @@ class SserafimStage extends BaseStage
     game.boyfriendGroup.add(ssBF);
     ssBF.alpha = 0.00001;
 
-    ssDad = new SserafimKazuhaCharacter(0, 0);
+    game.dad = ssDad;
     game.dadMap.set('ssDad', ssDad);
-    game.dadGroup.add(ssDad);
-    ssDad.alpha = 0.00001;
+    //game.dadGroup.add(ssDad);
 
     game.dadGroup2.add(yunjin);
     game.gfGroup.add(chaewon);
@@ -590,7 +589,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      //game.triggerEvent('Change Character', 'dad', 'ssDad');
       return;
     }
 
@@ -608,7 +607,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      //game.triggerEvent('Change Character', 'dad', 'ssDad');
     }
   }
 
@@ -652,7 +651,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       canPause = true;
       camHUD.visible = true;
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      //game.triggerEvent('Change Character', 'dad', 'ssDad');
     }
 
     cutsceneHandler.skipCallback = skipCutscene;
@@ -890,7 +889,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       camHUD.visible = true;
       playCutsceneFromRestart();
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      //game.triggerEvent('Change Character', 'dad', 'ssDad');
     });
   }
 
