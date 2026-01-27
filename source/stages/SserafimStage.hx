@@ -185,11 +185,6 @@ class SserafimStage extends BaseStage
     dust4.shader = stageShader;
     dust4.spacing.x -= 10;
 
-    add(dust1);
-    add(dust2);
-    add(dust3);
-    add(dust4);
-
     dust1.color = 0xff98847d;
     dust2.color = 0xff8b6c63;
     dust3.color = 0xff6e645c;
@@ -202,19 +197,24 @@ class SserafimStage extends BaseStage
     ssGF = new SserafimGirlfriendCharacter(0, 0);
     ssGF.scrollFactor.set(0.95, 0.95);
     game.gfGroup.add(ssGF);
-    ssGF.alpha = 0.00001;
+    ssGF.alpha = 0;
 
     ssBF = new SserafimSakuraCharacter(0, 0);
     game.boyfriendGroup.add(ssBF);
-    ssBF.alpha = 0.00001;
+    ssBF.alpha = 0;
 
     ssDad = new SserafimKazuhaCharacter(0, 0);
     game.dadGroup.add(ssDad);
-    ssDad.alpha = 0.00001;
+    ssDad.alpha = 0;
 
     game.dadGroup2.add(yunjin);
     game.gfGroup.add(chaewon);
     game.dadGroup2.add(eunchae);
+
+    add(dust1);
+    add(dust2);
+    add(dust3);
+    add(dust4);
 
     yunjin.scrollFactor.set(0.95, 0.95);
     chaewon.scrollFactor.set(0.95, 0.95);
@@ -356,6 +356,15 @@ class SserafimStage extends BaseStage
           endStuff();
         case 'sserafimBeautiful':
           ssGF.isBeautiful = value1.toLowerCase() == "true";
+        case 'SetHealthIcon':
+          switch(Std.parseInt(value1)) {
+            case 0:
+              game.iconP1.changeIcon(value2);
+            case 1:
+              game.iconP2.changeIcon(value2);
+            default:
+              trace("[WARNING] Index was incorrect!");
+          }
         case 'Change Character Sserafim':
           var charType:Int = 0;
           switch (value1.toLowerCase().trim())
@@ -537,9 +546,14 @@ class SserafimStage extends BaseStage
     lightsEnabled = enabled;
     if (colors == null || durations == null || intensities == null) return;
 
-    lightsColors = [for (i in 0...colors.length) FlxColor.fromString(colors[i])];
+    trace('colors: $colors');
+    trace('durations: $durations');
+    //for (i in 0...colors.length) FlxColor.fromString(colors[i])
+    lightsColors = [for (color in colors) FlxColor.fromString(color)];
     lightsDurations = durations;
     lightsIntensities = intensities;
+    trace('colors: $lightsColors');
+    trace('durations: $lightsDurations');
   }
 
   function flashBackLight(amount:Float, duration:Float, color:FlxColor)

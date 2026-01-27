@@ -45,7 +45,7 @@ class SserafimKazuhaCharacter extends Character
     var element:FlxSpriteElement = new FlxSpriteElement(lipSyncSprite);
     element.active = false; // We disable the element here so we can control when it updates.
 
-   // hideDefaultMouth();
+    // hideDefaultMouth();
 
     for (frame in this.getFramesWithKeyword("mouth default"))
     {

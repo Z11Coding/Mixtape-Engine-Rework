@@ -42,7 +42,7 @@ haxelib git hxWebSockets https://github.com/ianharrigan/hxWebSockets
 haxelib git linc_dialogs https://github.com/snowkit/linc_dialogs.git
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7
-haxelib git funkin.vis https://github.com/NovaFlare-Engine-haxelib/funkVis-FrequencyFixed
+haxelib git funkin.vis https://github.com/NovaFlare-Engine-haxelib/funkVis-FrequencyFixed e129b15df24d731fc502cba3d4186c1e7c8bef2d
 haxelib git grig.audio https://github.com/FunkinCrew/grig.audio 6409f3c6d1b4c52176813d3ede86c0d34e8af2c1 src
 haxelib git thx.core https://github.com/fponticelli/thx.core 2bf2b992e06159510f595554e6b952e47922f128
 haxelib git haxeui-core https://github.com/haxeui/haxeui-core 51c23588614397089a5ce182cddea729f0be6fa0
