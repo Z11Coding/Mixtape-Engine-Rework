@@ -201,18 +201,16 @@ class SserafimStage extends BaseStage
 
     ssGF = new SserafimGirlfriendCharacter(0, 0);
     ssGF.scrollFactor.set(0.95, 0.95);
-    game.gfMap.set('ssGF', ssGF);
     game.gfGroup.add(ssGF);
     ssGF.alpha = 0.00001;
 
     ssBF = new SserafimSakuraCharacter(0, 0);
-    game.boyfriendMap.set('ssBF', ssBF);
     game.boyfriendGroup.add(ssBF);
     ssBF.alpha = 0.00001;
 
-    game.dad = ssDad;
-    game.dadMap.set('ssDad', ssDad);
-    //game.dadGroup.add(ssDad);
+    ssDad = new SserafimKazuhaCharacter(0, 0);
+    game.dadGroup.add(ssDad);
+    ssDad.alpha = 0.00001;
 
     game.dadGroup2.add(yunjin);
     game.gfGroup.add(chaewon);
@@ -325,8 +323,8 @@ class SserafimStage extends BaseStage
             // and show the REAL gf
             game.gf.visible = true;
 
-            game.triggerEvent('Change Character', 'gf', 'ssGF');
-            game.triggerEvent('Change Character', 'bf', 'ssBF');
+            game.triggerEvent('Change Character Sserafim', 'gf');
+            game.triggerEvent('Change Character Sserafim', 'bf');
 
             sserafimGf.visible = false;
             sserafimBf.visible = false;
@@ -358,6 +356,61 @@ class SserafimStage extends BaseStage
           endStuff();
         case 'sserafimBeautiful':
           ssGF.isBeautiful = value1.toLowerCase() == "true";
+        case 'Change Character Sserafim':
+          var charType:Int = 0;
+          switch (value1.toLowerCase().trim())
+          {
+            case 'gf' | 'girlfriend':
+              charType = 2;
+            case 'dad' | 'opponent':
+              charType = 1;
+            default:
+              charType = Std.parseInt(value1);
+              if(Math.isNaN(charType)) charType = 0;
+          }
+
+          switch(charType) {
+            case 0:
+              var oldChar = boyfriend;
+              boyfriend.alpha = 0.00001;
+              boyfriend.shader = null;
+              boyfriend = ssBF;
+              boyfriend.alpha = 1;
+              iconP1.changeIcon(boyfriend.healthIcon);
+              for (field in playfields.members) {
+                if (field.owner == oldChar) field.owner = boyfriend;
+                if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? boyfriend : curChar);
+              }
+              game.setOnScripts('boyfriendName', boyfriend.curCharacter);
+
+            case 1:
+              var oldChar = dad;
+              dad.alpha = 0.00001;
+              dad.shader = null;
+              dad = ssDad;
+              dad.alpha = 1;
+              iconP2.changeIcon(dad.healthIcon);
+              for (field in playfields.members) {
+                if (field.owner == oldChar) field.owner = dad;
+                if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? dad : curChar);
+              }
+              setOnScripts('dadName', dad.curCharacter);
+
+            case 2:
+              if(gf != null)
+              {
+                var oldChar = gf;
+                gf.alpha = 0.00001;
+                gf.shader = null;
+                gf = ssGF;
+                gf.alpha = 1;
+                for (field in playfields.members) {
+                  if (field.owner == oldChar) field.owner = gf;
+                  if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? gf : curChar);
+                }
+                setOnScripts('gfName', gf.curCharacter);
+              }
+          }
       }
 
     super.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime);
@@ -589,7 +642,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
-      //game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad');
       return;
     }
 
@@ -607,7 +660,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
-      //game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad');
     }
   }
 
@@ -651,7 +704,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       canPause = true;
       camHUD.visible = true;
-      //game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad');
     }
 
     cutsceneHandler.skipCallback = skipCutscene;
@@ -889,7 +942,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       camHUD.visible = true;
       playCutsceneFromRestart();
-      //game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad');
     });
   }
 

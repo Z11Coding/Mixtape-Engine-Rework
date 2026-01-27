@@ -38,7 +38,7 @@ class SserafimKazuhaCharacter extends Character
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-kazuha', true, DAD);
+    super(x, y, 'sserafim-kazuha', false, DAD);
     lipSyncSprite = new SserafimLipSyncSprite(0, 0);
     lipSyncSprite.flipX = true;
 
