@@ -1,0 +1,81 @@
+// // YScript Nested Classes Test
+// // Tests the new sophisticated scope-based nested class functionality
+
+// class OuterClass {
+//     var outerField: String;
+
+//     function new() {
+//         outerField = "Hello from outer!";
+//     }
+
+//     // Class-body scoped nested class - accessible from entire OuterClass
+//     class ClassBodyNested {
+//         var message: String;
+
+//         function new() {
+//             message = "I'm class-body scoped!";
+//         }
+
+//         function getMessage(): String {
+//             return message;
+//         }
+//     }
+
+//     function createClassBodyNested(): ClassBodyNested {
+//         return new ClassBodyNested();
+//     }
+
+//     function methodWithNestedClass(): String {
+//         // Method-scoped nested class - only accessible within this method
+//         class MethodNested {
+//             var methodMessage: String;
+
+//             function new() {
+//                 methodMessage = "I'm method-scoped!";
+//             }
+
+//             function getMethodMessage(): String {
+//                 return methodMessage;
+//             }
+//         }
+
+//         var nested = new MethodNested();
+//         return nested.getMethodMessage();
+//     }
+
+//     function testVariableScopedClass(): String {
+//         // Variable-scoped nested class - stored in a Class<T> typed variable
+//         var VariableNestedClass: Class<VariableNested> = class VariableNested {
+//             var varMessage: String;
+
+//             function new() {
+//                 varMessage = "I'm variable-scoped!";
+//             }
+
+//             function getVarMessage(): String {
+//                 return varMessage;
+//             }
+//         };
+
+//         var instance = Type.createInstance(VariableNestedClass, []);
+//         return instance.getVarMessage();
+//     }
+
+//     function testAllScopes(): String {
+//         var classNested = new ClassBodyNested();
+//         var methodResult = methodWithNestedClass();
+//         var variableResult = testVariableScopedClass();
+
+//         return classNested.getMessage() + " | " + methodResult + " | " + variableResult;
+//     }
+// }
+
+// // Test the sophisticated scope-based nested functionality
+// function testSophisticatedNestedClasses(): Void {
+//     var outer = new OuterClass();
+//     var result = outer.testAllScopes();
+//     trace("Sophisticated scope result: " + result);
+// }
+
+// // Module-level call to test
+// testSophisticatedNestedClasses();
