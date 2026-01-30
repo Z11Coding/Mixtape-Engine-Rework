@@ -25,7 +25,7 @@ enum MainMenuColumn {
 class MainMenuState extends MusicBeatState
 {
 	public static var psychEngineVersion:String = '1.0.4'; // This is also used for Discord RPC
-	public static var mixtapeEngineVersion:String = '4.9.25'; // this is used for Discord RPC
+	public static var mixtapeEngineVersion:String = '4.10.0'; // this is used for Discord RPC
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 	private var archButton:PsychUIButton;

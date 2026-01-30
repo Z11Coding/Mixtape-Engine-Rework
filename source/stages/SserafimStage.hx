@@ -185,11 +185,6 @@ class SserafimStage extends BaseStage
     dust4.shader = stageShader;
     dust4.spacing.x -= 10;
 
-    add(dust1);
-    add(dust2);
-    add(dust3);
-    add(dust4);
-
     dust1.color = 0xff98847d;
     dust2.color = 0xff8b6c63;
     dust3.color = 0xff6e645c;
@@ -201,23 +196,25 @@ class SserafimStage extends BaseStage
 
     ssGF = new SserafimGirlfriendCharacter(0, 0);
     ssGF.scrollFactor.set(0.95, 0.95);
-    game.gfMap.set('ssGF', ssGF);
     game.gfGroup.add(ssGF);
-    ssGF.alpha = 0.00001;
+    ssGF.alpha = 0;
 
     ssBF = new SserafimSakuraCharacter(0, 0);
-    game.boyfriendMap.set('ssBF', ssBF);
     game.boyfriendGroup.add(ssBF);
-    ssBF.alpha = 0.00001;
+    ssBF.alpha = 0;
 
     ssDad = new SserafimKazuhaCharacter(0, 0);
-    game.dadMap.set('ssDad', ssDad);
     game.dadGroup.add(ssDad);
-    ssDad.alpha = 0.00001;
+    ssDad.alpha = 0;
 
     game.dadGroup2.add(yunjin);
     game.gfGroup.add(chaewon);
     game.dadGroup2.add(eunchae);
+
+    add(dust1);
+    add(dust2);
+    add(dust3);
+    add(dust4);
 
     yunjin.scrollFactor.set(0.95, 0.95);
     chaewon.scrollFactor.set(0.95, 0.95);
@@ -326,8 +323,8 @@ class SserafimStage extends BaseStage
             // and show the REAL gf
             game.gf.visible = true;
 
-            game.triggerEvent('Change Character', 'gf', 'ssGF');
-            game.triggerEvent('Change Character', 'bf', 'ssBF');
+            game.triggerEvent('Change Character Sserafim', 'gf', 'ssGF');
+            game.triggerEvent('Change Character Sserafim', 'bf', 'ssBF');
 
             sserafimGf.visible = false;
             sserafimBf.visible = false;
@@ -359,6 +356,70 @@ class SserafimStage extends BaseStage
           endStuff();
         case 'sserafimBeautiful':
           ssGF.isBeautiful = value1.toLowerCase() == "true";
+        case 'SetHealthIcon':
+          switch(Std.parseInt(value1)) {
+            case 0:
+              game.iconP1.changeIcon(value2);
+            case 1:
+              game.iconP2.changeIcon(value2);
+            default:
+              trace("[WARNING] Index was incorrect!");
+          }
+        case 'Change Character Sserafim':
+          var charType:Int = 0;
+          switch (value1.toLowerCase().trim())
+          {
+            case 'gf' | 'girlfriend':
+              charType = 2;
+            case 'dad' | 'opponent':
+              charType = 1;
+            default:
+              charType = Std.parseInt(value1);
+              if(Math.isNaN(charType)) charType = 0;
+          }
+
+          switch(charType) {
+            case 0:
+              var oldChar = game.boyfriend;
+              game.boyfriend.alpha = 0.00001;
+              game.boyfriend.shader = null;
+              game.boyfriend = ssBF;
+              game.boyfriend.alpha = 1;
+              game.iconP1.changeIcon(game.boyfriend.healthIcon);
+              for (field in game.playfields.members) {
+                if (field.owner == oldChar) field.owner = game.boyfriend;
+                if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? game.boyfriend : curChar);
+              }
+              game.setOnScripts('boyfriendName', game.boyfriend.curCharacter);
+
+            case 1:
+              var oldChar = game.dad;
+              game.dad.alpha = 0.00001;
+              game.dad.shader = null;
+              game.dad = ssDad;
+              game.dad.alpha = 1;
+              game.iconP2.changeIcon(game.dad.healthIcon);
+              for (field in game.playfields.members) {
+                if (field.owner == oldChar) field.owner = game.dad;
+                if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? game.dad : curChar);
+              }
+              game.setOnScripts('dadName', game.dad.curCharacter);
+
+            case 2:
+              if(game.gf != null)
+              {
+                var oldChar = game.gf;
+                game.gf.alpha = 0.00001;
+                game.gf.shader = null;
+                game.gf = ssGF;
+                game.gf.alpha = 1;
+                for (field in game.playfields.members) {
+                  if (field.owner == oldChar) field.owner = game.gf;
+                  if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? game.gf : curChar);
+                }
+                game.setOnScripts('gfName', game.gf.curCharacter);
+              }
+          }
       }
 
     super.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime);
@@ -485,9 +546,13 @@ class SserafimStage extends BaseStage
     lightsEnabled = enabled;
     if (colors == null || durations == null || intensities == null) return;
 
-    lightsColors = [for (i in 0...colors.length) FlxColor.fromString(colors[i])];
+    trace('colors: $colors');
+    trace('durations: $durations');
+    lightsColors = [for (i in 0...colors.length) FlxColor.fromString(FlxColor.fromString(colors[i]).toWebString())]; // This aggervates me
     lightsDurations = durations;
     lightsIntensities = intensities;
+    trace('colors: $lightsColors');
+    trace('durations: $lightsDurations');
   }
 
   function flashBackLight(amount:Float, duration:Float, color:FlxColor)
@@ -521,22 +586,23 @@ class SserafimStage extends BaseStage
     FlxTween.tween(backLightWhite, {alpha: 0}, duration, {ease: FlxEase.cubeInOut});
   }
 
+  var localBeat:Int = 0; // I love having to do things manually /lie
   override function beatHit()
   {
+    localBeat++;
     super.beatHit();
     // flash lights behind truck
-    if (lightsEnabled) flashBackLight(lightsIntensities[curBeat % lightsIntensities.length], lightsDurations[curBeat % lightsDurations.length],
-      lightsColors[curBeat % lightsColors.length]);
-    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && (!chaewon.getAnimationName().startsWith('sing') || chaewon.getCurrentAnimation().startsWith('sing') && chaewon.isAnimationFinished()) && !chaewon.stunned) {
+    if (lightsEnabled) flashBackLight(lightsIntensities[localBeat % lightsIntensities.length], lightsDurations[localBeat % lightsDurations.length], lightsColors[localBeat % lightsColors.length]);
+    if (chaewon != null && chaewon.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * chaewon.danceEveryNumBeats) == 0 && (!chaewon.getAnimationName().startsWith('sing') || chaewon.getCurrentAnimation().startsWith('sing') && chaewon.isAnimationFinished()) && !chaewon.stunned) {
 			chaewon.dance();
     }
-    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && (!yunjin.getAnimationName().startsWith('sing') || yunjin.getCurrentAnimation().startsWith('sing') && yunjin.isAnimationFinished()) && !yunjin.stunned) {
+    if (yunjin != null && yunjin.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * yunjin.danceEveryNumBeats) == 0 && (!yunjin.getAnimationName().startsWith('sing') || yunjin.getCurrentAnimation().startsWith('sing') && yunjin.isAnimationFinished()) && !yunjin.stunned) {
 			yunjin.dance();
     }
-    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && (!eunchae.getAnimationName().startsWith('sing') || eunchae.getCurrentAnimation().startsWith('sing') && eunchae.isAnimationFinished()) && !eunchae.stunned) {
+    if (eunchae != null && eunchae.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * eunchae.danceEveryNumBeats) == 0 && (!eunchae.getAnimationName().startsWith('sing') || eunchae.getCurrentAnimation().startsWith('sing') && eunchae.isAnimationFinished()) && !eunchae.stunned) {
 			eunchae.dance();
     }
-    if (ssDad != null && ssDad.danceEveryNumBeats > 0 && curBeat % Math.round(game.gfSpeed * ssDad.danceEveryNumBeats) == 0 && (!ssDad.getAnimationName().startsWith('sing') || ssDad.getCurrentAnimation().startsWith('sing') && ssDad.isAnimationFinished()) && !ssDad.stunned) {
+    if (ssDad != null && ssDad.danceEveryNumBeats > 0 && localBeat % Math.round(game.gfSpeed * ssDad.danceEveryNumBeats) == 0 && (!ssDad.getAnimationName().startsWith('sing') || ssDad.getCurrentAnimation().startsWith('sing') && ssDad.isAnimationFinished()) && !ssDad.stunned) {
 			ssDad.dance();
     }
   }
@@ -589,7 +655,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad', 'ssDad');
       return;
     }
 
@@ -607,7 +673,7 @@ class SserafimStage extends BaseStage
       cutsceneSkipped = true;
       playCutsceneFromRestart();
       startCountdown();
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad', 'ssDad');
     }
   }
 
@@ -651,7 +717,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       canPause = true;
       camHUD.visible = true;
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad', 'ssDad');
     }
 
     cutsceneHandler.skipCallback = skipCutscene;
@@ -889,7 +955,7 @@ class SserafimStage extends BaseStage
       startCountdown();
       camHUD.visible = true;
       playCutsceneFromRestart();
-      game.triggerEvent('Change Character', 'dad', 'ssDad');
+      game.triggerEvent('Change Character Sserafim', 'dad', 'ssDad');
     });
   }
 
