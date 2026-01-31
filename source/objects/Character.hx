@@ -585,7 +585,7 @@ class Character extends FunkinSprite
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
 		var ret:Dynamic = PlayState.instance?.callOnScripts('onPlayAnimPre', [AnimName, Force, Reversed, Frame]);
-		if(ret != LuaUtils.Function_Stop) {
+		if(ret != LuaUtils.Function_Stop && hasAnimation(AnimName)) { // Don't bother if it aint there
 			specialAnim = false;
 			if(!isAnimateAtlas)
 			{
@@ -594,8 +594,9 @@ class Character extends FunkinSprite
 			}
 			else
 			{
-				anim.play(AnimName, Force, Reversed, Frame);
-				update(0);
+				try {anim.play(AnimName, Force, Reversed, Frame);
+				update(0);}
+				catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
 			}
 			_lastPlayedAnimation = AnimName;
 

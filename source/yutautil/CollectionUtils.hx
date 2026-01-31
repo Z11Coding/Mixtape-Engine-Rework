@@ -1970,6 +1970,38 @@ class CollectionUtils
 		return type != null ? cast arr : arr;
 	}
 
+	// Specifically for the mf addAnimationIfMissing
+	public static inline function keysToStringArray<T>(input:Dynamic, ?type):Array<String>
+	{
+		var arr:Array<String>;
+		if (Std.is(input, Array))
+		{
+			arr = input;
+		}
+		else if (Std.is(input, IMap))
+		{
+			arr = [];
+			for (key in (input : Map<Dynamic, T>).keys())
+			{
+				arr.push(key);
+			}
+		}
+		else if (Reflect.hasField(input, "iterator") || (Reflect.hasField(input, "hasNext") && Reflect.hasField(input, "next")))
+		{
+			arr = [];
+			for (item in (input : Array<String>))
+			{
+				arr.push(item);
+			}
+		}
+		else
+		{
+			arr = [input];
+		}
+		// If type is provided, cast to Array<type>
+		return type != null ? cast arr : arr;
+	}
+
 	/**
 	 * Casts an `Int` to a `Float`.
 	 * Only useful for casting Ints to Floats in Abstracts, as the implicit casting is disabled in these cases.

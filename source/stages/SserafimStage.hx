@@ -297,7 +297,7 @@ class SserafimStage extends BaseStage
       case 'sserafimFlash':
         flashScreen(Std.parseFloat(value1));
       case 'sserafimPulseLights':
-        var threekings:Array<String> = value1.replace('[', '').replace(']', '').split(',');
+        var threekings:Array<String> = value1.replace('[', '').replace(']', '').trim().split(',');
         var throneDur:Array<Float> = [];
         var kingInt:Array<Float> = [];
         for (king in 0...threekings.length) {
@@ -548,6 +548,11 @@ class SserafimStage extends BaseStage
 
     trace('colors: $colors');
     trace('durations: $durations');
+    for (i in 0...colors.length) {
+      trace('colors: ${colors[i]}');
+      trace('colors to web string: ${FlxColor.fromString(colors[i]).toWebString()}');
+      trace('colors to int from webstring: ${FlxColor.fromString(FlxColor.fromString(colors[i]).toWebString())}');
+    }
     lightsColors = [for (i in 0...colors.length) FlxColor.fromString(FlxColor.fromString(colors[i]).toWebString())]; // This aggervates me
     lightsDurations = durations;
     lightsIntensities = intensities;

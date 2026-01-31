@@ -489,7 +489,7 @@ class Main extends Sprite
 
 		function slowFunction():String {
 			trace("ASync: Starting slow operation...");
-			Sys.sleep(8.0); // Wait 8 seconds
+			Sys.sleep(FlxG.random.float(0, 8)); // Wait around 8 seconds
 			trace("ASync: Slow operation completed!");
 			return "Async operation completed successfully!";
 		}
