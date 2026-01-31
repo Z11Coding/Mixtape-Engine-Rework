@@ -232,6 +232,27 @@ class Main extends Sprite
 		}
 		#end
 
+		// var fold: yutautil.Fold<{name:String, age:Int}> = {
+		// 	name: "John Doe",
+		// 	age: 30,
+		// 	extraField: "This field is extra and should be allowed"
+		// };
+
+		// var fold2: yutautil.Fold<{x:Float, y:Float}> = {
+		// 	x: 10.5,
+		// 	y: 20.3,
+		// 	additionalInfo: "Extra data allowed here"
+		// };
+
+		// var fold3: yutautil.Fold<{x:Float}> = {y: 0}; // Missing 'x' field, should cause compile-time error if validated
+
+		// var name: String = fold.name;
+		// var age: Int = fold.age;
+		// trace("Fold Test: Name = " + name + ", Age = " + age);
+		// trace("Fold2 Test: x = " + fold2.x + ", y = " + fold2.y);
+		// trace("Fold3 Test: x = " + fold3.x);
+		// // trace("Test invalid: " + fold3.y); // Should cause compile-time error if validated
+
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
 		Lib.current.addChild(new archipelago.console.SideUI());
