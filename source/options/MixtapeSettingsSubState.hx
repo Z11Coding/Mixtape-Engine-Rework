@@ -858,6 +858,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.scrollSpeed = 10;
 		addOption(option);
 
+		var option:Option = new Option('YScript Debug Mode',
+			"If checked, YScript will trace detailed execution information including statements, expressions, and function calls for debugging purposes.",
+			'yscriptDebugMode',
+			BOOL);
+		addOption(option);
+
 		#if sys
 		var option:Option = new Option('Use Trace Threading',
 			"Process console traces on separate thread for better performance (experimental)",

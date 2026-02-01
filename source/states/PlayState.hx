@@ -12100,6 +12100,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		try
 		{
 			newScript = new YScript();
+
+			// Attach to PlayState for error reporting before onCreate
+			newScript.attachToPlayState(this);
+
 			newScript.loadFromFile(file);
 			if (newScript.hasFunction('onCreate')) {
 				newScript.callFunction('onCreate');
@@ -12231,10 +12235,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		for(script in yscriptArray)
 		{
-			var callValue = script.callFunction(funcToCall, args);
+			var callValue = script.hasFunction(funcToCall) ? script.callFunction(funcToCall, args) : null;
 			if(callValue != null)
 			{
-				var myValue:Dynamic = callValue.returnValue;
+				var myValue:Dynamic = callValue; // YScript returns values directly, not wrapped in returnValue
 
 				if((myValue == LuaUtils.Function_StopYScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
 				{

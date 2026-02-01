@@ -26,6 +26,7 @@ class MathHelper {
 
 // Module-level utility function
 function quickAdd(x: Float, y: Float): Float {
+    trace('Adding $x and $y');
     return x + y;
 }
 

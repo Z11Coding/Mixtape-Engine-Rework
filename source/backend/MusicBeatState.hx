@@ -1119,7 +1119,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	 * Handle garbage collection behavior for this state
 	 */
 	private function handleGarbageCollection():Void {
-		if (!GarbageController.isExperimentalMode()) {return; didGCBehavior = true;}
+		if (!GarbageController.isExperimentalMode()) {didGCBehavior = true; return;}
 
 		var behavior = determineGCBehavior();
 

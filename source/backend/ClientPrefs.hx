@@ -259,6 +259,7 @@ import states.TitleState;
 	public var traceMode:String = "CONSOLE"; // CONSOLE, GAME, or BOTH
 	public var maxInGameTraces:Int = 100; // Maximum traces to keep in memory for in-game viewer
 	public var ignoreThrows:Bool = false; // DANGEROUS: Ignores all throws in crash handler - only prevents crash escalation
+	public var yscriptDebugMode:Bool = false; // Enable YScript execution tracing for debugging
 
 	// Plus Engine cool stuff
 	public var accuracySystem:String = 'Wife3'; // 'Wife3', 'Psych', 'Mixtape, 'Simple', 'osu!mania', 'DJMAX', 'ITG'

@@ -506,6 +506,7 @@ class LoadingState extends MusicBeatState
 			{
 				_loaded();
 				var _donePlayState:Bool = preloadAsync != null && preloadAsync.get();
+				trace('LoadingState: Preload completed: ' + _donePlayState);
 				preloadAsync = null;
 				break;
 			}

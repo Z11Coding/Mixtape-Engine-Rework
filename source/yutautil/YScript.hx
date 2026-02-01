@@ -156,6 +156,11 @@ class YFunction {
         this.parameters = params;
         this.returnType = returnType;
         this.body = body;
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YFunction created: ${this.name} with return type ${YTypeHelper.toString(this.returnType)}');
+        }
+        #end
     }
 
     public function callNative(args:Array<Dynamic>):Dynamic {
@@ -180,64 +185,64 @@ enum YFunctionBody {
 // ═══════════════════════════════════════════════════════════════════════════════════════
 
 /**
- * YScript Abstract Syntax Tree
+ * YScript Abstract Syntax Tree with location tracking
  */
 enum YStatement {
     // Imports and declarations
-    Import(path:String, alias:Null<String>); // import path.to.Class or import path.to.Class as Alias
-    VarDecl(name:String, type:YType, init:Null<YExpression>);
-    FuncDecl(name:String, params:Array<YVar>, returnType:YType, body:YFunctionBody);
-    ClassDecl(name:String, extend:Null<String>, implement:Array<String>, body:Array<YStatement>);
+    Import(path:String, alias:Null<String>, location:YLocation); // import path.to.Class or import path.to.Class as Alias
+    VarDecl(name:String, type:YType, init:Null<YExpression>, location:YLocation);
+    FuncDecl(name:String, params:Array<YVar>, returnType:YType, body:YFunctionBody, location:YLocation);
+    ClassDecl(name:String, extend:Null<String>, implement:Array<String>, body:Array<YStatement>, location:YLocation);
 
     // Control flow
-    If(condition:YExpression, thenStmt:YStatement, elseStmt:Null<YStatement>);
-    While(condition:YExpression, body:YStatement);
-    For(init:Null<YStatement>, condition:Null<YExpression>, increment:Null<YExpression>, body:YStatement);
-    Return(value:Null<YExpression>);
-    Break;
-    Continue;
+    If(condition:YExpression, thenStmt:YStatement, elseStmt:Null<YStatement>, location:YLocation);
+    While(condition:YExpression, body:YStatement, location:YLocation);
+    For(init:Null<YStatement>, condition:Null<YExpression>, increment:Null<YExpression>, body:YStatement, location:YLocation);
+    Return(value:Null<YExpression>, location:YLocation);
+    Break(location:YLocation);
+    Continue(location:YLocation);
 
     // Blocks and expressions
-    Block(statements:Array<YStatement>);
-    Expression(expr:YExpression);
+    Block(statements:Array<YStatement>, location:YLocation);
+    Expression(expr:YExpression, location:YLocation);
 
     // Embedded code
-    HaxeBlock(code:String);
-    LuaBlock(code:String);
+    HaxeBlock(code:String, location:YLocation);
+    LuaBlock(code:String, location:YLocation);
 }
 
 enum YExpression {
     // Literals
-    IntLiteral(value:Int);
-    FloatLiteral(value:Float);
-    StringLiteral(value:String);
-    BoolLiteral(value:Bool);
-    NullLiteral;
-    ArrayLiteral(elements:Array<YExpression>);
-    ObjectLiteral(fields:Array<{name:String, value:YExpression}>);
+    IntLiteral(value:Int, location:YLocation);
+    FloatLiteral(value:Float, location:YLocation);
+    StringLiteral(value:String, location:YLocation);
+    BoolLiteral(value:Bool, location:YLocation);
+    NullLiteral(location:YLocation);
+    ArrayLiteral(elements:Array<YExpression>, location:YLocation);
+    ObjectLiteral(fields:Array<{name:String, value:YExpression}>, location:YLocation);
 
     // Identifiers and access
-    Identifier(name:String);
-    MemberAccess(object:YExpression, member:String);
-    ArrayAccess(array:YExpression, index:YExpression);
+    Identifier(name:String, location:YLocation);
+    MemberAccess(object:YExpression, member:String, location:YLocation);
+    ArrayAccess(array:YExpression, index:YExpression, location:YLocation);
 
     // Super calls and access
-    SuperCall(args:Array<YExpression>); // super(args) in constructor
-    SuperMemberAccess(member:String); // super.method or super.field
-    SuperMethodCall(method:String, args:Array<YExpression>); // super.method(args)
+    SuperCall(args:Array<YExpression>, location:YLocation); // super(args) in constructor
+    SuperMemberAccess(member:String, location:YLocation); // super.method or super.field
+    SuperMethodCall(method:String, args:Array<YExpression>, location:YLocation); // super.method(args)
 
     // Operations
-    BinaryOp(left:YExpression, op:String, right:YExpression);
-    UnaryOp(op:String, operand:YExpression);
-    Assignment(left:YExpression, right:YExpression);
+    BinaryOp(left:YExpression, op:String, right:YExpression, location:YLocation);
+    UnaryOp(op:String, operand:YExpression, location:YLocation);
+    Assignment(left:YExpression, right:YExpression, location:YLocation);
 
     // Function and constructor calls
-    FunctionCall(func:YExpression, args:Array<YExpression>);
-    New(type:YType, args:Array<YExpression>);
+    FunctionCall(func:YExpression, args:Array<YExpression>, location:YLocation);
+    New(type:YType, args:Array<YExpression>, location:YLocation);
 
     // Type operations
-    Cast(expr:YExpression, type:YType);
-    Is(expr:YExpression, type:YType);
+    Cast(expr:YExpression, type:YType, location:YLocation);
+    Is(expr:YExpression, type:YType, location:YLocation);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -340,6 +345,11 @@ class YScriptError extends haxe.Exception {
 				else {
 						super(message);
 				}
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScriptError created: $message at ${location != null ? '${location.file}:${location.line}:${location.column}' : 'unknown location'}');
+        }
+        #end
     }
 
     private function addYScriptStackFrame(location:YLocation, ?scriptPath:String, message:String):String {
@@ -395,6 +405,125 @@ typedef YLocation = {
     column:Int
 };
 
+/**
+ * Error severity levels for YScript errors
+ */
+enum YScriptErrorSeverity {
+    Warning;
+    Error;
+    Fatal;
+}
+
+/**
+ * Collected error information
+ */
+typedef YScriptCollectedError = {
+    error:YScriptError,
+    severity:YScriptErrorSeverity,
+    phase:String, // "parse", "runtime", "typecheck"
+    contextInfo:String
+};
+
+/**
+ * Enhanced error collection and reporting system
+ */
+class YScriptErrorCollector {
+    private var errors:Array<YScriptCollectedError> = [];
+    private var maxErrors:Int = 10;
+    private var stopOnFatal:Bool = true;
+    private var scriptPath:String;
+
+    public function new(scriptPath:String) {
+        this.scriptPath = scriptPath;
+    }
+
+    public function addError(error:YScriptError, severity:YScriptErrorSeverity, phase:String, ?contextInfo:String):Void {
+        var collected:YScriptCollectedError = {
+            error: error,
+            severity: severity,
+            phase: phase,
+            contextInfo: contextInfo ?? ""
+        };
+
+        errors.push(collected);
+
+        // Stop immediately on fatal errors
+        if (severity == Fatal && stopOnFatal) {
+            throw new YScriptRuntimeError('Fatal error: ${error.message}', error.location, error.scriptPath);
+        }
+
+        // Stop if too many errors accumulated
+        if (errors.length >= maxErrors) {
+            throw new YScriptRuntimeError('Too many errors (${errors.length}), stopping compilation', error.location, error.scriptPath);
+        }
+    }
+
+    public function hasErrors():Bool {
+        return errors.length > 0;
+    }
+
+    public function hasFatalErrors():Bool {
+        for (error in errors) {
+            if (error.severity == Fatal) return true;
+        }
+        return false;
+    }
+
+    public function getErrors():Array<YScriptCollectedError> {
+        return errors.copy();
+    }
+
+    public function getErrorCount():Int {
+        return errors.length;
+    }
+
+    public function clear():Void {
+        errors = [];
+    }
+
+    /**
+     * Generate comprehensive error report with context
+     */
+    public function generateReport():String {
+        if (errors.length == 0) return "No errors";
+
+        var report = '\n=== YScript Error Report for ${scriptPath} ===\n';
+        report += 'Total errors: ${errors.length}\n\n';
+
+        var errorsByPhase = new Map<String, Array<YScriptCollectedError>>();
+        for (error in errors) {
+            if (!errorsByPhase.exists(error.phase)) {
+                errorsByPhase.set(error.phase, []);
+            }
+            errorsByPhase.get(error.phase).push(error);
+        }
+
+        for (phase in errorsByPhase.keys()) {
+            var phaseErrors = errorsByPhase.get(phase);
+            report += '--- ${phase.toUpperCase()} ERRORS ---\n';
+
+            for (i in 0...phaseErrors.length) {
+                var err = phaseErrors[i];
+                var severityStr = switch (err.severity) {
+                    case Warning: "WARNING";
+                    case Error: "ERROR";
+                    case Fatal: "FATAL";
+                };
+
+                report += '${i + 1}. ${severityStr}\n';
+                report += '   Location: ${err.error.location != null ? '${err.error.location.file}:${err.error.location.line}:${err.error.location.column}' : 'unknown'}\n';
+                report += '   Message: ${err.error.message}\n';
+                if (err.contextInfo.length > 0) {
+                    report += '   Context: ${err.contextInfo}\n';
+                }
+                report += '\n';
+            }
+        }
+
+        return report;
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════════════
 // MAIN YSCRIPT CLASS
 // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -420,29 +549,173 @@ class YScript {
     public var hasErrors:Bool = false;
     public var lastError:String;
 
+    // Enhanced error collection system
+    private var errorCollector:YScriptErrorCollector;
+    #if !macro
+    private var attachedToPlayState:Bool = false;
+    private var playStateInstance:states.PlayState = null; // Reference to PlayState instance
+    #end
+
     public function new() {
         parser = new YScriptParser();
         runtime = new YScriptRuntime();
         scope = new YScope();
+        errorCollector = new YScriptErrorCollector("<unknown>");
         setupBuiltins();
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScript: Debug mode enabled - detailed execution tracing active');
+            trace('Haxe Compiler Defines detected: ' + Std.string(haxeCompilerDefines));
+        }
+        #end
     }
 
     /**
-     * ✅ INTEGRATION: Load script from source code
+     * Helper function to create a default location when location info isn't available
+     */
+    private function createDefaultLocation(file:String = "<unknown>"):YLocation {
+        return {
+            file: file,
+            line: 0,
+            column: 0
+        };
+    }
+
+    #if !macro
+    /**
+     * ✅ PLAYSTATE INTEGRATION: Attach to PlayState for error reporting
+     */
+    public function attachToPlayState(?playState:states.PlayState):Bool {
+        #if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+        try {
+            // If no specific instance provided, try to get current PlayState
+            if (playState == null) {
+                // Try to get PlayState from FlxG.state
+                var currentState = flixel.FlxG.state;
+                if (Std.isOfType(currentState, states.PlayState)) {
+                    playState = cast(currentState, states.PlayState);
+                } else {
+                    trace('YScript: Cannot attach to PlayState - current state is not PlayState');
+                    return false;
+                }
+            }
+
+            if (playState != null) {
+                playStateInstance = playState;
+                attachedToPlayState = true;
+            } else {
+                trace('YScript: Cannot attach to PlayState - instance is null');
+                return false;
+            }
+
+            trace('YScript: Successfully attached to PlayState for error reporting');
+            return true;
+
+        } catch (e:Dynamic) {
+            trace('YScript: Failed to attach to PlayState: $e');
+            return false;
+        }
+        #else
+        trace('YScript: PlayState integration not available - LUA_ALLOWED or HSCRIPT_ALLOWED required');
+        return false;
+        #end
+    }
+    #end
+
+    #if !macro
+    /**
+     * Forward error to PlayState debug system
+     */
+    private function forwardErrorToPlayState(message:String, ?isError:Bool = true):Void {
+        #if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+        if (attachedToPlayState && playStateInstance != null) {
+            try {
+                var color = isError ? flixel.util.FlxColor.RED : flixel.util.FlxColor.YELLOW;
+                playStateInstance.addTextToDebug(message, color);
+            } catch (e:Dynamic) {
+                trace('YScript: Failed to forward error to PlayState: $e');
+            }
+        }
+        #end
+    }
+    #end
+
+    /**
+     * Show error window for critical parse errors
+     */
+    private function showErrorWindow(title:String, message:String):Void {
+        #if macro
+        // In macro context, always use trace as window dialogs are not available
+        trace('YScript Error: $title - $message');
+        #else
+        try {
+            // Fallback to native alert
+            #if desktop
+            lime.app.Application.current.window.alert(message, title);
+            #end
+        } catch (e:Dynamic) {
+            trace('YScript: Failed to show error window: $e');
+            // Last resort - trace the error
+            trace('YScript Error: $title - $message');
+        }
+        #end
+    }
+
+    /**
+     * ✅ INTEGRATION: Load script from source code with enhanced error handling
      */
     public function loadFromSource(source:String, ?path:String):Bool {
         try {
             this.scriptPath = path ?? "<inline>";
+            errorCollector = new YScriptErrorCollector(this.scriptPath);
             scope.setExecutionContext(this.scriptPath);
+
+            // Enhanced parsing with error collection
+            parser.setErrorCollector(errorCollector);
             var program = parser.parse(source, this.scriptPath);
+
+            // Check for parse errors
+            if (errorCollector.hasErrors()) {
+                hasErrors = true;
+                lastError = "Parse errors occurred";
+
+                var errorReport = errorCollector.generateReport();
+                trace('YScript Parse Errors:\n$errorReport');
+
+                // Forward errors to PlayState if attached
+                #if !macro
+                forwardErrorToPlayState('YScript Parse Error in ${this.scriptPath}', true);
+                #end
+
+                // Show error window for fatal parse errors
+                if (errorCollector.hasFatalErrors()) {
+                    showErrorWindow("YScript Parse Error", 'Fatal parse errors in ${this.scriptPath}:\n\n${errorReport}');
+                    return false;
+                }
+
+                // For non-fatal errors, show warning but continue
+                showErrorWindow("YScript Parse Warning", 'Parse warnings in ${this.scriptPath}:\n\n${errorReport}');
+            }
+
             runtime.initialize(program, scope);
             isReady = true;
             hasErrors = false;
+            trace('[YScript] Loaded script!');
+            if (path != null && path.length > 0) {
+                trace('[YScript] Script path: ' + path);
+            }
             return true;
         } catch (e:YScriptError) {
             hasErrors = true;
             lastError = e.message;
             trace('YScript: Failed to load script: ${e.message}');
+
+            // Forward to PlayState and show error window
+            #if !macro
+            forwardErrorToPlayState('YScript Error: ${e.message}', true);
+            #end
+            showErrorWindow("YScript Critical Error", 'Failed to load ${this.scriptPath}:\n\n${e.message}');
+
             return false;
         }
     }
@@ -587,6 +860,9 @@ class YScript {
         } catch (e:YScriptError) {
             hasErrors = true;
             lastError = e.message;
+            // forwardErrorToPlayState('YScript Error: Failed to call function $name: ${e.message}', true);
+
+            trace('YScript: Failed to call function $name: ${e.message}');
             return null;
         }
     }
@@ -747,7 +1023,7 @@ class YScript {
     /**
      * ✅ HAXE INTEGRATION: Register Haxe function for use in YScript
      */
-    public function registerHaxeFunction(name:String, func:Dynamic):Void {
+    public function registerHaxeFunction(name:String, func:haxe.Constraints.Function):Void {
         var yfunc = new YFunction(name, [], YType.Dynamic, YFunctionBody.Native(func));
         yfunc.isNative = true;
         yfunc.nativeFunction = func;
@@ -780,7 +1056,8 @@ class YScript {
      */
     private function setupBuiltins():Void {
         // Built-in functions
-        registerHaxeFunction("trace", function(msg:Dynamic) { trace(msg); });
+        // Trace adds location info.
+        registerHaxeFunction("trace", function(msg:Dynamic) { Sys.println('${this.scriptPath}:${this.runtime.scope.currentLocation.line ?? this.scope.currentLocation.line}: ${msg}'); });
         registerHaxeFunction("print", function(msg:Dynamic) { Sys.println(Std.string(msg)); });
 
         // Built-in types
@@ -876,33 +1153,33 @@ class YScript {
      */
     private function serializeStatement(stmt:YStatement):YStatementData {
         return switch (stmt) {
-            case Import(path, alias):
+            case Import(path, alias, location):
                 {type: "Import", data: {path: path, alias: alias}};
-            case VarDecl(name, type, init):
+            case VarDecl(name, type, init, location):
                 {type: "VarDecl", data: {name: name, type: serializeType(type), init: init != null ? serializeExpression(init) : null}};
-            case FuncDecl(name, params, returnType, body):
+            case FuncDecl(name, params, returnType, body, location):
                 {type: "FuncDecl", data: {name: name, params: [for (p in params) serializeVar(p)], returnType: serializeType(returnType), body: serializeFunctionBody(body)}};
-            case ClassDecl(name, extend, implement, body):
+            case ClassDecl(name, extend, implement, body, location):
                 {type: "ClassDecl", data: {name: name, extend: extend, implement: implement, body: [for (s in body) serializeStatement(s)]}};
-            case If(condition, thenStmt, elseStmt):
+            case If(condition, thenStmt, elseStmt, location):
                 {type: "If", data: {condition: serializeExpression(condition), thenStmt: serializeStatement(thenStmt), elseStmt: elseStmt != null ? serializeStatement(elseStmt) : null}};
-            case While(condition, body):
+            case While(condition, body, location):
                 {type: "While", data: {condition: serializeExpression(condition), body: serializeStatement(body)}};
-            case For(init, condition, increment, body):
+            case For(init, condition, increment, body, location):
                 {type: "For", data: {init: init != null ? serializeStatement(init) : null, condition: condition != null ? serializeExpression(condition) : null, increment: increment != null ? serializeExpression(increment) : null, body: serializeStatement(body)}};
-            case Return(value):
+            case Return(value, location):
                 {type: "Return", data: {value: value != null ? serializeExpression(value) : null}};
-            case Break:
+            case Break(location):
                 {type: "Break", data: {}};
-            case Continue:
+            case Continue(location):
                 {type: "Continue", data: {}};
-            case Block(statements):
+            case Block(statements, location):
                 {type: "Block", data: {statements: [for (s in statements) serializeStatement(s)]}};
-            case Expression(expr):
+            case Expression(expr, location):
                 {type: "Expression", data: {expr: serializeExpression(expr)}};
-            case HaxeBlock(code):
+            case HaxeBlock(code, location):
                 {type: "HaxeBlock", data: {code: code}};
-            case LuaBlock(code):
+            case LuaBlock(code, location):
                 {type: "LuaBlock", data: {code: code}};
         };
     }
@@ -912,45 +1189,45 @@ class YScript {
      */
     private function serializeExpression(expr:YExpression):YExpressionData {
         return switch (expr) {
-            case IntLiteral(value):
+            case IntLiteral(value, location):
                 {type: "IntLiteral", data: {value: value}};
-            case FloatLiteral(value):
+            case FloatLiteral(value, location):
                 {type: "FloatLiteral", data: {value: value}};
-            case StringLiteral(value):
+            case StringLiteral(value, location):
                 {type: "StringLiteral", data: {value: value}};
-            case BoolLiteral(value):
+            case BoolLiteral(value, location):
                 {type: "BoolLiteral", data: {value: value}};
-            case NullLiteral:
+            case NullLiteral(location):
                 {type: "NullLiteral", data: {}};
-            case ArrayLiteral(elements):
+            case ArrayLiteral(elements, location):
                 {type: "ArrayLiteral", data: {elements: [for (e in elements) serializeExpression(e)]}};
-            case ObjectLiteral(fields):
+            case ObjectLiteral(fields, location):
                 {type: "ObjectLiteral", data: {fields: [for (f in fields) {name: f.name, value: serializeExpression(f.value)}]}};
-            case Identifier(name):
+            case Identifier(name, location):
                 {type: "Identifier", data: {name: name}};
-            case MemberAccess(object, member):
+            case MemberAccess(object, member, location):
                 {type: "MemberAccess", data: {object: serializeExpression(object), member: member}};
-            case ArrayAccess(array, index):
+            case ArrayAccess(array, index, location):
                 {type: "ArrayAccess", data: {array: serializeExpression(array), index: serializeExpression(index)}};
-            case SuperCall(args):
+            case SuperCall(args, location):
                 {type: "SuperCall", data: {args: [for (a in args) serializeExpression(a)]}};
-            case SuperMemberAccess(member):
+            case SuperMemberAccess(member, location):
                 {type: "SuperMemberAccess", data: {member: member}};
-            case SuperMethodCall(method, args):
+            case SuperMethodCall(method, args, location):
                 {type: "SuperMethodCall", data: {method: method, args: [for (a in args) serializeExpression(a)]}};
-            case BinaryOp(left, op, right):
+            case BinaryOp(left, op, right, location):
                 {type: "BinaryOp", data: {left: serializeExpression(left), op: op, right: serializeExpression(right)}};
-            case UnaryOp(op, operand):
+            case UnaryOp(op, operand, location):
                 {type: "UnaryOp", data: {op: op, operand: serializeExpression(operand)}};
-            case Assignment(left, right):
+            case Assignment(left, right, location):
                 {type: "Assignment", data: {left: serializeExpression(left), right: serializeExpression(right)}};
-            case FunctionCall(func, args):
+            case FunctionCall(func, args, location):
                 {type: "FunctionCall", data: {func: serializeExpression(func), args: [for (a in args) serializeExpression(a)]}};
-            case New(type, args):
+            case New(type, args, location):
                 {type: "New", data: {type: serializeType(type), args: [for (a in args) serializeExpression(a)]}};
-            case Cast(expr, type):
+            case Cast(expr, type, location):
                 {type: "Cast", data: {expr: serializeExpression(expr), type: serializeType(type)}};
-            case Is(expr, type):
+            case Is(expr, type, location):
                 {type: "Is", data: {expr: serializeExpression(expr), type: serializeType(type)}};
         };
     }
@@ -1054,24 +1331,24 @@ class YScript {
      */
     private function deserializeStatement(data:YStatementData):YStatement {
         return switch (data.type) {
-            case "Import": Import(data.data.path, data.data.alias);
-            case "VarDecl": VarDecl(data.data.name, deserializeType(data.data.type), data.data.init != null ? deserializeExpression(data.data.init) : null);
+            case "Import": Import(data.data.path, data.data.alias, createDefaultLocation());
+            case "VarDecl": VarDecl(data.data.name, deserializeType(data.data.type), data.data.init != null ? deserializeExpression(data.data.init) : null, createDefaultLocation());
             case "FuncDecl": {
                 var params = [for (p in cast(data.data.params, Array<Dynamic>)) deserializeVar(p)];
                 var body = deserializeFunctionBody(data.data.body);
-                FuncDecl(data.data.name, params, deserializeType(data.data.returnType), body);
+                FuncDecl(data.data.name, params, deserializeType(data.data.returnType), body, createDefaultLocation());
             };
-            case "ClassDecl": ClassDecl(data.data.name, data.data.extend, data.data.implement, [for (s in cast(data.data.body, Array<Dynamic>)) deserializeStatement(s)]);
-            case "If": If(deserializeExpression(data.data.condition), deserializeStatement(data.data.thenStmt), data.data.elseStmt != null ? deserializeStatement(data.data.elseStmt) : null);
-            case "While": While(deserializeExpression(data.data.condition), deserializeStatement(data.data.body));
-            case "For": For(data.data.init != null ? deserializeStatement(data.data.init) : null, data.data.condition != null ? deserializeExpression(data.data.condition) : null, data.data.increment != null ? deserializeExpression(data.data.increment) : null, deserializeStatement(data.data.body));
-            case "Return": Return(data.data.value != null ? deserializeExpression(data.data.value) : null);
-            case "Break": Break;
-            case "Continue": Continue;
-            case "Block": Block([for (s in cast(data.data.statements, Array<Dynamic>)) deserializeStatement(s)]);
-            case "Expression": Expression(deserializeExpression(data.data.expr));
-            case "HaxeBlock": HaxeBlock(data.data.code);
-            case "LuaBlock": LuaBlock(data.data.code);
+            case "ClassDecl": ClassDecl(data.data.name, data.data.extend, data.data.implement, [for (s in cast(data.data.body, Array<Dynamic>)) deserializeStatement(s)], createDefaultLocation());
+            case "If": If(deserializeExpression(data.data.condition), deserializeStatement(data.data.thenStmt), data.data.elseStmt != null ? deserializeStatement(data.data.elseStmt) : null, createDefaultLocation());
+            case "While": While(deserializeExpression(data.data.condition), deserializeStatement(data.data.body), createDefaultLocation());
+            case "For": For(data.data.init != null ? deserializeStatement(data.data.init) : null, data.data.condition != null ? deserializeExpression(data.data.condition) : null, data.data.increment != null ? deserializeExpression(data.data.increment) : null, deserializeStatement(data.data.body), createDefaultLocation());
+            case "Return": Return(data.data.value != null ? deserializeExpression(data.data.value) : null, createDefaultLocation());
+            case "Break": Break(createDefaultLocation());
+            case "Continue": Continue(createDefaultLocation());
+            case "Block": Block([for (s in cast(data.data.statements, Array<Dynamic>)) deserializeStatement(s)], createDefaultLocation());
+            case "Expression": Expression(deserializeExpression(data.data.expr), createDefaultLocation());
+            case "HaxeBlock": HaxeBlock(data.data.code, createDefaultLocation());
+            case "LuaBlock": LuaBlock(data.data.code, createDefaultLocation());
             default: throw new YScriptRuntimeError('Unknown statement type: ${data.type}');
         };
     }
@@ -1081,26 +1358,26 @@ class YScript {
      */
     private function deserializeExpression(data:YExpressionData):YExpression {
         return switch (data.type) {
-            case "IntLiteral": IntLiteral(data.data.value);
-            case "FloatLiteral": FloatLiteral(data.data.value);
-            case "StringLiteral": StringLiteral(data.data.value);
-            case "BoolLiteral": BoolLiteral(data.data.value);
-            case "NullLiteral": NullLiteral;
-            case "ArrayLiteral": ArrayLiteral([for (e in cast(data.data.elements, Array<Dynamic>)) deserializeExpression(e)]);
-            case "ObjectLiteral": ObjectLiteral([for (f in cast(data.data.fields, Array<Dynamic>)) {name: f.name, value: deserializeExpression(f.value)}]);
-            case "Identifier": Identifier(data.data.name);
-            case "MemberAccess": MemberAccess(deserializeExpression(data.data.object), data.data.member);
-            case "ArrayAccess": ArrayAccess(deserializeExpression(data.data.array), deserializeExpression(data.data.index));
-            case "SuperCall": SuperCall([for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
-            case "SuperMemberAccess": SuperMemberAccess(data.data.member);
-            case "SuperMethodCall": SuperMethodCall(data.data.method, [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
-            case "BinaryOp": BinaryOp(deserializeExpression(data.data.left), data.data.op, deserializeExpression(data.data.right));
-            case "UnaryOp": UnaryOp(data.data.op, deserializeExpression(data.data.operand));
-            case "Assignment": Assignment(deserializeExpression(data.data.left), deserializeExpression(data.data.right));
-            case "FunctionCall": FunctionCall(deserializeExpression(data.data.func), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
-            case "New": New(deserializeType(data.data.type), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)]);
-            case "Cast": Cast(deserializeExpression(data.data.expr), deserializeType(data.data.type));
-            case "Is": Is(deserializeExpression(data.data.expr), deserializeType(data.data.type));
+            case "IntLiteral": IntLiteral(data.data.value, createDefaultLocation());
+            case "FloatLiteral": FloatLiteral(data.data.value, createDefaultLocation());
+            case "StringLiteral": StringLiteral(data.data.value, createDefaultLocation());
+            case "BoolLiteral": BoolLiteral(data.data.value, createDefaultLocation());
+            case "NullLiteral": NullLiteral(createDefaultLocation());
+            case "ArrayLiteral": ArrayLiteral([for (e in cast(data.data.elements, Array<Dynamic>)) deserializeExpression(e)], createDefaultLocation());
+            case "ObjectLiteral": ObjectLiteral([for (f in cast(data.data.fields, Array<Dynamic>)) {name: f.name, value: deserializeExpression(f.value)}], createDefaultLocation());
+            case "Identifier": Identifier(data.data.name, createDefaultLocation());
+            case "MemberAccess": MemberAccess(deserializeExpression(data.data.object), data.data.member, createDefaultLocation());
+            case "ArrayAccess": ArrayAccess(deserializeExpression(data.data.array), deserializeExpression(data.data.index), createDefaultLocation());
+            case "SuperCall": SuperCall([for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)], createDefaultLocation());
+            case "SuperMemberAccess": SuperMemberAccess(data.data.member, createDefaultLocation());
+            case "SuperMethodCall": SuperMethodCall(data.data.method, [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)], createDefaultLocation());
+            case "BinaryOp": BinaryOp(deserializeExpression(data.data.left), data.data.op, deserializeExpression(data.data.right), createDefaultLocation());
+            case "UnaryOp": UnaryOp(data.data.op, deserializeExpression(data.data.operand), createDefaultLocation());
+            case "Assignment": Assignment(deserializeExpression(data.data.left), deserializeExpression(data.data.right), createDefaultLocation());
+            case "FunctionCall": FunctionCall(deserializeExpression(data.data.func), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)], createDefaultLocation());
+            case "New": New(deserializeType(data.data.type), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)], createDefaultLocation());
+            case "Cast": Cast(deserializeExpression(data.data.expr), deserializeType(data.data.type), createDefaultLocation());
+            case "Is": Is(deserializeExpression(data.data.expr), deserializeType(data.data.type), createDefaultLocation());
             default: throw new YScriptRuntimeError('Unknown expression type: ${data.type}');
         };
     }
@@ -1217,6 +1494,11 @@ class YClassDefinition {
         this.isHaxeClass = false;
         this.haxeClassName = null;
         this.superClassDef = null;
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScript: Created class definition for $name');
+        }
+        #end
     }
 
     public function addField(field:YVar):Void {
@@ -1307,6 +1589,12 @@ class YClassInstance {
             var field = classDef.fields.get(fieldName);
             fields.set(fieldName, getDefaultValueForType(field.type));
         }
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScript: Created instance of class $className');
+            trace('YScript: Initialized fields: ${fields.keys()}');
+        }
+        #end
     }
 
     public function getField(name:String):Dynamic {
@@ -1403,9 +1691,19 @@ class YScope {
             this.currentFunction = parent.currentFunction;
             this.currentLocation = parent.currentLocation;
         }
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScript: Created new scope. Parent scope: ${parent != null}');
+        }
+        #end
     }
 
     public function setVariable(name:String, variable:YVar):Void {
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode && !variables.exists(name)) {
+            trace('YVar created: ${variable.name} of type ${YTypeHelper.toString(variable.type)} with initial value: ${variable.value}');
+        }
+        #end
         variables.set(name, variable);
     }
 
@@ -1421,6 +1719,11 @@ class YScope {
     }
 
     public function setFunction(name:String, func:YFunction):Void {
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode && !functions.exists(name)) {
+            trace('YFunction created: ${name} with parameters: [${func.parameters.map(p -> YTypeHelper.toString(p.type)).join(", ")}] and return type: ${YTypeHelper.toString(func.returnType)}');
+        }
+        #end
         functions.set(name, func);
     }
 
@@ -1436,6 +1739,11 @@ class YScope {
     }
 
     public function setType(name:String, type:YType):Void {
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode && !types.exists(name)) {
+            trace('YType created: ${name}  (${YTypeHelper.toString(type)})');
+        }
+        #end
         types.set(name, type);
     }
 
@@ -1447,6 +1755,11 @@ class YScope {
     }
 
     public function setClass(name:String, classDef:YClassDefinition):Void {
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode && !classes.exists(name)) {
+            trace('YClass created: ${name} - extends: ${classDef.superClass} implements: [${classDef.interfaces.join(", ")}] - fields: [${classDef.fields.keys().toArray().join(", ")}] methods: [${classDef.methods.keys().toArray().join(", ")}]');
+        }
+        #end
         classes.set(name, classDef);
     }
 
@@ -1458,6 +1771,11 @@ class YScope {
     }
 
     public function addImport(fullPath:String, ?alias:String):Void {
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode && !imports.exists(alias ?? fullPath.split(".").pop())) {
+            trace('YImport added: ${alias ?? fullPath.split(".").pop()} -> ${fullPath}');
+        }
+        #end
         var className = alias ?? fullPath.split(".").pop();
         imports.set(className, fullPath);
     }
@@ -1857,6 +2175,11 @@ class YScriptTokenizer {
 
     public function new() {
         setupKeywords();
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScript: Tokenizer initialized');
+        }
+        #end
     }
 
     public function tokenize(source:String):Array<Token> {
@@ -2166,8 +2489,16 @@ class YScriptParser {
     private var tokens:Array<Token>;
     private var current:Int = 0;
     private var currentFile:String = "<unknown>";
+    private var errorCollector:YScriptErrorCollector = null;
 
     public function new() {}
+
+    /**
+     * Set error collector for enhanced error handling
+     */
+    public function setErrorCollector(collector:YScriptErrorCollector):Void {
+        this.errorCollector = collector;
+    }
 
     public function parse(source:String, ?filePath:String):Array<YStatement> {
         this.currentFile = filePath ?? "<unknown>";
@@ -2185,6 +2516,7 @@ class YScriptParser {
                 statements.push(stmt);
             }
         }
+    trace('[YScript Parser] parse() completed with ' + statements.length + ' statements.');
 
         return statements;
     }
@@ -2202,11 +2534,23 @@ class YScriptParser {
                 case TKeyword("while"): parseWhileStatement();
                 case TKeyword("for"): parseForStatement();
                 case TKeyword("return"): parseReturnStatement();
-                case TKeyword("break"): advance(); YStatement.Break;
-                case TKeyword("continue"): advance(); YStatement.Continue;
+                case TKeyword("break"):
+                    var startLocation = getCurrentLocation();
+                    advance();
+                    YStatement.Break(startLocation);
+                case TKeyword("continue"):
+                    var startLocation = getCurrentLocation();
+                    advance();
+                    YStatement.Continue(startLocation);
                 case TLeftBrace: parseBlockStatement();
-                case THaxeBlock(code): advance(); YStatement.HaxeBlock(code);
-                case TLuaBlock(code): advance(); YStatement.LuaBlock(code);
+                case THaxeBlock(code):
+                    var startLocation = getCurrentLocation();
+                    advance();
+                    YStatement.HaxeBlock(code, startLocation);
+                case TLuaBlock(code):
+                    var startLocation = getCurrentLocation();
+                    advance();
+                    YStatement.LuaBlock(code, startLocation);
                 default: parseExpressionStatement();
             };
             trace('[YScript Parser] parseStatement returning: ' + (result != null ? Std.string(result).substring(0, 50) : 'null'));
@@ -2214,11 +2558,14 @@ class YScriptParser {
         } catch (e:YScriptError) {
             // Error recovery - skip to next statement
             synchronize();
+            trace('[YScript Parser] Caught error: ${e.message}, synchronizing parser.');
+            // showErrorWindow("Parsing Error", e.message + " at " + e.location.file + ":" + e.location.line);
             return null;
         }
     }
 
     private function parseImportStatement():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'import'
 
         // Parse dotted path like package.subpackage.ClassName
@@ -2238,7 +2585,7 @@ class YScriptParser {
         }
 
         consume(TSemicolon, "Expected ';' after import statement");
-        return YStatement.Import(fullPath, alias);
+        return YStatement.Import(fullPath, alias, startLocation);
     }
 
     private function parseVarDeclaration():YStatement {
@@ -2261,6 +2608,7 @@ class YScriptParser {
                 if (init != null) {
                     var initType = inferExpressionType(init);
                     if (!isTypeCompatible(type, initType)) {
+                        // forwardErrorToPlayState('YScript Error: Type mismatch: cannot assign ${YTypeHelper.toString(initType)} to ${YTypeHelper.toString(type)}', true);
                         throw new YScriptTypeError('Type mismatch: cannot assign ${YTypeHelper.toString(initType)} to ${YTypeHelper.toString(type)}', startLocation, currentFile);
                     }
                 }
@@ -2277,10 +2625,11 @@ class YScriptParser {
 
         consume(TSemicolon, "Expected ';' after variable declaration");
         trace('YScript Debug: Successfully parsed variable declaration: $name');
-        return YStatement.VarDecl(name, type, init);
+        return YStatement.VarDecl(name, type, init, startLocation);
     }
 
     private function parseFunctionDeclaration():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'function'
 
         var name:String;
@@ -2331,6 +2680,9 @@ class YScriptParser {
             }
         } else {
 
+            // Skip any newlines before the opening brace to allow for formatting flexibility
+            while (match([TNewline])) {}
+
             consume(TLeftBrace, "Expected '{' or haxe/lua block before function body");
             var statements:Array<YStatement> = [];
 
@@ -2345,12 +2697,13 @@ class YScriptParser {
             trace('[YScript Parser] Function body parsed for: ' + name + ' with ' + statements.length + ' statements');
         }
 
-        var result = YStatement.FuncDecl(name, params, returnType, body);
+        var result = YStatement.FuncDecl(name, params, returnType, body, startLocation);
         trace('[YScript Parser] Successfully created FuncDecl for: ' + name);
         return result;
     }
 
     private function parseClassDeclaration():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'class'
 
         var name = consumeIdentifier("Expected class name");
@@ -2396,10 +2749,11 @@ class YScriptParser {
         trace('[YScript Parser] Finished parsing class body for ' + name + ' with ' + body.length + ' statements');
         consume(TRightBrace, "Expected '}' after class body");
 
-        return YStatement.ClassDecl(name, extend, implement, body);
+        return YStatement.ClassDecl(name, extend, implement, body, startLocation);
     }
 
     private function parseIfStatement():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'if'
 
         consume(TLeftParen, "Expected '(' after 'if'");
@@ -2413,10 +2767,11 @@ class YScriptParser {
             elseStmt = parseStatement();
         }
 
-        return YStatement.If(condition, thenStmt, elseStmt);
+        return YStatement.If(condition, thenStmt, elseStmt, startLocation);
     }
 
     private function parseWhileStatement():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'while'
 
         consume(TLeftParen, "Expected '(' after 'while'");
@@ -2424,10 +2779,11 @@ class YScriptParser {
         consume(TRightParen, "Expected ')' after while condition");
 
         var body = parseStatement();
-        return YStatement.While(condition, body);
+        return YStatement.While(condition, body, startLocation);
     }
 
     private function parseForStatement():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'for'
 
         consume(TLeftParen, "Expected '(' after 'for'");
@@ -2452,10 +2808,11 @@ class YScriptParser {
         consume(TRightParen, "Expected ')' after for clauses");
 
         var body = parseStatement();
-        return YStatement.For(init, condition, increment, body);
+        return YStatement.For(init, condition, increment, body, startLocation);
     }
 
     private function parseReturnStatement():YStatement {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'return'
 
         var value:Null<YExpression> = null;
@@ -2464,10 +2821,11 @@ class YScriptParser {
         }
 
         consume(TSemicolon, "Expected ';' after return value");
-        return YStatement.Return(value);
+        return YStatement.Return(value, startLocation);
     }
 
     private function parseBlockStatement():YStatement {
+        var startLocation = getCurrentLocation();
         consume(TLeftBrace, "Expected '{'");
 
         var statements:Array<YStatement> = [];
@@ -2478,13 +2836,14 @@ class YScriptParser {
         }
 
         consume(TRightBrace, "Expected '}'");
-        return YStatement.Block(statements);
+        return YStatement.Block(statements, startLocation);
     }
 
     private function parseExpressionStatement():YStatement {
+        var startLocation = getCurrentLocation();
         var expr = parseExpression();
         consume(TSemicolon, "Expected ';' after expression");
-        return YStatement.Expression(expr);
+        return YStatement.Expression(expr, startLocation);
     }
 
     private function parseExpression():YExpression {
@@ -2495,8 +2854,9 @@ class YScriptParser {
         var expr = parseLogicalOr();
 
         if (match([TAssign])) {
+            var startLocation = getCurrentLocation();
             var right = parseAssignment();
-            return YExpression.Assignment(expr, right);
+            return YExpression.Assignment(expr, right, startLocation);
         }
 
         return expr;
@@ -2506,9 +2866,10 @@ class YScriptParser {
         var expr = parseLogicalAnd();
 
         while (matchOperator("||")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseLogicalAnd();
-            expr = YExpression.BinaryOp(expr, getOperatorString(op), right);
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
         }
 
         return expr;
@@ -2518,9 +2879,10 @@ class YScriptParser {
         var expr = parseEquality();
 
         while (matchOperator("&&")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseEquality();
-            expr = YExpression.BinaryOp(expr, getOperatorString(op), right);
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
         }
 
         return expr;
@@ -2530,9 +2892,10 @@ class YScriptParser {
         var expr = parseComparison();
 
         while (matchOperator("==") || matchOperator("!=")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseComparison();
-            expr = YExpression.BinaryOp(expr, getOperatorString(op), right);
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
         }
 
         return expr;
@@ -2542,9 +2905,10 @@ class YScriptParser {
         var expr = parseAddition();
 
         while (matchOperator(">") || matchOperator(">=") || matchOperator("<") || matchOperator("<=")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseAddition();
-            expr = YExpression.BinaryOp(expr, getOperatorString(op), right);
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
         }
 
         return expr;
@@ -2554,9 +2918,10 @@ class YScriptParser {
         var expr = parseMultiplication();
 
         while (matchOperator("+") || matchOperator("-")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseMultiplication();
-            expr = YExpression.BinaryOp(expr, getOperatorString(op), right);
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
         }
 
         return expr;
@@ -2566,9 +2931,10 @@ class YScriptParser {
         var expr = parseUnary();
 
         while (matchOperator("*") || matchOperator("/") || matchOperator("%")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseUnary();
-            expr = YExpression.BinaryOp(expr, getOperatorString(op), right);
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
         }
 
         return expr;
@@ -2576,9 +2942,10 @@ class YScriptParser {
 
     private function parseUnary():YExpression {
         if (matchOperator("!") || matchOperator("-") || matchOperator("+")) {
+            var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseUnary();
-            return YExpression.UnaryOp(getOperatorString(op), right);
+            return YExpression.UnaryOp(getOperatorString(op), right, startLocation);
         }
 
         return parseCall();
@@ -2591,12 +2958,14 @@ class YScriptParser {
             if (match([TLeftParen])) {
                 expr = finishCall(expr);
             } else if (match([TDot])) {
+                var startLocation = getCurrentLocation();
                 var name = consumeIdentifier("Expected property name after '.'");
-                expr = YExpression.MemberAccess(expr, name);
+                expr = YExpression.MemberAccess(expr, name, startLocation);
             } else if (match([TLeftBracket])) {
+                var startLocation = getCurrentLocation();
                 var index = parseExpression();
                 consume(TRightBracket, "Expected ']' after array index");
-                expr = YExpression.ArrayAccess(expr, index);
+                expr = YExpression.ArrayAccess(expr, index, startLocation);
             } else {
                 break;
             }
@@ -2606,6 +2975,7 @@ class YScriptParser {
     }
 
     private function finishCall(callee:YExpression):YExpression {
+        var startLocation = getCurrentLocation();
         var args:Array<YExpression> = [];
 
         if (!check(TRightParen)) {
@@ -2615,18 +2985,39 @@ class YScriptParser {
         }
 
         consume(TRightParen, "Expected ')' after arguments");
-        return YExpression.FunctionCall(callee, args);
+        return YExpression.FunctionCall(callee, args, startLocation);
     }
 
     private function parsePrimary():YExpression {
         return switch (peek().type) {
-            case TBool(value): advance(); YExpression.BoolLiteral(value);
-            case TInt(value): advance(); YExpression.IntLiteral(value);
-            case TFloat(value): advance(); YExpression.FloatLiteral(value);
-            case TString(value): advance(); YExpression.StringLiteral(value);
-            case TIdentifier(name): advance(); YExpression.Identifier(name);
-            case TKeyword("null"): advance(); YExpression.NullLiteral;
-            case TKeyword("this"): advance(); YExpression.Identifier("this");
+            case TBool(value):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.BoolLiteral(value, startLocation);
+            case TInt(value):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.IntLiteral(value, startLocation);
+            case TFloat(value):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.FloatLiteral(value, startLocation);
+            case TString(value):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.StringLiteral(value, startLocation);
+            case TIdentifier(name):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.Identifier(name, startLocation);
+            case TKeyword("null"):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.NullLiteral(startLocation);
+            case TKeyword("this"):
+                var startLocation = getCurrentLocation();
+                advance();
+                YExpression.Identifier("this", startLocation);
             case TKeyword("super"): parseSuperExpression();
             case TKeyword("new"): parseNewExpression();
             case TLeftParen: parseGrouping();
@@ -2637,6 +3028,7 @@ class YScriptParser {
     }
 
     private function parseSuperExpression():YExpression {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'super'
 
         if (match([TLeftParen])) {
@@ -2648,7 +3040,7 @@ class YScriptParser {
                 } while (match([TComma]));
             }
             consume(TRightParen, "Expected ')' after super constructor arguments");
-            return YExpression.SuperCall(args);
+            return YExpression.SuperCall(args, startLocation);
         } else if (match([TDot])) {
             // super.member or super.method(args)
             var memberName = consumeIdentifier("Expected method or field name after 'super.'");
@@ -2662,10 +3054,10 @@ class YScriptParser {
                     } while (match([TComma]));
                 }
                 consume(TRightParen, "Expected ')' after super method arguments");
-                return YExpression.SuperMethodCall(memberName, args);
+                return YExpression.SuperMethodCall(memberName, args, startLocation);
             } else {
                 // super.field
-                return YExpression.SuperMemberAccess(memberName);
+                return YExpression.SuperMemberAccess(memberName, startLocation);
             }
         } else {
             throw new YScriptParseError("Expected '(' or '.' after 'super'", getCurrentLocation());
@@ -2673,6 +3065,7 @@ class YScriptParser {
     }
 
     private function parseNewExpression():YExpression {
+        var startLocation = getCurrentLocation();
         advance(); // consume 'new'
         var type = parseType();
         consume(TLeftParen, "Expected '(' after type in new expression");
@@ -2685,7 +3078,7 @@ class YScriptParser {
         }
 
         consume(TRightParen, "Expected ')' after constructor arguments");
-        return YExpression.New(type, args);
+        return YExpression.New(type, args, startLocation);
     }
 
     private function parseGrouping():YExpression {
@@ -2696,6 +3089,7 @@ class YScriptParser {
     }
 
     private function parseArrayLiteral():YExpression {
+        var startLocation = getCurrentLocation();
         consume(TLeftBracket, "Expected '['");
         var elements:Array<YExpression> = [];
 
@@ -2715,10 +3109,11 @@ class YScriptParser {
         // Skip any newlines before closing bracket
         while (match([TNewline])) {}
         consume(TRightBracket, "Expected ']' after array elements");
-        return YExpression.ArrayLiteral(elements);
+        return YExpression.ArrayLiteral(elements, startLocation);
     }
 
     private function parseObjectLiteral():YExpression {
+        var startLocation = getCurrentLocation();
         consume(TLeftBrace, "Expected '{'");
         trace('YScript Debug: parseObjectLiteral() started');
         var fields:Array<{name:String, value:YExpression}> = [];
@@ -2746,7 +3141,7 @@ class YScriptParser {
         while (match([TNewline])) {}
         consume(TRightBrace, "Expected '}' after object fields");
         trace('YScript Debug: parseObjectLiteral() completed with ${fields.length} fields');
-        return YExpression.ObjectLiteral(fields);
+        return YExpression.ObjectLiteral(fields, startLocation);
     }
 
     private function parseType():YType {
@@ -2786,10 +3181,18 @@ class YScriptParser {
             return YType.YArray(elementType);
         }
 
-        // Custom or Haxe type
-        var typeName = consumeIdentifier("Expected type name");
-        trace('YScript Debug: Using custom/Haxe type: $typeName');
-        return YType.YClass(typeName); // Will be resolved later
+        // Custom or Haxe type - handle dotted paths like states.PlayState
+        var typeParts:Array<String> = [];
+        typeParts.push(consumeIdentifier("Expected type name"));
+
+        // Parse dotted path like package.subpackage.ClassName
+        while (match([TDot])) {
+            typeParts.push(consumeIdentifier("Expected type name after '.'"));
+        }
+
+        var fullTypeName = typeParts.join(".");
+        trace('YScript Debug: Using custom/Haxe type: $fullTypeName');
+        return YType.YClass(fullTypeName); // Will be resolved later
     }
 
     // Helper methods
@@ -2959,11 +3362,11 @@ class YScriptParser {
         return switch (expr) {
             case IntLiteral(_): YType.YInt;
             case FloatLiteral(_): YType.YFloat;
-            case StringLiteral(_): YType.YString;
-            case BoolLiteral(_): YType.YBool;
-            case NullLiteral: YType.Dynamic; // Null can be assigned to most types
+            case StringLiteral(_, location): YType.YString;
+            case BoolLiteral(_, location): YType.YBool;
+            case NullLiteral(location): YType.Dynamic; // Null can be assigned to most types
 
-            case ArrayLiteral(elements):
+            case ArrayLiteral(elements, location):
                 if (elements.length == 0) {
                     YType.YArray(YType.Dynamic); // Empty array
                 } else {
@@ -2972,18 +3375,18 @@ class YScriptParser {
                     YType.YArray(elementType);
                 }
 
-            case ObjectLiteral(_):
+            case ObjectLiteral(_, location):
                 YType.Dynamic; // Object literals are Dynamic
 
-            case Identifier(name):
+            case Identifier(name, location):
                 // For parse-time, return Dynamic - runtime will do proper checking
                 YType.Dynamic;
 
-            case MemberAccess(object, member):
+            case MemberAccess(object, member, location):
                 // Object member access
                 YType.Dynamic;
 
-            case ArrayAccess(array, index):
+            case ArrayAccess(array, index, location):
                 // Array element access
                 var arrayType = inferExpressionType(array);
                 switch (arrayType) {
@@ -2991,7 +3394,7 @@ class YScriptParser {
                     default: YType.Dynamic;
                 }
 
-            case BinaryOp(left, op, right):
+            case BinaryOp(left, op, right, location):
                 var leftType = inferExpressionType(left);
                 var rightType = inferExpressionType(right);
 
@@ -3029,7 +3432,7 @@ class YScriptParser {
                         YType.Dynamic;
                 }
 
-            case UnaryOp(op, operand):
+            case UnaryOp(op, operand, location):
                 switch (op) {
                     case "!" | "not": YType.YBool;
                     case "-" | "+":
@@ -3042,27 +3445,27 @@ class YScriptParser {
                     default: YType.Dynamic;
                 }
 
-            case FunctionCall(func, args):
+            case FunctionCall(func, args, location):
                 // Function calls need signature analysis for proper typing
                 YType.Dynamic;
 
-            case New(type, args):
+            case New(type, args, location):
                 // Constructor calls return the specified type
                 type;
 
-            case Cast(expr, type):
+            case Cast(expr, type, location):
                 // Cast expressions return the target type
                 type;
 
-            case Is(expr, type):
+            case Is(expr, type, location):
                 // Type checks return Bool
                 YType.YBool;
 
-            case Assignment(left, right):
+            case Assignment(left, right, location):
                 // Assignment expressions return the type of the right-hand side
                 inferExpressionType(right);
 
-            case SuperCall(args):
+            case SuperCall(args, location):
                 // Super call expressions return Dynamic for now
                 YType.Dynamic;
 
@@ -3153,6 +3556,7 @@ class YScriptRuntime {
         return returnValue;
     }
 
+
     public function callFunction(name:String, args:Array<Dynamic>, scope:YScope):Dynamic {
         this.scope = scope;
         var func = scope.getFunction(name);
@@ -3160,7 +3564,142 @@ class YScriptRuntime {
             return callYFunction(func, args);
         }
         var context = scope.getExecutionContext();
+        trace('YScript: Failed to call function $name at ${context.location.file}:${context.location.line}:${context.location.column} - function not found');
         throw new YScriptRuntimeError('Function not found: $name', context.location, context.scriptPath);
+    }
+
+    /**
+     * Enhanced runtime type compatibility checking
+     */
+    private function isRuntimeTypeCompatible(expectedType:YType, actualType:YType, actualValue:Dynamic):Bool {
+        // Exact type match
+        if (Type.enumEq(expectedType, actualType)) return true;
+
+        // Dynamic accepts anything
+        if (expectedType == YType.Dynamic || actualType == YType.Dynamic) return true;
+
+        // Null handling
+        if (actualValue == null) {
+            switch (expectedType) {
+                case YType.YInt | YType.YFloat | YType.YBool: return false; // Primitives don't accept null
+                default: return true; // Objects, arrays, etc. can be null
+            }
+        }
+
+        // Numeric type promotion and conversion
+        switch [expectedType, actualType] {
+            case [YType.YFloat, YType.YInt]: return true; // Int can be promoted to Float
+            case [YType.YString, _]: return true; // Most types can convert to String
+            default:
+        }
+
+        // Array type checking
+        switch [expectedType, actualType] {
+            case [YType.YArray(expectedElement), YType.YArray(actualElement)]:
+                return isRuntimeTypeCompatible(expectedElement, actualElement, null);
+            default:
+        }
+
+        // Class inheritance checking
+        switch [expectedType, actualType] {
+            case [YType.HaxeClass(expectedClass), YType.HaxeClass(actualClass)]:
+                return isHaxeClassInheritable(expectedClass, actualClass);
+            case [YType.YClass(expectedName), YType.YClass(actualName)]:
+                return isYScriptClassInheritable(expectedName, actualName, scope);
+            default:
+        }
+
+        return false;
+    }
+
+    /**
+     * Enhanced array element type inference from runtime array
+     */
+    private function inferArrayElementTypeFromRuntime(array:Array<Dynamic>):YType {
+        if (array.length == 0) return YType.Dynamic;
+
+        // Sample up to 10 elements for performance
+        var sampleSize = Std.int(Math.min(array.length, 10));
+        var elementTypes:Array<YType> = [];
+
+        for (i in 0...sampleSize) {
+            elementTypes.push(inferTypeFromValue(array[i]));
+        }
+
+        // Find common type
+        return findCommonRuntimeType(elementTypes);
+    }
+
+    /**
+     * Find common type from runtime analysis
+     */
+    private function findCommonRuntimeType(types:Array<YType>):YType {
+        if (types.length == 0) return YType.Dynamic;
+        if (types.length == 1) return types[0];
+
+        var firstType = types[0];
+        var allSameType = true;
+
+        for (type in types) {
+            if (!Type.enumEq(type, firstType)) {
+                allSameType = false;
+                break;
+            }
+        }
+
+        if (allSameType) return firstType;
+
+        // Check for numeric compatibility
+        var hasInt = false;
+        var hasFloat = false;
+        var allNumeric = true;
+
+        for (type in types) {
+            switch (type) {
+                case YType.YInt: hasInt = true;
+                case YType.YFloat: hasFloat = true;
+                default: allNumeric = false;
+            }
+        }
+
+        if (allNumeric && (hasInt || hasFloat)) {
+            return hasFloat ? YType.YFloat : YType.YInt;
+        }
+
+        // Fallback to Dynamic for mixed types
+        return YType.Dynamic;
+    }
+
+    /**
+     * Check Haxe class inheritance for compatibility
+     */
+    private function isHaxeClassInheritable(expectedClass:Class<Dynamic>, actualClass:Class<Dynamic>):Bool {
+        if (expectedClass == actualClass) return true;
+
+        try {
+            var currentClass = actualClass;
+            while (currentClass != null) {
+                if (currentClass == expectedClass) return true;
+                currentClass = Type.getSuperClass(currentClass);
+            }
+            return false;
+        } catch (e:Dynamic) {
+            return true; // Conservative approach if reflection fails
+        }
+    }
+
+    /**
+     * Check YScript class inheritance for compatibility
+     */
+    private function isYScriptClassInheritable(expectedName:String, actualName:String, scope:YScope):Bool {
+        if (expectedName == actualName) return true;
+
+        var actualClass = scope.getClass(actualName);
+        if (actualClass != null) {
+            return actualClass.extendsClass(expectedName);
+        }
+
+        return false;
     }
 
     public function destroy():Void {
@@ -3189,9 +3728,36 @@ class YScriptRuntime {
     }
 
     public function executeStatement(stmt:YStatement):Void {
+        // Set execution context with statement location for error reporting
+        var location = switch (stmt) {
+            case Import(_, _, loc): loc;
+            case VarDecl(_, _, _, loc): loc;
+            case FuncDecl(_, _, _, _, loc): loc;
+            case ClassDecl(_, _, _, _, loc): loc;
+            case If(_, _, _, loc): loc;
+            case While(_, _, loc): loc;
+            case For(_, _, _, _, loc): loc;
+            case Return(_, loc): loc;
+            case Break(loc): loc;
+            case Continue(loc): loc;
+            case Block(_, loc): loc;
+            case Expression(_, loc): loc;
+            case HaxeBlock(_, loc): loc;
+            case LuaBlock(_, loc): loc;
+        };
+        scope.setExecutionContext(scope.currentScriptPath ?? "<unknown>", scope.currentFunction, location);
+
+		// Debug tracing for YScript execution
+		#if !macro
+		if (backend.ClientPrefs.data.yscriptDebugMode) {
+			var shortStmt = Std.string(stmt).substring(0, 80);
+			trace('[YScript Debug] Executing statement: $shortStmt at ${location.file}:${location.line}');
+		}
+		#end
+
         try {
             switch (stmt) {
-                case Import(path, alias):
+                case Import(path, alias, location):
                     scope.addImport(path, alias);
                     // Try to resolve and register Haxe class
                     var className = alias ?? path.split(".").pop();
@@ -3206,7 +3772,7 @@ class YScriptRuntime {
                         trace('Warning: Could not resolve import: $path');
                     }
 
-                case VarDecl(name, type, init):
+                case VarDecl(name, type, init, location):
                     var value:Dynamic = null;
                     if (init != null) {
                         value = evaluateExpression(init);
@@ -3218,11 +3784,11 @@ class YScriptRuntime {
 
                     scope.setVariable(name, new YVar(name, type, value));
 
-                case FuncDecl(name, params, returnType, body):
+                case FuncDecl(name, params, returnType, body, location):
                     var func = new YFunction(name, params, returnType, body);
                     scope.setFunction(name, func);
 
-                case ClassDecl(name, extend, implement, body):
+                case ClassDecl(name, extend, implement, body, location):
                     var classDef = new YClassDefinition(name, extend, implement);
 
                     // Resolve superclass
@@ -3253,14 +3819,14 @@ class YScriptRuntime {
 
                     for (statement in body) {
                         switch (statement) {
-                            case VarDecl(fieldName, fieldType, fieldInit):
+                            case VarDecl(fieldName, fieldType, fieldInit, location):
                                 var field = new YVar(fieldName, fieldType);
                                 if (fieldInit != null) {
                                     field.value = evaluateExpression(fieldInit);
                                 }
                                 classDef.addField(field);
 
-                            case FuncDecl(methodName, params, returnType, methodBody):
+                            case FuncDecl(methodName, params, returnType, methodBody, location):
                                 var method = new YFunction(methodName, params, returnType, methodBody);
                                 if (methodName == name || methodName == "new") {
                                     classDef.addConstructor(method);
@@ -3277,7 +3843,7 @@ class YScriptRuntime {
                     this.scope = oldScope;
                     scope.setClass(name, classDef);
 
-                case If(condition, thenStmt, elseStmt):
+                case If(condition, thenStmt, elseStmt, location):
                     var condValue = evaluateExpression(condition);
                     if (isTruthy(condValue)) {
                         executeStatement(thenStmt);
@@ -3285,7 +3851,7 @@ class YScriptRuntime {
                         executeStatement(elseStmt);
                     }
 
-                case While(condition, body):
+                case While(condition, body, location):
                     while (isTruthy(evaluateExpression(condition))) {
                         executeStatement(body);
 
@@ -3296,7 +3862,7 @@ class YScriptRuntime {
                         }
                     }
 
-                case For(init, condition, increment, body):
+                case For(init, condition, increment, body, location):
                     if (init != null) executeStatement(init);
 
                     while (condition == null || isTruthy(evaluateExpression(condition))) {
@@ -3312,17 +3878,17 @@ class YScriptRuntime {
                         }
                     }
 
-                case Return(value):
+                case Return(value, location):
                     returnValue = value != null ? evaluateExpression(value) : null;
                     shouldReturn = true;
 
-                case Break:
+                case Break(location):
                     shouldBreak = true;
 
-                case Continue:
+                case Continue(location):
                     shouldContinue = true;
 
-                case Block(statements):
+                case Block(statements, location):
                     var blockScope = scope.createChild();
                     var oldScope = this.scope;
                     this.scope = blockScope;
@@ -3334,13 +3900,13 @@ class YScriptRuntime {
 
                     this.scope = oldScope;
 
-                case Expression(expr):
+                case Expression(expr, location):
                     evaluateExpression(expr);
 
-                case HaxeBlock(code):
+                case HaxeBlock(code, location):
                     executeHaxeCode(code);
 
-                case LuaBlock(code):
+                case LuaBlock(code, location):
                     #if (LUA_ALLOWED && !macro)
                     executeLuaCode(code);
                     #else
@@ -3357,28 +3923,61 @@ class YScriptRuntime {
     }
 
     public function evaluateExpression(expr:YExpression):Dynamic {
-        return switch (expr) {
-            case IntLiteral(value): value;
-            case FloatLiteral(value): value;
-            case StringLiteral(value): value;
-            case BoolLiteral(value): value;
-            case NullLiteral: null;
+        // Set execution context with expression location for error reporting
+        var location = switch (expr) {
+            case IntLiteral(_, loc): loc;
+            case FloatLiteral(_, loc): loc;
+            case StringLiteral(_, loc): loc;
+            case BoolLiteral(_, loc): loc;
+            case NullLiteral(loc): loc;
+            case ArrayLiteral(_, loc): loc;
+            case ObjectLiteral(_, loc): loc;
+            case Identifier(_, loc): loc;
+            case SuperCall(_, loc): loc;
+            case SuperMemberAccess(_, loc): loc;
+            case SuperMethodCall(_, _, loc): loc;
+            case BinaryOp(_, _, _, loc): loc;
+            case UnaryOp(_, _, loc): loc;
+            case Assignment(_, _, loc): loc;
+            case FunctionCall(_, _, loc): loc;
+            case MemberAccess(_, _, loc): loc;
+            case ArrayAccess(_, _, loc): loc;
+            case New(_, _, loc): loc;
+            case Cast(_, _, loc): loc;
+            case Is(_, _, loc): loc;
+        };
+        scope.setExecutionContext(scope.currentScriptPath ?? "<unknown>", scope.currentFunction, location);
 
-            case ArrayLiteral(elements):
+		// Debug tracing for YScript expression evaluation
+		#if !macro
+		if (backend.ClientPrefs.data.yscriptDebugMode) {
+			var shortExpr = Std.string(expr).substring(0, 60);
+			trace('[YScript Debug] Evaluating expression: $shortExpr at ${location.file}:${location.line}');
+		}
+		#end
+
+        return switch (expr) {
+            case IntLiteral(value, location): value;
+            case FloatLiteral(value, location): value;
+            case StringLiteral(value, location): value;
+            case BoolLiteral(value, location): value;
+            case NullLiteral(location): null;
+
+            case ArrayLiteral(elements, location):
                 var array = [];
                 for (element in elements) {
                     array.push(evaluateExpression(element));
                 }
                 array;
 
-            case ObjectLiteral(fields):
+            case ObjectLiteral(fields, location):
                 var obj = {};
                 for (field in fields) {
                     Reflect.setField(obj, field.name, evaluateExpression(field.value));
                 }
                 obj;
 
-            case Identifier(name):
+            case Identifier(name, location):
                 if (scope.hasVariable(name)) {
                     scope.getVariable(name).value;
                 } else {
@@ -3386,52 +3985,52 @@ class YScriptRuntime {
                     resolveHaxeIdentifier(name);
                 }
 
-            case SuperCall(args):
+            case SuperCall(args, location):
                 executeSuperConstructorCall(args);
 
-            case SuperMemberAccess(member):
+            case SuperMemberAccess(member, location):
                 executeSuperMemberAccess(member);
 
-            case SuperMethodCall(method, args):
+            case SuperMethodCall(method, args, location):
                 executeSuperMethodCall(method, args);
 
-            case BinaryOp(left, op, right):
+            case BinaryOp(left, op, right, location):
                 var leftValue = evaluateExpression(left);
                 var rightValue = evaluateExpression(right);
                 evaluateBinaryOperation(leftValue, op, rightValue);
 
-            case UnaryOp(op, operand):
+            case UnaryOp(op, operand, location):
                 var value = evaluateExpression(operand);
                 evaluateUnaryOperation(op, value);
 
-            case Assignment(target, value):
+            case Assignment(target, value, location):
                 var val = evaluateExpression(value);
                 assignToTarget(target, val);
                 val;
 
-            case FunctionCall(callee, args):
+            case FunctionCall(callee, args, location):
                 var argValues = [for (arg in args) evaluateExpression(arg)];
                 callFunctionExpression(callee, argValues);
 
-            case MemberAccess(object, member):
+            case MemberAccess(object, member, location):
                 var objValue = evaluateExpression(object);
                 accessMember(objValue, member);
 
-            case ArrayAccess(array, index):
+            case ArrayAccess(array, index, location):
                 var arrayValue = evaluateExpression(array);
                 var indexValue = evaluateExpression(index);
                 accessArrayElement(arrayValue, indexValue);
 
-            case New(type, args):
+            case New(type, args, location):
                 var argValues = [for (arg in args) evaluateExpression(arg)];
                 createInstance(type, argValues);
 
-            case Cast(expr, type):
+            case Cast(expr, type, location):
                 var value = evaluateExpression(expr);
                 // For now, just return the value as casting is complex
                 value;
 
-            case Is(expr, type):
+            case Is(expr, type, location):
                 var value = evaluateExpression(expr);
                 // For now, return false as type checking is complex
                 false;
@@ -3501,7 +4100,7 @@ class YScriptRuntime {
 
     private function assignToTarget(target:YExpression, value:Dynamic):Void {
         switch (target) {
-            case Identifier(name):
+            case Identifier(name, location):
                 if (scope.hasVariable(name)) {
                     var variable = scope.getVariable(name);
                     // Type checking for assignment
@@ -3512,11 +4111,11 @@ class YScriptRuntime {
                     throw new YScriptRuntimeError('Undefined variable: $name', context.location, context.scriptPath);
                 }
 
-            case MemberAccess(object, member):
+            case MemberAccess(object, member, location):
                 var objValue = evaluateExpression(object);
                 setMember(objValue, member, value);
 
-            case ArrayAccess(array, index):
+            case ArrayAccess(array, index, location):
                 var arrayValue = evaluateExpression(array);
                 var indexValue = evaluateExpression(index);
                 setArrayElement(arrayValue, indexValue, value);
@@ -3529,7 +4128,7 @@ class YScriptRuntime {
 
     private function callFunctionExpression(callee:YExpression, args:Array<Dynamic>):Dynamic {
         switch (callee) {
-            case Identifier(name):
+            case Identifier(name, location):
                 // YScript function
                 if (scope.hasFunction(name)) {
                     var func = scope.getFunction(name);
@@ -3539,7 +4138,7 @@ class YScriptRuntime {
                 // Haxe function
                 return callHaxeFunction(name, args);
 
-            case MemberAccess(object, method):
+            case MemberAccess(object, method, location):
                 var objValue = evaluateExpression(object);
                 return callMethod(objValue, method, args);
 
@@ -3553,16 +4152,63 @@ class YScriptRuntime {
         // Create new scope for function execution
         var functionScope = scope.createChild();
 
-        // Set execution context for error tracking
+        // Set execution context for error tracking with function name
         functionScope.setExecutionContext(
             scope.currentScriptPath ?? "<unknown>",
-            func.name
+            func.name,
+            scope.currentLocation
         );
 
-        // Bind parameters - only validate argument count for non-native functions
-        if (!func.isNative && args.length != func.parameters.length) {
-            var context = functionScope.getExecutionContext();
-            throw new YScriptRuntimeError('Function "${func.name}" expected ${func.parameters.length} arguments, got ${args.length}', context.location, context.scriptPath);
+        var context = functionScope.getExecutionContext();
+        var funcName = func.name;
+        #if !macro
+        if (ClientPrefs.data.yscriptDebugMode) {
+            trace('YScript: Calling function "$funcName" with ${args.length} arguments at ${context.location.file}:${context.location.line}:${context.location.column}');
+        }
+        #end
+
+        // Comprehensive type checking - only for non-native functions or when explicitly enabled
+        if (!func.isNative) {
+            // Check parameter count
+            var expectedParams = func.parameters.length;
+            var actualArgs = args.length;
+
+            if (actualArgs != expectedParams) {
+                var message = 'Function "$funcName" expects $expectedParams arguments but got $actualArgs';
+                trace('YScript: ' + message);
+                // forwardErrorToPlayState('YScript Error: ' + message, true);
+                throw new YScriptTypeError(message, context.location, context.scriptPath);
+            }
+
+            // Check argument types against parameter types
+            for (i in 0...func.parameters.length) {
+                var param = func.parameters[i];
+                var arg = args[i];
+                var paramType = param.type;
+                var argType = inferTypeFromValue(arg);
+
+                if (!isTypeCompatible(paramType, argType)) {
+                    var paramName = param.name;
+                    var message = 'Function "$funcName" parameter "$paramName" expects ${YTypeHelper.toString(paramType)} but got ${YTypeHelper.toString(argType)}';
+                    trace('YScript: ' + message);
+                    // forwardErrorToPlayState('YScript Error: ' + message, true);
+                    throw new YScriptTypeError(message, context.location, context.scriptPath);
+                }
+            }
+
+            // For native functions, perform additional validation
+            if (func.isNative && func.nativeFunction != null) {
+                try {
+                    // Test if the function can be called with these arguments
+                    if (Reflect.isFunction(func.nativeFunction)) {
+                        // For now, we rely on Haxe's runtime checking
+                        // Could be enhanced with reflection-based parameter analysis
+                    }
+                } catch (e:Dynamic) {
+                    trace('YScript: Native function "${func.name}" validation failed: $e');
+                    throw new YScriptTypeError('Native function "${func.name}" validation failed: $e', context.location, context.scriptPath);
+                }
+            }
         }
 
         for (i in 0...func.parameters.length) {
@@ -3605,16 +4251,25 @@ class YScriptRuntime {
         } catch (e:YScriptError) {
             this.scope = oldScope;
             shouldReturn = oldReturn;
+            trace('YScript: Runtime error in function ${func.name}: $e (YScriptError)');
             throw e;
         } catch (e:Dynamic) {
             this.scope = oldScope;
             shouldReturn = oldReturn;
             var context = functionScope.getExecutionContext();
+            trace('YScript: Runtime error in function ${func.name}: $e (Native Error)');
             throw new YScriptRuntimeError('Runtime error in function ${func.name}: $e', context.location, context.scriptPath);
         }
 
         this.scope = oldScope;
         shouldReturn = oldReturn;
+
+        // Debug tracing for function return
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] Function "$funcName" returned: ${result != null ? Std.string(result).substring(0, 50) : "null"}');
+        }
+        #end
 
         return result;
     }
@@ -4190,6 +4845,8 @@ class YScriptRuntime {
             var useLocation = location ?? context.location;
             var scriptPath = context.scriptPath;
             var msg = 'Type mismatch: cannot assign ${YTypeHelper.toString(valueType)} to ${YTypeHelper.toString(targetType)}';
+            trace('YScript: ' + msg + ' at ${useLocation.file}:${useLocation.line}:${useLocation.column}');
+            // forwardErrorToPlayState('YScript Error: ' + msg, true);
             throw new YScriptTypeError(msg, useLocation, scriptPath);
         }
     }

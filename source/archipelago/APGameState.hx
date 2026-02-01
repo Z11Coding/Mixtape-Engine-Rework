@@ -641,7 +641,8 @@ class APGameState
 				+ ".\n\nMake sure that the song is added to your game, or the mod for this song is enabled.\n\nIf it is installed correctly, this may be a false error. This is here to prevent auto-goaling from ending your run early.", 0xFF0000, null);
 			return false;
 		}
-		for (location in locations)
+		var vicLocation:Null<Int> = info.get_location_id("Victory Goal");
+		for (location in (vicLocation != null && vicLocation != -1 ? locations.concat([vicLocation]) : locations))
 		{
 			if (info.missingLocations.contains(location))
 			{

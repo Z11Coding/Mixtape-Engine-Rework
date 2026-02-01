@@ -445,24 +445,24 @@ class YSComp {
             trace('[YSComp] Statement ' + (i + 1) + '/' + statements.length + ': ' + Std.string(stmt).substring(0, 50) + '...');
 
             switch (stmt) {
-                case Import(path, alias):
+                case Import(path, alias, location):
                     trace('[YSComp] Found import: ' + path + (alias != null ? ' as ' + alias : ''));
                     moduleInfo.imports.push({path: path, alias: alias});
 
-                case VarDecl(name, type, init):
+                case VarDecl(name, type, init, location):
                     if (classStack.length == 0) {
                         trace('[YSComp] Found module-level variable: ' + name);
                         moduleInfo.moduleLevelVars.push({name: name, type: type, value: init != null ? evalConstExpression(init) : null});
                     }
 
-                case FuncDecl(name, params, returnType, body):
+                case FuncDecl(name, params, returnType, body, location):
                     if (classStack.length == 0) {
                         trace('[YSComp] Found module-level function: ' + name + ' with ' + params.length + ' parameters');
                         var paramInfos = [for (p in params) {name: p.name, type: p.type, value: null}];
                         moduleInfo.moduleLevelFunctions.push({name: name, parameters: paramInfos, returnType: returnType, body: body});
                     }
 
-                case ClassDecl(name, extend, implement, body):
+                case ClassDecl(name, extend, implement, body, location):
                     trace('[YSComp] Found class declaration: ' + name + (extend != null ? ' extends ' + extend : ''));
                     trace('[YSComp] Class body has ' + body.length + ' statements:');
                     for (j in 0...body.length) {
@@ -484,16 +484,16 @@ class YSComp {
                         moduleInfo.hasMainClass = true;
                     }
 
-                case Expression(expr):
+                case Expression(expr, location):
                     if (classStack.length == 0) {
                         trace('[YSComp] Found module-level expression: ' + expr);
                         trace('[YSComp] Expression type: ' + Type.getEnum(expr));
                         // Check if this expression is a function call or assignment
                         switch (expr) {
-                            case FunctionCall(func, args):
+                            case FunctionCall(func, args, location):
                                 trace('[YSComp] Capturing module-level function call: ' + func + ' with ' + args.length + ' args');
                                 moduleInfo.moduleLevelCalls.push(expr);
-                            case Assignment(left, right):
+                            case Assignment(left, right, location):
                                 trace('[YSComp] Capturing module-level assignment: ' + left + ' = ' + right);
                                 moduleInfo.moduleLevelCalls.push(expr);
                             default:
@@ -552,11 +552,11 @@ class YSComp {
             trace('[YSComp] Class body statement ' + (i + 1) + '/' + body.length + ': ' + Std.string(stmt).substring(0, 100) + '...');
 
             switch (stmt) {
-                case VarDecl(name, type, init):
+                case VarDecl(name, type, init, location):
                     trace('[YSComp]   Found field: ' + name + ' of type ' + Std.string(type));
                     classInfo.fields.push({name: name, type: type, value: init != null ? evalConstExpression(init) : null});
 
-                case FuncDecl(name, params, returnType, body):
+                case FuncDecl(name, params, returnType, body, location):
                     trace('[YSComp]   Found method: ' + name + ' with ' + params.length + ' parameters, return type: ' + Std.string(returnType));
                     var paramInfos = [for (p in params) {name: p.name, type: p.type, value: null}];
                     if (name == "new" || name == classInfo.name) {
@@ -569,7 +569,7 @@ class YSComp {
                         classInfo.methods.push({name: name, parameters: paramInfos, returnType: returnType, body: body});
                     }
 
-                case ClassDecl(nestedName, nestedExtend, nestedImplement, nestedBody):
+                case ClassDecl(nestedName, nestedExtend, nestedImplement, nestedBody, nestedLocation):
                     trace('[YSComp]   Found nested class: ' + nestedName);
                     // Handle nested class - add to module classes with nesting info
                     var nestedInfo = extractClassInfo(nestedName, nestedExtend, nestedImplement, nestedBody, classStack.copy());
@@ -1276,11 +1276,11 @@ class YSComp {
         var pos = Context.currentPos();
 
         return switch (stmt) {
-            case Import(path, alias):
+            case Import(path, alias, location):
                 // Imports are handled at module level, skip in body
                 null;
 
-            case VarDecl(name, type, init):
+            case VarDecl(name, type, init, location):
                 if (init != null) {
                     var initExpr = convertYExpressionToHaxe(init);
                     var typeComplexType = convertYTypeToComplexType(type);
@@ -1290,7 +1290,7 @@ class YSComp {
                     macro var $name:$typeComplexType;
                 }
 
-            case FuncDecl(name, params, returnType, body):
+            case FuncDecl(name, params, returnType, body, location):
                 // Function declarations in statements become local functions
                 var args = [for (p in params) {
                     name: p.name,
@@ -1311,11 +1311,11 @@ class YSComp {
                     pos: pos
                 };
 
-            case ClassDecl(name, extend, implement, body):
+            case ClassDecl(name, extend, implement, body, location):
                 // Local class declarations (not typically supported in Haxe)
                 macro { /* Local class $v{name} not supported in FullConversion */ };
 
-            case If(condition, thenStmt, elseStmt):
+            case If(condition, thenStmt, elseStmt, location):
                 var condExpr = convertYExpressionToHaxe(condition);
                 var thenExpr = convertYStatementToHaxe(thenStmt);
                 var elseExpr = elseStmt != null ? convertYStatementToHaxe(elseStmt) : null;
@@ -1326,12 +1326,12 @@ class YSComp {
                     macro if ($condExpr) $thenExpr;
                 }
 
-            case While(condition, body):
+            case While(condition, body, location):
                 var condExpr = convertYExpressionToHaxe(condition);
                 var bodyExpr = convertYStatementToHaxe(body);
                 macro while ($condExpr) $bodyExpr;
 
-            case For(init, condition, increment, body):
+            case For(init, condition, increment, body, location):
                 var initExpr = init != null ? convertYStatementToHaxe(init) : null;
                 var condExpr = condition != null ? convertYExpressionToHaxe(condition) : macro true;
                 var incExpr = increment != null ? convertYExpressionToHaxe(increment) : null;
@@ -1360,7 +1360,7 @@ class YSComp {
                     };
                 }
 
-            case Return(value):
+            case Return(value, location):
                 if (value != null) {
                     var valueExpr = convertYExpressionToHaxe(value);
                     macro return $valueExpr;
@@ -1368,30 +1368,30 @@ class YSComp {
                     macro return;
                 }
 
-            case Break:
+            case Break(location):
                 macro break;
 
-            case Continue:
+            case Continue(location):
                 macro continue;
 
-            case Block(statements):
+            case Block(statements, location):
                 var haxeExprs = [for (s in statements) convertYStatementToHaxe(s)].filter(e -> e != null);
                 {
                     expr: EBlock(haxeExprs),
                     pos: pos
                 };
 
-            case Expression(expr):
+            case Expression(expr, location):
                 convertYExpressionToHaxe(expr);
 
-            case HaxeBlock(code):
+            case HaxeBlock(code, location):
                 try {
                     haxe.macro.Context.parseInlineString(code, pos);
                 } catch (e:Dynamic) {
                     macro { /* Haxe block: $v{code} */ };
                 }
 
-            case LuaBlock(code):
+            case LuaBlock(code, location):
                 macro { /* Lua block not supported in FullConversion: $v{code} */ };
         };
     }
@@ -1399,33 +1399,80 @@ class YSComp {
     /**
      * Convert YExpression to Haxe expression
      */
+    /**
+     * Convert YLocation to Haxe Position for accurate source mapping
+     */
+    private static function locationToPosition(location:YLocation):Position {
+        if (location == null) {
+            return Context.currentPos();
+        }
+
+        return Context.makePosition({
+            file: location.file,
+            min: location.line * 1000 + location.column,  // Approximate character position
+            max: location.line * 1000 + location.column + 1
+        });
+    }
+
+    /**
+     * Get position from YExpression location, fallback to current position if null
+     */
+    private static function getExpressionPosition(expr:YExpression):Position {
+        var location = switch (expr) {
+            case IntLiteral(_, loc): loc;
+            case FloatLiteral(_, loc): loc;
+            case StringLiteral(_, loc): loc;
+            case BoolLiteral(_, loc): loc;
+            case NullLiteral(loc): loc;
+            case ArrayLiteral(_, loc): loc;
+            case ObjectLiteral(_, loc): loc;
+            case Identifier(_, loc): loc;
+            case SuperCall(_, loc): loc;
+            case SuperMemberAccess(_, loc): loc;
+            case SuperMethodCall(_, _, loc): loc;
+            case BinaryOp(_, _, _, loc): loc;
+            case UnaryOp(_, _, loc): loc;
+            case Assignment(_, _, loc): loc;
+            case FunctionCall(_, _, loc): loc;
+            case MemberAccess(_, _, loc): loc;
+            case ArrayAccess(_, _, loc): loc;
+            case New(_, _, loc): loc;
+            case Cast(_, _, loc): loc;
+            case Is(_, _, loc): loc;
+        };
+        return locationToPosition(location);
+    }
+
     static function convertYExpressionToHaxe(expr:YExpression):Expr {
-        var pos = Context.currentPos();
+        var pos = getExpressionPosition(expr);
 
         return switch (expr) {
-            case IntLiteral(value):
+            case IntLiteral(value, location):
                 Context.makeExpr(value, pos);
 
-            case FloatLiteral(value):
+            case FloatLiteral(value, location):
                 Context.makeExpr(value, pos);
 
-            case StringLiteral(value):
+            case StringLiteral(value, location):
                 Context.makeExpr(value, pos);
 
-            case BoolLiteral(value):
+            case BoolLiteral(value, location):
                 Context.makeExpr(value, pos);
 
-            case NullLiteral:
-                macro null;
+            case NullLiteral(location):
+                {
+                    expr: EConst(CIdent("null")),
+                    pos: pos
+                };
 
-            case ArrayLiteral(elements):
+            case ArrayLiteral(elements, location):
                 var elemExprs = [for (elem in elements) convertYExpressionToHaxe(elem)];
                 {
                     expr: EArrayDecl(elemExprs),
                     pos: pos
                 };
 
-            case ObjectLiteral(fields):
+            case ObjectLiteral(fields, location):
                 var objFields = [for (field in fields) {
                     field: field.name,
                     expr: convertYExpressionToHaxe(field.value)
@@ -1435,17 +1482,20 @@ class YSComp {
                     pos: pos
                 };
 
-            case Identifier(name):
-                macro $i{name};
+            case Identifier(name, location):
+                {
+                    expr: EConst(CIdent(name)),
+                    pos: pos
+                };
 
-            case MemberAccess(object, member):
+            case MemberAccess(object, member, location):
                 var objExpr = convertYExpressionToHaxe(object);
                 {
                     expr: EField(objExpr, member),
                     pos: pos
                 };
 
-            case ArrayAccess(array, index):
+            case ArrayAccess(array, index, location):
                 var arrayExpr = convertYExpressionToHaxe(array);
                 var indexExpr = convertYExpressionToHaxe(index);
                 {
@@ -1453,20 +1503,20 @@ class YSComp {
                     pos: pos
                 };
 
-            case SuperCall(args):
+            case SuperCall(args, location):
                 var argExprs = [for (arg in args) convertYExpressionToHaxe(arg)];
                 {
                     expr: ECall(macro super, argExprs),
                     pos: pos
                 };
 
-            case SuperMemberAccess(member):
+            case SuperMemberAccess(member, location):
                 {
                     expr: EField(macro super, member),
                     pos: pos
                 };
 
-            case SuperMethodCall(method, args):
+            case SuperMethodCall(method, args, location):
                 var argExprs = [for (arg in args) convertYExpressionToHaxe(arg)];
                 var superMethod = {
                     expr: EField(macro super, method),
@@ -1477,7 +1527,7 @@ class YSComp {
                     pos: pos
                 };
 
-            case BinaryOp(left, op, right):
+            case BinaryOp(left, op, right, location):
                 var leftExpr = convertYExpressionToHaxe(left);
                 var rightExpr = convertYExpressionToHaxe(right);
                 var haxeOp = convertYOpStringToHaxe(op);
@@ -1486,7 +1536,7 @@ class YSComp {
                     pos: pos
                 };
 
-            case UnaryOp(op, operand):
+            case UnaryOp(op, operand, location):
                 var operandExpr = convertYExpressionToHaxe(operand);
                 var haxeOp = convertYUnaryOpToHaxe(op);
                 {
@@ -1494,7 +1544,7 @@ class YSComp {
                     pos: pos
                 };
 
-            case Assignment(left, right):
+            case Assignment(left, right, location):
                 var leftExpr = convertYExpressionToHaxe(left);
                 var rightExpr = convertYExpressionToHaxe(right);
                 {
@@ -1502,7 +1552,7 @@ class YSComp {
                     pos: pos
                 };
 
-            case FunctionCall(func, args):
+            case FunctionCall(func, args, location):
                 var funcExpr = convertYExpressionToHaxe(func);
                 var argExprs = [for (arg in args) convertYExpressionToHaxe(arg)];
                 {
@@ -1510,7 +1560,7 @@ class YSComp {
                     pos: pos
                 };
 
-            case New(type, args):
+            case New(type, args, location):
                 var argExprs = [for (arg in args) convertYExpressionToHaxe(arg)];
                 var typePath = convertYTypeToTypePath(type);
                 {
@@ -1518,7 +1568,7 @@ class YSComp {
                     pos: pos
                 };
 
-            case Cast(expr, type):
+            case Cast(expr, type, location):
                 var exprHaxe = convertYExpressionToHaxe(expr);
                 var typeComplexType = convertYTypeToComplexType(type);
                 {
@@ -1526,7 +1576,7 @@ class YSComp {
                     pos: Context.currentPos()
                 };
 
-            case Is(expr, type):
+            case Is(expr, type, location):
                 var exprHaxe = convertYExpressionToHaxe(expr);
                 // For Std.isOfType, we need the type as a type expression, not a ComplexType
                 var typePath = convertYTypeToTypePath(type);
@@ -2276,11 +2326,11 @@ class YSComp {
      */
     static function evalConstExpression(expr:YExpression):Dynamic {
         return switch (expr) {
-            case IntLiteral(value): value;
-            case FloatLiteral(value): value;
-            case StringLiteral(value): value;
-            case BoolLiteral(value): value;
-            case NullLiteral: null;
+            case IntLiteral(value, location): value;
+            case FloatLiteral(value, location): value;
+            case StringLiteral(value, location): value;
+            case BoolLiteral(value, location): value;
+            case NullLiteral(location): null;
             default: null; // Non-constant expression
         };
     }
