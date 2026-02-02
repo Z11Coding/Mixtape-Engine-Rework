@@ -538,6 +538,7 @@ class Main extends Sprite
 		if(debugDisplay != null) {
 			debugDisplay.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "base" || ClientPrefs.data.performanceCounter == "base-adv");
 			debugDisplay.isAdvanced = (ClientPrefs.data.performanceCounter == "base-adv");
+			debugDisplay.backgroundOpacity = ClientPrefs.data.performanceBackground;
 		}
 
 		#if (!web && flixel < "5.5.0")

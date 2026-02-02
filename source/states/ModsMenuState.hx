@@ -50,6 +50,7 @@ class ModsMenuState extends MusicBeatState
 		this.startMod = startMod;
 		super();
 	}
+
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -110,7 +111,7 @@ class ModsMenuState extends MusicBeatState
 			}
 			CoolUtil.openFolder(modFolder);
 		});
-		add(buttonModFolder);
+		//add(buttonModFolder);
 
 		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, Language.getPhrase('enable_all_button', 'ENABLE ALL'), function() {
 			buttonEnableAll.ignoreCheck = false;
