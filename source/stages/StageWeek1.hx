@@ -1,9 +1,9 @@
 package stages;
 
-import stages.objects.*;
 import objects.Character;
-import stages.gimmicks.Week1Gimmick;
 import objects.Note;
+import stages.gimmicks.Week1Gimmick;
+import stages.objects.*;
 
 class StageWeek1 extends BaseStage
 {
@@ -40,15 +40,15 @@ class StageWeek1 extends BaseStage
 	}
 
 	override function createPost() {
-        super.createPost();
-       	if(allowCrowdOpinion) {
+		super.createPost();
+		if(allowCrowdOpinion) {
 			crowdPleaser = new Week1Gimmick();
 			crowdPleaser.cameras = [camHUD];
 			add(crowdPleaser);
 			switch(songName.toLowerCase().replace('-', ' '))
 			{
 				case 'bopeebo':
-					crowdPleaser.crowdAttentionLoss = 0.04;
+					crowdPleaser.crowdAttentionLoss = 0.02;
 				case 'fresh':
 					crowdPleaser.crowdAttentionLoss = 0.02;
 				case 'dad':
@@ -64,7 +64,7 @@ class StageWeek1 extends BaseStage
 					allowCrowdOpinion = false;
 			}
 		}
-    }
+	}
 
 	override function startSong()
 		if (allowCrowdOpinion) crowdPleaser.startGimmick();
@@ -79,7 +79,7 @@ class StageWeek1 extends BaseStage
 		if (allowCrowdOpinion) crowdPleaser.crowdAppeasment += 1;
 		super.goodNoteHit(note);
 	}
-	
+
 	override function noteMiss(note:Note) {
 		if (allowCrowdOpinion) crowdPleaser.crowdAppeasment -= 5;
 		super.noteMiss(note);
@@ -89,7 +89,7 @@ class StageWeek1 extends BaseStage
 		if (allowCrowdOpinion) crowdPleaser.doClap(curBeat);
 		super.beatHit();
 	}
-	
+
 	override function eventPushed(event:objects.Note.EventNote)
 	{
 		switch(event.event)

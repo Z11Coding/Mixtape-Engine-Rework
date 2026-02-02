@@ -134,7 +134,7 @@ class StrumNote extends NoteObject
 		if (!PlayState.isPixelStage) {
 			if(texture.length < 1 || skin == 'null')
 			{
-				skin = (PlayState.SONG != null ? PlayState.SONG.arrowSkin : (texture + postfix));
+				skin = (PlayState.SONG != null && PlayState.SONG.arrowSkin?.length != 0 ? PlayState.SONG.arrowSkin : (texture + postfix));
 				if (skin == null || skin.length < 1) {
 					if (postfix == null || postfix.length < 1)
 						skin = "noteSkins/strums";
@@ -149,7 +149,7 @@ class StrumNote extends NoteObject
 		var skinPostfix:String = Note.getNoteSkinPostfix();
 		if (Paths.fileExists('images/$pixelFolder$texture$skinPostfix.png', IMAGE)) { // If a varient of a skin exists and is selected, load it
 			skin = texture + skinPostfix;
-		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
+		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture$skinPostfix.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
 			skin = 'noteSkins/$texture$skinPostfix';
 		}
 
@@ -195,7 +195,7 @@ class StrumNote extends NoteObject
 				}
 			}
 
-			//trace("Skin: " + skin);
+			trace("Skin: " + skin);
 
 			frames = Paths.getSparrowAtlas(skin);
 			antialiasing = ClientPrefs.data.antialiasing;

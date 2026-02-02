@@ -181,7 +181,7 @@ class ModManager {
 		registerAux('arrowPathThickness');
 
 
-		var toAlternate:Array<String> = ["transformX", "transformY", "transformZ", "flashR", "flashG", "flashB"];
+		var toAlternate:Array<String> = ["transformX", "transformY", "transformZ", "flashR", "flashG", "flashB", "vibrate"];
 		for (i in 0...Note.ammo[PlayState.mania]) {
 			toAlternate.push('transform${i}X');
 			toAlternate.push('transform${i}Y');
