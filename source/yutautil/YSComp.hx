@@ -1433,6 +1433,7 @@ class YSComp {
             case BinaryOp(_, _, _, loc): loc;
             case UnaryOp(_, _, loc): loc;
             case Assignment(_, _, loc): loc;
+            case CompoundAssignment(_, _, _, loc): loc;
             case FunctionCall(_, _, loc): loc;
             case MemberAccess(_, _, loc): loc;
             case ArrayAccess(_, _, loc): loc;
@@ -1549,6 +1550,15 @@ class YSComp {
                 var rightExpr = convertYExpressionToHaxe(right);
                 {
                     expr: EBinop(OpAssign, leftExpr, rightExpr),
+                    pos: pos
+                };
+
+            case CompoundAssignment(left, op, right, location):
+                var leftExpr = convertYExpressionToHaxe(left);
+                var rightExpr = convertYExpressionToHaxe(right);
+                var haxeOp = convertYOpStringToHaxe(op);
+                {
+                    expr: EBinop(haxeOp, leftExpr, rightExpr),
                     pos: pos
                 };
 

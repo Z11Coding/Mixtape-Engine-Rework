@@ -235,6 +235,7 @@ enum YExpression {
     BinaryOp(left:YExpression, op:String, right:YExpression, location:YLocation);
     UnaryOp(op:String, operand:YExpression, location:YLocation);
     Assignment(left:YExpression, right:YExpression, location:YLocation);
+    CompoundAssignment(left:YExpression, op:String, right:YExpression, location:YLocation);
 
     // Function and constructor calls
     FunctionCall(func:YExpression, args:Array<YExpression>, location:YLocation);
@@ -541,7 +542,7 @@ class YScript {
     private var parser:YScriptParser;
     private var runtime:YScriptRuntime;
     private var scope:YScope;
-    private var haxeCompilerDefines:Map<String, String> = haxe.Resource.getString("haxe_compiler_defines") != null ? haxe.Json.parse(haxe.Resource.getString("haxe_compiler_defines")) : null;
+    private var haxeCompilerDefines:Map<String, String> = haxe.Resource.getBytes("haxe_compiler_defines") != null ? haxe.Json.parse(haxe.Resource.getBytes("haxe_compiler_defines").toString()) : null;
     private var YScript_Defines:Map<String, String> = null;
 
     public var scriptPath:String;
@@ -566,6 +567,8 @@ class YScript {
         if (ClientPrefs.data.yscriptDebugMode) {
             trace('YScript: Debug mode enabled - detailed execution tracing active');
             trace('Haxe Compiler Defines detected: ' + Std.string(haxeCompilerDefines));
+            trace('YScript Compiler Defines: ' + Std.string(YScript_Defines));
+            trace('What Haxe Defines are supposed to be: ' + Std.string(haxe.Resource.getBytes("haxe_compiler_defines").toString()));
         }
         #end
     }
@@ -1221,6 +1224,8 @@ class YScript {
                 {type: "UnaryOp", data: {op: op, operand: serializeExpression(operand)}};
             case Assignment(left, right, location):
                 {type: "Assignment", data: {left: serializeExpression(left), right: serializeExpression(right)}};
+            case CompoundAssignment(left, op, right, location):
+                {type: "CompoundAssignment", data: {left: serializeExpression(left), op: op, right: serializeExpression(right)}};
             case FunctionCall(func, args, location):
                 {type: "FunctionCall", data: {func: serializeExpression(func), args: [for (a in args) serializeExpression(a)]}};
             case New(type, args, location):
@@ -1374,6 +1379,7 @@ class YScript {
             case "BinaryOp": BinaryOp(deserializeExpression(data.data.left), data.data.op, deserializeExpression(data.data.right), createDefaultLocation());
             case "UnaryOp": UnaryOp(data.data.op, deserializeExpression(data.data.operand), createDefaultLocation());
             case "Assignment": Assignment(deserializeExpression(data.data.left), deserializeExpression(data.data.right), createDefaultLocation());
+            case "CompoundAssignment": CompoundAssignment(deserializeExpression(data.data.left), data.data.op, deserializeExpression(data.data.right), createDefaultLocation());
             case "FunctionCall": FunctionCall(deserializeExpression(data.data.func), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)], createDefaultLocation());
             case "New": New(deserializeType(data.data.type), [for (a in cast(data.data.args, Array<Dynamic>)) deserializeExpression(a)], createDefaultLocation());
             case "Cast": Cast(deserializeExpression(data.data.expr), deserializeType(data.data.type), createDefaultLocation());
@@ -2248,7 +2254,7 @@ class YScriptTokenizer {
         // Two-character operators
         var twoChar = source.substr(pos, 2);
         switch (twoChar) {
-            case "==", "!=", "<=", ">=", "&&", "||", "++", "--":
+            case "==", "!=", "<=", ">=", "&&", "||", "++", "--", "+=", "-=", "*=", "/=", "%=":
                 advance(2);
                 return makeToken(TOperator(twoChar), startLine, startColumn);
         }
@@ -2853,6 +2859,15 @@ class YScriptParser {
     private function parseAssignment():YExpression {
         var expr = parseLogicalOr();
 
+        // Check compound assignments first (they are longer and more specific)
+        if (matchOperator("+=") || matchOperator("-=") || matchOperator("*=") || matchOperator("/=") || matchOperator("%=")) {
+            var startLocation = getCurrentLocation();
+            var op = getOperatorString(previous().type);
+            var right = parseAssignment();
+            return YExpression.CompoundAssignment(expr, op, right, startLocation);
+        }
+
+        // Check regular assignment after compound assignments
         if (match([TAssign])) {
             var startLocation = getCurrentLocation();
             var right = parseAssignment();
@@ -3465,6 +3480,10 @@ class YScriptParser {
                 // Assignment expressions return the type of the right-hand side
                 inferExpressionType(right);
 
+            case CompoundAssignment(left, op, right, location):
+                // Compound assignment expressions return the type of the left-hand side (which should be compatible with the operation result)
+                inferExpressionType(left);
+
             case SuperCall(args, location):
                 // Super call expressions return Dynamic for now
                 YType.Dynamic;
@@ -3939,6 +3958,7 @@ class YScriptRuntime {
             case BinaryOp(_, _, _, loc): loc;
             case UnaryOp(_, _, loc): loc;
             case Assignment(_, _, loc): loc;
+            case CompoundAssignment(_, _, _, loc): loc;
             case FunctionCall(_, _, loc): loc;
             case MemberAccess(_, _, loc): loc;
             case ArrayAccess(_, _, loc): loc;
@@ -4008,13 +4028,44 @@ class YScriptRuntime {
                 assignToTarget(target, val);
                 val;
 
+            case CompoundAssignment(target, op, value, location):
+                // Evaluate the current value of the target
+                var currentValue = evaluateExpression(target);
+                // Evaluate the right-hand side value
+                var rightValue = evaluateExpression(value);
+                // Get the binary operator (remove '=' from compound operator)
+                var binaryOp = op.substring(0, op.length - 1);
+                // Perform the binary operation
+                var newValue = evaluateBinaryOperation(currentValue, binaryOp, rightValue);
+                // Assign the result back to the target
+                assignToTarget(target, newValue);
+                newValue;
+
             case FunctionCall(callee, args, location):
                 var argValues = [for (arg in args) evaluateExpression(arg)];
                 callFunctionExpression(callee, argValues);
 
             case MemberAccess(object, member, location):
-                var objValue = evaluateExpression(object);
-                accessMember(objValue, member);
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] Evaluating MemberAccess: object=' + Std.string(object).substring(0, 30) + ', member=' + member);
+                }
+                #end
+
+                // Check if this is part of a dotted path that might resolve to a type
+                try {
+                    return resolveProgressiveMemberAccess(MemberAccess(object, member, location));
+                } catch (e:YScriptRuntimeError) {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] Progressive resolution failed, trying normal member access: ' + e.message);
+                    }
+                    #end
+
+                    // Progressive resolution failed, try normal member access WITHOUT recursion
+                    var objValue = evaluateExpression(object);
+                    return accessMember(objValue, member);
+                }
 
             case ArrayAccess(array, index, location):
                 var arrayValue = evaluateExpression(array);
@@ -4362,6 +4413,260 @@ class YScriptRuntime {
             var context = scope.getExecutionContext();
             throw new YScriptRuntimeError('Error accessing member $member: $e', context.location, context.scriptPath);
         }
+    }
+
+    /**
+     * Progressive member access resolution for dotted paths like this.is.a.Long.path.thing
+     * This handles cases where we need to resolve longer type paths before accessing members
+     */
+    private function resolveProgressiveMemberAccess(expr:YExpression):Dynamic {
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] resolveProgressiveMemberAccess called with: ' + Std.string(expr).substring(0, 100));
+        }
+        #end
+
+        // Collect the full dotted path
+        var pathParts:Array<String> = [];
+        var currentExpr = expr;
+
+        // Walk backwards through the member access chain to collect all parts
+        while (true) {
+            switch (currentExpr) {
+                case MemberAccess(object, member, _):
+                    pathParts.unshift(member);
+                    currentExpr = object;
+                case Identifier(name, _):
+                    pathParts.unshift(name);
+                    break;
+                default:
+                    // Not a simple dotted path, evaluate normally without recursion
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] resolveProgressiveMemberAccess: Not a simple dotted path, falling back to normal evaluation');
+                    }
+                    #end
+                    throw new YScriptRuntimeError('Progressive resolution failed: not a simple dotted path');
+            }
+        }
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] resolveProgressiveMemberAccess: Collected path parts: [' + pathParts.join(', ') + ']');
+        }
+        #end
+
+        // Try progressively longer paths to find a resolvable type
+        for (i in 1...pathParts.length + 1) {
+            var typePath = pathParts.slice(0, i).join('.');
+
+            #if !macro
+            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                trace('[YScript Debug] resolveProgressiveMemberAccess: Trying path "$typePath"');
+            }
+            #end
+
+            // First check if it's an imported type that was registered in scope
+            var registeredType = scope.getType(typePath);
+            if (registeredType != null) {
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Found registered type "$typePath"');
+                }
+                #end
+
+                switch (registeredType) {
+                    case HaxeClass(classType):
+                        var result:Dynamic = classType;
+                        for (j in i...pathParts.length) {
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] resolveProgressiveMemberAccess: Accessing member "${pathParts[j]}" on registered type');
+                            }
+                            #end
+                            result = Reflect.field(result, pathParts[j]);
+                            if (result == null) {
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on registered type "$typePath"', context.location, context.scriptPath);
+                            }
+                        }
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved registered type to: ' + Std.string(result).substring(0, 50));
+                        }
+                        #end
+                        return result;
+                    default:
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Registered type "$typePath" is not a class type');
+                        }
+                        #end
+                }
+            }
+
+            // Try to resolve as Haxe type first
+            try {
+                var haxeType = Type.resolveClass(typePath);
+                if (haxeType != null) {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] resolveProgressiveMemberAccess: Found Haxe type "$typePath", accessing remaining ${pathParts.length - i} members');
+                    }
+                    #end
+
+                    // Found a valid Haxe type, now access remaining members step by step
+                    var result:Dynamic = haxeType;
+                    for (j in i...pathParts.length) {
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Accessing member "${pathParts[j]}" on ${j == i ? "type " + typePath : "object"}');
+                        }
+                        #end
+                        result = Reflect.field(result, pathParts[j]);
+                        if (result == null) {
+                            var context = scope.getExecutionContext();
+                            throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on ${j == i ? "type " + typePath : "object"}', context.location, context.scriptPath);
+                        }
+                    }
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved to: ' + Std.string(result).substring(0, 50));
+                    }
+                    #end
+                    return result;
+                }
+            } catch (e:Dynamic) {
+                // Type resolution failed, continue trying longer paths
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Type resolution failed for "$typePath": $e');
+                }
+                #end
+            }
+
+            // Check if it's an imported type that was registered in scope
+            var registeredType = scope.getType(typePath);
+            if (registeredType != null) {
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Found registered type "$typePath"');
+                }
+                #end
+
+                switch (registeredType) {
+                    case HaxeClass(classType):
+                        var result:Dynamic = classType;
+                        for (j in i...pathParts.length) {
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] resolveProgressiveMemberAccess: Accessing member "${pathParts[j]}" on registered type');
+                            }
+                            #end
+                            result = Reflect.field(result, pathParts[j]);
+                            if (result == null) {
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on registered type "$typePath"', context.location, context.scriptPath);
+                            }
+                        }
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved registered type to: ' + Std.string(result).substring(0, 50));
+                        }
+                        #end
+                        return result;
+                    default:
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Registered type "$typePath" is not a class type');
+                        }
+                        #end
+                }
+            }
+
+            // Check for import aliases
+            var resolvedImport = scope.resolveImport(typePath);
+            if (resolvedImport != null) {
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Found import alias "$typePath" -> "$resolvedImport"');
+                }
+                #end
+
+                try {
+                    var importedType = Type.resolveClass(resolvedImport);
+                    if (importedType != null) {
+                        var result:Dynamic = importedType;
+                        for (j in i...pathParts.length) {
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] resolveProgressiveMemberAccess: Accessing member "${pathParts[j]}" on imported type');
+                            }
+                            #end
+                            result = Reflect.field(result, pathParts[j]);
+                            if (result == null) {
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on imported type "$resolvedImport"', context.location, context.scriptPath);
+                            }
+                        }
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved imported type to: ' + Std.string(result).substring(0, 50));
+                        }
+                        #end
+                        return result;
+                    }
+                } catch (e:Dynamic) {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] resolveProgressiveMemberAccess: Failed to resolve import "$resolvedImport": $e');
+                    }
+                    #end
+                }
+            }
+
+            // Try to resolve as variable in scope
+            if (scope.hasVariable(typePath)) {
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Found variable "$typePath", accessing remaining ${pathParts.length - i} members');
+                }
+                #end
+
+                var variable = scope.getVariable(typePath);
+                var result = variable.value;
+
+                // Access remaining members step by step on the resolved variable
+                for (j in i...pathParts.length) {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] resolveProgressiveMemberAccess: Accessing member "${pathParts[j]}" on ${j == i ? "variable " + typePath : "object"}');
+                    }
+                    #end
+                    result = Reflect.field(result, pathParts[j]);
+                    if (result == null) {
+                        var context = scope.getExecutionContext();
+                        throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on ${j == i ? "variable " + typePath : "object"}', context.location, context.scriptPath);
+                    }
+                }
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved variable to: ' + Std.string(result).substring(0, 50));
+                }
+                #end
+                return result;
+            }
+        }
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] resolveProgressiveMemberAccess: No progressive resolution worked, throwing error');
+        }
+        #end
+
+        // If no progressive resolution worked, throw error to indicate failure
+        var context = scope.getExecutionContext();
+        throw new YScriptRuntimeError('Could not resolve progressive member access: ' + pathParts.join('.'), context.location, context.scriptPath);
     }
 
     private function setMember(object:Dynamic, member:String, value:Dynamic):Void {

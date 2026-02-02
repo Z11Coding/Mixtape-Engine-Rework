@@ -356,7 +356,7 @@
 
 	<!-- YScript Compiler integration -->
 	<section if="YSCOMP_ENABLED">
-		<haxeflag name="--macro" value="yutautil.YSComp.process()" />
+		<haxeflag name="--macro" value="yutautil.YSComp.initialize()" />
 	</section>
 
 	<assets path='art/icons/iconOG.png' rename='icon.png' if="linux" />
