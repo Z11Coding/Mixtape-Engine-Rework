@@ -133,6 +133,7 @@ class FirstCheckState extends MusicBeatState
 		if(Main.debugDisplay != null) {
 			Main.debugDisplay.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "base" || ClientPrefs.data.performanceCounter == "base-adv");
 			Main.debugDisplay.isAdvanced = (ClientPrefs.data.performanceCounter == "base-adv");
+			Main.debugDisplay.backgroundOpacity = ClientPrefs.data.performanceBackground;
 		}
 
 		super.create();

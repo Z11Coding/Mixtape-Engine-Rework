@@ -1,8 +1,8 @@
 package stages.gimmicks;
 
-import objects.Bar; 
-//import backend.modchart.SubModifier;
+// import backend.modchart.SubModifier;
 import flixel.tweens.FlxEase;
+import objects.Bar;
 
 enum CrowdState
 {
@@ -12,9 +12,9 @@ enum CrowdState
     HAPPY;
     VIBING;
     NONE; //for the lastState specifically
-} 
+}
 
-class Week1Gimmick extends Bar 
+class Week1Gimmick extends Bar
 {
     /**
      * The current amount the crowd is appeased
@@ -23,15 +23,15 @@ class Week1Gimmick extends Bar
 
     /**
      * The current amount of drain that is applied
-     * (WARNING! THIS WILL DRAIN THE BAR EVERY FRAME!)  
+     * (WARNING! THIS WILL DRAIN THE BAR EVERY FRAME!)
      */
     public var crowdAttentionLoss:Float = 0.02;
-    
+
     /**
      * Toggles the health drain
      */
     public var allowDrain:Bool = false;
-    
+
     /**
      * Toggles the ability to kill the player
      */
@@ -63,7 +63,7 @@ class Week1Gimmick extends Bar
      * Unhappy
      * Mad
      */
-    public var crowdState(default, set):CrowdState = NEUTRAL;    
+    public var crowdState(default, set):CrowdState = NEUTRAL;
     /**
      * Calls the "onCrowdMad" Callback
      */
@@ -90,7 +90,7 @@ class Week1Gimmick extends Bar
         createGimmick();
     }
 
-    public function createGimmick() 
+    public function createGimmick()
     {
         //if (PlayState.instance.modManager != null) PlayState.instance.modManager.quickRegister(new SubModifier('noteShake', PlayState.instance.modManager));
 		//if (PlayState.instance.modManager != null) PlayState.instance.modManager.setValue('noteShake', 0);
@@ -139,7 +139,7 @@ class Week1Gimmick extends Bar
     public function stopGimmick() {
         canKill = false;
         allowDrain = false;
-        crowdAppeasment = 50; 
+        crowdAppeasment = 50;
     }
 
     /**
@@ -150,7 +150,7 @@ class Week1Gimmick extends Bar
         {
             crowdClap.volume = 1;
             crowdClap.play(true);
-        }    
+        }
     }
 
     var doRainbow:Bool = false;
@@ -161,8 +161,8 @@ class Week1Gimmick extends Bar
     {
         e++;
         if (doRainbow && crowdAppeasment > 100) setColors(FlxColor.BLACK, FlxColor.fromHSL(((e / (20 * 0.1)) / 300 * 360) % 360, 1.0, 0.5*1.0));
-        if (allowDrain) crowdAppeasment -= crowdAttentionLoss / (ClientPrefs.data.framerate / 120);
-        if (canKill && crowdAppeasment <= 0) 
+        if (allowDrain) crowdAppeasment -= crowdAttentionLoss / (ClientPrefs.data.framerate / 60);
+        if (canKill && crowdAppeasment <= 0)
         {
             COD.setCOD(null, 'The crowd got bored and left.\n[pause:0.5](And BF got pelted by a tomato)');
             PlayState.instance.die();
@@ -189,7 +189,7 @@ class Week1Gimmick extends Bar
                     crowdBoo.volume = 0.9;
                     crowdBoo.play();
                     lastState = MAD;
-                    //PlayState.instance.modManager.setValue('noteShake', 8);
+                    PlayState.instance.modManager.setValue('vibrate-a', 1);
                     trace('Crowd Mood: Mad');
                     setColors(FlxColor.BLACK, FlxColor.RED);
                     healthDrainMult = 0.01 / ClientPrefs.data.framerate;
@@ -198,7 +198,7 @@ class Week1Gimmick extends Bar
                     if (crowdBoo.playing)
                         crowdBoo.fadeOut(2, 0);
                     lastState = UNHAPPY;
-                    //PlayState.instance.modManager.setValue('noteShake', 4);
+                    PlayState.instance.modManager.setValue('vibrate-a', 0.5);
                     trace('Crowd Mood: Unhappy');
                     setColors(FlxColor.BLACK, FlxColor.fromRGB(102, 4, 4));
                     healthDrainMult = 0.004 / ClientPrefs.data.framerate;
@@ -209,7 +209,7 @@ class Week1Gimmick extends Bar
                     if (crowdCheer.playing)
                         crowdCheer.fadeOut(0.5, 0);
                     lastState = NEUTRAL;
-                    //PlayState.instance.modManager.setValue('noteShake', 0);
+                    PlayState.instance.modManager.setValue('vibrate-a', 0);
                     trace('Crowd Mood: Neutral');
                     setColors(FlxColor.BLACK, FlxColor.BLUE);
                     if (onCrowdNeutral != null) onCrowdNeutral();
