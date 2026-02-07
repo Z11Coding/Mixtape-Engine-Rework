@@ -907,6 +907,10 @@ class YScript {
         return isReady && scope.hasFunction(name);
     }
 
+    public function attemptFunction(name:String, ?args:Array<Dynamic>):Dynamic {
+        return hasFunction(name) ? callFunction(name, args) : null;
+    }
+
     /**
      * ✅ INTEGRATION: Set variable from external system
      */
