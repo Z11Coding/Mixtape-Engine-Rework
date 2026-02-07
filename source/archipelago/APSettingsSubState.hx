@@ -96,9 +96,9 @@ class APSettingsSubState extends MusicBeatSubstate {
         trace('Base songs added to list: ${globalSongList.length} songs');
 
         var tempSongList:Map<String, Bool> = new Map();
-                    // trace("Mods present: " + Mods.parseList().enabled);
-                    // trace("Weeks present: " + WeekData.weeksList);
-                    // trace("Mods enabled: " + APEntryState.gameSettings.FNF.mods_enabled);
+        // trace("Mods present: " + Mods.parseList().enabled);
+        // trace("Weeks present: " + WeekData.weeksList);
+        // trace("Mods enabled: " + APEntryState.gameSettings.FNF.mods_enabled);
 
         WeekData.reloadWeekFiles(false);
 

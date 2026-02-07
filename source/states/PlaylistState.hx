@@ -1,16 +1,17 @@
 package states;
+import Random;
 import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
 import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
-import flixel.math.FlxRandom;
 import objects.Alphabet.DynamicAlphabet;
 import objects.Character;
 import objects.HealthIcon;
 import options.GameplayChangersSubstate;
-import states.PlaylistState.PlaylistMetadata;
+import states.editors.PlaylistEditorState.PlaylistSelector;
 import states.freeplay.backend.DifficultyStars;
 import yutautil.AprilFools;
+
 class PlaylistState extends MusicBeatState {
   public var loadedPlaylists:Array<PlaylistMetadata> = [];
 	var selectedPlaylist:PlaylistMetadata = null;
@@ -226,6 +227,38 @@ class PlaylistState extends MusicBeatState {
 		bottomText.scrollFactor.set();
 		add(bottomText);
 
+		var sizeMulti:Int = 2;
+
+		var genRandoPlaylist:PsychUIButton = new PsychUIButton(0, (FlxG.height - 50), 'Generate Random Playlist', function()
+		{
+			var amountToGenerate:Int = 3;
+			openSliderControl("How many songs would you like to generate?", 5, 3, FreeplayManager.instance?.songList.length, 1, function(value:Float)
+			{
+				amountToGenerate = Std.int(value);
+			});
+
+			sliderCloseFunc = function() {
+				var challengePlayList:PlaylistMetadata = new PlaylistMetadata('Challenge Run');
+
+				var tempList:Array<managers.FreeplayManager.GlobalSongMetadata> = FreeplayManager.instance.songList;
+				Random.shuffle(tempList);
+				for (song in tempList) {
+					var playlistSong:PlaylistSongMetadata = PlaylistMetadata.convertFreeplaySong(song);
+					playlistSong.difficulty = "`";
+					challengePlayList.songList.push(playlistSong);
+				}
+			};
+
+		}, 80*sizeMulti, 20*sizeMulti);
+    genRandoPlaylist.x = (FlxG.width/2) - genRandoPlaylist.width - 250;
+
+		var genChallengePlaylist:PsychUIButton = new PsychUIButton(0, (FlxG.height - 50), 'Generate Challenge Playlist', function()
+		{
+      FlxTransitionableState.skipNextTransIn = true;
+      FlxG.switchState(new PlaylistSelector());
+		}, 80*sizeMulti, 20*sizeMulti);
+    genChallengePlaylist.x = (FlxG.width/2) - genChallengePlaylist.width - 350;
+
     updateTexts();
 
     super.create();
@@ -233,6 +266,151 @@ class PlaylistState extends MusicBeatState {
 
     rank.doTween('in');
   }
+
+	// Slider controls
+	var activeSliders:Map<String, archipelago.APAdvancedSettingsState.SliderControl> = new Map();
+	var selectedSlider:String = null;
+	var isSliderActive:Bool = false;
+	var sliderUpdateFunc:Float->Void = null;
+	var sliderCloseFunc:Void->Void = null;
+
+	// Slider control system
+	function openSliderControl(name:String, currentValue:Float, minValue:Float, maxValue:Float, stepSize:Float, onUpdate:Float->Void)
+	{
+		// Set slider active to block other input
+		isSliderActive = true;
+
+		var sliderBg = new FlxSprite(0, 0);
+		sliderBg.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 120));
+		add(sliderBg);
+
+		var panel = new FlxSprite(Std.int(FlxG.width / 2) - 300, Std.int(FlxG.height / 2) - 100);
+		panel.makeGraphic(600, 200, FlxColor.fromRGB(20, 20, 40));
+		add(panel);
+
+		var titleText = new FlxText(panel.x + 20, panel.y + 20, panel.width - 40, name, 24);
+		titleText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		titleText.borderSize = 2;
+		add(titleText);
+
+		// Slider track
+		var sliderTrack = new FlxSprite(panel.x + 50, panel.y + 80);
+		sliderTrack.makeGraphic(Std.int(panel.width - 100), 10, FlxColor.GRAY);
+		add(sliderTrack);
+
+		// Slider handle
+		var sliderHandle = new FlxSprite(0, sliderTrack.y - 10);
+		sliderHandle.makeGraphic(20, 30, FlxColor.WHITE);
+		add(sliderHandle);
+
+		// Value text
+		var valueText = new FlxText(panel.x + 20, panel.y + 120, panel.width - 40, "", 20);
+		valueText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
+		valueText.borderSize = 1;
+		add(valueText);
+
+		// Update slider position and value
+		var updateSlider = function(value:Float)
+		{
+			var normalizedValue = (value - minValue) / (maxValue - minValue);
+			sliderHandle.x = sliderTrack.x + (normalizedValue * (sliderTrack.width - sliderHandle.width));
+			valueText.text = Std.string(Std.int(value));
+		};
+
+		updateSlider(currentValue);
+
+		// Input text button
+		var inputButton = new FlxSprite(panel.x + 50, panel.y + 150);
+		inputButton.makeGraphic(100, 30, FlxColor.GREEN);
+		add(inputButton);
+
+		var inputButtonText = new FlxText(inputButton.x, inputButton.y + 5, inputButton.width, "TYPE VALUE", 12);
+		inputButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		inputButtonText.borderSize = 1;
+		add(inputButtonText);
+
+		// Close button
+		var closeButton = new FlxSprite(panel.x + panel.width - 150, panel.y + 150);
+		closeButton.makeGraphic(100, 30, FlxColor.RED);
+		add(closeButton);
+
+		var closeButtonText = new FlxText(closeButton.x, closeButton.y + 5, closeButton.width, "CLOSE", 12);
+		closeButtonText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		closeButtonText.borderSize = 1;
+		add(closeButtonText);
+
+		var isDragging = false;
+		var currentVal = currentValue;
+		var lastVal:Float = -1;
+
+		// Create the update function and assign it
+		sliderUpdateFunc = function(elapsed:Float)
+		{
+			if (FlxG.mouse.pressed && FlxG.mouse.overlaps(sliderTrack))
+			{
+				isDragging = true;
+			}
+
+			if (isDragging && FlxG.mouse.pressed)
+			{
+				var mouseX = FlxG.mouse.x;
+				var relativeX = mouseX - sliderTrack.x;
+				var normalizedX = Math.max(0, Math.min(1, relativeX / sliderTrack.width));
+				currentVal = minValue + (normalizedX * (maxValue - minValue));
+				currentVal = Math.round(currentVal / stepSize) * stepSize;
+				updateSlider(currentVal);
+				if (currentVal != lastVal)
+				{
+					FlxG.sound.play(Paths.sound('scrollMenu'), 0.3);
+					lastVal = currentVal;
+				}
+			}
+
+			if (!FlxG.mouse.pressed)
+			{
+				isDragging = false;
+			}
+
+			// Button clicks - only handle if slider is active
+			if (FlxG.mouse.overlaps(inputButton) && FlxG.mouse.justPressed)
+			{
+				openSubState(new NumberInputSubstate(name, currentVal, minValue, maxValue, function(newValue:Float)
+				{
+					currentVal = newValue;
+					updateSlider(currentVal);
+				}, null, // no cancel callback needed
+					stepSize, // use the provided step size
+					stepSize != Std.int(stepSize), // allow decimals if step size is not integer
+					'Enter a value between $minValue and $maxValue',
+					bg.color, // use current page theme color
+					true // show number pad
+				));
+			}
+
+			if (FlxG.mouse.overlaps(closeButton) && FlxG.mouse.justPressed)
+			{
+				onUpdate(currentVal);
+				FlxG.sound.play(Paths.sound('confirmMenu'));
+
+				// Remove all slider elements and reset state
+				remove(sliderBg);
+				remove(panel);
+				remove(titleText);
+				remove(sliderTrack);
+				remove(sliderHandle);
+				remove(valueText);
+				remove(inputButton);
+				remove(inputButtonText);
+				remove(closeButton);
+				remove(closeButtonText);
+
+				// Reset slider state
+				isSliderActive = false;
+				sliderUpdateFunc = null;
+				if (sliderCloseFunc != null) sliderCloseFunc();
+			}
+		};
+	}
 
   override function closeSubState() {
 		if (doChange)
@@ -315,7 +493,7 @@ class PlaylistState extends MusicBeatState {
 
 	  if (loadedPlaylists.length <= 0) {
 		  if (controls.justPressed('debug_1') && !choosePlaylist) {
-			MusicBeatState.switchState(new states.editors.PlaylistEditorState());
+				MusicBeatState.switchState(new states.editors.PlaylistEditorState());
 		  }
 		  return; //if there's no playlists, dont update lol
 	  }
@@ -824,6 +1002,7 @@ class PlaylistMetadata
 	public var difficulty:Int = -1;
 	public var color:Array<Dynamic> = [];
 	public var songList:Array<PlaylistSongMetadata> = [];
+	public var jsonPath:String = null;
 	public function new(?playlistName:String = 'unnamed playlist', ?bg:String = 'menuDesat', ?icon:String = 'bf', ?album:String = 'nocover', ?color:Array<Dynamic>, ?songList:Array<PlaylistSongMetadata>)
 	{
 		this.playlistName = playlistName;
@@ -840,7 +1019,7 @@ class PlaylistMetadata
 		var songList:Array<PlaylistSongMetadataObject> = data.songList;
 		var newSongList:Array<PlaylistSongMetadata> = [];
 		for (song in songList) {
-			var newSong:PlaylistSongMetadata = convertSongListFromObject(song);
+			var newSong:PlaylistSongMetadata = convertSongFromObject(song);
 			newSong.folder = song.folder;
 			newSongList.push(newSong);
 			trace('added song ${newSong.songName}');
@@ -850,10 +1029,16 @@ class PlaylistMetadata
 		return playlist;
 	}
 
-	public static function convertSongListFromObject(data:PlaylistSongMetadataObject):PlaylistSongMetadata
+	public static function convertSongFromObject(data:PlaylistSongMetadataObject):PlaylistSongMetadata
 	{
-		var songlist:PlaylistSongMetadata = new PlaylistSongMetadata(data.songName, data.week, data.songCharacter, data.color, data.difficulty);
-		return songlist;
+		var song:PlaylistSongMetadata = new PlaylistSongMetadata(data.songName, data.week, data.songCharacter, data.color, data.difficulty);
+		return song;
+	}
+
+	public static function convertFreeplaySong(data:managers.FreeplayManager.GlobalSongMetadata):PlaylistSongMetadata
+	{
+		var song:PlaylistSongMetadata = new PlaylistSongMetadata(data.songName, data.week, data.songCharacter, data.color, "`");
+		return song;
 	}
 
 	public inline function copy():PlaylistMetadata

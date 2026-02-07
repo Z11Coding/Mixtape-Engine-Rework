@@ -5,8 +5,8 @@ import backend.WeekData;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import lime.utils.Assets;
-import metadata.STMetaFile.FreeplayMetaJSON;
 import metadata.STMetaFile.CodenameMetadata;
+import metadata.STMetaFile.FreeplayMetaJSON;
 import metadata.STMetaFile.MetadataFile;
 import states.CategoryState;
 import states.PlayState;
@@ -35,8 +35,6 @@ import archipelago.PacketTypes.ClientStatus;
     ** enables multiple diferent styled menus that can all act the same, as they would all be ran through this
     ** enables the ability to have cutsom freeplays without the large chunks of "load the entire song list" code
     ** does other things too
-
-    TODO: Might make this extend of MusicBeatState so that freeplay can extend off it
 **/
 class FreeplayManager {
     public static var instance:FreeplayManager;
@@ -50,8 +48,6 @@ class FreeplayManager {
 	public function get_songList():Array<GlobalSongMetadata> {
 		return songs;
 	}
-
-
 
     public var metadata:Map<String, MetadataFile> = new Map<String, MetadataFile>();
     var metadataFile:MetadataFile;
