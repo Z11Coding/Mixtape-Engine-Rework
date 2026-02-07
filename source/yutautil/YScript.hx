@@ -72,6 +72,36 @@ typedef YVarData = {
     ?haxeType:Dynamic // Direct reference to Haxe type when applicable
 };
 
+abstract YTypeable(YType) from YType to YType {
+    public inline function new(type:YType) {
+        this = type;
+    }
+
+    @:to public function toString():String {
+        return YTypeHelper.toString(this);
+    }
+
+    @:from public static inline function fromClass<T>(cls:Class<T>):YTypeable {
+        if (cls == null) return YType.Dynamic;
+        // var typeG
+
+        return switch (cast cls) {
+            case Int: YType.YInt;
+            case Float: YType.YFloat;
+            case Bool: YType.YBool;
+            case (String): YType.YString;
+            case (Array): YType.YArray(YType.Dynamic); // Cannot determine element type at runtime
+            default: YType.HaxeClass(cast cls);
+        };
+    }
+
+    @:from public static inline function fromEnum<T>(e:Enum<T>):YTypeable {
+        if (e == null) return YType.Dynamic;
+        return YType.HaxeEnum(cast e);
+    }
+    // @:from public static function fromEnumVal()
+}
+
 /**
  * Unified type system supporting both YScript and Haxe types
  */
@@ -1060,9 +1090,13 @@ class YScript {
     private function setupBuiltins():Void {
         // Built-in functions
         // Trace adds location info.
+        #if !macro
+        registerHaxeFunction("trace", function(msg:Dynamic) { backend.modules.TraceManager.println('${this.scriptPath}:${this.runtime.scope.currentLocation.line ?? this.scope.currentLocation.line}: ${msg}'); });
+        registerHaxeFunction("print", function(msg:Dynamic) { backend.modules.TraceManager.println(Std.string(msg)); });
+        #else
         registerHaxeFunction("trace", function(msg:Dynamic) { Sys.println('${this.scriptPath}:${this.runtime.scope.currentLocation.line ?? this.scope.currentLocation.line}: ${msg}'); });
         registerHaxeFunction("print", function(msg:Dynamic) { Sys.println(Std.string(msg)); });
-
+        #end
         // Built-in types
         scope.setType("Int", YType.YInt);
         scope.setType("Float", YType.YFloat);
@@ -1070,9 +1104,11 @@ class YScript {
         scope.setType("Bool", YType.YBool);
         scope.setType("Dynamic", YType.Dynamic);
         scope.setType("Void", YType.Void);
-
-        //scope.setVariable("Function_StopYScript", LuaUtils.Function_StopYScript);
-        //scope.setVariable("Function_StopAll", LuaUtils.Function_StopAll);
+        #if !macro
+        scope.createVariable("Function_StopYScript", LuaUtils.Function_StopYScript);
+        scope.createVariable("Function_StopAll", LuaUtils.Function_StopAll);
+        scope.createVariable("Function_Continue", LuaUtils.Function_Continue);
+        #end
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -1713,6 +1749,12 @@ class YScope {
         variables.set(name, variable);
     }
 
+    public function createVariable(name:String, value:Dynamic, ?type:YTypeable):YVar {
+        var variable = new YVar(name, type != null ? type : inferTypeFromValue(value), value);
+        setVariable(name, variable);
+        return variable;
+    }
+
     public function getVariable(name:String):Null<YVar> {
         if (variables.exists(name)) {
             return variables.get(name);
@@ -1733,6 +1775,40 @@ class YScope {
         functions.set(name, func);
     }
 
+    public function createFunction(name:String, parameters:Array<YTypeable>, returnType:YTypeable, func:haxe.Constraints.Function):YFunction {
+        var func = new YFunction(name, parameters.map(p -> makeVarFromTypeable(p, "")), returnType, YFunctionBody.Native(func));
+        setFunction(name, func);
+        return func;
+    }
+
+    private function makeVarFromTypeable(typeable:YTypeable, name:String):YVar {
+    function getDefaultValueForType(type:YType):Dynamic { // For internal use.
+        return switch (type) {
+            case YInt: 0;
+            case YFloat: 0.0;
+            case YString: "";
+            case YBool: false;
+            case YArray(_): [];
+            case Dynamic: null;
+            case Void: null;
+            case YClass(_): null;
+            case YEnum(_): null;
+            case YStruct(_): null;
+            case HaxeClass(_): null;
+            case HaxeAbstract(_): null;
+            case HaxeType(_): null;
+            case HaxeEnum(_): null;
+            case YFunction(_, _): null;
+            case Unknown: null;
+        };
+    }
+
+        var type = typeable;
+        var defaultValue = getDefaultValueForType(type);
+        return new YVar(name, type, defaultValue);
+    }
+
+
     public function getFunction(name:String):Null<YFunction> {
         if (functions.exists(name)) {
             return functions.get(name);
@@ -1744,7 +1820,7 @@ class YScope {
         return functions.exists(name) || (parent != null ? parent.hasFunction(name) : false);
     }
 
-    public function setType(name:String, type:YType):Void {
+    public function setType(name:String, type:YTypeable):Void {
         #if !macro
         if (ClientPrefs.data.yscriptDebugMode && !types.exists(name)) {
             trace('YType created: ${name}  (${YTypeHelper.toString(type)})');
@@ -1753,7 +1829,7 @@ class YScope {
         types.set(name, type);
     }
 
-    public function getType(name:String):Null<YType> {
+    public function getType(name:String):Null<YTypeable> {
         if (types.exists(name)) {
             return types.get(name);
         }
@@ -4141,7 +4217,7 @@ class YScriptRuntime {
     private function evaluateUnaryOperation(op:String, operand:Dynamic):Dynamic {
         return switch (op) {
             case "-": -operand;
-            case "+": operand;
+            case "+": operand < 0 ? -operand : operand;
             case "!": !isTruthy(operand);
             default:
                 var context = scope.getExecutionContext();
@@ -4485,14 +4561,14 @@ class YScriptRuntime {
                             }
                             #end
                             result = Reflect.field(result, pathParts[j]);
-                            if (result == null) {
+                            if (result == null && !Reflect.hasField(result, pathParts[j])) {
                                 var context = scope.getExecutionContext();
                                 throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on registered type "$typePath"', context.location, context.scriptPath);
                             }
                         }
                         #if !macro
                         if (backend.ClientPrefs.data.yscriptDebugMode) {
-                            trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved registered type to: ' + Std.string(result).substring(0, 50));
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Successfully resolved registered type "$typePath" to: ' + Std.string(result).substring(0, 50));
                         }
                         #end
                         return result;
@@ -4524,7 +4600,7 @@ class YScriptRuntime {
                         }
                         #end
                         result = Reflect.field(result, pathParts[j]);
-                        if (result == null) {
+                        if (result == null && !Reflect.hasField(result, pathParts[j])) {
                             var context = scope.getExecutionContext();
                             throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on ${j == i ? "type " + typePath : "object"}', context.location, context.scriptPath);
                         }
@@ -4564,7 +4640,7 @@ class YScriptRuntime {
                             }
                             #end
                             result = Reflect.field(result, pathParts[j]);
-                            if (result == null) {
+                            if (result == null && !Reflect.hasField(result, pathParts[j])) {
                                 var context = scope.getExecutionContext();
                                 throw new YScriptRuntimeError('Member "${pathParts[j]}" not found on registered type "$typePath"', context.location, context.scriptPath);
                             }
