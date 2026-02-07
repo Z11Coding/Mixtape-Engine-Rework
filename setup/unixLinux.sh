@@ -34,7 +34,6 @@ haxelib install crypto 1.0.4
 haxelib install openflCamera 1.0.7
 haxelib install openflMicrophone 1.0.1
 haxelib install hxpy 2.0.0
-haxelib install extension-harfbuzz 1.2.0
 haxelib install random 1.4.1
 haxelib set lime 8.1.2
 haxelib set openfl 9.3.3

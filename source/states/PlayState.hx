@@ -8264,7 +8264,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if(flValue2 == null) flValue2 = 1;
 				FlxG.sound.play(Paths.sound(value1), flValue2);
 
-			case 'SetCameraBop': //P-slice event notes
+			case 'SetCameraBop' | 'Set Camera Bopping': //P-slice event notes
 				var val1 = Std.parseFloat(value1);
 				var val2 = Std.parseFloat(value2);
 				camZoomingMult = !Math.isNaN(val2) ? val2 : 1;
@@ -8276,7 +8276,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				camZoomingMult = !Math.isNaN(val2) && val2>=1 ? val2 : 1;
 				camZoomingFrequency = !Math.isNaN(val1) ? val1 : 4;
 
-			case 'ZoomCamera': //defaultCamZoom
+			case 'ZoomCamera' | 'Zoom Camera': //defaultCamZoom
 				var keyValues = value1.split(",");
 				var trueValues:Array<String> = [];
 				if(keyValues.length != 2) {
@@ -8322,7 +8322,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					});
 				}
 
-			case 'FocusCamera': //V-slice event notes val1: char val2: x,y,dur,ease
+			case 'FocusCamera' | 'Target Camera': //V-slice event notes val1: char val2: x,y,dur,ease
 				var keyValues = value2.trim().split(",");
 				if(keyValues.length != 4 && value1.length <= 0) {
 					trace("INVALID EVENT VALUE");

@@ -128,16 +128,16 @@ class UpdateState extends MusicBeatState
 
 		loadingL = new FlxSprite(337.60, 27.30).loadGraphic(Paths.image("loading_screen/loading"));
 		loadingL.antialiasing = true;
-        loadingL.screenCenter(X);
-        add(loadingL);
+		loadingL.screenCenter(X);
+		add(loadingL);
 
-        var loading = new FlxSprite().loadGraphic(Paths.image("loading_screen/updating"));
-        loading.scale.set(0.85, 0.85);
-        loading.updateHitbox();
-        loading.y = FlxG.height - (loading.height * 1.15);
-        loading.screenCenter(X);
-        loading.antialiasing = true;
-        add(loading);
+		var loading = new FlxSprite().loadGraphic(Paths.image("loading_screen/updating"));
+		loading.scale.set(0.85, 0.85);
+		loading.updateHitbox();
+		loading.y = FlxG.height - (loading.height * 1.15);
+		loading.screenCenter(X);
+		loading.antialiasing = true;
+		add(loading);
 
 		progBar_bg = new FlxSprite(FlxG.width / 2, text.y + 50).makeGraphic(500, 20, FlxColor.BLACK);
 		add(progBar_bg);

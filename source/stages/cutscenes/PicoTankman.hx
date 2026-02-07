@@ -7,19 +7,19 @@ import shaders.DropShadowScreenspace;
 import stages.TankErect;
 
 class PicoTankman {
-    public function new(stage:TankErect) {
-        this.stage = stage;
-    }
-    public function preloadCutscene() {
+	public function new(stage:TankErect) {
+		this.stage = stage;
+	}
+  public function preloadCutscene() {
 		var shader = new DropShadowScreenspace();
 		shader.baseBrightness = -46;
 		shader.baseHue = -38;
 		shader.baseContrast = -25;
 		shader.baseSaturation = -20;
-    	shader.angle = 45;
+    shader.angle = 45;
 		shader.threshold = 0.3;
 		shaderCamera = new ShaderFilter(shader);
-		tankmanEnding = new FunkinSprite(520, 350, "erect/cutscene/tankmanEnding");
+		tankmanEnding = FunkinSprite.createTextureAtlas(stage.dad.x, stage.dad.y, "erect/cutscene/tankmanEnding", 'week7');
 		cutsceneSounds = new FlxSound().loadEmbedded(Paths.sound('erect/endCutscene'));
 		bgSprite = new FunkinSprite(0, 0);
 		bgSprite.makeSolidColor(2000, 2500, 0xFF000000);

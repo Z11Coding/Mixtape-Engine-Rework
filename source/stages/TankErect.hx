@@ -1,14 +1,14 @@
 package stages;
 
-import stages.PicoCapableStage;
-import stages.objects.*;
-import stages.cutscenes.PicoTankman;
 import objects.Character;
-import shaders.DropShadowShader;
 import shaders.DropShadowScreenspace;
+import shaders.DropShadowShader;
+import stages.PicoCapableStage;
+import stages.cutscenes.PicoTankman;
+import stages.cutscenes.VideoCutscene;
+import stages.objects.*;
 import substates.GameOverSubstate;
 import substates.StickerSubState;
-import stages.cutscenes.VideoCutscene;
 
 class TankErect extends BaseStage {
 	var sniper:FlxSprite;
@@ -24,23 +24,23 @@ class TankErect extends BaseStage {
 	}
 
     override function create() {
-        super.create();
+		super.create();
 
-        var bg:BGSprite = new BGSprite('erect/bg', -985, -805, 1,1);
-        bg.scale.set(1.15,1.15);
+		var bg:BGSprite = new BGSprite('erect/bg', -985, -805, 1,1);
+		bg.scale.set(1.15,1.15);
 		add(bg);
 
-        sniper = new FlxSprite( -346, 245);
+		sniper = new FlxSprite( -346, 245);
 		sniper.frames = Paths.getSparrowAtlas('erect/sniper');
-        sniper.animation.addByPrefix("idle","Tankmanidlebaked instance 1",24);
-        sniper.animation.addByPrefix("sip","tanksippingBaked instance 1",24);
-        sniper.scale.set(1.15,1.15);
+		sniper.animation.addByPrefix("idle","Tankmanidlebaked instance 1",24);
+		sniper.animation.addByPrefix("sip","tanksippingBaked instance 1",24);
+		sniper.scale.set(1.15,1.15);
 		add(sniper);
 
-        guy = new FlxSprite(1175, 270);
+		guy = new FlxSprite(1175, 270);
 		guy.frames = Paths.getSparrowAtlas('erect/guy');
-        guy.animation.addByPrefix("idle","BLTank2 instance 1",24);
-        guy.scale.set(1.15,1.15);
+		guy.animation.addByPrefix("idle","BLTank2 instance 1",24);
+		guy.scale.set(1.15,1.15);
 		add(guy);
 
 		tankmanRun = new FlxTypedGroup<TankmenBG>();
@@ -50,6 +50,7 @@ class TankErect extends BaseStage {
 			applyAbotShader(pico.abot.speaker);
 			applyShader(pico.abot.bg,"");
 		});
+
 		if (songName == "stress-(pico-mix)")
 		{
 			pico_stage.create();
@@ -61,33 +62,34 @@ class TankErect extends BaseStage {
 			setEndCallback(cutscene.playCutscene);
 		}
 
-    }
-    override function beatHit() {
-        super.beatHit();
-        if(curBeat%2 == 0){
-            sniper.animation.play('idle', true); 
-            guy.animation.play('idle',true); 
-        }
-        if(FlxG.random.bool(2)) sniper.animation.play('sip', true);
-        if(songName.toLowerCase() == "stress (pico mix)"){
-            // We gonna have some events here
+  }
+
+	override function beatHit() {
+		super.beatHit();
+		if(curBeat%2 == 0){
+			sniper.animation.play('idle', true);
+			guy.animation.play('idle',true);
+		}
+		if(FlxG.random.bool(2)) sniper.animation.play('sip', true);
+		if(songName.toLowerCase() == "stress (pico mix)") {
+			// We gonna have some events here
 
 			if (curBeat == 184) dad.animation.play("redheadsAnim", true);
 
 			if (curBeat == 188) boyfriend.animation.play("knifeToss", true);
 
 			if (curBeat == 344) dad.animation.play("singDOWN-alt", true); //man idk
-        }
-    }
+		}
+	}
 
 	override function stepHit() {
-        super.stepHit();
-        if(songName.toLowerCase() == "stress (pico mix)"){
+		super.stepHit();
+		if(songName.toLowerCase() == "stress (pico mix)"){
 			if (curStep == 183) {
 				PlayState.instance.triggerEvent("Change Character", "dad", "tankman-bloody");
 			}
-        }
-    }
+		}
+	}
 
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
 		if(eventName == "Change Character" && ClientPrefs.data.shaders){
@@ -102,7 +104,7 @@ class TankErect extends BaseStage {
 		}
 	}
 
-    override function createPost(){
+  override function createPost(){
 		if(ClientPrefs.data.shaders) {
 			applyShader(boyfriend, boyfriend.curCharacter);
 			applyShader(gf, gf.curCharacter);
@@ -110,8 +112,8 @@ class TankErect extends BaseStage {
 		}
 
 		if(!ClientPrefs.data.lowQuality)
-        {
-            for (daGf in gfGroup)
+		{
+			for (daGf in gfGroup)
 			{
 				var gf:Character = cast daGf;
 				if (gf.curCharacter == 'otis-speaker')
@@ -134,7 +136,7 @@ class TankErect extends BaseStage {
 							tankBih.updateHitbox();
 							tankBih.resetShit(500, 150, TankmenBG.animationNotes[i][1] < 2, false);
 							// @:privateAccess
-							// tankBih.endingOffset = 
+							// tankBih.endingOffset =
 							tankmanRun.add(tankBih);
 						}
 					}
@@ -159,7 +161,7 @@ class TankErect extends BaseStage {
 				game.videoCutscene = null;
 				videoCutscene();
 			}
-			game.videoCutscene.finishCallback = onVideoEnd; 
+			game.videoCutscene.finishCallback = onVideoEnd;
 			game.videoCutscene.onSkip = onVideoEnd;
 			#else // Make a timer to prevent it from crashing due to sprites not being ready yet.
 			new FlxTimer().start(0.0, function(tmr:FlxTimer)
@@ -189,7 +191,7 @@ class TankErect extends BaseStage {
 		};
 	}
 
-    function applyShader(sprite:FlxSprite, char_name:String)
+  function applyShader(sprite:FlxSprite, char_name:String)
 	{
 		var rim = new DropShadowShader();
 		rim.setAdjustColor(-46, -38, -25, -20);

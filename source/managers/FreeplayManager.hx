@@ -71,6 +71,7 @@ class FreeplayManager {
         'Testimony',
         'Fangirl Frenzy',
         'Slowdown',
+        'Reminisce'
     ];
 
     public function new(loadSongs:Bool = false) {
@@ -490,6 +491,8 @@ class FreeplayManager {
                 addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                addSong('Reminisce', 8, "cornered-sans", [[66, 33, 133], [FlxColor.fromRGB(66, 33, 133)]]);
         }
         else
         {
@@ -527,6 +530,8 @@ class FreeplayManager {
                 addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
             if (Std.string('Slowdown').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
                 addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            if (Std.string('Reminisce').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                addSong('Reminisce', 8, "cornered-sans", [[66, 33, 133], [FlxColor.fromRGB(66, 33, 133)]]);
         }
 
         for (song in weeklessSongs) {
