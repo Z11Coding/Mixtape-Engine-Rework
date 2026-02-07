@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Created with Funkin Packer v0.1.3 DEV https://neeeoo.github.io/funkin-packer/
+-->
+<TextureAtlas imagePath="chara_Assets.png" width="2123" height="1332" spritePadding="3" borderPadding="1">
+	<SubTexture name="US!Chara DOWN Note0000" x="1430" y="1" width="365" height="594" frameX="-14" frameY="-20" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0001" x="1430" y="1" width="365" height="594" frameX="-14" frameY="-20" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0002" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0003" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0004" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0005" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0006" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0007" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0008" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0009" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0010" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0011" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0012" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara DOWN Note0013" x="1068" y="1" width="359" height="604" frameX="-18" frameY="-10" frameWidth="385" frameHeight="616"/>
+	<SubTexture name="US!Chara IDLE dance0000" x="1201" y="656" width="296" height="661" frameX="-12" frameY="-22" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0001" x="1201" y="656" width="296" height="661" frameX="-12" frameY="-22" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0002" x="901" y="656" width="297" height="662" frameX="-9" frameY="-20" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0003" x="901" y="656" width="297" height="662" frameX="-9" frameY="-20" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0004" x="600" y="656" width="298" height="667" frameX="-6" frameY="-15" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0005" x="600" y="656" width="298" height="667" frameX="-6" frameY="-15" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0006" x="1" y="656" width="297" height="671" frameX="-9" frameY="-10" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0007" x="1" y="656" width="297" height="671" frameX="-9" frameY="-10" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0008" x="301" y="656" width="296" height="672" frameX="-10" frameY="-9" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0009" x="301" y="656" width="296" height="672" frameX="-10" frameY="-9" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0010" x="301" y="656" width="296" height="672" frameX="-10" frameY="-9" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0011" x="301" y="656" width="296" height="672" frameX="-10" frameY="-9" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0012" x="301" y="656" width="296" height="672" frameX="-10" frameY="-9" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara IDLE dance0013" x="301" y="656" width="296" height="672" frameX="-10" frameY="-9" frameWidth="324" frameHeight="684"/>
+	<SubTexture name="US!Chara LEFT Note0000" x="1" y="1" width="362" height="647" frameX="-7" frameY="-19" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0001" x="1" y="1" width="362" height="647" frameX="-7" frameY="-19" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0002" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0003" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0004" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0005" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0006" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0007" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0008" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0009" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0010" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0011" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0012" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara LEFT Note0013" x="366" y="1" width="359" height="652" frameX="-13" frameY="-14" frameWidth="369" frameHeight="671"/>
+	<SubTexture name="US!Chara RIGHT note0000" x="728" y="1" width="337" height="648" frameX="-17" frameY="-6" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0001" x="728" y="1" width="337" height="648" frameX="-17" frameY="-6" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0002" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0003" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0004" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0005" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0006" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0007" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0008" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0009" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0010" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0011" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0012" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara RIGHT note0013" x="1798" y="1" width="324" height="647" frameX="-17" frameY="-7" frameWidth="366" frameHeight="662"/>
+	<SubTexture name="US!Chara UP Note0000" x="1500" y="656" width="288" height="675" frameX="-18" frameY="-9" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0001" x="1500" y="656" width="288" height="675" frameX="-18" frameY="-9" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0002" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0003" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0004" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0005" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0006" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0007" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0008" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0009" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0010" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0011" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0012" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+	<SubTexture name="US!Chara UP Note0013" x="1791" y="656" width="288" height="672" frameX="-12" frameY="-12" frameWidth="316" frameHeight="701"/>
+</TextureAtlas>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Created with Funkin Packer v0.1.3 https://neeeoo.github.io/funkin-packer/
+-->
+<TextureAtlas imagePath="rest_of_the_bg_1.png" width="5463" height="6703">
+	<SubTexture name="rest of bg 10000" x="1" y="1" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10001" x="2733" y="1" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10002" x="1" y="1677" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10003" x="2733" y="1677" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10004" x="1" y="3353" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10005" x="2733" y="3353" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10006" x="1" y="5029" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+	<SubTexture name="rest of bg 10007" x="2733" y="5029" width="2729" height="1673" frameX="-13" frameY="-1" frameWidth="2743" frameHeight="1674"/>
+</TextureAtlas>

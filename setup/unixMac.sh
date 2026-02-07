@@ -34,12 +34,13 @@ haxelib install crypto 1.0.4
 haxelib install openflCamera 1.0.7
 haxelib install openflMicrophone 1.0.1
 haxelib install hxpy 2.0.0
+haxelib install random 1.4.1
 haxelib set lime 8.1.2
 haxelib set openfl 9.3.3
 haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate c61476f4b3a3d225631ab3065e4e925a4b63c076
 haxelib git flxsoundfilters https://github.com/TheZoroForce240/FlxSoundFilters
 haxelib git hxWebSockets https://github.com/ianharrigan/hxWebSockets
-haxelib git linc_dialogs https://github.com/snowkit/linc_dialogs.git
+haxelib git linc_dialogs https://github.com/ceramic-engine/linc_dialogs.git
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
 haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7
 haxelib git funkin.vis https://github.com/Z11Coding/funkVis-FrequencyFixed

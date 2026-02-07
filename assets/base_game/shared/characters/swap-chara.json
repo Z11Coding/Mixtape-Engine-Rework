@@ -1,0 +1,80 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [
+				-55,
+				270
+			],
+			"anim": "idle",
+			"fps": 24,
+			"name": "US!Chara IDLE dance",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				48,
+				256
+			],
+			"anim": "singLEFT",
+			"fps": 24,
+			"name": "US!Chara LEFT Note",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				62,
+				203
+			],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "US!Chara DOWN Note",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				-77,
+				243
+			],
+			"anim": "singRIGHT",
+			"fps": 24,
+			"name": "US!Chara RIGHT note",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				-56,
+				287
+			],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "US!Chara UP Note",
+			"indices": []
+		}
+	],
+	"vocals_file": "",
+	"no_antialiasing": false,
+	"image": "characters/thermal/chara_Assets",
+	"position": [
+		0,
+		350
+	],
+	"healthicon": "swapcharaicons",
+	"flip_x": true,
+	"healthbar_colors": [
+		67,
+		184,
+		120
+	],
+	"camera_position": [
+		110,
+		-260
+	],
+	"sing_duration": 4,
+	"scale": 1,
+	"_editor_isPlayer": true
+}

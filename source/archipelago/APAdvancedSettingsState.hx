@@ -1846,7 +1846,8 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		// First save current settings and regenerate song list to get accurate count
 		saveCurrentSettings();
-		APSettingsSubState.generateSongList();
+		if (APSettingsSubState.globalSongList.length == 0) // No need to do it if its already loaded
+			APSettingsSubState.generateSongList();
 		var maxSongs = Std.int(Math.max(5, APSettingsSubState.globalSongList.length));
 		var count = 0;
 		for (song in APSettingsSubState.globalSongList)
@@ -1859,7 +1860,6 @@ class APAdvancedSettingsState extends MusicBeatState
 			trace("Discrepancy in song count! Counted: " + count + ", Length: " + maxSongs);
 			maxSongs = count;
 		}
-
 
 		openSliderControl("Song Limit", songLimit, 5, maxSongs, 1, function(value:Float)
 		{

@@ -4723,9 +4723,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				{
 					try
 					{
-						var filePath:String = fileDialog.replace('\\', '/');
-						var jsonFile:Dynamic = Json.parse(File.getContent(filePath));
-						var eventsFile:SwagSong = Song.parseJSON(jsonFile.data, filePath.substr(filePath.lastIndexOf('/')));
+						var filePath:String = ImprovedFileHandling.lastPath.replace('\\', '/');
+						var jsonFile:Dynamic = Json.parse(fileDialog);
+						var eventsFile:SwagSong = Song.parseJSON(fileDialog, filePath.substr(filePath.lastIndexOf('/')));
 						if(eventsFile == null || Reflect.hasField(eventsFile, 'scrollSpeed') || eventsFile.events == null)
 						{
 							showOutput('Error: File loaded is not a Psych Engine chart/events file.', true);
@@ -4802,7 +4802,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					}
 					return false;
 				}
-				doJsonStuff(ImprovedFileHandling.openFile("", [{ext: "json", desc: "JSON File"}]));
+				doJsonStuff(ImprovedFileHandling.loadFile("Select the event to load...", [{ext: "json", desc: "JSON File"}], Text));
 			}, btnWid);
 			btn.text.alignment = LEFT;
 			tab_group.add(btn);

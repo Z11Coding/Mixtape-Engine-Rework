@@ -5,8 +5,8 @@ import backend.WeekData;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import lime.utils.Assets;
-import metadata.STMetaFile.FreeplayMetaJSON;
 import metadata.STMetaFile.CodenameMetadata;
+import metadata.STMetaFile.FreeplayMetaJSON;
 import metadata.STMetaFile.MetadataFile;
 import states.CategoryState;
 import states.PlayState;
@@ -35,8 +35,6 @@ import archipelago.PacketTypes.ClientStatus;
     ** enables multiple diferent styled menus that can all act the same, as they would all be ran through this
     ** enables the ability to have cutsom freeplays without the large chunks of "load the entire song list" code
     ** does other things too
-
-    TODO: Might make this extend of MusicBeatState so that freeplay can extend off it
 **/
 class FreeplayManager {
     public static var instance:FreeplayManager;
@@ -50,8 +48,6 @@ class FreeplayManager {
 	public function get_songList():Array<GlobalSongMetadata> {
 		return songs;
 	}
-
-
 
     public var metadata:Map<String, MetadataFile> = new Map<String, MetadataFile>();
     var metadataFile:MetadataFile;
@@ -75,6 +71,7 @@ class FreeplayManager {
         'Testimony',
         'Fangirl Frenzy',
         'Slowdown',
+        'Reminisce'
     ];
 
     public function new(loadSongs:Bool = false) {
@@ -494,6 +491,8 @@ class FreeplayManager {
                 addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
             if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
                 addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            if (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl)
+                addSong('Reminisce', 8, "cornered-sans", [[66, 33, 133], [FlxColor.fromRGB(66, 33, 133)]]);
         }
         else
         {
@@ -531,6 +530,8 @@ class FreeplayManager {
                 addSong('Fangirl Frenzy', 8, "sky", [[0, 140, 240], [FlxColor.fromRGB(0, 140, 240)]]);
             if (Std.string('Slowdown').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
                 addSong('Slowdown', 8, "astria", [[255, 127, 202], [FlxColor.fromRGB(255, 127, 202)]]);
+            if (Std.string('Reminisce').toLowerCase().trim().contains(searchText.toLowerCase().trim()) && FlxG.save.data.specialbabygirl && (CategoryState.loadWeekForce == "special" || CategoryState.loadWeekForce == "all" && FlxG.save.data.specialbabygirl))
+                addSong('Reminisce', 8, "cornered-sans", [[66, 33, 133], [FlxColor.fromRGB(66, 33, 133)]]);
         }
 
         for (song in weeklessSongs) {

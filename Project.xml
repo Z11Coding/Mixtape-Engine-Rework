@@ -165,6 +165,7 @@
 	<!--so that the engine will still allow it without that exact library to exist-->
 	<define name="flxanimate"/>
 	<haxelib name="extension-harfbuzz" if="linux" />
+	<haxelib name="random" />
 
 
 	<!--Uncomment if you want to use moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->

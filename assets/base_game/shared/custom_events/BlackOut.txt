@@ -1,0 +1,3 @@
+Blackout Characters and BG
+Set Value 1 to true to blackout
+anything else to end
