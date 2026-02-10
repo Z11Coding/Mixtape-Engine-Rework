@@ -34,7 +34,7 @@ class SetupBaseState extends MusicBeatState {
     // State tracking
     public var currentStep:Int = 0;
     public var totalSteps:Int = 1;
-    public var canNavigate(set, default):Bool = true;
+    public var canNavigate(default, set):Bool = true;
     private function set_canNavigate(value:Bool) {
         if (this.backButton != null)
             backButton.visible = value;

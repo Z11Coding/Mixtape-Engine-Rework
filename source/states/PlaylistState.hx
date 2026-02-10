@@ -553,6 +553,10 @@ class PlaylistState extends MusicBeatState {
 		if (controls.ACCEPT)
     {
 			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
+			if (curSelected == -1) {
+				curSelected = FlxG.random.int(0, grpPlaylists.length - 1);
+				return;
+			}
 			if (!choosePlaylist) {
 				choosePlaylist = true;
 				selectedPlaylist = loadedPlaylists[curSelected].copy();
