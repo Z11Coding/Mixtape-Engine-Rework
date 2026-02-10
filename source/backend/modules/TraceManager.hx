@@ -79,6 +79,34 @@ class TraceManager
     {
         originalTrace = originalTraceFunc;
     }
+    // Make it so you can do a print or printLn which respects the TraceManager settings.
+    public static inline function print(v:Dynamic):Void
+    {
+        // Do the print in a thread if threadding is on.
+        if (backend.ClientPrefs.data.useTraceThreading) {
+            Thread.create(function() {
+                traceMutex.acquire();
+                Sys.print(v);
+                traceMutex.release();
+            });
+        } else {
+            Sys.print(v);
+        }
+    }
+
+    public static inline function println(v:Dynamic):Void
+    {
+        // Do the print in a thread if threadding is on.
+        if (backend.ClientPrefs.data.useTraceThreading) {
+            Thread.create(function() {
+                traceMutex.acquire();
+                Sys.println(v);
+                traceMutex.release();
+            });
+        } else {
+            Sys.println(v);
+        }
+    }
 
     private static function initialize():Void
     {

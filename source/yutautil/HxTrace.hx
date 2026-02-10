@@ -9,4 +9,7 @@ class HxTrace {
     public static function log(v:Dynamic, ?infos:haxe.PosInfos):Void {
         hxTrace(v, infos);
     }
+    public static inline function print(v:Dynamic):Void {
+        hxTrace(v, null);
+    }
 }
