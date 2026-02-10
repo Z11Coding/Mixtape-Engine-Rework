@@ -70,7 +70,7 @@ class Limo extends BaseStage
 	{
 		resetFastCar();
 		addBehindGF(fastCar);
-		
+
 		var limo:BGSprite = new BGSprite('limo/limoDrive', -120, 550, 1, 1, ['Limo stage'], true);
 		addBehindGF(limo); //Shitty layering but whatev it works LOL
 	}
@@ -79,13 +79,15 @@ class Limo extends BaseStage
 	override function update(elapsed:Float)
 	{
 		if(!ClientPrefs.data.lowQuality) {
-			grpLimoParticles.forEach(function(spr:BGSprite) {
-				if(spr.animation.curAnim.finished) {
-					spr.kill();
-					grpLimoParticles.remove(spr, true);
-					spr.destroy();
-				}
-			});
+			try {
+				grpLimoParticles.forEach(function(spr:BGSprite) {
+					if(spr != null && spr.animation.curAnim.finished) {
+						spr.kill();
+						grpLimoParticles.remove(spr, true);
+						spr.destroy();
+					}
+				});
+			} catch(e) {trace('The partivales broke??');}
 
 			switch(limoKillingState) {
 				case KILLING:
@@ -172,7 +174,7 @@ class Limo extends BaseStage
 		if (FlxG.random.bool(10) && fastCarCanDrive)
 			fastCarDrive();
 	}
-	
+
 	// Substates for pausing/resuming tweens and timers
 	override function closeSubState()
 	{
@@ -206,7 +208,7 @@ class Limo extends BaseStage
 			dancers[i].x = (370 * i) + dancersDiff + bgLimo.x;
 		}
 	}
-	
+
 	function resetLimoKill():Void
 	{
 		limoMetalPole.x = -500;
