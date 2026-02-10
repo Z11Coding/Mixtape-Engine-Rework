@@ -55,17 +55,24 @@ class ArchipelagoSetupState extends SetupBaseState {
     private var currentStepData:Dynamic;
     private var actionButtons:Array<FlxSprite> = [];
     private var actionTexts:Array<FlxText> = [];
+    private static var currentStepThisInstance:Int = 0;
 
     override function create() {
         super.create();
 
         totalSteps = setupSteps.length;
-        currentStep = 0;
+        currentStep = (currentStepThisInstance != 0 ? currentStepThisInstance : 0);
 
         // Enable AP features by default since user chose AP setup
         ClientPrefs.data.setupArchipelagoMode = true;
 
         updateCurrentStep();
+
+        // Won't be needing this anymore
+        skipButton.visible = false;
+
+        // Hide this for now
+        backButton.visible = (currentStepThisInstance != 0 ? false : true);
     }
 
     override function updateStep() {
@@ -74,7 +81,16 @@ class ArchipelagoSetupState extends SetupBaseState {
     }
 
     function updateCurrentStep() {
-        if (currentStep >= setupSteps.length) return;
+        if (currentStep >= setupSteps.length) {
+            currentStepThisInstance = 0;
+            return;
+        }
+
+        currentStepThisInstance = currentStep;
+
+        backButton.visible = (currentStep != 0 ? true : false);
+
+        nextButton.visible = (currentStep != 2 ? true : false);
 
         currentStepData = setupSteps[currentStep];
 

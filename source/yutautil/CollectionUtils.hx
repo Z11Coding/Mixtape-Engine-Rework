@@ -3237,12 +3237,12 @@ class CollectionUtils
 	}
 
 	public static function pushMany<T>(input:Array<T>, items:Array<T>):Array<T>
-  {
-    for(x in items){
-      input.push(x);
-    }
-    return input;
-  }
+	{
+		for(x in items){
+		input.push(x);
+		}
+		return input;
+	}
 
 	/**
 		It returns the index of the first element of the array that matches the predicate function.

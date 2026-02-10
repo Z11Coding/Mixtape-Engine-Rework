@@ -36,6 +36,16 @@ class EngineImportSetup extends SetupBaseState {
         // Scan for engines
         scanForEngines();
         createEngineList();
+
+        canNavigate = false;
+        backButton.visible = false;
+        nextButton.visible = false;
+        skipButton.visible = false;
+    }
+
+    override function exitSetup() {
+        MusicBeatState.switchState(new ArchipelagoSetupState());
+        return;
     }
 
     function scanForEngines() {

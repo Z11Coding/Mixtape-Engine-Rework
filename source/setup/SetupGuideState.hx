@@ -49,6 +49,10 @@ class SetupGuideState extends SetupBaseState {
         updateProgress();
 
         createChoiceButtons();
+
+        //Don't need em
+        nextButton.visible = false;
+        backButton.visible = false;
     }
 
     function createChoiceButtons() {

@@ -1539,47 +1539,47 @@ class Paths
 	}
 
 	public static function getAnimateAtlas(key:String, ?library:String, settings:AtlasSpriteSettings):FlxAnimateFrames
-  {
-    var assetLibrary:String = library ?? "";
-    var graphicKey:String = "";
+	{
+		var assetLibrary:String = library ?? "";
+		var graphicKey:String = "";
 
-    if (assetLibrary != "")
-    {
-      graphicKey = Paths.animateAtlas(key, assetLibrary);
-    }
-    else
-    {
-      graphicKey = Paths.animateAtlas(key);
-    }
+		if (assetLibrary != "")
+		{
+		graphicKey = Paths.animateAtlas(key, assetLibrary);
+		}
+		else
+		{
+		graphicKey = Paths.animateAtlas(key);
+		}
 
-    var validatedSettings:AtlasSpriteSettings =
-      {
-        swfMode: settings?.swfMode ?? false,
-        cacheOnLoad: settings?.cacheOnLoad ?? false,
-        filterQuality: settings?.filterQuality ?? MEDIUM,
-        spritemaps: settings?.spritemaps ?? null,
-        metadataJson: settings?.metadataJson ?? null,
-        cacheKey: settings?.cacheKey ?? null,
-        uniqueInCache: settings?.uniqueInCache ?? false,
-        onSymbolCreate: settings?.onSymbolCreate ?? null,
-        applyStageMatrix: settings?.applyStageMatrix ?? false,
-        useRenderTexture: settings?.useRenderTexture ?? false
-      };
+		var validatedSettings:AtlasSpriteSettings =
+		{
+			swfMode: settings?.swfMode ?? false,
+			cacheOnLoad: settings?.cacheOnLoad ?? false,
+			filterQuality: settings?.filterQuality ?? MEDIUM,
+			spritemaps: settings?.spritemaps ?? null,
+			metadataJson: settings?.metadataJson ?? null,
+			cacheKey: settings?.cacheKey ?? null,
+			uniqueInCache: settings?.uniqueInCache ?? false,
+			onSymbolCreate: settings?.onSymbolCreate ?? null,
+			applyStageMatrix: settings?.applyStageMatrix ?? false,
+			useRenderTexture: settings?.useRenderTexture ?? false
+		};
 
-    // Validate asset path.
-    if (!Assets.exists('${graphicKey}/Animation.json'))
-    {
-      throw 'No Animation.json file exists at the specified path (${graphicKey})';
-    }
+		// Validate asset path.
+		if (!Assets.exists('${graphicKey}/Animation.json'))
+		{
+		throw 'No Animation.json file exists at the specified path (${graphicKey})';
+		}
 
-    return FlxAnimateFrames.fromAnimate(graphicKey, validatedSettings.spritemaps, validatedSettings.metadataJson, validatedSettings.cacheKey,
-      validatedSettings.uniqueInCache, {
-        swfMode: validatedSettings.swfMode,
-        cacheOnLoad: validatedSettings.cacheOnLoad,
-        filterQuality: validatedSettings.filterQuality,
-        onSymbolCreate: validatedSettings.onSymbolCreate
-      });
-  }
+		return FlxAnimateFrames.fromAnimate(graphicKey, validatedSettings.spritemaps, validatedSettings.metadataJson, validatedSettings.cacheKey,
+		validatedSettings.uniqueInCache, {
+			swfMode: validatedSettings.swfMode,
+			cacheOnLoad: validatedSettings.cacheOnLoad,
+			filterQuality: validatedSettings.filterQuality,
+			onSymbolCreate: validatedSettings.onSymbolCreate
+		});
+	}
 
 	public static function file(file:String, type:AssetType = TEXT, ?library:String):String {
 		return getPath(file, type, library);

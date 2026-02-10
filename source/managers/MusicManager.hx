@@ -1,6 +1,7 @@
 package managers;
 
 import options.MixtapeSettingsSubState;
+import yutautil.ExtendedDate;
 
 // Abstract for handling both path and sound returns
 abstract MusicResource(Dynamic) {
@@ -155,8 +156,15 @@ class MusicManager {
                 if (playMusic) FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/panixPress')), volume);
                 Conductor.bpm = 150;
             case "TitleMania":
-                if (playMusic) FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania')), volume);
-                Conductor.bpm = 100;
+                if (playMusic)  {
+                    if (ExtendedDate.global().getHours() >= 20 && ExtendedDate.global().getHours() <= 8) {
+                        FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania')), volume);
+                        Conductor.bpm = 100;
+                    } else {
+                        FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania-(night-mix)')), volume);
+                        Conductor.bpm = 90;
+                    }
+                }
             case "Base Game":
                 if (playMusic) FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/freakyMenu')), volume);
                 Conductor.bpm = 102;

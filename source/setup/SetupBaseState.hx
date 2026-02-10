@@ -34,7 +34,16 @@ class SetupBaseState extends MusicBeatState {
     // State tracking
     public var currentStep:Int = 0;
     public var totalSteps:Int = 1;
-    public var canNavigate:Bool = true;
+    public var canNavigate(set, default):Bool = true;
+    private function set_canNavigate(value:Bool) {
+        if (this.backButton != null)
+            backButton.visible = value;
+        if (this.nextButton != null)
+            nextButton.visible = value;
+        if (this.skipButton != null)
+            skipButton.visible = value;
+        return value;
+    }
 
     override function create() {
         super.create();
@@ -118,18 +127,18 @@ class SetupBaseState extends MusicBeatState {
 
         // Handle navigation
         if (canNavigate) {
-            if (controls.BACK || FlxG.keys.justPressed.ESCAPE) {
+            if (backButton.visible && (controls.BACK || FlxG.keys.justPressed.ESCAPE)) {
                 onBack();
             }
-            if (controls.ACCEPT || FlxG.keys.justPressed.ENTER) {
+            if (nextButton.visible && (controls.ACCEPT || FlxG.keys.justPressed.ENTER)) {
                 onNext();
             }
 
             // Mouse interactions
             if (FlxG.mouse.justPressed) {
-                if (FlxG.mouse.overlaps(backButton)) {
+                if (backButton.visible && FlxG.mouse.overlaps(backButton)) {
                     onBack();
-                } else if (FlxG.mouse.overlaps(nextButton)) {
+                } else if (nextButton.visible && FlxG.mouse.overlaps(nextButton)) {
                     onNext();
                 }
             }
