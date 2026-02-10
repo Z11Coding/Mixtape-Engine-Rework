@@ -898,12 +898,7 @@ class PlaylistState extends MusicBeatState {
 	{
 		if (curSelected == -1 || daSongList == null)
 		{
-			FunkinSound.playMusic(Paths.formatToSongPath(ClientPrefs.data.menuSong), {
-        pathsFunction: BASE,
-				startingVolume: 0.0,
-				overrideExisting: true,
-				restartTrack: false
-			});
+			MusicManager.playMenuMusic();
 			FlxG.sound.music.fadeIn(2, 0, 0.7);
 			switchVisualizer(false);
 			curSong = 0;

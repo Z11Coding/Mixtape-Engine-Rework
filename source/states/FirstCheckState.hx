@@ -255,13 +255,11 @@ class FirstCheckState extends MusicBeatState
 								betaVersion = data.split(':')[1].trim();
 								var curVersion:String = MainMenuState.mixtapeEngineVersion.trim();
 								trace('version online: ' + updateVersion + ', your version: ' + curVersion);
-								var updateVersionNum = Std.parseFloat(updateVersion.replace(".", ""));
-								var curVersionNum = Std.parseFloat(curVersion.replace(".", ""));
-								if (curVersionNum < updateVersionNum && ClientPrefs.data.checkForUpdates)
+								var versionChecker = runMiniCheck(updateVersion.split("."), curVersion.split("."));
+								if (versionChecker.isOutdated && ClientPrefs.data.checkForUpdates)
 								{
 									trace('versions arent matching!');
-									// Use new release selection system instead of OutdatedState
-									MusicBeatState.switchState(new states.ReleaseSelectionState());
+									MusicBeatState.switchState(new states.OutdatedState());
 									//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 									FlxTween.globalManager.clear();
 									backend.MusicBeatState.emergencyOpacityFix = true;
@@ -371,13 +369,11 @@ class FirstCheckState extends MusicBeatState
 					betaVersion = data.split(':')[1].trim();
 					var curVersion:String = MainMenuState.mixtapeEngineVersion.trim();
 					trace('version online: ' + updateVersion + ', your version: ' + curVersion);
-					var updateVersionNum = Std.parseFloat(updateVersion.replace(".", ""));
-					var curVersionNum = Std.parseFloat(curVersion.replace(".", ""));
-					if (curVersionNum < updateVersionNum && ClientPrefs.data.checkForUpdates)
+					var versionChecker = runMiniCheck(updateVersion.split("."), curVersion.split("."));
+					if (versionChecker.isOutdated && ClientPrefs.data.checkForUpdates)
 					{
 						trace('versions arent matching!');
-						// Use new release selection system instead of OutdatedState
-						MusicBeatState.switchState(new states.ReleaseSelectionState());
+						MusicBeatState.switchState(new states.OutdatedState());
 						//So that no matter what it always fixes itself on launch if for whatever reason it's stil transparent
 						FlxTween.globalManager.clear();
 						backend.MusicBeatState.emergencyOpacityFix = true;
@@ -426,6 +422,24 @@ class FirstCheckState extends MusicBeatState
 		}
 
 		Achievements.unlock('start_fnf');
+	}
+
+	function runMiniCheck(updateVersion:Array<String>, curVersion:Array<String>):{isOutdated:Bool, majorUpdate:Bool, minorUpdate:Bool, bugfix:Bool} {
+		var updateVerParts:Array<Int> = updateVersion.map(function(num) return Std.parseInt(num));
+		var curVerParts:Array<Int> = curVersion.map(function(num) return Std.parseInt(num));
+
+		trace('major version online: ' + updateVerParts[0] + ', your major version: ' + curVerParts[0]);
+		trace('minor version online: ' + updateVerParts[1] + ', your minor version: ' + curVerParts[1]);
+		trace('bugfix version online: ' + updateVerParts[2] + ', your bugfix version: ' + curVerParts[2]);
+		trace((updateVerParts[1] == curVerParts[1] ? 'bugfix version online: ' + updateVerParts[2] + ', your bugfix version: ' + curVerParts[2] : 'THIS VERSION OF THE GAME IS DIFFERENT THAN THE ONE ONLINE! IGNORING BUGFIX CHECK!'));
+
+		if (updateVerParts[0] > curVerParts[0])
+			return {isOutdated: true, majorUpdate: true, minorUpdate: false, bugfix: false};
+		else if (updateVerParts[1] > curVerParts[1])
+			return {isOutdated: true, majorUpdate: false, minorUpdate: true, bugfix: false};
+		else if (updateVerParts[2] > curVerParts[2] && updateVerParts[1] == curVerParts[1])
+			return {isOutdated: true, majorUpdate: false, minorUpdate: false, bugfix: true};
+		else return {isOutdated: false, majorUpdate: false, minorUpdate: false, bugfix: false};
 	}
 }
 
