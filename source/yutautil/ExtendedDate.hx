@@ -601,6 +601,75 @@ class ExtendedDate {
         return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
     }
 
+    // ── ClockTime Integration ─────────────────────────────────────────
+
+    /**
+     * Create a `ClockTime` from this ExtendedDate's current time (with date).
+     */
+    public function toClockTime():yutautil.modules.ClockTime {
+        return new yutautil.modules.ClockTime(this.getHours(), this.getMinutes(), this.getSeconds(), this.getFullYear(), this.getMonth(), this.getDate());
+    }
+
+    /**
+     * Create a `ClockTime` from this ExtendedDate's time-of-day only (no date component).
+     */
+    public function toClockTimeOnly():yutautil.modules.ClockTime {
+        return new yutautil.modules.ClockTime(this.getHours(), this.getMinutes(), this.getSeconds());
+    }
+
+    /**
+     * Create a `ClockTime` representing the current system time (with date).
+     */
+    public static function clockTimeNow():yutautil.modules.ClockTime {
+        return yutautil.modules.ClockTime.now();
+    }
+
+    /**
+     * Create an `ExtendedDate` from a `ClockTime`.
+     * If the ClockTime has no date component, the current date is used.
+     */
+    public static function fromClockTime(ct:yutautil.modules.ClockTime):ExtendedDate {
+        if (ct.hasDate) {
+            return new ExtendedDate(ct.year, ct.month, ct.day, ct.hour, ct.minute, ct.second);
+        }
+        var now = Date.now();
+        return new ExtendedDate(now.getFullYear(), now.getMonth(), now.getDate(), ct.hour, ct.minute, ct.second);
+    }
+
+    /**
+     * Check if this ExtendedDate's time-of-day matches a `ClockTime` exactly
+     * (hour, minute, second). Date fields on the ClockTime are ignored.
+     */
+    public function isAtTime(ct:yutautil.modules.ClockTime):Bool {
+        return this.getHours() == ct.hour && this.getMinutes() == ct.minute && this.getSeconds() == ct.second;
+    }
+
+    /**
+     * Check if this ExtendedDate's time-of-day matches a `ClockTime`'s
+     * hour and minute (seconds are ignored).
+     */
+    public function isAtTimeApprox(ct:yutautil.modules.ClockTime):Bool {
+        return this.getHours() == ct.hour && this.getMinutes() == ct.minute;
+    }
+
+    /**
+     * Check if this ExtendedDate's time-of-day falls within a range
+     * defined by two `ClockTime` values (inclusive).
+     *
+     * Handles midnight wrap-around: if `start` is later than `end`,
+     * the range is treated as crossing midnight (e.g. 22:00 → 06:00).
+     */
+    public function isInTimeRange(start:yutautil.modules.ClockTime, end:yutautil.modules.ClockTime):Bool {
+        return this.toClockTimeOnly().isInRange(start, end);
+    }
+
+    /**
+     * Check if this ExtendedDate is within `toleranceSeconds` of a `ClockTime`.
+     */
+    public function isNearTime(ct:yutautil.modules.ClockTime, toleranceSeconds:Int):Bool {
+        return this.toClockTimeOnly().isNear(ct, toleranceSeconds);
+    }
+
     #if (LUA_ALLOWED && !macro)
 	public static function addLuaCallbacks(lua:State)
 	{

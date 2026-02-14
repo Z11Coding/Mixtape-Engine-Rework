@@ -117,6 +117,38 @@ class ChartEditorEvents {
         });
         return array.copy();
     }
+
+    public static function addEvent(name:String, description:String, ?order:Int):Void {
+        if (order == null) {
+            // Find next available number
+            var nextOrder = 1;
+            while (Events.exists(nextOrder)) {
+                nextOrder++;
+            }
+            order = nextOrder;
+        } else {
+            // Shift existing events down if order is specified
+            var maxOrder = 0;
+            for (key in Events.keys()) {
+                if (key >= order && key > maxOrder) {
+                    maxOrder = key;
+                }
+            }
+            // Shift from highest to lowest to avoid overwriting
+            for (i in 0...maxOrder - order + 2) {
+                var currentOrder = maxOrder + 1 - i;
+                if (Events.exists(currentOrder - 1)) {
+                    Events.set(currentOrder, Events.get(currentOrder - 1));
+                }
+            }
+        }
+
+        if (!Events.exists(order)) {
+            Events.set(order, new Map<String, String>());
+        }
+        Events.get(order).set(name, description);
+    }
+
 }
 
 // public static final defaultEvents:Array<Array<String>> = ChartEditorEvents.mapToArray(ChartEditorEvents.Events);
