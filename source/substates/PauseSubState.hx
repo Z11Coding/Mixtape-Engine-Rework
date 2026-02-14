@@ -434,8 +434,11 @@ class PauseSubState extends MusicBeatSubstate
 					Mods.loadTopMod();
 					if(PlayState.isStoryMode)
 						MusicBeatState.switchState(new StoryMenuState());
-					else if (PlayState.isWarmUp)
+					else if (PlayState.isWarmUp) {
+						PlayState.isWarmUp = false;
+						ClientPrefs.data.skipWarmup = true;
 						MusicBeatState.switchState(new states.TitleState());
+					}
 					else if(PlayState.isPlaylist)
 						MusicBeatState.switchState(new PlaylistState());
 					else if (PlayState.isLegacyLuaTest) {

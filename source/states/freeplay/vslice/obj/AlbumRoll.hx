@@ -49,10 +49,9 @@ class AlbumRoll extends FlxSpriteGroup
   {
     super();
 
-    newAlbumArt = new FunkinSprite((FlxG.width - 640) - MobileScaleMode.gameNotchSize.x, 360, "freeplay/albumRoll/freeplayAlbum");
+    newAlbumArt = new FunkinSprite((FlxG.width - 440) - MobileScaleMode.gameNotchSize.x, 360, "freeplay/albumRoll/freeplayAlbum");
     newAlbumArt.visible = false;
     newAlbumArt.anim.onFinish.add(onAlbumFinish);
-
     add(newAlbumArt);
 
     difficultyStars = new DifficultyStars((FlxG.width - 1140) - MobileScaleMode.gameNotchSize.x, 39);

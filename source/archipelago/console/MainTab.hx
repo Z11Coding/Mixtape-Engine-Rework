@@ -20,7 +20,7 @@ class MainTab extends TabSprite {
 	var info:TextField;
   var chatBg:Bitmap;
 	var chatInput:TextField;
-	static var messages:Array<FlxText> = [];
+	static var messages:Array<TextField> = [];
 	var msgSprite:Sprite;
 
 	var chatInputPlaceholder:TextField;
@@ -85,12 +85,14 @@ class MainTab extends TabSprite {
 	static var id:Int = 0;
 	public static function addMessage(raw:Dynamic) {
 		var data = CoolUtil.parseLog(raw);
-		var instance:MainTab = cast SideUI.instance.curTab;
 
-		var msg:FlxText = new FlxText(0, (50*id), Std.int(instance.widthTab), data.content, 15);
-		msg.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
+		var msg:TextField = new TextField();
+		var format = TabSprite.getDefaultFormat();
+		format.color = data.hue != null ? FlxColor.fromHSL(data.hue, 1.0, 0.8) : FlxColor.WHITE;
+		msg.defaultTextFormat = format;
 		msg.wordWrap = true;
-		msg.ID = id;
+		msg.text = data.content;
+		msg.height = msg.textHeight + 1;
 		messages.unshift(msg);
 
 		updateMessages();
@@ -113,12 +115,9 @@ class MainTab extends TabSprite {
 
 		var lastY:Null<Float> = null;
 		for (message in messages) {
-			message.fieldWidth = Std.int(instance.widthTab);
-			message.y = lastY = ((lastY ?? Lib.application.window.height - instance.chatBg.height) - (message.fieldHeight + 5)) * message.ID;
-			message.update(1);
-			var bd:BitmapData = message.framePixels; // or ft.pixels / ft.get_pixels()
-			var bmp = new Bitmap(bd);
-			instance.msgSprite.addChild(bmp);
+			message.width = Std.int(instance.widthTab);
+			message.y = lastY = (lastY ?? Lib.application.window.height - instance.chatBg.height) - (message.textHeight + 5);
+			instance.msgSprite.addChild(message);
 		}
 	}
 
@@ -174,38 +173,6 @@ class MainTab extends TabSprite {
 	var wasVisible:Bool = false;
 	override function onHide() {
 		Cursor.hide();
-	}
-
-	static var bitmaps:Array<BitmapData> = [];
-	static function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float)
-	{
-		var instance:MainTab = cast SideUI.instance.curTab;
-
-		text.text = str;
-		text.updateHitbox();
-
-		var clonedBitmap:BitmapData = text.graphic.bitmap.clone();
-		bitmaps.push(clonedBitmap);
-		instance?.graphics.beginBitmapFill(clonedBitmap, new Matrix(1, 0, 0, 1, textX, textY), false, false);
-		instance?.graphics.drawRect(textX, textY, text.width + textX, text.height + textY);
-	}
-
-	function deleteClonedBitmaps()
-	{
-		for (clonedBitmap in bitmaps)
-		{
-			if(clonedBitmap != null)
-			{
-				clonedBitmap.dispose();
-				clonedBitmap.disposeImage();
-			}
-		}
-		bitmaps = null;
-	}
-
-	public function destroy()
-	{
-		deleteClonedBitmaps();
 	}
 
 }
