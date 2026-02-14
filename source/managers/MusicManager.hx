@@ -157,12 +157,13 @@ class MusicManager {
                 Conductor.bpm = 150;
             case "TitleMania":
                 if (playMusic)  {
-                    if (ExtendedDate.global().getHours() >= 20 && ExtendedDate.global().getHours() <= 8) {
-                        FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania')), volume);
-                        Conductor.bpm = 100;
-                    } else {
+                    trace('Current Hour: ${ExtendedDate.global().getHours()}');
+                    if (ExtendedDate.global().getHours() > 19 || ExtendedDate.global().getHours() < 7) {
                         FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania-(night-mix)')), volume);
                         Conductor.bpm = 90;
+                    } else {
+                        FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath('menuMusic/titlemania')), volume);
+                        Conductor.bpm = 100;
                     }
                 }
             case "Base Game":

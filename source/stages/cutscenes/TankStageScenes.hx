@@ -24,7 +24,7 @@ class TankStageScenes {
 		game.camHUD.visible = false;
 		//inCutscene = true; //this would stop the camera movement, oops
 
-		tankman = FunkinSprite.createTextureAtlas(game.dad.x + 419, game.dad.y + 225, 'cutscenes/tankman', 'week7');
+		tankman = FunkinSprite.createTextureAtlas(game.dad.x, game.dad.y, 'cutscenes/tankman', 'week7');
 		tankman.antialiasing = ClientPrefs.data.antialiasing;
 		stage.addBehindDad(tankman);
 		cutsceneHandler.push(tankman);

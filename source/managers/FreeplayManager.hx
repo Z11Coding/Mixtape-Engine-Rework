@@ -74,7 +74,7 @@ class FreeplayManager {
         'Reminisce'
     ];
 
-    public function new(loadSongs:Bool = false) {
+    public function new(?loadSongs:Bool = false, ?skipStateRefresh:Bool = false) {
         instance = this;
         if (loadSongs) reloadFreeplay(true);
     }
@@ -275,7 +275,7 @@ class FreeplayManager {
         }
     }
 
-    public function reloadFreeplay(refresh:Bool = false, ?searchText:String = '')
+    public function reloadFreeplay(refresh:Bool = false, ?skipStateRefresh:Bool = false, ?searchText:String = '')
     {
         trace("Reloading Songs!");
         // Always populate the main songs array for all freeplay menus
@@ -559,20 +559,22 @@ class FreeplayManager {
             }
         }
 
-        switch (ClientPrefs.data.freeplayMenu) {
-            case "Mixtape": //Why rename it when you're already here?
-                if (states.freeplay.FreeplayState.instance != null)
-                    states.freeplay.FreeplayState.instance.reloadSongs(true);
-            case "Osu":
-                @:privateAccess
-                if (states.freeplay.OsuFreeplayState.instance != null)
-                    states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
-            case "Base Game":
-                if (states.freeplay.VSliceFreeplayState.instance != null)
-                    states.freeplay.VSliceFreeplayState.instance.refreshSongList();
-            default:
-                states.freeplay.CustomFreeplayState.instance != null ?
-                    states.freeplay.CustomFreeplayState.instance.handleFreeplayReload(refresh, searchText) : null;
+        if (!skipStateRefresh) {
+            switch (ClientPrefs.data.freeplayMenu) {
+                case "Mixtape": //Why rename it when you're already here?
+                    if (states.freeplay.FreeplayState.instance != null)
+                        states.freeplay.FreeplayState.instance.reloadSongs(true);
+                case "Osu":
+                    @:privateAccess
+                    if (states.freeplay.OsuFreeplayState.instance != null)
+                        states.freeplay.OsuFreeplayState.instance.loadSongArray(false);
+                case "Base Game":
+                    if (states.freeplay.VSliceFreeplayState.instance != null)
+                        states.freeplay.VSliceFreeplayState.instance.refreshSongList();
+                default:
+                    states.freeplay.CustomFreeplayState.instance != null ?
+                        states.freeplay.CustomFreeplayState.instance.handleFreeplayReload(refresh, searchText) : null;
+            }
         }
     }
 

@@ -2195,7 +2195,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 
 		// Create FreeplayManager with true parameter to ensure proper initialization
-		var fpManager = new managers.FreeplayManager(true);
+		var fpManager = new managers.FreeplayManager(true, true);
 
 		// Set up default song data for Tutorial (first song in the list)
 		if (fpManager != null && fpManager.songList != null && fpManager.songList.length > 0)

@@ -13,10 +13,11 @@ import flixel.tweens.FlxTween;
 import objects.Character;
 import objects.FNFWeeklyVideoSprite;
 import states.StoryMenuState;
-import undertale.UnderTextParser;
-//It has its own folder cuz it was made for something much bigger.
-//im just too lazy to move it.
+
+// * It has its own folder cuz it was made for something much bigger.
+// * im just too lazy to move it.
 //-sans
+import undertale.UnderTextParser;
 
 class GameOverSubstate extends MusicBeatSubstate
 {

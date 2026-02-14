@@ -450,7 +450,7 @@ class APFreeplayManager extends FreeplayManager {
 	}
 
     var songsHidden:Bool = archipelago.APItem.unknownSongs;
-	override public function reloadFreeplay(refresh:Bool = false, searchText:String = '')
+	override public function reloadFreeplay(refresh:Bool = false, ?skipStateFresh:Bool = false, searchText:String = '')
     {
         trace("Reloading Songs!");
         songs = [];

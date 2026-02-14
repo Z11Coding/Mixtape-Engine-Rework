@@ -70,6 +70,7 @@ class ChartCreatorMenuState extends MusicBeatState
 	private var stopPreviewButton:FlxUIButton;
 	private var songGoButton:FlxUIButton;
 	private var difficultyGoButton:FlxUIButton;
+	private var convertChart:FlxUIButton;
 
 	// File paths
 	private var selectedInstPath:String = "";
@@ -390,6 +391,11 @@ class ChartCreatorMenuState extends MusicBeatState
 		loadChartButton.resize(150, 50);
 		add(loadChartButton);
 
+		// Load Chart Button
+		convertChart = new FlxUIButton(FlxG.width - 370, FlxG.height - 180, "Convert Chart", onConvertChart);
+		convertChart.resize(150, 50);
+		add(convertChart);
+
 		// Load Current Song Button (if PlayState.SONG exists)
 		if (PlayState.SONG != null) {
 			loadCurrentSongButton = new FlxUIButton(FlxG.width - 370, FlxG.height - 80, "Load Current Song", onLoadCurrentSong);
@@ -502,7 +508,99 @@ class ChartCreatorMenuState extends MusicBeatState
 		#end
 	}
 
+	function onConvertChart()
+	{
+		#if MODS_ALLOWED
+		// Set mod directory to currently selected mod before loading
+		var targetMod = modDropDown.selectedLabel;
+		if (targetMod != "__mixtape__") {
+			Mods.currentModDirectory = targetMod;
+		}
+
+		// Use file dialog to browse for chart files
+		var filter:String = "Chart Files (*.json)|*.json";
+		var title:String = "Load Existing Chart";
+
+		try {
+			// Use ImprovedFileHandling for cross-platform file dialog
+			var path = ImprovedFileHandling.openFile(title, [{ext: "json", desc: "Chart Files"}]);
+			if (path != null && path.length > 0) {
+				convertChartFromFile(path);
+			}
+		} catch (e:Dynamic) {
+			trace("Error opening file dialog: " + e);
+			showError("Error opening file dialog. Please try again.");
+		}
+		#else
+		showError("File loading is not available in this build.");
+		#end
+	}
+
 	function loadChartFromFile(path:String)
+	{
+		try {
+			// Determine mod directory from file path
+			var targetMod = "__mixtape__"; // Default to base game
+
+			#if MODS_ALLOWED
+			if (path.indexOf("mods/") != -1) {
+				// Extract mod directory from path
+				var pathParts = path.split("/");
+				for (i in 0...pathParts.length) {
+					if (pathParts[i] == "mods" && i + 1 < pathParts.length) {
+						targetMod = pathParts[i + 1];
+						break;
+					}
+				}
+			}
+			#end
+
+			// Set the current mod directory
+			#if MODS_ALLOWED
+			if (targetMod != "__mixtape__") {
+				Mods.currentModDirectory = targetMod;
+				// Update UI to reflect correct mod
+				modDropDown.selectedLabel = targetMod;
+			}
+			#end
+
+			// Load the chart JSON
+			var rawJson = sys.io.File.getContent(path);
+			var chartData:backend.SwagSong = cast haxe.Json.parse(rawJson);
+
+			if (chartData == null || chartData.song == null) {
+				showError("Invalid chart file format.");
+				return;
+			}
+
+			// Set PlayState.SONG to the loaded chart
+			PlayState.SONG = chartData;
+			PlayState.storyDifficulty = 1; // Default difficulty index
+			PlayState.isStoryMode = false;
+
+			// Launch the selected chart editor directly
+			var originalStyle = ClientPrefs.data.chartEditorStyle;
+			var selectedEditor = chartEditorDropDown.selectedLabel;
+			if (selectedEditor != null && selectedEditor.length > 0) {
+				ClientPrefs.data.chartEditorStyle = selectedEditor;
+			}
+
+			try {
+				ClientPrefs.openChartEditor();
+				FlxG.sound.play(Paths.sound('confirmMenu'));
+			} catch (e:Dynamic) {
+				trace("Error opening chart editor: " + e);
+				showError("Error opening chart editor with loaded chart.");
+				ClientPrefs.data.chartEditorStyle = originalStyle;
+			}
+
+		} catch (e:Dynamic) {
+			trace("Error loading chart file: " + e);
+			showError("Error loading chart file. Please check the file format.");
+		}
+	}
+
+	function convertChartFromFile(path:String)
 	{
 		try {
 			// Determine mod directory from file path

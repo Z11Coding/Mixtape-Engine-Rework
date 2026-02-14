@@ -1029,6 +1029,19 @@ class FunkinLua {
 			MusicBeatState.getVariables().set(tag, leSprite);
 			leSprite.active = true;
 		});
+
+		Lua_helper.add_callback(lua, "makeLuaPerspectiveSprite", function(tag:String, ?image:String = null) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var leSprite:ModchartPerspectiveSprite = new ModchartPerspectiveSprite();
+			if(image != null && image.length > 0)
+			{
+				leSprite.sprite.loadGraphic(Paths.image(image));
+			}
+			MusicBeatState.getVariables().set(tag, leSprite);
+			leSprite.active = true;
+		});
+
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0, ?spriteType:String = 'auto') {
 			tag = tag.replace('.', '');
 			LuaUtils.destroyObject(tag);
@@ -1045,6 +1058,7 @@ class FunkinLua {
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(obj);
 			if(spr != null) spr.makeGraphic(width, height, CoolUtil.colorFromString(color));
 		});
+
 		Lua_helper.add_callback(lua, "addAnimationByPrefix", function(obj:String, name:String, prefix:String, framerate:Float = 24, loop:Bool = true) {
 			var obj:FlxSprite = cast LuaUtils.getObjectDirectly(obj);
 			if(obj != null && obj.animation != null)
@@ -1106,6 +1120,27 @@ class FunkinLua {
 				object.scrollFactor.set(scrollX, scrollY);
 			}
 		});
+
+		Lua_helper.add_callback(lua, "setPerspectivePositions", function(tag:String, bottomX:Float, bottomY:Float, topX:Float, topY:Float) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var leSprite:ModchartPerspectiveSprite = MusicBeatState.getVariables().get(tag);
+			if(leSprite != null)
+				leSprite.setPositions(bottomX, bottomY, topX, topY);
+			MusicBeatState.getVariables().set(tag, leSprite);
+			leSprite.active = true;
+		});
+
+		Lua_helper.add_callback(lua, "setPerspectiveScrollFactors", function(tag:String, bottomX:Float, bottomY:Float, topX:Float, topY:Float) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var leSprite:ModchartPerspectiveSprite = MusicBeatState.getVariables().get(tag);
+			if(leSprite != null)
+				leSprite.setScrollFactors(bottomX, bottomY, topX, topY);
+			MusicBeatState.getVariables().set(tag, leSprite);
+			leSprite.active = true;
+		});
+
 		Lua_helper.add_callback(lua, "addLuaSprite", function(tag:String, ?inFront:Bool = false) {
 			var mySprite:FlxSprite = MusicBeatState.getVariables().get(tag);
 			if(mySprite == null) return;

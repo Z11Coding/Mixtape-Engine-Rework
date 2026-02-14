@@ -665,6 +665,7 @@ class PlayState extends MusicBeatState
 	var isShowingModchartWarning:Bool = false;
 	public var allowModchartCutscene:Bool = true;
 	public var fmManager:Manager;
+	var isNotITG:Bool = false;
 
 	// End of Mixtape Engine's large amount of bull
 
@@ -1042,7 +1043,7 @@ class PlayState extends MusicBeatState
 		curStage = SONG.stage;
 
 		// Flag for NotITG stages (StepMania) where we hide HUD and characters
-		var isNotITG:Bool = (curStage == 'notitg');
+		isNotITG = (curStage == 'notitg');
 
 		var stageData:StageFile = StageData.getStageFile(curStage);
 		defaultCamZoom = stageData.defaultZoom;
@@ -2051,7 +2052,7 @@ class PlayState extends MusicBeatState
 
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
-		Paths.nukeMemory(true); // LIGHTLY nuke everything
+		// Paths.nukeMemory(true); // LIGHTLY nuke everything
 	}
 
 	// Some small stuff from PlusEngine
@@ -8267,8 +8268,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			case 'SetCameraBop' | 'Set Camera Bopping': //P-slice event notes
 				var val1 = Std.parseFloat(value1);
 				var val2 = Std.parseFloat(value2);
-				camZoomingMult = !Math.isNaN(val2) ? val2 : 1;
-				camZoomingFrequency = !Math.isNaN(val1) ? val1 : 4;
+				camZoomingMult = flValue2;
+				camZoomingFrequency = flValue1;
+				camZooming = true;
 
 			case 'SetCameraBopBase': //V-slice event notes
 				var val1 = Std.parseFloat(value1);
@@ -8326,6 +8328,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var keyValues = value2.trim().split(",");
 				if(keyValues.length != 4 && value1.length <= 0) {
 					trace("INVALID EVENT VALUE");
+					isCameraOnForcedPos = false;
 					return;
 				}
 				var ease = keyValues.pop().trim().toLowerCase();
@@ -8554,65 +8557,101 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					}
 				}
 
-				// for (stage in MusicBeatState.stages)
-				// {
-				// 	if (stage is BaseStage)
-				// 	{
-				// 		stage.destroy();
-				// 	}
-				// }
+				for (stage in stages)
+				{
+					if (stage is BaseStage)
+					{
+						stages.remove(stage);
+						stage.destroy();
+					}
+				}
 
 				stagesFunc(function(stage:BaseStage) stage.destroy());
 
-				switch (stageName)
-				{
-					case 'stage':
-						new StageWeek1(); // Week 1
-					case 'spooky':
-						new Spooky(); // Week 2
-					case 'philly':
-						new Philly(); // Week 3
-					case 'limo':
-						new Limo(); // Week 4
-					case 'mall':
-						new Mall(); // Week 5 - Cocoa, Eggnog
-					case 'mallEvil':
-						new MallEvil(); // Week 5 - Winter Horrorland
-					case 'school':
-						new School(); // Week 6 - Senpai, Roses
-					case 'schoolEvil':
-						new SchoolEvil(); // Week 6 - Thorns
-					case 'tank':
-						new Tank(); // Week 7 - Ugh, Guns, Stress
-					case 'phillyStreets':
-						new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
-					case 'phillyBlazin':
-						new PhillyBlazin(); // Weekend 1 - Blazin
-					case 'mainStageErect':
-						new MainStageErect(); // Week 1 Special
-					case 'spookyMansionErect':
-						new SpookyMansionErect(); // Week 2 Special
-					case 'phillyTrainErect':
-						new PhillyTrainErect(); // Week 3 Special
-					case 'limoRideErect':
-						new LimoRideErect(); // Week 4 Special
-					case 'mallXmasErect':
-						new MallXmasErect(); // Week 5 Special
-					case 'phillyStreetsErect':
-						new PhillyStreetsErect(); // Weekend 1 Special
-					case 'desktop':
-						new Desktop(); // Literally your desktop as a stage lmao
-					default:
+				if (!isNotITG) {
+					remove(gfGroup);
+					remove(dadGroup2);
+					remove(dadGroup);
+					remove(boyfriendGroup2);
+					remove(boyfriendGroup);
 				}
 
+				curStage = stageName;
+				isNotITG = (curStage == 'notitg');
+				var stageData:StageFile = StageData.getStageFile(curStage);
+				defaultCamZoom = stageData.defaultZoom;
+				defaultStageZoom = defaultCamZoom;
+				if (defaultCamHudZoom == 0) defaultCamHudZoom = 1;
+
+				stageUI = "normal";
+				if (stageData.stageUI != null && stageData.stageUI.trim().length > 0)
+					stageUI = stageData.stageUI;
+				else if (stageData.isPixelStage == true) //Backward compatibility
+					stageUI = "pixel";
+
+				BF_X = stageData.boyfriend[0];
+				BF_Y = stageData.boyfriend[1];
+				if (stageData.boyfriend2 != null)
+				{BF2_X = stageData.boyfriend2[0];
+				BF2_Y = stageData.boyfriend2[1];}
+				GF_X = stageData.girlfriend[0];
+				GF_Y = stageData.girlfriend[1];
+				DAD_X = stageData.opponent[0];
+				DAD_Y = stageData.opponent[1];
+				if (stageData.opponent2 != null)
+				{DAD2_X = stageData.opponent2[0];
+				DAD2_Y = stageData.opponent2[1];}
+
+				if(stageData.camera_speed != null)
+					cameraSpeed = stageData.camera_speed;
+
+				boyfriendCameraOffset = stageData.camera_boyfriend;
+				if(boyfriendCameraOffset == null) //Fucks sake should have done it since the start :rolling_eyes:
+					boyfriendCameraOffset = [0, 0];
+
+				opponentCameraOffset = stageData.camera_opponent;
+				if(opponentCameraOffset == null)
+					opponentCameraOffset = [0, 0];
+
+				girlfriendCameraOffset = stageData.camera_girlfriend;
+				if(girlfriendCameraOffset == null)
+					girlfriendCameraOffset = [0, 0];
+
+				boyfriend2CameraOffset = stageData.camera_boyfriend2;
+				if (boyfriend2CameraOffset == null)
+					boyfriend2CameraOffset = [0, 0];
+
+				opponent2CameraOffset = stageData.camera_opponent2;
+				if (opponent2CameraOffset == null)
+					opponent2CameraOffset = [0, 0];
+
+				boyfriendGroup.setPosition(BF_X, BF_Y);
+				boyfriendGroup2.setPosition(BF2_X, BF2_Y);
+				dadGroup.setPosition(DAD_X, DAD_Y);
+				dadGroup2.setPosition(DAD2_X, DAD2_Y);
+				gfGroup.setPosition(GF_X, GF_Y);
+
+				Paths.setCurrentLevel(stageData.directory);
+				VSliceLoader.addstage(curStage);
+				Paths.setCurrentLevel('shared');
+				// Only add groups if not NotITG (keep empty stage for StepMania)
+				if (!isNotITG) {
+					add(gfGroup);
+					add(dadGroup2);
+					add(dadGroup);
+					add(boyfriendGroup2);
+					add(boyfriendGroup);
+				}
+				updateGroupIndices();
+
 				#if LUA_ALLOWED
-				startLuasNamed('stages/' + stageName + '.lua');
+				startLuasNamed('stages/' + curStage + '.lua');
 				#end
 				#if HSCRIPT_ALLOWED
-				startHScriptsNamed('stages/' + stageName + '.hx');
+				startHScriptsNamed('stages/' + curStage + '.hx');
 				#end
 				#if HSCRIPT_ALLOWED
-				startYScriptsNamed('stages/' + stageName + '.ys');
+				startYScriptsNamed('stages/' + curStage + '.ys');
 				#end
 				var scripts:Array<Array<Dynamic>> = [luaArray, hscriptArray, yscriptArray];
 				stagesFunc(function(stage:BaseStage) stage.createPost());
@@ -8623,7 +8662,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						if (script is HScript)
 						{
 							var script:HScript = cast(script);
-							if (script.origin == 'stages/' + stageName + '.hx' || script.origin == 'stages/' + stageName + '.lua')
+							if (script.origin == 'stages/' + curStage + '.hx' || script.origin == 'stages/' + stageName + '.lua')
 							{
 								script.call('onCreatePost', []);
 							}
@@ -8631,14 +8670,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						else if (script is FunkinLua)
 						{
 							var script:FunkinLua = cast(script);
-							if (script.scriptName == 'stages/' + stageName + '.lua')
+							if (script.scriptName == 'stages/' + curStage + '.lua')
 							{
 								script.call('onCreatePost', []);
 							}
 						} else if (script is YScript)
 						{
 							var script:YScript = cast(script);
-							if (script.scriptPath == 'stages/' + stageName + '.ys' || script.scriptPath == 'stages/' + stageName + '.yscript')
+							if (script.scriptPath == 'stages/' + curStage + '.ys' || script.scriptPath == 'stages/' + stageName + '.yscript')
 							{
 								script.callFunction('onCreatePost', []);
 							}
@@ -8805,6 +8844,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camFollow.y += gf.cameraPosition[1] + girlfriendCameraOffset[1];
 			callOnScripts('onMoveCamera', ['gf']);
 			setOnScripts('whosTurn', 'gf');
+			whosTurn = 'gf';
 			return;
 		}
 
@@ -8815,7 +8855,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camFollow.y += dad2.cameraPosition[1] + opponent2CameraOffset[1];
 			tweenCamIn();
 			callOnScripts('onMoveCamera', ['dad2']);
-			setOnScripts('whosTurn', 'dad');
+			setOnScripts('whosTurn', 'dad2');
+			whosTurn = 'dad';
 			return;
 		}
 
@@ -8826,7 +8867,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camFollow.y += bf2.cameraPosition[1] + boyfriend2CameraOffset[1];
 			tweenCamIn();
 			callOnScripts('onMoveCamera', ['bf2']);
-			setOnScripts('whosTurn', 'bf');
+			setOnScripts('whosTurn', 'bf2');
+			whosTurn = 'bf2';
 			return;
 		}
 
@@ -8880,6 +8922,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		desiredPos.put();
 		setOnScripts('whosTurn', isDad ? 'dad' : 'boyfriend');
+		whosTurn = (isDad ? 'dad' : 'boyfriend');
 	}
 
 	public function tweenCamIn() {
@@ -11624,7 +11667,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		variables = null;
 		keysArray = null;
 		endingSong = true;
-		//Paths.clearStoredWithoutStickers();
+		Paths.clearStoredWithoutStickers();
 
 		super.destroy();
 

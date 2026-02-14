@@ -94,6 +94,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		['Trigger BG Ghouls', "Should be used only in \"schoolEvil\" Stage!"],
 		['Play Animation', "Plays an animation on a Character,\nonce the animation is completed,\nthe animation changes to Idle\n\nValue 1: Animation to play.\nValue 2: Character (Dad, BF, GF)"],
 		['Camera Follow Pos', "Value 1: X\nValue 2: Y\n\nThe camera won't change the follow point\nafter using this, for getting it back\nto normal, leave both values blank."],
+		['Change Focus', "Literally just a character-specific version of Camera Follow Pos\nValue 1: who to focus on (blank to turn it off)\n\nThe camera won't change the follow point\nafter using this, for getting it back\nto normal, leave both values blank."],
 		['Alt Idle Animation', "Sets a specified postfix after the idle animation name.\nYou can use this to trigger 'idle-alt' if you set\nValue 2 to -alt\n\nValue 1: Character to set (Dad, BF or GF)\nValue 2: New postfix (Leave it blank to disable)"],
 		['Screen Shake', "Value 1: Camera shake\nValue 2: HUD shake\n\nEvery value works as the following example: \"1, 0.05\".\nThe first number (1) is the duration.\nThe second number (0.05) is the intensity."],
 		['Change Character', "Value 1: Character to change (Dad, BF, GF)\nValue 2: New character's name"],
@@ -102,7 +103,10 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		['Constant SV', "Value 1: Scroll Velocity (acts just like scroll speed change except instant)\nValue 2: Your usual tween options (EX: 5/sineInOut)"],
 		['Set Property', "Value 1: Variable name\nValue 2: New value"],
 		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"],
-		['Change Mania', "Value 1: The new mania value (min: 0; max: 9)"],
+		['SetCameraBop', "(P-Slice/V-Slice)\nSet how frequently the camera bops to the beat\nValue 1: how much to bop (ex. 0.015)\nValue 2: how often to bop (ex. 4 (every 4 beats))"],
+		['ZoomCamera', "(P-Slice/V-Slice)\nSet the game's zoom\nValue 1: zoom options (ex. 0.6, 2)\nValue 2: ease (ex. sineInOut)\n(use \"instant\" to snap the camera or \"classic\" to move it normally)"],
+		['FocusCamera', "(V-Slice)\nSet the game's position\nValue 1: Character Base Pos (ex. -1 = manual position, 0 = bf, 1 = dad, 2 = gf)\nValue 2: Position Properties (ex. 200,50,6,sineInOut)\n(Keep in mind, Value 1's base position is added ONTOP of Value 2's positions! if you want to directly move the camera, use -1!)\n(use \"instant\" to snap the camera or \"classic\" to move it normally)"],
+		['Change Mania', "Change the amount of keys\n(KEEP IN MIND, YOU'LL HAVE TO MANUALLY ADJUST YOUR CHART PAST WHERE THIS EVENT IS SO THAT IT WORKS PROPERLY!)\nValue 1: The new mania value (min: 0; max: 9)"],
 		['Change Mania (Special)', "Value 1: The new mania value (min: 0; max: 9)"],
 		['Dad Fly', "Fly da dad. Value 1: True or False"],
 		['Turn on StrumFocus', "focuses the strums"],
@@ -122,7 +126,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		['Change Lyric', 'AYO LYRICS!?!?!?!?!?!?ASKJSD:LKHSFCHU:OSCHNFC:OUSJKL BFLJS BFHNIKKS FNCS CFL>SFBHPOIS FLJKSN\nValue 1 = Lyrics\nValue 2 = Color And Effect\nValue 2 Is Optional.\nEx. Value 1 = da lyric Value 2 = white,fadein'],
 		['Enable or Disable Dad Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.'],
 		['Enable or Disable BF Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.'],
-		['Enable or Disable GF Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.']
+		['Enable or Disable GF Trail', 'Can be either true or false.\nDon\'t ask what it does, you already know.'],
+		['Change Stage', "Value 1: name of the new stage"],
 	];
 
 	public static var keysArray:Array<FlxKey> = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT]; //Used for Vortex Editor
@@ -2159,12 +2164,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 			forceDataUpdate = false;
 
-			// moved from beatHit()
-			if(lastBeatHit != curBeat) {
-				if(metronomeStepper.value > 0 && lastBeatHit != curBeat) FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
-				callBeatHit(curBeat); // for lil players
-			}
-
 			lastBeatHit = curBeat;
 		}
 
@@ -2210,6 +2209,16 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		outputTxt.visible = (outputAlpha > 0);
 		FlxG.camera.scroll.y = scrollY;
 		lastFocus = PsychUIInputText.focusOn;
+	}
+
+	override public function beatHit() {
+		super.beatHit();
+		// moved from beatHit()
+		// moved from update()
+		if(lastBeatHit != curBeat) {
+			if(metronomeStepper.value > 0 && lastBeatHit != curBeat) FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
+			callBeatHit(curBeat); // for lil players
+		}
 	}
 
 	function callBeatHit(curBeat)
