@@ -170,13 +170,6 @@ class FunkinLua {
 			set('practice', game.practiceMode);
 			set('practice', PlayState.changedDifficulty);
 
-			for (i in 0...4) {
-				set('defaultPlayerStrumX' + i, 0);
-				set('defaultPlayerStrumY' + i, 0);
-				set('defaultOpponentStrumX' + i, 0);
-				set('defaultOpponentStrumY' + i, 0);
-			}
-
 			// Default character data
 			set('defaultBoyfriendX', game.BF_X);
 			set('defaultBoyfriendY', game.BF_Y);
@@ -1835,7 +1828,7 @@ class FunkinLua {
 	{
 		if(PlayState.instance == null) return null;
 
-		var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+		/*var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 		if(strumNote == null) return null;
 
 		for (field in PlayState.instance.playfields.members) {
@@ -1863,7 +1856,30 @@ class FunkinLua {
 			}));
 			return tag;
 		}
-		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});
+		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});*/
+		var whoWeTweening:String = '';
+		var whoElseWeTweening:String = '';
+		var howMuchWeTweening:Float = 0;
+		if (data.x != null) {
+			whoWeTweening = 'transform${note%(PlayState.mania+1)}X';
+			howMuchWeTweening = PlayState.instance.playfields.members[(note > 3 ? 1 : 0)].getBaseX((note%(PlayState.mania+1))) - (data.x/1.5);
+		} else if (data.y != null) {
+			whoWeTweening = 'transform${note%(PlayState.mania+1)}Y';
+			howMuchWeTweening = PlayState.instance.playfields.members[(note > 3 ? 1 : 0)].getBaseY((note%(PlayState.mania+1))) + data.y;
+		} else if (data.angle != null) {
+			whoWeTweening = 'note${note%(PlayState.mania+1)}AngleX';
+			whoElseWeTweening = 'receptor${note%(PlayState.mania+1)}AngleX';
+			howMuchWeTweening = data.angle;
+		} else if (data.direction != null) {
+			whoWeTweening = 'scrollAngle${note%(PlayState.mania+1)}';
+			howMuchWeTweening = data.direction;
+		}
+
+		PlayState.instance.forceModSyncOff = true;
+		@:privateAccess
+		PlayState.instance.modManager.queueEaseL(PlayState.instance.curStep, duration, whoWeTweening, howMuchWeTweening, ease, (note > 3 ? 1 : 0));
+		if (whoElseWeTweening != '') @:privateAccess
+			PlayState.instance.modManager.queueEaseL(PlayState.instance.curStep, duration, whoElseWeTweening, howMuchWeTweening, ease, (note > 3 ? 1 : 0));
 		return null;
 	}
 

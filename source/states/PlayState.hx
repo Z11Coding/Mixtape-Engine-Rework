@@ -6154,6 +6154,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 	public var initY:Float;
 	var lastHealth:Float = -1;
+	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
@@ -6274,7 +6275,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
 		//This has no right to work as well as it does lmao
-		if (!startingSong && ClientPrefs.data.modcharts)
+		if (!startingSong && ClientPrefs.data.modcharts && !forceModSyncOff)
 			modchartSync(false);
 
 		// Optimize script calls - only set if scripts exist
@@ -11934,7 +11935,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		characterBopper(curBeat);
 
-		if (camZooming && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms && (curBeat % camZoomingFrequency) == 0)
+		if (camZooming && ClientPrefs.data.camZooms && (curBeat % camZoomingFrequency) == 0)
 		{
 			FlxG.camera.zoom += 0.015 * camZoomingMult;
 			camHUD.zoom += 0.03 * camZoomingMult;

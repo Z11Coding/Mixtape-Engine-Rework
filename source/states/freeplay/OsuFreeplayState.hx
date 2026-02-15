@@ -872,7 +872,7 @@ class OsuFreeplayState extends MusicBeatState
 			var displayArtist = "Unknown";
 
 			// Only show real artist if songs are not hidden
-			if (!archipelago.APItem.unknownSongs && metadata != null) {
+			if (!archipelago.APItem.unknownSongs && (metadata != null && metadata.song != null && metadata.song.artist != null)) {
 				displayArtist = metadata.song.artist;
 			}
 
