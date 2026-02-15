@@ -1,5 +1,8 @@
 package yutautil.typeregistry;
 
+import yutautil.typeregistry.TypeInfo;
+import yutautil.typeregistry.Typed.TypeValidationResult;
+
 /**
  * Type identifier for the enhanced 'is' function
  * Allows both Class/Enum types and string-based type names
@@ -50,16 +53,16 @@ class Typer {
     /**
      * Attempt to type an object as a specific type
      */
-    public static function type(obj:Dynamic, typeName:String):Typed {
+    public static function typeCheck(obj:Dynamic, typeName:String):Typed {
         registry.initialize();
 
-        var typeInfo = registry.getTypeInfo(typeName);
-        if (typeInfo == null) {
+        var tInfo = registry.getTypeInfo(typeName);
+        if (tInfo == null) {
             return new Typed(obj, typeName, null, TypeValidationResult.invalid(['Type not found in registry: $typeName']));
         }
 
-        var validationResult = validateType(obj, typeInfo);
-        return new Typed(obj, typeName, typeInfo, validationResult);
+        var validationResult = validateType(obj, tInfo);
+        return new Typed(obj, typeName, tInfo, validationResult);
     }
 
     /**
@@ -71,12 +74,12 @@ class Typer {
         var results = [];
 
         // Try all registered types
-        for (typeName in registry.getAllTypes()) {
-            var typeInfo = registry.getTypeInfo(typeName);
-            var validationResult = validateType(obj, typeInfo);
+        for (tName in registry.getAllTypes()) {
+            var tInfo = registry.getTypeInfo(tName);
+            var validationResult = validateType(obj, tInfo);
 
             if (validationResult.isValid || validationResult.confidence > 0.5) {
-                results.push(new Typed(obj, typeName, typeInfo, validationResult));
+                results.push(new Typed(obj, tName, tInfo, validationResult));
             }
         }
 
@@ -94,13 +97,13 @@ class Typer {
     public static function checkAbstract(obj:Dynamic, abstractTypeName:String):Typed {
         registry.initialize();
 
-        var abstractInfo = registry.getAbstractInfo(abstractTypeName);
-        if (abstractInfo == null) {
+        var absInfo = registry.getAbstractInfo(abstractTypeName);
+        if (absInfo == null) {
             return new Typed(obj, abstractTypeName, null, TypeValidationResult.invalid(['Abstract type not found: $abstractTypeName']));
         }
 
-        var validationResult = validateAbstract(obj, abstractInfo);
-        return new Typed(obj, abstractTypeName, abstractInfo, validationResult);
+        var validationResult = validateAbstract(obj, absInfo);
+        return new Typed(obj, abstractTypeName, absInfo, validationResult);
     }
 
     /**
@@ -109,13 +112,13 @@ class Typer {
     public static function checkTypedef(obj:Dynamic, typedefName:String):Typed {
         registry.initialize();
 
-        var typedefInfo = registry.getTypedefInfo(typedefName);
-        if (typedefInfo == null) {
+        var tdInfo = registry.getTypedefInfo(typedefName);
+        if (tdInfo == null) {
             return new Typed(obj, typedefName, null, TypeValidationResult.invalid(['Typedef not found: $typedefName']));
         }
 
-        var validationResult = validateTypedef(obj, typedefInfo);
-        return new Typed(obj, typedefName, typedefInfo, validationResult);
+        var validationResult = validateTypedef(obj, tdInfo);
+        return new Typed(obj, typedefName, tdInfo, validationResult);
     }
 
     /**
@@ -124,13 +127,13 @@ class Typer {
     public static function checkClass(obj:Dynamic, className:String):Typed {
         registry.initialize();
 
-        var classInfo = registry.getClassInfo(className);
-        if (classInfo == null) {
+        var clsInfo = registry.getClassInfo(className);
+        if (clsInfo == null) {
             return new Typed(obj, className, null, TypeValidationResult.invalid(['Class not found: $className']));
         }
 
-        var validationResult = validateClass(obj, classInfo);
-        return new Typed(obj, className, classInfo, validationResult);
+        var validationResult = validateClass(obj, clsInfo);
+        return new Typed(obj, className, clsInfo, validationResult);
     }
 
     /**
@@ -142,9 +145,9 @@ class Typer {
         var results = [];
         var possibleAbstracts = registry.findAbstractsForValue(obj);
 
-        for (abstractInfo in possibleAbstracts) {
-            var validationResult = validateAbstract(obj, abstractInfo);
-            results.push(new Typed(obj, abstractInfo.getFullName(), abstractInfo, validationResult));
+        for (absInfo in possibleAbstracts) {
+            var validationResult = validateAbstract(obj, absInfo);
+            results.push(new Typed(obj, absInfo.getFullName(), absInfo, validationResult));
         }
 
         return results;
@@ -152,32 +155,32 @@ class Typer {
 
     // Validation methods
 
-    private static function validateType(obj:Dynamic, typeInfo:TypeInfo):TypeValidationResult {
-        if (typeInfo == null) {
+    private static function validateType(obj:Dynamic, tInfo:yutautil.typeregistry.TypeInfo):TypeValidationResult {
+        if (tInfo == null) {
             return TypeValidationResult.invalid(['TypeInfo is null']);
         }
 
-        if (typeInfo.isAbstract) {
-            return validateAbstract(obj, cast(typeInfo, AbstractInfo));
-        } else if (Std.isOfType(typeInfo, ClassInfo)) {
-            return validateClass(obj, cast(typeInfo, ClassInfo));
-        } else if (Std.isOfType(typeInfo, TypedefInfo)) {
-            return validateTypedef(obj, cast(typeInfo, TypedefInfo));
+        if (tInfo.isAbstract) {
+            return validateAbstract(obj, cast(tInfo, AbstractInfo));
+        } else if (Std.isOfType(tInfo, ClassInfo)) {
+            return validateClass(obj, cast(tInfo, ClassInfo));
+        } else if (Std.isOfType(tInfo, TypedefInfo)) {
+            return validateTypedef(obj, cast(tInfo, TypedefInfo));
         }
 
         // Basic validation for generic types
         return TypeValidationResult.valid(0.5);
     }
 
-    private static function validateAbstract(obj:Dynamic, abstractInfo:AbstractInfo):TypeValidationResult {
-        if (abstractInfo.couldBeType(obj)) {
+    private static function validateAbstract(obj:Dynamic, absInfo:AbstractInfo):TypeValidationResult {
+        if (absInfo.couldBeType(obj)) {
             return TypeValidationResult.valid(0.8);
         }
 
-        return TypeValidationResult.invalid(['Value does not match abstract type ${abstractInfo.getFullName()}']);
+        return TypeValidationResult.invalid(['Value does not match abstract type ${absInfo.getFullName()}']);
     }
 
-    private static function validateClass(obj:Dynamic, classInfo:ClassInfo):TypeValidationResult {
+    private static function validateClass(obj:Dynamic, clsInfo:ClassInfo):TypeValidationResult {
         if (obj == null) {
             return TypeValidationResult.invalid(['Object is null']);
         }
@@ -188,32 +191,32 @@ class Typer {
         }
 
         var objClassName = Type.getClassName(objClass);
-        if (objClassName == classInfo.getFullName()) {
+        if (objClassName == clsInfo.getFullName()) {
             return TypeValidationResult.valid();
         }
 
         // Check if it's a subclass
         var superClass = Type.getSuperClass(objClass);
         while (superClass != null) {
-            if (Type.getClassName(superClass) == classInfo.getFullName()) {
+            if (Type.getClassName(superClass) == clsInfo.getFullName()) {
                 return TypeValidationResult.valid(0.9);
             }
             superClass = Type.getSuperClass(superClass);
         }
 
-        return TypeValidationResult.invalid(['Object is not an instance of ${classInfo.getFullName()}']);
+        return TypeValidationResult.invalid(['Object is not an instance of ${clsInfo.getFullName()}']);
     }
 
-    private static function validateTypedef(obj:Dynamic, typedefInfo:TypedefInfo):TypeValidationResult {
-        if (!typedefInfo.matchesStructure(obj)) {
-            var missing = typedefInfo.getMissingFields(obj);
+    private static function validateTypedef(obj:Dynamic, tdInfo:TypedefInfo):TypeValidationResult {
+        if (!tdInfo.matchesStructure(obj)) {
+            var missing = tdInfo.getMissingFields(obj);
             var errors = ['Object does not match typedef structure'];
 
             if (missing.length > 0) {
                 errors.push('Missing required fields: ${missing.join(", ")}');
             }
 
-            var extra = typedefInfo.getExtraFields(obj);
+            var extra = tdInfo.getExtraFields(obj);
             var warnings = extra.length > 0 ? ['Extra fields found: ${extra.join(", ")}'] : [];
 
             return TypeValidationResult.invalid(errors, warnings);
@@ -225,14 +228,14 @@ class Typer {
     /**
      * Create a strongly typed object with runtime validation
      */
-    public static function createTyped<T>(value:Dynamic, typeName:String, targetClass:Class<T>):T {
-        var typed = type(value, typeName);
+    public static function createTyped<T>(value:Dynamic, typeName:String, targetClass:Class<T>):Null<T> {
+        var typed = typeCheck(value, typeName);
 
         if (!typed.isValid()) {
             throw 'Cannot create typed object: ${typed.getErrors().join(", ")}';
         }
 
-        var casted = typed.cast(targetClass);
+        var casted = typed.castTo(targetClass);
         if (casted == null) {
             throw 'Cannot cast to target class ${Type.getClassName(targetClass)}';
         }
@@ -244,13 +247,13 @@ class Typer {
      * Enhanced type checking function similar to Std.isOfType but with registry support
      * Supports both Class/Enum types and string-based type names from the registry
      */
-    public static function is(obj:Dynamic, type:TypeIdentifier):Bool {
+    public static function is(obj:Dynamic, typeId:TypeIdentifier):Bool {
         if (obj == null) {
             return false;
         }
 
         // Try standard Std.isOfType first for performance
-        var typeClass = type.getClass();
+        var typeClass = typeId.getClass();
         if (typeClass != null) {
             if (Std.isOfType(obj, typeClass)) {
                 return true;
@@ -258,17 +261,22 @@ class Typer {
         }
 
         // Try enum check
-        var typeEnum = type.getEnum();
+        var typeEnum = typeId.getEnum();
         if (typeEnum != null) {
-            return Type.typeof(obj).match(TEnum(typeEnum));
+            switch (Type.typeof(obj)) {
+                case TEnum(e):
+                    return e == typeEnum;
+                default:
+                    return false;
+            }
         }
 
         // Fall back to registry-based checking
         registry.initialize();
-        var typeName = type.toString();
+        var typeName = typeId.toString();
 
         if (registry.hasType(typeName)) {
-            var typed = type(obj, typeName);
+            var typed = typeCheck(obj, typeName);
             return typed.isValid();
         }
 
@@ -287,28 +295,33 @@ class Typer {
      * Enhanced type checking with confidence score
      * Returns both the result and confidence level
      */
-    public static function isWithConfidence(obj:Dynamic, type:TypeIdentifier):{result:Bool, confidence:Float} {
+    public static function isWithConfidence(obj:Dynamic, typeId:TypeIdentifier):{result:Bool, confidence:Float} {
         if (obj == null) {
             return {result: false, confidence: 0.0};
         }
 
         // Try standard checks first with maximum confidence
-        var typeClass = type.getClass();
+        var typeClass = typeId.getClass();
         if (typeClass != null && Std.isOfType(obj, typeClass)) {
             return {result: true, confidence: 1.0};
         }
 
-        var typeEnum = type.getEnum();
-        if (typeEnum != null && Type.typeof(obj).match(TEnum(typeEnum))) {
-            return {result: true, confidence: 1.0};
+        var typeEnum = typeId.getEnum();
+        if (typeEnum != null) {
+            switch (Type.typeof(obj)) {
+                case TEnum(e):
+                    if (e == typeEnum)
+                        return {result: true, confidence: 1.0};
+                default:
+            }
         }
 
         // Registry-based checking with confidence
         registry.initialize();
-        var typeName = type.toString();
+        var typeName = typeId.toString();
 
         if (registry.hasType(typeName)) {
-            var typed = type(obj, typeName);
+            var typed = typeCheck(obj, typeName);
             return {result: typed.isValid(), confidence: typed.validationResult.confidence};
         }
 
@@ -316,7 +329,7 @@ class Typer {
         var abstractCandidates = findPossibleAbstracts(obj);
         for (candidate in abstractCandidates) {
             if (candidate.typeName == typeName) {
-                return {result: candidate.confidence > 0.5, confidence: candidate.confidence};
+                return {result: candidate.validationResult.confidence > 0.5, confidence: candidate.validationResult.confidence};
             }
         }
 
@@ -326,14 +339,16 @@ class Typer {
     /**
      * Check if an object can be safely cast to a type
      */
-    public static function canCast<T>(obj:Dynamic, type:TypeIdentifier, targetClass:Class<T>):Bool {
-        if (!is(obj, type)) {
+    public static function canCast<T>(obj:Dynamic, typeId:TypeIdentifier, targetClass:Class<T>):Bool {
+        if (!is(obj, typeId)) {
             return false;
         }
 
         try {
-            var casted = Std.downcast(obj, targetClass);
-            return casted != null;
+            if (Std.isOfType(obj, targetClass)) {
+                return true;
+            }
+            return false;
         } catch (e:Dynamic) {
             return false;
         }
@@ -342,9 +357,11 @@ class Typer {
     /**
      * Safe casting with type checking
      */
-    public static function safeCast<T>(obj:Dynamic, type:TypeIdentifier, targetClass:Class<T>):T {
-        if (canCast(obj, type, targetClass)) {
-            return Std.downcast(obj, targetClass);
+    public static function safeCast<T>(obj:Dynamic, typeId:TypeIdentifier, targetClass:Class<T>):Null<T> {
+        if (canCast(obj, typeId, targetClass)) {
+            if (Std.isOfType(obj, targetClass)) {
+                return cast obj;
+            }
         }
         return null;
     }
@@ -385,10 +402,10 @@ class Typer {
 
         // Add abstract types
         var abstractTypes = findPossibleAbstracts(obj);
-        for (abstract in abstractTypes) {
+        for (absTyped in abstractTypes) {
             results.push({
-                name: abstract.typeName,
-                confidence: abstract.confidence,
+                name: absTyped.typeName,
+                confidence: absTyped.validationResult.confidence,
                 source: "abstract"
             });
         }
@@ -404,17 +421,17 @@ class Typer {
     /**
      * Create a type checker function for a specific type
      */
-    public static function createTypeChecker(type:TypeIdentifier):Dynamic->Bool {
+    public static function createTypeChecker(typeId:TypeIdentifier):Dynamic->Bool {
         return function(obj:Dynamic):Bool {
-            return is(obj, type);
+            return is(obj, typeId);
         };
     }
 
     /**
      * Batch type checking for multiple objects
      */
-    public static function checkMultiple(objects:Array<Dynamic>, type:TypeIdentifier):Array<Bool> {
-        return [for (obj in objects) is(obj, type)];
+    public static function checkMultiple(objects:Array<Dynamic>, typeId:TypeIdentifier):Array<Bool> {
+        return [for (obj in objects) is(obj, typeId)];
     }
 
     /**
@@ -424,9 +441,9 @@ class Typer {
         var allTypes = getAllPossibleTypes(obj);
 
         // Prefer native types, then registry types, then abstracts
-        for (typeInfo in allTypes) {
-            if (typeInfo.source == "native" && typeInfo.confidence == 1.0) {
-                return typeInfo.name;
+        for (tEntry in allTypes) {
+            if (tEntry.source == "native" && tEntry.confidence == 1.0) {
+                return tEntry.name;
             }
         }
 

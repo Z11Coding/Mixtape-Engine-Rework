@@ -251,6 +251,7 @@ import states.TitleState;
 	public var SizeAccuracy:yutautil.CollectionUtils.Size = yutautil.CollectionUtils.Size.Auto;
 
 	// Debug Settings
+	public var developerMode:Bool = false;
 	public var debugTypeAnalysis:Bool = true;
 	public var showProgressInCMD:Bool = false;
 	public var modchartDebugInfo:Bool = false;

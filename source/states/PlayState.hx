@@ -89,9 +89,14 @@ import psychlua.HScript.HScriptInfos;
  *
  * here's some useful tips if you are making a mod in source:
  *
- * If you want to add your stage to the game, copy states/stages/Template.hx,
- * and put your stage code there, then, on PlayState, search for
- * "switch (curStage)", and add your stage to that list.
+ * If you want to add your stage to the game, you have multiple options:
+ * - Create a script file: stages/[stagename].hx (HScript - highest priority)
+ * - Create a Lua file: stages/[stagename].lua (Lua - second priority)
+ * - Create a YScript file: stages/[stagename].ys (YScript - third priority)
+ * - Or add it to the BaseStage switch statement in loadSingleStageFile() (hardcoded fallback)
+ *
+ * The engine will only load ONE stage file (the most relevant one found) to avoid conflicts.
+ * Priority order: HScript → Lua → YScript → BaseStage
  *
  * If you want to code Events, you can either code it on a Stage file or on PlayState, if you're doing the latter, search for:
  *
@@ -1290,10 +1295,8 @@ class PlayState extends MusicBeatState
 		}
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		// STAGE SCRIPTS
-		#if LUA_ALLOWED startLuasNamed('stages/' + curStage + '.lua'); #end
-		#if HSCRIPT_ALLOWED startHScriptsNamed('stages/' + curStage + '.hx'); #end
-		startYScriptsNamed('stages/' + curStage + '.ys');
+		// STAGE LOADING - Load only ONE stage file (most relevant)
+		loadSingleStageFile(curStage);
 
 		// CHARACTER SCRIPTS
 		if(gf != null) startCharacterScripts(gf.curCharacter);
@@ -2611,6 +2614,317 @@ class PlayState extends MusicBeatState
 			}
 
 			if(doPush) initYScript(scriptFile);
+		}
+	}
+
+	function loadSingleStageFile(stageName:String, reloadStageData:Bool = false)
+	{
+		// When called during a stage change event, handle group removal, stage data reload, and group re-add
+		if (reloadStageData) {
+			// Remove character groups before switching (skip if NotITG since they weren't added)
+			if (!isNotITG) {
+				remove(gfGroup);
+				remove(dadGroup2);
+				remove(dadGroup);
+				remove(boyfriendGroup2);
+				remove(boyfriendGroup);
+			}
+
+			curStage = stageName;
+			isNotITG = (curStage == 'notitg');
+			var stageData:StageFile = StageData.getStageFile(curStage);
+			defaultCamZoom = stageData.defaultZoom;
+			defaultStageZoom = defaultCamZoom;
+			if (defaultCamHudZoom == 0) defaultCamHudZoom = 1;
+
+			stageUI = "normal";
+			if (stageData.stageUI != null && stageData.stageUI.trim().length > 0)
+				stageUI = stageData.stageUI;
+			else if (stageData.isPixelStage == true) //Backward compatibility
+				stageUI = "pixel";
+
+			BF_X = stageData.boyfriend[0];
+			BF_Y = stageData.boyfriend[1];
+			if (stageData.boyfriend2 != null)
+			{BF2_X = stageData.boyfriend2[0];
+			BF2_Y = stageData.boyfriend2[1];}
+			GF_X = stageData.girlfriend[0];
+			GF_Y = stageData.girlfriend[1];
+			DAD_X = stageData.opponent[0];
+			DAD_Y = stageData.opponent[1];
+			if (stageData.opponent2 != null)
+			{DAD2_X = stageData.opponent2[0];
+			DAD2_Y = stageData.opponent2[1];}
+
+			if(stageData.camera_speed != null)
+				cameraSpeed = stageData.camera_speed;
+
+			boyfriendCameraOffset = stageData.camera_boyfriend;
+			if(boyfriendCameraOffset == null)
+				boyfriendCameraOffset = [0, 0];
+
+			opponentCameraOffset = stageData.camera_opponent;
+			if(opponentCameraOffset == null)
+				opponentCameraOffset = [0, 0];
+
+			girlfriendCameraOffset = stageData.camera_girlfriend;
+			if(girlfriendCameraOffset == null)
+				girlfriendCameraOffset = [0, 0];
+
+			boyfriend2CameraOffset = stageData.camera_boyfriend2;
+			if (boyfriend2CameraOffset == null)
+				boyfriend2CameraOffset = [0, 0];
+
+			opponent2CameraOffset = stageData.camera_opponent2;
+			if (opponent2CameraOffset == null)
+				opponent2CameraOffset = [0, 0];
+
+			boyfriendGroup.setPosition(BF_X, BF_Y);
+			boyfriendGroup2.setPosition(BF2_X, BF2_Y);
+			dadGroup.setPosition(DAD_X, DAD_Y);
+			dadGroup2.setPosition(DAD2_X, DAD2_Y);
+			gfGroup.setPosition(GF_X, GF_Y);
+
+			Paths.setCurrentLevel(stageData.directory);
+			VSliceLoader.addstage(curStage);
+			Paths.setCurrentLevel('shared');
+		}
+
+		var stageLoaded:Bool = false;
+		var stageFileLoaded:String = "";
+
+		// Priority order: HScript (.hx) -> Lua (.lua) -> YScript (.ys) -> BaseStage fallback
+
+		#if HSCRIPT_ALLOWED
+		// Try HScript first
+		if (!stageLoaded) {
+			var doPush:Bool = false;
+			var scriptFile:String = 'stages/$stageName.hx';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath))
+			{
+				scriptFile = replacePath;
+				doPush = true;
+			}
+			else
+			#end
+			{
+				scriptFile = Paths.getSharedPath(scriptFile);
+				if(FileSystem.exists(scriptFile))
+					doPush = true;
+			}
+
+			if(doPush)
+			{
+				for (script in hscriptArray)
+				{
+					if(script.origin == scriptFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					initHScript(scriptFile);
+					stageLoaded = true;
+					stageFileLoaded = "HScript: " + scriptFile;
+				}
+			}
+		}
+		#end
+
+		#if LUA_ALLOWED
+		// Try Lua second
+		if (!stageLoaded) {
+			var doPush:Bool = false;
+			var luaFile:String = 'stages/$stageName.lua';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(luaFile);
+			if(FileSystem.exists(replacePath))
+			{
+				luaFile = replacePath;
+				doPush = true;
+			}
+			else
+			{
+				luaFile = Paths.getSharedPath(luaFile);
+				if(FileSystem.exists(luaFile))
+					doPush = true;
+			}
+			#else
+			luaFile = Paths.getSharedPath(luaFile);
+			if(Assets.exists(luaFile)) doPush = true;
+			#end
+
+			if(doPush)
+			{
+				for (script in luaArray)
+				{
+					if(script.scriptName == luaFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					(shouldUseLegacyLua() ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
+					stageLoaded = true;
+					stageFileLoaded = "Lua: " + luaFile;
+				}
+			}
+		}
+		#end
+
+		// Try YScript third
+		if (!stageLoaded) {
+			var doPush:Bool = false;
+			var scriptFile:String = 'stages/$stageName.ys';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath))
+			{
+				scriptFile = replacePath;
+				doPush = true;
+			}
+			else
+			#end
+			{
+				scriptFile = Paths.getSharedPath(scriptFile);
+				if(FileSystem.exists(scriptFile))
+					doPush = true;
+			}
+
+			if(doPush)
+			{
+				for (script in yscriptArray)
+				{
+					if(script.scriptPath == scriptFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					initYScript(scriptFile);
+					stageLoaded = true;
+					stageFileLoaded = "YScript: " + scriptFile;
+				}
+			}
+		}
+
+		// Fallback to BaseStage hardcoded stages
+		if (!stageLoaded) {
+			switch (stageName)
+			{
+				case 'stage':
+					new StageWeek1(); // Week 1
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: StageWeek1";
+				case 'spooky':
+					new Spooky(); // Week 2
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Spooky";
+				case 'philly':
+					new Philly(); // Week 3
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Philly";
+				case 'limo':
+					new Limo(); // Week 4
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Limo";
+				case 'mall':
+					new Mall(); // Week 5 - Cocoa, Eggnog
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Mall";
+				case 'mallEvil':
+					new MallEvil(); // Week 5 - Winter Horrorland
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: MallEvil";
+				case 'school':
+					new School(); // Week 6 - Senpai, Roses
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: School";
+				case 'schoolEvil':
+					new SchoolEvil(); // Week 6 - Thorns
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: SchoolEvil";
+				case 'tank':
+					new Tank(); // Week 7 - Ugh, Guns, Stress
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Tank";
+				case 'phillyStreets':
+					new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyStreets";
+				case 'phillyBlazin':
+					new PhillyBlazin(); // Weekend 1 - Blazin
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyBlazin";
+				case 'mainStageErect':
+					new MainStageErect(); // Week 1 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: MainStageErect";
+				case 'spookyMansionErect':
+					new SpookyMansionErect(); // Week 2 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: SpookyMansionErect";
+				case 'phillyTrainErect':
+					new PhillyTrainErect(); // Week 3 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyTrainErect";
+				case 'limoRideErect':
+					new LimoRideErect(); // Week 4 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: LimoRideErect";
+				case 'mallXmasErect':
+					new MallXmasErect(); // Week 5 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: MallXmasErect";
+				case 'phillyStreetsErect':
+					new PhillyStreetsErect(); // Weekend 1 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyStreetsErect";
+				case 'desktop':
+					new Desktop(); // Literally your desktop as a stage lmao
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Desktop";
+				default:
+					// No stage found at all - log warning
+					FlxG.log.warn('Stage "$stageName" not found! No stage files (.hx/.lua/.ys) or BaseStage class available for this stage.');
+					trace('Warning: Stage "$stageName" not found! Using no stage.');
+					stageFileLoaded = "Warning: No stage found";
+			}
+		}
+
+		// When reloading stage data, re-add character groups (skip if NotITG)
+		if (reloadStageData) {
+			if (!isNotITG) {
+				add(gfGroup);
+				add(dadGroup2);
+				add(dadGroup);
+				add(boyfriendGroup2);
+				add(boyfriendGroup);
+			}
+			updateGroupIndices();
+
+			#if LUA_ALLOWED
+			startLuasNamed('stages/' + curStage + '.lua');
+			#end
+			#if HSCRIPT_ALLOWED
+			startHScriptsNamed('stages/' + curStage + '.hx');
+			#end
+			#if HSCRIPT_ALLOWED
+			startYScriptsNamed('stages/' + curStage + '.ys');
+			#end
+		}
+
+		// Debug info about which stage file was loaded
+		if (ClientPrefs.data.developerMode && stageLoaded) {
+			trace('Loaded single stage file: $stageFileLoaded');
 		}
 	}
 
@@ -8544,11 +8858,11 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 				for (yscript in yscriptArray)
 				{
-					if (yscript.scriptPath == 'stages/' + stageName + '.hx')
+					if (yscript.scriptPath == 'stages/' + stageName + '.ys')
 					{
 						return;
 					}
-					else if (yscript.scriptPath == 'stages/' + curStage + '.hx')
+					else if (yscript.scriptPath == 'stages/' + curStage + '.ys')
 					{
 						if(yscript != null)
 						{
@@ -8569,91 +8883,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 				stagesFunc(function(stage:BaseStage) stage.destroy());
 
-				if (!isNotITG) {
-					remove(gfGroup);
-					remove(dadGroup2);
-					remove(dadGroup);
-					remove(boyfriendGroup2);
-					remove(boyfriendGroup);
-				}
-
-				curStage = stageName;
-				isNotITG = (curStage == 'notitg');
-				var stageData:StageFile = StageData.getStageFile(curStage);
-				defaultCamZoom = stageData.defaultZoom;
-				defaultStageZoom = defaultCamZoom;
-				if (defaultCamHudZoom == 0) defaultCamHudZoom = 1;
-
-				stageUI = "normal";
-				if (stageData.stageUI != null && stageData.stageUI.trim().length > 0)
-					stageUI = stageData.stageUI;
-				else if (stageData.isPixelStage == true) //Backward compatibility
-					stageUI = "pixel";
-
-				BF_X = stageData.boyfriend[0];
-				BF_Y = stageData.boyfriend[1];
-				if (stageData.boyfriend2 != null)
-				{BF2_X = stageData.boyfriend2[0];
-				BF2_Y = stageData.boyfriend2[1];}
-				GF_X = stageData.girlfriend[0];
-				GF_Y = stageData.girlfriend[1];
-				DAD_X = stageData.opponent[0];
-				DAD_Y = stageData.opponent[1];
-				if (stageData.opponent2 != null)
-				{DAD2_X = stageData.opponent2[0];
-				DAD2_Y = stageData.opponent2[1];}
-
-				if(stageData.camera_speed != null)
-					cameraSpeed = stageData.camera_speed;
-
-				boyfriendCameraOffset = stageData.camera_boyfriend;
-				if(boyfriendCameraOffset == null) //Fucks sake should have done it since the start :rolling_eyes:
-					boyfriendCameraOffset = [0, 0];
-
-				opponentCameraOffset = stageData.camera_opponent;
-				if(opponentCameraOffset == null)
-					opponentCameraOffset = [0, 0];
-
-				girlfriendCameraOffset = stageData.camera_girlfriend;
-				if(girlfriendCameraOffset == null)
-					girlfriendCameraOffset = [0, 0];
-
-				boyfriend2CameraOffset = stageData.camera_boyfriend2;
-				if (boyfriend2CameraOffset == null)
-					boyfriend2CameraOffset = [0, 0];
-
-				opponent2CameraOffset = stageData.camera_opponent2;
-				if (opponent2CameraOffset == null)
-					opponent2CameraOffset = [0, 0];
-
-				boyfriendGroup.setPosition(BF_X, BF_Y);
-				boyfriendGroup2.setPosition(BF2_X, BF2_Y);
-				dadGroup.setPosition(DAD_X, DAD_Y);
-				dadGroup2.setPosition(DAD2_X, DAD2_Y);
-				gfGroup.setPosition(GF_X, GF_Y);
-
-				Paths.setCurrentLevel(stageData.directory);
-				VSliceLoader.addstage(curStage);
-				Paths.setCurrentLevel('shared');
-				// Only add groups if not NotITG (keep empty stage for StepMania)
-				if (!isNotITG) {
-					add(gfGroup);
-					add(dadGroup2);
-					add(dadGroup);
-					add(boyfriendGroup2);
-					add(boyfriendGroup);
-				}
-				updateGroupIndices();
-
-				#if LUA_ALLOWED
-				startLuasNamed('stages/' + curStage + '.lua');
-				#end
-				#if HSCRIPT_ALLOWED
-				startHScriptsNamed('stages/' + curStage + '.hx');
-				#end
-				#if HSCRIPT_ALLOWED
-				startYScriptsNamed('stages/' + curStage + '.ys');
-				#end
+				// Load stage with full data reload
+				loadSingleStageFile(stageName, true);
 				var scripts:Array<Array<Dynamic>> = [luaArray, hscriptArray, yscriptArray];
 				stagesFunc(function(stage:BaseStage) stage.createPost());
 				for (stuff in scripts)

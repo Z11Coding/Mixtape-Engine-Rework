@@ -1,6 +1,7 @@
 package yutautil.typeregistry;
 
 import haxe.Json;
+import yutautil.typeregistry.RuntimeFunctionRegistry;
 import yutautil.typeregistry.SourceMapper;
 
 #if HSCRIPT_ALLOWED
@@ -307,26 +308,33 @@ class SourceEditor {
     }
 
     /**
-     * Inject function replacement into runtime (placeholder for actual implementation)
+     * Inject function replacement into runtime via RuntimeFunctionRegistry.
+     * Registers the edited source so that intercept calls execute it.
      */
     private function injectFunctionReplacement(functionInfo:FunctionInfo, replacement:Dynamic->Dynamic):Void {
-        // This is a placeholder for the actual injection mechanism
-        // In a real implementation, this would hook into the target class/object
-        // and replace the method at runtime
+        var registry = RuntimeFunctionRegistry.get();
+        var uniqueId = functionInfo.getUniqueId();
+        var modified = modifiedFunctions.get(uniqueId);
 
-        trace('SourceEditor: Injecting replacement for ${functionInfo.name}');
-
-        // For now, we just store the replacement for potential future use
-        // The actual injection would depend on the specific class structure
-        // and might require additional reflection or proxy mechanisms
+        if (modified != null) {
+            registry.registerEdit(
+                uniqueId,
+                functionInfo.name,
+                functionInfo.filePath,
+                modified.originalSource,
+                modified.modifiedSource
+            );
+            trace('SourceEditor: Injected replacement for ${functionInfo.name} into RuntimeFunctionRegistry');
+        }
     }
 
     /**
-     * Remove function replacement from runtime
+     * Remove function replacement from runtime via RuntimeFunctionRegistry.
      */
     private function removeDirectionReplacement(functionInfo:FunctionInfo):Void {
-        // Placeholder for removing runtime replacements
-        trace('SourceEditor: Removing replacement for ${functionInfo.name}');
+        var registry = RuntimeFunctionRegistry.get();
+        registry.removeEdit(functionInfo.getUniqueId());
+        trace('SourceEditor: Removed replacement for ${functionInfo.name} from RuntimeFunctionRegistry');
     }
 
     /**

@@ -1,9 +1,11 @@
 package yutautil.typeregistry;
 
+import yutautil.typeregistry.TypeInfo;
+
 /**
  * Extended type information for abstract types
  */
-class AbstractInfo extends TypeInfo {
+class AbstractInfo extends yutautil.typeregistry.TypeInfo {
     public var type:String; // Underlying type
     public var fromCasts:Array<String>;
     public var toCasts:Array<String>;

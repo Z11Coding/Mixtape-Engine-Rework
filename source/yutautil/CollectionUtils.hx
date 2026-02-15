@@ -1970,6 +1970,30 @@ class CollectionUtils
 		return type != null ? cast arr : arr;
 	}
 
+	public static inline function getSuperClasses(cls:Class<Dynamic>):Array<Class<Dynamic>>
+	{
+		var supers = [];
+		var current = cls;
+		while (current != null)
+		{
+			supers.push(current);
+			current = Type.getSuperClass(current);
+		}
+		return supers;
+	}
+
+	public static inline function upgrade<Object>(obj:Object, to:Class<Object>):Object
+	{
+		if (Std.is(obj, to) || (Type.getClass(obj) != null && getSuperClasses(Type.getClass(obj)).indexOf(to) != -1))
+		{
+			return cast obj;
+		}
+		else
+		{
+			throw "Cannot upgrade object of type " + Type.getClassName(Type.getClass(obj)) + " to " + Type.getClassName(to);
+		}
+	}
+
 	// Specifically for the mf addAnimationIfMissing
 	public static inline function keysToStringArray<T>(input:Dynamic, ?type):Array<String>
 	{

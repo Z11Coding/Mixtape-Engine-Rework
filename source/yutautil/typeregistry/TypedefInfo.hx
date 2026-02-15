@@ -1,9 +1,12 @@
 package yutautil.typeregistry;
 
+import yutautil.typeregistry.FieldInfo;
+import yutautil.typeregistry.TypeInfo;
+
 /**
  * Extended type information for typedef types
  */
-class TypedefInfo extends TypeInfo {
+class TypedefInfo extends yutautil.typeregistry.TypeInfo {
     public var type:String; // Underlying type structure
     public var isAnonymousStructure:Bool;
 

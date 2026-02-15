@@ -1,9 +1,13 @@
 package yutautil.typeregistry;
 
+import yutautil.typeregistry.ConstructorInfo;
+import yutautil.typeregistry.FieldInfo;
+import yutautil.typeregistry.TypeInfo;
+
 /**
  * Extended type information for class types
  */
-class ClassInfo extends TypeInfo {
+class ClassInfo extends yutautil.typeregistry.TypeInfo {
     public var isInterface:Bool;
     public var superClass:String;
     public var interfaces:Array<String>;

@@ -101,7 +101,7 @@ abstract ClockTime(ClockTimeData) from ClockTimeData {
 	 * - `"YYYY-MM-DD HH:MM:SS"`
 	 * - `"YYYY-MM-DD HH:MM:SS AM/PM"`
 	 */
-	public static function fromString(str:String):ClockTime {
+	@:from public static function fromString(str:String):ClockTime {
 		var s = str.trim();
 		var yr:Null<Int> = null;
 		var mo:Null<Int> = null;

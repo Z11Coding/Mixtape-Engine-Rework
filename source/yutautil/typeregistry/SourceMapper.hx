@@ -4,6 +4,7 @@ import haxe.CallStack;
 import haxe.Json;
 import haxe.io.Path;
 import sys.io.File;
+import yutautil.typeregistry.TypeInfo;
 #if macro
 import haxe.macro.Position;
 #end
@@ -726,10 +727,10 @@ class DebugObject {
  */
 class SourceAnalysis {
     public var typeName(default, null):String;
-    public var imports(default, null):Array<String>;
-    public var documentation(default, null):Array<String>;
-    public var dependencies(default, null):Array<String>;
-    public var complexity(default, null):ComplexityMetrics;
+    public var imports(default, default):Array<String>;
+    public var documentation(default, default):Array<String>;
+    public var dependencies(default, default):Array<String>;
+    public var complexity(default, default):ComplexityMetrics;
 
     public function new(typeName:String) {
         this.typeName = typeName;
@@ -762,11 +763,11 @@ class ComplexityMetrics {
 class SourceFile {
     public var filePath(default, null):String;
     public var originalSource(default, null):String;
-    public var packageName(default, null):String;
-    public var imports(default, null):Array<ImportInfo>;
-    public var usingStatements(default, null):Array<String>;
-    public var functions(default, null):Array<FunctionInfo>;
-    public var typeDeclarations(default, null):Array<TypeDeclarationInfo>;
+    public var packageName(default, default):String;
+    public var imports(default, default):Array<ImportInfo>;
+    public var usingStatements(default, default):Array<String>;
+    public var functions(default, default):Array<FunctionInfo>;
+    public var typeDeclarations(default, default):Array<TypeDeclarationInfo>;
     public var lastModified(default, null):Date;
 
     public function new(filePath:String, source:String) {
@@ -831,18 +832,18 @@ class ImportInfo {
 class FunctionInfo {
     public var name(default, null):String;
     public var filePath(default, null):String;
-    public var startLine(default, null):Int;
-    public var endLine(default, null):Int;
-    public var sourceCode(default, null):String;
-    public var modifiers(default, null):Array<String>;
-    public var parameters(default, null):Array<ParameterInfo>;
-    public var returnType(default, null):String;
-    public var metadata(default, null):Array<String>;
-    public var documentation(default, null):Array<String>;
-    public var isHardcoded(default, null):Bool;
-    public var isModified(default, null):Bool;
-    public var modifiedSource(default, null):String;
-    public var modificationTime(default, null):Date;
+    public var startLine(default, default):Int;
+    public var endLine(default, default):Int;
+    public var sourceCode(default, default):String;
+    public var modifiers(default, default):Array<String>;
+    public var parameters(default, default):Array<ParameterInfo>;
+    public var returnType(default, default):String;
+    public var metadata(default, default):Array<String>;
+    public var documentation(default, default):Array<String>;
+    public var isHardcoded(default, default):Bool;
+    public var isModified(default, default):Bool;
+    public var modifiedSource(default, default):String;
+    public var modificationTime(default, default):Date;
 
     public function new(name:String, filePath:String) {
         this.name = name;

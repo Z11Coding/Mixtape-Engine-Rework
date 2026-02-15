@@ -646,6 +646,7 @@ class APGameState
 		{
 			if (info.missingLocations.contains(location))
 			{
+				trace("Location " + location + " is still missing for song: " + songName + " with mod: " + modName);
 				return false;
 			}
 		}

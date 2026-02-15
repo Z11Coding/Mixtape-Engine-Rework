@@ -1,6 +1,9 @@
 package yutautil.typeregistry;
 
+#if macro
 import haxe.macro.Position;
+#end
+import yutautil.typeregistry.FieldInfo;
 
 /**
  * Base type information class for all type system elements
@@ -12,7 +15,7 @@ class TypeInfo {
     public var isAbstract:Bool;
     public var fields:Array<FieldInfo>;
     public var doc:String;
-    public var pos:Position;
+    public var pos:#if macro Position #else Dynamic #end;
 
     public function new() {
         fields = [];

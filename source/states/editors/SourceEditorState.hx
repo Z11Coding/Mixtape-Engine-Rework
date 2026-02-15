@@ -6,17 +6,17 @@ import flixel.FlxSprite;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUIDropDownMenu;
 import flixel.addons.ui.FlxUIInputText;
-import flixel.addons.ui.FlxUIList;
 import flixel.addons.ui.FlxUITabMenu;
+import flixel.addons.ui.StrNameLabel;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.text.FlxText;
 import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
-import substates.Prompt;
-import yutautil.typeregistry.EditorFile;
-import yutautil.typeregistry.FileTreeNode;
-import yutautil.typeregistry.FunctionInfo;
+import yutautil.typeregistry.EditorFileOrganizer.EditorFile;
+import yutautil.typeregistry.EditorFileOrganizer.FileTreeNode;
+import yutautil.typeregistry.EditorFileOrganizer;
 import yutautil.typeregistry.InGameSourceEditor;
+import yutautil.typeregistry.SourceMapper.FunctionInfo;
 import yutautil.typeregistry.TypeRegistryAPI;
 
 using StringTools;
@@ -32,7 +32,10 @@ class SourceEditorState extends MusicBeatState {
     var infoPanel:FlxTypedGroup<FlxSprite>;
 
     // File management
-    var fileList:FlxUIList;
+    var fileListGroup:FlxTypedGroup<FlxText>;
+    var fileListItems:Array<String>;
+    var fileListScrollY:Int = 0;
+    var fileListMaxVisible:Int = 20;
     var folderDropdown:FlxUIDropDownMenu;
     var searchInput:FlxUIInputText;
     var fileTreeNodes:Array<FileTreeItem>;
@@ -62,6 +65,8 @@ class SourceEditorState extends MusicBeatState {
 
     override function create() {
         super.create();
+
+        forceCursor = true; // Ensure mouse is visible for UI interaction
 
         // Initialize source editor
         sourceEditor = TypeRegistryAPI.getSourceEditor();
@@ -105,25 +110,19 @@ class SourceEditorState extends MusicBeatState {
         filePanel.add(title);
 
         // Search input
-        searchInput = new FlxUIInputText(MARGIN + 10, MARGIN + 40, PANEL_WIDTH - 20, 25, null, 12, FlxColor.WHITE, FlxColor.fromRGB(60, 60, 70));
-        searchInput.callback = function(text:String, action:String) {
-            if (action == "enter") searchFiles();
-        };
+        searchInput = new FlxUIInputText(MARGIN + 10, MARGIN + 40, Std.int(PANEL_WIDTH - 20));
         filePanel.add(searchInput);
 
         // Folder filter dropdown
-        folderDropdown = new FlxUIDropDownMenu(MARGIN + 10, MARGIN + 75, ["All Folders"], function(folder:String) {
+        folderDropdown = new FlxUIDropDownMenu(MARGIN + 10, MARGIN + 75, FlxUIDropDownMenu.makeStrIdLabelArray(["All Folders"]), function(folder:String) {
             filterByFolder(folder);
         });
-        folderDropdown.dropPanel.color = FlxColor.fromRGB(60, 60, 70);
         filePanel.add(folderDropdown);
 
-        // File list
-        fileList = new FlxUIList(MARGIN + 10, MARGIN + 110, ["Loading..."], PANEL_WIDTH - 20, PANEL_HEIGHT - 150, false, 12, FlxColor.WHITE);
-        fileList.callback = function(file:String) {
-            selectFile(file);
-        };
-        filePanel.add(fileList);
+        // File list (using FlxTypedGroup of FlxText items)
+        fileListGroup = new FlxTypedGroup<FlxText>();
+        fileListItems = [];
+        filePanel.add(cast fileListGroup);
 
         // Quick actions
         var refreshBtn = new FlxButton(MARGIN + 10, PANEL_HEIGHT - 30, "Refresh", function() {
@@ -158,18 +157,14 @@ class SourceEditorState extends MusicBeatState {
         editorPanel.add(title);
 
         // Function dropdown
-        functionDropdown = new FlxUIDropDownMenu(editorX + editorWidth - 200, MARGIN + 10, ["Select Function"], function(funcName:String) {
+        functionDropdown = new FlxUIDropDownMenu(editorX + editorWidth - 200, MARGIN + 10, FlxUIDropDownMenu.makeStrIdLabelArray(["Select Function"]), function(funcName:String) {
             selectFunction(funcName);
         });
-        functionDropdown.dropPanel.color = FlxColor.fromRGB(60, 60, 70);
         editorPanel.add(functionDropdown);
 
         // Code editor (large text area)
-        codeEditor = new FlxUIInputText(editorX + 10, MARGIN + 45, editorWidth - 20, PANEL_HEIGHT - 120, null, 11, FlxColor.WHITE, FlxColor.fromRGB(25, 25, 30));
+        codeEditor = new FlxUIInputText(Std.int(editorX + 10), Std.int(MARGIN + 45), Std.int(editorWidth - 20));
         codeEditor.text = "// Select a function to edit";
-        codeEditor.callback = function(text:String, action:String) {
-            onCodeChange();
-        };
         editorPanel.add(codeEditor);
 
         // Editor controls
@@ -276,7 +271,7 @@ class SourceEditorState extends MusicBeatState {
             fileTreeNodes.push(new FileTreeItem(file, displayName));
         }
 
-        fileList.setData(fileNames);
+        updateFileListDisplay(fileNames);
         updateFolderDropdown(editableFiles);
         updateStatus('Loaded ${editableFiles.length} editable files');
     }
@@ -293,7 +288,7 @@ class SourceEditorState extends MusicBeatState {
             }
         }
 
-        folderDropdown.setData(folders);
+        folderDropdown.setData(FlxUIDropDownMenu.makeStrIdLabelArray(folders));
     }
 
     function selectFile(fileName:String):Void {
@@ -319,7 +314,7 @@ class SourceEditorState extends MusicBeatState {
             functionNames.push(displayName);
         }
 
-        functionDropdown.setData(functionNames);
+        functionDropdown.setData(FlxUIDropDownMenu.makeStrIdLabelArray(functionNames));
 
         // Clear editor
         codeEditor.text = "// Select a function to edit";
@@ -473,7 +468,7 @@ class SourceEditorState extends MusicBeatState {
             fileTreeNodes.push(new FileTreeItem(file, displayName));
         }
 
-        fileList.setData(fileNames);
+        updateFileListDisplay(fileNames);
         updateStatus('Found ${results.length} files matching "${searchTerm}"');
     }
 
@@ -483,7 +478,7 @@ class SourceEditorState extends MusicBeatState {
             return;
         }
 
-        var files = sourceEditor.getFilesInFolder(folder);
+        var files = EditorFileOrganizer.get().getFilesInFolder(folder);
         var fileNames = [];
         fileTreeNodes = [];
 
@@ -496,7 +491,7 @@ class SourceEditorState extends MusicBeatState {
             }
         }
 
-        fileList.setData(fileNames);
+        updateFileListDisplay(fileNames);
         updateStatus('Showing ${fileNames.length} files in folder: $folder');
     }
 
@@ -504,60 +499,35 @@ class SourceEditorState extends MusicBeatState {
 
     function exportModifications():Void {
         var json = sourceEditor.exportModifications();
-        // For now, just copy to system clipboard or show in prompt
-        var prompt = new Prompt("Export Modifications", "Copy this JSON to save your modifications:\n\n" + json.substr(0, 500) + "...", null, true);
-        openSubState(prompt);
-        updateStatus("Modifications exported to dialog");
+        // Show export info via status text
+        updateStatus("Modifications exported. Total: " + Std.string(json.length) + " chars");
+        trace("SourceEditorState: Export data: " + json.substr(0, 200));
     }
 
     function importModifications():Void {
-        var prompt = new Prompt("Import Modifications", "Paste JSON modifications data:", function(result:String) {
-            if (result != null && result.length > 0) {
-                if (sourceEditor.importModifications(result)) {
-                    refreshFileList();
-                    updateStatus("Modifications imported successfully");
-                } else {
-                    showError("Failed to import modifications");
-                }
-            }
-        });
-        openSubState(prompt);
+        // Import is handled via file - not interactive prompt
+        updateStatus("Import: Place modifications JSON in source_editor_modifications.json and restart");
     }
 
     // === Dialogs ===
 
     function showStatistics():Void {
         var stats = sourceEditor.getEditorStatistics();
-        var statsText = 'Files: ${stats.files.totalFiles} total, ${stats.files.editableFiles} editable\n';
-        statsText += 'Functions: ${stats.files.totalFunctions} total, ${stats.files.editableFunctions} editable\n';
-        statsText += 'Modifications: ${stats.modifications.active} active, ${stats.modifications.reverted} reverted';
-
-        var prompt = new Prompt("Editor Statistics", statsText, null, true);
-        openSubState(prompt);
+        var statsMsg = 'Files: ${stats.files.totalFiles} total, ${stats.files.editableFiles} editable\n';
+        statsMsg += 'Functions: ${stats.files.totalFunctions} total, ${stats.files.editableFunctions} editable\n';
+        statsMsg += 'Modifications: ${stats.modifications.active} active, ${stats.modifications.reverted} reverted';
+        updateStatus(statsMsg);
     }
 
     function showHelp():Void {
-        var helpText = "Source Editor Help:\n\n";
-        helpText += "• Select files from the left panel\n";
-        helpText += "• Choose functions from the dropdown\n";
-        helpText += "• Edit code in the center panel\n";
-        helpText += "• Save changes with the Save button\n";
-        helpText += "• Revert changes with the Revert button\n";
-        helpText += "• Validate syntax before saving\n";
-        helpText += "• Use search to find specific files\n";
-        helpText += "• Export/Import to save modifications\n";
-
-        var prompt = new Prompt("Help", helpText, null, true);
-        openSubState(prompt);
+        var helpMsg = "Select files > Choose functions > Edit > Save. Ctrl+S=Save, Ctrl+R=Revert, Ctrl+F=Search, Esc=Exit";
+        updateStatus(helpMsg);
     }
 
     function confirmExit():Void {
-        var prompt = new Prompt("Unsaved Changes", "You have unsaved changes. Exit anyway?", function(result:String) {
-            if (result == "yes") {
-                exitEditor();
-            }
-        });
-        openSubState(prompt);
+        // Just exit - unsaved changes warning via status text
+        updateStatus("WARNING: Unsaved changes will be lost!");
+        exitEditor();
     }
 
     function exitEditor():Void {
@@ -565,8 +535,46 @@ class SourceEditorState extends MusicBeatState {
         FlxG.switchState(new states.MainMenuState());
     }
 
+    /**
+     * Rebuild the file list display from an array of names
+     */
+    function updateFileListDisplay(names:Array<String>):Void {
+        // Clear existing items
+        fileListGroup.clear();
+        fileListItems = names;
+
+        // Create visible text items
+        var startY = MARGIN + 110;
+        var lineHeight = 18;
+        var maxItems = Std.int(Math.min(names.length, fileListMaxVisible));
+
+        for (i in 0...maxItems) {
+            var idx = i + fileListScrollY;
+            if (idx >= names.length) break;
+
+            var label = new FlxText(MARGIN + 10, startY + i * lineHeight, PANEL_WIDTH - 20, names[idx]);
+            label.setFormat(null, 10, FlxColor.WHITE, LEFT);
+            fileListGroup.add(label);
+        }
+    }
+
     override function update(elapsed:Float) {
         super.update(elapsed);
+
+        // Handle file list item clicks
+        if (FlxG.mouse.justPressed) {
+            var mouseX = FlxG.mouse.screenX;
+            var mouseY = FlxG.mouse.screenY;
+            var startY = MARGIN + 110;
+            var lineHeight = 18;
+
+            if (mouseX >= MARGIN + 10 && mouseX <= MARGIN + PANEL_WIDTH - 10) {
+                var clickedIndex = Std.int((mouseY - startY) / lineHeight) + fileListScrollY;
+                if (clickedIndex >= 0 && clickedIndex < fileListItems.length) {
+                    selectFile(fileListItems[clickedIndex]);
+                }
+            }
+        }
 
         // Handle keyboard shortcuts
         if (FlxG.keys.justPressed.ESCAPE) {
@@ -585,8 +593,14 @@ class SourceEditorState extends MusicBeatState {
                 revertCurrentFunction();
             }
             if (FlxG.keys.justPressed.F) {
-                searchInput.hasFocus = true;
+                // Focus search
+                searchFiles();
             }
+        }
+
+        // Handle Enter in search
+        if (FlxG.keys.justPressed.ENTER) {
+            searchFiles();
         }
     }
 }

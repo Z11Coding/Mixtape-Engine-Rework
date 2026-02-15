@@ -3,6 +3,8 @@ package yutautil.typeregistry;
 import haxe.Json;
 import yutautil.typeregistry.AbstractInfo;
 import yutautil.typeregistry.ClassInfo;
+import yutautil.typeregistry.TypeInfo;
+import yutautil.typeregistry.TypeRegistry.SourceInfo;
 import yutautil.typeregistry.TypedefInfo;
 
 /**
@@ -100,7 +102,7 @@ class RuntimeRegistry {
         info.pack = data.pack;
         info.module = data.module;
         info.isAbstract = data.isAbstract;
-        info.fields = data.fields != null ? data.fields : [];
+        info.fields = data.fields != null ? cast data.fields : [];
         return info;
     }
 
@@ -112,7 +114,7 @@ class RuntimeRegistry {
         info.type = data.type;
         info.fromCasts = data.fromCasts != null ? data.fromCasts : [];
         info.toCasts = data.toCasts != null ? data.toCasts : [];
-        info.fields = data.fields != null ? data.fields : [];
+        info.fields = data.fields != null ? cast data.fields : [];
         return info;
     }
 
@@ -125,7 +127,7 @@ class RuntimeRegistry {
         info.superClass = data.superClass;
         info.interfaces = data.interfaces != null ? data.interfaces : [];
         info.staticFields = data.staticFields != null ? data.staticFields : [];
-        info.fields = data.fields != null ? data.fields : [];
+        info.fields = data.fields != null ? cast data.fields : [];
         info.constructorInfo = data.constructorInfo;
         return info;
     }
@@ -137,7 +139,7 @@ class RuntimeRegistry {
         info.module = data.module;
         info.type = data.type;
         info.isAnonymousStructure = data.isAnonymousStructure;
-        info.fields = data.fields != null ? data.fields : [];
+        info.fields = data.fields != null ? cast data.fields : [];
         return info;
     }
 
@@ -195,9 +197,9 @@ class RuntimeRegistry {
         initialize();
         var results = [];
 
-        for (abstract in abstractInfos) {
-            if (abstract.couldBeType(value)) {
-                results.push(abstract);
+        for (absInfo in abstractInfos) {
+            if (absInfo.couldBeType(value)) {
+                results.push(absInfo);
             }
         }
 
