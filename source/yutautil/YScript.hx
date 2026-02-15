@@ -161,7 +161,13 @@ class YTypeHelper {
             case YStruct(name): name;
             case HaxeType(t): Std.string(t);
             case HaxeClass(c): Type.getClassName(c);
-            case HaxeAbstract(a): Std.string(a);
+            case HaxeAbstract(a): {
+                if (Std.isOfType(a, yutautil.typeregistry.AbstractInterpreter)) {
+                    (cast(a, yutautil.typeregistry.AbstractInterpreter)).abstractPath;
+                } else {
+                    Std.string(a);
+                }
+            };
             case HaxeEnum(e): Type.getEnumName(e);
             case Dynamic: "Dynamic";
             case Void: "Void";
@@ -914,7 +920,7 @@ class YScript {
     /**
      * ✅ INTEGRATION: Set variable from external system
      */
-    public function setVariable(name:String, value:Dynamic, ?type:YType):Void {
+    public function setVariable(name:String, value:Dynamic, ?type:YTypeable):Void {
         if (!isReady) {
             throw new YScriptRuntimeError('Script not loaded');
         }
@@ -1450,7 +1456,20 @@ class YScript {
                 var haxeClass = Type.resolveClass(data.data.className);
                 haxeClass != null ? YType.HaxeClass(haxeClass) : YType.Dynamic;
             };
-            case "HaxeAbstract": YType.Dynamic; // Cannot fully deserialize abstract types
+            case "HaxeAbstract": {
+                // Try to resolve via AbstractInterpreter using the stored abstract name
+                var abstractName = data.data.abstractName;
+                if (abstractName != null) {
+                    var interp = yutautil.typeregistry.AbstractInterpreter.forAbstract(abstractName);
+                    if (interp != null) {
+                        YType.HaxeAbstract(interp);
+                    } else {
+                        YType.Dynamic;
+                    }
+                } else {
+                    YType.Dynamic;
+                }
+            };
             case "HaxeEnum": {
                 var haxeEnum = Type.resolveEnum(data.data.enumName);
                 haxeEnum != null ? YType.HaxeEnum(haxeEnum) : YType.Dynamic;
@@ -3447,7 +3466,133 @@ class YScriptParser {
             default:
         }
 
+        // Abstract type compatibility via @:from / @:to implicit conversions
+        // Target is an abstract: check if value type can be accepted via @:from conversions
+        switch (targetType) {
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+
+                    // Convert valueType to a type string for TypeHandler
+                    var valueTypeStr = parserYTypeToString(valueType);
+                    if (valueTypeStr != null) {
+                        if (yutautil.TypeHandler.canAssignToAbstract(valueTypeStr, interp.abstractPath)) return true;
+                    }
+
+                    // Direct checks for primitives
+                    switch (valueType) {
+                        case YInt:
+                            if (interp.matchesUnderlyingType(0) || interp.canConvertFrom(0)) return true;
+                        case YFloat:
+                            if (interp.matchesUnderlyingType(0.0) || interp.canConvertFrom(0.0)) return true;
+                        case YString:
+                            if (interp.matchesUnderlyingType("") || interp.canConvertFrom("")) return true;
+                        case YBool:
+                            if (interp.matchesUnderlyingType(true) || interp.canConvertFrom(true)) return true;
+                        case HaxeAbstract(otherAbstract):
+                            if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
+                                var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
+                                if (interp.abstractPath == otherInterp.abstractPath) return true;
+                                // Check if the other abstract's @:to outputs can feed into this abstract's @:from
+                                var otherToTypes = otherInterp.getToTypes();
+                                for (toEntry in otherToTypes) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(toEntry.typeName, interp.abstractPath)) return true;
+                                }
+                                if (otherInterp.underlyingType != null) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(otherInterp.underlyingType, interp.abstractPath)) return true;
+                                }
+                            }
+                        case HaxeClass(cls):
+                            var className = Type.getClassName(cls);
+                            if (className != null && yutautil.TypeHandler.canAssignToAbstract(className, interp.abstractPath)) return true;
+                        case _:
+                    }
+                }
+            default:
+        }
+
+        // If the value is an abstract type, check if it can be converted TO the target
+        switch (valueType) {
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+
+                    var targetTypeStr = parserYTypeToString(targetType);
+                    if (targetTypeStr != null) {
+                        if (yutautil.TypeHandler.canAbstractOutputType(interp.abstractPath, targetTypeStr)) return true;
+                    }
+
+                    switch (targetType) {
+                        case YInt:
+                            if (interp.canConvertTo("Int")) return true;
+                        case YFloat:
+                            if (interp.canConvertTo("Float")) return true;
+                        case YString:
+                            if (interp.canConvertTo("String")) return true;
+                        case YBool:
+                            if (interp.canConvertTo("Bool")) return true;
+                        case HaxeClass(cls):
+                            var className = Type.getClassName(cls);
+                            if (className != null && interp.canConvertTo(className)) return true;
+                        case HaxeAbstract(otherAbstract):
+                            if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
+                                var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
+                                var myToTypes = interp.getToTypes();
+                                for (toEntry in myToTypes) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(toEntry.typeName, otherInterp.abstractPath)) return true;
+                                }
+                                if (interp.underlyingType != null) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(interp.underlyingType, otherInterp.abstractPath)) return true;
+                                }
+                            }
+                        case _:
+                    }
+                }
+            default:
+        }
+
+        // Typedef compatibility
+        switch [targetType, valueType] {
+            case [YType.YStruct(targetStructName), YType.YStruct(valueStructName)]:
+                var resolvedTarget = yutautil.TypeHandler.resolveTypedef(targetStructName);
+                var resolvedValue = yutautil.TypeHandler.resolveTypedef(valueStructName);
+                if (resolvedTarget != null && resolvedValue != null) {
+                    return yutautil.TypeHandler.isCompatible(resolvedValue, resolvedTarget);
+                }
+                return targetStructName == valueStructName;
+            default:
+        }
+
         return false;
+    }
+
+    /**
+     * Convert a YType to a type string for use with TypeHandler (parser-side).
+     * Returns null if the YType cannot be meaningfully converted.
+     */
+    private function parserYTypeToString(ytype:YType):Null<String> {
+        return switch (ytype) {
+            case YInt: "Int";
+            case YFloat: "Float";
+            case YString: "String";
+            case YBool: "Bool";
+            case Dynamic: "Dynamic";
+            case Void: "Void";
+            case YArray(elementType): "Array";
+            case YFunction(_, _): "Function";
+            case YClass(name): name;
+            case YEnum(name): name;
+            case YStruct(name): name;
+            case HaxeClass(c): Type.getClassName(c);
+            case HaxeEnum(e): Type.getEnumName(e);
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+                    interp.abstractPath;
+                } else null;
+            case HaxeType(t): Std.string(t);
+            case Unknown: null;
+        };
     }
 
     /**
@@ -3708,6 +3853,98 @@ class YScriptRuntime {
             default:
         }
 
+        // Abstract type compatibility via @:from / @:to implicit conversions
+        // Target is an abstract: check if actual type can be accepted via @:from
+        switch (expectedType) {
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+
+                    var actualTypeStr = yTypeToString(actualType);
+                    if (actualTypeStr != null) {
+                        if (yutautil.TypeHandler.canAssignToAbstract(actualTypeStr, interp.abstractPath)) return true;
+                    }
+
+                    // Runtime value-based checks for primitives
+                    if (actualValue != null) {
+                        if (interp.matchesUnderlyingType(actualValue) || interp.canConvertFrom(actualValue)) return true;
+                    } else {
+                        switch (actualType) {
+                            case YInt:
+                                if (interp.matchesUnderlyingType(0) || interp.canConvertFrom(0)) return true;
+                            case YFloat:
+                                if (interp.matchesUnderlyingType(0.0) || interp.canConvertFrom(0.0)) return true;
+                            case YString:
+                                if (interp.matchesUnderlyingType("") || interp.canConvertFrom("")) return true;
+                            case YBool:
+                                if (interp.matchesUnderlyingType(true) || interp.canConvertFrom(true)) return true;
+                            case _:
+                        }
+                    }
+
+                    // Cross-abstract checks
+                    switch (actualType) {
+                        case HaxeAbstract(otherAbstract):
+                            if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
+                                var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
+                                if (interp.abstractPath == otherInterp.abstractPath) return true;
+                                var otherToTypes = otherInterp.getToTypes();
+                                for (toEntry in otherToTypes) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(toEntry.typeName, interp.abstractPath)) return true;
+                                }
+                                if (otherInterp.underlyingType != null) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(otherInterp.underlyingType, interp.abstractPath)) return true;
+                                }
+                            }
+                        case HaxeClass(cls):
+                            var className = Type.getClassName(cls);
+                            if (className != null && yutautil.TypeHandler.canAssignToAbstract(className, interp.abstractPath)) return true;
+                        case _:
+                    }
+                }
+            default:
+        }
+
+        // Source is an abstract: check if it can be converted TO the target
+        switch (actualType) {
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+
+                    var expectedTypeStr = yTypeToString(expectedType);
+                    if (expectedTypeStr != null) {
+                        if (yutautil.TypeHandler.canAbstractOutputType(interp.abstractPath, expectedTypeStr)) return true;
+                    }
+
+                    switch (expectedType) {
+                        case YInt:
+                            if (interp.canConvertTo("Int")) return true;
+                        case YFloat:
+                            if (interp.canConvertTo("Float")) return true;
+                        case YString:
+                            if (interp.canConvertTo("String")) return true;
+                        case YBool:
+                            if (interp.canConvertTo("Bool")) return true;
+                        case HaxeClass(cls):
+                            var className = Type.getClassName(cls);
+                            if (className != null && interp.canConvertTo(className)) return true;
+                        case HaxeAbstract(otherAbstract):
+                            if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
+                                var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
+                                var myToTypes = interp.getToTypes();
+                                for (toEntry in myToTypes) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(toEntry.typeName, otherInterp.abstractPath)) return true;
+                                }
+                                if (interp.underlyingType != null) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(interp.underlyingType, otherInterp.abstractPath)) return true;
+                                }
+                            }
+                        case _:
+                    }
+                }
+            default:
+        }
+
         return false;
     }
 
@@ -3864,6 +4101,27 @@ class YScriptRuntime {
                         var haxeClass = Type.resolveClass(path);
                         if (haxeClass != null) {
                             scope.setType(className, YType.HaxeClass(haxeClass));
+                        } else {
+                            // Class not found - try resolving as an abstract type via BuildDataLoader
+                            var abstractInterp = yutautil.typeregistry.AbstractInterpreter.forAbstract(path);
+                            if (abstractInterp != null) {
+                                // Store the AbstractInterpreter as the abstract type reference
+                                scope.setType(className, YType.HaxeAbstract(abstractInterp));
+                                #if !macro
+                                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                    trace('[YScript Debug] Import resolved as abstract type: $path -> $className');
+                                    if (abstractInterp.isGeneric) {
+                                        trace('[YScript Debug]   (generic: <${abstractInterp.typeParams.join(", ")}>)');
+                                    }
+                                }
+                                #end
+                            } else {
+                                // Try resolving as an enum
+                                var haxeEnum = Type.resolveEnum(path);
+                                if (haxeEnum != null) {
+                                    scope.setType(className, YType.HaxeEnum(haxeEnum));
+                                }
+                            }
                         }
 
                     } catch (e:Dynamic) {
@@ -4189,6 +4447,26 @@ class YScriptRuntime {
         }
     }
 
+    /**
+     * Get a default value for a given underlying type name string (e.g. "Float", "Int", "String").
+     * Used when constructing abstract types with no arguments.
+     */
+    private function getDefaultValueForUnderlyingType(typeName:String):Dynamic {
+        if (typeName == null) return null;
+        var normalized = typeName.toLowerCase();
+        var lastDot = normalized.lastIndexOf(".");
+        if (lastDot >= 0) normalized = normalized.substring(lastDot + 1);
+
+        return switch (normalized) {
+            case "int" | "integer": 0;
+            case "float" | "number" | "double": 0.0;
+            case "string": "";
+            case "bool" | "boolean": false;
+            case "array": [];
+            case _: null;
+        };
+    }
+
     private function isTruthy(value:Dynamic):Bool {
         if (value == null) return false;
         if (Std.is(value, Bool)) return value;
@@ -4198,6 +4476,22 @@ class YScriptRuntime {
     }
 
     private function evaluateBinaryOperation(left:Dynamic, op:String, right:Dynamic):Dynamic {
+        // If either side is an AbstractValue, try operator dispatch through its interpreter
+        if (Std.isOfType(left, yutautil.typeregistry.AbstractValue)) {
+            var absVal:yutautil.typeregistry.AbstractValue = cast left;
+            if (absVal.interpreter.hasOperator(op)) {
+                var rawRight = Std.isOfType(right, yutautil.typeregistry.AbstractValue)
+                    ? (cast(right, yutautil.typeregistry.AbstractValue)).rawValue
+                    : right;
+                return absVal.op(op, rawRight);
+            }
+        } else if (Std.isOfType(right, yutautil.typeregistry.AbstractValue)) {
+            var absVal:yutautil.typeregistry.AbstractValue = cast right;
+            if (absVal.interpreter.hasOperator(op)) {
+                return absVal.interpreter.applyOperator(op, left, absVal.rawValue);
+            }
+        }
+
         return switch (op) {
             case "+": left + right;
             case "-": left - right;
@@ -4236,7 +4530,26 @@ class YScriptRuntime {
                     var variable = scope.getVariable(name);
                     // Type checking for assignment
                     validateAssignment(variable.type, value);
-                    variable.value = value;
+                    // Auto-wrap values when assigning to abstract-typed variables
+                    var assignValue = value;
+                    switch (variable.type) {
+                        case HaxeAbstract(abstractType):
+                            // If the value isn't already an AbstractValue, wrap it via @:from
+                            if (!Std.isOfType(value, yutautil.typeregistry.AbstractValue)) {
+                                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+                                    var converted = interp.applyFromConversion(value);
+                                    if (converted != null) {
+                                        assignValue = converted;
+                                    } else {
+                                        // Fallback: force-wrap if underlying type matches
+                                        assignValue = interp.forceWrap(value);
+                                    }
+                                }
+                            }
+                        default:
+                    }
+                    variable.value = assignValue;
                 } else {
                     var context = scope.getExecutionContext();
                     throw new YScriptRuntimeError('Undefined variable: $name', context.location, context.scriptPath);
@@ -4415,6 +4728,9 @@ class YScriptRuntime {
                         return classType; // Return the actual class for static access
                     case HaxeEnum(enumType):
                         return enumType; // Return the actual enum for static access
+                    case HaxeAbstract(abstractType):
+                        // Return the AbstractInterpreter so callers can dispatch methods/operators
+                        return abstractType;
                     default:
                         // Fall through to other resolution methods
                 }
@@ -4426,6 +4742,31 @@ class YScriptRuntime {
 
             var enumType = Type.resolveEnum(name);
             if (enumType != null) return enumType;
+
+            // Try resolving as an abstract type via BuildDataLoader
+            var abstractInterp = yutautil.typeregistry.AbstractInterpreter.forAbstract(name);
+            if (abstractInterp != null) {
+                // Register it in scope for future lookups
+                scope.setType(name, YType.HaxeAbstract(abstractInterp));
+                return abstractInterp;
+            }
+
+            // Also try resolving via import aliases
+            var resolvedImport = scope.resolveImport(name);
+            if (resolvedImport != null) {
+                var importedClass = Type.resolveClass(resolvedImport);
+                if (importedClass != null) return importedClass;
+
+                var importedEnum = Type.resolveEnum(resolvedImport);
+                if (importedEnum != null) return importedEnum;
+
+                // Try as abstract via the resolved import path
+                var importedAbstract = yutautil.typeregistry.AbstractInterpreter.forAbstract(resolvedImport);
+                if (importedAbstract != null) {
+                    scope.setType(name, YType.HaxeAbstract(importedAbstract));
+                    return importedAbstract;
+                }
+            }
 
             // Check for static fields
             return Reflect.field(Type.resolveClass("Std"), name);
@@ -4471,6 +4812,18 @@ class YScriptRuntime {
 
     private function callMethod(object:Dynamic, method:String, args:Array<Dynamic>):Dynamic {
         try {
+            // If the object is an AbstractValue, dispatch through its interpreter
+            if (Std.isOfType(object, yutautil.typeregistry.AbstractValue)) {
+                var absVal:yutautil.typeregistry.AbstractValue = cast object;
+                return absVal.call(method, args);
+            }
+
+            // If the object is an AbstractInterpreter, call a static method on the abstract
+            if (Std.isOfType(object, yutautil.typeregistry.AbstractInterpreter)) {
+                var interp:yutautil.typeregistry.AbstractInterpreter = cast object;
+                return interp.callStaticMethod(method, args);
+            }
+
             var methodFunction = Reflect.field(object, method);
             if (methodFunction != null && Reflect.isFunction(methodFunction)) {
                 return Reflect.callMethod(object, methodFunction, args);
@@ -4488,6 +4841,27 @@ class YScriptRuntime {
 
     private function accessMember(object:Dynamic, member:String):Dynamic {
         try {
+            // If the object is an AbstractValue, dispatch field access through its interpreter
+            if (Std.isOfType(object, yutautil.typeregistry.AbstractValue)) {
+                var absVal:yutautil.typeregistry.AbstractValue = cast object;
+                return absVal.field(member);
+            }
+
+            // If the object is an AbstractInterpreter, access static fields on the impl class
+            if (Std.isOfType(object, yutautil.typeregistry.AbstractInterpreter)) {
+                var interp:yutautil.typeregistry.AbstractInterpreter = cast object;
+                if (interp.implClass != null) {
+                    var field = Reflect.field(interp.implClass, member);
+                    if (field != null) return field;
+                }
+                // Check for special abstract metadata fields
+                if (member == "underlyingType") return interp.underlyingType;
+                if (member == "abstractPath") return interp.abstractPath;
+                if (member == "isGeneric") return interp.isGeneric;
+                if (member == "typeParams") return interp.typeParams;
+                return null;
+            }
+
             return Reflect.field(object, member);
         } catch (e:Dynamic) {
             var context = scope.getExecutionContext();
@@ -4621,6 +4995,61 @@ class YScriptRuntime {
                 #if !macro
                 if (backend.ClientPrefs.data.yscriptDebugMode) {
                     trace('[YScript Debug] resolveProgressiveMemberAccess: Type resolution failed for "$typePath": $e');
+                }
+                #end
+            }
+
+            // Try to resolve as abstract type via BuildDataLoader
+            try {
+                var abstractInterp = yutautil.typeregistry.AbstractInterpreter.forAbstract(typePath);
+                if (abstractInterp != null) {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] resolveProgressiveMemberAccess: Found abstract type "$typePath", accessing remaining ${pathParts.length - i} members');
+                    }
+                    #end
+
+                    // Register the abstract type in scope for future lookups
+                    scope.setType(typePath, YType.HaxeAbstract(abstractInterp));
+
+                    // If there are remaining members, dispatch via the AbstractInterpreter
+                    if (i >= pathParts.length) {
+                        return abstractInterp;
+                    }
+
+                    // Access remaining members - these would be static methods on the abstract
+                    var result:Dynamic = abstractInterp;
+                    for (j in i...pathParts.length) {
+                        var memberName = pathParts[j];
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] resolveProgressiveMemberAccess: Accessing abstract member "$memberName"');
+                        }
+                        #end
+
+                        // Try to get the static method from the impl class
+                        if (abstractInterp.implClass != null) {
+                            var implField = Reflect.field(abstractInterp.implClass, memberName);
+                            if (implField != null) {
+                                result = implField;
+                                continue;
+                            }
+                        }
+
+                        // Fall back to field access on current result
+                        if (result != null && result != abstractInterp) {
+                            result = Reflect.field(result, memberName);
+                        } else {
+                            var context = scope.getExecutionContext();
+                            throw new YScriptRuntimeError('Member "$memberName" not found on abstract type "$typePath"', context.location, context.scriptPath);
+                        }
+                    }
+                    return result;
+                }
+            } catch (e:Dynamic) {
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] resolveProgressiveMemberAccess: Abstract resolution failed for "$typePath": $e');
                 }
                 #end
             }
@@ -4813,6 +5242,9 @@ class YScriptRuntime {
                         switch (haxeType) {
                             case HaxeClass(classType):
                                 return Type.createInstance(classType, args);
+                            case HaxeAbstract(abstractType):
+                                // Delegate to the HaxeAbstract case
+                                return createInstance(YType.HaxeAbstract(abstractType), args);
                             default:
                                 // Fall through to YScript class checking
                         }
@@ -4846,8 +5278,20 @@ class YScriptRuntime {
 
                         return instance;
                     } else {
+                        // Try resolving as an abstract type before giving up
+                        var abstractInterp = yutautil.typeregistry.AbstractInterpreter.forAbstract(className);
+                        if (abstractInterp == null) {
+                            // Also try via import resolution
+                            var resolvedImport = scope.resolveImport(className);
+                            if (resolvedImport != null) {
+                                abstractInterp = yutautil.typeregistry.AbstractInterpreter.forAbstract(resolvedImport);
+                            }
+                        }
+                        if (abstractInterp != null) {
+                            return createInstance(YType.HaxeAbstract(abstractInterp), args);
+                        }
                         var context = scope.getExecutionContext();
-                        throw new YScriptRuntimeError('Unknown class: $className (not found as Haxe import or YScript class)', context.location, context.scriptPath);
+                        throw new YScriptRuntimeError('Unknown class: $className (not found as Haxe import, abstract, or YScript class)', context.location, context.scriptPath);
                     }
 
                 case HaxeClass(classType):
@@ -4856,6 +5300,35 @@ class YScriptRuntime {
                     } else {
                         var context = scope.getExecutionContext();
                         throw new YScriptRuntimeError('Null Haxe class type', context.location, context.scriptPath);
+                    }
+
+                case HaxeAbstract(abstractType):
+                    // Abstracts don't have constructors in the traditional sense.
+                    // Use the @:from conversion from the first argument, or call _new on impl if available.
+                    if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                        var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+                        if (args.length == 1) {
+                            // Try @:from conversion
+                            var converted = interp.applyFromConversion(args[0]);
+                            if (converted != null) return converted;
+                            // Fallback: just wrap the value
+                            return interp.forceWrap(args[0]);
+                        } else if (args.length == 0) {
+                            // No args - create with default value for underlying type
+                            var defaultVal = getDefaultValueForUnderlyingType(interp.underlyingType);
+                            return interp.forceWrap(defaultVal);
+                        } else {
+                            // Try calling _new on the impl class if it exists
+                            try {
+                                return interp.callStaticMethod("_new", args);
+                            } catch (e:Dynamic) {
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Cannot construct abstract ${interp.abstractPath} with ${args.length} arguments', context.location, context.scriptPath);
+                            }
+                        }
+                    } else {
+                        var context = scope.getExecutionContext();
+                        throw new YScriptRuntimeError('Cannot instantiate abstract type without interpreter', context.location, context.scriptPath);
                     }
 
                 case YArray(elementType):
@@ -5286,7 +5759,144 @@ class YScriptRuntime {
             default:
         }
 
+        // Abstract type compatibility via @:from / @:to implicit conversions
+        // Uses TypeHandler for comprehensive from/to function checking
+        switch (targetType) {
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+
+                    // Convert valueType to a type string for TypeHandler
+                    var valueTypeStr = yTypeToString(valueType);
+                    if (valueTypeStr != null) {
+                        // Use TypeHandler to check all @:from conversions comprehensively
+                        if (yutautil.TypeHandler.canAssignToAbstract(valueTypeStr, interp.abstractPath)) return true;
+                    }
+
+                    // Direct probe check for primitives (handles runtime value matching)
+                    switch (valueType) {
+                        case YInt:
+                            if (interp.matchesUnderlyingType(0) || interp.canConvertFrom(0)) return true;
+                        case YFloat:
+                            if (interp.matchesUnderlyingType(0.0) || interp.canConvertFrom(0.0)) return true;
+                        case YString:
+                            if (interp.matchesUnderlyingType("") || interp.canConvertFrom("")) return true;
+                        case YBool:
+                            if (interp.matchesUnderlyingType(true) || interp.canConvertFrom(true)) return true;
+                        case HaxeAbstract(otherAbstract):
+                            if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
+                                var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
+                                // Same abstract path
+                                if (interp.abstractPath == otherInterp.abstractPath) return true;
+                                // Check if the other abstract's output types can feed into this abstract's @:from
+                                var otherToTypes = otherInterp.getToTypes();
+                                for (toEntry in otherToTypes) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(toEntry.typeName, interp.abstractPath)) return true;
+                                }
+                                // Check underlying type of the source abstract
+                                if (otherInterp.underlyingType != null) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(otherInterp.underlyingType, interp.abstractPath)) return true;
+                                }
+                            }
+                        case HaxeClass(cls):
+                            // Check if the class can be accepted by the abstract's @:from
+                            var className = Type.getClassName(cls);
+                            if (className != null && yutautil.TypeHandler.canAssignToAbstract(className, interp.abstractPath)) return true;
+                        case _:
+                    }
+                }
+            default:
+        }
+
+        // If the value is an abstract type, check if it can be converted TO the target
+        switch (valueType) {
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+
+                    // Convert targetType to a type string for TypeHandler
+                    var targetTypeStr = yTypeToString(targetType);
+                    if (targetTypeStr != null) {
+                        // Use TypeHandler to check all @:to conversions comprehensively
+                        if (yutautil.TypeHandler.canAbstractOutputType(interp.abstractPath, targetTypeStr)) return true;
+                    }
+
+                    // Direct @:to checks for primitives
+                    switch (targetType) {
+                        case YInt:
+                            if (interp.canConvertTo("Int")) return true;
+                        case YFloat:
+                            if (interp.canConvertTo("Float")) return true;
+                        case YString:
+                            if (interp.canConvertTo("String")) return true;
+                        case YBool:
+                            if (interp.canConvertTo("Bool")) return true;
+                        case HaxeClass(cls):
+                            var className = Type.getClassName(cls);
+                            if (className != null && interp.canConvertTo(className)) return true;
+                        case HaxeAbstract(otherAbstract):
+                            // Check if this abstract's @:to outputs can be accepted by the target abstract's @:from
+                            if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
+                                var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
+                                var myToTypes = interp.getToTypes();
+                                for (toEntry in myToTypes) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(toEntry.typeName, otherInterp.abstractPath)) return true;
+                                }
+                                // Check underlying type chain
+                                if (interp.underlyingType != null) {
+                                    if (yutautil.TypeHandler.canAssignToAbstract(interp.underlyingType, otherInterp.abstractPath)) return true;
+                                }
+                            }
+                        case _:
+                    }
+                }
+            default:
+        }
+
+        // Typedef compatibility: if target or source is a struct/typedef string from YStruct
+        switch [targetType, valueType] {
+            case [YType.YStruct(targetStructName), YType.YStruct(valueStructName)]:
+                // Check if both resolve to compatible typedefs or structures
+                var resolvedTarget = yutautil.TypeHandler.resolveTypedef(targetStructName);
+                var resolvedValue = yutautil.TypeHandler.resolveTypedef(valueStructName);
+                if (resolvedTarget != null && resolvedValue != null) {
+                    return yutautil.TypeHandler.isCompatible(resolvedValue, resolvedTarget);
+                }
+                // If one is a structure type string, compare structurally
+                return targetStructName == valueStructName;
+            default:
+        }
+
         return false;
+    }
+
+    /**
+     * Convert a YType to a type string for use with TypeHandler.
+     * Returns null if the YType cannot be meaningfully converted.
+     */
+    private function yTypeToString(ytype:YType):Null<String> {
+        return switch (ytype) {
+            case YInt: "Int";
+            case YFloat: "Float";
+            case YString: "String";
+            case YBool: "Bool";
+            case Dynamic: "Dynamic";
+            case Void: "Void";
+            case YArray(elementType): "Array";
+            case YFunction(_, _): "Function";
+            case YClass(name): name;
+            case YEnum(name): name;
+            case YStruct(name): name;
+            case HaxeClass(c): Type.getClassName(c);
+            case HaxeEnum(e): Type.getEnumName(e);
+            case HaxeAbstract(abstractType):
+                if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                    var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+                    interp.abstractPath;
+                } else null;
+            case HaxeType(t): Std.string(t);
+            case Unknown: null;
+        };
     }
 
     /**
@@ -5341,6 +5951,24 @@ class YScriptRuntime {
      */
     private function inferTypeFromValue(value:Dynamic):YType {
         if (value == null) return YType.Dynamic;
+
+        // Check for AbstractValue first (before generic class check)
+        if (Std.isOfType(value, yutautil.typeregistry.AbstractValue)) {
+            var absVal:yutautil.typeregistry.AbstractValue = cast value;
+            return YType.HaxeAbstract(absVal.interpreter);
+        }
+
+        // Check for AbstractInterpreter (the type itself, not a value)
+        if (Std.isOfType(value, yutautil.typeregistry.AbstractInterpreter)) {
+            var interp:yutautil.typeregistry.AbstractInterpreter = cast value;
+            return YType.HaxeAbstract(interp);
+        }
+
+        // Check for AbstractRuntimeInfo (the backing class of Abstract abstract)
+        if (Std.isOfType(value, yutautil.Abstract.AbstractRuntimeInfo)) {
+            var info:yutautil.Abstract.AbstractRuntimeInfo = cast value;
+            return YType.HaxeAbstract(info.interpreter);
+        }
 
         return switch (Type.typeof(value)) {
             case TInt: YType.YInt;

@@ -14,6 +14,8 @@ import sys.io.File;
 
 import yutautil.typeregistry.AbstractInfo;
 import yutautil.typeregistry.ClassInfo;
+import yutautil.typeregistry.ConstructorInfo;
+import yutautil.typeregistry.FieldInfo;
 import yutautil.typeregistry.TypeInfo;
 import yutautil.typeregistry.TypedefInfo;
 
@@ -360,20 +362,4 @@ typedef SourceInfo = {
     min: Int,
     max: Int,
     source: String
-}
-
-typedef FieldInfo = {
-    name: String,
-    type: String,
-    isPublic: Bool,
-    isStatic: Bool,
-    doc: String,
-    pos: Position,
-    optional: Bool
-}
-
-typedef ConstructorInfo = {
-    args: Array<{name:String, type:String, opt:Bool}>,
-    doc: String,
-    pos: Position
 }

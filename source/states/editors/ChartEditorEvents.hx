@@ -78,6 +78,36 @@ class ChartEditorEvents {
         return array;
     }
 
+    public static function arrayToMap(array:Array<Array<String>>):haxe.ds.IntMap<Map<String, String>> {
+        var map:haxe.ds.IntMap<Map<String, String>> = new haxe.ds.IntMap<Map<String, String>>();
+        for (item in array) {
+            var eventName = item[0];
+            var eventDescription = item[1];
+            var found = false;
+            for (key in Events.keys()) {
+                if (Events.get(key).exists(eventName)) {
+                    if (!map.exists(key)) {
+                        map.set(key, new Map<String, String>());
+                    }
+                    map.get(key).set(eventName, eventDescription);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                // If the event name is not found in the original Events map, add it to the next available key (starting from 0)
+                var nextKey = 0;
+                while (Events.exists(nextKey) || map.exists(nextKey)) {
+                    nextKey++;
+                }
+                if (!map.exists(nextKey)) {
+                    map.set(nextKey, new Map<String, String>());
+                }
+            }
+        }
+        return map;
+    }
+
     public static function getEventDescription(eventName:String):String {
         for (key in Events.keys()) {
             if (Events.get(key).exists(eventName)) {

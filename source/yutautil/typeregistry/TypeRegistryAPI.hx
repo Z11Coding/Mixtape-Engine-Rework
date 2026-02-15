@@ -2,9 +2,12 @@ package yutautil.typeregistry;
 
 import yutautil.typeregistry.AbstractRecognizer;
 import yutautil.typeregistry.BuildDataLoader;
+import yutautil.typeregistry.EditorFileOrganizer.EditorFile;
 import yutautil.typeregistry.InGameSourceEditor;
 import yutautil.typeregistry.RuntimeRegistry;
+import yutautil.typeregistry.SourceMapper.FunctionInfo;
 import yutautil.typeregistry.SourceMapper;
+import yutautil.typeregistry.TypeInfo;
 import yutautil.typeregistry.Typer;
 
 /**
@@ -33,7 +36,7 @@ class TypeRegistryAPI {
      */
     public static function checkType(obj:Dynamic, typeName:String):Typed {
         initialize();
-        return Typer.type(obj, typeName);
+        return Typer.typeCheck(obj, typeName);
     }
 
     /**
@@ -254,12 +257,11 @@ class TypeRegistryAPI {
             if (BuildDataLoader.initialize()) {
                 var buildInfo = BuildDataLoader.getTypeInfo(typeName);
                 if (buildInfo != null) {
-                    return {
-                        name: buildInfo.data.name,
-                        pack: buildInfo.data.pack,
-                        fields: buildInfo.data.fields != null ? buildInfo.data.fields : [],
-                        confidence: 1.0
-                    };
+                    var info = new TypeInfo();
+                    info.name = buildInfo.data.name;
+                    info.pack = buildInfo.data.pack;
+                    info.fields = buildInfo.data.fields != null ? cast buildInfo.data.fields : [];
+                    return info;
                 }
             }
         } catch (e:Dynamic) {
@@ -480,9 +482,9 @@ class TypeRegistryAPI {
     }
 
     /**
-     * Search functions by name pattern
+     * Search functions by name pattern (build data)
      */
-    public static function searchFunctions(pattern:String):Array<Dynamic> {
+    public static function searchBuildFunctions(pattern:String):Array<Dynamic> {
         try {
             if (BuildDataLoader.initialize()) {
                 return BuildDataLoader.searchFunctions(pattern);

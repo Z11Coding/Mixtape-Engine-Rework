@@ -381,6 +381,16 @@ class RankingSubstate extends MusicBeatSubstate
 															}
 
 
+							if (managers.APFreeplayManager.isVictorySong(locationId, archipelago.APPlayState.currentMod))
+							{
+								trace("Song is a victory song, adding victory location ID");
+								var vicLocation:Null<Int> = APEntryState.apGame.info().get_location_id("Victory Goal");
+								if (vicLocation != null && vicLocation != -1)
+								{
+									locationIdInts = locationIdInts.concat([vicLocation]);
+									trace("Updated Location IDs with victory location: " + locationIdInts);
+								}
+							}
 
 							trace("Final Location IDs: " + locationIdInts);
 							for (locationIdInt in locationIdInts)

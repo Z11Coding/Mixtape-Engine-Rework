@@ -391,7 +391,7 @@ class FileTreeNode {
     public var isFolder(default, null):Bool;
     public var children(default, null):Array<FileTreeNode>;
     public var parent(default, null):FileTreeNode;
-    public var editorFile(default, null):EditorFile; // Only for file nodes
+    public var editorFile(default, default):EditorFile; // Only for file nodes
 
     public function new(name:String, fullPath:String, isFolder:Bool) {
         this.name = name;
@@ -442,9 +442,9 @@ class FolderInfo {
     public var name(default, null):String;
     public var path(default, null):String;
     public var depth(default, null):Int;
-    public var fileCount(default, null):Int;
-    public var editableCount(default, null):Int;
-    public var modifiedCount(default, null):Int;
+    public var fileCount(default, default):Int;
+    public var editableCount(default, default):Int;
+    public var modifiedCount(default, default):Int;
 
     public function new(name:String, path:String, depth:Int) {
         this.name = name;

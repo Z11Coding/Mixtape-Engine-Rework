@@ -89,9 +89,14 @@ import psychlua.HScript.HScriptInfos;
  *
  * here's some useful tips if you are making a mod in source:
  *
- * If you want to add your stage to the game, copy states/stages/Template.hx,
- * and put your stage code there, then, on PlayState, search for
- * "switch (curStage)", and add your stage to that list.
+ * If you want to add your stage to the game, you have multiple options:
+ * - Create a script file: stages/[stagename].hx (HScript - highest priority)
+ * - Create a Lua file: stages/[stagename].lua (Lua - second priority)
+ * - Create a YScript file: stages/[stagename].ys (YScript - third priority)
+ * - Or add it to the BaseStage switch statement in loadSingleStageFile() (hardcoded fallback)
+ *
+ * The engine will only load ONE stage file (the most relevant one found) to avoid conflicts.
+ * Priority order: HScript → Lua → YScript → BaseStage
  *
  * If you want to code Events, you can either code it on a Stage file or on PlayState, if you're doing the latter, search for:
  *
@@ -1289,10 +1294,8 @@ class PlayState extends MusicBeatState
 		}
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		// STAGE SCRIPTS
-		#if LUA_ALLOWED startLuasNamed('stages/' + curStage + '.lua'); #end
-		#if HSCRIPT_ALLOWED startHScriptsNamed('stages/' + curStage + '.hx'); #end
-		startYScriptsNamed('stages/' + curStage + '.ys');
+		// STAGE LOADING - Load only ONE stage file (most relevant)
+		loadSingleStageFile(curStage);
 
 		// CHARACTER SCRIPTS
 		if(gf != null) startCharacterScripts(gf.curCharacter);
@@ -2610,6 +2613,224 @@ class PlayState extends MusicBeatState
 			}
 
 			if(doPush) initYScript(scriptFile);
+		}
+	}
+
+	function loadSingleStageFile(stageName:String)
+	{
+		var stageLoaded:Bool = false;
+		var stageFileLoaded:String = "";
+
+		// Priority order: HScript (.hx) -> Lua (.lua) -> YScript (.ys) -> BaseStage fallback
+
+		#if HSCRIPT_ALLOWED
+		// Try HScript first
+		if (!stageLoaded) {
+			var doPush:Bool = false;
+			var scriptFile:String = 'stages/$stageName.hx';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath))
+			{
+				scriptFile = replacePath;
+				doPush = true;
+			}
+			else
+			#end
+			{
+				scriptFile = Paths.getSharedPath(scriptFile);
+				if(FileSystem.exists(scriptFile))
+					doPush = true;
+			}
+
+			if(doPush)
+			{
+				for (script in hscriptArray)
+				{
+					if(script.origin == scriptFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					initHScript(scriptFile);
+					stageLoaded = true;
+					stageFileLoaded = "HScript: " + scriptFile;
+				}
+			}
+		}
+		#end
+
+		#if LUA_ALLOWED
+		// Try Lua second
+		if (!stageLoaded) {
+			var doPush:Bool = false;
+			var luaFile:String = 'stages/$stageName.lua';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(luaFile);
+			if(FileSystem.exists(replacePath))
+			{
+				luaFile = replacePath;
+				doPush = true;
+			}
+			else
+			{
+				luaFile = Paths.getSharedPath(luaFile);
+				if(FileSystem.exists(luaFile))
+					doPush = true;
+			}
+			#else
+			luaFile = Paths.getSharedPath(luaFile);
+			if(Assets.exists(luaFile)) doPush = true;
+			#end
+
+			if(doPush)
+			{
+				for (script in luaArray)
+				{
+					if(script.scriptName == luaFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					(shouldUseLegacyLua() ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
+					stageLoaded = true;
+					stageFileLoaded = "Lua: " + luaFile;
+				}
+			}
+		}
+		#end
+
+		// Try YScript third
+		if (!stageLoaded) {
+			var doPush:Bool = false;
+			var scriptFile:String = 'stages/$stageName.ys';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath))
+			{
+				scriptFile = replacePath;
+				doPush = true;
+			}
+			else
+			#end
+			{
+				scriptFile = Paths.getSharedPath(scriptFile);
+				if(FileSystem.exists(scriptFile))
+					doPush = true;
+			}
+
+			if(doPush)
+			{
+				for (script in yscriptArray)
+				{
+					if(script.scriptPath == scriptFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					initYScript(scriptFile);
+					stageLoaded = true;
+					stageFileLoaded = "YScript: " + scriptFile;
+				}
+			}
+		}
+
+		// Fallback to BaseStage hardcoded stages
+		if (!stageLoaded) {
+			switch (stageName)
+			{
+				case 'stage':
+					new StageWeek1(); // Week 1
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: StageWeek1";
+				case 'spooky':
+					new Spooky(); // Week 2
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Spooky";
+				case 'philly':
+					new Philly(); // Week 3
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Philly";
+				case 'limo':
+					new Limo(); // Week 4
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Limo";
+				case 'mall':
+					new Mall(); // Week 5 - Cocoa, Eggnog
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Mall";
+				case 'mallEvil':
+					new MallEvil(); // Week 5 - Winter Horrorland
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: MallEvil";
+				case 'school':
+					new School(); // Week 6 - Senpai, Roses
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: School";
+				case 'schoolEvil':
+					new SchoolEvil(); // Week 6 - Thorns
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: SchoolEvil";
+				case 'tank':
+					new Tank(); // Week 7 - Ugh, Guns, Stress
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Tank";
+				case 'phillyStreets':
+					new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyStreets";
+				case 'phillyBlazin':
+					new PhillyBlazin(); // Weekend 1 - Blazin
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyBlazin";
+				case 'mainStageErect':
+					new MainStageErect(); // Week 1 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: MainStageErect";
+				case 'spookyMansionErect':
+					new SpookyMansionErect(); // Week 2 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: SpookyMansionErect";
+				case 'phillyTrainErect':
+					new PhillyTrainErect(); // Week 3 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyTrainErect";
+				case 'limoRideErect':
+					new LimoRideErect(); // Week 4 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: LimoRideErect";
+				case 'mallXmasErect':
+					new MallXmasErect(); // Week 5 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: MallXmasErect";
+				case 'phillyStreetsErect':
+					new PhillyStreetsErect(); // Weekend 1 Special
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: PhillyStreetsErect";
+				case 'desktop':
+					new Desktop(); // Literally your desktop as a stage lmao
+					stageLoaded = true;
+					stageFileLoaded = "BaseStage: Desktop";
+				default:
+					// No stage found at all - log warning
+					FlxG.log.warn('Stage "$stageName" not found! No stage files (.hx/.lua/.ys) or BaseStage class available for this stage.');
+					trace('Warning: Stage "$stageName" not found! Using no stage.');
+					stageFileLoaded = "Warning: No stage found";
+			}
+		}
+
+		// Debug info about which stage file was loaded
+		if (ClientPrefs.data.developerMode && stageLoaded) {
+			trace('Loaded single stage file: $stageFileLoaded');
 		}
 	}
 
@@ -8564,56 +8785,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 				stagesFunc(function(stage:BaseStage) stage.destroy());
 
-				switch (stageName)
-				{
-					case 'stage':
-						new StageWeek1(); // Week 1
-					case 'spooky':
-						new Spooky(); // Week 2
-					case 'philly':
-						new Philly(); // Week 3
-					case 'limo':
-						new Limo(); // Week 4
-					case 'mall':
-						new Mall(); // Week 5 - Cocoa, Eggnog
-					case 'mallEvil':
-						new MallEvil(); // Week 5 - Winter Horrorland
-					case 'school':
-						new School(); // Week 6 - Senpai, Roses
-					case 'schoolEvil':
-						new SchoolEvil(); // Week 6 - Thorns
-					case 'tank':
-						new Tank(); // Week 7 - Ugh, Guns, Stress
-					case 'phillyStreets':
-						new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
-					case 'phillyBlazin':
-						new PhillyBlazin(); // Weekend 1 - Blazin
-					case 'mainStageErect':
-						new MainStageErect(); // Week 1 Special
-					case 'spookyMansionErect':
-						new SpookyMansionErect(); // Week 2 Special
-					case 'phillyTrainErect':
-						new PhillyTrainErect(); // Week 3 Special
-					case 'limoRideErect':
-						new LimoRideErect(); // Week 4 Special
-					case 'mallXmasErect':
-						new MallXmasErect(); // Week 5 Special
-					case 'phillyStreetsErect':
-						new PhillyStreetsErect(); // Weekend 1 Special
-					case 'desktop':
-						new Desktop(); // Literally your desktop as a stage lmao
-					default:
-				}
-
-				#if LUA_ALLOWED
-				startLuasNamed('stages/' + stageName + '.lua');
-				#end
-				#if HSCRIPT_ALLOWED
-				startHScriptsNamed('stages/' + stageName + '.hx');
-				#end
-				#if HSCRIPT_ALLOWED
-				startYScriptsNamed('stages/' + stageName + '.ys');
-				#end
+				// Load single stage file (most relevant one)
+				loadSingleStageFile(stageName);
 				var scripts:Array<Array<Dynamic>> = [luaArray, hscriptArray, yscriptArray];
 				stagesFunc(function(stage:BaseStage) stage.createPost());
 				for (stuff in scripts)

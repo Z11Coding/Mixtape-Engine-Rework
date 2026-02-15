@@ -232,6 +232,118 @@ class Main extends Sprite
 		}
 		#end
 
+		// ═══════════════════════════════════════════════════════════════
+		// TypeHandler & Abstract Type Checking Tests
+		// ═══════════════════════════════════════════════════════════════
+		trace("=== TypeHandler & Abstract Type Checking Tests ===");
+		try {
+			// --- TypeHandler.classifyType ---
+			trace("TypeHandler Test - classifyType('Int') = " + yutautil.TypeHandler.classifyType("Int"));
+			trace("TypeHandler Test - classifyType('Array<Int>') = " + yutautil.TypeHandler.classifyType("Array<Int>"));
+			trace("TypeHandler Test - classifyType('{ name:String }') = " + yutautil.TypeHandler.classifyType("{ name:String }"));
+			trace("TypeHandler Test - classifyType('(Int) -> Bool') = " + yutautil.TypeHandler.classifyType("(Int) -> Bool"));
+
+			// --- Primitive compatibility ---
+			trace("TypeHandler Test - isCompatible('Int', 'Float') = " + yutautil.TypeHandler.isCompatible("Int", "Float"));           // true: Int -> Float promotion
+			trace("TypeHandler Test - isCompatible('Float', 'Int') = " + yutautil.TypeHandler.isCompatible("Float", "Int"));             // false: Float -> Int not safe
+			trace("TypeHandler Test - isCompatible('Int', 'Dynamic') = " + yutautil.TypeHandler.isCompatible("Int", "Dynamic"));         // true: Dynamic accepts anything
+			trace("TypeHandler Test - isCompatible('Bool', 'Int') = " + yutautil.TypeHandler.isCompatible("Bool", "Int"));               // false: Bool not numeric
+
+			// --- Abstract @:from checking (can Int be assigned to Num?) ---
+			trace("TypeHandler Test - canAssignToAbstract('Int', 'yutautil.Num') = " + yutautil.TypeHandler.canAssignToAbstract("Int", "yutautil.Num"));
+			trace("TypeHandler Test - canAssignToAbstract('Float', 'yutautil.Num') = " + yutautil.TypeHandler.canAssignToAbstract("Float", "yutautil.Num"));
+			trace("TypeHandler Test - canAssignToAbstract('String', 'yutautil.Num') = " + yutautil.TypeHandler.canAssignToAbstract("String", "yutautil.Num"));   // likely false
+
+			// --- Abstract @:to checking (can Num output a Float?) ---
+			trace("TypeHandler Test - canAbstractOutputType('yutautil.Num', 'Float') = " + yutautil.TypeHandler.canAbstractOutputType("yutautil.Num", "Float"));
+			trace("TypeHandler Test - canAbstractOutputType('yutautil.Num', 'Int') = " + yutautil.TypeHandler.canAbstractOutputType("yutautil.Num", "Int"));
+			trace("TypeHandler Test - canAbstractOutputType('yutautil.Num', 'String') = " + yutautil.TypeHandler.canAbstractOutputType("yutautil.Num", "String"));
+
+			// --- Structure compatibility ---
+			trace("TypeHandler Test - isStructureCompatible('{ name:String, age:Int }', '{ name:String }') = "
+				+ yutautil.TypeHandler.isStructureCompatible("{ name:String, age:Int }", "{ name:String }"));                           // true: source has all required target fields
+			trace("TypeHandler Test - isStructureCompatible('{ name:String }', '{ name:String, age:Int }') = "
+				+ yutautil.TypeHandler.isStructureCompatible("{ name:String }", "{ name:String, age:Int }"));                           // false: source missing 'age'
+			trace("TypeHandler Test - isStructureCompatible('{ name:String }', '{ name:String, ?age:Int }') = "
+				+ yutautil.TypeHandler.isStructureCompatible("{ name:String }", "{ name:String, ?age:Int }"));                          // true: age is optional
+
+			// --- Array compatibility ---
+			trace("TypeHandler Test - areArraysCompatible('Array<Int>', 'Array<Int>') = " + yutautil.TypeHandler.areArraysCompatible("Array<Int>", "Array<Int>"));       // true
+			trace("TypeHandler Test - areArraysCompatible('Array<Int>', 'Array<Float>') = " + yutautil.TypeHandler.areArraysCompatible("Array<Int>", "Array<Float>"));   // depends on Int->Float
+
+			// --- TypeRef with Class<Dynamic> ---
+			trace("TypeHandler Test - classifyType(String) via TypeRef = " + yutautil.TypeHandler.classifyType(String));      // Should classify String type
+			trace("TypeHandler Test - stripGenerics('Map<String, Int>') = " + yutautil.TypeHandler.stripGenerics("Map<String, Int>"));   // "Map"
+			trace("TypeHandler Test - getSimpleName('yutautil.Num') = " + yutautil.TypeHandler.getSimpleName("yutautil.Num"));           // "Num"
+
+			// --- Value-based type inference ---
+			trace("TypeHandler Test - inferValueType(42) = " + yutautil.TypeHandler.inferValueType(42));
+			trace("TypeHandler Test - inferValueType(3.14) = " + yutautil.TypeHandler.inferValueType(3.14));
+			trace("TypeHandler Test - inferValueType('hello') = " + yutautil.TypeHandler.inferValueType("hello"));
+			trace("TypeHandler Test - inferValueType(true) = " + yutautil.TypeHandler.inferValueType(true));
+
+			// --- isValueCompatible ---
+			trace("TypeHandler Test - isValueCompatible(42, 'Int') = " + yutautil.TypeHandler.isValueCompatible(42, "Int"));             // true
+			trace("TypeHandler Test - isValueCompatible(42, 'Float') = " + yutautil.TypeHandler.isValueCompatible(42, "Float"));         // true: Int -> Float
+
+			// --- Structure inference from runtime values ---
+			var testObj = {name: "Alice", age: 25, active: true};
+			trace("TypeHandler Test - inferValueType({name,age,active}) = " + yutautil.TypeHandler.inferValueType(testObj));       // { name:String, age:Int, active:Bool }
+			trace("TypeHandler Test - isValueCompatible(testObj, '{ name:String }') = "
+				+ yutautil.TypeHandler.isValueCompatible(testObj, "{ name:String }"));                                           // true: has name:String
+			trace("TypeHandler Test - isValueCompatible(testObj, '{ name:String, age:Int }') = "
+				+ yutautil.TypeHandler.isValueCompatible(testObj, "{ name:String, age:Int }"));                                  // true: has both
+			trace("TypeHandler Test - isValueCompatible(testObj, '{ name:String, missing:Float }') = "
+				+ yutautil.TypeHandler.isValueCompatible(testObj, "{ name:String, missing:Float }"));                            // false: no 'missing' field
+
+			// Nested structure inference
+			var nestedObj = {pos: {x: 10.5, y: 20.3}, label: "point"};
+			trace("TypeHandler Test - inferValueType(nested) = " + yutautil.TypeHandler.inferValueType(nestedObj));               // { pos:{ x:Float, y:Float }, label:String }
+
+			// Array element inference
+			var typedArr = [1, 2, 3];
+			trace("TypeHandler Test - inferValueType([1,2,3]) = " + yutautil.TypeHandler.inferValueType(typedArr));               // Array<Int>
+
+			// --- parseStructureFields ---
+			var parsed = yutautil.TypeHandler.parseStructureFields("{ name:String, ?age:Int, active:Bool }");
+			trace("TypeHandler Test - parseStructureFields count = " + (parsed != null ? Std.string(parsed.length) : "null"));    // 3
+			if (parsed != null && parsed.length >= 2) {
+				trace("TypeHandler Test - parseStructureFields [0] name=" + parsed[0].name + " type=" + parsed[0].type + " optional=" + parsed[0].optional); // name, String, false
+				trace("TypeHandler Test - parseStructureFields [1] name=" + parsed[1].name + " type=" + parsed[1].type + " optional=" + parsed[1].optional); // age, Int, true
+			}
+
+			// --- isFunction ---
+			trace("TypeHandler Test - isFunction('(Int) -> Bool') = " + yutautil.TypeHandler.isFunction("(Int) -> Bool"));         // true
+			trace("TypeHandler Test - isFunction('String') = " + yutautil.TypeHandler.isFunction("String"));                       // false
+			trace("TypeHandler Test - isFunction('() -> Void') = " + yutautil.TypeHandler.isFunction("() -> Void"));               // true
+
+			// --- Structure-to-structure via isCompatible ---
+			trace("TypeHandler Test - isCompatible struct superset = "
+				+ yutautil.TypeHandler.isCompatible("{ name:String, age:Int }", "{ name:String }"));                              // true: superset
+			trace("TypeHandler Test - isCompatible struct missing = "
+				+ yutautil.TypeHandler.isCompatible("{ name:String }", "{ name:String, age:Int }"));                              // false: missing required
+			trace("TypeHandler Test - isCompatible struct optional = "
+				+ yutautil.TypeHandler.isCompatible("{ name:String }", "{ name:String, ?age:Int }"));                             // true: age is optional
+
+			// --- Nested structure compatibility via isValueCompatible ---
+			trace("TypeHandler Test - isValueCompatible(nested, '{ pos:{ x:Float }, label:String }') = "
+				+ yutautil.TypeHandler.isValueCompatible(nestedObj, "{ pos:{ x:Float }, label:String }"));                        // true: partial nested match
+
+			// --- extractGenericParam / extractMapParams ---
+			trace("TypeHandler Test - extractGenericParam('Array<String>') = " + yutautil.TypeHandler.extractGenericParam("Array<String>"));   // String
+			var mapParams = yutautil.TypeHandler.extractMapParams("Map<String, Int>");
+			trace("TypeHandler Test - extractMapParams('Map<String, Int>') key=" + (mapParams != null ? mapParams.key : "null")
+				+ " value=" + (mapParams != null ? mapParams.value : "null"));                                                    // String, Int
+
+			// --- Null handling ---
+			trace("TypeHandler Test - inferValueType(null) = " + yutautil.TypeHandler.inferValueType(null));                       // Null
+			trace("TypeHandler Test - isValueCompatible(null, 'String') = " + yutautil.TypeHandler.isValueCompatible(null, "String")); // true
+
+			trace("=== TypeHandler Tests Complete ===");
+		} catch (e:Dynamic) {
+			trace("TypeHandler Test - Error: " + e);
+		}
+
 		// var fold: yutautil.Fold<{name:String, age:Int}> = {
 		// 	name: "John Doe",
 		// 	age: 30,

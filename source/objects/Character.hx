@@ -653,6 +653,24 @@ class Character extends FunkinSprite
 		catch(e:Dynamic) {}
 	}
 
+	var hasCustomAnims:Bool = false;
+
+	function loadCustomAnims(chart:String):Void
+	{
+		try
+		{
+			var songData:SwagSong = Song.getChart(chart, Paths.formatToSongPath(Song.loadedSongName));
+			if(songData != null)
+				for (section in songData.notes)
+					for (songNotes in section.sectionNotes)
+						animationNotes.push(songNotes);
+
+			hasCustomAnims = true;
+			animationNotes.sort(sortAnims);
+		}
+		catch(e:Dynamic) {}
+	}
+
 	function loadMappedAnimsFF():Void
 	{
 		trace("Loaded FF");

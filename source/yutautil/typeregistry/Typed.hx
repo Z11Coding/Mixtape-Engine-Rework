@@ -1,5 +1,7 @@
 package yutautil.typeregistry;
 
+import yutautil.typeregistry.TypeInfo;
+
 /**
  * Base class for typed objects - objects that have been validated against the type system
  */
@@ -47,9 +49,12 @@ class Typed {
     /**
      * Cast to a specific type if possible
      */
-    public function cast<T>(targetType:Class<T>):T {
+    public function castTo<T>(targetType:Class<T>):Null<T> {
         try {
-            return Std.downcast(originalValue, targetType);
+            if (Std.isOfType(originalValue, targetType)) {
+                return cast originalValue;
+            }
+            return null;
         } catch (e:Dynamic) {
             return null;
         }
