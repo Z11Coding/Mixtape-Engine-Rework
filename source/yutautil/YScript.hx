@@ -4769,7 +4769,7 @@ class YScriptRuntime {
                             }
                         default:
                     }
-                    return value;
+                    value;
                 } else {
                     // Try to resolve as Haxe type or global
                     resolveHaxeIdentifier(name);
