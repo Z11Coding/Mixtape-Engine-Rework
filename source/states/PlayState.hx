@@ -93,10 +93,10 @@ import psychlua.HScript.HScriptInfos;
  * - Create a script file: stages/[stagename].hx (HScript - highest priority)
  * - Create a Lua file: stages/[stagename].lua (Lua - second priority)
  * - Create a YScript file: stages/[stagename].ys (YScript - third priority)
- * - Or add it to the BaseStage switch statement in loadSingleStageFile() (hardcoded fallback)
+ * - Or add it to VSliceLoader.addstage() for hardcoded stage support (fallback)
  *
  * The engine will only load ONE stage file (the most relevant one found) to avoid conflicts.
- * Priority order: HScript → Lua → YScript → BaseStage
+ * Priority order: HScript → Lua → YScript → VSliceLoader
  *
  * If you want to code Events, you can either code it on a Stage file or on PlayState, if you're doing the latter, search for:
  *
@@ -1227,30 +1227,7 @@ class PlayState extends MusicBeatState
 			bf2.visible = false;
 		}
 
-		if (callOnScripts("onAddSpriteGroups", []) != LuaUtils.Function_Stop) {
-			if(stageData.objects != null && stageData.objects.length > 0)
-			{
-				var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, dadGroup2, boyfriendGroup2, this);
-				for (key => spr in list)
-					if(!StageData.reservedNames.contains(key))
-						variables.set(key, spr);
-			}
-			else
-			{
-				VSliceLoader.addstage(curStage);
-				// Only add groups if not NotITG (keep empty stage for StepMania)
-				if (!isNotITG) {
-					add(gfGroup);
-					add(dadGroup2);
-					add(dadGroup);
-					add(boyfriendGroup2);
-					add(boyfriendGroup);
-				}
-			}
-		}
 
-		// Cache group indices for performance
-		updateGroupIndices();
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 		// "SCRIPTS FOLDER" SCRIPTS
@@ -2619,6 +2596,8 @@ class PlayState extends MusicBeatState
 
 	function loadSingleStageFile(stageName:String, reloadStageData:Bool = false)
 	{
+		var stageData:StageFile = null;
+
 		// When called during a stage change event, handle group removal, stage data reload, and group re-add
 		if (reloadStageData) {
 			// Remove character groups before switching (skip if NotITG since they weren't added)
@@ -2632,7 +2611,7 @@ class PlayState extends MusicBeatState
 
 			curStage = stageName;
 			isNotITG = (curStage == 'notitg');
-			var stageData:StageFile = StageData.getStageFile(curStage);
+			stageData = StageData.getStageFile(curStage);
 			defaultCamZoom = stageData.defaultZoom;
 			defaultStageZoom = defaultCamZoom;
 			if (defaultCamHudZoom == 0) defaultCamHudZoom = 1;
@@ -2686,8 +2665,12 @@ class PlayState extends MusicBeatState
 			gfGroup.setPosition(GF_X, GF_Y);
 
 			Paths.setCurrentLevel(stageData.directory);
-			VSliceLoader.addstage(curStage);
 			Paths.setCurrentLevel('shared');
+		}
+
+		// Get stageData for initial load case (non-reload)
+		if (stageData == null) {
+			stageData = StageData.getStageFile(stageName);
 		}
 
 		var stageLoaded:Bool = false;
@@ -2816,101 +2799,40 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		// Fallback to BaseStage hardcoded stages
-		if (!stageLoaded) {
-			switch (stageName)
+		// Fallback to VSliceLoader for hardcoded stages (only when no stageData objects define the layout)
+		if (!stageLoaded && (stageData.objects == null || stageData.objects.length <= 0)) {
+			VSliceLoader.addstage(stageName);
+			stageLoaded = true;
+			stageFileLoaded = "VSliceLoader: " + stageName;
+		}
+
+		// Add sprite groups - either via stageData objects (z-ordered) or manually
+		if (callOnScripts("onAddSpriteGroups", []) != LuaUtils.Function_Stop) {
+			if(stageData.objects != null && stageData.objects.length > 0)
 			{
-				case 'stage':
-					new StageWeek1(); // Week 1
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: StageWeek1";
-				case 'spooky':
-					new Spooky(); // Week 2
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: Spooky";
-				case 'philly':
-					new Philly(); // Week 3
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: Philly";
-				case 'limo':
-					new Limo(); // Week 4
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: Limo";
-				case 'mall':
-					new Mall(); // Week 5 - Cocoa, Eggnog
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: Mall";
-				case 'mallEvil':
-					new MallEvil(); // Week 5 - Winter Horrorland
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: MallEvil";
-				case 'school':
-					new School(); // Week 6 - Senpai, Roses
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: School";
-				case 'schoolEvil':
-					new SchoolEvil(); // Week 6 - Thorns
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: SchoolEvil";
-				case 'tank':
-					new Tank(); // Week 7 - Ugh, Guns, Stress
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: Tank";
-				case 'phillyStreets':
-					new PhillyStreets(); // Weekend 1 - Darnell, Lit Up, 2Hot
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: PhillyStreets";
-				case 'phillyBlazin':
-					new PhillyBlazin(); // Weekend 1 - Blazin
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: PhillyBlazin";
-				case 'mainStageErect':
-					new MainStageErect(); // Week 1 Special
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: MainStageErect";
-				case 'spookyMansionErect':
-					new SpookyMansionErect(); // Week 2 Special
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: SpookyMansionErect";
-				case 'phillyTrainErect':
-					new PhillyTrainErect(); // Week 3 Special
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: PhillyTrainErect";
-				case 'limoRideErect':
-					new LimoRideErect(); // Week 4 Special
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: LimoRideErect";
-				case 'mallXmasErect':
-					new MallXmasErect(); // Week 5 Special
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: MallXmasErect";
-				case 'phillyStreetsErect':
-					new PhillyStreetsErect(); // Weekend 1 Special
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: PhillyStreetsErect";
-				case 'desktop':
-					new Desktop(); // Literally your desktop as a stage lmao
-					stageLoaded = true;
-					stageFileLoaded = "BaseStage: Desktop";
-				default:
-					// No stage found at all - log warning
-					FlxG.log.warn('Stage "$stageName" not found! No stage files (.hx/.lua/.ys) or BaseStage class available for this stage.');
-					trace('Warning: Stage "$stageName" not found! Using no stage.');
-					stageFileLoaded = "Warning: No stage found";
+				var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, dadGroup2, boyfriendGroup2, this);
+				for (key => spr in list)
+					if(!StageData.reservedNames.contains(key))
+						variables.set(key, spr);
+			}
+			else
+			{
+				// Only add groups if not NotITG (keep empty stage for StepMania)
+				if (!isNotITG) {
+					add(gfGroup);
+					add(dadGroup2);
+					add(dadGroup);
+					add(boyfriendGroup2);
+					add(boyfriendGroup);
+				}
 			}
 		}
 
-		// When reloading stage data, re-add character groups (skip if NotITG)
-		if (reloadStageData) {
-			if (!isNotITG) {
-				add(gfGroup);
-				add(dadGroup2);
-				add(dadGroup);
-				add(boyfriendGroup2);
-				add(boyfriendGroup);
-			}
-			updateGroupIndices();
+		// Cache group indices for performance
+		updateGroupIndices();
 
+		// When reloading stage data, start stage-specific scripts
+		if (reloadStageData) {
 			#if LUA_ALLOWED
 			startLuasNamed('stages/' + curStage + '.lua');
 			#end
@@ -4356,6 +4278,31 @@ class PlayState extends MusicBeatState
 
 					if (chartingMode)
 						chartModifier = "Normal";
+					else if (preload)
+						chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
+
+					if (preload) {
+								var convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
+									if (mania > Note.maxMania)
+										mania = Note.defaultMania;
+									else if (chartModifier == "4K Only")
+										mania = 3;
+									else if (chartModifier == "ManiaConverter")
+										mania = convertMania;
+									else if (SONG.mania != null)
+										if (SONG.mania >= 3) //Make sure it's even there
+											mania = SONG.mania;
+										else {
+											mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
+												case 0: 3;
+												case 1: 4;
+												default: SONG.mania;
+											}
+										}
+									else mania = 3;
+		}
+
+		trace("Mania set: " + mania);
 
 					if (!chartingMode)
 					switch (chartModifier)
@@ -12508,8 +12455,15 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (len < 1)
 			return returnVal;
 
+		var arr:Array<YScript> = [];
 		for(script in yscriptArray)
 		{
+			if(script.hasErrors)
+			{
+				arr.push(script);
+				continue;
+			}
+
 			var callValue = script.hasFunction(funcToCall) ? script.callFunction(funcToCall, args) : null;
 			if(callValue != null)
 			{
@@ -12524,7 +12478,13 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if(myValue != null && !excludeValues.contains(myValue))
 					returnVal = myValue;
 			}
+
+			if(script.hasErrors) arr.push(script);
 		}
+
+		if(arr.length > 0)
+			for (script in arr)
+				yscriptArray.remove(script);
 
 		return returnVal;
 	}

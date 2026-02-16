@@ -234,6 +234,7 @@ enum YStatement {
     If(condition:YExpression, thenStmt:YStatement, elseStmt:Null<YStatement>, location:YLocation);
     While(condition:YExpression, body:YStatement, location:YLocation);
     For(init:Null<YStatement>, condition:Null<YExpression>, increment:Null<YExpression>, body:YStatement, location:YLocation);
+    ForIn(varName:String, varType:YType, iterable:YExpression, body:YStatement, location:YLocation);
     Return(value:Null<YExpression>, location:YLocation);
     Break(location:YLocation);
     Continue(location:YLocation);
@@ -713,7 +714,7 @@ class YScript {
             parser.setErrorCollector(errorCollector);
             var program = parser.parse(source, this.scriptPath);
 
-            // Check for parse errors
+            // Check for parse errors - fail on ANY errors
             if (errorCollector.hasErrors()) {
                 hasErrors = true;
                 lastError = "Parse errors occurred";
@@ -726,14 +727,8 @@ class YScript {
                 forwardErrorToPlayState('YScript Parse Error in ${this.scriptPath}', true);
                 #end
 
-                // Show error window for fatal parse errors
-                if (errorCollector.hasFatalErrors()) {
-                    showErrorWindow("YScript Parse Error", 'Fatal parse errors in ${this.scriptPath}:\n\n${errorReport}');
-                    return false;
-                }
-
-                // For non-fatal errors, show warning but continue
-                showErrorWindow("YScript Parse Warning", 'Parse warnings in ${this.scriptPath}:\n\n${errorReport}');
+                showErrorWindow("YScript Parse Error", 'Parse errors in ${this.scriptPath}:\n\n${errorReport}');
+                return false;
             }
 
             runtime.initialize(program, scope);
@@ -1216,6 +1211,8 @@ class YScript {
                 {type: "While", data: {condition: serializeExpression(condition), body: serializeStatement(body)}};
             case For(init, condition, increment, body, location):
                 {type: "For", data: {init: init != null ? serializeStatement(init) : null, condition: condition != null ? serializeExpression(condition) : null, increment: increment != null ? serializeExpression(increment) : null, body: serializeStatement(body)}};
+            case ForIn(varName, varType, iterable, body, location):
+                {type: "ForIn", data: {varName: varName, varType: serializeType(varType), iterable: serializeExpression(iterable), body: serializeStatement(body)}};
             case Return(value, location):
                 {type: "Return", data: {value: value != null ? serializeExpression(value) : null}};
             case Break(location):
@@ -1393,6 +1390,7 @@ class YScript {
             case "If": If(deserializeExpression(data.data.condition), deserializeStatement(data.data.thenStmt), data.data.elseStmt != null ? deserializeStatement(data.data.elseStmt) : null, createDefaultLocation());
             case "While": While(deserializeExpression(data.data.condition), deserializeStatement(data.data.body), createDefaultLocation());
             case "For": For(data.data.init != null ? deserializeStatement(data.data.init) : null, data.data.condition != null ? deserializeExpression(data.data.condition) : null, data.data.increment != null ? deserializeExpression(data.data.increment) : null, deserializeStatement(data.data.body), createDefaultLocation());
+            case "ForIn": ForIn(data.data.varName, deserializeType(data.data.varType), deserializeExpression(data.data.iterable), deserializeStatement(data.data.body), createDefaultLocation());
             case "Return": Return(data.data.value != null ? deserializeExpression(data.data.value) : null, createDefaultLocation());
             case "Break": Break(createDefaultLocation());
             case "Continue": Continue(createDefaultLocation());
@@ -2350,6 +2348,23 @@ class YScriptTokenizer {
             return readIdentifier(startLine, startColumn);
         }
 
+        // Three-character operators
+        var threeChar = source.substr(pos, 3);
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode && threeChar.charAt(0) == '.') {
+            trace('[YScript Tokenizer] Checking three-char: "$threeChar" at pos $pos');
+        }
+        #end
+        if (threeChar == "...") {
+            #if !macro
+            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                trace('[YScript Tokenizer] Found ... range operator at pos $pos');
+            }
+            #end
+            advance(3);
+            return makeToken(TOperator(threeChar), startLine, startColumn);
+        }
+
         // Two-character operators
         var twoChar = source.substr(pos, 2);
         switch (twoChar) {
@@ -2369,7 +2384,13 @@ class YScriptTokenizer {
             case ',': advance(); return makeToken(TComma, startLine, startColumn);
             case ';': advance(); return makeToken(TSemicolon, startLine, startColumn);
             case ':': advance(); return makeToken(TColon, startLine, startColumn);
-            case '.': advance(); return makeToken(TDot, startLine, startColumn);
+            case '.':
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Tokenizer] Processing single dot at pos $pos, next chars: "${source.substr(pos+1, 2)}"');
+                }
+                #end
+                advance(); return makeToken(TDot, startLine, startColumn);
             case '=': advance(); return makeToken(TAssign, startLine, startColumn);
             case '+', '-', '*', '/', '%', '<', '>', '!':
                 advance(); return makeToken(TOperator(ch), startLine, startColumn);
@@ -2453,6 +2474,17 @@ class YScriptTokenizer {
 
         while (pos < source.length && (isDigit(source.charAt(pos)) || source.charAt(pos) == '.')) {
             if (source.charAt(pos) == '.') {
+                // Check if this dot is part of a range operator (...)
+                // If so, don't consume it as part of the number
+                if (pos + 2 < source.length && source.substr(pos, 3) == "...") {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Tokenizer] Found ... range operator while parsing number, stopping number at pos $pos');
+                    }
+                    #end
+                    break; // Stop number parsing, let the ... be handled as a separate operator
+                }
+
                 if (hasDecimal) break;
                 hasDecimal = true;
             }
@@ -2495,7 +2527,7 @@ class YScriptTokenizer {
             "var", "const", "function", "class", "interface", "enum", "struct",
             "extends", "implements", "public", "private", "static", "override",
             "if", "else", "while", "for", "do", "return", "break", "continue",
-            "new", "this", "super", "null", "void", "cast", "is", "as",
+            "new", "this", "super", "null", "void", "cast", "is", "as", "in",
             "import", "using", "package", "haxe", "lua"
         ];
 
@@ -2893,6 +2925,117 @@ class YScriptParser {
 
         consume(TLeftParen, "Expected '(' after 'for'");
 
+        // Look ahead to determine if this is a for-in loop or C-style for loop
+        // We need to peek ahead to see if there's an 'in' keyword
+        var currentPos = current;
+        var isForInLoop = false;
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] parseForStatement: Looking ahead to determine for loop type, starting at position $currentPos');
+        }
+        #end
+
+        // Look ahead to find 'in' keyword before semicolon or closing paren
+        while (currentPos < tokens.length && !isAtEndAt(currentPos)) {
+            var token = tokens[currentPos];
+            #if !macro
+            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                trace('[YScript Debug] parseForStatement: Looking at token ${Std.string(token.type)} at position $currentPos');
+            }
+            #end
+            switch (token.type) {
+                case TKeyword("in"):
+                    isForInLoop = true;
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] parseForStatement: Found "in" keyword! Using for-in parsing');
+                    }
+                    #end
+                    break;
+                case TSemicolon | TRightParen:
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] parseForStatement: Found ${Std.string(token.type)} before "in", using traditional for loop');
+                    }
+                    #end
+                    break; // Stop looking
+                default:
+            }
+            currentPos++;
+        }
+
+        if (isForInLoop) {
+            #if !macro
+            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                trace('[YScript Debug] parseForStatement: Using for-in parsing path');
+            }
+            #end
+            // Parse for-in style: for (variable in iterable)
+            return parseForInStatement(startLocation);
+        } else {
+            #if !macro
+            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                trace('[YScript Debug] parseForStatement: Using traditional for loop parsing path');
+            }
+            #end
+            // Parse C-style: for (init; condition; increment)
+            return parseTraditionalForStatement(startLocation);
+        }
+    }
+
+    private function parseForInStatement(startLocation:YLocation):YStatement {
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] parseForInStatement: Starting to parse for-in loop');
+        }
+        #end
+
+        // Parse variable declaration or identifier
+        var varName:String;
+        var varType:YType = YType.Dynamic;
+
+        if (match([TKeyword("var")])) {
+            varName = consumeIdentifier("Expected variable name");
+            if (match([TColon])) {
+                varType = parseType();
+            }
+        } else {
+            varName = consumeIdentifier("Expected variable name");
+        }
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] parseForInStatement: Parsed variable $varName, trying to consume "in" keyword');
+        }
+        #end
+
+        consume(TKeyword("in"), "Expected 'in' keyword");
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] parseForInStatement: Consumed "in" keyword, parsing iterable expression');
+        }
+        #end
+
+        var iterable = parseExpression();
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] parseForInStatement: Parsed iterable expression: ${Std.string(iterable)}');
+        }
+        #end
+        consume(TRightParen, "Expected ')' after for-in clauses");
+
+        var body = parseStatement();
+
+        // All for-in loops (both ranges and generic iterables) use ForIn statement.
+        // Range expressions (0...100) are detected and handled at runtime in the ForIn handler.
+        return YStatement.ForIn(varName, varType, iterable, body, startLocation);
+    }
+
+    private function parseTraditionalForStatement(startLocation:YLocation):YStatement {
+        // Original C-style parsing logic
         var init:Null<YStatement> = null;
         if (!check(TSemicolon)) {
             init = match([TKeyword("var")]) ? parseVarDeclaration() : parseExpressionStatement();
@@ -2914,6 +3057,10 @@ class YScriptParser {
 
         var body = parseStatement();
         return YStatement.For(init, condition, increment, body, startLocation);
+    }
+
+    private function isAtEndAt(pos:Int):Bool {
+        return pos >= tokens.length;
     }
 
     private function parseReturnStatement():YStatement {
@@ -3016,9 +3163,22 @@ class YScriptParser {
     }
 
     private function parseComparison():YExpression {
-        var expr = parseAddition();
+        var expr = parseRange();
 
         while (matchOperator(">") || matchOperator(">=") || matchOperator("<") || matchOperator("<=")) {
+            var startLocation = getCurrentLocation();
+            var op = previous().type;
+            var right = parseRange();
+            expr = YExpression.BinaryOp(expr, getOperatorString(op), right, startLocation);
+        }
+
+        return expr;
+    }
+
+    private function parseRange():YExpression {
+        var expr = parseAddition();
+
+        while (matchOperator("...")) {
             var startLocation = getCurrentLocation();
             var op = previous().type;
             var right = parseAddition();
@@ -3306,6 +3466,20 @@ class YScriptParser {
 
         var fullTypeName = typeParts.join(".");
         trace('YScript Debug: Using custom/Haxe type: $fullTypeName');
+
+        // Check if this is an abstract type first
+        try {
+            var abstractInterpreter = yutautil.typeregistry.AbstractInterpreter.forAbstract(fullTypeName);
+            if (abstractInterpreter != null) {
+                trace('YScript Debug: Resolved $fullTypeName as abstract type');
+                return YType.HaxeAbstract(abstractInterpreter);
+            }
+        } catch (e:Dynamic) {
+            // Not an abstract type, continue with class check
+            trace('YScript Debug: $fullTypeName is not an abstract type: $e');
+        }
+
+        // Fall back to class type
         return YType.YClass(fullTypeName); // Will be resolved later
     }
 
@@ -3452,6 +3626,71 @@ class YScriptParser {
             case [YType.HaxeClass(targetClass), YType.YClass(valueName)]:
                 // YScript class extending Haxe class - need to check if YScript class extends the Haxe class
                 return checkYScriptExtendsHaxe(valueName, targetClass);
+            case [YType.YClass(targetName), _]:
+                // Check if the YClass target is actually an abstract type
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] isTypeCompatible: Checking if YClass($targetName) is actually an abstract type');
+                }
+                #end
+                var abstractInterp = yutautil.typeregistry.AbstractInterpreter.forAbstract(targetName);
+                if (abstractInterp != null) {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] isTypeCompatible: $targetName is an abstract type, checking compatibility with ${YTypeHelper.toString(valueType)}');
+                    }
+                    #end
+
+                    // Convert valueType to string for TypeHandler
+                    var valueTypeStr = parserYTypeToString(valueType);
+                    if (valueTypeStr != null) {
+                        var canAssign = yutautil.TypeHandler.canAssignToAbstract(valueTypeStr, abstractInterp.abstractPath);
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] isTypeCompatible: TypeHandler.canAssignToAbstract($valueTypeStr, ${abstractInterp.abstractPath}) = $canAssign');
+                        }
+                        #end
+                        if (canAssign) return true;
+                    }
+
+                    // Direct primitive type checks
+                    switch (valueType) {
+                        case YInt:
+                            var matches = abstractInterp.matchesUnderlyingType(0) || abstractInterp.canConvertFrom(0);
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YInt -> ${abstractInterp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
+                        case YFloat:
+                            var matches = abstractInterp.matchesUnderlyingType(0.0) || abstractInterp.canConvertFrom(0.0);
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YFloat -> ${abstractInterp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
+                        case YString:
+                            var matches = abstractInterp.matchesUnderlyingType("") || abstractInterp.canConvertFrom("");
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YString -> ${abstractInterp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
+                        case YBool:
+                            var matches = abstractInterp.matchesUnderlyingType(true) || abstractInterp.canConvertFrom(true);
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YBool -> ${abstractInterp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
+                        default:
+
+                    }
+                }
             default:
         }
 
@@ -3470,25 +3709,75 @@ class YScriptParser {
         // Target is an abstract: check if value type can be accepted via @:from conversions
         switch (targetType) {
             case HaxeAbstract(abstractType):
+                #if !macro
+                if (backend.ClientPrefs.data.yscriptDebugMode) {
+                    trace('[YScript Debug] isTypeCompatible: Checking abstract target type, abstractType: ${Std.string(abstractType)}');
+                }
+                #end
                 if (Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
                     var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] isTypeCompatible: AbstractInterpreter found for: ${interp.abstractPath}');
+                    }
+                    #end
 
                     // Convert valueType to a type string for TypeHandler
                     var valueTypeStr = parserYTypeToString(valueType);
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] isTypeCompatible: valueTypeStr = $valueTypeStr');
+                    }
+                    #end
                     if (valueTypeStr != null) {
-                        if (yutautil.TypeHandler.canAssignToAbstract(valueTypeStr, interp.abstractPath)) return true;
+                        var canAssign = yutautil.TypeHandler.canAssignToAbstract(valueTypeStr, interp.abstractPath);
+                        #if !macro
+                        if (backend.ClientPrefs.data.yscriptDebugMode) {
+                            trace('[YScript Debug] isTypeCompatible: TypeHandler.canAssignToAbstract($valueTypeStr, ${interp.abstractPath}) = $canAssign');
+                        }
+                        #end
+                        if (canAssign) return true;
                     }
 
                     // Direct checks for primitives
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] isTypeCompatible: Checking primitive compatibility for valueType: ${YTypeHelper.toString(valueType)}');
+                    }
+                    #end
                     switch (valueType) {
                         case YInt:
-                            if (interp.matchesUnderlyingType(0) || interp.canConvertFrom(0)) return true;
+                            var matches = interp.matchesUnderlyingType(0) || interp.canConvertFrom(0);
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YInt -> ${interp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
                         case YFloat:
-                            if (interp.matchesUnderlyingType(0.0) || interp.canConvertFrom(0.0)) return true;
+                            var matches = interp.matchesUnderlyingType(0.0) || interp.canConvertFrom(0.0);
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YFloat -> ${interp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
                         case YString:
-                            if (interp.matchesUnderlyingType("") || interp.canConvertFrom("")) return true;
+                            var matches = interp.matchesUnderlyingType("") || interp.canConvertFrom("");
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YString -> ${interp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
                         case YBool:
-                            if (interp.matchesUnderlyingType(true) || interp.canConvertFrom(true)) return true;
+                            var matches = interp.matchesUnderlyingType(true) || interp.canConvertFrom(true);
+                            #if !macro
+                            if (backend.ClientPrefs.data.yscriptDebugMode) {
+                                trace('[YScript Debug] isTypeCompatible: YBool -> ${interp.abstractPath} = $matches');
+                            }
+                            #end
+                            if (matches) return true;
                         case HaxeAbstract(otherAbstract):
                             if (Std.isOfType(otherAbstract, yutautil.typeregistry.AbstractInterpreter)) {
                                 var otherInterp:yutautil.typeregistry.AbstractInterpreter = cast otherAbstract;
@@ -3507,6 +3796,18 @@ class YScriptParser {
                             if (className != null && yutautil.TypeHandler.canAssignToAbstract(className, interp.abstractPath)) return true;
                         case _:
                     }
+
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] isTypeCompatible: Abstract type check failed, no conversion found for ${YTypeHelper.toString(valueType)} -> ${interp.abstractPath}');
+                    }
+                    #end
+                } else {
+                    #if !macro
+                    if (backend.ClientPrefs.data.yscriptDebugMode) {
+                        trace('[YScript Debug] isTypeCompatible: Abstract type is not an AbstractInterpreter: ${Std.string(abstractType)}');
+                    }
+                    #end
                 }
             default:
         }
@@ -3563,6 +3864,11 @@ class YScriptParser {
             default:
         }
 
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] isTypeCompatible: No compatibility found, returning false for ${YTypeHelper.toString(valueType)} -> ${YTypeHelper.toString(targetType)}');
+        }
+        #end
         return false;
     }
 
@@ -4073,6 +4379,7 @@ class YScriptRuntime {
             case If(_, _, _, loc): loc;
             case While(_, _, loc): loc;
             case For(_, _, _, _, loc): loc;
+            case ForIn(_, _, _, _, loc): loc;
             case Return(_, loc): loc;
             case Break(loc): loc;
             case Continue(loc): loc;
@@ -4220,6 +4527,11 @@ class YScriptRuntime {
                     }
 
                 case For(init, condition, increment, body, location):
+                    // Create a child scope for the loop variable (prevents scope leakage)
+                    var forScope = scope.createChild();
+                    var oldForScope = this.scope;
+                    this.scope = forScope;
+
                     if (init != null) executeStatement(init);
 
                     while (condition == null || isTruthy(evaluateExpression(condition))) {
@@ -4234,6 +4546,113 @@ class YScriptRuntime {
                             evaluateExpression(increment);
                         }
                     }
+
+                    if (shouldBreak) shouldBreak = false;
+
+                    // Restore parent scope
+                    this.scope = oldForScope;
+
+                case ForIn(varName, varType, iterableExpr, body, location):
+                    // Create a child scope for the loop variable
+                    var forInScope = scope.createChild();
+                    var oldScope = this.scope;
+                    this.scope = forInScope;
+
+                    // Declare the loop variable
+                    var loopVar = new YVar(varName, varType);
+                    forInScope.setVariable(varName, loopVar);
+
+                    // Detect range expression (start...end) before evaluating,
+                    // since "..." is not a standard binary operator.
+                    switch (iterableExpr) {
+                        case BinaryOp(startExpr, "...", endExpr, _):
+                            // Range iteration: from start (inclusive) to end (exclusive)
+                            var startVal:Int = cast evaluateExpression(startExpr);
+                            var endVal:Int = cast evaluateExpression(endExpr);
+                            var i:Int = startVal;
+                            while (i < endVal) {
+                                loopVar.value = i;
+                                forInScope.setVariable(varName, loopVar);
+                                executeStatement(body);
+
+                                if (shouldReturn || shouldBreak) break;
+                                if (shouldContinue) {
+                                    shouldContinue = false;
+                                }
+                                i++;
+                            }
+
+                        default:
+                            // Evaluate the iterable expression for arrays/iterators
+                            var iterableValue:Dynamic = evaluateExpression(iterableExpr);
+
+                            if (iterableValue == null) {
+                                var context = scope.getExecutionContext();
+                                throw new YScriptRuntimeError('Cannot iterate over null', context.location, context.scriptPath);
+                            }
+
+                            if (Std.isOfType(iterableValue, Array)) {
+                                // Array iteration: iterate over elements
+                                var arr:Array<Dynamic> = cast iterableValue;
+                                for (element in arr) {
+                                    loopVar.value = element;
+                                    forInScope.setVariable(varName, loopVar);
+                                    executeStatement(body);
+
+                                    if (shouldReturn || shouldBreak) break;
+                                    if (shouldContinue) {
+                                        shouldContinue = false;
+                                    }
+                                }
+                            } else {
+                                // Try iterator protocol: check for iterator() method first, then hasNext/next
+                                var iterator:Dynamic = null;
+
+                                // Check if it has an iterator() method (Iterable)
+                                try {
+                                    var iteratorMethod:Dynamic = Reflect.field(iterableValue, "iterator");
+                                    if (iteratorMethod != null && Reflect.isFunction(iteratorMethod)) {
+                                        iterator = Reflect.callMethod(iterableValue, iteratorMethod, []);
+                                    }
+                                } catch (e:Dynamic) {}
+
+                                // If no iterator() method, check if it IS an iterator (has hasNext/next directly)
+                                if (iterator == null) {
+                                    var hasNextMethod:Dynamic = Reflect.field(iterableValue, "hasNext");
+                                    var nextMethod:Dynamic = Reflect.field(iterableValue, "next");
+                                    if (hasNextMethod != null && Reflect.isFunction(hasNextMethod) && nextMethod != null && Reflect.isFunction(nextMethod)) {
+                                        iterator = iterableValue;
+                                    }
+                                }
+
+                                if (iterator != null) {
+                                    // Use hasNext/next protocol
+                                    var hasNextFn:Dynamic = Reflect.field(iterator, "hasNext");
+                                    var nextFn:Dynamic = Reflect.field(iterator, "next");
+
+                                    while (Reflect.callMethod(iterator, hasNextFn, [])) {
+                                        var element:Dynamic = Reflect.callMethod(iterator, nextFn, []);
+                                        loopVar.value = element;
+                                        forInScope.setVariable(varName, loopVar);
+                                        executeStatement(body);
+
+                                        if (shouldReturn || shouldBreak) break;
+                                        if (shouldContinue) {
+                                            shouldContinue = false;
+                                        }
+                                    }
+                                } else {
+                                    var context = scope.getExecutionContext();
+                                    throw new YScriptRuntimeError('Value is not iterable: ' + Std.string(iterableValue), context.location, context.scriptPath);
+                                }
+                            }
+                    }
+
+                    // Reset break flag (it was handled by this loop)
+                    if (shouldBreak) shouldBreak = false;
+
+                    // Restore parent scope
+                    this.scope = oldScope;
 
                 case Return(value, location):
                     returnValue = value != null ? evaluateExpression(value) : null;
@@ -4337,7 +4756,20 @@ class YScriptRuntime {
 
             case Identifier(name, location):
                 if (scope.hasVariable(name)) {
-                    scope.getVariable(name).value;
+                    var variable = scope.getVariable(name);
+                    var value = variable.value;
+
+                    // If the variable is abstract-typed but the value isn't wrapped as AbstractValue,
+                    // we need to ensure it's properly wrapped for operations
+                    switch (variable.type) {
+                        case HaxeAbstract(abstractType):
+                            if (!Std.isOfType(value, yutautil.typeregistry.AbstractValue) && Std.isOfType(abstractType, yutautil.typeregistry.AbstractInterpreter)) {
+                                var interp:yutautil.typeregistry.AbstractInterpreter = cast abstractType;
+                                return interp.wrapValue(value);
+                            }
+                        default:
+                    }
+                    return value;
                 } else {
                     // Try to resolve as Haxe type or global
                     resolveHaxeIdentifier(name);
@@ -4476,14 +4908,29 @@ class YScriptRuntime {
     }
 
     private function evaluateBinaryOperation(left:Dynamic, op:String, right:Dynamic):Dynamic {
+        // Special case: String concatenation with +
+        if (op == "+") {
+            var leftIsString = Std.isOfType(left, String);
+            var rightIsString = Std.isOfType(right, String);
+
+            if (leftIsString || rightIsString) {
+                return convertValueToString(left) + convertValueToString(right);
+            }
+        }
+
         // If either side is an AbstractValue, try operator dispatch through its interpreter
         if (Std.isOfType(left, yutautil.typeregistry.AbstractValue)) {
             var absVal:yutautil.typeregistry.AbstractValue = cast left;
             if (absVal.interpreter.hasOperator(op)) {
-                var rawRight = Std.isOfType(right, yutautil.typeregistry.AbstractValue)
+                var rawRight:Any = Std.isOfType(right, yutautil.typeregistry.AbstractValue)
                     ? (cast(right, yutautil.typeregistry.AbstractValue)).rawValue
-                    : right;
-                return absVal.op(op, rawRight);
+                    : cast right.forceCast();
+                var result:Any = absVal.op(op, rawRight);
+                // Unwrap the result if it's an AbstractValue to return the direct underlying value
+                var finalResult:Any = Std.isOfType(result, yutautil.typeregistry.AbstractValue)
+                    ? (cast(result, yutautil.typeregistry.AbstractValue)).rawValue
+                    : result;
+                return finalResult;
             }
         } else if (Std.isOfType(right, yutautil.typeregistry.AbstractValue)) {
             var absVal:yutautil.typeregistry.AbstractValue = cast right;
@@ -4491,6 +4938,12 @@ class YScriptRuntime {
                 return absVal.interpreter.applyOperator(op, left, absVal.rawValue);
             }
         }
+
+        #if !macro
+        if (backend.ClientPrefs.data.yscriptDebugMode) {
+            trace('[YScript Debug] Falling back to default binary operation: $left $op $right');
+        }
+        #end
 
         return switch (op) {
             case "+": left + right;
@@ -5991,5 +6444,41 @@ class YScriptRuntime {
             case TNull: YType.Dynamic;
             case TUnknown: YType.Unknown;
         };
+    }
+
+    /**
+     * Convert a value to string with special handling for abstract types
+     */
+    private function convertValueToString(value:Dynamic):String {
+        if (value == null) return "null";
+        if (Std.isOfType(value, String)) return cast value;
+
+        // Check if value is an AbstractValue with string conversion
+        if (Std.isOfType(value, yutautil.typeregistry.AbstractValue)) {
+            var absVal:yutautil.typeregistry.AbstractValue = cast value;
+            if (absVal.interpreter.canConvertTo("String")) {
+                try {
+                    var converted = absVal.interpreter.applyToConversion(absVal.rawValue, "String");
+                    if (Std.isOfType(converted, String)) return cast converted;
+                } catch (e:Dynamic) {
+                    // Fall through to default conversion
+                }
+            }
+        }
+
+        // Check for toString method
+        if (Reflect.hasField(value, "toString")) {
+            try {
+                var toStringMethod = Reflect.field(value, "toString");
+                if (Reflect.isFunction(toStringMethod)) {
+                    return cast Reflect.callMethod(value, toStringMethod, []);
+                }
+            } catch (e:Dynamic) {
+                // Fall through to default
+            }
+        }
+
+        // Default conversion
+        return Std.string(value);
     }
 }

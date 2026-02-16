@@ -1360,6 +1360,15 @@ class YSComp {
                     };
                 }
 
+            case ForIn(varName, varType, iterable, body, location):
+                var iterableExpr = convertYExpressionToHaxe(iterable);
+                var bodyExpr = convertYStatementToHaxe(body);
+                var ident = {expr: EConst(CIdent(varName)), pos: pos};
+                {
+                    expr: EFor({expr: EBinop(OpIn, ident, iterableExpr), pos: pos}, bodyExpr),
+                    pos: pos
+                };
+
             case Return(value, location):
                 if (value != null) {
                     var valueExpr = convertYExpressionToHaxe(value);

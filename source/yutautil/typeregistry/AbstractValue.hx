@@ -57,7 +57,7 @@ class AbstractValue {
 	 * Apply an operator with another value.
 	 */
 	public function op(op:String, other:Dynamic = null):Dynamic {
-		return interpreter.applyOperator(op, rawValue, other);
+		return interpreter.applyOperator(op, this, other);
 	}
 
 	/**

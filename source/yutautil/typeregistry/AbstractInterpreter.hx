@@ -1,5 +1,9 @@
 package yutautil.typeregistry;
 
+import haxe.ds.StringMap;
+
+using StringTools;
+
 /**
  * Runtime abstract type interpreter using build-time collected data.
  *
@@ -18,6 +22,28 @@ package yutautil.typeregistry;
  *   var result = interp.callMethod(wrapped, "toInt", []);  // Call Num method
  *   var added  = interp.applyOperator("+", wrapped, otherWrapped);
  */
+typedef ImplFieldInfo = {
+	name:String,
+	isStatic:Bool,
+	type:String,
+	params:Array<String>,
+	returnType:String,
+	operatorName:String
+};
+
+typedef ImplMethodInfo = {
+	name:String,
+	isStatic:Bool,
+	type:String,
+	params:Array<String>,
+	returnType:String,
+	isPublic:Bool,
+	isOperator:Bool,
+	operatorName:String,
+	?doc:String,
+	?kind:String
+};
+
 class AbstractInterpreter {
 	// Cache of resolved interpreters keyed by abstract originalTypePath
 	private static var cache:Map<String, AbstractInterpreter> = new Map();
@@ -161,9 +187,12 @@ class AbstractInterpreter {
 
 			var info:ImplMethodInfo = {
 				name: name,
+				isStatic: field.isStatic == true,
 				type: field.type,
+				params: field.params != null ? cast field.params : [],
+				returnType: field.returnType != null ? field.returnType : "Dynamic",
 				isPublic: field.isPublic == true,
-				isOperator: field.isOperator == true,
+				isOperator: field.operatorName != null,
 				operatorName: field.operatorName,
 				doc: field.doc,
 				kind: field.kind
@@ -245,7 +274,18 @@ class AbstractInterpreter {
 	 * Force-wrap a value as this abstract type (no compatibility check).
 	 */
 	public function forceWrap(value:Dynamic):AbstractValue {
-		return new AbstractValue(value, this);
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] forceWrap called with: ${Type.typeof(value)} = $value');
+		}
+		#end
+		var result = new AbstractValue(value, this);
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] forceWrap result rawValue: ${Type.typeof(result.rawValue)} = ${result.rawValue}');
+		}
+		#end
+		return result;
 	}
 
 	/**
@@ -404,35 +444,51 @@ class AbstractInterpreter {
 			throw 'AbstractInterpreter: Cannot apply operator "$op" - no _Impl_ class found for $abstractPath';
 		}
 
-		var rawLhs = unwrap(lhs);
-		var rawRhs = rhs != null ? unwrap(rhs) : null;
+		// Extract the raw values properly
+		var rawLhs:Dynamic;
+		var rawRhs:Dynamic;
 
-		// Try to find the operator method
-		var opMethodName = getOperatorMethodName(op);
-		if (opMethodName != null) {
-			var method = Reflect.field(implClass, opMethodName);
+		if (Std.isOfType(lhs, yutautil.typeregistry.AbstractValue)) {
+			rawLhs = (cast(lhs, yutautil.typeregistry.AbstractValue)).rawValue;
+		} else {
+			rawLhs = lhs;
+		}
+
+		if (rhs != null && Std.isOfType(rhs, yutautil.typeregistry.AbstractValue)) {
+			rawRhs = (cast(rhs, yutautil.typeregistry.AbstractValue)).rawValue;
+		} else {
+			rawRhs = rhs;
+		}
+
+		// Find the best matching operator method based on actual operand types
+		var bestMethod = findBestOperatorMethod(op, rawLhs, rawRhs);
+		if (bestMethod != null) {
+			var method = Reflect.field(implClass, bestMethod.name);
 			if (method != null && Reflect.isFunction(method)) {
+				var result:Dynamic;
 				if (rawRhs != null) {
-					return Reflect.callMethod(implClass, method, [rawLhs, rawRhs]);
+					result = Reflect.callMethod(implClass, method, [rawLhs, rawRhs]);
 				} else {
-					return Reflect.callMethod(implClass, method, [rawLhs]);
+					result = Reflect.callMethod(implClass, method, [rawLhs]);
 				}
+
+				// Preserve numeric type - on Haxe cpp target, Dynamic variables
+				// can lose their type tag through various operations.
+				result = preserveNumericType(result);
+				return result;
 			}
 		}
 
-		// Fallback: try each operator name variant from the cache
-		for (key => info in operatorCache) {
-			if (info.operatorName == op || normalizeOperator(info.operatorName) == op) {
-				var method = Reflect.field(implClass, info.name);
-				if (method != null && Reflect.isFunction(method)) {
-					if (rawRhs != null) {
-						return Reflect.callMethod(implClass, method, [rawLhs, rawRhs]);
-					} else {
-						return Reflect.callMethod(implClass, method, [rawLhs]);
-					}
-				}
-			}
+		// Special case: String concatenation with + (moved after numeric attempts)
+		if (op == "+" && (isStringType(rawLhs) || isStringType(rawRhs))) {
+			return handleStringConcatenation(rawLhs, rawRhs);
 		}
+
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] No suitable method found, falling back to native operator');
+		}
+		#end
 
 		// Ultimate fallback: use native Haxe operators on raw values
 		return applyNativeOperator(op, rawLhs, rawRhs);
@@ -443,29 +499,62 @@ class AbstractInterpreter {
 	 * Uses the conversion function if one was defined, otherwise just wraps the value.
 	 */
 	public function applyFromConversion(value:Dynamic):AbstractValue {
-		var rawValue = unwrap(value);
+		var rawValue:Any = unwrap(value);
+
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] applyFromConversion called with: ${Type.typeof(value)} = $value');
+			trace('[AbstractInterpreter Debug] rawValue after unwrap: ${Type.typeof(rawValue)} = $rawValue');
+		}
+		#end
 
 		// Find matching from conversion
 		for (entry in fromTypes) {
 			if (isTypeMatch(rawValue, entry.typeName)) {
+				#if !macro
+				if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+					trace('[AbstractInterpreter Debug] Found matching @:from conversion: ${entry.typeName}');
+					trace('[AbstractInterpreter Debug] fieldName: ${entry.fieldName}');
+				}
+				#end
 				if (entry.fieldName != null && implClass != null) {
 					// Call the @:from function on the impl class
 					var method = Reflect.field(implClass, entry.fieldName);
 					if (method != null && Reflect.isFunction(method)) {
-						var converted = Reflect.callMethod(implClass, method, [rawValue]);
+						var converted:Any = Reflect.callMethod(implClass, method, [rawValue]);
+						#if !macro
+						if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+							trace('[AbstractInterpreter Debug] @:from conversion result: ${Type.typeof(converted)} = $converted');
+						}
+						#end
 						return new AbstractValue(converted, this);
 					}
 				}
 				// No conversion function - just wrap the raw value
+				#if !macro
+				if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+					trace('[AbstractInterpreter Debug] No @:from function, wrapping rawValue: ${Type.typeof(rawValue)} = $rawValue');
+				}
+				#end
 				return new AbstractValue(rawValue, this);
 			}
 		}
 
 		// If the value already matches the underlying type, just wrap it
 		if (matchesUnderlyingType(rawValue)) {
+			#if !macro
+			if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+				trace('[AbstractInterpreter Debug] Value matches underlying type ${underlyingType}, wrapping: ${Type.typeof(rawValue)} = $rawValue');
+			}
+			#end
 			return new AbstractValue(rawValue, this);
 		}
 
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] No matching conversion found, returning null');
+		}
+		#end
 		return null;
 	}
 
@@ -474,7 +563,7 @@ class AbstractInterpreter {
 	 * Uses the conversion function if one was defined, otherwise returns the raw value.
 	 */
 	public function applyToConversion(value:Dynamic, targetTypeName:String):Dynamic {
-		var rawValue = unwrap(value);
+		var rawValue:Any = unwrap(value);
 
 		// Find matching to conversion
 		for (entry in toTypes) {
@@ -506,7 +595,7 @@ class AbstractInterpreter {
 	 * Tries the _Impl_ class first, then falls back to native field access.
 	 */
 	public function getField(value:Dynamic, fieldName:String):Dynamic {
-		var rawValue = unwrap(value);
+		var rawValue:Any = unwrap(value);
 
 		// Check if this field has a getter in the impl class
 		if (implClass != null) {
@@ -585,57 +674,53 @@ class AbstractInterpreter {
 	 * Check if an operator is overloaded on this abstract.
 	 */
 	public function hasOperator(op:String):Bool {
+		// Direct cache lookup
 		if (operatorCache.exists(op)) return true;
+
+		// Check if any cache entry matches this operator symbol
+		var targetMetadata = operatorSymbolToMetadata(op);
+		if (targetMetadata != null) {
+			for (key => info in operatorCache) {
+				if (info.operatorName == targetMetadata) {
+					return true;
+				}
+			}
+		}
+
+		// Fallback to old method name mapping
 		var normalized = getOperatorMethodName(op);
 		return normalized != null && operatorCache.exists(normalized);
 	}
 
 	/**
-	 * Get a human-readable summary of this abstract type.
+	 * Check if this abstract can perform an operation with the given operand types.
+	 * This is the specific function requested for checking operator compatibility with types.
 	 */
-	public function describe():String {
-		var sb = new StringBuf();
-		sb.add('Abstract: $abstractPath\n');
-		sb.add('  Underlying type: $underlyingType\n');
-		sb.add('  Has impl class: $hasImpl\n');
-		if (hasImpl) {
-			sb.add('  Impl class: $implClassPath\n');
-			sb.add('  Impl resolved: ${implClass != null}\n');
-		}
-		sb.add('  Is generic: $isGeneric\n');
-		if (isGeneric && typeParams.length > 0) {
-			sb.add('  Type params: <${typeParams.join(", ")}>\n');
-		}
+	public function canApplyOperatorWithTypes(op:String, lhsType:String, rhsType:String):Bool {
+		// First check if we have the operator at all
+		if (!hasOperator(op)) return false;
 
-		if (fromTypes.length > 0) {
-			sb.add('  From conversions:\n');
-			for (f in fromTypes) {
-				sb.add('    - ${f.typeName}');
-				if (f.fieldName != null) sb.add(' (via ${f.fieldName})');
-				sb.add('\n');
+		// Find all matching operator methods
+		var targetMetadata = operatorSymbolToMetadata(op);
+		if (targetMetadata == null) return false;
+
+		var candidates:Array<ImplMethodInfo> = [];
+		for (key => info in operatorCache) {
+			if (info.operatorName == targetMetadata) {
+				candidates.push(info);
 			}
 		}
 
-		if (toTypes.length > 0) {
-			sb.add('  To conversions:\n');
-			for (t in toTypes) {
-				sb.add('    - ${t.typeName}');
-				if (t.fieldName != null) sb.add(' (via ${t.fieldName})');
-				sb.add('\n');
+		if (candidates.length == 0) return false;
+
+		// Check if any candidate can handle these types
+		for (candidate in candidates) {
+			if (canMethodHandleTypes(candidate, lhsType, rhsType)) {
+				return true;
 			}
 		}
 
-		var methods = getMethodNames();
-		if (methods.length > 0) {
-			sb.add('  Methods: ${methods.join(", ")}\n');
-		}
-
-		var ops = getOperatorNames();
-		if (ops.length > 0) {
-			sb.add('  Operators: ${ops.join(", ")}\n');
-		}
-
-		return sb.toString();
+		return false;
 	}
 
 	// ===================== Helper Methods =====================
@@ -681,7 +766,12 @@ class AbstractInterpreter {
 	 * Map a user-facing operator symbol to the Haxe _Impl_ method name.
 	 */
 	private static function getOperatorMethodName(op:String):String {
-		return switch (op) {
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] getOperatorMethodName($op) called');
+		}
+		#end
+		var result = switch (op) {
 			case "+": "_hx_add";
 			case "-": "_hx_sub";
 			case "*": "_hx_mul";
@@ -709,6 +799,12 @@ class AbstractInterpreter {
 			case "[]=": "_hx_arrayWrite";
 			case _: null;
 		};
+		#if !macro
+		if (backend.ClientPrefs != null && backend.ClientPrefs.data.yscriptDebugMode) {
+			trace('[AbstractInterpreter Debug] getOperatorMethodName($op) returning: $result');
+		}
+		#end
+		return result;
 	}
 
 	/**
@@ -750,22 +846,306 @@ class AbstractInterpreter {
 			case _: throw 'AbstractInterpreter: Unsupported native operator: $op';
 		};
 	}
+
+	/**
+	 * Convert simple operator symbols to metadata format (e.g. "+" -> "A + B")
+	 */
+	private static function operatorSymbolToMetadata(symbol:String):Null<String> {
+		return switch (symbol) {
+			case "+": "A + B";
+			case "-": "A - B";
+			case "*": "A * B";
+			case "/": "A / B";
+			case "%": "A % B";
+			case "==": "A == B";
+			case "!=": "A != B";
+			case "<": "A < B";
+			case "<=": "A <= B";
+			case ">": "A > B";
+			case ">=": "A >= B";
+			case "&&": "A && B";
+			case "||": "A || B";
+			case "&": "A & B";
+			case "|": "A | B";
+			case "^": "A ^ B";
+			case "<<": "A << B";
+			case ">>": "A >> B";
+			case ">>>": "A >>> B";
+			case "++": "++A";
+			case "--": "--A";
+			case "+=": "A += B";
+			case "-=": "A -= B";
+			case "*=": "A *= B";
+			case "/=": "A /= B";
+			case "%=": "A %= B";
+			case _: null;
+		};
+	}
+
+	/**
+	 * Check if a value represents a string type
+	 */
+	private static function isStringType(value:Dynamic):Bool {
+		return Std.isOfType(value, String);
+	}
+
+	/**
+	 * Handle string concatenation with automatic conversion
+	 */
+	private function handleStringConcatenation(lhs:Dynamic, rhs:Dynamic):String {
+		var leftStr = convertToString(lhs);
+		var rightStr = convertToString(rhs);
+		return leftStr + rightStr;
+	}
+
+	/**
+	 * Convert a value to string, checking for toString method or @:to String conversions
+	 */
+	private function convertToString(value:Dynamic):String {
+		if (value == null) return "null";
+		if (Std.isOfType(value, String)) return cast value;
+
+		// Check if value is an AbstractValue with string conversion
+		if (Std.isOfType(value, AbstractValue)) {
+			var absVal:AbstractValue = cast value;
+			if (absVal.interpreter.canConvertTo("String")) {
+				try {
+					var converted = absVal.interpreter.applyToConversion(absVal.rawValue, "String");
+					if (Std.isOfType(converted, String)) return cast converted;
+				} catch (e:Dynamic) {
+					// Fall through to default conversion
+				}
+			}
+		}
+
+		// Check for toString method
+		if (Reflect.hasField(value, "toString")) {
+			try {
+				var toStringMethod = Reflect.field(value, "toString");
+				if (Reflect.isFunction(toStringMethod)) {
+					return cast Reflect.callMethod(value, toStringMethod, []);
+				}
+			} catch (e:Dynamic) {
+				// Fall through to default
+			}
+		}
+
+		// Default conversion
+		return Std.string(value);
+	}
+
+	/**
+	 * Find the best operator method based on actual operand types
+	 */
+	private function findBestOperatorMethod(op:String, lhs:Dynamic, rhs:Dynamic):Null<ImplMethodInfo> {
+		var targetMetadata = operatorSymbolToMetadata(op);
+		if (targetMetadata == null) return null;
+
+		var candidates:Array<ImplMethodInfo> = [];
+
+		// Collect all methods that match the operator
+		for (key => info in operatorCache) {
+			if (info.operatorName == targetMetadata) {
+				candidates.push(info);
+			}
+		}
+
+		if (candidates.length == 0) return null;
+		if (candidates.length == 1) return candidates[0];
+
+		// Score candidates based on type compatibility
+		var bestCandidate:ImplMethodInfo = null;
+		var bestScore = -1;
+
+		for (candidate in candidates) {
+			var score = scoreOperatorMethod(candidate, lhs, rhs);
+			if (score > bestScore) {
+				bestScore = score;
+				bestCandidate = candidate;
+			}
+		}
+
+		return bestCandidate;
+	}
+
+	/**
+	 * Score how well an operator method matches the given operands based on actual type signatures.
+	 */
+	private function scoreOperatorMethod(method:ImplMethodInfo, lhs:Dynamic, rhs:Dynamic):Int {
+		// Parse the method type signature to get parameter types
+		var paramTypes = parseMethodParameterTypes(method.type);
+		if (paramTypes == null || paramTypes.length == 0) {
+			return -100; // Cannot use this method
+		}
+
+		var score = 0;
+
+		// For binary operators, check if the second parameter type matches the RHS operand
+		if (rhs != null && paramTypes.length >= 2) {
+			var expectedRhsType = paramTypes[1]; // Second parameter after 'this'
+			var actualRhsType = getValueTypeName(rhs);
+
+			// Exact type match gets highest score
+			if (expectedRhsType == actualRhsType) {
+				score += 100;
+			}
+			// Compatible type promotions
+			else if (areTypesCompatible(actualRhsType, expectedRhsType)) {
+				score += 50;
+			}
+			// Abstract type matches (like yutautil.Num)
+			else if (expectedRhsType == abstractPath && Std.isOfType(rhs, yutautil.typeregistry.AbstractValue)) {
+				score += 75;
+			}
+			// No match
+			else {
+				score -= 50;
+			}
+		}
+
+		// Prefer non-reverse operators when abstract is on left side
+		var methodName = method.name.toLowerCase();
+		if (methodName.indexOf("reverse") >= 0) {
+			score -= 10;
+		}
+
+		return score;
+	}
+
+	/**
+	 * Check if a method can handle the given operand types.
+	 */
+	private function canMethodHandleTypes(method:ImplMethodInfo, lhsType:String, rhsType:String):Bool {
+		var methodName = method.name.toLowerCase();
+
+		// Check if method name suggests compatibility with rhsType
+		if (rhsType != null) {
+			var rhsLower = rhsType.toLowerCase();
+			// Remove package names for comparison
+			if (rhsLower.indexOf('.') >= 0) {
+				rhsLower = rhsLower.substring(rhsLower.lastIndexOf('.') + 1);
+			}
+
+			if (rhsLower == "int" && methodName.indexOf("int") >= 0 && methodName.indexOf("int64") == -1) {
+				return true;
+			} else if (rhsLower == "float" && methodName.indexOf("float") >= 0) {
+				return true;
+			} else if (rhsLower == "string" && methodName.indexOf("string") >= 0) {
+				return true;
+			} else if (methodName == "add" || methodName == "subtract" || methodName == "multiply" || methodName == "divide") {
+				// Generic methods can handle any numeric type
+				return rhsLower == "int" || rhsLower == "float" || rhsLower == "uint";
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Parse method type signature to extract parameter types.
+	 * E.g., "(this : Float, rhs : Int) -> yutautil.Num" returns ["Float", "Int"]
+	 */
+	private function parseMethodParameterTypes(typeSignature:String):Null<Array<String>> {
+		if (typeSignature == null) return null;
+
+		// Find the parameter list between first ( and )
+		var startParen = typeSignature.indexOf("(");
+		var endParen = typeSignature.indexOf(")");
+		if (startParen == -1 || endParen == -1 || endParen <= startParen) {
+			return null;
+		}
+
+		var paramString = StringTools.trim(typeSignature.substring(startParen + 1, endParen));
+		if (paramString == "") return [];
+
+		var params = paramString.split(",");
+		var types:Array<String> = [];
+
+		for (param in params) {
+			param = StringTools.trim(param);
+			// Extract type after " : "
+			var colonIndex = param.indexOf(" : ");
+			if (colonIndex >= 0) {
+				var type = StringTools.trim(param.substring(colonIndex + 3));
+				types.push(type);
+			}
+		}
+
+		return types;
+	}
+
+	/**
+	 * Get a normalized type name for a runtime value.
+	 */
+	private function getValueTypeName(value:Dynamic):String {
+		if (value == null) return "Dynamic";
+
+		var valueType = Type.typeof(value);
+		return switch (valueType) {
+			case TInt: "Int";
+			case TFloat: "Float";
+			case TBool: "Bool";
+			case TClass(String): "String";
+			case TClass(Array): "Array";
+			case TClass(c):
+				var className = Type.getClassName(c);
+				if (className != null) className else "Dynamic";
+			case TEnum(e):
+				var enumName = Type.getEnumName(e);
+				if (enumName != null) enumName else "Dynamic";
+			case _: "Dynamic";
+		};
+	}
+
+	/**
+	 * Check if two types are compatible (including promotions like Int -> Float).
+	 */
+	private function areTypesCompatible(actualType:String, expectedType:String):Bool {
+		if (actualType == expectedType) return true;
+
+		// Type promotions
+		return switch ([actualType, expectedType]) {
+			case ["Int", "Float"]: true; // Int can be promoted to Float
+			case ["Int", "haxe.Int64"]: true; // Int can be promoted to Int64
+			case ["UInt", "Int"]: true; // UInt can be treated as Int
+			case ["UInt", "Float"]: true; // UInt can be promoted to Float
+			case _: false;
+		};
+	}
+
+	/**
+	 * Preserve numeric type of a Dynamic value.
+	 * On Haxe cpp target, Dynamic values can lose their numeric type
+	 * when passing through function boundaries or string interpolation.
+	 * This method ensures the value retains its proper numeric type.
+	 */
+	private static function preserveNumericType(value:Dynamic):Dynamic {
+		if (value == null) return value;
+		var vt = Type.typeof(value);
+		switch (vt) {
+			case TInt, TFloat, TBool:
+				return value; // Already correct type
+			case TClass(c):
+				if (c == String) {
+					// A numeric value may have been converted to String by cpp Dynamic boxing
+					var str:String = cast value;
+					var parsedInt = Std.parseInt(str);
+					if (parsedInt != null && Std.string(parsedInt) == str) {
+						return parsedInt;
+					}
+					var parsedFloat = Std.parseFloat(str);
+					if (!Math.isNaN(parsedFloat) && Std.string(parsedFloat) == str) {
+						return parsedFloat;
+					}
+				}
+				return value;
+			default:
+				return value;
+		}
+	}
 }
 
 // ===================== Supporting Types =====================
-
-/**
- * Info about a method on an abstract's _Impl_ class.
- */
-typedef ImplMethodInfo = {
-	name:String,
-	?type:String,
-	isPublic:Bool,
-	isOperator:Bool,
-	?operatorName:String,
-	?doc:String,
-	?kind:String
-}
 
 /**
  * Info about a @:from or @:to conversion.
