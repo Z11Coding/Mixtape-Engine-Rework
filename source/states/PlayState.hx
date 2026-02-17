@@ -2675,9 +2675,17 @@ class PlayState extends MusicBeatState
 
 		var stageFileLoaded:String = "";
 
-		// STEP 1: Add sprite groups FIRST so they are in members before any script's onCreate fires.
-		// This is critical because addLuaSprite(tag, false) uses members.indexOf(getLowestCharacterGroup())
-		// which returns -1 if the groups haven't been add()ed yet, causing wrong sprite layering/positions.
+		// STEP 1: Run VSliceLoader for hardcoded base game stages FIRST.
+		// VSliceLoader's add() calls put stage background sprites into the state's members list.
+		// These must go in BEFORE character groups so groups render ON TOP of stage backgrounds.
+		if (stageData.objects == null || stageData.objects.length <= 0) {
+			VSliceLoader.addstage(stageName);
+			stageFileLoaded = "VSliceLoader: " + stageName;
+		}
+
+		// STEP 2: Add character groups AFTER VSliceLoader (so they render on top of stage sprites)
+		// but BEFORE scripts (so scripts' onCreate can use addLuaSprite(tag, false) / addBehindGF etc.,
+		// which need members.indexOf(getLowestCharacterGroup()) to return a valid index).
 		if (callOnScripts("onAddSpriteGroups", []) != LuaUtils.Function_Stop) {
 			if(stageData.objects != null && stageData.objects.length > 0)
 			{
@@ -2697,14 +2705,6 @@ class PlayState extends MusicBeatState
 					add(boyfriendGroup);
 				}
 			}
-		}
-
-		// STEP 2: Always run VSliceLoader for hardcoded base game stages (creates BaseStage visuals).
-		// This must happen after groups are added (BaseStage.addBehindGF/Dad/BF depend on group indices)
-		// but before scripts load (scripts are overlays that run on top of the base stage).
-		if (stageData.objects == null || stageData.objects.length <= 0) {
-			VSliceLoader.addstage(stageName);
-			stageFileLoaded = "VSliceLoader: " + stageName;
 		}
 
 		// STEP 3: Load stage scripts AFTER groups are in state and VSliceLoader has run.
@@ -12641,9 +12641,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								// Sync angle
 								//modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
 								//strumNote.angle = strumNote.angle;
-
-								// now we can do both :D
-								modManager.setValue('reverse${i}', strumNote.downScroll ? 1 : 0, field.playerId);
 
 								modManager.setValue('noteTweenDirection', strumNote.direction, field.playerId);
 
