@@ -23,14 +23,15 @@ using StringTools;
  * - Collects abstract impl class fields for runtime abstract method dispatch
  */
 class TypeCollectionMacro {
-    // Storage for collected data across all classes
-    static var collectedClasses:Array<Dynamic> = [];
-    static var collectedAbstracts:Array<Dynamic> = [];
-    static var collectedTypedefs:Array<Dynamic> = [];
-    static var collectedEnums:Array<Dynamic> = [];
-    static var collectedFunctions:Array<Dynamic> = [];
+    // Storage for collected data across all classes (public for AbstractConversionMacro access)
+    public static var collectedClasses:Array<Dynamic> = [];
+    public static var collectedAbstracts:Array<Dynamic> = [];
+    public static var collectedTypedefs:Array<Dynamic> = [];
+    public static var collectedEnums:Array<Dynamic> = [];
+    public static var collectedFunctions:Array<Dynamic> = [];
     static var buildMetadata:Dynamic = null;
     static var initialized:Bool = false;
+    static var abstractDataDefined:Bool = false;
 
     // Resource key names for embedded data
     public static inline var RESOURCE_KEY_FULL = "typeregistry_full_data";
@@ -63,7 +64,7 @@ class TypeCollectionMacro {
 
         // Register completion callback on first run
         if (collectedClasses.length == 1) {
-            Context.onGenerate(onGenerateComplete);
+            Context.onAfterTyping(onGenerateComplete);
             trace("TypeCollectionMacro: Registered onGenerate callback");
         }
 
@@ -90,6 +91,17 @@ class TypeCollectionMacro {
         }
 
         trace('TypeCollectionMacro: Initialized build collection, found ${buildMetadata.buildFlags.length} build flags');
+
+        // Define AbstractData early (before Abstract.hx is typed) so Abstract can reference it.
+        // AbstractData has a single @:to Dynamic method - no type scanning needed.
+        if (!abstractDataDefined) {
+            abstractDataDefined = true;
+            try {
+                yutautil.AbstractConversionMacro.generateAbstractDataModule();
+            } catch (e:Dynamic) {
+                trace('TypeCollectionMacro: Error generating AbstractData early: $e');
+            }
+        }
     }
 
     /**
@@ -341,10 +353,10 @@ class TypeCollectionMacro {
     /**
      * Called when generation is complete - saves all collected data and embeds as resources
      */
-    static function onGenerateComplete(types:Array<Type>):Void {
+    static function onGenerateComplete(types:Array<ModuleType>):Void {
         try {
             // Collect additional type information from the generated types
-            for (type in types) {
+            for (type in types.map(t -> haxe.macro.TypeTools.fromModuleType(t))) {
                 collectAdditionalTypeData(type);
             }
 
@@ -373,6 +385,9 @@ class TypeCollectionMacro {
 
             trace('TypeCollectionMacro: Build complete - collected ${collectedClasses.length} classes, '
                 + '${collectedAbstracts.length} abstracts, ${collectedFunctions.length} functions');
+
+            // AbstractData is already defined in initializeBuildCollection() with a single @:to Dynamic.
+            // It must be defined before Abstract.hx is typed so Abstract can reference it.
 
         } catch (e:Dynamic) {
             trace('TypeCollectionMacro: Error in onGenerateComplete: $e');

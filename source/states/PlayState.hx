@@ -2673,54 +2673,47 @@ class PlayState extends MusicBeatState
 			stageData = StageData.getStageFile(stageName);
 		}
 
-		var stageLoaded:Bool = false;
 		var stageFileLoaded:String = "";
 
-		// Priority order: HScript (.hx) -> Lua (.lua) -> YScript (.ys) -> BaseStage fallback
-
-		#if HSCRIPT_ALLOWED
-		// Try HScript first
-		if (!stageLoaded) {
-			var doPush:Bool = false;
-			var scriptFile:String = 'stages/$stageName.hx';
-			#if MODS_ALLOWED
-			var replacePath:String = Paths.modFolders(scriptFile);
-			if(FileSystem.exists(replacePath))
+		// STEP 1: Add sprite groups FIRST so they are in members before any script's onCreate fires.
+		// This is critical because addLuaSprite(tag, false) uses members.indexOf(getLowestCharacterGroup())
+		// which returns -1 if the groups haven't been add()ed yet, causing wrong sprite layering/positions.
+		if (callOnScripts("onAddSpriteGroups", []) != LuaUtils.Function_Stop) {
+			if(stageData.objects != null && stageData.objects.length > 0)
 			{
-				scriptFile = replacePath;
-				doPush = true;
+				var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, dadGroup2, boyfriendGroup2, this);
+				for (key => spr in list)
+					if(!StageData.reservedNames.contains(key))
+						variables.set(key, spr);
 			}
 			else
-			#end
 			{
-				scriptFile = Paths.getSharedPath(scriptFile);
-				if(FileSystem.exists(scriptFile))
-					doPush = true;
-			}
-
-			if(doPush)
-			{
-				for (script in hscriptArray)
-				{
-					if(script.origin == scriptFile)
-					{
-						doPush = false;
-						break;
-					}
-				}
-				if(doPush)
-				{
-					initHScript(scriptFile);
-					stageLoaded = true;
-					stageFileLoaded = "HScript: " + scriptFile;
+				// Only add groups if not NotITG (keep empty stage for StepMania)
+				if (!isNotITG) {
+					add(gfGroup);
+					add(dadGroup2);
+					add(dadGroup);
+					add(boyfriendGroup2);
+					add(boyfriendGroup);
 				}
 			}
 		}
-		#end
 
+		// STEP 2: Always run VSliceLoader for hardcoded base game stages (creates BaseStage visuals).
+		// This must happen after groups are added (BaseStage.addBehindGF/Dad/BF depend on group indices)
+		// but before scripts load (scripts are overlays that run on top of the base stage).
+		if (stageData.objects == null || stageData.objects.length <= 0) {
+			VSliceLoader.addstage(stageName);
+			stageFileLoaded = "VSliceLoader: " + stageName;
+		}
+
+		// STEP 3: Load stage scripts AFTER groups are in state and VSliceLoader has run.
+		// Scripts' onCreate callbacks can now safely use addLuaSprite(tag, false), addBehindGF, etc.
+		// Only ONE script type loads per stage (priority: Lua -> HScript -> YScript).
+		var scriptLoaded:Bool = false;
 		#if LUA_ALLOWED
-		// Try Lua second
-		if (!stageLoaded) {
+		if (!scriptLoaded)
+		{
 			var doPush:Bool = false;
 			var luaFile:String = 'stages/$stageName.lua';
 			#if MODS_ALLOWED
@@ -2754,15 +2747,55 @@ class PlayState extends MusicBeatState
 				if(doPush)
 				{
 					(shouldUseLegacyLua() ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
-					stageLoaded = true;
-					stageFileLoaded = "Lua: " + luaFile;
+					stageFileLoaded += " + Lua: " + luaFile;
+					scriptLoaded = true;
 				}
 			}
 		}
 		#end
 
-		// Try YScript third
-		if (!stageLoaded) {
+		#if HSCRIPT_ALLOWED
+		if (!scriptLoaded)
+		{
+			var doPush:Bool = false;
+			var scriptFile:String = 'stages/$stageName.hx';
+			#if MODS_ALLOWED
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath))
+			{
+				scriptFile = replacePath;
+				doPush = true;
+			}
+			else
+			#end
+			{
+				scriptFile = Paths.getSharedPath(scriptFile);
+				if(FileSystem.exists(scriptFile))
+					doPush = true;
+			}
+
+			if(doPush)
+			{
+				for (script in hscriptArray)
+				{
+					if(script.origin == scriptFile)
+					{
+						doPush = false;
+						break;
+					}
+				}
+				if(doPush)
+				{
+					initHScript(scriptFile);
+					stageFileLoaded += " + HScript: " + scriptFile;
+					scriptLoaded = true;
+				}
+			}
+		}
+		#end
+
+		if (!scriptLoaded)
+		{
 			var doPush:Bool = false;
 			var scriptFile:String = 'stages/$stageName.ys';
 			#if MODS_ALLOWED
@@ -2793,37 +2826,8 @@ class PlayState extends MusicBeatState
 				if(doPush)
 				{
 					initYScript(scriptFile);
-					stageLoaded = true;
-					stageFileLoaded = "YScript: " + scriptFile;
-				}
-			}
-		}
-
-		// Fallback to VSliceLoader for hardcoded stages (only when no stageData objects define the layout)
-		if (!stageLoaded && (stageData.objects == null || stageData.objects.length <= 0)) {
-			VSliceLoader.addstage(stageName);
-			stageLoaded = true;
-			stageFileLoaded = "VSliceLoader: " + stageName;
-		}
-
-		// Add sprite groups - either via stageData objects (z-ordered) or manually
-		if (callOnScripts("onAddSpriteGroups", []) != LuaUtils.Function_Stop) {
-			if(stageData.objects != null && stageData.objects.length > 0)
-			{
-				var list:Map<String, FlxSprite> = StageData.addObjectsToState(stageData.objects, !stageData.hide_girlfriend ? gfGroup : null, dadGroup, boyfriendGroup, dadGroup2, boyfriendGroup2, this);
-				for (key => spr in list)
-					if(!StageData.reservedNames.contains(key))
-						variables.set(key, spr);
-			}
-			else
-			{
-				// Only add groups if not NotITG (keep empty stage for StepMania)
-				if (!isNotITG) {
-					add(gfGroup);
-					add(dadGroup2);
-					add(dadGroup);
-					add(boyfriendGroup2);
-					add(boyfriendGroup);
+					stageFileLoaded += " + YScript: " + scriptFile;
+					scriptLoaded = true;
 				}
 			}
 		}
@@ -2831,22 +2835,9 @@ class PlayState extends MusicBeatState
 		// Cache group indices for performance
 		updateGroupIndices();
 
-		// When reloading stage data, start stage-specific scripts
-		if (reloadStageData) {
-			#if LUA_ALLOWED
-			startLuasNamed('stages/' + curStage + '.lua');
-			#end
-			#if HSCRIPT_ALLOWED
-			startHScriptsNamed('stages/' + curStage + '.hx');
-			#end
-			#if HSCRIPT_ALLOWED
-			startYScriptsNamed('stages/' + curStage + '.ys');
-			#end
-		}
-
 		// Debug info about which stage file was loaded
-		if (ClientPrefs.data.developerMode && stageLoaded) {
-			trace('Loaded single stage file: $stageFileLoaded');
+		if (ClientPrefs.data.developerMode && stageFileLoaded.length > 0) {
+			trace('Loaded stage: $stageFileLoaded');
 		}
 	}
 

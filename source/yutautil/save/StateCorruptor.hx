@@ -609,4 +609,4 @@ class StateCorruptor {
         return corrupt(FlxG.state);
     }
 }
-}
+

@@ -324,7 +324,7 @@ class FunctionExecutor {
                 -value;
             case "+":
                 var value:Float = executeExpression(e, scope);
-                +value;
+                value;
             case "!":
                 var value = executeExpression(e, scope);
                 !isTruthy(value);
