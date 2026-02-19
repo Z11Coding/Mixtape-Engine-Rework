@@ -45,9 +45,7 @@ class TypeCollectionMacro {
         var fields = Context.getBuildFields();
         var localClass = Context.getLocalClass();
         if (localClass == null) {
-            #if verbose
             trace("TypeCollectionMacro: No local class available, skipping");
-            #end
             return fields;
         }
 
@@ -653,14 +651,10 @@ class TypeCollectionMacro {
             // Generate runtime accessor
             generateRuntimeAccessor(outputPath, data);
 
-            #if verbose
             trace('TypeCollectionMacro: Saved build data to ${outputPath}');
-            #end
 
         } catch (e:Dynamic) {
-            #if verbose
             trace('TypeCollectionMacro: Error saving build data: $e');
-            #end
         }
     }
 

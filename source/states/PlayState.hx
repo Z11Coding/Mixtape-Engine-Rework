@@ -8540,7 +8540,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var keyValues = value1.split(",");
 				var trueValues:Array<String> = [];
 				if(keyValues.length != 2) {
-					trace("INVALID EVENT VALUE! Attempting to salvage...");
+					trace("INVALID EVENT VALUE! Attempting to salvage... Invalid: " + value1);
 					if (keyValues.length > 2) {
 						trueValues = [keyValues[0], keyValues[1]]; //default values
 					} else if (keyValues.length == 1) {
@@ -8592,7 +8592,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var ease = keyValues.pop().trim().toLowerCase();
 				var floaties = keyValues.map(s -> Std.parseFloat(s));
 				if(floaties.length != 4 && backend.util.ArrayTools.findIndex(floaties,s -> Math.isNaN(s)) != -1) {
-					trace("INVALID FLOATIES");
+					trace("INVALID FLOATIES: " + value2);
 					return;
 				}
 				isCameraOnForcedPos = true;
@@ -8625,7 +8625,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					camGame.followLerp = 1000000000000;
 					camFollow.x = targetx;
 					camFollow.y = targety;
-					if (FlxG.camera != null) FlxG.camera.snapToTarget();
+					try { if (FlxG.camera != null) FlxG.camera.snapToTarget(); } catch (e) { trace('snapToTarget error: $e'); }
 					//trace("RUNNING INSTANT CAM MOVEMENT!");
 				} else {
 					FlxG.camera.followLerp = _cachedCameraLerp;
