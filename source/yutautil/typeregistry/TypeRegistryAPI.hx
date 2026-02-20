@@ -24,6 +24,8 @@ class TypeRegistryAPI {
         if (_initialized) return;
 
         RuntimeRegistry.get().initialize();
+        BuildDataLoader.initialize();
+        SourceMapper.ensureBuildDataLoaded();
         _initialized = true;
 
         trace("TypeRegistryAPI: System initialized successfully");

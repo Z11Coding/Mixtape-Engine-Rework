@@ -37,9 +37,18 @@ class RuntimeFunctionRegistry {
     /** Map of functionId -> metadata about the edit */
     private var editMetadata:Map<String, EditMetadata>;
 
+    /** Map of functionId -> complete function metadata (loaded from resource) */
+    private var editableFunctions:Map<String, EditableFunctionInfo>;
+
+    /** Flag to track if editable functions have been loaded from resource */
+    private var editableFunctionsLoaded:Bool = false;
+
     #if HSCRIPT_ALLOWED
     /** Shared HScript parser */
     private var parser:Parser;
+
+    /** Global HScript interpreter for edited functions (reused across calls for efficiency) */
+    private var globalInterpreter:Interp;
     #end
 
     /** Path used for persistence */
@@ -56,11 +65,13 @@ class RuntimeFunctionRegistry {
         editedSources = new Map();
         originalSources = new Map();
         editMetadata = new Map();
+        editableFunctions = new Map();
 
         #if HSCRIPT_ALLOWED
         parser = new Parser();
         parser.allowJSON = true;
         parser.allowTypes = true;
+        globalInterpreter = new Interp();
         #end
 
         // Load any persisted modifications
@@ -97,6 +108,70 @@ class RuntimeFunctionRegistry {
         // Auto-persist
         saveToDisk();
         return true;
+    }
+
+    /**
+     * Load all editable functions from the embedded resource.
+     * Called automatically on first intercept attempt.
+     */
+    private function loadEditableFunctionsFromResource():Void {
+        if (editableFunctionsLoaded) return;
+        editableFunctionsLoaded = true;
+
+        try {
+            // Try to load from the type registry resource (same place type data is stored)
+            var buildData = yutautil.typeregistry.BuildDataLoader.getRawData();
+            if (buildData == null) {
+                trace("RuntimeFunctionRegistry: No build data available");
+                return;
+            }
+
+            // Load editable functions from the resource
+            var editableFuncs = Reflect.getProperty(buildData, "editableFunctions");
+            if (editableFuncs == null) {
+                trace("RuntimeFunctionRegistry: No editable functions in build data");
+                return;
+            }
+
+            var funcList:Array<Dynamic> = cast editableFuncs;
+            for (funcData in funcList) {
+                var funcId = Reflect.getProperty(funcData, "functionId");
+                var editableInfo:EditableFunctionInfo = cast funcData;
+                editableFunctions.set(funcId, editableInfo);
+            }
+
+            var editableCount = 0;
+            for (_ in editableFunctions) {
+                editableCount++;
+            }
+            trace('RuntimeFunctionRegistry: Loaded $editableCount editable functions from resource');
+        } catch (e:Dynamic) {
+            trace("RuntimeFunctionRegistry: Error loading editable functions from resource: " + Std.string(e));
+        }
+    }
+
+    /**
+     * Get information about all editable functions.
+     */
+    public function getAllEditableFunctions():Array<EditableFunctionInfo> {
+        loadEditableFunctionsFromResource();
+        return [for (func in editableFunctions) func];
+    }
+
+    /**
+     * Get information about a specific editable function.
+     */
+    public function getEditableFunctionInfo(functionId:String):EditableFunctionInfo {
+        loadEditableFunctionsFromResource();
+        return editableFunctions.get(functionId);
+    }
+
+    /**
+     * Get the original function expression (before instrumentation).
+     */
+    public function getOriginalExpression(functionId:String):String {
+        var info = getEditableFunctionInfo(functionId);
+        return info != null ? info.originalExpression : null;
     }
 
     /**
@@ -220,7 +295,11 @@ class RuntimeFunctionRegistry {
         }
 
         try {
-            var result = executeHScript(editedSource, context, args);
+            // Check if this is a static function from metadata
+            var funcInfo = getEditableFunctionInfo(functionId);
+            var isStatic = funcInfo != null ? funcInfo.isStatic : (context == null);
+
+            var result = executeHScript(editedSource, context, args, isStatic, functionId);
             return {intercepted: true, value: result};
         } catch (e:Dynamic) {
             var meta = editMetadata.get(functionId);
@@ -242,12 +321,28 @@ class RuntimeFunctionRegistry {
      * @param source  HScript source code
      * @param context  Optional `this` binding
      * @param args  Optional positional arguments (available as `arg0`, `arg1`, ...)
+     * @param isStaticFunction  Whether this is a static function (affects variable access)
+     * @param functionId  Optional function ID to get metadata and class variable info
      * @return The result of execution
      */
-    public function executeHScript(source:String, context:Dynamic = null, args:Array<Dynamic> = null):Dynamic {
+    public function executeHScript(source:String, context:Dynamic = null, args:Array<Dynamic> = null, isStaticFunction:Bool = false, functionId:String = null):Dynamic {
         #if HSCRIPT_ALLOWED
-        var interp = new Interp();
-        setupInterpreterEnvironment(interp, context, args);
+        // Reuse global interpreter with full variable reset
+        var interp = globalInterpreter;
+
+        // Clear all variables except standard APIs
+        var standardKeys = ["Math", "Std", "Type", "Reflect", "StringTools", "Date", "trace", "TypeRegistry", "FunctionRegistry"];
+        var keysToRemove:Array<String> = [];
+        for (key in interp.variables.keys()) {
+            if (standardKeys.indexOf(key) == -1) {
+                keysToRemove.push(key);
+            }
+        }
+        for (key in keysToRemove) {
+            interp.variables.remove(key);
+        }
+
+        setupInterpreterEnvironment(interp, context, args, isStaticFunction, functionId);
 
         var expr = parser.parseString(source);
         return interp.execute(expr);
@@ -259,10 +354,17 @@ class RuntimeFunctionRegistry {
 
     #if HSCRIPT_ALLOWED
     /**
-     * Configure an HScript interpreter with standard bindings.
+     * Configure an HScript interpreter with standard bindings and context-specific access.
+     * Handles both instance and static function contexts.
+     *
+     * @param interp  The interpreter to configure
+     * @param context  The `this` object (null for static functions or if no context)
+     * @param args  Function arguments available as `arg0`, `arg1`, etc.
+     * @param isStaticFunction  Whether this is a static function (affects variable access)
+     * @param functionId  Optional function ID to look up class metadata for variable access
      */
-    private function setupInterpreterEnvironment(interp:Interp, context:Dynamic, args:Array<Dynamic>):Void {
-        // Standard Haxe APIs
+    private function setupInterpreterEnvironment(interp:Interp, context:Dynamic, args:Array<Dynamic>, isStaticFunction:Bool = false, functionId:String = null):Void {
+        // Standard Haxe APIs (always available)
         interp.variables.set("Math", Math);
         interp.variables.set("Std", Std);
         interp.variables.set("Type", Type);
@@ -279,14 +381,15 @@ class RuntimeFunctionRegistry {
         interp.variables.set("TypeRegistry", yutautil.typeregistry.TypeRegistryAPI);
         interp.variables.set("FunctionRegistry", RuntimeFunctionRegistry.get());
 
-        // Context binding — the object the function was called on
-        if (context != null) {
+        // For instance methods: expose instance variables and "this"
+        if (!isStaticFunction && context != null) {
             interp.variables.set("self", context);
             interp.variables.set("this", context);
 
-            // Expose the context's fields directly
+            // Expose the context's instance fields
             try {
-                var fields = Type.getInstanceFields(Type.getClass(context));
+                var contextClass = Type.getClass(context);
+                var fields = Type.getInstanceFields(contextClass);
                 if (fields != null) {
                     for (field in fields) {
                         try {
@@ -295,10 +398,42 @@ class RuntimeFunctionRegistry {
                         } catch (_:Dynamic) {}
                     }
                 }
+
+                // Also expose static fields of the class (accessible from instance methods)
+                var statics = Type.getClassFields(contextClass);
+                if (statics != null) {
+                    for (staticField in statics) {
+                        try {
+                            var val = Reflect.getProperty(contextClass, staticField);
+                            interp.variables.set(staticField, val);
+                        } catch (_:Dynamic) {}
+                    }
+                }
             } catch (_:Dynamic) {}
+        } else if (isStaticFunction && functionId != null) {
+            // For static methods: only expose static variables of the defining class
+            var funcInfo = getEditableFunctionInfo(functionId);
+            if (funcInfo != null) {
+                try {
+                    // Resolve the class using the module path
+                    var className = funcInfo.classPath;
+                    var classType = Type.resolveClass(className);
+                    if (classType != null) {
+                        var statics = Type.getClassFields(classType);
+                        if (statics != null) {
+                            for (staticField in statics) {
+                                try {
+                                    var val = Reflect.getProperty(classType, staticField);
+                                    interp.variables.set(staticField, val);
+                                } catch (_:Dynamic) {}
+                            }
+                        }
+                    }
+                } catch (_:Dynamic) {}
+            }
         }
 
-        // Positional arguments
+        // Positional arguments (always available)
         if (args != null) {
             for (i in 0...args.length) {
                 interp.variables.set("arg" + Std.string(i), args[i]);
@@ -422,4 +557,46 @@ typedef EditMetadata = {
 
     /** Whether the edit is currently active */
     active:Bool
+}
+
+/**
+ * Information about an editable function, loaded from compile-time resources.
+ * Contains all needed metadata for the source editor.
+ */
+typedef EditableFunctionInfo = {
+    /** Unique function ID (filePath:functionName:lineNumber) */
+    functionId:String,
+
+    /** Simple function name */
+    functionName:String,
+
+    /** Simple class name containing the function */
+    className:String,
+
+    /** Full class path (e.g. "mypackage.MyClass") */
+    classPath:String,
+
+    /** Whether this is a static function */
+    isStatic:Bool,
+
+    /** Whether this function is public */
+    isPublic:Bool,
+
+    /** Return type as a string */
+    returnType:String,
+
+    /** Array of argument information */
+    args:Array<{name:String, type:String, optional:Bool}>,
+
+    /** File path where this function is defined */
+    filePath:String,
+
+    /** Line number where this function starts */
+    lineNumber:Int,
+
+    /** Original function expression as a string (before instrumentation) */
+    originalExpression:String,
+
+    /** Optional documentation */
+    doc:String
 }

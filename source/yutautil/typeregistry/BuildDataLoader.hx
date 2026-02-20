@@ -1,8 +1,45 @@
 package yutautil.typeregistry;
 
+#if macro
+class BuildDataLoader {
+    public static function initialize():Bool return false;
+    public static function getDataSource():String return "none";
+    public static function getAllClasses():Array<String> return [];
+    public static function getClassInfo(className:String):Dynamic return null;
+    public static function getAllAbstracts():Array<String> return [];
+    public static function getAbstractInfo(abstractName:String):Dynamic return null;
+    public static function getOriginalAbstractPath(implClassName:String):String return null;
+    public static function isImplClass(className:String):Bool return false;
+    public static function getAbstractFromConversions(abstractName:String):Array<Dynamic> return [];
+    public static function getAbstractToConversions(abstractName:String):Array<Dynamic> return [];
+    public static function getAbstractImplFields(abstractName:String):Array<Dynamic> return [];
+    public static function getAbstractOperators(abstractName:String):Array<Dynamic> return [];
+    public static function canConvertToAbstract(valueTypeName:String, abstractName:String):Bool return false;
+    public static function canConvertFromAbstract(abstractName:String, targetTypeName:String):Bool return false;
+    public static function isGenericType(typeName:String):Bool return false;
+    public static function getTypeParams(typeName:String):Array<String> return [];
+    public static function getAllGenericTypes():Array<{name:String, typeParams:Array<String>}> return [];
+    public static function resolveOriginalTypePath(typeName:String):String return typeName;
+    public static function getAllTypedefs():Array<String> return [];
+    public static function getAllFunctions():Array<Dynamic> return [];
+    public static function getFunctionsByClass(className:String):Array<Dynamic> return [];
+    public static function searchFunctions(pattern:String):Array<Dynamic> return [];
+    public static function getFunctionsWithMetadata(metadata:String):Array<Dynamic> return [];
+    public static function getBuildStats():Dynamic return null;
+    public static function getAllTypeNames():Array<String> return [];
+    public static function hasType(typeName:String):Bool return false;
+    public static function getTypeInfo(typeName:String):Dynamic return null;
+    public static function getRawData():Dynamic return null;
+    public static function reload():Bool return false;
+}
+#else
+
 import sys.FileSystem;
 import sys.io.File;
 import tjson.TJSON;
+import yutautil.modules.ASync.AResult;
+import yutautil.modules.ASync.ASyncHelper;
+import yutautil.modules.ASync;
 
 /**
  * Build-time data loader that provides access to macro-generated metadata.
@@ -18,9 +55,10 @@ import tjson.TJSON;
  *   - Original type path resolution (without _Impl_ suffix)
  *   - Abstract impl class field enumeration
  *   - Abstract operator overload detection
+ *   - Async loading for large datasets without blocking
  */
 class BuildDataLoader {
-    static var loadedData:Dynamic = null;
+    static var loadedData:AResult<Dynamic> = null;
     static var isInitialized:Bool = false;
     static var dataPath:String = "export/builddata/type_collection_compressed.json";
     static var fullDataPath:String = "export/builddata/type_collection_data.json";
@@ -34,72 +72,91 @@ class BuildDataLoader {
     /**
      * Initialize the build data loader.
      * Attempts filesystem first, then embedded Haxe resources as fallback.
+     * Uses async loading to prevent blocking on large datasets.
      */
     public static function initialize():Bool {
         if (isInitialized) return true;
 
-        trace('BuildDataLoader: Initializing...');
+        trace('BuildDataLoader: Starting async initialization...');
 
         try {
-            // Strategy 1: Try filesystem (dev builds)
-            if (FileSystem.exists(dataPath)) {
-                trace('BuildDataLoader: Found compressed build data file, reading...');
-                var content = File.getContent(dataPath);
-                trace('BuildDataLoader: Read ${content.length} bytes, parsing with TJSON...');
-                loadedData = TJSON.parse(content);
-                dataSource = "file";
-                trace('BuildDataLoader: Loaded compressed build data from filesystem ($dataPath)');
-                isInitialized = true;
-                trace('BuildDataLoader: Building caches...');
-                buildCaches();
-                trace('BuildDataLoader: Initialization complete (file/compressed)');
-                return true;
-            }
+            // Create async loading function
+            var asyncLoad:ASync<Void -> Dynamic> = function():Dynamic {
+                trace('BuildDataLoader: Async worker started');
 
-            if (FileSystem.exists(fullDataPath)) {
-                trace('BuildDataLoader: Found full build data file, reading...');
-                var content = File.getContent(fullDataPath);
-                trace('BuildDataLoader: Read ${content.length} bytes, parsing with TJSON...');
-                loadedData = TJSON.parse(content);
-                dataSource = "file";
-                trace('BuildDataLoader: Loaded full type collection data from filesystem ($fullDataPath)');
-                isInitialized = true;
-                trace('BuildDataLoader: Building caches...');
-                buildCaches();
-                trace('BuildDataLoader: Initialization complete (file/full)');
-                return true;
-            }
+                // Strategy 1: Try filesystem (dev builds)
+                if (FileSystem.exists(dataPath)) {
+                    trace('BuildDataLoader: Found compressed build data file, reading...');
+                    var content = File.getContent(dataPath);
+                    trace('BuildDataLoader: Read ${content.length} bytes, parsing with TJSON...');
+                    var data = TJSON.parse(content);
+                    dataSource = "file";
+                    trace('BuildDataLoader: Loaded compressed build data from filesystem ($dataPath)');
+                    return data;
+                }
 
-            // Strategy 2: Try embedded Haxe resources (release builds)
-            trace('BuildDataLoader: No filesystem files found, trying embedded resources...');
-            var compressedResource = haxe.Resource.getString("typeregistry_compressed_data");
-            if (compressedResource != null) {
-                trace('BuildDataLoader: Found compressed embedded resource (${compressedResource.length} chars), parsing with TJSON...');
-                loadedData = TJSON.parse(compressedResource);
-                dataSource = "resource";
-                trace('BuildDataLoader: Loaded compressed build data from embedded resource.');
-                isInitialized = true;
-                trace('BuildDataLoader: Building caches...');
-                buildCaches();
-                trace('BuildDataLoader: Initialization complete (resource/compressed)');
-                return true;
-            }
+                if (FileSystem.exists(fullDataPath)) {
+                    trace('BuildDataLoader: Found full build data file, reading...');
+                    var content = File.getContent(fullDataPath);
+                    trace('BuildDataLoader: Read ${content.length} bytes, parsing with TJSON...');
+                    var data = TJSON.parse(content);
+                    dataSource = "file";
+                    trace('BuildDataLoader: Loaded full type collection data from filesystem ($fullDataPath)');
+                    return data;
+                }
 
-            var fullResource = haxe.Resource.getString("typeregistry_full_data");
-            if (fullResource != null) {
-                trace('BuildDataLoader: Found full embedded resource (${fullResource.length} chars), parsing with TJSON...');
-                loadedData = TJSON.parse(fullResource);
-                dataSource = "resource";
-                trace('BuildDataLoader: Loaded full type collection data from embedded resource');
-                isInitialized = true;
-                trace('BuildDataLoader: Building caches...');
-                buildCaches();
-                trace('BuildDataLoader: Initialization complete (resource/full)');
-                return true;
-            }
+                // Strategy 2: Try embedded Haxe resources (release builds)
+                trace('BuildDataLoader: No filesystem files found, trying embedded resources...');
+                var compressedResource = haxe.Resource.getString("typeregistry_compressed_data");
+                if (compressedResource != null) {
+                    trace('BuildDataLoader: Found compressed embedded resource (${compressedResource.length} chars), parsing with TJSON...');
+                    var data = TJSON.parse(compressedResource);
+                    dataSource = "resource";
+                    trace('BuildDataLoader: Loaded compressed build data from embedded resource.');
+                    return data;
+                }
 
-            trace('BuildDataLoader: No type collection data found - neither filesystem nor embedded resources available');
-            return false;
+                var fullResource = haxe.Resource.getString("typeregistry_full_data");
+                if (fullResource != null) {
+                    trace('BuildDataLoader: Found full embedded resource (${fullResource.length} chars), parsing with TJSON...');
+                    var data = TJSON.parse(fullResource);
+                    dataSource = "resource";
+                    trace('BuildDataLoader: Loaded full type collection data from embedded resource');
+                    return data;
+                }
+
+                trace('BuildDataLoader: No type collection data found - neither filesystem nor embedded resources available');
+                throw "No build data available";
+            };
+
+            // Start async loading
+            loadedData = cast asyncLoad();
+
+            // Add completion callback with trace
+            loadedData.onReady(function(data:Dynamic) {
+                try {
+                    var classCount = data.classes != null ? (cast(data.classes, Array<Dynamic>)).length : 0;
+                    var abstractCount = data.abstracts != null ? (cast(data.abstracts, Array<Dynamic>)).length : 0;
+                    var functionCount = data.functions != null ? (cast(data.functions, Array<Dynamic>)).length : 0;
+                    var editableFunctionCount = data.editableFunctions != null ? (cast(data.editableFunctions, Array<Dynamic>)).length : 0;
+
+                    trace('BuildDataLoader: Async loading complete - loaded $classCount classes, $abstractCount abstracts, $functionCount functions ($editableFunctionCount editable)');
+
+                    // Build caches after data is ready
+                    buildCaches();
+                    trace('BuildDataLoader: Cache building complete');
+                } catch (e:Dynamic) {
+                    trace('BuildDataLoader: Error in completion callback: $e');
+                }
+            });
+
+            // Add error callback
+            loadedData.onError(function(error:Dynamic) {
+                trace('BuildDataLoader: Async loading failed: $error');
+            });
+
+            isInitialized = true;
+            return true;
         } catch (e:Dynamic) {
             trace('BuildDataLoader: Error during initialization: $e');
             return false;
@@ -115,7 +172,8 @@ class BuildDataLoader {
         implToAbstractMap = new Map();
 
         try {
-            var abstracts:Array<Dynamic> = loadedData.abstracts;
+            var data = loadedData.get(); // Get data from AResult
+            var abstracts:Array<Dynamic> = data.abstracts;
             if (abstracts != null) {
                 for (abs in abstracts) {
                     if (abs.originalTypePath != null) {
@@ -137,7 +195,8 @@ class BuildDataLoader {
         }
 
         try {
-            var classes:Array<Dynamic> = loadedData.classes;
+            var data = loadedData.get(); // Get data from AResult
+            var classes:Array<Dynamic> = data.classes;
             if (classes != null) {
                 for (cls in classes) {
                     if (cls.originalTypePath != null) {
@@ -168,7 +227,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            var classes:Array<Dynamic> = loadedData.classes;
+            var classes:Array<Dynamic> = loadedData.get().classes;
             return [for (cls in classes) '${cls.pack}.${cls.name}'];
         } catch (e:Dynamic) {
             trace('BuildDataLoader: Error getting classes: $e');
@@ -188,7 +247,7 @@ class BuildDataLoader {
         }
 
         try {
-            var classes:Array<Dynamic> = loadedData.classes;
+            var classes:Array<Dynamic> = loadedData.get().classes;
             for (cls in classes) {
                 var fullName = '${cls.pack}.${cls.name}';
                 if (fullName == className || cls.name == className) {
@@ -215,7 +274,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            var abstracts:Array<Dynamic> = loadedData.abstracts;
+            var abstracts:Array<Dynamic> = loadedData.get().abstracts;
             return [for (abs in abstracts) '${abs.pack}.${abs.name}'];
         } catch (e:Dynamic) {
             trace('BuildDataLoader: Error getting abstracts: $e');
@@ -235,7 +294,7 @@ class BuildDataLoader {
         }
 
         try {
-            var abstracts:Array<Dynamic> = loadedData.abstracts;
+            var abstracts:Array<Dynamic> = loadedData.get().abstracts;
             for (abs in abstracts) {
                 var fullName = '${abs.pack}.${abs.name}';
                 if (fullName == abstractName || abs.name == abstractName) {
@@ -446,7 +505,7 @@ class BuildDataLoader {
         var results:Array<{name:String, typeParams:Array<String>}> = [];
 
         try {
-            var abstracts:Array<Dynamic> = loadedData.abstracts;
+            var abstracts:Array<Dynamic> = loadedData.get().get().abstracts;
             if (abstracts != null) {
                 for (abs in abstracts) {
                     if (abs.isGeneric == true && abs.typeParams != null) {
@@ -460,7 +519,7 @@ class BuildDataLoader {
         } catch (e:Dynamic) {}
 
         try {
-            var classes:Array<Dynamic> = loadedData.classes;
+            var classes:Array<Dynamic> = loadedData.get().classes;
             if (classes != null) {
                 for (cls in classes) {
                     if (cls.isGeneric == true && cls.typeParams != null) {
@@ -513,7 +572,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            var typedefs:Array<Dynamic> = loadedData.typedefs;
+            var typedefs:Array<Dynamic> = loadedData.get().typedefs;
             return [for (td in typedefs) '${td.pack}.${td.name}'];
         } catch (e:Dynamic) {
             trace('BuildDataLoader: Error getting typedefs: $e');
@@ -530,7 +589,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            return cast loadedData.functions;
+            return cast loadedData.get().functions;
         } catch (e:Dynamic) {
             trace('BuildDataLoader: Error getting functions: $e');
             return [];
@@ -544,7 +603,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            var functions:Array<Dynamic> = loadedData.functions;
+            var functions:Array<Dynamic> = loadedData.get().functions;
             return functions.filter(function(f:Dynamic):Bool { return f.className == className; });
         } catch (e:Dynamic) {
             trace('BuildDataLoader: Error getting functions by class: $e');
@@ -559,7 +618,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            var functions:Array<Dynamic> = loadedData.functions;
+            var functions:Array<Dynamic> = loadedData.get().functions;
             return functions.filter(function(f:Dynamic):Bool {
                 return Std.string(f.name).indexOf(pattern) != -1;
             });
@@ -576,7 +635,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return [];
 
         try {
-            var functions:Array<Dynamic> = loadedData.functions;
+            var functions:Array<Dynamic> = loadedData.get().functions;
             return functions.filter(function(f:Dynamic):Bool {
                 var meta:Array<String> = f.metadata;
                 if (meta == null) return false;
@@ -600,13 +659,14 @@ class BuildDataLoader {
         if (!ensureInitialized()) return null;
 
         try {
+            var data = loadedData.get();
             return {
-                timestamp: loadedData.timestamp,
-                platform: loadedData.platform,
-                classCount: loadedData.classes != null ? (cast(loadedData.classes, Array<Dynamic>)).length : 0,
-                abstractCount: loadedData.abstracts != null ? (cast(loadedData.abstracts, Array<Dynamic>)).length : 0,
-                functionCount: loadedData.functions != null ? (cast(loadedData.functions, Array<Dynamic>)).length : 0,
-                sourceFileCount: loadedData.sourceFileCount != null ? loadedData.sourceFileCount : 0,
+                timestamp: data.timestamp,
+                platform: data.platform,
+                classCount: data.classes != null ? (cast(data.classes, Array<Dynamic>)).length : 0,
+                abstractCount: data.abstracts != null ? (cast(data.abstracts, Array<Dynamic>)).length : 0,
+                functionCount: data.functions != null ? (cast(data.functions, Array<Dynamic>)).length : 0,
+                sourceFileCount: data.sourceFileCount != null ? data.sourceFileCount : 0,
                 dataSource: dataSource
             };
         } catch (e:Dynamic) {
@@ -647,7 +707,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return null;
 
         try {
-            var typedefs:Array<Dynamic> = loadedData.typedefs;
+            var typedefs:Array<Dynamic> = loadedData.get().get().typedefs;
             if (typedefs != null) {
                 for (td in typedefs) {
                     var fullName = '${td.pack}.${td.name}';
@@ -669,10 +729,11 @@ class BuildDataLoader {
 
     /**
      * Get raw loaded data (for advanced usage)
+     * Returns the AResult object which can be used with .get() to retrieve data
      */
     public static function getRawData():Dynamic {
         ensureInitialized();
-        return loadedData;
+        return loadedData.get();
     }
 
     /**
@@ -736,3 +797,4 @@ typedef AbstractImplFieldInfo = {
     ?isOperator:Bool,
     ?operatorName:String
 }
+#end

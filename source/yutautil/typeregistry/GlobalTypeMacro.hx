@@ -106,7 +106,7 @@ class GlobalTypeMacro {
                 try {
                     Compiler.addGlobalMetadata(
                         pkg,
-                        "@:build(yutautil.typeregistry.TypeCollectionMacro.collectTypeInfo())",
+                        "@:autoBuild(yutautil.typeregistry.TypeCollectionMacro.collectTypeInfo())",
                         true // Recursive
                     );
                     appliedCount++;

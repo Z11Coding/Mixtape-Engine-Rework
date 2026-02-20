@@ -4,6 +4,7 @@ import haxe.CallStack;
 import haxe.Json;
 import haxe.io.Path;
 import sys.io.File;
+import yutautil.typeregistry.BuildDataLoader;
 import yutautil.typeregistry.TypeInfo;
 #if macro
 import haxe.macro.Position;
@@ -19,6 +20,7 @@ class SourceMapper {
     private static var sourceCache:Map<String, String> = new Map();
     private static var sourceFiles:Map<String, SourceFile> = new Map();
     private static var modifiedFunctions:Map<String, ModifiedFunction> = new Map();
+    private static var buildDataLoaded:Bool = false;
 
     static function __init__() {
         registry = RuntimeRegistry.get();
@@ -594,9 +596,126 @@ class SourceMapper {
     }
 
     /**
+     * Ensure SourceFile data is hydrated from build data when available.
+     * This aligns function IDs with macro-generated identifiers.
+     */
+    public static function ensureBuildDataLoaded():Void {
+        if (buildDataLoaded) return;
+        buildDataLoaded = true;
+
+        try {
+            if (!BuildDataLoader.initialize()) return;
+
+            var data = BuildDataLoader.getRawData();
+            if (data == null) return;
+
+            var editable = Reflect.field(data, "editableFunctions");
+            if (editable == null) return;
+
+            var funcList:Array<Dynamic> = cast editable;
+            var fileMap:Map<String, Array<Dynamic>> = new Map();
+
+            for (funcData in funcList) {
+                var filePathValue = Reflect.field(funcData, "filePath");
+                if (filePathValue == null) continue;
+
+                var filePath = Std.string(filePathValue);
+                if (filePath.length == 0) continue;
+
+                if (!fileMap.exists(filePath)) {
+                    fileMap.set(filePath, []);
+                }
+                fileMap.get(filePath).push(funcData);
+            }
+
+            for (filePath in fileMap.keys()) {
+                var source = getFileSource(filePath);
+                var sourceFile = new SourceFile(filePath, source != null ? source : "");
+                var parsedFunctions:Array<FunctionInfo> = [];
+
+                if (source != null) {
+                    parseFileStructure(sourceFile);
+                    parsedFunctions = sourceFile.functions.copy();
+                } else {
+                    sourceFile.imports = [];
+                    sourceFile.packageName = "";
+                    sourceFile.usingStatements = [];
+                    sourceFile.typeDeclarations = [];
+                }
+
+                sourceFile.functions = [];
+
+                for (funcData in fileMap.get(filePath)) {
+                    var functionNameValue = Reflect.field(funcData, "functionName");
+                    if (functionNameValue == null) continue;
+                    var functionName = Std.string(functionNameValue);
+                    if (functionName.length == 0) continue;
+                    var info:FunctionInfo = null;
+
+                    if (parsedFunctions.length > 0) {
+                        var matchIndex = -1;
+                        for (i in 0...parsedFunctions.length) {
+                            if (parsedFunctions[i].name == functionName) {
+                                matchIndex = i;
+                                break;
+                            }
+                        }
+                        if (matchIndex != -1) {
+                            info = parsedFunctions.splice(matchIndex, 1)[0];
+                        }
+                    }
+
+                    if (info == null) {
+                        info = new FunctionInfo(functionName, filePath);
+                    }
+
+                    var lineNumber = Reflect.field(funcData, "lineNumber");
+                    if (lineNumber != null) info.startLine = Std.int(lineNumber);
+
+                    var returnType = Reflect.field(funcData, "returnType");
+                    if (returnType != null) info.returnType = Std.string(returnType);
+
+                    var args = Reflect.field(funcData, "args");
+                    if (args != null) {
+                        info.parameters = [];
+                        for (arg in cast(args, Array<Dynamic>)) {
+                            var argName = Std.string(Reflect.field(arg, "name"));
+                            var argTypeValue = Reflect.field(arg, "type");
+                            var argType = argTypeValue != null ? Std.string(argTypeValue) : "Dynamic";
+                            var argOpt = Reflect.field(arg, "optional") == true;
+                            info.parameters.push(new ParameterInfo(argName, argType, argOpt));
+                        }
+                    }
+
+                    info.modifiers = [];
+                    if (Reflect.field(funcData, "isStatic") == true) info.modifiers.push("static");
+                    var isPublic = Reflect.field(funcData, "isPublic");
+                    if (isPublic == false) info.modifiers.push("private");
+
+                    var doc = Reflect.field(funcData, "doc");
+                    if (doc != null) info.documentation = [Std.string(doc)];
+
+                    if (info.sourceCode == null || info.sourceCode.trim().length == 0) {
+                        var originalExpr = Reflect.field(funcData, "originalExpression");
+                        var exprStr = originalExpr != null ? Std.string(originalExpr) : "{}";
+                        info.sourceCode = info.getSignature() + " " + exprStr;
+                    }
+
+                    sourceFile.functions.push(info);
+                }
+
+                sourceFiles.set(filePath, sourceFile);
+            }
+        } catch (e:Dynamic) {
+            trace('SourceMapper: Failed to load build data into source files: $e');
+        }
+    }
+
+    /**
      * Get all source files in the registry
      */
     public static function getAllSourceFiles():Array<SourceFile> {
+        ensureBuildDataLoaded();
         return [for (file in sourceFiles) file];
     }
 
@@ -604,6 +723,7 @@ class SourceMapper {
      * Get a specific function from any source file
      */
     public static function getFunction(functionName:String, className:String = null):FunctionInfo {
+        ensureBuildDataLoaded();
         for (sourceFile in sourceFiles) {
             for (func in sourceFile.functions) {
                 if (func.name == functionName) {
@@ -624,6 +744,7 @@ class SourceMapper {
         sourceCache.clear();
         sourceFiles.clear();
         modifiedFunctions.clear();
+        buildDataLoaded = false;
     }
 }
 

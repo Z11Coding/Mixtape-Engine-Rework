@@ -29,6 +29,7 @@ class TypeCollectionMacro {
     public static var collectedTypedefs:Array<Dynamic> = [];
     public static var collectedEnums:Array<Dynamic> = [];
     public static var collectedFunctions:Array<Dynamic> = [];
+    public static var collectedEditableFunctions:Array<Dynamic> = []; // Functions with original expressions for source editing
     static var buildMetadata:Dynamic = null;
     static var initialized:Bool = false;
     static var abstractDataDefined:Bool = false;
@@ -36,6 +37,7 @@ class TypeCollectionMacro {
     // Resource key names for embedded data
     public static inline var RESOURCE_KEY_FULL = "typeregistry_full_data";
     public static inline var RESOURCE_KEY_COMPRESSED = "typeregistry_compressed_data";
+    public static inline var INSTRUMENTED_META = ":sourceEditorInstrumented";
 
     /**
      * Build macro entry point - called for each class during compilation
@@ -45,7 +47,9 @@ class TypeCollectionMacro {
         var fields = Context.getBuildFields();
         var localClass = Context.getLocalClass();
         if (localClass == null) {
+        #if verbose
             trace("TypeCollectionMacro: No local class available, skipping");
+        #end
             return fields;
         }
 
@@ -60,13 +64,19 @@ class TypeCollectionMacro {
 
         collectClassData(classType, fields);
 
+        // Collect original function expressions and metadata BEFORE instrumentation
+        collectOriginalFunctions(fields, classType);
+
+        // Create a copy of fields and instrument the copy
+        var instrumentedFields = copyAndInstrumentFields(fields, classType);
+
         // Register completion callback on first run
         if (collectedClasses.length == 1) {
             Context.onAfterTyping(onGenerateComplete);
-            trace("TypeCollectionMacro: Registered onGenerate callback");
+            trace("TypeCollectionMacro: Registered onAfterTyping callback");
         }
 
-        return fields;
+        return instrumentedFields;
     }
 
     static function initializeBuildCollection():Void {
@@ -349,6 +359,352 @@ class TypeCollectionMacro {
     }
 
     /**
+     * Collect original function data (expressions, metadata) before any instrumentation.
+     * This captures the original function code for the source editor.
+     */
+    static function collectOriginalFunctions(fields:Array<Field>, classType:ClassType):Void {
+        var classPath = classType.pack.concat([classType.name]).join(".");
+
+        for (field in fields) {
+            switch (field.kind) {
+                case FFun(func):
+                    // Skip constructors
+                    if (field.name == "new") continue;
+
+                    var functionPos = Context.getPosInfos(field.pos);
+                    var filePath = functionPos.file;
+                    var lineNum = functionPos.min;
+                    var functionId = '$filePath:${field.name}:$lineNum';
+
+                    // Capture the ORIGINAL expression as a string BEFORE any modification
+                    var originalExpr = haxe.macro.ExprTools.toString(func.expr);
+
+                    var isStatic = field.access.indexOf(AStatic) != -1;
+                    var isPublic = field.access.indexOf(APrivate) == -1;
+
+                    // Get return type
+                    var returnType = "Void";
+                    if (func.ret != null) {
+                        returnType = haxe.macro.ComplexTypeTools.toString(func.ret);
+                    }
+
+                    // Get arguments
+                    var args:Array<Dynamic> = [];
+                    for (arg in func.args) {
+                        var argType = arg.type != null ? haxe.macro.ComplexTypeTools.toString(arg.type) : 'Dynamic';
+                        args.push({
+                            name: arg.name,
+                            type: argType,
+                            optional: arg.opt
+                        });
+                    }
+
+                    var editableFunction:Dynamic = {
+                        functionId: functionId,
+                        functionName: field.name,
+                        className: classType.name,
+                        classPath: classPath,
+                        isStatic: isStatic,
+                        isPublic: isPublic,
+                        returnType: returnType,
+                        args: args,
+                        filePath: filePath,
+                        lineNumber: lineNum,
+                        originalExpression: originalExpr,
+                        doc: field.doc
+                    };
+
+                    collectedEditableFunctions.push(editableFunction);
+
+                default:
+            }
+        }
+    }
+
+    /**
+     * Create a copy of the fields array and instrument the copy with intercept checks.
+     * Returns the instrumented copy; original field data is preserved in compilation data.
+     */
+    static function copyAndInstrumentFields(fields:Array<Field>, classType:ClassType):Array<Field> {
+        // Deep copy the fields array
+        var instrumentedFields:Array<Field> = [];
+
+        for (field in fields) {
+            var copiedField:Field = {
+                name: field.name,
+                kind: field.kind,
+                access: field.access.copy(),
+                pos: field.pos,
+                meta: field.meta,
+                doc: field.doc
+            };
+
+            // Instrument this copy
+            switch (copiedField.kind) {
+                case FFun(func):
+                    if (hasMeta(copiedField.meta, INSTRUMENTED_META)) {
+                        instrumentedFields.push(copiedField);
+                        continue;
+                    }
+
+                    // Skip constructors
+                    if (copiedField.name == "new") {
+                        instrumentedFields.push(copiedField);
+                        continue;
+                    }
+
+                    var functionPos = Context.getPosInfos(copiedField.pos);
+                    var filePath = functionPos.file;
+                    var lineNum = functionPos.min;
+                    var functionId = '$filePath:${copiedField.name}:$lineNum';
+
+                    // Build argument expressions for the intercept call
+                    var argNames:Array<String> = [for (arg in func.args) arg.name];
+                    var argExprs:Array<Expr> = [for (name in argNames) macro $i{name}];
+
+                    // Determine context for this function
+                    var isStatic = copiedField.access.indexOf(AStatic) != -1;
+                    var contextExpr:Expr = if (isStatic) {
+                        macro null;
+                    } else {
+                        macro this;
+                    };
+
+                    var hadInline = copiedField.access.indexOf(AInline) != -1;
+                    var hasAnyReturn = hasReturnStatement(func.expr);
+                    if (hadInline && hasAnyReturn) {
+                        copiedField.access = copiedField.access.filter(function(access) return access != AInline);
+                    }
+
+                    var isInline = copiedField.access.indexOf(AInline) != -1;
+                    var isVoidReturn = isVoidReturnType(func.ret, func.expr);
+
+                    if (isInline) {
+                        if (isVoidReturn) {
+                            var originalExpr = func.expr != null ? func.expr : macro {};
+                            func.expr = macro {
+                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                if (!_interceptResult.intercepted) {
+                                    $e{originalExpr};
+                                }
+                            };
+                        } else {
+                            var originalValueExpr = buildInlineValueExpr(func.expr);
+                            func.expr = macro {
+                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                return _interceptResult.intercepted ? cast _interceptResult.value : $e{originalValueExpr};
+                            };
+                        }
+                    } else {
+                        var interceptCall = if (isVoidReturn) {
+                            macro {
+                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                if (_interceptResult.intercepted) {
+                                    return;
+                                }
+                            };
+                        } else {
+                            macro {
+                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                if (_interceptResult.intercepted) {
+                                    return cast _interceptResult.value;
+                                }
+                            };
+                        };
+
+                        // Prepend intercept check to function body
+                        if (func.expr != null) {
+                            func.expr = {
+                                expr: EBlock([interceptCall, func.expr]),
+                                pos: func.expr.pos
+                            };
+                        }
+                    }
+
+                    if (!hasMeta(copiedField.meta, INSTRUMENTED_META)) {
+                        if (copiedField.meta == null) {
+                            copiedField.meta = [];
+                        }
+                        copiedField.meta.push({
+                            name: INSTRUMENTED_META,
+                            params: [],
+                            pos: copiedField.pos
+                        });
+                    }
+
+                    copiedField.kind = FFun(func);
+
+                default:
+            }
+
+            instrumentedFields.push(copiedField);
+        }
+
+        return instrumentedFields;
+    }
+
+    static function hasMeta(meta:Array<MetadataEntry>, name:String):Bool {
+        if (meta == null) return false;
+        for (entry in meta) {
+            if (entry.name == name) return true;
+        }
+        return false;
+    }
+
+    static function isVoidReturnType(ret:ComplexType, expr:Expr):Bool {
+        if (ret == null) {
+            return !hasReturnValue(expr);
+        }
+        return switch (ret) {
+            case TPath(path):
+                path.name == "Void" && (path.pack == null || path.pack.length == 0);
+            default:
+                false;
+        };
+    }
+
+    static function hasReturnValue(expr:Expr):Bool {
+        if (expr == null || expr.expr == null) return false;
+        return switch (expr?.expr) {
+            case EReturn(e):
+                e != null;
+            case EFunction(_):
+                false;
+            case EBlock(exprs):
+                Lambda.exists(exprs, hasReturnValue);
+            case EIf(cond, ifExpr, elseExpr):
+                hasReturnValue(ifExpr) || (elseExpr != null && hasReturnValue(elseExpr));
+            case ESwitch(switchExpr, cases, defaultExpr):
+                var found = false;
+                for (caseItem in cases) {
+                    if (hasReturnValue(caseItem.expr)) {
+                        found = true;
+                        break;
+                    }
+                }
+                found || (defaultExpr != null && hasReturnValue(defaultExpr));
+            case ETry(tryExpr, catches):
+                if (hasReturnValue(tryExpr)) {
+                    true;
+                } else {
+                    var found = false;
+                    for (catchItem in catches) {
+                        if (hasReturnValue(catchItem.expr)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    found;
+                }
+            case EWhile(_, body, _):
+                hasReturnValue(body);
+            case EFor(_, body):
+                hasReturnValue(body);
+            case EBinop(_, left, right):
+                hasReturnValue(left) || hasReturnValue(right);
+            case EUnop(_, _, sub):
+                hasReturnValue(sub);
+            case ECall(target, params):
+                hasReturnValue(target) || Lambda.exists(params, hasReturnValue);
+            case EArray(arrayExpr, indexExpr):
+                hasReturnValue(arrayExpr) || hasReturnValue(indexExpr);
+            case EField(owner, _):
+                hasReturnValue(owner);
+            case EParenthesis(inner):
+                hasReturnValue(inner);
+            case EObjectDecl(fields):
+                Lambda.exists(fields, function(field) return hasReturnValue(field.expr));
+            case EArrayDecl(values):
+                Lambda.exists(values, hasReturnValue);
+            case ENew(_, params):
+                Lambda.exists(params, hasReturnValue);
+            case ETernary(cond, ifExpr, elseExpr):
+                hasReturnValue(cond) || hasReturnValue(ifExpr) || hasReturnValue(elseExpr);
+            case ECheckType(value, _):
+                hasReturnValue(value);
+            case ECast(value, _):
+                value != null && hasReturnValue(value);
+            case EMeta(_, inner):
+                hasReturnValue(inner);
+            default:
+                false;
+        };
+    }
+
+    static function buildInlineValueExpr(expr:Expr):Expr {
+        if (expr == null) return macro null;
+        return macro (function() return $e{expr})();
+    }
+
+    static function hasReturnStatement(expr:Expr):Bool {
+        if (expr == null || expr.expr == null) return false;
+        return switch (expr.expr) {
+            case EReturn(_):
+                true;
+            case EFunction(_):
+                false;
+            case EBlock(exprs):
+                Lambda.exists(exprs, hasReturnStatement);
+            case EIf(_, ifExpr, elseExpr):
+                hasReturnStatement(ifExpr) || (elseExpr != null && hasReturnStatement(elseExpr));
+            case ESwitch(_, cases, defaultExpr):
+                var found = false;
+                for (caseItem in cases) {
+                    if (hasReturnStatement(caseItem.expr)) {
+                        found = true;
+                        break;
+                    }
+                }
+                found || (defaultExpr != null && hasReturnStatement(defaultExpr));
+            case ETry(tryExpr, catches):
+                if (hasReturnStatement(tryExpr)) {
+                    true;
+                } else {
+                    var found = false;
+                    for (catchItem in catches) {
+                        if (hasReturnStatement(catchItem.expr)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    found;
+                }
+            case EWhile(_, body, _):
+                hasReturnStatement(body);
+            case EFor(_, body):
+                hasReturnStatement(body);
+            case EBinop(_, left, right):
+                hasReturnStatement(left) || hasReturnStatement(right);
+            case EUnop(_, _, sub):
+                hasReturnStatement(sub);
+            case ECall(target, params):
+                hasReturnStatement(target) || Lambda.exists(params, hasReturnStatement);
+            case EArray(arrayExpr, indexExpr):
+                hasReturnStatement(arrayExpr) || hasReturnStatement(indexExpr);
+            case EField(owner, _):
+                hasReturnStatement(owner);
+            case EParenthesis(inner):
+                hasReturnStatement(inner);
+            case EObjectDecl(fields):
+                Lambda.exists(fields, function(field) return hasReturnStatement(field.expr));
+            case EArrayDecl(values):
+                Lambda.exists(values, hasReturnStatement);
+            case ENew(_, params):
+                Lambda.exists(params, hasReturnStatement);
+            case ETernary(cond, ifExpr, elseExpr):
+                hasReturnStatement(cond) || hasReturnStatement(ifExpr) || hasReturnStatement(elseExpr);
+            case ECheckType(value, _):
+                hasReturnStatement(value);
+            case ECast(value, _):
+                value != null && hasReturnStatement(value);
+            case EMeta(_, inner):
+                hasReturnStatement(inner);
+            default:
+                false;
+        };
+    }
+
+    /**
      * Called when generation is complete - saves all collected data and embeds as resources
      */
     static function onGenerateComplete(types:Array<ModuleType>):Void {
@@ -369,12 +725,14 @@ class TypeCollectionMacro {
                 typedefs: collectedTypedefs,
                 enums: collectedEnums,
                 functions: collectedFunctions,
+                editableFunctions: collectedEditableFunctions,
                 statistics: {
                     totalClasses: collectedClasses.length,
                     totalAbstracts: collectedAbstracts.length,
                     totalTypedefs: collectedTypedefs.length,
                     totalEnums: collectedEnums.length,
-                    totalFunctions: collectedFunctions.length
+                    totalFunctions: collectedFunctions.length,
+                    totalEditableFunctions: collectedEditableFunctions.length
                 }
             };
 
@@ -639,6 +997,7 @@ class TypeCollectionMacro {
                         metadata: f.metadata
                     };
                 }),
+                editableFunctions: data.editableFunctions,
                 statistics: data.statistics
             };
 

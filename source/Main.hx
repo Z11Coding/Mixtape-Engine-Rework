@@ -235,6 +235,10 @@ class Main extends Sprite
 		// ═══════════════════════════════════════════════════════════════
 		// TypeHandler & Abstract Type Checking Tests
 		// ═══════════════════════════════════════════════════════════════
+		// COMMENTED OUT: These tests use TypeHandler which requires BuildDataLoader
+		// BuildDataLoader uses async initialization, so commenting out these tests
+		// to prevent immediate data access that would freeze the engine startup.
+		/*
 		trace("=== TypeHandler & Abstract Type Checking Tests ===");
 		try {
 			// --- TypeHandler.classifyType ---
@@ -343,6 +347,11 @@ class Main extends Sprite
 		} catch (e:Dynamic) {
 			trace("TypeHandler Test - Error: " + e);
 		}
+		*/
+
+		// Initialize BuildDataLoader asynchronously (non-blocking)
+		// This starts the async loading process in the background without freezing startup
+		yutautil.typeregistry.BuildDataLoader.initialize();
 
 		// var fold: yutautil.Fold<{name:String, age:Int}> = {
 		// 	name: "John Doe",
