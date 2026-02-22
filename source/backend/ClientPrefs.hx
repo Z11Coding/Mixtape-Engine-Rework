@@ -3,6 +3,7 @@ package backend;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxSave;
+import openfl.display.StageQuality;
 import states.PlaylistState.PlaylistMetadata;
 import states.TitleState;
 
@@ -293,6 +294,8 @@ import states.TitleState;
 	public var showNPS:Bool = true;
 	public var showHealth:Bool = true;
 	public var showScoreText:Bool = true;
+
+	public var gameQuality:String = 'MEDIUM';
 }
 
 class ClientPrefs {
@@ -755,4 +758,6 @@ class ClientPrefs {
 		FlxG.sound.volumeDownKeys = turnOn ? TitleState.volumeDownKeys : emptyArray;
 		FlxG.sound.volumeUpKeys = turnOn ? TitleState.volumeUpKeys : emptyArray;
 	}
+	public static function getQuality():StageQuality
+		return @:privateAccess StageQuality.fromString(ClientPrefs.data.gameQuality);
 }

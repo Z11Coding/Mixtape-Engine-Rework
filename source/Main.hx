@@ -716,6 +716,16 @@ class Main extends Sprite
 		FlxG.signals.gameResized.add((w, h) -> resetSpriteCaches());
 		FlxG.signals.focusGained.add(resetSpriteCaches);
 
+		FlxG.signals.gameResized.add((w, h) -> {
+			if (MobileScaleMode.instance != null) {
+				@:privateAccess {
+					MobileScaleMode.instance.horizontalAlign = MobileScaleMode.active ? LEFT : CENTER;
+					MobileScaleMode.instance.verticalAlign = MobileScaleMode.active ? TOP : CENTER;
+					MobileScaleMode.instance.onMeasure(w, h);
+				}
+			}
+		});
+
 
 		// Artificial loop using GoToTag as a label and GoTo as a goto
 		/*var counter = 0;

@@ -57,6 +57,14 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		antialiasingOption = optionsArray.length-1;
 
+		var option:Option = new Option('Game Smoothing',
+			'Set the smoothing of the game\'s graphics\n(This setting is overridden by pixel stages)',
+			'gameQuality',
+			STRING,
+			['LOW', 'MEDIUM', 'HIGH', 'BEST']);
+		option.onChange = function() FlxG.game.stage.quality = ClientPrefs.getQuality(); //Changing onChange is only needed if you want to make a special interaction after it changes the value
+		addOption(option);
+
 		var option:Option = new Option('Shaders', //Name
 			"If unchecked, disables shaders.\nIt's used for some visual effects, and also CPU intensive for weaker PCs.", //Description
 			'shaders',
@@ -283,7 +291,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	override function changeSelection(change:Int = 0)
 	{
 		super.changeSelection(change);
-		boyfriend.visible = (antialiasingOption == curSelected);
+		boyfriend.visible = (antialiasingOption == curSelected || antialiasingOption+1 == curSelected);
 	}
 
 	override function update(e:Float) {

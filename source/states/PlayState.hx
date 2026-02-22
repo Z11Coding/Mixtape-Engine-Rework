@@ -34,6 +34,7 @@ import objects.NoteObject;
 import objects.SyncedVideoSprite;
 import objects.VideoSprite;
 import objects.playfields.*;
+import openfl.display.StageQuality;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
 import openfl.filters.BitmapFilter;
@@ -1060,6 +1061,10 @@ class PlayState extends MusicBeatState
 			stageUI = stageData.stageUI;
 		else if (stageData.isPixelStage == true) //Backward compatibility
 			stageUI = "pixel";
+
+		FlxG.game.stage.quality = isPixelStage ? StageQuality.LOW : ClientPrefs.getQuality();
+		camGame.pixelPerfectRender = isPixelStage;
+		camGame.antialiasing = isPixelStage ? false : ClientPrefs.data.antialiasing;
 
 		BF_X = stageData.boyfriend[0];
 		BF_Y = stageData.boyfriend[1];
