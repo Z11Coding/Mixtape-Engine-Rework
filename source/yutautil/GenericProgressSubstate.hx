@@ -448,7 +448,7 @@ class GenericProgressSubstate extends MusicBeatSubstate {
         });
     }
 
-    public static function createIterTask(name:String, iterable:Array<Dynamic>, func:Dynamic->Dynamic, ?throwOnError:Bool = false):ProgressTask {
+    public static function createIterTask<I>(name:String, iterable:Array<I>, func:I->Dynamic, ?throwOnError:Bool = false):ProgressTask {
         return Iter({
             name: name,
             iterable: iterable,
@@ -457,7 +457,7 @@ class GenericProgressSubstate extends MusicBeatSubstate {
         });
     }
 
-    public static function createMapIterTask(name:String, map:Map<Dynamic, Dynamic>, func:(Dynamic, Dynamic)->Dynamic, ?throwOnError:Bool = false):ProgressTask {
+    public static function createMapIterTask<I, T>(name:String, map:Map<I, T>, func:(I, T)->Dynamic, ?throwOnError:Bool = false):ProgressTask {
         return MapIter({
             name: name,
             map: map,

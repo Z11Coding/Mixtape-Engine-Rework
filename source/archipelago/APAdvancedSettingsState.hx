@@ -397,12 +397,12 @@ class APAdvancedSettingsState extends MusicBeatState
 							includeVanilla = value == true;
 						case "starting_song":
 							// Only set if the value is actually present in YAML and not empty
-							var songValue = Std.string(value);
-							startingSong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
+							var songValue = APInfo.realName(Std.string(value));
+							startingSong = (songValue != null && songValue.trim().length > 0) ? APInfo.realName(songValue) : null;
 						case "victory_song":
 							// Only set if the value is actually present in YAML and not empty
-							var songValue = Std.string(value);
-							victorySong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
+							var songValue = APInfo.realName(Std.string(value));
+							victorySong = (songValue != null && songValue.trim().length > 0) ? APInfo.realName(songValue) : null;
 						case "deathlink":
 							deathlink = value == true;
 						case "ticket_percent" | "ticket_percentage":
@@ -491,6 +491,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		var progressSubstate = new GenericProgressSubstate("Importing YAML Configuration", tasks, function(results:Array<Dynamic>)
 		{
 			// On completion
+			saveCurrentSettings();
 			if (forceExportPath != null)
 			{
 				// This is a refresh operation - immediately trigger export to the forced path
@@ -3089,8 +3090,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			includePico = Reflect.hasField(settings, "include_pico") ? settings.include_pico : true;
 			includeErect = Reflect.hasField(settings, "include_erect") ? settings.include_erect : true;
 			includeVanilla = Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true;
-			startingSong = settings.starting_song != null ? settings.starting_song : "Tutorial";
-			victorySong = settings.victory_song != null ? settings.victory_song : "Tutorial";
+			startingSong = settings.starting_song != null ? APInfo.realName(settings.starting_song) : "Tutorial";
+			victorySong = settings.victory_song != null ? APInfo.realName(settings.victory_song) : "Tutorial";
 
 			// Sanity settings with defaults
 			enable_sanity_locations = Reflect.hasField(settings, "enable_sanity_locations") ? Reflect.field(settings, "enable_sanity_locations") : false;
@@ -3554,7 +3555,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		// Handle optional song settings
 		if (startingSong != null)
 		{
-			Reflect.setField(yamlThing, "starting_song", startingSong);
+			Reflect.setField(yamlThing, "starting_song", APInfo.toYAMLSafe(startingSong));
 		}
 		else
 		{
@@ -3562,7 +3563,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 		if (victorySong != null)
 		{
-			Reflect.setField(yamlThing, "victory_song", victorySong);
+			Reflect.setField(yamlThing, "victory_song", APInfo.toYAMLSafe(victorySong));
 		}
 		else
 		{
