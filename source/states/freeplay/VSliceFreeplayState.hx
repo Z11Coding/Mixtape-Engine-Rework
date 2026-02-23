@@ -3298,7 +3298,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				var modName = fpManager.songList[curCapsule.songData.levelId]?.folder ?? "";
 
 				// Hint the song
-				if (APFreeplayManager.isVictorySong(songName, modName) && APInfo.ticketCount >= APInfo.ticketWinCount) {
+				if (APFreeplayManager.isVictorySong(songName, modName) && APInfo.ticketCount <= APInfo.ticketWinCount) {
 					APEntryState.ap.Say("!hint Ticket");
 				} else {
 					var hintCommand = "!hint " + songName + ((modName != "" && modName != null) ? " (" + modName + ")" : "");

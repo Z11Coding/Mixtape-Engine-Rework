@@ -2070,7 +2070,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				includeVanilla = cast(value, Bool);
 				updateSongStats();
 			case "Sanity Completion Type":
-				accRequirement = Std.string(value);
+				sanity_completion_type = Std.string(value);
 			default:
 				trace('Unknown option: $optionName');
 		}

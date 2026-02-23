@@ -661,7 +661,7 @@ class FreeplayState extends MusicBeatState
 				var SongInfo = APEntryState.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
 				if (APEntryState.ap != null) {
 					// Check if this is the victory song and if it's already unlocked
-					if (APFreeplayManager.isVictorySong(SongInfo.song, SongInfo.mod) && APInfo.ticketCount >= APInfo.ticketWinCount && (APFreeplayManager.curUnlocked.filter(function(entry:{song:String, mod:String}) {
+					if (APFreeplayManager.isVictorySong(SongInfo.song, SongInfo.mod) && APInfo.ticketCount <= APInfo.ticketWinCount && (APFreeplayManager.curUnlocked.filter(function(entry:{song:String, mod:String}) {
 						return entry.song == SongInfo.song && entry.mod == (SongInfo.mod != null ? SongInfo.mod : "");
 					}).length != 0)) {
 						APEntryState.ap.Say("!hint Ticket");
