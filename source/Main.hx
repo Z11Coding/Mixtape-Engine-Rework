@@ -814,7 +814,7 @@ class Main extends Sprite
 
 	static function resetSpriteCache(sprite:Sprite):Void {
 		@:privateAccess {
-		        sprite.__cacheBitmap = null;
+		  sprite.__cacheBitmap = null;
 			sprite.__cacheBitmapData = null;
 		}
 	}
