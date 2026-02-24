@@ -83,26 +83,24 @@ Head into the `setup` folder located in the root directory of this repository, a
 
 ### "Which setup file?"
 
-It depends on your operating system. For Windows, run `windows.bat`, for anything else, run `unix.sh`.
+It depends on your operating system. For Windows, run `windows.bat`, for MacOS or Linux, run `unixMac.sh` and `unixLinux.sh` respectively. (Yes, there is a difference.)
 
-Sit back, relax, and wait for haxelib to do its magic. You will be done when you see the word "**Finished!**"
+Sit back, relax, and wait for haxelib to do its magic. When it's done on Windows, It will ask if you would like to set the libraries to their specific versions. Typically, you don't need to do this, but if you have a library-related error, this is recommended. You will be done when you see the word "**Finished!**" (or it just straight up closes lol)
 
-To build the game, run `lime test cpp`.
+To compile and run the game, run `lime test youroshere`. (where `youroshere` is replaced by your os (Windows: `windows`, MacOS: `mac`, Linux: `linux`, you get the point)
 
 ---
 
 ### "It's taking a while, should I be worried?"
 
-No, it's completely normal. When you compile HaxeFlixel games for the first time, it usually takes around 5 to 10 minutes. It depends on how powerful your hardware is.
+No, it's completely normal. Yuta has a bajillion things running in the background of this engine, so it's gonna take a second to finish compiling everything. Especially the first time around.
 
 ### "I had an error relating to g++ on Linux!"
 
-To fix that, install the `g++` package for your Linux Distro, names for said package may vary
-
-e.g: Fedora is `gcc-c++`, Gentoo is `sys-devel/gcc`, and so on.
+Dude, this engine isn't anywhere near ready for Linux. Why tf are you compiling it for Linux?
 
 ### "I have an error saying ApplicationMain.exe : fatal error LNK1120: 1 unresolved externals!"
 
-Run `lime test cpp -clean` again, or delete the export folder and compile again.
+Run `lime test cpp -clean` again, or delete the export folder and compile again. Because otherwise, how did you manage that?
 
 ---
