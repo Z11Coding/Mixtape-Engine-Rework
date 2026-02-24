@@ -3926,7 +3926,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		// Save current settings and update stats before export
 		saveCurrentSettings();
 		updateSongStats();
-		
+
 		// Show export animation
 		FlxFlicker.flicker(exportButton, 0.5, 0.1);
 
@@ -3990,7 +3990,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		// Save current settings and update stats before export
 		saveCurrentSettings();
 		updateSongStats();
-		
+
 		// Show export animation
 		FlxFlicker.flicker(exportButton, 0.5, 0.1);
 
