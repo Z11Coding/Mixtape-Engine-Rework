@@ -639,6 +639,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			// On completion
 			var hadInvalidSanity = enforceSanityCompatibility(true);
 			saveCurrentSettings();
+			updateSongStats();
 			if (hadInvalidSanity)
 			{
 				refreshCurrentPage();
@@ -2491,6 +2492,17 @@ class APAdvancedSettingsState extends MusicBeatState
 		// First save the current settings so the song list generation can use them
 		saveCurrentSettings();
 
+		// Sync include options with APEntryState before generating the song list
+		// This ensures generateSongList() uses the correct include/exclude settings
+		if (includeVanilla != APEntryState.gameSettings.FNF.include_vanilla)
+			APEntryState.gameSettings.FNF.include_vanilla = includeVanilla;
+		if (includeSecrets != APEntryState.gameSettings.FNF.include_secrets)
+			APEntryState.gameSettings.FNF.include_secrets = includeSecrets;
+		if (includePico != APEntryState.gameSettings.FNF.include_pico)
+			APEntryState.gameSettings.FNF.include_pico = includePico;
+		if (includeErect != APEntryState.gameSettings.FNF.include_erect)
+			APEntryState.gameSettings.FNF.include_erect = includeErect;
+
 		// Regenerate the song list with current settings
 		APSettingsSubState.generateSongList();
 
@@ -3911,6 +3923,10 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function performYAMLExportToDefault()
 	{
+		// Save current settings and update stats before export
+		saveCurrentSettings();
+		updateSongStats();
+		
 		// Show export animation
 		FlxFlicker.flicker(exportButton, 0.5, 0.1);
 
@@ -3971,6 +3987,10 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function performYAMLExportWithDialog()
 	{
+		// Save current settings and update stats before export
+		saveCurrentSettings();
+		updateSongStats();
+		
 		// Show export animation
 		FlxFlicker.flicker(exportButton, 0.5, 0.1);
 
@@ -4034,6 +4054,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		// Save current settings
 		saveCurrentSettings();
+		updateSongStats();
 
 		// Show export animation
 		FlxFlicker.flicker(exportButton, 0.5, 0.1);
