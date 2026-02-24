@@ -83,7 +83,7 @@ Head into the `setup` folder located in the root directory of this repository, a
 
 ### "Which setup file?"
 
-It depends on your operating system. For Windows, run `windows.bat`, for MacOS or Linux, run `unixMac.sh` and `unixLinux.sh` respectively. (Yes, there is a difference.)
+It depends on your operating system. For Windows, run `windows.bat`, for MacOS or Linux, run `unixMac.sh` or `unixLinux.sh` respectively. (Yes, there is a difference.)
 
 Sit back, relax, and wait for haxelib to do its magic. When it's done on Windows, It will ask if you would like to set the libraries to their specific versions. Typically, you don't need to do this, but if you have a library-related error, this is recommended. You will be done when you see the word "**Finished!**" (or it just straight up closes lol)
 
