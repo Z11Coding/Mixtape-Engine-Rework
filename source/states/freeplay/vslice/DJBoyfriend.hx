@@ -463,7 +463,7 @@ class FreeplayDJ extends FunkinSprite
   public function playFlashAnimation(id:String, Force:Bool = false, Reverse:Bool = false, Loop:Bool = false, Frame:Int = 0):Void
   {
     this.anim.play(id, Force, Reverse, Frame);
-    applyAnimOffset();
+    //applyAnimOffset();
   }
 
   function applyAnimOffset()

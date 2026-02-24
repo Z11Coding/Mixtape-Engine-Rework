@@ -74,11 +74,15 @@ class StrumNote extends NoteObject
 
 	private var field:PlayField;
 	public var useRGBShader:Bool = true;
+	public var forcedOff:Bool = false;
 	public function new(x:Float, y:Float, leData:Int, ?playField:PlayField) {
 		animation = new PsychAnimationController(this);
 
 		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
-		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
+		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) {
+			useRGBShader = false;
+			rgbShader.forceDisabled = true;
+		}
 		// Use colArray for color indexing on non-pixel stages, pixelAnimIndex for pixel stages
 		var colorIndex:Int = (PlayState.instance != null && PlayState.isPixelStage) ?
 			Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData] :
@@ -153,8 +157,10 @@ class StrumNote extends NoteObject
 			skin = 'noteSkins/$texture$skinPostfix';
 		}
 
-		if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution')
+		if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution') {
 			useRGBShader = false;
+			rgbShader.forceDisabled = forcedOff = true;
+		}
 
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
@@ -316,5 +322,6 @@ class StrumNote extends NoteObject
 			centerOffsets();
 		}
 		if(useRGBShader) rgbShader.enabled = (animation.curAnim != null && animation.curAnim.name != 'static');
+		rgbShader.forceDisabled = forcedOff;
 	}
 }
