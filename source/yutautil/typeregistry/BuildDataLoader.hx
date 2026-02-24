@@ -505,7 +505,7 @@ class BuildDataLoader {
         var results:Array<{name:String, typeParams:Array<String>}> = [];
 
         try {
-            var abstracts:Array<Dynamic> = loadedData.get().get().abstracts;
+            var abstracts:Array<Dynamic> = loadedData.get().abstracts;
             if (abstracts != null) {
                 for (abs in abstracts) {
                     if (abs.isGeneric == true && abs.typeParams != null) {
@@ -707,7 +707,7 @@ class BuildDataLoader {
         if (!ensureInitialized()) return null;
 
         try {
-            var typedefs:Array<Dynamic> = loadedData.get().get().typedefs;
+            var typedefs:Array<Dynamic> = loadedData.get().typedefs;
             if (typedefs != null) {
                 for (td in typedefs) {
                     var fullName = '${td.pack}.${td.name}';

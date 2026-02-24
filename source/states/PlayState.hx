@@ -8093,12 +8093,20 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		//Backwards Compatibilty
 	}
 
+
+	var overriddenEventNames:Array<String> = [];  // Events scripts are using.
 	public function triggerEvent(eventName:String, value1:String, value2:String, ?strumTime:Float) {
 		var flValue1:Null<Float> = Std.parseFloat(value1);
 		var flValue2:Null<Float> = Std.parseFloat(value2);
 		if(Math.isNaN(flValue1)) flValue1 = null;
 		if(Math.isNaN(flValue2)) flValue2 = null;
 
+		var isEventOverridden:Bool = overriddenEventNames.contains(eventName)
+			|| [for (lua in luaArray) if (lua != null) lua.scriptName.split('/').pop().split('.')[0]].concat(
+				[for (hscript in hscriptArray) if (hscript != null) hscript.origin.split('/').pop().split('.')[0]]).concat(
+				[for (yscript in yscriptArray) if (yscript != null) yscript.scriptPath.split('/').pop().split('.')[0]]).contains(eventName);
+
+		if (!isEventOverridden)
 		switch(eventName) {
 			case 'Change Focus':
 				isCameraOnForcedPos = true;
@@ -8914,6 +8922,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					localFreezeNotes = false;
 				}
 		}
+		else {overriddenEventNames.push(eventName); trace('Event ' + eventName + ' was overridden by a script!');}
 
 		stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));
 		callOnScripts('onEvent', [eventName, value1, value2, strumTime]);

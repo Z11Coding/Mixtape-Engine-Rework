@@ -1326,7 +1326,7 @@ class APStyledEntryState extends MusicBeatState {
             // Show success message using InfoPanelSubstate for consistency
             var successPanel = new InfoPanelSubstate(
                 "✅ Archipelago Location Changed",
-                "Archipelago location changed to:\\n" + currentAPLocation + "\\n\\nThe state will refresh to apply changes.",
+                "Archipelago location changed to:\n" + currentAPLocation + "\n\nThe state will refresh to apply changes.",
                 FlxColor.LIME,
                 function() {
                     save.save();
@@ -1339,7 +1339,7 @@ class APStyledEntryState extends MusicBeatState {
             currentAPLocation = before;
             var cancelPanel = new InfoPanelSubstate(
                 "❌ Location Change Cancelled",
-                "Archipelago location was not changed.\\n\\nThe current location remains:\\n" + currentAPLocation,
+                "Archipelago location was not changed.\n\nThe current location remains:\n" + currentAPLocation,
                 FlxColor.ORANGE
             );
             openSubState(cancelPanel);

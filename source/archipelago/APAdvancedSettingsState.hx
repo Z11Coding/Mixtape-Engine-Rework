@@ -223,6 +223,18 @@ class APAdvancedSettingsState extends MusicBeatState
 	var contextMenuTexts:FlxTypedGroup<FlxText>;
 	var currentContextMenu:ContextMenuType;
 	var contextMenuTarget:String; // Which option is showing the context menu
+	var optionTooltipPanel:FlxSprite;
+	var optionTooltipText:FlxText;
+	var optionTooltipHoverKey:String = null;
+	var optionTooltipHoverTime:Float = 0;
+	var optionTooltipDelay:Float = 1.0;
+	var optionTooltipVisible:Bool = false;
+	var lastMouseX:Float = 0;
+	var lastMouseY:Float = 0;
+	var mouseMoveThreshold:Float = 15; // Reset tooltip if mouse moves more than this distance
+
+	// Warning queue system - show warnings after substates close
+	var pendingWarnings:Array<{title:String, message:String, color:FlxColor}> = [];
 
 	// YAML import system
 	var pendingYamlImport:archipelago.APYaml = null;
@@ -349,6 +361,140 @@ class APAdvancedSettingsState extends MusicBeatState
 	function createEditContextMenu(editCallback:Void->Void):ContextMenuType
 	{
 		return EDIT_VALUE(editCallback);
+	}
+
+	inline function supportsSanityOptions():Bool
+	{
+		return unlockMethod != "Song Completion";
+	}
+
+	inline function hasEnabledSanityType():Bool
+	{
+		return stagesanity || charactersanity;
+	}
+
+	function showSanityCompatibilityPanel(title:String, message:String, ?color:FlxColor = FlxColor.RED)
+	{
+		hideOptionTooltip(true);
+		if (subState == null)
+		{
+			openSubState(new InfoPanelSubstate(title, message, color));
+		}
+		else
+		{
+			// Queue warning to show after substate closes
+			pendingWarnings.push({title: title, message: message, color: color});
+		}
+	}
+
+	function enforceSanityCompatibility(?showImportError:Bool = false):Bool
+	{
+		var hasChanges = false;
+		var importedMismatch = false;
+
+		if (!supportsSanityOptions())
+		{
+			if (stagesanity)
+			{
+				stagesanity = false;
+				hasChanges = true;
+				importedMismatch = true;
+			}
+			if (charactersanity)
+			{
+				charactersanity = false;
+				hasChanges = true;
+				importedMismatch = true;
+			}
+		}
+
+		if (!hasEnabledSanityType() && enable_sanity_locations)
+		{
+			enable_sanity_locations = false;
+			hasChanges = true;
+			if (showImportError)
+			{
+				importedMismatch = true;
+			}
+		}
+
+		if (!enable_sanity_locations && sanity_completion_type != "on_getting")
+		{
+			sanity_completion_type = "on_getting";
+			hasChanges = true;
+			if (showImportError)
+			{
+				importedMismatch = true;
+			}
+		}
+
+		if (showImportError && importedMismatch)
+		{
+			showSanityCompatibilityPanel("Invalid Sanity Combination Detected",
+				"Imported settings contained an invalid sanity combination.\n\n"
+				+ "Sanity options require at least 3 checks and are not compatible with Unlock Method: Song Completion.\n"
+				+ "Enable Sanity Locations also requires at least one enabled sanity type.\n\n"
+				+ "Invalid sanity values were automatically disabled.", FlxColor.RED);
+		}
+
+		return hasChanges;
+	}
+
+	function setSanityType(kind:String, value:Bool, ?showErrorIfInvalid:Bool = true)
+	{
+		if (value && !supportsSanityOptions())
+		{
+			if (kind == "stage")
+			{
+				stagesanity = false;
+			}
+			else
+			{
+				charactersanity = false;
+			}
+
+			enforceSanityCompatibility(false);
+
+			if (showErrorIfInvalid)
+			{
+				showSanityCompatibilityPanel("Sanity Options Unavailable",
+					"3 checks must be available for sanity options to be used.\n\n"
+					+ "Unlock Method is currently set to Song Completion.\n"
+					+ "Switch Unlock Method to Note Checks or Both to use sanity options.", FlxColor.RED);
+			}
+			return;
+		}
+
+		if (kind == "stage")
+		{
+			stagesanity = value;
+		}
+		else
+		{
+			charactersanity = value;
+		}
+
+		enforceSanityCompatibility(false);
+	}
+
+	function setUnlockMethodWithCompatibility(newMethod:String, ?showIncompatibilityInfo:Bool = true)
+	{
+		unlockMethod = newMethod;
+		var changed = enforceSanityCompatibility(false);
+
+		if (showIncompatibilityInfo && unlockMethod == "Song Completion")
+		{
+			showSanityCompatibilityPanel("Sanity Options Not Compatible",
+				"Unlock Method set to Song Completion.\n\n"
+				+ "Sanity options require at least 3 checks and are not compatible with Song Completion.\n"
+				+ "Any enabled sanity options have been disabled.", FlxColor.ORANGE);
+		}
+
+		if (changed)
+		{
+			refreshCurrentPage();
+		}
+		updateSongStats();
 	}
 
 	function importYamlData(yaml:archipelago.APYaml)
@@ -491,13 +637,20 @@ class APAdvancedSettingsState extends MusicBeatState
 		var progressSubstate = new GenericProgressSubstate("Importing YAML Configuration", tasks, function(results:Array<Dynamic>)
 		{
 			// On completion
+			var hadInvalidSanity = enforceSanityCompatibility(true);
 			saveCurrentSettings();
+			if (hadInvalidSanity)
+			{
+				refreshCurrentPage();
+				// Also update sanity locks in case we're not on that page
+				updateSanityOptionLocksInPages();
+			}
 			if (forceExportPath != null)
 			{
 				// This is a refresh operation - immediately trigger export to the forced path
 				performYAMLExportToPath(forceExportPath);
 			}
-			else
+			else if (!hadInvalidSanity)
 			{
 				// Regular import - show success message
 				var successPrompt = new InfoPanelSubstate("YAML Import Complete",
@@ -522,6 +675,8 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function setupPages()
 	{
+		enforceSanityCompatibility(false);
+
 		// Main Settings Page
 		var mainOptions:Array<SettingsOption> = [
 			{
@@ -559,8 +714,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				locked: false,
 				contextMenu: createEnumContextMenu(["Note Checks", "Song Completion", "Both"], unlockMethod, (value) ->
 				{
-					unlockMethod = value;
-					updateSongStats();
+					setUnlockMethodWithCompatibility(value, true);
 				})
 			},
 			{
@@ -836,12 +990,12 @@ class APAdvancedSettingsState extends MusicBeatState
 			name: "Stagesanity",
 			description: "Enable stage-based items. Creates location checks for stages used in songs.",
 			callback: function() {
-				stagesanity = !stagesanity;
+				setSanityType("stage", !stagesanity, true);
 				refreshCurrentPage();
 			},
 			locked: false,
 			contextMenu: createBoolContextMenu(stagesanity, function(value:Bool) {
-				stagesanity = value;
+				setSanityType("stage", value, true);
 				// Don't refresh here - the main callback will handle it
 			})
 		});
@@ -850,12 +1004,12 @@ class APAdvancedSettingsState extends MusicBeatState
 			name: "Charactersanity",
 			description: "Enable character-based items. Creates location checks for characters used in songs.",
 			callback: function() {
-				charactersanity = !charactersanity;
+				setSanityType("character", !charactersanity, true);
 				refreshCurrentPage();
 			},
 			locked: false,
 			contextMenu: createBoolContextMenu(charactersanity, function(value:Bool) {
-				charactersanity = value;
+				setSanityType("character", value, true);
 				// Don't refresh here - the main callback will handle it
 			})
 		});
@@ -867,11 +1021,26 @@ class APAdvancedSettingsState extends MusicBeatState
 			description: "Enable or disable all sanity location types globally",
 			callback: function() {
 				enable_sanity_locations = !enable_sanity_locations;
+				var changed = enforceSanityCompatibility(false);
+				if (changed) {
+					showSanityCompatibilityPanel("Sanity Configuration Updated",
+						"Your sanity settings were automatically adjusted to maintain a valid configuration.\n\n"
+						+ "Enable Sanity Locations requires at least one enabled sanity type.\n"
+						+ "Check your sanity completion type setting.", FlxColor.YELLOW);
+				}
 				refreshCurrentPage();
 			},
 			locked: false,
 			contextMenu: createBoolContextMenu(enable_sanity_locations, function(value:Bool) {
 				enable_sanity_locations = value;
+				var changed = enforceSanityCompatibility(false);
+				if (changed) {
+					showSanityCompatibilityPanel("Sanity Configuration Updated",
+						"Your sanity settings were automatically adjusted to maintain a valid configuration.\n\n"
+						+ "Enable Sanity Locations requires at least one enabled sanity type.\n"
+						+ "Check your sanity completion type setting.", FlxColor.YELLOW);
+				}
+				refreshCurrentPage();
 			})
 		});
 
@@ -882,6 +1051,12 @@ class APAdvancedSettingsState extends MusicBeatState
 			locked: false,
 			contextMenu: createEnumContextMenu(["on_getting", "on_playing", "on_beating"], sanity_completion_type, (value) -> {
 				sanity_completion_type = value;
+				var changed = enforceSanityCompatibility(false);
+				if (changed) {
+					showSanityCompatibilityPanel("Sanity Configuration Updated",
+						"Your sanity settings were automatically adjusted to maintain a valid configuration.\n\n"
+						+ "Sanity Completion Type is only available when sanity locations are enabled and at least one sanity type is active.", FlxColor.YELLOW);
+				}
 				refreshCurrentPage(); // Force refresh to update the display
 			})
 		});
@@ -1019,6 +1194,45 @@ class APAdvancedSettingsState extends MusicBeatState
 				color: FlxColor.WHITE
 			}
 		];
+
+		updateSanityOptionLocksInPages();
+	}
+
+	function updateSanityOptionLocksInPages()
+	{
+		if (pages == null || pages.length == 0)
+		{
+			return;
+		}
+
+		var canUseSanity = supportsSanityOptions();
+		var hasSanityType = hasEnabledSanityType();
+
+		for (page in pages)
+		{
+			if (page == null || page.name != "SANITY OPTIONS" || page.options == null)
+			{
+				continue;
+			}
+
+			for (option in page.options)
+			{
+				if (option == null)
+				{
+					continue;
+				}
+
+				switch (option.name)
+				{
+					case "Enable Sanity Locations":
+						option.locked = !canUseSanity || !hasSanityType;
+					case "Sanity Completion Type":
+						option.locked = !canUseSanity || !hasSanityType || !enable_sanity_locations;
+					default:
+						// Keep existing lock behavior for other sanity options.
+				}
+			}
+		}
 	}
 
 	function setupUI()
@@ -1765,8 +1979,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		var options = ["Note Checks", "Song Completion", "Both"];
 		var current = options.indexOf(unlockMethod);
-		unlockMethod = options[(current + 1) % options.length];
-		updateSongStats();
+		setUnlockMethodWithCompatibility(options[(current + 1) % options.length], true);
 	}
 
 	function cycleGradeRequirement()
@@ -1788,6 +2001,12 @@ class APAdvancedSettingsState extends MusicBeatState
 		var options = ["on_getting", "on_playing", "on_beating"];
 		var current = options.indexOf(sanity_completion_type);
 		sanity_completion_type = options[(current + 1) % options.length];
+		var changed = enforceSanityCompatibility(false);
+		if (changed) {
+			showSanityCompatibilityPanel("Sanity Configuration Updated",
+				"Your sanity settings were automatically adjusted to maintain a valid configuration.\n\n"
+				+ "Sanity Completion Type is only available when sanity locations are enabled and at least one sanity type is active.", FlxColor.YELLOW);
+		}
 		refreshCurrentPage();
 	}
 
@@ -2047,8 +2266,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Unlock Type":
 				unlockType = Std.string(value);
 			case "Unlock Method":
-				unlockMethod = Std.string(value);
-				updateSongStats();
+				setUnlockMethodWithCompatibility(Std.string(value), true);
 			case "Grade Requirement":
 				gradeRequirement = Std.string(value);
 			case "Accuracy Requirement":
@@ -2072,6 +2290,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				updateSongStats();
 			case "Sanity Completion Type":
 				sanity_completion_type = Std.string(value);
+				enforceSanityCompatibility(false);
 			default:
 				trace('Unknown option: $optionName');
 		}
@@ -2242,6 +2461,8 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function refreshCurrentPage()
 	{
+		updateSanityOptionLocksInPages();
+
 		// Check if tweens are active or refresh already queued
 		if (activeTweens.length > 0)
 		{
@@ -3102,11 +3323,13 @@ class APAdvancedSettingsState extends MusicBeatState
 			hard_mode = Reflect.hasField(settings, "hard_mode") ? settings.hard_mode : false;
 			enable_shop = Reflect.hasField(settings, "enable_shop") ? settings.enable_shop : false;
 			perma_traps = Reflect.hasField(settings, "perma_traps") ? settings.perma_traps : false;
+			enforceSanityCompatibility(false);
 		}
 	}
 
 	function saveCurrentSettings()
 	{
+		enforceSanityCompatibility(false);
 		// Save to APEntryState.gameSettings.FNF
 		if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null)
 		{
@@ -4107,12 +4330,12 @@ class APAdvancedSettingsState extends MusicBeatState
 								enable_shop = value == true;
 							case "starting_song":
 								// Only set if the value is actually present in YAML and not empty
-								var songValue = Std.string(value);
-								startingSong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
+								var songValue = APInfo.realName(Std.string(value));
+								startingSong = (songValue != null && songValue.trim().length > 0) ? APInfo.realName(songValue) : null;
 							case "victory_song":
 								// Only set if the value is actually present in YAML and not empty
-								var songValue = Std.string(value);
-								victorySong = (songValue != null && songValue.trim().length > 0) ? songValue : null;
+								var songValue = APInfo.realName(Std.string(value));
+								victorySong = (songValue != null && songValue.trim().length > 0) ? APInfo.realName(songValue) : null;
 							case "deathlink":
 								deathlink = value == true;
 							case "ticket_percent" | "ticket_percentage":
@@ -4174,11 +4397,19 @@ class APAdvancedSettingsState extends MusicBeatState
 		var progressSubstate = new GenericProgressSubstate("Importing YAML Configuration", tasks, function(results:Array<Dynamic>)
 		{
 			// On completion
-			var yaml:archipelago.APYaml = results[1];
-			var successPrompt = new InfoPanelSubstate("YAML Import Complete",
-				"YAML configuration has been successfully imported!\n\nPlayer: " + playerName + "\nSettings have been applied to the current configuration.",
-				FlxColor.LIME);
-			openSubState(successPrompt);
+			var hadInvalidSanity = enforceSanityCompatibility(true);
+			saveCurrentSettings();
+			if (hadInvalidSanity)
+			{
+				refreshCurrentPage();
+			}
+			else
+			{
+				var successPrompt = new InfoPanelSubstate("YAML Import Complete",
+					"YAML configuration has been successfully imported!\n\nPlayer: " + playerName + "\nSettings have been applied to the current configuration.",
+					FlxColor.LIME);
+				openSubState(successPrompt);
+			}
 		}, function(error:String, shouldThrow:Bool)
 		{
 			if (error.indexOf("No file selected") == -1)
@@ -4200,9 +4431,47 @@ class APAdvancedSettingsState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		updateOptionTooltip(elapsed);
+
+		// Check if any warnings are queued and substate just closed
+		if (pendingWarnings.length > 0 && subState == null)
+		{
+			var warning = pendingWarnings.shift();
+			openSubState(new InfoPanelSubstate(warning.title, warning.message, warning.color));
+		}
 		if (rainbowText) {
 			titleText.color = FlxColor.fromHSL(((elapsed / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
 			if (glowEffect != null) glowEffect.color = FlxColor.fromHSL(((elapsed / 2.5) / 300 * 360) % 360, 1.0, 0.5*1.0);
+		}
+
+		if (allowMods != APEntryState.gameSettings.FNF.mods_enabled)
+		{
+			APEntryState.gameSettings.FNF.mods_enabled = allowMods;
+			refreshCurrentPage();
+		}
+
+		if (includeVanilla != APEntryState.gameSettings.FNF.include_vanilla)
+		{
+			APEntryState.gameSettings.FNF.include_vanilla = includeVanilla;
+			refreshCurrentPage();
+		}
+
+		if (includeSecrets != APEntryState.gameSettings.FNF.include_secrets)
+		{
+			APEntryState.gameSettings.FNF.include_secrets = includeSecrets;
+			refreshCurrentPage();
+		}
+
+		if (includePico != APEntryState.gameSettings.FNF.include_pico)
+		{
+			APEntryState.gameSettings.FNF.include_pico = includePico;
+			refreshCurrentPage();
+		}
+
+		if (includeErect != APEntryState.gameSettings.FNF.include_erect)
+		{
+			APEntryState.gameSettings.FNF.include_erect = includeErect;
+			refreshCurrentPage();
 		}
 
 		if (forceExportPath != null)
@@ -4296,6 +4565,197 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		// Handle mouse clicks
 		handleMouseInput();
+	}
+
+	function updateOptionTooltip(elapsed:Float)
+	{
+		if (subState != null || isSliderActive || contextMenuActive || forceExportPath != null)
+		{
+			optionTooltipHoverKey = null;
+			optionTooltipHoverTime = 0;
+			hideOptionTooltip(true);
+			return;
+		}
+
+		// Check if mouse moved significantly - reset tooltip if so
+		var mouseDist = Math.sqrt(Math.pow(FlxG.mouse.x - lastMouseX, 2) + Math.pow(FlxG.mouse.y - lastMouseY, 2));
+		if (mouseDist > mouseMoveThreshold)
+		{
+			lastMouseX = FlxG.mouse.x;
+			lastMouseY = FlxG.mouse.y;
+			optionTooltipHoverKey = null;
+			optionTooltipHoverTime = 0;
+			hideOptionTooltip(true);
+			return;
+		}
+
+		var hoverKey:String = null;
+		var hoverDescription:String = null;
+		var hoverButton:FlxSprite = null;
+
+		for (button in optionButtons.members)
+		{
+			if (button == null)
+			{
+				continue;
+			}
+
+			if (!FlxG.mouse.overlaps(button))
+			{
+				continue;
+			}
+
+			var data = buttonData.get(button);
+			if (data == null)
+			{
+				continue;
+			}
+
+			var type:String = data.get("type");
+			var index:Int = data.get("index");
+
+			if (type == "regular" && index >= 0 && index < pages[currentPage].options.length)
+			{
+				hoverKey = 'regular_${currentPage}_${index}';
+				hoverDescription = pages[currentPage].options[index].description;
+				hoverButton = button;
+				break;
+			}
+
+			if (type == "state" && index >= 0 && index < pages[currentPage].stateOptions.length)
+			{
+				hoverKey = 'state_${currentPage}_${index}';
+				hoverDescription = pages[currentPage].stateOptions[index].description;
+				hoverButton = button;
+				break;
+			}
+		}
+
+		if (hoverKey == null || hoverDescription == null || hoverDescription.trim().length == 0)
+		{
+			optionTooltipHoverKey = null;
+			optionTooltipHoverTime = 0;
+			hideOptionTooltip(false);
+			return;
+		}
+
+		if (hoverKey != optionTooltipHoverKey)
+		{
+			optionTooltipHoverKey = hoverKey;
+			optionTooltipHoverTime = 0;
+			lastMouseX = FlxG.mouse.x;
+			lastMouseY = FlxG.mouse.y;
+			hideOptionTooltip(true);
+			return;
+		}
+
+		optionTooltipHoverTime += elapsed;
+		if (!optionTooltipVisible && optionTooltipHoverTime >= optionTooltipDelay)
+		{
+			lastMouseX = FlxG.mouse.x;
+			lastMouseY = FlxG.mouse.y;
+			showOptionTooltip(hoverDescription, hoverButton);
+		}
+	}
+
+	function showOptionTooltip(description:String, targetButton:FlxSprite)
+	{
+		if (targetButton == null)
+		{
+			return;
+		}
+
+		if (optionTooltipPanel == null)
+		{
+			optionTooltipPanel = new FlxSprite();
+			optionTooltipPanel.visible = false;
+			optionTooltipPanel.alpha = 0;
+			add(optionTooltipPanel);
+		}
+
+		if (optionTooltipText == null)
+		{
+			optionTooltipText = new FlxText(0, 0, 340, "", 14);
+			optionTooltipText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+			optionTooltipText.borderSize = 1;
+			optionTooltipText.visible = false;
+			optionTooltipText.alpha = 0;
+			add(optionTooltipText);
+		}
+
+		optionTooltipText.text = description;
+		optionTooltipText.fieldWidth = 340;
+
+		var panelWidth = 352;
+		var panelHeight = Std.int(Math.max(36, optionTooltipText.height + 12));
+		var panelX = FlxG.mouse.x + 18;
+		if (panelX + panelWidth > FlxG.width - 8)
+		{
+			panelX = FlxG.width - panelWidth - 8;
+		}
+
+		var panelY = targetButton.y + targetButton.height + 8;
+		if (panelY + panelHeight > FlxG.height - 90)
+		{
+			panelY = targetButton.y - panelHeight - 8;
+		}
+
+		optionTooltipPanel.makeGraphic(panelWidth, panelHeight, FlxColor.fromRGB(20, 20, 40));
+		optionTooltipPanel.x = panelX;
+		optionTooltipPanel.y = panelY;
+		optionTooltipPanel.visible = true;
+
+		optionTooltipText.x = panelX + 6;
+		optionTooltipText.y = panelY + 6;
+		optionTooltipText.visible = true;
+
+		FlxTween.cancelTweensOf(optionTooltipPanel);
+		FlxTween.cancelTweensOf(optionTooltipText);
+
+		optionTooltipPanel.alpha = 0;
+		optionTooltipText.alpha = 0;
+		optionTooltipText.y += 4;
+
+		FlxTween.tween(optionTooltipPanel, {alpha: 0.92}, 0.18, {ease: FlxEase.sineOut});
+		FlxTween.tween(optionTooltipText, {alpha: 1, y: optionTooltipText.y - 4}, 0.2, {ease: FlxEase.quadOut});
+		optionTooltipVisible = true;
+	}
+
+	function hideOptionTooltip(immediate:Bool)
+	{
+		if (optionTooltipPanel == null || optionTooltipText == null)
+		{
+			optionTooltipVisible = false;
+			return;
+		}
+
+		FlxTween.cancelTweensOf(optionTooltipPanel);
+		FlxTween.cancelTweensOf(optionTooltipText);
+
+		if (immediate)
+		{
+			optionTooltipPanel.visible = false;
+			optionTooltipText.visible = false;
+			optionTooltipPanel.alpha = 0;
+			optionTooltipText.alpha = 0;
+			optionTooltipVisible = false;
+			return;
+		}
+
+		if (!optionTooltipVisible)
+		{
+			return;
+		}
+
+		FlxTween.tween(optionTooltipPanel, {alpha: 0}, 0.12, {
+			ease: FlxEase.sineIn,
+			onComplete: function(_) optionTooltipPanel.visible = false
+		});
+		FlxTween.tween(optionTooltipText, {alpha: 0}, 0.1, {
+			ease: FlxEase.sineIn,
+			onComplete: function(_) optionTooltipText.visible = false
+		});
+		optionTooltipVisible = false;
 	}
 
 	function handleOptionClick()
