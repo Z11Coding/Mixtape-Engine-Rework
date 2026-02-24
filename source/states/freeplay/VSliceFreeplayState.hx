@@ -1005,20 +1005,20 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		// Only now do we know that the filter is actually changing.
 
-		// If curSelected is 0, the result will be null and fall back to the rememberedSongId.
-		VSliceFreeplayMidState.rememberedSongId = curCapsule?.songData?.songId ?? VSliceFreeplayMidState.rememberedSongId;
-
 		currentFilter = filterStuff;
 
 		currentFilteredSongs = tempSongs;
 		curSelected = 0;
 		curSelectedFractal = 0;
 
+		// If curSelected is 0, the result will be null and fall back to the rememberedSongId.
+		VSliceFreeplayMidState.rememberedSongId = curCapsule?.songData?.songId ?? VSliceFreeplayMidState.rememberedSongId;
+
 		grpCapsules.generateFullSongList(tempSongs, currentDifficulty,
 			difficultyLastChange > 0 ? SLIDE_RIGHT : SLIDE_LEFT,
 			fromCharSelect ? SLIDE_LEFT : JUMPIN_FORCE);
 
-		rememberSelection();
+		//rememberSelection();
 
 		changeSelection();
 		changeDiff(0);
@@ -2778,6 +2778,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			FlxG.log.warn('WARN: could not find song with id (${cap.songData.songId})');
 			return;
 		}
+
+		VSliceFreeplayMidState.rememberedDifficulty = currentDifficulty;
+		VSliceFreeplayMidState.rememberedSongId = cap.songData.songId;
 
 		// colorTween = null;
 		var targetDifficultyId:String = currentDifficulty;

@@ -3507,7 +3507,7 @@ class PlayState extends MusicBeatState
 				if(!instakillOnMiss) {
 					var missLabel:String = ClientPrefs.data.badShitBreakCombo ? Language.getPhrase('combo_breaks', 'Combo Breaks') : Language.getPhrase('misses', 'Misses');
 					var missCount:Int = ClientPrefs.data.badShitBreakCombo ? comboManager.comboBreaks : comboManager.songMisses;
-					tempScore = Language.getPhrase('score_text', '${if (ClientPrefs.data.showScore) 'Score: {1} | ' else ""}${if (ClientPrefs.data.showMisses) 'Misses: {2} | ' else ""}${if (ClientPrefs.data.showRating) 'Rating: {3} | ' else ""}${if (ClientPrefs.data.showNPS) 'NPS: {4}/{5}' else ""}', [comboManager.songScore, comboManager.songMisses, str, nps, maxNPS]);
+					tempScore = '${if (ClientPrefs.data.showScore) 'Score: ${comboManager.songScore} | ' else ""}${if (ClientPrefs.data.showMisses) 'Misses: ${comboManager.songMisses} | ' else ""}${if (ClientPrefs.data.showRating) 'Rating: ${str} | ' else ""}${if (ClientPrefs.data.showNPS) 'NPS: ${nps}/${maxNPS}' else ""}';
 				}
 				else {
 					tempScore = Language.getPhrase('score_text_instakill', '${if (ClientPrefs.data.showScore) 'Score: {1} | ' else ""}${if (ClientPrefs.data.showRating) 'Rating: {2} | ' else ""}${if (ClientPrefs.data.showNPS) 'NPS: {3}/{4}' else ""}', [comboManager.songScore, str, nps, maxNPS]);
