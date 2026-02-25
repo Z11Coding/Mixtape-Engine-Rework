@@ -1084,6 +1084,18 @@ class Client {
 		// 	tagsManager.syncToClient();
 		// }
 
+		if (!archipelago.APEntryState.inArchipelagoMode) {
+			// Kill all references, to ensure this disconnects, as it should be dead.
+			dontTryToReconnect = true;
+			var disconnectedGracefully = try {archipelago.APGameState.instance.disconnectAP(); true; } catch (e:Dynamic) { disconnect_socket(); false;};
+			_ws = null;
+			trace("Archipelago mode inactive - socket forcibly disconnected and prevented from reconnecting.");
+			// Remove references to this Client instance to allow for garbage collection.
+			archipelago.APInfo.ap = null;
+			archipelago.APGameState.instance = null;
+			archipelago.APEntryState.apGame = null;
+		}
+
 
 		// var needDataPackage = if (_gotDataPackage) false else true;
 		// try {

@@ -1632,9 +1632,7 @@ class APGameState
 		cleanupTemporaryWeeks();
 
 		// Clean up High Quality Trap temporary files
-		#if ARCHIPELAGO_ALLOWED
 		archipelago.HighQualityTrapManager.onAPSessionEnd();
-		#end
 
 		// Clean up AP Items and related data
 		archipelago.APItem.cleanupAllAPData();
@@ -1644,6 +1642,22 @@ class APGameState
 		if (APEntryState.ap != null)
 		{
 			APEntryState.ap = null;
+		}
+		if (APEntryState.apGame != null)
+		{
+			APEntryState.apGame = null;
+		}
+		if (APInfo.ap != null)
+		{
+			APInfo.ap = null;
+		}
+		if (APInfo.apGame != null)
+		{
+			APInfo.apGame = null;
+		}
+		if (APGameState.instance != null)
+		{
+			APGameState.instance = null;
 		}
 	}
 
