@@ -54,7 +54,7 @@ class SplashScreen extends MusicBeatState
             isVideo = true;
         } else if (ClientPrefs.data.memeSplash) {
             var videoList:Array<String> = [];
-            videoList = Mods.loadFileList('videos/splashscreen/', ['.mp4']);
+            videoList = Mods.loadFileList('videos/splashscreen/', null, ['.mp4']);
             trace("videoList: "+videoList);
             trace("Playing Meme: " + videoList[FlxG.random.int(0, videoList.length - 1)]);
             startVideo("splashscreen/" + videoList[FlxG.random.int(0, videoList.length - 1)]);

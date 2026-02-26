@@ -239,7 +239,7 @@ class Paths
 
 	// The "If All Else Fails" option
 	public static function nukeMemory(?useAlt:Bool = false){
-		if (useAlt) {
+		if (useAlt) { // Nuke Lite
 			clearStoredWithoutStickers();
 
 			#if cpp
@@ -271,8 +271,7 @@ class Paths
 			FlxG.bitmap.clearUnused();
 			FlxG.bitmap.clearCache();
 
-			//super.destroy();
-		} else {
+		} else { //Nuke: Max Power
 			clearStoredWithoutStickers();
 			freeGraphicsFromMemory();
 			var killZombies:Bool = true;
