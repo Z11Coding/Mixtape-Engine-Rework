@@ -135,6 +135,8 @@ class MemoryUtilBase
   {
     #if cpp
     cpp.vm.Gc.run(major);
+    #elseif hl
+		Gc.major();
     #else
     throw 'Not implemented!';
     #end

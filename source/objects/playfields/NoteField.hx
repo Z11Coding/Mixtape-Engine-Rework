@@ -253,6 +253,22 @@ class NoteField extends FieldBase
 			drawQueue.push(object);
 		}
 
+		// draw the lines
+		for (obj in field.pathLines)
+		{
+			if (!obj.exists || !obj.visible)
+				continue;
+			// maybe add copyX and copyT to strums too???????
+
+			var pos = modManager.getPos(0, 0, curDecBeat, obj.column, modNumber, obj, this, perspectiveArrDontUse, obj.vec3Cache);
+			var object = drawNote(obj, pos);
+			if (object == null)
+				continue;
+
+			lookupMap.set(obj, object);
+			drawQueue.push(object);
+		}
+
 		// draw hold notes (credit to 4mbr0s3 2)
 		for (note in holds)
 		{
