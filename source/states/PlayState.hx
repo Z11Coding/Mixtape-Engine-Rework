@@ -13022,20 +13022,26 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 							// Check for the other vocals as well
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
 							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
 							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
 						}
 						else
 						{
 							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song, 'Player');
+							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song);
 							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
 
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
 							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
 							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
 						}
 					}
@@ -13048,20 +13054,26 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 							// Check for the other vocals as well
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
 							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
 							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
 						}
 						else
 						{
 							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song, 'Player');
+							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song);
 							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
 
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
 							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
+							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
 							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
 						}
 					}

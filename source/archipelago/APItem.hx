@@ -973,7 +973,7 @@ class APItem {
                     }
                 }, true, true, false, fromTrapLink);
 
-            case "Lonely Friday Night":
+            case "Lonely Friday Night" | "Nothing":
                 popup('Alone on a friday night? How pathetic...', "Lonely Friday Night", true);
                 return null;
 

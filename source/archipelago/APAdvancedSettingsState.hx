@@ -2597,7 +2597,10 @@ class APAdvancedSettingsState extends MusicBeatState
 		WeekData.reloadWeekFiles(false);
 
 		// Create FreeplayManager to get the song list
-		var fpManager = new managers.FreeplayManager(true);
+		var fpManager = new managers.FreeplayManager(true).funcAndReturn(function(manager)
+		{
+			manager.ignoreLocks = true; // Bypass any locks to ensure we get all songs
+		});
 		fpManager.reloadFreeplay(true, ''); // Use refresh=true to get all songs
 
 		if (fpManager != null && fpManager.songList != null)
@@ -2871,7 +2874,9 @@ class APAdvancedSettingsState extends MusicBeatState
 		WeekData.reloadWeekFiles(false);
 
 		// Create FreeplayManager to get the song list
-		var fpManager = new managers.FreeplayManager(true);
+		var fpManager = new managers.FreeplayManager(true).funcAndReturn(function(manager) {
+			manager.ignoreLocks = true; // Ensure locks don't prevent access to any songs
+		});
 		fpManager.reloadFreeplay(true, ''); // Use refresh=true to get all songs
 
 		if (fpManager != null && fpManager.songList != null)

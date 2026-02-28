@@ -185,7 +185,7 @@ class GameplayOptionsLoader {
         // Mixtape-specific options
         if (!APEntryState.inArchipelagoMode) {
             var chartModifier = new GameplayOption('Chart Modifier', 'chartModifier', STRING, 'Normal',
-                ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "Pain", "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", "UNO", "Amalgam"]);
+                ["Normal", "Random", "RandomBasic", "RandomComplex", 'Flip', "4K Only", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"]);
             options.push(chartModifier);
 
             var convertMania = new GameplayOption('Convert Mania', 'convertMania', INT, 3);

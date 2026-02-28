@@ -42,6 +42,7 @@ class FreeplayManager {
     public static var vocals:FlxSound = null;
 	public static var opponentVocals:FlxSound = null;
 	public static var gfVocals:FlxSound = null;
+    public var ignoreLocks:Bool = false; // Used for scripted freeplays that want to ignore locked weeks (or sanity data)
 
     var songs:Array<GlobalSongMetadata> = [];
 	public var songList(get, never):Array<GlobalSongMetadata>;
@@ -282,7 +283,7 @@ class FreeplayManager {
         songs = [];
 
         for (i in 0...WeekData.weeksList.length) {
-            if(weekIsLocked(WeekData.weeksList[i])) continue;
+            if(!ignoreLocks && weekIsLocked(WeekData.weeksList[i])) continue;
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 
             function nullIfEmptyArray<T>(array:Array<T>):Null<Array<T>> {
