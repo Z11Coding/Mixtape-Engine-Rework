@@ -1258,11 +1258,6 @@ class Note extends NoteObject
 		//x += offsetX;
 	}
 
-	public function hasAnimation(anim:String):Bool
-	{
-		return animation.exists(anim);
-	}
-
 	public static function initializeGlobalRGBShader(noteData:Int)
 	{
 		if(globalRgbShaders[noteData] == null)
@@ -1492,6 +1487,13 @@ class Note extends NoteObject
 
 	override function update(elapsed:Float)
 	{
+		try {
+			if (!inEditor) {
+				if (field != null && alpha > field.strumNotes[column].alpha && strumTime > 1500) //Since the first couple of notes tend to just dissapear here's a hopeful fix for that
+					alpha = field.strumNotes[column].alpha;
+			}
+		} catch(e) {}
+
 		super.update(elapsed);
 
 		if (hitByOpponent) wasGoodHit = true;
@@ -1506,13 +1508,6 @@ class Note extends NoteObject
 			if (alpha > 0.3)
 				alpha = 0.3;
 		}
-
-		try {
-			if (!inEditor) {
-				if (field != null && alpha > field.strumNotes[column].alpha && strumTime > 1500) //Since the first couple of notes tend to just dissapear here's a hopeful fix for that
-					alpha = field.strumNotes[column].alpha;
-			}
-		} catch(e) {}
 
 		// Handle UNO +2/+4 note animations
 		updateUnoAnimations(elapsed);

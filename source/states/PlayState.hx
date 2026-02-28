@@ -11723,6 +11723,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if (note != null) note.destroy();
 			}
 			curChart.splice(0, curChart.length);
+			curChart = null;
 		}
 
 		// Clear strum note references
@@ -11759,6 +11760,17 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (dad != null) {
 			dad.destroy();
 			dad = null;
+		}
+
+		for (charMap in [boyfriendMap, boyfriendMap2, dadMap, dadMap2, gfMap]) {
+			for (charName => charObj in charMap) {
+				if (charObj != null) {
+					charMap.remove(charName);
+					charObj.destroy();
+					charObj = null;
+				}
+			}
+			charMap = null;
 		}
 
 		// Clear event and callback references

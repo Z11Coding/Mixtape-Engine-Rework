@@ -46,6 +46,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	override function set_camera(to){
 		for (strumLine in strumNotes)
 			strumLine.camera = to;
+		for (line in pathLines)
+			line.camera = to;
 
 		noteField.camera = to;
 
@@ -55,6 +57,8 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	override function set_cameras(to){
 		for (strumLine in strumNotes)
 			strumLine.cameras = to;
+		for (line in pathLines)
+			line.cameras = to;
 
 		noteField.cameras = to;
 		grpNoteSplashes.cameras = to;
@@ -86,6 +90,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var noTapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // spawned tap notes (without requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
 	public var noteQueue:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // unspawned notes
 
+	public var pathLines:Array<PathLine> = []; // lines
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
 	public var singAnimations:Array<String> = ["singLEFT", "singDOWN", "singUP", "singRIGHT"]; // default character animations to play for each column
@@ -890,6 +895,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			babyArrow.player = this.playerId;
 			strumNotes.push(babyArrow);
 			babyArrow.playerPosition();
+
+			var pathLine:PathLine = new PathLine(babyArrow);
+			pathLines.push(pathLine);
 		}
 	}
 
@@ -1059,6 +1067,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		super.update(elapsed);
 
 		for(obj in strumNotes)
+			modManager.updateObject(curDecBeat, obj, modNumber);
+
+		for(obj in pathLines)
 			modManager.updateObject(curDecBeat, obj, modNumber);
 
 		// Adaptive performance optimization based on framerate

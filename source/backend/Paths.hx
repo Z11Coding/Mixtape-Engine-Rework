@@ -239,7 +239,7 @@ class Paths
 
 	// The "If All Else Fails" option
 	public static function nukeMemory(?useAlt:Bool = false){
-		if (useAlt) {
+		if (useAlt) { // Nuke Lite
 			clearStoredWithoutStickers();
 
 			#if cpp
@@ -260,8 +260,8 @@ class Paths
 				}
 			}
 
-			Gc.run(true);
 			Gc.compact();
+			Gc.run(true);
 			#end
 
 			#if hl
@@ -271,15 +271,29 @@ class Paths
 			FlxG.bitmap.clearUnused();
 			FlxG.bitmap.clearCache();
 
-			//super.destroy();
-		} else {
+		} else { //Nuke: Max Power
 			clearStoredWithoutStickers();
 			freeGraphicsFromMemory();
+			var killZombies:Bool = true;
+			while (killZombies)
+			{
+				var zombie = Gc.getNextZombie();
+				if (zombie == null)
+				{
+					killZombies = false;
+				} else {
+					var closeMethod = Reflect.field(zombie, "close");
+					if (closeMethod != null && Reflect.isFunction(closeMethod))
+						closeMethod.call(zombie, []);
+				}
+			}
 			MemoryUtilBase.compact();
 			MemoryUtilBase.collect(true);
 			Paths.clearStoredMemory();
 			Paths.clearUnusedMemory();
 			currentTrackedSounds.clear();
+			FlxG.bitmap.clearUnused();
+			FlxG.bitmap.clearCache();
 			@:privateAccess {
 				for (key => asset in FlxG.bitmap._cache)
 					asset.destroy();
