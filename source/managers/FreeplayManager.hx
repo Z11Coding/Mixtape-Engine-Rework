@@ -42,7 +42,15 @@ class FreeplayManager {
     public static var vocals:FlxSound = null;
 	public static var opponentVocals:FlxSound = null;
 	public static var gfVocals:FlxSound = null;
-    public var ignoreLocks:Bool = false; // Used for scripted freeplays that want to ignore locked weeks (or sanity data)
+    public var _ignoreLocks:Bool = false; // Used for scripted freeplays that want to ignore locked weeks (or sanity data)
+    public var ignoreLocks(get, set):Bool;
+    public function get_ignoreLocks():Bool {
+        return _ignoreLocks || this is APFreeplayManager; // Always ignore locks in AP mode to ensure all songs are accessible
+    }
+    public function set_ignoreLocks(value:Bool):Bool {
+        _ignoreLocks = value;
+        return _ignoreLocks;
+    }
 
     var songs:Array<GlobalSongMetadata> = [];
 	public var songList(get, never):Array<GlobalSongMetadata>;
