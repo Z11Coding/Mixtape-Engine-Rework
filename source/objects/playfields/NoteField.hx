@@ -794,9 +794,9 @@ class NoteField extends FieldBase
 				]);
 		}
 		var uvData = new Vector<Float>(8, false, [
-			frameRect.x,		frameRect.y,
+			frameRect.x,			frameRect.y,
 			frameRect.width,	frameRect.y,
-			frameRect.x,		frameRect.height,
+			frameRect.x,			frameRect.height,
 			frameRect.width,	frameRect.height
 		]);
 		var shader = sprite.shader != null ? sprite.shader : defaultShader;

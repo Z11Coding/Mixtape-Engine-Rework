@@ -4153,6 +4153,7 @@ class PlayState extends MusicBeatState
 
 		notes = new FlxTypedGroup<Note>();
 		if (!preload && noteGroup != null) noteGroup.add(notes);
+		curChart = [];
 
 		try
 		{

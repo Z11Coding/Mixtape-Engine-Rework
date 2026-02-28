@@ -470,7 +470,6 @@ class APFreeplayManager extends FreeplayManager {
         }
 
         for (i in 0...WeekData.weeksList.length) {
-            if(weekIsLocked(WeekData.weeksList[i]) && !APEntryState.inArchipelagoMode) continue;
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 
             var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?

@@ -53,6 +53,7 @@ class PathLine extends NoteObject {
 			if (camera.visible && camera.exists)
 				drawComplex(camera);
 		}
+		super.draw();
 	}
 
 	public override function drawComplex(camera:FlxCamera):Void {
@@ -60,6 +61,7 @@ class PathLine extends NoteObject {
 			strip.updateRender(drawData[i]);
 			strip.drawToCamera(camera);
 		}
+		super.drawComplex(camera);
 	}
 
   public function updateTriangles():Void {
