@@ -3154,7 +3154,7 @@ class PlayState extends MusicBeatState
 			}
 
 			#if ARCHIPELAGO_ALLOWED
-			if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem('Strums')) {
+			if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasHMItem('Strums')) {
 				StrumNote.hardAlpha = 0;
 				Note.hardAlpha = 0;
 			} else {
@@ -6475,16 +6475,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		if (inArchipelagoMode && APInfo.inHardMode)
 		{
-			vocalVolumeMultiplierHardMode = (APInfo.hasItem("BF's Mic") ? 1 : 0);
+			vocalVolumeMultiplierHardMode = (APInfo.hasHMItem("BF's Mic") ? 1 : 0);
+			instVolumeMultiplierHardMode = (APInfo.hasHMItem("Speakers") ? 1 : 0);
 
-			gfGroup.visible = APInfo.hasItem("GF");
-
-			instVolumeMultiplierHardMode = (APInfo.hasItem("Speakers") ? 1 : 0);
-
-			camHUD.visible = !APInfo.hasItem("HUD");
-
-			canPauseHardMode = APInfo.hasItem("Pause Menu");
-
+			gfGroup.visible = APInfo.hasHMItem("GF");
+			camHUD.visible = !APInfo.hasHMItem("HUD");
+			canPauseHardMode = APInfo.hasHMItem("Pause Menu");
 		}
 
 		// TPS/NPS System Update
@@ -6530,8 +6526,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 		super.update(elapsed);
-		if (vocals != null) vocals.volume *= vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
-		FlxG.sound.music.volume = 1 * instVolumeMultiplier * instVolumeMultiplierHardMode;
+		if (vocals != null) vocals.volume *= (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
+		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
 		updateVisualPosition();
 		modManager.update(elapsed, curDecBeat, curDecStep);
 		updateSyncedVideos(); // Update synced video system
@@ -7119,7 +7115,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			opponentVocals.play();
 			gfVocals.time = Conductor.songPosition;
 			gfVocals.play();
-			FlxTween.tween(skipTxt, {alpha: 0}, 0.2, {
+			FlxTween.tween(skipTxt, {alpha: 0}, 0.2/playbackRate, {
 				onComplete: function(tw)
 				{
 					remove(skipTxt);
@@ -8581,7 +8577,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					camGame.zoom = targetZoom;
 				}
 				else{
-					zoomTween = FlxTween.tween(camGame, {zoom: targetZoom}, Conductor.stepCrochet*0.001*floaties[0], {
+					zoomTween = FlxTween.tween(camGame, {zoom: targetZoom}, Conductor.stepCrochet*0.001*floaties[0]/playbackRate, {
 						onStart: (x) ->{
 							camZooming = false;
 							camZoomingDecay = 7;
@@ -8646,7 +8642,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					//trace('RUNNING ${ease.toUpperCase()} CAM MOVEMENT!');
 					var easeFunc = psychlua.LuaUtils.getTweenEaseByString(ease);
 					camTween?.cancel();
-					camTween = FlxTween.tween(camFollow,{x:targetx,y:targety},dur,{
+					camTween = FlxTween.tween(camFollow,{x:targetx,y:targety},dur/playbackRate,{
 							ease: easeFunc,
 							onComplete: s -> {
 									camTween = null;
@@ -8753,12 +8749,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 1);
 
 			case 'Fade Out':
-				FlxTween.tween(blackOverlay, {alpha: 1}, Std.parseFloat(value1));
-				FlxTween.tween(camHUD, {alpha: 0}, Std.parseFloat(value1));
+				FlxTween.tween(blackOverlay, {alpha: 1}, Std.parseFloat(value1)/playbackRate);
+				FlxTween.tween(camHUD, {alpha: 0}, Std.parseFloat(value1)/playbackRate);
 
 			case 'Fade In':
-				FlxTween.tween(blackOverlay, {alpha: 0}, Std.parseFloat(value1));
-				FlxTween.tween(camHUD, {alpha: 1}, Std.parseFloat(value1));
+				FlxTween.tween(blackOverlay, {alpha: 0}, Std.parseFloat(value1)/playbackRate);
+				FlxTween.tween(camHUD, {alpha: 1}, Std.parseFloat(value1)/playbackRate);
 
 			case 'Silhouette':
 				theShadow(value1);
@@ -9651,7 +9647,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	private function popUpScore(note:Note = null):Void
 	{
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
-		vocals.volume = 1 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
+		vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 
 		if (!ClientPrefs.data.comboStacking && comboGroup.members.length > 0 || comboGroup.members.length > 1000)
 		{
@@ -10146,6 +10142,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		var hitNotes:Array<Note> = []; // what could scripts possibly do with this information
 		var controlledFields:Array<PlayField> = [];
+
+		if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasHMItem("BF's Mic"))
+			return;
 
 		for (field in playfields.members) {
 			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed)
@@ -11152,7 +11151,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				gf.specialAnim = true;
 			}
 		}
-		vocals.volume = 0 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
+		vocals.volume = 0 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 
 		if (curHealthMode == "Lives" && lives > 0)
 		{
@@ -11282,7 +11281,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 		}
 
-		if(opponentVocals.length <= 0) vocals.volume = 1 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
+		if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 		strumPlayAnim(field, note.column % field.keyCount, Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
 		note.hitByOpponent = true;
 
@@ -11409,7 +11408,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if(spr != null) spr.playAnim('confirm', true);
 			}
 			else strumPlayAnim(field, note.column % field.keyCount, Conductor.stepCrochet * 1.25 / 1000 / playbackRate);
-			vocals.volume = 1 * vocalVolumeMultiplier * vocalVolumeMultiplierHardMode;
+			vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 
 			if (!note.isSustainNote)
 			{

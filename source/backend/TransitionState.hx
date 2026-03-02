@@ -624,7 +624,11 @@ class TransitionState {
                         if (!psPause) cast(states.PlayState.instance, archipelago.APPlayState).paused = false;
                         cast(states.PlayState.instance, archipelago.APPlayState).forceResync();
                     } catch (_) {}
-                    archipelago.console.obj.Alert.alert('APItem: Fake Transition', "Gotcha!");
+                    if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
+                        archipelago.console.obj.Alert.alert('APItem: Fake Transition', "Gotcha!");
+                    } else {
+                        ArchPopup.startPopupCustom('APItem: Fake Transition', 'Gotcha!', 'archWhite');
+                    }
                 }},
                 function(num)
                 {

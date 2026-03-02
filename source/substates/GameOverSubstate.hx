@@ -13,11 +13,10 @@ import flixel.tweens.FlxTween;
 import objects.Character;
 import objects.FNFWeeklyVideoSprite;
 import states.StoryMenuState;
-
+import undertale.UnderTextParser;
 // * It has its own folder cuz it was made for something much bigger.
 // * im just too lazy to move it.
 //-sans
-import undertale.UnderTextParser;
 
 class GameOverSubstate extends MusicBeatSubstate
 {
@@ -210,6 +209,14 @@ class GameOverSubstate extends MusicBeatSubstate
 		var justPlayedLoop:Bool = false;
 		if (!boyfriend.isAnimationNull() && boyfriend.getAnimationName() == 'firstDeath' && boyfriend.isAnimationFinished())
 		{
+			boyfriend.playAnim('deathLoop');
+			if(overlay != null && overlay.animation.exists('deathLoop'))
+			{
+				overlay.visible = true;
+				overlay.animation.play('deathLoop');
+			}
+			justPlayedLoop = true;
+		} else if (boyfriend.isAnimationNull()) { // just so it doesn't break if the character doesn't have a game over sprite
 			boyfriend.playAnim('deathLoop');
 			if(overlay != null && overlay.animation.exists('deathLoop'))
 			{
