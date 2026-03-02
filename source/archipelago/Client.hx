@@ -1084,7 +1084,7 @@ class Client {
 		// 	tagsManager.syncToClient();
 		// }
 
-		if (!archipelago.APEntryState.inArchipelagoMode) {
+		if (!archipelago.APEntryState.inArchipelagoMode && state > State.SLOT_CONNECTED) {
 			// Kill all references, to ensure this disconnects, as it should be dead.
 			dontTryToReconnect = true;
 			var disconnectedGracefully = try {archipelago.APGameState.instance.disconnectAP(); true; } catch (e:Dynamic) { disconnect_socket(); false;};
