@@ -832,6 +832,7 @@ class APStyledEntryState extends MusicBeatState {
         APInfo.ticketCount = 0;
         APInfo.grabLimits(slotData.gradeNeeded, slotData.accuracyNeeded);
         APInfo.unlockMethod = slotData.locationType;
+        APInfo.inHardMode = slotData.hardmode;
 
         FlxG.save.flush();
         APEntryState.inArchipelagoMode = true;
