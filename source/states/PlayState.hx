@@ -529,8 +529,47 @@ class PlayState extends MusicBeatState
 	public var hearts:FlxTypedGroup<FlxSprite>;
 	public var lives:Int = 1;
 
-	//THE MANAGERS
-	public var comboManager:ComboManager;
+		//THE MANAGERS
+		public var comboManager:ComboManager;
+
+		public var ratingsData(get, never):Array<Rating>;
+		public var combo(get, set):Int;
+		public var maxCombo(get, set):Int;
+		public var songScore(get, set):Int;
+		public var songHits(get, set):Int;
+		public var songMisses(get, set):Int;
+		public var comboBreaks(get, set):Int;
+		public var ratingName(get, set):String;
+		public var ratingPercent(get, set):Float;
+		public var ratingFC(get, set):String;
+		public var totalPlayed(get, set):Int;
+		public var totalNotesHit(get, set):Float;
+
+		private function get_ratingsData():Array<Rating> return comboManager.ratingsData;
+		private function get_combo():Int return comboManager.combo;
+		private function set_combo(value:Int):Int return comboManager.combo = value;
+		private function get_maxCombo():Int return comboManager.maxCombo;
+		private function set_maxCombo(value:Int):Int return comboManager.maxCombo = value;
+		private function get_songScore():Int return comboManager.songScore;
+		private function set_songScore(value:Int):Int return comboManager.songScore = value;
+		private function get_songHits():Int return comboManager.songHits;
+		private function set_songHits(value:Int):Int return comboManager.songHits = value;
+		private function get_songMisses():Int return comboManager.songMisses;
+		private function set_songMisses(value:Int):Int return comboManager.songMisses = value;
+		private function get_comboBreaks():Int return comboManager.comboBreaks;
+		private function set_comboBreaks(value:Int):Int return comboManager.comboBreaks = value;
+		private function get_ratingName():String return comboManager.ratingName;
+		private function set_ratingName(value:String):String return comboManager.ratingName = value;
+		private function get_ratingPercent():Float return comboManager.ratingPercent;
+		private function set_ratingPercent(value:Float):Float return comboManager.ratingPercent = value;
+		private function get_ratingFC():String return comboManager.ratingFC;
+		private function set_ratingFC(value:String):String return comboManager.ratingFC = value;
+		private function get_totalPlayed():Int return comboManager.totalPlayed;
+		private function set_totalPlayed(value:Int):Int return comboManager.totalPlayed = value;
+		private function get_totalNotesHit():Float return comboManager.totalNotesHit;
+		private function set_totalNotesHit(value:Float):Float return comboManager.totalNotesHit = value;
+
+
 
 	//FNF Weekly
 	public var whosTurn:String = '';

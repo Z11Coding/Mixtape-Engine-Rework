@@ -473,6 +473,9 @@ class LoadingState extends MusicBeatState
 		if (ClientPrefs.data.preloadSong && Std.isOfType(target, states.PlayState)) {
 			trace("LoadingState: Preload enabled, starting async chart generation for PlayState");
 			startPlayStatePreload(cast(target, states.PlayState));
+		} else if (preloadAsync != null) {
+			trace("LoadingState: Killing what shouldn't be there. (Preloader)");
+			preloadAsync = null;
 		}
 
 		#if !SHOW_LOADING_SCREEN
