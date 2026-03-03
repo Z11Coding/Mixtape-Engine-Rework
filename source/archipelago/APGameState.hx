@@ -1207,10 +1207,7 @@ class APGameState
 			var activePermaTraps:Array<String> = _saveData.getItem("activePermaTraps");
 			for (trapName in activePermaTraps)
 			{
-				if (!APItem.triggeredPermaTraps.contains(trapName)) {
-					APItem.triggeredPermaTraps.push(trapName);
-					archipelago.APItem.createItemByName(trapName);
-				}
+				archipelago.APItem.createItemByName(trapName);
 			}
 			trace("Loaded " + APItem.triggeredPermaTraps.length + " active perma traps from save");
 		}
@@ -1222,12 +1219,20 @@ class APGameState
 			var activeAntiPermaTraps:Array<String> = _saveData.getItem("activeAntiPermaTraps");
 			for (trapName in activeAntiPermaTraps)
 			{
-				if (!APItem.triggeredAntiPermaTraps.contains(trapName)) {
-					APItem.triggeredAntiPermaTraps.push(trapName);
-					archipelago.APItem.createItemByName(trapName);
-				}
+				archipelago.APItem.createItemByName(trapName);
 			}
 			trace("Loaded " + APItem.triggeredAntiPermaTraps.length + " active perma traps from save");
+		}
+
+		// Load hard mode items
+		if (_saveData.hasItem("hardmodeItems"))
+		{
+			var hardmodeItems:Array<String> = _saveData.getItem("hardmodeItems");
+			for (trapName in hardmodeItems)
+			{
+				archipelago.APItem.createItemByName(trapName);
+			}
+			trace("Loaded " + APItem.hardmodeItems.length + " active hard mode from save");
 		}
 
 		// Restore active effects after all items are loaded
@@ -1316,9 +1321,9 @@ class APGameState
 
 			_saveData.addItem("apShopItems", shopItems);
 
-			_saveData.addItem("activePermaTraps", APItem.triggeredPermaTraps);
-
-			_saveData.addItem("activeAntiPermaTraps", APItem.triggeredAntiPermaTraps);
+			_saveData.addItem("activePermaTraps", APItem.triggeredPermaTraps.copy());
+			_saveData.addItem("activeAntiPermaTraps", APItem.triggeredAntiPermaTraps.copy());
+			_saveData.addItem("hardmodeItems", APItem.hardmodeItems.copy());
 
 			_saveData.save();
 			trace("Save data updated!");
@@ -1971,9 +1976,13 @@ class APGameState
 			// Apply all unlocked songs
 			for (song in result.unlockedSongs)
 			{
-				if (!isSync)
-					archipelago.console.obj.Alert.alert("New Song!", '${song.song} from ${song.mod}', function() {trace("why did you click it lol?");}); //Gonna try something new
-				//ArchPopup.startPopupSong(song, 'archColor');
+				if (!isSync) {
+					if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
+						archipelago.console.obj.Alert.alert("New Song!", '${song.song} from ${song.mod}', function() {trace("why did you click it lol?");}); //Gonna try something new
+					} else {
+						ArchPopup.startPopupSong(song, 'archColor');
+					}
+				}
 				APFreeplayManager.curUnlocked.push(song);
 			}
 

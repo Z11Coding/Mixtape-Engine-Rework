@@ -402,6 +402,9 @@ class APInfo {
 	public static function hasItem(item:APItem):Bool {
 		return [for (item in APGameState.instance.APItems.keys()) item == grabAPItemName(item)].contains(true);
 	}
+	public static function hasHMItem(item:Dynamic):Bool {
+		return [for (item in APItem.hardmodeItems) item == grabAPItemName(item)].contains(true);
+	}
 }
 
 abstract APItem(Int) from Int to Int {

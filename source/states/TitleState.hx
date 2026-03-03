@@ -204,14 +204,14 @@ class TitleState extends MusicBeatState
 							Mods.loadTopMod();
 							WeekData.reloadWeekFiles();
 							MusicManager.playMenuMusic(0);
-						// Pass playlist directly to PlayState constructor instead of static assignment
-						trace('songName: ${playlist.songList[0]}');
-						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
-						PlayState.storyWeek = playlist.songList[0].week;
-						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
-						LoadingState.prepareToSong();
-						LoadingState.loadAndSwitchState(new PlayState(playlist));
+							// Pass playlist directly to PlayState constructor instead of static assignment
+							trace('songName: ${playlist.songList[0]}');
+							var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
+							Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
+							PlayState.storyWeek = playlist.songList[0].week;
+							Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
+							LoadingState.prepareToSong();
+							LoadingState.loadAndSwitchState(new PlayState(playlist));
 						}
 						else
 						{

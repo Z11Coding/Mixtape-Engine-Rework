@@ -25,7 +25,7 @@ import openfl.geom.Rectangle;
 import options.*;
 import stages.StageData;
 import states.*;
-import substates.Prompt;
+import states.editors.content.Prompt;
 import substates.SongSelectSubState;
 import tjson.TJSON;
 import yaml.Renderer;
@@ -2254,7 +2254,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		openSubState(enumSubstate);
 	}
 
-	function giveNotice() openSubState(new Prompt("Give it time, hun.\nWe'll get to know each other soon enough,\nI promise~ ", 0, null, null, false, "Wait What", "Who the heck-"));
+	function giveNotice() openSubState(new Prompt("Give it time, hun.\nWe'll get to know each other soon enough,\nI promise~ ", null, null, "Wait What", "Who the heck-"));
 
 	function setOptionValue(optionName:String, value:Dynamic)
 	{
@@ -2576,7 +2576,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function showCaptureResult(data:String)
 	{
-		openSubState(new Prompt("State Data Captured\n\nCaptured from closed state:\n\n" + data, 0, null, null, false));
+		openSubState(new Prompt("State Data Captured\n\nCaptured from closed state:\n\n" + data, null, null));
 	}
 
 	/**
@@ -4250,7 +4250,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		FlxG.sound.play(Paths.sound('confirmMenu'));
 
-		var yamlPrompt = new Prompt("Import YAML Configuration\n\nThis will load settings from a YAML file and override current configuration.", 0, function()
+		var yamlPrompt = new Prompt("Import YAML Configuration\n\nThis will load settings from a YAML file and override current configuration.", function()
 		{
 			// Proceed with import
 			importYAMLFile();

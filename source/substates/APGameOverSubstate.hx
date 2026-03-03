@@ -1,21 +1,18 @@
 package substates;
 
 import archipelago.APPlayState;
-import objects.GameOverVideoSprite;
 import backend.WeekData;
-
-import objects.Character;
 import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.math.FlxPoint;
-
-import states.StoryMenuState;
+import objects.Character;
+import objects.GameOverVideoSprite;
 import states.FreeplayState;
-
-//It has its own folder cuz it was made for something much bigger. 
+import states.StoryMenuState;
+import undertale.UnderTextParser;
+//It has its own folder cuz it was made for something much bigger.
 //im just too lazy to move it.
 //-sans
-import undertale.UnderTextParser;
 
 class APGameOverSubstate extends MusicBeatSubstate
 {
@@ -100,7 +97,7 @@ class APGameOverSubstate extends MusicBeatSubstate
 		FlxG.camera.focusOn(new FlxPoint(FlxG.camera.scroll.x + (FlxG.camera.width / 2), FlxG.camera.scroll.y + (FlxG.camera.height / 2)));
 		FlxG.camera.follow(camFollow, LOCKON, 0.01);
 		add(camFollow);
-		
+
 		PlayState.instance?.setOnScripts('inGameOver', true);
 		PlayState.instance?.callOnScripts('onGameOverStart', []);
 		FlxG.sound.music.loadEmbedded(Paths.music(loopSoundName), true);
@@ -151,7 +148,7 @@ class APGameOverSubstate extends MusicBeatSubstate
 		deathbysquare = new FlxSprite().makeGraphic(500, 300, 0xFFFFFFFF);
 		deathbysquare.scrollFactor.set();
 		deathbysquare.x += 800;
-		deathbysquare.y -= 100; 
+		deathbysquare.y -= 100;
 		deathbysquare.alpha = 0.3;
 		add(deathbysquare);
 
@@ -159,7 +156,7 @@ class APGameOverSubstate extends MusicBeatSubstate
 		causeofdeath = new UnderTextParser(deathbysquare.x, deathbysquare.y + 125, Std.int(deathbysquare.width), "", 32);
 		causeofdeath.scrollFactor.set();
 		causeofdeath.font = Paths.font("fnf1.ttf");
-        causeofdeath.color = 0xFFFFFFFF; 
+        causeofdeath.color = 0xFFFFFFFF;
 		for (letter in alphabet) {
 			causeofdeath.soundOnChars.set(letter, FlxG.sound.load(Paths.sound('ut/uifont'), 1));
 			causeofdeath.soundOnChars.set(letter.toUpperCase(), FlxG.sound.load(Paths.sound('ut/uifont'), 1));
@@ -185,6 +182,14 @@ class APGameOverSubstate extends MusicBeatSubstate
 				overlay.animation.play('deathLoop');
 			}
 			justPlayedLoop = true;
+		} else if (boyfriend.isAnimationNull()) { // just so it doesn't break if the character doesn't have a game over sprite
+			boyfriend.playAnim('deathLoop');
+			if(overlay != null && overlay.animation.exists('deathLoop'))
+			{
+				overlay.visible = true;
+				overlay.animation.play('deathLoop');
+			}
+			justPlayedLoop = true;
 		}
 
 		if(!isEnding)
@@ -198,15 +203,15 @@ class APGameOverSubstate extends MusicBeatSubstate
 				#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 				FlxG.camera.visible = false;
 				FlxG.sound.music.stop();
-				
+
 				Mods.loadTopMod();
 				MusicBeatState.switchState(new FreeplayState());
-	
+
 				FlxG.sound.playMusic(Paths.music(Constants.menuMusic));
 				PlayState.instance?.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop) coolStartDeath();
-			
+
 			if (FlxG.sound.music.playing)
 			{
 				Conductor.songPosition = FlxG.sound.music.time;

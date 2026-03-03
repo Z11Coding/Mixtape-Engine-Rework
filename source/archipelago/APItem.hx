@@ -164,6 +164,8 @@ class APItem {
     public static var extaLives:Int = 0; // Used for the "Extralives" item.
     public static var pendingDamage:Float = 0.0; // Damage that will be applied when conditions are met
     public static var extraItemInventory:Array<CustomModItem> = [];
+    public static var hardmodeItems:Array<String> = [];
+
 
     public static var unoColorsUnlocked:Array<{name:String, color_code:String}> = [];
 
@@ -1967,10 +1969,6 @@ class APItem {
             archipelago.APInfo.ap.Bounce({time: haxe.Timer.stamp(), source: archipelago.APInfo.ap.slot, trap_name: trapName}, null, null, ["TrapLink"]);
         }
     }
-
-
-
-
 
     /**
      * Clear active effects when songs end or states change

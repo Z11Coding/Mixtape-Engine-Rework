@@ -860,10 +860,14 @@ class ResultState extends MusicBeatSubState
             }
             trace("Current Song: " + PlayState.SONG.song);
 
-            archipelago.console.obj.Alert.alert("You've completed a Song Check!", "Good Job!", function() {
-              trace("Popup triggered for sending location to Archipelago.");
-              FlxG.sound.playMusic(Paths.sound('secret'));
-            });
+            if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
+              archipelago.console.obj.Alert.alert("You've completed a Song Check!", "Good Job!", function() {
+                trace("Popup triggered for sending location to Archipelago.");
+                FlxG.sound.playMusic(Paths.sound('secret'));
+              });
+            } else {
+              ArchPopup.startPopupCustom("You've completed a Song Check!", 'Good Job!', 'archColor');
+            }
           }
 
           if (archipelago.APItem.activeItem != null)
@@ -883,10 +887,14 @@ class ResultState extends MusicBeatSubState
             archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
           }
 
-          if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
-            archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
-            trace("Goal achievement popup triggered.");
-            FlxG.sound.playMusic(Paths.sound('You Win'));
+          if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
+            if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+              archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
+              trace("Goal achievement popup triggered.");
+              FlxG.sound.playMusic(Paths.sound('You Win'));
+            }
+          } else {
+            ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", 'Well Done!', 'archColor');
           }
         } else {
           trace("Ranking requirements not met - main location check will not be sent");

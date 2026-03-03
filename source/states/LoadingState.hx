@@ -461,13 +461,6 @@ class LoadingState extends MusicBeatState
 	static var preloadAsync:yutautil.modules.ASync.AResult<Bool> = null; // Store async preload result
 	static function getNextState(target:FlxState, stopMusic = false, intrusive:Bool = true):FlxState
 	{
-		if (APEntryState.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("Stage Access Key")) {
-			FlxG.state.openSubState(new Prompt("ERROR: Access key denied.", 0, function() FreeplayManager.openFreeplay(), function() FreeplayManager.openFreeplay(), false, "Return to Freeplay", "Return to Freeplay"));
-			noAccess = true;
-			loadMax++; //just to be sure it doesn't try to load anyway
-		} else {
-			noAccess = false;
-		}
 
 		// Check if preload setting is enabled and target is PlayState
 		if (ClientPrefs.data.preloadSong && Std.isOfType(target, states.PlayState)) {
@@ -485,6 +478,19 @@ class LoadingState extends MusicBeatState
 		LoadingState.isIntrusive = intrusive;
 		_startPool();
 		loadNextDirectory();
+
+		if (APEntryState.inArchipelagoMode && APInfo.inHardMode) {
+			trace('Stage Access Key: ${APInfo.hasHMItem("Stage Access Key")}');
+			if (!APInfo.hasHMItem("Stage Access Key")) {
+				FlxG.sound.music.stop();
+				FlxG.sound.play(Paths.sound("badnoise3"));
+				return new states.editors.content.Prompt("ERROR: Access key denied.", function() FreeplayManager.openFreeplay(), null, "Return to Freeplay");
+				noAccess = true;
+				loadMax++; //just to be sure it doesn't try to load anyway
+			} else {
+				noAccess = false;
+			}
+		}
 
 		if(intrusive)
 		{
