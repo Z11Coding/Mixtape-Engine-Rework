@@ -383,7 +383,7 @@ class APInfo {
 		trace('Combo Minimum: $comboRankSetLimit\nAccuacy Minimum: $accRankSetLimit');
 	}
 
-	public static function grabAPItemName(item:APItem):String {
+	public static function grabAPItemName(item:APItemID):String {
 		if (item is String)
 			return ap.get_item_name(ap.get_item_id(item));
 		if (item is Int)
@@ -391,7 +391,7 @@ class APInfo {
 		return "";
 	}
 
-	public static function grabAPItemID(item:APItem):Int {
+	public static function grabAPItemID(item:APItemID):Int {
 		if (item is Int)
 			return ap.get_item_id(ap.get_item_name(item));
 		if (item is String)
@@ -399,28 +399,34 @@ class APInfo {
 		return -1;
 	}
 
-	public static function hasItem(item:APItem):Bool {
+	public static function hasItem(item:APItemID):Bool {
 		return [for (item in APGameState.instance.APItems.keys()) item == grabAPItemName(item)].contains(true);
 	}
-	public static function hasHMItem(item:Dynamic):Bool {
+	public static function hasHMItem(item:APItemID):Bool {
 		return [for (item in APItem.hardmodeItems) item == grabAPItemName(item)].contains(true);
 	}
 }
 
-abstract APItem(Int) from Int to Int {
+abstract APItemID(Int) from Int to Int {
 	public function new(value:Int) {
 		this = value;
 	}
 
-	public function get_name():String {
+	public inline function get_name():String {
 		return APInfo.ap.get_item_name(this);
 	}
 
-	public function get_id():Int {
+	public inline function get_id():Int {
 		return this;
 	}
 
-		@:from public static function fromName(name:String):APItem {
+		@:from public static inline function fromName(name:String):APItemID {
 			return APInfo.ap.get_item_id(name);
+		}
+		@:to public static inline function toName(id:APItemID):String {
+			return APInfo.ap.get_item_name(id);
+		}
+		@:to public inline function implToName():String {
+			return APInfo.ap.get_item_name(this);
 		}
 }
