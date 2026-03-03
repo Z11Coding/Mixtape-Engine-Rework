@@ -418,9 +418,9 @@ abstract APItem(Int) from Int to Int {
 
 	public function get_id():Int {
 		return this;
+	}
 
 		@:from public static function fromName(name:String):APItem {
 			return APInfo.ap.get_item_id(name);
 		}
-	}
 }
