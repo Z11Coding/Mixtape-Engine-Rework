@@ -2254,11 +2254,12 @@ class APGameState
 			// Get mixtape data from slot data
 			if (_slotData != null && Reflect.hasField(_slotData, "bundleData"))
 			{
-				var slotMixtapeData:MixtapeItemData = cast Reflect.field(_slotData, "bundleData");
-				if (slotMixtapeData != null)
+				var slotMixtapeData:haxe.DynamicAccess<MixtapeItemData> = cast Reflect.field(_slotData, "bundleData");
+				var mixtape:MixtapeItemData = slotMixtapeData.get(mixtapeItemName);
+				if (mixtape != null)
 				{
-					slotMixtapeData.name = mixtapeItemName;
-					APPlaylistState.loadPlaylist(slotMixtapeData);
+					mixtape.name = mixtapeItemName;
+					APPlaylistState.loadPlaylist(mixtape);
 					trace("Loaded mixtape playlist for: " + mixtapeItemName);
 				}
 				else
