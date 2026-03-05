@@ -6,9 +6,9 @@ import backend.WeekData;
 import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
 import flixel.util.FlxColor;
 import managers.APFreeplayManager;
-import objects.Alphabet;
 import objects.Alphabet.DynamicAlphabet;
 import objects.Alphabet.DynamicColoredAlphabet;
+import objects.Alphabet;
 import objects.Character;
 import objects.HealthIcon;
 import options.GameplayChangersSubstate;
@@ -407,13 +407,13 @@ class APPlaylistState extends MusicBeatState {
     for (i in 0...loadedPlaylists.length) {
 			if (loadedPlaylists[i] != null) {
 				var listText:Alphabet = null;
-				
+
 				// Check AP locations and color the playlist accordingly
 				#if ARCHIPELAGO_ALLOWED
 				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
 					// Check if playlist contains victory song
-					var containsVictorySong = false;
-					if (loadedPlaylists[i].songList != null) {
+					var containsVictorySong = false || loadedPlaylists[i].contains_victory; // Short-circuit with metadata flag to avoid unnecessary checks
+					if (loadedPlaylists[i].songList != null && !containsVictorySong) {
 						for (song in loadedPlaylists[i].songList) {
 							if (APFreeplayManager.isVictorySong(song.songName, song.folder)) {
 								containsVictorySong = true;
@@ -479,7 +479,7 @@ class APPlaylistState extends MusicBeatState {
 	 * WHITE = no locations checked
 	 * GRAY = some locations checked
 	 * GREEN = all locations checked
-	 * 
+	 *
 	 * Victory song coloring (if playlist contains victory song):
 	 * RAINBOW = victory song, no checks
 	 * ORANGE/BRONZE (random) = victory song, some checks
@@ -528,7 +528,7 @@ class APPlaylistState extends MusicBeatState {
 	  }
 
 	  // Color logic using ternary expressions
-	  return containsVictorySong 
+	  return containsVictorySong
 	      ? (checkedCount == 0 ? 0xFFFFFFFF // RAINBOW - no checks
 	          : checkedCount == allLocations.length ? 0xFFFFD700 // GOLD - all checks complete
 	          : (FlxG.random.bool(50) ? 0xFFCD7F32 : 0xFFFFA500)) // ORANGE/BRONZE - some checks

@@ -122,12 +122,12 @@ class APFreeplayManager extends FreeplayManager {
 		var isVictory = isVictorySong(songName, modName);
 
 		// Determine state based on unlock status and location checks
-		return !isUnlocked ? Locked 
-			: isVictory ? (checkedCount == 0 && locationIds.length > 0 ? VictoryNoChecks 
-				: checkedCount == locationIds.length && locationIds.length > 0 ? VictoryComplete 
+		return !isUnlocked ? Locked
+			: isVictory ? (checkedCount == 0 && locationIds.length > 0 ? VictoryNoChecks
+				: checkedCount == locationIds.length && locationIds.length > 0 ? VictoryComplete
 				: VictoryPartial)
-			: (checkedCount == locationIds.length && locationIds.length > 0) ? AllChecks 
-			: (checkedCount > 0) ? PartialChecks 
+			: (checkedCount == locationIds.length && locationIds.length > 0) ? AllChecks
+			: (checkedCount > 0) ? PartialChecks
 			: NoChecks;
 		#else
 		return Locked;

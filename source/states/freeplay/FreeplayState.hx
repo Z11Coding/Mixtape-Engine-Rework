@@ -453,11 +453,11 @@ class FreeplayState extends MusicBeatState
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
 					var displayName = archipelago.APItem.unknownSongs ? "Unknown" : songName;
-					
+
 					// Victory song special colors
 					var isVictorySong = APFreeplayManager.isVictorySong(songName, modName);
 					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
-					
+
 					if (isVictorySong && isUnlocked) {
 						// Victory song uses special colors based on completion
 						songText = if (isMissing) {
