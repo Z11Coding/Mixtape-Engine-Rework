@@ -426,70 +426,50 @@ class SongMenuItem extends FlxSpriteGroup
 					var songName:String = songData.songName;
 					var modName:String = songData.folder;
 					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-					var isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
-					// Check if song is unlocked (in curUnlocked)
-					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+					// Get color state and color value from centralized manager
+					var colorState = APFreeplayManager.getSongColorState(songName, modName, locationId);
+					var color = APFreeplayManager.getSongColor(colorState);
+					var isVictory = APFreeplayManager.isVictorySong(songName, modName);
 
-					someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+					// Status text for display in week name only
+					var statusText = (colorState == APFreeplayManager.APSongColorState.Locked) ? "LOCKED"
+						: isVictory && colorState == APFreeplayManager.APSongColorState.VictoryNoChecks ? "GOAL"
+						: isVictory && colorState == APFreeplayManager.APSongColorState.VictoryComplete ? "COMPLETE"
+						: isVictory && colorState == APFreeplayManager.APSongColorState.VictoryPartial ? "SEMI-COMPLETE"
+						: !isVictory && colorState == APFreeplayManager.APSongColorState.AllChecks ? "COMPLETE"
+						: "";
 
-					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
-					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
+					// Determine icon and text based on state
+					if (colorState == APFreeplayManager.APSongColorState.Locked) {
+						songText.text = songData.songName;
+						songText.color = FlxColor.RED;
+						pixelIcon.setCharacter('lock');
+						pixelIcon.visible = true;
+						updateWeekText("LOCKED");
+					} else if (isVictory) {
+						// Victory song - show status in week name only
+						songText.text = songData.songName;
+						songText.color = color;
+						enableRainbow = (colorState == APFreeplayManager.APSongColorState.VictoryNoChecks);
+						if (songData.songCharacter != null) pixelIcon.setCharacter(songData.songCharacter);
+						pixelIcon.visible = true;
 
-					if (APFreeplayManager.isVictorySong(songData.songName, songData.folder)) {
-						if (!isUnlocked) {
-							songText.text = '${songData.songName} (Locked)';
-							songText.color = FlxColor.RED;
-							pixelIcon.setCharacter('lock');
-							pixelIcon.visible = true;
-							updateWeekText("LOCKED");
-						} else if (isMissing) {
-							if (someLocationsNotMissing) {
-								songText.text = '${songData.songName} (Goal) (Semi-Complete)';
-								songText.color = bronzeOrOrangeColor;
-								if (songData.songCharacter != null)
-									pixelIcon.setCharacter(songData.songCharacter);
-								pixelIcon.visible = true;
-								updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Semi-Complete)');
-							} else {
-								songText.text = '${songData.songName} (Goal)';
-								songText.color = FlxColor.WHITE;
-								enableRainbow = true;
-								if (songData.songCharacter != null)
-									pixelIcon.setCharacter(songData.songCharacter);
-								pixelIcon.visible = true;
-								updateWeekText((songData?.songWeekName ?? "") + ' (Goal)');
-							}
-						} else {
-							songText.text = '${songData.songName} (Goal) (Complete)';
-							songText.color = 0xFFFFD700;
-							if (songData.songCharacter != null)
-								pixelIcon.setCharacter(songData.songCharacter);
-							pixelIcon.visible = true;
-							updateWeekText((songData?.songWeekName ?? "") + ' (Goal) (Complete)');
-						}
+						// Show status in week name
+						var weekText = songData?.songWeekName ?? "";
+						if (statusText != "") weekText = '${weekText} (${statusText})';
+						updateWeekText(weekText);
 					} else {
-						if (!isUnlocked) {
-							songText.text = '${songData.songName} (Locked)';
-							songText.color = FlxColor.RED;
-							pixelIcon.setCharacter('lock');
-							pixelIcon.visible = true;
-							updateWeekText("LOCKED");
-						} else if (!isMissing) {
-							songText.text = '${songData.songName} (Complete)';
-							if (songData.songCharacter != null)
-								pixelIcon.setCharacter(songData.songCharacter);
-							pixelIcon.visible = true;
-							updateWeekText((songData?.songWeekName ?? "") + ' (Complete)');
-						} else {
-							// Check if some locations are not missing (partially completed)
-							songText.text = '${songData.songName}' + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)');
-							songText.color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-							if (songData.songCharacter != null)
-								pixelIcon.setCharacter(songData.songCharacter);
-							pixelIcon.visible = true;
-							updateWeekText((songData?.songWeekName ?? "") + (someLocationsNotMissing ? ' (Semi-Complete)' : ' (Unlocked)'));
-						}
+						// Normal song - show status in week name only
+						songText.text = songData.songName;
+						songText.color = color;
+						if (songData.songCharacter != null) pixelIcon.setCharacter(songData.songCharacter);
+						pixelIcon.visible = true;
+
+						// Show status in week name
+						var weekText = songData?.songWeekName ?? "";
+						if (statusText != "") weekText = '${weekText} (${statusText})';
+						updateWeekText(weekText);
 					}
 
 					if (AprilFools.allowAF && FlxG.random.bool(10)) {

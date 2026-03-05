@@ -2261,6 +2261,7 @@ class APGameState
 					mixtape.name = mixtapeItemName;
 					APPlaylistState.loadPlaylist(mixtape);
 					trace("Loaded mixtape playlist for: " + mixtapeItemName);
+					APItem.popup("New Mixtape!", mixtapeItemName, false);
 				}
 				else
 				{
@@ -3710,6 +3711,12 @@ class APGameState
 
 		// Clean up AP Items and related data
 		archipelago.APItem.cleanupAllAPData();
+
+		// Clear AP playlists
+		#if ARCHIPELAGO_ALLOWED
+		APPlaylistState.apPlaylists = [];
+		APPlaylistState.apPlaylists = null;
+		#end
 
 		// Clear reconnection callback state
 		pendingReconnection = false;

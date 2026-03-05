@@ -797,7 +797,8 @@ class OsuFreeplayState extends MusicBeatState
 
 		var trueInt:Int = 0;
 
-		APFreeplayManager.checkSongStatus();
+		if (APEntryState.inArchipelagoMode)
+			APFreeplayManager.checkSongStatus();
 
 		for (i in 0...fpManager.songList.length)
 		{
@@ -846,10 +847,10 @@ class OsuFreeplayState extends MusicBeatState
 				songBox.color = APFreeplayManager.isVictorySong(songName, modName) ?
 					(isMissing ?
 						(someLocationsNotMissing ?
-							songBox.color = bronzeOrOrangeColor
-							: songBox.color = victoryColor)
-						: songBox.color = 0xFFFFD700)
-					: songBox.color = color;
+							bronzeOrOrangeColor
+							: 0xFFFFFFFF)
+						: 0xFFFFD700)
+					: color;
 			} else {
 				songBox.setColorTransform(-1, -1, -1, 1, fpManager.songList[i].color[0][0], fpManager.songList[i].color[0][1], fpManager.songList[i].color[0][2], 1);
 			}
@@ -917,22 +918,16 @@ class OsuFreeplayState extends MusicBeatState
 				// Check if song is unlocked (in curUnlocked)
 				var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
 
-				// Color logic based on requirements:
+				// Color logic using ternary expressions
 				// RED = not unlocked (locked)
 				// WHITE = unlocked with all locations missing
 				// GRAY = unlocked with some locations missing
 				// GREEN = unlocked with no locations missing (completed)
-				if (!isUnlocked) {
-					color = FlxColor.RED; // Locked song
-				} else {
-					if (!isMissing) {
-						color = FlxColor.GREEN; // Fully completed
-					} else {
-						// Check if some locations are not missing (partially completed)
-						someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
-						color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-					}
-				}
+				someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+				color = !isUnlocked ? FlxColor.RED
+					: !isMissing ? FlxColor.GREEN
+					: someLocationsNotMissing ? FlxColor.GRAY
+					: FlxColor.WHITE;
 			}
 
 			Mods.currentModDirectory = fpManager.songList[i].folder;

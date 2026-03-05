@@ -56,6 +56,18 @@ abstract APSongData(SongInfo) {
 
 
 }
+
+// Enum for AP song color states
+enum APSongColorState {
+	Locked;           // RED - not in curUnlocked
+	NoChecks;         // WHITE - unlocked, 0 checks
+	PartialChecks;    // GRAY - unlocked, some checks
+	AllChecks;        // GREEN - unlocked, all checks
+	VictoryNoChecks;  // RAINBOW - victory song, 0 checks
+	VictoryPartial;   // ORANGE/BRONZE - victory song, some checks
+	VictoryComplete;  // GOLD - victory song, all checks
+}
+
 class APFreeplayManager extends FreeplayManager {
     #if ARCHIPELAGO_ALLOWED
     public static var curUnlocked:Array<{song:String, mod:String}> = [];
@@ -85,8 +97,61 @@ class APFreeplayManager extends FreeplayManager {
 		return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');
 	}
 
+	/**	 * Determine the AP color state for a song based on unlock status and location checks
+	 * @param songName The song name
+	 * @param modName The mod name (can be null or empty)
+	 * @param locationIds Array of location IDs for this song
+	 * @return APSongColorState enum value representing the current state
+	 */
+	public static function getSongColorState(songName:String, modName:String, locationIds:Array<Int>):APSongColorState {
+		#if ARCHIPELAGO_ALLOWED
+		if (modName == null) modName = "";
+
+		// Check if song is unlocked (in curUnlocked)
+		var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+
+		// Count how many locations have been checked
+		var checkedCount = 0;
+		for (ID in locationIds) {
+			if (APEntryState.apGame.info().checkedLocations.contains(ID)) {
+				checkedCount++;
+			}
+		}
+
+		// Check if this is the victory song
+		var isVictory = isVictorySong(songName, modName);
+
+		// Determine state based on unlock status and location checks
+		return !isUnlocked ? Locked 
+			: isVictory ? (checkedCount == 0 && locationIds.length > 0 ? VictoryNoChecks 
+				: checkedCount == locationIds.length && locationIds.length > 0 ? VictoryComplete 
+				: VictoryPartial)
+			: (checkedCount == locationIds.length && locationIds.length > 0) ? AllChecks 
+			: (checkedCount > 0) ? PartialChecks 
+			: NoChecks;
+		#else
+		return Locked;
+		#end
+	}
+
 	/**
-	 * Get hints for a specific song
+	 * Get the FlxColor for a given AP song color state
+	 * @param state The APSongColorState
+	 * @return FlxColor corresponding to the state
+	 */
+	public static function getSongColor(state:APSongColorState):FlxColor {
+		return switch(state) {
+			case Locked: FlxColor.RED;
+			case NoChecks: FlxColor.WHITE;
+			case PartialChecks: FlxColor.GRAY;
+			case AllChecks: FlxColor.GREEN;
+			case VictoryNoChecks: FlxColor.MAGENTA; // Will be displayed as RAINBOW via VictorySong class
+			case VictoryPartial: (FlxG.random.bool(50) ? 0xFFCD7F32 : 0xFFFFA500); // Random bronze/orange
+			case VictoryComplete: 0xFFFFD700; // GOLD
+		};
+	}
+
+	/**	 * Get hints for a specific song
 	 * @param songName The song name
 	 * @param modName The mod name (can be null or empty)
 	 * @return Array of hint strings, empty if no hints
@@ -275,9 +340,25 @@ class APFreeplayManager extends FreeplayManager {
                 // Check if song is unlocked
                 var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
 
-                // Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
-                color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
+                // Count checked locations
+                var checkedCount = 0;
+                for (ID in locationId) {
+                    if (APEntryState.apGame.info().checkedLocations.contains(ID)) {
+                        checkedCount++;
+                    }
+                }
 
+                // Color logic: RED = locked (don't have the item)
+                // WHITE = no checks found, GRAY = partial, GREEN = all complete
+                if (!isUnlocked) {
+                    color = FlxColor.RED; // Locked - don't have the item unlock
+                } else if (checkedCount == locationId.length && locationId.length > 0) {
+                    color = FlxColor.GREEN; // All locations checked
+                } else if (checkedCount > 0) {
+                    color = FlxColor.GRAY; // Some locations checked
+                } else {
+                    color = FlxColor.WHITE; // Unlocked but no checks
+                }
 
                 someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 
@@ -324,9 +405,25 @@ class APFreeplayManager extends FreeplayManager {
                     // Check if song is unlocked
                     var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
 
-                    // Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
-                    color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
+                    // Count checked locations
+                    var checkedCount = 0;
+                    for (ID in locationId) {
+                        if (APEntryState.apGame.info().checkedLocations.contains(ID)) {
+                            checkedCount++;
+                        }
+                    }
 
+                    // Color logic: RED = locked (don't have the item)
+                    // WHITE = no checks found, GRAY = partial, GREEN = all complete
+                    if (!isUnlocked) {
+                        color = FlxColor.RED; // Locked - don't have the item unlock
+                    } else if (checkedCount == locationId.length && locationId.length > 0) {
+                        color = FlxColor.GREEN; // All locations checked
+                    } else if (checkedCount > 0) {
+                        color = FlxColor.GRAY; // Some locations checked
+                    } else {
+                        color = FlxColor.WHITE; // Unlocked but no checks
+                    }
 
                     someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
 

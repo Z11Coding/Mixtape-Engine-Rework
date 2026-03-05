@@ -438,27 +438,14 @@ class FreeplayState extends MusicBeatState
 					songName = fpManager.songList[i].songName;
 					modName = fpManager.songList[i].folder;
 					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-					isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
-					// Check if song is unlocked (in curUnlocked)
-					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+					// Get color state and color value from centralized manager
+					var colorState = APFreeplayManager.getSongColorState(songName, modName, locationId);
+					color = APFreeplayManager.getSongColor(colorState);
 
-					// Color logic based on requirements:
-					// RED = not unlocked (locked)
-					// WHITE = unlocked with all locations missing
-					// GRAY = unlocked with some locations missing
-					// GREEN = unlocked with no locations missing (completed)
-					if (!isUnlocked) {
-						color = FlxColor.RED; // Locked song
-					} else {
-						if (!isMissing) {
-							color = FlxColor.GREEN; // Fully completed
-						} else {
-							// Check if some locations are not missing (partially completed)
-							someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
-							color = someLocationsNotMissing ? FlxColor.GRAY : FlxColor.WHITE;
-						}
-					}
+					// For tracking victory song completion
+					isMissing = colorState == APFreeplayManager.APSongColorState.VictoryNoChecks; // Victory song uses "all locations not checked"
+					someLocationsNotMissing = colorState == APFreeplayManager.APSongColorState.VictoryPartial; // Some checked but not all
 				}
 
 				var songText:Alphabet = null;
@@ -466,13 +453,27 @@ class FreeplayState extends MusicBeatState
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
 					var displayName = archipelago.APItem.unknownSongs ? "Unknown" : songName;
-					songText = APFreeplayManager.isVictorySong(songName, modName) ?
-						(isMissing ?
-							(someLocationsNotMissing ?
-								new DynamicColoredAlphabet(90, 320, displayName, true, bronzeOrOrangeColor, true)
-								: new VictorySong(90, 320, displayName, color, true))
-							: new DynamicColoredAlphabet(90, 320, displayName, true, 0xFFFFD700, true))
-						: new DynamicColoredAlphabet(90, 320, displayName, true, color, true);
+					
+					// Victory song special colors
+					var isVictorySong = APFreeplayManager.isVictorySong(songName, modName);
+					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+					
+					if (isVictorySong && isUnlocked) {
+						// Victory song uses special colors based on completion
+						songText = if (isMissing) {
+							// All locations not checked - RAINBOW (VictorySong class)
+							new VictorySong(90, 320, displayName, 0xFFFFFFFF, true);
+						} else if (someLocationsNotMissing) {
+							// Some checked - ORANGE/BRONZE (random)
+							new DynamicColoredAlphabet(90, 320, displayName, true, bronzeOrOrangeColor, true);
+						} else {
+							// All checked - GOLD
+							new DynamicColoredAlphabet(90, 320, displayName, true, 0xFFFFD700, true);
+						};
+					} else {
+						// Normal song - use standard colors
+						songText = new DynamicColoredAlphabet(90, 320, displayName, true, color, true);
+					}
 				} else {
 					songText = new DynamicAlphabet(90, 320, fpManager.songList[i].songName, true, true);
 				}

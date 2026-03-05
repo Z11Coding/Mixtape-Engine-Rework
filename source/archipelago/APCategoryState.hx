@@ -102,6 +102,18 @@ class APCategoryState extends states.CategoryState {
                     }
                 }, false), // Don't throw on error - continue even if cleanup fails
 
+                GenericProgressSubstate.createTask("Clearing AP playlists...", function(results) {
+                    try {
+                        archipelago.APPlaylistState.apPlaylists = [];
+                        archipelago.APPlaylistState.apPlaylists = null;
+                        trace('AP playlists cleared successfully');
+                        return "playlists_cleanup_success";
+                    } catch (e) {
+                        trace('Error clearing AP playlists: ' + e);
+                        return "playlists_cleanup_error";
+                    }
+                }, false), // Don't throw on error - continue even if cleanup fails
+
                 GenericProgressSubstate.createTask("Disconnecting from Archipelago server...", function(results) {
                     try {
                         if (AP != null) {
@@ -216,6 +228,10 @@ class APCategoryState extends states.CategoryState {
 
                         // Clean up AP Items and data
                         archipelago.APItem.cleanupAllAPData();
+
+                        // Clear AP playlists
+                        archipelago.APPlaylistState.apPlaylists = [];
+                        archipelago.APPlaylistState.apPlaylists = null;
 
                         trace('Emergency cleanup completed during error handling');
                     } catch (cleanupError) {

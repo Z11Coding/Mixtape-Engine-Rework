@@ -4,7 +4,11 @@ import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
 import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
+import flixel.util.FlxColor;
+import managers.APFreeplayManager;
+import objects.Alphabet;
 import objects.Alphabet.DynamicAlphabet;
+import objects.Alphabet.DynamicColoredAlphabet;
 import objects.Character;
 import objects.HealthIcon;
 import options.GameplayChangersSubstate;
@@ -230,8 +234,20 @@ class APPlaylistState extends MusicBeatState {
   override function update(elapse:Float) {
     super.update(elapse);
 
-		if (!choosePlaylist)
+		if (!choosePlaylist) {
 			updateTexts(elapse);
+			// Refresh playlist colors in AP mode to reflect location completion changes
+			#if ARCHIPELAGO_ALLOWED
+			if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+				for (i in 0...grpPlaylists.members.length) {
+					if (i < loadedPlaylists.length && grpPlaylists.members[i] != null) {
+						var playlistColor = getPlaylistLocationColor(loadedPlaylists[i]);
+						grpPlaylists.members[i].color = playlistColor;
+					}
+				}
+			}
+			#end
+		}
 
 		e++;
 		if (readyTxt != null)
@@ -391,7 +407,58 @@ class APPlaylistState extends MusicBeatState {
     for (i in 0...loadedPlaylists.length) {
 			if (loadedPlaylists[i] != null) {
 				var listText:Alphabet = null;
-				listText = new DynamicAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
+				
+				// Check AP locations and color the playlist accordingly
+				#if ARCHIPELAGO_ALLOWED
+				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+					// Check if playlist contains victory song
+					var containsVictorySong = false;
+					if (loadedPlaylists[i].songList != null) {
+						for (song in loadedPlaylists[i].songList) {
+							if (APFreeplayManager.isVictorySong(song.songName, song.folder)) {
+								containsVictorySong = true;
+								break;
+							}
+						}
+					}
+
+					// Check completion status
+					var allLocations:Array<Int> = [];
+					if (loadedPlaylists[i].location_id > 0) {
+						allLocations.push(loadedPlaylists[i].location_id);
+					}
+					if (loadedPlaylists[i].songLocations != null) {
+						allLocations = allLocations.concat(loadedPlaylists[i].songLocations);
+					}
+
+					var checkedCount = 0;
+					for (locationId in allLocations) {
+						if (archipelago.APEntryState.apGame.info().checkedLocations.contains(locationId)) {
+							checkedCount++;
+						}
+					}
+
+					if (containsVictorySong) {
+						if (checkedCount == 0 && allLocations.length > 0) {
+							// Victory song with no checks - use VictorySong class (RAINBOW)
+							listText = new VictorySong(90, 320, loadedPlaylists[i].playlistName, 0xFFFFFFFF, true);
+						} else {
+							// Other victory song states - use special colors
+							var playlistColor = getPlaylistLocationColor(loadedPlaylists[i]);
+							listText = new DynamicColoredAlphabet(90, 320, loadedPlaylists[i].playlistName, true, playlistColor, true);
+						}
+					} else {
+						// Normal playlist - use standard colors
+						var playlistColor = getPlaylistLocationColor(loadedPlaylists[i]);
+						listText = new DynamicColoredAlphabet(90, 320, loadedPlaylists[i].playlistName, true, playlistColor, true);
+					}
+				} else {
+					listText = new DynamicColoredAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
+				}
+				#else
+				listText = new DynamicColoredAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
+				#end
+
 				listText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
 				listText.targetY = i;
 				grpPlaylists.add(listText);
@@ -403,6 +470,74 @@ class APPlaylistState extends MusicBeatState {
     }
 
     //if I need to do anything else, this function will be here
+  }
+
+  /**
+	 * Determines the color of a playlist based on AP item unlock status and location completion
+	 * If the playlist contains victory songs, uses victory song colors
+	 * RED = locked (don't have the playlist item)
+	 * WHITE = no locations checked
+	 * GRAY = some locations checked
+	 * GREEN = all locations checked
+	 * 
+	 * Victory song coloring (if playlist contains victory song):
+	 * RAINBOW = victory song, no checks
+	 * ORANGE/BRONZE (random) = victory song, some checks
+	 * GOLD = victory song, all checks complete
+	 */
+  function getPlaylistLocationColor(playlist:APPlaylistMetadata):FlxColor {
+	  #if ARCHIPELAGO_ALLOWED
+	  if (!archipelago.APEntryState.inArchipelagoMode || archipelago.APEntryState.apGame == null)
+	      return FlxColor.WHITE;
+
+	  var apGame = archipelago.APEntryState.apGame;
+	  var allLocations:Array<Int> = [];
+
+	  // Add the playlist's location_id
+	  if (playlist.location_id > 0) {
+	      allLocations.push(playlist.location_id);
+	  }
+
+	  // Add all song locations
+	  if (playlist.songLocations != null) {
+	      allLocations = allLocations.concat(playlist.songLocations);
+	  }
+
+	  // If no locations, return white
+	  if (allLocations.length == 0) {
+	      return FlxColor.WHITE;
+	  }
+
+	  // Count how many locations have been checked
+	  var checkedCount = 0;
+	  for (locationId in allLocations) {
+	      if (apGame.info().checkedLocations.contains(locationId)) {
+	          checkedCount++;
+	      }
+	  }
+
+	  // Check if playlist contains victory song
+	  var containsVictorySong = false;
+	  if (playlist.songList != null) {
+	      for (song in playlist.songList) {
+	          if (APFreeplayManager.isVictorySong(song.songName, song.folder)) {
+	              containsVictorySong = true;
+	              break;
+	          }
+	      }
+	  }
+
+	  // Color logic using ternary expressions
+	  return containsVictorySong 
+	      ? (checkedCount == 0 ? 0xFFFFFFFF // RAINBOW - no checks
+	          : checkedCount == allLocations.length ? 0xFFFFD700 // GOLD - all checks complete
+	          : (FlxG.random.bool(50) ? 0xFFCD7F32 : 0xFFFFA500)) // ORANGE/BRONZE - some checks
+	      : (checkedCount == allLocations.length ? FlxColor.GREEN // GREEN - all checks
+	          : checkedCount > 0 ? FlxColor.GRAY // GRAY - some checks
+	          : FlxColor.WHITE); // WHITE - no checks
+	  #else
+	  return FlxColor.WHITE;
+	  #end
   }
 
   function switchVisualizer(?hasVocals:Bool = false, ?vocalSND:FlxSound = null, ?oppSND:FlxSound = null) {

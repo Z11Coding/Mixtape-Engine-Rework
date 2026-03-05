@@ -4200,7 +4200,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		comment += "# Expected checks: " + totalChecks + "\n";
 		if (sanityChecks > 0)
 		{
-			comment += "# Sanity checks: " + sanityChecks + "\n";
+			comment += "# Sanity checks: " + sanityChecks + " (Not accurate to actual generated checks)\n";
 			comment += "# Total checks: " + (totalChecks + sanityChecks) + "\n";
 		}
 		comment += "# Trap items: " + trapAmount + "\n";
