@@ -301,7 +301,8 @@ typedef ProcessedItemsResult =
 	nonSongsNames:Array<String>,
 	unlockedSongs:Array<{song:String, mod:String}>,
 	itemsToTrigger:Array<String>,
-	sanityItems:Array<String>
+	sanityItems:Array<String>,
+	mixtapeItems:Array<String>
 };
 
 class APGameState
@@ -1848,6 +1849,7 @@ class APGameState
 			var unlockedSongs:Array<{song:String, mod:String}> = [];
 			var itemsToTrigger:Array<String> = [];
 			var sanityItems:Array<String> = []; // Track sanity items received
+			var mixtapeItems:Array<String> = []; // Track mixtape items received
 
 			APFreeplayManager.curMissing = [];
 
@@ -1860,14 +1862,10 @@ class APGameState
 
 				// Check if its a mixtape item FIRST because sanity doesn't account for this
 				if (itemName.startsWith("Mixtape: Set")) {
-					if (_slotData != null && Reflect.hasField(_slotData, "bundleData")) {
-						var slotMixtapeData:MixtapeItemData = cast Reflect.field(_slotData, "bundleData");
-						if (slotMixtapeData != null)
-						{
-							slotMixtapeData.name = itemName;
-							APPlaylistState.loadPlaylist(slotMixtapeData);
-						}
-					}
+					mixtapeItems.push(itemName);
+					nonSongs.set(itemName, songName.index);
+					nonSongsNames.push(itemName);
+					continue;
 				}
 
 				// Check if this is a sanity item FIRST before doing APItems check
@@ -1970,7 +1968,8 @@ class APGameState
 				nonSongsNames: nonSongsNames,
 				unlockedSongs: unlockedSongs,
 				itemsToTrigger: itemsToTrigger,
-				sanityItems: sanityItems // Add sanity items to result
+				sanityItems: sanityItems,
+				mixtapeItems: mixtapeItems // Add mixtape items to result
 			};
 		}
 
@@ -1983,6 +1982,13 @@ class APGameState
 			for (sanityItemName in result.sanityItems)
 			{
 				handleSanityItemReceived(sanityItemName);
+			}
+
+			// Handle mixtape items
+			trace("Processing " + result.mixtapeItems.length + " mixtape items");
+			for (mixtapeItemName in result.mixtapeItems)
+			{
+				handleMixtapeItemReceived(mixtapeItemName);
 			}
 
 			// Apply all unlocked songs
@@ -2239,6 +2245,31 @@ class APGameState
 				}
 			}
 			trace("==============================");
+		}
+
+		function handleMixtapeItemReceived(mixtapeItemName:String):Void
+		{
+			trace("Received mixtape item: " + mixtapeItemName);
+
+			// Get mixtape data from slot data
+			if (_slotData != null && Reflect.hasField(_slotData, "bundleData"))
+			{
+				var slotMixtapeData:MixtapeItemData = cast Reflect.field(_slotData, "bundleData");
+				if (slotMixtapeData != null)
+				{
+					slotMixtapeData.name = mixtapeItemName;
+					APPlaylistState.loadPlaylist(slotMixtapeData);
+					trace("Loaded mixtape playlist for: " + mixtapeItemName);
+				}
+				else
+				{
+					trace("Warning: Mixtape data is null for item: " + mixtapeItemName);
+				}
+			}
+			else
+			{
+				trace("Warning: No mixtape bundle data found in slot data");
+			}
 		}
 
 		public function checkSanityLocationsOnPlaying(songName:String, ?modName:String):Void
