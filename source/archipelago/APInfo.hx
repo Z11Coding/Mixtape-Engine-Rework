@@ -49,6 +49,15 @@ typedef APSlotDataType = {
 	?sanitySettings: SanitySettings // Sanity settings for this player
 }
 
+typedef MixtapeItemData = {
+	item_id: Int,
+	location_id: Int,
+	songs: Array<String>,
+	locations:Array<Int>,
+	contains_victory:Bool,
+	name:String
+}
+
 abstract APSlotData(APSlotDataType) from APSlotDataType to APSlotDataType {
 	public function new(?data:APSlotDataType) {
 		this = data != null ? data : {

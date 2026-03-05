@@ -1858,6 +1858,18 @@ class APGameState
 				// Use the realName function to convert special keywords back to actual brackets
 				itemName = APInfo.realName(itemName);
 
+				// Check if its a mixtape item FIRST because sanity doesn't account for this
+				if (itemName.startsWith("Mixtape: Set")) {
+					if (_slotData != null && Reflect.hasField(_slotData, "bundleData")) {
+						var slotMixtapeData:MixtapeItemData = cast Reflect.field(_slotData, "bundleData");
+						if (slotMixtapeData != null)
+						{
+							slotMixtapeData.name = itemName;
+							APPlaylistState.loadPlaylist(slotMixtapeData);
+						}
+					}
+				}
+
 				// Check if this is a sanity item FIRST before doing APItems check
 				var isSanityItem = false;
 				var sanityItemName = itemName; // Default to the original item name

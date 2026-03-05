@@ -1,4 +1,4 @@
-package states;
+package archipelago;
 import Random;
 import backend.Highscore;
 import backend.Song;
@@ -20,17 +20,7 @@ class APPlaylistState extends MusicBeatState {
   private static var curSelected:Int = 0;
   var lerpSelected:Float = 0;
 
-  var scoreBG:FlxSprite;
-	var scoreText:FlxText;
-	var diffText:FlxText;
-	var lerpScore:Int = 0;
-	var lerpRating:Float = 0;
-	var lerpDeaths:Int = 0;
-	var intendedScore:Int = 0;
-	var intendedRating:Float = 0;
-	var intendedDeaths:Int = 0;
-
-	var bottomString:String;
+  var bottomString:String;
 	var bottomText:FlxText;
 	var bottomBG:FlxSprite;
 
@@ -74,7 +64,7 @@ class APPlaylistState extends MusicBeatState {
 
     #if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
-		DiscordClient.changePresence("Selecting Their Mixtape...", null);
+		DiscordClient.changePresence("Selecting Their Mixtape (AP MODE)...", null);
 		#end
 
     Mods.loadTopMod();
@@ -122,7 +112,7 @@ class APPlaylistState extends MusicBeatState {
 		randomIcon.scrollFactor.set(1, 1);
 		add(randomIcon);
 
-		difficultyStars = new DifficultyStars(albumPhoto.x, albumPhoto.y - 130);
+		difficultyStars = new DifficultyStars(930, -130);
 		difficultyStars.alpha = 0;
     difficultyStars.scrollFactor.set();
     add(difficultyStars);
@@ -133,25 +123,12 @@ class APPlaylistState extends MusicBeatState {
       FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
 			MusicBeatState.switchState(new states.ErrorState("NO PLAYLISTS FOUND!\n\n\nPress ENTER or BACK to return to AP Category Menu.",
-				function() MusicBeatState.switchState(new archipelago.APCategoryState()),
-				function() MusicBeatState.switchState(new archipelago.APCategoryState())));
+				function() MusicBeatState.switchState(new archipelago.APCategoryState(archipelago.APPlayState.apGame)),
+				function() MusicBeatState.switchState(new archipelago.APCategoryState(archipelago.APPlayState.apGame))));
 			return;
     }
 
     FlxG.mouse.visible = true;
-
-    scoreText = new FlxText(FlxG.width * 0.7, 5, 0, "", 32);
-		scoreText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, RIGHT);
-
-		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, 66, 0xFF000000);
-		scoreBG.alpha = 0.6;
-		add(scoreBG);
-
-		diffText = new FlxText(scoreText.x, scoreText.y + 36, 0, "", 24);
-		diffText.font = scoreText.font;
-		//add(diffText);
-
-		add(scoreText);
 
 		readyTxt = new ColoredAlphabet(0, -2000, 'READY?', true);
 		readyTxt.screenCenter(X);
@@ -242,8 +219,6 @@ class APPlaylistState extends MusicBeatState {
 			}
 		}
 
-		intendedScore = Highscore.getPlaylistScore(loadedPlaylists[curSelected]?.playlistName);
-		//intendedRating = Highscore.getRating(fpManager.songList[curSelected].songName, curDifficulty);
     FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
   }
 
@@ -267,36 +242,6 @@ class APPlaylistState extends MusicBeatState {
 					readyTxt.letters[i].y = readyTxt.y + readyTxt.letters[i].row * 85 + (Math.sin((e*0.01) * 2 + (0.5*i)) * 5);
 				}
 			}
-
-		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapse * 24)));
-		//lerpDeaths = Math.floor(FlxMath.lerp(intendedDeaths, lerpDeaths, Math.exp(-elapsed * 24)));
-		//lerpRating = FlxMath.lerp(intendedRating, lerpRating, Math.exp(-elapsed * 12));
-
-		if (Math.abs(lerpScore - intendedScore) <= 10)
-			lerpScore = intendedScore;
-		/*if (Math.abs(lerpDeaths - intendedDeaths) <= 10)
-			lerpDeaths = intendedDeaths;
-		if (Math.abs(lerpRating - intendedRating) <= 0.01)
-			lerpRating = intendedRating;*/
-
-		var ratingSplit:Array<String> = Std.string(CoolUtil.floorDecimal(lerpRating * 100, 2)).split('.');
-		if(ratingSplit.length < 2) { //No decimals, add an empty space
-			ratingSplit.push('');
-		}
-
-		while(ratingSplit[1].length < 2) { //Less than 2 decimals in it, add decimals then
-			ratingSplit[1] += '0';
-		}
-
-		try {
-		if (curSelected == -1)
-			scoreText.text = 'RANDOM SONG';
-		else
-			scoreText.text = Language.getPhrase('personal_best', 'PERSONAL BEST: {1}', [lerpScore]);
-		} catch(e) {trace("it broke????\nError: "+e);}
-
-		diffText.text = 'Deaths: $lerpDeaths';
-		positionHighscore();
 
 		var shiftMult:Int = 1;
 		if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
@@ -371,7 +316,7 @@ class APPlaylistState extends MusicBeatState {
 			FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
 			if (!choosePlaylist) {
 				FlxTransitionableState.skipNextTransIn = true;
-				MusicBeatState.switchState(new archipelago.APCategoryState());
+				MusicBeatState.switchState(new archipelago.APCategoryState(archipelago.APPlayState.apGame));
 			} else {
 				Mods.loadTopMod();
 				Mods.currentModDirectory = '';
@@ -433,14 +378,6 @@ class APPlaylistState extends MusicBeatState {
 		}
   }
 
-	private function positionHighscore() {
-		scoreText.x = FlxG.width - scoreText.width - 6;
-		scoreBG.scale.x = FlxG.width - scoreText.x + 6;
-		scoreBG.x = FlxG.width - (scoreBG.scale.x / 2);
-		diffText.x = Std.int(scoreBG.x + (scoreBG.width / 2));
-		diffText.x -= diffText.width / 2;
-	}
-
   function reloadPlayLists() {
     grpPlaylists.clear();
 
@@ -462,8 +399,6 @@ class APPlaylistState extends MusicBeatState {
 				trace('Playlist ${loadedPlaylists[i]} at index ${i} was null!');
 				trace('A PLAYLIST WAS NULL! REMOVING PLAYLIST FROM INTERNAL PLAYLISTS!');
 				loadedPlaylists.remove(loadedPlaylists[i]);
-				ClientPrefs.data.playLists.remove(loadedPlaylists[i]);
-				ClientPrefs.saveSettings();
 			}
     }
 
@@ -507,20 +442,32 @@ class APPlaylistState extends MusicBeatState {
 		}
 	}
 
-	public static function loadPlaylists():Array<APPlaylistMetadata>
+	public static function loadPlaylist(playlistItem:archipelago.APInfo.MixtapeItemData)
 	{
-		var playlists:Array<APPlaylistMetadata> = [];
-
-
-		return playlists;
-	}
-
-	public static function loadPlaylistFile(path:String):APPlaylistMetadata
-	{
-		var playlistObject:APPlaylistMetadataObject = cast haxe.Json.parse(rawJson);
-		var playlistResult:APPlaylistMetadata = APPlaylistMetadata.convertFromObject(playlistObject);
-		return playlistResult;
-		return null;
+		var newPlaylist:APPlaylistMetadataObject = cast {
+			playlistName: playlistItem.name,
+			item_id: playlistItem.item_id,
+			location_id: playlistItem.location_id,
+			playlist_index: Std.parseInt(playlistItem.name.charAt(playlistItem.name.length-1)),
+			songList: [],
+			songLocations: playlistItem.locations,
+			contains_victory: playlistItem.contains_victory
+		}
+		var tempList:Array<APPlaylistSongMetadataObject> = [];
+		for (song in playlistItem.songs) {
+			var data = APEntryState.apGame.getSongAndMod(song);
+			var newSong:APPlaylistSongMetadataObject = cast {
+				songName: data.song,
+				folder: data.mod,
+				week: WeekData.weeksList.indexOf(data.mod),
+				songCharacter: "bf",
+				color: [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]],
+				difficulty: ""
+			};
+			tempList.push(newSong);
+		}
+		newPlaylist.songList = tempList;
+		apPlaylists.push(APPlaylistMetadata.convertFromObject(newPlaylist));
 	}
 
 	private function updateScrollable(obj:Scrollable, elapsed:Float = 0.0) {
@@ -609,7 +556,7 @@ class APPlaylistState extends MusicBeatState {
 
 					songListTxt.applyMarkup(songString, [new FlxTextFormatMarkerPair(curSongFormat, "?")]);
 
-					intendedScore = Highscore.getScore(daSongList[curSong].songName, daSongList[curSong].difficulty);
+					//intendedScore = Highscore.getScore(daSongList[curSong].songName, daSongList[curSong].difficulty);
 
 					FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 				},
@@ -672,13 +619,17 @@ class APPlaylistState extends MusicBeatState {
 	public var location_id:Int;
 	public var playlist_index:Int; // For organization
 	public var songList:Array<APPlaylistSongMetadata> = [];
-	public function new(?playlistName:String = 'unnamed playlist', ?item_id:Int = 0, ?location_id:Int = 0, ?playlist_index:Int = 0, ?songList:Array<APPlaylistSongMetadata>)
+	public var songLocations:Array<Int>;
+	public var contains_victory:Bool;
+	public function new(?playlistName:String = 'unnamed playlist', ?item_id:Int = 0, ?location_id:Int = 0, ?playlist_index:Int = 0, ?songList:Array<APPlaylistSongMetadata>, ?songLocations:Array<Int>, ?contains_victory:Bool)
 	{
 		this.playlistName = playlistName;
 		this.playlist_index = playlist_index;
 		this.item_id = item_id;
 		this.location_id = location_id;
 		this.songList = songList;
+		this.songLocations = songLocations;
+		this.contains_victory = contains_victory;
 	}
 
 	//TODO: Optimize the actual frick out of this holy mother of duck tape and prayer
@@ -711,13 +662,13 @@ class APPlaylistState extends MusicBeatState {
 
 	public inline function copy():APPlaylistMetadata
 	{
-		var playlist:APPlaylistMetadata = new APPlaylistMetadata(this.playlistName, this.bg, this.icon, this.album, this.color, this.songList.copy());
+		var playlist:APPlaylistMetadata = new APPlaylistMetadata(this.playlistName, this.item_id, this.location_id, this.playlist_index, this.songList.copy(), this.songLocations.copy(), this.contains_victory);
 		return playlist;
 	}
 
 	public function toString():String
 	{
-		return 'APPlaylistMetadata("${playlistName}", bg: "${bg}", icon: "${icon}", album: "${album}", songs: ${songList.length})';
+		return 'APPlaylistMetadata("${playlistName}", item_id: "${item_id}", location_id: "${location_id}", playlist_index: "${playlist_index}", songs: ${songList}, songLocations: ${songLocations}, contains_victory: ${contains_victory})';
 	}
 }
 
@@ -728,6 +679,8 @@ typedef APPlaylistMetadataObject = {
 	var location_id:Int;
 	var playlist_index:Int; // For organization
 	var songList:Array<APPlaylistSongMetadataObject>;
+	var songLocations:Array<Int>;
+	var contains_victory:Bool;
 }
 
 typedef APPlaylistSongMetadataObject = {

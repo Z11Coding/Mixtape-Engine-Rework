@@ -37,13 +37,17 @@ class APCategoryState extends states.CategoryState {
             trace('CRITICAL: No AP connection available. This will cause issues.');
             // Don't switch to ExitState immediately - let the parent class handle it
         }
-        // Static menu with "Items" option moved after "Unplayed" and before "Options"
+        // Static menu with "Items" option moved after "Unplayed" and before "Options"3
+
         var menuOptions = ['All', 'Hinted', 'Unlocked', 'Unplayed', 'Items', 'Options', 'Quit'];
+
+        if (Reflect.hasField(APInfo.slotData, "bundleData")) menuOptions.insert(5, "Mixtapes");
 
         super(menuOptions, false, false, true, false, false, false);
 
         // Initialize locks array - "Items" is locked based on hasPocketLens.
         menuLocks = [false, false, false, false, !archipelago.APItem.hasPocketLens, false, false];
+        if (Reflect.hasField(APInfo.slotData, "bundleData")) menuLocks.insert(5, false);
         specialOptions = [];
 
         var opFunc = function() {
@@ -245,6 +249,10 @@ class APCategoryState extends states.CategoryState {
             MusicBeatState.switchState(new APItemsViewerState(gameState, AP));
         };
 
+        var mixtapeFunc = function() {
+            MusicBeatState.switchState(new APPlaylistState());
+        };
+
         rightOption = null;
 
         // Set up specialOptions for each menu item
@@ -255,6 +263,8 @@ class APCategoryState extends states.CategoryState {
                 specialOptions[i] = opFunc;
             } else if (menuItems[i] == 'Quit') {
                 specialOptions[i] = quitFunc;
+            } else if (menuItems[i] == 'Mixtapes') {
+                specialOptions[i] = mixtapeFunc;
             } else {
                 specialOptions[i] = null;
             }
