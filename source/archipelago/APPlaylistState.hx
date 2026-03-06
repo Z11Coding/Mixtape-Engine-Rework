@@ -517,8 +517,8 @@ class APPlaylistState extends MusicBeatState {
 	  }
 
 	  // Check if playlist contains victory song
-	  var containsVictorySong = false;
-	  if (playlist.songList != null) {
+	  var containsVictorySong = false || playlist.contains_victory; // Short-circuit with metadata flag to avoid unnecessary checks
+	  if (playlist.songList != null && !containsVictorySong) {
 	      for (song in playlist.songList) {
 	          if (APFreeplayManager.isVictorySong(song.songName, song.folder)) {
 	              containsVictorySong = true;
