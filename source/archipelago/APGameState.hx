@@ -2249,7 +2249,18 @@ class APGameState
 
 		function handleMixtapeItemReceived(mixtapeItemName:String):Void
 		{
+			var dontMakePlaylist:Bool = false;
 			trace("Received mixtape item: " + mixtapeItemName);
+
+			for (playlist in APPlaylistState.apPlaylists) {
+				if (playlist.playlistName == mixtapeItemName) {
+					trace("Mixtape already exists! Skipping...");
+					dontMakePlaylist = true;
+					break;
+				}
+			}
+
+			if (dontMakePlaylist) return;
 
 			// Get mixtape data from slot data
 			if (_slotData != null && Reflect.hasField(_slotData, "bundleData"))

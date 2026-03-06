@@ -779,8 +779,10 @@ class PlayState extends MusicBeatState
 		#end
 		if (isWarmUp || isPlaylist) {
 			allowDebugKeys = false;
-			Difficulty.loadFromWeek();
-			storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
+			if (storyWeek != -1) {
+				Difficulty.loadFromWeek();
+				storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
+			}
 		}
 		//trace('Playback Rate: ' + playbackRate);
 		_lastLoadedModDirectory = Mods.currentModDirectory;
@@ -6518,7 +6520,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			instVolumeMultiplierHardMode = (APInfo.hasHMItem("Speakers") ? 1 : 0);
 
 			gfGroup.visible = APInfo.hasHMItem("GF");
-			camHUD.visible = !APInfo.hasHMItem("HUD");
+			camHUD.visible = APInfo.hasHMItem("HUD");
 			canPauseHardMode = APInfo.hasHMItem("Pause Menu");
 		}
 
