@@ -2653,7 +2653,7 @@ class APGameState
 		}
 
 
-		function checkIfLocked(song:String, mod:String):Bool
+		public function checkIfLocked(song:String, mod:String):Bool
 		{
 			return !songUnlocked(song, mod);
 		}
@@ -2664,7 +2664,7 @@ class APGameState
 		 * @param mod Mod name to search in (empty string for base game)
 		 * @return Array of WeekData objects that contain the song
 		 */
-		function getWeeksForSong(song:String, mod:String):OneOrMore<WeekData>
+		public function getWeeksForSong(song:String, mod:String):OneOrMore<WeekData>
 		{
 			var matchingWeeks:Array<WeekData> = [];
 
@@ -2708,7 +2708,7 @@ class APGameState
 		 * @param mod Mod name the song belongs to (empty string for base game)
 		 * @return Array of unique difficulty names (case-insensitive deduplicated)
 		 */
-		function getDifficultiesForSong(song:String, mod:String):Array<String>
+		public function getDifficultiesForSong(song:String, mod:String):Array<String>
 		{
 			var allDifficulties:Array<String> = [];
 			var difficultyMap:Map<String, String> = new Map<String, String>(); // Use lowercase as key, original case as value
