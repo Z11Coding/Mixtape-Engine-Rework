@@ -2607,9 +2607,150 @@ class APGameState
 			return false;
 		}
 
+		/**
+		 * Check if a song is unlocked, either directly or through a bundle
+		 * @param song Song name to check
+		 * @param mod Mod name (empty string if base game)
+		 * @return True if the song is unlocked, false otherwise
+		 */
+		function songUnlocked(song:String, mod:String):Bool
+		{
+			// Normalize mod name
+			if (mod == null)
+				mod = "";
+
+			// Check if song is directly in curUnlocked
+			for (unlockedSong in APFreeplayManager.curUnlocked)
+			{
+				if (unlockedSong.song.trim().toLowerCase() == song.trim().toLowerCase()
+					&& unlockedSong.mod == mod)
+				{
+					return true;
+				}
+			}
+
+			// Check if song is inside an unlocked bundle
+			if (_slotData != null && Reflect.hasField(_slotData, "bundleData"))
+			{
+				var bundleData:haxe.DynamicAccess<MixtapeItemData> = cast Reflect.field(_slotData, "bundleData");
+
+				// Check each bundle
+				for (bundleName in bundleData.keys())
+				{
+					var bundle:MixtapeItemData = bundleData.get(bundleName);
+
+					// Check if this bundle is unlocked (item exists in APItems)
+					if (APItems.exists(bundleName))
+					{
+						// Check if the song is in this bundle
+						if (bundle?.songs != null)
+						{
+							for (bundleSong in bundle.songs)
+							{
+								// Use getSongAndMod to parse the song/mod format
+								var parsedSong = getSongAndMod(bundleSong);
+								if (parsedSong.song.toLowerCase() == song.trim().toLowerCase()
+									&& (parsedSong.mod == null ? "" : parsedSong.mod) == mod)
+								{
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
+
 		function checkIfLocked(song:String, mod:String):Bool
 		{
-			return !(APFreeplayManager.curUnlocked.contains(APEntryState.apGame.getSongAndMod(song + mod)));
+			return !songUnlocked(song, mod);
+		}
+
+		/**
+		 * Find all weeks from a specific mod that contain a given song
+		 * @param song Song name to search for
+		 * @param mod Mod name to search in (empty string for base game)
+		 * @return Array of WeekData objects that contain the song
+		 */
+		function getWeeksForSong(song:String, mod:String):OneOrMore<WeekData>
+		{
+			var matchingWeeks:Array<WeekData> = [];
+
+			// Normalize mod name
+			if (mod == null)
+				mod = "";
+
+			// Iterate through all loaded weeks
+			for (weekName in WeekData.weeksList)
+			{
+				var week = WeekData.weeksLoaded.get(weekName);
+				if (week == null)
+					continue;
+
+				// Check if this week belongs to the specified mod
+				var weekMod = week.folder == null ? "" : week.folder;
+				if (weekMod != mod)
+					continue;
+
+				// Check if this week contains the song
+				if (week.songs != null)
+				{
+					for (songData in week.songs)
+					{
+						var songName = (cast songData[0] : String);
+						if (songName.toLowerCase() == song.toLowerCase())
+						{
+							matchingWeeks.push(week);
+							break; // Found the song in this week, no need to check further
+						}
+					}
+				}
+			}
+
+			return matchingWeeks;
+		}
+
+		/**
+		 * Get all unique difficulties for a song from all its weeks (case-insensitive)
+		 * @param song Song name to get difficulties for
+		 * @param mod Mod name the song belongs to (empty string for base game)
+		 * @return Array of unique difficulty names (case-insensitive deduplicated)
+		 */
+		function getDifficultiesForSong(song:String, mod:String):Array<String>
+		{
+			var allDifficulties:Array<String> = [];
+			var difficultyMap:Map<String, String> = new Map<String, String>(); // Use lowercase as key, original case as value
+
+			// Get all weeks containing this song
+			var weeks = getWeeksForSong(song, mod);
+
+			for (week in weeks)
+			{
+				// Parse difficulties from the week
+				if (week.difficulties != null && week.difficulties.length > 0)
+				{
+					var diffs:Array<String> = week.difficulties.trim().split(',');
+					for (diff in diffs)
+					{
+						var trimmedDiff = diff.trim();
+						if (trimmedDiff.length > 0)
+						{
+							var lowerDiff = trimmedDiff.toLowerCase();
+							// Only add if we haven't seen this difficulty before (case-insensitive)
+							if (!difficultyMap.exists(lowerDiff))
+							{
+								difficultyMap.set(lowerDiff, trimmedDiff);
+								allDifficulties.push(trimmedDiff);
+							}
+						}
+					}
+				}
+			}
+
+			return allDifficulties;
 		}
 
 		function validateMods()
