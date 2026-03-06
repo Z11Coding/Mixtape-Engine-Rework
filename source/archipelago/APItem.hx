@@ -965,6 +965,7 @@ class APItem {
                     popup('Strums restored!', "Z11 Hell Element: Strums");
                     objects.StrumNote.hardAlpha = 1;
 				    objects.Note.hardAlpha = 1;
+                    hardmodeItems.push("Strums");
                 }, true, true, false, fromTrapLink);
 
             case "BF's Mic":
@@ -973,6 +974,37 @@ class APItem {
                     for (note in APPlayState.instance?.allNotes) {
                         note.forceBlockHit = false;
                     }
+                    hardmodeItems.push("BF's Mic");
+                }, true, true, false, fromTrapLink);
+
+            case "GF":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('Oh, there she is!', "Z11 Hell Element: GF");
+                    hardmodeItems.push("GF");
+                }, true, true, false, fromTrapLink);
+
+            case "Speakers":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('Seems she just forgot to plug them in.', "Z11 Hell Element: Speakers");
+                    hardmodeItems.push("Speakers");
+                }, true, true, false, fromTrapLink);
+
+            case "Stage Access Key":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('Knock em\' dead, BF!', "Z11 Hell Element: Stage Access Key");
+                    hardmodeItems.push("Stage Access Key");
+                }, true, true, false, fromTrapLink);
+
+            case "HUD":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('WDYM I CAN\'T PLAY WITH MY EYES CLOSED??', "Z11 Hell Element: HUD");
+                    hardmodeItems.push("HUD");
+                }, true, true, false, fromTrapLink);
+
+            case "Pause Menu":
+                return new APItem(name, ConditionHelper.Everywhere(), function() {
+                    popup('Finally. I can go eat now.', "Z11 Hell Element: Pause Menu");
+                    hardmodeItems.push("Pause Menu");
                 }, true, true, false, fromTrapLink);
 
             case "Lonely Friday Night" | "Nothing":

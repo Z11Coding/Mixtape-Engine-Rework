@@ -277,6 +277,7 @@ class APPlaylistState extends MusicBeatState {
 			}
 			if (!choosePlaylist) {
 				choosePlaylist = true;
+				trace('Selected Playlist: ${loadedPlaylists[curSelected].toString()}');
 				selectedPlaylist = loadedPlaylists[curSelected].copy();
 				for (song in selectedPlaylist.songList)
 					songString += '${song.songName}\n';
@@ -579,30 +580,53 @@ class APPlaylistState extends MusicBeatState {
 
 	public static function loadPlaylist(playlistItem:archipelago.APInfo.MixtapeItemData)
 	{
-		var newPlaylist:APPlaylistMetadataObject = cast {
-			playlistName: playlistItem.name,
-			item_id: playlistItem.item_id,
-			location_id: playlistItem.location_id,
-			playlist_index: Std.parseInt(playlistItem.name.charAt(playlistItem.name.length-1)),
-			songList: [],
-			songLocations: playlistItem.locations,
-			contains_victory: playlistItem.contains_victory
-		}
-		var tempList:Array<APPlaylistSongMetadataObject> = [];
+		Mods.loadTopMod();
+		WeekData.reloadWeekFiles();
+		var newPlaylist:APPlaylistMetadata = new APPlaylistMetadata(
+			playlistItem.name,
+			playlistItem.item_id,
+			playlistItem.location_id,
+			Std.parseInt(playlistItem.name.charAt(playlistItem.name.length-1)),
+			[],
+			playlistItem.locations,
+			playlistItem.contains_victory
+		);
+		var tempList:Array<APPlaylistSongMetadata> = [];
 		for (song in playlistItem.songs) {
 			var data = APEntryState.apGame.getSongAndMod(song);
-			var newSong:APPlaylistSongMetadataObject = cast {
-				songName: data.song,
-				folder: data.mod,
-				week: WeekData.weeksList.indexOf(data.mod),
-				songCharacter: "bf",
-				color: [[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]],
-				difficulty: ""
-			};
+			/*var fileList:Array<String> = [];
+			for (file in FileSystem.readDirectory('mods/${data.mod}/data/${data.song}/'))
+			{
+				var path = haxe.io.Path.join(['mods/${data.mod}/data/${data.song}/', file.trim()]);
+				if (!FileSystem.isDirectory(path) && !file.startsWith('events.') && !file.startsWith('dialogue.'))
+				{
+					for (fileType in [".json"])
+					{
+						var fileToCheck:String = file.substr(0, file.length - fileType.length);
+						if(fileToCheck.length > 0 && path.endsWith(fileType) && !fileList.contains(fileToCheck))
+						{
+							fileList.push(fileToCheck);
+						}
+					}
+				}
+			}
+			trace('Difficulty List: ${fileList}');
+			var diff:String = fileList[FlxG.random.int(0, fileList.length-1)].toLowerCase().replace('${data.song.toLowerCase()}', '');
+			if (diff == '-') diff = ''; //Normal Difficulty
+			else diff = diff.replace('-','');*/ //gonna comment this out so that yuta can do whatever he needs to
+			var newSong:APPlaylistSongMetadata = new APPlaylistSongMetadata(
+				data.song,
+				WeekData.weeksList.indexOf(data.mod),
+				"bf",
+				[[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]],
+				"" //diff
+			);
+			newSong.folder = data.mod;
 			tempList.push(newSong);
 		}
 		newPlaylist.songList = tempList;
-		apPlaylists.push(APPlaylistMetadata.convertFromObject(newPlaylist));
+		trace('new playlist: ${newPlaylist.toString()}');
+		apPlaylists.push(newPlaylist);
 	}
 
 	private function updateScrollable(obj:Scrollable, elapsed:Float = 0.0) {

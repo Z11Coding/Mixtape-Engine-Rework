@@ -1987,6 +1987,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 		else if (accepted) // ? bugfix
 		{
+			PlayState.isPlaylist = false;
+			PlayState.isWarmUp = false;
 			if (APEntryState.inArchipelagoMode) {
 				// Handle random song selection in AP mode
 				if (curSelected == 0) {

@@ -582,6 +582,9 @@ class OsuFreeplayState extends MusicBeatState
 					}
 				}
 
+				PlayState.isPlaylist = false;
+				PlayState.isWarmUp = false;
+
 				//reloadSongArray();
 				inSub = true;
 				persistentUpdate = false;

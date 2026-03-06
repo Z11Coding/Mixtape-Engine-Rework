@@ -1201,6 +1201,9 @@ class FreeplayState extends MusicBeatState
 						return;
 					}
 
+					PlayState.isPlaylist = false;
+					PlayState.isWarmUp = false;
+
 					if (FlxG.keys.pressed.SHIFT){
 						ClientPrefs.openChartEditor();
 					} else{
