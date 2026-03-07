@@ -614,12 +614,13 @@ class APPlaylistState extends MusicBeatState {
 			var diff:String = fileList[FlxG.random.int(0, fileList.length-1)].toLowerCase().replace('${data.song.toLowerCase()}', '');
 			if (diff == '-') diff = ''; //Normal Difficulty
 			else diff = diff.replace('-','');*/ //gonna comment this out so that yuta can do whatever he needs to
+			//TODO: add a way to select the difficulty instead of always picking the "hardest" difficulty
 			var newSong:APPlaylistSongMetadata = new APPlaylistSongMetadata(
 				data.song,
 				WeekData.weeksList.indexOf(data.mod),
 				"bf",
 				[[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]],
-				"" //diff
+				APGameState.instance.getDifficultiesForSong(data.song, data.mod)[-1] //Grab the hardest difficulty by default
 			);
 			newSong.folder = data.mod;
 			tempList.push(newSong);
