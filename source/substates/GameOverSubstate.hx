@@ -366,7 +366,16 @@ class GameOverSubstate extends MusicBeatSubstate
 							if (customReturnState != null) {
 								MusicBeatState.switchState(customReturnState);
 							} else {
-								MusicBeatState.resetState();
+								// Use LoadingState if preload song is enabled
+								if (ClientPrefs.data.preloadSong) {
+									#if ARCHIPELAGO_ALLOWED
+									states.LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new PlayState());
+									#else
+									states.LoadingState.loadAndSwitchState(new PlayState());
+									#end
+								} else {
+									MusicBeatState.resetState();
+								}
 							}
 						}
 					});

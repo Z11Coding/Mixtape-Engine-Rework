@@ -57,6 +57,12 @@ class Client {
 	/** The amount of time, in seconds, to wait before attempting to reconnect. **/
 	private var _socketReconnectInterval:Float = 1.5;
 
+	/** The local timestamp indicating when the last poll occurred. **/
+	private var _lastPollTime:Float = 0;
+
+	/** Timer that periodically checks if a poll is needed. **/
+	private var _pollTimer:haxe.Timer = null;
+
 	/** The list of players in this multiworld. **/
 	private var _players:Array<NetworkPlayer> = [];
 
@@ -1073,6 +1079,8 @@ class Client {
 
 	/** Polls the client for new packets. **/
 	public function poll() {
+		_lastPollTime = Timer.stamp();
+
 		if (_ws != null && state == State.DISCONNECTED) {
 			_ws.close();
 			_ws = null;
@@ -1130,6 +1138,42 @@ class Client {
 				if (!dontTryToReconnect) trace("Reconnecting to server");
 				if (!dontTryToReconnect) connect_socket();
 			}
+		}
+	}
+
+	/**
+		Starts the independent poll timer that runs every 500ms to check if a poll is needed.
+		If no poll has occurred in 2-5 seconds, it will force a poll.
+	**/
+	private function startPollTimer() {
+		if (_pollTimer != null) {
+			_pollTimer.stop();
+		}
+
+		var lastCheckTime = Timer.stamp();
+		var pollInterval = 2 + Math.random() * 3; // Random 2-5 seconds
+
+		_pollTimer = new haxe.Timer(500); // Check every 500ms
+		_pollTimer.run = function() {
+			var currentTime = Timer.stamp();
+			var timeSinceLastPoll = currentTime - _lastPollTime;
+
+			if (timeSinceLastPoll >= pollInterval) {
+				trace("Force poll triggered: " + timeSinceLastPoll + " seconds since last poll (interval: " + pollInterval + "s)");
+				poll(); // Force a poll
+				pollInterval = 2 + Math.random() * 3; // Re-randomize interval
+				lastCheckTime = currentTime;
+			}
+		};
+	}
+
+	/**
+		Stops the independent poll timer.
+	**/
+	private function stopPollTimer() {
+		if (_pollTimer != null) {
+			_pollTimer.stop();
+			_pollTimer = null;
 		}
 	}
 
@@ -1452,7 +1496,7 @@ class Client {
 							LocationScouts(ids.toArray(), asHint);
 					}
 
-					trace(players);
+					// trace(players);
 					ArchPopup.startPopupCustom("Please wait...", "Fetching data for games...", "archColor");
 					ArchPopup.startPopupCustom("The game can now be played!", "Loading Data", "archColor");
 
@@ -1694,11 +1738,13 @@ class Client {
 		state = State.SOCKET_CONNECTED;
 		_hOnSocketConnected();
 		_socketReconnectInterval = 1.5;
+		startPollTimer(); // Start the independent poll timer
 	}
 
 	/** Called when the websocket is closed. **/
 	private function onclose() {
 		trace("onclose()");
+		stopPollTimer(); // Stop the independent poll timer
 		if (state > State.SOCKET_CONNECTING) {
 			trace("Server disconnected");
 			state = State.DISCONNECTED;
@@ -2049,6 +2095,7 @@ private function onmessage(msg:MessageType) {
 			state = State.DISCONNECTED;
 			dontTryToReconnect = true;
 		}
+		stopPollTimer();
 	}
 
 	/**

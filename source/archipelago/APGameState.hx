@@ -1779,7 +1779,7 @@ class APGameState
 					specialItems.set(itemName, currentPackages["Friday Night Funkin"].item_name_to_id.get(item));
 				}
 			}
-			trace("Special Items: " + specialItems);
+			// trace("Special Items: " + specialItems);
 
 			return specialItems;
 		}

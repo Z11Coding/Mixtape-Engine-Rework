@@ -1725,6 +1725,7 @@ class APPlayState extends PlayState {
             }
         }
         Sys.println('');*/
+
         super.startCountdown();
 
         // Check sanity locations on playing if enabled
@@ -1928,10 +1929,29 @@ class APPlayState extends PlayState {
     {
         super.generateSong(preload);
         if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap" || preload) return;
+        try {
         apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
+        } catch (e:Dynamic) {
+            trace('Error replacing notes with APNotes: ' + e);
+            apNotes = null;
+        }
 
         for (field in playfields.members)
             field.clearStackedNotes();
+    }
+
+    private override function finishPreloadedGeneration():Void {
+        super.finishPreloadedGeneration();
+
+        // Ensure apNotes is populated in case preload didn't work
+        if (apNotes == null) {
+            try {
+                apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
+            } catch (e:Dynamic) {
+                trace('Error populating apNotes in finishPreloadedGeneration: ' + e);
+                apNotes = [];
+            }
+        }
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
@@ -2230,7 +2250,7 @@ class APPlayState extends PlayState {
             return hasVideoSprite;
         })())) && deathByLink) {
             var cause:String = "";
-            try {
+            {
                 var extraMessages = [
                     "Sounds like a skill issue...",
                     "They must suck...",
@@ -2375,12 +2395,16 @@ class APPlayState extends PlayState {
                     }
                 }
 
-                if (deathLinkPacket.cause != null && (deathLinkPacket.cause.trim() != "" || deathLinkPacket.cause != " ")) {
+                if (deathLinkPacket.cause != null && deathLinkPacket.cause.trim() != "") {
                     var randomMsg = extraMessages[FlxG.random.int(0, extraMessages.length - 1)];
                     cause = deathLinkPacket.cause + "\n[pause:0.5](" + randomMsg + ")";
                 }
             }
-            catch(e) {trace('DEATHLINKPACK WAS NULL!');}
+            // catch(e) {
+            //     trace('DEATHLINKPACK ERROR: ' + e);
+            //     trace(haxe.CallStack.toString(haxe.CallStack.exceptionStack()));
+            //     trace('e stack: ' + e.stack);
+            // }
             try {
                 if (cause.trim() == "") cause = deathLinkPacket.source + " has died.\n[pause:0.5](How Unfortunate...)";
             } catch (e:Dynamic) {

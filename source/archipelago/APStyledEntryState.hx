@@ -326,6 +326,17 @@ class APStyledEntryState extends MusicBeatState {
             hostValue,
             function(newHost:String) {
                 hostValue = newHost;
+                
+                // Check if port is included in host (format: "host:port")
+                if (newHost.contains(":")) {
+                    var parts = newHost.split(":");
+                    hostValue = parts[0];
+                    if (parts.length > 1 && parts[1].trim() != "") {
+                        portValue = parts[1].trim();
+                        if (portText != null) portText.text = portValue;
+                    }
+                }
+                
                 if (hostText != null) hostText.text = hostValue;
             },
             function() {

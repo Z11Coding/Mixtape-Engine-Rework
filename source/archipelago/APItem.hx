@@ -331,7 +331,11 @@ class APItem {
                         if (playState != null && playState.startedSong) {
                             TrapLinkFunctions.doHighQualityTrap();
                             // Reset the state to apply High Quality changes
-                            MusicBeatState.resetState();
+                            if (ClientPrefs.data.preloadSong) {
+                                states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
+                            } else {
+                                MusicBeatState.resetState();
+                            }
                             return;
                         }
                     }
@@ -679,7 +683,11 @@ class APItem {
                         states.PlayState.storyDifficulty = Difficulty.list.length-1;
 
                         if (Std.is(FlxG.state, APPlayState)) {
-                            MusicBeatState.resetState();
+                            if (ClientPrefs.data.preloadSong) {
+                                states.LoadingState.loadAndSwitchState(new APPlayState());
+                            } else {
+                                MusicBeatState.resetState();
+                            }
                         } else {
                             FlxG.switchState(new APPlayState());
                         }
@@ -1553,7 +1561,11 @@ class APItem {
                                     states.PlayState.storyDifficulty = Difficulty.list.length-1;
 
                                     if (Std.is(FlxG.state, APPlayState)) {
-                                        MusicBeatState.resetState();
+                                        if (ClientPrefs.data.preloadSong) {
+                                            states.LoadingState.loadAndSwitchState(new APPlayState());
+                                        } else {
+                                            MusicBeatState.resetState();
+                                        }
                                     } else {
                                         FlxG.switchState(new APPlayState());
                                     }
@@ -1745,7 +1757,11 @@ class APItem {
                     Paths.clearUnusedMemory();
                     Paths.freeGraphicsFromMemory();
                     trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
-                    MusicBeatState.resetState();
+                    if (ClientPrefs.data.preloadSong) {
+                        states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
+                    } else {
+                        MusicBeatState.resetState();
+                    }
                     new FlxTimer().start(120, function(tmr:FlxTimer)
                     {
                         ClientPrefs.data.ultratrashMode = false;
@@ -1755,7 +1771,11 @@ class APItem {
                         Paths.clearUnusedMemory();
                         Paths.freeGraphicsFromMemory();
                         trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
-                        MusicBeatState.resetState();
+                        if (ClientPrefs.data.preloadSong) {
+                            states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
+                        } else {
+                            MusicBeatState.resetState();
+                        }
                     });
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -2244,7 +2264,7 @@ class APItem {
 
         // Put Chart Modifier back to normal
         try {
-            ClientPrefs.data.gameplaySettings.set("chartModifier", "None");
+            ClientPrefs.data.gameplaySettings.set("chartModifier", "Normal");
             ClientPrefs.data.gameplaySettings.set("convertMania", 4-1);
         } catch (e) {
             trace('Error resetting Chart Modifier: $e');
@@ -2276,7 +2296,11 @@ class APChartModifier extends APTrap {
                 ClientPrefs.data.gameplaySettings.set("convertMania", 4 + Std.random(5));
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
             if (archipelago.APPlayState.instance?.startingSong) {
-                MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
+                if (ClientPrefs.data.preloadSong) {
+                    states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
+                } else {
+                    MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
+                }
             }
         }, false, false, false, fromTrapLink);
     }
