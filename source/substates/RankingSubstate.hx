@@ -247,6 +247,10 @@ class RankingSubstate extends MusicBeatSubstate
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
+					if (archipelago.APEntryState.inArchipelagoMode) { // Failsafe
+						PlayState.gameplayArea = "APFreeplay";
+						return;
+					}
 					trace('WENT BACK TO FREEPLAY??');
 
 					if (ClientPrefs.data.freeplayMenu == "Base Game") {

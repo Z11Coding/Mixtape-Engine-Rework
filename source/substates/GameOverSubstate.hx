@@ -198,15 +198,22 @@ class GameOverSubstate extends MusicBeatSubstate
 		add(causeofdeath);
 
 		super.create();
+
+		new FlxTimer().start(5, function(tmr:FlxTimer)
+		{
+			if (!justPlayedLoop || !deathbysquare.visible)
+				coolStartDeath();
+		});
 	}
 
+	var justPlayedLoop:Bool = false;
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
 		PlayState.instance?.callOnScripts('onUpdate', [elapsed]);
 
-		var justPlayedLoop:Bool = false;
+
 		if (!boyfriend.isAnimationNull() && boyfriend.getAnimationName() == 'firstDeath' && boyfriend.isAnimationFinished())
 		{
 			boyfriend.playAnim('deathLoop');
@@ -216,7 +223,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				overlay.animation.play('deathLoop');
 			}
 			justPlayedLoop = true;
-		} else if (boyfriend.isAnimationNull()) { // just so it doesn't break if the character doesn't have a game over sprite
+		} else if (boyfriend.isAnimationNull() && !justPlayedLoop) { // just so it doesn't break if the character doesn't have a game over sprite
 			boyfriend.playAnim('deathLoop');
 			if(overlay != null && overlay.animation.exists('deathLoop'))
 			{

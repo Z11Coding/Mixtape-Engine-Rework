@@ -348,14 +348,14 @@ class APPlayState extends PlayState {
                     dad.shader = originalShaders.get(dad);
                     if (gf != null) gf.shader = originalShaders.get(gf);
                     blurEffect.setStrength(0, 0);
-                    camGame.filters.remove(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.remove(filterMap.get("BlurLittle").filter);
                 };
                 var playSound:String = "blur";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = false;
 
                 if (effectsActive["blur"] == null || effectsActive["blur"] <= 0) {
-                    camGame.filters.push(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.push(filterMap.get("BlurLittle").filter);
                     if (PlayState.curStage.startsWith('school'))
                         blurEffect.setStrength(2, 2);
                     else
@@ -1293,8 +1293,8 @@ class APPlayState extends PlayState {
                 var ttl:Float = 10;
                 var onEnd:(Void->Void) = function() {
                     blurEffect.setStrength(0, 0);
-                    camHUD.filters.remove(filterMap.get("BlurLittle").filter);
-                    camGame.filters.remove(filterMap.get("BlurLittle").filter);
+                    //camHUD.filters.remove(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.remove(filterMap.get("BlurLittle").filter);
                     lowFilterAmount = 1;
                     vocalLowFilterAmount = 1;
                 };
@@ -1304,12 +1304,12 @@ class APPlayState extends PlayState {
 
                 if (FlxG.random.bool(40)) {
                     lowFilterAmount = .0134;
-                    camGame.filters.push(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.push(filterMap.get("BlurLittle").filter);
                     blurEffect.setStrength(32, 32);
                 } else {
                     vocalLowFilterAmount = .0134;
-                    camHUD.filters.push(filterMap.get("BlurLittle").filter);
-                    camGame.filters.push(filterMap.get("BlurLittle").filter);
+                    //camHUD.filters.push(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.push(filterMap.get("BlurLittle").filter);
                     blurEffect.setStrength(32, 32);
                 }
 
@@ -2397,7 +2397,7 @@ class APPlayState extends PlayState {
 
                 if (deathLinkPacket.cause != null && cast(deathLinkPacket.cause, String).trim() != "") {
                     var randomMsg = extraMessages[FlxG.random.int(0, extraMessages.length - 1)];
-                    cause = deathLinkPacket.cause + "\n[pause:0.5](" + randomMsg + ")";
+                    cause = "Died to an unknown cause.\n[pause:0.5](ERROR: "+e+")\n[pause:0.5](" + randomMsg + ")";
                 }
             }
             // catch(e) {
@@ -2651,7 +2651,7 @@ class APPlayState extends PlayState {
 
     public var bfAscend:Bool = false;
     var alreadySent:Bool = false;
-    override function doDeathCheck(?skipHealthCheck:Bool = false):Bool
+    override public function doDeathCheck(?skipHealthCheck:Bool = false):Bool
     {
         if (activeItems[0] <= 0)
         {
@@ -2665,9 +2665,119 @@ class APPlayState extends PlayState {
                 noiseSound.pause();
             }
         }
-        if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
+        switch (curHealthMode) {
+			case "OG":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Mixtape":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null;
+
+			case "Kade":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Tabi":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null;
+
+			case "Double":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Lives":
+				killPlayer = lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Lives + HealthBar":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				if (inArchipelagoMode && archipelago.APPlayState.livecount > 0) archipelago.APPlayState.livecount -= 1;
+				else if (lives > 0 && health <= 0 )
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * PlayState.SONG.bpm / 100, true);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			case "Lives + Mixtape":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				if (inArchipelagoMode && archipelago.APPlayState.livecount > 0) archipelago.APPlayState.livecount -= 1;
+				else if (lives > 0 && health <= 0 )
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * PlayState.SONG.bpm / 100, true);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			case "Amalgam":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				else if (lives > 0 && health <= 0 && bfkilledcheck)
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * PlayState.SONG.bpm / 100, true);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			default:
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+		}
+        if ((skipHealthCheck || instakillOnMiss && killPlayer || killPlayer) && !deathByLink && !alreadySent) {
             alreadySent = true; // because indie cross likes to spam this every frame for some reason
             APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
+            trace("Sent Deathlink!");
         }
         super.doDeathCheck(skipHealthCheck);
         return true;

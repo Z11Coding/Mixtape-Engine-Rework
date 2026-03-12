@@ -104,27 +104,21 @@ class WeekData {
 		for (i in 0...sexList.length) {
 			for (j in 0...directories.length) {
 				var fileToCheck:String = directories[j] + 'weeks/' + sexList[i] + '.json';
-				var week:WeekFile = getWeekFile(fileToCheck);
-				if(week != null) {
-					var weekFile:WeekData = new WeekData(week, sexList[i]);
+				if(!weeksLoaded.exists(sexList[i])) {
+					var week:WeekFile = getWeekFile(fileToCheck);
+					if(week != null) {
+						var weekFile:WeekData = new WeekData(week, sexList[i]);
 
-					#if MODS_ALLOWED
-					if(j >= originalLength) {
-						weekFile.folder = directories[j].substring(Paths.mods().length, directories[j].length-1);
-					}
-					#end
+						#if MODS_ALLOWED
+						if(j >= originalLength) {
+							weekFile.folder = directories[j].substring(Paths.mods().length, directories[j].length-1);
+						}
+						#end
 
-					// Generate unique ID: use folder if from mod, otherwise just name
-					var uniqueId:String = sexList[i];
-					#if MODS_ALLOWED
-					if(j >= originalLength && weekFile.folder.length > 0) {
-						uniqueId = sexList[i] + '|' + weekFile.folder;
-					}
-					#end
-
-					if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
-						weeksLoaded.set(uniqueId, weekFile);
-						weeksList.push(uniqueId);
+						if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
+							weeksLoaded.set(sexList[i], weekFile);
+							weeksList.push(sexList[i]);
+						}
 					}
 				}
 			}
@@ -159,29 +153,21 @@ class WeekData {
 
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
 	{
-		var week:WeekFile = getWeekFile(path);
-		if(week != null)
-		{
-			var weekFile:WeekData = new WeekData(week, weekToCheck);
-			if(i >= originalLength)
-			{
-				#if MODS_ALLOWED
-				weekFile.folder = directory.substring(Paths.mods().length, directory.length-1);
-				#end
-			}
-
-			// Generate unique ID: use folder if from mod, otherwise just name
-			var uniqueId:String = weekToCheck;
-			#if MODS_ALLOWED
-			if(i >= originalLength && weekFile.folder.length > 0) {
-				uniqueId = weekToCheck + '|' + weekFile.folder;
-			}
-			#end
-
-			if((PlayState.isStoryMode && !weekFile.hideStoryMode) || (!PlayState.isStoryMode && !weekFile.hideFreeplay))
-			{
-				weeksLoaded.set(uniqueId, weekFile);
-				weeksList.push(uniqueId);
+		if(!weeksLoaded.exists(weekToCheck)) {
+			var week:WeekFile = getWeekFile(path);
+			if(week != null) {
+				var weekFile:WeekData = new WeekData(week, weekToCheck);
+				if(i >= originalLength)
+				{
+					#if MODS_ALLOWED
+					weekFile.folder = directory.substring(Paths.mods().length, directory.length-1);
+					#end
+				}
+				if((PlayState.isStoryMode && !weekFile.hideStoryMode) || (!PlayState.isStoryMode && !weekFile.hideFreeplay))
+				{
+					weeksLoaded.set(weekToCheck, weekFile);
+					weeksList.push(weekToCheck);
+				}
 			}
 		}
 	}

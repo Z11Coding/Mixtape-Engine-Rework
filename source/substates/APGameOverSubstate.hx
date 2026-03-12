@@ -166,13 +166,14 @@ class APGameOverSubstate extends MusicBeatSubstate
 		super.create();
 	}
 
+	var justPlayedLoop:Bool = false;
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
 		PlayState.instance?.callOnScripts('onUpdate', [elapsed]);
 
-		var justPlayedLoop:Bool = false;
+
 		if (!boyfriend.isAnimationNull() && boyfriend.getAnimationName() == 'firstDeath' && boyfriend.isAnimationFinished())
 		{
 			boyfriend.playAnim('deathLoop');
