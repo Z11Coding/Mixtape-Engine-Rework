@@ -262,7 +262,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				MusicManager.playMenuMusic();
 				PlayState.instance?.callOnScripts('onGameOverConfirm', [false]);
 			}
-			else if (justPlayedLoop)
+			else if (justPlayedLoop && !deathbysquare.visible) // make sure it only triggers ONCE
 			{
 				if (PlayState.SONG != null) {
 					switch(PlayState.SONG.stage)

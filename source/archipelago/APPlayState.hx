@@ -172,9 +172,6 @@ class APPlayState extends PlayState {
 
     override public function create()
     {
-        allowDebugKeys = false;
-        lives = livecount;
-
         // Check if the current song/mod is unlocked; if not, set flag and show info panel
         if (APEntryState.inArchipelagoMode && !archipelago.APInfo.inSongTrap)
         {
@@ -246,26 +243,6 @@ class APPlayState extends PlayState {
         }
 
         instance = this; // For traps and items
-        if (APEntryState.inArchipelagoMode)
-        {
-            if (FlxG.save.data.activeItems != null)
-                activeItems = FlxG.save.data.activeItems;
-            if (FlxG.save.data.activeItems == null)
-            {
-                activeItems[3] = -1; //FlxG.random.int(0, 9); im getting kinda tired of this
-                activeItems[2] = 0;
-				FlxG.save.flush();
-            }
-            PlayState.chartingMode = false;
-        }
-
-        if (ogScroll != ClientPrefs.data.downScroll)
-        {
-            ogScroll = ClientPrefs.data.downScroll;
-            effectiveDownScroll = ogScroll;
-            updateScrollUI();
-            trace("Scrolling changed to " + (effectiveDownScroll ? "down" : "up") + ", as for some reason, it wasn't before.");
-        }
 
         currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
 
@@ -282,7 +259,18 @@ class APPlayState extends PlayState {
 
 
         {
+            super.create();
+        }
 
+        allowDebugKeys = false;
+        lives = livecount;
+
+        if (ogScroll != ClientPrefs.data.downScroll)
+        {
+            ogScroll = ClientPrefs.data.downScroll;
+            effectiveDownScroll = ogScroll;
+            updateScrollUI();
+            trace("Scrolling changed to " + (effectiveDownScroll ? "down" : "up") + ", as for some reason, it wasn't before.");
         }
 
         MaxHP += archipelago.APItem.maxHPUp / 2;
@@ -292,6 +280,7 @@ class APPlayState extends PlayState {
             if (!func.keepOnRestart && (func.activated != null && func.activated)) updateFunctions.remove(func);
         }
 
+        // TODO: Figure out why this is suddenly broken???
         filterMap = [
             "Grayscale" => {
                 var matrix:Array<Float> = [
@@ -795,6 +784,22 @@ class APPlayState extends PlayState {
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
+            'flashbang' => function() {
+                var noIcon:Bool = true;
+                var playSound:String = "bang";
+                if (flashbangTimer != null && flashbangTimer.active)
+                    flashbangTimer.cancel();
+                var whiteScreen:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.WHITE);
+                whiteScreen.scrollFactor.set();
+                whiteScreen.cameras = [camOther];
+                add(whiteScreen);
+                flashbangTimer.start(0.4, function(timer) {
+                    camOther.flash(FlxColor.WHITE, 5, null, true);
+                    remove(whiteScreen);
+                    FlxG.sound.play(Paths.sound('streamervschat/ringing'), 0.4);
+                });
+                applyEffect(0, null, playSound, 1, noIcon);
+            },
             'strongflashbang' => function() {
                 var noIcon:Bool = true;
                 var playSound:String = "bang";
@@ -1132,20 +1137,28 @@ class APPlayState extends PlayState {
             },
             'icebutmoreagressive' => function() {
                 var noIcon:Bool = true;
-                var lastPoint:Int = 0;
-                var exList:Array<Int> = [];
-                for (note in 0...50) {
-                    var startPoint:Int = FlxG.random.int(5, 9, exList);
-                    if (lastPoint == 0) {
-                        addNoteSvCLegacy(4, startPoint, startPoint, -1);
-                        lastPoint = startPoint;
-                        exList.push(startPoint);
-                    }
-                    else {
-                        addNoteSvCLegacy(4, lastPoint + 2, startPoint + 6, -1);
-                        lastPoint = 0;
-                    }
-                }
+                var startPoint:Int = FlxG.random.int(5, 9);
+                var nextPoint:Int = FlxG.random.int(startPoint + 2, startPoint + 6);
+                var nextPoint2:Int = FlxG.random.int(nextPoint + 2, nextPoint + 6);
+                var nextPoint3:Int = FlxG.random.int(nextPoint2 + 2, nextPoint2 + 6);
+                var nextPoint4:Int = FlxG.random.int(nextPoint3 + 2, nextPoint3 + 6);
+                var nextPoint5:Int = FlxG.random.int(nextPoint4 + 2, nextPoint4 + 6);
+                var nextPoint6:Int = FlxG.random.int(nextPoint5 + 2, nextPoint5 + 6);
+                var nextPoint7:Int = FlxG.random.int(nextPoint6 + 2, nextPoint6 + 6);
+                var nextPoint8:Int = FlxG.random.int(nextPoint7 + 2, nextPoint7 + 6);
+                var nextPoint9:Int = FlxG.random.int(nextPoint8 + 2, nextPoint8 + 6);
+                var lastPoint:Int = FlxG.random.int(nextPoint9 + 2, nextPoint9 + 6);
+                addNoteSvCLegacy(4, startPoint, startPoint, -1);
+                addNoteSvCLegacy(4, nextPoint, nextPoint, -1);
+                addNoteSvCLegacy(4, nextPoint2, nextPoint2, -1);
+                addNoteSvCLegacy(4, nextPoint3, nextPoint3, -1);
+                addNoteSvCLegacy(4, nextPoint4, nextPoint4, -1);
+                addNoteSvCLegacy(4, nextPoint5, nextPoint5, -1);
+                addNoteSvCLegacy(4, nextPoint6, nextPoint6, -1);
+                addNoteSvCLegacy(4, nextPoint7, nextPoint7, -1);
+                addNoteSvCLegacy(4, nextPoint8, nextPoint8, -1);
+                addNoteSvCLegacy(4, nextPoint9, nextPoint9, -1);
+                addNoteSvCLegacy(4, lastPoint, lastPoint, -1);
             },
             'randomize' => function() {
                 var ttl:Float = 10;
@@ -1524,8 +1537,6 @@ class APPlayState extends PlayState {
 		{
 			controlButtons.push(StringTools.trim(thing).toLowerCase());
 		}*/
-
-        super.create();
 
         if (FlxG.save.data.songPos != 0 && !FlxG.save.data.manualOverride)
         {
@@ -2397,7 +2408,7 @@ class APPlayState extends PlayState {
 
                 if (deathLinkPacket.cause != null && cast(deathLinkPacket.cause, String).trim() != "") {
                     var randomMsg = extraMessages[FlxG.random.int(0, extraMessages.length - 1)];
-                    cause = "Died to an unknown cause.\n[pause:0.5](ERROR: "+e+")\n[pause:0.5](" + randomMsg + ")";
+                    cause = deathLinkPacket.cause + "\n[pause:0.5](" + randomMsg + ")";
                 }
             }
             // catch(e) {

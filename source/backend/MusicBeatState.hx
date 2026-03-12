@@ -978,7 +978,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 	public static function resetState()
 	{
 		// Add a rare chance (5%) to use TransitionState instead of normal transition
-		if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn)
+		// TODO: figure out why this sometimes doesn't work in the game over substate
+		/*if (FlxG.random.bool(5) && !FlxTransitionableState.skipNextTransIn)
 		{
 			// Use TransitionState with random transition type for reset
 			var currentStateClass = Type.getClass(FlxG.state);
@@ -986,7 +987,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 				transitionType: getRandomTransition()
 			});
 			return;
-		}
+		}*/
 
 		if (FlxTransitionableState.skipNextTransIn)
 			FlxG.resetState();
