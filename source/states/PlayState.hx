@@ -5123,6 +5123,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		allNotes.sort(sortByTime);
 
+		if (curChart == null || curChart.isNotEmpty())
+			curChart = new Array<Note>();
+
 		for (fuck in allNotes) {
 			unspawnNotes.push(fuck);
 			curChart.push(fuck);

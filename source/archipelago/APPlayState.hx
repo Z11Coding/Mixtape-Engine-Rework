@@ -2395,7 +2395,7 @@ class APPlayState extends PlayState {
                     }
                 }
 
-                if (deathLinkPacket.cause != null && deathLinkPacket.cause.trim() != "") {
+                if (deathLinkPacket.cause != null && cast(deathLinkPacket.cause, String).trim() != "") {
                     var randomMsg = extraMessages[FlxG.random.int(0, extraMessages.length - 1)];
                     cause = deathLinkPacket.cause + "\n[pause:0.5](" + randomMsg + ")";
                 }

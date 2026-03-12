@@ -825,6 +825,7 @@ class APItem {
                 });
 
 
+
             case "Ultimate Confusion Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     unknownSongs = true;

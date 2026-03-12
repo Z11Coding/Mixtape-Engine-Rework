@@ -441,14 +441,17 @@ class RankingSubstate extends MusicBeatSubstate
 							// }
 						}
 
-						if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
+						if (backend.ClientPrefs.data.apNoticeStyle != "Achievement") {
 							if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
 								archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
 								trace("Goal achievement popup triggered.");
 								FlxG.sound.playMusic(Paths.sound('You Win'));
 							}
 						} else {
+							if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+								trace("Congratulations! You've achieved your goal! Popup triggered.");
 							ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", 'Well Done!', 'archColor');
+							}
 						}
 					} else {
 						trace("Ranking requirements not met - main location check will not be sent");

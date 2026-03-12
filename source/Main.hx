@@ -855,7 +855,7 @@ class Main extends Sprite
 		WindowUtils.preventClosing = false;
 		Lib.application.window.close();
 
-		//closeGame();
+		closeGame();
 	}
 
 	public static var pressedOnce:Bool = false;
