@@ -164,6 +164,12 @@ class APGameOverSubstate extends MusicBeatSubstate
 		add(causeofdeath);
 
 		super.create();
+
+		new FlxTimer().start(3, function(tmr:FlxTimer)
+		{
+			if (!justPlayedLoop || !deathbysquare.visible)
+				coolStartDeath();
+		});
 	}
 
 	var justPlayedLoop:Bool = false;
@@ -183,7 +189,7 @@ class APGameOverSubstate extends MusicBeatSubstate
 				overlay.animation.play('deathLoop');
 			}
 			justPlayedLoop = true;
-		} else if (boyfriend.isAnimationNull()) { // just so it doesn't break if the character doesn't have a game over sprite
+		} else if (boyfriend.isAnimationNull() && !justPlayedLoop) { // just so it doesn't break if the character doesn't have a game over sprite
 			boyfriend.playAnim('deathLoop');
 			if(overlay != null && overlay.animation.exists('deathLoop'))
 			{

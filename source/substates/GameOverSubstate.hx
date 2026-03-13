@@ -199,7 +199,7 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		super.create();
 
-		new FlxTimer().start(5, function(tmr:FlxTimer)
+		new FlxTimer().start(3, function(tmr:FlxTimer)
 		{
 			if (!justPlayedLoop || !deathbysquare.visible)
 				coolStartDeath();
