@@ -19,6 +19,10 @@ import openfl.filters.ColorMatrixFilter;
 import shaders.MosaicEffect;
 import stages.StageData;
 import states.PlayState;
+import states.PlaylistState.PlaylistData;
+import states.PlaylistState.PlaylistMetadata;
+import states.PlaylistState.PlaylistSongMetadata;
+import states.PlaylistState.SongMetadata;
 import states.freeplay.FreeplayState;
 import states.freeplay.OsuFreeplayState;
 import streamervschat.*;
@@ -36,6 +40,9 @@ class APPlayState extends PlayState {
     public static var deathByBlueBalls:Bool = false;
     public static var alreadyKilledByLink:Bool = false;
     public static var resisting:Bool = false;
+
+    public var instanceDeferredLocationChecks:Array<Int> = []; // Instance checks collected during this song
+    public var instanceDeferredNoteChecks:Array<Int> = []; // Instance note checks collected during this song
     public var antiHornySpray:Bool = false;
     public var noHorny(get, never):Bool;
 
@@ -148,6 +155,10 @@ class APPlayState extends PlayState {
 
     public static var dontCorrect:Bool = false;
 
+    public function new(?playlistData:PlaylistData, ?songlist:Array<PlaylistSongMetadata>)
+    {
+        super(playlistData, songlist);
+    }
 
     function generateGibberish(length:Int, exclude:String):String
 	{
@@ -181,12 +192,31 @@ class APPlayState extends PlayState {
             var found = false;
             var missingItems:Array<String> = [];
 
+            trace('APPlayState checking song: currentSong="$currentSong", currentMod="$currentMod"');
+
             for (entry in APFreeplayManager.curUnlocked)
             {
                 if (entry.song == currentSong && entry.mod == currentMod)
                 {
+                    trace('Found in APFreeplayManager.curUnlocked: song=$currentSong, mod=$currentMod');
                     found = true;
                     break;
+                }
+            }
+
+            if (!found)
+            {
+                trace('Not in curUnlocked, checking playlists...');
+                for (playlistEntry in archipelago.APPlaylistState.apPlaylists)
+                for (songEntry in playlistEntry.songList)
+                {
+                    trace('Comparing: "${songEntry.songName.trim()}" == "${currentSong.trim()}" && "${songEntry.folder.trim()}" == "${currentMod.trim()}"');
+                    if (songEntry.songName.trim() == currentSong.trim() && songEntry.folder.trim() == currentMod.trim())
+                    {
+                        trace('Found in playlist: song=$currentSong, mod=$currentMod');
+                        found = true;
+                        break;
+                    }
                 }
             }
 
@@ -2294,7 +2324,7 @@ class APPlayState extends PlayState {
                                     "Maybe they should practice on easy mode...",
                                     "Beep boop beep... FAIL!"
                                 ]);
-                            case "minecraft":
+                            case "minecraft" | "minecraft fabric" | "minecraft fabric yuta edition":
                                 extraMessages = extraMessages.concat([
                                     "At least they didn't lose their diamonds... right?"
                                 ]);
@@ -2352,7 +2382,7 @@ class APPlayState extends PlayState {
                                     "The mountain claims another...",
                                     "Breathe in, breathe out... and try again..."
                                 ]);
-                            case "dark souls":
+                            case "dark souls" | "dark souls ii" | "dark souls iii":
                                 extraMessages = extraMessages.concat([
                                     "They have been hollowed...",
                                     "The bonfire fades to embers...",
@@ -2653,10 +2683,12 @@ class APPlayState extends PlayState {
     var alreadySent:Bool = false;
     override function doDeathCheck(?skipHealthCheck:Bool = false):Bool
     {
-        if (activeItems[0] <= 0)
-        {
-            if ((((skipHealthCheck && instakillOnMiss) || health <= 0) && !practiceMode && !isDead))
-            {
+        return (function(shouldKill:Bool):Bool {
+            if (shouldKill && health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
+                alreadySent = true; // because indie cross likes to spam this every frame for some reason
+                APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
+            }
+            if (shouldKill && activeItems[0] <= 0) {
                 ClientPrefs.data.downScroll = ogScroll;
                 if (effectTimer != null && effectTimer.active)
                     effectTimer.cancel();
@@ -2664,13 +2696,8 @@ class APPlayState extends PlayState {
                     randoTimer.cancel();
                 noiseSound.pause();
             }
-        }
-        if (health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
-            alreadySent = true; // because indie cross likes to spam this every frame for some reason
-            APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
-        }
-        super.doDeathCheck(skipHealthCheck);
-        return true;
+            return shouldKill;
+        })(super.doDeathCheck(skipHealthCheck));
     }
 
     public function forceResync()
@@ -2768,11 +2795,14 @@ class APPlayState extends PlayState {
         paused = true;
         APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(PlayState.SONG.song, currentMod);
 
-        // Use APVictorySubstate instead of RankingSubstate when High Quality Trap is active
-        if (archipelago.HighQualityTrapManager.isTrapInUse()) {
-            openSubState(new archipelago.APVictorySubstate(boyfriend));
-        } else {
-            openSubState(new substates.RankingSubstate());
+        // Never open victory substate when running a playlist - playlist mode handles its own state transitions
+        if (!PlayState.isPlaylist) {
+            // Use APVictorySubstate instead of RankingSubstate when High Quality Trap is active
+            if (archipelago.HighQualityTrapManager.isTrapInUse()) {
+                openSubState(new archipelago.APVictorySubstate(boyfriend));
+            } else {
+                openSubState(new substates.RankingSubstate());
+            }
         }
 
         return true; //why does endsong need this?????

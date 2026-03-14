@@ -59,8 +59,17 @@ class PlayerRegistry extends PsliceRegistry{
         allJsons.pushMany(listJsons());
       }
       Mods.loadModDir("");
-      var basedCharFiles = FileSystem.readDirectory("assets/shared/registry/players");
-      allJsons.pushMany(basedCharFiles.filter(s -> s.endsWith(".json")).map(s -> s.substr(0,s.length-5)));
+      var basedCharFiles:Array<String> = [];
+      try {
+        basedCharFiles = FileSystem.readDirectory("assets/shared/registry/players");
+      } catch (e:Dynamic) {
+        trace('Failed to read directory assets/shared/registry/players: $e');
+      }
+      try {
+        allJsons.pushMany(basedCharFiles.filter(s -> s.endsWith(".json")).map(s -> s.substr(0,s.length-5)));
+      } catch (e:Dynamic) {
+        trace("Nothing here!");
+      }
       return allJsons;
     }
 

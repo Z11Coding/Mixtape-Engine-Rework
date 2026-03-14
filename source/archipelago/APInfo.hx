@@ -274,6 +274,26 @@ class APInfo {
 		return input;
 	}
 
+	// Array version of toYAMLSafe - converts all strings in an array to YAML-safe format.
+	public static function toYAMLSafeArray(input:Array<String>):Array<String> {
+		if (input == null) return null;
+		var result:Array<String> = [];
+		for (item in input) {
+			result.push(toYAMLSafe(item));
+		}
+		return result;
+	}
+
+	// Array version of realName - reverses YAML-safe formatting for all strings in an array.
+	public static function realNameArray(input:Array<String>):Array<String> {
+		if (input == null) return null;
+		var result:Array<String> = [];
+		for (item in input) {
+			result.push(realName(item));
+		}
+		return result;
+	}
+
 	public static function get_hintPoints():Int {
 		return APInfo.apGame.info().hintPoints;
 	}

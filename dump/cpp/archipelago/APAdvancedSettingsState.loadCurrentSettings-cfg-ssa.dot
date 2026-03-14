@@ -1,0 +1,398 @@
+digraph graphname {
+	node [shape=plaintext];
+n82166[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82166) BKConditional</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82165[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82165) BKConditional</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82164[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82164) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.bundleMaxSize = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"songBundleLimit\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82163[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82163) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = 5</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82162[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82162) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = cast Reflect.getField(settings, \"songBundleMaxSize\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82161[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82161) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.bundleMinSize = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"songBundleMaxSize\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82160[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82160) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = 2</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82159[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82159) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = cast Reflect.getField(settings, \"songBundleMinSize\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82158[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82158) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.bundleWeight = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"songBundleMinSize\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82157[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82157) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = 25</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82156[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82156) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = cast Reflect.getField(settings, \"songBundleWeight\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82155[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82155) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.bundleEnabled = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"songBundleWeight\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82154[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82154) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82153[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82153) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = cast Reflect.getField(settings, \"songBundleEnabled\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82152[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82152) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.perma_traps = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"songBundleEnabled\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82151[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82151) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82150[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82150) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.perma_traps</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82149[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82149) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.enable_shop = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"perma_traps\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82148[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82148) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82147[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82147) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.enable_shop</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82146[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82146) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.hard_mode = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"enable_shop\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82145[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82145) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82144[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82144) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.hard_mode</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82143[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82143) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.starter_debuffs = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"hard_mode\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82142[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82142) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82141[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82141) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.starter_debuffs</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82140[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82140) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.charactersanity = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"starter_debuffs\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82139[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82139) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82138[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82138) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.charactersanity</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82137[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82137) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.stagesanity = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"charactersanity\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82136[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82136) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82135[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82135) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.stagesanity</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82134[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82134) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.sanity_completion_type = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"stagesanity\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82133[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82133) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = \"on_getting\"</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82132[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82132) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = Reflect.field(settings, \"sanity_completion_type\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82131[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82131) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.enable_sanity_locations = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"sanity_completion_type\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82130[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82130) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82129[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82129) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = Reflect.field(settings, \"enable_sanity_locations\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82128[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82128) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.victorySong = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"enable_sanity_locations\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82127[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82127) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = \"Tutorial\"</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82126[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82126) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = archipelago.APInfo.realName(settings.victory_song)</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82125[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82125) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.startingSong = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = settings.victory_song != null</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82124[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82124) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = \"Tutorial\"</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82123[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82123) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = archipelago.APInfo.realName(settings.starting_song)</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82122[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82122) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.includeVanilla = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = settings.starting_song != null</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82121[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82121) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = true</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82120[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82120) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.include_vanilla</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82119[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82119) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.includeErect = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"include_vanilla\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82118[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82118) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = true</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82117[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82117) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.include_erect</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82116[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82116) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.includePico = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"include_erect\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82115[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82115) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = true</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82114[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82114) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.include_pico</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82113[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82113) BKNormal</td></tr>
+	<tr><td port="e0" align="left">this.includeSecrets = _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e2" align="left">var _hx_tmp = Reflect.hasField(settings, \"include_pico\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82112[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82112) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = true</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82111[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82111) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = settings.include_secrets</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82110[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82110) BKConditional</td></tr>
+	<tr><td port="e0" align="left">var settings = archipelago.APEntryState.gameSettings.FNF</td></tr>
+	<tr><td port="e1" align="left">this.progression_balancing = settings.progression_balancing</td></tr>
+	<tr><td port="e2" align="left">this.accessibility = settings.accessibility</td></tr>
+	<tr><td port="e3" align="left">this.unlockType = settings.unlock_type</td></tr>
+	<tr><td port="e4" align="left">this.unlockMethod = settings.unlock_method</td></tr>
+	<tr><td port="e5" align="left">this.gradeRequirement = settings.graderequirement</td></tr>
+	<tr><td port="e6" align="left">this.accRequirement = settings.accrequirement</td></tr>
+	<tr><td port="e7" align="left">this.deathlink = settings.deathlink</td></tr>
+	<tr><td port="e8" align="left">this.ticketPercent = settings.ticket_percentage</td></tr>
+	<tr><td port="e9" align="left">this.ticketWinPercent = settings.ticket_win_percentage</td></tr>
+	<tr><td port="e10" align="left">this.chartmodifierchance = settings.chart_modifier_change_chance</td></tr>
+	<tr><td port="e11" align="left">this.trapAmount = settings.trapAmount</td></tr>
+	<tr><td port="e12" align="left">this.songLimit = settings.song_limit</td></tr>
+	<tr><td port="e13" align="left">this.allowMods = settings.mods_enabled</td></tr>
+	<tr><td port="e14" align="left">this.bbcWeight = settings.bbcWeight</td></tr>
+	<tr><td port="e15" align="left">this.ghostChatWeight = settings.ghostChatWeight</td></tr>
+	<tr><td port="e16" align="left">this.tutorialWeight = settings.tutorialWeight</td></tr>
+	<tr><td port="e17" align="left">this.songswitchWeight = settings.songswitchWeight</td></tr>
+	<tr><td port="e18" align="left">this.resistanceWeight = settings.resistanceWeight</td></tr>
+	<tr><td port="e19" align="left">this.unoWeight = settings.unoWeight</td></tr>
+	<tr><td port="e20" align="left">this.pongWeight = settings.pongWeight</td></tr>
+	<tr><td port="e21" align="left">this.ultConfusionWeight = settings.ultConfusionWeight</td></tr>
+	<tr><td port="e22" align="left">this.svcWeight = settings.svcWeight</td></tr>
+	<tr><td port="e23" align="left">this.fakeTransWeight = settings.fakeTransWeight</td></tr>
+	<tr><td port="e24" align="left">this.shieldWeight = settings.shieldWeight</td></tr>
+	<tr><td port="e25" align="left">this.MHPWeight = settings.MHPWeight</td></tr>
+	<tr><td port="e26" align="left">this.MHPDWeight = settings.MHPDWeight</td></tr>
+	<tr><td port="e27" align="left">this.exLifeWeight = settings.exLifeWeight</td></tr>
+	<tr><td port="e28" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e29" align="left">var _hx_tmp = Reflect.hasField(settings, \"include_secrets\")</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82109[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82109) BKNormal</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82108[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82108) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = false</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82107[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82107) BKConditional</td></tr>
+	<tr><td port="e0" align="left">_hx_tmp = archipelago.APEntryState.gameSettings.FNF != null</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82106[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82106) BKNormal</td></tr>
+	<tr><td port="e0" align="left">var _hx_tmp</td></tr>
+	<tr><td port="e1" align="left">var _hx_tmp = archipelago.APEntryState.gameSettings != null</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82105[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82105) BKNormal</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82104[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82104) BKConditional</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82103[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82103) BKSub</td></tr>
+	<tr><td port="e0" align="left">var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept(\"source/archipelago/APAdvancedSettingsState.hx:loadCurrentSettings:111891\", this, [])</td></tr>
+	<tr><td port="e1" align="left">var _interceptResult = _interceptResult.intercepted</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82102[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82102) BKFunctionEnd</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n82101[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(82101) BKFunctionBegin</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n1[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(1) BKRoot</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n1:out -> n82101:in[label="CFGFunction"];
+}

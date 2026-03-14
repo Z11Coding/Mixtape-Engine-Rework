@@ -2721,10 +2721,35 @@ class PlayState extends MusicBeatState
 
 		var stageFileLoaded:String = "";
 
-		// STEP 1: Run VSliceLoader for hardcoded base game stages FIRST.
+		// Check if any modded stage script exists FIRST (before calling VSliceLoader)
+		var hasModdedStageScript:Bool = false;
+
+		#if MODS_ALLOWED
+		#if LUA_ALLOWED
+		var luaFile:String = 'stages/$stageName.lua';
+		var replacePath:String = Paths.modFolders(luaFile);
+		if(FileSystem.exists(replacePath)) hasModdedStageScript = true;
+		#end
+
+		#if HSCRIPT_ALLOWED
+		if (!hasModdedStageScript) {
+			var scriptFile:String = 'stages/$stageName.hx';
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath)) hasModdedStageScript = true;
+		}
+		#end
+
+		if (!hasModdedStageScript) {
+			var scriptFile:String = 'stages/$stageName.ys';
+			var replacePath:String = Paths.modFolders(scriptFile);
+			if(FileSystem.exists(replacePath)) hasModdedStageScript = true;
+		}
+		#end
+
+		// STEP 1: Run VSliceLoader ONLY if no modded stage script exists and stageData has no objects
 		// VSliceLoader's add() calls put stage background sprites into the state's members list.
 		// These must go in BEFORE character groups so groups render ON TOP of stage backgrounds.
-		if (stageData.objects == null || stageData.objects.length <= 0) {
+		if ((stageData.objects == null || stageData.objects.length <= 0) && !hasModdedStageScript) {
 			VSliceLoader.addstage(stageName);
 			stageFileLoaded = "VSliceLoader: " + stageName;
 		}
@@ -9239,48 +9264,65 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	public var transitioning = false;
 	public function endSong()
 	{
+		// DEBUG: Comprehensive playlist tracking
+		trace('=== PlayState.endSong() CALLED ===');
+		trace('isPlaylist: ${PlayState.isPlaylist}');
+		trace('isWarmUp: ${isWarmUp}');
+		trace('curSonglist: ${curSonglist}');
+		if (curSonglist != null) trace('curSonglist length: ${curSonglist.length}');
+		trace('inArchipelagoMode: ${archipelago.APEntryState.inArchipelagoMode}');
+		trace('=============================');
+
 		//Should kill you if you tried to cheat
+		trace('About to check startingSong: ${startingSong}');
 		if(!startingSong)
 		{
-			/*notes.forEachAlive(function(daNote:Note)
-			{
-				if(daNote.strumTime < songLength - Conductor.safeZoneOffset) {
-					backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "tried to cheat and failed.";
-					health -= 0.05 * healthLoss;
-					bfkilledcheck = true;
-				}
-			});
-			for (daNote in unspawnNotes)
-			{
-				if(daNote != null && daNote.strumTime < songLength - Conductor.safeZoneOffset) {
-					backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "tried to cheat and failed.";
-					health -= 0.05 * healthLoss;
-					bfkilledcheck = true;
-				}
-			}*/
-
+			trace('startingSong is false, calling doDeathCheck()');
 			if(doDeathCheck()) {
+				trace('doDeathCheck returned true, returning false from endSong');
 				return false;
 			}
+			trace('doDeathCheck returned false, continuing');
 		}
+		trace('Passed doDeathCheck, continuing...');
 
 		timeBar.visible = false;
+		trace('SET timeBar.visible = false');
 		timeTxt.visible = false;
+		trace('SET timeTxt.visible = false');
 		canPause = false;
+		trace('SET canPause = false');
 		endingSong = true;
+		trace('SET endingSong = true');
 		camZooming = false;
+		trace('SET camZooming = false');
 		inCutscene = false;
+		trace('SET inCutscene = false');
 		updateTime = false;
+		trace('SET updateTime = false');
 		seenCutscene = false;
+		trace('SET seenCutscene = false');
 		inSecretSong = false;
+		trace('SET inSecretSong = false');
 
 		#if ACHIEVEMENTS_ALLOWED
+		trace('=== ENTERING ACHIEVEMENTS CHECK ===');
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
 		var week:String = WeekData.getWeekFileName();
+		trace('Calling checkForAchievement...');
 		checkForAchievement([weekNoMiss, week, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'potato', 'debugger', 'play_fnf', 'pico_mixed', 'pico_stressed', 'l', 'a_freaky', 'freaky', 'true_funker', 'nice', 'mfc', 'sfc', 'gfc', 'afc', 'fc', 'sdcb', 'clear', 'erect', 'nightmare']);
+		trace('=== COMPLETED ACHIEVEMENTS CHECK ===');
 		#end
 
+		trace('=== ABOUT TO CALL callOnScripts ===');
 		var ret:Dynamic = callOnScripts('onEndSong', null, true);
+		trace('=== callOnScripts returned ===');
+		trace('ret value: ${ret}');
+		trace('LuaUtils.Function_Stop: ${LuaUtils.Function_Stop}');
+		trace('ret != LuaUtils.Function_Stop: ${ret != LuaUtils.Function_Stop}');
+		trace('transitioning: ${transitioning}');
+		trace('Condition result: ${ret != LuaUtils.Function_Stop && !transitioning}');
+
 		if(ret != LuaUtils.Function_Stop && !transitioning)
 		{
 			LoadingState.noteCache = [];
@@ -9312,13 +9354,19 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				return false;
 			}
 
+			trace('=== CHECKING PLAYLIST/WARMUP LOGIC ===');
+			trace('About to check: isWarmUp (${isWarmUp}) || isPlaylist (${PlayState.isPlaylist})');
+
 			if (isWarmUp || isPlaylist)
 			{
+				trace('ENTERED playlist/warmup block');
 				campaignScore += comboManager.songScore;
 				campaignMisses += comboManager.songMisses;
 
 				var lastSong = curSonglist[0];
+				trace('lastSong: ${lastSong}');
 				curSonglist.remove(curSonglist[0]);
+				trace('After remove, curSonglist.length: ${curSonglist.length}');
 
 				if (curSonglist.length <= 0)
 				{
@@ -9338,8 +9386,70 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						Highscore.savePlaylistScore(curPlaylist.playlistName, campaignScore);
 						FlxG.save.flush();
 					}
-					isPlaylist = false;
 
+					#if ARCHIPELAGO_ALLOWED
+					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
+						var apPlayState = cast(this, archipelago.APPlayState);
+
+						// Collect all checks to send
+						var allNoteChecks = apPlayState.instanceDeferredNoteChecks.copy();
+						var allLocationChecks = apPlayState.instanceDeferredLocationChecks.copy();
+
+						// Add final song's checks
+						if (apPlayState.checkedNotes != null && apPlayState.checkedNotes.length > 0) {
+							for (note in apPlayState.checkedNotes) {
+								@:privateAccess {
+									allNoteChecks.push(note.checkInfo.loc);
+								}
+							}
+						}
+
+						// Add final song location checks
+						if (archipelago.APInfo.unlockMethod != "Note Checks") {
+							var songLocationIds = archipelago.APEntryState.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
+							if (songLocationIds != null) {
+								for (locId in songLocationIds) {
+									if (locId != 0) {
+										allLocationChecks.push(locId);
+									}
+								}
+							}
+						}
+
+						// Send all checks at once
+						if (allNoteChecks.length > 0) {
+							trace('Sending ${allNoteChecks.length} accumulated note checks');
+							archipelago.APPlayState.apGame.info().LocationChecks(allNoteChecks);
+						}
+						if (allLocationChecks.length > 0) {
+							trace('Sending ${allLocationChecks.length} accumulated location checks');
+							archipelago.APPlayState.apGame.info().LocationChecks(allLocationChecks);
+						}
+
+						// Return to playlist
+						FlxG.switchState(new archipelago.APPlaylistState());
+					} else if (archipelago.APEntryState.inArchipelagoMode) {
+						FlxG.switchState(new archipelago.APPlaylistState());
+					} else {
+						if (ClientPrefs.data.ranking == "Mixtape") {
+							openSubState(new substates.RankingSubstate());
+							#if !switch
+							var percent:Float = comboManager.ratingPercent;
+							if(Math.isNaN(percent)) percent = 0;
+							Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+							#end
+						} else if (ClientPrefs.data.ranking == "V-Slice") {
+							var wasFC = Highscore.getFCState(curSong, PlayState.storyDifficulty);
+							var prevScore = Highscore.getScore(curSong, PlayState.storyDifficulty);
+							var prevAcc = Highscore.getRating(curSong, PlayState.storyDifficulty);
+
+							var prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
+
+							zoomIntoResultsScreen(prevScore < tempActiveTallises.score, tempActiveTallises, prevRank);
+						}
+					}
+				#else
+				{
 					if (ClientPrefs.data.ranking == "Mixtape") {
 						openSubState(new substates.RankingSubstate());
 						#if !switch
@@ -9347,8 +9457,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						if(Math.isNaN(percent)) percent = 0;
 						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 						#end
-						// curPlaylist = null;
-						// curSonglist = null;
 					} else if (ClientPrefs.data.ranking == "V-Slice") {
 						var wasFC = Highscore.getFCState(curSong, PlayState.storyDifficulty);
 						var prevScore = Highscore.getScore(curSong, PlayState.storyDifficulty);
@@ -9357,16 +9465,24 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						var prevRank = Scoring.calculateRankFromData(prevScore, prevAcc, wasFC);
 
 						zoomIntoResultsScreen(prevScore < tempActiveTallises.score, tempActiveTallises, prevRank);
-
-						#if !switch
-						var percent:Float = comboManager.ratingPercent;
-						if(Math.isNaN(percent)) percent = 0;
-						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
-						#end
 					}
+				}
+				#end
 				}
 				else
 				{
+					trace('=== MORE SONGS REMAIN IN PLAYLIST ===');
+					// More songs remain in playlist
+					// For AP mode: transfer checks from this song to next instance
+					#if ARCHIPELAGO_ALLOWED
+					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
+						var apPlayState = cast(this, archipelago.APPlayState);
+
+						// Will be transferred via funcAndReturn below
+					}
+					#end
+
+					// Update to next song
 					Mods.currentModDirectory = curSonglist[0].folder != null ? curSonglist[0].folder : '';
 					PlayState.storyWeek = curSonglist[0].week;
 					Difficulty.loadFromWeek();
@@ -9380,16 +9496,72 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					FlxTransitionableState.skipNextTransOut = true;
 					prevCamFollow = camFollow;
 
-					Song.loadFromJson(curSonglist[0].songName + (curSonglist[0].difficulty.toLowerCase() != "normal" ? "-"+curSonglist[0].difficulty.toLowerCase() : ""), curSonglist[0].songName);
-					FlxG.sound.music.stop();
+					// Set AP variables for next song if in AP mode
+					#if ARCHIPELAGO_ALLOWED
+					var nextState:archipelago.APPlayState = null;
+					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
+						var apPlayState = cast(this, archipelago.APPlayState);
+						archipelago.APPlayState.currentSong = curSonglist[0].songName;
+						archipelago.APPlayState.currentMod = curSonglist[0].folder != null ? curSonglist[0].folder : '';
+
+						// Create next APPlayState with deferred checks transferred via funcAndReturn
+						// Only pass songlist for progression (like normal PlayState), no playlist
+						nextState = new archipelago.APPlayState(null, curSonglist).funcAndReturn((state) -> {
+							// Transfer accumulated checks from current instance
+							state.instanceDeferredLocationChecks = apPlayState.instanceDeferredLocationChecks.copy();
+							state.instanceDeferredNoteChecks = apPlayState.instanceDeferredNoteChecks.copy();
+
+							// Add note checks from this song
+							if (apPlayState.checkedNotes != null && apPlayState.checkedNotes.length > 0) {
+								trace('Adding ${apPlayState.checkedNotes.length} note checks to deferred');
+								for (note in apPlayState.checkedNotes) {
+									@:privateAccess {
+										state.instanceDeferredNoteChecks.push(note.checkInfo.loc);
+									}
+								}
+							}
+
+							// Add song location checks based on unlock method
+							if (archipelago.APInfo.unlockMethod != "Note Checks") {
+								var songLocationIds = archipelago.APEntryState.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
+								if (songLocationIds != null && songLocationIds.length > 0) {
+									trace('Adding ${songLocationIds.length} location checks to deferred');
+									for (locId in songLocationIds) {
+										if (locId != 0) {
+											state.instanceDeferredLocationChecks.push(locId);
+										}
+									}
+								}
+							}
+						});
+					}
+					#end
 					#if !switch
 					var percent:Float = comboManager.ratingPercent;
 					if(Math.isNaN(percent)) percent = 0;
+					// Don't save scores in AP mode
+					#if ARCHIPELAGO_ALLOWED
+					if (!archipelago.APEntryState.inArchipelagoMode) {
+						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					}
+					#else
 					Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
+					#end
 					#end
 					canResync = false;
 					LoadingState.prepareToSong();
+
+					#if ARCHIPELAGO_ALLOWED
+					if (archipelago.APEntryState.inArchipelagoMode && nextState != null) {
+						LoadingState.loadAndSwitchState(nextState, false, false);
+					} else if (archipelago.APEntryState.inArchipelagoMode) {
+						LoadingState.loadAndSwitchState(new archipelago.APPlayState(), false, false);
+					} else {
+						LoadingState.loadAndSwitchState(new PlayState(curSonglist), false, false);
+					}
+					#else
 					LoadingState.loadAndSwitchState(new PlayState(curSonglist), false, false);
+					#end
 				}
 			}
 			else if (isStoryMode)
@@ -13205,7 +13377,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						trace('Processed $processedNotes/${allNotes.length} notes');
 					}
 				} catch (e:Dynamic) {
-					trace('Error initializing note $processedNotes: $e');
+					// trace('Error initializing note $processedNotes: $e');
 				}
 			}
 		}

@@ -326,7 +326,7 @@ class APStyledEntryState extends MusicBeatState {
             hostValue,
             function(newHost:String) {
                 hostValue = newHost;
-                
+
                 // Check if port is included in host (format: "host:port")
                 if (newHost.contains(":")) {
                     var parts = newHost.split(":");
@@ -336,7 +336,7 @@ class APStyledEntryState extends MusicBeatState {
                         if (portText != null) portText.text = portValue;
                     }
                 }
-                
+
                 if (hostText != null) hostText.text = hostValue;
             },
             function() {
@@ -377,7 +377,7 @@ class APStyledEntryState extends MusicBeatState {
                 // Cancel callback - do nothing
             },
             16, // Max length
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_", // Allowed characters
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_:", // Allowed characters
             "Enter your player name from the YAML file (YAML-safe characters only)",
             FlxColor.CYAN,
             YAML // Use YAML input mode for player names

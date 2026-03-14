@@ -277,16 +277,23 @@ class RankingSubstate extends MusicBeatSubstate
 					trace('Combo Gotten: $comboRankLimit\nCombo Required: $comboRankSetLimit');
 					trace('Accuracy Gotten: $accRankLimit\nAccuracy Required: $accRankSetLimit');
 
-					// Always send note checks regardless of ranking requirements
-					trace("Sending checks for all checked notes (no ranking requirement)...");
+					// Collect note checks from this final song
+					var notChecksToSend:Array<Int> = [];
+					trace("Processing checks for all checked notes (no ranking requirement)...");
 					for (note in APPlayState.instance.checkedNotes) {
-						trace("Sending check for note: " + note);
+						trace("Processing check for note: " + note);
 						@:privateAccess{
-							trace("Sending location: " + note.checkInfo.loc);
-							APPlayState.apGame.info().LocationChecks([note.checkInfo.loc]);
+							var noteLocationId = note.checkInfo.loc;
+							notChecksToSend.push(noteLocationId);
 						}
 					}
-					trace("All note checks sent.");
+
+					// Send note checks
+					if (notChecksToSend.length > 0) {
+						trace('Sending ${notChecksToSend.length} note checks');
+						APPlayState.apGame.info().LocationChecks(notChecksToSend);
+					}
+					trace("All note checks processed.");
 
 					// Only send main song location check if ranking requirements are met
 					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
@@ -399,7 +406,7 @@ class RankingSubstate extends MusicBeatSubstate
 								trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
 								trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
 							}
-							trace("Current Song: " + PlayState.SONG.song);
+							trace("Current Song: " + archipelago.APPlayState.currentSong);
 
 							if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
 								archipelago.console.obj.Alert.alert("You've completed a Song Check!", "Good Job!", function() {

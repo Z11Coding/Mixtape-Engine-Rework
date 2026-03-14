@@ -12,10 +12,10 @@ import objects.Alphabet;
 import objects.Character;
 import objects.HealthIcon;
 import options.GameplayChangersSubstate;
-import states.PlaylistState.PlaylistData;
-import states.PlaylistState.SongMetadata;
 import states.editors.PlaylistEditorState.PlaylistSelector;
 import states.freeplay.backend.DifficultyStars;
+import states.PlaylistState.PlaylistData;
+import states.PlaylistState.SongMetadata;
 import yutautil.AprilFools;
 
 class APPlaylistState extends MusicBeatState {
@@ -345,15 +345,12 @@ class APPlaylistState extends MusicBeatState {
 				PlayState.storyWeek = firstSong.week;
 				Song.loadFromJson('${songLowercase}${(firstSong.difficulty.toLowerCase() != "normal" ? "-"+firstSong.difficulty.toLowerCase() : "")}', songLowercase);
 				LoadingState.prepareToSong();
-
+				
 				// Convert AP song list to normal song list using SongMetadata abstract
 				var normalSongList:Array<states.PlaylistState.PlaylistSongMetadata> = [];
 				for (apSong in selectedPlaylist.songList) {
-					var songViaAbstract:states.PlaylistState.SongMetadata = apSong;
-					var normalSong:states.PlaylistState.PlaylistSongMetadata = songViaAbstract;
-					normalSongList.push(normalSong);
-				}
-
+				var songViaAbstract:states.PlaylistState.SongMetadata = apSong;  // @:from APPlaylistSongMetadata
+				var normalSong:states.PlaylistState.PlaylistSongMetadata = songViaAbstract;  // @:to PlaylistSongMetadata
 				LoadingState.loadAndSwitchState(new APPlayState(selectedPlaylist, normalSongList));
 			}
     }
@@ -588,8 +585,9 @@ class APPlaylistState extends MusicBeatState {
 	          }
 	      }
 	  }
-			// Color logic using ternary expressions
-			var noDifficultyColor = FlxColor.WHITE;
+
+	  // Color logic using ternary expressions
+	  var noDifficultyColor = (hasPlaylistEnabledBundles() && playlistHasAllDifficultiesSet(playlist)) ? 0xFFFF69B4 : FlxColor.WHITE;
 
 	  return containsVictorySong
 	      ? (checkedCount == 0 ? 0xFFFFFFFF // RAINBOW - no checks
@@ -655,12 +653,7 @@ class APPlaylistState extends MusicBeatState {
 		);
 		var tempList:Array<APPlaylistSongMetadata> = [];
 		for (song in playlistItem.songs) {
-			trace('Loading song ${song} from playlist ${playlistItem.name}');
-			var data = APEntryState.apGame.getSongAndMod(song).funcAndReturn((d) -> {
-				d.song = d.song != null ? d.song : song; // Fallback to song name if lookup fails
-				d.mod = d.mod != null ? d.mod : ''; // Fallback to empty string if lookup fails
-			});
-			trace('Extracted data - Song: ${data.song}, Mod: ${data.mod}');
+			var data = APEntryState.apGame.getSongAndMod(song);
 			/*var fileList:Array<String> = [];
 			for (file in FileSystem.readDirectory('mods/${data.mod}/data/${data.song}/'))
 			{
@@ -834,7 +827,7 @@ class APPlaylistState extends MusicBeatState {
 
 	public function toString():String
 	{
-		return 'APPlaylistSongMetadata("${songName}", week: ${week}, difficulty: "${difficulty}", character: "${songCharacter}", artist: "${artist}", charter: "${charter}", folder: "${folder}")';
+		return 'APPlaylistSongMetadata("${songName}", week: ${week}, difficulty: "${difficulty}", character: "${songCharacter}", artist: "${artist}", charter: "${charter}")';
 	}
 
 }
@@ -926,8 +919,8 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 	var playlist:APPlaylistMetadata;
 	var onComplete:APPlaylistMetadata->Void;
 	var selectedSongIndex:Int = 0;
-	var songDifficulties:Map<Int, Array<{difficulty:String, weekIndexes:Array<Int>}>> = new Map(); // song index -> unique difficulties with available week indexes
-	var selectedDifficulties:Map<Int, {difficulty:String, weekIndex:Int}> = new Map(); // song index -> selected difficulty with chosen week index
+	var songDifficulties:Map<Int, Array<String>> = new Map(); // song index -> available difficulties
+	var selectedDifficulties:Map<Int, String> = new Map(); // song index -> selected difficulty
 	var bg:FlxSprite;
 	var songNameText:FlxText;
 	var difficultyButtonGroup:FlxTypedGroup<FlxSprite>;
@@ -956,23 +949,12 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		for (i in 0...playlist.songList.length) {
 			var currentDiff = playlist.songList[i].difficulty;
 			if (currentDiff == "" || currentDiff == null) {
-				// Pick first available difficulty with random week
+				// Pick first available difficulty
 				if (songDifficulties.exists(i) && songDifficulties[i].length > 0) {
-					var diffEntry = songDifficulties[i][0];
-					var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
-					selectedDifficulties[i] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
+					selectedDifficulties[i] = songDifficulties[i][0];
 				}
 			} else {
-				// Find the difficulty entry matching the current difficulty (case-insensitive)
-				if (songDifficulties.exists(i)) {
-					for (diffEntry in songDifficulties[i]) {
-						if (diffEntry.difficulty.toLowerCase() == currentDiff.toLowerCase()) {
-							var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
-							selectedDifficulties[i] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
-							break;
-						}
-					}
-				}
+				selectedDifficulties[i] = currentDiff;
 			}
 		}
 
@@ -1000,53 +982,21 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 	function loadSongDifficulties() {
 		for (i in 0...playlist.songList.length) {
 			var song = playlist.songList[i];
-			var difficultyEntries:Array<{difficulty:String, weekIndex:Int}> = [];
+			var difficulties:Array<String> = [];
 
-			// Get available difficulties with week indexes from the game
+			// Get available difficulties from the game
 			#if ARCHIPELAGO_ALLOWED
 			if (archipelago.APPlayState.apGame != null) {
-				difficultyEntries = archipelago.APPlayState.apGame.getDifficultiesWithWeekIndexes(song.songName, song.folder);
+				difficulties = archipelago.APPlayState.apGame.getDifficultiesForSong(song.songName, song.folder);
 			}
 			#end
 
 			// Fallback if no difficulties found
-			if (difficultyEntries.length == 0) {
-				difficultyEntries = [
-					{difficulty: "easy", weekIndex: 0},
-					{difficulty: "normal", weekIndex: 0},
-					{difficulty: "hard", weekIndex: 0}
-				];
+			if (difficulties.length == 0) {
+				difficulties = ["easy", "normal", "hard"];
 			}
 
-			// Deduplicate by difficulty name (case-insensitive) and group week indexes
-			var uniqueDifficulties:Map<String, Array<Int>> = new Map();
-			for (entry in difficultyEntries) {
-				var diffLower = entry.difficulty.toLowerCase();
-				if (!uniqueDifficulties.exists(diffLower)) {
-					uniqueDifficulties.set(diffLower, []);
-				}
-				// Add week index if not already present
-				var weekIndexes = uniqueDifficulties.get(diffLower);
-				if (weekIndexes.indexOf(entry.weekIndex) == -1) {
-					weekIndexes.push(entry.weekIndex);
-				}
-			}
-
-			// Convert back to array of unique difficulties with their week indexes
-			var uniqueDiffArray:Array<{difficulty:String, weekIndexes:Array<Int>}> = [];
-			for (diffLower => weekIndexes in uniqueDifficulties) {
-				// Find the original case version of the difficulty
-				var originalDiff = "";
-				for (entry in difficultyEntries) {
-					if (entry.difficulty.toLowerCase() == diffLower) {
-						originalDiff = entry.difficulty;
-						break;
-					}
-				}
-				uniqueDiffArray.push({difficulty: originalDiff, weekIndexes: weekIndexes});
-			}
-
-			songDifficulties[i] = uniqueDiffArray;
+			songDifficulties[i] = difficulties;
 		}
 	}
 
@@ -1067,8 +1017,8 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				var buttonSpacing = 150;
 
 				for (i in 0...difficulties.length) {
-					var diffEntry = difficulties[i];
-					var isSelected = currentSelection != null && diffEntry.difficulty == currentSelection.difficulty;
+					var diff = difficulties[i];
+					var isSelected = diff == currentSelection;
 
 					// Create button background
 					var button = new FlxSprite(200 + (i * buttonSpacing), buttonY);
@@ -1077,7 +1027,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 					difficultyButtonGroup.add(button);
 
 					// Create button text
-					var text = new FlxText(button.x, button.y + 15, button.width, diffEntry.difficulty.toUpperCase(), 32);
+					var text = new FlxText(button.x, button.y + 15, button.width, diff.toUpperCase(), 32);
 					text.setFormat(Paths.font("vcr.ttf"), 32, isSelected ? FlxColor.BLACK : FlxColor.WHITE, CENTER, OUTLINE,
 						isSelected ? FlxColor.BLACK : FlxColor.GRAY);
 					text.borderSize = 2;
@@ -1110,36 +1060,22 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		// Difficulty selection with left/right
 		if (selectedSongIndex >= 0 && selectedSongIndex < playlist.songList.length) {
 			var difficulties = songDifficulties.get(selectedSongIndex);
-			var currentSelection = selectedDifficulties.get(selectedSongIndex);
+			var currentDiff = selectedDifficulties.get(selectedSongIndex);
 
 			if (difficulties != null && difficulties.length > 0) {
-				var currentIndex = -1;
-				// Find current index in difficulties array
-				if (currentSelection != null) {
-					for (i in 0...difficulties.length) {
-						if (difficulties[i].difficulty == currentSelection.difficulty) {
-							currentIndex = i;
-							break;
-						}
-					}
-				}
-				if (currentIndex == -1) currentIndex = 0; // Default to first if not found
+				var currentIndex = difficulties.indexOf(currentDiff);
 
 				if (FlxG.keys.justPressed.LEFT && navigationCooldown <= 0) {
 					currentIndex--;
 					if (currentIndex < 0) currentIndex = difficulties.length - 1;
-					var diffEntry = difficulties[currentIndex];
-					var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
-					selectedDifficulties[selectedSongIndex] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
+					selectedDifficulties[selectedSongIndex] = difficulties[currentIndex];
 					updateDisplay();
 					navigationCooldown = 0.2;
 				}
 				if (FlxG.keys.justPressed.RIGHT && navigationCooldown <= 0) {
 					currentIndex++;
 					if (currentIndex >= difficulties.length) currentIndex = 0;
-					var diffEntry = difficulties[currentIndex];
-					var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
-					selectedDifficulties[selectedSongIndex] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
+					selectedDifficulties[selectedSongIndex] = difficulties[currentIndex];
 					updateDisplay();
 					navigationCooldown = 0.2;
 				}
@@ -1148,12 +1084,10 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 
 		// Confirm all selections
 		if (FlxG.keys.justPressed.ENTER) {
-			// Update playlist with selected difficulties and week indexes
+			// Update playlist with selected difficulties
 			for (i in 0...playlist.songList.length) {
 				if (selectedDifficulties.exists(i)) {
-					var selection = selectedDifficulties[i];
-					playlist.songList[i].difficulty = selection.difficulty;
-					playlist.songList[i].week = selection.weekIndex;
+					playlist.songList[i].difficulty = selectedDifficulties[i];
 				}
 			}
 			onComplete(playlist);

@@ -369,12 +369,49 @@ class GameOverSubstate extends MusicBeatSubstate
 								// Use LoadingState if preload song is enabled
 								if (ClientPrefs.data.preloadSong) {
 									#if ARCHIPELAGO_ALLOWED
-									states.LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new PlayState());
+								var nextState:PlayState;
+									if (archipelago.APEntryState.inArchipelagoMode) {
+										// Preserve playlist and songlist for AP mode
+										if (PlayState.instance != null && PlayState.isPlaylist) {
+											nextState = new archipelago.APPlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
+										} else {
+											nextState = new archipelago.APPlayState();
+										}
+									} else {
+										// Preserve playlist and songlist for normal mode
+										if (PlayState.instance != null && PlayState.isPlaylist) {
+											nextState = new PlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
+										} else {
+											nextState = new PlayState();
+										}
+									}
+									states.LoadingState.loadAndSwitchState(nextState);
 									#else
-									states.LoadingState.loadAndSwitchState(new PlayState());
+									var nextState:PlayState;
+									if (PlayState.instance != null && PlayState.isPlaylist) {
+										nextState = new PlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
+									} else {
+										nextState = new PlayState();
+									}
+									states.LoadingState.loadAndSwitchState(nextState);
 									#end
 								} else {
-									MusicBeatState.resetState();
+									// For resetState during playlist, create proper PlayState with playlist data
+									if (PlayState.instance != null && PlayState.isPlaylist) {
+										#if ARCHIPELAGO_ALLOWED
+										var nextState:PlayState;
+										if (archipelago.APEntryState.inArchipelagoMode) {
+											nextState = new archipelago.APPlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
+										} else {
+											nextState = new PlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
+										}
+										MusicBeatState.switchState(nextState);
+										#else
+										MusicBeatState.switchState(new PlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist));
+										#end
+									} else {
+										MusicBeatState.resetState();
+									}
 								}
 							}
 						}

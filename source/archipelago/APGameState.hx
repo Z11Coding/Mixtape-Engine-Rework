@@ -1326,6 +1326,21 @@ class APGameState
 			_saveData.addItem("activeAntiPermaTraps", APItem.triggeredAntiPermaTraps.copy());
 			_saveData.addItem("hardmodeItems", APItem.hardmodeItems.copy());
 
+			// Save playlist difficulties
+			if (APPlaylistState.apPlaylists != null && APPlaylistState.apPlaylists.length > 0)
+			{
+				var playlistDifficulties:Array<Dynamic> = [];
+				for (playlist in APPlaylistState.apPlaylists)
+				{
+					var playlistData:Dynamic = {
+						playlistName: playlist.playlistName,
+						songDifficulties: [for (song in playlist.songList) {songName: song.songName, difficulty: song.difficulty}]
+					};
+					playlistDifficulties.push(playlistData);
+				}
+				_saveData.addItem("playlistDifficulties", playlistDifficulties);
+			}
+
 			_saveData.save();
 			trace("Save data updated!");
 		}
@@ -2713,6 +2728,45 @@ class APGameState
 			return matchingWeeks;
 		}
 
+		public function getWeeksWithIndexForSong(song:String, mod:String):Array<{week:WeekData, weekIndex:Int}>
+		{
+			var matchingWeeks:Array<{week:WeekData, weekIndex:Int}> = [];
+
+			// Normalize mod name
+			if (mod == null)
+				mod = "";
+
+			// Iterate through all loaded weeks with index
+			for (weekIdx in 0...WeekData.weeksList.length)
+			{
+				var weekName = WeekData.weeksList[weekIdx];
+				var week = WeekData.weeksLoaded.get(weekName);
+				if (week == null)
+					continue;
+
+				// Check if this week belongs to the specified mod
+				var weekMod = week.folder == null ? "" : week.folder;
+				if (weekMod != mod)
+					continue;
+
+				// Check if this week contains the song
+				if (week.songs != null)
+				{
+					for (songData in week.songs)
+					{
+						var songName = (cast songData[0] : String);
+						if (songName.toLowerCase() == song.toLowerCase())
+						{
+							matchingWeeks.push({week: week, weekIndex: weekIdx});
+							break; // Found the song in this week, no need to check further
+						}
+					}
+				}
+			}
+
+			return matchingWeeks;
+		}
+
 		/**
 		 * Get all unique difficulties for a song from all its weeks (case-insensitive)
 		 * @param song Song name to get difficulties for
@@ -2751,6 +2805,39 @@ class APGameState
 			}
 
 			return allDifficulties;
+		}
+
+		/**
+		 * Get all unique difficulties for a song from all its weeks, paired with their week indexes.
+		 * @param song Song name to get difficulties for
+		 * @param mod Mod name the song belongs to (empty string for base game)
+		 * @return Array of {difficulty:String, weekIndex:Int}
+		 */
+		public function getDifficultiesWithWeekIndexes(song:String, mod:String):Array<{difficulty:String, weekIndex:Int}>
+		{
+			var result:Array<{difficulty:String, weekIndex:Int}> = [];
+			var seen:Map<String, Bool> = new Map();
+
+			var weeksWithIndexes = getWeeksWithIndexForSong(song, mod);
+			for (entry in weeksWithIndexes)
+			{
+				var week = entry.week;
+				var weekIndex = entry.weekIndex;
+				if (week.difficulties != null && week.difficulties.length > 0)
+				{
+					var diffs = week.difficulties.trim().split(',');
+					for (diff in diffs)
+					{
+						var trimmed = diff.trim();
+						if (trimmed.length > 0 && !seen.exists(trimmed.toLowerCase()))
+						{
+							seen.set(trimmed.toLowerCase(), true);
+							result.push({difficulty: trimmed, weekIndex: weekIndex});
+						}
+					}
+				}
+			}
+			return result;
 		}
 
 		function validateMods()

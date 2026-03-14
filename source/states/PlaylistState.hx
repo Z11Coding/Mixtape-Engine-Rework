@@ -1071,3 +1071,120 @@ typedef PlaylistSongMetadataObject = {
 	var color:Array<Array<Dynamic>>;
 	var folder:String;
 }
+
+/**
+ * Abstract type for song metadata that can accept both normal PlaylistSongMetadata
+ * and AP-specific APPlaylistSongMetadata, automatically normalizing as needed.
+ */
+#if ARCHIPELAGO_ALLOWED
+abstract SongMetadata(PlaylistSongMetadata) {
+	@:from
+	static function fromPlaylistSongMetadata(song:PlaylistSongMetadata):SongMetadata {
+		return cast song;
+	}
+
+	@:from
+	static function fromAPPlaylistSongMetadata(apSong:archipelago.APPlaylistState.APPlaylistSongMetadata):SongMetadata {
+		// Create a normal PlaylistSongMetadata from the AP song
+		var normalSong = new PlaylistSongMetadata(
+			apSong.songName,
+			apSong.week,
+			apSong.songCharacter,
+			apSong.color,
+			apSong.difficulty,
+			apSong.charter,
+			apSong.artist
+		);
+		return cast normalSong;
+	}
+
+	@:to
+	function toPlaylistSongMetadata():PlaylistSongMetadata {
+		return cast this;
+	}
+}
+#else
+// On non-AP builds, SongMetadata is just a normal PlaylistSongMetadata
+abstract SongMetadata(PlaylistSongMetadata) {
+	@:from
+	static function fromPlaylistSongMetadata(song:PlaylistSongMetadata):SongMetadata {
+		return cast song;
+	}
+
+	@:to
+	function toPlaylistSongMetadata():PlaylistSongMetadata {
+		return cast this;
+	}
+}
+#end
+
+/**
+ * Abstract type for playlist data that can accept both normal PlaylistMetadata
+ * and AP-specific APPlaylistMetadata, automatically converting as needed.
+ */
+#if ARCHIPELAGO_ALLOWED
+abstract PlaylistData(PlaylistMetadata) {
+	@:from
+	static function fromPlaylistMetadata(playlist:PlaylistMetadata):PlaylistData {
+		return cast playlist;
+	}
+
+	@:from
+	static function fromAPPlaylistMetadata(apPlaylist:archipelago.APPlaylistState.APPlaylistMetadata):PlaylistData {
+		return cast convertAPPlaylistToNormal(apPlaylist);
+	}
+
+	@:to
+	function toPlaylistMetadata():PlaylistMetadata {
+		return cast this;
+	}
+
+	/**
+	 * Converts an AP playlist to a normal PlaylistMetadata
+	 */
+	static function convertAPPlaylistToNormal(apPlaylist:archipelago.APPlaylistState.APPlaylistMetadata):PlaylistMetadata {
+		// Convert song list from APPlaylistSongMetadata to PlaylistSongMetadata
+		var normalSongList:Array<PlaylistSongMetadata> = [];
+		if (apPlaylist.songList != null) {
+			for (apSong in apPlaylist.songList) {
+				var normalSong = new PlaylistSongMetadata(
+					apSong.songName,
+					apSong.week,
+					apSong.songCharacter,
+					apSong.color,
+					apSong.difficulty,
+					apSong.charter,
+					apSong.artist
+				);
+				normalSongList.push(normalSong);
+			}
+		}
+
+		// Create a normal playlist with the converted song list
+		// Use default values for AP-specific fields we don't need
+		var normalPlaylist = new PlaylistMetadata(
+			apPlaylist.playlistName,
+			'menuDesat',  // default bg
+			'bf',         // default icon
+			'nocover',    // default album
+			[255, 255, 255], // default white color
+			normalSongList
+		);
+
+		return normalPlaylist;
+	}
+}
+#else
+// On non-AP builds, PlaylistData is just a normal PlaylistMetadata
+abstract PlaylistData(PlaylistMetadata) {
+	@:from
+	static function fromPlaylistMetadata(playlist:PlaylistMetadata):PlaylistData {
+		return cast playlist;
+	}
+
+	@:to
+	function toPlaylistMetadata():PlaylistMetadata {
+		return cast this;
+	}
+}
+#end

@@ -440,7 +440,14 @@ class PauseSubState extends MusicBeatSubstate
 						MusicBeatState.switchState(new states.TitleState());
 					}
 					else if(PlayState.isPlaylist)
+					#if ARCHIPELAGO_ALLOWED
+						if (archipelago.APEntryState.inArchipelagoMode)
+							MusicBeatState.switchState(new archipelago.APPlaylistState());
+						else
+							MusicBeatState.switchState(new PlaylistState());
+					#else
 						MusicBeatState.switchState(new PlaylistState());
+					#end
 					else if (PlayState.isLegacyLuaTest) {
 						// Return to Legacy Lua settings system
 						PlayState.isLegacyLuaTest = false;
@@ -498,7 +505,11 @@ class PauseSubState extends MusicBeatSubstate
 			states.LoadingState._doingRestart = true;
 
 		if (ClientPrefs.data.preloadSong)
-			states.LoadingState.loadAndSwitchState(#if ARCHIPELAGO_ALLOWED archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : #end new PlayState());
+			#if ARCHIPELAGO_ALLOWED
+			states.LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new PlayState());
+			#else
+			states.LoadingState.loadAndSwitchState(new PlayState());
+			#end
 		else
 			MusicBeatState.resetState();
 	}

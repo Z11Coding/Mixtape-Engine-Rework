@@ -1618,6 +1618,33 @@ class CollectionUtils
 		return item;
 	}
 
+	// /**
+	//  * Calls the provided function `func` (T->T) with `item` as its argument, then returns `item`.
+	//  *
+	//  * @param item The value to be passed to `func` and returned.
+	//  * @param func A function that takes and returns `item`.
+	//  * @return The original `item`.
+	//  */
+	// public static extern overload inline function funcAndReturn<T>(item:T, func:T->T):T
+	// {
+	// 	func(item);
+	// 	return item;
+	// }
+
+	// /**
+	//  * Calls the provided function `func` (T->Dynamic) with `item` as its argument, then returns `item`.
+	//  *
+	//  * @param item The value to be passed to `func` and returned.
+	//  * @param func A function that takes `item` and returns Dynamic.
+	//  * @return The original `item`.
+	//  */
+	// public static extern overload inline function funcAndReturn<T>(item:T, func:T->Dynamic):T
+	// {
+	// 	func(item);
+	// 	return item;
+	// }
+
+
 	/**
 	 * Calls the provided function `func` with arguments determined by `item`, `a`, and `itemIsArg`, then returns `item`.
 	 *
@@ -3258,6 +3285,11 @@ class CollectionUtils
 			#end
 		}
 		return target;
+	}
+
+	public static inline function getField(R:Class<Reflect>, source:Dynamic, field:String):Dynamic
+	{
+		return Reflect.field(source, field);
 	}
 
 	public static function pushMany<T>(input:Array<T>, items:Array<T>):Array<T>

@@ -147,6 +147,8 @@ class APAdvancedSettingsState extends MusicBeatState
 	var includePico:Bool = true;
 	var includeErect:Bool = true;
 	var includeVanilla:Bool = true;
+	// Song validation errors (separated from script processing errors)
+	var songValidationErrors:Array<CustomAPLogic.APProcessingError> = [];
 	// Player name setting
 	var playerName:String = "Player";
 	// Song selection settings with proper defaults
@@ -194,6 +196,13 @@ class APAdvancedSettingsState extends MusicBeatState
 	var chartmodifierchance:Int = 5;
 	var trapAmount:Int = 50;
 	var songLimit:Int = 50;
+
+	// Bundle settings
+	var bundleEnabled:Bool = false;
+	var bundleWeight:Int = 25;
+	var bundleMinSize:Int = 2;
+	var bundleMaxSize:Int = 5;
+	var bundleLimit:Int = 0; // 0 means unlimited (None in Python)
 
 	// Animation state
 	var isAnimating:Bool = false;
@@ -1072,6 +1081,53 @@ class APAdvancedSettingsState extends MusicBeatState
 			)
 		];
 
+		// Bundle Options Page
+		var bundleOptions:Array<SettingsOption> = [];
+
+		bundleOptions.push({
+			name: "Enable Song Bundles",
+			description: "Create random bundles of songs as items",
+			callback: function() {
+				bundleEnabled = !bundleEnabled;
+				refreshCurrentPage();
+			},
+			locked: false,
+			contextMenu: createBoolContextMenu(bundleEnabled, function(value:Bool) {
+				bundleEnabled = value;
+			})
+		});
+
+		bundleOptions.push({
+			name: "Bundle Weight",
+			description: "Percentage/weight for generating bundles (0-100 or multiplier)",
+			callback: () -> adjustBundleWeight(),
+			locked: false,
+			contextMenu: createEditContextMenu(() -> adjustBundleWeight())
+		});
+
+		bundleOptions.push({
+			name: "Min Bundle Size",
+			description: "Minimum number of songs in a bundle",
+			callback: () -> adjustBundleMinSize(),
+			locked: false,
+			contextMenu: createEditContextMenu(() -> adjustBundleMinSize())
+		});
+
+		bundleOptions.push({
+			name: "Max Bundle Size",
+			description: "Maximum number of songs in a bundle",
+			callback: () -> adjustBundleMaxSize(),
+			locked: false,
+			contextMenu: createEditContextMenu(() -> adjustBundleMaxSize())
+		});
+
+		bundleOptions.push({
+			name: "Bundle Limit",
+			description: "Maximum number of bundles (0 = unlimited)",
+			callback: () -> adjustBundleLimit(),
+			locked: false,
+			contextMenu: createEditContextMenu(() -> adjustBundleLimit())
+		});
 
 		// Z11 Options Page - things you can but probably shouldn't turn on
 		var z11Options:Array<SettingsOption> = [];
@@ -1179,6 +1235,13 @@ class APAdvancedSettingsState extends MusicBeatState
 				options: fillerWeightsOptions,
 				stateOptions: [],
 				color: FlxColor.PURPLE
+			},
+			{
+				name: "SONG BUNDLES",
+				description: "Configure random song bundle generation",
+				options: bundleOptions,
+				stateOptions: [],
+				color: FlxColor.YELLOW
 			},
 			{
 				name: "SANITY OPTIONS",
@@ -1812,6 +1875,11 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Max HP Up Weight": Std.string(MHPWeight);
 			case "Max HP Down Weight": Std.string(MHPDWeight);
 			case "Extra Life Weight": Std.string(exLifeWeight);
+			case "Enable Song Bundles": bundleEnabled ? "ON" : "OFF";
+			case "Bundle Weight": Std.string(bundleWeight);
+			case "Min Bundle Size": Std.string(bundleMinSize);
+			case "Max Bundle Size": Std.string(bundleMaxSize);
+			case "Bundle Limit": bundleLimit == 0 ? "UNLIMITED" : Std.string(bundleLimit);
 			case "Enable Sanity Locations": enable_sanity_locations ? "ON" : "OFF";
 			case "Sanity Completion Type": sanity_completion_type;
 			case "Stagesanity": stagesanity ? "ON" : "OFF";
@@ -2212,6 +2280,50 @@ class APAdvancedSettingsState extends MusicBeatState
 		openSliderControl("Max HP Down Weight", MHPDWeight, 0, 10, 1, function(value:Float)
 		{
 			MHPDWeight = Std.int(value);
+			refreshCurrentPage();
+		});
+	}
+
+	function adjustBundleWeight()
+	{
+		openSliderControl("Bundle Weight", bundleWeight, 0, 100, 5, function(value:Float)
+		{
+			bundleWeight = Std.int(value);
+			refreshCurrentPage();
+		});
+	}
+
+	function adjustBundleMinSize()
+	{
+		openSliderControl("Min Bundle Size", bundleMinSize, 1, 10, 1, function(value:Float)
+		{
+			bundleMinSize = Std.int(value);
+			if (bundleMinSize > bundleMaxSize)
+			{
+				bundleMaxSize = bundleMinSize;
+			}
+			refreshCurrentPage();
+		});
+	}
+
+	function adjustBundleMaxSize()
+	{
+		openSliderControl("Max Bundle Size", bundleMaxSize, 1, 10, 1, function(value:Float)
+		{
+			bundleMaxSize = Std.int(value);
+			if (bundleMaxSize < bundleMinSize)
+			{
+				bundleMinSize = bundleMaxSize;
+			}
+			refreshCurrentPage();
+		});
+	}
+
+	function adjustBundleLimit()
+	{
+		openSliderControl("Bundle Limit (0 = unlimited)", bundleLimit, 0, 50, 1, function(value:Float)
+		{
+			bundleLimit = Std.int(value);
 			refreshCurrentPage();
 		});
 	}
@@ -3174,6 +3286,200 @@ class APAdvancedSettingsState extends MusicBeatState
 	}
 
 	/**
+	 * Validate that all songs in the song list have corresponding JSON files.
+	 * Converts YAML-safe song list to real names, validates chart files,
+	 * and removes songs that have no valid charts.
+	 * Stores validation errors separately from script processing errors.
+	 */
+	function validateSongJSONFiles():Void
+	{
+		trace('Validating song JSON files...');
+
+		if (APEntryState.gameSettings.FNF.songList.length == 0)
+		{
+			trace('Song list is empty, nothing to validate');
+			return;
+		}
+
+		// Clear any previous validation errors
+		songValidationErrors.resize(0);
+
+		// Track which YAML-safe songs should be removed
+		var yamlSongsToRemove:Array<String> = [];
+		var songDifficultyWarnings:Array<String> = [];
+
+		// Set up to get all songs
+		if (states.CategoryState.loadWeekForce == null)
+		{
+			states.CategoryState.loadWeekForce = "all";
+		}
+
+		WeekData.reloadWeekFiles(false);
+
+		var fpManager = new managers.FreeplayManager(true).funcAndReturn(function(manager)
+		{
+			manager.ignoreLocks = true;
+		});
+		fpManager.reloadFreeplay(true, '');
+
+		// Create a map of songs from fpManager using REAL (non-YAML-safe) names
+		var songDataMap:Map<String, {songName:String, folder:String, week:Int}> = new Map();
+		if (fpManager != null && fpManager.songList != null)
+		{
+			for (songData in fpManager.songList)
+			{
+				if (songData == null) continue;
+
+				// Use real names as the key
+				var realSongName = songData.songName;
+				var realFolder = songData.folder != null && songData.folder.length > 0 ? songData.folder : "";
+
+				// Build the key in real name format: "song (folder)" or just "song"
+				var songKey = realSongName;
+				if (realFolder.length > 0)
+				{
+					songKey = realSongName + ' (${realFolder})';
+				}
+
+				songDataMap.set(songKey, {songName: songData.songName, folder: songData.folder, week: songData.week});
+			}
+		}
+
+		// Validate each song by converting YAML-safe format back to real names
+		trace('Validating chart files for ${APEntryState.gameSettings.FNF.songList.length} songs...');
+
+		for (yamlSongInList in APEntryState.gameSettings.FNF.songList)
+		{
+			if (yamlSongInList == null || yamlSongInList.length == 0) continue;
+
+			// Convert YAML-safe song name back to real name for validation
+			var realSongInList = archipelago.APInfo.realName(yamlSongInList);
+
+			// Look up the song data using the real name
+			var songData = songDataMap.get(realSongInList);
+			if (songData == null)
+			{
+				trace('Could not find metadata for song: ${realSongInList}');
+				continue;
+			}
+
+			var songName = songData.songName;
+			var week = songData.week;
+
+			var foundValidChart = false;
+			var missingDifficulties:Array<String> = [];
+
+			// Get week data
+			if (week >= 0 && week < WeekData.weeksList.length)
+			{
+				var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[week]);
+				if (leWeek != null)
+				{
+					WeekData.setDirectoryFromWeek(leWeek);
+					Difficulty.loadFromWeek(leWeek);
+					var difficulties = Difficulty.list.copy();
+
+					// Check each difficulty for chart existence
+					for (difficulty in difficulties)
+					{
+						try
+						{
+							var chartName = songName + Difficulty.getFilePath(Difficulty.list.indexOf(difficulty));
+
+							// Use Song.getChart() to check if the chart exists
+							// This properly handles all chart formats and directory structures
+							var songChart:SwagSong = Song.getChart(chartName, songName);
+
+							if (songChart != null)
+							{
+								foundValidChart = true;
+							}
+							else
+							{
+								missingDifficulties.push(difficulty);
+							}
+						}
+						catch (e:Dynamic)
+						{
+							trace('Error checking chart for ${songName} / ${difficulty}: ${e}');
+							missingDifficulties.push(difficulty);
+						}
+					}
+
+					// Check if this song has valid charts
+					if (foundValidChart)
+					{
+						// Log warning if not all difficulties have charts
+						if (missingDifficulties.length > 0)
+						{
+							var warningMsg = 'WARNING: Missing difficulties for ${realSongInList}: ${missingDifficulties.join(", ")}';
+							songDifficultyWarnings.push(warningMsg);
+							trace(warningMsg);
+						}
+					}
+					else
+					{
+						// No valid charts found for this song - mark for removal
+						yamlSongsToRemove.push(yamlSongInList);
+						trace('Marked for removal: ${realSongInList} - no valid chart files found');
+					}
+				}
+			}
+		}
+
+		// Add warnings to separate validation error tracking
+		for (warning in songDifficultyWarnings)
+		{
+			var error:CustomAPLogic.APProcessingError = {
+				modName: "(Song Validation)",
+				scriptPath: "",
+				errorType: "validation_warning",
+				errorMessage: warning,
+				timestamp: Date.now().toString()
+			};
+			songValidationErrors.push(error);
+		}
+
+		// Remove songs that have no valid charts
+		if (yamlSongsToRemove.length > 0)
+		{
+			var originalLength = APEntryState.gameSettings.FNF.songList.length;
+			var filteredList:Array<String> = [];
+
+			for (yamlSongInList in APEntryState.gameSettings.FNF.songList)
+			{
+				if (yamlSongsToRemove.contains(yamlSongInList))
+				{
+					// Get real name for error message
+					var realName = archipelago.APInfo.realName(yamlSongInList);
+
+					// Log error with real name (in separate validation errors)
+					var error:CustomAPLogic.APProcessingError = {
+						modName: "(Song Validation)",
+						scriptPath: "",
+						errorType: "validation_error",
+						errorMessage: 'ERROR: No valid chart files found for "${realName}". Removing from song list.',
+						timestamp: Date.now().toString()
+					};
+					songValidationErrors.push(error);
+					trace('Removed ${realName} - no valid chart files found');
+				}
+				else
+				{
+					filteredList.push(yamlSongInList);
+				}
+			}
+
+			APEntryState.gameSettings.FNF.songList = filteredList;
+			trace('Song validation complete - removed ${originalLength - filteredList.length} songs with no valid charts');
+		}
+		else
+		{
+			trace('Song validation complete - all songs have valid chart files');
+		}
+	}
+
+	/**
 	 * Generate the sanity data object for YAML export
 	 * @return Dynamic object containing stage and character data
 	 */
@@ -3340,6 +3646,14 @@ class APAdvancedSettingsState extends MusicBeatState
 			hard_mode = Reflect.hasField(settings, "hard_mode") ? settings.hard_mode : false;
 			enable_shop = Reflect.hasField(settings, "enable_shop") ? settings.enable_shop : false;
 			perma_traps = Reflect.hasField(settings, "perma_traps") ? settings.perma_traps : false;
+
+			// Bundle settings with defaults
+			bundleEnabled = Reflect.hasField(settings, "songBundleEnabled") ? Reflect.field(settings, "songBundleEnabled") : false;
+			bundleWeight = Reflect.hasField(settings, "songBundleWeight") ? Reflect.field(settings, "songBundleWeight") : 25;
+			bundleMinSize = Reflect.hasField(settings, "songBundleMinSize") ? Reflect.field(settings, "songBundleMinSize") : 2;
+			bundleMaxSize = Reflect.hasField(settings, "songBundleMaxSize") ? Reflect.field(settings, "songBundleMaxSize") : 5;
+			bundleLimit = Reflect.hasField(settings, "songBundleLimit") ? (Reflect.field(settings, "songBundleLimit") != null ? Reflect.field(settings, "songBundleLimit") : 0) : 0;
+
 			enforceSanityCompatibility(false);
 		}
 	}
@@ -3398,6 +3712,13 @@ class APAdvancedSettingsState extends MusicBeatState
 			settings.perma_traps = perma_traps;
 			settings.hard_mode = hard_mode;
 			settings.enable_shop = enable_shop;
+
+			// Save bundle settings
+			Reflect.setField(settings, "songBundleEnabled", bundleEnabled);
+			Reflect.setField(settings, "songBundleWeight", bundleWeight);
+			Reflect.setField(settings, "songBundleMinSize", bundleMinSize);
+			Reflect.setField(settings, "songBundleMaxSize", bundleMaxSize);
+			Reflect.setField(settings, "songBundleLimit", bundleLimit > 0 ? bundleLimit : null);
 		}
 	}
 
@@ -3590,6 +3911,42 @@ class APAdvancedSettingsState extends MusicBeatState
 		return content;
 	}
 
+	function generateValidationErrorsText():String
+	{
+		var content = "";
+
+		content += "SONG VALIDATION ISSUES:\n";
+		content += "═══════════════════════\n\n";
+
+		// Separate warnings and errors
+		var warnings = [for (error in songValidationErrors) if (error.errorType == "validation_warning") error];
+		var errors = [for (error in songValidationErrors) if (error.errorType == "validation_error") error];
+
+		if (warnings.length > 0) {
+			content += "MISSING DIFFICULTY FILES (" + warnings.length + "):\n";
+			content += "────────────────────────\n";
+			for (warning in warnings) {
+				content += "⚠ " + warning.errorMessage + "\n";
+			}
+			content += "\n";
+		}
+
+		if (errors.length > 0) {
+			content += "REMOVED SONGS (" + errors.length + "):\n";
+			content += "──────────────\n";
+			for (error in errors) {
+				content += "❌ " + error.errorMessage + "\n";
+			}
+			content += "\n";
+		}
+
+		if (warnings.length == 0 && errors.length == 0) {
+			content += "No validation issues found.\n";
+		}
+
+		return content;
+	}
+
 	function generateErrorInfoText():String
 	{
 		var content = "";
@@ -3677,8 +4034,11 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function showExportResults()
 	{
-		// Only show export results if mods are allowed
-		if (!allowMods) {
+		// Check if there are any validation errors/warnings
+		var hasValidationIssues = songValidationErrors.length > 0;
+
+		// Only show export results if mods are allowed, or if there are validation issues to report
+		if (!allowMods && !hasValidationIssues) {
 			// For refresh operations, return to entry state without showing results
 			if (forceExportPath != null) {
 				FlxG.switchState(new APStyledEntryState());
@@ -3689,7 +4049,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		var hasSuccesses = CustomAPLogic.APDataStore.getTotalCustomContent() > 0 || CustomAPLogic.APDataStore.processingSuccesses.length > 0;
 		var hasErrors = CustomAPLogic.APDataStore.processingErrors.length > 0;
 
-		if (hasSuccesses && !hasErrors) {
+		if (hasSuccesses && !hasErrors && !hasValidationIssues) {
 			// Only successes - show green box
 			var successContent = generateCustomContentInfoText();
 			openSubState(new InfoPanelSubstate("Custom Content Export Success", successContent, FlxColor.LIME, function() {
@@ -3697,30 +4057,97 @@ class APAdvancedSettingsState extends MusicBeatState
 				if (forceExportPath != null) {
 					FlxG.switchState(new APStyledEntryState());
 				}
+				// Clear validation errors after showing results
+				songValidationErrors.resize(0);
 			}));
 		}
-		else if (!hasSuccesses && hasErrors) {
-			// Only errors - show red box
+		else if (hasValidationIssues && !hasSuccesses && !hasErrors) {
+			// Only validation issues - show them
+			var validationContent = generateValidationErrorsText();
+			openSubState(new InfoPanelSubstate("Song Validation Issues", validationContent, FlxColor.ORANGE, function() {
+				// For refresh operations, return to entry state after showing results
+				if (forceExportPath != null) {
+					FlxG.switchState(new APStyledEntryState());
+				}
+				// Clear validation errors after showing results
+				songValidationErrors.resize(0);
+			}));
+		}
+		else if (!hasSuccesses && hasErrors && !hasValidationIssues) {
+			// Only script processing errors - show red box
 			var errorContent = generateErrorInfoText();
 			openSubState(new InfoPanelSubstate("Custom Content Processing Errors", errorContent, FlxColor.RED, function() {
 				// For refresh operations, return to entry state after showing results
 				if (forceExportPath != null) {
 					FlxG.switchState(new APStyledEntryState());
 				}
+				// Clear validation errors after showing results
+				songValidationErrors.resize(0);
 			}));
 		}
-		else if (hasSuccesses && hasErrors) {
-			// Both - show success first, then error on close
+		else if (hasSuccesses && !hasErrors && hasValidationIssues) {
+			// Successes + validation issues - show successes first, then validation issues
 			var successContent = generateCustomContentInfoText();
 			openSubState(new InfoPanelSubstate("Custom Content Export Success", successContent, FlxColor.LIME, function() {
-				// On close of success box, show error box
+				// On close of success box, show validation issues box
+				var validationContent = generateValidationErrorsText();
+				openSubState(new InfoPanelSubstate("Song Validation Issues", validationContent, FlxColor.ORANGE, function() {
+					// For refresh operations, return to entry state after showing all results
+					if (forceExportPath != null) {
+						FlxG.switchState(new APStyledEntryState());
+					}
+					// Clear validation errors after showing results
+					songValidationErrors.resize(0);
+				}));
+			}));
+		}
+		else if (!hasSuccesses && hasErrors && hasValidationIssues) {
+			// Script errors + validation issues - show validation issues first, then script errors
+			var validationContent = generateValidationErrorsText();
+			openSubState(new InfoPanelSubstate("Song Validation Issues", validationContent, FlxColor.ORANGE, function() {
+				// On close of validation box, show script errors box
 				var errorContent = generateErrorInfoText();
 				openSubState(new InfoPanelSubstate("Custom Content Processing Errors", errorContent, FlxColor.RED, function() {
 					// For refresh operations, return to entry state after showing all results
 					if (forceExportPath != null) {
 						FlxG.switchState(new APStyledEntryState());
 					}
+					// Clear validation errors after showing results
+					songValidationErrors.resize(0);
 				}));
+			}));
+		}
+		else if (hasSuccesses && hasErrors) {
+			// Successes + script errors (+ possible validation issues) - show success first, then validation issues, then errors
+			var successContent = generateCustomContentInfoText();
+			openSubState(new InfoPanelSubstate("Custom Content Export Success", successContent, FlxColor.LIME, function() {
+				if (hasValidationIssues) {
+					// Show validation issues before script errors
+					var validationContent = generateValidationErrorsText();
+					openSubState(new InfoPanelSubstate("Song Validation Issues", validationContent, FlxColor.ORANGE, function() {
+						// On close of validation box, show script errors box
+						var errorContent = generateErrorInfoText();
+						openSubState(new InfoPanelSubstate("Custom Content Processing Errors", errorContent, FlxColor.RED, function() {
+							// For refresh operations, return to entry state after showing all results
+							if (forceExportPath != null) {
+								FlxG.switchState(new APStyledEntryState());
+							}
+							// Clear validation errors after showing results
+							songValidationErrors.resize(0);
+						}));
+					}));
+				} else {
+					// Just show script errors
+					var errorContent = generateErrorInfoText();
+					openSubState(new InfoPanelSubstate("Custom Content Processing Errors", errorContent, FlxColor.RED, function() {
+						// For refresh operations, return to entry state after showing all results
+						if (forceExportPath != null) {
+							FlxG.switchState(new APStyledEntryState());
+						}
+						// Clear validation errors after showing results
+						songValidationErrors.resize(0);
+					}));
+				}
 			}));
 		}
 		else if (forceExportPath != null) {
@@ -3759,6 +4186,9 @@ class APAdvancedSettingsState extends MusicBeatState
 			}
 		}
 
+		// Validate that all songs have JSON files before proceeding
+		validateSongJSONFiles();
+
 		// Process CustomAPLogic scripts before generating YAML (only if allowMods is true)
 		trace('Processing CustomAPLogic scripts...');
 		if (allowMods)
@@ -3791,6 +4221,14 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "hard_mode", hard_mode);
 		Reflect.setField(yamlThing, "enable_shop", enable_shop);
 		Reflect.setField(yamlThing, "allow_mods", allowMods);
+
+		// Add bundle settings
+		Reflect.setField(yamlThing, "songBundleEnabled", bundleEnabled);
+		Reflect.setField(yamlThing, "songBundleWeight", bundleWeight);
+		Reflect.setField(yamlThing, "songBundleMinSize", bundleMinSize);
+		Reflect.setField(yamlThing, "songBundleMaxSize", bundleMaxSize);
+		if (bundleLimit > 0)
+			Reflect.setField(yamlThing, "songBundleLimit", bundleLimit);
 
 		// Handle optional song settings
 		if (startingSong != null)
