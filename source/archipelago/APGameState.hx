@@ -1810,8 +1810,6 @@ class APGameState
 			processingFuture.onComplete(function(result)
 			{
 				applyProcessedItems(result);
-				if (haventranyet)
-				haventranyet = false;
 			});
 			processingFuture.onError(function(error)
 			{

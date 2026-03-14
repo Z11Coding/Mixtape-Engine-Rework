@@ -284,7 +284,11 @@ class Song
 	public static var loadedSongName:String;
 	public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
 	{
+		var alsoTryDash:Bool = false;
 		if(folder == null) folder = jsonInput;
+
+		if (jsonInput.endsWith(jsonInput))
+			alsoTryDash = true;
 
 		#if ARCHIPELAGO_ALLOWED
 		// Check for High Quality Trap replacement - only if trap is actively being used
@@ -340,7 +344,13 @@ class Song
 			jsonInput = variantInfo.jsonInput;
 		}
 
-		PlayState.SONG = getChart(jsonInput, folder);
+		try {
+			PlayState.SONG = getChart(jsonInput, folder);
+		} catch(e) {
+			if (alsoTryDash)
+				PlayState.SONG = getChart('${jsonInput}-normal', folder);
+			else PlayState.SONG = getChart(jsonInput, folder); // do it normally so it can properly crash
+		}
 		loadedSongName = folder;
 		chartPath = _lastPath.replace('/', '\\');
 		stages.StageData.loadDirectory(PlayState.SONG);

@@ -9629,8 +9629,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
 				canResync = false;
-				if (gameplayArea != "APFreeplay")
-					gameplayArea = "Freeplay";
+				gameplayArea = "Freeplay";
 				changedDifficulty = false;
 				new FlxTimer().start(0.1, function(tmr:FlxTimer)
 				{
@@ -12652,31 +12651,33 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if(excludeValues == null) excludeValues = new Array();
 		excludeValues.push(LuaUtils.Function_Continue);
 
-		var len:Int = hscriptArray.length;
+		var len:Int = hscriptArray != null ? hscriptArray.length : 0;
 		if (len < 1)
 			return returnVal;
 
-		for(script in hscriptArray)
-		{
-			@:privateAccess
-			if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
-				continue;
-
-			var callValue = script.call(funcToCall, args);
-			if(callValue != null)
+		try {
+			for(script in hscriptArray)
 			{
-				var myValue:Dynamic = callValue.returnValue;
+				@:privateAccess
+				if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
+					continue;
 
-				if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+				var callValue = script.call(funcToCall, args);
+				if(callValue != null)
 				{
-					returnVal = myValue;
-					break;
-				}
+					var myValue:Dynamic = callValue.returnValue;
 
-				if(myValue != null && !excludeValues.contains(myValue))
-					returnVal = myValue;
+					if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
+					{
+						returnVal = myValue;
+						break;
+					}
+
+					if(myValue != null && !excludeValues.contains(myValue))
+						returnVal = myValue;
+				}
 			}
-		}
+		} catch(e) {trace("One of the scripts wasn't having it apparently");}
 		#end
 
 		return returnVal;

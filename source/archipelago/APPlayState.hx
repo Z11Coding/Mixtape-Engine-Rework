@@ -183,9 +183,6 @@ class APPlayState extends PlayState {
 
     override public function create()
     {
-        allowDebugKeys = false;
-        lives = livecount;
-
         // Check if the current song/mod is unlocked; if not, set flag and show info panel
         if (APEntryState.inArchipelagoMode && !archipelago.APInfo.inSongTrap)
         {
@@ -276,26 +273,6 @@ class APPlayState extends PlayState {
         }
 
         instance = this; // For traps and items
-        if (APEntryState.inArchipelagoMode)
-        {
-            if (FlxG.save.data.activeItems != null)
-                activeItems = FlxG.save.data.activeItems;
-            if (FlxG.save.data.activeItems == null)
-            {
-                activeItems[3] = -1; //FlxG.random.int(0, 9); im getting kinda tired of this
-                activeItems[2] = 0;
-				FlxG.save.flush();
-            }
-            PlayState.chartingMode = false;
-        }
-
-        if (ogScroll != ClientPrefs.data.downScroll)
-        {
-            ogScroll = ClientPrefs.data.downScroll;
-            effectiveDownScroll = ogScroll;
-            updateScrollUI();
-            trace("Scrolling changed to " + (effectiveDownScroll ? "down" : "up") + ", as for some reason, it wasn't before.");
-        }
 
         currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
 
@@ -312,7 +289,18 @@ class APPlayState extends PlayState {
 
 
         {
+            super.create();
+        }
 
+        allowDebugKeys = false;
+        lives = livecount;
+
+        if (ogScroll != ClientPrefs.data.downScroll)
+        {
+            ogScroll = ClientPrefs.data.downScroll;
+            effectiveDownScroll = ogScroll;
+            updateScrollUI();
+            trace("Scrolling changed to " + (effectiveDownScroll ? "down" : "up") + ", as for some reason, it wasn't before.");
         }
 
         MaxHP += archipelago.APItem.maxHPUp / 2;
@@ -322,6 +310,7 @@ class APPlayState extends PlayState {
             if (!func.keepOnRestart && (func.activated != null && func.activated)) updateFunctions.remove(func);
         }
 
+        // TODO: Figure out why this is suddenly broken???
         filterMap = [
             "Grayscale" => {
                 var matrix:Array<Float> = [
@@ -378,14 +367,14 @@ class APPlayState extends PlayState {
                     dad.shader = originalShaders.get(dad);
                     if (gf != null) gf.shader = originalShaders.get(gf);
                     blurEffect.setStrength(0, 0);
-                    camGame.filters.remove(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.remove(filterMap.get("BlurLittle").filter);
                 };
                 var playSound:String = "blur";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = false;
 
                 if (effectsActive["blur"] == null || effectsActive["blur"] <= 0) {
-                    camGame.filters.push(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.push(filterMap.get("BlurLittle").filter);
                     if (PlayState.curStage.startsWith('school'))
                         blurEffect.setStrength(2, 2);
                     else
@@ -825,6 +814,22 @@ class APPlayState extends PlayState {
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
+            'flashbang' => function() {
+                var noIcon:Bool = true;
+                var playSound:String = "bang";
+                if (flashbangTimer != null && flashbangTimer.active)
+                    flashbangTimer.cancel();
+                var whiteScreen:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.WHITE);
+                whiteScreen.scrollFactor.set();
+                whiteScreen.cameras = [camOther];
+                add(whiteScreen);
+                flashbangTimer.start(0.4, function(timer) {
+                    camOther.flash(FlxColor.WHITE, 5, null, true);
+                    remove(whiteScreen);
+                    FlxG.sound.play(Paths.sound('streamervschat/ringing'), 0.4);
+                });
+                applyEffect(0, null, playSound, 1, noIcon);
+            },
             'strongflashbang' => function() {
                 var noIcon:Bool = true;
                 var playSound:String = "bang";
@@ -1162,20 +1167,28 @@ class APPlayState extends PlayState {
             },
             'icebutmoreagressive' => function() {
                 var noIcon:Bool = true;
-                var lastPoint:Int = 0;
-                var exList:Array<Int> = [];
-                for (note in 0...50) {
-                    var startPoint:Int = FlxG.random.int(5, 9, exList);
-                    if (lastPoint == 0) {
-                        addNoteSvCLegacy(4, startPoint, startPoint, -1);
-                        lastPoint = startPoint;
-                        exList.push(startPoint);
-                    }
-                    else {
-                        addNoteSvCLegacy(4, lastPoint + 2, startPoint + 6, -1);
-                        lastPoint = 0;
-                    }
-                }
+                var startPoint:Int = FlxG.random.int(5, 9);
+                var nextPoint:Int = FlxG.random.int(startPoint + 2, startPoint + 6);
+                var nextPoint2:Int = FlxG.random.int(nextPoint + 2, nextPoint + 6);
+                var nextPoint3:Int = FlxG.random.int(nextPoint2 + 2, nextPoint2 + 6);
+                var nextPoint4:Int = FlxG.random.int(nextPoint3 + 2, nextPoint3 + 6);
+                var nextPoint5:Int = FlxG.random.int(nextPoint4 + 2, nextPoint4 + 6);
+                var nextPoint6:Int = FlxG.random.int(nextPoint5 + 2, nextPoint5 + 6);
+                var nextPoint7:Int = FlxG.random.int(nextPoint6 + 2, nextPoint6 + 6);
+                var nextPoint8:Int = FlxG.random.int(nextPoint7 + 2, nextPoint7 + 6);
+                var nextPoint9:Int = FlxG.random.int(nextPoint8 + 2, nextPoint8 + 6);
+                var lastPoint:Int = FlxG.random.int(nextPoint9 + 2, nextPoint9 + 6);
+                addNoteSvCLegacy(4, startPoint, startPoint, -1);
+                addNoteSvCLegacy(4, nextPoint, nextPoint, -1);
+                addNoteSvCLegacy(4, nextPoint2, nextPoint2, -1);
+                addNoteSvCLegacy(4, nextPoint3, nextPoint3, -1);
+                addNoteSvCLegacy(4, nextPoint4, nextPoint4, -1);
+                addNoteSvCLegacy(4, nextPoint5, nextPoint5, -1);
+                addNoteSvCLegacy(4, nextPoint6, nextPoint6, -1);
+                addNoteSvCLegacy(4, nextPoint7, nextPoint7, -1);
+                addNoteSvCLegacy(4, nextPoint8, nextPoint8, -1);
+                addNoteSvCLegacy(4, nextPoint9, nextPoint9, -1);
+                addNoteSvCLegacy(4, lastPoint, lastPoint, -1);
             },
             'randomize' => function() {
                 var ttl:Float = 10;
@@ -1323,8 +1336,8 @@ class APPlayState extends PlayState {
                 var ttl:Float = 10;
                 var onEnd:(Void->Void) = function() {
                     blurEffect.setStrength(0, 0);
-                    camHUD.filters.remove(filterMap.get("BlurLittle").filter);
-                    camGame.filters.remove(filterMap.get("BlurLittle").filter);
+                    //camHUD.filters.remove(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.remove(filterMap.get("BlurLittle").filter);
                     lowFilterAmount = 1;
                     vocalLowFilterAmount = 1;
                 };
@@ -1334,12 +1347,12 @@ class APPlayState extends PlayState {
 
                 if (FlxG.random.bool(40)) {
                     lowFilterAmount = .0134;
-                    camGame.filters.push(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.push(filterMap.get("BlurLittle").filter);
                     blurEffect.setStrength(32, 32);
                 } else {
                     vocalLowFilterAmount = .0134;
-                    camHUD.filters.push(filterMap.get("BlurLittle").filter);
-                    camGame.filters.push(filterMap.get("BlurLittle").filter);
+                    //camHUD.filters.push(filterMap.get("BlurLittle").filter);
+                    //camGame.filters.push(filterMap.get("BlurLittle").filter);
                     blurEffect.setStrength(32, 32);
                 }
 
@@ -1554,8 +1567,6 @@ class APPlayState extends PlayState {
 		{
 			controlButtons.push(StringTools.trim(thing).toLowerCase());
 		}*/
-
-        super.create();
 
         if (FlxG.save.data.songPos != 0 && !FlxG.save.data.manualOverride)
         {
@@ -2681,7 +2692,7 @@ class APPlayState extends PlayState {
 
     public var bfAscend:Bool = false;
     var alreadySent:Bool = false;
-    override function doDeathCheck(?skipHealthCheck:Bool = false):Bool
+    override public function doDeathCheck(?skipHealthCheck:Bool = false):Bool
     {
         return (function(shouldKill:Bool):Bool {
             if (shouldKill && health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
@@ -2696,8 +2707,128 @@ class APPlayState extends PlayState {
                     randoTimer.cancel();
                 noiseSound.pause();
             }
+<<<<<<< HEAD
             return shouldKill;
         })(super.doDeathCheck(skipHealthCheck));
+=======
+        }
+        switch (curHealthMode) {
+			case "OG":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Mixtape":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null;
+
+			case "Kade":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Tabi":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null;
+
+			case "Double":
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Lives":
+				killPlayer = lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+
+			case "Lives + HealthBar":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				if (inArchipelagoMode && archipelago.APPlayState.livecount > 0) archipelago.APPlayState.livecount -= 1;
+				else if (lives > 0 && health <= 0 )
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * PlayState.SONG.bpm / 100, true);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			case "Lives + Mixtape":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				if (inArchipelagoMode && archipelago.APPlayState.livecount > 0) archipelago.APPlayState.livecount -= 1;
+				else if (lives > 0 && health <= 0 )
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * PlayState.SONG.bpm / 100, true);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			case "Amalgam":
+				if (lives == 0
+				&& !practiceMode
+				&& !isDead
+				&& bfkilledcheck
+				&& gameOverTimer == null) {killPlayer = true; skipHealthCheck = true;}
+				else if (lives > 0 && health <= 0 && bfkilledcheck)
+				{
+					lives -= 1;
+					if (ClientPrefs.data.flashing)
+					{
+						FlxG.camera.flash(0xFFFF0000, 0.3 * PlayState.SONG.bpm / 100, true);
+					}
+					new FlxTimer().start(5 / 60, function(tmr:FlxTimer)
+					{
+						if (gf != null) gf.playAnim('sad', true);
+					});
+					FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
+					health = 1 / lives * lives;
+				}
+
+			default:
+				killPlayer = health <= 0
+				&& !practiceMode
+				&& !isDead
+				&& gameOverTimer == null;
+		}
+        if ((skipHealthCheck || instakillOnMiss && killPlayer || killPlayer) && !deathByLink && !alreadySent) {
+            alreadySent = true; // because indie cross likes to spam this every frame for some reason
+            APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
+            trace("Sent Deathlink!");
+        }
+        super.doDeathCheck(skipHealthCheck);
+        return true;
+>>>>>>> 1287cf580ea2943ebf9093c4f594a25d06853463
     }
 
     public function forceResync()
