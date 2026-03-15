@@ -705,6 +705,8 @@ class PlayState extends MusicBeatState
 
 	var lastJudName:String = "None";
 
+	var throatnoteTweens:Array<FlxTween> = [];
+
 	// Modchart warning variables
 	var modchartWarningShown:Bool = false;
 	var isShowingModchartWarning:Bool = false;
@@ -3220,7 +3222,7 @@ class PlayState extends MusicBeatState
 			}
 
 			#if ARCHIPELAGO_ALLOWED
-			if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasHMItem('Strums')) {
+			if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem('Strums')) {
 				StrumNote.hardAlpha = 0;
 				Note.hardAlpha = 0;
 			} else {
@@ -6544,12 +6546,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		if (inArchipelagoMode && APInfo.inHardMode)
 		{
-			vocalVolumeMultiplierHardMode = (APInfo.hasHMItem("BF's Mic") ? 1 : 0);
-			instVolumeMultiplierHardMode = (APInfo.hasHMItem("Speakers") ? 1 : 0);
+			vocalVolumeMultiplierHardMode = (APInfo.hasItem("BF's Mic") ? 1 : 0);
+			instVolumeMultiplierHardMode = (APInfo.hasItem("Speakers") ? 1 : 0);
 
-			gfGroup.visible = APInfo.hasHMItem("GF");
-			camHUD.visible = APInfo.hasHMItem("HUD");
-			canPauseHardMode = APInfo.hasHMItem("Pause Menu");
+			gfGroup.visible = APInfo.hasItem("GF");
+			camHUD.visible = APInfo.hasItem("HUD");
+			canPauseHardMode = APInfo.hasItem("Pause Menu");
 		}
 
 		// TPS/NPS System Update
@@ -10358,7 +10360,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		var hitNotes:Array<Note> = []; // what could scripts possibly do with this information
 		var controlledFields:Array<PlayField> = [];
 
-		if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasHMItem("BF's Mic"))
+		if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
 			return;
 
 		for (field in playfields.members) {
@@ -11211,41 +11213,43 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		COD.setPresetCOD(note, 'miss0');
 
-		switch (note.noteType)
-		{
-			case 'Kill Note':
-				noTriggerKarma = true;
-				die();
-				COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
-				noTriggerKarma = false;
-				FlxG.sound.play(Paths.sound('explosion'));
+		try {
+			switch (note.noteType)
+			{
+				case 'Kill Note':
+					noTriggerKarma = true;
+					die();
+					COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
+					noTriggerKarma = false;
+					FlxG.sound.play(Paths.sound('explosion'));
 
-				if (mechanicsResult[1] != null)
-					mechanicsResult[1].value += 20;
+					if (mechanicsResult[1] != null)
+						mechanicsResult[1].value += 20;
 
-			case 'Swap Note':
-				COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Failed to tell the difference between your notes and your opponents.');
+				case 'Swap Note':
+					COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Failed to tell the difference between your notes and your opponents.');
 
-			case 'Throat Note':
-				FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
-					onComplete: function(n) {
-						for (curNote in allNotes) {
-							if (curNote.column == note.column)
-								note.blockHit = true;
-						}
-
-						new FlxTimer().start(FlxG.random.float(3, 10), function(tmr:FlxTimer)
-						{
-							FlxTween.tween(note.field.strumNotes[note.column], {alpha: 1}, 1);
+				case 'Throat Note':
+					throatnoteTweens[note.column] = FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
+						onComplete: function(n) {
 							for (curNote in allNotes) {
 								if (curNote.column == note.column)
-									note.blockHit = false;
+									note.blockHit = true;
 							}
-						});
-					}
-				});
-				COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "Couldn't clear your throat. (Have you tried Throat Medicine?)");
-		}
+
+							new FlxTimer().start(FlxG.random.float(3, 10), function(tmr:FlxTimer)
+							{
+								FlxTween.tween(note.field.strumNotes[note.column], {alpha: 1}, 1);
+								for (curNote in allNotes) {
+									if (curNote.column == note.column)
+										note.blockHit = false;
+								}
+							});
+						}
+					});
+					COD.setCOD(null, (boyfriend.charName != null && (boyfriend.charName != '???' && boyfriend.charName != '') ? '${boyfriend.charName} ' : '') + "Couldn't clear their throat. (Have you tried Throat Medicine?)");
+			}
+		} catch(e) {trace("NoteType Broke!");}
 
 		bfkilledcheck = true;
 

@@ -315,6 +315,14 @@ class APPongTrapState extends PongGameState {
         }
     }
 
+    override function update(elapsed:Float) {
+        super.update(elapsed);
+        #if ARCHIPELAGO_ALLOWED
+		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
+			APEntryState.apGame.info()?.poll();
+		#end
+    }
+
     override function destroy():Void {
         if (speedEscalationTimer != null) {
             speedEscalationTimer.cancel();

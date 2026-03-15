@@ -481,8 +481,8 @@ class LoadingState extends MusicBeatState
 		loadNextDirectory();
 
 		if (APEntryState.inArchipelagoMode && APInfo.inHardMode) {
-			trace('Stage Access Key: ${APInfo.hasHMItem("Stage Access Key")}');
-			if (!APInfo.hasHMItem("Stage Access Key")) {
+			trace('Stage Access Key: ${APInfo.hasItem("Stage Access Key")}');
+			if (!APInfo.hasItem("Stage Access Key")) {
 				FlxG.sound.music.stop();
 				FlxG.sound.play(Paths.sound("badnoise3"));
 				return new states.editors.content.Prompt("ERROR: Access key denied.", function() FreeplayManager.openFreeplay(), null, "Return to Freeplay");
