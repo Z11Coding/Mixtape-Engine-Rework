@@ -1260,7 +1260,17 @@ class APGameState
 		var allActiveEffectNames = savedActiveEffects.concat(savedActiveSongEffects);
 		for (itemName in allActiveEffectNames)
 		{
-			var item = APItem.createItemByName(itemName);
+			var reg = new EReg("^Chart Modifier Trap \\((.+)\\)$", "");
+			var item:archipelago.APItem = null;
+			if (reg.match(itemName))
+			{
+				var modifier = reg.matched(1);
+				item = archipelago.APItem.APChartModifier.restoreFromSave(modifier);
+			}
+			else
+			{
+				item = APItem.createItemByName(itemName);
+			}
 
 			// Recreate the active tracking
 			if (savedActiveEffects.contains(itemName))
