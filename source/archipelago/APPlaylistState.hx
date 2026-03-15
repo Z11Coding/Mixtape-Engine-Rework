@@ -5,6 +5,9 @@ import backend.Song;
 import backend.WeekData;
 import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
 import flixel.util.FlxColor;
+import flixel.util.FlxGradient;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import managers.APFreeplayManager;
 import objects.Alphabet.DynamicAlphabet;
 import objects.Alphabet.DynamicColoredAlphabet;
@@ -922,18 +925,35 @@ typedef APPlaylistSongMetadataObject = {
 /**
  * Substate for selecting difficulties for each song in a bundle
  */
+enum BundleDifficultyPhase {
+	SONG_SELECTION;
+	SUMMARY;
+	COMPLETE;
+}
+
 class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 	var playlist:APPlaylistMetadata;
 	var onComplete:APPlaylistMetadata->Void;
-	var selectedSongIndex:Int = 0;
-	var songDifficulties:Map<Int, Array<{difficulty:String, weekIndexes:Array<Int>}>> = new Map(); // song index -> unique difficulties with available week indexes
-	var selectedDifficulties:Map<Int, {difficulty:String, weekIndex:Int}> = new Map(); // song index -> selected difficulty with chosen week index
-	var bg:FlxSprite;
-	var songNameText:FlxText;
+	var currentPhase:BundleDifficultyPhase = SONG_SELECTION;
+	var currentSongIndex:Int = 0;
+	var songDifficulties:Map<Int, Array<{difficulty:String, weekIndexes:Array<Int>}>> = new Map();
+	var selectedDifficulties:Map<Int, {difficulty:String, weekIndex:Int}> = new Map();
+	
+	// UI Elements
+	var background:FlxSprite;
+	var gradientOverlay:FlxSprite;
+	var mainPanel:FlxSprite;
+	var titleText:FlxText;
+	var instructionText:FlxText;
+	var songProgressText:FlxText;
 	var difficultyButtonGroup:FlxTypedGroup<FlxSprite>;
 	var difficultyTextGroup:FlxTypedGroup<FlxText>;
-	var instructionText:FlxText;
+	var summaryText:FlxText;
+	var confirmButtonText:FlxText;
+	var cancelButtonText:FlxText;
+	
 	var navigationCooldown:Float = 0;
+	var isAnimating:Bool = false;
 
 	public function new(playlist:APPlaylistMetadata, onComplete:APPlaylistMetadata->Void) {
 		super();
@@ -943,16 +963,90 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 
 	override function create() {
 		super.create();
-
-		// Create background
-		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0x99000000);
-		bg.scrollFactor.set();
-		add(bg);
-
+		
 		// Load difficulties for each song
 		loadSongDifficulties();
-
+		
 		// Initialize selected difficulties with current values or first available
+		initializeSelectedDifficulties();
+		
+		// Setup background
+		setupBackground();
+		
+		// Setup main UI panel
+		setupMainPanel();
+		
+		// Setup initial phase
+		showSongSelection();
+	}
+
+	function setupBackground():Void {
+		// Semi-transparent dark background
+		background = new FlxSprite(0, 0);
+		background.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 200));
+		background.scrollFactor.set();
+		add(background);
+		
+		// Animated gradient overlay
+		gradientOverlay = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height,
+			[0x00000000, 0x3300FFFF, 0x00000000], 1, 0);
+		gradientOverlay.scrollFactor.set();
+		gradientOverlay.alpha = 0.3;
+		add(gradientOverlay);
+		
+		// Animate gradient
+		FlxTween.tween(gradientOverlay, {alpha: 0.5}, 2, {
+			type: PINGPONG,
+			ease: FlxEase.sineInOut
+		});
+	}
+
+	function setupMainPanel():Void {
+		// Main gradient panel
+		mainPanel = FlxGradient.createGradientFlxSprite(800, 500,
+			[FlxColor.fromRGB(30, 30, 60), FlxColor.fromRGB(50, 30, 80)], 1, 90);
+		mainPanel.x = (FlxG.width - mainPanel.width) / 2;
+		mainPanel.y = (FlxG.height - mainPanel.height) / 2;
+		mainPanel.scrollFactor.set();
+		add(mainPanel);
+		
+		// Title
+		titleText = new FlxText(mainPanel.x + 30, mainPanel.y + 30, mainPanel.width - 60, "", 32);
+		titleText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
+		titleText.borderSize = 2;
+		titleText.scrollFactor.set();
+		add(titleText);
+		
+		// Instruction/Info text
+		instructionText = new FlxText(mainPanel.x + 30, mainPanel.y + 80, mainPanel.width - 60, "", 16);
+		instructionText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+		instructionText.borderSize = 1;
+		instructionText.scrollFactor.set();
+		add(instructionText);
+		
+		// Progress text
+		songProgressText = new FlxText(mainPanel.x + 30, mainPanel.y + 460, mainPanel.width - 60, "", 12);
+		songProgressText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.GRAY, RIGHT, OUTLINE, FlxColor.BLACK);
+		songProgressText.borderSize = 1;
+		songProgressText.scrollFactor.set();
+		add(songProgressText);
+		
+		// Difficulty buttons group
+		difficultyButtonGroup = new FlxTypedGroup<FlxSprite>();
+		difficultyTextGroup = new FlxTypedGroup<FlxText>();
+		add(difficultyButtonGroup);
+		add(difficultyTextGroup);
+		
+		// Summary text (hidden initially)
+		summaryText = new FlxText(mainPanel.x + 30, mainPanel.y + 120, mainPanel.width - 60, "", 14);
+		summaryText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+		summaryText.borderSize = 1;
+		summaryText.scrollFactor.set();
+		summaryText.active = false;
+		add(summaryText);
+	}
+
+	function initializeSelectedDifficulties():Void {
 		for (i in 0...playlist.songList.length) {
 			var currentDiff = playlist.songList[i].difficulty;
 			if (currentDiff == "" || currentDiff == null) {
@@ -975,29 +1069,9 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				}
 			}
 		}
-
-		// Create UI
-		songNameText = new FlxText(100, 100, FlxG.width - 200, "", 64);
-		songNameText.setFormat(Paths.font("vcr.ttf"), 64, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
-		songNameText.borderSize = 3;
-		songNameText.scrollFactor.set();
-		add(songNameText);
-
-		instructionText = new FlxText(100, 200, FlxG.width - 200, "SELECT DIFFICULTY FOR EACH SONG\nUSE ARROW KEYS TO NAVIGATE", 24);
-		instructionText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.YELLOW, CENTER, OUTLINE, FlxColor.BLACK);
-		instructionText.borderSize = 2;
-		instructionText.scrollFactor.set();
-		add(instructionText);
-
-		difficultyButtonGroup = new FlxTypedGroup<FlxSprite>();
-		difficultyTextGroup = new FlxTypedGroup<FlxText>();
-		add(difficultyButtonGroup);
-		add(difficultyTextGroup);
-
-		updateDisplay();
 	}
 
-	function loadSongDifficulties() {
+	function loadSongDifficulties():Void {
 		for (i in 0...playlist.songList.length) {
 			var song = playlist.songList[i];
 			var difficultyEntries:Array<{difficulty:String, weekIndex:Int}> = [];
@@ -1025,7 +1099,6 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				if (!uniqueDifficulties.exists(diffLower)) {
 					uniqueDifficulties.set(diffLower, []);
 				}
-				// Add week index if not already present
 				var weekIndexes = uniqueDifficulties.get(diffLower);
 				if (weekIndexes.indexOf(entry.weekIndex) == -1) {
 					weekIndexes.push(entry.weekIndex);
@@ -1035,7 +1108,6 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 			// Convert back to array of unique difficulties with their week indexes
 			var uniqueDiffArray:Array<{difficulty:String, weekIndexes:Array<Int>}> = [];
 			for (diffLower => weekIndexes in uniqueDifficulties) {
-				// Find the original case version of the difficulty
 				var originalDiff = "";
 				for (entry in difficultyEntries) {
 					if (entry.difficulty.toLowerCase() == diffLower) {
@@ -1050,105 +1122,162 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		}
 	}
 
-	function updateDisplay() {
-		// Clear existing buttons
+	function showSongSelection():Void {
+		currentPhase = SONG_SELECTION;
 		difficultyButtonGroup.clear();
 		difficultyTextGroup.clear();
-
-		if (selectedSongIndex >= 0 && selectedSongIndex < playlist.songList.length) {
-			var song = playlist.songList[selectedSongIndex];
-			songNameText.text = song.songName.toUpperCase();
-
-			var difficulties = songDifficulties.get(selectedSongIndex);
-			var currentSelection = selectedDifficulties.get(selectedSongIndex);
-
-			if (difficulties != null && difficulties.length > 0) {
-				var buttonY = 350;
-				var buttonSpacing = 150;
-
-				for (i in 0...difficulties.length) {
-					var diffEntry = difficulties[i];
-					var isSelected = currentSelection != null && diffEntry.difficulty == currentSelection.difficulty;
-
-					// Create button background
-					var button = new FlxSprite(200 + (i * buttonSpacing), buttonY);
-					button.makeGraphic(120, 80, isSelected ? FlxColor.LIME : FlxColor.GRAY);
-					button.scrollFactor.set();
-					difficultyButtonGroup.add(button);
-
-					// Create button text
-					var text = new FlxText(button.x, button.y + 15, button.width, diffEntry.difficulty.toUpperCase(), 32);
-					text.setFormat(Paths.font("vcr.ttf"), 32, isSelected ? FlxColor.BLACK : FlxColor.WHITE, CENTER, OUTLINE,
-						isSelected ? FlxColor.BLACK : FlxColor.GRAY);
-					text.borderSize = 2;
-					text.scrollFactor.set();
-					difficultyTextGroup.add(text);
-				}
+		summaryText.active = false;
+		
+		if (currentSongIndex < 0 || currentSongIndex >= playlist.songList.length) {
+			showSummary();
+			return;
+		}
+		
+		var song = playlist.songList[currentSongIndex];
+		titleText.text = song.songName.toUpperCase();
+		songProgressText.text = 'Song ${currentSongIndex + 1} of ${playlist.songList.length}';
+		instructionText.text = "Use LEFT/RIGHT arrows to select difficulty\nPress ENTER to confirm, ESC to cancel";
+		
+		var difficulties = songDifficulties.get(currentSongIndex);
+		var currentSelection = selectedDifficulties.get(currentSongIndex);
+		
+		if (difficulties != null && difficulties.length > 0) {
+			// Calculate button layout
+			var availableWidth = mainPanel.width - 60;
+			var buttonWidth = 100;
+			var buttonHeight = 80;
+			var spacing = 15;
+			var totalWidth = (buttonWidth * difficulties.length) + (spacing * (difficulties.length - 1));
+			var startX = mainPanel.x + 30 + ((availableWidth - totalWidth) / 2);
+			var buttonY = mainPanel.y + 180;
+			
+			for (i in 0...difficulties.length) {
+				var diffEntry = difficulties[i];
+				var isSelected = currentSelection != null && diffEntry.difficulty == currentSelection.difficulty;
+				
+				// Button background
+				var buttonX = startX + (i * (buttonWidth + spacing));
+				var button = new FlxSprite(buttonX, buttonY);
+				var buttonColor = isSelected ? FlxColor.fromRGB(0, 200, 255) : FlxColor.fromRGB(80, 80, 100);
+				button.makeGraphic(buttonWidth, buttonHeight, buttonColor);
+				button.scrollFactor.set();
+				difficultyButtonGroup.add(button);
+				
+				// Button text
+				var text = new FlxText(button.x, button.y + 22, button.width, diffEntry.difficulty.toUpperCase(), 20);
+				var textColor = isSelected ? FlxColor.BLACK : FlxColor.WHITE;
+				text.setFormat(Paths.font("vcr.ttf"), 20, textColor, CENTER, OUTLINE, FlxColor.BLACK);
+				text.borderSize = 1;
+				text.scrollFactor.set();
+				difficultyTextGroup.add(text);
 			}
 		}
 	}
 
+	function showSummary():Void {
+		currentPhase = SUMMARY;
+		difficultyButtonGroup.clear();
+		difficultyTextGroup.clear();
+		summaryText.active = true;
+		
+		titleText.text = "CONFIRM SELECTIONS";
+		instructionText.text = "Review your selections below. Press ENTER to confirm, ESC to go back and change selections.";
+		songProgressText.text = "";
+		
+		// Build summary text
+		var summaryContent = "SONG DIFFICULTY SETTINGS:\n\n";
+		for (i in 0...playlist.songList.length) {
+			var song = playlist.songList[i];
+			var selection = selectedDifficulties.get(i);
+			var diffText = selection != null ? selection.difficulty : "Not set";
+			summaryContent += '${i + 1}. ${song.songName} → $diffText\n';
+		}
+		
+		summaryText.text = summaryContent;
+		summaryText.y = mainPanel.y + 120;
+	}
+
 	override function update(elapsed:Float) {
 		super.update(elapsed);
-
+		
 		navigationCooldown -= elapsed;
-
-		// Song selection with up/down
-		if (FlxG.keys.justPressed.UP && navigationCooldown <= 0) {
-			selectedSongIndex--;
-			if (selectedSongIndex < 0) selectedSongIndex = playlist.songList.length - 1;
-			updateDisplay();
-			navigationCooldown = 0.2;
+		
+		switch (currentPhase) {
+			case SONG_SELECTION:
+				updateSongSelection(elapsed);
+			case SUMMARY:
+				updateSummary(elapsed);
+			case COMPLETE:
+				// Nothing to do, just waiting to close
 		}
-		if (FlxG.keys.justPressed.DOWN && navigationCooldown <= 0) {
-			selectedSongIndex++;
-			if (selectedSongIndex >= playlist.songList.length) selectedSongIndex = 0;
-			updateDisplay();
-			navigationCooldown = 0.2;
+	}
+
+	function updateSongSelection(elapsed:Float):Void {
+		if (isAnimating) return;
+		
+		if (currentSongIndex < 0 || currentSongIndex >= playlist.songList.length) {
+			showSummary();
+			return;
 		}
-
-		// Difficulty selection with left/right
-		if (selectedSongIndex >= 0 && selectedSongIndex < playlist.songList.length) {
-			var difficulties = songDifficulties.get(selectedSongIndex);
-			var currentSelection = selectedDifficulties.get(selectedSongIndex);
-
-			if (difficulties != null && difficulties.length > 0) {
-				var currentIndex = -1;
-				// Find current index in difficulties array
-				if (currentSelection != null) {
-					for (i in 0...difficulties.length) {
-						if (difficulties[i].difficulty == currentSelection.difficulty) {
-							currentIndex = i;
-							break;
-						}
+		
+		var difficulties = songDifficulties.get(currentSongIndex);
+		var currentSelection = selectedDifficulties.get(currentSongIndex);
+		
+		if (difficulties != null && difficulties.length > 0) {
+			// Find current index
+			var currentIndex = -1;
+			if (currentSelection != null) {
+				for (i in 0...difficulties.length) {
+					if (difficulties[i].difficulty == currentSelection.difficulty) {
+						currentIndex = i;
+						break;
 					}
 				}
-				if (currentIndex == -1) currentIndex = 0; // Default to first if not found
-
-				if (FlxG.keys.justPressed.LEFT && navigationCooldown <= 0) {
-					currentIndex--;
-					if (currentIndex < 0) currentIndex = difficulties.length - 1;
-					var diffEntry = difficulties[currentIndex];
-					var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
-					selectedDifficulties[selectedSongIndex] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
-					updateDisplay();
-					navigationCooldown = 0.2;
-				}
-				if (FlxG.keys.justPressed.RIGHT && navigationCooldown <= 0) {
-					currentIndex++;
-					if (currentIndex >= difficulties.length) currentIndex = 0;
-					var diffEntry = difficulties[currentIndex];
-					var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
-					selectedDifficulties[selectedSongIndex] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
-					updateDisplay();
-					navigationCooldown = 0.2;
-				}
+			}
+			if (currentIndex == -1) currentIndex = 0;
+			
+			// Navigate difficulties
+			if (FlxG.keys.justPressed.LEFT && navigationCooldown <= 0) {
+				currentIndex--;
+				if (currentIndex < 0) currentIndex = difficulties.length - 1;
+				var diffEntry = difficulties[currentIndex];
+				var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
+				selectedDifficulties[currentSongIndex] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
+				showSongSelection();
+				navigationCooldown = 0.15;
+			}
+			
+			if (FlxG.keys.justPressed.RIGHT && navigationCooldown <= 0) {
+				currentIndex++;
+				if (currentIndex >= difficulties.length) currentIndex = 0;
+				var diffEntry = difficulties[currentIndex];
+				var randomWeekIndex = diffEntry.weekIndexes[FlxG.random.int(0, diffEntry.weekIndexes.length - 1)];
+				selectedDifficulties[currentSongIndex] = {difficulty: diffEntry.difficulty, weekIndex: randomWeekIndex};
+				showSongSelection();
+				navigationCooldown = 0.15;
 			}
 		}
+		
+		// Confirm and move to next song
+		if (FlxG.keys.justPressed.ENTER && navigationCooldown <= 0) {
+			currentSongIndex++;
+			if (currentSongIndex >= playlist.songList.length) {
+				showSummary();
+			} else {
+				showSongSelection();
+			}
+			navigationCooldown = 0.2;
+		}
+		
+		// Cancel
+		if (FlxG.keys.justPressed.ESCAPE) {
+			close();
+		}
+	}
 
-		// Confirm all selections
+	function updateSummary(elapsed:Float):Void {
 		if (FlxG.keys.justPressed.ENTER) {
-			// Update playlist with selected difficulties and week indexes
+			// Apply all selections and complete
 			for (i in 0...playlist.songList.length) {
 				if (selectedDifficulties.exists(i)) {
 					var selection = selectedDifficulties[i];
@@ -1159,10 +1288,11 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 			onComplete(playlist);
 			close();
 		}
-
-		// Cancel
+		
 		if (FlxG.keys.justPressed.ESCAPE) {
-			close();
+			// Go back to first song
+			currentSongIndex = 0;
+			showSongSelection();
 		}
 	}
 }
