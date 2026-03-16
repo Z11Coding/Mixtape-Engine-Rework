@@ -6443,9 +6443,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (trueKill)
 			doDeathCheck(true);
 		else {
-			bfkilledcheck = true;
 			health = 0;
-			noteMissPress(3, opponentmode ? dadField : playerField); // just to make sure you actually die
+			bfkilledcheck = true;
 			doDeathCheck();
 		}
 	}
@@ -11214,40 +11213,42 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		COD.setPresetCOD(note, 'miss0');
 
 		try {
-			switch (note.noteType)
-			{
-				case 'Kill Note':
-					noTriggerKarma = true;
-					die();
-					COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
-					noTriggerKarma = false;
-					FlxG.sound.play(Paths.sound('explosion'));
+			if (note != null) {
+				switch (note.noteType)
+				{
+					case 'Kill Note':
+						noTriggerKarma = true;
+						die();
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Hit a Kill Note.');
+						noTriggerKarma = false;
+						FlxG.sound.play(Paths.sound('explosion'));
 
-					if (mechanicsResult[1] != null)
-						mechanicsResult[1].value += 20;
+						if (mechanicsResult[1] != null)
+							mechanicsResult[1].value += 20;
 
-				case 'Swap Note':
-					COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Failed to tell the difference between your notes and your opponents.');
+					case 'Swap Note':
+						COD.setCOD(null, (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + 'Failed to tell the difference between your notes and your opponents.');
 
-				case 'Throat Note':
-					throatnoteTweens[note.column] = FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
-						onComplete: function(n) {
-							for (curNote in allNotes) {
-								if (curNote.column == note.column)
-									note.blockHit = true;
-							}
-
-							new FlxTimer().start(FlxG.random.float(3, 10), function(tmr:FlxTimer)
-							{
-								FlxTween.tween(note.field.strumNotes[note.column], {alpha: 1}, 1);
+					case 'Throat Note':
+						throatnoteTweens[note.column] = FlxTween.tween(note.field.strumNotes[note.column], {multAlpha: 0.3}, 1, {
+							onComplete: function(n) {
 								for (curNote in allNotes) {
 									if (curNote.column == note.column)
-										note.blockHit = false;
+										note.blockHit = true;
 								}
-							});
-						}
-					});
-					COD.setCOD(null, (boyfriend.charName != null && (boyfriend.charName != '???' && boyfriend.charName != '') ? '${boyfriend.charName} ' : '') + "Couldn't clear their throat. (Have you tried Throat Medicine?)");
+
+								new FlxTimer().start(FlxG.random.float(3, 10), function(tmr:FlxTimer)
+								{
+									FlxTween.tween(note.field.strumNotes[note.column], {alpha: 1}, 1);
+									for (curNote in allNotes) {
+										if (curNote.column == note.column)
+											note.blockHit = false;
+									}
+								});
+							}
+						});
+						COD.setCOD(null, (boyfriend.charName != null && (boyfriend.charName != '???' && boyfriend.charName != '') ? '${boyfriend.charName} ' : '') + "Couldn't clear their throat. (Have you tried Throat Medicine?)");
+				}
 			}
 		} catch(e) {trace("NoteType Broke!");}
 
@@ -11258,36 +11259,40 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		switch (curHealthMode) {
 			case "Kade":
-				if (note.isParent) {
-					health -= 0.15; // give a health punishment for failing a LN
-					trace("hold fell over at the start");
-				}
-				else {
-					if (!note.wasGoodHit && !note.isSustainNote)
-					{
-						health -= 0.15;
+				if (note != null) {
+					if (note.isParent) {
+						health -= 0.15; // give a health punishment for failing a LN
+						trace("hold fell over at the start");
+					}
+					else {
+						if (!note.wasGoodHit && !note.isSustainNote)
+						{
+							health -= 0.15;
+						}
 					}
 				}
 
 			case "Tabi":
-				if (!note.isSustainNote) health -= 0.1;
+				if (note != null && !note.isSustainNote) health -= 0.1;
 				health -= 0.0475;
 				health -= 0.04;
 				health -= 0.08;
 
 			case "Amalgam":
 				//Basically, don't miss lol
-				if (note.isParent) {
-					health -= 0.15; // give a health punishment for failing a LN
-					trace("hold fell over at the start");
-				}
-				else {
-					if (!note.wasGoodHit && !note.isSustainNote)
-					{
-						health -= 0.15;
+				if (note != null) {
+					if (note.isParent) {
+						health -= 0.15; // give a health punishment for failing a LN
+						trace("hold fell over at the start");
 					}
+					else {
+						if (!note.wasGoodHit && !note.isSustainNote)
+						{
+							health -= 0.15;
+						}
+					}
+					if (!note.isSustainNote) health -= 0.1;
 				}
-				if (!note.isSustainNote) health -= 0.1;
 				health -= 0.0475;
 				health -= 0.04;
 				health -= 0.08;
@@ -11340,34 +11345,50 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			if (note.exNote && note.field == dadField)
 				char = dad2;
 		}
-		if (note.field.owners != null && note.field.owners.length != 0) {
-			for (owner in note.field.owners) {
-				if(owner != null && (note == null || !note.noMissAnimation) && owner.hasMissAnimations)
-				{
-					var postfix:String = '';
-					if(note != null) postfix = note.animSuffix;
-
-					var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[Std.int(direction)] + 'miss' + postfix;
-					owner.playAnim(animToPlay, true);
-
-					if(owner != gf && lastCombo > 5 && gf != null && gf.hasAnimation('sad'))
+		if (note != null) {
+			if (note.field.owners != null && note.field.owners.length != 0) {
+				for (owner in note.field.owners) {
+					if(owner != null && (note == null || !note.noMissAnimation) && owner.hasMissAnimations)
 					{
-						gf.playAnim('sad');
-						gf.specialAnim = true;
+						var postfix:String = '';
+						if(note != null) postfix = note.animSuffix;
+
+						var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[Std.int(direction)] + 'miss' + postfix;
+						owner.playAnim(animToPlay, true);
+
+						if(owner != gf && lastCombo > 5 && gf != null && gf.hasAnimation('sad'))
+						{
+							gf.playAnim('sad');
+							gf.specialAnim = true;
+						}
 					}
 				}
+			} else if(char != null && (note == null || !note.noMissAnimation) && char.hasMissAnimations) {
+				var postfix:String = '';
+				if(note != null) postfix = note.animSuffix;
+
+				var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[Std.int(direction)] + 'miss' + postfix;
+				char.playAnim(animToPlay, true);
+
+				if(char != gf && lastCombo > 5 && gf != null && gf.hasAnimation('sad'))
+				{
+					gf.playAnim('sad');
+					gf.specialAnim = true;
+				}
 			}
-		} else if(char != null && (note == null || !note.noMissAnimation) && char.hasMissAnimations) {
-			var postfix:String = '';
-			if(note != null) postfix = note.animSuffix;
+		} else {
+			if(char != null && (note == null || note != null && !note.noMissAnimation) && char.hasMissAnimations) {
+				var postfix:String = '';
+				if(note != null) postfix = note.animSuffix;
 
-			var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[Std.int(direction)] + 'miss' + postfix;
-			char.playAnim(animToPlay, true);
+				var animToPlay:String = Note.keysShit.get(mania).get('singAnims')[Std.int(direction)] + 'miss' + postfix;
+				char.playAnim(animToPlay, true);
 
-			if(char != gf && lastCombo > 5 && gf != null && gf.hasAnimation('sad'))
-			{
-				gf.playAnim('sad');
-				gf.specialAnim = true;
+				if(char != gf && lastCombo > 5 && gf != null && gf.hasAnimation('sad'))
+				{
+					gf.playAnim('sad');
+					gf.specialAnim = true;
+				}
 			}
 		}
 		vocals.volume = 0 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
