@@ -43,7 +43,6 @@ class MBSubstateClass<T:MusicBeatSubstate> extends MusicBeatState {
 	}
 }
 
-// @:autoBuild(yutautil.CrashTracker.instrument())
 
 /**
  * Enum for specifying Garbage Collection behavior for states
@@ -642,7 +641,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			// Save your progress and THEN reset it (I knew there was a common use for this)
 			// Doesn't save your exact spot, nor does it save anything but the place of your song, but i can work on that later
 			PlayState.instance.triggerEvent('Save Song Posititon', null, null);
-			FlxG.resetState();
+			resetPlayStateIfNeeded();
 		}
 		else if (Main.audioDisconnected)
 			FlxG.resetState();
@@ -989,11 +988,65 @@ class MusicBeatState extends yutautil.SafeManagedState
 			return;
 		}*/
 
+		// Check if we're resetting PlayState with preloadSong enabled
+		if (Std.isOfType(FlxG.state, PlayState) && ClientPrefs.data.preloadSong)
+		{
+			// Create new PlayState instance with playlist data if applicable
+			var playState = cast(FlxG.state, PlayState);
+			var playlistMeta = PlayState.isPlaylist ? playState.curPlaylist : null;
+			var songlistMeta = PlayState.isPlaylist ? playState.curSonglist : null;
+
+			PlayState.nextReloadAll = true;
+
+			#if ARCHIPELAGO_ALLOWED
+			var newState:FlxState = archipelago.APEntryState.inArchipelagoMode ?
+				new archipelago.APPlayState(playlistMeta, songlistMeta) :
+				new PlayState(playlistMeta, songlistMeta);
+			#else
+			var newState:FlxState = new PlayState(playlistMeta, songlistMeta);
+			#end
+
+			@:privateAccess
+			states.LoadingState._doingRestart = true;
+			states.LoadingState.loadAndSwitchState(newState);
+			return;
+		}
+
 		if (FlxTransitionableState.skipNextTransIn)
 			FlxG.resetState();
 		else
 			startTransition();
 		FlxTransitionableState.skipNextTransIn = false;
+	}
+
+	private static function resetPlayStateIfNeeded()
+	{
+		// Check if we're resetting PlayState with preloadSong enabled
+		if (Std.isOfType(FlxG.state, PlayState) && ClientPrefs.data.preloadSong)
+		{
+			// Create new PlayState instance with playlist data if applicable
+			var playState = cast(FlxG.state, PlayState);
+			var playlistMeta = PlayState.isPlaylist ? playState.curPlaylist : null;
+			var songlistMeta = PlayState.isPlaylist ? playState.curSonglist : null;
+
+			PlayState.nextReloadAll = true;
+
+			#if ARCHIPELAGO_ALLOWED
+			var newState:FlxState = archipelago.APEntryState.inArchipelagoMode ?
+				new archipelago.APPlayState(playlistMeta, songlistMeta) :
+				new PlayState(playlistMeta, songlistMeta);
+			#else
+			var newState:FlxState = new PlayState(playlistMeta, songlistMeta);
+			#end
+
+			@:privateAccess
+			states.LoadingState._doingRestart = true;
+			states.LoadingState.loadAndSwitchState(newState);
+		}
+		else
+		{
+			FlxG.resetState();
+		}
 	}
 
 	// Custom made Trans in
@@ -1004,7 +1057,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		FlxG.state.openSubState(new CustomFadeTransition(0.5, false));
 		if (nextState == FlxG.state)
-			CustomFadeTransition.finishCallback = function() FlxG.resetState();
+			CustomFadeTransition.finishCallback = function() resetPlayStateIfNeeded();
 		else
 			CustomFadeTransition.finishCallback = function() FlxG.switchState(nextState);
 	}

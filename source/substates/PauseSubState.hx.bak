@@ -311,7 +311,7 @@ class PauseSubState extends MusicBeatSubstate
 						noControls = true;
 						new flixel.util.FlxTimer().start(0.8, function(tmr:FlxTimer)
 						{
-						var playlistMeta = PlayState.isPlaylist && PlayState.instance != null ? PlayState.instance.curPlaylist : null;
+					playlistMeta = PlayState.isPlaylist && PlayState.instance != null ? PlayState.instance.curPlaylist : null;
 							var songlistMeta = PlayState.isPlaylist && PlayState.instance != null ? PlayState.instance.curSonglist : null;
 
 						@:privateAccess
@@ -534,7 +534,7 @@ class PauseSubState extends MusicBeatSubstate
 	 * Helper function to create a new PlayState with playlist data if applicable.
 	 * Checks if current state is PlayState with preloadSong enabled.
 	 */
-	private static function createPlayStateInstance():PlayState
+	private static function createPlayStateInstance():FlxState
 	{
 		var playlistMeta = PlayState.isPlaylist && PlayState.instance != null ? PlayState.instance.curPlaylist : null;
 		var songlistMeta = PlayState.isPlaylist && PlayState.instance != null ? PlayState.instance.curSonglist : null;
