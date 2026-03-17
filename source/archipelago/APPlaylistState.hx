@@ -4,10 +4,10 @@ import backend.Highscore;
 import backend.Song;
 import backend.WeekData;
 import flixel.addons.ui.FlxUIInputText; // TODO: get rid of this in place of the psych varient
-import flixel.util.FlxColor;
-import flixel.util.FlxGradient;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxGradient;
 import managers.APFreeplayManager;
 import objects.Alphabet.DynamicAlphabet;
 import objects.Alphabet.DynamicColoredAlphabet;
@@ -687,7 +687,7 @@ class APPlaylistState extends MusicBeatState {
 			//TODO: add a way to select the difficulty instead of always picking the "hardest" difficulty
 			var newSong:APPlaylistSongMetadata = new APPlaylistSongMetadata(
 				data.song,
-				WeekData.weeksList.indexOf(data.mod),
+				archipelago.APPlayState.apGame.getWeeksWithIndexForSong(data.song, data.mod)[0].weekIndex,
 				"bf",
 				[[255, 255, 255], [FlxColor.fromRGB(255, 255, 255)]],
 				APGameState.instance.getDifficultiesForSong(data.song, data.mod)[-1] //Grab the hardest difficulty by default
@@ -938,7 +938,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 	var currentSongIndex:Int = 0;
 	var songDifficulties:Map<Int, Array<{difficulty:String, weekIndexes:Array<Int>}>> = new Map();
 	var selectedDifficulties:Map<Int, {difficulty:String, weekIndex:Int}> = new Map();
-	
+
 	// UI Elements
 	var background:FlxSprite;
 	var gradientOverlay:FlxSprite;
@@ -951,7 +951,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 	var summaryText:FlxText;
 	var confirmButtonText:FlxText;
 	var cancelButtonText:FlxText;
-	
+
 	var navigationCooldown:Float = 0;
 	var isAnimating:Bool = false;
 
@@ -963,19 +963,19 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 
 	override function create() {
 		super.create();
-		
+
 		// Load difficulties for each song
 		loadSongDifficulties();
-		
+
 		// Initialize selected difficulties with current values or first available
 		initializeSelectedDifficulties();
-		
+
 		// Setup background
 		setupBackground();
-		
+
 		// Setup main UI panel
 		setupMainPanel();
-		
+
 		// Setup initial phase
 		showSongSelection();
 	}
@@ -986,14 +986,14 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		background.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(0, 0, 0, 200));
 		background.scrollFactor.set();
 		add(background);
-		
+
 		// Animated gradient overlay
 		gradientOverlay = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height,
 			[0x00000000, 0x3300FFFF, 0x00000000], 1, 0);
 		gradientOverlay.scrollFactor.set();
 		gradientOverlay.alpha = 0.3;
 		add(gradientOverlay);
-		
+
 		// Animate gradient
 		FlxTween.tween(gradientOverlay, {alpha: 0.5}, 2, {
 			type: PINGPONG,
@@ -1009,34 +1009,34 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		mainPanel.y = (FlxG.height - mainPanel.height) / 2;
 		mainPanel.scrollFactor.set();
 		add(mainPanel);
-		
+
 		// Title
 		titleText = new FlxText(mainPanel.x + 30, mainPanel.y + 30, mainPanel.width - 60, "", 32);
 		titleText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
 		titleText.borderSize = 2;
 		titleText.scrollFactor.set();
 		add(titleText);
-		
+
 		// Instruction/Info text
 		instructionText = new FlxText(mainPanel.x + 30, mainPanel.y + 80, mainPanel.width - 60, "", 16);
 		instructionText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
 		instructionText.borderSize = 1;
 		instructionText.scrollFactor.set();
 		add(instructionText);
-		
+
 		// Progress text
 		songProgressText = new FlxText(mainPanel.x + 30, mainPanel.y + 460, mainPanel.width - 60, "", 12);
 		songProgressText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.GRAY, RIGHT, OUTLINE, FlxColor.BLACK);
 		songProgressText.borderSize = 1;
 		songProgressText.scrollFactor.set();
 		add(songProgressText);
-		
+
 		// Difficulty buttons group
 		difficultyButtonGroup = new FlxTypedGroup<FlxSprite>();
 		difficultyTextGroup = new FlxTypedGroup<FlxText>();
 		add(difficultyButtonGroup);
 		add(difficultyTextGroup);
-		
+
 		// Summary text (hidden initially)
 		summaryText = new FlxText(mainPanel.x + 30, mainPanel.y + 120, mainPanel.width - 60, "", 14);
 		summaryText.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
@@ -1082,6 +1082,8 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				difficultyEntries = archipelago.APPlayState.apGame.getDifficultiesWithWeekIndexes(song.songName, song.folder);
 			}
 			#end
+			trace("difficultyEntries: "+difficultyEntries);
+			trace("difficultyList: "+archipelago.APPlayState.apGame.getDifficultiesWithWeekIndexes(song.songName, song.folder));
 
 			// Fallback if no difficulties found
 			if (difficultyEntries.length == 0) {
@@ -1127,20 +1129,20 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		difficultyButtonGroup.clear();
 		difficultyTextGroup.clear();
 		summaryText.active = false;
-		
+
 		if (currentSongIndex < 0 || currentSongIndex >= playlist.songList.length) {
 			showSummary();
 			return;
 		}
-		
+
 		var song = playlist.songList[currentSongIndex];
 		titleText.text = song.songName.toUpperCase();
 		songProgressText.text = 'Song ${currentSongIndex + 1} of ${playlist.songList.length}';
 		instructionText.text = "Use LEFT/RIGHT arrows to select difficulty\nPress ENTER to confirm, ESC to cancel";
-		
+
 		var difficulties = songDifficulties.get(currentSongIndex);
 		var currentSelection = selectedDifficulties.get(currentSongIndex);
-		
+
 		if (difficulties != null && difficulties.length > 0) {
 			// Calculate button layout
 			var availableWidth = mainPanel.width - 60;
@@ -1150,11 +1152,11 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 			var totalWidth = (buttonWidth * difficulties.length) + (spacing * (difficulties.length - 1));
 			var startX = mainPanel.x + 30 + ((availableWidth - totalWidth) / 2);
 			var buttonY = mainPanel.y + 180;
-			
+
 			for (i in 0...difficulties.length) {
 				var diffEntry = difficulties[i];
 				var isSelected = currentSelection != null && diffEntry.difficulty == currentSelection.difficulty;
-				
+
 				// Button background
 				var buttonX = startX + (i * (buttonWidth + spacing));
 				var button = new FlxSprite(buttonX, buttonY);
@@ -1162,7 +1164,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				button.makeGraphic(buttonWidth, buttonHeight, buttonColor);
 				button.scrollFactor.set();
 				difficultyButtonGroup.add(button);
-				
+
 				// Button text
 				var text = new FlxText(button.x, button.y + 22, button.width, diffEntry.difficulty.toUpperCase(), 20);
 				var textColor = isSelected ? FlxColor.BLACK : FlxColor.WHITE;
@@ -1179,11 +1181,11 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 		difficultyButtonGroup.clear();
 		difficultyTextGroup.clear();
 		summaryText.active = true;
-		
+
 		titleText.text = "CONFIRM SELECTIONS";
 		instructionText.text = "Review your selections below. Press ENTER to confirm, ESC to go back and change selections.";
 		songProgressText.text = "";
-		
+
 		// Build summary text
 		var summaryContent = "SONG DIFFICULTY SETTINGS:\n\n";
 		for (i in 0...playlist.songList.length) {
@@ -1192,16 +1194,16 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 			var diffText = selection != null ? selection.difficulty : "Not set";
 			summaryContent += '${i + 1}. ${song.songName} → $diffText\n';
 		}
-		
+
 		summaryText.text = summaryContent;
 		summaryText.y = mainPanel.y + 120;
 	}
 
 	override function update(elapsed:Float) {
 		super.update(elapsed);
-		
+
 		navigationCooldown -= elapsed;
-		
+
 		switch (currentPhase) {
 			case SONG_SELECTION:
 				updateSongSelection(elapsed);
@@ -1214,15 +1216,15 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 
 	function updateSongSelection(elapsed:Float):Void {
 		if (isAnimating) return;
-		
+
 		if (currentSongIndex < 0 || currentSongIndex >= playlist.songList.length) {
 			showSummary();
 			return;
 		}
-		
+
 		var difficulties = songDifficulties.get(currentSongIndex);
 		var currentSelection = selectedDifficulties.get(currentSongIndex);
-		
+
 		if (difficulties != null && difficulties.length > 0) {
 			// Find current index
 			var currentIndex = -1;
@@ -1235,7 +1237,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				}
 			}
 			if (currentIndex == -1) currentIndex = 0;
-			
+
 			// Navigate difficulties
 			if (FlxG.keys.justPressed.LEFT && navigationCooldown <= 0) {
 				currentIndex--;
@@ -1246,7 +1248,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				showSongSelection();
 				navigationCooldown = 0.15;
 			}
-			
+
 			if (FlxG.keys.justPressed.RIGHT && navigationCooldown <= 0) {
 				currentIndex++;
 				if (currentIndex >= difficulties.length) currentIndex = 0;
@@ -1257,7 +1259,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 				navigationCooldown = 0.15;
 			}
 		}
-		
+
 		// Confirm and move to next song
 		if (FlxG.keys.justPressed.ENTER && navigationCooldown <= 0) {
 			currentSongIndex++;
@@ -1268,7 +1270,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 			}
 			navigationCooldown = 0.2;
 		}
-		
+
 		// Cancel
 		if (FlxG.keys.justPressed.ESCAPE) {
 			close();
@@ -1288,7 +1290,7 @@ class BundleDifficultySelectionSubstate extends MusicBeatSubstate {
 			onComplete(playlist);
 			close();
 		}
-		
+
 		if (FlxG.keys.justPressed.ESCAPE) {
 			// Go back to first song
 			currentSongIndex = 0;

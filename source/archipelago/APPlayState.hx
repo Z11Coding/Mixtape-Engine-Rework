@@ -276,10 +276,7 @@ class APPlayState extends PlayState {
 
         currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
 
-        if (Mods.currentModDirectory != currentMod)
-        {
-            Mods.currentModDirectory = currentMod;
-        }
+
 
         if (!APEntryState.inArchipelagoMode)
         {
@@ -331,15 +328,15 @@ class APPlayState extends PlayState {
             'colorblind' => function() {
                 var ttl:Float = 16;
                 var onEnd:(Void->Void) = function() {
-                    camHUD.filters.remove(filterMap.get("Grayscale").filter);
-                    camGame.filters.remove(filterMap.get("Grayscale").filter);
+                    //camHUD.filters.remove(filterMap.get("Grayscale").filter);
+                    //camGame.filters.remove(filterMap.get("Grayscale").filter);
                 };
                 var playSound:String = "colorblind";
                 var playSoundVol:Float = 0.8;
                 var noIcon:Bool = false;
 
-                camGame.filters.push(filterMap.get("Grayscale").filter);
-                camGame.filters.push(filterMap.get("Grayscale").filter);
+                //camGame.filters.push(filterMap.get("Grayscale").filter);
+                //camGame.filters.push(filterMap.get("Grayscale").filter);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'colorblind');
             },
