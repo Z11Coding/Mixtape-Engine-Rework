@@ -81,7 +81,6 @@ class AudioDisplay extends FlxSpriteGroup
         if (getValues == null) return;
 
         var colorArr = FlxColor.gradient(colorLeft, colorRight, members.length);
-
         for (i in 0...members.length)
         {
           if (flipY) {
@@ -101,9 +100,7 @@ class AudioDisplay extends FlxSpriteGroup
             if (members[i].scale.y < _height / 40) members[i].scale.y = _height / 40;
             members[i].y = this.y -members[i].scale.y / 2;
           }
-
           members[i].color = colorArr[i];
-
         }
     }
 

@@ -782,6 +782,7 @@ class PlayState extends MusicBeatState
 		if (isWarmUp || isPlaylist) {
 			allowDebugKeys = false;
 			if (storyWeek != -1) {
+				storyWeek = curSonglist[0].week;
 				Difficulty.loadFromWeek();
 				storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
 			}
@@ -6465,12 +6466,18 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				visual.x = healthBar.x;
 				visual.y = healthBar.y;
 				visual.alpha = ClientPrefs.data.visOpacity;
+				visual.visible = healthBar.visible;
+				visual.angle = healthBar.angle;
+				visual.colorLeft = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
+				visual.colorRight = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
 			}
 
 			if (vocalvisual != null) {
 				vocalvisual.x = healthBar.x;
 				vocalvisual.y = healthBar.y + healthBar.height;
 				vocalvisual.alpha = ClientPrefs.data.visOpacity;
+				vocalvisual.visible = healthBar.visible;
+				vocalvisual.angle = healthBar.angle;
 				for (line in vocalvisual.members)
 					line.color = FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]);
 			}
@@ -6479,7 +6486,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				oppvisual.x = healthBar.x;
 				oppvisual.y = healthBar.y + healthBar.height;
 				oppvisual.alpha = ClientPrefs.data.visOpacity;
-				for (line in vocalvisual.members)
+				oppvisual.visible = healthBar.visible;
+				oppvisual.angle = healthBar.angle;
+				for (line in oppvisual.members)
 					line.color = FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]);
 			}
 		} catch(e){}

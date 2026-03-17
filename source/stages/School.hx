@@ -1,11 +1,11 @@
 package stages;
 
+import cutscenes.DialogueBoxPsych.DialogueFile;
+import cutscenes.DialogueBoxPsych;
+import openfl.utils.Assets as OpenFlAssets;
 import stages.cutscenes.SchoolDoof;
 import stages.objects.BackgroundGirls;
-import cutscenes.DialogueBoxPsych;
-import cutscenes.DialogueBoxPsych.DialogueFile;
 import substates.GameOverSubstate;
-import openfl.utils.Assets as OpenFlAssets;
 
 class School extends BaseStage
 {
@@ -35,11 +35,13 @@ class School extends BaseStage
 
 		var widShit = Std.int(bgSky.width * PlayState.daPixelZoom);
 		if(!ClientPrefs.data.lowQuality) {
-			var fgTrees:BGSprite = new BGSprite('weeb/weebTreesBack', repositionShit + 170, 130, 0.9, 0.9);
-			fgTrees.setGraphicSize(Std.int(widShit * 0.8));
-			fgTrees.updateHitbox();
-			add(fgTrees);
-			fgTrees.antialiasing = false;
+			try {
+				var fgTrees:BGSprite = new BGSprite('weeb/weebTreesBack', repositionShit + 170, 130, 0.9, 0.9);
+				fgTrees.setGraphicSize(Std.int(widShit * 0.8));
+				fgTrees.updateHitbox();
+				add(fgTrees);
+				fgTrees.antialiasing = false;
+			} catch(e){trace("FG TREES ELEMENT NOT FOUND!");}
 		}
 
 		var bgTrees:FlxSprite = new FlxSprite(repositionShit - 380, -800);
@@ -51,11 +53,13 @@ class School extends BaseStage
 		bgTrees.antialiasing = false;
 
 		if(!ClientPrefs.data.lowQuality) {
-			var treeLeaves:BGSprite = new BGSprite('weeb/petals', repositionShit, -40, 0.85, 0.85, ['PETALS ALL'], true);
-			treeLeaves.setGraphicSize(widShit);
-			treeLeaves.updateHitbox();
-			add(treeLeaves);
-			treeLeaves.antialiasing = false;
+			try {
+				var treeLeaves:BGSprite = new BGSprite('weeb/petals', repositionShit, -40, 0.85, 0.85, ['PETALS ALL'], true);
+				treeLeaves.setGraphicSize(widShit);
+				treeLeaves.updateHitbox();
+				add(treeLeaves);
+				treeLeaves.antialiasing = false;
+			} catch(e){trace("PETALS ELEMENT NOT FOUND!");}
 		}
 
 		bgSky.setGraphicSize(widShit);
@@ -83,6 +87,7 @@ class School extends BaseStage
 			case 'roses':
 				FlxG.sound.play(Paths.sound('ANGRY_TEXT_BOX'));
 		}
+
 		if(isStoryMode && !seenCutscene)
 		{
 			var cutscene = new SchoolDoof(songName);
@@ -90,6 +95,7 @@ class School extends BaseStage
 			setStartCallback(cutscene.doSchoolIntro);
 		}
 	}
+
 	override function createPost() {
 		super.createPost();
 		camFollow_set(800, 500);
