@@ -8,6 +8,8 @@ class APCategoryState extends states.CategoryState {
 
     public var AP:archipelago.Client;
     public var gameState:archipelago.APGameState;
+    private var pollFailureCount:Int = 0;
+    private static inline var MAX_POLL_FAILURES:Int = 30;
 
 
     public function new(gameState:archipelago.APGameState, ?AP:archipelago.Client) {
@@ -371,16 +373,26 @@ class APCategoryState extends states.CategoryState {
 
         super.update(elapsed);
 
-        // Null check before polling
-        if (AP != null) {
-            try {
-                AP.poll();
-            } catch (e) {
-                trace('Error during AP polling: ' + e);
-                // Don't crash the game, just log the error
+        // Check for AP connection issues
+        if (AP == null) {
+            trace('Critical: AP client is null, triggering error state');
+            MusicBeatState.switchState(new APConnectionErrorState(gameState));
+            return;
+        }
+
+        // Poll with failure tracking
+        try {
+            AP.poll();
+            pollFailureCount = 0; // Reset counter on successful poll
+        } catch (e) {
+            pollFailureCount++;
+            trace('Error during AP polling (attempt ' + pollFailureCount + '/' + MAX_POLL_FAILURES + '): ' + e);
+
+            // Switch to error state if we've exceeded max failures
+            if (pollFailureCount >= MAX_POLL_FAILURES) {
+                trace('Critical: AP polling failed ' + MAX_POLL_FAILURES + ' times in a row, triggering error state');
+                MusicBeatState.switchState(new APConnectionErrorState(gameState));
             }
-        } else {
-            trace('Warning: AP client is null, skipping poll');
         }
     }
 }

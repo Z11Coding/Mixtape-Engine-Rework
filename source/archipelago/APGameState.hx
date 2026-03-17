@@ -1402,7 +1402,8 @@ class APGameState
 		{
 			if (!Reflect.hasField(data, "cause") || data.cause == null)
 			{
-				data.cause = data.source + " died like an idiot in " + info().get_player_game(data.source) + ".";
+				var sourceSlot = info().get_player_slot(data.source);
+				data.cause = data.source + " died like an idiot in " + info().get_player_game(sourceSlot) + ".";
 			}
 
 			if (info().slot != data.source)
@@ -2094,7 +2095,16 @@ class APGameState
 					// If completion type is "on_getting", check if it has actually sent the check.
 					if (sanitySettings.sanity_completion_type == "on_getting")
 					{
-						sendSanityLocationCheck(itemName);
+						var locationName = "Use " + itemName;
+						var locationId = sanityLocationIds.get(locationName);
+						if (locationId != null && isLocationMissing(locationName))
+						{
+							sendSanityLocationCheck(itemName);
+						}
+						else if (locationId == null)
+						{
+							trace("Warning: Could not find location ID for sanity location: " + locationName);
+						}
 					}
 						return;
 					}
@@ -2124,7 +2134,16 @@ class APGameState
 					// If completion type is "on_getting", immediately send the sanity location check
 					if (sanitySettings.sanity_completion_type == "on_getting")
 					{
-						sendSanityLocationCheck(itemName);
+						var locationName = "Use " + itemName;
+						var locationId = sanityLocationIds.get(locationName);
+						if (locationId != null && isLocationMissing(locationName))
+						{
+							sendSanityLocationCheck(itemName);
+						}
+						else if (locationId == null)
+						{
+							trace("Warning: Could not find location ID for sanity location: " + locationName);
+						}
 					}
 
 					// Show popup notification

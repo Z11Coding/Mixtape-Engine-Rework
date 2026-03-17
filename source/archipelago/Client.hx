@@ -715,6 +715,30 @@ class Client {
 	}
 
 	/**
+		Resolves a player name into their slot number.
+		Searches through connected players first, then falls back to slot info.
+		@param playerName The name of the player to look up.
+		@return The slot number of the player, or null if not found.
+	**/
+	public function get_player_slot(playerName:String):Null<Int> {
+		// First, try to find the player in the connected players list
+		for (player in _players) {
+			if (player.name == playerName || player.alias == playerName) {
+				return player.slot;
+			}
+		}
+
+		// Fall back to checking slot info if not found in connected players
+		for (slotNum => slotData in _slotInfo) {
+			if (slotData.name == playerName) {
+				return slotNum;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 		Resolves a location ID into the name of that location.
 		@param code The location ID to look up.
 		@param game The game to which the location belongs. Defaults to a blank string, which will attempt to devine a location name which may be incorrect if there is an ID collision.
