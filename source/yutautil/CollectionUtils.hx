@@ -3467,6 +3467,87 @@ class CollectionUtils
 		// var selectedNumberFromMap = ChanceSelector.selectOption(numberMapChances);
 		// trace("Selected number from map: " + selectedNumberFromMap);
 	}
+
+	/**
+	 * Pretty print an object with structural formatting (Python pprint style)
+	 * Shortcut for DisplayFormatter.prettyPrint()
+	 */
+	public static inline function prettyPrint(obj:Dynamic, ?depth:Int = 0):String
+	{
+		return DisplayFormatter.prettyPrint(obj, depth);
+	}
+
+	/**
+	 * Pretty print an object with structural formatting and trace it
+	 * Shortcut for trace(DisplayFormatter.prettyPrint())
+	 */
+	public static inline function tracePretty(obj:Dynamic, ?depth:Int = 0, ?pos:haxe.PosInfos = null):Void
+	{
+		trace(DisplayFormatter.prettyPrint(obj, depth), pos);
+	}
+
+	/**
+	 * Generate a natural language description of an object
+	 * Shortcut for DisplayFormatter.naturalPrint()
+	 */
+	public static inline function naturalPrint(obj:Dynamic, ?verbosity:yutautil.DisplayFormatter.Verbosity = DETAILED):String
+	{
+		return DisplayFormatter.naturalPrint(obj, verbosity);
+	}
+
+	/**
+	 * Generate a natural language description and trace it
+	 * Shortcut for trace(DisplayFormatter.naturalPrint())
+	 */
+	public static inline function traceNatural(obj:Dynamic, ?verbosity:yutautil.DisplayFormatter.Verbosity = DETAILED, ?pos:haxe.PosInfos = null):Void
+	{
+		trace(DisplayFormatter.naturalPrint(obj, verbosity), pos);
+	}
+
+	/**
+	 * Generate a minimal natural language description of an object
+	 * Shortcut for DisplayFormatter.naturalPrint(..., MINIMAL)
+	 */
+	public static inline function naturalPrintMinimal(obj:Dynamic):String
+	{
+		return DisplayFormatter.naturalPrint(obj, MINIMAL);
+	}
+
+	/**
+	 * Generate a compact natural language description of an object
+	 * Shortcut for DisplayFormatter.naturalPrint(..., COMPACT)
+	 */
+	public static inline function naturalPrintCompact(obj:Dynamic):String
+	{
+		return DisplayFormatter.naturalPrint(obj, COMPACT);
+	}
+
+	/**
+	 * Generate a detailed natural language description of an object
+	 * Shortcut for DisplayFormatter.naturalPrint(..., DETAILED)
+	 */
+	public static inline function naturalPrintDetailed(obj:Dynamic):String
+	{
+		return DisplayFormatter.naturalPrint(obj, DETAILED);
+	}
+
+	/**
+	 * Generate a verbose natural language description of an object
+	 * Shortcut for DisplayFormatter.naturalPrint(..., VERBOSE)
+	 */
+	public static inline function naturalPrintVerbose(obj:Dynamic):String
+	{
+		return DisplayFormatter.naturalPrint(obj, VERBOSE);
+	}
+
+	/**
+	 * Configure the DisplayFormatter settings
+	 * Shortcut for DisplayFormatter.configure()
+	 */
+	public static inline function configureFormatter(?indent:Int, ?lineWidth:Int, ?depth:Int):Void
+	{
+		DisplayFormatter.configure(indent, lineWidth, depth);
+	}
 }
 
 // class CollectionMacro {

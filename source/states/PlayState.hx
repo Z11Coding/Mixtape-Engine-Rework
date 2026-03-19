@@ -9559,13 +9559,17 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					#end
 					#end
 					canResync = false;
+
+					// Load the next song chart
+					Song.loadFromJson(Paths.formatToSongPath(curSonglist[0].songName) + difficulty, curSonglist[0].songName);
+
 					LoadingState.prepareToSong();
 
 					#if ARCHIPELAGO_ALLOWED
 					if (archipelago.APEntryState.inArchipelagoMode && nextState != null) {
 						LoadingState.loadAndSwitchState(nextState, false, false);
 					} else if (archipelago.APEntryState.inArchipelagoMode) {
-						LoadingState.loadAndSwitchState(new archipelago.APPlayState(), false, false);
+						LoadingState.loadAndSwitchState(new archipelago.APPlayState(curSonglist), false, false);
 					} else {
 						LoadingState.loadAndSwitchState(new PlayState(curSonglist), false, false);
 					}

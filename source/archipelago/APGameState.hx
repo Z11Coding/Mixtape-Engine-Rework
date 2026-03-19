@@ -469,51 +469,49 @@ class APGameState
 
 			if (matchingNotes.length == 0)
 			{
-				//PsychOnlineThread.run(() -> {
-					for (song in WeekData.getCurrentWeek().songs)
+				for (song in WeekData.getCurrentWeek().songs)
+				{
+					var songPath = modName.trim() != "" ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-"
+						+ Difficulty.getString(PlayState.storyDifficulty) + ".json" : "assets/shared/data/"
+						+ (song[0] + Difficulty.getFilePath());
+
+					var songJson:backend.Song.SwagSong = null;
+					var jsonStuff:Array<String> = modName.trim() != "" ? Paths.crawlDirectory("mods/" + modName + "/data",
+						".json") : Paths.crawlDirectory("assets/shared/data", ".json");
+
+					for (json in jsonStuff)
 					{
-						var songPath = modName.trim() != "" ? "mods/" + modName + "/data/" + song[0] + "/" + song[0] + "-"
-							+ Difficulty.getString(PlayState.storyDifficulty) + ".json" : "assets/shared/data/"
-							+ (song[0] + Difficulty.getFilePath());
-
-						var songJson:backend.Song.SwagSong = null;
-						var jsonStuff:Array<String> = modName.trim() != "" ? Paths.crawlDirectory("mods/" + modName + "/data",
-							".json") : Paths.crawlDirectory("assets/shared/data", ".json");
-
-						for (json in jsonStuff)
+						if (json.trim()
+							.toLowerCase()
+							.replace(" ", "-") == songPath.trim()
+							.toLowerCase()
+							.replace(" ", "-"))
 						{
-							if (json.trim()
-								.toLowerCase()
-								.replace(" ", "-") == songPath.trim()
-								.toLowerCase()
-								.replace(" ", "-"))
+							songJson = backend.Song.parseJSON(File.getContent(json));
+							if (songJson != null)
 							{
-								songJson = backend.Song.parseJSON(File.getContent(json));
-								if (songJson != null)
+								if (songJson.song.trim()
+									.toLowerCase()
+									.replace(" ", "-") == songName.toLowerCase()
+									.trim()
+									.replace(" ", "-"))
 								{
-									if (songJson.song.trim()
-										.toLowerCase()
-										.replace(" ", "-") == songName.toLowerCase()
-										.trim()
-										.replace(" ", "-"))
+									var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
+									for (location in APLocations)
 									{
-										var fallbackReg = new EReg("^Note \\d+: " + EReg.escape(song[0] + (modName != "" ? " (" + modName + ")" : "")) + "$", "");
-										for (location in APLocations)
+										var locationName = apInfo.get_location_name(location);
+										if (fallbackReg.match(locationName))
 										{
-											var locationName = apInfo.get_location_name(location);
-											if (fallbackReg.match(locationName))
-											{
-												trace("Secondary fallback match found: " + locationName);
-												matchingNotes.push(location);
-											}
+											trace("Secondary fallback match found: " + locationName);
+											matchingNotes.push(location);
 										}
-										break;
 									}
+									break;
 								}
 							}
 						}
 					}
-				//}, (e:haxe.Exception) -> {trace("SOMETHING WENT WRONG!\n"+e);});
+				}
 			}
 
 			return matchingNotes;
@@ -1405,7 +1403,7 @@ class APGameState
 			if (!Reflect.hasField(data, "cause") || data.cause == null)
 			{
 				var sourceSlot = info().get_player_slot(data.source);
-				data.cause = data.source + " died like an idiot in " + info().get_player_game(sourceSlot) + ".";
+				data.cause = data.source + " died like an idiot in " + info().get_player_game(sourceSlot ?? data.source) + ".";
 			}
 
 			if (info().slot != data.source)
@@ -2773,23 +2771,17 @@ class APGameState
 				if (week == null)
 					continue;
 
-				var match:Bool = false;
-				var weeks = getWeeksForSong(song, mod);
-				for (curWeek in weeks) {
-					if (week.folder == curWeek.folder) {
-						match = true;
-					}
-				}
-				if (!match)
+				// Check if this week belongs to the specified mod
+				var weekMod = week.folder == null ? "" : week.folder;
+				if (weekMod != mod)
 					continue;
 
 				// Check if this week contains the song
 				if (week.songs != null)
 				{
-					trace('loading week songs: ${week.songs}');
 					for (songData in week.songs)
 					{
-						var songName:String = songData[0];
+						var songName = (cast songData[0] : String);
 						if (songName.toLowerCase() == song.toLowerCase())
 						{
 							matchingWeeks.push({week: week, weekIndex: weekIdx});
@@ -2856,17 +2848,13 @@ class APGameState
 			var weeksWithIndexes = getWeeksWithIndexForSong(song, mod);
 			for (entry in weeksWithIndexes)
 			{
-				trace(entry);
 				var week = entry.week;
 				var weekIndex = entry.weekIndex;
-				trace(week.difficulties);
 				if (week.difficulties != null && week.difficulties.length > 0)
 				{
-					trace(week.difficulties.trim().split(','));
 					var diffs = week.difficulties.trim().split(',');
 					for (diff in diffs)
 					{
-						trace(diff);
 						var trimmed = diff.trim();
 						if (trimmed.length > 0 && !seen.exists(trimmed.toLowerCase()))
 						{

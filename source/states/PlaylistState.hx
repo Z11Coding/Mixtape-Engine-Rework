@@ -600,7 +600,7 @@ class PlaylistState extends MusicBeatState {
 				Mods.loadTopMod();
 				WeekData.reloadWeekFiles();
 				if (shufflePlaylist) {
-					FlxG.random.shuffle(selectedPlaylist.songList);
+					FlxG.random.shuffle(selectedPlaylist.songList.copy());
 				}
 				// PlayState.curPlaylist = selectedPlaylist;
 				// PlayState.curSonglist = selectedPlaylist.songList;
@@ -777,7 +777,8 @@ class PlaylistState extends MusicBeatState {
 		var directories:Array<String> = [
 			Paths.mods('playlists/'),
 			Paths.mods(Mods.currentModDirectory + '/playlists/'),
-			Paths.getSharedPath('playlists/')
+			Paths.getSharedPath('playlists/'),
+			'playlists/'
 		];
 		for (mod in Mods.getGlobalMods())
 			directories.push(Paths.mods(mod + '/playlists/'));
