@@ -182,14 +182,8 @@ class CategoryState extends MusicBeatState
 			if (mods) break;
 
 			var leWeek:WeekData = weeks[i];
-			var leSongs:Array<String> = [];
-			var leChars:Array<String> = [];
 
-			for (j in 0...leWeek.songs.length)
-			{
-				leSongs.push(leWeek.songs[j][0]);
-				leChars.push(leWeek.songs[j][1]);
-			}
+			trace('week: ${leWeek}');
 
 			if (leWeek.category == null && showMods && catMode != 'Mods') {
 				mods = true;

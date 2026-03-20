@@ -238,6 +238,7 @@ class APPlaylistState extends MusicBeatState {
 	var songStringOG:String = "";
   override function update(elapse:Float) {
     super.update(elapse);
+		e++;
 
 		if (!choosePlaylist) {
 			updateTexts(elapse);
@@ -254,7 +255,6 @@ class APPlaylistState extends MusicBeatState {
 			#end
 		}
 
-		e++;
 		if (readyTxt != null)
 			for (i in 0...readyTxt.letters.length) {
 				readyTxt.letters[i].color = FlxColor.fromHSL((((e / 2) / 300 * 360) % 360)+(15*i), 1.0, 0.5*1.0);
@@ -293,6 +293,7 @@ class APPlaylistState extends MusicBeatState {
 				}));
 				return;
 			}
+
 			if (!choosePlaylist) {
 				choosePlaylist = true;
 				trace('Selected Playlist: ${loadedPlaylists[curSelected].toString()}');

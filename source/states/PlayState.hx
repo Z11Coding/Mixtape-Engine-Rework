@@ -721,7 +721,7 @@ class PlayState extends MusicBeatState
 
 		curPlaylist = playlist;
 		if (songlist != null)
-			curSonglist = songlist.concat(playlist?.songList ?? []);
+			curSonglist = songlist;
 		else if (playlist != null)
 			curSonglist = playlist.songList;
 
@@ -781,7 +781,7 @@ class PlayState extends MusicBeatState
 		#end
 		if (isWarmUp || isPlaylist) {
 			allowDebugKeys = false;
-			if (storyWeek != -1) {
+			if (storyWeek != -1 && !inArchipelagoMode) {
 				storyWeek = curSonglist[0].week;
 				Difficulty.loadFromWeek();
 				storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
@@ -9375,7 +9375,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 				var lastSong = curSonglist[0];
 				trace('lastSong: ${lastSong}');
-				curSonglist.remove(curSonglist[0]);
+				curSonglist.shift();
 				trace('After remove, curSonglist.length: ${curSonglist.length}');
 
 				if (curSonglist.length <= 0)
@@ -9493,13 +9493,18 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					#end
 
 					// Update to next song
-					Mods.currentModDirectory = curSonglist[0].folder != null ? curSonglist[0].folder : '';
-					PlayState.storyWeek = curSonglist[0].week;
+					Mods.loadTopMod();
+					WeekData.reloadWeekFiles();
+					storyWeek = curSonglist[0].week;
 					Difficulty.loadFromWeek();
+					Mods.currentModDirectory = curSonglist[0].folder ?? '';
 					storyDifficulty = Difficulty.list.indexOf(curSonglist[0].difficulty);
 					var difficulty:String = Difficulty.getFilePath();
+					APPlayState.currentSong = curSonglist[0].songName;
+					APPlayState.currentMod = curSonglist[0].folder ?? '';
 
 					trace('LOADING NEXT SONG');
+					trace(curSonglist[0]);
 					trace(Paths.formatToSongPath(curSonglist[0].songName) + difficulty);
 
 					FlxTransitionableState.skipNextTransIn = true;
@@ -9561,20 +9566,22 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					canResync = false;
 
 					// Load the next song chart
+					trace(curSonglist[0].folder);
+					trace(Mods.currentModDirectory);
 					Song.loadFromJson(Paths.formatToSongPath(curSonglist[0].songName) + difficulty, curSonglist[0].songName);
 
-					LoadingState.prepareToSong();
+					//LoadingState.prepareToSong();
 
 					#if ARCHIPELAGO_ALLOWED
 					if (archipelago.APEntryState.inArchipelagoMode && nextState != null) {
-						LoadingState.loadAndSwitchState(nextState, false, false);
+						FlxG.switchState(nextState);
 					} else if (archipelago.APEntryState.inArchipelagoMode) {
-						LoadingState.loadAndSwitchState(new archipelago.APPlayState(curSonglist), false, false);
+						FlxG.switchState(new archipelago.APPlayState(null, curSonglist));
 					} else {
-						LoadingState.loadAndSwitchState(new PlayState(curSonglist), false, false);
+						FlxG.switchState(new PlayState(null, curSonglist));
 					}
 					#else
-					LoadingState.loadAndSwitchState(new PlayState(curSonglist), false, false);
+					FlxG.switchState(new PlayState(null, curSonglist));
 					#end
 				}
 			}

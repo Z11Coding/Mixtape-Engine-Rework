@@ -2781,10 +2781,6 @@ class APPlayState extends PlayState {
             return true;
         }
 
-        if (check == did)
-		{
-			// For Later
-		}
         PlayState.gameplayArea = "APFreeplay";
 
         if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
