@@ -154,9 +154,7 @@ class WeekData {
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
 	{
 		if(!weeksLoaded.exists(weekToCheck)) {
-			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
-				wk.category = cast (wk.category:String).split(',').map(function(s) return s.trim()).filter(function(s) return s.length > 0);
-			});
+			var week:WeekFile = getWeekFile(path);
 			if(week != null) {
 				var weekFile:WeekData = new WeekData(week, weekToCheck);
 				if(i >= originalLength)
@@ -187,7 +185,9 @@ class WeekData {
 		#end
 
 		if(rawJson != null && rawJson.length > 0) {
-			return cast tjson.TJSON.parse(rawJson);
+			return cast tjson.TJSON.parse(rawJson).funcAndReturn(function(wk) {
+				wk.category = cast (wk.category:String).split(',').map(function(s) return s.trim()).filter(function(s) return s.length > 0);
+			});
 		}
 		return null;
 	}
