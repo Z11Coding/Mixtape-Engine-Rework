@@ -154,7 +154,9 @@ class WeekData {
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
 	{
 		if(!weeksLoaded.exists(weekToCheck)) {
-			var week:WeekFile = getWeekFile(path);
+			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
+				wk.category = wk.category.split(',').map(function(s) return s.trim()).filter(function(s) return s.length > 0);
+			});
 			if(week != null) {
 				var weekFile:WeekData = new WeekData(week, weekToCheck);
 				if(i >= originalLength)
