@@ -23,7 +23,7 @@ typedef WeekFile =
 	var hideStoryMode:Bool;
 	var hideFreeplay:Bool;
 	var difficulties:String;
-	var category:OneOrMore<String>;
+	var category:Dynamic;
 }
 
 class WeekData {
@@ -43,7 +43,7 @@ class WeekData {
 	public var hideStoryMode:Bool;
 	public var hideFreeplay:Bool;
 	public var difficulties:String;
-	public var category:OneOrMore<String>;
+	public var category:Dynamic;
 	public var fileName:String;
 
 	public static function createWeekFile():WeekFile {
@@ -154,11 +154,7 @@ class WeekData {
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
 	{
 		if(!weeksLoaded.exists(weekToCheck)) {
-			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
-				var week = cast (wk.category, OneOrMore<Dynamic>);
-				if (week != null && week.isSingle())
-					wk.category = week.toSingle()?.split(',')?.map(function(s) return s.trim())?.filter(function(s) return s.length > 0);
-			});
+			var week:WeekFile = getWeekFile(path);
 			if(week != null) {
 				var weekFile:WeekData = new WeekData(week, weekToCheck);
 				if(i >= originalLength)
@@ -308,8 +304,8 @@ abstract Week(WeekData) {
 	public var difficulties(get, never):String;
 	inline function get_difficulties():String return this.difficulties;
 
-	public var category(get, never):OneOrMore<String>;
-	inline function get_category():OneOrMore<String> return this.category;
+	public var category(get, never):Dynamic;
+	inline function get_category():String return this.category;
 
 	public var songCount(get, never):Int;
 	inline function get_songCount():Int return this.songs.length;
