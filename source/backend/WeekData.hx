@@ -155,8 +155,9 @@ class WeekData {
 	{
 		if(!weeksLoaded.exists(weekToCheck)) {
 			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
-				trace(wk);
-				wk.category = cast (wk.category, OneOrMore<String>).toSingle()?.split(',')?.map(function(s) return s.trim())?.filter(function(s) return s.length > 0);
+				var week = cast (wk.category, OneOrMore<Dynamic>);
+				if (week != null && week.isSingle())
+					wk.category = week.toSingle()?.split(',')?.map(function(s) return s.trim())?.filter(function(s) return s.length > 0);
 			});
 			if(week != null) {
 				var weekFile:WeekData = new WeekData(week, weekToCheck);
