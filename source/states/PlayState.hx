@@ -12728,7 +12728,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if(excludeValues == null) excludeValues = new Array();
 		excludeValues.push(LuaUtils.Function_Continue);
 
-		var len:Int = yscriptArray.length;
+		var len:Int = yscriptArray != null ? yscriptArray.length : 0;
 		if (len < 1)
 			return returnVal;
 

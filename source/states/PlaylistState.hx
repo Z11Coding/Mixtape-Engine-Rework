@@ -1096,6 +1096,7 @@ abstract SongMetadata(PlaylistSongMetadata) {
 			apSong.charter,
 			apSong.artist
 		);
+		normalSong.folder = apSong.folder;
 		return cast normalSong;
 	}
 
@@ -1157,6 +1158,7 @@ abstract PlaylistData(PlaylistMetadata) {
 					apSong.charter,
 					apSong.artist
 				);
+				normalSong.folder = apSong.folder;
 				normalSongList.push(normalSong);
 			}
 		}
