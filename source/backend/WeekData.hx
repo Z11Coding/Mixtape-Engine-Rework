@@ -104,27 +104,21 @@ class WeekData {
 		for (i in 0...sexList.length) {
 			for (j in 0...directories.length) {
 				var fileToCheck:String = directories[j] + 'weeks/' + sexList[i] + '.json';
-				var week:WeekFile = getWeekFile(fileToCheck);
-				if(week != null) {
-					var weekFile:WeekData = new WeekData(week, sexList[i]);
+				if(!weeksLoaded.exists(sexList[i])) {
+					var week:WeekFile = getWeekFile(fileToCheck);
+					if(week != null) {
+						var weekFile:WeekData = new WeekData(week, sexList[i]);
 
-					#if MODS_ALLOWED
-					if(j >= originalLength) {
-						weekFile.folder = directories[j].substring(Paths.mods().length, directories[j].length-1);
-					}
-					#end
+						#if MODS_ALLOWED
+						if(j >= originalLength) {
+							weekFile.folder = directories[j].substring(Paths.mods().length, directories[j].length-1);
+						}
+						#end
 
-					// Generate unique ID: use folder if from mod, otherwise just name
-					var uniqueId:String = sexList[i];
-					#if MODS_ALLOWED
-					if(j >= originalLength && weekFile.folder.length > 0) {
-						uniqueId = sexList[i] + '|' + weekFile.folder;
-					}
-					#end
-
-					if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
-						weeksLoaded.set(uniqueId, weekFile);
-						weeksList.push(uniqueId);
+						if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
+							weeksLoaded.set(sexList[i], weekFile);
+							weeksList.push(sexList[i]);
+						}
 					}
 				}
 			}
@@ -160,7 +154,9 @@ class WeekData {
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
 	{
 		if(!weeksLoaded.exists(weekToCheck)) {
-			var week:WeekFile = getWeekFile(path);
+			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
+				wk.category = cast (wk.category:String)?.split(',').map(function(s) return s.trim()).filter(function(s) return s.length > 0);
+			});
 			if(week != null) {
 				var weekFile:WeekData = new WeekData(week, weekToCheck);
 				if(i >= originalLength)
@@ -191,9 +187,7 @@ class WeekData {
 		#end
 
 		if(rawJson != null && rawJson.length > 0) {
-			return cast tjson.TJSON.parse(rawJson).funcAndReturn(function(wk) {
-				wk.category = cast (wk.category:String).split(',').map(function(s) return s.trim()).filter(function(s) return s.length > 0);
-			});
+			return cast tjson.TJSON.parse(rawJson);
 		}
 		return null;
 	}
