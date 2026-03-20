@@ -572,7 +572,7 @@ class LoadingState extends MusicBeatState
 		lastMod = Mods.currentModDirectory;
 
 		if(PlayState.SONG != null) {
-			trace('Preloading Chart');
+			//trace('Preloading Chart');
 			chartLoaded = false;
 			//preloadChart();
 		}

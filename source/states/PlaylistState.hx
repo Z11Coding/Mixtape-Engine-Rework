@@ -988,7 +988,7 @@ class PlaylistSongMetadata extends managers.FreeplayManager.GlobalSongMetadata
 
 	public function toString():String
 	{
-		return 'PlaylistSongMetadata("${songName}", week: ${week}, difficulty: "${difficulty}", character: "${songCharacter}", artist: "${artist}", charter: "${charter}")';
+		return 'PlaylistSongMetadata("${songName}", week: ${week}, difficulty: "${difficulty}", character: "${songCharacter}", folder: "${folder}", artist: "${artist}", charter: "${charter}")';
 	}
 
 }
