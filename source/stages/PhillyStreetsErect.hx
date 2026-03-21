@@ -1,17 +1,16 @@
 package stages;
 
-import stages.PicoCapableStage;
-import substates.StickerSubState;
-import openfl.filters.BlurFilter;
-import shaders.AdjustColorShader;
-import flixel.addons.display.FlxBackdrop;
-import openfl.filters.ShaderFilter;
-import flixel.addons.display.FlxTiledSprite;
-import shaders.RainShader;
-import substates.PauseSubState;
 import cutscenes.CutsceneHandler;
-
 import flixel.FlxSubState;
+import flixel.addons.display.FlxBackdrop;
+import flixel.addons.display.FlxTiledSprite;
+import openfl.filters.BlurFilter;
+import openfl.filters.ShaderFilter;
+import shaders.AdjustColorShader;
+import shaders.RainShader;
+import stages.PicoCapableStage;
+import substates.PauseSubState;
+import substates.StickerSubState;
 
 class PhillyStreetsErect extends BaseStage
 {
@@ -39,14 +38,16 @@ class PhillyStreetsErect extends BaseStage
         buildMist();
         if (!ClientPrefs.data.lowQuality)
         {
-            var skyImage = Paths.image('phillyStreets/erect/phillySkybox');
-            scrollingSky = new FlxTiledSprite(skyImage, skyImage.width + 400, skyImage.height, true, false);
-            scrollingSky.antialiasing = ClientPrefs.data.antialiasing;
-            scrollingSky.setPosition(-650, -375);
-            scrollingSky.scrollFactor.set(0.1, 0.1);
-            scrollingSky.scale.set(0.65, 0.65);
-            add(scrollingSky);
-            darkenable.push(scrollingSky);
+            try {
+                var skyImage = Paths.image('phillyStreets/erect/phillySkybox');
+                scrollingSky = new FlxTiledSprite(skyImage, skyImage.width + 400, skyImage.height, true, false);
+                scrollingSky.antialiasing = ClientPrefs.data.antialiasing;
+                scrollingSky.setPosition(-650, -375);
+                scrollingSky.scrollFactor.set(0.1, 0.1);
+                scrollingSky.scale.set(0.65, 0.65);
+                add(scrollingSky);
+                darkenable.push(scrollingSky);
+            } catch(e) {trace("SKYBOX BROKE!");}
 
             var phillySkyline:BGSprite = new BGSprite('phillyStreets/erect/phillySkyline', -545, -273, 0.2, 0.2);
             add(phillySkyline);
@@ -139,7 +140,7 @@ class PhillyStreetsErect extends BaseStage
         if (ClientPrefs.data.shaders)
             setupRainShader();
 
-        
+
         var _song = PlayState.SONG;
 
         setDefaultGF('gf');
@@ -169,7 +170,7 @@ function makeMist(image:String,scrollFac:Float,alpha:Float,velX:Float) {
 function buildMist() // Probable will be really broken 😞
 {
 
-    
+
 
     mist0 = makeMist('mistMid',1.2,0.6,172); //1000
 
@@ -551,4 +552,3 @@ function updateMist(elapsed:Float) {
             carSndAmbience.stop();
     }
 }
-    

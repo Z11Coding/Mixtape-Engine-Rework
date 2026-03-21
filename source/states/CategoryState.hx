@@ -217,8 +217,7 @@ class CategoryState extends MusicBeatState
 					}
 				}
 			}
-				// menuItems.push(cast week.category);
-			}
+		}
 
 
 		// Remove duplicates from menuItems
