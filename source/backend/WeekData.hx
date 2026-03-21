@@ -155,7 +155,20 @@ class WeekData {
 	{
 		if(!weeksLoaded.exists(weekToCheck)) {
 			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
-				wk.category = cast (wk.category:String)?.split(',')?.map(function(s) return s.trim())?.filter(function(s) return s.length > 0);
+			if(wk != null) {
+				// Handle category as either string or array
+				if(Std.isOfType(wk.category, String)) {
+					var categoryStr:String = cast wk.category;
+					var splitArray:Array<String> = categoryStr.split(',');
+					var trimmedArray:Array<String> = splitArray.map(function(s) return s.trim());
+					var filteredArray:Array<String> = trimmedArray.filter(function(s) return s.length > 0);
+					wk.category = filteredArray;
+				} else if(Std.isOfType(wk.category, Array)) {
+					wk.category = cast wk.category;
+				} else {
+					wk.category = [];
+				}
+			}
 			});
 			if(week != null) {
 				var weekFile:WeekData = new WeekData(week, weekToCheck);

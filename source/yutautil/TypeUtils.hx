@@ -630,6 +630,16 @@ abstract OneOrMany<T>(Array<T>) to Array<T> {
         return cast arr;
     }
 
+    @:from
+    public static inline function fromSingle<T>(value:T):OneOrMany<T> {
+        return new OneOrMany(value);
+    }
+
+    @:from
+    public static inline function fromArray<T>(arr:Array<T>):OneOrMany<T> {
+        return cast arr;
+    }
+
     // Construct from a single value (implicit)
     @:from
     public static inline function actAsArray<T>(value:T):OneOrMany<T> {
@@ -654,6 +664,20 @@ abstract OneOrMany<T>(Array<T>) to Array<T> {
         }
         return this[0];
     }
+
+    @:to
+        public inline function toOneOrMany():OneOrMany<T> {
+            return this;
+        }
+
+        public inline function forceArray():Array<T> {
+            return this;
+        }
+
+        // Force return as single value (first element)
+        public inline function toSingleForced():T {
+            return this[0];
+        }
 
     // Check if it's a single value
     public inline function isSingle():Bool {
