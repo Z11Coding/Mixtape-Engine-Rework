@@ -29,7 +29,7 @@ class MainMenuState extends MusicBeatState
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
 	private var archButton:PsychUIButton;
-	var allowMouse:Bool = true; //Turn this off to block mouse movement in menus
+	var allowMouse:Bool = !MusicBeatState.revokeControls; //Turn this off to block mouse movement in menus
 
 	public var ticker:yutautil.StateTick = new yutautil.StateTick(function() {
 		// trace('[DEBUG] Tick in state: ${Type.getClassName(Type.getClass(FlxG.state))}');
@@ -344,10 +344,10 @@ class MainMenuState extends MusicBeatState
 			if (controls.UI_DOWN_P)
 				changeItem(1);
 
-			var allowMouse:Bool = allowMouse;
-			if (allowMouse && ((FlxG.mouse.deltaScreenX != 0 && FlxG.mouse.deltaScreenY != 0) || FlxG.mouse.justPressed)) //FlxG.mouse.deltaScreenX/Y checks is more accurate than FlxG.mouse.justMoved
+			var allowMouseDX:Bool = allowMouse;
+			if (allowMouseDX && ((FlxG.mouse.deltaScreenX != 0 && FlxG.mouse.deltaScreenY != 0) || FlxG.mouse.justPressed)) //FlxG.mouse.deltaScreenX/Y checks is more accurate than FlxG.mouse.justMoved
 			{
-				allowMouse = false;
+				allowMouseDX = false;
 				Cursor.show();
 				timeNotMoving = 0;
 
@@ -367,7 +367,7 @@ class MainMenuState extends MusicBeatState
 				if(leftItem != null && FlxG.mouse.overlaps(leftItem))
 				{
 					Cursor.cursorMode = Pointer;
-					allowMouse = true;
+					allowMouseDX = true;
 					if(selectedItem != leftItem)
 					{
 						curColumn = LEFT;
@@ -377,7 +377,7 @@ class MainMenuState extends MusicBeatState
 				else if(rightItem != null && FlxG.mouse.overlaps(rightItem))
 				{
 					Cursor.cursorMode = Pointer;
-					allowMouse = true;
+					allowMouseDX = true;
 					if(selectedItem != rightItem)
 					{
 						curColumn = RIGHT;
@@ -387,7 +387,7 @@ class MainMenuState extends MusicBeatState
 				else if(archipelagoItem != null && FlxG.mouse.overlaps(archipelagoItem))
 				{
 					Cursor.cursorMode = Pointer;
-					allowMouse = true;
+					allowMouseDX = true;
 					if(selectedItem != archipelagoItem)
 					{
 						curColumn = UPRIGHT;
@@ -409,7 +409,7 @@ class MainMenuState extends MusicBeatState
 							{
 								dist = distance;
 								distItem = i;
-								allowMouse = true;
+								allowMouseDX = true;
 							}
 						} else Cursor.cursorMode = Default;
 					}
@@ -484,7 +484,7 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new TitleState());
 			}
 
-			if (controls.ACCEPT || (FlxG.mouse.justPressed && allowMouse))
+			if (controls.ACCEPT || (FlxG.mouse.justPressed && allowMouseDX))
 			{
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				selectedSomethin = true;

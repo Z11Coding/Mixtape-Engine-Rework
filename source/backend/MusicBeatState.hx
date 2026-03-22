@@ -126,7 +126,17 @@ class MusicBeatState extends yutautil.SafeManagedState
 	public static var APFlip(get, set):Bool;
 
 	public static var words:Dynamic = yutautil.modules.SyncUtils.syncHttpRequestJson("https://random-word-api.herokuapp.com/all");
-	public static var revokeControls:Bool = false;
+	public static var revokeControls(default, set):Bool = false;
+	private static function set_revokeControls(value:Bool):Bool
+	{
+		FlxG.inputs.reset();
+		FlxG.keys.enabled = !value;
+		if (!value)
+			Cursor.show();
+		else
+			Cursor.hide();
+		return value;
+	}
 
 	// State Tracking System
 	private static var _stateTracker:StateTracker = new StateTracker();
