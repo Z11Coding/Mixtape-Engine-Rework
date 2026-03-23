@@ -13517,7 +13517,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					trace('Error clearing dead notes from field: $e');
 				}
 				field.spawnedNotes = [];
-				field.noteQueue = [[], [], [], []];
+				field.noteQueue = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
 			}
 
 			// Clear note graphics
