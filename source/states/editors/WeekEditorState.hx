@@ -245,7 +245,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 		weekBeforeInputText.text = weekFile.weekBefore;
 
-		categoryInputText.text = weekFile.category;
+		categoryInputText.text = weekFile.category.toArray().join(",");
 
 		difficultiesInputText.text = '';
 		if(weekFile.difficulties != null) difficultiesInputText.text = weekFile.difficulties;
@@ -466,6 +466,15 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	public static var loadError:Bool = false;
 
 	public static function saveWeek(weekFile:WeekFile) {
+		// Convert category to array if it's a string with multiple comma-separated values
+		if(weekFile.category is String) {
+			var categoryStr:String = cast weekFile.category;
+			var parts:Array<String> = categoryStr.split(",");
+			parts = parts.filter(function(item) return item.trim().length > 0);
+			if(parts.length > 1) {
+				weekFile.category = parts.map(function(item) return item.trim());
+			}
+		}
 		var data:String = haxe.Json.stringify(weekFile, "\t");
 		if (data.length > 0)
 		{

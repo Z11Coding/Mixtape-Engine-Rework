@@ -183,7 +183,7 @@ class CategoryState extends MusicBeatState
 
 			var leWeek:WeekData = weeks[i];
 
-			trace('week: ${leWeek}');
+			// trace('week: ${leWeek}');
 
 			if (leWeek.category == null && showMods && catMode != 'Mods') {
 				mods = true;

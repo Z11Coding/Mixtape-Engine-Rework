@@ -1187,6 +1187,14 @@ class MusicBeatState extends yutautil.SafeManagedState
 				// AUTO behavior already handled by determineGCBehavior
 		}
 		didGCBehavior = true;
+
+		while (!didGCBehavior) {
+			// Enforce this flag is set.
+			// This is to prevent any weird edge cases where GC behavior isn't set properly for a state, which can cause issues
+			didGCBehavior = true;
+			trace("Warning: GC behavior flag was not set properly.");
+		}
+
 	}
 
 	/**

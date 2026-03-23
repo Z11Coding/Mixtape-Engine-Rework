@@ -13406,6 +13406,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	private function finishPreloadedGeneration():Void {
 		trace('PlayState: Finishing preloaded generation - adding ${allNotes.length} notes to playfields');
 
+		var improperPreload = false;
+
 		// Load audio that was skipped during preload
 		loadSongAudio();
 
@@ -13423,11 +13425,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						trace('Processed $processedNotes/${allNotes.length} notes');
 					}
 				} catch (e:Dynamic) {
-					// trace('Error initializing note $processedNotes: $e');
+					trace('Error initializing note $processedNotes: $e');
+					improperPreload = true;
+					break;
 				}
 			}
 		}
 		trace('Completed note initialization for $processedNotes notes');
+
 
 		// Add notes to noteGroup (this was skipped during preload)
 		if (noteGroup != null && notes != null) {
@@ -13465,6 +13470,70 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		// Clear stacked notes now that playfields exist
 		for (field in playfields.members)
 			field.clearStackedNotes();
+
+		if (improperPreload) {
+			trace('PlayState: Preloaded chart had errors during finalization - clearing and regenerating chart normally to prevent breaking the song');
+
+			// Clear all preloaded data to start fresh
+			if (allNotes != null) {
+				for (note in allNotes) {
+					if (note != null) note.destroy();
+				}
+				allNotes.splice(0, allNotes.length);
+			}
+			allNotes = new Array();
+
+			if (unspawnNotes != null) {
+				for (note in unspawnNotes) {
+					if (note != null) note.destroy();
+				}
+				unspawnNotes.splice(0, unspawnNotes.length);
+			}
+			unspawnNotes = new Array();
+
+			if (curChart != null) {
+				for (note in curChart) {
+					if (note != null) note.destroy();
+				}
+				curChart.splice(0, curChart.length);
+			}
+			curChart = new Array();
+
+			if (eventNotes != null) {
+				eventNotes.splice(0, eventNotes.length);
+			}
+			eventNotes = new Array();
+
+			if (curEvents != null) {
+				curEvents.splice(0, curEvents.length);
+			}
+			curEvents = new Array();
+
+			// Clear all notes from playfields
+			for (field in playfields.members) {
+				try {
+					field.clearDeadNotes();
+				} catch(e) {
+					trace('Error clearing dead notes from field: $e');
+				}
+				field.spawnedNotes = [];
+				field.noteQueue = [[], [], [], []];
+			}
+
+			// Clear note graphics
+			if (notes != null) {
+				try {
+					notes.forEachAlive(function(note:Note) {
+						if (note != null) note.destroy();
+					});
+					notes.clear();
+				} catch(e) {}
+			}
+
+			generatedMusic = false;
+			generateChart();
+			return;
+		}
 
 		trace('PlayState: Preloaded chart integration completed');
 	}
