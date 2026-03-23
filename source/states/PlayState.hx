@@ -776,7 +776,7 @@ class PlayState extends MusicBeatState
 		#if ARCHIPELAGO_ALLOWED
 		if (inArchipelagoMode && !(this is archipelago.APPlayState) && !isLegacyLuaTest && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
 		{
-			FlxG.switchState(new archipelago.APPlayState());
+			LoadingState.loadAndSwitchState(new archipelago.APPlayState(curPlaylist, curSonglist));
 		}
 		#end
 		if (isWarmUp || isPlaylist) {
@@ -9574,14 +9574,14 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 					#if ARCHIPELAGO_ALLOWED
 					if (archipelago.APEntryState.inArchipelagoMode && nextState != null) {
-						FlxG.switchState(nextState);
+						LoadingState.loadAndSwitchState(nextState);
 					} else if (archipelago.APEntryState.inArchipelagoMode) {
-						FlxG.switchState(new archipelago.APPlayState(null, curSonglist));
+						LoadingState.loadAndSwitchState(new archipelago.APPlayState(null, curSonglist));
 					} else {
-						FlxG.switchState(new PlayState(null, curSonglist));
+						LoadingState.loadAndSwitchState(new PlayState(null, curSonglist));
 					}
 					#else
-					FlxG.switchState(new PlayState(null, curSonglist));
+					LoadingState.loadAndSwitchState(new PlayState(null, curSonglist));
 					#end
 				}
 			}
