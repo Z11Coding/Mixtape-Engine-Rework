@@ -24,6 +24,7 @@ import states.TitleState;
 	public var lowQuality:Bool = false;
 	public var trashMode:Bool = false;
 	public var ultratrashMode:Bool = false;
+	public var ogultratrashMode:Bool = false;
 	public var shaders:Bool = true;
 	public var cacheOnGPU:Bool = false; // GPU Caching made by Raltyro // its buggy lol
 	public var framerate:Int = 60;

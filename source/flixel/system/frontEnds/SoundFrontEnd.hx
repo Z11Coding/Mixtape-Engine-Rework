@@ -193,7 +193,7 @@ class SoundFrontEnd
 
 		sound.group = (group == null) ? defaultSoundGroup : group;
 
-    if (ClientPrefs.data.ultratrashMode) {
+    if (ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
       if (sound != null && sound.playing) {
 				if (afs == null) {
 					afs = new FlxSoundFilter();

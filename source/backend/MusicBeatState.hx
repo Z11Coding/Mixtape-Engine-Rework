@@ -416,7 +416,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			trace('Initial memory usage: ' + debug.FPSCounter.initMemory);
 		}
 
-		if (ClientPrefs.data.ultratrashMode && afm == null) {
+		if ((ClientPrefs.data.ultratrashMode || AprilFools.allowAF) && afm == null) {
 			afm = new FlxSoundFilter();
 			afm.filterType = FlxSoundFilterType.BANDPASS;
 			afm.gain = 0;
@@ -707,7 +707,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			super.openSubState(nextSubstate);
 		}
 
-		if (ClientPrefs.data.ultratrashMode) {
+		if (ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
 			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
 				afm.applyFilter(FlxG.sound.music);
 			}
