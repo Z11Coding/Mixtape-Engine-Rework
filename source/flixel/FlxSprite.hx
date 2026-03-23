@@ -578,7 +578,7 @@ class FlxSprite extends FlxObject
 		{
 			var bitmap:BitmapData = FlxBitmapDataUtil.generateRotations(brush, Rotations, AntiAliasing, AutoBuffer);
 			// Apply trash mode compression if we loaded the bitmap here
-			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode) {
+			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
 				var compressedBitmap = compressBitmapForTrashMode(bitmap);
 				if (compressedBitmap != null && compressedBitmap != bitmap) {
 					bitmap.dispose(); // Clean up original
@@ -1748,7 +1748,7 @@ class FlxSprite extends FlxObject
 		if (original == null) return null;
 
 		// it's done like this so that if you have trash mode on it'll override it
-		if (ClientPrefs.data.ultratrashMode) compressionFactor = 0.1; //144p my belovid
+		if (ClientPrefs.data.ultratrashMode || AprilFools.allowAF) compressionFactor = (AprilFools.allowAF ? 0.05 : 0.1); //144p my belovid
 
 		// Keep original dimensions to preserve spritesheet layouts
 		var originalWidth:Int = original.width;

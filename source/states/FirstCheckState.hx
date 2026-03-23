@@ -126,6 +126,11 @@ class FirstCheckState extends MusicBeatState
 			#end
 		}
 
+		if (AprilFools.allowAF)
+			ClientPrefs.data.ultratrashMode = true;
+		else
+			ClientPrefs.data.ultratrashMode = ClientPrefs.data.ogultratrashMode;
+
 		if(Main.fpsVar != null) {
 			Main.fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");
 		}

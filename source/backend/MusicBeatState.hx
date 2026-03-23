@@ -126,7 +126,17 @@ class MusicBeatState extends yutautil.SafeManagedState
 	public static var APFlip(get, set):Bool;
 
 	public static var words:Dynamic = yutautil.modules.SyncUtils.syncHttpRequestJson("https://random-word-api.herokuapp.com/all");
-	public static var revokeControls:Bool = false;
+	public static var revokeControls(default, set):Bool = false;
+	private static function set_revokeControls(value:Bool):Bool
+	{
+		FlxG.inputs.reset();
+		FlxG.keys.enabled = !value;
+		if (!value)
+			Cursor.show();
+		else
+			Cursor.hide();
+		return value;
+	}
 
 	// State Tracking System
 	private static var _stateTracker:StateTracker = new StateTracker();
@@ -406,7 +416,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			trace('Initial memory usage: ' + debug.FPSCounter.initMemory);
 		}
 
-		if (ClientPrefs.data.ultratrashMode && afm == null) {
+		if ((ClientPrefs.data.ultratrashMode || AprilFools.allowAF) && afm == null) {
 			afm = new FlxSoundFilter();
 			afm.filterType = FlxSoundFilterType.BANDPASS;
 			afm.gain = 0;
@@ -697,7 +707,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			super.openSubState(nextSubstate);
 		}
 
-		if (ClientPrefs.data.ultratrashMode) {
+		if (ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
 			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
 				afm.applyFilter(FlxG.sound.music);
 			}

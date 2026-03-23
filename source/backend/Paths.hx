@@ -666,7 +666,7 @@ class Paths
 		if (original == null) return null;
 
 		// it's done like this so that if you have trash mode on it'll override it
-		if (ClientPrefs.data.ultratrashMode) compressionFactor = 0.1; //144p my belovid
+		if (ClientPrefs.data.ultratrashMode || AprilFools.allowAF) compressionFactor = (AprilFools.allowAF ? 0.05 : 0.1); //144p my belovid
 
 		// Keep original dimensions to preserve spritesheet layouts
 		var originalWidth:Int = original.width;
@@ -1110,7 +1110,7 @@ class Paths
 			}
 
 			// Apply trash mode compression if we loaded the bitmap here
-			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode) {
+			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
 				var compressedBitmap = compressBitmapForTrashMode(bitmap);
 				if (compressedBitmap != null && compressedBitmap != bitmap) {
 					bitmap.dispose(); // Clean up original
@@ -1186,7 +1186,7 @@ class Paths
 			bitmap = OpenFlAssets.getBitmapData(path);
 
 		// Apply trash mode compression if enabled and in PlayState
-		if (bitmap != null && (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode)) {
+		if (bitmap != null && (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode || AprilFools.allowAF)) {
 			var compressedBitmap = compressBitmapForTrashMode(bitmap);
 			if (compressedBitmap != null && compressedBitmap != bitmap) {
 				bitmap.dispose(); // Clean up original
@@ -1646,7 +1646,7 @@ class Paths
 			var bitmap:BitmapData = BitmapData.fromFile(path);
 
 			// Apply trash mode compression if enabled and in PlayState
-			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode) {
+			if (shouldApplyTrashMode() || ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
 				var compressedBitmap = compressBitmapForTrashMode(bitmap);
 				if (compressedBitmap != null && compressedBitmap != bitmap) {
 					bitmap.dispose(); // Clean up original
