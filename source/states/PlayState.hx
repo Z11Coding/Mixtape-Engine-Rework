@@ -9392,7 +9392,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						camHUD.alpha -= 1 / 10;
 					}, 10);
 
-					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay') && !ClientPrefs.getGameplaySetting('showcase', false)) {
+					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay') && !ClientPrefs.getGameplaySetting('showcase', false) && !archipelago.APEntryState.inArchipelagoMode) {
 						Highscore.savePlaylistScore(curPlaylist.playlistName, campaignScore);
 						FlxG.save.flush();
 					}
@@ -9578,10 +9578,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					} else if (archipelago.APEntryState.inArchipelagoMode) {
 						LoadingState.loadAndSwitchState(new archipelago.APPlayState(null, curSonglist));
 					} else {
-						LoadingState.loadAndSwitchState(new PlayState(null, curSonglist));
+						LoadingState.loadAndSwitchState(new PlayState(curPlaylist, curSonglist));
 					}
 					#else
-					LoadingState.loadAndSwitchState(new PlayState(null, curSonglist));
+					LoadingState.loadAndSwitchState(new PlayState(curPlaylist, curSonglist));
 					#end
 				}
 			}

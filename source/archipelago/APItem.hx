@@ -561,8 +561,8 @@ class APItem {
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
-                                APPlayState.instance.playfields.forEach(function(pf) {
-                                    pf.autoPlayed = true;
+                                APPlayState.instance.allNotes.forEach(function(note) {
+                                    note.botNote = true;
                                 });
                             }, false, false, true, true);
                         } else {
