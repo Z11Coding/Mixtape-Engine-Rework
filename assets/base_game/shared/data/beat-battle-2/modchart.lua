@@ -9,19 +9,21 @@ function onCreatePost()
     makeGraphic("black", screenWidth, screenHeight, '000000')
     setObjectCamera('black', 'hud')
     addLuaSprite('black', true)
-    if (shadersEnabled) then
+
+    if shadersEnabled then
         initLuaShader('old timer')
         makeLuaSprite("oldtimer")
         makeGraphic("oldtimer", screenWidth, screenHeight, '000000')
         setSpriteShader("oldtimer", "old timer")
     end
+
     if not middlescroll then
         setValue('transformX', -315, 0)
     end
 end
 
 function onSongStart()
-    
+
 end
 
 function onUpdatePost(elapsed)
@@ -99,50 +101,46 @@ function onStepHit()
             effectSwitcher('rotato')
         end
     end
-    
+
     if curStep == 32 then
         doTweenAlpha('reveal', 'black', 0, stepCrochet*0.001*128, 'sineInOut')
     end
 
-    if (shadersEnabled) then
+    if shadersEnabled then
         runHaxeCode([[
-            import openfl.filters.ShaderFilter;
-            function onStepHit()
+            if (game.curStep == 1)
             {
-                if (curStep == 1)
-                {
-                    game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                    game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                }
-                if (curStep == 284)
-                {
-                    game.camGame.setFilters([]);
-                    game.camHUD.setFilters([]);
-                }
-                if (curStep == 732)
-                {
-                    game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                    game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                }
-                if (curStep == 864)
-                {
-                    game.camGame.setFilters([]);
-                    game.camHUD.setFilters([]);
-                }
-                if (curStep == 1120)
-                {
-                    game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                    game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
-                }
-                if (curStep == 1184)
-                {
-                    game.camGame.setFilters([]);
-                    game.camHUD.setFilters([]);
-                }
+                game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
+                game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
+            }
+            if (game.curStep == 284)
+            {
+                game.camGame.setFilters([]);
+                game.camHUD.setFilters([]);
+            }
+            if (game.curStep == 732)
+            {
+                game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
+                game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
+            }
+            if (game.curStep == 864)
+            {
+                game.camGame.setFilters([]);
+                game.camHUD.setFilters([]);
+            }
+            if (game.curStep == 1120)
+            {
+                game.camGame.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
+                game.camHUD.setFilters([new ShaderFilter(game.getLuaObject("oldtimer").shader)]);
+            }
+            if (game.curStep == 1184)
+            {
+                game.camGame.setFilters([]);
+                game.camHUD.setFilters([]);
             }
         ]]);
     end
-        
+
     if curStep == 284 then
         setObjectCamera('black', 'other')
         setProperty('black.alpha', 1)

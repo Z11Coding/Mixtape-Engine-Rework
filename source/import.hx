@@ -86,6 +86,7 @@ import stages.BaseStage;
 import states.LoadingState;
 import states.PlayState;
 import states.editors.SourceEditorState;
+import yutautil.AprilFools;
 import yutautil.ChanceSelector;
 import yutautil.ImprovedFileHandling;
 import yutautil.YScript;

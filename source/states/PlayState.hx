@@ -13531,7 +13531,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 
 			generatedMusic = false;
-			generateChart();
+			generateSong(true);
 			return;
 		}
 

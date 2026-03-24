@@ -537,7 +537,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			Mods.loadModDir(FreeplayThings.LAST_MOD.mod_dir); // ? make sure to load a mod dir of this character!
 			if (!ClientPrefs.data.lowQuality)
 			{
-				dj = new FreeplayDJ((CUTOUT_WIDTH * DJ_POS_MULTI) + 640, 366, currentCharacter);
+				dj = new FreeplayDJ((CUTOUT_WIDTH * DJ_POS_MULTI), 366, currentCharacter);
 				exitMovers.set([dj], {
 					x: -dj.width * 1.6,
 					speed: 0.5

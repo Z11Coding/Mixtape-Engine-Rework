@@ -1857,32 +1857,109 @@ class FunkinLua {
 			return tag;
 		}
 		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});*/
+		if(PlayState.instance == null) return null;
+
+		/*var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+		if(strumNote == null) return null;
+
+		for (field in PlayState.instance.playfields.members) {
+			if (field.strumNotes.contains(strumNote)) {
+				var i = field.strumNotes.indexOf(strumNote);
+				if (i != -1) {
+					strumNote = field.strumNotes[i];
+				}
+			}
+		}
+
+		if(tag != null)
+		{
+			var originalTag:String = tag;
+			tag = LuaUtils.formatVariable('tween_$tag');
+			LuaUtils.cancelTween(tag);
+
+			var variables = MusicBeatState.getVariables();
+			variables.set(tag, FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease),
+				onComplete: function(twn:FlxTween)
+				{
+					variables.remove(tag);
+					if(PlayState.instance != null) PlayState.instance.callOnLuas('onTweenCompleted', [originalTag]);
+				}
+			}));
+			return tag;
+		}
+		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});*/
+
 		if (ClientPrefs.data.modcharts) {
-			note+=(PlayState.mania+1);
+			var keys:Int = PlayState.mania + 1;
+
+			// use original note index
+			var originalNote:Int = note;
+
+			// determine player + lane
+			var player:Int = 1 - Std.int(originalNote / keys);
+			var lane:Int = originalNote % keys;
+
+			// clamp just in case
+			if (player < 0) player = 0;
+			if (player >= PlayState.instance.playfields.members.length) {
+				player = PlayState.instance.playfields.members.length - 1;
+			}
+
+			var field = PlayState.instance.playfields.members[player];
+
 			var whoWeTweening:String = '';
 			var whoElseWeTweening:String = '';
 			var howMuchWeTweening:Float = 0;
+
 			if (data.x != null) {
-				whoWeTweening = 'transform${note%(PlayState.mania+1)}X';
-				howMuchWeTweening = PlayState.instance.playfields.members[(note > 3 ? 1 : 0)].getBaseX((note%(PlayState.mania+1))) - (data.x/1.5);
-			} else if (data.y != null) {
-				whoWeTweening = 'transform${note%(PlayState.mania+1)}Y';
-				howMuchWeTweening = PlayState.instance.playfields.members[(note > 3 ? 1 : 0)].getBaseY((note%(PlayState.mania+1))) + data.y;
-			} else if (data.angle != null) {
-				whoWeTweening = 'note${note%(PlayState.mania+1)}AngleX';
-				whoElseWeTweening = 'receptor${note%(PlayState.mania+1)}AngleX';
+				var psychDefaults = [731.0, 843.0, 956.0, 1068.0];
+				var mixtapeDefaults = [1438.0, 1656.0, 1874.0, 2091.0];
+
+				var psychDefaultX:Float = psychDefaults[lane];
+				var mixtapeDefaultX:Float = mixtapeDefaults[lane];
+
+				var translatedX:Float = mixtapeDefaultX + (data.x - psychDefaultX);
+
+				whoWeTweening = 'transform${lane}X';
+				howMuchWeTweening = translatedX - field.getBaseX(lane);
+			}
+			else if (data.y != null) {
+				whoWeTweening = 'transform${lane}Y';
+				howMuchWeTweening = field.getBaseY(lane) + data.y;
+			}
+			else if (data.angle != null) {
+				whoWeTweening = 'note${lane}AngleX';
+				whoElseWeTweening = 'receptor${lane}AngleX';
 				howMuchWeTweening = data.angle;
-			} else if (data.direction != null) {
-				whoWeTweening = 'scrollAngle${note%(PlayState.mania+1)}';
+			}
+			else if (data.direction != null) {
+				whoWeTweening = 'scrollAngle${lane}';
 				howMuchWeTweening = data.direction;
 			}
 
 			PlayState.instance.forceModSyncOff = true;
+			if (duration>0)duration+=1.5;
 			@:privateAccess
-			PlayState.instance.modManager.queueEaseL(PlayState.instance.curStep, duration, whoWeTweening, howMuchWeTweening, ease, (note > 3 ? 1 : 0));
+			PlayState.instance.modManager.queueEaseL(
+				PlayState.instance.curStep,
+				duration,
+				whoWeTweening,
+				howMuchWeTweening,
+				ease,
+				player
+			);
+
 			if (whoElseWeTweening != '') @:privateAccess
-				PlayState.instance.modManager.queueEaseL(PlayState.instance.curStep, duration, whoElseWeTweening, howMuchWeTweening, ease, (note > 3 ? 1 : 0));
+				PlayState.instance.modManager.queueEaseL(
+					PlayState.instance.curStep,
+					duration,
+					whoElseWeTweening,
+					howMuchWeTweening,
+					ease,
+					player
+				);
 		}
+
 		return null;
 	}
 

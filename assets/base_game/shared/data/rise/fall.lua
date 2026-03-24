@@ -1,10 +1,10 @@
-function loadModchart()
+function generateModchart()
     if getPropertyFromClass('backend.ClientPrefs', 'data.modcharts') then
-        queueEase(1311, 1316, 'reverse', 1, 'expoInOut', 1, 0)
-        queueEase(1375, 1380, 'reverse', 1, 'expoInOut', 0, 0)
+        queueEase(1311, 1316, 'reverse', 1, 'sineIn', 1, 0)
+        queueEase(1375, 1380, 'reverse', 1, 'sineIn', 0, 0)
         queueSetP(1407, 'drunk', 75, -1)
-        queueEase(1440, 1444, 'reverse', 0, 'expoInOut', 1, 1)
-        queueEase(1504, 1508, 'reverse', 0, 'expoInOut', 0, 1)
+        queueEase(1440, 1444, 'reverse', 0, 'sineIn', 1, 1)
+        queueEase(1504, 1508, 'reverse', 0, 'sineIn', 0, 1)
     end
 end
 
@@ -169,7 +169,7 @@ function onStepHit()
         if curStep == 2296 then
             speen2 = false
             setValue('boost', 1, -1)
-            setValue('localrotateY', 0, -1)
+            setValue('centerrotateX', 0, -1)
         end
         if curStep == 2944 then
             setPercent('tornado', 0, -1)
@@ -194,10 +194,10 @@ end
 function onUpdate()
     setProperty('gfGroup.alpha', 0)
     if speen then
-        setValue('localrotateY', getValue('localrotateY', whospeen) + 0.5, whospeen)
+        setValue('centerrotateX', getValue('centerrotateX', whospeen) + 0.5, whospeen)
     end
     if speen2 then
-        setValue('localrotateY', getValue('localrotateY', 0) + 0.5, -1)
+        setValue('centerrotateX', getValue('centerrotateX', 0) + 0.5, -1)
     end
 
     if mustHitSection then whospeen = 1 else whospeen = 0 end
