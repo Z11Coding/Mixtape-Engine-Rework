@@ -2,7 +2,7 @@
 sample-type=float32
 channels=stereo
 stereo-mode=auto
-stereo-encoding=uhj
+stereo-encoding=tsme
 hrtf=false
 cf_level=0
 resampler=fast_bsinc24
