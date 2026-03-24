@@ -47,7 +47,6 @@ class MainMenuState extends MusicBeatState
 	var optionShit:Array<String> = [
 		'story_mode',
 		'freeplay',
-		'playlist',
 		#if MODS_ALLOWED 'mods', #end
 		'credits'
 	];
@@ -560,8 +559,6 @@ class MainMenuState extends MusicBeatState
 							item.visible = true;
 						case 'archipelago':
 							archipelago.APVersionSelectionState.smartLaunch();
-						case 'playlist':
-							MusicBeatState.switchState(new PlaylistState());
 						default:
 							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;

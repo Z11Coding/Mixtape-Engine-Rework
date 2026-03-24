@@ -27,7 +27,7 @@ class CategoryState extends MusicBeatState
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
 	public var menuItems:Array<String> = [
-		"All", "Base", "Erect", "Pico"
+		"All", "Base", "Erect", "Pico", "Playlist"
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;
@@ -548,6 +548,11 @@ class CategoryState extends MusicBeatState
 				// Handle Legacy Lua override mode
 				if (legacyLuaMode != null) {
 					handleLegacyLuaOverride();
+					return;
+				}
+
+				if (loadWeekForce == 'playlist') {
+					MusicBeatState.switchState(new PlaylistState());
 					return;
 				}
 
