@@ -4227,7 +4227,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "songBundleWeight", bundleWeight);
 		Reflect.setField(yamlThing, "songBundleMinSize", bundleMinSize);
 		Reflect.setField(yamlThing, "songBundleMaxSize", bundleMaxSize);
-		if (bundleLimit > 0)
+		if (bundleLimit != 0)
 			Reflect.setField(yamlThing, "songBundleLimit", bundleLimit);
 
 		// Handle optional song settings
