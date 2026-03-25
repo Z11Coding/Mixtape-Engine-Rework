@@ -600,7 +600,7 @@ class PlaylistState extends MusicBeatState {
 				Mods.loadTopMod();
 				WeekData.reloadWeekFiles();
 				if (shufflePlaylist) {
-					FlxG.random.shuffle(selectedPlaylist.songList.copy());
+					selectedPlaylist.songList = FlxG.random.shuffle(selectedPlaylist.songList.copy());
 				}
 				// PlayState.curPlaylist = selectedPlaylist;
 				// PlayState.curSonglist = selectedPlaylist.songList;

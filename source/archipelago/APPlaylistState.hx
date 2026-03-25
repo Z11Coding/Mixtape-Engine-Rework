@@ -335,7 +335,7 @@ class APPlaylistState extends MusicBeatState {
 				Mods.loadTopMod();
 				WeekData.reloadWeekFiles();
 				if (shufflePlaylist) {
-					FlxG.random.shuffle(selectedPlaylist.songList);
+					selectedPlaylist.songList = FlxG.random.shuffle(selectedPlaylist.songList.copy());
 				}
 
 				var firstSong = selectedPlaylist.songList[0];
