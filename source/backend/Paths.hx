@@ -1417,8 +1417,48 @@ class Paths
 	}
 
 	#if MODS_ALLOWED
-	inline static public function mods(key:String = '')
-		return 'mods/' + key;
+	inline static public function mods(key:String = ''):String { // Don't remove it this time, Z11.
+		var path = 'mods/' + key;
+		if (!FileSystem.exists('mods/')) {
+
+			trace('Creating mods folder...');
+			FileSystem.createDirectory('mods/');
+			for (folder in Mods.ignoreModFolders) {
+				var folderPath = 'mods/' + folder;
+				if (!FileSystem.exists(folderPath)) {
+					FileSystem.createDirectory(folderPath);
+				}
+
+
+		for (folder in Mods.ignoreModFolders) {
+			var folderPath = 'mods/' + folder;
+			if (!FileSystem.exists(folderPath)) {
+				FileSystem.createDirectory(folderPath);
+			}
+		}
+
+		for (folder in Mods.ignoreModFolders) {
+			var folderPath = 'mods/' + folder;
+			if (FileSystem.exists(folderPath)) {
+				FileSystem.deleteDirectory(folderPath);
+			}
+		}
+
+			File.saveBytes('mods/modTemplate.zip', haxe.Resource.getBytes('modTemp'));
+		}
+
+		// Create root playlists folder if it doesn't exist
+		if (!FileSystem.exists('playlists/')) {
+			trace('Creating root playlists folder...');
+			FileSystem.createDirectory('playlists/');
+		}
+
+		return path;
+	}
+
+		return path;
+	}
+
 
 	inline static public function modsJson(key:String)
 		return modFolders('data/' + key + '.json');

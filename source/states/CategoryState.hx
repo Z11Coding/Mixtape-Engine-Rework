@@ -27,7 +27,7 @@ class CategoryState extends MusicBeatState
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
 	public var menuItems:Array<String> = [
-		"All", "Base", "Erect", "Pico", "Playlist"
+		"All", "Base", "Erect", "Pico", "Playlists"
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;
@@ -551,7 +551,7 @@ class CategoryState extends MusicBeatState
 					return;
 				}
 
-				if (loadWeekForce == 'playlist') {
+				if (loadWeekForce == 'playlists') {
 					MusicBeatState.switchState(new PlaylistState());
 					return;
 				}

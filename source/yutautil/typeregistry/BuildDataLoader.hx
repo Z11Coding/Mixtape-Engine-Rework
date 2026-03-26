@@ -3,6 +3,7 @@ package yutautil.typeregistry;
 #if macro
 class BuildDataLoader {
     public static function initialize():Bool return false;
+    public static function isInitialized():Bool return false;
     public static function getDataSource():String return "none";
     public static function getAllClasses():Array<String> return [];
     public static function getClassInfo(className:String):Dynamic return null;
@@ -161,6 +162,14 @@ class BuildDataLoader {
             trace('BuildDataLoader: Error during initialization: $e');
             return false;
         }
+    }
+
+    /**
+     * Check if the build data loader has been initialized
+     * Does NOT check if data is ready - only checks if initialization was attempted
+     */
+    public static function isLoaded():Bool {
+        return isInitialized;
     }
 
     /**

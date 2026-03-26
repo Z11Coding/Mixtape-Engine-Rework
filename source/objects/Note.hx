@@ -76,28 +76,33 @@ class Note extends NoteObject
 	public var noteReflection(get, set):Dynamic;
 
 	private function get_noteReflection():Dynamic {
-		return {
-			strumTime: this.strumTime,
-			mustPress: this.mustPress,
-			canBeHit: this.canBeHit,
-			tooLate: this.tooLate,
-			botNote: this.botNote,
-			wasGoodHit: this.wasGoodHit,
-			missed: this.missed,
-			ignoreNote: this.ignoreNote,
-			hitByOpponent: this.hitByOpponent,
-			noteType: this.noteType,
-			alpha: this.alpha,
-			owner: this.owner,
-			x: this.x,
-			y: this.y,
-			rgb: {
-				r: this.rgbShader.r,
-				g: this.rgbShader.g,
-				b: this.rgbShader.b
-			},
-			texture: this.texture
-		};
+		return try {
+				{
+					strumTime: this.strumTime,
+					mustPress: this.mustPress,
+					canBeHit: this.canBeHit,
+					tooLate: this.tooLate,
+					botNote: this.botNote,
+					wasGoodHit: this.wasGoodHit,
+					missed: this.missed,
+					ignoreNote: this.ignoreNote,
+					hitByOpponent: this.hitByOpponent,
+					noteType: this.noteType,
+					alpha: this.alpha,
+					owner: this.owner,
+					x: this.x,
+					y: this.y,
+					rgb: {
+						r: this.rgbShader.r,
+						g: this.rgbShader.g,
+						b: this.rgbShader.b
+					},
+					texture: this.texture
+				}
+			} catch (e:Dynamic) {
+				// trace("An error occurred while getting the value of note.");
+				null;
+			}
 	}
 
 	private function set_noteReflection(value:Dynamic):Dynamic {
@@ -671,6 +676,7 @@ class Note extends NoteObject
 									// Leave -1 if it should be automatically determined based on mustPress and placed into either bf or dad's based on that.
 									// Note that holds automatically have this set to their parent's fieldIndex
 	public var field:PlayField; // same as fieldIndex but lets you set the field directly incase you wanna do that i  guess
+	public var finalized:Bool = false; // If true, note has been finalized and is ready to spawn; if false, finalization is deferred to playfield spawn
 	private function set_scrollSpeed(value:Float):Float {
 		scrollSpeed = value;
 		return value;
@@ -1103,6 +1109,7 @@ class Note extends NoteObject
 			centerOffsets();
 		}
 		//x += offsetX;
+		finalized = true;
 	}
 
 	/**
@@ -1256,6 +1263,8 @@ class Note extends NoteObject
 			centerOffsets();
 		}
 		//x += offsetX;
+		finalized = true;
+
 	}
 
 	public static function initializeGlobalRGBShader(noteData:Int)
@@ -1482,6 +1491,19 @@ class Note extends NoteObject
 		// Draw UNO card elements if this is a UNO note
 		if (extraData != null && extraData.exists("unoCard")) {
 			drawUnoCard();
+		}
+	}
+
+	/**
+	 * Finalizes the note by completing initialization.
+	 * When "Finalize at Birth" is enabled during preload, this defers expensive
+	 * initialization until the note actually spawns into the playfield.
+	 */
+	public function finalize():Void
+	{
+		if (!finalized) {
+			finishNoteInitialization();
+			finalized = true;
 		}
 	}
 

@@ -58,6 +58,9 @@ class PlaylistState extends MusicBeatState {
 	var settingsBox:PsychUIBox;
 	var songListTxt:FlxText;
 	var readyLettersInPosition:Bool = false;
+	var genChallengePlaylistBtn:PsychUIButton;
+	var savePlaylistBtn:PsychUIButton;
+	var isChallengeModeSelection:Bool = false;
 
 	static var shufflePlaylist:Bool = false;
 
@@ -229,37 +232,33 @@ class PlaylistState extends MusicBeatState {
 
 		var sizeMulti:Int = 2;
 
-		var genRandoPlaylist:PsychUIButton = new PsychUIButton(0, (FlxG.height - 50), 'Generate Random Playlist', function()
+		genChallengePlaylistBtn = new PsychUIButton(0, (FlxG.height - 90), 'Generate Challenge Playlist', function()
 		{
-			var amountToGenerate:Int = 3;
-			openSliderControl("How many songs would you like to generate?", 5, 3, FreeplayManager.instance?.songList.length, 1, function(value:Float)
-			{
-				amountToGenerate = Std.int(value);
+			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
+			var generator = new managers.ChallengePlaylistGenerator(this, function(playlist:PlaylistMetadata) {
+				// On generation complete, use the normal playlist selection flow
+				selectedPlaylist = playlist;
+				processPlaylistSelection();
+				return false; // Don't auto-launch, let processPlaylistSelection handle it
+			}, function() {
+				// On generation cancelled, just close the substate
 			});
+			generator.start();
+		}, 80*sizeMulti*2, 20*sizeMulti);
+    genChallengePlaylistBtn.x = FlxG.width / 2 - genChallengePlaylistBtn.width / 2;
+    add(genChallengePlaylistBtn);
 
-			sliderCloseFunc = function() {
-				var challengePlayList:PlaylistMetadata = new PlaylistMetadata('Challenge Run');
-
-				var tempList:Array<managers.FreeplayManager.GlobalSongMetadata> = FreeplayManager.instance.songList;
-				Random.shuffle(tempList);
-				for (song in tempList) {
-					var playlistSong:PlaylistSongMetadata = PlaylistMetadata.convertFreeplaySong(song);
-					playlistSong.difficulty = "`";
-					challengePlayList.songList.push(playlistSong);
-				}
-			};
-
-		}, 80*sizeMulti, 20*sizeMulti);
-    genRandoPlaylist.x = (FlxG.width/2) - genRandoPlaylist.width - 250;
-
-		var genChallengePlaylist:PsychUIButton = new PsychUIButton(0, (FlxG.height - 50), 'Generate Challenge Playlist', function()
+		savePlaylistBtn = new PsychUIButton(0, (FlxG.height - 90), 'Save Challenge Playlist', function()
 		{
-      FlxTransitionableState.skipNextTransIn = true;
-      FlxG.switchState(new PlaylistSelector());
-		}, 80*sizeMulti, 20*sizeMulti);
-    genChallengePlaylist.x = (FlxG.width/2) - genChallengePlaylist.width - 350;
+			FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
+			states.editors.PlaylistEditorState.autoOpenMetaEditor = true;
+			FlxG.switchState(new states.editors.PlaylistEditorState(selectedPlaylist));
+		}, 80*sizeMulti*2, 20*sizeMulti);
+		savePlaylistBtn.x = FlxG.width / 2 - savePlaylistBtn.width / 2;
+		savePlaylistBtn.y = FlxG.height + 100; // Start off-screen
+		add(savePlaylistBtn);
 
-    updateTexts();
+		updateTexts();
 
     super.create();
     changeSelection();
@@ -483,6 +482,172 @@ class PlaylistState extends MusicBeatState {
     FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
   }
 
+	private function processPlaylistSelection():Void
+	{
+		choosePlaylist = true;
+		isChallengeModeSelection = true; // This is a challenge playlist from the generator
+		for (song in selectedPlaylist.songList)
+			songString += '${song.songName}\n';
+
+		songStringOG = songString;
+		songListTxt.text = songString;
+		mainBox.resize(Std.int(songListTxt.width + 50), Std.int(songListTxt.height + 50));
+
+		// Tween buttons off-screen
+		FlxTween.tween(genChallengePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
+		// Tween save button in from the right side
+		FlxTween.tween(savePlaylistBtn, {y: FlxG.height - 90}, 0.6, {ease: FlxEase.sineOut});
+
+		for (item in grpPlaylists.members)
+			FlxTween.tween(item, {alpha: 0, x: -3000}, 1, {ease: FlxEase.sineIn, startDelay: (0.2*item.targetY)});
+		//FlxTween.tween(rank, {alpha: 0, x: -3000}, 1, {ease: FlxEase.sineIn});
+		FlxTween.tween(randomText, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
+		FlxTween.tween(albumPhoto, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
+		FlxTween.tween(difficultyStars, {alpha: 0, x: 3000}, 1, {ease: FlxEase.sineIn});
+		// Tween each letter individually to its final position
+		readyLettersInPosition = false;
+		for (i in 0...readyTxt.letters.length) {
+			var targetY = 550 + readyTxt.letters[i].row * 85;
+			FlxTween.tween(readyTxt.letters[i], {y: targetY}, 2, {
+				ease: FlxEase.elasticOut,
+				startDelay: i * 0.05,
+				onComplete: function(tween) {
+					if (i == readyTxt.letters.length - 1) {
+						readyTxt.y = 550;
+						readyLettersInPosition = true;
+					}
+				}
+			});
+		}
+		FlxTween.tween(settingsBox, {x: 930}, 1, {ease: FlxEase.elasticOut});
+		//FlxTween.tween(searchBar, {y: -3000}, 1, {ease: FlxEase.elasticOut});
+		mainBox.screenCenter();
+		FlxG.sound.music.pause();
+		FlxTimer.wait(0.25, playCurListPreview.bind(selectedPlaylist.songList)); // Wait a little before trying to pull a Inst file
+	}
+
+	private function generateAndPlayChallengePlaylist():Void
+	{
+		// Use WeekData-based song discovery (like APPlaylistState)
+		trace('[ChallengePlaylist] Starting song discovery...');
+		var songList = managers.SongDifficultyEvaluator.discoverAllSongs();
+
+		if (songList.length == 0) {
+			trace('[ChallengePlaylist] No songs found!');
+			openSubState(new Prompt('No songs found!', 1, null, null, false, 'OK'));
+			return;
+		}
+
+		trace('[ChallengePlaylist] Found ${songList.length} total songs');
+
+		// Score all songs by their best/hardest available difficulty
+		var scoredSongs:Array<{songName:String, week:Int, folder:String, score:Float, selectedDiff:String}> = [];
+
+		for (songEntry in songList) {
+			// Get available difficulties for this song
+			var availableDiffs = managers.SongDifficultyEvaluator.getAvailableDifficulties(songEntry.songName, songEntry.folder);
+
+			if (availableDiffs.length == 0) {
+				trace('  -> Skipping ${songEntry.songName}: no difficulties found');
+				continue;
+			}
+
+			// Select best difficulty using weighted system
+			var selectedDiff = managers.SongDifficultyEvaluator.selectChallengeDifficulty(
+				songEntry.songName,
+				availableDiffs,
+				null,
+				songEntry.folder
+			);
+
+			// Score the selected difficulty
+			var score = managers.SongDifficultyEvaluator.calculateDifficultyFromChart(
+				songEntry.songName,
+				selectedDiff,
+				null,
+				songEntry.folder
+			);
+
+			scoredSongs.push({
+				songName: songEntry.songName,
+				week: songEntry.week,
+				folder: songEntry.folder,
+				score: score,
+				selectedDiff: selectedDiff
+			});
+		}
+
+		trace('[ChallengePlaylist] Scored ${scoredSongs.length} songs, selecting hardest...');
+
+		if (scoredSongs.length == 0) {
+			openSubState(new Prompt('No playable songs found for challenge mode!', 1, null, null, false, 'OK'));
+			return;
+		}
+
+		// Sort by difficulty (hardest first)
+		scoredSongs.sort((a, b) -> b.score - a.score > 0 ? 1 : -1);
+
+		// Select hardest songs with some variation (top 35%)
+		var selectedCount:Int = Std.int(Math.ceil(scoredSongs.length * 0.35));
+		var selectedSongs:Array<{songName:String, difficulty:String, folder:String}> = [];
+
+		// Select from top tier with some randomization
+		for (i in 0...selectedCount) {
+			if (i < scoredSongs.length) {
+				// Add some variance: prefer top tier but allow picking from next tier down
+				var tierSize:Int = Std.int(Math.max(1, Math.ceil(scoredSongs.length * 0.2)));
+				var songIndex:Int = Std.int(Math.floor(i / tierSize) * tierSize) + FlxG.random.int(0, tierSize - 1);
+				songIndex = Std.int(Math.min(songIndex, scoredSongs.length - 1));
+
+				var selectedSong = scoredSongs[songIndex];
+
+				selectedSongs.push({
+					songName: selectedSong.songName,
+					difficulty: selectedSong.selectedDiff,
+					folder: selectedSong.folder
+				});
+			}
+		}
+
+		// Shuffle the selected songs
+		FlxG.random.shuffle(selectedSongs);
+
+		// Create the challenge playlist
+		var challengePlaylist = new PlaylistMetadata('CHALLENGE RUN');
+		for (entry in selectedSongs) {
+			var playlistSong = new PlaylistSongMetadata(entry.songName, 0, "", [], entry.difficulty);
+			playlistSong.folder = entry.folder;
+			challengePlaylist.songList.push(playlistSong);
+		}
+
+		// Play the challenge playlist immediately
+		if (challengePlaylist.songList.length > 0) {
+			trace('[ChallengePlaylist] Starting with ${challengePlaylist.songList.length} songs');
+			PlayState.campaignMisses = 0;
+			PlayState.campaignScore = 0;
+			PlayState.isPlaylist = true;
+			PlayState.altInstrumentals = null;
+			Mods.loadTopMod();
+			WeekData.reloadWeekFiles();
+
+			var songLowercase:String = Paths.formatToSongPath(challengePlaylist.songList[0].songName);
+			Mods.currentModDirectory = challengePlaylist.songList[0].folder != null ? challengePlaylist.songList[0].folder : '';
+			PlayState.storyWeek = 0;
+			Song.loadFromJson('${songLowercase}${(challengePlaylist.songList[0].difficulty.toLowerCase() != "normal" ? "-"+challengePlaylist.songList[0].difficulty.toLowerCase() : "")}', songLowercase);
+
+			if (PlayState.SONG == null) {
+				trace('[ChallengePlaylist] Failed to load first song!');
+				openSubState(new Prompt('Failed to load challenge playlist song!', 1, null, null, false, 'OK'));
+				return;
+			}
+
+			LoadingState.prepareToSong();
+			LoadingState.loadAndSwitchState(new PlayState(challengePlaylist));
+		} else {
+			openSubState(new Prompt('Failed to generate challenge playlist!', 1, null, null, false, 'OK'));
+		}
+	}
+
 	var holdTime:Float = 0;
 	var choosePlaylist:Bool = false;
 	var e:Float = 0;
@@ -558,14 +723,26 @@ class PlaylistState extends MusicBeatState {
 				return;
 			}
 			if (!choosePlaylist) {
+				// Check if playlist is empty - if so, go to edit instead
+				if (loadedPlaylists[curSelected].songList.length == 0) {
+					states.editors.PlaylistEditorState.autoOpenMetaEditor = true;
+					FlxG.switchState(new states.editors.PlaylistEditorState(loadedPlaylists[curSelected]));
+					return;
+				}
 				choosePlaylist = true;
 				selectedPlaylist = loadedPlaylists[curSelected].copy();
+				isChallengeModeSelection = false; // Normal playlist selection, not from challenge generator
 				for (song in selectedPlaylist.songList)
 					songString += '${song.songName}\n';
 
 				songStringOG = songString;
 				songListTxt.text = songString;
 				mainBox.resize(Std.int(songListTxt.width + 50), Std.int(songListTxt.height + 50));
+				
+				// Tween both buttons off-screen
+				FlxTween.tween(genChallengePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
+				FlxTween.tween(savePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
+				
 				for (item in grpPlaylists.members)
 					FlxTween.tween(item, {alpha: 0, x: -3000}, 1, {ease: FlxEase.sineIn, startDelay: (0.2*item.targetY)});
 				//FlxTween.tween(rank, {alpha: 0, x: -3000}, 1, {ease: FlxEase.sineIn});
@@ -600,7 +777,8 @@ class PlaylistState extends MusicBeatState {
 				Mods.loadTopMod();
 				WeekData.reloadWeekFiles();
 				if (shufflePlaylist) {
-					selectedPlaylist.songList = FlxG.random.shuffle(selectedPlaylist.songList.copy());
+					selectedPlaylist = selectedPlaylist.copy();
+					FlxG.random.shuffle(selectedPlaylist.songList);
 				}
 				// PlayState.curPlaylist = selectedPlaylist;
 				// PlayState.curSonglist = selectedPlaylist.songList;
@@ -617,7 +795,7 @@ class PlaylistState extends MusicBeatState {
 			FlxG.sound.play(Paths.sound('cancelMenu'), 0.5);
 			if (!choosePlaylist) {
 				FlxTransitionableState.skipNextTransIn = true;
-				MusicBeatState.switchState(new MainMenuState());
+				MusicBeatState.switchState(new states.CategoryState());
 			} else {
 				Mods.loadTopMod();
 				Mods.currentModDirectory = '';
@@ -625,12 +803,11 @@ class PlaylistState extends MusicBeatState {
 				songString = "";
 				songStringOG = "";
 				selectedPlaylist = null;
-				for (item in grpPlaylists.members)
-					FlxTween.tween(item, {alpha: 1, x: 0}, 1, {ease: FlxEase.elasticOut, startDelay: (0.2*item.targetY), onComplete: function(t:FlxTween) {
-						updateTexts(elapse);
-						changeSelection();
-						choosePlaylist = false;
-					}});
+				isChallengeModeSelection = false;
+				
+				// Tween buttons back/out of view
+				FlxTween.tween(genChallengePlaylistBtn, {y: FlxG.height - 90}, 0.6, {ease: FlxEase.sineOut});
+				FlxTween.tween(savePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
 				//FlxTween.tween(rank, {alpha: 1, x: 90}, 2, {ease: FlxEase.sineIn});
 				FlxTween.tween(randomText, {alpha: 1, x: 90}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(albumPhoto, {alpha: 1, x: 930}, 1, {ease: FlxEase.sineIn});
@@ -703,9 +880,19 @@ class PlaylistState extends MusicBeatState {
     for (i in 0...loadedPlaylists.length) {
 			if (loadedPlaylists[i] != null) {
 				var listText:Alphabet = null;
-				listText = new DynamicAlphabet(90, 320, loadedPlaylists[i].playlistName, true, true);
+				// Use formatted display name that includes mod/source information
+				var displayName = loadedPlaylists[i].getDisplayName();
+				listText = new DynamicAlphabet(90, 320, displayName, true, true);
 				listText.doShuffle = AprilFools.allowAF ? FlxG.random.bool(10) : false;
 				listText.targetY = i;
+				// Color based on playlist state
+				if (loadedPlaylists[i].songList.length == 0) {
+					// Empty playlists are dark grey
+					listText.color = FlxColor.fromRGB(128, 128, 128);
+				} else if (loadedPlaylists[i].isWarmup) {
+					// Warmup playlists are golden
+					listText.color = FlxColor.fromRGB(255, 215, 0);
+				}
 				grpPlaylists.add(listText);
 			} else {
 				trace('Playlist ${loadedPlaylists[i]} at index ${i} was null!');
@@ -841,6 +1028,8 @@ class PlaylistState extends MusicBeatState {
 			var playlistObject:PlaylistMetadataObject = cast haxe.Json.parse(rawJson);
 			//trace(playlistObject);
 			var playlistResult:PlaylistMetadata = PlaylistMetadata.convertFromObject(playlistObject);
+			// Set the file path to track where this playlist was loaded from
+			playlistResult.jsonPath = path;
 			return playlistResult;
 		} else {
 			if(rawJson == null)
@@ -1003,14 +1192,16 @@ class PlaylistMetadata
 	public var color:Array<Dynamic> = [];
 	public var songList:Array<PlaylistSongMetadata> = [];
 	public var jsonPath:String = null;
-	public function new(?playlistName:String = 'unnamed playlist', ?bg:String = 'menuDesat', ?icon:String = 'bf', ?album:String = 'nocover', ?color:Array<Dynamic>, ?songList:Array<PlaylistSongMetadata>)
+	public var isWarmup:Bool = false;
+	public function new(?playlistName:String = 'unnamed playlist', ?bg:String = 'menuDesat', ?icon:String = 'bf', ?album:String = 'nocover', ?color:Array<Dynamic>, ?songList:Array<PlaylistSongMetadata>, ?isWarmup:Bool = false)
 	{
 		this.playlistName = playlistName;
 		this.bg = bg;
 		this.icon = icon;
 		this.album = album;
 		this.color = color;
-		this.songList = songList;
+		this.songList = songList ?? [];
+		this.isWarmup = isWarmup;
 	}
 
 	//TODO: Optimize the actual frick out of this holy mother of duck tape and prayer
@@ -1043,13 +1234,80 @@ class PlaylistMetadata
 
 	public inline function copy():PlaylistMetadata
 	{
-		var playlist:PlaylistMetadata = new PlaylistMetadata(this.playlistName, this.bg, this.icon, this.album, this.color, this.songList.copy());
+		var playlist:PlaylistMetadata = new PlaylistMetadata(this.playlistName, this.bg, this.icon, this.album, this.color, this.songList.copy(), this.isWarmup);
+		playlist.jsonPath = this.jsonPath;
 		return playlist;
 	}
 
 	public function toString():String
 	{
 		return 'PlaylistMetadata("${playlistName}", bg: "${bg}", icon: "${icon}", album: "${album}", songs: ${songList.length})';
+	}
+
+	public function getDisplayName():String
+	{
+		// If no source path, just return the name (internal playlist)
+		if (jsonPath == null || jsonPath.length == 0)
+			return playlistName;
+
+		// Parse the path to determine the source
+		var pathLower = jsonPath.toLowerCase();
+		var displayName = playlistName;
+
+		// Check if it's from a mod folder
+		if (pathLower.indexOf('mods/') >= 0) {
+			// Extract mod folder name from path like "mods/ModName/playlists/..."
+			var modsIndex = pathLower.indexOf('mods/') + 5; // length of "mods/"
+			var remainder = jsonPath.substring(modsIndex);
+			var slashIndex = remainder.indexOf('/');
+
+			if (slashIndex >= 0) {
+				var modName = remainder.substring(0, slashIndex);
+				if (modName.length > 0)
+					displayName = modName + '/' + playlistName;
+			}
+		}
+		// Check if it's from shared assets
+		else if (pathLower.indexOf('assets/') >= 0 || pathLower.indexOf('shared/') >= 0) {
+			displayName = 'base/' + playlistName;
+		}
+		// If it's just from root playlists folder, no prefix
+		// else if (pathLower == 'playlists/' + getPlaylistFileName(...))
+		//   displayName stays as playlistName
+
+		return displayName;
+	}
+
+	/**
+	 * Plays this playlist using the standard loading method.
+	 * Loads mods, reloads weeks, and transitions to PlayState with this playlist.
+	 */
+	public function play():Void {
+		if (songList == null || songList.length == 0 || songList[0] == null) {
+			trace('[ERROR] Cannot play invalid playlist');
+			return;
+		}
+
+		var firstSong = songList[0];
+
+		// Set up for normal playlist gameplay
+		PlayState.isWarmUp = false;
+		PlayState.altInstrumentals = null;
+
+		// Load mods and reload weeks
+		Mods.loadTopMod();
+		WeekData.reloadWeekFiles();
+		MusicManager.playMenuMusic(0);
+
+		// Format song name and set up metadata
+		var songLowercase:String = Paths.formatToSongPath(firstSong.songName);
+		Mods.currentModDirectory = firstSong.folder != null ? firstSong.folder : '';
+		PlayState.storyWeek = firstSong.week;
+
+		// Load the song and switch states
+		Song.loadFromJson('${songLowercase}-${firstSong.difficulty.toLowerCase()}', songLowercase);
+		LoadingState.prepareToSong();
+		LoadingState.loadAndSwitchState(new PlayState(this));
 	}
 }
 

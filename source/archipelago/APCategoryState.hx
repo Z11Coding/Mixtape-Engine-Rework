@@ -374,11 +374,21 @@ class APCategoryState extends states.CategoryState {
         super.update(elapsed);
 
         // Check for AP connection issues
-        if (AP == null) {
+        if (AP == null && gameState.info() == null) {
             trace('Critical: AP client is null, triggering error state');
             MusicBeatState.switchState(new APConnectionErrorState(gameState));
             return;
-        }
+        } else if (AP == null && gameState.info() != null) {
+            trace('Warning: AP client is null but game state info is not null. Fixing.');
+                try {
+                    AP = gameState.info();
+                    trace('Successfully re-established AP client reference from game state info');
+                } catch (e) {
+                    trace('Error re-establishing AP client reference: ' + e);
+                    MusicBeatState.switchState(new APConnectionErrorState(gameState));
+                    return;
+                }
+            }
 
         // Poll with failure tracking
         try {

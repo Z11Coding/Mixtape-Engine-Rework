@@ -60,6 +60,28 @@ class PlaylistEditorState extends MusicBeatState
     var deletePlaylist:PsychUIButton = new PsychUIButton((editMetadata.x+editMetadata.width)+50, editMetadata.y, 'Delete Playlist', function()
 		{
       openSubState(new Prompt('Are you sure you want to delete ${selectedPlaylist.playlistName}?\n(THIS CANNOT BE UNDONE!)', 0, function() {
+        #if MODS_ALLOWED
+        // Delete from the exact path where it was loaded from if it exists
+        if (selectedPlaylist.jsonPath != null && selectedPlaylist.jsonPath.length > 0) {
+          if (FileSystem.exists(selectedPlaylist.jsonPath)) {
+            FileSystem.deleteFile(selectedPlaylist.jsonPath);
+            trace('Deleted playlist from: ${selectedPlaylist.jsonPath}');
+          }
+        } else {
+          // Only remove from ClientPrefs if it's an internal playlist (no file path)
+          ClientPrefs.data.playLists.remove(selectedPlaylist);
+          ClientPrefs.saveSettings();
+
+          for (playlist in ClientPrefs.data.playLists) {
+            if (playlist.playlistName == selectedPlaylist.playlistName) {
+              ClientPrefs.data.playLists.remove(playlist);
+              ClientPrefs.saveSettings();
+              break;
+            }
+          }
+        }
+        #else
+        // No MODS support, must be internal playlist
         ClientPrefs.data.playLists.remove(selectedPlaylist);
         ClientPrefs.saveSettings();
 
@@ -68,31 +90,6 @@ class PlaylistEditorState extends MusicBeatState
             ClientPrefs.data.playLists.remove(playlist);
             ClientPrefs.saveSettings();
             break;
-          }
-        }
-
-        #if MODS_ALLOWED
-        var directories:Array<String> = [
-          Paths.mods('playlists/'),
-          Paths.mods(Mods.currentModDirectory + '/playlists/'),
-          Paths.getSharedPath('playlists/')
-        ];
-        for (mod in Mods.getGlobalMods())
-          directories.push(Paths.mods(mod + '/playlists/'));
-        for (directory in directories)
-        {
-          if (FileSystem.exists(directory))
-          {
-            for (file in FileSystem.readDirectory(directory)) {
-              var path = haxe.io.Path.join([directory, file]);
-              if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
-                var fileName:String = file.substr(0, file.length - 5);
-                if (fileName == selectedPlaylist.playlistName) {
-                  FileSystem.deleteFile(path);
-                  break;
-                }
-              }
-            }
           }
         }
         #end
@@ -260,7 +257,7 @@ class PlaylistSelector extends MusicBeatState {
     add(chooseText);
 
     for (i in 0...playlists.length) {
-      var playlistText:Alphabet = new Alphabet(90, 320, playlists[i].playlistName, true);
+      var playlistText:Alphabet = new Alphabet(90, 320, playlists[i].getDisplayName(), true);
       playlistText.targetY = i;
       grpPlaylist.add(playlistText);
     }
@@ -393,6 +390,7 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
   var playlistIconInputText:PsychUIInputText;
   var playlistAlbumInputText:PsychUIInputText;
   var playlistDifficultySlider:PsychUISlider;
+  var isWarmupCheckBox:PsychUICheckBox;
   override public function create():Void
   {
     super.create();
@@ -451,6 +449,11 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
 		tab_group.add(diffStars);
 
     objY += 125;
+    isWarmupCheckBox = new PsychUICheckBox(objX, objY, 'Warmup Song', 100, function() {
+      if (PlaylistMetaDataEditor.playlist != null) PlaylistMetaDataEditor.playlist.isWarmup = isWarmupCheckBox.checked;
+    });
+
+    objY += 40;
     objX = 10;
     var songSelect:PsychUIButton = new PsychUIButton(objX, objY, 'Song Select', function()
 		{
@@ -474,31 +477,23 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
         ClientPrefs.saveSettings();
 
         if (PlaylistMetaDataEditor.oldPlaylist != null) { // cant delete what isnt there lol
-          var playlists:Array<PlaylistMetadata> = ClientPrefs.data.playLists;
-
-          var directories:Array<String> = [
-            Paths.mods(Mods.currentModDirectory + '/playlists/'),
-            Paths.mods('playlists/'),
-            Paths.getSharedPath('playlists/')
-          ];
-          for (mod in Mods.getGlobalMods())
-            directories.push(Paths.mods(mod + '/playlists/'));
-          for (directory in directories)
-          {
-            if (FileSystem.exists(directory))
-            {
-              for (file in FileSystem.readDirectory(directory)) {
-                var path = haxe.io.Path.join([directory, file]);
-                if (!FileSystem.isDirectory(path) && file.endsWith('.json')) {
-                  var fileName:String = file.substr(0, file.length - 5);
-                  if (fileName == PlaylistMetaDataEditor.oldPlaylist.playlistName) {
-                    FileSystem.deleteFile(file);
-                    break;
-                  }
-                }
-              }
+          #if MODS_ALLOWED
+          // Delete from the exact path where it was loaded from if it exists
+          if (PlaylistMetaDataEditor.oldPlaylist.jsonPath != null && PlaylistMetaDataEditor.oldPlaylist.jsonPath.length > 0) {
+            if (FileSystem.exists(PlaylistMetaDataEditor.oldPlaylist.jsonPath)) {
+              FileSystem.deleteFile(PlaylistMetaDataEditor.oldPlaylist.jsonPath);
+              trace('Deleted old playlist from: ${PlaylistMetaDataEditor.oldPlaylist.jsonPath}');
             }
+          } else {
+            // Only remove from ClientPrefs if it's an internal playlist (no file path)
+            if (ClientPrefs.data.playLists.contains(PlaylistMetaDataEditor.oldPlaylist))
+              ClientPrefs.data.playLists.remove(PlaylistMetaDataEditor.oldPlaylist);
           }
+          #else
+          // No MODS support, must be internal playlist
+          if (ClientPrefs.data.playLists.contains(PlaylistMetaDataEditor.oldPlaylist))
+            ClientPrefs.data.playLists.remove(PlaylistMetaDataEditor.oldPlaylist);
+          #end
         }
 
         openSubState(new Prompt('Save Successful!', 1, function() {
@@ -536,8 +531,10 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     tab_group.add(playlistIconInputText);
     tab_group.add(playlistAlbumInputText);
     tab_group.add(playlistDifficultySlider);
+    tab_group.add(isWarmupCheckBox);
     tab_group.add(savePlaylist);
-    tab_group.add(songSelect);
+    if (!Std.isOfType(FlxG.state, PlaylistSelector))
+      tab_group.add(songSelect);
   }
 
   function reloadUI() {
@@ -549,6 +546,7 @@ class PlaylistMetaDataEditor extends MusicBeatSubstate {
     playlistIconInputText.text = playlist.icon;
     playlistAlbumInputText.text = playlist.album;
     playlistDifficultySlider.value = playlist.difficulty;
+    isWarmupCheckBox.checked = playlist.isWarmup;
     setStars(playlist.difficulty);
   }
 

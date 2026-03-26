@@ -780,6 +780,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Finalize at Birth',
+			"If checked, preloaded notes will only be finalized when they spawn into the playfield. This improves memory efficiency when preloading songs.",
+			'finalizeAtBirth',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Chart Loading',
 			"How do you prefer the charts load?",
 			'chartPreload',

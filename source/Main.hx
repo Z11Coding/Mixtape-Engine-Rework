@@ -892,6 +892,117 @@ class Main extends Sprite
 	// Code was entirely made by sqirra-rng for their fnf engine named "Izzy Engine", big props to them!!!
 	// very cool person for real they don't get enough credit for their work
 	#if CRASH_HANDLER
+
+	/**
+	 * Extract the source expression from a crash location using TypeCollectionMacro data
+	 * Attempts to retrieve the exact expression that caused the crash
+	 * Only works if the loader is actually initialized - returns null otherwise to avoid delays
+	 */
+	private static function getCrashExpressionFromLocation(file:String, line:Int, column:Int):String
+	{
+		try
+		{
+			// Check if the loader is initialized and has data
+			if (!yutautil.typeregistry.BuildDataLoader.isLoaded())
+				return null;
+
+			// Normalize file path for consistency
+			var normalizedFile = file.replace("\\", "/");
+
+			// Try to load build data and find the function at this location
+			var allFunctions:Array<Dynamic> = yutautil.typeregistry.BuildDataLoader.getAllFunctions();
+
+			if (allFunctions == null || allFunctions.length == 0)
+				return null;
+
+			// Find function containing this location
+			var matchingFunction:Dynamic = null;
+			for (func in allFunctions)
+			{
+				if (func == null) continue;
+
+				var funcFile = Std.string(func.filePath).replace("\\", "/");
+				var funcStartLine:Int = func.startLine;
+				var funcEndLine:Int = func.endLine;
+
+				// Check if crash is within this function's range
+				if (funcFile.indexOf(normalizedFile) != -1 && line >= funcStartLine && line <= funcEndLine)
+				{
+					matchingFunction = func;
+					break;
+				}
+			}
+
+			if (matchingFunction == null)
+				return null;
+
+			// Get the source code for this function
+			var sourceCode:String = Std.string(matchingFunction.sourceCode);
+			if (sourceCode == null || sourceCode.length == 0)
+				return null;
+
+			// Split source into lines
+			var sourceLines:Array<String> = sourceCode.split("\n");
+
+			// Calculate relative line within the function (1-indexed in callstack)
+			var funcStartLine:Int = Std.parseInt(Std.string(matchingFunction.startLine));
+			var relativeLineIndex:Int = (line - funcStartLine);
+
+			if (relativeLineIndex < 0 || relativeLineIndex >= sourceLines.length)
+				return null;
+
+			var crashLine:String = sourceLines[relativeLineIndex];
+			if (crashLine == null || crashLine.length == 0)
+				return null;
+
+			// Extract expression around the crash column
+			// Try to find meaningful boundaries (whitespace, operators, brackets)
+			var colIndex:Int = column - 1; // Convert to 0-indexed
+			if (colIndex < 0) colIndex = 0;
+			if (colIndex >= crashLine.length) colIndex = crashLine.length - 1;
+
+			// Find the start of the expression (scan backwards for whitespace or operators)
+			var exprStart:Int = colIndex;
+			while (exprStart > 0)
+			{
+				var char = crashLine.charAt(exprStart - 1);
+				if (char == " " || char == "\t" || char == "(" || char == "[" || char == "{" ||
+				    char == "=" || char == "," || char == ";" || char == ":")
+					break;
+				exprStart--;
+			}
+
+			// Find the end of the expression (scan forwards for whitespace or operators)
+			var exprEnd:Int = colIndex + 1;
+			while (exprEnd < crashLine.length)
+			{
+				var char = crashLine.charAt(exprEnd);
+				if (char == " " || char == "\t" || char == "(" || char == "[" || char == "{" ||
+				    char == "=" || char == "," || char == ";" || char == ")" || char == "]" || char == "}")
+					break;
+				exprEnd++;
+			}
+
+			// Extract the expression
+			var expression:String = crashLine.substring(exprStart, exprEnd).trim();
+
+			// If expression is too short or empty, return the whole line trimmed
+			if (expression.length == 0 || expression.length == 1)
+				expression = crashLine.trim();
+
+			// Limit expression length for readability
+			if (expression.length > 200)
+				expression = expression.substring(0, 197) + "...";
+
+			return expression;
+		}
+		catch (e:Dynamic)
+		{
+			trace("Error extracting crash expression: " + e);
+			return null;
+		}
+	}
+
 	public static function onCrash(e:UncaughtErrorEvent):Void
 	{
 		"Crash Handler Code for Mixtape Engine Rework.".NativeComment();
@@ -903,12 +1014,44 @@ class Main extends Sprite
 			trace('Crash ignored due to ignoreThrows debug setting: ${e.error}');
 			return;
 		}
+
+
+
 		var errMsg:String = "";
 		var errType:String = e.error;
 		var path:String;
 		var callStack:Array<StackItem> = CallStack.exceptionStack(true);
 		var dateNow:String = Date.now().toString();
-		var crashState:String = Std.string(FlxG.state);
+		var crashState:String = (Type.getClassName(Type.getClass(FlxG.state)));
+
+				for (stackItem in callStack)
+			{
+				switch (stackItem)
+				{
+					case FilePos(s, file, line, column):
+						if (file.contains("FlxTween.hx"))
+						{
+							FlxTween.globalManager.clear();
+							trace("Tween Error occurred. Clearing all tweens.");
+							if (ClientPrefs.data.ignoreTweenErrors)
+								return;
+						}
+						if (file.contains("hscript/Interp.hx"))
+						{
+							var interpErrorMsg = "(Internal Critical Error) " + e.error;
+							trace(interpErrorMsg);
+							if (Std.isOfType(FlxG.state, states.PlayState))
+							{
+								cast(FlxG.state, states.PlayState).addTextToDebug(interpErrorMsg, FlxColor.RED);
+							}
+							return;
+						}
+					default:
+						trace("Unhandled stack item: " + stackItem);
+						dummy();
+				}
+				}
+
 
 		dateNow = dateNow.replace(" ", "_");
 		dateNow = dateNow.replace(":", "'");
@@ -940,6 +1083,13 @@ class Main extends Sprite
 			{
 				case FilePos(s, file, line, column):
 					errMsg += file + " (line " + line + ")\n";
+
+					// Try to extract and display the crash expression using TypeCollectionMacro data
+					var crashExpr = getCrashExpressionFromLocation(file, line, column);
+					if (crashExpr != null)
+					{
+						errMsg += "  Expression: " + crashExpr + "\n";
+					}
 				default:
 					Sys.println(stackItem);
 			}
@@ -988,23 +1138,6 @@ class Main extends Sprite
 		Sys.println("Enhanced crash report with tracking data saved in ./logger/ folder");
 		#end
 
-		for (stackItem in callStack)
-			{
-				switch (stackItem)
-				{
-					case FilePos(s, file, line, column):
-						if (file.contains("FlxTween.hx"))
-						{
-							FlxTween.globalManager.clear();
-							trace("Tween Error occurred. Clearing all tweens.");
-							if (ClientPrefs.data.ignoreTweenErrors)
-								return;
-						}
-					default:
-						trace("Unhandled stack item: " + stackItem);
-						dummy();
-				}
-				}
 
 		if (ClientPrefs.data.showCrash)
 		{

@@ -336,6 +336,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		}
 
+		// Finalize note if "Finalize at Birth" option is enabled or note is not finalized
+		if (!note.finalized && (ClientPrefs.data.finalizeAtBirth || !ClientPrefs.data.preloadSong)) {
+			note.finalize();
+		}
+
 		noteSpawned.dispatch(note, this);
 		spawnedNotes.push(note);
 		aliveNoteCount++;

@@ -283,7 +283,7 @@
 	</section>
 
 	<!--Allow working memory greater than 1 Gig-->
-	<!--<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>-->
+	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
 
 	<!--Disable deprecated warnings-->
 	<haxedef name='no-deprecation-warnings' unless="debug" />

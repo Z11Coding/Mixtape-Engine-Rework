@@ -141,128 +141,58 @@ class TitleState extends MusicBeatState
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
 			persistentUpdate = false;
-			var playlist:PlaylistMetadata = null;
-			var hasWarmup:Bool = false;
+			var warmupPlaylists:Array<PlaylistMetadata> = [];
 			var allLists:Array<PlaylistMetadata> = PlaylistState.loadPlaylists();
 			if (allLists.length > 0) {
 				for (playlistItem in allLists) {
-					if (playlistItem != null) {
-						if (playlistItem.playlistName == "Warm-Up") {
-							playlist = playlistItem;
-							hasWarmup = true;
-							break;
-						}
+					if (playlistItem != null && playlistItem.isWarmup && playlistItem.songList != null && playlistItem.songList.length > 0) {
+						warmupPlaylists.push(playlistItem);
 					}
 				}
 			}
 
-			if (hasWarmup && playlist != null && playlist.songList != null && playlist.songList[0] != null) {
-				if (ClientPrefs.data.alwaysWarmup) {
-					persistentUpdate = true;
-					PlayState.isWarmUp = true;
-					PlayState.altInstrumentals = null; // ? P-Slice
-					Mods.loadTopMod();
-					WeekData.reloadWeekFiles();
-					if (allLists.length > 0) {
-						closedState = false;
-						transitioning = false;
-						MusicManager.playMenuMusic(0);
-					// Pass playlist directly to PlayState constructor instead of static assignment
-					var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-					Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
-					PlayState.storyWeek = playlist.songList[0].week;
-					Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
-					LoadingState.prepareToSong();
-					LoadingState.loadAndSwitchState(new PlayState(playlist));
-					} else {
-						trace('[WARN] No playlists found, defaulting to tutorial!');
-						closedState = false;
-						transitioning = false;
-						var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-						Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
-						Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
-						LoadingState.prepareToSong();
-						LoadingState.loadAndSwitchState(new PlayState());
-					}
-				} else {
-					closedState = true;
-					transitioning = true;
-					var warmup = new haxe.ui.containers.dialogs.MessageBox();
-					warmup.title = "Warm-up?";
-					warmup.text = "Would you like to play the warm-up playlist before starting?";
-					warmup.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+			var hasWarmup:Bool = warmupPlaylists.length > 0;
+			var playlist:PlaylistMetadata = hasWarmup ? warmupPlaylists[FlxG.random.int(0, warmupPlaylists.length - 1)] : null;
 
-					warmup.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
-					{
-						if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
-						{
-							closedState = false;
-							transitioning = false;
-							persistentUpdate = true;
-							PlayState.isWarmUp = true;
-							PlayState.altInstrumentals = null; // ? P-Slice
-							Mods.loadTopMod();
-							WeekData.reloadWeekFiles();
-							MusicManager.playMenuMusic(0);
-							// Pass playlist directly to PlayState constructor instead of static assignment
-							trace('songName: ${playlist.songList[0]}');
-							var songLowercase:String = Paths.formatToSongPath(playlist.songList[0].songName);
-							Mods.currentModDirectory = playlist.songList[0].folder != null ? playlist.songList[0].folder : '';
-							PlayState.storyWeek = playlist.songList[0].week;
-							Song.loadFromJson('${songLowercase}-${playlist.songList[0].difficulty.toLowerCase()}', songLowercase);
-							LoadingState.prepareToSong();
-							LoadingState.loadAndSwitchState(new PlayState(playlist));
-						}
-						else
-						{
-							closedState = false;
-							transitioning = false;
-							ClientPrefs.data.warmupCompleted = true;
-							ClientPrefs.saveSettings();
-							FlxG.resetState();
-							Cursor.hide();
-							sickBeats = 0;
-						}
-					};
+		// Rare chance to offer a challenge (10% chance, INDEPENDENT of warmup existence)
+		var offerChallenge:Bool = FlxG.random.float() < 0.1;
 
-					warmup.show();
-					Cursor.show();
-				}
-			} else {
-				closedState = true;
-				transitioning = true;
-				trace('[WARN] "Warm-Up" playlist not found!');
-				var warmup = new haxe.ui.containers.dialogs.MessageBox();
-				warmup.title = "Warm-up?";
-				warmup.text = "It looks like you don't have a playlist called \"Warm-Up\"!\n\nWould you like to make one?";
-				warmup.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+		if (offerChallenge) {
+			closedState = true;
+			transitioning = true;
+			var challenge = new haxe.ui.containers.dialogs.MessageBox();
+			challenge.title = "Challenge Time!";
+			challenge.text = "We have a challenge for you. Wanna try it?";
+			challenge.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
 
-				warmup.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+			challenge.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+			{
+				if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 				{
-					if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
-					{
-						closedState = false;
-						transitioning = false;
-						MusicManager.playMenuMusic(1);
-						FlxG.switchState(new states.PlaylistState());
-					}
-					else
-					{
-						closedState = false;
-						transitioning = false;
-						ClientPrefs.data.warmupCompleted = true;
-						ClientPrefs.saveSettings();
-						FlxG.resetState();
-						Cursor.hide();
-						sickBeats = 0;
-					}
-				};
+					closedState = false;
+					transitioning = false;
+					MusicManager.playMenuMusic(1);
 
-				warmup.show();
-				Cursor.show();
-			}
+					// Generate random song count between 3 and 15 and run challenge
+					var randomSongCount:Int = FlxG.random.int(3, 15);
+					FlxG.switchState(new ChallengeRunnerState(randomSongCount));
+				}
+				else
+				{
+					closedState = false;
+					transitioning = false;
+					// Challenge declined, proceed with normal warmup flow
+					proceedWithWarmupCheck(hasWarmup, playlist, allLists, warmupPlaylists);
+				}
+			};
+
+			challenge.show();
+			Cursor.show();
+		} else {
+			// Challenge not offered, proceed directly with warmup check
+			proceedWithWarmupCheck(hasWarmup, playlist, allLists, warmupPlaylists);
 		}
-		else if(FlxG.save.data.flashing == null && !FlashingState.leftState)
+		} else if(FlxG.save.data.flashing == null && !FlashingState.leftState)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
@@ -300,6 +230,120 @@ class TitleState extends MusicBeatState
 	var titleText:FlxSprite;
 	var swagShader:ColorSwap = null;
 	var usingDefaultLogo:Bool = false;
+
+	private function proceedWithWarmupCheck(hasWarmup:Bool, playlist:PlaylistMetadata, allLists:Array<PlaylistMetadata>, warmupPlaylists:Array<PlaylistMetadata>):Void
+	{
+		if (hasWarmup && playlist != null && playlist.songList != null && playlist.songList.length > 0 && playlist.songList[0] != null) {
+			if (ClientPrefs.data.alwaysWarmup) {
+				persistentUpdate = true;
+				PlayState.isWarmUp = true;
+				PlayState.altInstrumentals = null; // ? P-Slice
+				Mods.loadTopMod();
+				WeekData.reloadWeekFiles();
+				// Pick a random warmup playlist
+				var selectedPlaylist = warmupPlaylists[FlxG.random.int(0, warmupPlaylists.length - 1)];
+				if (allLists.length > 0) {
+					closedState = false;
+					transitioning = false;
+					MusicManager.playMenuMusic(0);
+					// Pass playlist directly to PlayState constructor instead of static assignment
+					var songLowercase:String = Paths.formatToSongPath(selectedPlaylist.songList[0].songName);
+					Mods.currentModDirectory = selectedPlaylist.songList[0].folder != null ? selectedPlaylist.songList[0].folder : '';
+					PlayState.storyWeek = selectedPlaylist.songList[0].week;
+					Song.loadFromJson('${songLowercase}-${selectedPlaylist.songList[0].difficulty.toLowerCase()}', songLowercase);
+					LoadingState.prepareToSong();
+					LoadingState.loadAndSwitchState(new PlayState(selectedPlaylist));
+				} else {
+					trace('[WARN] No playlists found, defaulting to tutorial!');
+					closedState = false;
+					transitioning = false;
+					var songLowercase:String = Paths.formatToSongPath(selectedPlaylist.songList[0].songName);
+					Song.loadFromJson('${songLowercase}-${selectedPlaylist.songList[0].difficulty.toLowerCase()}', songLowercase);
+					Mods.currentModDirectory = selectedPlaylist.songList[0].folder != null ? selectedPlaylist.songList[0].folder : '';
+					LoadingState.prepareToSong();
+					LoadingState.loadAndSwitchState(new PlayState());
+				}
+			} else {
+				closedState = true;
+				transitioning = true;
+				var warmup = new haxe.ui.containers.dialogs.MessageBox();
+				warmup.title = "Warm-up?";
+				warmup.text = "Would you like to play the warm-up playlist before starting?";
+				warmup.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+
+				warmup.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+				{
+					if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
+					{
+						closedState = false;
+						transitioning = false;
+						persistentUpdate = true;
+						PlayState.isWarmUp = true;
+						PlayState.altInstrumentals = null; // ? P-Slice
+						Mods.loadTopMod();
+						WeekData.reloadWeekFiles();
+						MusicManager.playMenuMusic(0);
+						// Pick a random warmup playlist
+						var selectedPlaylist = warmupPlaylists[FlxG.random.int(0, warmupPlaylists.length - 1)];
+						// Pass playlist directly to PlayState constructor instead of static assignment
+						trace('songName: ${selectedPlaylist.songList[0]}');
+						var songLowercase:String = Paths.formatToSongPath(selectedPlaylist.songList[0].songName);
+						Mods.currentModDirectory = selectedPlaylist.songList[0].folder != null ? selectedPlaylist.songList[0].folder : '';
+						PlayState.storyWeek = selectedPlaylist.songList[0].week;
+						Song.loadFromJson('${songLowercase}-${selectedPlaylist.songList[0].difficulty.toLowerCase()}', songLowercase);
+						LoadingState.prepareToSong();
+						LoadingState.loadAndSwitchState(new PlayState(selectedPlaylist));
+					}
+					else
+					{
+						closedState = false;
+						transitioning = false;
+						ClientPrefs.data.warmupCompleted = true;
+						ClientPrefs.saveSettings();
+						FlxG.resetState();
+						Cursor.hide();
+						sickBeats = 0;
+					}
+				};
+
+				warmup.show();
+				Cursor.show();
+			}
+		} else {
+			closedState = true;
+			transitioning = true;
+			trace('[WARN] No warmup playlist found!');
+			var warmup = new haxe.ui.containers.dialogs.MessageBox();
+			warmup.title = "Warm-up?";
+			warmup.text = "It looks like you don't have a warmup playlist!\n\nWould you like to create one?";
+			warmup.buttons = haxe.ui.containers.dialogs.Dialog.DialogButton.YES | haxe.ui.containers.dialogs.Dialog.DialogButton.NO;
+
+			warmup.onDialogClosed = function(event:haxe.ui.containers.dialogs.Dialog.DialogEvent)
+			{
+				if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
+				{
+					closedState = false;
+					transitioning = false;
+					MusicManager.playMenuMusic(1);
+					FlxG.switchState(new states.PlaylistState());
+				}
+				else
+				{
+					closedState = false;
+					transitioning = false;
+					ClientPrefs.data.warmupCompleted = true;
+					ClientPrefs.saveSettings();
+					FlxG.resetState();
+					Cursor.hide();
+					sickBeats = 0;
+				}
+			};
+
+			warmup.show();
+			Cursor.show();
+		}
+	}
+
 	function startIntro()
 	{
 		persistentUpdate = true;
@@ -960,5 +1004,34 @@ class TitleState extends MusicBeatState
 			box.visible = true;
 			boxB.visible = true;
 		}
+	}
+}
+
+/**
+ * Minimal state for running the challenge generator with a specific song count.
+ * Used by TitleState to launch challenges with random difficulty (3-15 songs).
+ */
+class ChallengeRunnerState extends MusicBeatState {
+	private var songCount:Int = 12;
+
+	public function new(count:Int = 12) {
+		super();
+		songCount = count;
+	}
+
+	override function create() {
+		super.create();
+
+		// Create and start the challenge generator with auto-launch
+		var generator = new managers.ChallengePlaylistGenerator(this, function(playlist:PlaylistState.PlaylistMetadata) {
+			// Auto-launch the challenge playlist
+			return true;
+		}, function() {
+			// On cancellation, go back to TitleState
+			FlxG.switchState(new TitleState());
+		});
+
+		// Start generator with the specified song count
+		generator.start(songCount);
 	}
 }

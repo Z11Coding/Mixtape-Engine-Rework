@@ -328,6 +328,31 @@ class APPlaylistState extends MusicBeatState {
 				FlxG.sound.music.pause();
 				FlxTimer.wait(0.25, playCurListPreview.bind(loadedPlaylists[curSelected].songList)); // Wait a little before trying to pull a Inst file
 			} else {
+				var curModDir = Mods.currentModDirectory;
+				// Check songs for sanity.
+				var missingItems:Array<String> = [];
+				for (song in selectedPlaylist.songList) {
+					// Load all songs, and check using the checker.
+					Mods.currentModDirectory = song.folder != null ? song.folder : '';
+					var missingData = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(Song.loadFromJson(Paths.formatToSongPath(song.songName + (song.difficulty.toLowerCase() != "normal" ? "-"+song.difficulty.toLowerCase() : "")), Paths.formatToSongPath(song.songName)));
+					if (missingData.length > 0) {
+						missingItems = missingItems.concat(missingData);
+					}
+				}
+				inline function goBack() {
+					MusicBeatState.switchState(new archipelago.APPlaylistState().funcAndReturn(function(thee) {
+						thee.playCurListPreview(null);
+					}));
+				}
+
+				if (missingItems.length > 0) {
+					var errorMsg = "The following items required for this playlist are missing or locked:\n\n" + missingItems.join("\n") + "\n\nPlay more songs to unlock these items.";
+					MusicBeatState.switchState(new states.ErrorState(errorMsg,
+						function() goBack(),
+						function() goBack()));
+					}
+
+				Mods.currentModDirectory = curModDir;
 				PlayState.campaignMisses = 0;
 				PlayState.campaignScore = 0;
 				PlayState.isPlaylist = true;
@@ -335,7 +360,8 @@ class APPlaylistState extends MusicBeatState {
 				Mods.loadTopMod();
 				WeekData.reloadWeekFiles();
 				if (shufflePlaylist) {
-					selectedPlaylist.songList = FlxG.random.shuffle(selectedPlaylist.songList.copy());
+					selectedPlaylist = selectedPlaylist.copy();
+					FlxG.random.shuffle(selectedPlaylist.songList);
 				}
 
 				var firstSong = selectedPlaylist.songList[0];

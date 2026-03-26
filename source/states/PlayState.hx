@@ -9437,9 +9437,13 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						}
 
 						// Return to playlist
-						FlxG.switchState(new archipelago.APPlaylistState());
+						openSubState(new StickerSubState(function(s) {
+							return new archipelago.APPlaylistState();
+						}));
 					} else if (archipelago.APEntryState.inArchipelagoMode) {
-						FlxG.switchState(new archipelago.APPlaylistState());
+						openSubState(new StickerSubState(function(s) {
+							return new archipelago.APPlaylistState();
+						}));
 					} else {
 						if (ClientPrefs.data.ranking == "Mixtape") {
 							openSubState(new substates.RankingSubstate());
@@ -13412,26 +13416,32 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		loadSongAudio();
 
 		// Complete note initialization that was skipped during preload
-		// Process in smaller batches to prevent freezing
-		var batchSize = 50;
-		var processedNotes = 0;
-		for (note in allNotes) {
-			if (note != null) {
-				try {
-					note.finishNoteInitialization();
-					processedNotes++;
-					// Add small delay every batch to prevent freezing
-					if (processedNotes % batchSize == 0) {
-						trace('Processed $processedNotes/${allNotes.length} notes');
+		// If "Finalize at Birth" is enabled, skip finalization here - notes will be finalized when spawned
+		if (!ClientPrefs.data.finalizeAtBirth) {
+			trace('PlayState: Finalizing notes during preload finish');
+			// Process in smaller batches to prevent freezing
+			var batchSize = 50;
+			var processedNotes = 0;
+			for (note in allNotes) {
+				if (note != null) {
+					try {
+						note.finishNoteInitialization();
+						processedNotes++;
+						// Add small delay every batch to prevent freezing
+						if (processedNotes % batchSize == 0) {
+							trace('Processed $processedNotes/${allNotes.length} notes');
+						}
+					} catch (e:Dynamic) {
+						trace('Error initializing note $processedNotes: $e');
+						improperPreload = true;
+						break;
 					}
-				} catch (e:Dynamic) {
-					trace('Error initializing note $processedNotes: $e');
-					improperPreload = true;
-					break;
 				}
 			}
+			trace('Completed note initialization for $processedNotes notes');
+		} else {
+			trace('PlayState: Skipping note finalization - will finalize at birth when notes spawn');
 		}
-		trace('Completed note initialization for $processedNotes notes');
 
 
 		// Add notes to noteGroup (this was skipped during preload)
@@ -13531,7 +13541,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 
 			generatedMusic = false;
-			generateSong(true);
+			generateSong();
 			return;
 		}
 

@@ -4312,6 +4312,42 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
 
+		// Safely reconstruct the name field with proper escaping
+		trace('Fixing name field in YAML document...');
+		var nameLineRegex = ~/name:\s*"[^"]*"/;
+		var nameLineMatch = nameLineRegex.match(document);
+
+		if (nameLineMatch)
+		{
+			var originalNameLine = nameLineRegex.matched(0);
+			trace('  Found original name line: $originalNameLine');
+
+			// Extract the name value from the regex match
+			var nameValueRegex = ~/name:\s*"([^"]*)"/;
+			nameValueRegex.match(originalNameLine);
+			var extractedName = nameValueRegex.matched(1);
+			trace('  Extracted name value: $extractedName');
+
+			// Verify it matches the actual player name
+			if (extractedName != playerName)
+			{
+				trace('  WARNING: Extracted name "$extractedName" does not match playerName "$playerName"');
+				trace('  Correcting name field to proper value...');
+			}
+
+			// Reconstruct the name line with the correct player name (properly escaped)
+			var correctedNameLine = 'name: ${playerName}';
+			trace('  Reconstructed name line: $correctedNameLine');
+
+			// Replace the original line with the corrected one
+			document = document.replace(originalNameLine, correctedNameLine);
+			trace('  Name field successfully fixed in YAML document');
+		}
+		else
+		{
+			trace('  WARNING: Could not find name field in YAML document');
+		}
+
 		// Create enhanced comment with stats
 		var comment = generateYAMLComment(yamlDataObject);
 

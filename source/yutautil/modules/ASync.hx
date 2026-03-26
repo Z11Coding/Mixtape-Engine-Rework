@@ -319,6 +319,45 @@ typedef ASyncData = {
     var func: Dynamic;
     var isAsync: Bool;
 }
+/**
+ * ASyncF is a typed wrapper around ASync for specifying the return type of the asynchronous function, rather than the parameters. This allows for better type safety and inference when working with ASync functions that have complex parameter types but a known return type.
+ * It provides type safety and direct call operator overloading
+ */
+abstract ASyncF<Return>(ASync<Dynamic->Return>) {
+    public inline function new(func:Dynamic->Return) {
+        this = new ASync<Dynamic->Return>(func);
+    }
+
+    @:op(A())
+    public inline function call(...args):AResult<Return> {
+        var result:AResult<Return> = this.call(...args);
+        // Cast the dynamic result to the expected Return type
+        return cast result;
+    }
+
+    public inline function callWith(args:OneOrMany<Dynamic>):AResult<Return> {
+        var result:AResult<Return> = this.callWith(args);
+        return cast result;
+    }
+
+    @:from public static inline function fromFunction<Return>(func:Dynamic->Return):ASyncF<Return> {
+        return new ASyncF<Return>(func);
+    }
+
+    public var isAsync(get, never):Bool;
+    private inline function get_isAsync():Bool {
+        return this.isAsync;
+    }
+
+    public var originalFunction(get, never):Dynamic;
+    private inline function get_originalFunction():Dynamic {
+        return this.originalFunction;
+    }
+
+    public inline function toString():String {
+        return this.toString();
+    }
+}
 
 /**
  * ASync wraps any function and makes it asynchronous
