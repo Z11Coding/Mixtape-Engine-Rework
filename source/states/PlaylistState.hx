@@ -738,11 +738,11 @@ class PlaylistState extends MusicBeatState {
 				songStringOG = songString;
 				songListTxt.text = songString;
 				mainBox.resize(Std.int(songListTxt.width + 50), Std.int(songListTxt.height + 50));
-				
+
 				// Tween both buttons off-screen
 				FlxTween.tween(genChallengePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
 				FlxTween.tween(savePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
-				
+
 				for (item in grpPlaylists.members)
 					FlxTween.tween(item, {alpha: 0, x: -3000}, 1, {ease: FlxEase.sineIn, startDelay: (0.2*item.targetY)});
 				//FlxTween.tween(rank, {alpha: 0, x: -3000}, 1, {ease: FlxEase.sineIn});
@@ -804,10 +804,17 @@ class PlaylistState extends MusicBeatState {
 				songStringOG = "";
 				selectedPlaylist = null;
 				isChallengeModeSelection = false;
-				
+
 				// Tween buttons back/out of view
 				FlxTween.tween(genChallengePlaylistBtn, {y: FlxG.height - 90}, 0.6, {ease: FlxEase.sineOut});
 				FlxTween.tween(savePlaylistBtn, {y: FlxG.height + 100}, 0.6, {ease: FlxEase.sineIn});
+
+				for (item in grpPlaylists.members)
+					FlxTween.tween(item, {alpha: 1, x: 0}, 1, {ease: FlxEase.elasticOut, startDelay: (0.2*item.targetY), onComplete: function(t:FlxTween) {
+						updateTexts(elapse);
+						changeSelection();
+						choosePlaylist = false;
+					}});
 				//FlxTween.tween(rank, {alpha: 1, x: 90}, 2, {ease: FlxEase.sineIn});
 				FlxTween.tween(randomText, {alpha: 1, x: 90}, 1, {ease: FlxEase.sineIn});
 				FlxTween.tween(albumPhoto, {alpha: 1, x: 930}, 1, {ease: FlxEase.sineIn});
