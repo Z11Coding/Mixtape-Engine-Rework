@@ -656,7 +656,7 @@ class Note extends NoteObject
 	public var customHealthHit:Bool = false;
 	public var centerNote:Bool = false;
 	public var hitboxMultiplier:Float = 1;
-	public var cod:String = '???';
+	public var cod:String = null;
 	public var scrollSpeed(default, set):Float = 0;
 	public var garbage:Bool = false; // if this is true, the note will be removed in the next update cycle
 	public var holdingTime:Float = 0;

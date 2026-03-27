@@ -213,6 +213,7 @@ class SongDifficultyEvaluator
 
 		return Math.max(score, 10.0); // Minimum score of 10
 	}
+	public var debug:Bool = false;
 
 	/**
 	 * Analyzes a chart's difficulty through multiple factors:
@@ -366,8 +367,9 @@ class SongDifficultyEvaluator
 			score += 5.0; // Sustained challenging content
 		}
 
+		if (debug) {
 		trace('Chart Analysis for difficulty "$difficulty": Notes=$totalNotes, Sections=$sections, AvgDensity=$noteDensity, Density%=${denseSections}/${sections}, Jumps=$jumpCount, Chords=$chordCount, BPMChanges=$bpmChanges, Score=$score');
-
+		}
 		return score;
 	}
 

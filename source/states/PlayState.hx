@@ -11224,6 +11224,11 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 		}
 
+		if (note.cod != null && note.cod.trim() != '') {
+			COD.setCOD(note.cod);
+			return;
+		}
+
 		if(instakillOnMiss)
 		{
 			vocals.volume = 0;
