@@ -27,6 +27,7 @@ class ChallengePlaylistGenerator {
 	private var parentState:backend.MusicBeatState;
 	private var onGenerationComplete:(PlaylistMetadata)->Bool;
 	private var onGenerationCancelled:Void->Void;
+	public var forceQuiet:Bool = false;
 
 	public function new(parentState:backend.MusicBeatState, ?onComplete:(PlaylistMetadata)->Bool, ?onCancel:Void->Void) {
 		this.parentState = parentState;
@@ -37,9 +38,18 @@ class ChallengePlaylistGenerator {
 	/**
 	 * Start the generation process with pre-generation checks in a progress substate
 	 * @param forcedSongCount Optional: if provided, skips the number input and uses this count
+	 * @param quiet Optional: if true, runs synchronously without UI and doesn't use callbacks
+	 * @return In quiet mode, returns the generated playlist; otherwise returns null
 	 */
-	public function start(?forcedSongCount:Null<Int>) {
-		// First, show a progress substate to check mod updates and discover songs
+	public function start(?forcedSongCount:Null<Int>, ?quiet:Bool = false):PlaylistMetadata {
+		var isQuiet = quiet || forceQuiet;
+
+		// If quiet mode, execute synchronously without any substates
+		if (isQuiet) {
+			return startQuietly(forcedSongCount);
+		}
+
+		// Non-quiet mode: show progress substates as before
 		var preCheckTasks:Array<ProgressTask> = [];
 
 		// Task 1: Update mod list if needed, then reload weeks
@@ -50,7 +60,6 @@ class ChallengePlaylistGenerator {
 
 				if (!Mods.updatedOnState) {
 					trace('[ChallengePlaylist] Mods not updated on state, updating mod list...');
-					// This calls updateModList() internally and sets updatedOnState = true
 					Mods.parseList();
 				} else {
 					trace('[ChallengePlaylist] Mods already updated on state');
@@ -93,7 +102,7 @@ class ChallengePlaylistGenerator {
 					if (forcedSongCount != null) {
 						var songCount = Std.int(Math.min(forcedSongCount, maxSongs));
 						trace('[ChallengePlaylist] Using forced song count: $songCount');
-						startGeneration(songCount);
+						startGeneration(songCount, false);
 						return;
 					}
 
@@ -104,10 +113,9 @@ class ChallengePlaylistGenerator {
 						1,
 						maxSongs,
 						function(songCount:Float) {
-							startGeneration(Std.int(songCount));
+							startGeneration(Std.int(songCount), false);
 						},
 						function() {
-							// Cancelled
 							onGenerationCancelled();
 						},
 						1,
@@ -125,19 +133,134 @@ class ChallengePlaylistGenerator {
 				InfoPanelSubstate.show("Preparation Error", 'Failed to prepare playlist generator:\n\n$error', FlxColor.RED);
 			},
 			function() {
-				// Cancelled
 				onGenerationCancelled();
 			},
 			true // Enable cancel button
 		);
 
 		parentState.openSubState(preCheckSubstate);
+		return null;
+	}
+
+	/**
+	 * Execute generation synchronously in quiet mode without any UI or callbacks
+	 * @param forcedSongCount Optional song count
+	 * @return The generated PlaylistMetadata
+	 */
+	private function startQuietly(?forcedSongCount:Null<Int>):PlaylistMetadata {
+		trace('[ChallengePlaylist] Starting quiet synchronous generation...');
+
+		// Pre-checks
+		if (!Mods.updatedOnState) {
+			Mods.parseList();
+		}
+		WeekData.reloadWeekFiles();
+
+		// Discover songs
+		var allSongs = managers.SongDifficultyEvaluator.discoverAllSongs();
+		var maxSongs:Int = allSongs.length;
+
+		if (maxSongs == 0) {
+			trace('[ChallengePlaylist] No songs available in quiet mode');
+			return null;
+		}
+
+		// Use forced song count or default
+		var songCount = forcedSongCount != null ? Std.int(Math.min(forcedSongCount, maxSongs)) : 10;
+
+		// Process songs and their difficulties
+		var songsWithDiffs:Array<Dynamic> = [];
+		for (songEntry in allSongs) {
+			var entry:Dynamic = songEntry;
+			var availableDiffs = managers.SongDifficultyEvaluator.getAvailableDifficulties(entry.songName, entry.folder);
+
+			if (availableDiffs.length > 0) {
+				songsWithDiffs.push({
+					songName: entry.songName,
+					week: entry.week,
+					folder: entry.folder,
+					availableDiffs: availableDiffs
+				});
+			}
+		}
+
+		// Score all songs
+		var scoredSongs:Array<Dynamic> = [];
+		for (data in songsWithDiffs) {
+			var selectedDiff = managers.SongDifficultyEvaluator.selectChallengeDifficulty(
+				data.songName,
+				data.availableDiffs,
+				null,
+				data.folder
+			);
+
+			var score = managers.SongDifficultyEvaluator.calculateDifficultyFromChart(
+				data.songName,
+				selectedDiff,
+				null,
+				data.folder
+			);
+
+			scoredSongs.push({
+				songName: data.songName,
+				week: data.week,
+				folder: data.folder,
+				score: score,
+				selectedDiff: selectedDiff
+			});
+		}
+
+		// Sort by difficulty (hardest first)
+		scoredSongs.sort((a, b) -> {
+			var scoreA:Float = (cast a : Dynamic).score;
+			var scoreB:Float = (cast b : Dynamic).score;
+			return scoreB > scoreA ? 1 : -1;
+		});
+
+		// Select hardest songs with some variation (top 35%)
+		var selectedCountPercent:Int = Std.int(Math.ceil(scoredSongs.length * 0.35));
+		var selectedCount:Int = Std.int(Math.min(songCount, selectedCountPercent));
+
+		var selectedSongs:Array<Dynamic> = [];
+
+		// Select from top tier with some randomization
+		for (i in 0...selectedCount) {
+			if (i < scoredSongs.length) {
+				var tierSize:Int = Std.int(Math.max(1, Math.ceil(scoredSongs.length * 0.2)));
+				var songIndex:Int = Std.int(Math.floor(i / tierSize) * tierSize) + FlxG.random.int(0, tierSize - 1);
+				songIndex = Std.int(Math.min(songIndex, scoredSongs.length - 1));
+
+				selectedSongs.push(scoredSongs[songIndex]);
+			}
+		}
+
+		// Shuffle the selected songs
+		for (i in 0...selectedSongs.length) {
+			var j = FlxG.random.int(i, selectedSongs.length - 1);
+			var temp = selectedSongs[i];
+			selectedSongs[i] = selectedSongs[j];
+			selectedSongs[j] = temp;
+		}
+
+		// Create the playlist
+		var challengePlaylist = new PlaylistMetadata('CHALLENGE RUN');
+
+		for (entry in selectedSongs) {
+			var songData:Dynamic = entry;
+			var playlistSong = new PlaylistSongMetadata(songData.songName, 0, "", [], songData.selectedDiff);
+			playlistSong.folder = songData.folder;
+			challengePlaylist.songList.push(playlistSong);
+		}
+
+		trace('[ChallengePlaylist] Quiet generation complete! Generated playlist with ${challengePlaylist.songList.length} songs');
+		return challengePlaylist;
 	}
 
 	/**
 	 * Internal: Start the actual generation process
 	 */
 	private function startGeneration(songCount:Int) {
+		var isQuiet = quiet || forceQuiet;
 		var songsWithDiffs:Array<Dynamic> = [];
 
 		// Build task list
@@ -270,11 +393,13 @@ class ChallengePlaylistGenerator {
 				title: "Generating Challenge Playlist",
 				tasks: tasks,
 				onComplete: function(results:Array<Dynamic>) {
-					handleGenerationComplete(results, songCount);
+					handleGenerationComplete(results, songCount, isQuiet);
 				},
 				onError: function(error:String, shouldThrow:Bool) {
 					trace('Generation error: $error');
-					InfoPanelSubstate.show("Generation Error", 'Failed to generate playlist:\n\n$error', FlxColor.RED);
+					if (!isQuiet) {
+						InfoPanelSubstate.show("Generation Error", 'Failed to generate playlist:\n\n$error', FlxColor.RED);
+					}
 				},
 				onCancel: function() {
 					onGenerationCancelled();
@@ -283,11 +408,12 @@ class ChallengePlaylistGenerator {
 			songsWithDiffs
 		);
 
+		// Always show the progress substate (quiet mode is handled at a higher level)
 		parentState.openSubState(substate);
 	}
 
 	/**
-	 * Internal: Handle generation completion
+	 * Internal: Handle generation completion (only called in non-quiet mode)
 	 */
 	private function handleGenerationComplete(results:Array<Dynamic>, songCount:Int) {
 		// Extract selected songs from results
@@ -329,6 +455,17 @@ class ChallengePlaylistGenerator {
 				launchPlaylist(challengePlaylist);
 			}
 		});
+	}
+
+	/**
+	 * Async version that generates and returns a playlist directly via AResult
+	 * @param forcedSongCount Optional: if provided, uses this song count
+	 * @return AResult<PlaylistMetadata>
+	 */
+	public function startAsync(?forcedSongCount:Null<Int>):AResult<PlaylistMetadata> {
+		// Execute quietly and return result directly as an AResult (no callbacks used)
+		var playlist:AsyncF<PlaylistMetadata> = startQuietly;
+		return cast playlist(forcedSongCount);
 	}
 
 	/**
@@ -376,5 +513,6 @@ class ChallengePlaylistProgressSubstate extends DualProgressSubstate {
 		super.executeNextTask();
 	}
 }
+
 
 

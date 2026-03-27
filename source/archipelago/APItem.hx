@@ -184,6 +184,8 @@ class APItem {
     public static var triggeredPermaTraps:Array<String> = [];
     public static var triggeredAntiPermaTraps:Array<String> = [];
 
+    // Challenge Trap system - just one AResult tracking the current playlist generation
+    public static var challengePlaylist:yutautil.AResult<states.PlaylistState.PlaylistMetadata> = new managers.ChallengePlaylistGenerator(null).startAsync(FlxG.random.int(2, 10)); // Start generating immediately with random song count between 2 and 10 for variety
 
     private static var allItems:ActiveArray = new ActiveArray([]);
 
@@ -578,6 +580,29 @@ class APItem {
             case "Chart Modifier Trap":
                 return new APChartModifier(null, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
+                    t.isTrap = true;
+                });
+
+            case "Challenge Trap":
+                return new APTrap(name, ConditionHelper.Everywhere().funcAndReturn(function(c) {
+                    c.extraConditions = [];
+                    c.extraConditions.push(function(e) {
+                        // Can only trigger if challenge playlist AResult is ready
+                        return challengePlaylist != null && challengePlaylist.isReady;
+                    });
+                }), function() {
+                    popup('Time for a REAL challenge!', "APItem: Challenge Trap", true);
+
+                    // Get the current generated playlist
+                    if (challengePlaylist != null && challengePlaylist.value != null && challengePlaylist.value.songList.length > 0) {
+                        // Make a copy of the playlist to use
+                        var playlistToUse:states.PlaylistState.PlaylistMetadata = challengePlaylist;
+
+                        // Start generating a new challenge playlist for next time
+                        startNewChallengePlaylist();
+                        playlistToUse.copy().play();
+                    }
+                }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     t.isTrap = true;
                 });
 
@@ -2051,6 +2076,9 @@ class APItem {
         // Initialize the pending damage system
         initializePendingDamageSystem();
 
+        // Start the first challenge playlist generation in background
+        startNewChallengePlaylist();
+
         var itemNames:Array<String> = [
             "Blue Balls Curse",
             "Fake Transition",
@@ -2154,6 +2182,39 @@ class APItem {
     }
 
     /**
+     * Initialize challenge playlist generation in the background
+     * Generates a playlist automatically so it's ready when Challenge Trap is triggered
+     */
+    /**
+     * Start a new challenge playlist generation in the background
+     * Updates the challengePlaylist AResult with the generated playlist
+     */
+    public static function startNewChallengePlaylist():Void {
+        trace('[APItem] Starting new challenge playlist generation...');
+
+        // Create a minimal dummy state for the generator (it's only used for substate opening, but quiet mode bypasses that)
+        var dummyState = new backend.MusicBeatState();
+
+        // Create the generator and start async generation
+        var generator = new managers.ChallengePlaylistGenerator(
+            dummyState,
+            function(playlist:states.PlaylistState.PlaylistMetadata):Bool {
+                // This callback won't be used in quiet/async mode
+                return false;
+            },
+            function() {
+                // This callback won't be used in quiet/async mode
+            }
+        );
+
+        // Force quiet mode and start async generation
+        generator.forceQuiet = true;
+        challengePlaylist = generator.startAsync(FlxG.random.int(2, 10)); // Random amount of songs between 2 and 10 for variety
+
+        trace('[APItem] Challenge playlist generation started (async)');
+    }
+
+    /**
      * Initialize the pending damage system by adding it to APPlayState updateFunctions
      */
     public static function initializePendingDamageSystem():Void {
@@ -2245,6 +2306,8 @@ class APItem {
         } catch (e) {
             trace('Error clearing Pong trap queue: $e');
         }
+
+
 
         // Reset April Fools state
         try {
