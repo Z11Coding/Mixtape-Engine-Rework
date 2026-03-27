@@ -131,6 +131,9 @@ class Paths
 				// p.destroy(); // destroy the pointer
 				currentTrackedAssets.remove(key); // and remove the key from local cache map
 			}
+
+			// Clear sound filters
+			// FlxG.sound.killFilters();
 		}
 
 		// run the garbage collector for good measure lmfao

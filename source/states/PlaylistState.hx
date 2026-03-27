@@ -1299,6 +1299,7 @@ class PlaylistMetadata
 
 		// Set up for normal playlist gameplay
 		PlayState.isWarmUp = false;
+		PlayState.isPlaylist = true;
 		PlayState.altInstrumentals = null;
 
 		// Load mods and reload weeks

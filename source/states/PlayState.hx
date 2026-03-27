@@ -724,7 +724,6 @@ class PlayState extends MusicBeatState
 			curSonglist = songlist;
 		else if (playlist != null)
 			curSonglist = playlist.songList;
-
 		super();
 
 	}
@@ -7175,7 +7174,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			skipActive = false;
 		}
 
-		if (FlxG.keys.justPressed.SPACE && skipActive)
+		if (FlxG.keys.justPressed.SPACE && skipActive && (videoCutscene == null && !inCutscene))
 		{
 			// clearNotesBefore(skipTo);
 			callOnScripts('onSkipIntro', [skipTo]);

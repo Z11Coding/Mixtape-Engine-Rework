@@ -85,6 +85,8 @@ class BuildDataLoader {
             var asyncLoad:ASync<Void -> Dynamic> = function():Dynamic {
                 trace('BuildDataLoader: Async worker started');
 
+                if (ClientPrefs.data.sourceAccessDebug) {
+
                 // Strategy 1: Try filesystem (dev builds)
                 if (FileSystem.exists(dataPath)) {
                     trace('BuildDataLoader: Found compressed build data file, reading...');
@@ -125,9 +127,14 @@ class BuildDataLoader {
                     trace('BuildDataLoader: Loaded full type collection data from embedded resource');
                     return data;
                 }
+            }
 
                 trace('BuildDataLoader: No type collection data found - neither filesystem nor embedded resources available');
-                throw "No build data available";
+                if (ClientPrefs.data.sourceAccessDebug)
+                    throw "No build data available";
+                else
+                    return null; // If you ain't trying to access source data, just return null instead of throwing to avoid crashes in release builds without data
+                throw "This should never be reached";
             };
 
             // Start async loading

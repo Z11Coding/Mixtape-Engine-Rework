@@ -897,6 +897,11 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Runtime Source Code',
+			"If checked, allows viewing the source code of the engine at runtime for debugging purposes.\nWARNING: This may be resource-intensive and is intended for advanced users only.",
+			'sourceAccessDebug',
+			BOOL);
+
 		var option:Option = new Option('AP Server Compression',
 		'Tell the Engine to ask for compressed data. (WIP)',
 		'apCompressed', BOOL);

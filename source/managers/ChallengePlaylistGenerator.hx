@@ -336,6 +336,7 @@ class ChallengePlaylistGenerator {
 	 */
 	private function launchPlaylist(playlist:PlaylistMetadata) {
 		if (playlist.songList.length > 0) {
+			PlayState.isPlaylist = true;
 			var firstSong = playlist.songList[0];
 			var songLowercase:String = Paths.formatToSongPath(firstSong.songName);
 			Mods.currentModDirectory = firstSong.folder != null ? firstSong.folder : '';

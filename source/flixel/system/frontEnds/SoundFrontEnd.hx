@@ -193,7 +193,7 @@ class SoundFrontEnd
 
 		sound.group = (group == null) ? defaultSoundGroup : group;
 
-    if (ClientPrefs.data.ultratrashMode || AprilFools.allowAF) {
+    if ((ClientPrefs.data.ultratrashMode || AprilFools.allowAF) && false) {
       if (sound != null && sound.playing) {
 				if (afs == null) {
 					afs = new FlxSoundFilter();
@@ -214,6 +214,15 @@ class SoundFrontEnd
     }
 
 		return sound;
+	}
+
+	public inline function killFilters():Void
+	{
+		if (afs != null)
+		{
+			afs.destroy();
+			afs = null;
+		}
 	}
 
 	/**
