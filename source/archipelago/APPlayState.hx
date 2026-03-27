@@ -2680,10 +2680,14 @@ class APPlayState extends PlayState {
                 if (resistanceAmount < 1) resistanceAmount += 0.005;
         }
 
-        @:privateAccess
-        if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
-            ArchPopup.startPopupCustom('You Found A Check!', '...while not even playing that side.', 'archColor'); // test
-            checkedNotes.push(note);
+        try{
+            @:privateAccess
+            if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
+                ArchPopup.startPopupCustom('You Found A Check!', '...while not even playing that side.', 'archColor'); // test
+                checkedNotes.push(note);
+            }
+        } catch(e) {
+            trace("AP NOTE CHECK FAILED!");
         }
     }
 
