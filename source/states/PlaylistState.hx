@@ -1123,8 +1123,6 @@ class PlaylistState extends MusicBeatState {
 					// ? set BPMs
 					Mods.currentModDirectory = daSongList[curSong].folder;
 					PlayState.storyWeek = daSongList[curSong].week;
-					var newBPM = backend.Song.getChart('${daSongList[curSong].songName}${(daSongList[curSong].difficulty.toLowerCase() != "normal" ? '-'+daSongList[curSong].difficulty.toLowerCase() : "")}', daSongList[curSong].songName).bpm;
-					Conductor.bpm = newBPM; // ? reimplementing
 
 					var list:Array<String> = songStringOG.split('\n');
 					list[curSong] = '?${list[curSong]}?';

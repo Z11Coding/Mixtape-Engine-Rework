@@ -1,6 +1,7 @@
 package states;
 // import lime.ui.DropFileEvent;
 import lime.ui.Window;
+import objects.FunkinCamera;
 import objects.VideoSprite;
 import openfl.Lib;
 import states.stages.objects.*;
@@ -53,11 +54,12 @@ class SplashScreen extends MusicBeatState
             startVideo("splashscreen/bat");
             isVideo = true;
         } else if (ClientPrefs.data.memeSplash) {
-            var videoList:Array<String> = [];
-            videoList = Mods.loadFileList('videos/splashscreen/', null, ['.mp4']);
+            super.create();
+            var videoList:Array<String> = Paths.crawlDirectoryOG('assets/videos', '.mp4')
+            .map(vid -> return vid.substring(vid.indexOf("assets/videos")+"assets/videos".length, vid.indexOf(".")));
             trace("videoList: "+videoList);
             trace("Playing Meme: " + videoList[FlxG.random.int(0, videoList.length - 1)]);
-            startVideo("splashscreen/" + videoList[FlxG.random.int(0, videoList.length - 1)]);
+            startVideo(videoList[FlxG.random.int(0, videoList.length - 1)]);
             isVideo = true;
         }
         states.FirstCheckState.gameInitialized = true;
@@ -134,8 +136,8 @@ class SplashScreen extends MusicBeatState
                 mixT = FlxTween.tween(mix, {x:initX, y:mixtapeEngine.y}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
                 mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
             });
+            super.create();
         }
-        super.create();
     }
 
     public function startVideo(name:String, forMidSong:Bool = true, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
@@ -153,6 +155,8 @@ class SplashScreen extends MusicBeatState
 
 		if (foundFile)
 		{
+            var videoCam:FunkinCamera = new FunkinCamera('Vidro Cam', 0, 0, FlxG.width, FlxG.height, 1);
+            FlxG.cameras.add(videoCam);
             isVideo = true;
 			videoCutscene = new VideoSprite(fileName, forMidSong, canSkip, loop);
 
@@ -165,8 +169,7 @@ class SplashScreen extends MusicBeatState
             }
             videoCutscene.finishCallback = onVideoEnd;
             videoCutscene.onSkip = onVideoEnd;
-            videoCutscene.screenCenter();
-			add(videoCutscene);
+            add(videoCutscene);
 
 			if (playOnLoad)
 				videoCutscene.play();
