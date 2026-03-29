@@ -109,7 +109,6 @@ class APConnectionErrorState extends backend.MusicBeatState
 			GenericProgressSubstate.createTask("Clearing AP playlists...", function(results) {
 				try {
 					archipelago.APPlaylistState.apPlaylists = [];
-					archipelago.APPlaylistState.apPlaylists = null;
 					trace('AP playlists cleared successfully');
 					return "playlists_cleanup_success";
 				} catch (e) {
@@ -223,7 +222,6 @@ class APConnectionErrorState extends backend.MusicBeatState
 
 					// Clear AP playlists
 					archipelago.APPlaylistState.apPlaylists = [];
-					archipelago.APPlaylistState.apPlaylists = null;
 
 					trace('Emergency cleanup completed during error handling');
 				} catch (cleanupError) {

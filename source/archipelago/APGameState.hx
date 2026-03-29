@@ -3981,7 +3981,6 @@ class APGameState
 		// Clear AP playlists
 		#if ARCHIPELAGO_ALLOWED
 		APPlaylistState.apPlaylists = [];
-		APPlaylistState.apPlaylists = null;
 		#end
 
 		// Clear reconnection callback state

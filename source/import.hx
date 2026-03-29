@@ -110,7 +110,7 @@ using yutautil.TypeUtils;
 using yutautil.Valid;
 // using yutautil.lambda.LambdaCalculus;
 using yutautil.modules.ASync.AResult;
-using yutautil.modules.ASync.AsyncF;
+using yutautil.modules.ASync.ASyncF;
 using yutautil.modules.ASync;
 #if moonchart
 import moonchart.Moonchart;

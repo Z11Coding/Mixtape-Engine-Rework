@@ -185,7 +185,15 @@ class APItem {
     public static var triggeredAntiPermaTraps:Array<String> = [];
 
     // Challenge Trap system - just one AResult tracking the current playlist generation
-    public static var challengePlaylist:yutautil.AResult<states.PlaylistState.PlaylistMetadata> = new managers.ChallengePlaylistGenerator(null).startAsync(FlxG.random.int(2, 10)); // Start generating immediately with random song count between 2 and 10 for variety
+    public static var challengePlaylist:AResult<states.PlaylistState.PlaylistMetadata> =
+    cast new ASync<Dynamic>(function() {
+        while (states.FirstCheckState.gameInitialized == false) {
+        Sys.sleep(100);
+        }
+        trace("Starting initial challenge playlist generation...");
+        return new managers.ChallengePlaylistGenerator(null).startAsync(FlxG.random.int(2, 10)); // Start generating immediately with random song count between 2 and 10 for variety
+
+    })();
 
     private static var allItems:ActiveArray = new ActiveArray([]);
 
@@ -594,13 +602,13 @@ class APItem {
                     popup('Time for a REAL challenge!', "APItem: Challenge Trap", true);
 
                     // Get the current generated playlist
-                    if (challengePlaylist != null && challengePlaylist.value != null && challengePlaylist.value.songList.length > 0) {
+                    if (challengePlaylist != null && challengePlaylist.get().songList.length > 0) {
                         // Make a copy of the playlist to use
-                        var playlistToUse:states.PlaylistState.PlaylistMetadata = challengePlaylist;
+                        var playlistToUse:states.PlaylistState.PlaylistMetadata = challengePlaylist.get().copy();
 
                         // Start generating a new challenge playlist for next time
                         startNewChallengePlaylist();
-                        playlistToUse.copy().play();
+                        playlistToUse.play();
                     }
                 }, true, false, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     t.isTrap = true;

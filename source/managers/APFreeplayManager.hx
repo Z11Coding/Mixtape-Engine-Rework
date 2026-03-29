@@ -97,6 +97,21 @@ class APFreeplayManager extends FreeplayManager {
 		return locationId.trim().toLowerCase().replace('-', ' ') == APEntryState.victorySong.trim().toLowerCase().replace('-', ' ');
 	}
 
+	/**
+	 * Check if a song is unlocked in the current AP session
+	 * @param songName The song name
+	 * @param modName The mod name (can be null or empty)
+	 * @return True if the song is in curUnlocked, false otherwise
+	 */
+	public static function isSongUnlocked(songName:String, modName:String):Bool {
+		#if ARCHIPELAGO_ALLOWED
+		if (modName == null) modName = "";
+		return [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+		#else
+		return false;
+		#end
+	}
+
 	/**	 * Determine the AP color state for a song based on unlock status and location checks
 	 * @param songName The song name
 	 * @param modName The mod name (can be null or empty)
@@ -108,7 +123,7 @@ class APFreeplayManager extends FreeplayManager {
 		if (modName == null) modName = "";
 
 		// Check if song is unlocked (in curUnlocked)
-		var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
+		var isUnlocked = isSongUnlocked(songName, modName);
 
 		// Count how many locations have been checked
 		var checkedCount = 0;
@@ -338,7 +353,7 @@ class APFreeplayManager extends FreeplayManager {
                 isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
                 // Check if song is unlocked
-                var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
+                var isUnlocked = isSongUnlocked(songName, modName);
 
                 // Count checked locations
                 var checkedCount = 0;
@@ -403,7 +418,7 @@ class APFreeplayManager extends FreeplayManager {
                     isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
                     // Check if song is unlocked
-                    var isUnlocked = [for (songObj in curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].length > 0;
+                    var isUnlocked = isSongUnlocked(songName, modName);
 
                     // Count checked locations
                     var checkedCount = 0;

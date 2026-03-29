@@ -259,7 +259,7 @@ class ChallengePlaylistGenerator {
 	/**
 	 * Internal: Start the actual generation process
 	 */
-	private function startGeneration(songCount:Int) {
+	private function startGeneration(songCount:Int, ?quiet:Bool = false) {
 		var isQuiet = quiet || forceQuiet;
 		var songsWithDiffs:Array<Dynamic> = [];
 
@@ -393,7 +393,7 @@ class ChallengePlaylistGenerator {
 				title: "Generating Challenge Playlist",
 				tasks: tasks,
 				onComplete: function(results:Array<Dynamic>) {
-					handleGenerationComplete(results, songCount, isQuiet);
+					handleGenerationComplete(results, songCount);
 				},
 				onError: function(error:String, shouldThrow:Bool) {
 					trace('Generation error: $error');
@@ -464,7 +464,7 @@ class ChallengePlaylistGenerator {
 	 */
 	public function startAsync(?forcedSongCount:Null<Int>):AResult<PlaylistMetadata> {
 		// Execute quietly and return result directly as an AResult (no callbacks used)
-		var playlist:AsyncF<PlaylistMetadata> = startQuietly;
+		var playlist:ASyncF<PlaylistMetadata> = startQuietly;
 		return cast playlist(forcedSongCount);
 	}
 

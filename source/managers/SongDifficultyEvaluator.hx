@@ -213,7 +213,7 @@ class SongDifficultyEvaluator
 
 		return Math.max(score, 10.0); // Minimum score of 10
 	}
-	public var debug:Bool = false;
+	public static var debug:Bool = false;
 
 	/**
 	 * Analyzes a chart's difficulty through multiple factors:
