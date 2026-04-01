@@ -3,16 +3,16 @@ package objects;
 import flixel.group.FlxGroup;
 import flixel.ui.FlxBar;
 import flixel.util.FlxStringUtil;
-
 import states.freeplay.FreeplayState;
 
 /**
  * Music player used for Freeplay
  */
 @:access(states.freeplay.FreeplayState)
-class MusicPlayer extends FlxGroup 
+@:access(states.freeplay.DynamicFreeplayState)
+class MusicPlayer extends FlxGroup
 {
-	public var instance:FreeplayState;
+	public var instance:Dynamic;
 	public var controls:Controls;
 
 	public var playing(get, never):Bool;
@@ -33,7 +33,7 @@ class MusicPlayer extends FlxGroup
 	var holdPitchTime:Float = 0;
 	var playbackRate(default, set):Float = 1;
 
-	public function new(instance:FreeplayState)
+	public function new(instance:Dynamic)
 	{
 		super();
 
@@ -90,7 +90,7 @@ class MusicPlayer extends FlxGroup
 			return;
 		}
 
-		var songName:String = FreeplayState.instance.fpManager.songList[FreeplayState.curSelected].songName;
+		var songName:String = instance.fpManager.songList[instance.curSelected].songName;
 		if (playing && !wasPlaying)
 			songTxt.text = Language.getPhrase('musicplayer_playing', 'PLAYING: {1}', [songName]);
 		else
@@ -179,7 +179,7 @@ class MusicPlayer extends FlxGroup
 				setPlaybackRate();
 			}
 		}
-	
+
 		if (controls.RESET)
 		{
 			playbackRate = 1;
@@ -230,7 +230,7 @@ class MusicPlayer extends FlxGroup
 			FreeplayManager.opponentVocals.time = curMuteState ? 0 : 0.8;
 	}
 
-	public function pauseOrResume(resume:Bool = false) 
+	public function pauseOrResume(resume:Bool = false)
 	{
 		if (resume)
 		{
@@ -242,7 +242,7 @@ class MusicPlayer extends FlxGroup
 			if (FreeplayManager.opponentVocals != null && FreeplayManager.opponentVocals.length > FlxG.sound.music.time && !FreeplayManager.opponentVocals.playing)
 				FreeplayManager.opponentVocals.resume();
 		}
-		else 
+		else
 		{
 			FlxG.sound.music.pause();
 
@@ -263,7 +263,7 @@ class MusicPlayer extends FlxGroup
 
 		for (i in playbackSymbols)
 			i.visible = playingMusic;
-		
+
 		holdPitchTime = 0;
 		instance.holdTime = 0;
 		playbackRate = 1;
@@ -273,7 +273,7 @@ class MusicPlayer extends FlxGroup
 		{
 			instance.bottomText.text = Language.getPhrase('musicplayer_tip', 'Press SPACE to Pause / Press ESCAPE to Exit / Press R to Reset the Song / Press M to mute the vocals');
 			positionSong();
-			
+
 			progressBar.setRange(0, FlxG.sound.music.length);
 			progressBar.setParent(FlxG.sound.music, "time");
 			progressBar.numDivisions = 1600;
@@ -308,15 +308,15 @@ class MusicPlayer extends FlxGroup
 		playbackTxt.text = text + 'x';
 	}
 
-	function positionSong() 
+	function positionSong()
 	{
-		var length:Int = FreeplayState.instance.fpManager.songList[FreeplayState.curSelected].songName.length;
+		var length:Int = instance.fpManager.songList[instance.curSelected].songName.length;
 		var shortName:Bool = length < 5; // Fix for song names like Ugh, Guns
 		songTxt.x = FlxG.width - songTxt.width - 6;
 		if (shortName)
 			songTxt.x -= 10 * length - length;
 		songBG.scale.x = FlxG.width - songTxt.x + 12;
-		if (shortName) 
+		if (shortName)
 			songBG.scale.x += 6 * length;
 		songBG.x = FlxG.width - (songBG.scale.x / 2);
 		timeTxt.x = Std.int(songBG.x + (songBG.width / 2));
@@ -359,7 +359,7 @@ class MusicPlayer extends FlxGroup
 		timeTxt.text = '< ' + text + ' >';
 	}
 
-	function setPlaybackRate() 
+	function setPlaybackRate()
 	{
 		FlxG.sound.music.pitch = playbackRate;
 		if (FreeplayManager.vocals != null)
@@ -368,12 +368,12 @@ class MusicPlayer extends FlxGroup
 			FreeplayManager.opponentVocals.pitch = playbackRate;
 	}
 
-	function get_playing():Bool 
+	function get_playing():Bool
 	{
 		return FlxG.sound.music.playing;
 	}
 
-	function set_playbackRate(value:Float):Float 
+	function set_playbackRate(value:Float):Float
 	{
 		var value = FlxMath.roundDecimal(value, 2);
 		if (value > 3) value = 3;

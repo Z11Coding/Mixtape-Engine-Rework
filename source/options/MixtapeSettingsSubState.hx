@@ -342,11 +342,11 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
-		var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game'];
+		var freemenus:Array<String> = ['Mixtape', 'Osu', 'Base Game', 'Dynamic'];
 		for (theme in Mods.loadFileList('custom_freeplays/', ['.hx']))
 			freemenus.push(theme);
 		var option:Option = new Option('Freeplay Menu:',
-			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBase Game: V-Slice style menu with enhanced features",
+			"Which freeplay menu do you prefer?\n(This has no effect on Archipelago Mode)\nBase Game: V-Slice style menu with enhanced features\nDynamic: Experimental freeplay with streaming song load",
 			'freeplayMenu',
 			STRING,
 			freemenus);
@@ -366,6 +366,30 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Showcase Mode Warnings',
 			"If checked, warnings will be displayed in freeplay menus when showcase mode is enabled.\nThese warnings only appear when NOT in Archipelago mode.",
 			'showcaseWarnings',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Dynamic Loading Mode',
+			"Control how songs are loaded in freeplay:\nOff: Sync Load - All songs load at startup (original behavior)\nAdaptive: Hybrid preload ~20 songs + load remaining on-demand\nAggressive: On-demand only - Songs load as you scroll",
+			'dynamicFreeplayLoading',
+			STRING,
+			[
+				'Off (Sync Load)',
+				'Adaptive (Hybrid)',
+				'Aggressive (On-Demand)'
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
+		var option:Option = new Option('Show Loading Progress Bar',
+			"If checked, a progress bar will be displayed while songs are loading in freeplay.",
+			'showLoadingBar',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Allow Scroll During Load',
+			"If checked, you can scroll through freeplay while songs are still loading.\nIf unchecked, scrolling is blocked until all songs are loaded.",
+			'allowScrollDuringLoad',
 			BOOL);
 		addOption(option);
 

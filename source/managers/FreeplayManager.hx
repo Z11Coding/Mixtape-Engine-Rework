@@ -135,6 +135,8 @@ class FreeplayManager {
                 states.freeplay.OsuFreeplayState;
             case "Base Game":
                 states.freeplay.VSliceFreeplayState;
+            case "Dynamic":
+                states.freeplay.DynamicFreeplayState;
             default:
                 new states.freeplay.CustomFreeplayState(Paths.mods(ClientPrefs.data.freeplayMenu));
                 states.freeplay.CustomFreeplayState;
@@ -157,6 +159,8 @@ class FreeplayManager {
                 states.freeplay.OsuFreeplayState;
             case "Base Game":
                 states.freeplay.VSliceFreeplayState;
+            case "Dynamic":
+                states.freeplay.DynamicFreeplayState;
             default:
                 states.freeplay.CustomFreeplayState;
         }
@@ -172,6 +176,8 @@ class FreeplayManager {
                 states.freeplay.OsuFreeplayState.instance;
             case "Base Game":
                 states.freeplay.VSliceFreeplayState.instance;
+            case "Dynamic":
+                states.freeplay.DynamicFreeplayState.instance;
             default:
                 FlxG.log.error("Invalid Freeplay Menu: " + ClientPrefs.data.freeplayMenu);
                 states.freeplay.FreeplayState.instance;
@@ -188,6 +194,8 @@ class FreeplayManager {
                 new states.freeplay.OsuFreeplayState();
             case "Base Game":
                 new states.CategoryState(); //Since this is where Freeplay is hosted, it has to go here
+            case "Dynamic":
+                new states.freeplay.DynamicFreeplayState();
             default:
                 new states.freeplay.CustomFreeplayState(Paths.mods(ClientPrefs.data.freeplayMenu));
         }
@@ -277,6 +285,9 @@ class FreeplayManager {
             case "Base Game":
                 if (states.freeplay.VSliceFreeplayState.instance != null)
                     states.freeplay.VSliceFreeplayState.instance.refreshSongList();
+            case "Dynamic":
+                if (states.freeplay.DynamicFreeplayState.instance != null)
+                    states.freeplay.DynamicFreeplayState.instance.reloadDynamicSongs();
             default:
                 if (states.freeplay.CustomFreeplayState.instance != null)
                     states.freeplay.CustomFreeplayState.instance.handleFreeplayReload(refresh, searchText);

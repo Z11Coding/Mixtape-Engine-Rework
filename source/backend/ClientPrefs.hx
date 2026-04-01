@@ -39,6 +39,12 @@ import states.TitleState;
 	public var hideHud:Bool = false;
 	public var showRenderedText:Bool = false;
 	public var freeplayOptionsOpen:Bool = false; // Remember if options menu was open in freeplay
+
+	// Dynamic Freeplay Loading Settings
+	public var dynamicFreeplayLoading:String = 'Adaptive (Hybrid)'; // Sync Load / Adaptive (Hybrid) / Aggressive (On-Demand)
+	public var showLoadingBar:Bool = true; // Display progress bar during loading
+	public var allowScrollDuringLoad:Bool = true; // Allow user to scroll before all items loaded
+
 	public var noteOffset:Int = 0;
 	public var arrowRGB:Array<Array<FlxColor>> = [
 		[0xFFC24B99, 0xFFFFFFFF, 0xFF3C1F56],

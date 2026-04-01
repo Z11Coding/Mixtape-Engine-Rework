@@ -567,7 +567,7 @@ class APFreeplayManager extends FreeplayManager {
         trace("Reloading Songs!");
 
         songs = [];
-        PsychOnlineThread.run(() -> {
+        {
             songsHidden = archipelago.APItem.unknownSongs;
 
             // Check all current allowed songs and make sure there's no duplicates.
@@ -929,7 +929,7 @@ class APFreeplayManager extends FreeplayManager {
                     }
                 }
             }
-        }, (e:haxe.Exception) -> {trace("SOMETHING WENT WRONG!\n"+e);});
+        }
 
         switch (ClientPrefs.data.freeplayMenu) {
             case "Mixtape": //Why rename it when you're already here?
@@ -950,9 +950,12 @@ class APFreeplayManager extends FreeplayManager {
     }
 }
 
+/**
+ * Victory song display with animated rainbow color cycling
+ * Used in AP freeplay to highlight the victory song when unlocked, with special colors for missing/unlocked states.
+ */
 class VictorySong extends DynamicColoredAlphabet
 {
-
 	public function new(x:Float, y:Float, text:String, color:Int, preserve:Bool)
 	{
 		super(x, y, text, color, preserve);
