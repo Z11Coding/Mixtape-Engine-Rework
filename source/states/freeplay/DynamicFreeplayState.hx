@@ -1524,7 +1524,8 @@ class DynamicFreeplayState extends MusicBeatState
 			return;
 		}
 
-		curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
+		if (Difficulty.list.length > 0)
+			curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
 
 		#if ARCHIPELAGO_ALLOWED
 		// Validate that the selected difficulty is available for SiivaGunner content

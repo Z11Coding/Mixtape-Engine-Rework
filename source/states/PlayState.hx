@@ -11224,10 +11224,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			}
 		}
 
-		if (note.cod != null && note.cod.trim() != '') {
-			COD.setCOD(note.cod);
-			return;
-		}
+
 
 		if(instakillOnMiss)
 		{
@@ -11434,6 +11431,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			});
 			FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
 			health = 1 / lives * lives;
+		}
+			if (note.cod != null && note.cod.trim() != '') {
+			COD.setCOD(note.cod);
 		}
 	}
 

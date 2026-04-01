@@ -820,7 +820,7 @@ class APFreeplayManager extends FreeplayManager {
                                     var isMissing:Bool = APEntryState.apGame.areLocationsMissing(locationIds);
                                     for (songObj in curUnlocked)
                                     {
-                                        if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod) && !isMissing)
+                                        if (((songNameThing.trim().toLowerCase().replace('-', ' ') == songObj.song.trim().toLowerCase().replace('-', ' ')) && leWeek.folder == songObj.mod))
                                             addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
                                     }
                                 }
