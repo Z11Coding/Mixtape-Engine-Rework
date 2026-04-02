@@ -1,5 +1,6 @@
 package yutautil;
 
+import lime.app.Application;
 import yutautil.ExtendedDate;
 
 // Simply manage if it's allowed.
@@ -127,5 +128,88 @@ class AprilFools {
             case 54:
                 PlayState.instance.modManager.setValue('invert', 1);
         }
+    }
+
+    public static function showFakeCrashMessage(targetState:flixel.FlxState):Void {
+        if (!allowAF) return;
+
+        var currentState = Type.getClassName(Type.getClass(FlxG.state));
+        var targetStateClass = Type.getClassName(Type.getClass(targetState));
+
+        var errorTypes = [
+            "NullPointerException",
+            "AccessViolationException",
+            "InvalidMemoryError",
+            "StackOverflowException",
+            "OutOfMemoryError",
+            "TypeMismatchError",
+            "IndexOutOfBoundsException",
+            "BlueBallsException",
+            "SegmentationFault",
+        ];
+
+        var errorMessages = [
+            "Cannot access property of null",
+            "Memory access violation at 0x" + StringTools.hex(FlxG.random.int(0, 0xFFFFFF), 6),
+            "Stack overflow in recursive function call",
+            "Invalid type conversion attempted",
+            "Array index out of bounds",
+            "File not found or inaccessible",
+            "Undefined method called on object",
+            "Your head is now a watermelon"
+        ];
+
+        var sourceFiles = [
+            "source/backend/MusicBeatState.hx",
+            "source/states/PlayState.hx",
+            "source/backend/Paths.hx",
+            "source/psychlua/FunkinLua.hx",
+            "source/archipelago/APGameState.hx",
+            "source/yutautil/StatePick.hx",
+            "source/backend/TransitionState.hx"
+        ];
+
+        var errMsg:String = "";
+        var numLines = FlxG.random.int(3, 10);
+
+        // Get current state filename - strip package name and add .hx
+        var stateClassName = Type.getClassName(Type.getClass(FlxG.state));
+        var currentStateFile = stateClassName.substring(stateClassName.lastIndexOf(".") + 1) + ".hx";
+
+        // Generate random stack trace lines - one should be from current state
+        var stateLineIndex = FlxG.random.int(0, numLines - 1);
+        for (i in 0...numLines) {
+            var file:String;
+            // Make one line be from the current state
+            if (i == stateLineIndex) {
+                file = currentStateFile;
+            } else {
+                file = sourceFiles[FlxG.random.int(0, sourceFiles.length - 1)];
+                // Extract just the filename from the path
+                file = file.substring(file.lastIndexOf("/") + 1);
+            }
+            var line = FlxG.random.int(50, 3000);
+            errMsg += file + " (line " + line + ")\n";
+        }
+
+        var errorType = errorTypes[FlxG.random.int(0, errorTypes.length - 1)];
+        var errorMsg = errorMessages[FlxG.random.int(0, errorMessages.length - 1)];
+
+        errMsg += "\nUncaught Error: " + errorType + ": " + errorMsg;
+        errMsg += "\nError Code: " + StringTools.hex(FlxG.random.int(0, 0xFFFFFFFF), 8);
+        errMsg += "\n(Error Codes in Beta. May be long...)";
+        errMsg += "\nIn State: " + currentState;
+
+        errMsg += "\nPlease report this error to the GitHub page: https://github.com/Z11Gaming/Mixtape-Engine-Rework";
+        errMsg += "\n\n> Crash Handler written by: sqirra-rng";
+        errMsg += "\n\n> Modified by: Yutamon";
+        errMsg += "\n\n> Enhanced Crash Tracking: Enabled";
+
+        // Print in exact same format as onCrash - no banner, just the message
+        Sys.println(errMsg);
+
+        // Show the crash window alert like the real crash handler. Doesn't care if it's on or off since it's a fake message.
+            Application.current.window.alert(errMsg, "Error!");
+
     }
 }

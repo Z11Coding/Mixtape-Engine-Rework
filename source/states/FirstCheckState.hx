@@ -126,9 +126,9 @@ class FirstCheckState extends MusicBeatState
 			#end
 		}
 
-		if (AprilFools.allowAF)
-			ClientPrefs.data.ultratrashMode = true;
-		else
+		// if (AprilFools.allowAF)
+			// ClientPrefs.data.ultratrashMode = true;
+
 			ClientPrefs.data.ultratrashMode = ClientPrefs.data.ogultratrashMode;
 
 		if(Main.fpsVar != null) {
