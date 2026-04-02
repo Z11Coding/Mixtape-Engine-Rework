@@ -1,8 +1,8 @@
 package backend.util;
 
 import backend.window.os.*;
-import flixel.util.typeLimit.OneOfTwo;
 import flixel.util.typeLimit.OneOfThree;
+import flixel.util.typeLimit.OneOfTwo;
 
 /**
  * Class for functions that talk to a lower level than haxe, such as message boxes, and more.
@@ -27,7 +27,24 @@ class NativeAPI {
 	public static function allocConsole() {
 		#if windows
 		Windows.allocConsole();
+		ignoreConsoleClose();
 		Windows.clearScreen();
+		#end
+	}
+
+	public static function ignoreConsoleClose() {
+		#if windows
+		Windows.ignoreConsoleClose();
+		#end
+	}
+	public static function clearConsole() {
+		#if windows
+		Windows.clearScreen();
+		#end
+	}
+	public static function freeConsole() {
+		#if windows
+		Windows.freeConsole();
 		#end
 	}
 
@@ -103,7 +120,7 @@ class NativeAPI {
 
 	public static function getPhysicallyInstalledSystemMemory(mb:Bool = false):Float {
 		#if windows
-		return mb 
+		return mb
 			? Std.parseFloat(Std.string(Windows.getPhysicallyInstalledSystemMemory(mb)))
 			: Std.parseFloat(Std.string(Windows.getPhysicallyInstalledSystemMemory(mb)).substr(0, 2) + "." + Std.string(Windows.getPhysicallyInstalledSystemMemory(mb)).substr(2));
 		#else

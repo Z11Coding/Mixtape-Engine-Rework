@@ -369,6 +369,12 @@ class DynamicFreeplayState extends MusicBeatState
 
 		changeSelection();
 
+		// Set the mod directory for the initially selected song
+		if (fpManager.songList.length > 0 && curSelected >= 0 && curSelected < fpManager.songList.length)
+		{
+			Mods.currentModDirectory = fpManager.songList[curSelected].folder;
+		}
+
 		if (!FlxG.save.data.gotIntoAnArgument && !APEntryState.inArchipelagoMode)
 			hh.push({item: "small argument", chance: 5}); // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
 		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode)

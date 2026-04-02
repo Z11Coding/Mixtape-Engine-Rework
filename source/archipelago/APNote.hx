@@ -215,6 +215,7 @@ class APNote extends objects.Note {
 
             // Replace the original note with the APNote
             @:privateAccess{
+                notes[lane][index].finalize(); // Finalize the note to ensure no issues when finalizing at birth.
                 notes[lane][index].isCheck = true;
                 notes[lane][index].checkInfo = {note: notes[lane][index], loc: location};
 

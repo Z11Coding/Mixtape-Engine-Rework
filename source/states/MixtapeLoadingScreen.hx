@@ -228,8 +228,13 @@ class MixtapeLoadingScreen extends MusicBeatState
 		// Choose random exit animation: fade or drop
 		var exitType = FlxG.random.bool() ? 'fade' : 'drop';
 		@:privateAccess {
+			try {
 		var _donePlayState:Bool = LoadingState.preloadAsync != null && LoadingState.preloadAsync.get();
-		trace('LoadingState: Preload completed: ' + _donePlayState);
+				trace('LoadingState: Preload completed: ' + _donePlayState);
+			}
+			catch (e:haxe.Exception) {
+				trace('ERROR when checking preloadAsync: ${LoadingState.preloadAsync?.getError()}');
+			}
 		LoadingState.preloadAsync = null;
 		}
 

@@ -516,8 +516,13 @@ class LoadingState extends MusicBeatState
 			if(checkLoaded())
 			{
 				_loaded();
+				try {
 				var _donePlayState:Bool = preloadAsync != null && preloadAsync.get();
-				trace('LoadingState: Preload completed: ' + _donePlayState);
+								trace('LoadingState: Preload completed: ' + _donePlayState);
+				}
+				catch (e:haxe.Exception) {
+					trace('ERROR when checking preloadAsync: ${preloadAsync?.getError()}');
+				}
 				preloadAsync = null;
 				break;
 			}
@@ -1946,14 +1951,16 @@ class LoadingState extends MusicBeatState
 
 			trace("LoadingState: Waiting for any ongoing GC behavior to finish...");
 
+
 		while (!MusicBeatState.getState().didGCBehavior || _doingRestart) {
 			// Wait for garbage collection behavior to be executed.
 			// trace("Restart State: " + _doingRestart + " | Did GC Behavior: " + MusicBeatState.getState().didGCBehavior);
+
 			if (_doingRestart && MusicBeatState.getState().didGCBehavior) {
 				_doingRestart = false;
 				trace("LoadingState: GC finished without detection. Fixing.");
 			}
-			Sys.sleep(0.1);
+			Sys.sleep(1);
 		}
 
 

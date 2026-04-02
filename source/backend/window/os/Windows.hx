@@ -156,6 +156,15 @@ class AudioFixClient : public IMMNotificationClient {
 };
 
 AudioFixClient *curAudioFix;
+
+// Console control handler that prevents console close from killing the process
+static BOOL WINAPI ConsoleCtrlHandler(DWORD dwCtrlType) {
+	if (dwCtrlType == CTRL_CLOSE_EVENT) {
+		// Return TRUE to indicate the signal was handled, preventing process termination
+		return TRUE;
+	}
+	return FALSE;
+}
 ')
 @:dox(hide)
 class Windows {
@@ -170,6 +179,12 @@ class Windows {
 	')
 	public static function registerAudio() {
 		Main.audioDisconnected = false;
+	}
+
+	@:functionCode('
+		SetConsoleCtrlHandler((PHANDLER_ROUTINE)ConsoleCtrlHandler, TRUE);
+	')
+	public static function ignoreConsoleClose() {
 	}
 
 	@:functionCode('
@@ -196,6 +211,37 @@ class Windows {
 	freopen("CONOUT$", "w", stderr);
 	')
 	public static function allocConsole() {
+	}
+
+	@:functionCode('
+		// Completely disconnect from console to prevent input blocking
+		// Close the stdin handle immediately to prevent console from waiting for input
+		HANDLE stdinHandle = GetStdHandle(STD_INPUT_HANDLE);
+		if (stdinHandle != INVALID_HANDLE_VALUE) {
+			CloseHandle(stdinHandle);
+		}
+
+		// Set stdin to invalid handle to prevent any further blocking
+		SetStdHandle(STD_INPUT_HANDLE, INVALID_HANDLE_VALUE);
+
+		// Close stdout and stderr handles
+		HANDLE stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (stdoutHandle != INVALID_HANDLE_VALUE) {
+			CloseHandle(stdoutHandle);
+		}
+
+		HANDLE stderrHandle = GetStdHandle(STD_ERROR_HANDLE);
+		if (stderrHandle != INVALID_HANDLE_VALUE) {
+			CloseHandle(stderrHandle);
+		}
+
+		// Flush C runtime buffers (though handles are already closed)
+		fflush(NULL);
+
+		// Fully detach from the console
+		FreeConsole();
+	')
+	public static function freeConsole() {
 	}
 
 	@:functionCode('

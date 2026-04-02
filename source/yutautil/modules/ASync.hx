@@ -303,6 +303,10 @@ abstract AResult<T>(ASyncStatus<T>) {
         return result;
     }
 
+    public inline function getError():Null<Dynamic> {
+        return (this.status == Failed) ? this.error : null;
+    }
+
     public function toString():String {
         return switch (this.status) {
             case Pending: "AResult<Pending> (${elapsedTime}s)";

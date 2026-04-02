@@ -852,6 +852,9 @@ class Main extends Sprite
 		// if (Main.commandPrompt != null)
 		// 	commandPrompt.remove();
 
+		// Remove terminal output/input so the process will close properly.
+			backend.util.NativeAPI.freeConsole();
+
 		WindowUtils.preventClosing = false;
 		Lib.application.window.close();
 
