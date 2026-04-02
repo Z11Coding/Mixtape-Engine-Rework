@@ -679,7 +679,14 @@ class APFreeplayManager extends FreeplayManager {
                     //This is for later
                     var musician:String = 'unknown';
                     if (FileSystem.exists(Paths.json(song[0].toLowerCase() + "/credits")))
+                        try
+                        {
                     musician = File.getContent((Paths.json(song[0].toLowerCase() + "/credits")));
+                        }
+                        catch (e)
+                        {
+                            //trace("can't find credits for " + song[0].toLowerCase());
+                        }
 
 
                     try {metadataFile = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(song[0].toLowerCase()) + '/meta')));}

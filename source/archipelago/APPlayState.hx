@@ -2787,8 +2787,12 @@ class APPlayState extends PlayState {
 
         PlayState.gameplayArea = "APFreeplay";
 
-        if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') != "Normal" || ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == null)
-            ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+        ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+
+        if (chartModifier != "Normal") {
+            chartModifier = "Normal";
+            ArchPopup.startPopupCustom('Chart Modifier Reset', 'Chart Modifier has been reset to Normal.', 'archWhite');
+        }
 
 
         if (archipelago.HighQualityTrapManager.isTrapInUse()) {
