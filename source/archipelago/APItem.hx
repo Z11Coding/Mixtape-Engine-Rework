@@ -2353,9 +2353,7 @@ class APChartModifier extends APTrap {
 
     public function new(?chartModifier:String, ?fromTrapLink:Bool = false) {
         var modifiers = chartModifier != null ? [chartModifier] : ["Random", "RandomBasic", "RandomComplex", "Flip", "Pain", "ManiaConverter", "Stairs", "Wave", "Trills", "Amalgam"];
-        if (yutautil.AprilFools.allowAF) {
-            modifiers.push("SpeedRando");
-        }
+
 
         this.chartModifier = modifiers[Std.random(modifiers.length)];
         this.chartModifier = (this.chartModifier == "ManiaConverter" &&
