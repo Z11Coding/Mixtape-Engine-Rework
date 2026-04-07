@@ -162,7 +162,7 @@ class CategoryState extends MusicBeatState
 		DiscordClient.changePresence("Picking the Category", null);
 		#end
 
-		menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
+		//menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
 		FlxTransitionableState.skipNextTransOut = false;
 
 		if (showSecrets && (FlxG.save.data.gotIntoAnArgument || FlxG.save.data.gotbeatbattle || FlxG.save.data.gotbeatbattle2)) menuItems.insert(menuItems.length+1, "Secrets");
