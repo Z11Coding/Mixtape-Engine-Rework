@@ -27,7 +27,7 @@ class CategoryState extends MusicBeatState
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
 	public var menuItems:Array<String> = [
-		"All", "Base", "Erect", "Pico", "Playlists"
+		"All", "Base", "Erect", "Pico", "Playlists", "Music Player"
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;
@@ -37,7 +37,7 @@ class CategoryState extends MusicBeatState
 
 	//I'll softcode this eventually
 	public var menuLocks:Array<Bool> = [
-		false, false, false, false
+		false, false, false, false, false, false
 	];
 	public var specialOptions:Array<Void -> Void> = [
 		//function() { FlxG.switchState(new FreeplayState()); }
@@ -377,8 +377,8 @@ class CategoryState extends MusicBeatState
 				throw "CategoryState: 'categories' must be either an Array<String>, a Map<String, Void -> Bool>, or a Category!";
 			}
 		} else {
-			menuItems = ["All", "Base", "Erect", "Pico"];
-			menuLocks = [false, false, false, false];
+			menuItems = ["All", "Base", "Erect", "Pico", "Playlists", "Music Player"];
+			menuLocks = [false, false, false, false, false, false];
 		}
 
 		// Remove disabled categories from menuItems before validation
@@ -553,6 +553,11 @@ class CategoryState extends MusicBeatState
 
 				if (loadWeekForce == 'playlists') {
 					MusicBeatState.switchState(new PlaylistState());
+					return;
+				}
+
+				if (loadWeekForce == 'music player') {
+					MusicBeatState.switchState(new MusicPlayerState());
 					return;
 				}
 

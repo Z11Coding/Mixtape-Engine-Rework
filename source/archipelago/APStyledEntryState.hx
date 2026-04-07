@@ -1225,7 +1225,7 @@ class APStyledEntryState extends MusicBeatState {
             },
             function() {
                 // Let user choose location
-                var savePath = yutautil.ImprovedFileHandling.saveFile("Export APWorld", {ext: "apworld", desc: "APWorld Files"});
+                var savePath = yutautil.ImprovedFileHandling.saveFile("Export APWorld", {ext: "apworld", desc: "Archipelago World File"});
                 if (savePath != null) {
                     performAPWorldExport(savePath);
                 }
@@ -1237,15 +1237,33 @@ class APStyledEntryState extends MusicBeatState {
     function performAPWorldExport(targetPath:String) {
         // Show progress while exporting APWorld
         var tasks = [
-            GenericProgressSubstate.createTask("Copying APWorld file", function(results:Array<Dynamic>) {
+            GenericProgressSubstate.createTask("Retrieving embedded APWorld data", function(results:Array<Dynamic>) {
                 try {
-                    // Copy the APWorld file from the Archipelago installation
-                    var sourcePath = currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld";
-                    if (FileSystem.exists(sourcePath)) {
-                        File.copy(sourcePath, targetPath);
-                        return "APWorld exported successfully";
+                    var apworldData = haxe.Resource.getBytes("apworld");
+                    if (apworldData == null) {
+                        throw new Exception("APWorld data not found in embedded resources");
+                    }
+                    return apworldData;
+                } catch (e:Exception) {
+                    throw e;
+                }
+            }),
+            GenericProgressSubstate.createTask("Saving APWorld to target location", function(results:Array<Dynamic>) {
+                try {
+                    var apworldData = results[0];
+                    File.saveBytes(targetPath, apworldData);
+                    return "APWorld file saved";
+                } catch (e:Exception) {
+                    throw e;
+                }
+            }),
+            GenericProgressSubstate.createTask("Verifying export", function(results:Array<Dynamic>) {
+                try {
+                    if (FileSystem.exists(targetPath)) {
+                        var fileSize = FileSystem.stat(targetPath).size;
+                        return 'Export verified - ${fileSize} bytes written';
                     } else {
-                        throw new Exception("APWorld not found at: " + sourcePath);
+                        throw new Exception("Exported file not found at target path");
                     }
                 } catch (e:Exception) {
                     throw e;
