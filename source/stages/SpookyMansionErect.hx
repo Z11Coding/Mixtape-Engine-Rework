@@ -1,9 +1,9 @@
 package stages;
 
-import stages.PicoCapableStage;
-import shaders.RainShader;
-import objects.Note;
 import objects.Character;
+import objects.Note;
+import shaders.RainShader;
+import stages.PicoCapableStage;
 class SpookyMansionErect extends BaseStage
 {
 	var halloweenBG:BGSprite;
@@ -32,8 +32,9 @@ class SpookyMansionErect extends BaseStage
 		stairsLight = new BGSprite('erect/stairsLight', 966, -225);
 		stairsLight.alpha = 0;
 
-		halloweenWindow = new BGSprite('erect/bgtrees', 200, 50, 0.8, 0.8, ["bgtrees0"],true);
-		halloweenWindow.animation.curAnim.frameRate = 5;
+		halloweenWindow = new BGSprite('erect/bgtrees', 200, 50, 0.8, 0.8, ["bgtrees0"], true);
+		if (halloweenWindow.animation != null && halloweenWindow.animation.curAnim != null)
+			halloweenWindow.animation.curAnim.frameRate = 5;
 
 		add(halloweenWindow);
 		add(halloweenBG);
@@ -55,9 +56,8 @@ class SpookyMansionErect extends BaseStage
 			halloweenWindow.shader = shader;
 		}
 
-
 		halloweenWindow.animation.play("bgtrees0");
-        if (!ClientPrefs.data.lowQuality) makeChars();
+    if (!ClientPrefs.data.lowQuality) makeChars();
 		add(stairsDark);
 		add(stairsLight);
 	}
@@ -76,10 +76,10 @@ class SpookyMansionErect extends BaseStage
 	{
 		super.beatHit();
 		if(ClientPrefs.data.lowQuality) return;
-		if(curBeat == 4 && songName == "spookeez-erect") lightningStrikeShit(false); 
+		if(curBeat == 4 && songName == "spookeez-erect") lightningStrikeShit(false);
 		if (FlxG.random.bool(10) && curBeat > lightningStrikeBeat + lightningOffset)
 		{
-			lightningStrikeShit(); 
+			lightningStrikeShit();
 		}
 
         if (curBeat % game.boyfriend.danceEveryNumBeats == 0 && !StringTools.startsWith(boyfriend.getAnimationName(),'sing') && !game.boyfriend.stunned)
@@ -103,7 +103,7 @@ class SpookyMansionErect extends BaseStage
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    dadGhost?.playAnim(anims[note.noteData],true);
     }
-	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {		
+	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
 		switch (eventName){
 			case "Play Animation":{
 				var char:Character = dadGhost;
@@ -196,8 +196,8 @@ class SpookyMansionErect extends BaseStage
 
 	function makeChars()
 	{
-		
-		var bfName = PlayState.instance.boyfriend.curCharacter.split("-")[0]; 
+
+		var bfName = PlayState.instance.boyfriend.curCharacter.split("-")[0];
 		if(bfName == "pico") bfName = "pico-playable";
 
 		var gfMode = PlayState.instance.gf.curCharacter.split("-")[0];
@@ -206,7 +206,7 @@ class SpookyMansionErect extends BaseStage
 		// 	gfGhost.y -= 200;
 		game.add(gfGhost);
 		gfGhost.dance();
-		
+
 		boyfriendGhost = new Character(game.boyfriend.x, game.boyfriend.y, bfName, true);
 		game.add(boyfriendGhost);
 		boyfriendGhost.dance();

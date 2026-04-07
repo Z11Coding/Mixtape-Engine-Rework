@@ -145,7 +145,7 @@ class TitleState extends MusicBeatState
 			var allLists:Array<PlaylistMetadata> = PlaylistState.loadPlaylists();
 			if (allLists.length > 0) {
 				for (playlistItem in allLists) {
-					if (playlistItem != null && playlistItem.isWarmup && playlistItem.songList != null && playlistItem.songList.length > 0) {
+					if (playlistItem.isWarmup) {
 						warmupPlaylists.push(playlistItem);
 					}
 				}
@@ -233,7 +233,7 @@ class TitleState extends MusicBeatState
 
 	private function proceedWithWarmupCheck(hasWarmup:Bool, playlist:PlaylistMetadata, allLists:Array<PlaylistMetadata>, warmupPlaylists:Array<PlaylistMetadata>):Void
 	{
-		if (hasWarmup && playlist != null && playlist.songList != null && playlist.songList.length > 0 && playlist.songList[0] != null) {
+		if (hasWarmup && playlist != null) {
 			if (ClientPrefs.data.alwaysWarmup) {
 				persistentUpdate = true;
 				PlayState.isWarmUp = true;

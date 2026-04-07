@@ -90,7 +90,7 @@ class MusicPlayer extends FlxGroup
 			return;
 		}
 
-		var songName:String = instance.fpManager.songList[instance.curSelected].songName;
+		var songName:String = FreeplayManager.instance?.songList[instance.curSelected]?.songName;
 		if (playing && !wasPlaying)
 			songTxt.text = Language.getPhrase('musicplayer_playing', 'PLAYING: {1}', [songName]);
 		else
@@ -98,7 +98,7 @@ class MusicPlayer extends FlxGroup
 
 		//if(FlxG.keys.justPressed.K) trace('Time: ${FreeplayState.vocals.time}, Playing: ${FreeplayState.vocals.playing}');
 
-		if (controls.UI_LEFT_P)
+		if (Controls.instance.UI_LEFT_P)
 		{
 			if (playing)
 				wasPlaying = true;
@@ -114,7 +114,7 @@ class MusicPlayer extends FlxGroup
 			FlxG.sound.music.time = curTime;
 			setVocalsTime(curTime);
 		}
-		if (controls.UI_RIGHT_P)
+		if (Controls.instance.UI_RIGHT_P)
 		{
 			if (playing)
 				wasPlaying = true;
@@ -131,12 +131,12 @@ class MusicPlayer extends FlxGroup
 			setVocalsTime(curTime);
 		}
 
-		if(controls.UI_LEFT || controls.UI_RIGHT)
+		if(Controls.instance.UI_LEFT || Controls.instance.UI_RIGHT)
 		{
 			instance.holdTime += elapsed;
 			if(instance.holdTime > 0.5)
 			{
-				curTime += 40000 * elapsed * (controls.UI_LEFT ? -1 : 1);
+				curTime += 40000 * elapsed * (Controls.instance.UI_LEFT ? -1 : 1);
 			}
 
 			var difference:Float = Math.abs(curTime - FlxG.sound.music.time);
@@ -147,7 +147,7 @@ class MusicPlayer extends FlxGroup
 			setVocalsTime(curTime);
 		}
 
-		if(controls.UI_LEFT_R || controls.UI_RIGHT_R)
+		if(Controls.instance.UI_LEFT_R || Controls.instance.UI_RIGHT_R)
 		{
 			FlxG.sound.music.time = curTime;
 			setVocalsTime(curTime);
@@ -158,29 +158,29 @@ class MusicPlayer extends FlxGroup
 				wasPlaying = false;
 			}
 		}
-		if (controls.UI_UP_P)
+		if (Controls.instance.UI_UP_P)
 		{
 			holdPitchTime = 0;
 			playbackRate += 0.05;
 			setPlaybackRate();
 		}
-		else if (controls.UI_DOWN_P)
+		else if (Controls.instance.UI_DOWN_P)
 		{
 			holdPitchTime = 0;
 			playbackRate -= 0.05;
 			setPlaybackRate();
 		}
-		if (controls.UI_DOWN || controls.UI_UP)
+		if (Controls.instance.UI_DOWN || Controls.instance.UI_UP)
 		{
 			holdPitchTime += elapsed;
 			if (holdPitchTime > 0.6)
 			{
-				playbackRate += 0.05 * (controls.UI_UP ? 1 : -1);
+				playbackRate += 0.05 * (Controls.instance.UI_UP ? 1 : -1);
 				setPlaybackRate();
 			}
 		}
 
-		if (controls.RESET)
+		if (Controls.instance.RESET)
 		{
 			playbackRate = 1;
 			setPlaybackRate();
@@ -310,7 +310,7 @@ class MusicPlayer extends FlxGroup
 
 	function positionSong()
 	{
-		var length:Int = instance.fpManager.songList[instance.curSelected].songName.length;
+		var length:Int = FreeplayManager.instance?.songList[instance.curSelected]?.songName?.length;
 		var shortName:Bool = length < 5; // Fix for song names like Ugh, Guns
 		songTxt.x = FlxG.width - songTxt.width - 6;
 		if (shortName)
