@@ -204,7 +204,7 @@ class FunkinSprite extends FlxAnimate
   public static function createTextureAtlas(x:Float = 0.0, y:Float = 0.0, key:String, ?assetLibrary:Null<String>, ?settings:AtlasSpriteSettings):FunkinSprite
   {
     var sprite:FunkinSprite = new FunkinSprite(x, y);
-    sprite.loadTextureAtlas(key, assetLibrary ?? "", settings);
+    sprite.loadTextureAtlas(key, assetLibrary ?? Mods.currentModDirectory, settings);
     return sprite;
   }
 

@@ -3006,10 +3006,14 @@ class APPlayState extends PlayState {
 			return;
 		}
 
-        @:privateAccess
-        if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
-            ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
-            checkedNotes.push(note);
+        try {
+            @:privateAccess
+            if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
+                ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
+                checkedNotes.push(note);
+            }
+        } catch(e) {
+            trace("\"NOTE CHECK\" CHECK FAILED!\n"+e);
         }
 
         super.goodNoteHit(note, field);

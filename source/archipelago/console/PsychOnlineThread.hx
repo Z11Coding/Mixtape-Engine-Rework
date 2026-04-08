@@ -3,21 +3,21 @@ package archipelago.console;
 import haxe.Exception;
 
 class PsychOnlineThread {
-    public static function run(func:Void->Void, ?onException:Exception->Void) {
-        sys.thread.Thread.create(() -> {
-            try {
-                func();
-            }
-            catch (exc) {
-                Waiter.put(() -> { // waiter more errors please!
+	public static function run(func:Void->Void, ?onException:Exception->Void) {
+		sys.thread.Thread.create(() -> {
+			try {
+				func();
+			}
+			catch (exc) {
+				Waiter.put(() -> { // waiter more errors please!
 					if (onException != null)
-                        onException(exc);
-                    else
-                        throw exc;
-                });
-            }
-        });
-    }
+						onException(exc);
+					else
+						throw exc;
+				});
+			}
+		});
+	}
 
 	public static function repeat(func:Void->Void, everySeconds:Float, ?onException:Exception->Void) {
 		sys.thread.Thread.create(() -> {

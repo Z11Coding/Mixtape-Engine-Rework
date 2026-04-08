@@ -447,58 +447,55 @@ class DynamicFreeplayState extends MusicBeatState
 				iconArray.pop();
 			}
 
-			// trace (curUnlocked);
-			if (APEntryState.inArchipelagoMode) APFreeplayManager.checkSongStatus();
-
-		// If dynamic loading is enabled, queue items radiating from center
-		if (isDynamicLoading && loadingTracker != null)
-		{
-			loadingTracker.initialize(fpManager.songList.length);
-			itemsPerFrame = ClientPrefs.data.dynamicFreeplayLoading == "Aggressive" ? 2 : 1;
-
-			// Build queue that radiates outward from curSelected (or center if not set)
-			loadingQueue = [];
-			var center:Num = Math.max(0, Math.min(curSelected, fpManager.songList.length - 1));
-
-			// Add center first
-			if (center >= 0 && center < fpManager.songList.length)
-				loadingQueue.push(center);
-
-			// Add alternating left/right
-			var distance = 1;
-			while (loadingQueue.length < fpManager.songList.length)
+			// If dynamic loading is enabled, queue items radiating from center
+			if (isDynamicLoading && loadingTracker != null)
 			{
-				var left:Num = center - distance;
-				var right:Num = center + distance;
-				if (left >= 0)
-					loadingQueue.push(left);
-				if (right < fpManager.songList.length && loadingQueue.length < fpManager.songList.length)
-					loadingQueue.push(right);
-				distance++;
-			}
+				loadingTracker.initialize(fpManager.songList.length);
+				itemsPerFrame = ClientPrefs.data.dynamicFreeplayLoading == "Aggressive" ? 2 : 1;
 
-			// Create loading text indicator
-			loadingText = new FlxText(albumPhoto.x - 50, albumPhoto.y - 40, 400, "Loading...");
-			loadingText.setFormat(null, 16, FlxColor.CYAN, "right");
-			add(loadingText);
+				// Build queue that radiates outward from curSelected (or center if not set)
+				loadingQueue = [];
+				var center:Num = Math.max(0, Math.min(curSelected, fpManager.songList.length - 1));
 
-			// Load first batch immediately (nearby songs)
-			for (batch in 0...Std.int(Math.min(itemsPerFrame * 2, fpManager.songList.length)))
-			{
-				if (loadingQueue.length > 0)
+				// Add center first
+				if (center >= 0 && center < fpManager.songList.length)
+					loadingQueue.push(center);
+
+				// Add alternating left/right
+				var distance = 1;
+				while (loadingQueue.length < fpManager.songList.length)
 				{
-					var index = loadingQueue.shift();
-					createSongItem(index);
+					var left:Num = center - distance;
+					var right:Num = center + distance;
+					if (left >= 0)
+						loadingQueue.push(left);
+					if (right < fpManager.songList.length && loadingQueue.length < fpManager.songList.length)
+						loadingQueue.push(right);
+					distance++;
 				}
-			}
 
-			changeSelection();
-			updateTexts();
-			changeDiff();
-			if (PlayState.SONG != null)
-				Conductor.bpm = PlayState.SONG.bpm;
-			return;
-		}
+				// Create loading text indicator
+				loadingText = new FlxText(albumPhoto.x - 50, albumPhoto.y - 40, 400, "Loading...");
+				loadingText.setFormat(null, 16, FlxColor.CYAN, "right");
+				add(loadingText);
+
+				// Load first batch immediately (nearby songs)
+				for (batch in 0...Std.int(Math.min(itemsPerFrame * 2, fpManager.songList.length)))
+				{
+					if (loadingQueue.length > 0)
+					{
+						var index = loadingQueue.shift();
+						createSongItem(index);
+					}
+				}
+
+				changeSelection();
+				updateTexts();
+				changeDiff();
+				if (PlayState.SONG != null)
+					Conductor.bpm = PlayState.SONG.bpm;
+				return;
+			}
 
 			// trace (curUnlocked);
 			if (APEntryState.inArchipelagoMode) APFreeplayManager.checkSongStatus();
