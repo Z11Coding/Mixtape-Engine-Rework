@@ -1849,6 +1849,16 @@ class APPlayState extends PlayState {
 
         instance = null;
 		super.destroy();
+
+        if (ClientPrefs.data.gameplaySettings.get('chartModifier') != 'Normal' || ClientPrefs.data.gameplaySettings.get('chartModifier') == null) {
+        ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+
+        if (chartModifier != "Normal") {
+            chartModifier = "Normal";
+            ArchPopup.startPopupCustom('Chart Modifier Reset', 'Chart Modifier has been reset to Normal.', 'archWhite');
+        }
+    }
+
 	}
 
     var oldRate:Int = 60;
@@ -2786,14 +2796,6 @@ class APPlayState extends PlayState {
         }
 
         PlayState.gameplayArea = "APFreeplay";
-
-        ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
-
-        if (chartModifier != "Normal") {
-            chartModifier = "Normal";
-            ArchPopup.startPopupCustom('Chart Modifier Reset', 'Chart Modifier has been reset to Normal.', 'archWhite');
-        }
-
 
         if (archipelago.HighQualityTrapManager.isTrapInUse()) {
             // Don't stop the trap here - let APVictorySubstate handle it
