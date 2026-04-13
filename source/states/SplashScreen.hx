@@ -223,7 +223,7 @@ class SplashScreen extends MusicBeatState
                 return "systems_loaded";
             }, false),
             GenericProgressSubstate.createTask("Preloading freeplay song list...", function(results) {
-                FreeplayManager.loadGlobalSongs(true);
+                //FreeplayManager.loadGlobalSongs(true);
                 return "preload_songlist_complete";
             }, false),
             GenericProgressSubstate.createTask("Finalizing startup...", function(results) {
