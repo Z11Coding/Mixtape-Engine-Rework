@@ -1896,7 +1896,7 @@ class FunkinLua {
 			var originalNote:Int = note;
 
 			// determine player + lane
-			var player:Int = 1 - Std.int(originalNote / keys);
+			var player:Int = 0 + Std.int(originalNote / keys);
 			var lane:Int = originalNote % keys;
 
 			// clamp just in case

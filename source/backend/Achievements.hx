@@ -33,94 +33,94 @@ class Achievements {
 	public static function init()
 	{
 		// The achievements that are so easy to get that they're basically nothing more than filler
-		createAchievement('start_fnf',				{name: "I Said Funkin'!", description: "Start the game for the first time."});
-		createAchievement('play_fnf',				{name: "Just like the game!", description: "Get freaky on a Friday."});
+		createAchievement('start_fnf',						{name: "I Said Funkin'!", description: "Start the game for the first time."});
+		createAchievement('play_fnf',							{name: "Just like the game!", description: "Get freaky on a Friday."});
 		createAchievement('friday_night_play',		{name: "Freaky on a Friday Night", description: "Play on a Friday... Night.", hidden: true});
 
 		// The "Beat the week!" achievements
-		createAchievement('tutorial',				{name: "That's How You Do It!", description: "Beat Tutorial in Story Mode (on any difficulty)."});
-		createAchievement('week1',					{name: "More Like Daddy Queerest", description: "Beat Week 1 in Story Mode (on any difficulty)."});
-		createAchievement('week2',					{name: "IT IS THE SPOOKY MONTH", description: "Beat Week 2 in Story Mode (on any difficulty)."});
-		createAchievement('week3',					{name: "Pico Funny", description: "Beat Week 3 in Story Mode (on any difficulty)."});
-		createAchievement('week4',					{name: "Mommy Must Murder", description: "Beat Week 4 in Story Mode (on any difficulty)."});
-		createAchievement('week5',					{name: "Yule Tide Joy", description: "Beat Week 5 in Story Mode (on any difficulty)."});
-		createAchievement('week6',					{name: "A Visual Novelty", description: "Beat Week 6 in Story Mode (on any difficulty)."});
-		createAchievement('week7',					{name: "I <3 JohnnyUtah", description: "Beat Week 7 in Story Mode (on any difficulty)."});
-		createAchievement('weekend1',				{name: "Yo, Really Think So?", description: "Beat Weekend 1 in Story Mode (on any difficulty)."});
+		createAchievement('tutorial',							{name: "That's How You Do It!", description: "Beat Tutorial in Story Mode (on any difficulty)."});
+		createAchievement('week1',								{name: "More Like Daddy Queerest", description: "Beat Week 1 in Story Mode (on any difficulty)."});
+		createAchievement('week2',								{name: "IT IS THE SPOOKY MONTH", description: "Beat Week 2 in Story Mode (on any difficulty)."});
+		createAchievement('week3',								{name: "Pico Funny", description: "Beat Week 3 in Story Mode (on any difficulty)."});
+		createAchievement('week4',								{name: "Mommy Must Murder", description: "Beat Week 4 in Story Mode (on any difficulty)."});
+		createAchievement('week5',								{name: "Yule Tide Joy", description: "Beat Week 5 in Story Mode (on any difficulty)."});
+		createAchievement('week6',								{name: "A Visual Novelty", description: "Beat Week 6 in Story Mode (on any difficulty)."});
+		createAchievement('week7',								{name: "I <3 JohnnyUtah", description: "Beat Week 7 in Story Mode (on any difficulty)."});
+		createAchievement('weekend1',							{name: "Yo, Really Think So?", description: "Beat Weekend 1 in Story Mode (on any difficulty)."});
 
 		// Pico-exclusive achievements
-		createAchievement('pico_mixed',				{name: "A Challenger Appears", description: "Beat any Pico remix in Freeplay (on any difficulty)."});
-		createAchievement('pico_stressed',			{name: "De-Stressing", description: "Beat Stress (Pico Mix) in Freeplay (on Normal difficulty or higher)."});
+		createAchievement('pico_mixed',						{name: "A Challenger Appears", description: "Beat any Pico remix in Freeplay (on any difficulty)."});
+		createAchievement('pico_stressed',				{name: "De-Stressing", description: "Beat Stress (Pico Mix) in Freeplay (on Normal difficulty or higher)."});
 
 		// Rating achievements
-		createAchievement('l',						{name: "L", description: "Earn a F rating on any song (on any difficulty)."});
-		createAchievement('a_freaky',				{name: "Almost Freaky", description: "Earn a S Rank or higher on any song"});
-		createAchievement('freaky',					{name: "Getting Freaky", description: "Earn a SS Rank or higher on any song"});
-		createAchievement('true_funker',			{name: "You Should Drink More Water", description: "Earn a P Rank on any song on Hard difficulty or higher."});
-		createAchievement('nice',					{name: "Nice", description: "Earn a rating of EXACTLY 69% (good luck)."});
+		createAchievement('l',										{name: "L", description: "Earn a F rating on any song (on any difficulty)."});
+		createAchievement('a_freaky',							{name: "Almost Freaky", description: "Earn a S Rank or higher on any song"});
+		createAchievement('freaky',								{name: "Getting Freaky", description: "Earn a SS Rank or higher on any song"});
+		createAchievement('true_funker',					{name: "You Should Drink More Water", description: "Earn a P Rank on any song on Hard difficulty or higher."});
+		createAchievement('nice',									{name: "Nice", description: "Earn a rating of EXACTLY 69% (good luck)."});
 
 		// Combo achievements
-		createAchievement('mfc',					{name: "Literal Perfection!", description: "Earn a Combo Rating of MFC."});
-		createAchievement('sfc',					{name: "Almost Perfection", description: "Earn a Combo Rating of SFC."});
-		createAchievement('gfc',					{name: "Good Enough", description: "Earn a Combo Rating of GFC."});
-		createAchievement('afc',					{name: "Pretty Acurate", description: "Earn a Combo Rating AFC."});
-		createAchievement('fc',						{name: "Full Combo!", description: "Earn a Combo Rating FC."});
-		createAchievement('sdcb',					{name: "Off by One", description: "Earn a Combo Rating SDCB."});
-		createAchievement('clear',					{name: "In the clear", description: "Earn a Combo Rating Clear."});
+		createAchievement('mfc',									{name: "Literal Perfection!", description: "Earn a Combo Rating of MFC."});
+		createAchievement('sfc',									{name: "Almost Perfection", description: "Earn a Combo Rating of SFC."});
+		createAchievement('gfc',									{name: "Good Enough", description: "Earn a Combo Rating of GFC."});
+		createAchievement('afc',									{name: "Pretty Acurate", description: "Earn a Combo Rating AFC."});
+		createAchievement('fc',										{name: "Full Combo!", description: "Earn a Combo Rating FC."});
+		createAchievement('sdcb',									{name: "Off by One", description: "Earn a Combo Rating SDCB."});
+		createAchievement('clear',								{name: "In the clear", description: "Earn a Combo Rating Clear."});
 
 		// Difficulty achievements
-		createAchievement('erect',					{name: "Harder Than Hard", description: "Beat any Erect remix in Freeplay on Erect or Nightmare difficulty."});
-		createAchievement('nightmare',				{name: "The Rap God", description: "Earn a P Rank on any song on Nightmare difficulty."});
+		createAchievement('erect',								{name: "Harder Than Hard", description: "Beat any Erect remix in Freeplay on Erect or Nightmare difficulty."});
+		createAchievement('nightmare',						{name: "The Rap God", description: "Earn a P Rank on any song on Nightmare difficulty."});
 
 		// The "Beat the week without missing!" achievements
-		createAchievement('tutorial_nomiss',		{name: "Tutorial Extraordinaire", description: "Beat Tutorial (Week) on Hard with no Misses."});
-		createAchievement('week1_nomiss',			{name: "She Calls Me Daddy Too", description: "Beat Week 1 on Hard with no Misses."});
-		createAchievement('week2_nomiss',			{name: "No More Tricks", description: "Beat Week 2 on Hard with no Misses."});
-		createAchievement('week3_nomiss',			{name: "Call Me The Hitman", description: "Beat Week 3 on Hard with no Misses."});
-		createAchievement('week4_nomiss',			{name: "Lady Killer", description: "Beat Week 4 on Hard with no Misses."});
-		createAchievement('week5_nomiss',			{name: "Missless Christmas", description: "Beat Week 5 on Hard with no Misses."});
-		createAchievement('week6_nomiss',			{name: "Highscore!!", description: "Beat Week 6 on Hard with no Misses."});
-		createAchievement('week7_nomiss',			{name: "God Effing Damn It!", description: "Beat Week 7 on Hard with no Misses."});
-		createAchievement('weekend1_nomiss',		{name: "Just a Friendly Sparring", description: "Beat Weekend 1 on Hard with no Misses."});
+		createAchievement('tutorial_nomiss',			{name: "Tutorial Extraordinaire", description: "Beat Tutorial (Week) on Hard with no Misses."});
+		createAchievement('week1_nomiss',					{name: "She Calls Me Daddy Too", description: "Beat Week 1 on Hard with no Misses."});
+		createAchievement('week2_nomiss',					{name: "No More Tricks", description: "Beat Week 2 on Hard with no Misses."});
+		createAchievement('week3_nomiss',					{name: "Call Me The Hitman", description: "Beat Week 3 on Hard with no Misses."});
+		createAchievement('week4_nomiss',					{name: "Lady Killer", description: "Beat Week 4 on Hard with no Misses."});
+		createAchievement('week5_nomiss',					{name: "Missless Christmas", description: "Beat Week 5 on Hard with no Misses."});
+		createAchievement('week6_nomiss',					{name: "Highscore!!", description: "Beat Week 6 on Hard with no Misses."});
+		createAchievement('week7_nomiss',					{name: "God Effing Damn It!", description: "Beat Week 7 on Hard with no Misses."});
+		createAchievement('weekend1_nomiss',			{name: "Just a Friendly Sparring", description: "Beat Weekend 1 on Hard with no Misses."});
 
 		// extra achievements
-		createAchievement('ur_bad',					{name: "What a Funkin' Disaster!", description: "Complete a Song with a rating lower than 20%."});
-		createAchievement('ur_good',				{name: "Perfectionist", description: "Complete a Song with a rating of 100%."});
+		createAchievement('ur_bad',								{name: "What a Funkin' Disaster!", description: "Complete a Song with a rating lower than 20%."});
+		createAchievement('ur_good',							{name: "Perfectionist", description: "Complete a Song with a rating of 100%."});
 		createAchievement('roadkill_enthusiast',	{name: "Roadkill Enthusiast", description: "Watch the Henchmen die 50 times.", maxScore: 50, maxDecimals: 0});
-		createAchievement('oversinging', 			{name: "Oversinging Much...?", description: "Sing for 10 seconds without going back to Idle."});
-		createAchievement('hype',					{name: "Hyperactive", description: "Finish a Song without going back to Idle."});
-		createAchievement('two_keys',				{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
-		createAchievement('toastie',				{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
-		createAchievement('potato',					{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
-		createAchievement('search_songs',			{name: "The Music Lost to Time", description: "Find all 4 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 4, maxDecimals: 0});
-		createAchievement('challenger',				{name: "Challenger", description: "Complete a Song with 2 Safe Frames."});
-		createAchievement('hardcore',				{name: "Hardcore", description: "Beat a song with no Misses on 24/20 mode."});
-		createAchievement('demon',					{name: "Demon", description: "Beat a Song with 100% accuracy on 24/20 mode. Well done, now stop it."});
-		createAchievement('persistent',				{name: "Persistent", description: "Beat a Week with no Misses on 24/20 mode. Jesus Christ..."});
-		createAchievement('resilient',				{name: "Resilient", description: "Beat a Week with 100% accuracy on all songs on 24/20 mode. Go touch grass you moron"});
+		createAchievement('oversinging', 					{name: "Oversinging Much...?", description: "Sing for 10 seconds without going back to Idle."});
+		createAchievement('hype',									{name: "Hyperactive", description: "Finish a Song without going back to Idle."});
+		createAchievement('two_keys',							{name: "Just the Two of Us", description: "Finish a Song pressing only two keys."});
+		createAchievement('toastie',							{name: "Toaster Gamer", description: "Have you tried to run the game on a toaster?"});
+		createAchievement('potato',								{name: "The Ultimate Potato", description: "The minimum requirement to run the game on a potato."});
+		createAchievement('search_songs',					{name: "The Music Lost to Time", description: "Find all 4 secret freeplay songs\n(And no, playing them in archipelago mode doesn't count)", maxScore: 4, maxDecimals: 0});
+		createAchievement('challenger',						{name: "Challenger", description: "Complete a Song with 2 Safe Frames."});
+		createAchievement('hardcore',							{name: "Hardcore", description: "Beat a song with no Misses on 24/20 mode."});
+		createAchievement('demon',								{name: "Demon", description: "Beat a Song with 100% accuracy on 24/20 mode. Well done, now stop it."});
+		createAchievement('persistent',						{name: "Persistent", description: "Beat a Week with no Misses on 24/20 mode. Jesus Christ..."});
+		createAchievement('resilient',						{name: "Resilient", description: "Beat a Week with 100% accuracy on all songs on 24/20 mode. Go touch grass you moron"});
 
 		// Secret achievements
-		createAchievement('fps',					{name: "1 FPS Gaming", description: "Slideshow Incarnate,", hidden: true});
-		createAchievement('lag',					{name: "man this engine SUCKS", description: "Lag.", hidden: true});
-		createAchievement('debugger',				{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
-		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
-		createAchievement('freaky_bar',				{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
-		createAchievement('much_better',			{name: "Much Better", description: "Join the dark side.", hidden: true});
-		createAchievement('potatogaming',			{name: "Slow-Mo", description: "Set the game to 1 FPS", hidden: true});
+		createAchievement('fps',									{name: "30 FPS Gaming", description: "average laptop gaming,", hidden: true});
+		createAchievement('lag',									{name: "man this engine SUCKS", description: "Lag.", hidden: true});
+		createAchievement('debugger',							{name: "Debugger", description: "Beat the \"Test\" Stage from the Chart Editor.", hidden: true});
+		createAchievement('pessy_easter_egg',			{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
+		createAchievement('freaky_bar',						{name: "All-In-One", description: "Get the secret health mode.", hidden: true});
+		createAchievement('much_better',					{name: "Much Better", description: "Join the dark side.", hidden: true});
+		createAchievement('potatogaming',					{name: "Slow-Mo", description: "Set the game to 1 FPS", hidden: true});
 		createAchievement('truepotatogaming',			{name: "YOU CAN PLAY LIKE THIS?!?!", description: "Beat a song while the FPS is set to 1", hidden: true});
-		createAchievement('mattdestroyer',	        {name: "Max Efficiency", description: "Beat a song at 2X Speed or higher", hidden: true});
-		createAchievement('matteleminator',	        {name: "Max Efficiency 2X", description: "Beat a song at 5X Speed or higher", hidden: true});
+		createAchievement('mattdestroyer',	      {name: "Max Efficiency", description: "Beat a song at 2X Speed or higher", hidden: true});
+		createAchievement('matteleminator',	      {name: "Max Efficiency 2X", description: "Beat a song at 5X Speed or higher", hidden: true});
 		createAchievement('mattgod',	            {name: "Max Efficiency 3X", description: "Beat a song at 10x Speed or higher", hidden: true});
 		createAchievement('matt',	                {name: "Max Efficiency 4X", description: "Beat a song at 15X Speed or higher", hidden: true});
-		createAchievement('mattbeyond',	            {name: "Bro what are you even doing anymore", description: "Beat a song at 20X Speed or higher", hidden: true});
+		createAchievement('mattbeyond',	          {name: "Bro what are you even doing anymore", description: "Beat a song at 20X Speed or higher", hidden: true});
 		createAchievement('lessismore',	        	{name: "Master of Less", description: "Beat any song in a mania of 1-3", hidden: true});
 		createAchievement('toomanynotes',	        {name: "Master of Mania", description: "Beat any song in a mania higher than 4", hidden: true});
-		createAchievement('h',	                    {name: "h?", description: "h?", hidden: true});
+		createAchievement('h',	                  {name: "h?", description: "h?", hidden: true});
 
 		#if !MODS_ALLOWED //it doesn't go here if mods are enabled, otherwise it'll be above the mods
 		// Omega Achievements
-		createAchievement('truefunker',	                    {name: "The True Funker", description: "Get every single achievement (NOT INCLUDING MODDED!)"});
-		createAchievement('bffnf',	                    {name: "Don't you have anything better to do?", description: "Get every single achievement (INCLUDING MODDED!)"});
+		createAchievement('truefunker',	          {name: "The True Funker", description: "Get every single achievement (NOT INCLUDING MODDED!)"});
+		createAchievement('bffnf',	              {name: "Don't you have anything better to do?", description: "Get every single achievement (INCLUDING MODDED!)"});
 		#end
 
 		//dont delete this thing below
@@ -128,14 +128,15 @@ class Achievements {
 	}
 
 	public static var achievements:Map<String, Achievement> = new Map<String, Achievement>();
+	public static var achievementsModded:Map<String, Achievement> = new Map<String, Achievement>();
 	public static var variables:Map<String, Float> = [];
 	public static var achievementsUnlocked:Array<String> = [];
 	private static var _firstLoad:Bool = true;
 
-	public static function get(name:String):Achievement
-		return achievements.get(name);
-	public static function exists(name:String):Bool
-		return achievements.exists(name);
+	public static function get(name:String, ?modded:Bool = false):Achievement
+		return (modded ? achievementsModded : achievements).get(name);
+	public static function exists(name:String, ?modded:Bool = false):Bool
+		return (modded ? achievementsModded : achievements).exists(name);
 
 	public static function load():Void
 	{

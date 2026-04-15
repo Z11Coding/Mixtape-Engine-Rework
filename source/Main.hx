@@ -766,6 +766,7 @@ class Main extends Sprite
 		FullScreenPlugin.initialize();
 		ConsolePlugin.initialize();
 		TraceViewerPlugin.initialize();
+		ArchipelagoDebug.initialize();
 		new ScreenShotPlugin();
 
 		// trace(3.cubed());

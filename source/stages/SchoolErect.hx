@@ -1,14 +1,14 @@
 package stages;
 
-import stages.cutscenes.SchoolDoof;
 import cutscenes.DialogueBoxPsych;
-import stages.PicoCapableStage;
+import objects.Character;
+import openfl.utils.Assets as OpenFlAssets;
 import shaders.AdjustColorShader;
 import shaders.ColorSwap;
 import shaders.DropShadowShader;
-import objects.Character;
+import stages.PicoCapableStage;
+import stages.cutscenes.SchoolDoof;
 import substates.GameOverSubstate;
-import openfl.utils.Assets as OpenFlAssets;
 
 class SchoolErect extends BaseStage
 {
@@ -88,7 +88,7 @@ class SchoolErect extends BaseStage
 		{
 			var cutscene = new SchoolDoof(songName);
 			if(songName == 'roses-(pico-mix)' || songName == "roses-erect") {
-				
+
 				setStartCallback(cutscene.doAngryIntro);
 			}
 			else setStartCallback(cutscene.doSchoolIntro);
@@ -182,7 +182,7 @@ class SchoolErect extends BaseStage
 				sprite.shader = rim;
 
 				// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
-				rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask").bitmap;
+				rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask", 'week6').bitmap;
 				rim.maskThreshold = 1;
 				rim.useAltMask = true;
 
@@ -191,7 +191,7 @@ class SchoolErect extends BaseStage
 					rim.updateFrameInfo(sprite.frame);
 				};
 			}
-			
+
 			case "pico-pixel":
 			{
 				rim.angle = 90;
@@ -268,7 +268,7 @@ class SchoolErect extends BaseStage
 					rim.updateFrameInfo(sprite.frame);
 				};
 			}
-			
+
 			default:
 			{
 				rim.angle = 90;

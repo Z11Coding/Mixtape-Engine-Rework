@@ -9319,7 +9319,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
 		var week:String = WeekData.getWeekFileName();
 		trace('Calling checkForAchievement...');
-		checkForAchievement([weekNoMiss, week, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'potato', 'debugger', 'play_fnf', 'pico_mixed', 'pico_stressed', 'l', 'a_freaky', 'freaky', 'true_funker', 'nice', 'mfc', 'sfc', 'gfc', 'afc', 'fc', 'sdcb', 'clear', 'erect', 'nightmare']);
+		checkForAchievement([weekNoMiss, week, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'potato', 'debugger', 'play_fnf', 'pico_mixed', 'pico_stressed', 'l', 'a_freaky', 'freaky', 'true_funker', 'nice', 'mfc', 'sfc', 'gfc', 'afc', 'fc', 'sdcb', 'clear', 'erect', 'nightmare', 'challenger', 'hardcore', 'demon', 'persistent', 'resilient', 'truepotatogaming', 'mattdestroyer', 'matteleminator', 'mattgod', 'matt', 'mattbeyond']);
 		trace('=== COMPLETED ACHIEVEMENTS CHECK ===');
 		#end
 
@@ -9508,6 +9508,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 					trace('LOADING NEXT SONG');
 					trace(curSonglist[0]);
+					trace(Paths.formatToSongPath(curSonglist[0].songName) + difficulty);
 					trace(Paths.formatToSongPath(curSonglist[0].songName) + difficulty);
 
 					FlxTransitionableState.skipNextTransIn = true;
@@ -13045,8 +13046,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							&& ClientPrefs.data.optimizeHolds
 							&& ClientPrefs.data.holdSubdivs == 1
 							&& ClientPrefs.data.drawDistanceModifier == 0.8
-							&& !ClientPrefs.data.allowVis
-							&& !ClientPrefs.data.allowEvents);
+							&& !ClientPrefs.data.allowVis);
 
 					case 'debugger':
 						unlock = (songName == 'test' && !usedPractice);
@@ -13101,6 +13101,73 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 					case 'nightmare':
 						unlock = (!usedPractice && Difficulty.getString(storyDifficulty).toLowerCase() == 'nightmare' && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 100);
+
+					case 'challenger':
+						unlock = (!usedPractice && ClientPrefs.data.safeFrames == 2);
+
+					case 'hardcore':
+						var failCheck:Bool = false;
+						for (mechanic in MechanicManager.mechanics) {
+							if (mechanic.points < 20) {
+								failCheck = true;
+								break;
+							}
+						}
+						unlock = (!usedPractice && !failCheck && comboManager.songMisses == 0);
+
+					case 'demon':
+						var failCheck:Bool = false;
+						for (mechanic in MechanicManager.mechanics) {
+							if (mechanic.points < 20) {
+								failCheck = true;
+								break;
+							}
+						}
+						unlock = (!usedPractice && !failCheck && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 100);
+
+					case 'persistent':
+						var failCheck:Bool = false;
+						for (mechanic in MechanicManager.mechanics) {
+							if (mechanic.points < 20) {
+								failCheck = true;
+								break;
+							}
+						}
+						unlock = (!usedPractice && !failCheck && isStoryMode && (campaignMisses + comboManager.songMisses) == 0 && storyPlaylist.length <= 1);
+
+					case 'resilient':
+						var failCheck:Bool = false;
+						for (mechanic in MechanicManager.mechanics) {
+							if (mechanic.points < 20) {
+								failCheck = true;
+								break;
+							}
+						}
+						unlock = (!usedPractice && !failCheck && isStoryMode && storyPlaylist.length <= 1 && CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) >= 100);
+
+					case 'truepotatogaming':
+						unlock = (!usedPractice && ClientPrefs.data.framerate == 1);
+
+					case 'mattdestroyer':
+						unlock = (!usedPractice && playbackRate >= 2);
+
+					case 'matteleminator':
+						unlock = (!usedPractice && playbackRate >= 5);
+
+					case 'mattgod':
+						unlock = (!usedPractice && playbackRate >= 10);
+
+					case 'matt':
+						unlock = (!usedPractice && playbackRate >= 15);
+
+					case 'mattbeyond':
+						unlock = (!usedPractice && playbackRate >= 20);
+
+					case 'lessismore':
+						unlock = (!usedPractice && mania <= 2);
+
+					case 'toomanynotes':
+						unlock = (!usedPractice && mania <= 4);
 				}
 			}
 			else // any FC achievements, name should be "weekFileName_nomiss", e.g: "week3_nomiss";
