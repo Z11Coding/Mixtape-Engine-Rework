@@ -117,7 +117,7 @@ using yutautil.Valid;
 using yutautil.modules.ASync.AResult;
 using yutautil.modules.ASync.ASyncF;
 using yutautil.modules.ASync;
-#if moonchart
+#if USING_MOONCHART
 import moonchart.Moonchart;
 import moonchart.formats.*;
 import moonchart.formats.fnf.*;

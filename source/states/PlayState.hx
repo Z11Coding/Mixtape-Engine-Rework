@@ -652,9 +652,9 @@ class PlayState extends MusicBeatState
 	public static var resettingState:Bool = false;
 
 	//Various things from other engines
-	var visual:AudioDisplay;
-	var vocalvisual:AudioDisplay = null;
-	var oppvisual:AudioDisplay = null;
+	public var visual:AudioDisplay;
+	public var vocalvisual:AudioDisplay = null;
+	public var oppvisual:AudioDisplay = null;
 
 	#if MECHANICS_MOD_ALLOWED
 	// Mechanics Mod

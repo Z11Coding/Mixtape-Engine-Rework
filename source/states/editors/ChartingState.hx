@@ -5323,6 +5323,29 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		btn.text.alignment = LEFT;
 		tab_group.add(btn);
 
+		btnY += 20;
+		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Quaver to Psych...', function()
+		{
+			upperBox.isMinimized = true;
+			upperBox.bg.visible = false;
+
+			function doJsonStuff(filePath:String)
+			{
+				var qchart:Quaver = new Quaver().fromPack(filePath, Difficulty.list[PlayState.storyDifficulty]);
+				var fnfChart:FNFPsych = new FNFPsych().fromBasicFormat(cast qchart.data, Difficulty.list[PlayState.storyDifficulty]);
+				var reloadedChart:SwagSong = cast fnfChart.fromJson(fnfChart.stringify().data, fnfChart.stringify().meta);
+				reloadedChart.mania = 3;
+				reloadedChart.startMania = 3;
+
+				loadChart(reloadedChart);
+				reloadNotesDropdowns();
+				prepareReload();
+			}
+			doJsonStuff(ImprovedFileHandling.openFile('Open a Quaver Chart file/pack', [{ext: "qp", desc: "Quaver Pack File"}, {ext: "qua", desc: "Quaver Chart File"}]));
+		},btnWid);
+		btn.text.alignment = LEFT;
+		tab_group.add(btn);
+
 		btnY++;
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Preview (F12)', openEditorPlayState, btnWid);
