@@ -169,16 +169,14 @@
 	<haxelib name="random" version="1.4.1"/>
 	<haxelib name="flxrhythmconductor" version="0.2.0"/>
 
-
-	<!--Uncomment if you want to use moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
-  <haxelib name="moonchart" version="git" if="native"/>
-
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
 	<haxelib name="hscript-iris" if="HSCRIPT_ALLOWED" version="1.1.3"/>
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED" version="2.0.1"/>
 	<haxelib name="hxdiscord_rpc" version="1.2.4" if="DISCORD_ALLOWED"/>
 	<haxelib name="hxpy" version="2.0.0" if="PYTHON_ALLOWED" />
+
+	<haxelib name="moonchart" version="0.5.1"/>
 
 	<!-- Archipelago Stuff-->
 	<haxelib name="helder.set" version="0.3.1"/>
@@ -242,6 +240,12 @@
 
 	<!--Disable the Flixel sound management code-->
 	<!--<haxedef name="FLX_NO_SOUND_SYSTEM" />-->
+
+	<!--Remove if you don't want to use Moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
+	<define name="USING_MOONCHART" />
+
+	<!--If you're using git, set this, because Haxe sucks fuck and cant detect if youre on git or 0.4.0 for some fucking reason welcome to haxe ladies and gentlemen-->
+	<!-- <define name="USING_NEW_MOONCHART" /> -->
 
 	<haxedef name="analyzer-optimize" unless="debug" />
 

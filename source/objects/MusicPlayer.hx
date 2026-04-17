@@ -90,7 +90,7 @@ class MusicPlayer extends FlxGroup
 			return;
 		}
 
-		var songName:String = FreeplayManager.instance?.songList[instance.curSelected]?.songName;
+		var songName:String = FreeplayManager.instance?.songList[instance.curSelected+1]?.songName;
 		if (playing && !wasPlaying)
 			songTxt.text = Language.getPhrase('musicplayer_playing', 'PLAYING: {1}', [songName]);
 		else

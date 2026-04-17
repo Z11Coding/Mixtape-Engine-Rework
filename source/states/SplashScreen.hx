@@ -265,6 +265,7 @@ class SplashScreen extends MusicBeatState
             }, false),
             GenericProgressSubstate.createTask("Loading game systems...", function(results) {
                 // Additional initialization tasks can go here
+                Moonchart.init();
                 return "systems_loaded";
             }, false),
             GenericProgressSubstate.createTask("Loading \"THE MANAGERS\"...", function(results) {

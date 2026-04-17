@@ -202,7 +202,7 @@ import psychlua.HScript.HScriptInfos;
 #end
 
 
-#if moonchart
+#if USING_MOONCHART
 import moonchart.Moonchart;
 import moonchart.formats.*;
 import moonchart.formats.fnf.*;
