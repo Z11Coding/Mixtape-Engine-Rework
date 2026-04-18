@@ -12923,16 +12923,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								var baseY = field.getBaseY(i);
 								var offsetY = strumNote.y - baseY;
 
-								// Only sync if the strum is close to its expected position
-								// This prevents overriding custom positions set by scripts
-								// Allow some tolerance for modchart transforms
-								if (Math.abs(offsetY) < 200 && Math.abs(offsetY) > -200) { //Give it a zone to work in so that if it steps outside that zone it updates it instead of whatever it was doing before
-									modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
-								} else {
-									// If the strum has been moved significantly, update the base position
-									//trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
-									field.updateBaseYPosition(i, strumNote.y);
-								}
+								modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
+
 								//strumNote.y = strumNote.y;
 
 								// Sync angle
