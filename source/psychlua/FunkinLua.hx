@@ -1895,17 +1895,19 @@ class FunkinLua {
 			// use original note index
 			var originalNote:Int = note;
 
-			// determine player + lane
-			var player:Int = 0 + Std.int(originalNote / keys);
-			var lane:Int = originalNote % keys;
-
-			// clamp just in case
-			if (player < 0) player = 0;
-			if (player >= PlayState.instance.playfields.members.length) {
-				player = PlayState.instance.playfields.members.length - 1;
+			var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			if(strumNote == null) return null;
+			for (field in PlayState.instance.playfields.members) {
+				if (field.strumNotes.contains(strumNote)) {
+					var i = field.strumNotes.indexOf(strumNote);
+					if (i != -1) {
+						strumNote = field.strumNotes[i];
+					}
+				}
 			}
 
-			var field = PlayState.instance.playfields.members[player];
+			@:privateAccess
+			var field = strumNote.field;
 
 			var whoWeTweening:String = '';
 			var whoElseWeTweening:String = '';
@@ -1915,25 +1917,25 @@ class FunkinLua {
 				var psychDefaults = [731.0, 843.0, 956.0, 1068.0];
 				var mixtapeDefaults = [1438.0, 1656.0, 1874.0, 2091.0];
 
-				var psychDefaultX:Float = psychDefaults[lane];
-				var mixtapeDefaultX:Float = mixtapeDefaults[lane];
+				var psychDefaultX:Float = psychDefaults[strumNote.column];
+				var mixtapeDefaultX:Float = mixtapeDefaults[strumNote.column];
 
 				var translatedX:Float = mixtapeDefaultX + (data.x - psychDefaultX);
 
-				whoWeTweening = 'transform${lane}X';
-				howMuchWeTweening = translatedX - field.getBaseX(lane);
+				whoWeTweening = 'transform${strumNote.column}X';
+				howMuchWeTweening = translatedX - field.getBaseX(strumNote.column);
 			}
 			else if (data.y != null) {
-				whoWeTweening = 'transform${lane}Y';
-				howMuchWeTweening = field.getBaseY(lane) + data.y;
+				whoWeTweening = 'transform${strumNote.column}Y';
+				howMuchWeTweening = field.getBaseY(strumNote.column) + data.y;
 			}
 			else if (data.angle != null) {
-				whoWeTweening = 'note${lane}AngleX';
-				whoElseWeTweening = 'receptor${lane}AngleX';
+				whoWeTweening = 'note${strumNote.column}AngleX';
+				whoElseWeTweening = 'receptor${strumNote.column}AngleX';
 				howMuchWeTweening = data.angle;
 			}
 			else if (data.direction != null) {
-				whoWeTweening = 'scrollAngle${lane}';
+				whoWeTweening = 'scrollAngle${strumNote.column}';
 				howMuchWeTweening = data.direction;
 			}
 
@@ -1946,17 +1948,18 @@ class FunkinLua {
 				whoWeTweening,
 				howMuchWeTweening,
 				ease,
-				player
+				field.playerId
 			);
 
-			if (whoElseWeTweening != '') @:privateAccess
+			@:privateAccess
+			if (whoElseWeTweening != '')
 				PlayState.instance.modManager.queueEaseL(
 					MegaManager.conductor.currentStep,
 					duration,
 					whoElseWeTweening,
 					howMuchWeTweening,
 					ease,
-					player
+					field.playerId
 				);
 		}
 

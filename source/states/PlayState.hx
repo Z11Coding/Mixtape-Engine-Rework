@@ -9806,42 +9806,41 @@ class PlayState extends MusicBeatState
 	public var ModchartScrollType:Int = 0; // 0 = none, 1 = Downscroll, 3 = Rotate.
 	public var curDownscroll:Bool = ClientPrefs.data.downScroll; // Used to check if the downscroll has changed.
 	public function modchartSync(directChange:Bool = false):Void {
-		if (strumLineNotes != null && strumLineNotes.members != null) {
-			for (strumNote in strumLineNotes.members) {
-				if (strumNote != null) {
-					for (field in playfields.members) {
-						if (field.strumNotes.contains(strumNote)) {
-							var i = field.strumNotes.indexOf(strumNote);
-							if (i != -1) {
-								if (directChange) {
-									// Directly change the x, y, angle, and alpha of the strumNote in the field
-									strumNote.x = field.baseXPositions[i];
-									strumNote.y = field.getBaseY(i);
-									strumNote.angle = modManager.getValue('localRotate${i}', field.playerId);
-									// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
-								} else {
-									// Sync X position
-									var baseX = field.getBaseX(i);
-									var offsetX = strumNote.x - baseX;
-									modManager.setValue('transform${i}X-a', offsetX, field.playerId);
+		for (strumNote in strumLineNotes.members) {
+			if (strumNote != null) {
+				for (field in playfields.members) {
+					if (field.strumNotes.contains(strumNote)) {
+						var i = field.strumNotes.indexOf(strumNote);
+						if (i != -1) {
+							if (directChange) {
+								// Directly change the x, y, angle, and alpha of the strumNote in the field
+								strumNote.x = field.baseXPositions[i];
+								strumNote.y = field.getBaseY(i);
+								strumNote.angle = modManager.getValue('localRotate${i}', field.playerId);
+								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
+							} else {
+								// Sync X position
+								var baseX = field.getBaseX(i);
+								var offsetX = strumNote.x - baseX;
+								modManager.setValue('transform${i}X-a', offsetX, field.playerId);
 
-									// Sync Y position
-									var baseY = field.getBaseY(i);
-									var offsetY = strumNote.y - baseY;
+								// Sync Y position
+								var baseY = field.getBaseY(i);
+								var offsetY = strumNote.y - baseY;
 
-									modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
-									//strumNote.y = strumNote.y;
+								modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
 
-									// Sync angle
-									//modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
-									//strumNote.angle = strumNote.angle;
+								//strumNote.y = strumNote.y;
 
-									modManager.setValue('noteTweenDirection', strumNote.direction, field.playerId);
+								// Sync angle
+								//modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
+								//strumNote.angle = strumNote.angle;
 
-									// // Sync alpha
-									// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
-									// strumNote.alpha = strumNote.alpha;
-								}
+								modManager.setValue('noteTweenDirection', strumNote.direction, field.playerId);
+
+								// // Sync alpha
+								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
+								// strumNote.alpha = strumNote.alpha;
 							}
 						}
 					}

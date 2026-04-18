@@ -1327,6 +1327,15 @@ class Note extends NoteObject
 		}
 		else skinPostfix = '';
 
+		//Now lets do a psych 0.6.x and below check to see if the notes ARE there, just not in a noteSkins folder
+		var pixelFolder:String = PlayState.isPixelStage ? 'pixelUI/' : '';
+		var skinPostfix:String = Note.getNoteSkinPostfix();
+		if (Paths.fileExists('images/$pixelFolder$texture$skinPostfix.png', IMAGE)) { // If a varient of a skin exists and is selected, load it
+			skin = texture + skinPostfix;
+		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture$skinPostfix.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
+			skin = 'noteSkins/$texture$skinPostfix';
+		}
+
 		defaultWidth = 157;
 		defaultHeight = 154;
 
