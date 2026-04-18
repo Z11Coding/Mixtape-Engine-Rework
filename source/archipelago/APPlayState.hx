@@ -2966,7 +2966,6 @@ class APPlayState extends PlayState {
 			{
 				return;
 			}
-            super.noteMiss(daNote, field);
         }
         else
         {
