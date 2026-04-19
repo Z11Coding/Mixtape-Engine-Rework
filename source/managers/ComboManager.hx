@@ -177,7 +177,8 @@ class ComboManager {
         }
         else
         {
-            if (songMisses < 2) ratingFC = '[Single Miss Clear]';
+            if (songMisses == 1) ratingFC = '[Single Digit Combo Break]';
+            else if (songMisses < 2) ratingFC = '[Single Miss Clear]';
 			else if (songMisses < 5) ratingFC = '[Low Miss Clear]';
             else if (songMisses < 10)
                 ratingFC = '[Medium Miss Clear]';

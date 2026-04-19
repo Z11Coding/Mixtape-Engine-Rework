@@ -222,6 +222,10 @@ class SplashScreen extends MusicBeatState
                 // Additional initialization tasks can go here
                 return "systems_loaded";
             }, false),
+            GenericProgressSubstate.createTask("Loading \"THE MANAGERS\"...", function(results) {
+                new CharacterManager();
+                return "managers_loaded";
+            }, false),
             GenericProgressSubstate.createTask("Preloading freeplay song list...", function(results) {
                 //FreeplayManager.loadGlobalSongs(true);
                 return "preload_songlist_complete";

@@ -7,6 +7,7 @@ import flixel.input.keyboard.FlxKey;
 import lime.utils.Assets;
 import states.MixtapeCrashSplash;
 import yutautil.AprilFools;
+import yutautil.GenericProgressSubstate;
 import yutautil.modules.SyncUtils;
 
 class FirstCheckState extends MusicBeatState
@@ -30,18 +31,75 @@ class FirstCheckState extends MusicBeatState
 	 * 97% normal splash, 2% What state, 1% rare crash splash
 	 */
 	public static function goToSplashScreen():Void {
-		var randomValue = FlxG.random.int(1, 100);
+		var progressTasks = [
+			GenericProgressSubstate.createTask("Loading \"THE MANAGERS\"...", function(results) {
+					new CharacterManager();
+					return "managers_loaded";
+			}, false),
+			GenericProgressSubstate.createTask("Preloading freeplay song list...", function(results) {
+					//FreeplayManager.loadGlobalSongs(true);
+					return "preload_songlist_complete";
+			}, false),
+			GenericProgressSubstate.createTask("Doing anything else that needs to be done...", function(results) {
+					// Final initialization step
+					return "startup_complete";
+			}, false)
+		];
 
-		if (randomValue <= 97) {
-			// 97% chance - Normal splash screen
-			FlxG.switchState(new states.SplashScreen());
-		} else if (randomValue <= 99) {
-			// 2% chance - What state
-			FlxG.switchState(new states.What());
-		} else {
-			// 1% chance - Rare crash splash
-			FlxG.switchState(new states.MixtapeCrashSplash());
-		}
+		var progressSubstate = new GenericProgressSubstate(
+				"Initializing stuff to make the engine work better",
+				progressTasks,
+				function(results) {
+						// On completion, proceed to the intended state
+						trace("Initialization complete, proceeding to splash state");
+						haxe.Timer.delay(function() {
+							var randomValue = FlxG.random.int(1, 100);
+							if (randomValue <= 97) {
+								// 97% chance - Normal splash screen
+								FlxG.switchState(new states.SplashScreen());
+							} else if (randomValue <= 99) {
+								// 2% chance - What state
+								FlxG.switchState(new states.What());
+							} else {
+								// 1% chance - Rare crash splash
+								FlxG.switchState(new states.MixtapeCrashSplash());
+							}
+						}, 300);
+				},
+				function(error, shouldThrow) {
+						trace('Error during initialization: $error');
+						// Still proceed to title state even if initialization failed
+						haxe.Timer.delay(function() {
+							var randomValue = FlxG.random.int(1, 100);
+							if (randomValue <= 97) {
+								// 97% chance - Normal splash screen
+								FlxG.switchState(new states.SplashScreen());
+							} else if (randomValue <= 99) {
+								// 2% chance - What state
+								FlxG.switchState(new states.What());
+							} else {
+								// 1% chance - Rare crash splash
+								FlxG.switchState(new states.MixtapeCrashSplash());
+							}
+						}, 300);
+				},
+				function() {
+					// Cancel - still go to title state
+					var randomValue = FlxG.random.int(1, 100);
+					if (randomValue <= 97) {
+						// 97% chance - Normal splash screen
+						TransitionState.transitionState(states.SplashScreen, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+					} else if (randomValue <= 99) {
+						// 2% chance - What state
+						TransitionState.transitionState(states.What, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+					} else {
+						// 1% chance - Rare crash splash
+						TransitionState.transitionState(states.MixtapeCrashSplash, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
+					}
+				}
+		);
+
+		FlxG.state.openSubState(progressSubstate);
 	}
 
 	public static function checkInternetConnection():Bool {

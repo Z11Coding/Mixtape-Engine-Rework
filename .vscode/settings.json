@@ -142,5 +142,11 @@
     "jacoco.xml",
     "coverage.cobertura.xml"
   ],
-  "commentTranslate.hover.enabled": true
+  "commentTranslate.hover.enabled": true,
+  "files.exclude": {
+    "**/*.rpyc": true,
+    "**/*.rpa": true,
+    "**/*.rpymc": true,
+    "**/cache/": true
+  }
 }

@@ -141,14 +141,160 @@ class PlayState extends MusicBeatState
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
 
+	public var dad(get, set):Character;
+	public var dad2(get, set):Character;
+	public var gf(get, set):Character;
+	public var boyfriend(get, set):Character;
+	public var bf2(get, set):Character;
+
+	private function get_dad():Character {
+		return CharacterManager.instance.dad;
+	}
+	private function get_dad2():Character {
+		return CharacterManager.instance.dad2;
+	}
+	private function get_gf():Character {
+		return CharacterManager.instance.gf;
+	}
+	private function get_boyfriend():Character {
+		return CharacterManager.instance.boyfriend;
+	}
+	private function get_bf2():Character {
+		return CharacterManager.instance.bf2;
+	}
+
+	private function set_dad(value:Character):Character {
+		return CharacterManager.instance.dad = value;
+	}
+	private function set_dad2(value:Character):Character {
+		return CharacterManager.instance.dad2 = value;
+	}
+	private function set_gf(value:Character):Character {
+		return CharacterManager.instance.gf = value;
+	}
+	private function set_boyfriend(value:Character):Character {
+		return CharacterManager.instance.boyfriend = value;
+	}
+	private function set_bf2(value:Character):Character {
+		return CharacterManager.instance.bf2 = value;
+	}
+
+	public var boyfriendMap(get, default):Map<String, Character>;
+	public var boyfriendMap2(get, default):Map<String, Character> = new Map<String, Character>();
+	public var dadMap(get, default):Map<String, Character> = new Map<String, Character>();
+	public var dadMap2(get, default):Map<String, Character> = new Map<String, Character>();
+	public var gfMap(get, default):Map<String, Character> = new Map<String, Character>();
+	private function get_boyfriendMap():Map<String, Character> {
+		return CharacterManager.instance.characterMap.get("boyfriendMap");
+	}
+	private function get_boyfriendMap2():Map<String, Character> {
+		return CharacterManager.instance.characterMap.get("boyfriendMap2");
+	}
+	private function get_dadMap():Map<String, Character> {
+		return CharacterManager.instance.characterMap.get("dadMap");
+	}
+	private function get_dadMap2():Map<String, Character> {
+		return CharacterManager.instance.characterMap.get("dadMap2");
+	}
+	private function get_gfMap():Map<String, Character> {
+		return CharacterManager.instance.characterMap.get("gfMap");
+	}
+
+	public var boyfriendGroup(get, default):FlxSpriteGroup;
+	public var boyfriendGroup2(get, default):FlxSpriteGroup;
+	public var dadGroup(get, default):FlxSpriteGroup;
+	public var dadGroup2(get, default):FlxSpriteGroup;
+	public var gfGroup(get, default):FlxSpriteGroup;
+	private function get_boyfriendGroup():FlxSpriteGroup {
+		return CharacterManager.instance.characterGroupMap.get("boyfriendMap");
+	}
+	private function get_boyfriendGroup2():FlxSpriteGroup {
+		return CharacterManager.instance.characterGroupMap.get("boyfriendGroup2");
+	}
+	private function get_dadGroup():FlxSpriteGroup {
+		return CharacterManager.instance.characterGroupMap.get("dadGroup");
+	}
+	private function get_dadGroup2():FlxSpriteGroup {
+		return CharacterManager.instance.characterGroupMap.get("dadGroup2");
+	}
+	private function get_gfGroup():FlxSpriteGroup {
+		return CharacterManager.instance.characterGroupMap.get("gfGroup");
+	}
+
+	public var BF_X(get, set):Float;
+	public var BF_Y(get, set):Float;
+	public var BF2_X(get, set):Float;
+	public var BF2_Y(get, set):Float;
+	public var DAD_X(get, set):Float;
+	public var DAD_Y(get, set):Float;
+	public var DAD2_X(get, set):Float;
+	public var DAD2_Y(get, set):Float;
+	public var GF_X(get, set):Float;
+	public var GF_Y(get, set):Float;
+	private function get_BF_X():Float {
+		return CharacterManager.instance.BF_X;
+	}
+	private function get_BF_Y():Float {
+		return CharacterManager.instance.BF_Y;
+	}
+	private function get_BF2_X():Float {
+		return CharacterManager.instance.BF2_X;
+	}
+	private function get_BF2_Y():Float {
+		return CharacterManager.instance.BF2_Y;
+	}
+	private function get_DAD_X():Float {
+		return CharacterManager.instance.DAD_X;
+	}
+	private function get_DAD_Y():Float {
+		return CharacterManager.instance.DAD_Y;
+	}
+	private function get_DAD2_X():Float {
+		return CharacterManager.instance.DAD2_X;
+	}
+	private function get_DAD2_Y():Float {
+		return CharacterManager.instance.DAD2_Y;
+	}
+	private function get_GF_X():Float {
+		return CharacterManager.instance.GF_X;
+	}
+	private function get_GF_Y():Float {
+		return CharacterManager.instance.GF_Y;
+	}
+
+	private function set_BF_X(value:Float):Float {
+		return CharacterManager.instance.BF_X = value;
+	}
+	private function set_BF_Y(value:Float):Float {
+		return CharacterManager.instance.BF_Y = value;
+	}
+	private function set_BF2_X(value:Float):Float {
+		return CharacterManager.instance.BF2_X = value;
+	}
+	private function set_BF2_Y(value:Float):Float {
+		return CharacterManager.instance.BF2_Y = value;
+	}
+	private function set_DAD_X(value:Float):Float {
+		return CharacterManager.instance.DAD_X = value;
+	}
+	private function set_DAD_Y(value:Float):Float {
+		return CharacterManager.instance.DAD_Y = value;
+	}
+	private function set_DAD2_X(value:Float):Float {
+		return CharacterManager.instance.DAD2_X = value;
+	}
+	private function set_DAD2_Y(value:Float):Float {
+		return CharacterManager.instance.DAD2_Y = value;
+	}
+	private function set_GF_X(value:Float):Float {
+		return CharacterManager.instance.GF_X = value;
+	}
+	private function set_GF_Y(value:Float):Float {
+		return CharacterManager.instance.GF_Y = value;
+	}
+
 	//event variables
 	public var isCameraOnForcedPos:Bool = false;
-
-	public var boyfriendMap:Map<String, Character> = new Map<String, Character>();
-	public var boyfriendMap2:Map<String, Character> = new Map<String, Character>();
-	public var dadMap:Map<String, Character> = new Map<String, Character>();
-	public var dadMap2:Map<String, Character> = new Map<String, Character>();
-	public var gfMap:Map<String, Character> = new Map<String, Character>();
 
 	#if HSCRIPT_ALLOWED
 	public var hscriptArray:Array<HScript> = [];
@@ -178,17 +324,6 @@ class PlayState extends MusicBeatState
 
 	public var clientSaveData = yutautil.save.ObjectSerializer.deepClone(ClientPrefs.data);
 
-	public var BF_X:Float = 770;
-	public var BF_Y:Float = 100;
-	public var BF2_X:Float = 770;
-	public var BF2_Y:Float = 100;
-	public var DAD_X:Float = 100;
-	public var DAD_Y:Float = 100;
-	public var DAD2_X:Float = 100;
-	public var DAD2_Y:Float = 100;
-	public var GF_X:Float = 400;
-	public var GF_Y:Float = 130;
-
 	public var songSpeedTween:FlxTween;
 	public var songSpeed(default, set):Float = 1;
 	public var songSpeedType:String = "multiplicative";
@@ -196,12 +331,6 @@ class PlayState extends MusicBeatState
 
 	public var playbackRate(default, set):Float = 1;
 	public var currentRate:Float = 1;
-
-	public var boyfriendGroup:FlxSpriteGroup;
-	public var boyfriendGroup2:FlxSpriteGroup;
-	public var dadGroup:FlxSpriteGroup;
-	public var dadGroup2:FlxSpriteGroup;
-	public var gfGroup:FlxSpriteGroup;
 
 	// Cached indices for performance optimization
 	private var _noteGroupIndex:Int = -1;
@@ -270,12 +399,6 @@ class PlayState extends MusicBeatState
 	public var vocals:FlxSound;
 	public var opponentVocals:FlxSound;
 	public var gfVocals:FlxSound;
-
-	public var dad:Character = null;
-	public var dad2:Character = null;
-	public var gf:Character = null;
-	public var boyfriend:Character = null;
-	public var bf2:Character = null;
 
 	public var notes:FlxTypedGroup<Note>;
 	public var unspawnNotes:Array<Note> = [];
@@ -1057,7 +1180,6 @@ class PlayState extends MusicBeatState
 		// === INITIALIZE PERFORMANCE OPTIMIZATIONS ===
 		initializeOptimizations();
 		updateScriptFlags();
-		updateGroupIndices();
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.bpm = SONG.bpm;
@@ -1145,12 +1267,6 @@ class PlayState extends MusicBeatState
 		if (opponent2CameraOffset == null)
 			opponent2CameraOffset = [0, 0];
 
-		boyfriendGroup = new FlxSpriteGroup(BF_X, BF_Y);
-		boyfriendGroup2 = new FlxSpriteGroup(BF2_X, BF2_Y);
-		dadGroup = new FlxSpriteGroup(DAD_X, DAD_Y);
-		dadGroup2 = new FlxSpriteGroup(DAD2_X, DAD2_Y);
-		gfGroup = new FlxSpriteGroup(GF_X, GF_Y);
-
 		if (isPixelStage) introSoundsSuffix = '-pixel';
 
 		var zoomOut = 1 / defaultCamZoom;
@@ -1198,52 +1314,13 @@ class PlayState extends MusicBeatState
 			if (!stageData.hide_girlfriend)
 			{
 				if(SONG.gfVersion == null || SONG.gfVersion.length < 1) SONG.gfVersion = 'gf'; //Fix for the Chart Editor
-				gf = new Character(0, 0, SONG.gfVersion, false, GF);
-				startCharacterPos(gf);
+				gf = CharacterManager.instance.makeNewCharacter(0, 0, SONG.gfVersion, false, GF, GF);
 				gfGroup.scrollFactor.set(0.95, 0.95);
-				gfGroup.add(gf);
 			}
-
-			dad = new Character(0, 0, SONG.player2, false, DAD);
-			startCharacterPos(dad, true);
-			dadGroup.add(dad);
-
-			if (SONG.player4.isNotEmpty())
-			{
-				dad2 = new Character(0, 0, SONG.player4, false, DAD);
-				startCharacterPos(dad2, true);
-				dadGroup2.add(dad2);
-				//threeLanes = true; later
-			}
-			else dad2 = null;
-
-			boyfriend = new Character(0, 0, SONG.player1, true, BF);
-			startCharacterPos(boyfriend);
-			boyfriendGroup.add(boyfriend);
-
-			if (SONG.player5.isNotEmpty())
-			{
-				bf2 = new Character(0, 0, SONG.player5, true, BF);
-				startCharacterPos(bf2, true);
-				boyfriendGroup2.add(bf2);
-			}
-			else bf2 = null;
-
-			dadGhost = new FlxSprite();
-			dadGhost.visible = false;
-			dadGhost.antialiasing = true;
-			dadGhost.alpha = 0.6;
-			dadGhost.scale.copyFrom(dad.scale);
-			dadGhost.updateHitbox();
-			setOnScripts('dadGhost', dadGroup);
-
-			bfGhost = new FlxSprite();
-			bfGhost.visible = false;
-			bfGhost.antialiasing = true;
-			bfGhost.alpha = 0.6;
-			bfGhost.scale.copyFrom(boyfriend.scale);
-			bfGhost.updateHitbox();
-			setOnScripts('bfGhost', bfGhost);
+			dad = CharacterManager.instance.makeNewCharacter(0, 0, SONG.player2, false, DAD, DAD);
+			if (SONG.player4.isNotEmpty()) dad2 = CharacterManager.instance.makeNewCharacter(0, 0, SONG.player4, false, DAD, DAD2);
+			boyfriend = CharacterManager.instance.makeNewCharacter(0, 0, SONG.player1, true, BF, BF);
+			if (SONG.player5.isNotEmpty()) bf2 = CharacterManager.instance.makeNewCharacter(0, 0, SONG.player5, true, BF, BF2);
 		} else {
 			// In NotITG we will not show characters: create instances but hide them to avoid NPEs
 			// We use the default versions of character names if they are missing
@@ -1253,29 +1330,24 @@ class PlayState extends MusicBeatState
 			var p5 = (SONG.player5 == null || SONG.player5.length == 0) ? 'bf' : SONG.player5;
 			var gfver = (SONG.gfVersion == null || SONG.gfVersion.length == 0) ? 'gf' : SONG.gfVersion;
 
-			gf = new Character(0, 0, gfver);
-			startCharacterPos(gf);
+			gf = CharacterManager.instance.makeNewCharacter(0, 0, gfver, false, GF, GF);
 			gf.visible = false;
 			// Do not add to the group to keep the stage clean
 
-			dad = new Character(0, 0, p2, false, DAD);
-			startCharacterPos(dad, true);
+			dad = CharacterManager.instance.makeNewCharacter(0, 0, p2, false, DAD, DAD);
 			dad.visible = false;
 
-			boyfriend = new Character(0, 0, p1, true);
-			startCharacterPos(boyfriend);
+			boyfriend = CharacterManager.instance.makeNewCharacter(0, 0, p1, true, BF, BF);
 			boyfriend.visible = false;
 
-			dad2 = new Character(0, 0, p4, false, DAD);
-			startCharacterPos(dad2, true);
+			dad2 = CharacterManager.instance.makeNewCharacter(0, 0, p4, false, DAD, DAD2);
 			dad2.visible = false;
 
-			bf2 = new Character(0, 0, p5, true, BF);
-			startCharacterPos(bf2, true);
+			bf2 = CharacterManager.instance.makeNewCharacter(0, 0, p5, true, BF, BF2);
 			bf2.visible = false;
 		}
 
-
+		updateGroupIndices();
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 		// "SCRIPTS FOLDER" SCRIPTS
@@ -1324,11 +1396,7 @@ class PlayState extends MusicBeatState
 		loadSingleStageFile(curStage);
 
 		// CHARACTER SCRIPTS
-		if(gf != null) startCharacterScripts(gf.curCharacter);
-		startCharacterScripts(dad.curCharacter);
-		startCharacterScripts(boyfriend.curCharacter);
-		if(bf2 != null) startCharacterScripts(bf2.curCharacter);
-		if(dad2 != null) startCharacterScripts(dad2.curCharacter);
+		CharacterManager.instance.startCharListFromScripts([gf, dad, boyfriend, bf2, dad2]);
 		#end
 
 		addBehindGF(whiteBG);
@@ -2483,164 +2551,26 @@ class PlayState extends MusicBeatState
 	public function addCharacterToList(newCharacter:String, type:Int) {
 		switch(type) {
 			case 0:
-				if(!boyfriendMap.exists(newCharacter)) {
-					var newBoyfriend:Character = new Character(0, 0, newCharacter, true, BF);
-					boyfriendMap.set(newCharacter, newBoyfriend);
-					boyfriendGroup.add(newBoyfriend);
-					startCharacterPos(newBoyfriend);
-					newBoyfriend.alpha = 0.00001;
-					startCharacterScripts(newBoyfriend.curCharacter);
-				}
-
+				var newBoyfriend:Character = CharacterManager.instance.preloadCharacter(newCharacter, true, BF, BF);
+				newBoyfriend.alpha = 0.00001;
 			case 1:
-				if(!dadMap.exists(newCharacter)) {
-					var newDad:Character = new Character(0, 0, newCharacter, false, DAD);
-					dadMap.set(newCharacter, newDad);
-					dadGroup.add(newDad);
-					startCharacterPos(newDad, true);
-					newDad.alpha = 0.00001;
-					startCharacterScripts(newDad.curCharacter);
-				}
-
+				var newDad:Character = CharacterManager.instance.preloadCharacter(newCharacter, false, DAD, DAD);
+				newDad.alpha = 0.00001;
 			case 2:
-				if(gf != null && !gfMap.exists(newCharacter)) {
-					var newGf:Character = new Character(0, 0, newCharacter, false, DAD);
-					newGf.scrollFactor.set(0.95, 0.95);
-					gfMap.set(newCharacter, newGf);
-					gfGroup.add(newGf);
-					startCharacterPos(newGf);
-					newGf.alpha = 0.00001;
-					startCharacterScripts(newGf.curCharacter);
-				}
+				var newGf:Character = CharacterManager.instance.preloadCharacter(newCharacter, false, GF, GF);
+				newGf.alpha = 0.00001;
 			case 3:
-				if (dad2 != null && !dadMap2.exists(newCharacter))
-				{
-					var newDad2:Character = new Character(0, 0, newCharacter, false, DAD);
-					newDad2.scrollFactor.set(0.95, 0.95);
-					dadMap2.set(newCharacter, newDad2);
-					dadGroup2.add(newDad2);
-					startCharacterPos(newDad2);
-					newDad2.alpha = 0.00001;
-					startCharacterScripts(newDad2.curCharacter);
-				}
+				var newDad2:Character = CharacterManager.instance.preloadCharacter(newCharacter, false, DAD, DAD2);
+				newDad2.alpha = 0.00001;
 			case 4:
-				if (bf2 != null && !boyfriendMap2.exists(newCharacter))
-				{
-					var newBoyfriend:Character = new Character(0, 0, newCharacter, true, BF);
-					boyfriendMap2.set(newCharacter, newBoyfriend);
-					boyfriendGroup2.add(newBoyfriend);
-					startCharacterPos(newBoyfriend);
-					newBoyfriend.alpha = 0.00001;
-					startCharacterScripts(newBoyfriend.curCharacter);
-				}
+				var newBoyfriend:Character = CharacterManager.instance.preloadCharacter(newCharacter, true, BF, BF2);
+				newBoyfriend.alpha = 0.00001;
 		}
 	}
 
 	function startCharacterScripts(name:String)
-	{
-		// Lua
-		#if LUA_ALLOWED
-		var doPush:Bool = false;
-		var luaFile:String = 'characters/$name.lua';
-		#if MODS_ALLOWED
-		var replacePath:String = Paths.modFolders(luaFile);
-		if(FileSystem.exists(replacePath))
-		{
-			luaFile = replacePath;
-			doPush = true;
-		}
-		else
-		{
-			luaFile = Paths.getSharedPath(luaFile);
-			if(FileSystem.exists(luaFile))
-				doPush = true;
-		}
-		#else
-		luaFile = Paths.getSharedPath(luaFile);
-		if(Assets.exists(luaFile)) doPush = true;
-		#end
+		CharacterManager.instance.startCharacterScripts(name);
 
-		if(doPush)
-		{
-			for (script in luaArray)
-			{
-				if(script.scriptName == luaFile)
-				{
-					doPush = false;
-					break;
-				}
-			}
-			if(doPush)
-				(shouldUseLegacyLua() ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
-
-		}
-		#end
-
-		// HScript
-		#if HSCRIPT_ALLOWED
-		var doPush:Bool = false;
-		var scriptFile:String = 'characters/' + name + '.hx';
-		#if MODS_ALLOWED
-		var replacePath:String = Paths.modFolders(scriptFile);
-		if(FileSystem.exists(replacePath))
-		{
-			scriptFile = replacePath;
-			doPush = true;
-		}
-		else
-		#end
-		{
-			scriptFile = Paths.getSharedPath(scriptFile);
-			if(FileSystem.exists(scriptFile))
-				doPush = true;
-		}
-
-		if(doPush)
-		{
-			for (script in hscriptArray)
-			{
-				if(script.origin == scriptFile)
-				{
-					doPush = false;
-					break;
-				}
-			}
-
-			if(doPush) initHScript(scriptFile);
-		}
-		#end
-
-		var doPush:Bool = false;
-		var scriptFile:String = 'characters/' + name + '.ys';
-		#if MODS_ALLOWED
-		var replacePath:String = Paths.modFolders(scriptFile);
-		if(FileSystem.exists(replacePath))
-		{
-			scriptFile = replacePath;
-			doPush = true;
-		}
-		else
-		#end
-		{
-			scriptFile = Paths.getSharedPath(scriptFile);
-			if(FileSystem.exists(scriptFile))
-				doPush = true;
-		}
-
-		if(doPush)
-		{
-			for (script in yscriptArray)
-			{
-				if(script.scriptPath == scriptFile)
-				{
-					doPush = false;
-					break;
-				}
-			}
-
-			if(doPush) initYScript(scriptFile);
-		}
-	}
 
 	function loadSingleStageFile(stageName:String, reloadStageData:Bool = false)
 	{
@@ -2915,27 +2845,20 @@ class PlayState extends MusicBeatState
 	}
 
 	public function getLuaObject(tag:String, text:Bool = true):FlxSprite
-		{
-			#if LUA_ALLOWED
-			if (modchartSprites.exists(tag))
-				return modchartSprites.get(tag);
-			if (text && modchartTexts.exists(tag))
-				return modchartTexts.get(tag);
-			if (variables.exists(tag))
-				return variables.get(tag);
-			#end
-			return null;
-		}
-
-	function startCharacterPos(char:Character, ?gfCheck:Bool = false) {
-		if(gfCheck && char.curCharacter.startsWith('gf')) { //IF DAD IS GIRLFRIEND, HE GOES TO HER POSITION
-			char.setPosition(GF_X, GF_Y);
-			char.scrollFactor.set(0.95, 0.95);
-			char.danceEveryNumBeats = 2;
-		}
-		char.x += char.positionArray[0];
-		char.y += char.positionArray[1];
+	{
+		#if LUA_ALLOWED
+		if (modchartSprites.exists(tag))
+			return modchartSprites.get(tag);
+		if (text && modchartTexts.exists(tag))
+			return modchartTexts.get(tag);
+		if (variables.exists(tag))
+			return variables.get(tag);
+		#end
+		return null;
 	}
+
+	function startCharacterPos(char:Character, ?gfCheck:Bool = false)
+		CharacterManager.instance.startCharacterPos(char, gfCheck);
 
 	public var videoCutscene:VideoSprite = null;
 	public function startVideo(name:String, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
@@ -6010,6 +5933,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						charType = 2;
 					case 'dad' | 'opponent':
 						charType = 1;
+					case 'dad2' | 'opponent2':
+						charType = 3;
+					case 'bf2' | 'boyfriend2':
+						charType = 4;
 					default:
 						var val1:Int = Std.parseInt(event.value1);
 						if(Math.isNaN(val1)) val1 = 0;
@@ -8432,9 +8359,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				switch(charType) {
 					case 0:
 						if(boyfriend.curCharacter != value2) {
-							if(!boyfriendMap.exists(value2)) {
-								addCharacterToList(value2, charType);
-							}
+							addCharacterToList(value2, charType);
 
 							var oldChar = boyfriend;
 							var lastAlpha:Float = boyfriend.alpha;
@@ -8452,9 +8377,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 					case 1:
 						if(dad.curCharacter != value2) {
-							if(!dadMap.exists(value2)) {
-								addCharacterToList(value2, charType);
-							}
+							addCharacterToList(value2, charType);
 
 							var oldChar = dad;
 							var wasGf:Bool = dad.curCharacter.startsWith('gf-') || dad.curCharacter == 'gf';
@@ -8483,9 +8406,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						{
 							if(gf.curCharacter != value2)
 							{
-								if(!gfMap.exists(value2)) {
-									addCharacterToList(value2, charType);
-								}
+								addCharacterToList(value2, charType);
 
 								var oldChar = gf;
 								var lastAlpha:Float = gf.alpha;
@@ -8505,10 +8426,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						{
 							if (dad2.curCharacter != value2)
 							{
-								if (!dadMap2.exists(value2))
-								{
-									addCharacterToList(value2, charType);
-								}
+								addCharacterToList(value2, charType);
 
 								var oldChar = dad2;
 								var wasGf:Bool = dad2.curCharacter.startsWith('gf');
@@ -8541,10 +8459,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 						{
 							if (bf2.curCharacter != value2)
 							{
-								if (!boyfriendMap2.exists(value2))
-								{
-									addCharacterToList(value2, charType);
-								}
+								addCharacterToList(value2, charType);
 
 								var oldChar = bf2;
 								var lastAlpha:Float = bf2.alpha;
@@ -12018,29 +11933,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 		// Clear character references
-		if (boyfriend != null) {
-			boyfriend.destroy();
-			boyfriend = null;
-		}
-		if (gf != null) {
-			gf.destroy();
-			gf = null;
-		}
-		if (dad != null) {
-			dad.destroy();
-			dad = null;
-		}
-
-		for (charMap in [boyfriendMap, boyfriendMap2, dadMap, dadMap2, gfMap]) {
-			for (charName => charObj in charMap) {
-				if (charObj != null) {
-					charMap.remove(charName);
-					charObj.destroy();
-					charObj = null;
-				}
-			}
-			charMap = null;
-		}
+		CharacterManager.instance.destroyAll();
 
 		// Clear event and callback references
 		if (eventNotes != null) {
