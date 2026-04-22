@@ -120,6 +120,8 @@ class APStyledEntryState extends MusicBeatState {
         : "C:/ProgramData/Archipelago";
 
     override function create() {
+        if (APInfo.excludedSongs.length > 0)
+            APInfo.excludedSongs = []; //Clear it so it stays empty when you go to load/make a yaml
         super.create();
 
         if (!FlxG.sound.music.playing || FlxG.sound.music == null)

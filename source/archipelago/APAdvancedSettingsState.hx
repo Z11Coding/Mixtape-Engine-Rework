@@ -80,13 +80,24 @@ typedef StateOption =
 	var locked:Bool;
 }
 
+// State option structure for complex settings that open other states
+typedef SubstateOption =
+{
+	var name:String;
+	var description:String;
+	var stateClass:Class<MusicBeatSubstate>;
+	var stateArgs:Array<Dynamic>;
+	var locked:Bool;
+}
+
 // Page structure for organizing settings
 typedef SettingsPage =
 {
 	var name:String;
 	var description:String;
 	var options:Array<SettingsOption>;
-	var stateOptions:Array<StateOption>; // Separate array for state options
+	var stateOptions:Array<StateOption>; // Separate array for state options.
+	var substateOptions:Array<SubstateOption>; // Separate array for state options
 	var color:FlxColor;
 }
 
@@ -622,6 +633,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							hard_mode = value == true;
 						case "enable_shop":
 							enable_shop = value == true;
+						case "excludeSongList":
+							APInfo.excludedSongs = value;
 						// Handle any other potential fields that might exist
 						default:
 							trace('Unknown YAML field during import: $field = $value');
@@ -1073,11 +1086,19 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		// Example state options (you can add actual complex settings states here)
 		var exampleStateOptions:Array<StateOption> = [
-			createStateOption("Song Selection (DO NOT CLICK!)", "Open advanced song selection interface",
-				cast states.freeplay.FreeplayState, // Example: open freeplay for song selection
+			createStateOption("Song Selection", "Open song selection interface",
+				cast archipelago.substates.QuickSongSelect, // Example: open freeplay for song selection
 				[], // No constructor args
-				[states.CategoryState], // Allow navigation to these states
-				["selectedSongs", "difficulty"] // Variables to capture
+				[], // Allow navigation to these states
+				["selectedSongs"] // Variables to capture
+			)
+		];
+
+		// Example state options (you can add actual complex settings states here)
+		var exampleSubStateOptions:Array<SubstateOption> = [
+			createSubStateOption("Song Selection (The actual one)", "Open song selection interface",
+				cast archipelago.substates.QuickSongSelect, // Example: open freeplay for song selection
+				[] // No constructor args
 			)
 		];
 
@@ -1213,6 +1234,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Core game configuration options",
 				options: mainOptions,
 				stateOptions: [],
+				substateOptions: [],
 				color: FlxColor.CYAN
 			},
 			{
@@ -1220,13 +1242,15 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Configure which songs and content to include",
 				options: songsOptions,
 				stateOptions: [],
+				substateOptions: [],
 				color: FlxColor.LIME
 			},
 			{
 				name: "ADVANCED & TRAPS",
 				description: "Fine-tune difficulty and trap settings",
 				options: trapsOptions,
-				stateOptions: exampleStateOptions, // Add state options to this page
+				stateOptions: [],
+				substateOptions: exampleSubStateOptions, // Add state options to this page
 				color: FlxColor.ORANGE
 			},
 			{
@@ -1234,6 +1258,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Configure item and trap generation weights",
 				options: fillerWeightsOptions,
 				stateOptions: [],
+				substateOptions: [],
 				color: FlxColor.PURPLE
 			},
 			{
@@ -1241,6 +1266,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Configure random song bundle generation",
 				options: bundleOptions,
 				stateOptions: [],
+				substateOptions: [],
 				color: FlxColor.YELLOW
 			},
 			{
@@ -1248,6 +1274,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Configure additional item types for stage and character checks",
 				options: sanityOptions,
 				stateOptions: [],
+				substateOptions: [],
 				color: FlxColor.PINK
 			},
 			{
@@ -1255,6 +1282,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Fun(?) things I decided to add for those looking for something more than the usual >:)",
 				options: z11Options,
 				stateOptions: [],
+				substateOptions: [],
 				color: FlxColor.WHITE
 			}
 		];
@@ -1733,7 +1761,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		var startY:Float = 140;
 		var spacing:Float = 40; // Reduced spacing for more compact layout
 		var optionIndex = 0;
-		var totalOptions = page.options.length + page.stateOptions.length;
+		var totalOptions = page.options.length + page.stateOptions.length + page.substateOptions.length;
 		var useCompactLayout = totalOptions > 8; // Use compact layout for pages with many options
 
 		var leftColumnX = 60;
@@ -1825,6 +1853,47 @@ class APAdvancedSettingsState extends MusicBeatState
 			// Create text with indicator - start off-screen for animation
 			var text = new FlxText(FlxG.width + 10, yPos + (useCompactLayout ? 8 : 10), button.width - 20, stateOption.name + " →", useCompactLayout ? 14 : 16);
 			text.setFormat(Paths.font("vcr.ttf"), useCompactLayout ? 14 : 16, stateOption.locked ? FlxColor.GRAY : FlxColor.CYAN, LEFT, OUTLINE,
+				FlxColor.BLACK);
+			text.borderSize = 1;
+			text.ID = optionIndex;
+			optionTexts.add(text);
+
+			optionIndex++;
+		}
+
+		// Add sub state options
+		for (i in 0...page.substateOptions.length)
+		{
+			var substateOption = page.substateOptions[i];
+
+			var xPos:Float;
+			var yPos:Float;
+
+			if (useCompactLayout)
+			{
+				// Two-column layout for pages with many options
+				xPos = currentColumn == 0 ? leftColumnX : rightColumnX;
+				yPos = startY + (Math.floor(optionIndex / 2) * spacing);
+				currentColumn = (currentColumn + 1) % 2;
+			}
+			else
+			{
+				// Single column layout for pages with few options
+				xPos = 100;
+				yPos = startY + (optionIndex * spacing);
+			}
+
+			// Create button (different color to distinguish state options) - start off-screen for animation
+			var button = new FlxSprite(FlxG.width, yPos);
+			button.makeGraphic(buttonWidth, useCompactLayout ? 35 : 40, substateOption.locked ? FlxColor.GRAY : FlxColor.fromRGB(60, 40, 80));
+			button.ID = optionIndex;
+			// Store button data using our custom system
+			buttonData.set(button, ["type" => "substate", "index" => i]);
+			optionButtons.add(button);
+
+			// Create text with indicator - start off-screen for animation
+			var text = new FlxText(FlxG.width + 10, yPos + (useCompactLayout ? 8 : 10), button.width - 20, substateOption.name + " →", useCompactLayout ? 14 : 16);
+			text.setFormat(Paths.font("vcr.ttf"), useCompactLayout ? 14 : 16, substateOption.locked ? FlxColor.GRAY : FlxColor.CYAN, LEFT, OUTLINE,
 				FlxColor.BLACK);
 			text.borderSize = 1;
 			text.ID = optionIndex;
@@ -3591,6 +3660,54 @@ class APAdvancedSettingsState extends MusicBeatState
 		MusicBeatState.switchState(targetState);
 	}
 
+	/**
+	 * Creates a state option that opens another state with proper tracking
+	 * @param name Display name for the option
+	 * @param description Description of what the option does
+	 * @param stateClass The state class to switch to
+	 * @param stateArgs Arguments to pass to the state constructor
+	 * @param allowedStates Additional state classes that are allowed (prevents return loop)
+	 * @param variablesToCapture Variables to capture when returning from the state
+	 * @return StateOption that can be added to a page
+	 */
+	static function createSubStateOption(name:String, description:String, stateClass:Class<MusicBeatSubstate>, ?stateArgs:Array<Dynamic>,
+			?allowedStates:Array<Class<MusicBeatSubstate>>, ?variablesToCapture:Array<String>):SubstateOption
+	{
+		if (stateArgs == null)
+			stateArgs = [];
+		if (allowedStates == null)
+			allowedStates = [];
+		if (variablesToCapture == null)
+			variablesToCapture = [];
+
+		return {
+			name: name,
+			description: description,
+			stateClass: stateClass,
+			stateArgs: stateArgs,
+			locked: false
+		};
+	}
+
+	/**
+	 * Switches to a sub state with AP options tracking
+	 * @param stateOption The sub state option to execute
+	 */
+	function executeSubstateOption(stateOption:SubstateOption)
+	{
+		if (stateOption.locked)
+		{
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			FlxG.camera.shake(0.01, 0.2);
+			return;
+		}
+
+		// Create and switch to the target state
+		var targetState = Type.createInstance(stateOption.stateClass, stateOption.stateArgs);
+		FlxG.sound.play(Paths.sound('confirmMenu'));
+		openSubState(targetState);
+	}
+
 	function loadCurrentSettings()
 	{
 		// Load from APEntryState.gameSettings.FNF
@@ -3646,6 +3763,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			hard_mode = Reflect.hasField(settings, "hard_mode") ? settings.hard_mode : false;
 			enable_shop = Reflect.hasField(settings, "enable_shop") ? settings.enable_shop : false;
 			perma_traps = Reflect.hasField(settings, "perma_traps") ? settings.perma_traps : false;
+			APInfo.excludedSongs = Reflect.hasField(settings, "excludeSongList") ? settings.excludeSongList : [];
 
 			// Bundle settings with defaults
 			bundleEnabled = Reflect.hasField(settings, "songBundleEnabled") ? Reflect.field(settings, "songBundleEnabled") : false;
@@ -3712,6 +3830,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			settings.perma_traps = perma_traps;
 			settings.hard_mode = hard_mode;
 			settings.enable_shop = enable_shop;
+			settings.excludeSongList = APInfo.excludedSongs;
 
 			// Save bundle settings
 			Reflect.setField(settings, "songBundleEnabled", bundleEnabled);
@@ -4221,6 +4340,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		Reflect.setField(yamlThing, "hard_mode", hard_mode);
 		Reflect.setField(yamlThing, "enable_shop", enable_shop);
 		Reflect.setField(yamlThing, "allow_mods", allowMods);
+		Reflect.setField(yamlThing, "excludeSongList", APInfo.excludedSongs);
 
 		// Add bundle settings
 		Reflect.setField(yamlThing, "songBundleEnabled", bundleEnabled);
@@ -4828,6 +4948,8 @@ class APAdvancedSettingsState extends MusicBeatState
 								hard_mode = value == true;
 							case "enable_shop":
 								enable_shop = value == true;
+							case "excludeSongList":
+								APInfo.excludedSongs = value;
 							case "starting_song":
 								// Only set if the value is actually present in YAML and not empty
 								var songValue = APInfo.realName(Std.string(value));
@@ -5349,6 +5471,11 @@ class APAdvancedSettingsState extends MusicBeatState
 							var stateOption = pages[currentPage].stateOptions[index];
 							executeStateOption(stateOption);
 						}
+						else if (type == "substate")
+						{
+							var substateOption = pages[currentPage].substateOptions[index];
+							executeSubstateOption(substateOption);
+						}
 					}
 
 					// Handle right click for context menu
@@ -5469,7 +5596,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			starter_debuffs: starter_debuffs,
 			perma_traps: perma_traps,
 			hard_mode: hard_mode,
-			enable_shop: enable_shop
+			enable_shop: enable_shop,
+			excludeSongList: APInfo.excludedSongs
 		};
 
 		if (tempSave != null)
@@ -5504,6 +5632,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			chartmodifierchance = data.chartmodifierchance;
 			trapAmount = data.trapAmount;
 			songLimit = data.songLimit;
+			APInfo.excludedSongs = data.songEXlist;
 
 			// Restore current page if available
 			if (Reflect.hasField(data, "currentPage"))
@@ -5558,6 +5687,8 @@ class APAdvancedSettingsState extends MusicBeatState
 				hard_mode = data.hard_mode;
 			if (Reflect.hasField(data, "enable_shop"))
 				enable_shop = data.enable_shop;
+			if (Reflect.hasField(data, "excludeSongList"))
+				APInfo.excludedSongs = data.excludedSongs;
 		}
 	}
 

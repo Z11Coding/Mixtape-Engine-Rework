@@ -123,6 +123,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         }
 
         globalSongList = [];
+        APInfo.allSongs = [];
         for (songName in tempSongList.keys()) {
             if (tempSongList.get(songName)) {
                 var parts = songName.split(" (");
@@ -136,15 +137,19 @@ class APSettingsSubState extends MusicBeatSubstate {
                 if (formattedName != songName.trim()) {
                     trace('Verification failed for: ' + songName);
                 }
-                globalSongList.push(formattedName);
+                APInfo.allSongs.push(formattedName);
             } else {
                 var formattedName = songName.trim();
                 if (formattedName != songName.trim()) {
                     trace('Verification failed for: ' + songName);
                 }
-                globalSongList.push(formattedName);
+                APInfo.allSongs.push(formattedName);
             }
         }
+
+        globalSongList = APInfo.allSongs.filter(function(song:String) {
+            return !APInfo.excludedSongs.contains(song);
+        });
         trace('Generated song list: ' + globalSongList);
     }
 
