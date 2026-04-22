@@ -139,6 +139,9 @@ class APInfo {
 	public static var ap:Client;
 	public static var apGame:APGameState;
 
+	public static var allSongs:Array<String> = []; // Backup Global list
+	public static var excludedSongs:Array<String> = [];
+
 	public static var ticketCount:Int = 0;
 	public static var ticketWinCount:Int = 1;
 
