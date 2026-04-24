@@ -15,6 +15,7 @@ import substates.RankingSubstate;
 
   if this needs to do literally anything else, it'll be added here.
 **/
+@:nullSafety
 class RankingManager extends FlxSprite {
     public static var instance:RankingManager;
     public var rankTable:Array<String> = [

@@ -58,18 +58,12 @@ enum GCBehavior {
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
 class MusicBeatState extends yutautil.SafeManagedState
 {
-	private var curSection:Int = 0;
-	private var stepsToDo:Int = 0;
-
 	/**
 	 * Garbage Collection behavior for this state
 	 * Override in subclasses to customize GC behavior
 	 */
 	public var gcBehavior:GCBehavior = AUTO;
 	public var didGCBehavior:Bool = false;
-
-	private var curStep:Int = 0;
-	private var curBeat:Int = 0;
 
 	// Application closing management
 	public static var isClosing:Bool = false;
@@ -262,11 +256,6 @@ class MusicBeatState extends yutautil.SafeManagedState
 		return _apFlip;
 	}
 
-	private var curDecStep:Float = 0;
-	private var curDecBeat:Float = 0;
-
-	public static var pubCurDecStep:Float = 0;
-	public static var pubCurDecBeat:Float = 0;
 	public static var playErrorSound:Bool = false;
 	public static var allowNuke:Bool = false;
 
@@ -303,6 +292,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 	public static function getVariables()
 		return getState().variables;
+
+	public var conductor:RConductor = MegaManager.conductor;
 
 	override function create()
 	{
@@ -662,18 +653,19 @@ class MusicBeatState extends yutautil.SafeManagedState
 		var oldStep:Int = curStep;
 		timePassedOnState += elapsed;
 
-		updateCurStep();
-		updateBeat();
+		curStep = RConductor.instance.currentStep;
+		curBeat = RConductor.instance.currentBeat;
+		curSection = RConductor.instance.currentMeasure;
 
 		#if ARCHIPELAGO_ALLOWED
 		if (archipelago.APEntryState.inArchipelagoMode)
 			archipelago.APItem.doCheck();
 		#end
 
-		if (oldStep != curStep)
+		/*if (oldStep != curStep)
 		{
 			if (curStep > 0)
-				stepHit();
+				RConductor.instance.onStepHit();
 
 			if (PlayState.SONG != null)
 			{
@@ -682,7 +674,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 				else
 					rollbackSection();
 			}
-		}
+		}*/
 
 		if (FlxG.save.data != null)
 			FlxG.save.data.fullscreen = FlxG.fullscreen;
@@ -735,26 +727,25 @@ class MusicBeatState extends yutautil.SafeManagedState
 		#end
 	}
 
-	private function updateSection():Void
+	/*private function updateSection():Void
 	{
 		if (stepsToDo < 1)
 			stepsToDo = Math.round(getBeatsOnSection() * 4);
 		while (curStep >= stepsToDo)
 		{
-			curSection++;
 			var beats:Float = getBeatsOnSection();
 			stepsToDo += Math.round(beats * 4);
-			sectionHit();
+			RConductor.instance.onMeasureHit();
 		}
 	}
 
 	private function rollbackSection():Void
 	{
-		if (curStep < 0)
+		if (RConductor.instance.currentMeasure < 0)
 			return;
 
-		var lastSection:Int = curSection;
-		curSection = 0;
+		var lastSection:Int = RConductor.instance.currentMeasure;
+		RConductor.instance.currentMeasure = 0;
 		stepsToDo = 0;
 		for (i in 0...PlayState.SONG.notes.length)
 		{
@@ -764,28 +755,13 @@ class MusicBeatState extends yutautil.SafeManagedState
 				if (stepsToDo > curStep)
 					break;
 
-				curSection++;
+				RConductor.instance.currentMeasure++;
 			}
 		}
 
-		if (curSection > lastSection)
-			sectionHit();
-	}
-
-	private function updateBeat():Void
-	{
-		curBeat = Math.floor(curStep / 4);
-		curDecBeat = curDecStep / 4;
-	}
-
-	private function updateCurStep():Void
-	{
-		var lastChange = Conductor.getBPMFromSeconds(Conductor.songPosition);
-
-		var shit = ((Conductor.songPosition - ClientPrefs.data.noteOffset) - lastChange.songTime) / lastChange.stepCrochet;
-		curDecStep = lastChange.stepTime + shit;
-		curStep = lastChange.stepTime + Math.floor(shit);
-	}
+		if (RConductor.instance.currentMeasure > lastSection)
+			RConductor.instance.onMeasureHit();
+	}*/
 
 	public static function playSong(storyPlaylist:Array<String>, storyMode:Bool = false, difficulty:Int = 0, ?transition:String, ?type:String = null, ?manualDiff:Array<String> = null):Void
 	{
@@ -938,7 +914,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			return;
 		}
 
-		state.preloadState(true, state);
+		MusicBeatState.switchState(state);
 	}
 
 	public static function switchState(nextState:FlxState = null)
@@ -1096,42 +1072,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 		}
 	}
 
-	public function stepHit():Void
-	{
-		stagesFunc(function(stage:BaseStage)
-		{
-			stage.curStep = curStep;
-			stage.curDecStep = curDecStep;
-			stage.stepHit();
-		});
-
-		if (curStep % 4 == 0)
-			beatHit();
-	}
-
 	public var stages:Array<BaseStage> = [];
 
-	public function beatHit():Void
-	{
-		// trace('Beat: ' + curBeat);
-		stagesFunc(function(stage:BaseStage)
-		{
-			stage.curBeat = curBeat;
-			stage.curDecBeat = curDecBeat;
-			stage.beatHit();
-		});
-	}
-
-	public function sectionHit():Void
-	{
-		// trace('Section: ' + curSection + ', Beat: ' + curBeat + ', Step: ' + curStep);
-		stagesFunc(function(stage:BaseStage)
-		{
-			stage.curSection = curSection;
-			stage.sectionHit();
-		});
-	}
-
+	@:allow(backend.RConductor)
 	function stagesFunc(func:BaseStage->Void)
 	{
 		for (stage in stages)

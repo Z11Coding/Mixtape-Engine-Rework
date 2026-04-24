@@ -30,7 +30,7 @@ class Rating
 	public static function loadDefault():Array<Rating>
 	{
 		var ratingsData:Array<Rating> = [new Rating('marv')]; //highest rating goes first
-		
+
 		var rating:Rating = new Rating('sick');
 		rating.ratingMod = 0.88;
 		rating.score = 350;
@@ -59,5 +59,15 @@ class Rating
 		rating.moraleFactor = 0.05;
 		ratingsData.push(rating);
 		return ratingsData;
+	}
+
+	public static function judgeNote(arr:Array<Rating>, diff:Float=0):Rating // back where it belongs
+	{
+		var data:Array<Rating> = arr;
+		for(i in 0...data.length-1) //skips last window (Shit)
+			if (diff <= data[i].hitWindow)
+				return data[i];
+
+		return data[data.length - 1];
 	}
 }

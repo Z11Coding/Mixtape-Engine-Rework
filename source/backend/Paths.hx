@@ -327,15 +327,16 @@ class Paths
 		return null;
 	}
 
-	inline static public function getFolders(dir:String, ?modsOnly:Bool = false){
+	inline static public function getFolders(dir:String, ?modsOnly:Bool = false, ?useAlt:Bool = false){
 		#if !MODS_ALLOWED
 		return [Paths.getShadersPath('$dir/')];
 
 		#else
 		var foldersToCheck:Array<String> = [
-			Paths.mods(Mods.currentModDirectory + '/$dir/'),
+			Paths.mods((useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory) + '/$dir/'),
 			Paths.mods('$dir/'),
 			Paths.modFolders('$dir/'),
+			Paths.modFolders('$dir/', null, true),
 		];
 
 		if(!modsOnly)
@@ -562,7 +563,7 @@ class Paths
     return parts[0];
   }
 
-	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
+	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true, ?useAlt:Bool = false):String
 	{
 		#if MODS_ALLOWED
 		if(modsAllowed)
@@ -570,7 +571,7 @@ class Paths
 			var customFile:String = file;
 			if (parentfolder != null) customFile = '$parentfolder/$file';
 
-			var modded:String = modFolders(customFile, parentfolder);
+			var modded:String = modFolders(customFile, parentfolder, useAlt);
 		  //trace('Modded Path: $modded\nOriginal Path: $customFile\nExists: ${NativeFileSystem.exists(modded)}');
 			if (NativeFileSystem.exists(modded)) return modded;
 		}
@@ -600,8 +601,8 @@ class Paths
 	inline static public function xml(key:String, ?folder:String)
 		return getPath('data/$key.xml', TEXT, folder, true);
 
-	inline static public function json(key:String, ?folder:String)
-		return getPath('data/$key.json', TEXT, folder, true);
+	inline static public function json(key:String, ?folder:String, ?useAlt:Bool = false)
+		return getPath('data/$key.json', TEXT, folder, true, useAlt);
 
 	inline static public function shaderFragment(key:String, ?folder:String)
 		return getPath('shaders/$key.frag', TEXT, folder, true);
@@ -1222,7 +1223,7 @@ class Paths
 		return 'assets/$folderKey';
 	}
 
-	public static function fileExists(key:String, type:AssetType, ?ignoreMods:Bool = false, ?parentFolder:String = null)
+	public static function fileExists(key:String, type:AssetType, ?ignoreMods:Bool = false, ?parentFolder:String = null, ?useAlt:Bool = false)
 	{
 		#if MODS_ALLOWED
 		if(!ignoreMods)
@@ -1234,14 +1235,14 @@ class Paths
 				if (FileSystem.exists(mods('$mod/$modKey')))
 					return true;
 
-			if (FileSystem.exists(mods(Mods.currentModDirectory + '/' + modKey)) || FileSystem.exists(mods(modKey)))
+			if (FileSystem.exists(mods((useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory) + '/' + modKey)) || FileSystem.exists(mods(modKey)))
 				return true;
 		}
 		#end
 		return (OpenFlAssets.exists(getPath(key, type, parentFolder, false)));
 	}
 
-	public static function fileExistsInMods(key:String, type:AssetType, ?ignoreMods:Bool = false, ?parentFolder:String = null)
+	public static function fileExistsInMods(key:String, type:AssetType, ?ignoreMods:Bool = false, ?parentFolder:String = null, ?useAlt:Bool = false)
 	{
 		#if MODS_ALLOWED
 		var modKey:String = key;
@@ -1251,7 +1252,7 @@ class Paths
 			if (FileSystem.exists(mods('$mod/$modKey')))
 				return true;
 
-		if (FileSystem.exists(mods(Mods.currentModDirectory + '/' + modKey)) || FileSystem.exists(mods(modKey)))
+		if (FileSystem.exists(mods((useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory) + '/' + modKey)) || FileSystem.exists(mods(modKey)))
 			return true;
 		#end
 		return false;
@@ -1484,7 +1485,7 @@ class Paths
 	inline static public function modsImagesJson(key:String)
 		return modFolders('images/' + key + '.json');
 
-	static public function modFolders(key:String, ?modFolder:String = '')
+	static public function modFolders(key:String, ?modFolder:String = '', ?useAlt:Bool = false)
 	{
 		#if ARCHIPELAGO_ALLOWED
 		// Check High Quality Trap temp folder first if actively in use
@@ -1516,9 +1517,9 @@ class Paths
 		}
 		#end
 
-		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+		if ((useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory) != null && (useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory).length > 0)
 		{
-			var fileToCheck:String = checkNamedModPath(key, Mods.currentModDirectory);
+			var fileToCheck:String = checkNamedModPath(key, (useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory));
 			if (NativeFileSystem.exists(fileToCheck))
 				return fileToCheck;
 		}

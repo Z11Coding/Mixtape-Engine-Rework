@@ -12,6 +12,7 @@ typedef ModsList = {
 class Mods
 {
 	static public var currentModDirectory:String = '';
+	static public var currentModDirectoryAlt:String = ''; // For anything that needs to load a mod while the player is also doingStuff
 	public static final ignoreModFolders:Array<String> = [
 		'characters',
 		'custom_events',
@@ -95,7 +96,7 @@ class Mods
 		return mergedList;
 	}
 
-	inline public static function directoriesWithFile(path:String, fileToFind:String, mods:Bool = true)
+	inline public static function directoriesWithFile(path:String, fileToFind:String, mods:Bool = true, ?useAlt:Bool = false)
 	{
 		var foldersToCheck:Array<String> = [];
 		//Main folder
@@ -125,20 +126,28 @@ class Mods
 			if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(Paths.mods(fileToFind));
 
 			// And lastly, the loaded mod's folder
-			if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
-			{
-				var folder:String = Paths.mods(Mods.currentModDirectory + '/' + fileToFind);
-				if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
+			if (useAlt) {
+				if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+				{
+					var folder:String = Paths.mods(Mods.currentModDirectory + '/' + fileToFind);
+					if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
+				}
+			} else {
+				if(Mods.currentModDirectoryAlt != null && Mods.currentModDirectoryAlt.length > 0)
+				{
+					var folder:String = Paths.mods(Mods.currentModDirectoryAlt + '/' + fileToFind);
+					if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
+				}
 			}
 		}
 		#end
 		return foldersToCheck;
 	}
 
-	public static function getPack(?folder:String = null):Dynamic
+	public static function getPack(?folder:String = null, ?useAlt:Bool = false):Dynamic
 	{
 		#if MODS_ALLOWED
-		if(folder == null) folder = Mods.currentModDirectory;
+		if(folder == null) folder = (useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory);
 
 		var path = Paths.mods(folder + '/pack.json');
 		if(FileSystem.exists(path)) {

@@ -148,5 +148,7 @@
     "**/*.rpa": true,
     "**/*.rpymc": true,
     "**/cache/": true
-  }
+  },
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true
 }

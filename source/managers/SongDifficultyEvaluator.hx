@@ -135,9 +135,9 @@ class SongDifficultyEvaluator
 	{
 		try {
 			// Set mod context
-			var oldMod = Mods.currentModDirectory;
+			var oldMod = Mods.currentModDirectoryAlt;
 			if (modFolder != null && modFolder != '') {
-				Mods.currentModDirectory = modFolder;
+				Mods.currentModDirectoryAlt = modFolder;
 			}
 
 			// Use Song class to load - this validates the chart
@@ -147,7 +147,7 @@ class SongDifficultyEvaluator
 			var chart = Song.loadFromJson(chartName, songPath);
 
 			// Restore mod context
-			Mods.currentModDirectory = oldMod;
+			Mods.currentModDirectoryAlt = oldMod;
 
 			return chart;
 		}
@@ -171,9 +171,9 @@ class SongDifficultyEvaluator
 		var score:Float = 0.0;
 
 		try {
-			var oldMod = Mods.currentModDirectory;
+			var oldMod = Mods.currentModDirectoryAlt;
 			if (modFolder != null && modFolder != '') {
-				Mods.currentModDirectory = modFolder;
+				Mods.currentModDirectoryAlt = modFolder;
 			}
 
 			// Use Song class to load the chart
@@ -181,8 +181,8 @@ class SongDifficultyEvaluator
 			var difficultyName = difficulty.toLowerCase();
 			var chartName = difficultyName != 'normal' ? '${songPath}-${difficultyName}' : songPath;
 
-			var loadedChart = Song.loadFromJson(chartName, songPath);
-			Mods.currentModDirectory = oldMod;
+			var loadedChart = Song.loadFromJson(chartName, songPath, true);
+			Mods.currentModDirectoryAlt = oldMod;
 
 			if (loadedChart != null && loadedChart.notes != null && loadedChart.notes.length > 0) {
 			var bpm = loadedChart.bpm > 0 ? loadedChart.bpm : 120.0;

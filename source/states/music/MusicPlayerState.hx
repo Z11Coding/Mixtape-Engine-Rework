@@ -362,11 +362,6 @@ class MusicPlayerState extends MusicBeatState
 		}
 	}
 
-	override function beatHit()
-	{
-		super.beatHit();
-	}
-
 	override function destroy()
 	{
 		manager.stopCurrentSong();

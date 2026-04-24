@@ -27,6 +27,7 @@ haxelib set crypto 1.0.4
 haxelib set openflCamera 1.0.7
 haxelib set openflMicrophone 1.0.1
 haxelib set hxpy 2.0.0
+haxelib set flxrhythmconductor 0.2.0
 haxelib set flxsoundfilters git
 haxelib set hxWebSockets git
 haxelib set linc_dialogs git

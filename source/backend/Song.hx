@@ -282,7 +282,7 @@ class Song
 
 	public static var chartPath:String;
 	public static var loadedSongName:String;
-	public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
+	public static function loadFromJson(jsonInput:String, ?folder:String, ?useAlt:Bool = false):SwagSong
 	{
 		var alsoTryDash:Bool = false;
 		if(folder == null) folder = jsonInput;
@@ -345,11 +345,11 @@ class Song
 		}
 
 		try {
-			PlayState.SONG = getChart(jsonInput, folder);
+			PlayState.SONG = getChart(jsonInput, folder, useAlt);
 		} catch(e) {
 			if (alsoTryDash)
-				PlayState.SONG = getChart('${jsonInput}-normal', folder);
-			else PlayState.SONG = getChart(jsonInput, folder); // do it normally so it can properly crash
+				try{PlayState.SONG = getChart('${jsonInput}-normal', folder, useAlt);}catch(e){getChart(jsonInput, folder, useAlt);} // do it normally so it can properly crash
+			else PlayState.SONG = getChart(jsonInput, folder, useAlt); // do it normally so it can properly crash
 		}
 		loadedSongName = folder;
 		chartPath = _lastPath.replace('/', '\\');
@@ -441,14 +441,14 @@ class Song
 	}
 
 	static var _lastPath:String;
-	public static function getChart(jsonInput:String, ?folder:String):SwagSong
+	public static function getChart(jsonInput:String, ?folder:String, ?useAlt:Bool = false):SwagSong
 	{
 		if(folder == null) folder = jsonInput;
 		var rawData:String = null;
 
 		var formattedFolder:String = Paths.formatToSongPath(folder);
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
-		_lastPath = Paths.json('$formattedFolder/$formattedSong');
+		_lastPath = Paths.json('$formattedFolder/$formattedSong', null, useAlt);
 
 		//trace(_lastPath);
 		#if MODS_ALLOWED

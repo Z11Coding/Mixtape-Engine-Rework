@@ -2151,6 +2151,30 @@ class PlayState extends MusicBeatState
 		// Paths.nukeMemory(true); // LIGHTLY nuke everything
 	}
 
+	// Add all manager-related stuff here
+	MegaManager.conductor.addStepCallback((beat:Int, backward:Bool) ->
+  {
+		if (SONG.notes[curSection] != null)
+		{
+			if (generatedMusic && !endingSong && !isCameraOnForcedPos)
+				moveCameraSection();
+
+			if (SONG.notes[curSection].changeBPM)
+			{
+				Conductor.bpm = SONG.notes[curSection].bpm;
+				setOnScripts('curBpm', Conductor.bpm);
+				setOnScripts('crochet', Conductor.crochet);
+				setOnScripts('stepCrochet', Conductor.stepCrochet);
+			}
+			setOnScripts('mustHitSection', SONG.notes[curSection].mustHitSection);
+			setOnScripts('altAnim', SONG.notes[curSection].altAnim);
+			setOnScripts('gfSection', SONG.notes[curSection].gfSection);
+		}
+
+		setOnScripts('curSection', curSection);
+		callOnScripts('onSectionHit');
+	});
+
 	// Some small stuff from PlusEngine
 	function hasModchart():Bool
 	{
@@ -12383,30 +12407,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				bf2.dance();
 			}
 		}
-	}
-
-	override function sectionHit()
-	{
-		if (SONG.notes[curSection] != null)
-		{
-			if (generatedMusic && !endingSong && !isCameraOnForcedPos)
-				moveCameraSection();
-
-			if (SONG.notes[curSection].changeBPM)
-			{
-				Conductor.bpm = SONG.notes[curSection].bpm;
-				setOnScripts('curBpm', Conductor.bpm);
-				setOnScripts('crochet', Conductor.crochet);
-				setOnScripts('stepCrochet', Conductor.stepCrochet);
-			}
-			setOnScripts('mustHitSection', SONG.notes[curSection].mustHitSection);
-			setOnScripts('altAnim', SONG.notes[curSection].altAnim);
-			setOnScripts('gfSection', SONG.notes[curSection].gfSection);
-		}
-		super.sectionHit();
-
-		setOnScripts('curSection', curSection);
-		callOnScripts('onSectionHit');
 	}
 
 	#if LUA_ALLOWED

@@ -31,6 +31,7 @@ haxelib install openflCamera 1.0.7
 haxelib install openflMicrophone 1.0.1
 haxelib install hxpy 2.0.0
 haxelib install random 1.4.1
+haxelib install flxrhythmconductor 0.2.0
 haxelib set lime 8.2.2
 haxelib set openfl 9.4.1
 haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate c61476f4b3a3d225631ab3065e4e925a4b63c076
