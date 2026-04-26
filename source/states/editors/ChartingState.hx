@@ -910,6 +910,18 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+
+		doManagerStuff();
+	}
+
+	function doManagerStuff() {
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			if(lastBeatHit != curBeat) {
+				if(metronomeStepper.value > 0 && lastBeatHit != curBeat) FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
+				callBeatHit(curBeat); // for lil players
+			}
+    });
 	}
 
 	function changeMania()
@@ -2209,16 +2221,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		outputTxt.visible = (outputAlpha > 0);
 		FlxG.camera.scroll.y = scrollY;
 		lastFocus = PsychUIInputText.focusOn;
-	}
-
-	override public function beatHit() {
-		super.beatHit();
-		// moved from beatHit()
-		// moved from update()
-		if(lastBeatHit != curBeat) {
-			if(metronomeStepper.value > 0 && lastBeatHit != curBeat) FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
-			callBeatHit(curBeat); // for lil players
-		}
 	}
 
 	function callBeatHit(curBeat)

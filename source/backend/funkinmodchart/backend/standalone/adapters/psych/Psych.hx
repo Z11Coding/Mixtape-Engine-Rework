@@ -45,7 +45,7 @@ class Psych implements IAdapter {
 
 	public function getCurrentBeat():Float {
 		@:privateAccess
-		return PlayState.instance.curDecBeat;
+		return MegaManager.conductor.currentBeatTime;
 	}
 
 	public function getCurrentCrochet():Float {

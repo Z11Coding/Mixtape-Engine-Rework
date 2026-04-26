@@ -1,5 +1,6 @@
 package managers;
 
+import backend.RConductor;
 /**
  * THE MOTHER OF ALL MANAGERS
  * This bad boy handles every manager so you dont have to!
@@ -9,7 +10,7 @@ package managers;
 
 class MegaManager {
   public static var conductor:RConductor;
-  public static var charaManager:RConductor;
+  public static var charaManager:CharacterManager;
   public static var comboManger:ComboManager;
   public static var notePoolManager:NotePoolManager;
 
@@ -28,8 +29,6 @@ class MegaManager {
     new RConductor();
     new CharacterManager();
     new ComboManager();
-    new FreeplayManager(true);
-    new APFreeplayManager(true);
 
     // Then, set the instance to use
     conductor = RConductor.instance;

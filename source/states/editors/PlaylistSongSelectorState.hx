@@ -267,6 +267,21 @@ class PlaylistSongSelectorState extends MusicBeatState
 		fpManager.reloadPlaylistSelect();
 		changeSelection();
 
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			FlxG.camera.zoom = zoomies;
+			FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet*0.001*16, {
+				ease: FlxEase.quadOut
+			});
+
+			if (trackPlaying == 'freeplayRandom') {
+				randomIcon.scale.set(1.2, 1.2);
+				return;
+			}
+
+			if (iconList.members[curSelected] != null)
+				iconList.members[curSelected].scale.set(1.2, 1.2);
+		});
 	}
 
 	public function setDifficultyStars(?difficulty:Int):Void
@@ -1015,24 +1030,6 @@ class PlaylistSongSelectorState extends MusicBeatState
 				_lastVisibles.push(i);
 			}
 		}
-	}
-
-	override function beatHit()
-	{
-		FlxG.camera.zoom = zoomies;
-
-		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet*0.001*16, {
-			ease: FlxEase.quadOut
-		});
-
-		super.beatHit();
-		if (trackPlaying == 'freeplayRandom') {
-			randomIcon.scale.set(1.2, 1.2);
-			return;
-		}
-
-		if (iconList.members[curSelected] != null)
-			iconList.members[curSelected].scale.set(1.2, 1.2);
 	}
 
 	override function destroy():Void

@@ -320,6 +320,14 @@ class CategoryState extends MusicBeatState
 			FreeplayManager.openFreeplay(true, freeplayStuff);
 			instaFreeplay = false;
 		}
+
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			FlxG.camera.zoom = zoomies;
+			FlxTween.tween(FlxG.camera, {zoom: 1}, MegaManager.conductor.crochet / 1300, {
+				ease: FlxEase.quadOut
+			});
+		});
 	}
 
 	function createMenuItem(name:String, x:Float, y:Float):FlxSprite
@@ -584,15 +592,6 @@ class CategoryState extends MusicBeatState
 			lock.y = grpMenuShit.members[lock.ID].y;
 			lock.x = grpMenuShit.members[lock.ID].width + 10 + grpMenuShit.members[lock.ID].x;
 		});
-	}
-
-	override function beatHit()
-	{
-		FlxG.camera.zoom = zoomies;
-		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
-			ease: FlxEase.quadOut
-		});
-		super.beatHit();
 	}
 
 	override function destroy()

@@ -29,50 +29,50 @@ class RConductor extends FlxRhythmConductor {
     instance = this;
     addBeatCallback((beat:Int, backward:Bool) ->
     {
-      stagesFunc(function(stage:BaseStage)
+      MusicBeatState.getState().stagesFunc(function(stage:BaseStage)
       {
-        stage.curBeat = instance.currentBeat;
+        stage.curBeat = beat;
         stage.curDecBeat = instance.beatLengthMs;
         stage.beatHit();
       });
     });
 
-    addStepCallback((beat:Int, backward:Bool) ->
+    addStepCallback((step:Int, backward:Bool) ->
     {
-      stagesFunc(function(stage:BaseStage)
+      MusicBeatState.getState().stagesFunc(function(stage:BaseStage)
       {
-        stage.curStep = instance.currentStep;
+        stage.curStep = step;
         stage.curDecStep = instance.stepLengthMs;
         stage.stepHit();
       });
     });
 
-    addSectionCallback((beat:Int, backward:Bool) ->
+    addSectionCallback((sec:Int, backward:Bool) ->
     {
-      stagesFunc(function(stage:BaseStage)
+      MusicBeatState.getState().stagesFunc(function(stage:BaseStage)
       {
-        stage.curSection = instance.currentMeasure;
+        stage.curSection = sec;
         stage.sectionHit();
       });
     });
   }
 
   public function playSong(songPath:String) {
-    loadMetaFromFilePath(songPath);
+    FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
     FlxG.sound.playMusic(songPath, 1, false);
   }
 
-  public function addStepCallback(func:RhythmSignal<Int>)
-    this.onStepHit.add(func);
+  public function addStepCallback(func:(time : Int, backward : Bool) -> Void)
+    RConductor.instance.onStepHit.add(func);
 
-  public function addBeatCallback(func:RhythmSignal<Int>)
-    this.onBeatHit.add(func);
+  public function addBeatCallback(func:(time : Int, backward : Bool) -> Void)
+    RConductor.instance.onBeatHit.add(func);
 
-  public function addSectionCallback(func:RhythmSignal<Int>)
-    this.onMeasureHit.add(func);
+  public function addSectionCallback(func:(time : Int, backward : Bool) -> Void)
+    RConductor.instance.onMeasureHit.add(func);
 
   public inline static function secsToRow(sex:Float):Int
-		return Math.round(this.currentBeat * ROWS_PER_BEAT);
+		return Math.round(RConductor.instance.currentBeat * ROWS_PER_BEAT);
 
   public static function mapBPMChanges(song:SwagSong)
 	{
@@ -100,7 +100,7 @@ class RConductor extends FlxRhythmConductor {
           song.notes[i].endBPM,
 					song.notes[i].sectionSteps,
           song.notes[i].sectionBeats,
-					(song.notes[i].endTime - song.notes[i].startTime),
+					((totalPos + ((60 / song.notes[i].endBPM) * 1000 / 4) * Math.round(getSectionBeats(song, i) * 4)) - totalPos),
           'Linear'
         );
 				bpmChangeMap.push(tween);

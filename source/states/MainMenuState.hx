@@ -283,6 +283,18 @@ class MainMenuState extends MusicBeatState
 		#end
 
 		FlxG.camera.follow(camFollow, null, 0.15);
+
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			if (!selectedSomethin)
+			{
+				FlxG.camera.zoom = zoomies;
+
+				FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
+					ease: FlxEase.quadOut
+				});
+			}
+		});
 	}
 
 	function createMenuItem(name:String, x:Float, y:Float):FlxSprite
@@ -660,20 +672,6 @@ class MainMenuState extends MusicBeatState
 		{
 			FlxTween.tween(checker, {alpha: 0}, time, {ease: FlxEase.expoIn});
 			FlxTween.tween(gradientBar, {alpha: 0}, time, {ease: FlxEase.expoIn});
-		}
-	}
-
-	override function beatHit()
-	{
-		super.beatHit();
-
-		if (!selectedSomethin)
-		{
-			FlxG.camera.zoom = zoomies;
-
-			FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
-				ease: FlxEase.quadOut
-			});
 		}
 	}
 }

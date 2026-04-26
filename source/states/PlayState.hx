@@ -652,45 +652,45 @@ class PlayState extends MusicBeatState
 	public var hearts:FlxTypedGroup<FlxSprite>;
 	public var lives:Int = 1;
 
-		//THE MANAGERS
-		public var comboManager:ComboManager;
+	//THE MANAGERS
+	public var comboManager:ComboManager;
 
-		public var ratingsData(get, never):Array<Rating>;
-		public var combo(get, set):Int;
-		public var maxCombo(get, set):Int;
-		public var songScore(get, set):Int;
-		public var songHits(get, set):Int;
-		public var songMisses(get, set):Int;
-		public var comboBreaks(get, set):Int;
-		public var ratingName(get, set):String;
-		public var ratingPercent(get, set):Float;
-		public var ratingFC(get, set):String;
-		public var totalPlayed(get, set):Int;
-		public var totalNotesHit(get, set):Float;
+	public var ratingsData(get, never):Array<Rating>;
+	public var combo(get, set):Int;
+	public var maxCombo(get, set):Int;
+	public var songScore(get, set):Int;
+	public var songHits(get, set):Int;
+	public var songMisses(get, set):Int;
+	public var comboBreaks(get, set):Int;
+	public var ratingName(get, set):String;
+	public var ratingPercent(get, set):Float;
+	public var ratingFC(get, set):String;
+	public var totalPlayed(get, set):Int;
+	public var totalNotesHit(get, set):Float;
 
-		private function get_ratingsData():Array<Rating> return comboManager.ratingsData;
-		private function get_combo():Int return comboManager.combo;
-		private function set_combo(value:Int):Int return comboManager.combo = value;
-		private function get_maxCombo():Int return comboManager.maxCombo;
-		private function set_maxCombo(value:Int):Int return comboManager.maxCombo = value;
-		private function get_songScore():Int return comboManager.songScore;
-		private function set_songScore(value:Int):Int return comboManager.songScore = value;
-		private function get_songHits():Int return comboManager.songHits;
-		private function set_songHits(value:Int):Int return comboManager.songHits = value;
-		private function get_songMisses():Int return comboManager.songMisses;
-		private function set_songMisses(value:Int):Int return comboManager.songMisses = value;
-		private function get_comboBreaks():Int return comboManager.comboBreaks;
-		private function set_comboBreaks(value:Int):Int return comboManager.comboBreaks = value;
-		private function get_ratingName():String return comboManager.ratingName;
-		private function set_ratingName(value:String):String return comboManager.ratingName = value;
-		private function get_ratingPercent():Float return comboManager.ratingPercent;
-		private function set_ratingPercent(value:Float):Float return comboManager.ratingPercent = value;
-		private function get_ratingFC():String return comboManager.ratingFC;
-		private function set_ratingFC(value:String):String return comboManager.ratingFC = value;
-		private function get_totalPlayed():Int return comboManager.totalPlayed;
-		private function set_totalPlayed(value:Int):Int return comboManager.totalPlayed = value;
-		private function get_totalNotesHit():Float return comboManager.totalNotesHit;
-		private function set_totalNotesHit(value:Float):Float return comboManager.totalNotesHit = value;
+	private function get_ratingsData():Array<Rating> return comboManager.ratingsData;
+	private function get_combo():Int return comboManager.combo;
+	private function set_combo(value:Int):Int return comboManager.combo = value;
+	private function get_maxCombo():Int return comboManager.maxCombo;
+	private function set_maxCombo(value:Int):Int return comboManager.maxCombo = value;
+	private function get_songScore():Int return comboManager.songScore;
+	private function set_songScore(value:Int):Int return comboManager.songScore = value;
+	private function get_songHits():Int return comboManager.songHits;
+	private function set_songHits(value:Int):Int return comboManager.songHits = value;
+	private function get_songMisses():Int return comboManager.songMisses;
+	private function set_songMisses(value:Int):Int return comboManager.songMisses = value;
+	private function get_comboBreaks():Int return comboManager.comboBreaks;
+	private function set_comboBreaks(value:Int):Int return comboManager.comboBreaks = value;
+	private function get_ratingName():String return comboManager.ratingName;
+	private function set_ratingName(value:String):String return comboManager.ratingName = value;
+	private function get_ratingPercent():Float return comboManager.ratingPercent;
+	private function set_ratingPercent(value:Float):Float return comboManager.ratingPercent = value;
+	private function get_ratingFC():String return comboManager.ratingFC;
+	private function set_ratingFC(value:String):String return comboManager.ratingFC = value;
+	private function get_totalPlayed():Int return comboManager.totalPlayed;
+	private function set_totalPlayed(value:Int):Int return comboManager.totalPlayed = value;
+	private function get_totalNotesHit():Float return comboManager.totalNotesHit;
+	private function set_totalNotesHit(value:Float):Float return comboManager.totalNotesHit = value;
 
 
 
@@ -2149,31 +2149,305 @@ class PlayState extends MusicBeatState
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
 		// Paths.nukeMemory(true); // LIGHTLY nuke everything
+
+		doMegaManagerStuff(); // do it at the END
 	}
 
-	// Add all manager-related stuff here
-	MegaManager.conductor.addStepCallback((beat:Int, backward:Bool) ->
-  {
-		if (SONG.notes[curSection] != null)
+	public var lastBeatHit:Int = -1;
+	public var lastStepHit:Int = -1;
+	public function doMegaManagerStuff() {
+		// Add all manager-related stuff here
+		MegaManager.conductor.addSectionCallback((curSec:Int, backward:Bool) ->
 		{
-			if (generatedMusic && !endingSong && !isCameraOnForcedPos)
-				moveCameraSection();
-
-			if (SONG.notes[curSection].changeBPM)
+			if (SONG.notes[curSec] != null)
 			{
-				Conductor.bpm = SONG.notes[curSection].bpm;
-				setOnScripts('curBpm', Conductor.bpm);
-				setOnScripts('crochet', Conductor.crochet);
-				setOnScripts('stepCrochet', Conductor.stepCrochet);
-			}
-			setOnScripts('mustHitSection', SONG.notes[curSection].mustHitSection);
-			setOnScripts('altAnim', SONG.notes[curSection].altAnim);
-			setOnScripts('gfSection', SONG.notes[curSection].gfSection);
-		}
+				if (generatedMusic && !endingSong && !isCameraOnForcedPos)
+					moveCameraSection();
 
-		setOnScripts('curSection', curSection);
-		callOnScripts('onSectionHit');
-	});
+				if (SONG.notes[curSec].changeBPM)
+				{
+					Conductor.bpm = SONG.notes[curSec].bpm;
+					setOnScripts('curBpm', Conductor.bpm);
+					setOnScripts('crochet', Conductor.crochet);
+					setOnScripts('stepCrochet', Conductor.stepCrochet);
+				}
+				setOnScripts('mustHitSection', SONG.notes[curSec].mustHitSection);
+				setOnScripts('altAnim', SONG.notes[curSec].altAnim);
+				setOnScripts('gfSection', SONG.notes[curSec].gfSection);
+			}
+
+			setOnScripts('curSection', curSec);
+			callOnScripts('onSectionHit');
+		});
+
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			if(lastBeatHit >= curBeat) {
+				trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
+				return;
+			}
+
+			if ((curBeat % 32 == 0 && RandomSpeedChange || curBeat % 8 == 0 && RandomSpeedChange && RandomSpeedChangeWild) && !songAboutToLoop)
+			{
+				// goes up to 3x speed cuz screw you thats why
+				var randomSpeed = RandomSpeedChangeWild ? FlxG.random.float(0.2, 10) * (FlxG.random.bool(10) ? FlxG.random.float(2, 10) : 1) : FlxG.random.float(0.45, 2);
+				var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
+				lerpSongSpeed(randomShit, 1);
+			}
+
+			switch (ClientPrefs.data.iconBounce) {
+				case "Base":
+					iconP1.scale.set(1.2, 1.2);
+					iconP2.scale.set(1.2, 1.2);
+
+					if (dad2 != null)
+						iconP22.scale.set(1.2, 1.2);
+					if (iconP12 != null)
+						iconP12.scale.set(1.2, 1.2);
+
+				case "Mixtape":
+					iconP1.scale.set(1.2, 1.2);
+					iconP2.scale.set(1.2, 1.2);
+
+					if (dad2 != null)
+						iconP22.scale.set(1.2, 1.2);
+					if (iconP12 != null)
+						iconP12.scale.set(1.2, 1.2);
+
+					if (curBeat % 2 / gfSpeed == 0)
+					{
+						iconP1.angle = -15;
+						iconP2.angle = -15;
+						if (iconP22 != null)
+							iconP22.angle = -15;
+						if (iconP12 != null)
+							iconP12.angle = -15;
+					}
+					else if (curBeat % 2 / gfSpeed == 1)
+					{
+						iconP1.angle = 15;
+						iconP2.angle = 15;
+						if (iconP22 != null)
+							iconP22.angle = 15;
+						if (iconP12 != null)
+							iconP12.angle = 15;
+					}
+
+				case 'Dave and Bambi':
+					final funny:Float = Math.max(Math.min(healthBar.percent,(MaxHP/0.95)),0.1);
+
+					//health icon bounce but epic
+					if (!opponentmode)
+					{
+						iconP1.setGraphicSize(Std.int(iconP1.width + (50 * (funny + 0.1))),Std.int(iconP1.height - (25 * funny)));
+						if (iconP12 != null) iconP12.setGraphicSize(Std.int(iconP12.width + (50 * (funny + 0.1))),Std.int(iconP12.height - (25 * funny)));
+						iconP2.setGraphicSize(Std.int(iconP2.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP2.height - (25 * ((2 - funny) + 0.1))));
+						if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP22.height - (25 * ((2 - funny) + 0.1))));
+					} else {
+						iconP2.setGraphicSize(Std.int(iconP2.width + (50 * funny)),Std.int(iconP2.height - (25 * funny)));
+						if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + (50 * funny)),Std.int(iconP22.height - (25 * funny)));
+						iconP1.setGraphicSize(Std.int(iconP1.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP1.height - (25 * ((2 - funny) + 0.1))));
+						if (iconP12 != null) iconP12.setGraphicSize(Std.int(iconP12.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP12.height - (25 * ((2 - funny) + 0.1))));
+					}
+
+				case 'Old Psych':
+					iconP1.setGraphicSize(Std.int(iconP1.width + 30));
+					if (iconP12 != null) iconP1.setGraphicSize(Std.int(iconP12.width + 30));
+					iconP2.setGraphicSize(Std.int(iconP2.width + 30));
+					if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + 30));
+
+				case 'Strident Crisis':
+					final funny:Float = (healthBar.percent * 0.01) + 0.01;
+
+					//health icon bounce but epic
+					iconP1.setGraphicSize(Std.int(iconP1.width + (50 * (2 + funny))),Std.int(iconP2.height - (25 * (2 + funny))));
+					if (iconP12 != null) iconP12.setGraphicSize(Std.int(iconP12.width + (50 * (2 + funny))),Std.int(iconP12.height - (25 * (2 + funny))));
+					iconP2.setGraphicSize(Std.int(iconP2.width + (50 * (2 - funny))),Std.int(iconP2.height - (25 * (2 - funny))));
+					if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + (50 * (2 - funny))),Std.int(iconP22.height - (25 * (2 - funny))));
+
+					iconP1.scale.set(1.1, 0.8);
+					if (iconP12 != null) iconP12.scale.set(1.1, 0.8);
+					iconP2.scale.set(1.1, 0.8);
+					if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
+
+					FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+					if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+					FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+					if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+
+					FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+					if (iconP12 != null) FlxTween.tween(iconP12, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+					FlxTween.tween(iconP2, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+					if (iconP22 != null) FlxTween.tween(iconP22, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+
+				case 'Plank Engine':
+					iconP1.scale.x = 1.3;
+					iconP1.scale.y = 0.75;
+					if (iconP12 != null) iconP12.scale.x = 1.3;
+					if (iconP12 != null) iconP12.scale.y = 0.75;
+					iconP2.scale.x = 1.3;
+					iconP2.scale.y = 0.75;
+					if (iconP22 != null) iconP22.scale.x = 1.3;
+					if (iconP22 != null) iconP22.scale.y = 0.75;
+					FlxTween.cancelTweensOf(iconP1);
+					FlxTween.cancelTweensOf(iconP2);
+					if (iconP12 != null) FlxTween.cancelTweensOf(iconP12);
+					if (iconP22 != null) FlxTween.cancelTweensOf(iconP22);
+					FlxTween.tween(iconP1, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
+					FlxTween.tween(iconP2, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
+					if (iconP12 != null) FlxTween.tween(iconP12, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
+					if (iconP22 != null) FlxTween.tween(iconP22, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
+					if (curBeat % 4 == 0) {
+						iconP1.offset.x = 10;
+						iconP2.offset.x = -10;
+						if (iconP12 != null) iconP12.offset.x = 10;
+						if (iconP22 != null) iconP22.offset.x = -10;
+						iconP1.angle = -15;
+						iconP2.angle = 15;
+						if (iconP12 != null) iconP12.angle = -15;
+						if (iconP22 != null) iconP22.angle = 15;
+						FlxTween.tween(iconP1, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
+						FlxTween.tween(iconP2, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
+						if (iconP12 != null) FlxTween.tween(iconP12, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
+						if (iconP22 != null) FlxTween.tween(iconP22, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
+					}
+
+				case 'Golden Apple':
+					if (curBeat % gfSpeed == 0) {
+						curBeat % (gfSpeed * 2) == 0 * playbackRate ? {
+						iconP1.scale.set(1.1, 0.8);
+						iconP2.scale.set(1.1, 1.3);
+						if (iconP12 != null) iconP12.scale.set(1.1, 0.8);
+						if (iconP22 != null) iconP22.scale.set(1.1, 1.3);
+
+						FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						} : {
+							iconP1.scale.set(1.1, 1.3);
+							iconP2.scale.set(1.1, 0.8);
+							if (iconP12 != null) iconP12.scale.set(1.1, 1.3);
+							if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
+
+							FlxTween.angle(iconP2, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+							FlxTween.angle(iconP1, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+							if (iconP22 != null) FlxTween.angle(iconP22, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+							if (iconP12 != null) FlxTween.angle(iconP12, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						}
+
+						FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						FlxTween.tween(iconP2, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						if (iconP12 != null) FlxTween.tween(iconP12, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+						if (iconP22 != null) FlxTween.tween(iconP22, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
+					}
+
+				case 'VS Steve':
+					if (curBeat % gfSpeed == 0)
+					{
+						curBeat % (gfSpeed * 2) == 0 ?
+						{
+							iconP1.scale.set(1.1, 0.8);
+							iconP2.scale.set(1.1, 1.3);
+							if (iconP12 != null) iconP12.scale.set(1.1, 0.8);
+							if (iconP22 != null) iconP22.scale.set(1.1, 1.3);
+						} : {
+							iconP1.scale.set(1.1, 1.3);
+							iconP2.scale.set(1.1, 0.8);
+							if (iconP12 != null) iconP12.scale.set(1.1, 1.3);
+							if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
+							FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+							FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+							if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+							if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+						}
+
+						FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+						FlxTween.tween(iconP2, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+						if (iconP12 != null) FlxTween.tween(iconP12, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+						if (iconP22 != null) FlxTween.tween(iconP22, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
+					}
+			}
+
+			iconP1.updateHitbox();
+			iconP2.updateHitbox();
+			if (dad2 != null)
+				iconP22.updateHitbox();
+			if (iconP12 != null)
+				iconP12.updateHitbox();
+
+			characterBopper(curBeat);
+
+			if (camZooming && ClientPrefs.data.camZooms && (curBeat % camZoomingFrequency) == 0)
+			{
+				FlxG.camera.zoom += 0.015 * camZoomingMult;
+				camHUD.zoom += 0.03 * camZoomingMult;
+			}
+
+			lastBeatHit = curBeat;
+
+			#if MECHANICS_MOD_ALLOWED
+			if (mechanicsMod != null) {
+				if (curBeat % 4 == 0)
+				{
+					if (generatedMusic && PlayState.SONG.notes[Std.int(curBeat / 4)] != null && !endingSong)
+					{
+						if (MechanicManager.mechanics['restore_note'].points > 0)
+						{
+							if (FlxG.random.bool(FlxMath.remapToRange(MechanicManager.mechanics['restore_note'].points, 0, 20, 0, 10)))
+							{
+								mechanicsMod.restoreNote();
+								// trace('we\'re gonna check donations to see who activated the great reset');
+							}
+						}
+
+						mechanicsMod.letterMechanic();
+					}
+				}
+
+
+				if (MechanicManager.mechanics['strum_swap'].points > 0)
+				{
+					if (generatedMusic && PlayState.SONG.notes[Math.floor(curBeat / 4)] != null && !endingSong)
+					{
+						if (mechanicsMod.wasSwapped && curBeat % 4 == 0)
+						{
+							mechanicsMod.swapCooldown--;
+							if (mechanicsMod.swapCooldown < 0)
+								mechanicsMod.swapCooldown = 0;
+						}
+
+						if (moveStrumSections[Math.floor(curBeat / 4)] != null && curBeat % 4 == 0)
+						{
+							if (moveStrumSections[Math.floor(curBeat / 4)] == true)
+							{
+								mechanicsMod.swapStrums();
+							}
+							else if (mechanicsMod.swapCooldown == 0 && mechanicsMod.wasSwapped)
+							{
+								mechanicsMod.swapStrums();
+							}
+						}
+					}
+				}
+			}
+			#end
+
+			setOnScripts('curBeat', curBeat);
+			callOnScripts('onBeatHit');
+		});
+
+		MegaManager.conductor.addStepCallback((curStep:Int, backward:Bool) ->
+		{
+			if(curStep == lastStepHit) {
+				return;
+			}
+
+			lastStepHit = curStep;
+			setOnScripts('curStep', curStep);
+			callOnScripts('onStepHit');
+		});
+	}
 
 	// Some small stuff from PlusEngine
 	function hasModchart():Bool
@@ -3670,9 +3944,9 @@ class PlayState extends MusicBeatState
 
 		var debugInfo = 'MODCHART DEBUG:\n';
 		debugInfo += 'Time: ${Math.round(Conductor.songPosition)}ms\n';
-		debugInfo += 'Step: ${curStep} (${CoolUtil.floorDecimal(curDecStep, 2)})\n';
-		debugInfo += 'Beat: ${curBeat} (${CoolUtil.floorDecimal(curDecBeat, 2)})\n';
-		debugInfo += 'Section: ${curSection}\n';
+		debugInfo += 'Step: ${MegaManager.conductor.currentStep} (${CoolUtil.floorDecimal(MegaManager.conductor.stepLengthMs, 2)})\n';
+		debugInfo += 'Beat: ${MegaManager.conductor.currentBeat} (${CoolUtil.floorDecimal(MegaManager.conductor.beatLengthMs, 2)})\n';
+		debugInfo += 'Section: ${MegaManager.conductor.currentMeasure}\n';
 		debugInfo += 'BPM: ${CoolUtil.floorDecimal(Conductor.bpm, 2)}\n\n';
 		debugInfo += 'STRUMS:\n';
 		debugInfo += opponentStrumInfo;
@@ -6558,7 +6832,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (vocals != null) vocals.volume *= (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
 		updateVisualPosition();
-		modManager.update(elapsed, curDecBeat, curDecStep);
+		modManager.update(elapsed, MegaManager.conductor.beatLengthMs, MegaManager.conductor.stepLengthMs);
 		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
@@ -6568,21 +6842,21 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		// Optimize script calls - only set if scripts exist
 		if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
-			setOnScripts('curDecStep', curDecStep);
-			setOnScripts('curDecBeat', curDecBeat);
+			setOnScripts('curDecStep', MegaManager.conductor.stepLengthMs);
+			setOnScripts('curDecBeat', MegaManager.conductor.beatLengthMs);
 		}
 
 		if (strumFocus)
 		{
-			if (SONG.notes[curSection].mustHitSection && !SONG.notes[curSection].exSection)
+			if (SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection && !SONG.notes[MegaManager.conductor.currentMeasure].exSection)
 			{
-				modManager.queueEase(curStep, curStep + 4, 'alpha', 0.8, 'sineInOut', 1);
-				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 0);
+				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 1);
+				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 0);
 			}
-			else if (!SONG.notes[curSection].mustHitSection && !SONG.notes[curSection].exSection)
+			else if (!SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection && !SONG.notes[MegaManager.conductor.currentMeasure].exSection)
 			{
-				modManager.queueEase(curStep, curStep + 4, 'alpha', 0.8, 'sineInOut', 0);
-				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 1);
+				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
+				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 			}
 		}
 
@@ -6746,9 +7020,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camHUD.zoom = FlxMath.lerp(defaultCamHudZoom, camHUD.zoom, _cachedExpValue);
 		}
 
-		FlxG.watch.addQuick("secShit", curSection);
-		FlxG.watch.addQuick("beatShit", curBeat);
-		FlxG.watch.addQuick("stepShit", curStep);
+		FlxG.watch.addQuick("secShit", MegaManager.conductor.currentMeasure);
+		FlxG.watch.addQuick("beatShit", MegaManager.conductor.currentBeat);
+		FlxG.watch.addQuick("stepShit", MegaManager.conductor.currentStep);
 
 		// RESET = Quick Game Over Screen
 		if (!ClientPrefs.data.noReset && controls.RESET && canReset && !inCutscene && startedCountdown && !endingSong)
@@ -7817,14 +8091,12 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	public function loopCallback(startingPoint:Float = 0) // this took so much effort to get working I really hope people use this
 	{
 		// KillNotes(); // kill any existing notes...except there should be any
-		FlxG.sound.music.time = startingPoint;
+		MegaManager.conductor.target.time = startingPoint;
 		if (SONG.needsVoices) setVocalsTime(startingPoint);
 		lastUpdateTime = startingPoint;
-		Conductor.songPosition = startingPoint;
-		Conductor.visualPosition = startingPoint;
-		curStep = lastStepHit = curBeat = lastBeatHit = curSection = stepsToDo = 0;
-		Conductor.mapBPMChanges(SONG);
-		Conductor.bpm = SONG.bpm;
+		MegaManager.conductor.visualPosition = startingPoint;
+		MegaManager.conductor.mapBPMChanges(SONG);
+		MegaManager.conductor.currentBpm = SONG.bpm;
 
 		//reGenerating = true;
 		endingSong = false;
@@ -9035,7 +9307,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	}
 
 	public function moveCameraSection(?sec:Null<Int>):Void {
-		if(sec == null) sec = curSection;
+		if(sec == null) sec = MegaManager.conductor.currentMeasure;
 		if(sec < 0) sec = 0;
 
 		if(SONG.notes[sec] == null) return;
@@ -9051,7 +9323,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return;
 		}
 
-		if (dad2 != null && SONG.notes[curSection].exSection && !SONG.notes[curSection].mustHitSection)
+		if (dad2 != null && SONG.notes[MegaManager.conductor.currentMeasure].exSection && !SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)
 		{
 			camFollow.setPosition(dad2.getMidpoint().x, dad2.getMidpoint().y);
 			camFollow.x += dad2.cameraPosition[0] + opponent2CameraOffset[0];
@@ -9063,7 +9335,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return;
 		}
 
-		if (bf2 != null && SONG.notes[curSection].exSection && !SONG.notes[curSection].gfSection && SONG.notes[curSection].mustHitSection)
+		if (bf2 != null && SONG.notes[MegaManager.conductor.currentMeasure].exSection && !SONG.notes[MegaManager.conductor.currentMeasure].gfSection && SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)
 		{
 			camFollow.setPosition(bf2.getMidpoint().x, bf2.getMidpoint().y);
 			camFollow.x += bf2.cameraPosition[0] + boyfriend2CameraOffset[0];
@@ -9075,7 +9347,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return;
 		}
 
-		var isDad:Bool = (!SONG.notes[curSection].exSection && SONG.notes[sec].mustHitSection != true);
+		var isDad:Bool = (!SONG.notes[MegaManager.conductor.currentMeasure].exSection && SONG.notes[sec].mustHitSection != true);
 		moveCamera(isDad);
 		if (isDad)
 			callOnScripts('onMoveCamera', ['dad']);
@@ -11301,7 +11573,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		// play character anims
 		var char:Character = boyfriend;
-		if((note != null && note.gfNote) || (SONG.notes[curSection] != null && SONG.notes[curSection].gfSection)) char = gf;
+		if((note != null && note.gfNote) || (SONG.notes[MegaManager.conductor.currentMeasure] != null && SONG.notes[MegaManager.conductor.currentMeasure].gfSection)) char = gf;
 		if (note != null) {
 			if (opponentmode || note.field == dadField)
 				char = dad;
@@ -12067,20 +12339,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		//Paths.nukeMemory(true); // LIGHTLY nuke everything
 	}
 
-	var lastStepHit:Int = -1;
-	override function stepHit()
-	{
-		super.stepHit();
-
-		if(curStep == lastStepHit) {
-			return;
-		}
-
-		lastStepHit = curStep;
-		setOnScripts('curStep', curStep);
-		callOnScripts('onStepHit');
-	}
-
 	var ssLerpTween:FlxTween = null;
 	public function lerpSongSpeed(num:Float, time:Float, ?staticLines:Bool = true):Void
 	{
@@ -12120,265 +12378,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				});
 			}
 		}
-	}
-
-	var lastBeatHit:Int = -1;
-	override function beatHit()
-	{
-		if(lastBeatHit >= curBeat) {
-			trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
-			return;
-		}
-
-		if ((curBeat % 32 == 0 && RandomSpeedChange || curBeat % 8 == 0 && RandomSpeedChange && RandomSpeedChangeWild) && !songAboutToLoop)
-		{
-			// goes up to 3x speed cuz screw you thats why
-			var randomSpeed = RandomSpeedChangeWild ? FlxG.random.float(0.2, 10) * (FlxG.random.bool(10) ? FlxG.random.float(2, 10) : 1) : FlxG.random.float(0.45, 2);
-			var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
-			lerpSongSpeed(randomShit, 1);
-		}
-
-		switch (ClientPrefs.data.iconBounce) {
-			case "Base":
-				iconP1.scale.set(1.2, 1.2);
-				iconP2.scale.set(1.2, 1.2);
-
-				if (dad2 != null)
-					iconP22.scale.set(1.2, 1.2);
-				if (iconP12 != null)
-					iconP12.scale.set(1.2, 1.2);
-
-			case "Mixtape":
-				iconP1.scale.set(1.2, 1.2);
-				iconP2.scale.set(1.2, 1.2);
-
-				if (dad2 != null)
-					iconP22.scale.set(1.2, 1.2);
-				if (iconP12 != null)
-					iconP12.scale.set(1.2, 1.2);
-
-				if (curBeat % 2 / gfSpeed == 0)
-				{
-					iconP1.angle = -15;
-					iconP2.angle = -15;
-					if (iconP22 != null)
-						iconP22.angle = -15;
-					if (iconP12 != null)
-						iconP12.angle = -15;
-				}
-				else if (curBeat % 2 / gfSpeed == 1)
-				{
-					iconP1.angle = 15;
-					iconP2.angle = 15;
-					if (iconP22 != null)
-						iconP22.angle = 15;
-					if (iconP12 != null)
-						iconP12.angle = 15;
-				}
-
-			case 'Dave and Bambi':
-				final funny:Float = Math.max(Math.min(healthBar.percent,(MaxHP/0.95)),0.1);
-
-				//health icon bounce but epic
-				if (!opponentmode)
-				{
-					iconP1.setGraphicSize(Std.int(iconP1.width + (50 * (funny + 0.1))),Std.int(iconP1.height - (25 * funny)));
-					if (iconP12 != null) iconP12.setGraphicSize(Std.int(iconP12.width + (50 * (funny + 0.1))),Std.int(iconP12.height - (25 * funny)));
-					iconP2.setGraphicSize(Std.int(iconP2.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP2.height - (25 * ((2 - funny) + 0.1))));
-					if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP22.height - (25 * ((2 - funny) + 0.1))));
-				} else {
-					iconP2.setGraphicSize(Std.int(iconP2.width + (50 * funny)),Std.int(iconP2.height - (25 * funny)));
-					if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + (50 * funny)),Std.int(iconP22.height - (25 * funny)));
-					iconP1.setGraphicSize(Std.int(iconP1.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP1.height - (25 * ((2 - funny) + 0.1))));
-					if (iconP12 != null) iconP12.setGraphicSize(Std.int(iconP12.width + (50 * ((2 - funny) + 0.1))),Std.int(iconP12.height - (25 * ((2 - funny) + 0.1))));
-				}
-
-			case 'Old Psych':
-				iconP1.setGraphicSize(Std.int(iconP1.width + 30));
-				if (iconP12 != null) iconP1.setGraphicSize(Std.int(iconP12.width + 30));
-				iconP2.setGraphicSize(Std.int(iconP2.width + 30));
-				if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + 30));
-
-			case 'Strident Crisis':
-				final funny:Float = (healthBar.percent * 0.01) + 0.01;
-
-				//health icon bounce but epic
-				iconP1.setGraphicSize(Std.int(iconP1.width + (50 * (2 + funny))),Std.int(iconP2.height - (25 * (2 + funny))));
-				if (iconP12 != null) iconP12.setGraphicSize(Std.int(iconP12.width + (50 * (2 + funny))),Std.int(iconP12.height - (25 * (2 + funny))));
-				iconP2.setGraphicSize(Std.int(iconP2.width + (50 * (2 - funny))),Std.int(iconP2.height - (25 * (2 - funny))));
-				if (iconP22 != null) iconP22.setGraphicSize(Std.int(iconP22.width + (50 * (2 - funny))),Std.int(iconP22.height - (25 * (2 - funny))));
-
-				iconP1.scale.set(1.1, 0.8);
-				if (iconP12 != null) iconP12.scale.set(1.1, 0.8);
-				iconP2.scale.set(1.1, 0.8);
-				if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
-
-				FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
-				if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
-				FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
-				if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
-
-				FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-				if (iconP12 != null) FlxTween.tween(iconP12, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-				FlxTween.tween(iconP2, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-				if (iconP22 != null) FlxTween.tween(iconP22, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-
-			case 'Plank Engine':
-				iconP1.scale.x = 1.3;
-				iconP1.scale.y = 0.75;
-				if (iconP12 != null) iconP12.scale.x = 1.3;
-				if (iconP12 != null) iconP12.scale.y = 0.75;
-				iconP2.scale.x = 1.3;
-				iconP2.scale.y = 0.75;
-				if (iconP22 != null) iconP22.scale.x = 1.3;
-				if (iconP22 != null) iconP22.scale.y = 0.75;
-				FlxTween.cancelTweensOf(iconP1);
-				FlxTween.cancelTweensOf(iconP2);
-				if (iconP12 != null) FlxTween.cancelTweensOf(iconP12);
-				if (iconP22 != null) FlxTween.cancelTweensOf(iconP22);
-				FlxTween.tween(iconP1, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
-				FlxTween.tween(iconP2, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
-				if (iconP12 != null) FlxTween.tween(iconP12, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
-				if (iconP22 != null) FlxTween.tween(iconP22, {"scale.x": 1, "scale.y": 1}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.backOut});
-				if (curBeat % 4 == 0) {
-					iconP1.offset.x = 10;
-					iconP2.offset.x = -10;
-					if (iconP12 != null) iconP12.offset.x = 10;
-					if (iconP22 != null) iconP22.offset.x = -10;
-					iconP1.angle = -15;
-					iconP2.angle = 15;
-					if (iconP12 != null) iconP12.angle = -15;
-					if (iconP22 != null) iconP22.angle = 15;
-					FlxTween.tween(iconP1, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
-					FlxTween.tween(iconP2, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
-					if (iconP12 != null) FlxTween.tween(iconP12, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
-					if (iconP22 != null) FlxTween.tween(iconP22, {"offset.x": 0, angle: 0}, Conductor.crochet / 1000 / playbackRate, {ease: FlxEase.expoOut});
-				}
-
-			case 'Golden Apple':
-				if (curBeat % gfSpeed == 0) {
-					curBeat % (gfSpeed * 2) == 0 * playbackRate ? {
-					iconP1.scale.set(1.1, 0.8);
-					iconP2.scale.set(1.1, 1.3);
-					if (iconP12 != null) iconP12.scale.set(1.1, 0.8);
-					if (iconP22 != null) iconP22.scale.set(1.1, 1.3);
-
-					FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					} : {
-						iconP1.scale.set(1.1, 1.3);
-						iconP2.scale.set(1.1, 0.8);
-						if (iconP12 != null) iconP12.scale.set(1.1, 1.3);
-						if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
-
-						FlxTween.angle(iconP2, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-						FlxTween.angle(iconP1, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-						if (iconP22 != null) FlxTween.angle(iconP22, -15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-						if (iconP12 != null) FlxTween.angle(iconP12, 15, 0, Conductor.crochet / 1300 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					}
-
-					FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					FlxTween.tween(iconP2, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					if (iconP12 != null) FlxTween.tween(iconP12, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-					if (iconP22 != null) FlxTween.tween(iconP22, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 / playbackRate * gfSpeed, {ease: FlxEase.quadOut});
-				}
-
-			case 'VS Steve':
-				if (curBeat % gfSpeed == 0)
-				{
-					curBeat % (gfSpeed * 2) == 0 ?
-					{
-						iconP1.scale.set(1.1, 0.8);
-						iconP2.scale.set(1.1, 1.3);
-						if (iconP12 != null) iconP12.scale.set(1.1, 0.8);
-						if (iconP22 != null) iconP22.scale.set(1.1, 1.3);
-					} : {
-						iconP1.scale.set(1.1, 1.3);
-						iconP2.scale.set(1.1, 0.8);
-						if (iconP12 != null) iconP12.scale.set(1.1, 1.3);
-						if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
-						FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-						FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-						if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-						if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-					}
-
-					FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-					FlxTween.tween(iconP2, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-					if (iconP12 != null) FlxTween.tween(iconP12, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-					if (iconP22 != null) FlxTween.tween(iconP22, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
-				}
-		}
-
-		iconP1.updateHitbox();
-		iconP2.updateHitbox();
-		if (dad2 != null)
-			iconP22.updateHitbox();
-		if (iconP12 != null)
-			iconP12.updateHitbox();
-
-		characterBopper(curBeat);
-
-		if (camZooming && ClientPrefs.data.camZooms && (curBeat % camZoomingFrequency) == 0)
-		{
-			FlxG.camera.zoom += 0.015 * camZoomingMult;
-			camHUD.zoom += 0.03 * camZoomingMult;
-		}
-
-		super.beatHit();
-		lastBeatHit = curBeat;
-
-		#if MECHANICS_MOD_ALLOWED
-		if (mechanicsMod != null) {
-			if (curBeat % 4 == 0)
-			{
-				if (generatedMusic && PlayState.SONG.notes[Std.int(curBeat / 4)] != null && !endingSong)
-				{
-					if (MechanicManager.mechanics['restore_note'].points > 0)
-					{
-						if (FlxG.random.bool(FlxMath.remapToRange(MechanicManager.mechanics['restore_note'].points, 0, 20, 0, 10)))
-						{
-							mechanicsMod.restoreNote();
-							// trace('we\'re gonna check donations to see who activated the great reset');
-						}
-					}
-
-					mechanicsMod.letterMechanic();
-				}
-			}
-
-
-			if (MechanicManager.mechanics['strum_swap'].points > 0)
-			{
-				if (generatedMusic && PlayState.SONG.notes[Math.floor(curBeat / 4)] != null && !endingSong)
-				{
-					if (mechanicsMod.wasSwapped && curBeat % 4 == 0)
-					{
-						mechanicsMod.swapCooldown--;
-						if (mechanicsMod.swapCooldown < 0)
-							mechanicsMod.swapCooldown = 0;
-					}
-
-					if (moveStrumSections[Math.floor(curBeat / 4)] != null && curBeat % 4 == 0)
-					{
-						if (moveStrumSections[Math.floor(curBeat / 4)] == true)
-						{
-							mechanicsMod.swapStrums();
-						}
-						else if (mechanicsMod.swapCooldown == 0 && mechanicsMod.wasSwapped)
-						{
-							mechanicsMod.swapStrums();
-						}
-					}
-				}
-			}
-		}
-		#end
-
-		setOnScripts('curBeat', curBeat);
-		callOnScripts('onBeatHit');
 	}
 
 	public function characterBopper(beat:Int):Void

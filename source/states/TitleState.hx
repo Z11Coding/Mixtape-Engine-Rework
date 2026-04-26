@@ -222,6 +222,73 @@ class TitleState extends MusicBeatState
 
 		if (!candance)
 			candance = true;
+
+		addManagerStuff();
+	}
+
+	function addManagerStuff() {
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			if(logoBl != null)
+			logoBl.animation.play('bump', true);
+
+			if(gfDance != null && candance)
+			{
+				danceLeft = !danceLeft;
+				if(!useIdle)
+				{
+					if (danceLeft)
+						gfDance.animation.play('danceRight');
+					else
+						gfDance.animation.play('danceLeft');
+				}
+				else if(curBeat % 2 == 0) gfDance.animation.play('idle', true);
+			}
+
+			if(!closedState)
+			{
+				sickBeats++;
+				switch (sickBeats)
+				{
+					case 1:
+						//FlxG.sound.music.stop();
+						MusicManager.playMenuMusic(0);
+						FlxG.sound.music.fadeIn(4, 0, 0.7);
+					case 2:
+						if (FlxG.sound.music.volume == 0)
+							FlxG.sound.music.fadeIn(4, 0, 0.7);
+						createCoolText(['Mixtape Engine by'], 40);
+					case 4:
+						addMoreText('Z11Gaming', 40);
+						addMoreText('Yutamon', 40);
+					case 5:
+						deleteCoolText();
+					case 6:
+						createCoolText(['Not associated', 'with'], -40);
+					case 8:
+						addMoreText('newgrounds', -40);
+						ngSpr.visible = true;
+					case 9:
+						deleteCoolText();
+						ngSpr.visible = false;
+					case 10:
+						createCoolText([curWacky[0]]);
+					case 12:
+						addMoreText(curWacky[1]);
+					case 13:
+						deleteCoolText();
+					case 14:
+						curWacky = FlxG.random.getObject(get3IntroTextShit());
+						addMoreText(curWacky[0]);
+					case 15:
+						addMoreText(curWacky[1]);
+					case 16:
+						addMoreText(curWacky[2]); // credTextShit.text += '\nFunkin';
+					case 17:
+						skipIntro();
+				}
+			}
+		});
 	}
 
 	var logoBl:FlxSprite;
@@ -829,73 +896,8 @@ class TitleState extends MusicBeatState
 		}
 	}
 
-	private var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
+	public var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
 	public static var closedState:Bool = false;
-	override function beatHit()
-	{
-		super.beatHit();
-
-		if(logoBl != null)
-			logoBl.animation.play('bump', true);
-
-		if(gfDance != null && candance)
-		{
-			danceLeft = !danceLeft;
-			if(!useIdle)
-			{
-				if (danceLeft)
-					gfDance.animation.play('danceRight');
-				else
-					gfDance.animation.play('danceLeft');
-			}
-			else if(curBeat % 2 == 0) gfDance.animation.play('idle', true);
-		}
-
-		if(!closedState)
-		{
-			sickBeats++;
-			switch (sickBeats)
-			{
-				case 1:
-					//FlxG.sound.music.stop();
-					MusicManager.playMenuMusic(0);
-					FlxG.sound.music.fadeIn(4, 0, 0.7);
-				case 2:
-					if (FlxG.sound.music.volume == 0)
-						FlxG.sound.music.fadeIn(4, 0, 0.7);
-					createCoolText(['Mixtape Engine by'], 40);
-				case 4:
-					addMoreText('Z11Gaming', 40);
-					addMoreText('Yutamon', 40);
-				case 5:
-					deleteCoolText();
-				case 6:
-					createCoolText(['Not associated', 'with'], -40);
-				case 8:
-					addMoreText('newgrounds', -40);
-					ngSpr.visible = true;
-				case 9:
-					deleteCoolText();
-					ngSpr.visible = false;
-				case 10:
-					createCoolText([curWacky[0]]);
-				case 12:
-					addMoreText(curWacky[1]);
-				case 13:
-					deleteCoolText();
-				case 14:
-					curWacky = FlxG.random.getObject(get3IntroTextShit());
-					addMoreText(curWacky[0]);
-				case 15:
-					addMoreText(curWacky[1]);
-				case 16:
-					addMoreText(curWacky[2]); // credTextShit.text += '\nFunkin';
-				case 17:
-					skipIntro();
-			}
-		}
-	}
-
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;
 	function skipIntro():Void

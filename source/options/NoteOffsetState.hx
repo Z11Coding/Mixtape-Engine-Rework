@@ -178,6 +178,44 @@ class NoteOffsetState extends MusicBeatState
 		FlxG.sound.playMusic(Paths.music('offsetSong'), 1, true);
 
 		super.create();
+
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			if(lastBeatHit == curBeat)
+			{
+				return;
+			}
+
+			if(curBeat % 2 == 0)
+			{
+				boyfriend.dance();
+				gf.dance();
+			}
+
+			if(curBeat % 4 == 2)
+			{
+				FlxG.camera.zoom = 1.15;
+
+				if(zoomTween != null) zoomTween.cancel();
+					zoomTween = FlxTween.tween(FlxG.camera, {zoom: 1}, 1, {ease: FlxEase.circOut, onComplete: function(twn:FlxTween)
+						{
+							zoomTween = null;
+						}
+					});
+
+					beatText.alpha = 1;
+					beatText.y = 320;
+					beatText.velocity.y = -150;
+					if(beatTween != null) beatTween.cancel();
+					beatTween = FlxTween.tween(beatText, {alpha: 0}, 1, {ease: FlxEase.sineIn, onComplete: function(twn:FlxTween)
+						{
+							beatTween = null;
+						}
+					});
+			}
+
+			lastBeatHit = curBeat;
+		});
 	}
 
 	var holdTime:Float = 0;
@@ -450,45 +488,6 @@ class NoteOffsetState extends MusicBeatState
 
 	var zoomTween:FlxTween;
 	var lastBeatHit:Int = -1;
-	override public function beatHit()
-	{
-		super.beatHit();
-
-		if(lastBeatHit == curBeat)
-		{
-			return;
-		}
-
-		if(curBeat % 2 == 0)
-		{
-			boyfriend.dance();
-			gf.dance();
-		}
-
-		if(curBeat % 4 == 2)
-		{
-			FlxG.camera.zoom = 1.15;
-
-			if(zoomTween != null) zoomTween.cancel();
-			zoomTween = FlxTween.tween(FlxG.camera, {zoom: 1}, 1, {ease: FlxEase.circOut, onComplete: function(twn:FlxTween)
-				{
-					zoomTween = null;
-				}
-			});
-
-			beatText.alpha = 1;
-			beatText.y = 320;
-			beatText.velocity.y = -150;
-			if(beatTween != null) beatTween.cancel();
-			beatTween = FlxTween.tween(beatText, {alpha: 0}, 1, {ease: FlxEase.sineIn, onComplete: function(twn:FlxTween)
-				{
-					beatTween = null;
-				}
-			});
-		}
-
-		lastBeatHit = curBeat;
-	}
 
 	function repositionCombo()
 	{

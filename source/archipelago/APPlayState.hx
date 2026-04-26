@@ -1197,14 +1197,14 @@ class APPlayState extends PlayState {
                         availableS = "flip";
                 }
                 var onEnd:(Void->Void) = function() {
-                    modManager.queueEase(curStep, curStep+3, availableS, 0, "sineInOut");
+                    modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, 0, "sineInOut");
                 };
                 var playSound:String = "randomize";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = false;
 
 
-                modManager.queueEase(curStep, curStep+3, availableS, .96, "sineInOut");
+                modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, .96, "sineInOut");
                 trace(availableS);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');
@@ -1943,35 +1943,6 @@ class APPlayState extends PlayState {
 		}
 	}
 
-	override function stepHit()
-	{
-		if (!localFreezeNotes) // so that the event doen't get overriden
-        {
-			if (lagOn)
-			{
-				if (curStep % 2 == 0)
-					freezeNotes = true;
-				else if (curStep % 2 == 1)
-					freezeNotes = false;
-			}
-			else freezeNotes = false;
-        }
-
-        if (doRandomize)
-        {
-            if (curStep % 16 == 0)
-            {
-                for (daNote in notes) {
-                    if (daNote == null) continue;
-                    else {
-                        daNote.noteData = daNote.trueNoteData;
-                    }
-                }
-            }
-        }
-		super.stepHit();
-	}
-
     var apNotes:Array<archipelago.APNote> = [];
     private override function generateSong(preload:Bool = false):Void
     {
@@ -2009,7 +1980,7 @@ class APPlayState extends PlayState {
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        modManager.queueEase(curStep, curStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
+        modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
@@ -2118,15 +2089,15 @@ class APPlayState extends PlayState {
 		var pickTime = Conductor.songPosition + pickSteps * Conductor.stepCrochet;
 		var pickData:Int = 0;
 
-		if (PlayState.SONG.notes.length <= Math.floor((curStep + pickSteps + 1) / 16))
+		if (PlayState.SONG.notes.length <= Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16))
 			return;
 
-		if (PlayState.SONG.notes[Math.floor((curStep + pickSteps + 1) / 16)] == null)
+		if (PlayState.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)] == null)
 			return;
 
 		if (specificData == null)
 		{
-			if (PlayState.SONG.notes[Math.floor((curStep + pickSteps + 1) / 16)].mustHitSection)
+			if (PlayState.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
 				pickData = FlxG.random.int(0, PlayState.mania);
 			}
@@ -2152,7 +2123,7 @@ class APPlayState extends PlayState {
 		}
 		else
 		{
-			if (PlayState.SONG.notes[Math.floor((curStep + pickSteps + 1) / 16)].mustHitSection)
+			if (PlayState.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
 				pickData = specificData % Note.ammo[PlayState.mania];
 			}
@@ -3152,51 +3123,79 @@ class APPlayState extends PlayState {
 		}
 	}
 
-    override function beatHit()
-    {
-        switch (terminateStep)
+    override function doMegaManagerStuff() {
+        MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
-			case 3:
-				var terminate = new TerminateTimestamp(Math.floor(Conductor.songPosition / Conductor.crochet) * Conductor.crochet + Conductor.crochet * 3);
-				add(terminate);
-				terminateTimestamps.push(terminate);
-				terminateStep--;
-                COD.setPresetCOD('custom');
-                COD.custom = 'You were Terminated.';
-			case 2 | 1 | 0:
-				terminateMessage.loadGraphic(Paths.image("streamervschat/terminate" + terminateStep));
-				terminateMessage.screenCenter(XY);
-				terminateMessage.cameras = [camOther];
-				terminateMessage.visible = true;
-				if (terminateStep > 0)
-				{
-					terminateSound.volume = 0.6;
-					terminateSound.play(true);
-				}
-				else if (terminateStep == 0)
-				{
-					FlxG.sound.play(Paths.sound('streamervschat/beep2'), 0.85);
-				}
-				terminateStep--;
-			case -1:
-				terminateMessage.visible = false;
-		}
-        if (releasethebeast) {
-            if (resistanceAmount < 1) resistanceAmount += 0.005;
+            switch (terminateStep)
+			{
+				case 3:
+					var terminate = new TerminateTimestamp(Math.floor(Conductor.songPosition / Conductor.crochet) * Conductor.crochet + Conductor.crochet * 3);
+					add(terminate);
+					terminateTimestamps.push(terminate);
+					terminateStep--;
+					COD.setPresetCOD('custom');
+					COD.custom = 'You were Terminated.';
+				case 2 | 1 | 0:
+					terminateMessage.loadGraphic(Paths.image("streamervschat/terminate" + terminateStep));
+					terminateMessage.screenCenter(XY);
+					terminateMessage.cameras = [camOther];
+					terminateMessage.visible = true;
+					if (terminateStep > 0)
+					{
+						terminateSound.volume = 0.6;
+						terminateSound.play(true);
+					}
+					else if (terminateStep == 0)
+					{
+						FlxG.sound.play(Paths.sound('streamervschat/beep2'), 0.85);
+					}
+					terminateStep--;
+				case -1:
+					terminateMessage.visible = false;
+			}
+            if (releasethebeast) {
+                if (resistanceAmount < 1) resistanceAmount += 0.005;
 
-            if (curBeat % zenetta?.danceEveryNumBeats == 0 && !zenetta?.getAnimationName().endsWith('-alt')) {
-                zenetta?.dance();
+                if (curBeat % zenetta?.danceEveryNumBeats == 0 && !zenetta?.getAnimationName().endsWith('-alt')) {
+                    zenetta?.dance();
+                }
             }
-        }
-        super.beatHit();
+            if (curBeat % 32 == 0 && APInfo.unstableSpeed && !songAboutToLoop)
+            {
+                // goes up to 5x speed cuz screw you thats why
+                var randomSpeed = FlxG.random.float(0.45, 5);
+                var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
+                lerpSongSpeed(randomShit, 1);
+            }
+        });
 
-        if (curBeat % 32 == 0 && APInfo.unstableSpeed && !songAboutToLoop)
+        MegaManager.conductor.addStepCallback((curStep:Int, backward:Bool) ->
 		{
-			// goes up to 5x speed cuz screw you thats why
-			var randomSpeed = FlxG.random.float(0.45, 5);
-			var randomShit = FlxMath.roundDecimal(randomSpeed, 2);
-			lerpSongSpeed(randomShit, 1);
-		}
+            if (!localFreezeNotes) // so that the event doen't get overriden
+            {
+                if (lagOn)
+                {
+                    if (curStep % 2 == 0)
+                        freezeNotes = true;
+                    else if (curStep % 2 == 1)
+                        freezeNotes = false;
+                }
+                else freezeNotes = false;
+            }
+
+            if (doRandomize)
+            {
+                if (curStep % 16 == 0)
+                {
+                    for (daNote in notes) {
+                        if (daNote == null) continue;
+                        else {
+                            daNote.noteData = daNote.trueNoteData;
+                        }
+                    }
+                }
+            }
+        });
     }
 
     override function closeSubState()

@@ -1082,13 +1082,13 @@ class MusicBeatState extends yutautil.SafeManagedState
 				func(stage);
 	}
 
-	function getBeatsOnSection()
+	/*function getBeatsOnSection()
 	{
 		var val:Null<Float> = 4;
 		if (PlayState.SONG != null && PlayState.SONG.notes[curSection] != null)
 			val = PlayState.SONG.notes[curSection].sectionBeats;
 		return val == null ? 4 : val;
-	}
+	}*/
 
 	private static function getRandomTransition():String
 	{
