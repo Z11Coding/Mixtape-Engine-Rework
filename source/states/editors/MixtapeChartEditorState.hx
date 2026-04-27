@@ -1167,8 +1167,8 @@ class MixtapeChartEditorState extends MusicBeatState
     {
         var bpm = PlayState.SONG?.bpm;
         var time = FlxG.sound.music != null ? FlxG.sound.music.time : 0;
-        var pos = 'Step: $curStep | Beat: $curBeat | Section: $curSection';
-        var songInfo = 'Song: ${PlayState.SONG?.song} | BPM: $bpm';
+        var pos = 'Step: ${MegaManager.conductor.currentStep} | Beat: ${MegaManager.conductor.currentBeat} | Section: ${MegaManager.conductor.currentMeasure}';
+        var songInfo = 'Song: ${PlayState.SONG?.song} | BPM: ${MegaManager.conductor.currentBpm}';
 
         infoText.text = '$songInfo\n$pos\nTime: ${Math.round(time)}ms';
     }

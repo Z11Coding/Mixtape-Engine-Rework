@@ -383,7 +383,6 @@ class FreeplayState extends MusicBeatState
 				ease: FlxEase.quadOut
 			});
 
-			super.beatHit();
 			if (trackPlaying == 'freeplayRandom') {
 				randomIcon.scale.set(1.2, 1.2);
 				return;

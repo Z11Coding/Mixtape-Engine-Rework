@@ -8,7 +8,7 @@ class Trampoline extends FlxSprite {
     // WARNING:
     // offsets will not properly work
     // as of this version, if the character changes position, it will not look good.
-    
+
     // config
 
     public var jumpBind:String = "space";
@@ -74,7 +74,7 @@ class Trampoline extends FlxSprite {
     function spawnComboThingy(thingy, pointss) {
         combo_timer = null;
         combo_timer_fade = null;
-        
+
         combo_timer_fade_label = null;
         combo_timer_fade_counter = null;
 
@@ -90,7 +90,7 @@ class Trampoline extends FlxSprite {
         combo_label.text  = thingy;
 
         var pointsSt:String;
-        
+
         if (pointss == 0)
             pointsSt = "";
         else
@@ -104,7 +104,7 @@ class Trampoline extends FlxSprite {
             combo_label.size = 40;
             combo_counter.size = 25;
         }
-        
+
 
         combo_label.velocity.y = -100;
         combo_counter.velocity.y = -100;
@@ -202,7 +202,7 @@ class Trampoline extends FlxSprite {
         var angle = APPlayState.instance.boyfriend.angle % 360;
 
         @:privateAccess {
-            if (!(safetyMode && PlayState.SONG.notes[APPlayState.instance.curSection].mustHitSection)) {
+            if (!(safetyMode && PlayState.SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)) {
                 if (tricksLastBounce == 0) {
                     if (combo != 0) {
                         combo = 0;
@@ -286,7 +286,7 @@ class Trampoline extends FlxSprite {
                             combo++;
                             tricksLastBounce++; // SAFE
                             spawnComboThingy(points.get('peak')[3], points.get('peak')[2]);
-                            
+
                         }
                     }
                 }
@@ -339,8 +339,8 @@ class Trampoline extends FlxSprite {
                 // setProperty("boyfriend.velocity.x",getProperty('boyfriend.velocity.x')+50) // https://twitter.com/aflaccck/status/1595932461082763264
                 if (APPlayState.instance.controls.NOTE_LEFT)
                     tilt = tilt - 0.5;
-                
-                if (APPlayState.instance.controls.NOTE_RIGHT) 
+
+                if (APPlayState.instance.controls.NOTE_RIGHT)
                     tilt = tilt + 0.5;
 
                 var additional:Float = 0;
@@ -402,7 +402,7 @@ class Trampoline extends FlxSprite {
             else if (lastJumpHeight == 2)
                 SILLIES = "Very high";
 
-            var join:String = "angle: " 
+            var join:String = "angle: "
             + APPlayState.instance.boyfriend.angle
             + "\nlastBounceAng: "
             + lastBounceAng

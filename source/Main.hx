@@ -120,82 +120,6 @@ class Main extends Sprite
 		}
 		trace("Finished testing forceCast.");
 
-		// var r:Random<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-		// trace("Random Test: " + r);
-
-		// trace("Random Test 2: " + new Random<Int>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
-
-		// var r2:Random<Int> = [for (i in 1...11) i];
-		// trace("Random Test 3: " + r2);
-
-
-		// var temp:Temp<Int> = 23932;
-
-		// trace("Temp Test 2: " + temp);
-
-		// var temp2:Temp<{value:Int, otherValue:Int}> = {
-		// 	value: 123,
-		// 	otherValue: 456
-		// };
-
-		// var nonTemp:{value:Int, otherValue:Int} = {
-		// 	value: 123,
-		// 	otherValue: 456
-		// };
-
-		// var temp2Address = cpp.Native.addressOf(game);
-		// trace("Star test 1: " + temp2Address);
-		// var randofdsde:Temp<Int> = 123;
-		// trace("Temp Test 3: " + randofdsde);
-
-
-
-		// var eeee:Int = 123;
-
-		// var p = cpp.Pointer.addressOf(eeee)[0];
-		// trace("Pointer Test: " + p);
-
-		// var funnyDouble = new HaxePointer<Dynamic>(game);
-		// trace("Funny Double Test: " + funnyDouble);
-		// trace("Funny Double Test: " + new HaxePointer<Dynamic>(game));
-
-		// (new Fields(temp2).printFields());
-		// (new Fields(nonTemp).printFields());
-
-		// trace("TestAcc: " + new FieldAccTest({}).eeeee);
-		// trace("TestAcc2: " );
-		// var testAcc2 = new FieldAccTest({eeeee: 123}).eeeee = 456;
-
-		// var collaped:Collapsed<Int> = [[1], [2], [3], [4], [5]];
-
-		// trace("Collaped Test: " + collaped);
-
-		// var gaming:GlobalPointer<Dynamic> = game;
-
-		// gaming.startFullscreen = true;
-
-		// Pointer of a pointer test (HaxePointer of HaxePointer, stacked 5 times)
-		var arr:Array<Int> = [1, 2, 3, 4, 5];
-
-
-		// var ptr1 = new HaxePointer<Array<Int>>(arr);
-		// var ptr2 = new HaxePointer<HaxePointer<Array<Int>>>(ptr1);
-		// var ptr3 = new HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>(ptr2);
-		// var ptr4 = new HaxePointer<HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>>(ptr3);
-		// var ptr5 = new HaxePointer<HaxePointer<HaxePointer<HaxePointer<HaxePointer<Array<Int>>>>>>(ptr4);
-
-		// // Now resolve the pointer all the way down to the array
-		// var ptr = ptr5;
-		// var resolvedArr:Array<Int> = ptr;
-
-
-		// trace("Resolved stacked HaxePointer array: " + resolvedArr);
-
-		// // Let's also put the pointer in another array and resolve it
-		// var pointerArray:Array<Dynamic> = [ptr];
-		// var resolvedFromArray:Array<Int> = pointerArray[0];
-		// trace("Resolved from pointerArray: " + resolvedFromArray);
-
 
 		trace("TypeTools ptrMap: " + TypeTools.ptrMap);
 
@@ -232,147 +156,9 @@ class Main extends Sprite
 		}
 		#end
 
-		// ═══════════════════════════════════════════════════════════════
-		// TypeHandler & Abstract Type Checking Tests
-		// ═══════════════════════════════════════════════════════════════
-		// COMMENTED OUT: These tests use TypeHandler which requires BuildDataLoader
-		// BuildDataLoader uses async initialization, so commenting out these tests
-		// to prevent immediate data access that would freeze the engine startup.
-		/*
-		trace("=== TypeHandler & Abstract Type Checking Tests ===");
-		try {
-			// --- TypeHandler.classifyType ---
-			trace("TypeHandler Test - classifyType('Int') = " + yutautil.TypeHandler.classifyType("Int"));
-			trace("TypeHandler Test - classifyType('Array<Int>') = " + yutautil.TypeHandler.classifyType("Array<Int>"));
-			trace("TypeHandler Test - classifyType('{ name:String }') = " + yutautil.TypeHandler.classifyType("{ name:String }"));
-			trace("TypeHandler Test - classifyType('(Int) -> Bool') = " + yutautil.TypeHandler.classifyType("(Int) -> Bool"));
-
-			// --- Primitive compatibility ---
-			trace("TypeHandler Test - isCompatible('Int', 'Float') = " + yutautil.TypeHandler.isCompatible("Int", "Float"));           // true: Int -> Float promotion
-			trace("TypeHandler Test - isCompatible('Float', 'Int') = " + yutautil.TypeHandler.isCompatible("Float", "Int"));             // false: Float -> Int not safe
-			trace("TypeHandler Test - isCompatible('Int', 'Dynamic') = " + yutautil.TypeHandler.isCompatible("Int", "Dynamic"));         // true: Dynamic accepts anything
-			trace("TypeHandler Test - isCompatible('Bool', 'Int') = " + yutautil.TypeHandler.isCompatible("Bool", "Int"));               // false: Bool not numeric
-
-			// --- Abstract @:from checking (can Int be assigned to Num?) ---
-			trace("TypeHandler Test - canAssignToAbstract('Int', 'yutautil.Num') = " + yutautil.TypeHandler.canAssignToAbstract("Int", "yutautil.Num"));
-			trace("TypeHandler Test - canAssignToAbstract('Float', 'yutautil.Num') = " + yutautil.TypeHandler.canAssignToAbstract("Float", "yutautil.Num"));
-			trace("TypeHandler Test - canAssignToAbstract('String', 'yutautil.Num') = " + yutautil.TypeHandler.canAssignToAbstract("String", "yutautil.Num"));   // likely false
-
-			// --- Abstract @:to checking (can Num output a Float?) ---
-			trace("TypeHandler Test - canAbstractOutputType('yutautil.Num', 'Float') = " + yutautil.TypeHandler.canAbstractOutputType("yutautil.Num", "Float"));
-			trace("TypeHandler Test - canAbstractOutputType('yutautil.Num', 'Int') = " + yutautil.TypeHandler.canAbstractOutputType("yutautil.Num", "Int"));
-			trace("TypeHandler Test - canAbstractOutputType('yutautil.Num', 'String') = " + yutautil.TypeHandler.canAbstractOutputType("yutautil.Num", "String"));
-
-			// --- Structure compatibility ---
-			trace("TypeHandler Test - isStructureCompatible('{ name:String, age:Int }', '{ name:String }') = "
-				+ yutautil.TypeHandler.isStructureCompatible("{ name:String, age:Int }", "{ name:String }"));                           // true: source has all required target fields
-			trace("TypeHandler Test - isStructureCompatible('{ name:String }', '{ name:String, age:Int }') = "
-				+ yutautil.TypeHandler.isStructureCompatible("{ name:String }", "{ name:String, age:Int }"));                           // false: source missing 'age'
-			trace("TypeHandler Test - isStructureCompatible('{ name:String }', '{ name:String, ?age:Int }') = "
-				+ yutautil.TypeHandler.isStructureCompatible("{ name:String }", "{ name:String, ?age:Int }"));                          // true: age is optional
-
-			// --- Array compatibility ---
-			trace("TypeHandler Test - areArraysCompatible('Array<Int>', 'Array<Int>') = " + yutautil.TypeHandler.areArraysCompatible("Array<Int>", "Array<Int>"));       // true
-			trace("TypeHandler Test - areArraysCompatible('Array<Int>', 'Array<Float>') = " + yutautil.TypeHandler.areArraysCompatible("Array<Int>", "Array<Float>"));   // depends on Int->Float
-
-			// --- TypeRef with Class<Dynamic> ---
-			trace("TypeHandler Test - classifyType(String) via TypeRef = " + yutautil.TypeHandler.classifyType(String));      // Should classify String type
-			trace("TypeHandler Test - stripGenerics('Map<String, Int>') = " + yutautil.TypeHandler.stripGenerics("Map<String, Int>"));   // "Map"
-			trace("TypeHandler Test - getSimpleName('yutautil.Num') = " + yutautil.TypeHandler.getSimpleName("yutautil.Num"));           // "Num"
-
-			// --- Value-based type inference ---
-			trace("TypeHandler Test - inferValueType(42) = " + yutautil.TypeHandler.inferValueType(42));
-			trace("TypeHandler Test - inferValueType(3.14) = " + yutautil.TypeHandler.inferValueType(3.14));
-			trace("TypeHandler Test - inferValueType('hello') = " + yutautil.TypeHandler.inferValueType("hello"));
-			trace("TypeHandler Test - inferValueType(true) = " + yutautil.TypeHandler.inferValueType(true));
-
-			// --- isValueCompatible ---
-			trace("TypeHandler Test - isValueCompatible(42, 'Int') = " + yutautil.TypeHandler.isValueCompatible(42, "Int"));             // true
-			trace("TypeHandler Test - isValueCompatible(42, 'Float') = " + yutautil.TypeHandler.isValueCompatible(42, "Float"));         // true: Int -> Float
-
-			// --- Structure inference from runtime values ---
-			var testObj = {name: "Alice", age: 25, active: true};
-			trace("TypeHandler Test - inferValueType({name,age,active}) = " + yutautil.TypeHandler.inferValueType(testObj));       // { name:String, age:Int, active:Bool }
-			trace("TypeHandler Test - isValueCompatible(testObj, '{ name:String }') = "
-				+ yutautil.TypeHandler.isValueCompatible(testObj, "{ name:String }"));                                           // true: has name:String
-			trace("TypeHandler Test - isValueCompatible(testObj, '{ name:String, age:Int }') = "
-				+ yutautil.TypeHandler.isValueCompatible(testObj, "{ name:String, age:Int }"));                                  // true: has both
-			trace("TypeHandler Test - isValueCompatible(testObj, '{ name:String, missing:Float }') = "
-				+ yutautil.TypeHandler.isValueCompatible(testObj, "{ name:String, missing:Float }"));                            // false: no 'missing' field
-
-			// Nested structure inference
-			var nestedObj = {pos: {x: 10.5, y: 20.3}, label: "point"};
-			trace("TypeHandler Test - inferValueType(nested) = " + yutautil.TypeHandler.inferValueType(nestedObj));               // { pos:{ x:Float, y:Float }, label:String }
-
-			// Array element inference
-			var typedArr = [1, 2, 3];
-			trace("TypeHandler Test - inferValueType([1,2,3]) = " + yutautil.TypeHandler.inferValueType(typedArr));               // Array<Int>
-
-			// --- parseStructureFields ---
-			var parsed = yutautil.TypeHandler.parseStructureFields("{ name:String, ?age:Int, active:Bool }");
-			trace("TypeHandler Test - parseStructureFields count = " + (parsed != null ? Std.string(parsed.length) : "null"));    // 3
-			if (parsed != null && parsed.length >= 2) {
-				trace("TypeHandler Test - parseStructureFields [0] name=" + parsed[0].name + " type=" + parsed[0].type + " optional=" + parsed[0].optional); // name, String, false
-				trace("TypeHandler Test - parseStructureFields [1] name=" + parsed[1].name + " type=" + parsed[1].type + " optional=" + parsed[1].optional); // age, Int, true
-			}
-
-			// --- isFunction ---
-			trace("TypeHandler Test - isFunction('(Int) -> Bool') = " + yutautil.TypeHandler.isFunction("(Int) -> Bool"));         // true
-			trace("TypeHandler Test - isFunction('String') = " + yutautil.TypeHandler.isFunction("String"));                       // false
-			trace("TypeHandler Test - isFunction('() -> Void') = " + yutautil.TypeHandler.isFunction("() -> Void"));               // true
-
-			// --- Structure-to-structure via isCompatible ---
-			trace("TypeHandler Test - isCompatible struct superset = "
-				+ yutautil.TypeHandler.isCompatible("{ name:String, age:Int }", "{ name:String }"));                              // true: superset
-			trace("TypeHandler Test - isCompatible struct missing = "
-				+ yutautil.TypeHandler.isCompatible("{ name:String }", "{ name:String, age:Int }"));                              // false: missing required
-			trace("TypeHandler Test - isCompatible struct optional = "
-				+ yutautil.TypeHandler.isCompatible("{ name:String }", "{ name:String, ?age:Int }"));                             // true: age is optional
-
-			// --- Nested structure compatibility via isValueCompatible ---
-			trace("TypeHandler Test - isValueCompatible(nested, '{ pos:{ x:Float }, label:String }') = "
-				+ yutautil.TypeHandler.isValueCompatible(nestedObj, "{ pos:{ x:Float }, label:String }"));                        // true: partial nested match
-
-			// --- extractGenericParam / extractMapParams ---
-			trace("TypeHandler Test - extractGenericParam('Array<String>') = " + yutautil.TypeHandler.extractGenericParam("Array<String>"));   // String
-			var mapParams = yutautil.TypeHandler.extractMapParams("Map<String, Int>");
-			trace("TypeHandler Test - extractMapParams('Map<String, Int>') key=" + (mapParams != null ? mapParams.key : "null")
-				+ " value=" + (mapParams != null ? mapParams.value : "null"));                                                    // String, Int
-
-			// --- Null handling ---
-			trace("TypeHandler Test - inferValueType(null) = " + yutautil.TypeHandler.inferValueType(null));                       // Null
-			trace("TypeHandler Test - isValueCompatible(null, 'String') = " + yutautil.TypeHandler.isValueCompatible(null, "String")); // true
-
-			trace("=== TypeHandler Tests Complete ===");
-		} catch (e:Dynamic) {
-			trace("TypeHandler Test - Error: " + e);
-		}
-		*/
-
 		// Initialize BuildDataLoader asynchronously (non-blocking)
 		// This starts the async loading process in the background without freezing startup
 		yutautil.typeregistry.BuildDataLoader.initialize();
-
-		// var fold: yutautil.Fold<{name:String, age:Int}> = {
-		// 	name: "John Doe",
-		// 	age: 30,
-		// 	extraField: "This field is extra and should be allowed"
-		// };
-
-		// var fold2: yutautil.Fold<{x:Float, y:Float}> = {
-		// 	x: 10.5,
-		// 	y: 20.3,
-		// 	additionalInfo: "Extra data allowed here"
-		// };
-
-		// var fold3: yutautil.Fold<{x:Float}> = {y: 0}; // Missing 'x' field, should cause compile-time error if validated
-
-		// var name: String = fold.name;
-		// var age: Int = fold.age;
-		// trace("Fold Test: Name = " + name + ", Age = " + age);
-		// trace("Fold2 Test: x = " + fold2.x + ", y = " + fold2.y);
-		// trace("Fold3 Test: x = " + fold3.x);
-		// // trace("Test invalid: " + fold3.y); // Should cause compile-time error if validated
 
 		Lib.current.addChild(new Main());
 		//Stolen from Psych Online. Thanks for making the next hour of my life not hell.
@@ -490,24 +276,6 @@ class Main extends Sprite
 		backend.window.Native.fixScaling();
 		#end
 
-		// var a:yutautil.Inf.Num = new yutautil.Inf.InfNum(1.0);
-		// var b:yutautil.Inf.Num = new yutautil.Inf.InfNum(2.0);
-		// var c:yutautil.Inf.Num = a + b;
-		// trace("InfNum Test: " + c);
-		// trace(c.value);
-		// trace(c.floatPoint);
-		// trace(c.isNegative);
-
-		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0));
-		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).toFloat());
-		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).toString());
-		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).value);
-		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).floatPoint);
-		// trace("InfNum Test: " + new yutautil.Inf.InfNum(12345678901234567890.0).isNegative);
-
-		// var h:Float = c;
-		// trace("InfNum Test: " + h);
-
 		#if windows
 		backend.window.CppAPI._setWindowLayered();
 		backend.window.CppAPI.darkMode();
@@ -524,33 +292,12 @@ class Main extends Sprite
 		initHaxeUI();
 		backend.Cursor.registerHaxeUICursors();
 
-		trace(yutautil.StatePick.getStateNames("MusicBeatState"));
-
-		// yutautil.save.MixSaveWrapperBeta.testFunctionSave();
-
 		FlxG.save.bind('Mixtape', CoolUtil.getSavePath());
 		Highscore.load();
 
 		WindowUtils.init();
 
-		//trace(game.metadata());
-
-		//trace("gamedddifsdsf".realSizeOf());
-
-		// var testArray = new yutautil.CollectionUtils.KeyIndexedArray();
-		// testArray.set("test", 1);
-		// trace(testArray.get("test"));
-		// trace(testArray.get("test2"));
-		// trace(testArray["test"]);
-
 		trace("PC System Memory: " + backend.util.NativeAPI.getPhysicallyInstalledSystemMemory() + " GB");
-
-
-		// 'You can\'t put variable expressions in COMMENTS, silly!'.NativeComment(true);
-		// 	trace('testArray: $testArray');
-		// 'testArray = $testArray'.NativeTrace(true, false);
-		// "NativeTrace works with double quotes too!".NativeTrace(true);
-		// testArray.NativeTrace(true, false);
 
 		#if windows
 		backend.window.CppAPI.setWindowOpacity(1);
@@ -695,23 +442,6 @@ class Main extends Sprite
 
 		Lib.current.loaderInfo.addEventListener(NativeProcessExitEvent.EXIT, onClosing); // help-
 
-		// try { // WHY THE HELL IS THIS CRASHING???????????????????
-		// 	trace("Setting up onDropFile handler...");
-		// 	stage.window.onDropFile.add(function(path:String)
-		// 	{
-		// 		trace("user dropped file with path: " + path);
-		// 		try {
-		// 			if (Std.is(FlxG.state, backend.MusicBeatState))
-		// 				(cast FlxG.state : backend.MusicBeatState).handleFileDrop(path);
-		// 		} catch (e:Dynamic) {
-		// 			trace("Error: This state didn't handle the file properly: " + e + " ... " + e.getStack());
-		// 			trace("Current state: " + Type.getClassName(Type.getClass(FlxG.state)));
-		// 		}
-		// 	});
-		// } catch (e:Dynamic) {
-		// 	trace("Error setting up onDropFile handler: " + e + " ... " + e.getStack());
-		// }
-
 		// shader coords fix
 		FlxG.signals.gameResized.add((w, h) -> resetSpriteCaches());
 		FlxG.signals.focusGained.add(resetSpriteCaches);
@@ -726,36 +456,6 @@ class Main extends Sprite
 			}
 		});
 
-
-		// Artificial loop using GoToTag as a label and GoTo as a goto
-		/*var counter = 0;
-		yutautil.CUMacroTools.GoToTag("loopStart");
-			trace('goto test: $counter');
-			counter++;
-			if (counter >= 5) {
-				yutautil.CUMacroTools.GoTo("loopEnd");
-			} else {
-				yutautil.CUMacroTools.GoTo("loopStart");
-			}
-
-		yutautil.CUMacroTools.GoToTag("loopEnd");
-		// This is just a test to see if the GoToTag and GoTo macros work correctly.
-
-		// Second test using 'using' import for string extension
-		// (Assumes: import using yutautil.CUMacroTools;)
-		var counter2 = 0;
-		"loopStart2".GoToTag();
-			trace('goto test 2: $counter2');
-			counter2++;
-			if (counter2 >= 5) {
-				"loopEnd2".GoTo();
-			} else {
-				"loopStart2".GoTo();
-			}
-		"loopEnd2".GoToTag();*/
-		// This is a test to see if the GoToTag and GoTo string extensions work correctly.
-
-
 		#if android
 		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
 		#end
@@ -769,27 +469,7 @@ class Main extends Sprite
 		ArchipelagoDebug.initialize();
 		new ScreenShotPlugin();
 
-		// trace(3.cubed());
-
-		// var classTest:Class<Dynamic> = states.PlayState;
-		// trace("Class Test: " + Type.getClassName(classTest));
-		// var mania:Dynamic = classTest.mania;
-		// trace("Class Test 2: " + mania);
-		// var instanceTest:Dynamic = Type.createInstance(classTest, []);
-		// trace("Class Test 3: " + instanceTest);
-		// var instance2Test:Dynamic = Type.createInstance(classTest, []);
-		// trace("Class Test 4: " + instance2Test);
-
-
-
-		// trace("Game Dialog Test 1: " + dialogs.Dialogs.open('Test for Open', [{ext:'txt', desc:'Text files'}]));
-		// trace("Game Dialog Test 2: " + dialogs.Dialogs.save('Test for Save', {ext:'txt', desc:'Text files'}));
-
-		// var dummyDate = Date.now();
-		// var eDate = yutautil.ExtendedDate.fromDate(dummyDate);
-		// trace("Extended Date: " + eDate);
-		// trace("Extended Date: " + eDate.asString());
-		// trace("Special Date Test: " + yutautil.ExtendedDate.getFullDateObject());
+		new MegaManager();
 	}
 
 	function initHaxeUI():Void

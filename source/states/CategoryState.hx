@@ -324,7 +324,7 @@ class CategoryState extends MusicBeatState
 		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
 			FlxG.camera.zoom = zoomies;
-			FlxTween.tween(FlxG.camera, {zoom: 1}, MegaManager.conductor.crochet / 1300, {
+			FlxTween.tween(FlxG.camera, {zoom: 1}, RConductor.crochet / 1300, {
 				ease: FlxEase.quadOut
 			});
 		});

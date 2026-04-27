@@ -53,6 +53,14 @@ class LegacyLuaSettingsState extends MusicBeatState {
         add(instructText);
 
         changeSelection();
+
+        MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			FlxG.camera.zoom = zoomies;
+			FlxTween.tween(FlxG.camera, {zoom: 1}, RConductor.crochet / 1300, {
+				ease: FlxEase.quadOut
+			});
+		});
     }
 
     override function update(elapsed:Float):Void {
@@ -107,15 +115,6 @@ class LegacyLuaSettingsState extends MusicBeatState {
             item.x = FlxMath.lerp(item.ID == curSelected ? 380 : -2010 + coolEffect, item.x,
                 CoolUtil.boundTo(1 - (elapsed * 9), 0, 1));
         }
-    }
-
-    override function beatHit():Void {
-        super.beatHit();
-
-        FlxG.camera.zoom = zoomies;
-        FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet / 1300, {
-            ease: FlxEase.quadOut
-        });
     }
 
     function changeSelection(change:Int = 0):Void {

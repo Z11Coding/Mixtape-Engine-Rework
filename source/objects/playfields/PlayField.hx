@@ -1011,7 +1011,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		{
 			var state:MusicBeatState = cast FlxG.state;
 			@:privateAccess
-			curDecStep = state.curDecStep;
+			curDecStep = MegaManager.conductor.beatLengthMs;
 		}
 		else
 		{

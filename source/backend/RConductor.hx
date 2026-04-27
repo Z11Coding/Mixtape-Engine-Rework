@@ -5,16 +5,13 @@ import flixel.addons.sound.FlxRhythmConductor.RhythmSignal;
 
 class RConductor extends FlxRhythmConductor {
   // TODO: Connect all the fun FNF stuff to the Rhythm Condoctor through this
-
   public static var instance:RConductor;
-
-
   //Modchart System Stuff
   public static var visualPosition:Float = 0;
 
   public static var safeZoneOffset:Float = 0; // is calculated in create(), is safeFrames in milliseconds
 	public static var bpmChangeMap:Array<MusicTimeChangeEvent> = [];
-  public static var crochet:Float = ((60 / instance.currentBpm) * 1000);
+  public static var crochet:Float = ((60 / instance?.currentBpm) * 1000);
   public static var stepCrochet:Float = crochet / 4; // steps in milliseconds
 
   private inline static final _internalJackLimit:Float = 192 / 16;
@@ -24,7 +21,7 @@ class RConductor extends FlxRhythmConductor {
 
 	public static var ROWS_PER_BEAT = 48; // from Stepmania
 
-  override function new() {
+  override public function new() {
     super();
     instance = this;
     addBeatCallback((beat:Int, backward:Bool) ->
@@ -60,6 +57,12 @@ class RConductor extends FlxRhythmConductor {
   public function playSong(songPath:String) {
     FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
     FlxG.sound.playMusic(songPath, 1, false);
+  }
+
+  // Skip the meta check and go straight to the song
+  public function playMusic(songPath:String, ?vol:Float = 1, ?loop:Bool = false) {
+    FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
+    FlxG.sound.playMusic(songPath, vol, loop);
   }
 
   public function addStepCallback(func:(time : Int, backward : Bool) -> Void)

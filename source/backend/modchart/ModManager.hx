@@ -822,7 +822,7 @@ class ModManager {
 				else
 					queueSet(step, bit, level, player);
 			}else
-				queueEaseL(step == null ? MusicBeatState.pubCurDecStep : step, ((level / speed) * 1000) / Conductor.stepCrochet, bit, level, 'linear', player);
+				queueEaseL(step == null ? MegaManager.conductor.beatLengthMs : step, ((level / speed) * 1000) / Conductor.stepCrochet, bit, level, 'linear', player);
 
 		}
 	}

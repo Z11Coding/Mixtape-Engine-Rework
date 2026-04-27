@@ -1384,9 +1384,9 @@ class Paths
 		return currentTrackedSounds.get(file);
 	}
 
-	inline public static function soundPath(path:String, key:String, ?library:String)
+	inline public static function soundPath(path:String, ?key:String, ?library:String)
 	{
-		return getPath('$path/$key.$SOUND_EXT');
+		return getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, true);
 	}
 
 	inline public static function soundP(key:String)

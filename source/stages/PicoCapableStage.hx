@@ -266,7 +266,7 @@ class PicoCapableStage extends BaseStage
 	{
 		@:privateAccess // lol
 		if (PlayState.SONG.notes[
-			Std.int(FlxMath.bound(PlayState.instance.curSection, 0, PlayState.SONG.notes.length - 1))
+			Std.int(FlxMath.bound(MegaManager.conductor.currentMeasure, 0, PlayState.SONG.notes.length - 1))
 		].mustHitSection == true){
 			abot?.lookRight();
 			abotPixel?.lookRight();

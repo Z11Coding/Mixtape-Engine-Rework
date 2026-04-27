@@ -650,12 +650,12 @@ class MusicBeatState extends yutautil.SafeManagedState
 		#end
 
 		// everyStep();
-		var oldStep:Int = curStep;
+		//var oldStep:Int = curStep;
 		timePassedOnState += elapsed;
 
-		curStep = RConductor.instance.currentStep;
-		curBeat = RConductor.instance.currentBeat;
-		curSection = RConductor.instance.currentMeasure;
+		//curStep = RConductor.instance.currentStep;
+		//curBeat = RConductor.instance.currentBeat;
+		//curSection = RConductor.instance.currentMeasure;
 
 		#if ARCHIPELAGO_ALLOWED
 		if (archipelago.APEntryState.inArchipelagoMode)

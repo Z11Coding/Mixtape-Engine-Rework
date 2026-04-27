@@ -2152,8 +2152,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			var songLength:String = (FlxG.sound.music != null) ? FlxStringUtil.formatTime(FlxG.sound.music.length / 1000, true) : '???';
 			var str:String =  '$curTime / $songLength' +
 							  '\n\nSection: $curSec' +
-							  '\nBeat: $curBeat' +
-							  '\nStep: $curStep' +
+							  '\nBeat: ${MegaManager.conductor.currentBeat}' +
+							  '\nStep: ${MegaManager.conductor.currentStep}' +
 							  '\n\nBeat Snap: ${curQuant} / 16' +
 							  '\nSelected: ${selectedNotes.length}' +
 								'\n\nDupes in this section: ${countDupes(PlayState.SONG.notes[curSec])}' +
@@ -2176,7 +2176,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 			forceDataUpdate = false;
 
-			lastBeatHit = curBeat;
+			lastBeatHit = MegaManager.conductor.currentBeat;
 		}
 
 		if(selectedNotes.length > 0)

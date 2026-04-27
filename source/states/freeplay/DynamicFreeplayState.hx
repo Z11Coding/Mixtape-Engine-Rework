@@ -396,6 +396,22 @@ class DynamicFreeplayState extends MusicBeatState
 
 	// 	if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
 	// 		archipelago.APItem.activeItem = null;
+
+		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			FlxG.camera.zoom = zoomies;
+			FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet*0.001*4, {
+				ease: FlxEase.quadOut
+			});
+
+			if (trackPlaying == 'freeplayRandom') {
+				randomIcon.scale.set(1.2, 1.2);
+				return;
+			}
+
+			if (listening && iconList.members[curSelected] != null)
+				iconList.members[curSelected].scale.set(1.2, 1.2);
+		});
 	}
 
 	public function setDifficultyStars(?difficulty:Int):Void
@@ -1917,24 +1933,6 @@ class DynamicFreeplayState extends MusicBeatState
 				_lastVisibles.push(i);
 			}
 		}
-	}
-
-	override function beatHit()
-	{
-		FlxG.camera.zoom = zoomies;
-
-		FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet*0.001*4, {
-			ease: FlxEase.quadOut
-		});
-
-		super.beatHit();
-		if (trackPlaying == 'freeplayRandom') {
-			randomIcon.scale.set(1.2, 1.2);
-			return;
-		}
-
-		if (listening && iconList.members[curSelected] != null)
-			iconList.members[curSelected].scale.set(1.2, 1.2);
 	}
 
 	/**

@@ -125,12 +125,12 @@ class FunkinLua {
 		if(game != null)
 		@:privateAccess
 		{
-			var curSection:SwagSection = PlayState.SONG.notes[game.curSection];
-			set('curSection', game.curSection);
-			set('curBeat', game.curBeat);
-			set('curStep', game.curStep);
-			set('curDecBeat', game.curDecBeat);
-			set('curDecStep', game.curDecStep);
+			var curSection:SwagSection = PlayState.SONG.notes[MegaManager.conductor.currentMeasure];
+			set('curSection', MegaManager.conductor.currentMeasure);
+			set('curBeat', MegaManager.conductor.currentBeat);
+			set('curStep', MegaManager.conductor.currentStep);
+			set('curDecBeat', MegaManager.conductor.beatLengthMs);
+			set('curDecStep', MegaManager.conductor.stepLengthMs);
 
 			set('score', game.comboManager?.songScore);
 			set('misses', game.comboManager?.songMisses);
@@ -1941,7 +1941,7 @@ class FunkinLua {
 			if (duration>0)duration+=1.5;
 			@:privateAccess
 			PlayState.instance.modManager.queueEaseL(
-				PlayState.instance.curStep,
+				MegaManager.conductor.currentStep,
 				duration,
 				whoWeTweening,
 				howMuchWeTweening,
@@ -1951,7 +1951,7 @@ class FunkinLua {
 
 			if (whoElseWeTweening != '') @:privateAccess
 				PlayState.instance.modManager.queueEaseL(
-					PlayState.instance.curStep,
+					MegaManager.conductor.currentStep,
 					duration,
 					whoElseWeTweening,
 					howMuchWeTweening,

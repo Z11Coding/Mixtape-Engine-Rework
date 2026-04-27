@@ -218,9 +218,11 @@ class WeekData {
 	}
 
 	public static function setDirectoryFromWeek(?data:WeekData = null, ?useAlt:Bool = false) {
-		(useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory) = '';
+		if (useAlt) Mods.currentModDirectoryAlt = '';
+		else Mods.currentModDirectory = '';
 		if(data != null && data.folder != null && data.folder.length > 0) {
-			(useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory) = data.folder;
+			if (useAlt) Mods.currentModDirectoryAlt = data.folder;
+			else Mods.currentModDirectory = data.folder;
 		}
 	}
 }

@@ -3185,7 +3185,7 @@ class PlayState extends MusicBeatState
 			{
 				function onVideoEnd()
 				{
-					if (!isDead && generatedMusic && PlayState.SONG.notes[Std.int(curStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
+					if (!isDead && generatedMusic && PlayState.SONG.notes[Std.int(MegaManager.conductor.currentStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
 					{
 						moveCameraSection();
 						if (FlxG.camera != null) FlxG.camera.snapToTarget();
@@ -8094,9 +8094,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		MegaManager.conductor.target.time = startingPoint;
 		if (SONG.needsVoices) setVocalsTime(startingPoint);
 		lastUpdateTime = startingPoint;
-		MegaManager.conductor.visualPosition = startingPoint;
-		MegaManager.conductor.mapBPMChanges(SONG);
-		MegaManager.conductor.currentBpm = SONG.bpm;
+		RConductor.visualPosition = startingPoint;
+		RConductor.mapBPMChanges(SONG);
 
 		//reGenerating = true;
 		endingSong = false;
@@ -9034,8 +9033,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 			case 'Turn off StrumFocus':
 				strumFocus = false;
-				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 0);
-				modManager.queueEase(curStep, curStep + 4, 'alpha', 0, 'sineInOut', 1);
+				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 0);
+				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 
 			case 'Fade Out':
 				FlxTween.tween(blackOverlay, {alpha: 1}, Std.parseFloat(value1)/playbackRate);

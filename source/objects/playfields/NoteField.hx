@@ -154,8 +154,8 @@ class NoteField extends FieldBase
 		if (field == null) return;
 		if ((!exists || !visible) && !forcePreDraw) return;
 
-		curDecStep = MusicBeatState.pubCurDecStep;
-		curDecBeat = MusicBeatState.pubCurDecBeat;
+		curDecStep = MegaManager.conductor.currentStep;
+		curDecBeat = MegaManager.conductor.currentBeat;
 
 		zoom = modManager.getFieldZoom(baseZoom, curDecBeat, (Conductor.songPosition - ClientPrefs.data.noteOffset), modNumber, this);
 		var notePos:Map<Note, Vector3> = [];
