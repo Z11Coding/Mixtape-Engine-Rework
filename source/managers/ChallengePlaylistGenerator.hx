@@ -157,7 +157,7 @@ class ChallengePlaylistGenerator {
 		WeekData.reloadWeekFiles();
 
 		// Discover songs
-		var allSongs = managers.SongDifficultyEvaluator.discoverAllSongs();
+		var allSongs:Array<{songName:String, week:Int, folder:String}> = managers.SongDifficultyEvaluator.discoverAllSongs();
 		var maxSongs:Int = allSongs.length;
 
 		if (maxSongs == 0) {

@@ -65,7 +65,7 @@ class Alphabet extends FlxSpriteGroup implements Scrollable
 	{
 		for (character in text.split(''))
 		{
-			if (!AlphaCharacter.allLetters.exists(character.toLowerCase()))
+			if (!AlphaCharacter.allLetters.exists(character.toLowerCase()) && (character != '\n' && character != ' ' && character != '\t'))
 				return false;
 		}
 		return true;

@@ -1,5 +1,6 @@
 package managers;
 
+import backend.ModContext;
 import backend.Mods;
 import backend.Paths;
 import backend.Song;
@@ -123,8 +124,8 @@ class SongDifficultyEvaluator
 	}
 
 	/**
-	 * Attempts to load a chart using the Song class, which validates the format properly.
-	 * This is the correct way to ensure charts are actually playable.
+	 * Attempts to load a chart using ModContext, which is completely thread-safe.
+	 * Never changes the global currentModDirectory.
 	 *
 	 * @param songName Song name
 	 * @param difficulty Difficulty name
@@ -134,22 +135,13 @@ class SongDifficultyEvaluator
 	private static function loadChartForValidation(songName:String, difficulty:String, modFolder:String):Null<SwagSong>
 	{
 		try {
-			// Set mod context
-			var oldMod = Mods.currentModDirectoryAlt;
-			if (modFolder != null && modFolder != '') {
-				Mods.currentModDirectoryAlt = modFolder;
-			}
-
-			// Use Song class to load - this validates the chart
 			var songPath = Paths.formatToSongPath(songName);
 			var difficultyStr = difficulty.toLowerCase();
 			var chartName = difficultyStr != 'normal' ? '${songPath}-${difficultyStr}' : songPath;
-			var chart = Song.loadFromJson(chartName, songPath);
 
-			// Restore mod context
-			Mods.currentModDirectoryAlt = oldMod;
-
-			return chart;
+			// Use ModContext for thread-safe song loading without changing global state
+			var modContext = new backend.ModContext(modFolder != null ? modFolder : '');
+			return modContext.loadSongChart(chartName, songPath);
 		}
 		catch (e:Dynamic) {
 			return null;
@@ -159,6 +151,7 @@ class SongDifficultyEvaluator
 	/**
 	 * Calculates a comprehensive difficulty score for a song using actual chart data.
 	 * Analyzes note patterns, spacing, scroll speed, BPM changes, and timing complexity.
+	 * Thread-safe - uses ModContext without changing the global currentModDirectory.
 	 *
 	 * @param songName The name of the song to evaluate
 	 * @param difficulty The difficulty to analyze (e.g., "hard", "nightmare")
@@ -171,18 +164,13 @@ class SongDifficultyEvaluator
 		var score:Float = 0.0;
 
 		try {
-			var oldMod = Mods.currentModDirectoryAlt;
-			if (modFolder != null && modFolder != '') {
-				Mods.currentModDirectoryAlt = modFolder;
-			}
-
-			// Use Song class to load the chart
+			// Use ModContext for thread-safe song loading without changing global state
+			var modContext = new backend.ModContext(modFolder != null ? modFolder : '');
 			var songPath = Paths.formatToSongPath(songName);
 			var difficultyName = difficulty.toLowerCase();
 			var chartName = difficultyName != 'normal' ? '${songPath}-${difficultyName}' : songPath;
 
-			var loadedChart = Song.loadFromJson(chartName, songPath, true);
-			Mods.currentModDirectoryAlt = oldMod;
+			var loadedChart = modContext.loadSongChart(chartName, songPath);
 
 			if (loadedChart != null && loadedChart.notes != null && loadedChart.notes.length > 0) {
 			var bpm = loadedChart.bpm > 0 ? loadedChart.bpm : 120.0;

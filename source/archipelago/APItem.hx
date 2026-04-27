@@ -191,8 +191,7 @@ class APItem {
             Sys.sleep(100);
         }
         trace("Starting initial challenge playlist generation...");
-        return new managers.ChallengePlaylistGenerator(null).startAsync(FlxG.random.int(2, 10)); // Start generating immediately with random song count between 2 and 10 for variety
-
+        return new managers.ChallengePlaylistGenerator(null).startAsync(FlxG.random.int(2, 10));
     })();
 
     private static var allItems:ActiveArray = new ActiveArray([]);
