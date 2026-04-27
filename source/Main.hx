@@ -425,7 +425,7 @@ class Main extends Sprite
 
 		trace(commandPrompt.metadata());
 
-		yutautil.Threader.runInThread(commandPrompt.start(), 0, "cmd", true, 0);
+		//yutautil.Threader.runInThread(commandPrompt.start(), 0, "cmd", true, 0);
 
 		WindowUtils.onClosing = function()
 		{
@@ -766,6 +766,7 @@ class Main extends Sprite
 		FullScreenPlugin.initialize();
 		ConsolePlugin.initialize();
 		TraceViewerPlugin.initialize();
+		ArchipelagoDebug.initialize();
 		new ScreenShotPlugin();
 
 		// trace(3.cubed());

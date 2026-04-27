@@ -1592,7 +1592,7 @@ class Paths
 
 	public static function animateAtlas(path:String, ?library:String):String
 	{
-		return getFolderPath('images/$path', library);
+		return getPath('images/$path', IMAGE, library, true);
 	}
 
 	public static function getAnimateAtlas(key:String, ?library:String, settings:AtlasSpriteSettings):FlxAnimateFrames
@@ -1600,14 +1600,7 @@ class Paths
 		var assetLibrary:String = library ?? "";
 		var graphicKey:String = "";
 
-		if (assetLibrary != "")
-		{
-		graphicKey = Paths.animateAtlas(key, assetLibrary);
-		}
-		else
-		{
-		graphicKey = Paths.animateAtlas(key);
-		}
+		graphicKey = Paths.animateAtlas(key, library);
 
 		var validatedSettings:AtlasSpriteSettings =
 		{
@@ -1624,9 +1617,9 @@ class Paths
 		};
 
 		// Validate asset path.
-		if (!Assets.exists('${graphicKey}/Animation.json'))
+		if (!Paths.exists('${graphicKey}/Animation.json'))
 		{
-		throw 'No Animation.json file exists at the specified path (${graphicKey})';
+			throw 'No Animation.json file exists at the specified path (${graphicKey})';
 		}
 
 		return FlxAnimateFrames.fromAnimate(graphicKey, validatedSettings.spritemaps, validatedSettings.metadataJson, validatedSettings.cacheKey,
@@ -1656,7 +1649,7 @@ class Paths
 	}
 
 	public static inline function getContent(path:String) {
-        #if sys
+    #if sys
 		return (FileSystem.exists(path)) ? File.getContent(path) : null;
 		#else
 		return (OpenFlAssets.exists(path, TEXT)) ? Assets.getText(path) : null;

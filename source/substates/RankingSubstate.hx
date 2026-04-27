@@ -351,46 +351,45 @@ class RankingSubstate extends MusicBeatSubstate
 										? Paths.crawlDirectoryOG("mods/" + archipelago.APPlayState.currentMod + "/data", ".json")
 										: Paths.crawlDirectoryOG("assets/shared/data", ".json");
 
-																	for (json in jsonStuff)
-																	{
-																		trace("Comparing JSON file: " + json);
-																		if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
-																		{
-																			trace("Match found for JSON file: " + json);
-																			songJson = Song.parseJSON(NativeFileSystem.getContent(json));
-																			if (songJson != null)
-																			{
-																				trace("Parsed JSON successfully for song: " + songJson.song);
-																				trace("Checking against current song: " + PlayState.SONG.song + " vs " + songJson.song);
-																				if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
-																				{
-																					trace("Song JSON matches current song: " + songJson.song);
-																					locationId = song[0];
-																					locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
-																					trace("Updated Location IDs from JSON: " + locationIdInts);
-																					break;
-																				} 													else
-																				{
-																					trace("Location IDs still invalid, attempting to use name from JSON...");
-																					if (songJson != null && songJson.song != null)
-																					{
-																						locationId = songJson.song;
-																						locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
-																						trace("Updated Location IDs using JSON name: " + locationIdInts);
-																						attempts++;
-																						if (attempts >= 200)
-																						{
-																							trace("Too many attempts to find valid location ID. It shouldn't even be allowed to be this high, but here we are.");
-																							break;
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-
+									for (json in jsonStuff)
+									{
+										trace("Comparing JSON file: " + json);
+										if (json.trim().toLowerCase().replace(" ", "-") == songPath.trim().toLowerCase().replace(" ", "-"))
+										{
+											trace("Match found for JSON file: " + json);
+											songJson = Song.parseJSON(NativeFileSystem.getContent(json));
+											if (songJson != null)
+											{
+												trace("Parsed JSON successfully for song: " + songJson.song);
+												trace("Checking against current song: " + PlayState.SONG.song + " vs " + songJson.song);
+												if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+												{
+													trace("Song JSON matches current song: " + songJson.song);
+													locationId = song[0];
+													locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+													trace("Updated Location IDs from JSON: " + locationIdInts);
+													break;
+												} 													else
+												{
+													trace("Location IDs still invalid, attempting to use name from JSON...");
+													if (songJson != null && songJson.song != null)
+													{
+														locationId = songJson.song;
+														locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+														trace("Updated Location IDs using JSON name: " + locationIdInts);
+														attempts++;
+														if (attempts >= 200)
+														{
+															trace("Too many attempts to find valid location ID. It shouldn't even be allowed to be this high, but here we are.");
+															break;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 
 							if (managers.APFreeplayManager.isVictorySong(locationId, archipelago.APPlayState.currentMod))
 							{
@@ -421,21 +420,22 @@ class RankingSubstate extends MusicBeatSubstate
 								ArchPopup.startPopupCustom("You've completed a Song Check!", 'Good Job!', 'archColor');
 							}
 
-					if (((((((archipelago.APItem.activeItem != null)))))))
-            archipelago.APItem.activeItem = null;
+							if (((((((archipelago.APItem.activeItem != null)))))))
+								archipelago.APItem.activeItem = null;
 
-					// Clear active effects
-					archipelago.APItem.clearActiveEffects();
+							// Clear active effects
+							archipelago.APItem.clearActiveEffects();
 
-					if (archipelago.APEntryState.inArchipelagoMode) {
-						ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
-					}						// Check sanity locations on beating if enabled
-						if (archipelago.APEntryState.apGame != null)
-						{
-							var songName = PlayState.SONG.song;
-							var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
-							archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
-						}
+							if (archipelago.APEntryState.inArchipelagoMode) {
+								ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
+							}	// Check sanity locations on beating if enabled
+
+							if (archipelago.APEntryState.apGame != null)
+							{
+								var songName = PlayState.SONG.song;
+								var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
+								archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
+							}
 
 							// for (locationIdInt in locationIdInts)
 							// {

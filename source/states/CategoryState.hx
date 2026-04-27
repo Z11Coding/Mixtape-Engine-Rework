@@ -561,8 +561,10 @@ class CategoryState extends MusicBeatState
 					return;
 				}
 
+				// h?
 				if (loadWeekForce == 'h?')
 				{
+					Achievements.unlock('h');
 					Window.alert('h?', 'h?');
 					Main.closeGame();
 				}

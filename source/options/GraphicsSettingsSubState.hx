@@ -228,6 +228,11 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 				FlxG.updateFramerate = ClientPrefs.data.framerate;
 			}
 		}
+
+		if (ClientPrefs.data.framerate == 30)
+			Achievements.unlock('fps');
+		if (ClientPrefs.data.framerate == 1)
+			Achievements.unlock('potatogaming');
 	}
 
 	function onChangePerformanceCounter()

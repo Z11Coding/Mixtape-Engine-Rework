@@ -40,7 +40,7 @@ typedef APSettings =
     var name:String;
     var description:String;
     var game:String;
-	var FNF:APOptions;
+		var FNF:APOptions;
 }
 
 typedef APOptions =
@@ -88,6 +88,7 @@ typedef APOptions =
 	var	hard_mode:Bool;
 	var	enable_shop:Bool;
 	var	perma_traps:Bool;
+	var	excludeSongList:Array<String>;
 }
 
 enum ComboRank {
@@ -208,7 +209,8 @@ class APEntryState extends MusicBeatState
 			starter_debuffs: false,
 			perma_traps: false,
 			hard_mode: false,
-			enable_shop: false
+			enable_shop: false,
+			excludeSongList: []
 		}
 	};
 
