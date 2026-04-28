@@ -273,6 +273,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 		// Clean up suspended substate data
 		substateQueue = [];
 		suspendedSubstateData = [];
+		conductor.reset();
 
 		Paths.nukeMemory(!allowNuke);
 		super.destroy();
@@ -693,6 +694,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 		}
 
 		super.update(elapsed);
+		conductor.update(null);
 
 		// Handle substate queue - open the most recent substate if one exists
 		if (substateQueue.length > 0 && subState == null) {

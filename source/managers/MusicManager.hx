@@ -115,7 +115,7 @@ class MusicManager {
     // Music specific to the Main Menu/Main Menus (Freeplay, Story Mode, etc.)
     public static function playMenuMusic(?volume:Float, ?daSong:String, ?BPM:Float) { //It's a float because custom songs can be weird
         if (daSong != null) {
-            MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/$daSong')), volume);
+            MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/$daSong'), volume);
             if (BPM != null) Conductor.bpm = BPM;
         } else {
             setMenuMusic(ClientPrefs.data.menuSong, null, volume, true);
@@ -125,7 +125,7 @@ class MusicManager {
     // Music specific to the Pause Menu (This is for later)
     public static function playPauseMenuMusic(?volume:Float, ?daSong:String, ?BPM:Float) { //It's a float because custom songs can be weird
         if (daSong != null) {
-            MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('pauseMusic/$daSong')), volume);
+            MegaManager.conductor.playMusic(Paths.formatToSongPath('pauseMusic/$daSong'), volume);
             if (BPM != null) Conductor.bpm = BPM;
         } else {
             setPauseMenuMusic(ClientPrefs.data.pauseMusic, null, volume, true);
@@ -137,7 +137,7 @@ class MusicManager {
     public static function playEditorMusic(?volume:Float, ?isChartEditor:Bool = false, ?daSong:String, ?BPM:Float) { //It's a float because custom songs can be weird
         if (!isChartEditor) { //Behave like normal
             if (daSong != null) {
-                MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('editorMusic/$daSong')), volume);
+                MegaManager.conductor.playMusic(Paths.formatToSongPath('editorMusic/$daSong'), volume);
             } else {
                 setEditorMusic(ClientPrefs.data.editorMusic, null, volume, true);
             }
@@ -150,30 +150,30 @@ class MusicManager {
     public static function setMenuMusic(daSong:String, ?BPM:Null<Float>, ?volume:Float, ?playMusic:Bool = false) { //It's a float because custom songs can be weird
         switch (daSong) {
             case "None":
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/empty')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/none'), volume);
                 Conductor.bpm = 0;
             case "Panix Press":
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/panixPress')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/panixPress'), volume);
                 Conductor.bpm = 150;
             case "TitleMania":
                 if (playMusic)  {
                     trace('Current Hour: ${ExtendedDate.global().getHours()}');
                     if (ExtendedDate.global().getHours() > 19 || ExtendedDate.global().getHours() < 7) {
-                        MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/titlemania-(night-mix)')), volume);
+                        MegaManager.conductor.playMusic('menuMusic/titlemania-(night-mix)', volume);
                         Conductor.bpm = 90;
                     } else {
-                        MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/titlemania')), volume);
+                        MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/titlemania'), volume);
                         Conductor.bpm = 100;
                     }
                 }
             case "Base Game":
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/freakyMenu')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/freakyMenu'), volume);
                 Conductor.bpm = 102;
             case "Freeplay Random":
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/freeplayRandom')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/freeplayRandom'), volume);
                 Conductor.bpm = 145;
             case "Pause Menu":
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'), volume);
                 switch (ClientPrefs.data.pauseMusic)
                 {
                     //There's 100% a better way to do this im just lazy
@@ -209,7 +209,7 @@ class MusicManager {
                         Conductor.bpm = MixtapeSettingsSubState.curBPMList[14];
                 }
             default:
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/$daSong')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/$daSong'), volume);
                 Conductor.bpm = BPM;
         }
     }
@@ -250,7 +250,7 @@ class MusicManager {
             case 'Silly Little Sample Song':
                 Conductor.bpm = MixtapeSettingsSubState.curBPMList[14];
             default:
-                if (playMusic) MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('pauseMusic/$daSong')), volume);
+                if (playMusic) MegaManager.conductor.playMusic(Paths.formatToSongPath('pauseMusic/$daSong'), volume);
                 Conductor.bpm = BPM;
         }
     }
@@ -260,13 +260,13 @@ class MusicManager {
         switch (daSong) {
             //dont question it
             case "None":
-                MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/empty')), volume);
+                MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/empty'), volume);
             case "Pause Menu":
-                MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}')), volume);
+                MegaManager.conductor.playMusic(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'), volume);
             case "Menu Music" | "Menu Menu":
-                MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}')), volume);
+                MegaManager.conductor.playMusic(Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}'), volume);
             default:
-                MegaManager.conductor.playMusic(Paths.soundPath(Paths.formatToSongPath('editorMusic/${ClientPrefs.data.editorMusic}')), volume);
+                MegaManager.conductor.playMusic(Paths.formatToSongPath('editorMusic/${ClientPrefs.data.editorMusic}'), volume);
         }
     }
 
@@ -279,19 +279,19 @@ class MusicManager {
 
         switch (targetSong) {
             case "None":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/empty'));
+                musicPath = Paths.formatToSongPath('menuMusic/empty');
             case "Panix Press":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/panixPress'));
+                musicPath = Paths.formatToSongPath('menuMusic/panixPress');
             case "TitleMania":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/titlemania'));
+                musicPath = Paths.formatToSongPath('menuMusic/titlemania');
             case "Base Game":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/freakyMenu'));
+                musicPath = Paths.formatToSongPath('menuMusic/freakyMenu');
             case "Freeplay Random":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/freeplayRandom'));
+                musicPath = Paths.formatToSongPath('menuMusic/freeplayRandom');
             case "Pause Menu":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'));
+                musicPath = Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}');
             default:
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/$targetSong'));
+                musicPath = Paths.formatToSongPath('menuMusic/$targetSong');
         }
 
         return returnPath ? new MusicResource(musicPath).path : new MusicResource(new FlxSound().loadEmbedded(musicPath, false, false).funcAndReturn(function(snd:FlxSound) {
@@ -306,9 +306,9 @@ class MusicManager {
 
         switch (targetSong) {
             case 'None':
-                musicPath = Paths.soundPath(Paths.formatToSongPath('pauseMusic/empty'));
+                musicPath = Paths.formatToSongPath('pauseMusic/empty');
             default:
-                musicPath = Paths.soundPath(Paths.formatToSongPath('pauseMusic/$targetSong'));
+                musicPath = Paths.formatToSongPath('pauseMusic/$targetSong');
         }
 
         return returnPath ? new MusicResource(musicPath).path : new MusicResource(new FlxSound().loadEmbedded(musicPath, false, false).funcAndReturn(function(snd:FlxSound) {
@@ -323,13 +323,13 @@ class MusicManager {
 
         switch (targetSong) {
             case "None":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/empty'));
+                musicPath = Paths.formatToSongPath('menuMusic/empty');
             case "Pause Menu":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}'));
+                musicPath = Paths.formatToSongPath('pauseMusic/${ClientPrefs.data.pauseMusic}');
             case "Menu Music" | "Menu Menu":
-                musicPath = Paths.soundPath(Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}'));
+                musicPath = Paths.formatToSongPath('menuMusic/${ClientPrefs.data.menuSong}');
             default:
-                musicPath = Paths.soundPath(Paths.formatToSongPath('editorMusic/$targetSong'));
+                musicPath = Paths.formatToSongPath('editorMusic/$targetSong');
         }
 
         return returnPath ? new MusicResource(musicPath).path : new MusicResource(new FlxSound().loadEmbedded(musicPath, false, false).funcAndReturn(function(snd:FlxSound) {

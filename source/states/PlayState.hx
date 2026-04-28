@@ -2157,7 +2157,7 @@ class PlayState extends MusicBeatState
 	public var lastStepHit:Int = -1;
 	public function doMegaManagerStuff() {
 		// Add all manager-related stuff here
-		MegaManager.conductor.addSectionCallback((curSec:Int, backward:Bool) ->
+		conductor.addSectionCallback((curSec:Int, backward:Bool) ->
 		{
 			if (SONG.notes[curSec] != null)
 			{
@@ -2180,7 +2180,7 @@ class PlayState extends MusicBeatState
 			callOnScripts('onSectionHit');
 		});
 
-		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
 			if(lastBeatHit >= curBeat) {
 				trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
@@ -2437,7 +2437,7 @@ class PlayState extends MusicBeatState
 			callOnScripts('onBeatHit');
 		});
 
-		MegaManager.conductor.addStepCallback((curStep:Int, backward:Bool) ->
+		conductor.addStepCallback((curStep:Int, backward:Bool) ->
 		{
 			if(curStep == lastStepHit) {
 				return;
@@ -3185,7 +3185,7 @@ class PlayState extends MusicBeatState
 			{
 				function onVideoEnd()
 				{
-					if (!isDead && generatedMusic && PlayState.SONG.notes[Std.int(MegaManager.conductor.currentStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
+					if (!isDead && generatedMusic && PlayState.SONG.notes[Std.int(conductor.currentStep / 16)] != null && !endingSong && !isCameraOnForcedPos)
 					{
 						moveCameraSection();
 						if (FlxG.camera != null) FlxG.camera.snapToTarget();
@@ -3944,9 +3944,9 @@ class PlayState extends MusicBeatState
 
 		var debugInfo = 'MODCHART DEBUG:\n';
 		debugInfo += 'Time: ${Math.round(Conductor.songPosition)}ms\n';
-		debugInfo += 'Step: ${MegaManager.conductor.currentStep} (${CoolUtil.floorDecimal(MegaManager.conductor.stepLengthMs, 2)})\n';
-		debugInfo += 'Beat: ${MegaManager.conductor.currentBeat} (${CoolUtil.floorDecimal(MegaManager.conductor.beatLengthMs, 2)})\n';
-		debugInfo += 'Section: ${MegaManager.conductor.currentMeasure}\n';
+		debugInfo += 'Step: ${conductor.currentStep} (${CoolUtil.floorDecimal(conductor.stepLengthMs, 2)})\n';
+		debugInfo += 'Beat: ${conductor.currentBeat} (${CoolUtil.floorDecimal(conductor.beatLengthMs, 2)})\n';
+		debugInfo += 'Section: ${conductor.currentMeasure}\n';
 		debugInfo += 'BPM: ${CoolUtil.floorDecimal(Conductor.bpm, 2)}\n\n';
 		debugInfo += 'STRUMS:\n';
 		debugInfo += opponentStrumInfo;
@@ -6832,7 +6832,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		if (vocals != null) vocals.volume *= (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
 		updateVisualPosition();
-		modManager.update(elapsed, MegaManager.conductor.beatLengthMs, MegaManager.conductor.stepLengthMs);
+		modManager.update(elapsed, conductor.beatLengthMs, conductor.stepLengthMs);
 		updateSyncedVideos(); // Update synced video system
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
@@ -6842,21 +6842,21 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		// Optimize script calls - only set if scripts exist
 		if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
-			setOnScripts('curDecStep', MegaManager.conductor.stepLengthMs);
-			setOnScripts('curDecBeat', MegaManager.conductor.beatLengthMs);
+			setOnScripts('curDecStep', conductor.stepLengthMs);
+			setOnScripts('curDecBeat', conductor.beatLengthMs);
 		}
 
 		if (strumFocus)
 		{
-			if (SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection && !SONG.notes[MegaManager.conductor.currentMeasure].exSection)
+			if (SONG.notes[conductor.currentMeasure].mustHitSection && !SONG.notes[conductor.currentMeasure].exSection)
 			{
-				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 1);
-				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 0);
+				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 1);
+				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 0);
 			}
-			else if (!SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection && !SONG.notes[MegaManager.conductor.currentMeasure].exSection)
+			else if (!SONG.notes[conductor.currentMeasure].mustHitSection && !SONG.notes[conductor.currentMeasure].exSection)
 			{
-				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
-				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
+				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
+				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 			}
 		}
 
@@ -7020,9 +7020,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			camHUD.zoom = FlxMath.lerp(defaultCamHudZoom, camHUD.zoom, _cachedExpValue);
 		}
 
-		FlxG.watch.addQuick("secShit", MegaManager.conductor.currentMeasure);
-		FlxG.watch.addQuick("beatShit", MegaManager.conductor.currentBeat);
-		FlxG.watch.addQuick("stepShit", MegaManager.conductor.currentStep);
+		FlxG.watch.addQuick("secShit", conductor.currentMeasure);
+		FlxG.watch.addQuick("beatShit", conductor.currentBeat);
+		FlxG.watch.addQuick("stepShit", conductor.currentStep);
 
 		// RESET = Quick Game Over Screen
 		if (!ClientPrefs.data.noReset && controls.RESET && canReset && !inCutscene && startedCountdown && !endingSong)
@@ -8091,7 +8091,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	public function loopCallback(startingPoint:Float = 0) // this took so much effort to get working I really hope people use this
 	{
 		// KillNotes(); // kill any existing notes...except there should be any
-		MegaManager.conductor.target.time = startingPoint;
+		conductor.target.time = startingPoint;
 		if (SONG.needsVoices) setVocalsTime(startingPoint);
 		lastUpdateTime = startingPoint;
 		RConductor.visualPosition = startingPoint;
@@ -9033,8 +9033,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 			case 'Turn off StrumFocus':
 				strumFocus = false;
-				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 0);
-				modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
+				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 0);
+				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 
 			case 'Fade Out':
 				FlxTween.tween(blackOverlay, {alpha: 1}, Std.parseFloat(value1)/playbackRate);
@@ -9306,7 +9306,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	}
 
 	public function moveCameraSection(?sec:Null<Int>):Void {
-		if(sec == null) sec = MegaManager.conductor.currentMeasure;
+		if(sec == null) sec = conductor.currentMeasure;
 		if(sec < 0) sec = 0;
 
 		if(SONG.notes[sec] == null) return;
@@ -9322,7 +9322,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return;
 		}
 
-		if (dad2 != null && SONG.notes[MegaManager.conductor.currentMeasure].exSection && !SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)
+		if (dad2 != null && SONG.notes[conductor.currentMeasure].exSection && !SONG.notes[conductor.currentMeasure].mustHitSection)
 		{
 			camFollow.setPosition(dad2.getMidpoint().x, dad2.getMidpoint().y);
 			camFollow.x += dad2.cameraPosition[0] + opponent2CameraOffset[0];
@@ -9334,7 +9334,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return;
 		}
 
-		if (bf2 != null && SONG.notes[MegaManager.conductor.currentMeasure].exSection && !SONG.notes[MegaManager.conductor.currentMeasure].gfSection && SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)
+		if (bf2 != null && SONG.notes[conductor.currentMeasure].exSection && !SONG.notes[conductor.currentMeasure].gfSection && SONG.notes[conductor.currentMeasure].mustHitSection)
 		{
 			camFollow.setPosition(bf2.getMidpoint().x, bf2.getMidpoint().y);
 			camFollow.x += bf2.cameraPosition[0] + boyfriend2CameraOffset[0];
@@ -9346,7 +9346,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return;
 		}
 
-		var isDad:Bool = (!SONG.notes[MegaManager.conductor.currentMeasure].exSection && SONG.notes[sec].mustHitSection != true);
+		var isDad:Bool = (!SONG.notes[conductor.currentMeasure].exSection && SONG.notes[sec].mustHitSection != true);
 		moveCamera(isDad);
 		if (isDad)
 			callOnScripts('onMoveCamera', ['dad']);
@@ -11572,7 +11572,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		// play character anims
 		var char:Character = boyfriend;
-		if((note != null && note.gfNote) || (SONG.notes[MegaManager.conductor.currentMeasure] != null && SONG.notes[MegaManager.conductor.currentMeasure].gfSection)) char = gf;
+		if((note != null && note.gfNote) || (SONG.notes[conductor.currentMeasure] != null && SONG.notes[conductor.currentMeasure].gfSection)) char = gf;
 		if (note != null) {
 			if (opponentmode || note.field == dadField)
 				char = dad;

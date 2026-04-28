@@ -1389,6 +1389,11 @@ class Paths
 		return getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, true);
 	}
 
+	inline public static function musicPath(path:String)
+	{
+		return getPath('music/$path.$SOUND_EXT', SOUND);
+	}
+
 	inline public static function soundP(key:String)
 	{
 		return getPath('sounds/$key.$SOUND_EXT', SOUND);

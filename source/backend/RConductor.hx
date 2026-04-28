@@ -55,14 +55,14 @@ class RConductor extends FlxRhythmConductor {
   }
 
   public function playSong(songPath:String) {
-    FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
     FlxG.sound.playMusic(songPath, 1, false);
+    FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
   }
 
   // Skip the meta check and go straight to the song
   public function playMusic(songPath:String, ?vol:Float = 1, ?loop:Bool = false) {
-    FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
-    FlxG.sound.playMusic(songPath, vol, loop);
+    FlxG.sound.playMusic(Paths.music((Paths.formatToSongPath(songPath))), vol, loop);
+    FlxRhythmConductorUtil.loadMetaFromFilePath(this, '${Paths.musicPath(songPath)}');
   }
 
   public function addStepCallback(func:(time : Int, backward : Bool) -> Void)
@@ -133,4 +133,11 @@ class RConductor extends FlxRhythmConductor {
   inline public static function calculateCrochet(bpm:Float){
 		return (60/bpm)*1000;
 	}
+
+  public function reset(?fullReset:Bool = false) {
+    if (RConductor.instance != null) {
+			if (fullReset) RConductor.instance.destroy();
+      FlxRhythmConductor.clearSingleton(RConductor.instance);
+    }
+  }
 }
