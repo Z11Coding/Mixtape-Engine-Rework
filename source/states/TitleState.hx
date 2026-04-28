@@ -59,7 +59,7 @@ class TitleState extends MusicBeatState
 	var textGroup:FlxGroup = new FlxGroup();
 	var blackScreen:FlxSprite;
 	var credTextShit:Alphabet;
-	var ngSpr:FlxSprite;
+	public var ngSpr:FlxSprite;
 
 	var titleTextColors:Array<FlxColor> = [0xFF33FFFF, 0xFF3333CC];
 	var titleTextAlphas:Array<Float> = [1, .64];
@@ -267,10 +267,10 @@ class TitleState extends MusicBeatState
 						createCoolText(['Not associated', 'with'], -40);
 					case 8:
 						addMoreText('newgrounds', -40);
-						ngSpr.visible = true;
+						//ngSpr.visible = true;
 					case 9:
 						deleteCoolText();
-						ngSpr.visible = false;
+						//ngSpr.visible = false;
 					case 10:
 						createCoolText([curWacky[0]]);
 					case 12:

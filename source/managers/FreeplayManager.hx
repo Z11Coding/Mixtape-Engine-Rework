@@ -848,11 +848,11 @@ class FreeplayManager {
                             return cat.trim().toLowerCase();
                         });
 
-                    if (categoryWhaat.length == 1 && categoryWhaat[0] == "" || categoryWhaat.length == 0) {
+                    if (categoryWhaat.length == 1 && (categoryWhaat[0] == "" || categoryWhaat[0].toLowerCase() != "base") || categoryWhaat.length == 0) {
                         categoryWhaat = [];
                     }
 
-                    // trace("CategoryWhaat2: " + categoryWhaat);
+                    trace("Song Category: " + categoryWhaat);
                     var colors:Array<Int> = song[2];
                     if(colors == null || colors.length < 3)
                     {

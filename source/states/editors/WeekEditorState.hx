@@ -96,7 +96,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 		FlxG.mouse.visible = true;
 
-		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
+		MusicManager.playEditorMusic();
 
 		super.create();
 	}
@@ -245,7 +245,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 		weekBeforeInputText.text = weekFile.weekBefore;
 
-		categoryInputText.text = weekFile.category.toArray().join(",");
+		categoryInputText.text = (weekFile.category?.toArray()?.join(",") ?? "");
 
 		difficultiesInputText.text = '';
 		if(weekFile.difficulties != null) difficultiesInputText.text = weekFile.difficulties;

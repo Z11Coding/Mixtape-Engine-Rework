@@ -4,30 +4,30 @@ cd ..
 @echo on
 echo Installing dependencies...
 echo This might take a few moments depending on your internet speed.
-haxelib install lime 8.2.2
-haxelib install openfl 9.4.1
-haxelib install flixel 5.6.2
-haxelib install flixel-addons 3.3.2
-haxelib install hscript-iris 1.1.3
-haxelib install tjson 1.4.0
-haxelib install hxdiscord_rpc 1.2.4
-haxelib install hxvlc 2.0.1 --skip-dependencies
-haxelib install helder.set 0.3.1
-haxelib install yaml 2.0.1
-haxelib install haxe-concurrent 5.1.3
-haxelib install actuate 1.9.0
-haxelib install flixel-ui 2.6.1
-haxelib install hscript 2.5.0
-haxelib install noisehx 0.0.1
-haxelib install haxeui-core 1.7.0
-haxelib install haxeui-flixel 1.7.0
-haxelib install deflatex 1.0.0
-haxelib install crypto 1.0.4
-haxelib install openflCamera 1.0.7
-haxelib install openflMicrophone 1.0.1
-haxelib install hxpy 2.0.0
-haxelib install random 1.4.1
-haxelib install flxrhythmconductor 0.2.0
+haxelib install lime 8.2.2 --always --quiet
+haxelib install openfl 9.4.1 --always --quiet
+haxelib install flixel 5.6.2 --always --quiet
+haxelib install flixel-addons 3.3.2 --always --quiet
+haxelib install hscript-iris 1.1.3 --always --quiet
+haxelib install tjson 1.4.0 --always --quiet
+haxelib install hxdiscord_rpc 1.2.4 --always --quiet
+haxelib install hxvlc 2.0.1 --skip-dependencies --always --quiet
+haxelib install helder.set 0.3.1 --always --quiet
+haxelib install yaml 2.0.1 --always --quiet
+haxelib install haxe-concurrent 5.1.3 --always --quiet
+haxelib install actuate 1.9.0 --always --quiet
+haxelib install flixel-ui 2.6.2 --always --quiet
+haxelib install hscript 2.5.0 --always --quiet
+haxelib install noisehx 0.0.1 --always --quiet
+haxelib install haxeui-core 1.7.0 --always --quiet
+haxelib install haxeui-flixel 1.7.0 --always --quiet
+haxelib install deflatex 1.0.0 --always --quiet
+haxelib install crypto 1.0.4 --always --quiet
+haxelib install openflCamera 1.0.7 --always --quiet
+haxelib install openflMicrophone 1.0.1 --always --quiet
+haxelib install hxpy 2.0.0 --always --quiet
+haxelib install random 1.4.1 --always --quiet
+haxelib install flxrhythmconductor 0.2.0 --always --quiet
 haxelib set lime 8.2.2
 haxelib set openfl 9.4.1
 haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate c61476f4b3a3d225631ab3065e4e925a4b63c076

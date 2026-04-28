@@ -1,23 +1,47 @@
 {
-	"songs": [
-		["Cocoa", "parents", [160, 209, 255]],
-		["Eggnog", "parents", [160, 209, 255]],
-		["Winter Horrorland", "monster", [160, 209, 255]]
-	],
-
+	"storyName": "RED SNOW",
+	"difficulties": "Easy,Normal,Hard",
+	"hideFreeplay": false,
+	"weekBackground": "christmas",
+	"weekBefore": "week4",
+	"startUnlocked": true,
+	"hideStoryMode": false,
 	"weekCharacters": [
 		"parents-christmas",
 		"bf",
 		"gf"
 	],
-	"weekBackground": "christmas",
-
-	"storyName": "RED SNOW",
-	"weekBefore": "week4",
-	"weekName": "Week 5",
-	"category": "base",
-	"startUnlocked": true,
-
-	"hideStoryMode": false,
-	"hideFreeplay": false
+	"songs": [
+		[
+			"Cocoa",
+			"parents",
+			[
+				175,
+				102,
+				206
+			]
+		],
+		[
+			"Eggnog",
+			"parents",
+			[
+				175,
+				102,
+				206
+			]
+		],
+		[
+			"Winter Horrorland",
+			"monster",
+			[
+				103,
+				0,
+				0
+			]
+		]
+	],
+	"category": [
+		"base"
+	],
+	"weekName": "Week 5"
 }

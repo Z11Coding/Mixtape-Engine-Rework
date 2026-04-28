@@ -1,7 +1,7 @@
 package objects;
 
-import openfl.utils.Assets;
 import haxe.Json;
+import openfl.utils.Assets;
 
 typedef MenuCharacterFile = {
 	var image:String;
@@ -36,7 +36,7 @@ class MenuCharacter extends FlxSprite
 		var dontPlayAnim:Bool = false;
 		scale.set(1, 1);
 		updateHitbox();
-		
+
 		color = FlxColor.WHITE;
 		alpha = 1;
 
@@ -74,7 +74,14 @@ class MenuCharacter extends FlxSprite
 					trace('Error loading menu character file of "$character": $e');
 				}
 
-				frames = Paths.getSparrowAtlas('menucharacters/' + charFile.image);
+				try {
+					frames = Paths.getSparrowAtlas('menucharacters/' + charFile.image);
+				}
+				catch(e:Dynamic)
+				{
+					trace('Error loading menu character file of "$character": $e');
+					return;
+				}
 				animation.addByPrefix('idle', charFile.idle_anim, 24);
 
 				var confirmAnim:String = charFile.confirm_anim;

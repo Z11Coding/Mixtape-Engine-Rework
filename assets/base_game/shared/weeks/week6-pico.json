@@ -1,22 +1,38 @@
 {
-	"songs": [
-		["Senpai (Pico mix)", "senpai-pixel", [255, 120, 191]],
-		["Roses (Pico mix)", "senpai-pixel", [255, 120, 191]]
+	"storyName": "hating simulator ft. moawling (Pico Edition)",
+	"difficulties": "Easy,Normal,Hard",
+	"hideFreeplay": false,
+	"weekBackground": "school",
+	"weekBefore": "weekend1",
+	"startUnlocked": false,
+	"hideStoryMode": true,
+	"category": [
+		"Pico"
 	],
-
 	"weekCharacters": [
 		"senpai",
 		"bf",
 		"gf"
 	],
-	"weekBackground": "school",
-
-	"storyName": "hating simulator ft. moawling",
-	"weekBefore": "week5",
-	"weekName": "Week 6",
-	"difficulties": "Easy,Normal,Hard",
-	"startUnlocked": true,
-	"category": "pico",
-	"hideStoryMode": true,
-	"hideFreeplay": false
+	"songs": [
+		[
+			"Senpai (Pico mix)",
+			"senpai-pixel",
+			[
+				255,
+				170,
+				111
+			]
+		],
+		[
+			"Roses (Pico mix)",
+			"senpai-pixel",
+			[
+				255,
+				170,
+				111
+			]
+		]
+	],
+	"weekName": "Week 6 Pico"
 }

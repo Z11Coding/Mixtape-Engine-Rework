@@ -3,43 +3,45 @@
 	"difficulties": "Erect,Nightmare",
 	"hideFreeplay": false,
 	"weekBackground": "stage",
-	"weekBefore": "tutorial",
-	"startUnlocked": true,
-	"category": "erect",
-	"hideStoryMode": true,
-	"weekCharacters": [
-		"dad",
-		"bf",
-		"gf"
-	],
+	"weekBefore": "week7",
+	"startUnlocked": false,
 	"songs": [
 		[
 			"Bopeebo Erect",
 			"dad",
 			[
-				146,
-				113,
-				253
+				175,
+				102,
+				206
 			]
 		],
 		[
 			"Fresh Erect",
 			"dad",
 			[
-				146,
-				113,
-				253
+				175,
+				102,
+				206
 			]
 		],
 		[
 			"Dad Battle Erect",
 			"dad",
 			[
-				146,
-				113,
-				253
+				175,
+				102,
+				206
 			]
 		]
 	],
-	"weekName": "Week 1"
+	"weekCharacters": [
+		"dad",
+		"bf",
+		"gf"
+	],
+	"category": [
+		"Erect"
+	],
+	"hideStoryMode": true,
+	"weekName": "Week 1 Erect"
 }

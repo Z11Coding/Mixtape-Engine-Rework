@@ -1181,8 +1181,7 @@ class PlayState extends MusicBeatState
 		initializeOptimizations();
 		updateScriptFlags();
 
-		Conductor.mapBPMChanges(SONG);
-		Conductor.bpm = SONG.bpm;
+		conductor.setupSong(altInstrumentals ?? SONG.song, SONG);
 
 		#if DISCORD_ALLOWED
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
@@ -2153,8 +2152,6 @@ class PlayState extends MusicBeatState
 		doMegaManagerStuff(); // do it at the END
 	}
 
-	public var lastBeatHit:Int = -1;
-	public var lastStepHit:Int = -1;
 	public function doMegaManagerStuff() {
 		// Add all manager-related stuff here
 		conductor.addSectionCallback((curSec:Int, backward:Bool) ->
@@ -2182,11 +2179,6 @@ class PlayState extends MusicBeatState
 
 		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
-			if(lastBeatHit >= curBeat) {
-				trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
-				return;
-			}
-
 			if ((curBeat % 32 == 0 && RandomSpeedChange || curBeat % 8 == 0 && RandomSpeedChange && RandomSpeedChangeWild) && !songAboutToLoop)
 			{
 				// goes up to 3x speed cuz screw you thats why
@@ -2384,8 +2376,6 @@ class PlayState extends MusicBeatState
 				camHUD.zoom += 0.03 * camZoomingMult;
 			}
 
-			lastBeatHit = curBeat;
-
 			#if MECHANICS_MOD_ALLOWED
 			if (mechanicsMod != null) {
 				if (curBeat % 4 == 0)
@@ -2439,11 +2429,6 @@ class PlayState extends MusicBeatState
 
 		conductor.addStepCallback((curStep:Int, backward:Bool) ->
 		{
-			if(curStep == lastStepHit) {
-				return;
-			}
-
-			lastStepHit = curStep;
 			setOnScripts('curStep', curStep);
 			callOnScripts('onStepHit');
 		});

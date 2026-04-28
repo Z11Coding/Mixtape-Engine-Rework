@@ -5,32 +5,34 @@
 	"weekBackground": "christmas",
 	"weekBefore": "week4",
 	"startUnlocked": true,
-	"category": "erect",
-	"hideStoryMode": true,
-	"weekCharacters": [
-		"parents-christmas",
-		"bf",
-		"gf"
-	],
 	"songs": [
 		[
 			"Cocoa Erect",
 			"parents",
 			[
-				160,
-				209,
-				255
+				175,
+				102,
+				206
 			]
 		],
 		[
 			"Eggnog Erect",
 			"parents",
 			[
-				160,
-				209,
-				255
+				175,
+				102,
+				206
 			]
 		]
 	],
-	"weekName": "Week 5"
+	"weekCharacters": [
+		"parents-christmas",
+		"bf",
+		"gf"
+	],
+	"category": [
+		"Erect"
+	],
+	"hideStoryMode": true,
+	"weekName": "Week 5 Erect"
 }

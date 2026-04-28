@@ -1,20 +1,29 @@
 {
-	"songs": [
-		["Tutorial", "gf", [165, 0, 77]]
-	],
-
+	"storyName": "Learn the Basics",
+	"difficulties": "Easy, Normal, Hard",
+	"hideFreeplay": false,
+	"weekBackground": "stage",
+	"weekBefore": "tutorial",
+	"startUnlocked": true,
+	"hideStoryMode": false,
 	"weekCharacters": [
 		"",
 		"bf",
 		"gf"
 	],
-	"weekBackground": "stage",
-
-	"storyName": "",
-	"weekBefore": "tutorial",
-	"weekName": "Tutorial",
-	"startUnlocked": true,
-	"category": "base",
-	"hideStoryMode": false,
-	"hideFreeplay": false
+	"songs": [
+		[
+			"Tutorial",
+			"gf",
+			[
+				165,
+				0,
+				77
+			]
+		]
+	],
+	"category": [
+		"Base"
+	],
+	"weekName": "Tutorial"
 }

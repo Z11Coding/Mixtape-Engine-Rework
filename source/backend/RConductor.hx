@@ -10,8 +10,7 @@ class RConductor extends FlxRhythmConductor {
   public static var visualPosition:Float = 0;
 
   public static var safeZoneOffset:Float = 0; // is calculated in create(), is safeFrames in milliseconds
-	public static var bpmChangeMap:Array<MusicTimeChangeEvent> = [];
-  public static var crochet:Float = ((60 / instance?.currentBpm) * 1000);
+	public static var crochet:Float = ((60 / instance?.currentBpm) * 1000);
   public static var stepCrochet:Float = crochet / 4; // steps in milliseconds
 
   private inline static final _internalJackLimit:Float = 192 / 16;
@@ -54,15 +53,23 @@ class RConductor extends FlxRhythmConductor {
     });
   }
 
+  // Play a song
   public function playSong(songPath:String) {
     FlxG.sound.playMusic(songPath, 1, false);
     FlxRhythmConductorUtil.loadMetaFromFilePath(this, songPath);
   }
 
-  // Skip the meta check and go straight to the song
-  public function playMusic(songPath:String, ?vol:Float = 1, ?loop:Bool = false) {
+  // Load a song with a chart and play it immediately
+  public function playMusic(songPath:String, ?vol:Float = 1, ?loop:Bool = false, ?playSong:SwagSong = null) {
     FlxG.sound.playMusic(Paths.music((Paths.formatToSongPath(songPath))), vol, loop);
     FlxRhythmConductorUtil.loadMetaFromFilePath(this, '${Paths.musicPath(songPath)}');
+    if (playSong != null) RConductor.mapBPMChanges(playSong);
+  }
+
+  // Load a song with a chart
+  public function setupSong(songPath:String, ?playSong:SwagSong = null) {
+    FlxRhythmConductorUtil.loadMetaFromFilePath(this, '${Paths.musicPath(songPath)}');
+    if (playSong != null) RConductor.mapBPMChanges(playSong);
   }
 
   public function addStepCallback(func:(time : Int, backward : Bool) -> Void)
@@ -79,7 +86,11 @@ class RConductor extends FlxRhythmConductor {
 
   public static function mapBPMChanges(song:SwagSong)
 	{
-		bpmChangeMap = [];
+		var event:MusicTimeChangeEvent = new MusicTimeChangeEvent(
+      0,
+      song.bpm
+    );
+    RConductor.instance.timeChanges.push(event);
 
 		var curBPM:Float = song.bpm;
 		var totalSteps:Int = 0;
@@ -90,30 +101,31 @@ class RConductor extends FlxRhythmConductor {
 			{
 				curBPM = song.notes[i].bpm;
 				var event:MusicTimeChangeEvent = new MusicTimeChangeEvent(
-					totalPos,
+					(totalPos == 0 ? 0.01 : totalPos),
 					curBPM
         );
-				bpmChangeMap.push(event);
+				RConductor.instance.timeChanges.push(event);
 			}
 
 			if ((song.notes[i].bpmT && song.notes[i].endBPM != null && song.notes[i].startBPM != null) && song.notes[i].endBPM != song.notes[i].startBPM)
 			{
 				var tween:MusicTimeChangeEvent = new MusicTimeChangeEvent(
-          totalPos,
+          (totalPos == 0 ? 0.01 : totalPos),
           song.notes[i].endBPM,
 					song.notes[i].sectionSteps,
           song.notes[i].sectionBeats,
-					((totalPos + ((60 / song.notes[i].endBPM) * 1000 / 4) * Math.round(getSectionBeats(song, i) * 4)) - totalPos),
+					(((totalPos == 0 ? 0.01 : totalPos) + ((60 / song.notes[i].endBPM) * 1000 / 4) * Math.round(getSectionBeats(song, i) * 4)) - (totalPos == 0 ? 0.01 : totalPos)),
           'Linear'
         );
-				bpmChangeMap.push(tween);
+				RConductor.instance.timeChanges.push(tween);
 			}
 
 			var deltaSteps:Int = Math.round(getSectionSteps(song, i) * getSectionBeats(song, i));
 			totalSteps += deltaSteps;
 			totalPos += ((60 / curBPM) * 1000 / 4) * deltaSteps;
 		}
-    trace("new BPM map BUDDY " + bpmChangeMap);
+    RConductor.instance.setupTimeChanges(RConductor.instance.timeChanges);
+    trace("new BPM map BUDDY " + RConductor.instance.timeChanges);
 	}
 
   static function getSectionBeats(song:SwagSong, section:Int)
