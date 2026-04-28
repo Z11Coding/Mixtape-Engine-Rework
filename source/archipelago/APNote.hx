@@ -1,85 +1,21 @@
 package archipelago;
 
-import archipelago.PacketTypes.NetworkItem;
 import objects.Note;
 
+/**
+ * Simple marker class for Archipelago check notes.
+ * Texture loading and animations are handled in the replaceNotes function.
+ */
 class APNote extends objects.Note {
-    var APItem:NetworkItem;
     public var APItemLocation:Null<Int> = null;
-    public var index:Int = 0;
 
-    public function new(note:objects.Note, location:Int, ?item:NetworkItem = null) {
+    public function new(note:objects.Note, location:Int) {
         super(note.strumTime, note.noteData, note.prevNote, note.isSustainNote);
         this.ignoreNote = note.ignoreNote;
         this.noteType = note.noteType;
         this.isCheck = true;
-        // Set a unique RGBShader color for APNotes (matching the replaceInQueue method)
-        this.rgbShader.enabled = true;
-        this.rgbShader.r = 0xFF313131;
-        this.rgbShader.g = 0xFFFFFFFF;
-        this.rgbShader.b = 0xFFB4B4B4;
-        // Copy the properties from the original note to this new note, via reflection
-        trace("Copying properties from original note to new note...");
-        for (field in Reflect.fields(note)) {
-            if (field != "ignoreNote" && field != "noteType" && field != "strumTime" && field != "noteData" && field != "prevNote" && field != "isSustainNote") {
-                try {
-                    Reflect.setField(this, field, Reflect.field(note, field));
-                } catch (e:Dynamic) {
-                    trace('Failed to copy field: ' + field + ' with error: ' + e);
-                }
-            }
-        }
-        //note.destroy();
-        trace("Properties copied. Destroying original note...");
-
-        APItem = item;
-        APItemLocation = location;
-
-        this.checkInfo = {note: this, loc: location}; // Set the checkInfo for the new note
-
-        // Special handling for pixel stages to avoid crashes
-        if (!states.PlayState.isPixelStage) {
-            // Only set up AP note texture and animations for non-pixel stages
-            this.texture = 'noteSkins/ap_assets/AP_NOTE';
-
-            // Set up lane-based animations like standard notes
-            // Create animations for each lane using the same 'ap' prefix since there's only one AP texture
-            for (i in 0...Note.gfxLetter.length) {
-                // Regular note animations for each lane (A, B, C, D, etc.)
-                this.animation.addByPrefix(Note.gfxLetter[i], 'ap0', 24, false);
-
-                // Sustain note animations if this is a sustain note
-                if (this.isSustainNote) {
-                    this.animation.addByPrefix(Note.gfxLetter[i] + ' hold', 'ap hold piece', 24, true);
-                    this.animation.addByPrefix(Note.gfxLetter[i] + ' tail', 'ap hold end', 24, false);
-                }
-            }
-
-            // Play the appropriate animation based on note data
-            if (this.noteData >= 0 && this.noteData < Note.gfxLetter.length) {
-                if (this.isSustainNote) {
-                    if (this.prevNote != null && this.prevNote.isSustainNote) {
-                        this.animation.play(Note.gfxLetter[this.noteData] + ' hold');
-                    } else {
-                        this.animation.play(Note.gfxLetter[this.noteData] + ' tail');
-                    }
-                } else {
-                    this.animation.play(Note.gfxLetter[this.noteData]);
-                }
-            } else {
-                // Fallback to first animation
-                if (this.isSustainNote) {
-                    if (this.prevNote != null && this.prevNote.isSustainNote) {
-                        this.animation.play(Note.gfxLetter[0] + ' hold');
-                    } else {
-                        this.animation.play(Note.gfxLetter[0] + ' tail');
-                    }
-                } else {
-                    this.animation.play(Note.gfxLetter[0]);
-                }
-            }
-        }
-        // For pixel stages, we keep the original texture and animations but use RGB shader for coloring
+        this.APItemLocation = location;
+        this.checkInfo = {note: this, loc: location};
     }
 
     // Replace notes with a certain amount of locations.
@@ -236,59 +172,61 @@ class APNote extends objects.Note {
                         child.rgbShader.b = 0xFFB4B4B4;
                     }
                 } else {
-                    // For non-pixel stages, use normal AP note texture and disable shader
+                    // For non-pixel stages, handle texture based on settings
                     notes[lane][index].rgbShader.enabled = false;
                     notes[lane][index].rgbShader.r = 0xFF313131;
                     notes[lane][index].rgbShader.g = 0xFFFFFFFF;
                     notes[lane][index].rgbShader.b = 0xFFB4B4B4;
-                    notes[lane][index].texture = 'noteSkins/ap_assets/AP_NOTE'; // Set the texture to the APNote texture
 
-                    // Set child notes to the same texture
-                    var children = notes[lane][index].childrenNotes;
-                    for (child in children) {
-                        child.texture = 'noteSkins/ap_assets/AP_NOTE';
-                        child.rgbShader.enabled = false;
-                        child.rgbShader.r = 0xFF313131;
-                        child.rgbShader.g = 0xFFFFFFFF;
-                        child.rgbShader.b = 0xFFB4B4B4;
-                    }
+                    // Check if item textures are enabled
+                    var useItemTextures = backend.ClientPrefs.data.apNoteItemTextures;
 
-                    // Set up lane-based animations like standard notes
-                    // Create animations for each lane using the same 'ap' prefix since there's only one AP texture
-                    for (j in 0...Note.gfxLetter.length) {
-                        // Regular note animations for each lane (A, B, C, D, etc.)
-                        notes[lane][index].animation.addByPrefix(Note.gfxLetter[j], 'ap0', 24, false);
+                    if (useItemTextures) {
+                        // Try to load item texture based on location
+                        var itemSprite = tryGetItemSpriteForLocation(location);
+                        if (itemSprite != null) {
+                            notes[lane][index].texture = itemSprite.getImagePath();
+                            setupItemTextureAnimations(notes[lane][index]);
 
-                        // Sustain note animations if this is a sustain note
-                        if (notes[lane][index].isSustainNote) {
-                            notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' hold', 'ap hold piece0', 24, true);
-                            notes[lane][index].animation.addByPrefix(Note.gfxLetter[j] + ' tail', 'ap hold end0', 24, false);
-                        }
-                    }
-
-                    // Play the appropriate animation based on note data
-                    var noteData = notes[lane][index].noteData;
-                    if (noteData >= 0 && noteData < Note.gfxLetter.length) {
-                        if (notes[lane][index].isSustainNote) {
-                            if (notes[lane][index].prevNote != null && notes[lane][index].prevNote.isSustainNote) {
-                                notes[lane][index].animation.play(Note.gfxLetter[noteData] + ' hold');
-                            } else {
-                                notes[lane][index].animation.play(Note.gfxLetter[noteData] + ' tail');
+                            // Set child notes to the same texture
+                            var children = notes[lane][index].childrenNotes;
+                            for (child in children) {
+                                // child.texture = itemSprite.getImagePath();
+                                child.rgbShader.enabled = backend.ClientPrefs.data.apNoteItemTextures;
+                                child.rgbShader.r = 0xFF313131;
+                                child.rgbShader.g = 0xFFFFFFFF;
+                                child.rgbShader.b = 0xFFB4B4B4;
                             }
                         } else {
-                            notes[lane][index].animation.play(Note.gfxLetter[noteData]);
+                            // Fallback to default AP note texture
+                            notes[lane][index].texture = 'noteSkins/ap_assets/AP_NOTE';
+                            setupAPNoteAnimations(notes[lane][index]);
+
+                            var children = notes[lane][index].childrenNotes;
+                            for (child in children) {
+                                child.texture = 'noteSkins/ap_assets/AP_NOTE';
+                                child.rgbShader.enabled = false;
+                                child.rgbShader.r = 0xFF313131;
+                                child.rgbShader.g = 0xFFFFFFFF;
+                                child.rgbShader.b = 0xFFB4B4B4;
+                            }
+                            setupAPNoteAnimations(notes[lane][index]);
                         }
                     } else {
-                        // Fallback to first animation
-                        if (notes[lane][index].isSustainNote) {
-                            if (notes[lane][index].prevNote != null && notes[lane][index].prevNote.isSustainNote) {
-                                notes[lane][index].animation.play(Note.gfxLetter[0] + ' hold');
-                            } else {
-                                notes[lane][index].animation.play(Note.gfxLetter[0] + ' tail');
-                            }
-                        } else {
-                            notes[lane][index].animation.play(Note.gfxLetter[0]);
+                        // Use default AP note texture
+                        notes[lane][index].texture = 'noteSkins/ap_assets/AP_NOTE';
+
+                        // Set child notes to the same texture
+                        var children = notes[lane][index].childrenNotes;
+                        for (child in children) {
+                            child.texture = 'noteSkins/ap_assets/AP_NOTE';
+                            child.rgbShader.enabled = false;
+                            child.rgbShader.r = 0xFF313131;
+                            child.rgbShader.g = 0xFFFFFFFF;
+                            child.rgbShader.b = 0xFFB4B4B4;
                         }
+
+                        setupAPNoteAnimations(notes[lane][index]);
                     }
                 }
             }
@@ -305,5 +243,90 @@ class APNote extends objects.Note {
             }
 
         return newNotes; // Return the new notes
+    }
+
+    /**
+     * Try to get an item sprite for a location using the APGameState sprite manager
+     */
+    private static function tryGetItemSpriteForLocation(location:Int):Null<archipelago.assetdownloader.ItemSprite>
+    {
+        try
+        {
+            // Get the sprite manager from APGameState
+            if (APGameState.spriteManager != null)
+            {
+                return APGameState.spriteManager.tryGetCustomAsset( // This will be managed later using LocationScouts.
+                    null, // location (we don't have detailed location data here)
+                    "Archipelago", // fallback game name
+                    true, // allow fallback on different game
+                    true // allow fallback on generic
+                );
+            }
+        }
+        catch (e:Dynamic)
+        {
+            trace('Error getting item sprite for location ${location}: ${e}');
+        }
+        return null;
+    }
+
+    /**
+     * Setup animations for default AP notes
+     */
+    private static function setupAPNoteAnimations(note:objects.Note):Void
+    {
+        try
+        {
+            // Set up lane-based animations like standard notes
+            // Create animations for each lane using the same 'ap' prefix since there's only one AP texture
+            for (j in 0...Note.gfxLetter.length) {
+                // Regular note animations for each lane (A, B, C, D, etc.)
+                note.animation.addByPrefix(Note.gfxLetter[j], 'ap0', 24, false);
+
+                // Sustain note animations if this is a sustain note
+                if (note.isSustainNote) {
+                    note.animation.addByPrefix(Note.gfxLetter[j] + ' hold', 'ap hold piece0', 24, true);
+                    note.animation.addByPrefix(Note.gfxLetter[j] + ' tail', 'ap hold end0', 24, false);
+                }
+            }
+
+            // Play the appropriate animation based on note data
+            var noteData = note.noteData;
+            if (noteData >= 0 && noteData < Note.gfxLetter.length) {
+                if (note.isSustainNote) {
+                    if (note.prevNote != null && note.prevNote.isSustainNote) {
+                        note.animation.play(Note.gfxLetter[noteData] + ' hold');
+                    } else {
+                        note.animation.play(Note.gfxLetter[noteData] + ' tail');
+                    }
+                } else {
+                    note.animation.play(Note.gfxLetter[noteData]);
+                }
+            } else {
+                // Fallback to first animation
+                if (note.isSustainNote) {
+                    if (note.prevNote != null && note.prevNote.isSustainNote) {
+                        note.animation.play(Note.gfxLetter[0] + ' hold');
+                    } else {
+                        note.animation.play(Note.gfxLetter[0] + ' tail');
+                    }
+                } else {
+                    note.animation.play(Note.gfxLetter[0]);
+                }
+            }
+        }
+        catch (e:Dynamic)
+        {
+            trace('Error setting up AP note animations: ${e}');
+        }
+    }
+
+    /**
+     * Setup item texture display (item sprites are static, no XML animations)
+     */
+    private static function setupItemTextureAnimations(note:objects.Note):Void
+    {
+        // Item sprites don't have XML animation definitions, so we just display them statically
+        // The sprite will show as-is without animation
     }
 }

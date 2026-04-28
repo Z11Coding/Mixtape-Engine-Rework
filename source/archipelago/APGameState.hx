@@ -25,6 +25,8 @@ import archipelago.APDisconnectSubstate;
 import archipelago.APInfo;
 import archipelago.Client;
 import archipelago.PacketTypes;
+import archipelago.assetdownloader.ArchipelagoItemSprites;
+import archipelago.assetdownloader.IAssetLocation;
 import archipelago.substates.ConnectionSubstate;
 import backend.Paths;
 import backend.WeekData.WeekFile;
@@ -308,6 +310,7 @@ typedef ProcessedItemsResult =
 class APGameState
 {
 	public static var instance:APGameState;
+	public static var spriteManager:ArchipelagoItemSprites;
 
 	private var _ap:Client;
 	private var _seed:String;
@@ -758,6 +761,12 @@ class APGameState
 		archipelago.APInfo.apGame = this;
 		archipelago.APInfo.ap = _ap;
 		instance = this;
+
+		// Initialize sprite manager for item assets
+		if (spriteManager == null)
+		{
+			spriteManager = new ArchipelagoItemSprites(parseAPAliasesJson, null);
+		}
 
 		trace("APGameState initialized with seed: " + _seed);
 		// trace("APGameState slot data: \n" + Std.string(slotData));
@@ -4048,4 +4057,108 @@ class APGameState
 		// {
 		//     _ap.clientStatus = ClientStatus.PLAYING;
 		// }
+
+	/**
+	 * Parses JSON aliases for sprite mapping
+	 */
+	private static function parseAPAliasesJson(json:String):archipelago.assetdownloader.ItemSpriteAliases
+	{
+		try
+		{
+			var data = haxe.Json.parse(json);
+			var aliases = new archipelago.assetdownloader.ItemSpriteAliases();
+
+			if (Reflect.hasField(data, "aliases"))
+			{
+				var aliasArray:Array<Dynamic> = Reflect.field(data, "aliases");
+
+				for (aliasData in aliasArray)
+				{
+					var alias = new archipelago.assetdownloader.ItemSpriteAlias();
+
+					if (Reflect.hasField(aliasData, "aliasName"))
+					{
+						alias.aliasName = Reflect.field(aliasData, "aliasName");
+					}
+
+					if (Reflect.hasField(aliasData, "itemNames"))
+					{
+						var itemNames:Array<Dynamic> = Reflect.field(aliasData, "itemNames");
+						for (itemName in itemNames)
+						{
+							alias.itemNames.push(cast itemName);
+						}
+					}
+
+					aliases.aliases.push(alias);
+				}
+			}
+
+			return aliases;
+		}
+		catch (e:Dynamic)
+		{
+			trace('Error parsing AP aliases JSON: ${e}');
+			return new archipelago.assetdownloader.ItemSpriteAliases();
+		}
+	}
+
+	/**
+	 * Gets an item sprite for a specific game and item
+	 */
+	public static function getItemSprite(game:String, item:String):Null<archipelago.assetdownloader.ItemSprite>
+	{
+		if (spriteManager == null)
+		{
+			trace('Sprite manager not initialized');
+			return null;
+		}
+
+		// Create a simple location implementation
+		var location = new APItemLocation(game, item);
+		return spriteManager.tryGetCustomAsset(location, "Mixtape", true, true);
+	}
+
+	/**
+	 * Prepares assets for a specific game
+	 */
+	public static function prepareGameAssets(game:String):Void
+	{
+		if (spriteManager != null)
+		{
+			spriteManager.prepareGameAssets(game);
+		}
+	}
+
+	/**
+	 * Simple implementation of IAssetLocation for internal use
+	 */
+	private static class APItemLocation implements IAssetLocation
+	{
+		public var gameName(get, null):String;
+		public var itemName(get, null):String;
+
+		private var _gameName:String;
+		private var _itemName:String;
+
+		public function new(game:String, item:String)
+		{
+			_gameName = game;
+			_itemName = item;
+		}
+
+		function get_gameName():String
+		{
+			return _gameName;
+		}
+
+		function get_itemName():String
+		{
+			return _itemName;
+		}
+
+		public function getSeed():Int
+		{
+			return 0;
+		}
 	}

@@ -926,6 +926,47 @@ class CollectionUtils
 		return result;
 	}
 
+	public static inline function arrayUnique<T>(arr:Array<T>):Array<T>
+	{
+		return arr.filter(function(item) {
+			var index = arr.indexOf(item);
+			return index == arr.indexOf(item);
+		});
+	}
+	public static inline function arrayUniqueObjects<T>(arr:Array<T>):Array<T>
+	{
+		var result = new Array<T>();
+		for (item in arr)
+		{
+			if (!arrayContainsObject(result, item))
+			{
+				result.push(item);
+			}
+		}
+		return result;
+	}
+
+	public static inline function arrayCast<T>(arr:Array<Dynamic>, type:Class<T>, ?NoSupers:Bool = false, ?soft:Bool = false, ?noNulls:Bool = false):Array<T>
+	{
+		var result = new Array<T>();
+		for (item in arr)
+		{
+			if (isType(item, type, NoSupers))
+			{
+				result.push(cast item);
+			}
+			else if (!soft)
+			{
+				throw "Item " + item + " is not of type " + Type.getClassName(type) + ". It is of type " + (item != null ? Type.getClassName(Type.getClass(item)) : "null") + ".";
+			}
+			else if (!noNulls)
+			{
+				result.push(null);
+			}
+		}
+		return result;
+	}
+
 	public static inline function truthy(input:Dynamic):Bool
 	{
 		// Evaluates "truthiness" similar to Python: null/empty/false/0 are false, everything else is true.

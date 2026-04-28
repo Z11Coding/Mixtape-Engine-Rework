@@ -50,6 +50,17 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			["Notification", "Achievement"]);
 		addOption(noticeStyleOption);
 
+		var itemTextureOption:Option = new Option('Item Textures on Notes',
+			"If checked, Archipelago check notes will display item sprites from the corresponding game instead of the default AP note texture.",
+			'apNoteItemTextures',
+			BOOL);
+		itemTextureOption.onChange = function()
+		{
+			ClientPrefs.data.apNoteItemTextures = itemTextureOption.getValue();
+			ClientPrefs.saveSettings();
+		};
+		addOption(itemTextureOption);
+
 		var flip:Option = new Option('Flip Screen',
 			"if checked, the screen will be flipped upside down.\nWARNING: THIS MAY CAUSE ISSUES WITH THE GAME.",
 			'flipScreen',

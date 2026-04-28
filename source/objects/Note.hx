@@ -739,8 +739,9 @@ class Note extends NoteObject
 	}
 
 	private function set_texture(value:String):String {
-		// If this is an AP check note, override the texture
-		if(isCheck && value != 'noteSkins/ap_assets/AP_NOTE') {
+		// If this is an AP check note, override the texture (unless item textures are enabled in settings)
+		var allowItemTexture:Bool = backend.ClientPrefs.data.apNoteItemTextures;
+		if(isCheck && value != 'noteSkins/ap_assets/AP_NOTE' && !allowItemTexture) {
 			value = 'noteSkins/ap_assets/AP_NOTE';
 			this.shader = null; // no shader please :D
 		}
