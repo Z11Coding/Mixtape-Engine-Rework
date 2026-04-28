@@ -4,6 +4,8 @@ import archipelago.APEntryState;
 import archipelago.APInfo;
 import archipelago.APVersionSelectionState;
 import archipelago.CustomAPLogic;
+import archipelago.PlandoData;
+import archipelago.substates.APPlandoSubstate;
 import archipelago.substates.InfoPanelSubstate;
 import archipelago.substates.NumberInputSubstate;
 import archipelago.substates.TextInputSubstate.InputMode;
@@ -214,6 +216,9 @@ class APAdvancedSettingsState extends MusicBeatState
 	var bundleMinSize:Int = 2;
 	var bundleMaxSize:Int = 5;
 	var bundleLimit:Int = 0; // 0 means unlimited (None in Python)
+
+	// Plando settings
+	var plandoData:PlandoData = new PlandoData();
 
 	// Animation state
 	var isAnimating:Bool = false;
@@ -1094,11 +1099,19 @@ class APAdvancedSettingsState extends MusicBeatState
 			)
 		];
 
-		// Example state options (you can add actual complex settings states here)
-		var exampleSubStateOptions:Array<SubstateOption> = [
-			createSubStateOption("Song Selection (The actual one)", "Open song selection interface",
-				cast archipelago.substates.QuickSongSelect, // Example: open freeplay for song selection
-				[] // No constructor args
+		// // Example state options (you can add actual complex settings states here)
+		// var exampleSubStateOptions:Array<SubstateOption> = [
+		// 	createSubStateOption("Song Selection (The actual one)", "Open song selection interface",
+		// 		cast archipelago.substates.QuickSongSelect, // Example: open freeplay for song selection
+		// 		[] // No constructor args
+		// 	)
+		// ];
+
+		// Plando Configuration for Songs page
+		var plandoSubstateOptions:Array<SubstateOption> = [
+			createSubStateOption("Plando Configuration", "Configure custom item placement and song restrictions",
+				cast archipelago.substates.APPlandoSubstate,
+				[plandoData] // Pass plando data to the substate
 			)
 		];
 
@@ -1242,7 +1255,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Configure which songs and content to include",
 				options: songsOptions,
 				stateOptions: [],
-				substateOptions: [],
+				substateOptions: plandoSubstateOptions,
 				color: FlxColor.LIME
 			},
 			{
@@ -1250,7 +1263,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				description: "Fine-tune difficulty and trap settings",
 				options: trapsOptions,
 				stateOptions: [],
-				substateOptions: exampleSubStateOptions, // Add state options to this page
+				substateOptions: [],
 				color: FlxColor.ORANGE
 			},
 			{
@@ -4350,6 +4363,12 @@ class APAdvancedSettingsState extends MusicBeatState
 		if (bundleLimit != 0)
 			Reflect.setField(yamlThing, "songBundleLimit", bundleLimit);
 
+		// Add plando settings (only if not empty)
+		if (!plandoData.isEmpty())
+		{
+			Reflect.setField(yamlThing, "plando_options", plandoData.toBase64());
+		}
+
 		// Handle optional song settings
 		if (startingSong != null)
 		{
@@ -4833,6 +4852,33 @@ class APAdvancedSettingsState extends MusicBeatState
 			if (sanityTypes.length > 0)
 			{
 				comment += "# This YAML contains sanity data for " + sanityTypes.join(" and ") + "\n";
+			}
+		}
+
+		// Add plando summary if configured
+		if (!plandoData.isEmpty())
+		{
+			var plandoSummary:Array<String> = [];
+			if (plandoData.alwaysIncludeSongs.length > 0)
+				plandoSummary.push("Always Include Songs (" + plandoData.alwaysIncludeSongs.length + ")");
+			if (plandoData.excludeSongLocations.length > 0)
+				plandoSummary.push("Exclude Locations (" + plandoData.excludeSongLocations.length + ")");
+			if (plandoData.prioritySongLocations.length > 0)
+				plandoSummary.push("Priority Locations (" + plandoData.prioritySongLocations.length + ")");
+			if (plandoData.potentialVictorySongs.length > 0)
+				plandoSummary.push("Victory Songs (" + plandoData.potentialVictorySongs.length + ")");
+			if (plandoData.localSongs.length > 0)
+				plandoSummary.push("Local Songs (" + plandoData.localSongs.length + ")");
+			if (plandoData.nonLocalSongs.length > 0)
+				plandoSummary.push("Non-Local Songs (" + plandoData.nonLocalSongs.length + ")");
+			if (plandoData.extraStartingSongs.length > 0)
+				plandoSummary.push("Extra Starting Songs (" + plandoData.extraStartingSongs.length + ")");
+			if (plandoData.plandoBlocks.length > 0)
+				plandoSummary.push("Plando Blocks (" + plandoData.plandoBlocks.length + ")");
+
+			if (plandoSummary.length > 0)
+			{
+				comment += "# Plando Configuration: " + plandoSummary.join(", ") + "\n";
 			}
 		}
 

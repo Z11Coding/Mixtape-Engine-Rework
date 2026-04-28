@@ -45,6 +45,9 @@ import states.TitleState;
 	public var showLoadingBar:Bool = true; // Display progress bar during loading
 	public var allowScrollDuringLoad:Bool = true; // Allow user to scroll before all items loaded
 
+	// Archipelago settings
+	public var apNoteItemTextures:Bool = false; // Display item textures on AP check notes
+
 	public var noteOffset:Int = 0;
 	public var arrowRGB:Array<Array<FlxColor>> = [
 		[0xFFC24B99, 0xFFFFFFFF, 0xFF3C1F56],
