@@ -69,7 +69,7 @@ class RConductor extends FlxRhythmConductor {
   // Load a song with a chart
   public function setupSong(songPath:String, ?playSong:SwagSong = null) {
     FlxRhythmConductorUtil.loadMetaFromFilePath(this, '${Paths.musicPath(songPath)}');
-    if (playSong != null) RConductor.mapBPMChanges(playSong);
+    RConductor.mapBPMChanges(playSong);
   }
 
   public function addStepCallback(func:(time : Int, backward : Bool) -> Void)

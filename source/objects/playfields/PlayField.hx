@@ -89,6 +89,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var tapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // spawned tap notes (with requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
 	public var noTapsByData:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // spawned tap notes (without requiresTap) by data. Used for input but can't change spawnedByData cus of holds n shit lol!
 	public var noteQueue:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // unspawned notes
+	public var noteQueueCache:Array<Array<Note>> = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]; // unspawned notes cache
 
 	public var pathLines:Array<PathLine> = []; // lines
 	public var strumNotes:Array<StrumNote> = []; // receptors
@@ -256,6 +257,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			noteQueue[note.column].push(note);
 			noteQueue[note.column].sort(sortNotesAscend);
 		}
+
+		if (noteQueueCache[note.column] == null)
+			noteQueueCache[note.column] = [note];
+		else if (!noteQueueCache[note.column].contains(note)) {
+			noteQueueCache[note.column].push(note);
+			noteQueueCache[note.column].sort(sortNotesAscend);
+		}
 	}
 
 	// unqueues a note
@@ -266,6 +274,25 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		noteQueue[note.column].remove(note);
 		noteQueue[note.column].sort(sortNotesAscend);
 	}
+
+	// requeues all notes
+	public function requeue()
+	{
+		for (column in 0...noteQueueCache.length) {
+			noteQueue[column] = column;
+			noteQueue[column].sort(sortNotesAscend);
+		}
+	}
+
+	// empty note cache
+	public function clearQueue()
+	{
+		for (column in noteQueueCache) {
+			column = [];
+		}
+	}
+
+
 
 	// destroys a note
 	public function removeNote(daNote:Note, ?killTail:Bool = false){
@@ -1062,9 +1089,13 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 				#end
 
-				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time && (spawned < maxSpawnsPerFrame || aliveNoteCount <= aliveNoteLimiter)) {
-					((column[0].spawned) ? column.remove(column[0]) : spawnNote(column[0]));
-					spawned++;
+				while (column.length > 0 && (spawned < maxSpawnsPerFrame || aliveNoteCount <= aliveNoteLimiter)) {
+					if (!column[0].spawned && column[0].strumTime - Conductor.songPosition < time) {
+						spawnNote(column[0]);
+						spawned++;
+					}
+					else if (column[0].spawned)
+						column.remove(column[0]);
 				}
 			}
 		}

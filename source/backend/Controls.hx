@@ -72,6 +72,30 @@ class Controls
 	private function get_NOTE_RIGHT_R() return justReleased('note_right');
 
 
+	public var NOTE_ONE1_P(get, never):Bool;
+
+	public var NOTE_TWO1_P(get, never):Bool;
+	public var NOTE_TWO2_P(get, never):Bool;
+
+	public var NOTE_THREE1_P(get, never):Bool;
+	public var NOTE_THREE2_P(get, never):Bool;
+	public var NOTE_THREE3_P(get, never):Bool;
+
+	public var NOTE_FIVE1_P(get, never):Bool;
+	public var NOTE_FIVE2_P(get, never):Bool;
+	public var NOTE_FIVE3_P(get, never):Bool;
+	public var NOTE_FIVE4_P(get, never):Bool;
+	public var NOTE_FIVE5_P(get, never):Bool;
+
+	public var NOTE_SIX1_P(get, never):Bool;
+	public var NOTE_SIX2_P(get, never):Bool;
+	public var NOTE_SIX3_P(get, never):Bool;
+	public var NOTE_SIX4_P(get, never):Bool;
+	public var NOTE_SIX5_P(get, never):Bool;
+	public var NOTE_SIX6_P(get, never):Bool;
+
+
+
 	// Pressed buttons (others)
 	public var ACCEPT(get, never):Bool;
 	public var FAVORITE(get, never):Bool;

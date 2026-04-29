@@ -13,6 +13,7 @@ class Mods
 {
 	static public var currentModDirectory:String = '';
 	static public var currentModDirectoryAlt:String = ''; // For anything that needs to load a mod while the player is also doingStuff
+	static public var softloadDirectory:String = '';
 	public static final ignoreModFolders:Array<String> = [
 		'characters',
 		'custom_events',

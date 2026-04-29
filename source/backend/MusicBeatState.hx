@@ -258,6 +258,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 	public static var playErrorSound:Bool = false;
 	public static var allowNuke:Bool = false;
+	public static var useLite:Bool = false;
 
 	public function handleFileDrop(file:String)
 	{
@@ -275,7 +276,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 		suspendedSubstateData = [];
 		conductor.reset();
 
-		Paths.nukeMemory(!allowNuke);
+		if (allowNuke)
+			Paths.nukeMemory(useLite);
 		super.destroy();
 	}
 
@@ -309,6 +311,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 		handleGarbageCollection();
 
 		justgothere = true;
+		allowNuke = true;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
 

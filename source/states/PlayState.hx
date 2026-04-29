@@ -122,25 +122,10 @@ import psychlua.HScript.HScriptInfos;
 
 	EDIT: not EXACTLY how it works but its a good enough summary
 */
-@:structInit
-class SpeedEvent
-{
-	public var position:Float; // the y position where the change happens (modManager.getVisPos(songTime))
-	public var startTime:Float; // the song position (conductor.songTime) where the change starts
-	#if EASED_SVs
-	public var startSpeed:Float; // the previous event's speed
-	public var endTime:Null<Float> = null; // the song position (conductor.songTime) when the change ends
-	public var easeFunc:EaseFunction = FlxEase.linear;
-	#end
-	public var speed:Float; // speed mult after the change
-}
 
 @:noScripting
 class PlayState extends MusicBeatState
 {
-	public static var STRUM_X = 42;
-	public static var STRUM_X_MIDDLESCROLL = -278;
-
 	public var dad(get, set):Character;
 	public var dad2(get, set):Character;
 	public var gf(get, set):Character;
@@ -293,6 +278,73 @@ class PlayState extends MusicBeatState
 		return CharacterManager.instance.GF_Y = value;
 	}
 
+	// Charts, Playfields, and Notes Manager
+	public var SONG(get, never):SwagSong;
+	public var mania(get, never):Int;
+	public var notes(get, default):FlxTypedGroup<Note>;
+	public var unspawnNotes(get, default):Array<Note>;
+	public var eventNotes(get, default):Array<EventNote>;
+	public var curEvents(get, default):Array<EventNote>;
+
+	public var strumLineNotes(get, default):FlxTypedGroup<StrumNote>;
+	public var opponentStrums(get, default):FlxTypedGroup<StrumNote>;
+	public var playerStrums(get, default):FlxTypedGroup<StrumNote>;
+	public var grpNoteSplashes(get, default):FlxTypedGroup<NoteSplash>;
+
+	public var cpuControlled(get, set):Bool;
+	public var curSong(get, set):String;
+	public var songSpeedType(get, never):String;
+	public var songSpeedTween:FlxTween;
+
+	private function get_SONG():SwagSong {
+		return PlayfieldManager.SONG;
+	}
+	private function get_mania():Int {
+		return PlayfieldManager.mania;
+	}
+	private function get_notes():FlxTypedGroup<Note> {
+		return playfield.notes;
+	}
+	private function get_unspawnNotes():Array<Note> {
+		return playfield.unspawnNotes;
+	}
+	private function get_eventNotes():Array<EventNote> {
+		return playfield.eventNotes;
+	}
+	private function get_curEvents():Array<EventNote> {
+		return playfield.curEvents;
+	}
+	private function get_strumLineNotes():FlxTypedGroup<StrumNote> {
+		return playfield.strumLineNotes;
+	}
+	private function get_opponentStrums():FlxTypedGroup<StrumNote> {
+		return playfield.opponentStrums;
+	}
+	private function get_playerStrums():FlxTypedGroup<StrumNote> {
+		return playfield.playerStrums;
+	}
+	private function get_grpNoteSplashes():FlxTypedGroup<NoteSplash> {
+		return playfield.grpNoteSplashes;
+	}
+
+	private function get_cpuControlled():Bool {
+		return playfield.cpuControlled;
+	}
+	private function set_cpuControlled(value:Bool):Bool {
+		playfield.cpuControlled = value;
+		return value;
+	}
+	private function get_curSong():String {
+		return playfield.curSong;
+	}
+	private function set_curSong(value:String):String {
+		playfield.curSong = value;
+		return value;
+	}
+	private function get_songSpeedType():String {
+		return playfield.songSpeedType;
+	}
+
 	//event variables
 	public var isCameraOnForcedPos:Bool = false;
 
@@ -323,11 +375,6 @@ class PlayState extends MusicBeatState
 	// Save Settings...
 
 	public var clientSaveData = yutautil.save.ObjectSerializer.deepClone(ClientPrefs.data);
-
-	public var songSpeedTween:FlxTween;
-	public var songSpeed(default, set):Float = 1;
-	public var songSpeedType:String = "multiplicative";
-	public var noteKillOffset:Float = 350;
 
 	public var playbackRate(default, set):Float = 1;
 	public var currentRate:Float = 1;
@@ -376,7 +423,6 @@ class PlayState extends MusicBeatState
 	static function get_isPixelStage():Bool
 		return stageUI == "pixel" || stageUI.endsWith("-pixel");
 
-	public static var SONG:SwagSong = null;
 	public static var isStoryMode:Bool = false;
 	public static var storyWeek:Int = 0;
 	public static var storyPlaylist:Array<String> = [];
@@ -400,25 +446,13 @@ class PlayState extends MusicBeatState
 	public var opponentVocals:FlxSound;
 	public var gfVocals:FlxSound;
 
-	public var notes:FlxTypedGroup<Note>;
-	public var unspawnNotes:Array<Note> = [];
-	public static var curChart:Array<Note> = [];
-	public var eventNotes:Array<EventNote> = [];
-	public var curEvents:Array<EventNote> = [];
-
 	public var camFollow:FlxObject;
 	private static var prevCamFollow:FlxObject;
-
-	public var strumLineNotes:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
-	public var opponentStrums:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
-	public var playerStrums:FlxTypedGroup<StrumNote> = new FlxTypedGroup<StrumNote>();
-	public var grpNoteSplashes:FlxTypedGroup<NoteSplash> = new FlxTypedGroup<NoteSplash>();
 
 	public var camZooming:Bool = false;
 	public var camZoomingMult:Float = 1;
 	public var camZoomingFrequency:Float = 4;
 	public var camZoomingDecay:Float = 1;
-	private var curSong:String = "";
 
 	public var gfSpeed:Int = 1;
 	public var health(default, set):Float = 1;
@@ -455,20 +489,6 @@ class PlayState extends MusicBeatState
 	public var cpuControlled:Bool = false;
 	public var practiceMode:Bool = false;
 	public var pressMissDamage:Float = 0.05;
-
-	@:noCompletion function set_cpuControlled(value:Bool):Bool {
-		cpuControlled = value;
-
-		setOnScripts('botPlay', value);
-
-		/// oughhh
-		for (playfield in playfields.members){
-			if (playfield.isPlayer)
-				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false);
-		}
-
-		return value;
-	}
 
 	public var botplaySine:Float = 0;
 	public var botplayTxt:FlxText;
@@ -526,7 +546,6 @@ class PlayState extends MusicBeatState
 	//Achievement shit
 	var keysPressed:Array<Int> = [];
 	// Optimized input tracking
-	private static var keysPressedSet:Map<Int, Bool> = new Map();
 	var boyfriendIdleTime:Float = 0.0;
 	var boyfriendIdled:Bool = false;
 
@@ -572,10 +591,6 @@ class PlayState extends MusicBeatState
 	private var _useCachedStrumPositions:Bool = false;
 	private var _reduceQualityMode:Bool = false;
 
-	// Cache for expensive operations
-	private var _cachedStrumPositions:Array<Float> = [];
-	private var _cachedNotePositions:Array<Float> = [];
-
 	// Lua shit
 	public static var instance:PlayState;
 	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = [];
@@ -589,8 +604,6 @@ class PlayState extends MusicBeatState
 	public var introSoundsSuffix:String = '';
 
 	// Less laggy controls
-	public static var keysArray:Array<Array<Dynamic>>;
-	private var controlArray:Array<String>;
 	public var songName:String;
 
 	// Callbacks for stages
@@ -601,7 +614,6 @@ class PlayState extends MusicBeatState
 	public static var nextReloadAll:Bool = false;
 
 	// Start of Mixtape Engine's large amount of bull
-	public static var mania:Int = SONG?.startMania ?? SONG?.mania ?? 3;
 	public static var gameplayArea:String = "Story";
 	public static var Crashed:Bool = false;
 	public static var savedTime:Float = 0;
@@ -701,15 +713,9 @@ class PlayState extends MusicBeatState
 	public var bfGhostTween:FlxTween = null;
 	public var dadGhost:FlxSprite = null;
 	public var bfGhost:FlxSprite = null;
-	var noteRows:Array<Array<Array<Note>>> = [[],[]];
-
-	// Mix-Up things. You wouldn't get it.
-	var oppDifficulty:String = 'Average FNF Player';
 
 	// things from trials
 	public var bfkilledcheck:Bool = false;
-	public var freezeNotes:Bool = false;
-	public var localFreezeNotes:Bool = false;
 	var justmissed:Bool = false;
 	var middlecircle:FlxSprite;
 	var hasGlow:Bool = false;
@@ -721,17 +727,9 @@ class PlayState extends MusicBeatState
 	// Troll Engine
 	public var camCurTarget:Null<Character> = null;
 	public var zoomEveryBeat:Int = 1;
-	public var modManager:ModManager;
-	public var notefields = new NotefieldRenderer();
-	public var playfields = new FlxTypedGroup<PlayField>();
-	public var allNotes:Array<Note> = []; // all notes
-	public var playerField:PlayField;
-	public var dadField:PlayField;
 	public var holdsGiveHP:Bool = false;
 	public var playerScoreTxt:FlxText;
 	public var opponentScoreTxt:FlxText;
-	public var currentSV:SpeedEvent = {position: 0, startTime: 0, speed: 1 #if EASED_SVs , startSpeed: 1 #end};
-	var speedChanges:Array<SpeedEvent> = [];
 	var aiText:String;
 
 	public var camGamefilters:Array<BitmapFilter> = [];
@@ -744,9 +742,6 @@ class PlayState extends MusicBeatState
 	var ch = 2 / 1000;
 	public var shaderUpdates:Array<Float->Void> = [];
 
-	public var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
-	public var convertMania:Int = ClientPrefs.getGameplaySetting('convertMania', 3);
-
 	// UNO mechanic instance for chart modifier
 	var unoMechanic:UnoMechanic;
 
@@ -755,14 +750,10 @@ class PlayState extends MusicBeatState
 	var currentUnoColor:Int = 0xFFFF0000; // Default red
 
 	// Gameplay Mechanics
-	public var opponentmode:Bool = ClientPrefs.getGameplaySetting('opponentplay', false);
-	public var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
 	public var loopMode:Bool = ClientPrefs.getGameplaySetting('loopMode', false);
 	public var loopModeChallenge:Bool = ClientPrefs.getGameplaySetting('loopModeC', false);
 	public var loopPlayMult:Float = ClientPrefs.getGameplaySetting('loopPlayMult', 1.05);
 	public var maniaMode:Bool = ClientPrefs.getGameplaySetting('maniaMode', false);
-	public var RandomSpeedChange:Bool = ClientPrefs.getGameplaySetting('randomspeedchange', false);
-	public var RandomSpeedChangeWild:Bool = false;
 	public var gimmicksAllowed:Bool = false;
 	public var mixupMode:Bool = false;
 
@@ -794,9 +785,6 @@ class PlayState extends MusicBeatState
 	public var mouseCursor:FlxSprite;
 	var shapeTmr:FlxTimer;
 	#end
-
-	// Skydecay Engine (our good friends)
-	public var noteManager:NoteManager;
 
 	//JS Engine shenanigans
 	public var renderedTxt:FlxText;
@@ -834,7 +822,6 @@ class PlayState extends MusicBeatState
 	var modchartWarningShown:Bool = false;
 	var isShowingModchartWarning:Bool = false;
 	public var allowModchartCutscene:Bool = true;
-	public var fmManager:Manager;
 	var isNotITG:Bool = false;
 
 	// End of Mixtape Engine's large amount of bull
@@ -1037,10 +1024,6 @@ class PlayState extends MusicBeatState
 
 		PauseSubState.songName = null; //Reset to default
 		playbackRate = ClientPrefs.getGameplaySetting('songspeed');
-		if (keysArray == null)
-			keysArray = backend.Keybinds.fill();
-
-		controlArray = ['NOTE_LEFT', 'NOTE_DOWN', 'NOTE_UP', 'NOTE_RIGHT'];
 
 		speedChanges.push({
 			position: -6000 * 0.45,
@@ -1146,29 +1129,7 @@ class PlayState extends MusicBeatState
 		persistentUpdate = true;
 		persistentDraw = true;
 
-		convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-
-		if (mania > Note.maxMania)
-			mania = Note.defaultMania;
-		else if (chartModifier == "4K Only")
-			mania = 3;
-		else if (chartModifier == "ManiaConverter")
-			mania = convertMania;
-		else if (SONG.mania != null)
-			if (SONG.mania >= 3) //Make sure it's even there
-				mania = SONG.mania;
-			else {
-				mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
-					case 0: 3;
-					case 1: 4;
-					default: SONG.mania;
-				}
-			}
-		else mania = 3;
-
-		trace("Mania set: " + mania);
-
-		noteManager = new NoteManager();
+		playfields.fixMania();
 
 		// Initialize experimental NotePool system if enabled
 		if (ClientPrefs.data.useExperimentalNotePool) {
@@ -1181,7 +1142,7 @@ class PlayState extends MusicBeatState
 		initializeOptimizations();
 		updateScriptFlags();
 
-		conductor.setupSong(altInstrumentals ?? SONG.song, SONG);
+		conductor.setupSong(Paths.songP(altInstrumentals ?? SONG.song), SONG);
 
 		#if DISCORD_ALLOWED
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
@@ -1423,7 +1384,7 @@ class PlayState extends MusicBeatState
 
 		Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
 		var showTime:Bool = (ClientPrefs.data.timeBarType != 'Disabled');
-		timeTxt = new FlxText(STRUM_X + (FlxG.width / 2) - 248, 19, 400, "", 32);
+		timeTxt = new FlxText(PlayfieldManager.STRUM_X + (FlxG.width / 2) - 248, 19, 400, "", 32);
 		timeTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		timeTxt.scrollFactor.set();
 		timeTxt.alpha = 0;
@@ -1499,8 +1460,9 @@ class PlayState extends MusicBeatState
 		}
 
 		var prevTime = Sys.time();
-		generateSong();
-		trace('generateSong() took ${Sys.time() - prevTime} seconds');
+		playfield.loadChart(Paths.formatToSongPath(curSong)+difficulty, Paths.formatToSongPath(curSong));
+		postGen();
+		trace('Chart Generation took ${Sys.time() - prevTime} seconds');
 
 		noteGroup.add(grpNoteSplashes);
 
@@ -1850,27 +1812,7 @@ class PlayState extends MusicBeatState
 		//registerDynamicSongScripting();
 		comboManager.RecalculateRating(false, false);
 
-		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
-
-		for (array in keysArray[mania])
-		{
-			var daArray:Array<Int> = array;
-			for (checkKey in daArray)
-			{
-				// no im not givin you all duplicate inputs, cuz you suck
-				if (checkKey == -4)
-				{
-					FlxG.stage.addEventListener(MouseEvent.CLICK, leftMousePress);
-					FlxG.stage.addEventListener(MouseEvent.MOUSE_UP, leftMouseRelease);
-				}
-				else if (checkKey == -5)
-				{
-					FlxG.stage.addEventListener(untyped MouseEvent.RIGHT_CLICK, rightMousePress);
-					FlxG.stage.addEventListener(untyped MouseEvent.RIGHT_MOUSE_UP, rightMouseRelease);
-				}
-			}
-		}
+		playfield.addInput();
 
 		if (ClientPrefs.data.showRenderText)
 			renderedTxt.text = 'Rendered Notes: ' + notes.length;
@@ -2703,7 +2645,6 @@ class PlayState extends MusicBeatState
 	function set_songSpeed(value:Float):Float
 	{
 		songSpeed = value;
-		noteKillOffset = Math.max(Conductor.stepCrochet, 350 / songSpeed * playbackRate);
 		return value;
 	}
 
@@ -3750,7 +3691,7 @@ class PlayState extends MusicBeatState
 			{
 				var percent:Float = CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2);
 				// TODO: Make this look nicer
-				if (percent == 100)
+				if (percent >	= 100)
 					col = "~";
 				else if (percent > 90)
 					col = ";";
@@ -4198,1179 +4139,8 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-
-	private var noteTypes:Array<String> = [];
-	private var eventsPushed:Array<String> = [];
-	private var totalColumns:Int = Note.ammo[SONG?.mania != null ? SONG?.mania : 3];
-	var prevNoteData:Int = -1;
-	var initialNoteData:Int = -1;
-	var caseExecutionCount:Int = FlxG.random.int(-50, 50);
-	var currentModifier:Int = -1;
-	var stair:Int = 0;
-
-
-	public static function getNumberFromAnimsSmall(note:Int, mania:Int):Int {
-		var anims:Array<String> = Note.keysShit.get(mania).get("anims");
-		var animMap:Map<String, Int> = ["LEFT" => 0, "DOWN" => 1, "UP" => 2, "RIGHT" => 3];
-
-		if (mania == 0) {
-			// Only one key, everything maps to the same key
-			return 0;
-		} else if (mania == 1) {
-			// Two keys: LEFT and RIGHT
-			var anim = anims[note % anims.length];
-			if (anim == "DOWN" || anim == "LEFT") return 0; // Map to LEFT
-			if (anim == "UP" || anim == "RIGHT") return 1;  // Map to RIGHT
-		} else if (mania == 2) {
-			// Three keys: LEFT, UP, and RIGHT
-			var anim = anims[note % anims.length];
-			if (anim == "LEFT") return 0;
-			if (anim == "DOWN" || anim == "UP") return 1; // Map DOWN and UP to the middle key
-			if (anim == "RIGHT") return 2;
-		} else if (mania > 3) {
-			// Handle cases where mania > 4
-			var anim = anims[note % anims.length];
-			var matchingIndices = [];
-			for (i in 0...anims.length) {
-				if (anims[i] == anim) {
-					matchingIndices.push(i);
-				}
-			}
-			return matchingIndices.length > 0 ? matchingIndices[Std.int(Math.random() * matchingIndices.length)] : note % mania;
-		}
-
-		// Default case for mania <= 4
-		var anim = anims[note % anims.length];
-		return animMap.exists(anim) ? animMap.get(anim) : note % mania;
-	}
-
-	public static inline function getNumberFromAnims(note:Int, mania:Int):Int
-		{
-			var animMap:Map<String, Int> = new Map<String, Int>();
-			animMap.set("LEFT", 0);
-			animMap.set("DOWN", 1);
-			animMap.set("UP", 2);
-			animMap.set("RIGHT", 3);
-
-			var anims:Array<String> = Note.keysShit.get(mania).get("anims");
-			var animKeys:Array<String> = [
-				for (key in animMap.keys())
-					if (key == "LEFT") "RIGHT" else if (key == "RIGHT") "LEFT" else key
-			];
-
-			var result:Int;
-
-			if (mania > 3)
-			{
-				var anim = animKeys[note];
-				var matchingIndices:Array<Int> = [];
-				if (note < animKeys.length)
-				{
-					for (i in 0...anims.length)
-					{
-						if (anims[i] == anim)
-						{
-							matchingIndices.push(i);
-						}
-					}
-					if (matchingIndices.length > 0)
-					{
-						var randomIndex = Std.int(Math.random() * matchingIndices.length);
-						result = matchingIndices[randomIndex];
-					}
-					else
-					{
-						var randomIndex = Std.int(Math.random() * mania);
-						result = randomIndex;
-					}
-				}
-				else
-				{
-					if (matchingIndices.length > 0)
-					{
-						var randomIndex = Std.int(Math.random() * matchingIndices.length);
-						result = matchingIndices[randomIndex];
-					}
-					else
-					{
-						var randomIndex = Std.int(Math.random() * mania);
-						result = randomIndex;
-					}
-				}
-			}
-			else
-			{ // mania == 3
-				var anim = anims[note];
-				if (note < anims.length)
-				{
-					if (animMap.exists(anim))
-					{
-						result = animMap.get(anim);
-					}
-					else
-					{
-						throw 'No matching animation found';
-					}
-				}
-				else
-				{
-					result = animMap.get(anim);
-				}
-			}
-
-			// Ensure result is within bounds
-			if (result < 0 || result > mania)
-			{
-				trace("OOB NOtE: " + note + " MANIA: " + mania + " RESULT: " + result);
-				var foundValidAnimation = false;
-				while (!foundValidAnimation)
-				{
-					var randomIndex = Std.int(Math.random() * anims.length);
-					var randomAnim = anims[randomIndex];
-					if (animMap.exists(randomAnim))
-					{
-						result = animMap.get(randomAnim);
-						foundValidAnimation = true;
-					}
-				}
-			}
-
-			return result;
-		}
-
-				private var preGen:Array<Dynamic> = [];
-
-		private function preGenerateNotes():Void {
-		preGen = []; // Clear the array before generating
-
-		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
-		var daBpm:Float = Conductor.bpm;
-
-		for (section in sectionsData) {
-			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm) {
-				daBpm = section.bpm;
-			}
-
-			for (i in 0...section.sectionNotes.length) {
-				final songNotes: Array<Dynamic> = section.sectionNotes[i];
-				var spawnTime:Float = songNotes[0];
-				var noteColumn:Int = Std.int(songNotes[1]);
-				var holdLength:Float = songNotes[2];
-				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-
-				if (Math.isNaN(holdLength)) holdLength = 0.0;
-
-
-				var gottaHitNote:Bool = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
-
-				// Push the anonymous object into the preGen array
-				preGen.push({
-					spawnTime: spawnTime,
-					noteColumn: noteColumn,
-					holdLength: holdLength,
-					noteType: noteType,
-					gottaHitNote: gottaHitNote,
-					section: section,
-					isSustainNote: false
-				});
-				if (holdLength > 0)
-				{
-
-				}
-			}
-		}
-		waitingForPreloadFinish = false;
-		trace('Pre-generated ${preGen.length} notes.');
-	}
-
-	var waitingForPreloadFinish:Bool = false;
-
-	public inline function forceGenerateSong(preload:Bool = false):Void
-	{
-		generateSong(preload);
-	}
-
-	private function generateSong(preload:Bool = false):Void
-	{
-		if (generatedMusic && !preload) {
-			// Chart was preloaded, now finish the job
-			waitingForPreloadFinish = true;
-			finishPreloadedGeneration();
-			return;
-		}
-		// If this is a preload call, just note it
-		if (preload) {
-			trace("PlayState: Starting preload generation for: " + SONG.song);
-		}
-		// trace('Generating Song: ${SONG.song}');
-		// FlxG.log.add(ChartParser.parse());
-		songSpeed = PlayState.SONG.speed;
-		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
-		switch(songSpeedType)
-		{
-			case "multiplicative":
-				songSpeed = SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed');
-			case "constant":
-				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
-		}
-
-		var songData = SONG;
-		Conductor.bpm = songData.bpm;
-
-		curSong = songData.song;
-
-		// Skip audio loading during preload mode to avoid breaking issues
-		if (!preload) {
-			loadSongAudio();
-		}
-
-
-		notes = new FlxTypedGroup<Note>();
-		if (!preload && noteGroup != null) noteGroup.add(notes);
-		curChart = [];
-
-		try
-		{
-			var eventsChart:SwagSong = Song.getChart('events', songName);
-			if(eventsChart != null)
-				for (event in eventsChart.events) //Event Notes
-					for (i in 0...event[1].length)
-						makeEventPreload(event, i, preload);
-		}
-		catch(e:Dynamic) {}
-
-		var ghostNotesCaught:Int = 0;
-		if (LoadingState.noteCache.length > 0 && ClientPrefs.data.chartPreload != 'Off') {
-			initThreadAlt(() -> {
-				for (swagNote in LoadingState.noteCache) {
-					callOnScripts("onGeneratedNote", [swagNote]);
-
-					/*if (swagNote.texture != null)
-						swagNote.reloadNote(swagNote.texture);
-					else
-						swagNote.reloadNote();*/
-
-					// UNO Chart Modifier Processing
-					if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == "UNO") {
-						if (unoMechanic == null) {
-							unoMechanic = new UnoMechanic();
-						}
-						unoMechanic.processNote(swagNote, PlayState.mania, spawnTime, swagNote.mustPress);
-					}
-
-					var rowArray = noteRows[swagNote.mustPress?0:1];
-					if(rowArray[swagNote.row]==null)
-						rowArray[swagNote.row]=[];
-					rowArray[swagNote.row].push(swagNote);
-
-					var playfield:PlayField = swagNote.field;
-					if (playfield == null && playfields.length > 0) {
-						if (playfields.members[swagNote.fieldIndex] != null) {
-							playfield = playfields.members[swagNote.fieldIndex];
-							swagNote.field = playfield;
-						}
-					}
-
-					// Generate special UNO notes (skip, wrong, +2, +4)
-					if (ClientPrefs.getGameplaySetting('chartModifier', 'Normal') == "UNO" && unoMechanic != null) {
-						var specialNotes = unoMechanic.generateSpecialNotes(swagNote, PlayState.mania, allNotes);
-						for (specialNote in specialNotes) {
-							if (playfield != null) {
-								specialNote.field = playfield;
-								specialNote.fieldIndex = swagNote.fieldIndex;
-								playfield.queue(specialNote);
-								allNotes.push(specialNote);
-							}
-						}
-					}
-
-					if(!noteTypes.contains(swagNote.noteType))
-							noteTypes.push(swagNote.noteType);
-
-					if (playfield != null)
-					{
-						playfield.queue(swagNote); // queues the note to be spawned
-						allNotes.push(swagNote); // just for the sake of convenience
-					}
-				}
-				trace("Preloaded Chart Loaded!");
-			}, 'chart');
-		} else {
-			var AIPlayMap:Array<Array<Float>> = AIPlayer.active ? AIPlayer.GeneratePlayMap(SONG, AIPlayer.diff) : null;
-
-			var oldNote:Note = null;
-			var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
-			var daBpm:Float = Conductor.bpm;
-
-			var sectionLoopCount:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
-
-
-								if (chartingMode)
-						chartModifier = "Normal";
-					else if (preload)
-						chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
-
-					if (preload) {
-								var convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-									if (mania > Note.maxMania)
-										mania = Note.defaultMania;
-									else if (chartModifier == "4K Only")
-										mania = 3;
-									else if (chartModifier == "ManiaConverter")
-										mania = convertMania;
-									else if (SONG.mania != null)
-										if (SONG.mania >= 3) //Make sure it's even there
-											mania = SONG.mania;
-										else {
-											mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
-												case 0: 3;
-												case 1: 4;
-												default: SONG.mania;
-											}
-										}
-									else mania = 3;
-
-											trace("Mania set: " + mania);
-
-		}
-
-			for (section in sectionsData)
-			{
-				if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
-					daBpm = section.bpm;
-
-				for (i in 0...section.sectionNotes.length)
-				{
-					final songNotes: Array<Dynamic> = section.sectionNotes[i];
-					var spawnTime:Float = songNotes[0];
-					var noteColumn:Int = Std.int(songNotes[1]);
-					var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-					var holdLength:Float = songNotes[2];
-					var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-					if (Math.isNaN(holdLength)) holdLength = 0.0;
-
-					var gottaHitNote:Bool;
-					noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-					gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[SONG.mania != null ? SONG.mania : 3]));
-
-					//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
-
-					if (i != 0) {
-						// CLEAR ANY POSSIBLE GHOST NOTES
-						for (evilNote in allNotes) {
-							var matches:Bool = (noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
-							if (matches && Math.abs(spawnTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
-								var playfield:PlayField = playfields.members[evilNote.fieldIndex];
-								if (evilNote.tail.length > 0)
-									for (tail in evilNote.tail)
-									{
-										tail.destroy();
-										allNotes.remove(tail);
-										if (playfield != null) playfield.unqueue(tail);
-									}
-								evilNote.destroy();
-								allNotes.remove(evilNote);
-								if (playfield != null) playfield.unqueue(evilNote);
-								ghostNotesCaught++;
-								//continue;
-							}
-						}
-					}
-
-
-
-
-					if (!chartingMode)
-					switch (chartModifier)
-					{
-						case "Random":
-							noteColumn = FlxG.random.int(0, mania);
-						case "RandomBasic":
-							var randomDirection:Int;
-							do
-							{
-								randomDirection = FlxG.random.int(0, mania);
-							}
-							while (randomDirection == prevNoteData && mania > 1);
-							prevNoteData = randomDirection;
-							noteColumn = randomDirection;
-						case "RandomComplex":
-							var thisNoteData = noteColumn;
-							if (initialNoteData == -1)
-							{
-								initialNoteData = noteColumn;
-								noteColumn = FlxG.random.int(0, mania);
-							}
-							else
-							{
-								var newNoteData:Int;
-								do
-								{
-									newNoteData = FlxG.random.int(0, mania);
-								}
-								while (newNoteData == prevNoteData && mania > 1);
-								if (thisNoteData == initialNoteData)
-								{
-									noteColumn = prevNoteData;
-								}
-								else
-								{
-									noteColumn = newNoteData;
-								}
-							}
-							prevNoteData = noteColumn;
-							initialNoteData = thisNoteData;
-
-						// case "Sequential":
-						// 	if (prevNoteData == 0) {
-						// 		noteColumn = 1;
-						// 		direction = 1;
-						// 	} else if (prevNoteData == mania - 1) {
-						// 		noteColumn = mania - 2;
-						// 		direction = -1;
-						// 	} else {
-						// 		noteColumn = prevNoteData + direction;
-						// 	}
-						// 	break;
-						case "Mirror": // Broken
-							var length = mania;
-							var mirroredIndex:Int;
-							var middle = Math.floor(length / 2);
-							if (noteColumn < middle)
-							{
-								mirroredIndex = (middle - noteColumn) + middle - 1;
-							}
-							else if (noteColumn > middle)
-							{
-								mirroredIndex = middle - (noteColumn - middle);
-							}
-							else
-							{
-								mirroredIndex = noteColumn;
-							}
-							noteColumn = mirroredIndex;
-						case "ReverseMirror":
-							var median:Float = (mania + 1) / 2;
-							if (noteColumn <= median)
-							{
-								// For values below the median, mirror downwards
-								noteColumn = Std.int(median - (median - noteColumn) - 1);
-							}
-							else
-							{
-								// For values above the median, mirror upwards
-								noteColumn = Std.int(median + (noteColumn - median) + 1);
-							}
-							noteColumn = Std.int(Math.max(0, Math.min(noteColumn, mania - 1)));
-
-						case "Skip":
-							var skipStep = 2; // Define the step size for skipping notes.
-							var randomLane = Math.random() < 0.5 ? prevNoteData : (prevNoteData + skipStep) % mania;
-							var randomDuration = Math.random() * 30; // Randomize the duration before switching lanes (in notes).
-							noteColumn = randomLane;
-						case "Flip":
-							if (gottaHitNote)
-							{
-								noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
-							}
-						case "Pain":
-							noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
-						case "4K Only":
-							//trace("4K Only: " + noteColumn);
-							noteColumn = getNumberFromAnimsSmall(noteColumn, 3);
-							//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
-						case "ManiaConverter":
-							//trace("ManiaConverter: " + noteColumn);
-							noteColumn = getNumberFromAnims(noteColumn, mania);
-							//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
-						case "Stairs":
-							noteColumn = stair % Note.ammo[mania];
-							stair++;
-						case "Wave":
-							// Sketchie... WHY?!
-							var ammoFromFortnite:Int = Note.ammo[mania];
-							var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-							var marioSex:Int = stair++ % luigiSex;
-							if (marioSex < ammoFromFortnite)
-							{
-								noteColumn = marioSex;
-							}
-							else
-							{
-								noteColumn = luigiSex - marioSex;
-							}
-						case "Trills":
-							var ammoFromFortnite:Int = Note.ammo[mania];
-							var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-							var marioSex:Int;
-							do
-							{
-								marioSex = Std.int((stair++ % (luigiSex * 4)) / 4 + stair % 2);
-								if (marioSex < ammoFromFortnite)
-								{
-									noteColumn = marioSex;
-								}
-								else
-								{
-									noteColumn = luigiSex - marioSex;
-								}
-							}
-							while (noteColumn == prevNoteData && mania > 1);
-							prevNoteData = noteColumn;
-						case "Ew":
-							// I hate that I used Sketchie's variables as a base for this... ;-;
-							var ammoFromFortnite:Int = Note.ammo[mania];
-							var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-							var marioSex:Int = stair++ % luigiSex;
-							var noteIndex:Int = Std.int(marioSex / 2);
-							var noteDirection:Int = marioSex % 2 == 0 ? 1 : -1;
-							noteColumn = noteIndex + noteDirection;
-							// If the note index is out of range, wrap it around
-							if (noteColumn < 0)
-							{
-								noteColumn = 1;
-							}
-							else if (noteColumn >= ammoFromFortnite)
-							{
-								noteColumn = ammoFromFortnite - 2;
-							}
-						case "Death":
-							var ammoFromFortnite:Int = Note.ammo[mania];
-							var luigiSex:Int = (ammoFromFortnite * 4 - 4);
-							var marioSex:Int = stair++ % luigiSex;
-							var step:Int = Std.int(luigiSex / 3);
-
-							if (marioSex < ammoFromFortnite)
-							{
-								noteColumn = marioSex % step;
-							}
-							else if (marioSex < ammoFromFortnite * 2)
-							{
-								noteColumn = (marioSex - ammoFromFortnite) % step + step;
-							}
-							else if (marioSex < ammoFromFortnite * 3)
-							{
-								noteColumn = (marioSex - ammoFromFortnite * 2) % step + step * 2;
-							}
-							else
-							{
-								noteColumn = (marioSex - ammoFromFortnite * 3) % step + step * 3;
-							}
-						case "What":
-							switch (stair % (2 * Note.ammo[mania]))
-							{
-								case 0:
-								case 1:
-								case 2:
-								case 3:
-								case 4:
-									noteColumn = stair % Note.ammo[mania];
-								default:
-									noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
-							}
-							stair++;
-						case "Amalgam":
-							{
-								var modifierNames:Array<String> = [
-									"Random",
-									"RandomBasic",
-									"RandomComplex",
-									"Flip",
-									"Pain",
-									"Stairs",
-									"Wave",
-									"Huh",
-									"Ew",
-									"What",
-									"Jack Wave",
-									"SpeedRando",
-									"Trills"
-								];
-
-								if (caseExecutionCount <= 0)
-								{
-									currentModifier = FlxG.random.int(-1, (modifierNames.length - 1)); // Randomly select a case from 0 to 9
-									caseExecutionCount = FlxG.random.int(1, 51); // Randomly select a number from 1 to 50
-									trace("Active Modifier: " + modifierNames[currentModifier] + ", Notes to edit: " + caseExecutionCount);
-								}
-								// trace('Notes remaining: ' + caseExecutionCount);
-								caseExecutionCount--;
-								switch (currentModifier)
-								{
-									case 0: // "Random"
-										noteColumn = FlxG.random.int(0, mania);
-									case 1: // "RandomBasic"
-										var randomDirection:Int;
-										do
-										{
-											randomDirection = FlxG.random.int(0, mania);
-										}
-										while (randomDirection == prevNoteData && mania > 1);
-										prevNoteData = randomDirection;
-										noteColumn = randomDirection;
-									case 2: // "RandomComplex"
-										var thisNoteData = noteColumn;
-										if (initialNoteData == -1)
-										{
-											initialNoteData = noteColumn;
-											noteColumn = FlxG.random.int(0, mania);
-										}
-										else
-										{
-											var newNoteData:Int;
-											do
-											{
-												newNoteData = FlxG.random.int(0, mania);
-											}
-											while (newNoteData == prevNoteData && mania > 1);
-											if (thisNoteData == initialNoteData)
-											{
-												noteColumn = prevNoteData;
-											}
-											else
-											{
-												noteColumn = newNoteData;
-											}
-										}
-										prevNoteData = noteColumn;
-										initialNoteData = thisNoteData;
-									case 3: // "Flip"
-										if (gottaHitNote)
-										{
-											noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
-										}
-									case 4: // "Pain"
-										noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
-									case 5: // "Stairs"
-										noteColumn = stair % Note.ammo[mania];
-										stair++;
-									case 6: // "Wave"
-										// Sketchie... WHY?!
-										var ammoFromFortnite:Int = Note.ammo[mania];
-										var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-										var marioSex:Int = stair++ % luigiSex;
-										if (marioSex < ammoFromFortnite)
-										{
-											noteColumn = marioSex;
-										}
-										else
-										{
-											noteColumn = luigiSex - marioSex;
-										}
-									case 7: // "Huh"
-										var ammoFromFortnite:Int = Note.ammo[mania];
-										var luigiSex:Int = (ammoFromFortnite * 4 - 4);
-										var marioSex:Int = stair++ % luigiSex;
-										var step:Int = Std.int(luigiSex / 3);
-										var waveIndex:Int = Std.int(marioSex / step);
-										var waveDirection:Int = waveIndex % 2 == 0 ? 1 : -1;
-										var waveRepeat:Int = Std.int(waveIndex / 2);
-										var repeatStep:Int = marioSex % step;
-										if (repeatStep < waveRepeat)
-										{
-											noteColumn = waveIndex * step + waveDirection * repeatStep;
-										}
-										else
-										{
-											noteColumn = waveIndex * step + waveDirection * (waveRepeat * 2 - repeatStep);
-										}
-										if (noteColumn < 0)
-										{
-											noteColumn = 0;
-										}
-										else if (noteColumn >= ammoFromFortnite)
-										{
-											noteColumn = ammoFromFortnite - 1;
-										}
-									case 8: // "Ew"
-										// I hate that I used Sketchie's variables as a base for this... ;-;
-										var ammoFromFortnite:Int = Note.ammo[mania];
-										var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-										var marioSex:Int = stair++ % luigiSex;
-										var noteIndex:Int = Std.int(marioSex / 2);
-										var noteDirection:Int = marioSex % 2 == 0 ? 1 : -1;
-										noteColumn = noteIndex + noteDirection;
-										// If the note index is out of range, wrap it around
-										if (noteColumn < 0)
-										{
-											noteColumn = 1;
-										}
-										else if (noteColumn >= ammoFromFortnite)
-										{
-											noteColumn = ammoFromFortnite - 2;
-										}
-									case 9: // "What"
-										switch (stair % (2 * Note.ammo[mania]))
-										{
-											case 0:
-											case 1:
-											case 2:
-											case 3:
-											case 4:
-												noteColumn = stair % Note.ammo[mania];
-											default:
-												noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
-										}
-										stair++;
-									case 10: // Jack Wave
-										var ammoFromFortnite:Int = Note.ammo[mania];
-										var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-										var marioSex:Int = Std.int((stair++ % (luigiSex * 4)) / 4);
-										if (marioSex < ammoFromFortnite)
-										{
-											noteColumn = marioSex;
-										}
-										else
-										{
-											noteColumn = luigiSex - marioSex;
-										}
-									case 11: // SpeedRando
-										// Handled by SpeedRando Code below!
-									case 12: // Trills
-										var ammoFromFortnite:Int = Note.ammo[mania];
-										var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-										var marioSex:Int;
-										do
-										{
-											marioSex = Std.int((stair++ % (luigiSex * 4)) / 4 + stair % 2);
-											if (marioSex < ammoFromFortnite)
-											{
-												noteColumn = marioSex;
-											}
-											else
-											{
-												noteColumn = luigiSex - marioSex;
-											}
-										}
-										while (noteColumn == prevNoteData && mania > 1);
-										prevNoteData = noteColumn;
-									default:
-										// Default case (optional)
-								}
-							}
-					}
-
-					var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
-					holdLength = Math.round(songNotes[2] / curStepCrochet) - 1;
-					if (allNotes.length > 0)
-						oldNote = allNotes[Std.int(allNotes.length - 1)];
-					else
-						oldNote = null;
-
-var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
-					(ClientPrefs.data.useExperimentalNotePool ?
-					NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, this) :
-					noteManager.getNote(spawnTime, noteColumn, oldNote, false));
-
-					swagNote.noteIndex = Std.int(allNotes.length);
-					swagNote.formerPress = swagNote.mustPress = gottaHitNote;
-
-					// UNO Chart Modifier Processing
-					if (chartModifier == "UNO") {
-						if (unoMechanic == null) {
-							unoMechanic = new UnoMechanic();
-						}
-						unoMechanic.processNote(swagNote, mania, spawnTime, gottaHitNote);
-					}
-
-					swagNote.row = Conductor.secsToRow(spawnTime);
-					var rowArray = noteRows[gottaHitNote?0:1];
-					if(rowArray[swagNote.row]==null)
-						rowArray[swagNote.row]=[];
-					rowArray[swagNote.row].push(swagNote);
-					if (!swagNote.mustPress)
-					{
-						if (AIPlayMap != null && AIPlayMap.length != 0 && [sectionsData.indexOf(section)] != null)
-						{
-							swagNote.AIStrumTime = AIPlayMap[sectionsData.indexOf(section)][section.sectionNotes.indexOf(songNotes)];
-							if (Math.abs(swagNote.AIStrumTime) > Conductor.safeZoneOffset)
-								swagNote.ignoreNote = swagNote.AIMiss = true;
-						}
-					}
-					var isAlt: Bool = section.altAnim && !gottaHitNote;
-					swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
-					swagNote.animSuffix = isAlt ? "-alt" : "";
-					swagNote.sustainLength = songNotes[2] <= curStepCrochet ? songNotes[2] : (holdLength + 1) * curStepCrochet; // +1 because hold end
-					swagNote.noteType = noteType;
-					swagNote.ID = allNotes.length;
-					swagNote.holdType = swagNote.sustainLength > 0 ? HEAD : TAP;
-					swagNote.isParent = swagNote.sustainLength > 0;
-					swagNote.scrollFactor.set();
-					var setPos:Bool = true;
-
-					if ((swagNote.noteType == null || (swagNote.noteType == '' || swagNote.noteType.length == 0)) && swagNote.mustPress)
-					{
-						if (FlxG.random.bool(MechanicManager.mechanics['swap_note'].points * 0.16))
-						{
-							setPos = false;
-							swagNote.noteType = 'Swap Note';
-							swagNote.copyX = false;
-							swagNote.typeOffsetX += 60;
-						}
-					}
-
-					if (chartModifier == 'Amalgam' && currentModifier == 11)
-					{
-						swagNote.multSpeed = FlxG.random.float(0.1, 2);
-					}
-
-					////
-
-					callOnScripts("onGeneratedNote", [swagNote, section]);
-
-					var playfield:PlayField = swagNote.field;
-
-					if (playfield == null && playfields.length > 0) {
-						if (swagNote.fieldIndex == -1)
-							swagNote.fieldIndex = swagNote.mustPress ? 0 : 1;
-
-						if (playfields.members[swagNote.fieldIndex] != null) {
-							playfield = playfields.members[swagNote.fieldIndex];
-							swagNote.field = playfield;
-						}
-					}
-					//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
-
-					if (playfield != null)
-					{
-						if (!preload && playfield != null) {
-							playfield.queue(swagNote); // queues the note to be spawned
-						}
-						allNotes.push(swagNote); // just for the sake of convenience
-					}
-					else if (preload) {
-						// During preload, still add to allNotes even without playfield
-						allNotes.push(swagNote);
-						swagNote.fieldIndex = swagNote.mustPress ? 0 : 1; // Set default field index
-					}
-
-					// Generate special UNO notes (skip, wrong, +2, +4)
-					if (chartModifier == "UNO" && unoMechanic != null) {
-						var specialNotes = unoMechanic.generateSpecialNotes(swagNote, mania, allNotes);
-						for (specialNote in specialNotes) {
-							if (playfield != null) {
-								specialNote.field = playfield;
-								specialNote.fieldIndex = swagNote.fieldIndex;
-								if (!preload) {
-									playfield.queue(specialNote);
-								}
-								allNotes.push(specialNote);
-							}
-							else if (preload) {
-								// During preload, still add to allNotes even without playfield
-								specialNote.fieldIndex = swagNote.fieldIndex;
-								allNotes.push(specialNote);
-							}
-						}
-					}
-
-					var spot = 0;
-					final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet) -1;
-					if (roundSus > 0)
-					{
-						// Cache properties to avoid repeated property access
-						final stepCrochet = Conductor.stepCrochet;
-						final parentMustPress = swagNote.mustPress;
-						final parentGfNote = swagNote.gfNote;
-						final parentExNote = swagNote.exNote;
-						final parentAnimSuffix = swagNote.animSuffix;
-						final parentNoteType = swagNote.noteType;
-						final parentNoteIndex = swagNote.noteIndex;
-						final parentMultSpeed = (chartModifier == 'Amalgam' && currentModifier == 11) ? swagNote.multSpeed : 0;
-						final parentFieldIndex = swagNote.fieldIndex;
-						final parentField = swagNote.field;
-						final usePool = ClientPrefs.data.useExperimentalNotePool;
-
-						for (susNote in 0...roundSus)
-						{
-							oldNote = allNotes[Std.int(allNotes.length - 1)];
-
-							var sustainNote:Note = usePool ?
-								NotePoolManager.createNote(spawnTime + (stepCrochet * susNote) + stepCrochet, noteColumn, oldNote, true, false, this) :
-								new Note(spawnTime + (stepCrochet * susNote) + stepCrochet, noteColumn, oldNote, true, false, null, false);
-
-							// Set properties using cached values
-							sustainNote.mustPress = parentMustPress;
-							sustainNote.gfNote = parentGfNote;
-							sustainNote.exNote = parentExNote;
-							sustainNote.animSuffix = parentAnimSuffix;
-							sustainNote.noteType = parentNoteType;
-							sustainNote.noteIndex = parentNoteIndex;
-							if (chartModifier == 'Amalgam' && currentModifier == 11)
-							{
-								sustainNote.multSpeed = parentMultSpeed;
-							}
-							if (sustainNote == null || !sustainNote.alive)
-								break;
-							sustainNote.ID = allNotes.length;
-							sustainNote.scrollFactor.set();
-							sustainNote.holdType = roundSus > 0 ? PART : END;
-							sustainNote.parent = swagNote;
-							sustainNote.fieldIndex = parentFieldIndex;
-							sustainNote.field = parentField;
-							swagNote.tail.push(sustainNote);
-							swagNote.unhitTail.push(sustainNote);
-							if (!preload && playfield != null) {
-								playfield.queue(sustainNote);
-							}
-							allNotes.push(sustainNote);
-							var setPos:Bool = true;
-							if (sustainNote.noteType == 'Swap Note') {
-								setPos = false;
-								sustainNote.typeOffsetX = swagNote.typeOffsetX;
-							}
-							if (setPos)
-							{
-								var originalSusPos:Float = sustainNote.x;
-
-								if (sustainNote.formerPress)
-								{
-									sustainNote.x += FlxG.width * 0.5; // general offset
-								}
-							}
-							else
-								sustainNote.copyX = false;
-
-							sustainNote.parent = swagNote;
-							swagNote.childs.push(sustainNote);
-							sustainNote.spotInLine = spot;
-							spot++;
-						}
-					}
-
-					if(!noteTypes.contains(swagNote.noteType))
-						noteTypes.push(swagNote.noteType);
-
-					if (mechanicsMod != null) {
-						var sectionLength = (section.sectionBeats*4);
-
-						var sectionStartTime:Float = (Conductor.stepCrochet * sectionLoopCount) * sectionLength;
-
-						// note placement
-						var weightedChances:Array<Null<Float>> = [];
-						var getChance:Int->Float = function(i)
-						{
-							if (weightedChances[i] == null)
-							{
-								weightedChances[i] = 0;
-							}
-
-							return weightedChances[i];
-						};
-
-						// [MECHANIC NAME, NOTE TYPE]
-						var generatedTypes:Array<Array<Dynamic>> = [
-							[
-								'hurt_note',
-								'Hurt Note',
-								Math.min(MechanicManager.mechanics['hurt_note'].points * FlxMath.remapToRange(sectionLength, 0, 16, 1, 6) / songData.notes.length * 0.2,
-									1),
-								0.5,
-								1
-							],
-							[
-								'kill_note',
-								'Kill Note',
-								Math.min(MechanicManager.mechanics['kill_note'].points * FlxMath.remapToRange(sectionLength, 0, 16, 1, 6) / songData.notes.length * 0.2,
-									1),
-								0.2,
-								0.5
-							],
-							[
-								'burst_note',
-								'Burst Note',
-								Math.min(MechanicManager.mechanics['burst_note'].points * FlxMath.remapToRange(sectionLength, 0, 16, 1, 6) / songData.notes.length * 0.2,
-									1),
-								0.35,
-								0.9
-							],
-							[
-								'sleep_note',
-								'Sleep Note',
-								Math.min(MechanicManager.mechanics['sleep_note'].points * FlxMath.remapToRange(sectionLength, 0, 16, 1, 6) / songData.notes.length * 0.2,
-									1),
-								0.35,
-								0.75
-							],
-							[
-								'fake_note',
-								'Fake Note',
-								Math.min((MechanicManager.mechanics['fake_note'].points / 2) * FlxMath.remapToRange(sectionLength, 0, 16, 1,
-									6) / songData.notes.length * 0.2, 1),
-								0.5,
-								0.9
-							],
-							[
-								'note_random',
-								'No Animation',
-								Math.min(MechanicManager.mechanics['note_random'].points * FlxMath.remapToRange(sectionLength, 0, 16, 1, 6) / songData.notes.length * 0.2,
-									1),
-								0.9,
-								1.1
-							]
-						];
-
-						for (j in [false, true])
-						{
-							for (ii in 0...weightedChances.length)
-							{
-								weightedChances[ii] = 0;
-							}
-							var hitSectionMulti:Float = 1;
-
-							if (section.mustHitSection != j)
-							{
-								hitSectionMulti = 0.2;
-							}
-							if (section.sectionNotes.length < 8)
-								hitSectionMulti = 0.04;
-
-							for (i in 0...16)
-							{
-								for (jj in 0...generatedTypes.length)
-								{
-									var chance:Float = generatedTypes[jj][2] + (getChance(jj) * generatedTypes[jj][4]);
-									if (generatedTypes[jj][0] == 'note_random')
-										chance *= hitSectionMulti;
-									else if (generatedTypes[jj][0] == 'restore_note' && (!j && !bothMode))
-										break;
-									var placeNote:Note = placeNote(chance, generatedTypes[jj][1], [
-										sectionStartTime + (Conductor.stepCrochet * i),
-										FlxG.random.int(0, 3),
-										j,
-										generatedTypes[jj][3]
-									]);
-
-									if (placeNote == null)
-									{
-										weightedChances[jj] += FlxG.random.float(0,
-											FlxMath.remapToRange(MechanicManager.mechanics[generatedTypes[jj][0]].points, 0, 20, 0, 2)) * 0.75;
-										continue;
-									}
-									var placePlayfield:PlayField = placeNote.field;
-
-									if (placePlayfield == null && playfields.length > 0) {
-										if (placeNote.fieldIndex == -1)
-											placeNote.fieldIndex = placeNote.mustPress ? 0 : 1;
-
-										if (playfields.members[placeNote.fieldIndex] != null) {
-											placePlayfield = playfields.members[placeNote.fieldIndex];
-											placeNote.field = placePlayfield;
-										}
-									}
-									if (placePlayfield != null)
-									{
-										placePlayfield.queue(placeNote); // queues the note to be spawned
-										allNotes.push(placeNote); // just for the sake of convenience
-									}
-									weightedChances[jj] = 0;
-								}
-							}
-						}
-						var strumSwapPoints:Int = MechanicManager.mechanics['strum_swap'].points;
-
-						if (FlxG.random.bool(FlxMath.remapToRange(strumSwapPoints, 0, 20, 0, 8) + getChance(7)))
-						{
-							moveStrumSections[sectionLoopCount] = true;
-							weightedChances[7] = 0;
-						}
-						else
-						{
-							moveStrumSections[sectionLoopCount] = false;
-							weightedChances[7] += FlxG.random.float(FlxMath.remapToRange(strumSwapPoints, 0, 20, 0, 0.4));
-						}
-
-						if (archipelago.APInfo.soreThroat) {
-							for (j in [false, true])
-							{
-								var hitSectionMulti:Float = 1;
-
-								if (section.mustHitSection != j)
-								{
-									hitSectionMulti = 0.2;
-								}
-								if (section.sectionNotes.length < 8)
-									hitSectionMulti = 0.04;
-
-								for (i in 0...16)
-								{
-									var throatNote:Note = placeNote(50, "Throat Note", [
-										sectionStartTime + (Conductor.stepCrochet * i),
-										FlxG.random.int(0, 3),
-										j,
-										hitSectionMulti
-									]);
-
-									if (throatNote == null)
-										continue;
-
-									var placePlayfield:PlayField = throatNote.field;
-									if (placePlayfield == null && playfields.length > 0) {
-										if (throatNote.fieldIndex == -1) throatNote.fieldIndex = throatNote.mustPress ? 0 : 1;
-
-										if (playfields.members[throatNote.fieldIndex] != null) {
-											placePlayfield = playfields.members[throatNote.fieldIndex];
-											throatNote.field = placePlayfield;
-										}
-									}
-
-									if (placePlayfield != null)
-									{
-										placePlayfield.queue(throatNote);
-										allNotes.push(throatNote);
-									}
-								}
-							}
-						}
-						sectionLoopCount += 1;
-					}
-				}
-
-				if (mechanicsMod != null) {
-					if (MechanicManager.mechanics["note_speed"].points > 0)
-					{
-						for (note in allNotes)
-						{
-							if (note.isSustainNote)
-								continue;
-							var speedBound:{min:Float, max:Float};
-							var points:Float = MechanicManager.mechanics["note_speed"].points;
-
-							speedBound = {min: FlxMath.remapToRange(points, 0, 20, -0, -0.5), max: FlxMath.remapToRange(points, 0, 20, 0, 0.5)};
-							note.multSpeed = songSpeed + FlxG.random.float(speedBound.min, speedBound.max);
-							for (sus in note.tail)
-							{
-								sus.multSpeed = note.multSpeed;
-							}
-						}
-					}
-				}
-			}
-		}
-
-
-		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-		for (event in songData.events) //Event Notes
-			for (i in 0...event[1].length)
-				makeEventPreload(event, i, preload);
-
-		allNotes.sort(sortByTime);
-
-		if (curChart == null || curChart.isNotEmpty())
-			curChart = new Array<Note>();
-
-		for (fuck in allNotes) {
-			unspawnNotes.push(fuck);
-			curChart.push(fuck);
-		}
-
-		// curChart = cast (curChart:objects.NotePool.NoteArray);
-
-		for (field in playfields.members)
-			field.clearStackedNotes();
-
+	function postGen() {
 		if (mechanicsMod != null) {
-
 			if (MechanicManager.mechanics['drain_hp'].points > 0)
 			{
 				new FlxTimer().start(0.1, function(tmr:FlxTimer)
@@ -5404,8 +4174,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				}, 0);
 			}
 		}
-		generatedMusic = true;
-		trace('Finished Generating Notes for ${SONG.song}!');
 	}
 
 	private function placeNote(chance:Float, noteType:String, attributes:Array<Dynamic>):Note
@@ -5426,583 +4194,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 		return null;
-	}
-
-	private function regenNotes():Void
-	{
-		// FlxG.log.add(ChartParser.parse());
-		songSpeed = PlayState.SONG.speed;
-		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
-		switch(songSpeedType)
-		{
-			case "multiplicative":
-				songSpeed = SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed');
-			case "constant":
-				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
-		}
-
-		var songData = SONG;
-		Conductor.bpm = songData.bpm;
-		curSong = songData.song;
-
-		try
-		{
-			var eventsChart:SwagSong = Song.getChart('events', songName);
-			if(eventsChart != null)
-				for (event in eventsChart.events) //Event Notes
-					for (i in 0...event[1].length)
-						makeEvent(event, i);
-		}
-		catch(e:Dynamic) {}
-
-		var AIPlayMap:Array<Array<Float>> = AIPlayer.active ? AIPlayer.GeneratePlayMap(SONG, AIPlayer.diff) : null;
-
-		var oldNote:Note = null;
-		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
-		var ghostNotesCaught:Int = 0;
-		var daBpm:Float = Conductor.bpm;
-
-		for (section in sectionsData)
-		{
-			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
-				daBpm = section.bpm;
-
-			for (i in 0...section.sectionNotes.length)
-			{
-				final songNotes: Array<Dynamic> = section.sectionNotes[i];
-				var spawnTime:Float = songNotes[0];
-				var noteColumn:Int = Std.int(songNotes[1]);
-				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-				var holdLength:Float = songNotes[2];
-				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-				if (Math.isNaN(holdLength)) holdLength = 0.0;
-
-				var gottaHitNote:Bool;
-				noteColumn = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
-				gottaHitNote = (songNotes[1] < (SONG.mania != null ? totalColumns : Note.ammo[3]));
-
-				if (i != 0) {
-					// CLEAR ANY POSSIBLE GHOST NOTES
-					for (evilNote in allNotes) {
-						var matches:Bool = (noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
-						if (matches && Math.abs(spawnTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
-							var playfield:PlayField = playfields.members[evilNote.fieldIndex];
-							if (evilNote.tail.length > 0)
-								for (tail in evilNote.tail)
-								{
-									tail.destroy();
-									allNotes.remove(tail);
-									if (playfield != null) playfield.unqueue(tail);
-								}
-							evilNote.destroy();
-							allNotes.remove(evilNote);
-							if (playfield != null) playfield.unqueue(evilNote);
-							ghostNotesCaught++;
-							//continue;
-						}
-					}
-				}
-
-				switch (chartModifier)
-				{
-					case "Random":
-						noteColumn = FlxG.random.int(0, mania);
-					case "RandomBasic":
-						var randomDirection:Int;
-						do
-						{
-							randomDirection = FlxG.random.int(0, mania);
-						}
-						while (randomDirection == prevNoteData && mania > 1);
-						prevNoteData = randomDirection;
-						noteColumn = randomDirection;
-					case "RandomComplex":
-						var thisNoteData = noteColumn;
-						if (initialNoteData == -1)
-						{
-							initialNoteData = noteColumn;
-							noteColumn = FlxG.random.int(0, mania);
-						}
-						else
-						{
-							var newNoteData:Int;
-							do
-							{
-								newNoteData = FlxG.random.int(0, mania);
-							}
-							while (newNoteData == prevNoteData && mania > 1);
-							if (thisNoteData == initialNoteData)
-							{
-								noteColumn = prevNoteData;
-							}
-							else
-							{
-								noteColumn = newNoteData;
-							}
-						}
-						prevNoteData = noteColumn;
-						initialNoteData = thisNoteData;
-
-					// case "Sequential":
-					// 	if (prevNoteData == 0) {
-					// 		noteColumn = 1;
-					// 		direction = 1;
-					// 	} else if (prevNoteData == mania - 1) {
-					// 		noteColumn = mania - 2;
-					// 		direction = -1;
-					// 	} else {
-					// 		noteColumn = prevNoteData + direction;
-					// 	}
-					// 	break;
-					case "Mirror": // Broken
-						var length = mania;
-						var mirroredIndex:Int;
-						var middle = Math.floor(length / 2);
-						if (noteColumn < middle)
-						{
-							mirroredIndex = (middle - noteColumn) + middle - 1;
-						}
-						else if (noteColumn > middle)
-						{
-							mirroredIndex = middle - (noteColumn - middle);
-						}
-						else
-						{
-							mirroredIndex = noteColumn;
-						}
-						noteColumn = mirroredIndex;
-					case "ReverseMirror":
-						var median:Float = (mania + 1) / 2;
-						if (noteColumn <= median)
-						{
-							// For values below the median, mirror downwards
-							noteColumn = Std.int(median - (median - noteColumn) - 1);
-						}
-						else
-						{
-							// For values above the median, mirror upwards
-							noteColumn = Std.int(median + (noteColumn - median) + 1);
-						}
-						noteColumn = Std.int(Math.max(0, Math.min(noteColumn, mania - 1)));
-
-					case "Skip":
-						var skipStep = 2; // Define the step size for skipping notes.
-						var randomLane = Math.random() < 0.5 ? prevNoteData : (prevNoteData + skipStep) % mania;
-						var randomDuration = Math.random() * 30; // Randomize the duration before switching lanes (in notes).
-						noteColumn = randomLane;
-					case "Flip":
-						if (gottaHitNote)
-						{
-							noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
-						}
-					case "Pain":
-						noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
-					case "4K Only":
-						//trace("4K Only: " + noteColumn);
-						noteColumn = getNumberFromAnimsSmall(noteColumn, 3);
-						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
-					case "ManiaConverter":
-						//trace("ManiaConverter: " + noteColumn);
-						noteColumn = getNumberFromAnims(noteColumn, mania);
-						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
-					case "Stairs":
-						noteColumn = stair % Note.ammo[mania];
-						stair++;
-					case "Wave":
-						// Sketchie... WHY?!
-						var ammoFromFortnite:Int = Note.ammo[mania];
-						var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-						var marioSex:Int = stair++ % luigiSex;
-						if (marioSex < ammoFromFortnite)
-						{
-							noteColumn = marioSex;
-						}
-						else
-						{
-							noteColumn = luigiSex - marioSex;
-						}
-					case "Trills":
-						var ammoFromFortnite:Int = Note.ammo[mania];
-						var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-						var marioSex:Int;
-						do
-						{
-							marioSex = Std.int((stair++ % (luigiSex * 4)) / 4 + stair % 2);
-							if (marioSex < ammoFromFortnite)
-							{
-								noteColumn = marioSex;
-							}
-							else
-							{
-								noteColumn = luigiSex - marioSex;
-							}
-						}
-						while (noteColumn == prevNoteData && mania > 1);
-						prevNoteData = noteColumn;
-					case "Ew":
-						// I hate that I used Sketchie's variables as a base for this... ;-;
-						var ammoFromFortnite:Int = Note.ammo[mania];
-						var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-						var marioSex:Int = stair++ % luigiSex;
-						var noteIndex:Int = Std.int(marioSex / 2);
-						var noteDirection:Int = marioSex % 2 == 0 ? 1 : -1;
-						noteColumn = noteIndex + noteDirection;
-						// If the note index is out of range, wrap it around
-						if (noteColumn < 0)
-						{
-							noteColumn = 1;
-						}
-						else if (noteColumn >= ammoFromFortnite)
-						{
-							noteColumn = ammoFromFortnite - 2;
-						}
-					case "Death":
-						var ammoFromFortnite:Int = Note.ammo[mania];
-						var luigiSex:Int = (ammoFromFortnite * 4 - 4);
-						var marioSex:Int = stair++ % luigiSex;
-						var step:Int = Std.int(luigiSex / 3);
-
-						if (marioSex < ammoFromFortnite)
-						{
-							noteColumn = marioSex % step;
-						}
-						else if (marioSex < ammoFromFortnite * 2)
-						{
-							noteColumn = (marioSex - ammoFromFortnite) % step + step;
-						}
-						else if (marioSex < ammoFromFortnite * 3)
-						{
-							noteColumn = (marioSex - ammoFromFortnite * 2) % step + step * 2;
-						}
-						else
-						{
-							noteColumn = (marioSex - ammoFromFortnite * 3) % step + step * 3;
-						}
-					case "What":
-						switch (stair % (2 * Note.ammo[mania]))
-						{
-							case 0:
-							case 1:
-							case 2:
-							case 3:
-							case 4:
-								noteColumn = stair % Note.ammo[mania];
-							default:
-								noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
-						}
-						stair++;
-					case "Amalgam":
-						{
-							var modifierNames:Array<String> = [
-								"Random",
-								"RandomBasic",
-								"RandomComplex",
-								"Flip",
-								"Pain",
-								"Stairs",
-								"Wave",
-								"Huh",
-								"Ew",
-								"What",
-								"Jack Wave",
-								"SpeedRando",
-								"Trills"
-							];
-
-							if (caseExecutionCount <= 0)
-							{
-								currentModifier = FlxG.random.int(-1, (modifierNames.length - 1)); // Randomly select a case from 0 to 9
-								caseExecutionCount = FlxG.random.int(1, 51); // Randomly select a number from 1 to 50
-								trace("Active Modifier: " + modifierNames[currentModifier] + ", Notes to edit: " + caseExecutionCount);
-							}
-							// trace('Notes remaining: ' + caseExecutionCount);
-							caseExecutionCount--;
-							switch (currentModifier)
-							{
-								case 0: // "Random"
-									noteColumn = FlxG.random.int(0, mania);
-								case 1: // "RandomBasic"
-									var randomDirection:Int;
-									do
-									{
-										randomDirection = FlxG.random.int(0, mania);
-									}
-									while (randomDirection == prevNoteData && mania > 1);
-									prevNoteData = randomDirection;
-									noteColumn = randomDirection;
-								case 2: // "RandomComplex"
-									var thisNoteData = noteColumn;
-									if (initialNoteData == -1)
-									{
-										initialNoteData = noteColumn;
-										noteColumn = FlxG.random.int(0, mania);
-									}
-									else
-									{
-										var newNoteData:Int;
-										do
-										{
-											newNoteData = FlxG.random.int(0, mania);
-										}
-										while (newNoteData == prevNoteData && mania > 1);
-										if (thisNoteData == initialNoteData)
-										{
-											noteColumn = prevNoteData;
-										}
-										else
-										{
-											noteColumn = newNoteData;
-										}
-									}
-									prevNoteData = noteColumn;
-									initialNoteData = thisNoteData;
-								case 3: // "Flip"
-									if (gottaHitNote)
-									{
-										noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
-									}
-								case 4: // "Pain"
-									noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
-								case 5: // "Stairs"
-									noteColumn = stair % Note.ammo[mania];
-									stair++;
-								case 6: // "Wave"
-									// Sketchie... WHY?!
-									var ammoFromFortnite:Int = Note.ammo[mania];
-									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-									var marioSex:Int = stair++ % luigiSex;
-									if (marioSex < ammoFromFortnite)
-									{
-										noteColumn = marioSex;
-									}
-									else
-									{
-										noteColumn = luigiSex - marioSex;
-									}
-								case 7: // "Huh"
-									var ammoFromFortnite:Int = Note.ammo[mania];
-									var luigiSex:Int = (ammoFromFortnite * 4 - 4);
-									var marioSex:Int = stair++ % luigiSex;
-									var step:Int = Std.int(luigiSex / 3);
-									var waveIndex:Int = Std.int(marioSex / step);
-									var waveDirection:Int = waveIndex % 2 == 0 ? 1 : -1;
-									var waveRepeat:Int = Std.int(waveIndex / 2);
-									var repeatStep:Int = marioSex % step;
-									if (repeatStep < waveRepeat)
-									{
-										noteColumn = waveIndex * step + waveDirection * repeatStep;
-									}
-									else
-									{
-										noteColumn = waveIndex * step + waveDirection * (waveRepeat * 2 - repeatStep);
-									}
-									if (noteColumn < 0)
-									{
-										noteColumn = 0;
-									}
-									else if (noteColumn >= ammoFromFortnite)
-									{
-										noteColumn = ammoFromFortnite - 1;
-									}
-								case 8: // "Ew"
-									// I hate that I used Sketchie's variables as a base for this... ;-;
-									var ammoFromFortnite:Int = Note.ammo[mania];
-									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-									var marioSex:Int = stair++ % luigiSex;
-									var noteIndex:Int = Std.int(marioSex / 2);
-									var noteDirection:Int = marioSex % 2 == 0 ? 1 : -1;
-									noteColumn = noteIndex + noteDirection;
-									// If the note index is out of range, wrap it around
-									if (noteColumn < 0)
-									{
-										noteColumn = 1;
-									}
-									else if (noteColumn >= ammoFromFortnite)
-									{
-										noteColumn = ammoFromFortnite - 2;
-									}
-								case 9: // "What"
-									switch (stair % (2 * Note.ammo[mania]))
-									{
-										case 0:
-										case 1:
-										case 2:
-										case 3:
-										case 4:
-											noteColumn = stair % Note.ammo[mania];
-										default:
-											noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
-									}
-									stair++;
-								case 10: // Jack Wave
-									var ammoFromFortnite:Int = Note.ammo[mania];
-									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-									var marioSex:Int = Std.int((stair++ % (luigiSex * 4)) / 4);
-									if (marioSex < ammoFromFortnite)
-									{
-										noteColumn = marioSex;
-									}
-									else
-									{
-										noteColumn = luigiSex - marioSex;
-									}
-								case 11: // SpeedRando
-									// Handled by SpeedRando Code below!
-								case 12: // Trills
-									var ammoFromFortnite:Int = Note.ammo[mania];
-									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
-									var marioSex:Int;
-									do
-									{
-										marioSex = Std.int((stair++ % (luigiSex * 4)) / 4 + stair % 2);
-										if (marioSex < ammoFromFortnite)
-										{
-											noteColumn = marioSex;
-										}
-										else
-										{
-											noteColumn = luigiSex - marioSex;
-										}
-									}
-									while (noteColumn == prevNoteData && mania > 1);
-									prevNoteData = noteColumn;
-								default:
-									// Default case (optional)
-							}
-						}
-				}
-
-				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
-				holdLength = Math.round(songNotes[2] / curStepCrochet) - 1;
-				if (allNotes.length > 0)
-					oldNote = allNotes[Std.int(allNotes.length - 1)];
-				else
-					oldNote = null;
-
-				var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
-				NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, this) :
-				new Note(spawnTime, noteColumn, oldNote);
-				swagNote.noteIndex = Std.int(allNotes.length);
-				swagNote.mustPress = gottaHitNote;
-
-				swagNote.row = Conductor.secsToRow(spawnTime);
-				var rowArray = noteRows[gottaHitNote?0:1];
-				if(rowArray[swagNote.row]==null)
-					rowArray[swagNote.row]=[];
-				rowArray[swagNote.row].push(swagNote);
-				if (!swagNote.mustPress)
-				{
-					if (AIPlayMap != null && AIPlayMap.length != 0 && [sectionsData.indexOf(section)] != null)
-					{
-						swagNote.AIStrumTime = AIPlayMap[sectionsData.indexOf(section)][section.sectionNotes.indexOf(songNotes)];
-						if (Math.abs(swagNote.AIStrumTime) > Conductor.safeZoneOffset)
-							swagNote.ignoreNote = swagNote.AIMiss = true;
-					}
-				}
-				var isAlt: Bool = section.altAnim && !gottaHitNote;
-				swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
-				swagNote.animSuffix = isAlt ? "-alt" : "";
-				swagNote.sustainLength = songNotes[2] <= curStepCrochet ? songNotes[2] : (holdLength + 1) * curStepCrochet; // +1 because hold end
-				swagNote.noteType = noteType;
-				swagNote.ID = allNotes.length;
-				swagNote.holdType = swagNote.sustainLength > 0 ? HEAD : TAP;
-				swagNote.isParent = swagNote.sustainLength > 0;
-				swagNote.scrollFactor.set();
-				if (chartModifier == 'Amalgam' && currentModifier == 11)
-				{
-					swagNote.multSpeed = FlxG.random.float(0.1, 2);
-				}
-
-				////
-
-				callOnScripts("onGeneratedNote", [swagNote, section]);
-
-				var playfield:PlayField = swagNote.field;
-
-				if (playfield == null && playfields.length > 0) {
-					if (swagNote.fieldIndex == -1)
-						swagNote.fieldIndex = swagNote.mustPress ? 0 : 1;
-
-					if (playfields.members[swagNote.fieldIndex] != null) {
-						playfield = playfields.members[swagNote.fieldIndex];
-						swagNote.field = playfield;
-					}
-				}
-
-				playfield = swagNote.field;
-				swagNote.fieldIndex = playfield.modNumber;
-				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
-
-				if (playfield != null)
-				{
-					playfield.queue(swagNote); // queues the note to be spawned
-					allNotes.push(swagNote); // just for the sake of convenience
-				}
-
-				var spot = 0;
-				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet) -1;
-				if (roundSus > 0)
-				{
-					for (susNote in 0...roundSus)
-					{
-						oldNote = allNotes[Std.int(allNotes.length - 1)];
-
-						var sustainNote:Note = ClientPrefs.data.useExperimentalNotePool ?
-							NotePoolManager.createNote(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true, false, this) :
-							new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
-						sustainNote.mustPress = gottaHitNote;
-						sustainNote.gfNote = swagNote.gfNote;
-						sustainNote.exNote = swagNote.exNote;
-						sustainNote.animSuffix = swagNote.animSuffix;
-						sustainNote.noteType = swagNote.noteType;
-						sustainNote.noteIndex = swagNote.noteIndex;
-						if (chartModifier == 'Amalgam' && currentModifier == 11)
-						{
-							sustainNote.multSpeed = swagNote.multSpeed;
-						}
-						if (sustainNote == null || !sustainNote.alive)
-							break;
-						sustainNote.ID = allNotes.length;
-						sustainNote.scrollFactor.set();
-						sustainNote.holdType = roundSus > 0 ? PART : END;
-						sustainNote.parent = swagNote;
-						sustainNote.fieldIndex = swagNote.fieldIndex;
-						sustainNote.field = swagNote.field;
-						swagNote.tail.push(sustainNote);
-						swagNote.unhitTail.push(sustainNote);
-						playfield.queue(sustainNote);
-						allNotes.push(sustainNote);
-
-						if (sustainNote.mustPress)
-						{
-							sustainNote.x += FlxG.width * 0.5; // general offset
-						}
-
-						sustainNote.parent = swagNote;
-						swagNote.childs.push(sustainNote);
-						sustainNote.spotInLine = spot;
-						spot++;
-					}
-				}
-			}
-		}
-
-		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-		for (event in songData.events) //Event Notes
-			for (i in 0...event[1].length)
-				makeEventPreload(event, i, false);
-
-		allNotes.sort(sortByTime);
-
-		for (fuck in allNotes) {
-			unspawnNotes.push(fuck);
-			curChart.push(fuck);
-		}
-
-		for (field in playfields.members)
-			field.clearStackedNotes();
-
-		generatedMusic = true;
 	}
 
 	function updateNote(note:Note)
@@ -6090,53 +4281,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 			// Like set_noteType()
 		}
-	}
-
-	public function changeMania(newValue:Int, skipStrumFadeOut:Bool = false)
-	{
-		callOnScripts('preChangeMania', [mania, newValue, skipStrumFadeOut]);
-		var daOldMania = mania;
-
-		mania = newValue;
-
-		playerField.strumNotes = [];
-		dadField.strumNotes = [];
-
-		callOnScripts('onChangeMania', [mania, daOldMania]);
-
-
-		setOnScripts('mania', mania);
-		notes.forEachAlive(function(note:Note)
-		{
-			updateNote(note);
-		});
-
-		for (noteI in 0...allNotes.length)
-		{
-			var note:Note = allNotes[noteI];
-			updateNote(note);
-		}
-
-		callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
-		callOnScripts('onReceptorGeneration');
-
-		for (field in playfields.members)
-		{
-			field.keyCount = Note.ammo[mania];
-			field.generateStrums();
-		}
-
-		callOnScripts('postReceptorGeneration'); // deprecated
-		callOnScripts('onReceptorGenerationPost');
-
-		callOnScripts('onChangeMania', [mania, newValue, skipStrumFadeOut]);
-
-		for (field in playfields.members)
-			field.fadeIn(skipStrumFadeOut); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
-
-		singAnimations = Note.keysShit.get(mania).get('singAnims');
-
-		callOnScripts('postChangeMania', [mania, newValue, skipStrumFadeOut]);
 	}
 
 	// called only once per different event (Used for precaching)
@@ -6311,23 +4455,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		curEvents.push(subEvent);
 		eventPushed(subEvent);
 		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
-	}
-
-	public function makeEventPreload(event:Array<Dynamic>, i:Int, preload:Bool = false)
-	{
-		var subEvent:EventNote = {
-			strumTime: event[0] + ClientPrefs.data.noteOffset,
-			event: event[1][i][0],
-			value1: event[1][i][1],
-			value2: event[1][i][2]
-		};
-
-		eventNotes.push(subEvent);
-		if (!preload) {
-			curEvents.push(subEvent);
-			eventPushed(subEvent);
-			callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
-		}
 	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
@@ -8046,8 +6173,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		DiscordClient.resetClientID();
 		#end
 
-		LoadingState.noteCache = [];
-		curChart = [];
+		PlayfieldManager.curChart = [];
 
 		ClientPrefs.openChartEditor();
 	}
@@ -8117,10 +6243,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 		// backend.Threader.runInThread(regenerateNotes(SONG, AIPlayMap), 0, "generateNotes");
-		initThreadAlt(regenNotes, 'Regen');
-		allNotes = curChart.copy();
-		unspawnNotes = curChart.copy();
-		eventNotes = curEvents.copy();
+		//initThreadAlt(regenNotes, 'Regen');
+		var difficulty:String = Difficulty.getFilePath();
+		playfield.loadChart(Paths.formatToSongPath(curSong)+difficulty, Paths.formatToSongPath(curSong));
 		if (loopModeChallenge)
 		{
 			playbackRate *= loopPlayMult;
@@ -8930,10 +7055,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				newMania = Std.parseInt(value1);
 				if (Math.isNaN(newMania) && newMania < Note.minMania && newMania > Note.maxMania)
 					newMania = 0;
-				changeMania(newMania, skipTween);
+				playfield.changeMania(newMania, skipTween);
 
 			case 'Change Mania (Special)':
-				var newMania:Int = 0;
+				/*var newMania:Int = 0;
 				var skipTween:Bool = value2 == "true" ? true : false;
 				var prevNote1:Note = null;
 				var prevNote2:Note = null;
@@ -8981,7 +7106,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							allNotes[i].noteData = prevNote2.noteData;
 					}
 				}
-				changeMania(newMania, skipTween);
+				changeMania(newMania, skipTween);*/
 
 			case 'False Timer':
 				if (timerExtensions != null)
@@ -9529,8 +7654,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 		if(ret != LuaUtils.Function_Stop && !transitioning)
 		{
-			LoadingState.noteCache = [];
-			curChart = [];
+			PlayfieldManager.curChart = [];
 			deathCounter = 0; // set it to 0 AFTER it's been saved
 			playbackRate = 1;
 			savedTime = 0;
@@ -10569,162 +8693,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		});
 	}
 
-	private function strumKeyDown(column:Int, player:Int = -1) {
-		if (strumsBlocked[column]) return;
-
-		if (callOnScripts("onKeyPress", [column]) == LuaUtils.Function_Stop)
-			return;
-
-		var hitNotes:Array<Note> = []; // what could scripts possibly do with this information
-		var controlledFields:Array<PlayField> = [];
-
-		if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-			return;
-
-		for (field in playfields.members) {
-			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed)
-				continue;
-
-			controlledFields.push(field);
-			field.keysPressed[column] = true;
-
-			if (endingSong)
-				continue;
-
-			var note:Note = {
-				var ret:Dynamic = callOnScripts("onFieldInput", [field, column, hitNotes]);
-				if (ret == LuaUtils.Function_Stop) null;
-				else if (ret is Note) ret;
-				else field.input(column);
-			}
-
-			if (note == null) {
-				var spr:StrumNote = field.strumNotes[column];
-				if (spr != null) {
-					spr.playAnim('pressed');
-					spr.resetAnim = 0;
-				}
-			}else {
-				hitNotes.push(note);
-			}
-		}
-
-		if (hitNotes.length == 0) {
-			for (field in controlledFields) {
-				callOnScripts('onGhostTap', [column, field]);
-
-				if (!ClientPrefs.data.ghostTapping)
-					noteMissPress(column, field);
-			}
-		}
-
-		//trace('strum down: $column');
-	}
-
-	private function strumKeyUp(column:Int, player:Int = -1) {
-		// doesnt matter if THIS is done while paused
-		// only worry would be if we implemented Lifts
-		// but afaik we arent doing that
-		// (though could be interesting to add)
-
-		for (field in playfields.members) {
-			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed)
-				continue;
-
-			field.keysPressed[column] = false;
-
-			if (!field.isHolding[column]) {
-				var spr:StrumNote = field.strumNotes[column];
-				if (spr != null){
-					spr.playAnim('static');
-					spr.resetAnim = 0;
-				}
-			}
-		}
-
-		callOnScripts('onKeyRelease', [column]);
-	}
-
-	public var strumsBlocked:Array<Bool> = [];
-	var closestNotes:Array<Note> = [];
-	var pressed:Array<FlxKey> = [];
-	var reverseNoteRules:Bool = false;
-	private function onKeyPress(event:KeyboardEvent):Void
-	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = getKeyFromEvent(eventKey);
-
-		if (reverseNoteRules) {
-			if (pressed.contains(eventKey))
-				pressed.remove(eventKey);
-
-			if (key != -1) strumKeyUp(key);
-		} else {
-			#if debug
-			//Prevents crash specifically on debug without needing to try catch shit
-			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
-			#end
-			if (ClientPrefs.data.inputSystem == "Native-old") {
-				if (!controls.controllerMode)
-				{
-					if (paused || !startedCountdown || inCutscene) return;
-					if (pressed.contains(eventKey)) return;
-					pressed.push(eventKey);
-					if (key != -1) strumKeyDown(key);
-				}
-			}
-			else {
-				if (paused || !startedCountdown || inCutscene) return;
-				if (pressed.contains(eventKey)) return;
-				pressed.push(eventKey);
-				if (callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-
-				if (key > -1)
-				{
-					var hitNotes:Array<Note> = [];
-					var controlledFields:Array<PlayField> = [];
-
-					if (strumsBlocked[key]) return;
-					if (callOnScripts("onKeyPress", [key]) == LuaUtils.Function_Stop) return;
-					for (field in playfields.members)
-					{
-						if (!field.autoPlayed && field.isPlayer && field.inControl)
-						{
-							controlledFields.push(field);
-							field.keysPressed[key] = true;
-							if (generatedMusic && !endingSong)
-							{
-								var note:Note = null;
-								var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
-								if (ret == LuaUtils.Function_Stop) continue;
-								else if ((ret.objType == NOTE)) note = ret;
-								else note = field.input(key);
-
-								if (note == null)
-								{
-									var spr:StrumNote = field.strumNotes[key];
-									if (spr != null && spr.animation?.curAnim?.name != 'confirm')
-									{
-										spr.playAnim('pressed');
-										spr.resetAnim = 0;
-									}
-								}
-								else hitNotes.push(note);
-							}
-						}
-						if (hitNotes.length == 0 && controlledFields.length > 0)
-						{
-							callOnScripts('onGhostTap', [key]);
-
-							if (!ClientPrefs.data.ghostTapping)
-								noteMissPress(key, field);
-						}
-					}
-				}
-			}
-		}
-	}
-
 	// === PERFORMANCE OPTIMIZATION FUNCTIONS ===
 	/**
 	 * Initialize all performance optimization settings and cached values
@@ -10860,89 +8828,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 	}
 
-	private function keyPressed(key:Int, player:Int = -1)
-	{
-		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || paused || inCutscene || key < 0 || key >= playerStrums.length || !generatedMusic || endingSong || boyfriend.stunned) return;
-		if (strumsBlocked[key]) return;
-
-		// Early script callback optimization - only call if scripts exist
-		if (hasLuaScripts || hasHScripts) {
-			var ret:Dynamic = callOnScripts('onKeyPressPre', [key]);
-			if(ret == LuaUtils.Function_Stop) return;
-		}
-
-		// Store original conductor position ONCE
-		var lastTime:Float = Conductor.songPosition;
-		if(Conductor.songPosition >= 0) Conductor.songPosition = FlxG.sound.music.time + Conductor.offset;
-
-		var hitNotes:Array<Note> = [];
-		var controlledFields:Array<PlayField> = [];
-
-		// Pre-filter controlled fields to avoid repeated checks
-		for (field in playfields.members) {
-			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed)
-				continue;
-			controlledFields.push(field);
-		}
-
-		// Process all controlled fields
-		for (field in controlledFields) {
-			field.keysPressed[key] = true;
-
-			if (endingSong) continue;
-
-			var note:Note = null;
-
-			// Optimize script callback - only call if scripts exist and return early if stopped
-			if (hasLuaScripts || hasHScripts) {
-				var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
-				if (ret == LuaUtils.Function_Stop) {
-					note = null;
-				} else if (ret is Note) {
-					note = ret;
-				} else {
-					note = field.input(key);
-				}
-			} else {
-				note = field.input(key);
-			}
-
-			if (note == null) {
-				var spr:StrumNote = field.strumNotes[key];
-				if (spr != null) {
-					spr.playAnim('pressed');
-					spr.resetAnim = 0;
-				}
-			} else {
-				hitNotes.push(note);
-			}
-		}
-
-		// Handle ghost tapping
-		if (hitNotes.length == 0) {
-			for (field in controlledFields) {
-				if (hasLuaScripts || hasHScripts) {
-					callOnScripts('onGhostTap', [key, field]);
-				}
-
-				if (!ClientPrefs.data.ghostTapping)
-					noteMissPress(key, field);
-			}
-		}
-
-		// Optimize keysPressed tracking with Map
-		keysPressedSet[key] = true;
-		if(!keysPressed.contains(key)) keysPressed.push(key);
-
-		// Restore conductor position ONCE
-		Conductor.songPosition = lastTime;
-
-		// Final script callback - only if scripts exist
-		if (hasLuaScripts || hasHScripts) {
-			callOnScripts('onKeyPress', [key]);
-		}
-	}
-
 	public static function sortHitNotes(a:Note, b:Note):Int
 	{
 		if (a.lowPriority && !b.lowPriority)
@@ -10951,392 +8836,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			return -1;
 
 		return FlxSort.byValues(FlxSort.ASCENDING, a.strumTime, b.strumTime);
-	}
-
-	// very innovative?
-	private function leftMousePress(event:MouseEvent):Void
-	{
-		onMousePress(-4);
-	}
-
-	private function rightMousePress(event:MouseEvent):Void
-	{
-		onMousePress(-5);
-	}
-
-	private function leftMouseRelease(event:MouseEvent):Void
-	{
-		onMouseRelease(-4);
-	}
-
-	private function rightMouseRelease(event:MouseEvent):Void
-	{
-		onMouseRelease(-5);
-	}
-
-	private function onMousePress(key:Int):Void {
-		var keyDirection:Int = getMouseFromEvent(key);
-
-		if (reverseNoteRules) {
-			if (keyDirection != -1) strumKeyUp(keyDirection);
-		} else {
-			if (ClientPrefs.data.inputSystem == "Native-old") {
-				if (!controls.controllerMode)
-				{
-					if (paused || !startedCountdown || inCutscene) return;
-					if (keyDirection != -1) strumKeyDown(keyDirection);
-				}
-			}
-			else {
-				if (paused || !startedCountdown || inCutscene) return;
-				if (callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
-
-				if (keyDirection > -1)
-				{
-					var hitNotes:Array<Note> = [];
-					var controlledFields:Array<PlayField> = [];
-
-					if (strumsBlocked[keyDirection]) return;
-					if (callOnScripts("onKeyPress", [keyDirection]) == LuaUtils.Function_Stop) return;
-					for (field in playfields)
-					{
-						if (!field.autoPlayed && field.isPlayer && field.inControl)
-						{
-							controlledFields.push(field);
-							field.keysPressed[keyDirection] = true;
-							if (generatedMusic && !endingSong)
-							{
-								var note:Note = null;
-								var ret:Dynamic = callOnScripts("onFieldInput", [field, keyDirection, hitNotes]);
-								if (ret == LuaUtils.Function_Stop) continue;
-								else if ((ret.objType == NOTE)) note = ret;
-								else note = field.input(key);
-
-								if (note == null)
-								{
-									var spr:StrumNote = field.strumNotes[keyDirection];
-									if (spr != null && spr.animation.curAnim.name != 'confirm')
-									{
-										spr.playAnim('pressed');
-										spr.resetAnim = 0;
-									}
-								}
-								else hitNotes.push(note);
-							}
-						}
-						if (hitNotes.length == 0 && controlledFields.length > 0)
-						{
-							callOnScripts('onGhostTap', [keyDirection]);
-
-							if (!ClientPrefs.data.ghostTapping)
-								noteMissPress(keyDirection, field);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private function onMouseRelease(key:Int):Void
-	{
-		var direction:Int = getMouseFromEvent(key);
-		if (reverseNoteRules) {
-			if (paused || !startedCountdown || inCutscene) return;
-			if (callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
-
-			if (direction > -1)
-			{
-				var hitNotes:Array<Note> = [];
-				var controlledFields:Array<PlayField> = [];
-
-				if (strumsBlocked[direction]) return;
-				if (callOnScripts("onKeyPress", [direction]) == LuaUtils.Function_Stop) return;
-				for (field in playfields.members)
-				{
-					if (!field.autoPlayed && field.isPlayer && field.inControl)
-					{
-						controlledFields.push(field);
-						field.keysPressed[direction] = true;
-						if (generatedMusic && !endingSong)
-						{
-							var note:Note = null;
-							var ret:Dynamic = callOnScripts("onFieldInput", [field, direction, hitNotes]);
-							if (ret == LuaUtils.Function_Stop) continue;
-							else if ((ret.objType == NOTE)) note = ret;
-							else note = field.input(key);
-
-							if (note == null)
-							{
-								var spr:StrumNote = field.strumNotes[direction];
-								if (spr != null && spr.animation.curAnim.name != 'confirm')
-								{
-									spr.playAnim('pressed');
-									spr.resetAnim = 0;
-								}
-							}
-							else hitNotes.push(note);
-						}
-					}
-					if (hitNotes.length == 0 && controlledFields.length > 0)
-					{
-						callOnScripts('onGhostTap', [direction]);
-
-						if (!ClientPrefs.data.ghostTapping)
-							noteMissPress(direction, field);
-					}
-				}
-			}
-		} else {
-			if (direction != -1) strumKeyUp(direction);
-		}
-		// trace('released: ' + controlArray);
-	}
-
-	private function onKeyRelease(event:KeyboardEvent):Void
-	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = getKeyFromEvent(eventKey);
-		//if(!controls.controllerMode && key > -1) keyReleased(key);
-		if (reverseNoteRules) {
-			#if debug
-			//Prevents crash specifically on debug without needing to try catch shit
-			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
-			#end
-			if (ClientPrefs.data.inputSystem == "Native-old") {
-				if (!controls.controllerMode)
-				{
-					if (paused || !startedCountdown || inCutscene) return;
-					if (pressed.contains(eventKey)) return;
-					pressed.push(eventKey);
-					if (key != -1) strumKeyDown(key);
-				}
-			}
-			else {
-				if (paused || !startedCountdown || inCutscene) return;
-				if (pressed.contains(eventKey)) return;
-				pressed.push(eventKey);
-				if (callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-
-				if (key > -1)
-				{
-					var hitNotes:Array<Note> = [];
-					var controlledFields:Array<PlayField> = [];
-
-					if (strumsBlocked[key]) return;
-					if (callOnScripts("onKeyPress", [key]) == LuaUtils.Function_Stop) return;
-					for (field in playfields.members)
-					{
-						if (!field.autoPlayed && field.isPlayer && field.inControl)
-						{
-							controlledFields.push(field);
-							field.keysPressed[key] = true;
-							if (generatedMusic && !endingSong)
-							{
-								var note:Note = null;
-								var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
-								if (ret == LuaUtils.Function_Stop) continue;
-								else if ((ret.objType == NOTE)) note = ret;
-								else note = field.input(key);
-
-								if (note == null)
-								{
-									var spr:StrumNote = field.strumNotes[key];
-									if (spr != null && spr.animation.curAnim.name != 'confirm')
-									{
-										spr.playAnim('pressed');
-										spr.resetAnim = 0;
-									}
-								}
-								else hitNotes.push(note);
-							}
-						}
-						if (hitNotes.length == 0 && controlledFields.length > 0)
-						{
-							callOnScripts('onGhostTap', [key]);
-
-							if (!ClientPrefs.data.ghostTapping)
-								noteMissPress(key, field);
-						}
-					}
-				}
-			}
-		} else {
-			if (pressed.contains(eventKey))
-				pressed.remove(eventKey);
-
-			if (key != -1) strumKeyUp(key);
-		}
-	}
-
-	private function keyReleased(key:Int, ?player:Int = -1)
-	{
-		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || !startedCountdown || paused || key < 0 || key >= playerStrums.length) return;
-
-		var ret:Dynamic = callOnScripts('onKeyReleasePre', [key]);
-		if(ret == LuaUtils.Function_Stop) return;
-
-		for (field in playfields.members) {
-			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed)
-				continue;
-
-			field.keysPressed[key] = false;
-
-			if (!field.isHolding[key]) {
-				var spr:StrumNote = field.strumNotes[key];
-				if (spr != null){
-					spr.playAnim('static');
-					spr.resetAnim = 0;
-				}
-			}
-		}
-		callOnScripts('onKeyRelease', [key]);
-	}
-
-	public static function getKeyFromEvent(key:FlxKey):Int
-	{
-		if (key != NONE)
-			for (i in 0...keysArray[mania].length)
-				for (j in 0...keysArray[mania][i].length)
-					if (key == keysArray[mania][i][j])
-						return i;
-		return -1;
-	}
-
-	public static function getMouseFromEvent(pressed:Int):Int
-	{
-		if (pressed != -1)
-			for (i in 0...keysArray[mania].length)
-				for (j in 0...keysArray[mania][i].length)
-					if (pressed == keysArray[mania][i][j])
-						return i;
-		return -1;
-	}
-
-	private function parseKeys(?suffix:String = ''):Array<Bool>
-	{
-		var ret:Array<Bool> = [];
-		for (i in 0...controlArray.length)
-		{
-			ret[i] = Reflect.getProperty(controls, controlArray[i] + suffix);
-		}
-		return ret;
-	}
-
-	// Hold notes
-	// This is for the old (new) input
-	public static var pressedGameplayKeys:Array<Bool> = [];
-
-	// Cache the parsed arrays to avoid recreating them every frame
-	private static var _cachedHoldArray:Array<Bool> = [];
-	private static var _cachedPressArray:Array<Bool> = [];
-	private static var _cachedReleaseArray:Array<Bool> = [];
-
-	private function keysCheck():Void
-	{
-		if (ClientPrefs.data.inputSystem == 'Native-old') {
-			// Reuse arrays instead of creating new ones
-			var holdArray = _cachedHoldArray;
-			var pressArray = _cachedPressArray;
-			var releaseArray = _cachedReleaseArray;
-
-			// Clear and resize arrays efficiently
-			holdArray.splice(0, holdArray.length);
-			pressArray.splice(0, pressArray.length);
-			releaseArray.splice(0, releaseArray.length);
-
-			var keyArrayLength = keysArray[mania].length;
-			holdArray.resize(keyArrayLength);
-			pressArray.resize(keyArrayLength);
-			releaseArray.resize(keyArrayLength);
-
-			// Use direct indexing instead of push
-			for (i in 0...keyArrayLength) {
-				var key = keysArray[mania][i];
-				holdArray[i] = controls.pressed(key);
-				pressArray[i] = controls.justPressed(key);
-				releaseArray[i] = controls.justReleased(key);
-			}
-
-			// Optimize controller input handling
-			if(controls.controllerMode) {
-				for (i in 0...pressArray.length) {
-					if(pressArray[i] && strumsBlocked[i] != true) {
-						keyPressed(i);
-					}
-				}
-			}
-
-			// Optimize hold checking
-			if (startedCountdown && !inCutscene && !boyfriend.stunned && generatedMusic) {
-				var hasHoldInput = false;
-				for (hold in holdArray) {
-					if (hold) {
-						hasHoldInput = true;
-						break;
-					}
-				}
-
-				if (!hasHoldInput && !endingSong) {
-					playerDance();
-				}
-				#if ACHIEVEMENTS_ALLOWED
-				else if (hasHoldInput) {
-					checkForAchievement(['oversinging']);
-				}
-				#end
-			}
-
-			// Optimize release handling
-			if((controls.controllerMode || strumsBlocked.contains(true))) {
-				for (i in 0...releaseArray.length) {
-					if(releaseArray[i] || strumsBlocked[i] == true) {
-						keyReleased(i);
-					}
-				}
-			}
-		} else {
-			// HOLDING
-			var parsedHoldArray:Array<Bool> = parseKeys();
-			pressedGameplayKeys = parsedHoldArray;
-			// FlxG.watch.addQuick('asdfa', upP);
-			if (startedCountdown && !boyfriend.stunned && generatedMusic)
-			{
-				// rewritten inputs???
-				notes.forEachAlive(function(daNote:Note)
-				{
-					// hold note functions
-					if (parsedHoldArray.contains(true) && !endingSong)
-					{
-						#if ACHIEVEMENTS_ALLOWED
-						checkForAchievement(['oversinging']);
-						#end
-					}
-				});
-
-				if (boyfriend != null && boyfriend.holdTimer > Conductor.stepCrochet * 0.001 * boyfriend.singDuration
-					&& boyfriend.animation.curAnim.name.startsWith('sing')
-					&& !boyfriend.animation.curAnim.name.endsWith('miss'))
-					boyfriend.dance();
-
-				if (bf2 != null && bf2.holdTimer > Conductor.stepCrochet * 0.001 * bf2.singDuration
-					&& bf2.animation.curAnim.name.startsWith('sing')
-					&& !bf2.animation.curAnim.name.endsWith('miss'))
-					bf2.dance();
-
-				if (strumsBlocked.contains(true))
-				{
-					var parsedArray:Array<Bool> = parseKeys('_R');
-					if (parsedArray.contains(true))
-					{
-						for (i in 0...parsedArray.length)
-						{
-							if (parsedArray[i] || strumsBlocked[i] == true)
-								onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[mania][i][0]));
-						}
-					}
-				}
-			}
-		}
 	}
 
 	function noteMiss(daNote:Note, field:PlayField):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
@@ -12096,15 +9595,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			resetSubState();
 		}
 
-		// Clear input optimization variables
-		if (keysPressedSet != null) {
-			keysPressedSet.clear();
-			keysPressedSet = null;
-		}
-		_cachedHoldArray = null;
-		_cachedPressArray = null;
-		_cachedReleaseArray = null;
-
 		#if LUA_ALLOWED
 		if (luaArray != null && luaArray.length > 0) { //if there's nothing, simply dont.
 			for (lua in luaArray)
@@ -12155,76 +9645,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		yscriptArray = null;
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 
-		// Clear all note groups and references
-		if (unspawnNotes != null) {
-			for (note in unspawnNotes) {
-				if (note != null) note.destroy();
-			}
-			unspawnNotes.splice(0, unspawnNotes.length);
-			unspawnNotes = null;
-		}
-
-		if (notes != null) {
-			try {
-				notes.forEachAlive(function(note:Note) {
-					if (note != null) note.destroy();
-				});
-				notes.clear();
-				notes = null;
-			} catch(e) {} //Assume the notes are already destroyed if you can't destroy them
-		}
-
-		if (allNotes != null) {
-			for (note in allNotes) {
-				if (note != null) note.destroy();
-			}
-			allNotes.splice(0, allNotes.length);
-			allNotes = null;
-		}
-
-		if (curChart != null) {
-			for (note in curChart) {
-				if (note != null) note.destroy();
-			}
-			curChart.splice(0, curChart.length);
-			curChart = null;
-		}
-
-		// Clear strum note references
-		if (playerStrums != null) {
-			playerStrums.forEachAlive(function(strum:StrumNote) {
-				if (strum != null) strum.destroy();
-			});
-			playerStrums.clear();
-			playerStrums = null;
-		}
-
-		if (opponentStrums != null) {
-			opponentStrums.forEachAlive(function(strum:StrumNote) {
-				if (strum != null) strum.destroy();
-			});
-			opponentStrums.clear();
-			opponentStrums = null;
-		}
-
-		if (strumLineNotes != null) {
-			strumLineNotes.clear();
-			strumLineNotes = null;
-		}
-
 		// Clear character references
 		CharacterManager.instance.destroyAll();
-
-		// Clear event and callback references
-		if (eventNotes != null) {
-			eventNotes.splice(0, eventNotes.length);
-			eventNotes = null;
-		}
-
-		if (curEvents != null) {
-			curEvents.splice(0, curEvents.length);
-			curEvents = null;
-		}
 
 		// Clear tween managers
 		if (modchartTweens != null) {
@@ -12265,8 +9687,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			mechanicsMod = null;
 		}
 
-		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-		FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+		playfield.removeInput();
 
 		FlxG.camera.setFilters([]);
 
@@ -12281,7 +9702,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		mutex = null;
 
 		NoteSplash.configs.clear();
-		mania = 3;
+		playfield.resetFields();
 
 		// Clean modchart Managers
 		#if LUA_ALLOWED
@@ -12308,7 +9729,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		moveStrumSections = [];
 		instance = null;
 		variables = null;
-		keysArray = null;
 		endingSong = true;
 		Paths.clearStoredWithoutStickers();
 
@@ -12828,47 +10248,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 	}
 
-
-	public function applyModchartTransform(property:String, value:Float, noteData:Int, player:Int, field:PlayField):Void {
-		// Calculate offsets based on property
-		switch (property.toLowerCase()) {
-			case "x":
-				var baseX:Float = field.baseXPositions[noteData];
-				var offsetX = value - baseX;
-
-				// Apply the transform while preserving any alternate (-a) transforms
-				var currentAltValue = modManager.getValue('transform${noteData}X-a', player);
-				modManager.setValue('transform${noteData}X', offsetX - currentAltValue, player);
-
-				trace('Legacy Script -> Modchart: Strum ${noteData} X changed: base=${baseX}, new=${value}, transform=${offsetX - currentAltValue}');
-
-			case "y":
-				var baseY:Float = field.getBaseY(noteData);
-				var offsetY = value - baseY;
-
-				var currentAltValue = modManager.getValue('transform${noteData}Y-a', player);
-				modManager.setValue('transform${noteData}Y', offsetY - currentAltValue, player);
-
-				trace('Legacy Script -> Modchart: Strum ${noteData} Y changed: base=${baseY}, new=${value}, transform=${offsetY - currentAltValue}');
-
-			case "angle":
-				// For angles, we can use the builtin localRotate modifier
-				modManager.setValue('localRotate${noteData}', value, player);
-
-				trace('Legacy Script -> Modchart: Strum ${noteData} angle changed: new=${value}');
-
-			case "alpha":
-				// For alpha, use the alpha modifier while preserving alternate values
-				var currentAltValue = modManager.getValue('alpha${noteData}-a', player);
-				modManager.setValue('alpha${noteData}', value - currentAltValue, player);
-
-				trace('Legacy Script -> Modchart: Strum ${noteData} alpha changed: new=${value}');
-
-			default:
-				trace('Unsupported property for modchart propagation: ${property}');
-		}
-	}
-
 	#if ACHIEVEMENTS_ALLOWED
 	private function checkForAchievement(achievesToCheck:Array<String> = null)
 	{
@@ -13348,151 +10727,6 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		FlxG.sound.list.add(inst);
 
 		trace('PlayState: Song audio loaded successfully');
-	}
-
-	/**
-	 * Finish preloaded chart generation by adding to playfields and groups
-	 * Called when create() runs after preload generation
-	 */
-	private function finishPreloadedGeneration():Void {
-		trace('PlayState: Finishing preloaded generation - adding ${allNotes.length} notes to playfields');
-
-		var improperPreload = false;
-
-		// Load audio that was skipped during preload
-		loadSongAudio();
-
-		// Complete note initialization that was skipped during preload
-		// If "Finalize at Birth" is enabled, skip finalization here - notes will be finalized when spawned
-		if (!ClientPrefs.data.finalizeAtBirth) {
-			trace('PlayState: Finalizing notes during preload finish');
-			// Process in smaller batches to prevent freezing
-			var batchSize = 50;
-			var processedNotes = 0;
-			for (note in allNotes) {
-				if (note != null) {
-					try {
-						note.finishNoteInitialization();
-						processedNotes++;
-						// Add small delay every batch to prevent freezing
-						if (processedNotes % batchSize == 0) {
-							trace('Processed $processedNotes/${allNotes.length} notes');
-						}
-					} catch (e:Dynamic) {
-						trace('Error initializing note $processedNotes: $e');
-						improperPreload = true;
-						break;
-					}
-				}
-			}
-			trace('Completed note initialization for $processedNotes notes');
-		} else {
-			trace('PlayState: Skipping note finalization - will finalize at birth when notes spawn');
-		}
-
-
-		// Add notes to noteGroup (this was skipped during preload)
-		if (noteGroup != null && notes != null) {
-			noteGroup.add(notes);
-			trace('PlayState: Added notes group to noteGroup');
-		}
-
-		// Add all notes to their proper playfields
-		for (note in allNotes) {
-			var playfield = note.field;
-			if (playfield == null && playfields.length > 0) {
-				if (note.fieldIndex == -1)
-					note.fieldIndex = note.mustPress ? 0 : 1;
-
-				if (playfields.members[note.fieldIndex] != null) {
-					playfield = playfields.members[note.fieldIndex];
-					note.field = playfield;
-				}
-			}
-
-			if (playfield != null) {
-				playfield.queue(note);
-			}
-		}
-
-		// Process events that weren't processed during preload
-		for (event in eventNotes) {
-			if (curEvents.indexOf(event) == -1) {
-				curEvents.push(event);
-				eventPushed(event);
-				callOnScripts('onEventPushed', [event.event, event.value1 != null ? event.value1 : '', event.value2 != null ? event.value2 : '', event.strumTime]);
-			}
-		}
-
-		// Clear stacked notes now that playfields exist
-		for (field in playfields.members)
-			field.clearStackedNotes();
-
-		if (improperPreload) {
-			trace('PlayState: Preloaded chart had errors during finalization - clearing and regenerating chart normally to prevent breaking the song');
-
-			// Clear all preloaded data to start fresh
-			if (allNotes != null) {
-				for (note in allNotes) {
-					if (note != null) note.destroy();
-				}
-				allNotes.splice(0, allNotes.length);
-			}
-			allNotes = new Array();
-
-			if (unspawnNotes != null) {
-				for (note in unspawnNotes) {
-					if (note != null) note.destroy();
-				}
-				unspawnNotes.splice(0, unspawnNotes.length);
-			}
-			unspawnNotes = new Array();
-
-			if (curChart != null) {
-				for (note in curChart) {
-					if (note != null) note.destroy();
-				}
-				curChart.splice(0, curChart.length);
-			}
-			curChart = new Array();
-
-			if (eventNotes != null) {
-				eventNotes.splice(0, eventNotes.length);
-			}
-			eventNotes = new Array();
-
-			if (curEvents != null) {
-				curEvents.splice(0, curEvents.length);
-			}
-			curEvents = new Array();
-
-			// Clear all notes from playfields
-			for (field in playfields.members) {
-				try {
-					field.clearDeadNotes();
-				} catch(e) {
-					trace('Error clearing dead notes from field: $e');
-				}
-				field.spawnedNotes = [];
-				field.noteQueue = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
-			}
-
-			// Clear note graphics
-			if (notes != null) {
-				try {
-					notes.forEachAlive(function(note:Note) {
-						if (note != null) note.destroy();
-					});
-					notes.clear();
-				} catch(e) {}
-			}
-
-			generatedMusic = false;
-			generateSong();
-			return;
-		}
-
-		trace('PlayState: Preloaded chart integration completed');
 	}
 } //
 typedef MechanicResults =

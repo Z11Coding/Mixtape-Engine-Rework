@@ -315,22 +315,22 @@ class Song
 
 			// Load the dynamic song
 			if (DynamicSongManager.instance.loadDynamicSong(folder)) {
-				PlayState.SONG = DynamicSongManager.instance.getStitchedSong();
+				PlayfieldManager.SONG = DynamicSongManager.instance.getStitchedSong();
 				loadedSongName = folder;
 				chartPath = 'dynamic:$folder';
-				stages.StageData.loadDirectory(PlayState.SONG);
+				stages.StageData.loadDirectory(PlayfieldManager.SONG);
 				trace('Song.loadFromJson: Successfully loaded dynamic song with ${DynamicSongManager.instance.currentSections.length} sections');
-				return PlayState.SONG;
+				return PlayfieldManager.SONG;
 			} else {
 				trace('Song.loadFromJson: Dynamic song loading failed, trying fallback');
 				// Try to load fallback song
 				var fallbackSong = DynamicSongManager.instance.getFallbackSong();
 				if (fallbackSong != null) {
-					PlayState.SONG = fallbackSong;
+					PlayfieldManager.SONG = fallbackSong;
 					loadedSongName = folder;
 					chartPath = 'dynamic_fallback:$folder';
-					stages.StageData.loadDirectory(PlayState.SONG);
-					return PlayState.SONG;
+					stages.StageData.loadDirectory(PlayfieldManager.SONG);
+					return PlayfieldManager.SONG;
 				}
 				trace('Song.loadFromJson: Dynamic song fallback also failed, proceeding with normal loading');
 			}
@@ -345,16 +345,16 @@ class Song
 		}
 
 		try {
-			PlayState.SONG = getChart(jsonInput, folder, useAlt);
+			PlayfieldManager.SONG = getChart(jsonInput, folder, useAlt);
 		} catch(e) {
 			if (alsoTryDash)
-				try{PlayState.SONG = getChart('${jsonInput}-normal', folder, useAlt);}catch(e){getChart(jsonInput, folder, useAlt);} // do it normally so it can properly crash
-			else PlayState.SONG = getChart(jsonInput, folder, useAlt); // do it normally so it can properly crash
+				try{PlayfieldManager.SONG = getChart('${jsonInput}-normal', folder, useAlt);}catch(e){getChart(jsonInput, folder, useAlt);} // do it normally so it can properly crash
+			else PlayfieldManager.SONG = getChart(jsonInput, folder, useAlt); // do it normally so it can properly crash
 		}
 		loadedSongName = folder;
 		chartPath = _lastPath.replace('/', '\\');
-		stages.StageData.loadDirectory(PlayState.SONG);
-		return PlayState.SONG;
+		stages.StageData.loadDirectory(PlayfieldManager.SONG);
+		return PlayfieldManager.SONG;
 	}
 
 	/**

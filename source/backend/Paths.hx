@@ -238,6 +238,7 @@ class Paths
 			) Paths.currentTrackedAssets.set(key,val);
 			else cache.remove(key);
 		}
+		MusicBeatState.allowNuke = false;
 	}
 
 	// The "If All Else Fails" option
