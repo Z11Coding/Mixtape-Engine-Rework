@@ -5,15 +5,10 @@
 	"weekBackground": "school",
 	"weekBefore": "weekend1",
 	"startUnlocked": false,
-	"hideStoryMode": true,
 	"category": [
 		"Pico"
 	],
-	"weekCharacters": [
-		"senpai",
-		"bf",
-		"gf"
-	],
+	"hideStoryMode": true,
 	"songs": [
 		[
 			"Senpai (Pico mix)",
@@ -33,6 +28,11 @@
 				111
 			]
 		]
+	],
+	"weekCharacters": [
+		"senpai",
+		"pico-player",
+		"nene"
 	],
 	"weekName": "Week 6 Pico"
 }

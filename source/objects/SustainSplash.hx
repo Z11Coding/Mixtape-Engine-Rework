@@ -72,7 +72,7 @@ class SustainSplash extends FlxSprite
 		if (daNote != null && daNote.rgbShader != null)
 		{
 			var tempShader:RGBPalette = null;
-			if ((daNote == null || daNote.noteSplashData.useRGBShader) && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB))
+			if ((daNote == null || daNote.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
 			{
 				// If Note RGB is enabled:
 				if (daNote != null && !daNote.noteSplashData.useGlobalShader)

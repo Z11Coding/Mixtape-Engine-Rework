@@ -97,7 +97,7 @@ class Psych implements IAdapter {
 	}
 
 	public function getKeyCount(?player:Int = 0):Int {
-		return (PlayState.mania+1);
+		return (PlayfieldManager.mania[player]+1);
 	}
 
 	public function getPlayerCount():Int {
@@ -172,7 +172,7 @@ class Psych implements IAdapter {
 		return [PlayState.instance.camHUD];
 
 	public function getCurrentScrollSpeed():Float {
-		return PlayState.instance.songSpeed * .45;
+		return MegaManager.playfield.songSpeed * .45;
 	}
 
 	// 0 receptors

@@ -148,7 +148,7 @@ class ChallengePlaylistGenerator {
 	 * @return The generated PlaylistMetadata
 	 */
 	private function startQuietly(?forcedSongCount:Null<Int>):PlaylistMetadata {
-		trace('[ChallengePlaylist] Starting quiet synchronous generation...');
+		/*trace('[ChallengePlaylist] Starting quiet synchronous generation...');
 
 		// Pre-checks
 		if (!Mods.updatedOnState) {
@@ -253,7 +253,9 @@ class ChallengePlaylistGenerator {
 		}
 
 		trace('[ChallengePlaylist] Quiet generation complete! Generated playlist with ${challengePlaylist.songList.length} songs');
-		return challengePlaylist;
+		return challengePlaylist;*/
+		var challengePlaylist = new PlaylistMetadata('literally dont');
+		return challengePlaylist; //literally dont
 	}
 
 	/**

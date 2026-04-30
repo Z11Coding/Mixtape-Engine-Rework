@@ -1,36 +1,38 @@
 {
-	"storyName": "Due Debts",
+	"storyName": "Due Debts (BF Edition)",
 	"difficulties": "Easy, Normal, Hard",
 	"hideFreeplay": false,
 	"weekBackground": "phillystreets",
-	"weekBefore": "",
+	"weekBefore": "weekend1",
 	"startUnlocked": true,
-	"category": "base",
-	"weekCharacters": [
-		"darnell",
-		"pico-player",
-		"nene"
-	],
+	"hideStoryMode": true,
 	"songs": [
 		[
 			"Darnell (BF Mix)",
 			"darnell",
 			[
-				65,
-				60,
-				174
+				115,
+				94,
+				176
 			]
 		],
 		[
 			"Lit Up (BF Mix)",
 			"darnell",
 			[
-				65,
-				60,
-				174
+				115,
+				94,
+				176
 			]
 		]
 	],
-	"hideStoryMode": true,
-	"weekName": "Weekend 1"
+	"category": [
+		"base"
+	],
+	"weekCharacters": [
+		"darnell",
+		"bf",
+		"nene"
+	],
+	"weekName": "Weekend 1 BF"
 }

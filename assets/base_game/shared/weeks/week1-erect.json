@@ -4,7 +4,11 @@
 	"hideFreeplay": false,
 	"weekBackground": "stage",
 	"weekBefore": "week7",
-	"startUnlocked": false,
+	"startUnlocked": true,
+	"hideStoryMode": true,
+	"category": [
+		"Erect"
+	],
 	"songs": [
 		[
 			"Bopeebo Erect",
@@ -39,9 +43,5 @@
 		"bf",
 		"gf"
 	],
-	"category": [
-		"Erect"
-	],
-	"hideStoryMode": true,
 	"weekName": "Week 1 Erect"
 }

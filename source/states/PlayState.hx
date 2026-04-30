@@ -486,7 +486,6 @@ class PlayState extends MusicBeatState
 
 	public var guitarHeroSustains:Bool = false;
 	public var instakillOnMiss:Bool = false;
-	public var cpuControlled:Bool = false;
 	public var practiceMode:Bool = false;
 	public var pressMissDamage:Float = 0.05;
 
@@ -1025,19 +1024,6 @@ class PlayState extends MusicBeatState
 		PauseSubState.songName = null; //Reset to default
 		playbackRate = ClientPrefs.getGameplaySetting('songspeed');
 
-		speedChanges.push({
-			position: -6000 * 0.45,
-			startTime: -6000,
-			speed: 1,
-			#if EASED_SVs
-			startSpeed: 1,
-			#end
-		});
-
-		#if EASED_SVs
-		resetSVDeltas();
-		#end
-
 		// Because some things do actually use these lol
 		opponentStrums = new FlxTypedGroup<StrumNote>();
 		playerStrums = new FlxTypedGroup<StrumNote>();
@@ -1143,6 +1129,7 @@ class PlayState extends MusicBeatState
 		updateScriptFlags();
 
 		conductor.setupSong(Paths.songP(altInstrumentals ?? SONG.song), SONG);
+		conductor.musicPositionOffset = ClientPrefs.data.noteOffset;
 
 		#if DISCORD_ALLOWED
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
@@ -1797,16 +1784,7 @@ class PlayState extends MusicBeatState
 			}
 		#end
 
-		speedChanges.sort(svSort);
-		#if EASED_SVs
-		resetSVDeltas();
-		#end
-
-		if(eventNotes.length > 0)
-		{
-			for (event in eventNotes) event.strumTime -= eventEarlyTrigger(event);
-			eventNotes.sort(sortByTime);
-		}
+		conductor.triggerEarlyEvents();
 
 		// Register dynamic song scripting functions after all scripts are loaded
 		//registerDynamicSongScripting();
@@ -3691,7 +3669,7 @@ class PlayState extends MusicBeatState
 			{
 				var percent:Float = CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2);
 				// TODO: Make this look nicer
-				if (percent >	= 100)
+				if (percent >= 100)
 					col = "~";
 				else if (percent > 90)
 					col = ";";
@@ -4187,7 +4165,7 @@ class PlayState extends MusicBeatState
 			dataNote.earlyHitMult = attributes[3];
 			dataNote.mustPress = dataNote.formerPress = attributes[2];
 			dataNote.noteType = noteType;
-			dataNote.scrollSpeed = songSpeed;
+			dataNote.scrollSpeed = PlayfieldManager.instance.songSpeed;
 			dataNote.scrollFactor.set();
 
 			return dataNote;
@@ -4247,7 +4225,7 @@ class PlayState extends MusicBeatState
 					prevNote.animation.play(Note.keysShit.get(mania).get('letters')[noteData % tMania] + ' hold');
 
 					prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
-					prevNote.scale.y *= songSpeed;
+					prevNote.scale.y *= PlayfieldManager.instance.songSpeed;
 
 					if (isPixelStage)
 					{
@@ -4281,127 +4259,6 @@ class PlayState extends MusicBeatState
 
 			// Like set_noteType()
 		}
-	}
-
-	// called only once per different event (Used for precaching)
-	function eventPushed(event:EventNote) {
-		if (eventsPushed != null) {
-			eventPushedUnique(event);
-			if(eventsPushed.contains(event.event)) {
-				return;
-			}
-
-			stagesFunc(function(stage:BaseStage) stage.eventPushed(event));
-			eventsPushed.push(event.event);
-		}
-	}
-
-	// called by every event with the same name
-	function eventPushedUnique(event:EventNote) {
-		if (event.value1 == null) event.value1 = '';
-		if (event.value2 == null) event.value2 = '';
-		switch(event.event) {
-			case 'Change Scroll Speed': // Negative duration means using the event time as the tween finish time
-				var duration = Std.parseFloat(event.value2);
-				if (!Math.isNaN(duration) && duration < 0.0){
-					event.strumTime -= duration * 1000;
-					event.value2 = Std.string(-duration);
-				}
-
-			case 'Mult SV' | 'Constant SV':
-				var speed:Float = 1;
-				if(event.event == 'Constant SV'){
-					var b = Std.parseFloat(event.value1);
-					speed = Math.isNaN(b) ? 1 : (b / songSpeed);
-				}else{
-					speed = Std.parseFloat(event.value1);
-					if (Math.isNaN(speed)) speed = 1;
-				}
-				#if EASED_SVs
-				var endTime:Null<Float> = null;
-				var easeFunc:EaseFunction = FlxEase.linear;
-
-				var tweenOptions = event.value2.split("/");
-				if(tweenOptions.length >= 1){
-					easeFunc = FlxEase.linear;
-					var parsed:Float = Std.parseFloat(tweenOptions[0]);
-					if(!Math.isNaN(parsed))
-						endTime = event.strumTime + (parsed * 1000);
-
-					if(tweenOptions.length > 1){
-						var f:EaseFunction = LuaUtils.getTweenEaseByString(tweenOptions[1]);
-						if(f != null)
-							easeFunc = f;
-					}
-				}
-
-				var lastChange:SpeedEvent = speedChanges[speedChanges.length - 1];
-				speedChanges.push({
-					position: getTimeFromSV(event.strumTime, lastChange),
-					startTime: event.strumTime,
-					endTime: endTime,
-					easeFunc: easeFunc,
-					startSpeed: lastChange.startSpeed,
-					speed: speed
-				});
-				#else
-				var lastChange:SpeedEvent = speedChanges[speedChanges.length - 1];
-				speedChanges.push({
-					position: getTimeFromSV(event.strumTime, lastChange),
-					startTime: event.strumTime,
-					speed: speed
-				});
-				#end
-
-			case "Change Character":
-				var charType:Int = 0;
-				switch(event.value1.toLowerCase()) {
-					case 'gf' | 'girlfriend':
-						charType = 2;
-					case 'dad' | 'opponent':
-						charType = 1;
-					case 'dad2' | 'opponent2':
-						charType = 3;
-					case 'bf2' | 'boyfriend2':
-						charType = 4;
-					default:
-						var val1:Int = Std.parseInt(event.value1);
-						if(Math.isNaN(val1)) val1 = 0;
-						charType = val1;
-				}
-
-				var newCharacter:String = event.value2;
-				addCharacterToList(newCharacter, charType);
-
-			case 'Play Sound':
-				Paths.sound(event.value1); //Precache sound
-
-			case 'False Timer':
-				if (timerExtensions == null)
-					timerExtensions = new Array();
-
-				timerExtensions.push(event.strumTime);
-				maskedSongLength = timerExtensions[0];
-		}
-		stagesFunc(function(stage:BaseStage) stage.eventPushedUnique(event));
-	}
-
-	function eventEarlyTrigger(event:EventNote):Float {
-		var returnedValue:Null<Float> = callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true);
-		if(returnedValue != null && returnedValue != 0) {
-			return returnedValue;
-		}
-
-		switch(event.event) {
-			case 'Kill Henchmen': //Better timing so that the kill sound matches the beat intended
-				return 280; //Plays 280ms before the actual position
-		}
-		return 0;
-	}
-
-	function svSort(Obj1:SpeedEvent, Obj2:SpeedEvent):Int
-	{
-		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.startTime, Obj2.startTime);
 	}
 
 	private function generateStrums():Void
@@ -4441,21 +4298,6 @@ class PlayState extends MusicBeatState
 
 	public static function sortByTime(Obj1:Dynamic, Obj2:Dynamic):Int
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
-
-	public function makeEvent(event:Array<Dynamic>, i:Int)
-	{
-		var subEvent:EventNote = {
-			strumTime: event[0] + ClientPrefs.data.noteOffset,
-			event: event[1][i][0],
-			value1: event[1][i][1],
-			value2: event[1][i][2]
-		};
-
-		eventNotes.push(subEvent);
-		curEvents.push(subEvent);
-		eventPushed(subEvent);
-		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
-	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
 	/*private function generateStaticArrows(player:Int):Void
@@ -4692,84 +4534,6 @@ class PlayState extends MusicBeatState
 	public var canPauseHardMode:Bool = true;
 	var freezeCamera:Bool = false;
 	public var allowDebugKeys:Bool = true;
-
-	private var svIndex:Int =0;
-	private inline function updateVisualPosition() {
-		var event:SpeedEvent = null;
-
-		for (i in svIndex+1...speedChanges.length) {
-			var nextEvent = speedChanges[i];
-			if (nextEvent.startTime > Conductor.songPosition)
-				break;
-
-			svIndex = i;
-			event = nextEvent;
-		}
-		event ??= speedChanges[svIndex];
-
-		if (!freezeNotes) Conductor.visualPosition = getTimeFromSV(Conductor.songPosition, event);
-		FlxG.watch.addQuick("visualPos", Conductor.visualPosition);
-	}
-
-	public static function getNoteInitialTime(time:Float)
-	{
-		var event:SpeedEvent = getSV(time);
-		return getTimeFromSV(time, event);
-	}
-
-	#if EASED_SVs
-	var lastSVTime:Float = 0;
-	var lastSVElapsed:Float = 0;
-	var lastSVPos:Float = 0;
-
-	inline function resetSVDeltas(){
-		if(speedChanges.length > 0){
-			lastSVTime = speedChanges[0].startTime;
-			lastSVElapsed = 0;
-			lastSVPos = speedChanges[0].position;
-		}else{
-			lastSVTime = -5000;
-			lastSVElapsed = 0;
-			lastSVPos = -5000 * 0.45;
-		}
-	}
-	#end
-
-	public static function getTimeFromSV(time:Float, event:SpeedEvent):Float {
-		#if EASED_SVs
-		var func:EaseFunction = event?.easeFunc;
-		if (event?.endTime != null) {
-			var timeElapsed:Float = FlxMath.remapToRange(time, event.startTime, event.endTime, 0, 1);
-			if(timeElapsed > 1)timeElapsed = 1;
-			if(timeElapsed < 0)timeElapsed = 0;
-			var currentSpeed = FlxMath.lerp(event.startSpeed, event.speed, func(PlayState.instance?.lastSVElapsed));
-
-			var toAdd:Float = time - PlayState.instance?.lastSVTime;
-			var finalPosition:Float = PlayState.instance?.lastSVPos + toAdd * currentSpeed;
-
-			if (PlayState.instance != null) PlayState.instance.lastSVPos = finalPosition;
-			if (PlayState.instance != null) PlayState.instance.lastSVTime = time;
-			if (PlayState.instance != null) PlayState.instance.lastSVElapsed = timeElapsed;
-			return finalPosition;
-		}
-		#end
-
-		return event?.position + ((time - event?.startTime) * 0.45 * event?.speed);
-	}
-
-	public static function getSV(time:Float){
-		var svIndex:Int = 0;
-
-		var event:SpeedEvent = PlayState.instance?.speedChanges[svIndex];
-		if (svIndex < PlayState.instance?.speedChanges.length - 1) {
-			while (PlayState.instance?.speedChanges[svIndex + 1] != null && PlayState.instance?.speedChanges[svIndex + 1].startTime <= time) {
-				event = PlayState.instance?.speedChanges[svIndex + 1];
-				svIndex++;
-			}
-		}
-
-		return event;
-	}
 
 	public function die(?trueKill:Bool = false, ?cod:String):Void
 	{
@@ -5080,36 +4844,24 @@ class PlayState extends MusicBeatState
 				heart.visible = true;
 		});
 
-		if (startedCountdown && !paused)
-		{
-			Conductor.songPosition += elapsed * 1000 * playbackRate;
-			if (Conductor.songPosition >= Conductor.offset)
-			{
-				Conductor.songPosition = FlxMath.lerp(FlxG.sound.music.time + Conductor.offset, Conductor.songPosition, Math.exp(-elapsed * 5));
-				var timeDiff:Float = Math.abs((FlxG.sound.music.time + Conductor.offset) - Conductor.songPosition);
-				if (timeDiff > 1000 * playbackRate)
-					Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
-			}
-		}
-
 		if (judgementCounter != null)
 			judgementCounter.updateCounter(comboManager.ratingsData, comboManager.songMisses, comboManager.combo, comboManager.maxCombo);
 
 		if (startingSong)
 		{
-			if (startedCountdown && Conductor.songPosition >= Conductor.offset)
+			if (startedCountdown && conductor.musicPosition >= conductor.musicPositionOffset)
 				startSong();
 			else if(!startedCountdown)
-				Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
+				conductor.musicPosition = -conductor.crochet * 5 + conductor.musicPositionOffset;
 		}
 		else if (!paused && updateTime)
 		{
-			if (Conductor.songPosition - lastUpdateTime >= 1.0)
-				lastUpdateTime = Conductor.songPosition;
+			if (conductor.musicPosition - lastUpdateTime >= 1.0)
+				lastUpdateTime = conductor.musicPosition;
 
 			// Cache time bar type to avoid repeated property access
 			var timeBarType:String = _cachedTimeBarType;
-			var curTime:Float = Math.max(0, Conductor.songPosition - ClientPrefs.data.noteOffset);
+			var curTime:Float = Math.max(0, conductor.musicPosition - ClientPrefs.data.noteOffset);
 			var lengthUsing:Float = (maskedSongLength > 0) ? maskedSongLength : songLength;
 			songPercent = (curTime / lengthUsing);
 
@@ -9275,6 +9027,9 @@ class PlayState extends MusicBeatState
 			FlxTween.cancelTweensOf(note);
 
 		note.wasGoodHit = true;
+
+		if (songName != 'tutorial')
+			camZooming = true;
 
 		if (note.hitsoundVolume > 0 && !note.hitsoundDisabled)
 			FlxG.sound.play(Paths.sound(note.hitsound), note.hitsoundVolume);

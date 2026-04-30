@@ -13,6 +13,7 @@ class MegaManager {
   public static var charaManager:CharacterManager;
   public static var comboManger:ComboManager;
   public static var notePoolManager:NotePoolManager;
+  public static var playfield:PlayfieldManager;
 
   /**
    Freeplay gets 3 specific ones for both scripting and AP sake
@@ -29,6 +30,7 @@ class MegaManager {
     new RConductor();
     new CharacterManager();
     new ComboManager();
+    new PlayfieldManager();
 
     // Then, set the instance to use
     conductor = RConductor.instance;
@@ -38,6 +40,7 @@ class MegaManager {
     apFreeplay = new APFreeplayManager(true);
     regFreeplay = new FreeplayManager(true);
     notePoolManager = NotePoolManager.getInstance();
+    playfield = PlayfieldManager.instance;
 
   }
 }

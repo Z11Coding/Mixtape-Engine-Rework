@@ -199,9 +199,9 @@ class LegacyFunkinLua {
 		set('defaultGirlfriendY', PlayState.instance.GF_Y);
 
 		// Character shit
-		set('boyfriendName', PlayState.SONG.player1);
-		set('dadName', PlayState.SONG.player2);
-		set('gfName', PlayState.SONG.gfVersion);
+		set('boyfriendName', MegaManager.playfield.SONG.player1);
+		set('dadName', MegaManager.playfield.SONG.player2);
+		set('gfName', MegaManager.playfield.SONG.gfVersion);
 
 		// Some settings, no jokes
 		set('downscroll', ClientPrefs.data.downScroll);

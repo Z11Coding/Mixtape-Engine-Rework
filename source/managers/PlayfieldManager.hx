@@ -38,7 +38,7 @@ class PlayfieldManager {
 		return value;
 	}
 
-	public var songSpeed(default, set):Float = 1;
+	public var songSpeed:Float = 1;
 	public var songSpeedType:String = "multiplicative";
 
   //Input
@@ -89,6 +89,18 @@ class PlayfieldManager {
     if (keysArray == null)
 			keysArray = backend.Keybinds.fill();
     controlArray = ['NOTE_LEFT', 'NOTE_DOWN', 'NOTE_UP', 'NOTE_RIGHT'];
+    speedChanges.push({
+			position: -6000 * 0.45,
+			startTime: -6000,
+			speed: 1,
+			#if EASED_SVs
+			startSpeed: 1,
+			#end
+		});
+    #if EASED_SVs
+		resetSVDeltas();
+		#end
+    speedChanges.sort(svSort);
   }
 
   /// Mania
@@ -172,7 +184,82 @@ class PlayfieldManager {
 	}
 
   /// Playfields
+  private var svIndex:Int = 0;
+	private inline function updateVisualPosition() {
+		var event:SpeedEvent = null;
 
+		for (i in svIndex+1...speedChanges.length) {
+			var nextEvent = speedChanges[i];
+			if (nextEvent.startTime > Conductor.songPosition)
+				break;
+
+			svIndex = i;
+			event = nextEvent;
+		}
+		event ??= speedChanges[svIndex];
+
+		if (!freezeNotes) Conductor.visualPosition = getTimeFromSV(Conductor.songPosition, event);
+	}
+
+	public static function getNoteInitialTime(time:Float)
+	{
+		var event:SpeedEvent = getSV(time);
+		return getTimeFromSV(time, event);
+	}
+
+	#if EASED_SVs
+	var lastSVTime:Float = 0;
+	var lastSVElapsed:Float = 0;
+	var lastSVPos:Float = 0;
+
+	inline function resetSVDeltas(){
+		if(speedChanges.length > 0){
+			lastSVTime = speedChanges[0].startTime;
+			lastSVElapsed = 0;
+			lastSVPos = speedChanges[0].position;
+		}else{
+			lastSVTime = -5000;
+			lastSVElapsed = 0;
+			lastSVPos = -5000 * 0.45;
+		}
+	}
+	#end
+
+	public static function getTimeFromSV(time:Float, event:SpeedEvent):Float {
+		#if EASED_SVs
+		var func:EaseFunction = event?.easeFunc;
+		if (event?.endTime != null) {
+			var timeElapsed:Float = FlxMath.remapToRange(time, event.startTime, event.endTime, 0, 1);
+			if(timeElapsed > 1)timeElapsed = 1;
+			if(timeElapsed < 0)timeElapsed = 0;
+			var currentSpeed = FlxMath.lerp(event.startSpeed, event.speed, func(PlayState.instance?.lastSVElapsed));
+
+			var toAdd:Float = time - PlayState.instance?.lastSVTime;
+			var finalPosition:Float = PlayState.instance?.lastSVPos + toAdd * currentSpeed;
+
+			if (PlayState.instance != null) PlayState.instance.lastSVPos = finalPosition;
+			if (PlayState.instance != null) PlayState.instance.lastSVTime = time;
+			if (PlayState.instance != null) PlayState.instance.lastSVElapsed = timeElapsed;
+			return finalPosition;
+		}
+		#end
+
+		return event?.position + ((time - event?.startTime) * 0.45 * event?.speed);
+	}
+
+	public static function getSV(time:Float){
+		var svIndex:Int = 0;
+
+		var event:SpeedEvent = speedChanges[svIndex];
+		if (svIndex < speedChanges.length - 1) {
+			while (speedChanges[svIndex + 1] != null && PlayState.instance?.speedChanges[svIndex + 1].startTime <= time) {
+				event = speedChanges[svIndex + 1];
+				svIndex++;
+			}
+		}
+
+		return event;
+	}
 
   /// Chart Loading
   var genChartInBG:ASync<Void -> String> = generateChart;
@@ -1144,7 +1231,7 @@ class PlayfieldManager {
           songObject.chart = allNotes;
           songObject.events = eventNotes;
           songObject.noteTypes = noteTypes;
-          chartCache.set({songName: songData.song, Mods.softloadDirectory}, songObject);
+          chartCache.set({songName: songData.song, modName: Mods.softloadDirectory}, songObject);
         }
       }
       generatedChart = true;
@@ -2044,6 +2131,150 @@ class PlayfieldManager {
 		_cachedHoldArray = null;
 		_cachedPressArray = null;
 		_cachedReleaseArray = null;
+  }
+
+  function svSort(Obj1:SpeedEvent, Obj2:SpeedEvent):Int
+	{
+		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.startTime, Obj2.startTime);
+	}
+
+  public function makeEvent(event:Array<Dynamic>, i:Int)
+	{
+		var subEvent:EventNote = {
+			strumTime: event[0] + ClientPrefs.data.noteOffset,
+			event: event[1][i][0],
+			value1: event[1][i][1],
+			value2: event[1][i][2]
+		};
+
+		eventNotes.push(subEvent);
+		curEvents.push(subEvent);
+		eventPushed(subEvent);
+		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+	}
+
+  // called only once per different event (Used for precaching)
+	function eventPushed(event:EventNote) {
+		if (eventsPushed != null) {
+			eventPushedUnique(event);
+			if(eventsPushed.contains(event.event)) {
+				return;
+			}
+
+			stagesFunc(function(stage:BaseStage) stage.eventPushed(event));
+			eventsPushed.push(event.event);
+		}
+	}
+
+	// called by every event with the same name
+	function eventPushedUnique(event:EventNote) {
+		if (event.value1 == null) event.value1 = '';
+		if (event.value2 == null) event.value2 = '';
+		switch(event.event) {
+			case 'Change Scroll Speed': // Negative duration means using the event time as the tween finish time
+				var duration = Std.parseFloat(event.value2);
+				if (!Math.isNaN(duration) && duration < 0.0){
+					event.strumTime -= duration * 1000;
+					event.value2 = Std.string(-duration);
+				}
+
+			case 'Mult SV' | 'Constant SV':
+				var speed:Float = 1;
+				if(event.event == 'Constant SV'){
+					var b = Std.parseFloat(event.value1);
+					speed = Math.isNaN(b) ? 1 : (b / songSpeed);
+				}else{
+					speed = Std.parseFloat(event.value1);
+					if (Math.isNaN(speed)) speed = 1;
+				}
+				#if EASED_SVs
+				var endTime:Null<Float> = null;
+				var easeFunc:EaseFunction = FlxEase.linear;
+
+				var tweenOptions = event.value2.split("/");
+				if(tweenOptions.length >= 1){
+					easeFunc = FlxEase.linear;
+					var parsed:Float = Std.parseFloat(tweenOptions[0]);
+					if(!Math.isNaN(parsed))
+						endTime = event.strumTime + (parsed * 1000);
+
+					if(tweenOptions.length > 1){
+						var f:EaseFunction = LuaUtils.getTweenEaseByString(tweenOptions[1]);
+						if(f != null)
+							easeFunc = f;
+					}
+				}
+
+				var lastChange:SpeedEvent = speedChanges[speedChanges.length - 1];
+				speedChanges.push({
+					position: getTimeFromSV(event.strumTime, lastChange),
+					startTime: event.strumTime,
+					endTime: endTime,
+					easeFunc: easeFunc,
+					startSpeed: lastChange.startSpeed,
+					speed: speed
+				});
+				#else
+				var lastChange:SpeedEvent = speedChanges[speedChanges.length - 1];
+				speedChanges.push({
+					position: getTimeFromSV(event.strumTime, lastChange),
+					startTime: event.strumTime,
+					speed: speed
+				});
+				#end
+
+			case "Change Character":
+				var charType:Int = 0;
+				switch(event.value1.toLowerCase()) {
+					case 'gf' | 'girlfriend':
+						charType = 2;
+					case 'dad' | 'opponent':
+						charType = 1;
+					case 'dad2' | 'opponent2':
+						charType = 3;
+					case 'bf2' | 'boyfriend2':
+						charType = 4;
+					default:
+						var val1:Int = Std.parseInt(event.value1);
+						if(Math.isNaN(val1)) val1 = 0;
+						charType = val1;
+				}
+
+				var newCharacter:String = event.value2;
+				addCharacterToList(newCharacter, charType);
+
+			case 'Play Sound':
+				Paths.sound(event.value1); //Precache sound
+
+			case 'False Timer':
+				if (timerExtensions == null)
+					timerExtensions = new Array();
+
+				timerExtensions.push(event.strumTime);
+				maskedSongLength = timerExtensions[0];
+		}
+		stagesFunc(function(stage:BaseStage) stage.eventPushedUnique(event));
+	}
+
+	function eventEarlyTrigger(event:EventNote):Float {
+		var returnedValue:Null<Float> = callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true);
+		if(returnedValue != null && returnedValue != 0) {
+			return returnedValue;
+		}
+
+		switch(event.event) {
+			case 'Kill Henchmen': //Better timing so that the kill sound matches the beat intended
+				return 280; //Plays 280ms before the actual position
+		}
+		return 0;
+	}
+
+  public function triggerEarlyEvents() {
+    if(eventNotes.length > 0)
+		{
+			for (event in eventNotes) event.strumTime -= eventEarlyTrigger(event);
+			eventNotes.sort(sortByTime);
+		}
   }
 }
 

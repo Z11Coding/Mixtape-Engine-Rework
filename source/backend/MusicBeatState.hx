@@ -788,14 +788,14 @@ class MusicBeatState extends yutautil.SafeManagedState
 			{
 				return song.song;
 			});
-			PlayState.SONG = null;
+			PlayfieldManager.SONG = null;
 		}
 		else
 		{
 			// songsInput is a String when storyMode is false
 			var songLowercase:String = Paths.formatToSongPath(storyPlaylist[0]);
 			var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
-			PlayState.SONG = Song.loadFromJson(formattedSong, songLowercase);
+			PlayfieldManager.SONG = Song.loadFromJson(formattedSong, songLowercase);
 		}
 
 		PlayState.isStoryMode = storyMode;
@@ -827,7 +827,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	{
 		var songLowercase:String = Paths.formatToSongPath(song);
 		var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
-		PlayState.SONG = Song.loadFromJson(formattedSong, songLowercase);
+		PlayfieldManager.SONG = Song.loadFromJson(formattedSong, songLowercase);
 
 		PlayState.isStoryMode = false;
 		PlayState.storyDifficulty = difficulty;
@@ -856,8 +856,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 		{
 			if (state is PlayState)
 			{
-				@:privateAccess
-				(cast state : PlayState).preGenerateNotes();
+				//@:privateAccess
+				//(cast state : PlayState).preGenerateNotes();
 			}
 		}
 		/*,

@@ -82,7 +82,7 @@ class RConductor extends FlxRhythmConductor {
     RConductor.instance.onMeasureHit.add(func);
 
   public inline static function secsToRow(sex:Float):Int
-		return Math.round(RConductor.instance.currentBeat * ROWS_PER_BEAT);
+		return Math.round(MegaManager.conductor.currentBeat * ROWS_PER_BEAT);
 
   public static function mapBPMChanges(song:SwagSong)
 	{
@@ -90,7 +90,7 @@ class RConductor extends FlxRhythmConductor {
       0,
       song.bpm
     );
-    RConductor.instance.timeChanges.push(event);
+    MegaManager.conductor.timeChanges.push(event);
 
 		var curBPM:Float = song.bpm;
 		var totalSteps:Int = 0;
@@ -104,7 +104,7 @@ class RConductor extends FlxRhythmConductor {
 					(totalPos == 0 ? 0.01 : totalPos),
 					curBPM
         );
-				RConductor.instance.timeChanges.push(event);
+				MegaManager.conductor.timeChanges.push(event);
 			}
 
 			if ((song.notes[i].bpmT && song.notes[i].endBPM != null && song.notes[i].startBPM != null) && song.notes[i].endBPM != song.notes[i].startBPM)
@@ -117,15 +117,15 @@ class RConductor extends FlxRhythmConductor {
 					(((totalPos == 0 ? 0.01 : totalPos) + ((60 / song.notes[i].endBPM) * 1000 / 4) * Math.round(getSectionBeats(song, i) * 4)) - (totalPos == 0 ? 0.01 : totalPos)),
           'Linear'
         );
-				RConductor.instance.timeChanges.push(tween);
+				MegaManager.conductor.timeChanges.push(tween);
 			}
 
 			var deltaSteps:Int = Math.round(getSectionSteps(song, i) * getSectionBeats(song, i));
 			totalSteps += deltaSteps;
 			totalPos += ((60 / curBPM) * 1000 / 4) * deltaSteps;
 		}
-    RConductor.instance.setupTimeChanges(RConductor.instance.timeChanges);
-    trace("new BPM map BUDDY " + RConductor.instance.timeChanges);
+    MegaManager.conductor.setupTimeChanges(MegaManager.conductor.timeChanges);
+    trace("new BPM map BUDDY " + MegaManager.conductor.timeChanges);
 	}
 
   static function getSectionBeats(song:SwagSong, section:Int)
@@ -147,9 +147,15 @@ class RConductor extends FlxRhythmConductor {
 	}
 
   public function reset(?fullReset:Bool = false) {
-    if (RConductor.instance != null) {
-			if (fullReset) RConductor.instance.destroy();
-      FlxRhythmConductor.clearSingleton(RConductor.instance);
+    if (MegaManager.conductor != null) {
+			if (fullReset) MegaManager.conductor.destroy();
+      clearSignals();
     }
+  }
+
+  public function clearSignals() {
+    MegaManager.conductor.onBeatHit.removeAll();
+    MegaManager.conductor.onStepHit.removeAll();
+    MegaManager.conductor.onMeasureHit.removeAll();
   }
 }
